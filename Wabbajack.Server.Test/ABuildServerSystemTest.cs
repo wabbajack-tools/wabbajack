@@ -211,9 +211,9 @@ namespace Wabbajack.BuildServer.Test
 
             ModListData = new ModList();
             ModListData.Archives.Add(
-                new Archive(new HTTPDownloader.State(MakeURL(modFileName.ToString())))
+                new Archive(new HTTPDownloader.State(MakeURL(modFileName)))
                 {
-                    Hash = await test_archive_path.FileHashAsync(),
+                    Hash = await test_archive_path.FileHashAsync() ?? Hash.Empty,
                     Name = "test_archive",
                     Size = test_archive_path.Size,
                 });
@@ -237,7 +237,7 @@ namespace Wabbajack.BuildServer.Test
                     Description = "A test",
                     DownloadMetadata = new DownloadMetadata
                     {
-                        Hash = await modListPath.FileHashAsync(), 
+                        Hash = await modListPath.FileHashAsync() ?? Hash.Empty, 
                         Size = modListPath.Size
                     },
                     Links = new ModlistMetadata.LinksObject

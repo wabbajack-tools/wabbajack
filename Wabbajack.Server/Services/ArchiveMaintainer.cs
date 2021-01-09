@@ -36,19 +36,20 @@ namespace Wabbajack.Server.Services
             return _settings.ArchivePath.Combine(hash.ToHex());
         }
 
-        public async Task<AbsolutePath> Ingest(AbsolutePath file)
+        public async Task Ingest(AbsolutePath file)
         {
             var hash = await file.FileHashAsync();
-            var path = ArchivePath(hash);
-            if (HaveArchive(hash))
+            if (hash == null) return;
+            
+            var path = ArchivePath(hash.Value);
+            if (HaveArchive(hash.Value))
             {
                 await file.DeleteAsync();
-                return path;
+                return;
             }
             
-            var newPath = _settings.ArchivePath.Combine(hash.ToHex());
+            var newPath = _settings.ArchivePath.Combine(hash.Value.ToHex());
             await file.MoveToAsync(newPath);
-            return path;
         }
 
         public bool HaveArchive(Hash hash)

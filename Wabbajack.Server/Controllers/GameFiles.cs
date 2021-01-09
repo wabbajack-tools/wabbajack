@@ -1,4 +1,4 @@
-﻿using System;
+﻿#nullable enable
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -40,17 +40,19 @@ namespace Wabbajack.BuildServer.Controllers
             _logger.Log(LogLevel.Information, $"Found {files.Count} game files");
             
             using var queue = new WorkQueue();
-            var hashed = await files.PMap(queue, async pair =>
+            var hashed = (await files.PMap(queue, async pair =>
             {
                 var hash = await pair.File.FileHashCachedAsync();
+                if (hash == null) return null;
+                
                 return await _sql.GetOrEnqueueArchive(new Archive(new GameFileSourceDownloader.State
                 {
                     Game = pair.Game.Game,
                     GameFile = pair.File.RelativeTo(pair.Game.GameLocation()),
                     GameVersion = pair.Game.InstalledVersion,
-                    Hash = hash
-                }) {Name = pair.File.FileName.ToString(), Size = pair.File.Size, Hash = hash});
-            });
+                    Hash = hash.Value
+                }) {Name = pair.File.FileName.ToString(), Size = pair.File.Size, Hash = hash.Value});
+            })).NotNull();
 
             await _quickSync.Notify<ArchiveDownloader>();
             return Ok(hashed);

@@ -83,7 +83,7 @@ namespace Wabbajack.Server.Services
 
                     var hash = await tempPath.Path.FileHashAsync();
 
-                    if (nextDownload.Archive.Hash != default && hash != nextDownload.Archive.Hash)
+                    if (hash == null || (nextDownload.Archive.Hash != default && hash != nextDownload.Archive.Hash))
                     {
                         _logger.Log(LogLevel.Warning,
                             $"Downloaded archive hashes don't match for {nextDownload.Archive.State.PrimaryKeyString} {nextDownload.Archive.Hash} {nextDownload.Archive.Size} vs {hash} {tempPath.Path.Size}");
@@ -98,7 +98,7 @@ namespace Wabbajack.Server.Services
                         continue;
                     }
 
-                    nextDownload.Archive.Hash = hash;
+                    nextDownload.Archive.Hash = hash.Value;
                     nextDownload.Archive.Size = tempPath.Path.Size;
 
                     _logger.Log(LogLevel.Information, $"Archiving {nextDownload.Archive.State.PrimaryKeyString}");
