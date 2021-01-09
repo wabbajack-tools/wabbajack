@@ -25,7 +25,7 @@ namespace Wabbajack.Server.Services
 
         public IEnumerable<(ModListSummary Summary, DetailedStatus Detailed)> Summaries => ValidationInfo.Values.Select(e => (e.Summary, e.Detailed));
         
-        public ConcurrentDictionary<string, (ModListSummary Summary, DetailedStatus Detailed, TimeSpan ValidationTime)> ValidationInfo = new ConcurrentDictionary<string, (ModListSummary Summary, DetailedStatus Detailed, TimeSpan ValidationTime)>();
+        public ConcurrentDictionary<string, (ModListSummary Summary, DetailedStatus Detailed, TimeSpan ValidationTime)> ValidationInfo = new();
 
 
         public ListValidator(ILogger<ListValidator> logger, AppSettings settings, SqlService sql, DiscordWebHook discord, NexusKeyMaintainance nexus, ArchiveMaintainer archives, QuickSync quickSync) 
@@ -57,14 +57,14 @@ namespace Wabbajack.Server.Services
                 var listArchives = await _sql.ModListArchives(metadata.Links.MachineURL);
                 var archives = await listArchives.PMap(queue, async archive =>
                 {
-                    ReportStarting(archive.State.PrimaryKeyString);
-                    if (timer.Elapsed > Delay)
-                    {
-                        return (archive, ArchiveStatus.InValid);
-                    }
-
                     try
                     {
+                        ReportStarting(archive.State.PrimaryKeyString);
+                        if (timer.Elapsed > Delay)
+                        {
+                            return (archive, ArchiveStatus.InValid);
+                        }
+                        
                         var (_, result) = await ValidateArchive(data, archive);
                         if (result == ArchiveStatus.InValid)
                         {
@@ -334,7 +334,7 @@ namespace Wabbajack.Server.Services
             }
         }
         
-        private AsyncLock _lock = new AsyncLock();
+        private AsyncLock _lock = new();
 
         public async Task<ArchiveStatus> FastNexusModStats(NexusDownloader.State ns)
         {
@@ -344,7 +344,7 @@ namespace Wabbajack.Server.Services
 
             if (mod == null || files == null)
             {
-                // Aquire the lock
+                // Acquire the lock
                 using var lck = await _lock.WaitAsync();
                 
                 // Check again
@@ -354,11 +354,12 @@ namespace Wabbajack.Server.Services
                 if (mod == null || files == null)
                 {
 
-                    NexusApiClient nexusClient = await _nexus.GetClient();
-                    var queryTime = DateTime.UtcNow;
 
                     try
                     {
+                        NexusApiClient nexusClient = await _nexus.GetClient();
+                        var queryTime = DateTime.UtcNow;
+
                         if (mod == null)
                         {
                             _logger.Log(LogLevel.Information, $"Found missing Nexus mod info {ns.Game} {ns.ModID}");

@@ -168,7 +168,9 @@ namespace Wabbajack.BuildServer.Controllers
         [ResponseCache(Duration = 60 * 5)]
         public async Task<IActionResult> HandleGetListJson(string Name)
         {
-            return Ok((await DetailedStatus(Name)).ToJson());
+            var lst = await DetailedStatus(Name);
+            if (lst == null) return NotFound();
+            return Ok(lst.ToJson());
         }
         
         private async Task<DetailedStatus> DetailedStatus(string Name)
@@ -176,6 +178,10 @@ namespace Wabbajack.BuildServer.Controllers
             var results = _validator.Summaries
                 .Select(d => d.Detailed)
                 .FirstOrDefault(d => d.MachineName == Name);
+            
+            if (results == null)
+                return null;
+            
             results!.Archives.Do(itm =>
             {
                 if (string.IsNullOrWhiteSpace(itm.Archive.Name)) 

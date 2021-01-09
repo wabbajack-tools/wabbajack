@@ -154,7 +154,7 @@ TOP:
                             catch (Exception ex)
                             {
                                 if (readThisCycle == 0)
-                                    throw ex;
+                                    throw;
 
                                 if (totalRead < contentSize)
                                 {
@@ -169,7 +169,7 @@ TOP:
                                         response = await client.SendAsync(msg);
                                         goto TOP;
                                     }
-                                    throw ex;
+                                    throw;
                                 }
 
                                 break;
