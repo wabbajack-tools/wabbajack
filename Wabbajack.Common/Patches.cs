@@ -57,7 +57,7 @@ namespace Wabbajack.Common
             }
             catch (SQLiteException ex)
             {
-                if (!ex.Message.StartsWith("constraint exception"))
+                if (!ex.Message.StartsWith("constraint failed"))
                     throw;
             }
             await patch.CopyToAsync(output);
@@ -109,7 +109,7 @@ namespace Wabbajack.Common
             }
             catch (SQLiteException ex)
             {
-                if (!ex.Message.StartsWith("constraint exception"))
+                if (!ex.Message.StartsWith("constraint failed"))
                     throw;
 
             }
