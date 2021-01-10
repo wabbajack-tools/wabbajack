@@ -20,7 +20,7 @@ namespace Wabbajack.Lib.NexusApi
     {
         private static readonly string API_KEY_CACHE_FILE = "nexus.key_cache";
        
-        public Wabbajack.Lib.Http.Client HttpClient { get; } = new Wabbajack.Lib.Http.Client();
+        public Http.Client HttpClient { get; } = new();
 
         #region Authentication
 
@@ -254,7 +254,7 @@ namespace Wabbajack.Lib.NexusApi
             return new NexusApiClient(apiKey);
         }
 
-        public async Task<T> Get<T>(string url, Wabbajack.Lib.Http.Client? client = null)
+        public async Task<T> Get<T>(string url, Http.Client? client = null)
         {
             client ??= HttpClient;
             int retries = 0;
@@ -269,7 +269,6 @@ namespace Wabbajack.Lib.NexusApi
                     throw new HttpException(response);
                 }
 
-
                 await using var stream = await response.Content.ReadAsStreamAsync();
                 return stream.FromJson<T>(genericReader:true);
             }
@@ -283,7 +282,7 @@ namespace Wabbajack.Lib.NexusApi
             }
             catch (Exception e)
             {
-                Utils.Log(e.ToString());
+                Utils.Log($"Nexus call failed `{url}`: " + e);
                 throw;
             }
         }

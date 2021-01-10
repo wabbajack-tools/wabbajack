@@ -25,18 +25,27 @@ namespace Wabbajack.Server.Services
             var keys = await _sql.GetNexusApiKeysWithCounts(1500);
             foreach (var key in keys.Where(k => k.Key != _selfKey))
             {
-                var client = new TrackingClient(_sql, key);
-                if (!await client.IsPremium())
+                try
                 {
-                    _logger.LogWarning($"Purging non premium key");
-                    await _sql.DeleteNexusAPIKey(key.Key);
-                    continue;
+                    var client = new TrackingClient(_sql, key);
+                    if (!await client.IsPremium())
+                    {
+                        _logger.LogWarning($"Purging non premium key");
+                        await _sql.DeleteNexusAPIKey(key.Key);
+                        continue;
+                    }
+                    return client;
+                }
+                catch (Exception ex)
+                {
+                    Utils.Log($"Error getting tracking client: {ex}");
                 }
 
-                return client;
             }
 
-            return await NexusApiClient.Get();
+            var bclient = await NexusApiClient.Get();
+            await bclient.GetUserStatus();
+            return bclient;
         }
         
         public override async Task<int> Execute()

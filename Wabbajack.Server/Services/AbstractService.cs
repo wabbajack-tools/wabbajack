@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
 using Wabbajack.BuildServer;
+using Wabbajack.Common;
 
 namespace Wabbajack.Server.Services
 {
@@ -65,6 +66,7 @@ namespace Wabbajack.Server.Services
                         try
                         {
                             _logger.LogInformation($"Running: {GetType().Name}");
+                            ActiveWorkStatus = Array.Empty<(String, DateTime)>();
                             LastStart = DateTime.UtcNow;
                             await Execute();
                             LastEnd = DateTime.UtcNow;
@@ -72,6 +74,7 @@ namespace Wabbajack.Server.Services
                         catch (Exception ex)
                         {
                             _logger.LogError(ex, "Running Service Loop");
+                            Utils.Log($"Error in service {this.GetType()} : {ex}");
                         }
 
                         var token = await _quickSync.GetToken<TP>();

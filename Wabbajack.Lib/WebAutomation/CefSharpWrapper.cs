@@ -172,7 +172,6 @@ namespace Wabbajack.Lib.WebAutomation
         public TaskCompletionSource<long> _tcs = new TaskCompletionSource<long>();
         private bool _quickMode;
         private CancellationToken? _cancelationToken;
-        private TimeSpan _downloadTimeout;
         public Task<long> TaskResult => _tcs.Task;
 
         public ReroutingDownloadHandler(CefSharpWrapper wrapper, AbsolutePath path, bool quickMode, CancellationToken? token)
