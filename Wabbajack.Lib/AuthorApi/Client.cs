@@ -58,7 +58,7 @@ namespace Wabbajack.Lib.AuthorApi
             {
                 OriginalFileName = path.FileName, 
                 Size = path.Size, 
-                Hash = await path.FileHashCachedAsync(),
+                Hash = await path.FileHashCachedAsync() ?? Hash.Empty,
                 Parts = await parts.PMap(queue, async part =>
                 {
                     progressFn("Hashing file parts", Percent.FactoryPutInRange(part.Index, parts.Length));

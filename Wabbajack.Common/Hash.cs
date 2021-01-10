@@ -274,17 +274,17 @@ namespace Wabbajack.Common
             WriteHashCache(file, hash);
         }
 
-        public static async Task<Hash> FileHashCachedAsync(this AbsolutePath file, bool nullOnIOError = false)
+        public static async Task<Hash?> FileHashCachedAsync(this AbsolutePath file)
         {
             if (TryGetHashCache(file, out var foundHash)) return foundHash;
 
-            var hash = await file.FileHashAsync(nullOnIOError);
-            if (hash != Hash.Empty)
-                WriteHashCache(file, hash);
+            var hash = await file.FileHashAsync();
+            if (hash != null && hash != Hash.Empty)
+                WriteHashCache(file, hash.Value);
             return hash;
         }
 
-        public static async Task<Hash> FileHashAsync(this AbsolutePath file, bool nullOnIOError = false)
+        public static async Task<Hash?> FileHashAsync(this AbsolutePath file)
         {
             try
             {
@@ -294,10 +294,10 @@ namespace Wabbajack.Common
                 var value = await xxHashFactory.Instance.Create(config).ComputeHashAsync(hs);
                 return new Hash(BitConverter.ToUInt64(value.Hash));
             }
-            catch (IOException)
+            catch (IOException e)
             {
-                if (nullOnIOError) return Hash.Empty;
-                throw;
+                Utils.Error(e, $"Unable to hash file {file}");
+                return null;
             }
         }
     }

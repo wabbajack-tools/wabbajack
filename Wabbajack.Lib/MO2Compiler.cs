@@ -382,11 +382,15 @@ namespace Wabbajack.Lib
                 var source = DownloadsPath.Combine(a.Name + Consts.MetaFileExtension);
                 var ini = a.State.GetMetaIniString();
                 var (id, fullPath) = await IncludeString(ini);
+                var hash = await fullPath.FileHashAsync();
+
+                if (hash == null) return;
+                
                 InstallDirectives.Add(new ArchiveMeta
                 {
                     SourceDataID = id,
                     Size = fullPath.Size,
-                    Hash = await fullPath.FileHashAsync(),
+                    Hash = hash.Value,
                     To = source.FileName
                 });
             });

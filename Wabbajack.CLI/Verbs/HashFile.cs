@@ -16,7 +16,12 @@ namespace Wabbajack.CLI.Verbs
         {
             var abs = (AbsolutePath)Input;
             var hash = await abs.FileHashAsync();
-            Console.WriteLine($"{abs} hash: {hash} {hash.ToHex()} {(long)hash}");
+            if (hash == null)
+            {
+                Console.WriteLine("Hash is null!");
+                return ExitCode.Error;
+            }
+            Console.WriteLine($"{abs} hash: {hash} {hash.Value.ToHex()} {(long)hash}");
             return ExitCode.Ok;
         }
     }

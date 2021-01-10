@@ -128,7 +128,7 @@ namespace Wabbajack.Lib.ModListRegistry
             {
                 return true;
             }
-            return DownloadMetadata.Hash != await modlistPath.FileHashCachedAsync(true);
+            return DownloadMetadata.Hash != await modlistPath.FileHashCachedAsync();
         }
     }
 

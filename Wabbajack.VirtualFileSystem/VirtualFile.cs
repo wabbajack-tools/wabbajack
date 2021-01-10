@@ -190,10 +190,10 @@ namespace Wabbajack.VirtualFileSystem
         public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, IStreamFactory extractedFile,
             IPath relPath, int depth = 0)
         {
-            Hash hash = default;
+            Hash hash;
             if (extractedFile is NativeFileStreamFactory)
             {
-                hash = await ((AbsolutePath)extractedFile.Name).FileHashCachedAsync();
+                hash = await ((AbsolutePath)extractedFile.Name).FileHashCachedAsync() ?? Hash.Empty;
             } 
             else
             {

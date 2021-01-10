@@ -24,9 +24,10 @@ namespace Wabbajack.Server.Test
             var file = new TempFile();
             await file.Path.WriteAllBytesAsync(RandomData(1024 * 1024 * 6));
             var dataHash = await file.Path.FileHashAsync();
+            Assert.NotNull(dataHash);
 
             await Fixture.GetService<ArchiveMaintainer>().Ingest(file.Path);
-            Assert.True(Fixture.GetService<ArchiveMaintainer>().HaveArchive(dataHash));
+            Assert.True(Fixture.GetService<ArchiveMaintainer>().HaveArchive(dataHash!.Value));
 
             var sql = Fixture.GetService<SqlService>();
             
@@ -34,7 +35,7 @@ namespace Wabbajack.Server.Test
             {
                 Created = DateTime.UtcNow,
                 Rationale = "Test File", 
-                Hash = dataHash
+                Hash = dataHash!.Value
             });
 
             var uploader = Fixture.GetService<MirrorUploader>();
@@ -43,7 +44,7 @@ namespace Wabbajack.Server.Test
             
             var archive = new Archive(new HTTPDownloader.State(MakeURL(dataHash.ToString())))
             {
-                Hash = dataHash,
+                Hash = dataHash!.Value,
                 Size = file.Path.Size
             };
             

@@ -139,6 +139,8 @@ namespace Wabbajack.CLI.Verbs
                         CLIUtils.Log($"Hashing {f}");
                         return (f, await f.FileHashCachedAsync());
                     }))
+                    .Where(x => x.Item2.HasValue)
+                    .Select(x => (x.f, x.Item2!.Value))
                     .GroupBy(d => d.Item2)
                     .ToDictionary(d => d.Key, d => d.First().f);
 

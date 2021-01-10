@@ -31,25 +31,26 @@ namespace Wabbajack.CLI.Verbs
             
             Utils.Log($"Hashing files for {_game} {version}");
             
-            var indexed = await gameLocation
+            var indexed = (await gameLocation
                 .EnumerateFiles()
                 .PMap(queue, async f =>
                 {
                     var hash = await f.FileHashCachedAsync();
+                    if (hash == null) return null;
                     return new Archive(new GameFileSourceDownloader.State
                     {
                         Game = _game, 
                         GameFile = f.RelativeTo(gameLocation), 
-                        Hash = hash, 
+                        Hash = hash.Value, 
                         GameVersion = version
                     })
                     {
                         Name = f.FileName.ToString(),
-                        Hash = hash,
+                        Hash = hash.Value,
                         Size = f.Size
                     };
 
-                });
+                })).NotNull().ToArray();
 
             Utils.Log($"Found and hashed {indexed.Length} files");
             await indexed.ToJsonAsync(file, prettyPrint: true);

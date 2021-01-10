@@ -242,8 +242,12 @@ using Wabbajack.Lib.Downloaders;
             Utils.Log($"Checking virus result for {path}");
 
             var hash = await path.FileHashAsync();
+            if (hash == null)
+            {
+                throw new Exception("Hash is null!");
+            }
 
-            using var result = await client.GetAsync($"{Consts.WabbajackBuildServerUri}virus_scan/{hash.ToHex()}", errorsAsExceptions: false);
+            using var result = await client.GetAsync($"{Consts.WabbajackBuildServerUri}virus_scan/{hash.Value.ToHex()}", errorsAsExceptions: false);
             if (result.StatusCode == HttpStatusCode.OK)
             {
                 var data = await result.Content.ReadAsStringAsync();

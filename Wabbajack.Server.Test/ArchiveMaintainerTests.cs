@@ -26,7 +26,9 @@ namespace Wabbajack.BuildServer.Test
             var hash = await tf.Path.FileHashAsync();
             await maintainer.Ingest(tf.Path);
             
-            Assert.True(maintainer.TryGetPath(hash, out var found));
+            Assert.NotNull(hash);
+            
+            Assert.True(maintainer.TryGetPath(hash!.Value, out var found));
             Assert.Equal(await tf2.Path.ReadAllBytesAsync(), await found.ReadAllBytesAsync());
         }
         
@@ -40,10 +42,12 @@ namespace Wabbajack.BuildServer.Test
             await tf.Path.WriteAllBytesAsync(RandomData(1024));
             var hash = await tf.Path.FileHashAsync();
             
-            await tf.Path.CopyToAsync(Fixture.ServerArchivesFolder.Combine(hash.ToHex()));
+            Assert.NotNull(hash);
+            
+            await tf.Path.CopyToAsync(Fixture.ServerArchivesFolder.Combine(hash!.Value.ToHex()));
             maintainer.Start();
 
-            Assert.True(maintainer.TryGetPath(hash, out var found));
+            Assert.True(maintainer.TryGetPath(hash!.Value, out var found));
         }
     }
 }

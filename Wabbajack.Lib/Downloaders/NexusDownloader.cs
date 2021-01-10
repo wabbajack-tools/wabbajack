@@ -290,7 +290,9 @@ namespace Wabbajack.Lib.Downloaders
                 if (fastPath != default)
                 {
                     newArchive.Size = fastPath.Size;
-                    newArchive.Hash = await fastPath.FileHashAsync();
+                    var hash = await fastPath.FileHashAsync();
+                    if (hash == null) return default;
+                    newArchive.Hash = hash.Value;
                     return (newArchive, new TempFile());
                 }
 
@@ -300,7 +302,9 @@ namespace Wabbajack.Lib.Downloaders
                 await newArchive.State.Download(newArchive, tempFile.Path);
 
                 newArchive.Size = tempFile.Path.Size;
-                newArchive.Hash = await tempFile.Path.FileHashAsync();
+                var newArchiveHash = await tempFile.Path.FileHashAsync();
+                if (newArchiveHash == null) return default;
+                newArchive.Hash = newArchiveHash.Value;
 
                 Utils.Log($"Possible upgrade {newArchive.State.PrimaryKeyString} downloaded");
 

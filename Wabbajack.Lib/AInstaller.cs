@@ -145,7 +145,7 @@ namespace Wabbajack.Lib
                                 await ClientAPI.GetVirusScanResult(toFile) == VirusScanner.Result.Malware)
                             {
                                 await toFile.DeleteAsync();
-                                Utils.ErrorThrow(new Exception($"Virus scan of patched executable reported possible malware: {toFile.ToString()} ({(long)await toFile.FileHashCachedAsync()})"));
+                                Utils.ErrorThrow(new Exception($"Virus scan of patched executable reported possible malware: {toFile.ToString()} ({(long)(await toFile.FileHashCachedAsync())!.Value})"));
                             }
                         }
                             break;
@@ -298,7 +298,8 @@ namespace Wabbajack.Lib
                 .OrderByDescending(e => e.Item2.LastModified)
                 .GroupBy(e => e.Item1)
                 .Select(e => e.First())
-                .Select(e => new KeyValuePair<Hash, AbsolutePath>(e.Item1, e.Item2)));
+                .Where(x => x.Item1 != null)
+                .Select(e => new KeyValuePair<Hash, AbsolutePath>(e.Item1!.Value, e.Item2)));
         }
 
         /// <summary>
