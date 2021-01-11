@@ -42,7 +42,7 @@ namespace Wabbajack
 
                 Utils.Log($"Detected Windows Version: {p.WindowsVersion}");
 
-                if (!(p.WindowsVersion.Major >= 6 && p.WindowsVersion.Minor >= 2))
+                if (!(p.WindowsVersion.Major >= 10 && p.WindowsVersion.Minor >= 0))
                     Utils.Log(
                         $"You are not running a recent version of Windows (version 10 or greater), Wabbajack is not supported on OS versions older than Windows 10.");
 
@@ -83,7 +83,7 @@ namespace Wabbajack
             catch (Exception ex)
             {
                 Utils.LogStraightToFile("Error");
-                Utils.LogStraightToFile(ex.ToString()); 
+                Utils.LogStraightToFile(ex.ToString());
                 Environment.Exit(-1);
             }
         }
