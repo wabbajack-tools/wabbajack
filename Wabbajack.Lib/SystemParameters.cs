@@ -15,6 +15,8 @@ namespace Wabbajack.Lib
         public long VideoMemorySize { get; set; }
         public long SystemMemorySize { get; set; }
 
+        public long SystemPageSize { get; set; }
+
         public Version WindowsVersion { get; set; } = Environment.OSVersion.Version;
 
         /// <summary>

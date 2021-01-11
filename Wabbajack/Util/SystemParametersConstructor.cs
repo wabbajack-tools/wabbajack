@@ -56,6 +56,7 @@ namespace Wabbajack.Util
                 ScreenHeight = height,
                 VideoMemorySize = video_memory,
                 SystemMemorySize = (long)memory.ullTotalPhys,
+                SystemPageSize = (long)memory.ullTotalPageFile - (long)memory.ullTotalPhys
             };
         }
     }
