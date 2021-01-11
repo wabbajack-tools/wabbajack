@@ -198,15 +198,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 else
                 {
-                    var csrfURL = string.IsNullOrWhiteSpace(FileID)
-                        ? $"{Site}/files/file/{FileName}/?do=download"
-                        : $"{Site}/files/file/{FileName}/?do=download&r={FileID}";
-                    var html = await GetStringAsync(new Uri(csrfURL), token);
-
-                    var pattern = new Regex("(?<=csrfKey=).*(?=[&\"\'])|(?<=csrfKey: \").*(?=[&\"\'])");
-                    var matches = pattern.Matches(html).Cast<Match>();
-                    
-                    var csrfKey = matches.Where(m => m.Length == 32).Select(m => m.ToString()).FirstOrDefault();
+                    var csrfKey = await GetCsrfKey(token);
 
                     if (!Downloader.IsCloudFlareProtected && csrfKey == null)
                     {
@@ -291,6 +283,20 @@ namespace Wabbajack.Lib.Downloaders
                 goto TOP;
             }
 
+            private async Task<string?> GetCsrfKey(CancellationToken? token)
+            {
+                var csrfURL = string.IsNullOrWhiteSpace(FileID)
+                    ? $"{Site}/files/file/{FileName}/?do=download"
+                    : $"{Site}/files/file/{FileName}/?do=download&r={FileID}";
+                var html = await GetStringAsync(new Uri(csrfURL), token);
+
+                var pattern = new Regex("(?<=csrfKey=).*(?=[&\"\'])|(?<=csrfKey: \").*(?=[&\"\'])");
+                var matches = pattern.Matches(html).Cast<Match>();
+
+                var csrfKey = matches.Where(m => m.Length == 32).Select(m => m.ToString()).FirstOrDefault();
+                return csrfKey;
+            }
+
             private async Task DeleteOldDownloadCookies(Driver driver)
             {
                 await driver.DeleteCookiesWhere(c => c.Name.StartsWith("ips4_downloads_delay_") && c.Value == "-1");
@@ -354,8 +360,15 @@ namespace Wabbajack.Lib.Downloaders
             {
                 var token = new CancellationTokenSource();
                 token.CancelAfter(TimeSpan.FromMinutes(10));
+
+                var csrfKey = await GetCsrfKey(token.Token);
+                if (csrfKey == null)
+                {
+                    Utils.Log($"Could not load CRSF key");
+                    return new List<Archive>();
+                }
                 
-                var others = await GetHtmlAsync(new Uri($"{Site}/files/file/{FileName}?do=download"), token.Token);
+                var others = await GetHtmlAsync(new Uri($"{Site}/files/file/{FileName}?do=download&csrfKey={csrfKey}"), token.Token);
 
                 var pairs = others.DocumentNode.SelectNodes("//a[@data-action='download']")
                     .Select(item => (item.GetAttributeValue("href", ""),
