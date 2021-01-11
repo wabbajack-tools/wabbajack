@@ -11,6 +11,7 @@ using Wabbajack.Common.Exceptions;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.AuthorApi;
 using Wabbajack.Lib.Validation;
+using System.Linq;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -89,7 +90,7 @@ namespace Wabbajack.Lib.Downloaders
                     if (DomainRemaps.TryGetValue(Url.Host, out var remap))
                     {
                         var builder = new UriBuilder(Url) {Host = remap};
-                        using var response = await client.GetAsync($"{builder}/parts/{part.Index}");
+                        using var response = await GetWithCDNRetry(client, $"{builder}/parts/{part.Index}");
                         if (!response.IsSuccessStatusCode)
                             throw new HttpException((int)response.StatusCode, response.ReasonPhrase ?? "Unknown");
                         await response.Content.CopyToAsync(ostream);
@@ -112,6 +113,31 @@ namespace Wabbajack.Lib.Downloaders
             {
                 var definition = await GetDefinition(token);
                 return true;
+            }
+
+            private async Task<HttpResponseMessage> GetWithCDNRetry(Http.Client client, string url, CancellationToken? token = null)
+            {
+                int retries = 0;
+
+                TOP:
+
+                try
+                {
+                    return await client.GetAsync(url, retry: false, token: token);
+                }
+                catch (Exception ex)
+                {
+                    if (retries > 2)
+                    {
+                        Utils.Log($"Trying CDN...");
+                        var remap = url.Replace(new Uri(url).Host, DomainRemaps.FirstOrDefault(x => x.Value == new Uri(url).Host).Key);
+                        return await client.GetAsync(remap, retry: false, token: token);
+                    }
+                    retries += 1;
+                    Utils.Log($"Error reading {url} retrying [{retries}]");
+                    Utils.Log(ex.ToString());
+                    goto TOP;
+                }
             }
 
             private async Task<HttpResponseMessage> GetWithMirroredRetry(Http.Client client, string url)
@@ -157,7 +183,7 @@ namespace Wabbajack.Lib.Downloaders
                 if (DomainRemaps.TryGetValue(Url.Host, out var remap))
                 {
                     var builder = new UriBuilder(Url) {Host = remap};
-                    using var data = await client.GetAsync(builder + "/definition.json.gz", token: token);
+                    using var data = await GetWithCDNRetry(client, builder + "/definition.json.gz", token: token);
                     await using var gz = new GZipStream(await data.Content.ReadAsStreamAsync(),
                         CompressionMode.Decompress);
                     return gz.FromJson<CDNFileDefinition>();
