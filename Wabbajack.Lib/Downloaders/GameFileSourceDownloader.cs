@@ -64,7 +64,7 @@ namespace Wabbajack.Lib.Downloaders
             internal AbsolutePath SourcePath => Game.MetaData().GameLocation().Combine(GameFile);
 
             [JsonIgnore]
-            public override object[] PrimaryKey { get => new object[] {Game, GameVersion ?? "0.0.0.0", GameFile}; }
+            public override object[] PrimaryKey { get => new object[] {Game, GameVersion ?? "0.0.0.0", GameFile.ToString().ToLowerInvariant()}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {

@@ -1,5 +1,12 @@
 ### Changelog
 
+#### Version - 2.4.1.0 - 1/12/2020
+* Fix errors with broken SQL DBs crashing the system 
+* Fix errors with bad SQL clean commands
+* Warn when the user doesn't have enough swap space
+* Better OS version detection
+* Use case-insensitive comparisons in Game File Downloader's PrimaryKeyString
+
 #### Version - 2.4.0.0 - 1/9/2020
 * Wabbajack is now based on .NET 5.0 (does not require a runtime download by users)
 * Origin is now supported as a game source
