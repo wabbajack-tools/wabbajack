@@ -42,12 +42,17 @@ namespace Wabbajack
 
                 Utils.Log($"Detected Windows Version: {p.WindowsVersion}");
 
-                if (!(p.WindowsVersion.Major >= 6 && p.WindowsVersion.Minor >= 2))
+                if (!(p.WindowsVersion.Major >= 10 && p.WindowsVersion.Minor >= 0))
                     Utils.Log(
                         $"You are not running a recent version of Windows (version 10 or greater), Wabbajack is not supported on OS versions older than Windows 10.");
 
                 Utils.Log(
-                    $"System settings - ({p.SystemMemorySize.ToFileSizeString()} RAM), Display: {p.ScreenWidth} x {p.ScreenHeight} ({p.VideoMemorySize.ToFileSizeString()} VRAM - VideoMemorySizeMb={p.EnbLEVRAMSize})");
+                    $"System settings - ({p.SystemMemorySize.ToFileSizeString()} RAM) ({p.SystemPageSize.ToFileSizeString()} Page), Display: {p.ScreenWidth} x {p.ScreenHeight} ({p.VideoMemorySize.ToFileSizeString()} VRAM - VideoMemorySizeMb={p.EnbLEVRAMSize})");
+
+                if (p.SystemPageSize == 0)
+                    Utils.Log("Pagefile is disabled! Consider increasing to 20000MB. A disabled pagefile can cause crashes and poor in-game performance.");
+                else if (p.SystemPageSize < 2e+10)
+                    Utils.Log("Pagefile below recommended! Consider increasing to 20000MB. A suboptimal pagefile can cause crashes and poor in-game performance.");
 
                 Warmup();
 
@@ -83,7 +88,7 @@ namespace Wabbajack
             catch (Exception ex)
             {
                 Utils.LogStraightToFile("Error");
-                Utils.LogStraightToFile(ex.ToString()); 
+                Utils.LogStraightToFile(ex.ToString());
                 Environment.Exit(-1);
             }
         }
