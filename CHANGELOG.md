@@ -1,7 +1,10 @@
 ### Changelog
 
+#### Version - 2.4.1.1 - 1/13/2020
+* HOTFIX: Fix game file sources that don't have MO2 specific names
+
 #### Version - 2.4.1.0 - 1/12/2020
-* Fix errors with broken SQL DBs crashing the system 
+* Fix errors with broken SQL DBs crashing the system
 * Fix errors with bad SQL clean commands
 * Warn when the user doesn't have enough swap space
 * Better OS version detection

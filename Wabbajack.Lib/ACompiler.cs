@@ -198,7 +198,7 @@ namespace Wabbajack.Lib
                             return new IndexedArchive(
                                 VFS.Index.ByRootPath[ag.MetaData().GameLocation().Combine(state.GameFile)])
                             {
-                                IniData = ini, Meta = meta
+                                IniData = ini, Meta = meta, Name = state.GameFile.Munge().ToString()
                             };
                         }));
                     }
@@ -223,11 +223,13 @@ namespace Wabbajack.Lib
                     a.State = (await ResolveArchive(a)).State;
                     return null;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Utils.Log(ex.ToString());
                     return a;
                 }
-            })).NotNull().ToHashSet();
+            }))
+                .NotNull().ToHashSet();
 
             if (remove.Count == 0)
             {
@@ -509,20 +511,23 @@ namespace Wabbajack.Lib
                 Error(
                     $"No download metadata found for {archive.Name}, please use MO2 to query info or add a .meta file and try again.");
 
-            var result = new Archive(await DownloadDispatcher.ResolveArchive(archive.IniData));
+            var state = (AbstractDownloadState?)await DownloadDispatcher.ResolveArchive(archive.IniData);
 
-            if (result.State == null)
+            if (state == null)
                 Error($"{archive.Name} could not be handled by any of the downloaders");
 
-            result.Name = archive.Name ?? "";
-            result.Hash = archive.File.Hash;
-            result.Size = archive.File.Size;
+            var result = new Archive(state!)
+            {
+                Name = archive.Name ?? "", 
+                Hash = archive.File.Hash, 
+                Size = archive.File.Size
+            };
 
             await result.State!.GetDownloader().Prepare();
 
             var token = new CancellationTokenSource();
             token.CancelAfter(Consts.MaxVerifyTime);
-            if (result.State != null && !await result.State.Verify(result, token.Token))
+            if (!await result.State.Verify(result, token.Token))
                 Error(
                     $"Unable to resolve link for {archive.Name}. If this is hosted on the Nexus the file may have been removed.");
 

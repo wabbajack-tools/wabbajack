@@ -143,7 +143,6 @@ namespace Wabbajack.Common
         {
             return _path.StartsWith(s._path, StringComparison.OrdinalIgnoreCase);
         }
-
         public RelativePath Combine(params RelativePath[] paths )
         {
             return (RelativePath)Path.Combine(paths.Select(p => (string)p).Cons(_path).ToArray());

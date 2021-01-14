@@ -16,7 +16,7 @@ namespace Wabbajack.Lib.NexusApi
     public class NexusFileInfo
     {
         public long category_id { get; set; }
-        public string category_name { get; set; } = string.Empty;
+        public string? category_name { get; set; } = null;
         public string changelog_html { get; set; } = string.Empty;
         public string description { get; set; } = string.Empty;
         public string external_virus_scan_url { get; set; } = string.Empty;
