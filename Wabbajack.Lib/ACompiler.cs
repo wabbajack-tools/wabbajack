@@ -430,7 +430,7 @@ namespace Wabbajack.Lib
                         pfa.FromFile = file;
                         pfa.FromHash = file.Hash;
                         pfa.ArchiveHashPath = file.MakeRelativePaths();
-                        pfa.PatchID = await IncludeFile(bytes!);
+                        pfa.PatchID = await IncludeFile(await bytes!.GetData());
                     }
                 });
 

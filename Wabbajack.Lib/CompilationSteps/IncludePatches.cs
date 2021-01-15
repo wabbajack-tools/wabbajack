@@ -110,7 +110,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 var (_, bytes, file) = PickPatch(_compiler, patches);
                 e.FromHash = file.Hash;
                 e.ArchiveHashPath = file.MakeRelativePaths();
-                e.PatchID = await _compiler.IncludeFile(bytes!);
+                e.PatchID = await _compiler.IncludeFile(await bytes!.GetData());
             }
             else
             {
@@ -128,11 +128,11 @@ namespace Wabbajack.Lib.CompilationSteps
             return e;
         }
 
-        public static (bool, byte[], VirtualFile) PickPatch(ACompiler compiler, IEnumerable<(bool foundHash, byte[]? data, VirtualFile file)> patches)
+        public static (bool, PatchCache.CacheEntry, VirtualFile) PickPatch(ACompiler compiler, IEnumerable<(bool foundHash, PatchCache.CacheEntry? data, VirtualFile file)> patches)
         {
             var ordered = patches
                 .Select(f => (f.foundHash, f.data!, f.file))
-                .OrderBy(f => f.Item2.Length)
+                .OrderBy(f => f.Item2.PatchSize)
                 .ToArray();
 
             var primaryChoice = ordered.FirstOrDefault(itm =>
@@ -148,7 +148,8 @@ namespace Wabbajack.Lib.CompilationSteps
             });
             
             // If we didn't find a file from an archive or the primary game, use a secondary game file.
-            return primaryChoice != default ? primaryChoice : ordered.FirstOrDefault();
+            var result = primaryChoice != default ? primaryChoice : ordered.FirstOrDefault();
+            return result;
         }
 
         private AbsolutePath ModForFile(AbsolutePath file)

@@ -238,6 +238,7 @@ namespace Compression.BSA
                     await builder._dataSrc.CopyToAsync(ds);
                 }
 
+                await builder._dataSrc.DisposeAsync();
                 builder._dataSrc = slab.Allocate(ms.Length);
                 ms.Position = 0;
                 await ms.CopyToAsync(builder._dataSrc);
