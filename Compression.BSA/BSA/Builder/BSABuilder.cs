@@ -276,6 +276,8 @@ namespace Compression.BSA
                     {
                         await _srcData.CopyToWithStatusAsync(_srcData.Length, w, $"Compressing {_path}");
                     }
+
+                    await _srcData.DisposeAsync();
                     _srcData = _bsa._slab.Allocate(r.Length);
                     r.Position = 0;
                     await r.CopyToWithStatusAsync(r.Length, _srcData, $"Writing {_path}");
@@ -291,6 +293,8 @@ namespace Compression.BSA
                         w.IsStreamOwner = false;
                         await _srcData.CopyToWithStatusAsync(_srcData.Length, w, $"Compressing {_path}");
                     }
+
+                    await _srcData.DisposeAsync();
                     _srcData = _bsa._slab.Allocate(r.Length);
                     r.Position = 0;
                     await r.CopyToWithStatusAsync(r.Length, _srcData, $"Writing {_path}");

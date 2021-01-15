@@ -26,7 +26,9 @@ namespace Wabbajack.Common
             PatchSize BLOB,
             Patch BLOB,
             PRIMARY KEY (FromHash, ToHash))
-            WITHOUT ROWID";
+            WITHOUT ROWID;";
+            
+            
             cmd.ExecuteNonQuery();
 
         }
@@ -82,10 +84,10 @@ namespace Wabbajack.Common
             else
             {
 
-                if (TryGetPatch(srcHash, destHash, out var array))
+                if (TryGetPatch(srcHash, destHash, out var entry))
                 {
-                    await patchOutStream!.WriteAsync(array);
-                    return array.Length;
+                    await patchOutStream!.WriteAsync(await entry.GetData());
+                    return entry.PatchSize;
                 }
             }
 
@@ -122,27 +124,43 @@ namespace Wabbajack.Common
             return patchStream.Position;
         }
 
-        public static bool TryGetPatch(Hash fromHash, Hash toHash, [MaybeNullWhen(false)] out byte[] array)
+        public static bool TryGetPatch(Hash fromHash, Hash toHash, [MaybeNullWhen(false)] out CacheEntry found)
         {
             using var cmd = new SQLiteCommand(_conn);
-            cmd.CommandText = @"SELECT PatchSize, Patch FROM PatchCache WHERE FromHash = @fromHash AND ToHash = @toHash";
+            cmd.CommandText = @"SELECT PatchSize FROM PatchCache WHERE FromHash = @fromHash AND ToHash = @toHash";
             cmd.Parameters.AddWithValue("@fromHash", (long)fromHash);
             cmd.Parameters.AddWithValue("@toHash", (long)toHash);
 
             using var rdr = cmd.ExecuteReader();
             while (rdr.Read())
             {
-                array = new byte[rdr.GetInt64(0)];
-                rdr.GetBytes(1, 0, array, 0, array.Length);
+                found = new CacheEntry(fromHash, toHash, rdr.GetInt64(0));
                 return true;
             }
 
-            array = Array.Empty<byte>();
+            found = default;
             return false;
+        }
 
+        public record CacheEntry(Hash From, Hash To, long PatchSize)
+        {
+            public async Task<byte[]> GetData()
+            {
+                await using var cmd = new SQLiteCommand(_conn);
+                cmd.CommandText = @"SELECT PatchSize, Patch FROM PatchCache WHERE FromHash = @fromHash AND ToHash = @toHash";
+                cmd.Parameters.AddWithValue("@fromHash", (long)From);
+                cmd.Parameters.AddWithValue("@toHash", (long)To);
 
-
-
+                await using var rdr = await cmd.ExecuteReaderAsync();
+                while (await rdr.ReadAsync())
+                {
+                    var array = new byte[rdr.GetInt64(0)];
+                    rdr.GetBytes(1, 0, array, 0, array.Length);
+                    return array;
+                }
+                
+                return Array.Empty<byte>();
+            }
         }
 
         public static void VacuumDatabase()
@@ -186,7 +204,7 @@ namespace Wabbajack.Common
         public static Task<long> CreatePatchCached(Stream srcStream, Hash srcHash, Stream destStream, Hash destHash, Stream? patchOutStream = null) =>
             PatchCache.CreatePatchCached(srcStream, srcHash, destStream, destHash, patchOutStream);
 
-        public static bool TryGetPatch(Hash foundHash, Hash fileHash, [MaybeNullWhen(false)] out byte[] ePatch) =>
+        public static bool TryGetPatch(Hash foundHash, Hash fileHash, [MaybeNullWhen(false)] out PatchCache.CacheEntry ePatch) =>
             PatchCache.TryGetPatch(foundHash, fileHash, out ePatch);
     }
 }
