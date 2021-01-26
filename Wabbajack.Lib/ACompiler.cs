@@ -182,7 +182,9 @@ namespace Wabbajack.Lib
         {
             if (UseGamePaths)
             {
-                foreach (var ag in Settings.IncludedGames.Cons(CompilingGame.Game))
+                //taking the games in Settings.IncludedGames + currently compiling game so you can eg
+                //include the stock game files if you are compiling for a VR game (ex: Skyrim + SkyrimVR)
+                foreach (var ag in Settings.IncludedGames.Cons(CompilingGame.Game).Distinct())
                 {
                     try
                     {
