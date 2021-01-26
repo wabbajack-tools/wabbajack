@@ -33,18 +33,25 @@ namespace Wabbajack.Common.StoreHandlers
                 }
 
                 var byID = GameRegistry.Games.SelectMany(g => g.Value.EpicGameStoreIDs
-                        .Select(id => (id, g.Value.Game)))
+                    .Select(id => (id, g.Value.Game)))
                     .GroupBy(t => t.id)
                     .ToDictionary(t => t.Key, t => t.First().Game);
 
                 foreach (var itm in ((AbsolutePath)(string)(name!)).EnumerateFiles(false, "*.item"))
                 {
-                    var item = itm.FromJson<EpicGameItem>();
-                    Utils.Log($"Found Epic Game Store Game: {item.DisplayName} at {item.InstallLocation}");
-
-                    if (byID.TryGetValue(item.CatalogItemId, out var game))
+                    try
                     {
-                        Games.Add(new EpicStoreGame(game, item));
+                        var item = itm.FromJson<EpicGameItem>();
+                        Utils.Log($"Found Epic Game Store Game: {item.DisplayName} at {item.InstallLocation}");
+
+                        if (byID.TryGetValue(item.CatalogItemId, out var game))
+                        {
+                            Games.Add(new EpicStoreGame(game, item));
+                        }
+                    }
+                    catch (Newtonsoft.Json.JsonReaderException)
+                    {
+                        Utils.Log($"Failure parsing Epic Game Store manifest: {itm}");
                     }
 
                 }
@@ -66,7 +73,7 @@ namespace Wabbajack.Common.StoreHandlers
                 Game = game;
                 Path = (AbsolutePath)item.InstallLocation;
                 Name = game.MetaData().HumanFriendlyGameName;
-                
+
             }
 
             public override Game Game { get; internal set; }
