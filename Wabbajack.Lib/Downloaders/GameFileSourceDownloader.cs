@@ -99,7 +99,9 @@ namespace Wabbajack.Lib.Downloaders
             public override string[] GetMetaIni()
             {
                 var meta = Game.MetaData();
-                return new[] {"[General]", $"gameName={meta.MO2ArchiveName ?? meta.Game.ToString()}", $"gameFile={GameFile}"};
+                //using MO2Name instead of MO2ArchiveName because Skyrim VR and Fallout 4 VR have the same archive name
+                //as their non-vr counterpart.
+                return new[] {"[General]", $"gameName={meta.MO2Name ?? meta.Game.ToString()}", $"gameFile={GameFile}"};
             }
 
         }
