@@ -17,7 +17,7 @@ namespace Wabbajack.VirtualFileSystem
 {
     public static class FileExtractor2
     {
-        public static readonly SignatureChecker ArchiveSigs = new SignatureChecker(Definitions.FileType.TES3, 
+        public static readonly SignatureChecker ArchiveSigs = new(Definitions.FileType.TES3, 
             Definitions.FileType.BSA,
             Definitions.FileType.BA2,
             Definitions.FileType.ZIP,
@@ -26,19 +26,19 @@ namespace Wabbajack.VirtualFileSystem
             Definitions.FileType.RAR_NEW,
             Definitions.FileType._7Z);
 
-        private static Extension OMODExtension = new Extension(".omod");
-        private static Extension FOMODExtension = new Extension(".fomod");
+        private static Extension OMODExtension = new(".omod");
+        private static Extension FOMODExtension = new(".fomod");
         
-        private static Extension BSAExtension = new Extension(".bsa");
+        private static Extension BSAExtension = new(".bsa");
 
         public static readonly HashSet<Extension> ExtractableExtensions = new HashSet<Extension>
         {
-            new Extension(".bsa"),
-            new Extension(".ba2"),
-            new Extension(".7z"),
-            new Extension(".7zip"),
-            new Extension(".rar"),
-            new Extension(".zip"),
+            new(".bsa"),
+            new(".ba2"),
+            new(".7z"),
+            new(".7zip"),
+            new(".rar"),
+            new(".zip"),
             OMODExtension,
             FOMODExtension
         };
