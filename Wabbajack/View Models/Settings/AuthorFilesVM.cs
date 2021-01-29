@@ -16,9 +16,6 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<Visibility> _isVisible;
         public Visibility IsVisible => _isVisible.Value;
         
-
-        private readonly ObservableAsPropertyHelper<string> _selectedFile;
-      
         public ICommand SelectFile { get; }
         public ICommand HyperlinkCommand { get; }
         public IReactiveCommand Upload { get; }
@@ -69,7 +66,7 @@ namespace Wabbajack
                     _isUploading.OnNext(false);
                 }
             }, IsUploading.StartWith(false).Select(u => !u)
-                .CombineLatest(Picker.WhenAnyValue(t => t.TargetPath).Select(f => f != null),
+                .CombineLatest(Picker.WhenAnyValue(t => t.TargetPath).Select(f => f != default),
                 (a, b) => a && b));
         }
     }

@@ -196,7 +196,7 @@ namespace Wabbajack.VirtualFileSystem
                 else
                 {
                     spoolFile = new TempFile(tempPath.Combine(Guid.NewGuid().ToString())
-                        .WithExtension(source.Extension));
+                        .WithExtension(sf.Name.FileName.Extension));
                     await using var s = await sf.GetStream();
                     await spoolFile.Path.WriteAllAsync(s);
                     source = spoolFile.Path;

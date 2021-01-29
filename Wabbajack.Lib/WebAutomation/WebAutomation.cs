@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using CefSharp;
 using CefSharp.OffScreen;
+using HtmlAgilityPack;
 using Wabbajack.Common;
 using Wabbajack.Lib.LibCefHelpers;
 
@@ -83,6 +84,14 @@ namespace Wabbajack.Lib.WebAutomation
             return await _browser.GetSourceAsync();
         }
         
+        public async ValueTask<HtmlDocument> GetHtmlAsync()
+        {
+            var body = await GetSourceAsync();
+            var doc = new HtmlDocument();
+            doc.LoadHtml(body);
+            return doc;
+        }
+
         public Action<Uri?> DownloadHandler { 
             set => _driver.DownloadHandler = value;
         }

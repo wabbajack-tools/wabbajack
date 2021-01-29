@@ -25,7 +25,7 @@
         <Version>2.2.2.1</Version>
       </PackageReference>
       <PackageReference Include="HtmlAgilityPack">
-        <Version>1.11.29</Version>
+        <Version>1.11.30</Version>
       </PackageReference>
       <PackageReference Include="MegaApiClient">
         <Version>1.8.2</Version>
@@ -37,13 +37,13 @@
         <Version>2.1.1</Version>
       </PackageReference>
       <PackageReference Include="ReactiveUI">
-        <Version>13.0.27</Version>
+        <Version>13.1.1</Version>
       </PackageReference>
       <PackageReference Include="ReactiveUI.Fody">
-        <Version>13.0.27</Version>
+        <Version>13.1.1</Version>
       </PackageReference>
       <PackageReference Include="SharpCompress">
-        <Version>0.26.0</Version>
+        <Version>0.27.1</Version>
       </PackageReference>
       <PackageReference Include="System.Collections.Immutable">
         <Version>5.0.0</Version>

@@ -85,15 +85,10 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<bool> _LoadingModlist;
         public bool LoadingModlist => _LoadingModlist.Value;
 
-        private readonly ObservableAsPropertyHelper<bool> _IsActive;
-        public bool IsActive => _IsActive.Value;
-
         // Command properties
         public ReactiveCommand<Unit, Unit> ShowManifestCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenReadmeCommand { get; }
         public ReactiveCommand<Unit, Unit> VisitModListWebsiteCommand { get; }
-        public ReactiveCommand<Unit, Unit> BackCommand { get; }
-        
         
         public ReactiveCommand<Unit, Unit> CloseWhenCompleteCommand { get; }
         public ReactiveCommand<Unit, Unit> GoToInstallCommand { get; }

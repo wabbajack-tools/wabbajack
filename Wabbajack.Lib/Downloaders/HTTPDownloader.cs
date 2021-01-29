@@ -151,7 +151,7 @@ TOP:
                             {
                                 read = await webs.ReadAsync(buffer, 0, bufferSize);
                             }
-                            catch (Exception ex)
+                            catch (Exception)
                             {
                                 if (readThisCycle == 0)
                                     throw;

@@ -70,6 +70,7 @@ namespace Compression.BSA.Test
         }
 
         [Theory]
+        [InlineData(Game.SkyrimSpecialEdition, 29194)] // 3D NPCS
         [InlineData(Game.SkyrimSpecialEdition, 12604)] // SkyUI
         [InlineData(Game.Skyrim, 3863)] // SkyUI
         [InlineData(Game.Skyrim, 51473)] // INeed

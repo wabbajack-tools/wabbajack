@@ -45,9 +45,10 @@ namespace Wabbajack
             return new WebBrowserVM(url);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             Browser.Dispose();
+            base.Dispose();
         }
     }
 }

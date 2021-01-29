@@ -201,14 +201,17 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
+
         /// <summary>
-        /// Extract the set of files and call the callback for each, handing it a stream factory and the virtual file,
-        /// top level archives (native archives) will be processed in parallel. Duplicate files will not be 
+        /// Extracts a file
         /// </summary>
-        /// <<param name="queue"></param>
-        /// <param name="files"></param>
-        /// <param name="callback"></param>
+        /// <param name="queue">Work queue to use when required by some formats</param>
+        /// <param name="files">Predefined list of files to extract, all others will be skipped</param>
+        /// <param name="callback">Func called for each file extracted</param>
+        /// <param name="tempFolder">Optional: folder to use for temporary storage</param>
+        /// <param name="updateTracker">Optional: Status update tracker</param>
         /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task Extract(WorkQueue queue, HashSet<VirtualFile> files, Func<VirtualFile, IExtractedFile, ValueTask> callback, AbsolutePath? tempFolder = null, StatusUpdateTracker updateTracker = null)
         {
             var top = new VirtualFile();
