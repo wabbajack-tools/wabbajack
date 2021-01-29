@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using Wabbajack.Common;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
+// Yeah, we know, but BSAs use UTF7, that's how old they are
+#pragma warning disable 618
+
 namespace Compression.BSA
 {
     public static class BSAUtils
@@ -20,11 +23,12 @@ namespace Compression.BSA
         
         private static Encoding GetEncoding(VersionType version)
         {
-            if (version == VersionType.TES3)
-                return Encoding.ASCII;
-            if (version == VersionType.SSE)
-                return Windows1252;
-            return Encoding.UTF7;
+            return version switch
+            {
+                VersionType.TES3 => Encoding.ASCII,
+                VersionType.SSE => Windows1252,
+                _ => Encoding.UTF7
+            };
         }
 
         public static string ReadStringLen(this BinaryReader rdr, VersionType version)
@@ -72,9 +76,10 @@ namespace Compression.BSA
         }
 
         /// <summary>
-        ///     Returns bytes for a \0 terminated string
+        /// Returns \0 terminated bytes for a string encoded with a given BSA version's encoding format
         /// </summary>
         /// <param name="val"></param>
+        /// <param name="version"></param>
         /// <returns></returns>
         public static byte[] ToBZString(this RelativePath val, VersionType version)
         {
@@ -101,9 +106,10 @@ namespace Compression.BSA
         }
 
         /// <summary>
-        ///     Returns bytes for a \0 terminated string prefixed by a length
+        /// Returns bytes for a string with a length prefix, version is the BSA version
         /// </summary>
         /// <param name="val"></param>
+        /// <param name="version"></param>
         /// <returns></returns>
         public static byte[] ToTermString(this string val, VersionType version)
         {

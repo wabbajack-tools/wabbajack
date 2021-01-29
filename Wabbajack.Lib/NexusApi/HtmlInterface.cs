@@ -1,8 +1,12 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
+using HtmlAgilityPack;
 using Wabbajack.Common;
 using Wabbajack.Lib.LibCefHelpers;
+using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack.Lib.NexusApi
 {
@@ -10,14 +14,20 @@ namespace Wabbajack.Lib.NexusApi
     {
         public static async Task<PermissionValue> GetUploadPermissions(Game game, long modId)
         {
-            var client = new Lib.Http.Client();
-            if (Utils.HaveEncryptedJson("nexus-cookies"))
+            HtmlDocument response;
+            using (var driver = await Driver.Create())
             {
-                var cookies = await Utils.FromEncryptedJson<Helpers.Cookie[]>("nexus-cookies");
-                client.AddCookies(cookies);
+                await driver.NavigateTo(new Uri($"https://nexusmods.com/{game.MetaData().NexusName}/mods/{modId}"));
+                TOP:
+                response = await driver.GetHtmlAsync();
+                
+                if (response!.Text!.Contains("This process is automatic. Your browser will redirect to your requested content shortly."))
+                {
+                    await Task.Delay(5000);
+                    goto TOP;
+                }
+                
             }
-
-            var response = await client.GetHtmlAsync($"https://nexusmods.com/{game.MetaData().NexusName}/mods/{modId}");
 
             var hidden = response.DocumentNode
                 .Descendants()

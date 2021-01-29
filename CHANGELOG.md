@@ -1,5 +1,12 @@
 ### Changelog
 
+#### Version - 2.4.1.2 - 1/29/2020
+* Don't install .meta files for files sourced from the game folder
+* Fix bug MO2 archive name detection in .meta files (rare bug with FO4VR and other like games)
+* Catch exceptions when ECS downloads manifest data
+* Don't double-index game files in some situations (duplicate game names in config files)
+* Update all deps
+
 #### Version - 2.4.1.1 - 1/13/2020
 * HOTFIX: Fix game file sources that don't have MO2 specific names
 

@@ -29,7 +29,7 @@ namespace Wabbajack
         public ViewModel NavigateBackTarget { get; set; }
         public ReactiveCommand<Unit, Unit> BackCommand { get; protected set; }
 
-        private readonly ObservableAsPropertyHelper<bool> _IsActive;
+        protected ObservableAsPropertyHelper<bool> _IsActive;
         public bool IsActive => _IsActive.Value;
         
         public Subject<bool> IsBackEnabledSubject { get; } = new Subject<bool>();

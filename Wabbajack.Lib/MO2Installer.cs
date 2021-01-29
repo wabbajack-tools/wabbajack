@@ -262,7 +262,7 @@ namespace Wabbajack.Lib
                        if (HashedArchives.TryGetValue(archive.Hash, out var paths))
                        {
                            var metaPath = paths.WithExtension(Consts.MetaFileExtension);
-                           if (!metaPath.Exists)
+                           if (!metaPath.Exists && !(archive.State is GameFileSourceDownloader.State))
                            {
                                Status($"Writing {metaPath.FileName}");
                                var meta = AddInstalled(archive.State.GetMetaIni()).ToArray();

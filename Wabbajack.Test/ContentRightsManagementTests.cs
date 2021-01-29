@@ -9,10 +9,11 @@ using Wabbajack.Common;
 using System.Threading.Tasks;
 using Wabbajack.Lib.NexusApi;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Wabbajack.Test
 {
-    public class ContentRightsManagementTests : IDisposable
+    public class ContentRightsManagementTests : ATestBase
     {
         private ValidateModlist validate;
         private WorkQueue queue;
@@ -27,17 +28,12 @@ namespace Wabbajack.Test
 ";
 
 
-        public ContentRightsManagementTests()
-        {
-            queue = new WorkQueue();
-            validate = new ValidateModlist();
-            validate.LoadServerWhitelist(server_whitelist);
-        }
 
-        public void Dispose()
+
+        public override void Dispose()
         {
             queue?.Dispose();
-            
+            base.Dispose();
         }
 
 
@@ -126,6 +122,13 @@ namespace Wabbajack.Test
             Assert.Equal(HTMLInterface.PermissionValue.Hidden, await HTMLInterface.GetUploadPermissions(Game.SkyrimSpecialEdition, 34604));
             Assert.Equal(HTMLInterface.PermissionValue.NotFound, await HTMLInterface.GetUploadPermissions(Game.SkyrimSpecialEdition, 24287));
             
+        }
+
+        public ContentRightsManagementTests(ITestOutputHelper output) : base(output)
+        {
+            queue = new WorkQueue();
+            validate = new ValidateModlist();
+            validate.LoadServerWhitelist(server_whitelist);
         }
     }
 }
