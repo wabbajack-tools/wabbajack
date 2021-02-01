@@ -114,6 +114,7 @@ namespace Wabbajack.Lib
 
         public async Task InstallArchives()
         {
+
             var grouped = ModList.Directives
                 .OfType<FromArchive>()
                 .Select(a => new {VF = VFS.Index.FileForArchiveHashPath(a.ArchiveHashPath), Directive = a})
@@ -218,8 +219,6 @@ namespace Wabbajack.Lib
                 }
             }
 
-            DesiredThreads.OnNext(DownloadThreads);
-
             await missing.Where(a => a.State.GetType() != typeof(ManualDownloader.State))
                 .PMap(Queue, UpdateTracker, async archive =>
                 {
@@ -240,9 +239,6 @@ namespace Wabbajack.Lib
 
                     return await DownloadArchive(archive, download, outputPath);
                 });
-            
-            DesiredThreads.OnNext(DiskThreads);
-
         }
 
         private async Task SendDownloadMetrics(List<Archive> missing)
@@ -289,7 +285,7 @@ namespace Wabbajack.Lib
             var toHash = ModList.Archives.Where(a => hashDict.ContainsKey(a.Size)).SelectMany(a => hashDict[a.Size]).ToList();
             
             Utils.Log($"Found {allFiles.Count} total files, {toHash.Count} matching filesize");
-            
+
             var hashResults = await 
                 toHash
                 .PMap(Queue, UpdateTracker,async e => (await e.FileHashCachedAsync(), e)); 

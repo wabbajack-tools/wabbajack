@@ -15,8 +15,9 @@ namespace Wabbajack.Lib
     {
         public WorkQueue Queue { get; } = new WorkQueue();
 
-        public int DownloadThreads { get; set; } = Environment.ProcessorCount;
+        public int DownloadThreads { get; set; } = Environment.ProcessorCount <= 8 ? Environment.ProcessorCount : 8;
         public int DiskThreads { get; set; } = Environment.ProcessorCount;
+        public bool ReduceHDDThreads { get; set; } = true;
         public bool FavorPerfOverRam { get; set; } = false;
         
         public Context VFS { get; }
