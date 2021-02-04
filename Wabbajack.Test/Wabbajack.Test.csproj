@@ -28,8 +28,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CefSharp.Common" Version="86.0.241" />
-    <PackageReference Include="CefSharp.OffScreen" Version="86.0.241" />
+    <PackageReference Include="CefSharp.Common" Version="87.1.132" />
+    <PackageReference Include="CefSharp.OffScreen" Version="87.1.132" />
       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
       <PackageReference Include="xunit" Version="2.4.1" />
       <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />

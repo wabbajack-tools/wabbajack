@@ -6,8 +6,8 @@
     <UseWPF>true</UseWPF>
     <Platforms>x64</Platforms>
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-      <AssemblyVersion>2.4.1.2</AssemblyVersion>
-      <FileVersion>2.4.1.2</FileVersion>
+      <AssemblyVersion>2.4.2.0</AssemblyVersion>
+      <FileVersion>2.4.2.0</FileVersion>
     <Copyright>Copyright © 2019-2020</Copyright>
     <Description>An automated ModList installer</Description>
     <PublishReadyToRun>true</PublishReadyToRun>
@@ -55,7 +55,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CefSharp.Wpf" Version="86.0.241" />
+    <PackageReference Include="CefSharp.Wpf" Version="87.1.132" />
     <PackageReference Include="DynamicData" Version="7.1.1" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.0.2" />
     <PackageReference Include="Fody" Version="6.3.0">
