@@ -87,7 +87,7 @@ namespace Wabbajack.Lib.LibCefHelpers
 
         public static void Init()
         {
-            if (Inited) return;
+            if (Inited || Cef.IsInitialized) return;
             Inited = true;
             CefSettings settings = new CefSettings();
             settings.CachePath = Consts.CefCacheLocation.ToString();

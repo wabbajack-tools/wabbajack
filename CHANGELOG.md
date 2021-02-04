@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.4.2.1 - 2/4/2020
+* HOTFIX - fix for the download path sometimes being empty
+* HOTFIX - fix for some drive types not being detected (e.g. RAID drives)
+
 #### Version - 2.4.2.0 - 2/3/2020
 * Rework the Nexus Manual Downloading process now with less jank
 * Manual Nexus Downloading now explains why it's so painful, and how to fix it (get Premium)
