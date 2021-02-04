@@ -56,8 +56,6 @@ namespace Wabbajack.Lib
             await Metrics.Send(Metrics.BeginInstall, ModList.Name);
             Utils.Log("Configuring Processor");
 
-            if (new PhysicalDisk(OutputFolder.DriveInfo().Name).MediaType == PhysicalDisk.MediaTypes.HDD && ReduceHDDThreads) DesiredThreads.OnNext(1); else DesiredThreads.OnNext(DiskThreads);
-
             FileExtractor2.FavorPerfOverRAM = FavorPerfOverRam;
 
             if (GameFolder == null)
@@ -120,12 +118,12 @@ namespace Wabbajack.Lib
                 }
             }
 
+            // Reduce to one thread if downloads on HDD, else use specified. Hashing on HDD has no benefit with more threads.
+            if (new PhysicalDisk(DownloadFolder.DriveInfo().Name).MediaType == PhysicalDisk.MediaTypes.HDD && ReduceHDDThreads) DesiredThreads.OnNext(1); else DesiredThreads.OnNext(DiskThreads);
+
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Optimizing ModList");
             await OptimizeModlist();
-
-            // Reduce to one thread if downloads on HDD, else use specified. Hashing on HDD has no benefit with more threads.
-            if (new PhysicalDisk(DownloadFolder.DriveInfo().Name).MediaType == PhysicalDisk.MediaTypes.HDD && ReduceHDDThreads) DesiredThreads.OnNext(1); else DesiredThreads.OnNext(DiskThreads);
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Hashing Archives");
