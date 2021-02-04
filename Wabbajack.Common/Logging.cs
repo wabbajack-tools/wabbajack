@@ -167,5 +167,10 @@ namespace Wabbajack.Common
                 Utils.Error(ex);
             }
         }
+
+        public static void ErrorMetric(Exception exception)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

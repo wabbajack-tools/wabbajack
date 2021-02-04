@@ -29,6 +29,7 @@ namespace Wabbajack.BuildServer
     {
         private const string ProblemDetailsContentType = "application/problem+json";
         private readonly SqlService _sql;
+        private static ConcurrentHashSet<string> _knownKeys = new();
         private const string ApiKeyHeaderName = "X-Api-Key";
 
         public ApiKeyAuthenticationHandler(
@@ -44,7 +45,8 @@ namespace Wabbajack.BuildServer
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             var metricsKey = Request.Headers[Consts.MetricsKeyHeader].FirstOrDefault();
-            await LogRequest(metricsKey);
+            // Never needed this, disabled for now
+            //await LogRequest(metricsKey);
             if (metricsKey != default)
             {
                 if (await _sql.IsTarKey(metricsKey))
@@ -82,15 +84,16 @@ namespace Wabbajack.BuildServer
                 return AuthenticateResult.Success(ticket);
             }
 
-            if (!await _sql.ValidMetricsKey(metricsKey))
+            if (!_knownKeys.Contains(metricsKey) && !await _sql.ValidMetricsKey(metricsKey))
             {
                 return AuthenticateResult.Fail("Invalid Metrics Key");
             }
             else
             {
-                var claims = new List<Claim>();
+                _knownKeys.Add(metricsKey);
+                
+                var claims = new List<Claim> {new(ClaimTypes.Role, "User")};
 
-                claims.Add(new Claim(ClaimTypes.Role, "User"));
 
                 var identity = new ClaimsIdentity(claims, Options.AuthenticationType);
                 var identities = new List<ClaimsIdentity> {identity};

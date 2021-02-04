@@ -40,7 +40,7 @@ namespace Wabbajack.BuildServer.Test
             Consts.ModlistMetadataURL = modlist.ToString();
             var sql = Fixture.GetService<SqlService>();
             var downloader = Fixture.GetService<ModListDownloader>();
-            await downloader.CheckForNewLists();
+            await downloader.Execute();
 
             foreach (var list in ModListMetaData)
             {
@@ -48,7 +48,7 @@ namespace Wabbajack.BuildServer.Test
             }
             
             // Nothing has changed so we shouldn't be downloading anything this time
-            Assert.Equal(0, await downloader.CheckForNewLists());
+            Assert.Equal(0, await downloader.Execute());
 
         }
         
@@ -161,7 +161,7 @@ namespace Wabbajack.BuildServer.Test
         {
             
             var downloader = Fixture.GetService<ModListDownloader>();
-            await downloader.CheckForNewLists();
+            await downloader.Execute();
 
             if (runNonNexus)
             {

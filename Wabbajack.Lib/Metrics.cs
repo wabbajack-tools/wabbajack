@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using System.Web;
 using Microsoft.Win32;
 using Wabbajack.Common;
 
@@ -77,6 +79,12 @@ namespace Wabbajack.Lib
             var client = new Http.Client();
             client.Headers.Add((Consts.MetricsKeyHeader, key));
             await client.GetAsync($"{Consts.WabbajackBuildServerUri}metrics/{action}/{value}");
+        }
+
+        public static async Task Error(Type type, Exception exception)
+        {
+            await Send("Exception",  type.Name + "|" + exception.Message);
+            await Send("ExceptionData" + type.Name + "|" + Consts.CurrentMinimumWabbajackVersion, HttpUtility.UrlEncode($"{exception.Message}\n{exception.StackTrace}"));
         }
     }
 }

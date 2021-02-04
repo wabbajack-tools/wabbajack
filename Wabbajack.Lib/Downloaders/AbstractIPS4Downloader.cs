@@ -32,7 +32,7 @@ namespace Wabbajack.Lib.Downloaders
     {
 
         private DateTime LastRequestTime = default;
-        protected long RequestsPerMinute = 20;
+        protected long RequestsPerMinute = 60;
         private TimeSpan RequestDelay => TimeSpan.FromMinutes(1) / RequestsPerMinute;
 
         protected AbstractIPS4Downloader(Uri loginUri, string encryptedKeyName, string cookieDomain, string loginCookie = "ips4_member_id")
@@ -182,7 +182,8 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
-                await ((IWaitForWindowDownloader)Downloader).WaitForNextRequestWindow();
+                if (Downloader.IsCloudFlareProtected) 
+                    await ((IWaitForWindowDownloader)Downloader).WaitForNextRequestWindow();
                 return await ResolveDownloadStream(a, destination, false);
             }
 
@@ -312,7 +313,8 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify(Archive a, CancellationToken? token)
             {
-                await ((IWaitForWindowDownloader)Downloader).WaitForNextRequestWindow();
+                if (Downloader.IsCloudFlareProtected) 
+                    await ((IWaitForWindowDownloader)Downloader).WaitForNextRequestWindow();
                 await using var tp = new TempFile();
                 var isValid = await ResolveDownloadStream(a, tp.Path, true, token: token);
                 return isValid;

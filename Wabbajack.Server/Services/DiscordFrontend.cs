@@ -58,23 +58,34 @@ namespace Wabbajack.Server.Services
                     }
                     await PurgeNexusCache(arg, parts[2]);
                 }
-                else if (parts[1] == "cyberpunk")
+                else if (parts[1] == "quick-sync")
                 {
-                    var random = new Random();
-                    var releaseDate = new DateTime(2020, 12, 10, 0, 0, 0, DateTimeKind.Utc);
-                    var r = releaseDate - DateTime.UtcNow;
-                    if (r < TimeSpan.Zero)
+                    var options = await _quickSync.Report();
+                    if (parts.Length != 3)
                     {
-                        await ReplyTo(arg, "It's out, what are you doing here?");
+                        var optionsStr = string.Join(", ", options.Select(o => o.Key.Name));
+                        await ReplyTo(arg, $"Can't expect me to quicksync the whole damn world! Try: {optionsStr}");
                     }
                     else
                     {
-                        var msgs = (await "cyberpunk_message.txt".RelativeTo(AbsolutePath.EntryPoint)
-                            .ReadAllLinesAsync()).ToArray();
-                        var msg = msgs[random.Next(0, msgs.Length)];
-                        var fullmsg = String.Format(msg,
-                            $"{r.Days} days, {r.Hours} hours, {r.Minutes} minutes, {r.Seconds} seconds");
-                        await ReplyTo(arg, fullmsg);
+                        foreach (var pair in options.Where(o => o.Key.Name == parts[2]))
+                        {
+                            await _quickSync.Notify(pair.Key);
+                            await ReplyTo(arg, $"Notified {pair.Key}");
+                        }
+                    }
+                }
+                else if (parts[1] == "purge-list")
+                {
+                    if (parts.Length != 3)
+                    {
+                        await ReplyTo(arg, $"Yeah, I'm not gonna purge the whole server...");
+                    }
+                    else
+                    {
+                        var deleted = await _sql.PurgeList(parts[2]);
+                        await _quickSync.Notify<ModListDownloader>();
+                        await ReplyTo(arg, $"Purged all traces of #{parts[2]} from the server, triggered list downloading. {deleted} records removed");
                     }
                 }
             }

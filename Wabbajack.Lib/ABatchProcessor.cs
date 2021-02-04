@@ -168,12 +168,17 @@ namespace Wabbajack.Lib
 
             Utils.Log("Starting Installer Task");
             return Task.Run(async () =>
-            { 
+            {
                 try
                 {
                     Utils.Log("Installation has Started");
                     _isRunning.OnNext(true);
                     return await _Begin(_cancel.Token);
+                }
+                catch (Exception ex)
+                {
+                    var _ = Metrics.Error(this.GetType(), ex);
+                    throw;
                 }
                 finally
                 {

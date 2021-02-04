@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Net;
+using System.Net.Security;
+using System.Security.Authentication;
+using Wabbajack.Common;
 using SysHttp = System.Net.Http;
 
 namespace Wabbajack.Lib.Http
@@ -18,8 +21,10 @@ namespace Wabbajack.Lib.Http
                 CookieContainer = Cookies,
                 MaxConnectionsPerServer = 20,
                 PooledConnectionLifetime = TimeSpan.FromMilliseconds(100),
-                PooledConnectionIdleTimeout = TimeSpan.FromMilliseconds(100)
+                PooledConnectionIdleTimeout = TimeSpan.FromMilliseconds(100),
+               
             };
+            Utils.Log($"Configuring with SSL {_socketsHandler.SslOptions.EnabledSslProtocols}");
             Client = new SysHttp.HttpClient(_socketsHandler);
         }
     }

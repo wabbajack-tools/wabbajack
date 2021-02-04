@@ -139,7 +139,7 @@ namespace Wabbajack
             };
             await vm.Driver.WaitForInitialized();
             IWebDriver browser = new CefSharpWrapper(vm.Browser);
-            vm.Instructions = $"Please Download {state.Name} - {state.ModID} - {state.FileID}";
+            vm.Instructions = $"Click the highlighted file (get a NexusMods.com Premium account to automate this)";
             browser.DownloadHandler = uri =>
             {
                 manuallyDownloadNexusFile.Resume(uri);

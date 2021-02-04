@@ -100,5 +100,15 @@ namespace Wabbajack.Server.DataLayer
                 Hash = t.Item2
             }).ToList();
         }
+
+        public async Task<int> PurgeList(string machineURL)
+        {
+            await using var conn = await Open();
+            var ret1 = await conn.ExecuteAsync(@" delete from dbo.ModListArchives where MachineURL = @machineURL",
+                new {machineURL});
+            var ret2 = await conn.ExecuteAsync(@" delete from dbo.ModLists where MachineURL = @machineURL",
+                new {machineURL});
+            return ret1 + ret2;
+        }
     }
 }

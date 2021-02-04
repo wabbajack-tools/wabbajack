@@ -230,8 +230,7 @@ namespace Wabbajack
                         ModlistIsNSFW = ModlistSettings.IsNSFW
                     };
                 }
-                using (ActiveCompilation = compiler
-)
+                using (ActiveCompilation = compiler)
                 {
                     Parent.MWVM.Settings.Performance.SetProcessorSettings(ActiveCompilation);
                     var success = await ActiveCompilation.Begin();

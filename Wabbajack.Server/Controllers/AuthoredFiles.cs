@@ -27,14 +27,16 @@ namespace Wabbajack.BuildServer.Controllers
         private ILogger<AuthoredFiles> _logger;
         private AppSettings _settings;
         private CDNMirrorList _mirrorList;
+        private DiscordWebHook _discord;
 
 
-        public AuthoredFiles(ILogger<AuthoredFiles> logger, SqlService sql, AppSettings settings, CDNMirrorList mirrorList)
+        public AuthoredFiles(ILogger<AuthoredFiles> logger, SqlService sql, AppSettings settings, CDNMirrorList mirrorList, DiscordWebHook discord)
         {
             _sql = sql;
             _logger = logger;
             _settings = settings;
             _mirrorList = mirrorList;
+            _discord = discord;
         }
 
         [HttpPut]
@@ -77,6 +79,9 @@ namespace Wabbajack.BuildServer.Controllers
             _logger.Log(LogLevel.Information, $"Creating File upload {definition.OriginalFileName}");
 
             definition = await _sql.CreateAuthoredFile(definition, user);
+
+            await _discord.Send(Channel.Ham,
+                new DiscordMessage() {Content = $"{user} has started uploading {definition.OriginalFileName} ({definition.Size.ToFileSizeString()})"});
             
             return Ok(definition.ServerAssignedUniqueId);
         }
@@ -100,6 +105,9 @@ namespace Wabbajack.BuildServer.Controllers
             }
             ms.Position = 0;
             await UploadAsync(ms, $"{definition.MungedName}/definition.json.gz");
+            
+            await _discord.Send(Channel.Ham,
+                new DiscordMessage {Content = $"{user} has finished uploading {definition.OriginalFileName} ({definition.Size.ToFileSizeString()})"});
             
             return Ok($"https://{_settings.BunnyCDN_StorageZone}.b-cdn.net/{definition.MungedName}");
         }

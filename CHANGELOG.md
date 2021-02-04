@@ -1,6 +1,13 @@
 ### Changelog
 
-#### Version - 2.4.1.2 - 1/29/2020
+#### Version - 2.4.2.0 - 2/3/2020
+* Rework the Nexus Manual Downloading process now with less jank
+* Manual Nexus Downloading now explains why it's so painful, and how to fix it (get Premium)
+* Manual Nexus Downloading no longer opens a ton of CEF processes
+* Manual Nexus Downloading no longer prompts users to download files that don't exist
+* Disabled CloudFlare DDOS mitigation for LoversLab downloading, the site is back to normal now
+
+#### Version - 2.4.1.2 - 1/30/2020
 * Don't install .meta files for files sourced from the game folder
 * Fix bug MO2 archive name detection in .meta files (rare bug with FO4VR and other like games)
 * Catch exceptions when ECS downloads manifest data

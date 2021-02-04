@@ -16,15 +16,14 @@ using Wabbajack.Server.DTOs;
 
 namespace Wabbajack.Server.Services
 {
-    public class ModListDownloader
+    public class ModListDownloader : AbstractService<ModListDownloader, int>
     {
-        private ILogger<ModListDownloader> _logger;
-        private AppSettings _settings;
         private ArchiveMaintainer _maintainer;
         private SqlService _sql;
         private DiscordWebHook _discord;
 
-        public ModListDownloader(ILogger<ModListDownloader> logger, AppSettings settings, ArchiveMaintainer maintainer, SqlService sql, DiscordWebHook discord)
+        public ModListDownloader(ILogger<ModListDownloader> logger, AppSettings settings, ArchiveMaintainer maintainer, SqlService sql, DiscordWebHook discord, QuickSync quickSync)
+        : base(logger, settings, quickSync, TimeSpan.FromMinutes(1))
         {
             _logger = logger;
             _settings = settings;
@@ -33,32 +32,8 @@ namespace Wabbajack.Server.Services
             _discord = discord;
         }
 
-        public void Start()
-        {
-            if (_settings.RunBackEndJobs)
-            {
-                Task.Run(async () =>
-                {
-                    while (true)
-                    {
-                        try
-                        {
-                            _logger.Log(LogLevel.Information, "Checking for updated mod lists");
-                            await CheckForNewLists();
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error checking list");
-                        }
 
-                        await Task.Delay(TimeSpan.FromMinutes(5));
-
-                    }
-                });
-            }
-        }
-
-        public async Task<int> CheckForNewLists()
+        public override async Task<int> Execute()
         {
             int downloaded = 0;
             var lists = (await ModlistMetadata.LoadFromGithub())
@@ -68,6 +43,7 @@ namespace Wabbajack.Server.Services
             {
                 try
                 {
+                    ReportStarting(list.Links.MachineURL);
                     if (await _sql.HaveIndexedModlist(list.Links.MachineURL, list.DownloadMetadata.Hash))
                         continue;
 
@@ -76,7 +52,10 @@ namespace Wabbajack.Server.Services
                     {
                         _logger.Log(LogLevel.Information, $"Downloading {list.Links.MachineURL}");
                         await _discord.Send(Channel.Ham,
-                            new DiscordMessage {Content = $"Downloading {list.Links.MachineURL} - {list.DownloadMetadata.Hash}"});
+                            new DiscordMessage
+                            {
+                                Content = $"Downloading {list.Links.MachineURL} - {list.DownloadMetadata.Hash}"
+                            });
                         var tf = new TempFile();
                         var state = DownloadDispatcher.ResolveArchive(list.Links.Download);
                         if (state == null)
@@ -110,7 +89,10 @@ namespace Wabbajack.Server.Services
                         {
                             _logger.LogWarning($"Bad Modlist {list.Links.MachineURL}");
                             await _discord.Send(Channel.Ham,
-                                new DiscordMessage {Content = $"Bad Modlist  {list.Links.MachineURL} - {list.DownloadMetadata.Hash}"});
+                                new DiscordMessage
+                                {
+                                    Content = $"Bad Modlist  {list.Links.MachineURL} - {list.DownloadMetadata.Hash}"
+                                });
                             continue;
                         }
 
@@ -122,7 +104,10 @@ namespace Wabbajack.Server.Services
                         {
                             _logger.LogWarning($"Bad Modlist {list.Links.MachineURL}");
                             await _discord.Send(Channel.Ham,
-                                new DiscordMessage {Content = $"Bad Modlist  {list.Links.MachineURL} - {list.DownloadMetadata.Hash}"});
+                                new DiscordMessage
+                                {
+                                    Content = $"Bad Modlist  {list.Links.MachineURL} - {list.DownloadMetadata.Hash}"
+                                });
                             continue;
                         }
                     }
@@ -133,7 +118,15 @@ namespace Wabbajack.Server.Services
                 {
                     _logger.LogError(ex, $"Error downloading modlist {list.Links.MachineURL}");
                     await _discord.Send(Channel.Ham,
-                        new DiscordMessage {Content = $"Error downloading modlist {list.Links.MachineURL} - {list.DownloadMetadata.Hash}"});
+                        new DiscordMessage
+                        {
+                            Content =
+                                $"Error downloading modlist {list.Links.MachineURL} - {list.DownloadMetadata.Hash}"
+                        });
+                }
+                finally
+                {
+                    ReportEnding(list.Links.MachineURL);
                 }
             }
             _logger.Log(LogLevel.Information, $"Done checking modlists. Downloaded {downloaded} new lists");

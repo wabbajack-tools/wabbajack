@@ -19,6 +19,10 @@ namespace Wabbajack.Lib.NexusApi
     public class NexusApiClient : ViewModel, INexusApi
     {
         private static readonly string API_KEY_CACHE_FILE = "nexus.key_cache";
+        /// <summary>
+        /// Forces the client to do manual downloading via CEF (for testing)
+        /// </summary>
+        private static bool ManualTestingMode = true;
        
         public Http.Client HttpClient { get; } = new();
 
@@ -301,15 +305,18 @@ namespace Wabbajack.Lib.NexusApi
             return await Get<T>(builder.ToString(), HttpClient.WithHeader((Consts.MetricsKeyHeader, await Metrics.GetMetricsKey())));
         }
 
+
+        private static AsyncLock ManualDownloadLock = new();
         public async Task<string> GetNexusDownloadLink(NexusDownloader.State archive)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             
             var info = await GetModInfo(archive.Game, archive.ModID);
-            if (!info.available)
+            var fileInfo = await GetModFiles(archive.Game, archive.ModID);
+            if (!info.available || !fileInfo.files.Any(f => f.file_id == archive.FileID && f.category_name != null))
                 throw new Exception("Mod unavailable");
-
-            if (await IsPremium())
+            
+            if (await IsPremium() && !ManualTestingMode)
             {
                 if (HourlyRemaining <= 0 && DailyRemaining <= 0)
                 {
@@ -323,6 +330,8 @@ namespace Wabbajack.Lib.NexusApi
 
             try
             {
+                using var _ = await ManualDownloadLock.WaitAsync();
+                await Task.Delay(1000);
                 Utils.Log($"Requesting manual download for {archive.Name} {archive.PrimaryKeyString}");
                 return (await Utils.Log(await ManuallyDownloadNexusFile.Create(archive)).Task).ToString();
             }

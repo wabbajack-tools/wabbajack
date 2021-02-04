@@ -67,5 +67,16 @@ namespace Wabbajack.Server.Services
                 ct.Cancel();
             }
         }
+        
+        public async Task Notify(Type t)
+        {
+            _logger.LogInformation($"Quicksync {t.Name}");
+            // Needs debugging
+            using var _ = await _lock.WaitAsync();
+            if (_syncs.TryGetValue(t, out var ct))
+            {
+                ct.Cancel();
+            }
+        }
     }
 }
