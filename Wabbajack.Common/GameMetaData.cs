@@ -575,6 +575,7 @@ namespace Wabbajack.Common
                     MO2Name = "Dragon Age: Origins", // Probably wrong
                     SteamIDs = new List<int>{47810},
                     OriginIDs = new List<string>{"DR:208591800"},
+                    GOGIDs = new List<int>{1949616134},
                     RequiredFiles = new List<string>	
                     {	
                         @"bin_ship\daorigins.exe"	
