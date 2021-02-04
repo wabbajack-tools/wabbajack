@@ -298,6 +298,9 @@ namespace Wabbajack.Test
         public async Task CanCancelLLValidation()
         {
             await using var filename = new TempFile();
+            if (!DownloadDispatcher.GetInstance<LoversLabDownloader>().IsCloudFlareProtected)
+                return;
+            
             await DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
 
             var state = new LoversLabDownloader.State
