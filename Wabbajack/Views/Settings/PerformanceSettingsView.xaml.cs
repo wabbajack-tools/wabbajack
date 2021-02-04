@@ -39,6 +39,8 @@ namespace Wabbajack
                         vmToViewConverter: x => x,
                         viewToVmConverter: x => (int)(x ?? 0))
                     .DisposeWith(disposable);
+                this.BindStrict(this.ViewModel, x => x.ReduceHDDThreads, x => x.ReduceHDDThreads.IsChecked)
+                    .DisposeWith(disposable);
                 this.BindStrict(this.ViewModel, x => x.FavorPerfOverRam, x => x.FavorPerfOverRam.IsChecked)
                     .DisposeWith(disposable);
             });

@@ -116,9 +116,10 @@ namespace Wabbajack
     {
         public PerformanceSettings()
         {
+            _reduceHDDThreads = true;
             _favorPerfOverRam = false;
             _diskThreads = Environment.ProcessorCount;
-            _downloadThreads = Environment.ProcessorCount;
+            _downloadThreads = Environment.ProcessorCount <= 8 ? Environment.ProcessorCount : 8;
         }
 
         private int _downloadThreads;
@@ -126,7 +127,10 @@ namespace Wabbajack
         
         private int _diskThreads;
         public int DiskThreads { get => _diskThreads; set => RaiseAndSetIfChanged(ref _diskThreads, value); }
-        
+
+        private bool _reduceHDDThreads;
+        public bool ReduceHDDThreads { get => _reduceHDDThreads; set => RaiseAndSetIfChanged(ref _reduceHDDThreads, value); }
+
         private bool _favorPerfOverRam;
         public bool FavorPerfOverRam { get => _favorPerfOverRam; set => RaiseAndSetIfChanged(ref _favorPerfOverRam, value); }
 
@@ -135,6 +139,7 @@ namespace Wabbajack
         {
             processor.DownloadThreads = DownloadThreads;
             processor.DiskThreads = DiskThreads;
+            processor.ReduceHDDThreads = ReduceHDDThreads;
             processor.FavorPerfOverRam = FavorPerfOverRam;
         }
     }
