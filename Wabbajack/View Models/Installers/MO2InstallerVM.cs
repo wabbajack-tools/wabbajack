@@ -76,17 +76,29 @@ namespace Wabbajack
                     })
                 .ToProperty(this, nameof(CanInstall));
 
-            // Have Installation location updates modify the downloads location if empty
+            // Have Installation location updates modify the downloads location if empty or the same path
             this.WhenAny(x => x.Location.TargetPath)
                 .Skip(1) // Don't do it initially
                 .Subscribe(installPath =>
                 {
-                    if (DownloadLocation.TargetPath == default)
+                    if (DownloadLocation.TargetPath == default || DownloadLocation.TargetPath == installPath)
                     {
                         DownloadLocation.TargetPath = installPath.Combine("downloads");
                     }
                 })
                 .DisposeWith(CompositeDisposable);
+
+            // Have Download location updates change if the same as the install path
+            this.WhenAny(x => x.DownloadLocation.TargetPath)
+                .Skip(1) // Don't do it initially
+                .Subscribe(downloadPath =>
+                {
+                    if (downloadPath == Location.TargetPath)
+                    {
+                        DownloadLocation.TargetPath = Location.TargetPath.Combine("downloads");
+                    }
+                })
+            .DisposeWith(CompositeDisposable);
 
             // Load settings
             _CurrentSettings = installerVM.WhenAny(x => x.ModListLocation.TargetPath)

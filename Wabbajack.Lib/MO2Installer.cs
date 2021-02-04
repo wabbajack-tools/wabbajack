@@ -56,7 +56,8 @@ namespace Wabbajack.Lib
             await Metrics.Send(Metrics.BeginInstall, ModList.Name);
             Utils.Log("Configuring Processor");
 
-            DesiredThreads.OnNext(DiskThreads);
+            if (new PhysicalDisk(OutputFolder.DriveInfo().Name).MediaType == PhysicalDisk.MediaTypes.HDD && ReduceHDDThreads) DesiredThreads.OnNext(1); else DesiredThreads.OnNext(DiskThreads);
+
             FileExtractor2.FavorPerfOverRAM = FavorPerfOverRam;
 
             if (GameFolder == null)
@@ -123,13 +124,22 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Optimizing ModList");
             await OptimizeModlist();
 
+            // Reduce to one thread if downloads on HDD, else use specified. Hashing on HDD has no benefit with more threads.
+            if (new PhysicalDisk(DownloadFolder.DriveInfo().Name).MediaType == PhysicalDisk.MediaTypes.HDD && ReduceHDDThreads) DesiredThreads.OnNext(1); else DesiredThreads.OnNext(DiskThreads);
+
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Hashing Archives");
             await HashArchives();
 
+            // Set to download thread count.
+            DesiredThreads.OnNext(DownloadThreads);
+
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Downloading Missing Archives");
             await DownloadArchives();
+
+            // Reduce to one thread if downloads on HDD, else use specified. Hashing on HDD has no benefit with more threads.
+            if (new PhysicalDisk(DownloadFolder.DriveInfo().Name).MediaType == PhysicalDisk.MediaTypes.HDD && ReduceHDDThreads) DesiredThreads.OnNext(1); else DesiredThreads.OnNext(DiskThreads);
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Hashing Remaining Archives");
@@ -145,6 +155,9 @@ namespace Wabbajack.Lib
                 else
                     Error("Cannot continue, was unable to download one or more archives");
             }
+
+            // Reduce to two threads if output on HDD, else use specified. Installing files seems to have a slight benefit with two threads.
+            if (new PhysicalDisk(OutputFolder.DriveInfo().Name).MediaType == PhysicalDisk.MediaTypes.HDD && ReduceHDDThreads) DesiredThreads.OnNext(2); else DesiredThreads.OnNext(DiskThreads);
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Extracting Modlist contents");

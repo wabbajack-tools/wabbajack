@@ -26,6 +26,7 @@
                 <RowDefinition Height="25" />
                 <RowDefinition Height="25" />
                 <RowDefinition Height="25" />
+                <RowDefinition Height="25" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
@@ -67,10 +68,20 @@
                                Maximum="128"
                                Minimum="2" />
             <TextBlock Grid.Row="5" Grid.Column="0"
+                       x:Name="ReduceHDDThreadsLabel"
+                       VerticalAlignment="Center"
+                       Text="Reduce HDD threads (Recommended)" />
+            <CheckBox Grid.Row="5" Grid.Column="2"
+                      x:Name="ReduceHDDThreads"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Center"
+                      Foreground="White"
+                ></CheckBox>
+            <TextBlock Grid.Row="6" Grid.Column="0"
                        x:Name="FavorPerfOverRamLabel"
                        VerticalAlignment="Center"
                        Text="Favor performance over RAM Usage" />
-            <CheckBox Grid.Row="5" Grid.Column="2"
+            <CheckBox Grid.Row="6" Grid.Column="2"
                       x:Name="FavorPerfOverRam"
                       HorizontalAlignment="Right"
                       VerticalAlignment="Center"
