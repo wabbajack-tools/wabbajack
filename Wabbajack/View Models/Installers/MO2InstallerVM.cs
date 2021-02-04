@@ -93,7 +93,7 @@ namespace Wabbajack
                 .Skip(1) // Don't do it initially
                 .Subscribe(downloadPath =>
                 {
-                    if (downloadPath == Location.TargetPath)
+                    if (downloadPath != default && downloadPath == Location.TargetPath)
                     {
                         DownloadLocation.TargetPath = Location.TargetPath.Combine("downloads");
                     }
