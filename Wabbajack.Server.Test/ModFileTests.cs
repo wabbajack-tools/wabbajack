@@ -27,8 +27,8 @@ namespace Wabbajack.Server.Test
             var hash = Hash.FromBase64("eSIyd+KOG3s=");
 
             var archive =
-                new Archive(new WabbajackCDNDownloader.State(new Uri(
-                    "https://wabbajack.b-cdn.net/WABBAJACK_TEST_FILE.zip_a1a3e961-5c0b-4ccf-84b4-7aa437d9640d")))
+                new Archive(new HTTPDownloader.State(
+                    "https://build.wabbajack.org/WABBAJACK_TEST_FILE.txt"))
                 {
                     Size = 20, Hash = hash
                 };
@@ -46,6 +46,7 @@ namespace Wabbajack.Server.Test
 
 
             var state = await ClientAPI.InferDownloadState(archive.Hash);
+            Assert.NotNull(state);
             Assert.Equal(archive.State.GetMetaIniString(), state!.GetMetaIniString());
 
             var archives = await (await ClientAPI.GetClient()).GetJsonAsync<Archive[]>(
