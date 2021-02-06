@@ -57,7 +57,7 @@ namespace Wabbajack.Lib.Validation
 
         public async Task<IEnumerable<string>> Validate(ModList modlist)
         {
-            ConcurrentStack<string> ValidationErrors = new ConcurrentStack<string>();
+            ConcurrentStack<string> ValidationErrors = new();
             modlist.Archives
                 .Where(m => !m.State.IsWhitelisted(ServerWhitelist))
                 .Do(m =>

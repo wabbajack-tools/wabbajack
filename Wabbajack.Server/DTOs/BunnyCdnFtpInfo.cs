@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
+using FluentFTP;
 using Wabbajack.Common;
 
 namespace Wabbajack.Server.DTOs
@@ -20,6 +22,13 @@ namespace Wabbajack.Server.DTOs
         public static async Task<BunnyCdnFtpInfo> GetCreds(StorageSpace space)
         {
             return (await Utils.FromEncryptedJson<Dictionary<string, BunnyCdnFtpInfo>>("bunnycdn"))[space.ToString()];
+        }
+        
+        public async Task<FtpClient> GetClient()
+        {
+            var ftpClient = new FtpClient(Hostname, new NetworkCredential(Username, Password));
+            await ftpClient.ConnectAsync();
+            return ftpClient;
         }
     }
 }

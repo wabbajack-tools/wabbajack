@@ -15,13 +15,21 @@ namespace Wabbajack.Server.DataLayer
 {
     public partial class SqlService
     {
-        public async Task TouchAuthoredFile(CDNFileDefinition definition)
+        public async Task TouchAuthoredFile(CDNFileDefinition definition, DateTime? date = null)
         {
             await using var conn = await Open();
-            await conn.ExecuteAsync("UPDATE AuthoredFiles SET LastTouched = GETUTCDATE() WHERE ServerAssignedUniqueId = @Uid",
-                new {
-                    Uid = definition.ServerAssignedUniqueId
-                });
+            if (date == null)
+            {
+                await conn.ExecuteAsync(
+                    "UPDATE AuthoredFiles SET LastTouched = GETUTCDATE() WHERE ServerAssignedUniqueId = @Uid",
+                    new {Uid = definition.ServerAssignedUniqueId});
+            }
+            else
+            {
+                await conn.ExecuteAsync(
+                    "UPDATE AuthoredFiles SET LastTouched = @Date WHERE ServerAssignedUniqueId = @Uid",
+                    new {Uid = definition.ServerAssignedUniqueId, Date = date});
+            }
         }
 
         public async Task<CDNFileDefinition> CreateAuthoredFile(CDNFileDefinition definition, string login)
@@ -55,12 +63,13 @@ namespace Wabbajack.Server.DataLayer
                 new {Uid = serverAssignedUniqueId})).First();
         }
         
-        public async Task<CDNFileDefinition> DeleteFileDefinition(CDNFileDefinition definition)
+        public async Task DeleteFileDefinition(CDNFileDefinition definition)
         {
             await using var conn = await Open();
-            return (await conn.QueryAsync<CDNFileDefinition>(
+            await conn.ExecuteAsync(
                 "DELETE FROM dbo.AuthoredFiles WHERE ServerAssignedUniqueID = @Uid",
-                new {Uid = definition.ServerAssignedUniqueId})).First();
+                new {Uid = definition.ServerAssignedUniqueId});
+            return;
         }
 
         public async Task<IEnumerable<AuthoredFilesSummary>> AllAuthoredFiles()
@@ -68,8 +77,7 @@ namespace Wabbajack.Server.DataLayer
             await using var conn = await Open();
             var results = await conn.QueryAsync<AuthoredFilesSummary>("SELECT CONVERT(NVARCHAR(50), ServerAssignedUniqueId) as ServerAssignedUniqueId, Size, OriginalFileName, Author, LastTouched, Finalized, MungedName from dbo.AuthoredFilesSummaries ORDER BY LastTouched DESC");
             return results;
-
         }
-        
+
     }
 }

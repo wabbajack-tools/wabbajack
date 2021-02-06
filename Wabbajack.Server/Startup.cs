@@ -75,6 +75,7 @@ namespace Wabbajack.Server
             services.AddSingleton<MirrorQueueService>();
             services.AddSingleton<Watchdog>();
             services.AddSingleton<DiscordFrontend>();
+            services.AddSingleton<AuthoredFilesCleanup>();
             
             services.AddMvc();
             services.AddControllers()
@@ -135,6 +136,7 @@ namespace Wabbajack.Server
             app.UseService<MirrorQueueService>();
             app.UseService<Watchdog>();
             app.UseService<DiscordFrontend>();
+            app.UseService<AuthoredFilesCleanup>();
 
             app.Use(next =>
             {

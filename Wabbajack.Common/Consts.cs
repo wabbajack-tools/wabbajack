@@ -132,6 +132,7 @@ namespace Wabbajack.Common
         public static RelativePath SettingsIni = (RelativePath)"settings.ini";
         public static byte SettingsVersion => 2;
         public static TimeSpan MaxVerifyTime => TimeSpan.FromMinutes(10);
+        public static readonly string WabbajackAuthoredFilesPrefix = "https://wabbajack.b-cdn.net/";
 
         public static RelativePath NativeSettingsJson = (RelativePath)"native_compiler_settings.json";
 

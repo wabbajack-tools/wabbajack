@@ -33,40 +33,45 @@
 <canvas id="started_wabbajack_chart" width="800" height="600"></canvas>
 <hr/>
 
+<h2>Exceptions</h2>
+<canvas id="exceptions_chart" width="800" height="600"></canvas>
+<hr/>
+
+
 
 
 
 <script>
-    
+
     var getReport = function(subject, callback) {
         $.getJSON("/metrics/report/"+subject, callback)
     }
-    
+
     var makeChart = function(ele, group) {
 
         var result_fn = function (data) {
-                    var data = _.filter(data, series => _.some(series.values, v => v > 1));
-                    var labels = _.uniq(_.flatten(_.map(data, series => series.labels)));
-                    var datasets = _.map(data, series => {
-                        return {
-                            label: series.seriesName,
-                            fill: false,
-                            data: _.last(series.values, 90)
-                        }});
-                    var ctx = document.getElementById(ele).getContext('2d');
-                    var chart = new Chart(ctx, {
-                        // The type of chart we want to create
-                        type: 'bar',
+            var data = _.filter(data, series => _.some(series.values, v => v > 1));
+            var labels = _.uniq(_.flatten(_.map(data, series => series.labels)));
+            var datasets = _.map(data, series => {
+                return {
+                    label: series.seriesName,
+                    fill: false,
+                    data: _.last(series.values, 90)
+                }});
+            var ctx = document.getElementById(ele).getContext('2d');
+            var chart = new Chart(ctx, {
+                // The type of chart we want to create
+                type: 'bar',
 
-                        // The data for our dataset
-                        data: {
-                            labels: _.last(labels, 90),
-                            datasets: datasets},
+                // The data for our dataset
+                data: {
+                    labels: _.last(labels, 90),
+                    datasets: datasets},
 
-                        // Configuration options go here
-                        options: {scales: {xAxes: [{stacked:true}], yAxes: [{stacked:true}]}}
-                    });
-                };
+                // Configuration options go here
+                options: {scales: {xAxes: [{stacked:true}], yAxes: [{stacked:true}]}}
+            });
+        };
         getReport(group, result_fn);
     };
 
@@ -74,26 +79,26 @@
     var makePieChart = function(ele, group) {
 
         var result_fn = function (data) {
-                    var data = _.filter(data, series => _.some(series.values, v => v > 2));
-                    var labels = _.map(data, series => series.seriesName);
-                    var datasets = {data : _.map(data, series => {
-                            return _.reduce(series.values, (x, y) => x + y, 0)})};
-                    console.log(datasets);
-                    console.log(labels);
-                    var ctx = document.getElementById(ele).getContext('2d');
-                    var chart = new Chart(ctx, {
-                        // The type of chart we want to create
-                        type: 'pie',
+            var data = _.filter(data, series => _.some(series.values, v => v > 2));
+            var labels = _.map(data, series => series.seriesName);
+            var datasets = {data : _.map(data, series => {
+                    return _.reduce(series.values, (x, y) => x + y, 0)})};
+            console.log(datasets);
+            console.log(labels);
+            var ctx = document.getElementById(ele).getContext('2d');
+            var chart = new Chart(ctx, {
+                // The type of chart we want to create
+                type: 'pie',
 
-                        // The data for our dataset
-                        data: {
-                            labels: labels,
-                            datasets: [datasets]},
+                // The data for our dataset
+                data: {
+                    labels: labels,
+                    datasets: [datasets]},
 
-                        // Configuration options go here
-                        options: {}
-                    });
-                };
+                // Configuration options go here
+                options: {}
+            });
+        };
         getReport(group, result_fn)
     };
 
@@ -101,6 +106,7 @@
     makeChart("begin_install_chart", "begin_install");
     makeChart("finished_install_chart", "finish_install");
     makeChart("started_wabbajack_chart", "started_wabbajack");
+    makeChart("exceptions_chart", "Exception");
     makePieChart("finished_install_count", "finish_install");
 </script>
 </body>

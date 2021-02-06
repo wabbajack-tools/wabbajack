@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.4.2.2 - 2/6/2020
+* Better Origin game detection
+* Don't check the download whitelist for files that are already downloaded
+
 #### Version - 2.4.2.1 - 2/4/2020
 * HOTFIX - fix for the download path sometimes being empty
 * HOTFIX - fix for some drive types not being detected (e.g. RAID drives)

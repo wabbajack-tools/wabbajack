@@ -84,7 +84,11 @@ namespace Wabbajack.BuildServer.Test
 
         public T GetService<T>()
         {
-            return (T)_host.Services.GetService(typeof(T));
+            var result = (T)_host.Services.GetService(typeof(T));
+
+            if (result == null)
+                throw new Exception($"Service {typeof(T)} not found in configuration");
+            return result;
         }
 
 

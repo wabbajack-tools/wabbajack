@@ -103,8 +103,7 @@ namespace Wabbajack.Lib
             await ValidateGameESMs();
 
             if (cancel.IsCancellationRequested) return false;
-            UpdateTracker.NextStep("Validating Modlist");
-            await ValidateModlist.RunValidation(ModList);
+            UpdateTracker.NextStep("Creating Output Folders");
 
             OutputFolder.CreateDirectory();
             DownloadFolder.CreateDirectory();

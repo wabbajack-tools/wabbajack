@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.Validation;
 using Wabbajack.VirtualFileSystem;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
@@ -194,7 +195,9 @@ namespace Wabbajack.Lib
 
             Info("Getting Nexus API Key, if a browser appears, please accept");
 
-            var dispatchers = missing.Select(m => m.State.GetDownloader()).Distinct();
+            var dispatchers = missing.Select(m => m.State.GetDownloader())
+                .Distinct()
+                .ToList();
 
             await Task.WhenAll(dispatchers.Select(d => d.Prepare()));
 
@@ -202,6 +205,14 @@ namespace Wabbajack.Lib
             if (nexusDownloader != null && !await nexusDownloader.HaveEnoughAPICalls(missing))
             {
                 throw new Exception($"Not enough Nexus API calls to download this list, please try again after midnight GMT when your API limits reset");
+            }
+
+            var validationData = new ValidateModlist();
+            await validationData.LoadListsFromGithub();
+
+            foreach (var archive in missing.Where(archive => !archive.State.IsWhitelisted(validationData.ServerWhitelist)))
+            {
+                throw new Exception($"File {archive.State.PrimaryKeyString} failed validation");
             }
 
             await DownloadMissingArchives(missing);
@@ -264,6 +275,7 @@ namespace Wabbajack.Lib
             }
             catch (Exception ex)
             {
+                var tsk = Metrics.Send("failed_download", archive.State.PrimaryKeyString);
                 Utils.Log($"Download error for file {archive.Name}");
                 Utils.Log(ex.ToString());
                 return false;
