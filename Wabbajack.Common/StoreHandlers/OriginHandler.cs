@@ -70,11 +70,9 @@ namespace Wabbajack.Common.StoreHandlers
         {
             try
             {
-                
-                
                 foreach (var game in GameRegistry.Games)
                 {
-                    var mfst = game.Value.OriginIDs.FirstOrDefault(g => KnownMFSTs.Contains(g.Replace(":", "")));
+                    var mfst = game.Value.OriginIDs.FirstOrDefault(g => KnownMFSTs.Contains(g));
                     if (mfst == null)
                         continue;
 
@@ -91,7 +89,7 @@ namespace Wabbajack.Common.StoreHandlers
             }
         }
     }
-    
+
     public sealed class OriginGame : AStoreGame
     {
         private string _mfst;
@@ -123,12 +121,12 @@ namespace Wabbajack.Common.StoreHandlers
         {
             var manifestData = GetAndCacheManifestResponse(this._mfst).FromJsonString<GameLocalDataResponse>();
             var platform = manifestData!.publishing!.softwareList!.software!.FirstOrDefault(a => a.softwarePlatform == "PCWIN");
-            
+
             var installPath = GetPathFromPlatformPath(platform!.fulfillmentAttributes!.installCheckOverride!);
             return installPath;
 
         }
-        
+
         internal AbsolutePath GetPathFromPlatformPath(string path, RegistryView platformView)
         {
             if (!path.StartsWith("["))
@@ -169,7 +167,7 @@ namespace Wabbajack.Common.StoreHandlers
 
             return (AbsolutePath)keyValue!.ToString()!;
         }
-        
+
         internal AbsolutePath GetPathFromPlatformPath(string path)
         {
             var resultPath = GetPathFromPlatformPath(path, RegistryView.Registry64);
