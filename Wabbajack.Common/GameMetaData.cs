@@ -44,7 +44,8 @@ namespace Wabbajack.Common
         NoMansSky,
         DragonAgeOrigins,
         DragonAge2,
-        DragonAgeInquisition
+        DragonAgeInquisition,
+        KerbalSpaceProgram
     }
 
     public static class GameExtensions
@@ -613,6 +614,23 @@ namespace Wabbajack.Common
                         @"DragonAgeInquisition.exe"	
                     },
                     MainExecutable = @"DragonAgeInquisition.exe"	
+                }
+            },
+            {
+                Game.KerbalSpaceProgram, new GameMetaData
+                {
+                    Game = Game.KerbalSpaceProgram,
+                    NexusName = "kerbalspaceprogram",
+                    MO2Name = "kerbalspaceprogram",
+                    NexusGameId = 272,
+                    SteamIDs = new List<int>{220200},
+                    GOGIDs = new List<int>{1429864849},
+                    IsGenericMO2Plugin = true,
+                    RequiredFiles = new List<string>
+                    {
+                        @"KSP_x64.exe"
+                    },
+                    MainExecutable = @"KSP_x64.exe"
                 }
             }
         };
