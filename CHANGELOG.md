@@ -1,21 +1,21 @@
 ### Changelog
 
-#### Version - 2.4.2.2 - 2/6/2020
+#### Version - 2.4.2.2 - 2/6/2021
 * Better Origin game detection
 * Don't check the download whitelist for files that are already downloaded
 
-#### Version - 2.4.2.1 - 2/4/2020
+#### Version - 2.4.2.1 - 2/4/2021
 * HOTFIX - fix for the download path sometimes being empty
 * HOTFIX - fix for some drive types not being detected (e.g. RAID drives)
 
-#### Version - 2.4.2.0 - 2/3/2020
+#### Version - 2.4.2.0 - 2/3/2021
 * Rework the Nexus Manual Downloading process now with less jank
 * Manual Nexus Downloading now explains why it's so painful, and how to fix it (get Premium)
 * Manual Nexus Downloading no longer opens a ton of CEF processes
 * Manual Nexus Downloading no longer prompts users to download files that don't exist
 * Disabled CloudFlare DDOS mitigation for LoversLab downloading, the site is back to normal now
 
-#### Version - 2.4.1.2 - 1/30/2020
+#### Version - 2.4.1.2 - 1/30/2021
 * Don't install .meta files for files sourced from the game folder
 * Fix bug MO2 archive name detection in .meta files (rare bug with FO4VR and other like games)
 * Catch exceptions when ECS downloads manifest data
@@ -23,17 +23,17 @@
 * Update all deps
 * Reduce memory usage of open files (may help with memory errors during BSA creation)
 
-#### Version - 2.4.1.1 - 1/13/2020
+#### Version - 2.4.1.1 - 1/13/2021
 * HOTFIX: Fix game file sources that don't have MO2 specific names
 
-#### Version - 2.4.1.0 - 1/12/2020
+#### Version - 2.4.1.0 - 1/12/2021
 * Fix errors with broken SQL DBs crashing the system
 * Fix errors with bad SQL clean commands
 * Warn when the user doesn't have enough swap space
 * Better OS version detection
 * Use case-insensitive comparisons in Game File Downloader's PrimaryKeyString
 
-#### Version - 2.4.0.0 - 1/9/2020
+#### Version - 2.4.0.0 - 1/9/2021
 * Wabbajack is now based on .NET 5.0 (does not require a runtime download by users)
 * Origin is now supported as a game source
 * Basic (mostly untested) support for Dragon Age : Origins, Dragon Age 2, and Dragon Age: Inquisition 
