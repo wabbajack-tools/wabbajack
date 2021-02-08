@@ -45,6 +45,7 @@ namespace Wabbajack.Common
         DragonAgeOrigins,
         DragonAge2,
         DragonAgeInquisition,
+        [Description("Kerbal Space Program")]
         KerbalSpaceProgram
     }
 
