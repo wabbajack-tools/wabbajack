@@ -12,7 +12,7 @@ using Wabbajack.Common.StoreHandlers;
 namespace Wabbajack.Common
 {
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum Game 
+    public enum Game
     {
         //MO2 GAMES
         Morrowind,
@@ -78,7 +78,7 @@ namespace Wabbajack.Common
         // C:\ProgramData\Origin\LocalContent\{game name)\*.mfst
         // So for DA:O this is "DR208591800.mfst" -> "DR:208591800"
         public List<string> OriginIDs { get; set; } = new();
-        
+
         public List<string> EpicGameStoreIDs { get; internal set; } = new List<string>();
 
         // to get BethNet IDs: check the registry
@@ -139,7 +139,7 @@ namespace Wabbajack.Common
                 path = _cachedPath;
                 return true;
             }
-            
+
             var ret = TryGetGameLocation();
             if (ret != null)
             {
@@ -166,7 +166,7 @@ namespace Wabbajack.Common
         {
         }
     }
-    
+
     public static class EnumExtensions
     {
         public static string GetDescription<T>(this T enumerationValue)
@@ -236,7 +236,7 @@ namespace Wabbajack.Common
 
             result = GetByMO2ArchiveName(someName);
             if (result != null) return result;
-            
+
             result = GetByMO2Name(someName);
             if (result != null) return result;
 
@@ -482,35 +482,35 @@ namespace Wabbajack.Common
                     MainExecutable = @"Binaries\Win32\Dishonored.exe"
                 }
             },
-            {	
-                Game.Witcher3, new GameMetaData	
-                {	
-                    Game = Game.Witcher3,	
-                    NexusName = "witcher3",	
+            {
+                Game.Witcher3, new GameMetaData
+                {
+                    Game = Game.Witcher3,
+                    NexusName = "witcher3",
                     NexusGameId = 952,
                     MO2Name = "The Witcher 3: Wild Hunt",
-                    SteamIDs = new List<int>{292030, 499450}, // normal and GotY	
-                    GOGIDs = new List<int>{1207664643, 1495134320, 1207664663, 1640424747}, // normal, GotY and both in packages	
-                    RequiredFiles = new List<string>	
-                    {	
-                        "bin\\x64\\witcher3.exe"	
+                    SteamIDs = new List<int>{292030, 499450}, // normal and GotY
+                    GOGIDs = new List<int>{1207664643, 1495134320, 1207664663, 1640424747}, // normal, GotY and both in packages
+                    RequiredFiles = new List<string>
+                    {
+                        "bin\\x64\\witcher3.exe"
                     },
                     MainExecutable = @"bin\x64\witcher3.exe"
                 }
             },
-            {	
-                Game.StardewValley, new GameMetaData	
-                {	
-                    Game = Game.StardewValley,	
+            {
+                Game.StardewValley, new GameMetaData
+                {
+                    Game = Game.StardewValley,
                     NexusName = "stardewvalley",
                     MO2Name = "Stardew Valley",
                     NexusGameId = 1303,
-                    SteamIDs = new List<int>{413150},	
+                    SteamIDs = new List<int>{413150},
                     GOGIDs = new List<int>{1453375253},
                     IsGenericMO2Plugin = true,
-                    RequiredFiles = new List<string>	
-                    {	
-                        "Stardew Valley.exe"	
+                    RequiredFiles = new List<string>
+                    {
+                        "Stardew Valley.exe"
                     },
                     MainExecutable = "Stardew Valley.exe"
                 }
@@ -550,69 +550,69 @@ namespace Wabbajack.Common
                     MainExecutable = @"MW5Mercs\Binaries\Win64\MechWarrior-Win64-Shipping.exe"
                 }
             },
-            {	
-                Game.NoMansSky, new GameMetaData	
-                {	
-                    Game = Game.NoMansSky,	
-                    NexusName = "nomanssky",	
+            {
+                Game.NoMansSky, new GameMetaData
+                {
+                    Game = Game.NoMansSky,
+                    NexusName = "nomanssky",
                     NexusGameId = 1634,
                     MO2Name = "No Man's Sky",
                     SteamIDs = new List<int>{275850},
                     GOGIDs = new List<int>{1446213994},
-                    RequiredFiles = new List<string>	
-                    {	
-                        @"Binaries\NMS.exe"	
+                    RequiredFiles = new List<string>
+                    {
+                        @"Binaries\NMS.exe"
                     },
-                    MainExecutable = @"Binaries\NMS.exe"	
+                    MainExecutable = @"Binaries\NMS.exe"
                 }
             },
-            {	
-                Game.DragonAgeOrigins, new GameMetaData	
-                {	
+            {
+                Game.DragonAgeOrigins, new GameMetaData
+                {
                     Game = Game.DragonAgeOrigins,
-                    NexusName = "dragonage",	
+                    NexusName = "dragonage",
                     NexusGameId = 140,
-                    MO2Name = "Dragon Age: Origins", // Probably wrong
+                    MO2Name = "Dragon Age: Origins",
                     SteamIDs = new List<int>{47810},
-                    OriginIDs = new List<string>{"DR:208591800"},
+                    OriginIDs = new List<string>{"DR:169789300", "DR:208591800"},
                     GOGIDs = new List<int>{1949616134},
-                    RequiredFiles = new List<string>	
-                    {	
-                        @"bin_ship\daorigins.exe"	
+                    RequiredFiles = new List<string>
+                    {
+                        @"bin_ship\daorigins.exe"
                     },
-                    MainExecutable = @"bin_ship\daorigins.exe"	
+                    MainExecutable = @"bin_ship\daorigins.exe"
                 }
             },
-            {	
-                Game.DragonAge2, new GameMetaData	
-                {	
+            {
+                Game.DragonAge2, new GameMetaData
+                {
                     Game = Game.DragonAge2,
-                    NexusName = "dragonage2",	
+                    NexusName = "dragonage2",
                     NexusGameId = 141,
                     MO2Name = "Dragon Age 2", // Probably wrong
                     SteamIDs = new List<int>{1238040},
                     OriginIDs = new List<string>{"OFB-EAST:59474"},
-                    RequiredFiles = new List<string>	
-                    {	
-                        @"bin_ship\DragonAge2.exe"	
+                    RequiredFiles = new List<string>
+                    {
+                        @"bin_ship\DragonAge2.exe"
                     },
-                    MainExecutable = @"bin_ship\DragonAge2.exe"	
+                    MainExecutable = @"bin_ship\DragonAge2.exe"
                 }
             },
-            {	
-                Game.DragonAgeInquisition, new GameMetaData	
-                {	
+            {
+                Game.DragonAgeInquisition, new GameMetaData
+                {
                     Game = Game.DragonAgeInquisition,
-                    NexusName = "dragonageinquisition",	
+                    NexusName = "dragonageinquisition",
                     NexusGameId = 728,
                     MO2Name = "Dragon Age: Inquisition", // Probably wrong
                     SteamIDs = new List<int>{1222690},
                     OriginIDs = new List<string>{"OFB-EAST:51937"},
-                    RequiredFiles = new List<string>	
-                    {	
-                        @"DragonAgeInquisition.exe"	
+                    RequiredFiles = new List<string>
+                    {
+                        @"DragonAgeInquisition.exe"
                     },
-                    MainExecutable = @"DragonAgeInquisition.exe"	
+                    MainExecutable = @"DragonAgeInquisition.exe"
                 }
             }
         };
