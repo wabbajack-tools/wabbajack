@@ -25,7 +25,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 {
                     var general = kv.Value.General;
                     if (general.notes != null && (general.notes.Contains(Consts.WABBAJACK_INCLUDE) || general.notes.Contains(Consts.WABBAJACK_NOMATCH_INCLUDE))) return true;
-                    if (general.comments != null && (general.notes.Contains(Consts.WABBAJACK_INCLUDE) || general.notes.Contains(Consts.WABBAJACK_NOMATCH_INCLUDE))) return true;
+                    if (general.comments != null && (general.comments.Contains(Consts.WABBAJACK_INCLUDE) || general.comments.Contains(Consts.WABBAJACK_NOMATCH_INCLUDE))) return true;
                     return false;
                 })
                 .Select(kv => kv.Key.RelativeTo(_mo2Compiler.SourcePath))
