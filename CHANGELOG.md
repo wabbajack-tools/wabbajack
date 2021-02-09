@@ -1,5 +1,15 @@
 ### Changelog
 
+#### Version - 2.4.2.3 - 2/9/2021
+* Remove unused file watcher from ManualDownloader
+* Lower minimum number of threads to 1
+* Added support for Kerbal Space Program
+* Add Origin support for DA:O
+* Stop vaccuming the patch cache (resulting in overuse of resources on some system)
+* Fix reading flags in comments for DeconstructBSAs
+* Update the "Overwrite folder" text to explain that saves are *not* deleted
+* .cache files are now ignored by the compiler
+
 #### Version - 2.4.2.2 - 2/6/2021
 * Better Origin game detection
 * Don't check the download whitelist for files that are already downloaded
