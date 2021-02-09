@@ -622,7 +622,7 @@ namespace Wabbajack.Common
                 {
                     Game = Game.KerbalSpaceProgram,
                     NexusName = "kerbalspaceprogram",
-                    MO2Name = "kerbalspaceprogram",
+                    MO2Name = "Kerbal Space Program",
                     NexusGameId = 272,
                     SteamIDs = new List<int>{220200},
                     GOGIDs = new List<int>{1429864849},
