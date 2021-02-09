@@ -18,8 +18,8 @@ namespace Wabbajack.Lib
         {
             get =>
                 $@"There appears to be a modlist already installed in the output folder. If you continue with the install, 
-Any files that exist in {OutputFolder} will be changed to match the files found in the {ModListName} modlist. This means that save games will be removed, custom settings
-will be reverted. Are you sure you wish to continue?";
+Any files that exist in {OutputFolder} will be changed to match the files found in the {ModListName} modlist. Custom settings
+will be reverted, but saved games will not be deleted. Are you sure you wish to continue?";
         }
     }
 }
