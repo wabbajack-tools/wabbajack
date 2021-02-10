@@ -449,6 +449,7 @@ namespace Wabbajack.Lib
                 new IncludeModIniData(this),
                 new DirectMatch(this),
                 new IncludeTaggedMods(this, Consts.WABBAJACK_INCLUDE),
+                new IncludeTaggedFolders(this, Consts.WABBAJACK_INCLUDE),
                 new IgnoreEndsWith(this, ".pyc"),
                 new IgnoreEndsWith(this, ".log"),
                 new DeconstructBSAs(
@@ -478,6 +479,7 @@ namespace Wabbajack.Lib
                 new IncludeAllConfigs(this),
                 new zEditIntegration.IncludeZEditPatches(this),
                 new IncludeTaggedMods(this, Consts.WABBAJACK_NOMATCH_INCLUDE),
+                new IncludeTaggedFolders(this,Consts.WABBAJACK_NOMATCH_INCLUDE),
                 new IgnorePathContains(this,@"\Edit Scripts\Export\"),
                 new DropAll(this)
             };
