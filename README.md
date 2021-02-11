@@ -12,7 +12,8 @@ Wabbajack is an automated Modlist Installer that can reproduce an entire modding
 
 ## Supported Games and Mod Manager
 
-If you own a game on this list on the Epic Games Store please get in touch on [Discord](https://discord.gg/wabbajack), so you can help us make Wabbajack support those games as well.
+If you own a game on this list on the Epic Games Store, and the store isn't listed as suppoted, please get in touch on [Discord](https://discord.gg/wabbajack), so you can help us make Wabbajack support those versions as well.
+This is needed, since the EGS has no public database of its game IDs.
 
 | Game                      | Platform              | Versions  | Notes |
 |---------------------------|-----------------------|-----------|-------|
@@ -32,12 +33,17 @@ If you own a game on this list on the Epic Games Store please get in touch on [D
 | Kingdom Come: Deliverance | Steam, GOG            |           | Experimental |
 | Mechwarrior 5: Mercenaries| Epic Games Store      |           | Experimental |
 | No Man's Sky              | Steam, GOG            |           | Experimental |
+| Dargon Age Origins        | Stean, GOG, Origin    |           | Experimental |
+| Dragon Age 2              | Steam, Origin         |           | Experimental |
+| Dragon Age Inquisition    | Steam, Origin         |           | Experimental |
+| Kerbal Space Program      | Steam, GOG            |           | Experimental |
+   
 
 **Note about games marked with experiment support**:
 
 A new MO2 plugin called [Basic Games Plugin](https://github.com/ModOrganizer2/modorganizer-basic_games) enables the easy creation of new game plugins for non BGS games. This is still very experimental in both MO2 and Wabbajack.
 
-Some like Mechwarrior 5 use a complete new method of creating a list, for more info on that best join the [Discord](https://discord.gg/wabbajack) for guidance.
+Some like Mechwarrior 5 use a complete new method of creating a list found [here](https://github.com/wabbajack-tools/wabbajack/wiki/Native-Game-Installer---(Installers-not-using-MO2)), for more info on that best join the [Discord](https://discord.gg/wabbajack) for guidance.
 
 ## Installing a Modlist
 
