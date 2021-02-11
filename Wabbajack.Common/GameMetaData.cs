@@ -79,6 +79,7 @@ namespace Wabbajack.Common
         // to get these ids, split the numbers from the letters in file names found in
         // C:\ProgramData\Origin\LocalContent\{game name)\*.mfst
         // So for DA:O this is "DR208591800.mfst" -> "DR:208591800"
+        // EAPlay games may have @subscription appended to the file name
         public List<string> OriginIDs { get; set; } = new();
 
         public List<string> EpicGameStoreIDs { get; internal set; } = new List<string>();

@@ -15,7 +15,7 @@ namespace Wabbajack.Common.StoreHandlers
 
         public override StoreType Type { get; internal set; } = StoreType.Origin;
 
-        private static Regex SplitRegex = new Regex("[0-9]+");
+        private static Regex SplitRegex = new Regex("(.*)([0-9]+)(@subscription)?", RegexOptions.RightToLeft);
         public override bool Init()
         {
             try
@@ -30,8 +30,8 @@ namespace Wabbajack.Common.StoreHandlers
                     {
                         var result = SplitRegex.Match(f);
                         if (result == null) return default;
-                        var a = f.Substring(0, result.Index);
-                        var b = f.Substring(result.Index);
+                        var a = result.Groups[1];
+                        var b = result.Groups[2];
                         return a + ":" + b;
                     })
                     .Where(t => t != default)
