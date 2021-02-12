@@ -118,6 +118,15 @@ There are some special cases where you want to change the default Wabbajack beha
 | `WABBAJACK_ALWAYS_ENABLE` | The mod will not be ignored by Wabbajack even if it's disabled | Wabbajack will normally ignore all mods you disabled in MO2 but there are some cases where you might want to give some choice to the end user and want to have the mod included |
 | `WABBAJACK_ALWAYS_DISABLE` | The mod will always be ignored by Wabbajack | Useful if you don't want some mods included in the Modlist but still want to keep it active in your own setup |
 
+#### Folder Tags
+
+You can create an empty `tagfile` with no extention in any folder you want to apply this tags to. This is meant to be used with folders that aren't mods.
+
+| Flag/File | Description | Notes |
+|------|-------------|-------|
+| `WABBAJACK_INCLUDE` | All files in this folder will be inlined into the `.wabbajack` file | |
+| `WABBAJACK_NOMATCH_INCLUDE` | All files in this folder will be inlined into the `.wabbajack` file even if Wabbajack did not found a match for them | Useful for generated files.|
+
 #### Patches
 
 Reading all the previous section you might wonder if Wabbajack is able to detect modified files and how it deals with them. Wabbajack can't include the modified file so instead we just include the difference between the original and modified version.
