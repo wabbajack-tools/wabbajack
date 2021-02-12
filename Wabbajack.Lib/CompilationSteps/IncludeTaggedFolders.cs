@@ -12,13 +12,13 @@ namespace Wabbajack.Lib.CompilationSteps
     {
         private readonly IEnumerable<AbsolutePath> _includeDirectly = new List<AbsolutePath>();
         private readonly string _tag;
-        private readonly NativeCompiler _nativeCompiler;
+        private readonly ACompiler _aCompiler;
         private readonly AbsolutePath _sourcePath;
 
         public IncludeTaggedFolders(ACompiler compiler, string tag) : base(compiler)
         {   
-            _nativeCompiler = (NativeCompiler)compiler;
-            _sourcePath = _nativeCompiler.SourcePath;
+            _aCompiler = (ACompiler)compiler;
+            _sourcePath = _aCompiler.SourcePath;
             _tag = tag;
             string rootDirectory = (string)_sourcePath;
 
