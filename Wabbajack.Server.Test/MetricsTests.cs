@@ -34,7 +34,17 @@ namespace Wabbajack.BuildServer.Test
             using var response = await _client.GetAsync(MakeURL($"metrics/report/{action}"));
             Assert.Equal(TimeSpan.FromHours(1), response.Headers.CacheControl.MaxAge);
             // we'll just make sure this doesn't error, with limited data that's about all we can do atm
-           
+            
+            using var totalInstalls = await _client.GetAsync(MakeURL($"metrics/total_installs.html"));
+            Assert.True(totalInstalls.IsSuccessStatusCode);
+            
+            using var totalUniqueInstalls = await _client.GetAsync(MakeURL($"metrics/total_unique_installs.html"));
+            Assert.True(totalUniqueInstalls.IsSuccessStatusCode);
+
+            using var dumpResponse = await _client.GetAsync(MakeURL("metrics/dump.json"));
+            Assert.True(dumpResponse.IsSuccessStatusCode);
+            var data = await dumpResponse.Content.ReadAsStringAsync();
+            Assert.NotEmpty(data);
         }
     }
 }

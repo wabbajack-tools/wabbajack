@@ -22,6 +22,7 @@ namespace Wabbajack.Lib.Http
                 MaxConnectionsPerServer = 20,
                 PooledConnectionLifetime = TimeSpan.FromMilliseconds(100),
                 PooledConnectionIdleTimeout = TimeSpan.FromMilliseconds(100),
+                AutomaticDecompression = DecompressionMethods.All
                
             };
             Utils.Log($"Configuring with SSL {_socketsHandler.SslOptions.EnabledSslProtocols}");

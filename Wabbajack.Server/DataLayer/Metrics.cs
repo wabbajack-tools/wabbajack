@@ -95,5 +95,72 @@ namespace Wabbajack.Server.DataLayer
                         WHERE JSON_VALUE(Metadata, '$.links.machineURL') = @MachineURL)",
                 new {MachineURL = machineUrl});
         }
+
+        public async Task<IEnumerable<(string, long)>> GetTotalInstalls()
+        {
+            await using var conn = await Open();
+            return await conn.QueryAsync<(string, long)>(
+                @"SELECT GroupingSubject, Count(*) as Count
+                        From dbo.Metrics
+                        WHERE 
+
+                        GroupingSubject in  (select DISTINCT GroupingSubject from dbo.Metrics
+                            WHERE action = 'finish_install'
+                            AND MetricsKey is not null)
+	                        group by GroupingSubject
+	                        order by Count(*) desc");
+        }
+        
+        public async Task<IEnumerable<(string, long)>> GetTotalUniqueInstalls()
+        {
+            await using var conn = await Open();
+            return await conn.QueryAsync<(string, long)>(
+                @"Select GroupingSubject, Count(*) as Count
+                        FROM
+                        (select DISTINCT MetricsKey, GroupingSubject
+                        From dbo.Metrics
+                        WHERE 
+                        GroupingSubject in  (select DISTINCT GroupingSubject from dbo.Metrics
+                            WHERE action = 'finish_install'
+                            AND MetricsKey is not null)) m
+                        GROUP BY GroupingSubject
+                        Order by Count(*) desc
+                        ");
+        }
+
+        public async IAsyncEnumerable<MetricRow> MetricsDump()
+        {
+            var keys = new Dictionary<string, long>();
+            
+            await using var conn = await Open();
+            foreach (var row in await conn.QueryAsync<(long, DateTime, string, string, string, string)>(@"select Id, Timestamp, Action, Subject, MetricsKey, GroupingSubject from dbo.metrics WHERE MetricsKey is not null"))
+            {
+                if (!keys.TryGetValue(row.Item5, out var keyid))
+                {
+                    keyid = keys.Count;
+                    keys[row.Item5] = keyid;
+                }
+
+                yield return new MetricRow
+                {
+                    Id = row.Item1,
+                    Timestamp = row.Item2,
+                    Action = row.Item3,
+                    Subject = row.Item4,
+                    MetricsKey = keyid,
+                    GroupingSubject = row.Item6
+                };
+            }
+        }
+
+        public class MetricRow
+        {
+            public long Id;
+            public DateTime Timestamp;
+            public string Action;
+            public string Subject;
+            public string GroupingSubject;
+            public long MetricsKey;
+        }
     }
 }

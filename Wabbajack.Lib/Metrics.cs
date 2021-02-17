@@ -69,7 +69,7 @@ namespace Wabbajack.Lib
         /// </summary>
         /// <param name="action"></param>
         /// <param name="value"></param>
-        public static async Task Send(string action, string value)
+        public static async Task Send(string action, string subject)
         {
             if (BuildServerStatus.IsBuildServerDown)
                 return;
@@ -78,7 +78,7 @@ namespace Wabbajack.Lib
             Utils.Log($"File hash check (-42) {key}");
             var client = new Http.Client();
             client.Headers.Add((Consts.MetricsKeyHeader, key));
-            await client.GetAsync($"{Consts.WabbajackBuildServerUri}metrics/{action}/{value}");
+            await client.GetAsync($"{Consts.WabbajackBuildServerUri}metrics/{action}/{subject}");
         }
 
         public static async Task Error(Type type, Exception exception)

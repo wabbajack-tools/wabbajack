@@ -29,7 +29,6 @@ namespace Wabbajack.BuildServer
     {
         private const string ProblemDetailsContentType = "application/problem+json";
         private readonly SqlService _sql;
-        private static ConcurrentHashSet<string> _knownKeys = new();
         private const string ApiKeyHeaderName = "X-Api-Key";
 
         public ApiKeyAuthenticationHandler(
@@ -51,19 +50,25 @@ namespace Wabbajack.BuildServer
             {
                 if (await _sql.IsTarKey(metricsKey))
                 {
-                    await _sql.IngestMetric(new Metric {Action = "TarKey", Subject = "Auth", MetricsKey = metricsKey, Timestamp = DateTime.UtcNow});
+                    await _sql.IngestMetric(new Metric
+                    {
+                        Action = "TarKey",
+                        Subject = "Auth",
+                        MetricsKey = metricsKey,
+                        Timestamp = DateTime.UtcNow
+                    });
                     await Task.Delay(TimeSpan.FromSeconds(60));
                     throw new Exception("Error, lipsum timeout of the cross distant cloud.");
                 }
             }
 
             var authorKey = Request.Headers[ApiKeyHeaderName].FirstOrDefault();
-            
+
             if (authorKey == null && metricsKey == null)
             {
                 return AuthenticateResult.NoResult();
             }
-            
+
 
             if (authorKey != null)
             {
@@ -84,14 +89,12 @@ namespace Wabbajack.BuildServer
                 return AuthenticateResult.Success(ticket);
             }
 
-            if (!_knownKeys.Contains(metricsKey) && !await _sql.ValidMetricsKey(metricsKey))
+            if (!await _sql.ValidMetricsKey(metricsKey))
             {
                 return AuthenticateResult.Fail("Invalid Metrics Key");
             }
             else
             {
-                _knownKeys.Add(metricsKey);
-                
                 var claims = new List<Claim> {new(ClaimTypes.Role, "User")};
 
 
@@ -102,7 +105,6 @@ namespace Wabbajack.BuildServer
 
                 return AuthenticateResult.Success(ticket);
             }
-
         }
 
         [JsonName("RequestLog")]

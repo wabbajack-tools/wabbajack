@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.BuildServer;
 using Wabbajack.Common;
+using Wabbajack.Common.Exceptions;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Server.DataLayer;
 
@@ -28,13 +29,12 @@ namespace Wabbajack.Server.Services
                 try
                 {
                     var client = new TrackingClient(_sql, key);
-                    if (!await client.IsPremium())
-                    {
-                        _logger.LogWarning($"Purging non premium key");
-                        await _sql.DeleteNexusAPIKey(key.Key);
-                        continue;
-                    }
-                    return client;
+                    if (await client.IsPremium())
+                        return client;
+
+                    _logger.LogWarning($"Purging non premium key");
+                    await _sql.DeleteNexusAPIKey(key.Key);
+                    continue;
                 }
                 catch (Exception ex)
                 {
@@ -69,13 +69,16 @@ namespace Wabbajack.Server.Services
                     var (daily, hourly) = await client.GetRemainingApiCalls();
                     await _sql.SetNexusAPIKey(key.Key, daily, hourly);
                 }
-                catch (Exception)
+                catch (HttpException ex)
                 {
-                    _logger.Log(LogLevel.Warning, "Update error, purging API key");
+                    _logger.Log(LogLevel.Warning, $"Nexus error, not purging API key : {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.Log(LogLevel.Warning, $"Update error, purging API key : {ex.Message}");
                     await _sql.DeleteNexusAPIKey(key.Key);
                 }
             }
-
             return keys.Count;
         }
     }
