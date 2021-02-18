@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -13,6 +14,7 @@ using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
+using Wabbajack.Server.Services;
 
 
 namespace Wabbajack.BuildServer
@@ -31,14 +33,18 @@ namespace Wabbajack.BuildServer
         private readonly SqlService _sql;
         private const string ApiKeyHeaderName = "X-Api-Key";
 
+        private MetricsKeyCache _keyCache;
+
         public ApiKeyAuthenticationHandler(
             IOptionsMonitor<ApiKeyAuthenticationOptions> options,
             ILoggerFactory logger,
             UrlEncoder encoder,
             ISystemClock clock,
+            MetricsKeyCache keyCache,
             SqlService db) : base(options, logger, encoder, clock)
         {
             _sql = db;
+            _keyCache = keyCache;
         }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -88,8 +94,9 @@ namespace Wabbajack.BuildServer
 
                 return AuthenticateResult.Success(ticket);
             }
+            
 
-            if (!await _sql.ValidMetricsKey(metricsKey))
+            if (!await _keyCache.IsValidKey(metricsKey))
             {
                 return AuthenticateResult.Fail("Invalid Metrics Key");
             }

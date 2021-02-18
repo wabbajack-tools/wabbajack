@@ -77,6 +77,7 @@ namespace Wabbajack.Server
             services.AddSingleton<Watchdog>();
             services.AddSingleton<DiscordFrontend>();
             services.AddSingleton<AuthoredFilesCleanup>();
+            services.AddSingleton<MetricsKeyCache>();
             services.AddResponseCompression(options =>
             {
                 options.Providers.Add<BrotliCompressionProvider>();
@@ -145,6 +146,7 @@ namespace Wabbajack.Server
             app.UseService<Watchdog>();
             app.UseService<DiscordFrontend>();
             app.UseService<AuthoredFilesCleanup>();
+            app.UseService<MetricsKeyCache>();
 
             app.Use(next =>
             {

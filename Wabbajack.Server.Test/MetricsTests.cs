@@ -5,6 +5,7 @@ using Dapper;
 using Wabbajack.Lib;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
+using Wabbajack.Server.Services;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -45,6 +46,9 @@ namespace Wabbajack.BuildServer.Test
             Assert.True(dumpResponse.IsSuccessStatusCode);
             var data = await dumpResponse.Content.ReadAsStringAsync();
             Assert.NotEmpty(data);
+
+            var cache = Fixture.GetService<MetricsKeyCache>();
+            Assert.True(await cache.KeyCount() > 0);
         }
     }
 }

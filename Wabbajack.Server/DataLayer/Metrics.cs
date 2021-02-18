@@ -70,8 +70,28 @@ namespace Wabbajack.Server.DataLayer
         public async Task<bool> ValidMetricsKey(string metricsKey)
         {
             await using var conn = await Open();
-            return (await conn.QueryAsync<string>("SELECT TOP(1) MetricsKey from Metrics Where MetricsKey = @MetricsKey",
-                new {MetricsKey = metricsKey})).FirstOrDefault() != null;
+            return (await conn.QuerySingleOrDefaultAsync<string>("SELECT TOP(1) MetricsKey from dbo.MetricsKeys Where MetricsKey = @MetricsKey",
+                new {MetricsKey = metricsKey})) != default;
+        }
+
+        public async Task AddMetricsKey(string metricsKey)
+        {
+            await using var conn = await Open();
+            await using var trans = conn.BeginTransaction();
+
+            if ((await conn.QuerySingleOrDefaultAsync<string>(
+                "SELECT TOP(1) MetricsKey from dbo.MetricsKeys Where MetricsKey = @MetricsKey",
+                new {MetricsKey = metricsKey}, trans)) != default)
+                return;
+            
+            await conn.ExecuteAsync("INSERT INTO dbo.MetricsKeys (MetricsKey) VALUES (@MetricsKey)",
+                new {MetricsKey = metricsKey}, trans);
+        }
+
+        public async Task<string[]> AllKeys()
+        {
+            await using var conn = await Open();
+            return (await conn.QueryAsync<string>("SELECT MetricsKey from dbo.MetricsKeys")).ToArray();
         }
 
 

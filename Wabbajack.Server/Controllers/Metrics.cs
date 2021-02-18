@@ -15,6 +15,7 @@ using Wabbajack.Common;
 using Wabbajack.Server;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
+using Wabbajack.Server.Services;
 using WebSocketSharp;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
@@ -26,11 +27,13 @@ namespace Wabbajack.BuildServer.Controllers
     {
         private SqlService _sql;
         private ILogger<MetricsController> _logger;
+        private MetricsKeyCache _keyCache;
 
-        public MetricsController(ILogger<MetricsController> logger, SqlService sql)
+        public MetricsController(ILogger<MetricsController> logger, SqlService sql, MetricsKeyCache keyCache)
         {
             _sql = sql;
             _logger = logger;
+            _keyCache = keyCache;
         }
 
         [HttpGet]
@@ -38,12 +41,15 @@ namespace Wabbajack.BuildServer.Controllers
         public async Task<Result> LogMetricAsync(string subject, string value)
         {
             var date = DateTime.UtcNow;
+            var metricsKey = Request.Headers[Consts.MetricsKeyHeader].FirstOrDefault();
+            if (metricsKey != null)
+                await _keyCache.AddKey(metricsKey);
             
             // Used in tests
-            if (value == "Default" || value == "untitled" || Guid.TryParse(value, out _))
+            if (value == "Default" || value == "untitled" || subject == "failed_download" || Guid.TryParse(value, out _))
                 return new Result { Timestamp = date};
             
-            await Log(date, subject, value, Request.Headers[Consts.MetricsKeyHeader].FirstOrDefault());
+            await Log(date, subject, value, metricsKey);
             return new Result { Timestamp = date};
         }
 
@@ -174,6 +180,7 @@ namespace Wabbajack.BuildServer.Controllers
 
         private static Func<object, string> _totalListTemplate;
 
+
         private static Func<object, string> TotalListTemplate
         {
             get
@@ -189,6 +196,8 @@ namespace Wabbajack.BuildServer.Controllers
                 return _totalListTemplate;
             }
         }
+        
+        
 
         [HttpGet("total_installs.html")]
         [ResponseCache(Duration = 60 * 60)]
@@ -231,6 +240,6 @@ namespace Wabbajack.BuildServer.Controllers
         {
             return Ok(await _sql.MetricsDump().ToArrayAsync());
         }
-        
+
     }
 }
