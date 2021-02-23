@@ -279,11 +279,12 @@ namespace Wabbajack.Lib
             return step[0] switch
             {
                 "IgnoreStartsWith" => new IgnoreStartsWith(this, step[1]),
+                "IgnoreTaggedFolders" => new IgnoreTaggedFolders(this, Consts.WABBAJACK_IGNORE),
                 "IncludeTaggedFolders" => new IncludeTaggedFolders(this, Consts.WABBAJACK_INCLUDE),
                 "IncludeConfigs" => new IncludeAllConfigs(this),
                 "IncludeDirectMatches" => new DirectMatch(this),
                 "IncludePatches" => new IncludePatches(this),
-                "IncludeMissingFilesInTaggedFolders" => new IncludeTaggedFolders(this, Consts.WABBAJACK_NOMATCH_INCLUDE),
+                "IncludeUnmatchedFilesInTaggedFolders" => new IncludeTaggedFolders(this, Consts.WABBAJACK_NOMATCH_INCLUDE),
                 _ => throw new ArgumentException($"No interpretation for step {step[0]}")
             };
         }

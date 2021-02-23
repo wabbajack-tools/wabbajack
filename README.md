@@ -131,7 +131,10 @@ You can create an empty `tagfile` with no extention in any folder you want to ap
 | Flag/File | Description | Notes |
 |------|-------------|-------|
 | `WABBAJACK_INCLUDE` | All files in this folder will be inlined into the `.wabbajack` file | |
-| `WABBAJACK_NOMATCH_INCLUDE` | All files in this folder will be inlined into the `.wabbajack` file even if Wabbajack did not found a match for them | Useful for generated files.|
+| `WABBAJACK_NOMATCH_INCLUDE` | All files in this folder will be inlined into the `.wabbajack` file even if Wabbajack did not found a match for them. | Useful for generated files.|
+| `WABBAJACK_IGNORE` | All files in this folder will be ignored by Wabbajack and therefore not be put into into the `.wabbajack` file. | Useful for tools or other things outside a mod you don't want/need reproduced on a users machine. Handle with care since excluded stuff can potentially break a setup.\* |
+
+\*It will finish the installation of a modlist, but the installed list might not run if you excluded a crutial part of it.
 
 #### Patches
 

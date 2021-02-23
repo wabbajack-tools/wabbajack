@@ -437,6 +437,7 @@ namespace Wabbajack.Lib
                 new IgnorePathContains(this, "SSEEdit Cache"),
                 new IgnoreOtherProfiles(this),
                 new IgnoreDisabledMods(this),
+                new IgnoreTaggedFolders(this,Consts.WABBAJACK_IGNORE),
                 new IncludeThisProfile(this),
                 // Ignore the ModOrganizer.ini file it contains info created by MO2 on startup
                 new IncludeStubbedConfigFiles(this),
