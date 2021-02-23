@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
@@ -11,6 +15,7 @@ using Wabbajack.Common;
 using Wabbajack.Server;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
+using Wabbajack.Server.Services;
 using WebSocketSharp;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
@@ -22,11 +27,13 @@ namespace Wabbajack.BuildServer.Controllers
     {
         private SqlService _sql;
         private ILogger<MetricsController> _logger;
+        private MetricsKeyCache _keyCache;
 
-        public MetricsController(ILogger<MetricsController> logger, SqlService sql)
+        public MetricsController(ILogger<MetricsController> logger, SqlService sql, MetricsKeyCache keyCache)
         {
             _sql = sql;
             _logger = logger;
+            _keyCache = keyCache;
         }
 
         [HttpGet]
@@ -34,7 +41,15 @@ namespace Wabbajack.BuildServer.Controllers
         public async Task<Result> LogMetricAsync(string subject, string value)
         {
             var date = DateTime.UtcNow;
-            await Log(date, subject, value, Request.Headers[Consts.MetricsKeyHeader].FirstOrDefault());
+            var metricsKey = Request.Headers[Consts.MetricsKeyHeader].FirstOrDefault();
+            if (metricsKey != null)
+                await _keyCache.AddKey(metricsKey);
+            
+            // Used in tests
+            if (value == "Default" || value == "untitled" || subject == "failed_download" || Guid.TryParse(value, out _))
+                return new Result { Timestamp = date};
+            
+            await Log(date, subject, value, metricsKey);
             return new Result { Timestamp = date};
         }
 
@@ -74,7 +89,7 @@ namespace Wabbajack.BuildServer.Controllers
            
             return Ok(results == 0 
                 ? new Badge($"Modlist {name} not found!", "Error") {color = "red"} 
-                : new Badge("Installations: ", $"{results}") {color = "green"});
+                : new Badge("Installations: ", "____") {color = "green"});
         }
 
         [HttpGet]
@@ -87,7 +102,7 @@ namespace Wabbajack.BuildServer.Controllers
 
             return Ok(results == 0
                 ? new Badge($"Modlist {name} not found!", "Error") {color = "red"}
-                : new Badge("Installations: ", $"{results}"){color = "green"}) ;
+                : new Badge("Installations: ", "____"){color = "green"}) ;
     }
 
         private static readonly Func<object, string> ReportTemplate = NettleEngine.GetCompiler().Compile(@"
@@ -149,5 +164,82 @@ namespace Wabbajack.BuildServer.Controllers
         {
             public DateTime Timestamp { get; set; }
         }
+        
+                class TotalListTemplateData
+        {
+            public string Title { get; set; }
+            public long Total { get; set; }
+            public Item[] Items { get; set; }
+
+            public class Item
+            {
+                public long Count { get; set; }
+                public string Title { get; set; }
+            }
+        }
+
+        private static Func<object, string> _totalListTemplate;
+
+
+        private static Func<object, string> TotalListTemplate
+        {
+            get
+            {
+                if (_totalListTemplate == null)
+                {
+                    var resource = Assembly.GetExecutingAssembly()
+                        .GetManifestResourceStream("Wabbajack.Server.Controllers.Templates.TotalListTemplate.html")!
+                        .ReadAll();
+                    _totalListTemplate = NettleEngine.GetCompiler().Compile(Encoding.UTF8.GetString(resource));
+                }
+
+                return _totalListTemplate;
+            }
+        }
+        
+        
+
+        [HttpGet("total_installs.html")]
+        [ResponseCache(Duration = 60 * 60)]
+        public async Task<ContentResult> TotalInstalls()
+        {
+            var data = await _sql.GetTotalInstalls();
+            var result = TotalListTemplate(new TotalListTemplateData
+            {
+                Title = "Total Installs",
+                Total = data.Sum(d => d.Item2),
+                Items = data.Select(d => new TotalListTemplateData.Item {Title = d.Item1, Count = d.Item2})
+                    .ToArray()
+            });
+            return new ContentResult {
+                ContentType = "text/html", 
+                StatusCode = (int)HttpStatusCode.OK, 
+                Content = result};
+        }
+        
+        [HttpGet("total_unique_installs.html")]
+        [ResponseCache(Duration = 60 * 60)]
+        public async Task<ContentResult> TotalUniqueInstalls()
+        {
+            var data = await _sql.GetTotalUniqueInstalls();
+            var result = TotalListTemplate(new TotalListTemplateData
+            {
+                Title = "Total Unique Installs",
+                Total = data.Sum(d => d.Item2),
+                Items = data.Select(d => new TotalListTemplateData.Item {Title = d.Item1, Count = d.Item2})
+                    .ToArray()
+            });
+            return new ContentResult {
+                ContentType = "text/html", 
+                StatusCode = (int)HttpStatusCode.OK, 
+                Content = result};
+        }
+
+        [HttpGet("dump.json")]
+        public async Task<IActionResult> DataDump()
+        {
+            return Ok(await _sql.MetricsDump().ToArrayAsync());
+        }
+
     }
 }

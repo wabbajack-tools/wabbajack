@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,6 +77,13 @@ namespace Wabbajack.Server
             services.AddSingleton<Watchdog>();
             services.AddSingleton<DiscordFrontend>();
             services.AddSingleton<AuthoredFilesCleanup>();
+            services.AddSingleton<MetricsKeyCache>();
+            services.AddResponseCompression(options =>
+            {
+                options.Providers.Add<BrotliCompressionProvider>();
+                options.Providers.Add<GzipCompressionProvider>();
+                options.MimeTypes = new[] {"application/json"};
+            });
             
             services.AddMvc();
             services.AddControllers()
@@ -123,6 +131,7 @@ namespace Wabbajack.Server
             app.UseNexusPoll();
             app.UseArchiveMaintainer();
             app.UseModListDownloader();
+            app.UseResponseCompression();
             
             app.UseService<NonNexusDownloadValidator>();
             app.UseService<ListValidator>();
@@ -137,6 +146,7 @@ namespace Wabbajack.Server
             app.UseService<Watchdog>();
             app.UseService<DiscordFrontend>();
             app.UseService<AuthoredFilesCleanup>();
+            app.UseService<MetricsKeyCache>();
 
             app.Use(next =>
             {

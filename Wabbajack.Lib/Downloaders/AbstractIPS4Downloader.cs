@@ -400,7 +400,7 @@ namespace Wabbajack.Lib.Downloaders
             public async Task<string> GetStringAsync(Uri uri, CancellationToken? token = null)
             {
                 if (!Downloader.IsCloudFlareProtected)
-                    return await Downloader.AuthedClient.GetStringAsync(uri);
+                    return await Downloader.AuthedClient.GetStringAsync(uri, token);
 
                 
                 using var driver = await Downloader.GetAuthedDriver();
@@ -448,7 +448,7 @@ namespace Wabbajack.Lib.Downloaders
                     return await Downloader.AuthedClient.GetAsync(uri);
 
                 using var driver = await Downloader.GetAuthedDriver();
-                TaskCompletionSource<Uri?> promise = new TaskCompletionSource<Uri?>();
+                TaskCompletionSource<Uri?> promise = new();
                 driver.DownloadHandler = uri1 =>
                 {
                     promise.SetResult(uri);

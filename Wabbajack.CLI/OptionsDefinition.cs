@@ -38,7 +38,8 @@ namespace Wabbajack.CLI
             typeof(PurgeArchive),
             typeof(AllKnownDownloadStates),
             typeof(VerifyAllDownloads),
-            typeof(HashBenchmark)
+            typeof(HashBenchmark),
+            typeof(StressTestURL)
         };
     }
 }

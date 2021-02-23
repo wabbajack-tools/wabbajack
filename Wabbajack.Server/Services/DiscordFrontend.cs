@@ -19,8 +19,9 @@ namespace Wabbajack.Server.Services
         private QuickSync _quickSync;
         private DiscordSocketClient _client;
         private SqlService _sql;
+        private MetricsKeyCache _keyCache;
 
-        public DiscordFrontend(ILogger<DiscordFrontend> logger, AppSettings settings, QuickSync quickSync, SqlService sql)
+        public DiscordFrontend(ILogger<DiscordFrontend> logger, AppSettings settings, QuickSync quickSync, SqlService sql, MetricsKeyCache keyCache)
         {
             _logger = logger;
             _settings = settings;
@@ -33,6 +34,7 @@ namespace Wabbajack.Server.Services
             _client.MessageReceived += MessageReceivedAsync;
 
             _sql = sql;
+            _keyCache = keyCache;
         }
 
         private async Task MessageReceivedAsync(SocketMessage arg)
@@ -87,6 +89,10 @@ namespace Wabbajack.Server.Services
                         await _quickSync.Notify<ModListDownloader>();
                         await ReplyTo(arg, $"Purged all traces of #{parts[2]} from the server, triggered list downloading. {deleted} records removed");
                     }
+                }
+                else if (parts[1] == "users")
+                {
+                    await ReplyTo(arg, $"Wabbajack has {await _keyCache.KeyCount()} known unique users");
                 }
             }
         }

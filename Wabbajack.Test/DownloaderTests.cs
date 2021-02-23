@@ -113,6 +113,9 @@ namespace Wabbajack.Test
             Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
 
             Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
+
+            var newState = (AbstractDownloadState)new GoogleDriveDownloader.State("1Q_CdeYJStfoTZFLZ79RRVkxI2c_cG0dg");
+            Assert.True(await newState.Verify(new Archive(newState) {Size = 0}));
         }
 
         [Fact]

@@ -48,10 +48,10 @@ namespace Wabbajack.Lib.Http
             return await SendStringAsync(request, token: token);
         }
         
-        public async Task<string> GetStringAsync(Uri url)
+        public async Task<string> GetStringAsync(Uri url, CancellationToken? token = null)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            return await SendStringAsync(request);
+            return await SendStringAsync(request, token: token);
         }
         
         public async Task<string> DeleteStringAsync(string url)
