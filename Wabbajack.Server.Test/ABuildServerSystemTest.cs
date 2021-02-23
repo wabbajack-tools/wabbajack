@@ -15,6 +15,7 @@ using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Server;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
+using Wabbajack.Server.Services;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -166,6 +167,8 @@ namespace Wabbajack.BuildServer.Test
             _client = new Wabbajack.Lib.Http.Client();
             _authedClient = new Wabbajack.Lib.Http.Client();
             Fixture = fixture.Deref();
+            var cache = Fixture.GetService<MetricsKeyCache>();
+            cache.AddKey(Metrics.GetMetricsKey().Result);
             _authedClient.Headers.Add(("x-api-key", Fixture.APIKey));
             AuthorAPI.ApiKeyOverride = Fixture.APIKey;
             _queue = new WorkQueue();

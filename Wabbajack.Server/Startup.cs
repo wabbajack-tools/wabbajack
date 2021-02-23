@@ -82,7 +82,7 @@ namespace Wabbajack.Server
             {
                 options.Providers.Add<BrotliCompressionProvider>();
                 options.Providers.Add<GzipCompressionProvider>();
-                options.MimeTypes = new[] {"*/*"};
+                options.MimeTypes = new[] {"application/json"};
             });
             
             services.AddMvc();

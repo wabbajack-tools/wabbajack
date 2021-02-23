@@ -197,6 +197,7 @@ namespace Wabbajack.Server.Services
         private AsyncLock _healLock = new AsyncLock();
         private async Task<(Archive, ArchiveStatus)> TryToHeal(ValidationData data, Archive archive, ModlistMetadata modList)
         {
+            using var _ = await _healLock.WaitAsync();  
             var srcDownload = await _sql.GetArchiveDownload(archive.State.PrimaryKeyString, archive.Hash, archive.Size);
             if (srcDownload == null || srcDownload.IsFailed == true)
             {
@@ -204,7 +205,7 @@ namespace Wabbajack.Server.Services
                 return (archive, ArchiveStatus.InValid);
             }
 
-            
+         
             var patches = await _sql.PatchesForSource(archive.Hash);
             foreach (var patch in patches)
             {
@@ -219,7 +220,7 @@ namespace Wabbajack.Server.Services
                     return (archive, ArchiveStatus.Updated);
             }
 
-            using var _ = await _healLock.WaitAsync();
+
             var upgradeTime = DateTime.UtcNow;
             _logger.LogInformation($"Validator Finding Upgrade for {archive.Hash} {archive.State.PrimaryKeyString}");
 
