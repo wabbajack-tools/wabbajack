@@ -46,7 +46,9 @@ namespace Wabbajack.Common
         DragonAge2,
         DragonAgeInquisition,
         [Description("Kerbal Space Program")]
-        KerbalSpaceProgram
+        KerbalSpaceProgram,
+        [Description("Enderal Special Edition")]
+        EnderalSpecialEdition
     }
 
     public static class GameExtensions
@@ -430,7 +432,26 @@ namespace Wabbajack.Common
                     {
                         "TESV.exe"
                     },
-                    MainExecutable = "TESV.exe"
+                    MainExecutable = "TESV.exe",
+                    CommonlyConfusedWith = new []{Game.EnderalSpecialEdition},
+                }
+            },
+            {
+                Game.EnderalSpecialEdition, new GameMetaData
+                {
+                    SupportedModManager = ModManager.MO2,
+                    Game = Game.EnderalSpecialEdition,
+                    NexusName = "enderalspecialedition",
+                    NexusGameId = 3685,
+                    MO2Name = "Enderal Special Edition",
+                    MO2ArchiveName = "enderalse",
+                    SteamIDs = new List<int>{976620},
+                    RequiredFiles = new List<string>
+                    {
+                        "SkyrimSE.exe"
+                    },
+                    MainExecutable = "SkyrimSE.exe",
+                    CommonlyConfusedWith = new []{Game.Enderal}
                 }
             },
             {

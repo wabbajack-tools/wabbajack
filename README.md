@@ -24,6 +24,7 @@ This is needed, since the EGS has no public database of its game IDs.
 | Skyrim                    | Steam                 |           |       |
 | Skyrim Special Edition    | Steam                 |           |       |
 | Enderal                   | Steam                 |           |       |
+| Enderal Special Edition   | Steam                 |           |       |
 | Fallout 4                 | Steam                 |           |       |
 | Skyrim VR                 | Steam                 |           |       |
 | Fallout 4 VR              | Steam                 |           |       |
