@@ -1,5 +1,12 @@
 ### Changelog
 
+#### Version - 2.4.2.4 - 2/23/2021
+* Reworked GDrive downloader for better compatability
+* Ignore .cache files for realz
+* Add support for folder tagging in Native Compiler mode (thanks Luca!)
+* Fixed a "file in use" bug with .BA2s during installation
+* Several fixes for Origin game detection
+
 #### Version - 2.4.2.3 - 2/9/2021
 * Remove unused file watcher from ManualDownloader
 * Lower minimum number of threads to 1
