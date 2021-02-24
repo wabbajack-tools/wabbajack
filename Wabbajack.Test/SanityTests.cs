@@ -43,6 +43,25 @@ namespace Wabbajack.Test
         }
         
         [Fact]
+        public async Task TestCacheFileAreIgnored() 
+        {
+
+            var profile = utils.AddProfile();
+            var mod = await utils.AddMod();
+            var testCache = await utils.AddModFile(mod, @"Data\scripts\test.cache", 10);
+            var testPex = await utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
+
+            await utils.Configure();
+
+            await utils.AddManualDownload(
+                new Dictionary<string, byte[]> {{"/baz/biz.pex", await testPex.ReadAllBytesAsync()}});
+
+            await CompileAndInstall(profile);
+
+            await utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
+        }
+        
+        [Fact]
         public async Task ExtraFilesInDownloadFolderDontStopCompilation() 
         {
 

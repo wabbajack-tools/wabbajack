@@ -164,8 +164,7 @@ namespace Wabbajack.Common
 
         public static bool operator ==(Extension a, Extension b)
         {
-            // Super fast comparison because extensions are interned
-            return ReferenceEquals(a._extension, b._extension);
+            return string.Equals(a._extension, b._extension, StringComparison.CurrentCultureIgnoreCase);
         }
 
         public static bool operator !=(Extension a, Extension b)
