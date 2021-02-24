@@ -33,13 +33,13 @@ This is needed, since the EGS has no public database of its game IDs.
 | Kingdom Come: Deliverance | Steam, GOG            |           | Experimental |
 | Mechwarrior 5: Mercenaries| Epic Games Store      |           | Experimental |
 | No Man's Sky              | Steam, GOG            |           | Experimental |
-| Dargon Age Origins        | Stean, GOG, Origin    |           | Experimental |
+| Dragon Age Origins        | Stean, GOG, Origin    |           | Experimental |
 | Dragon Age 2              | Steam, Origin         |           | Experimental |
 | Dragon Age Inquisition    | Steam, Origin         |           | Experimental |
 | Kerbal Space Program      | Steam, GOG            |           | Experimental |
    
 
-**Note about games marked with experiment support**:
+**Note about games marked with experimental support**:
 
 A new MO2 plugin called [Basic Games Plugin](https://github.com/ModOrganizer2/modorganizer-basic_games) enables the easy creation of new game plugins for non BGS games. This is still very experimental in both MO2 and Wabbajack.
 
@@ -177,7 +177,7 @@ In Wabbajack select _Create a Modlist_ to navigate to the configuration screen. 
 | Field | Description | Notes |
 |-------|-------------|-------|
 | Modlist Name | **REQUIRED:** Name of your Modlist | |
-| Version | **REQUIRED:** Current Version | Do note that this has to be a real Version and not some random text like "The best version on Earth", this is Wabbajack not the Nexus! |
+| Version | **REQUIRED:** Current Version | Do note that this has to be a semantic version and not some random text like "The best version on Earth" (this is not the Nexus)! |
 | Author | Modlist Author | Should be your name in original Modlists and/or the name of the original Modlist author if you adapted a normal Modlist to a Wabbajack Modlist |
 | Description | 700 characters Descriptions | |
 | Image | Modlist Image | Aspect ratio should be 16:9 for the best result |
@@ -219,7 +219,7 @@ Some Modlists that host all their stuff on GitHub:
 - the OG GitHub Modlist: [Lotus](https://github.com/erri120/lotus)
 - [Keizaal](https://github.com/PierreDespereaux/Keizaal)
 - [Living Skyrim](https://github.com/ForgottenGlory/Living-Skyrim-2)
-- [Eldersouls](https://github.com/jdsmith2816/eldersouls)
+- [Elder Souls](https://github.com/jdsmith2816/eldersouls)
 - [Total Visual Overhaul](https://github.com/NotTotal/Total-Visual-Overhaul)
 - [Serenity](https://github.com/ixanza/serenity)
 - [MOISE](https://github.com/ForgottenGlory/MOISE)
@@ -261,7 +261,7 @@ Mods can also be hosted somewhere else, eg on other modding sites like LoversLab
 | [ModDB](https://www.moddb.com/) | No | No | `directURL=https://www.moddb.com/downloads/start/{ID}` | `https://www.moddb.com/downloads/start/124908` | Downloads can be very slow |
 | [Patreon](https://www.patreon.com/) | No | Yes | `directURL=https://www.patreon.com/file?h={ID1}i={ID2}` | `directURL=https://www.patreon.com/file?h=34874668&i=5247431` | Only public downloads, paywalled downloads can not be downloaded |
 | [GitHub](https://github.com/) | No | No | `directURL=https://github.com/{USER}/{REPO}/releases/download/{TAG}/{FILE}` | `directURL=https://github.com/ModOrganizer2/modorganizer/releases/download/v2.3.1/Mod.Organizer-2.3.1.7z` | |
-| [GDrive](https://drive.google.com/) | No | Yes | `directURL=https://drive.google.com/file/d/{ID}` | `directURL=https://drive.google.com/file/d/1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_/` | GDrive is known to not be a reliable file hosting service as a file can get temporarily inaccessible if too many users try to download it |
+| [Google Drive](https://drive.google.com/) | No | Yes | `directURL=https://drive.google.com/file/d/{ID}` | `directURL=https://drive.google.com/file/d/1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_/` | Google Drive is known to not be a reliable file hosting service as a file can get temporarily inaccessible if too many users try to download it |
 | [MEGA](https://mega.nz/) | No (Optional) | Yes | `directURL=https://mega.nz/#!{ID}` | `directURL=https://mega.nz/#!CsMSFaaJ!-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k` | MEGA has a 5GB transfer quota on non-premium users, even less for non-registered ones. It is recommended to login to MEGA before downloading any files |
 | [Mediafire](https://www.mediafire.com/) | No | Yes | `directURL=https://www.mediafire.com/file/{FILE}` | `directURL=http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt` | Medafire downloads are known to fail from time to time |
 | [Dropbox](https://www.dropbox.com/) | No | Yes | `directURL=https://www.dropbox.com/s/{FILE}?dl=0` | `directURL=https://www.dropbox.com/s/5hov3m2pboppoc2/WABBAJACK_TEST_FILE.txt?dl=0` | |
@@ -279,7 +279,7 @@ No, as specified in the [License](#license--copyright), Wabbajack Modlists must 
 
 **Can I accept donations for my installer?**
 
-Absolutely! As long as the act of donating does not entitle the donator to access to the installer. The installer must be free, donations must be a "thank you" not a purchase of services or content.
+Absolutely! As long as the act of donating does not entitle the donator to access to the installer. The installer must be free, donations must be a "thank you" - not a purchase of services or content.
 
 ### For Mod Authors
 
@@ -291,7 +291,7 @@ Wabbajack uses the official [Nexus API](https://app.swaggerhub.com/apis-docs/Nex
 
 As explained before:
 
-> we use the official [Nexus API](https://app.swaggerhub.com/apis-docs/NexusMods/nexus-mods_public_api_params_in_form_data/1.0#/) to retrieve download links from the Nexus.
+> We use the official [Nexus API](https://app.swaggerhub.com/apis-docs/NexusMods/nexus-mods_public_api_params_in_form_data/1.0#/) to retrieve download links from the Nexus.
 
 Everyone who has access to the Nexus can download your mod. The Nexus does not and can not lock out Wabbajack from using the API to download a specific mod based on _author preferences_.
 
