@@ -101,13 +101,9 @@ namespace Compression.BSA
                     file.FullPath = Encoding.UTF8.GetString(_rdr.ReadBytes(_rdr.ReadInt16()));
             }
             Files = files;
-
-        }
-
-        public async ValueTask DisposeAsync()
-        {
             _stream?.Dispose();
-            _rdr?.Dispose();
+            _rdr.Dispose();
+
         }
 
         public IEnumerable<IFile> Files { get; private set; }
