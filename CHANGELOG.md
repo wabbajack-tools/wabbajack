@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.4.2.5 - 2/24/2021
+* HOTFIX: Fix a O(n*m) performance bug in compilation
+* Add support for Enderal SSE
+
 #### Version - 2.4.2.4 - 2/23/2021
 * Reworked GDrive downloader for better compatability
 * Ignore .cache files for realz

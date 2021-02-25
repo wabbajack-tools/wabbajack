@@ -10,7 +10,7 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class IgnoreTaggedFolders : ACompilationStep
     {
-        private readonly IEnumerable<AbsolutePath> _ignoreDirecrtory = new List<AbsolutePath>();
+        private readonly List<AbsolutePath> _ignoreDirecrtory;
         private readonly string _tag;
         private readonly ACompiler _aCompiler;
         private readonly AbsolutePath _sourcePath;
@@ -24,7 +24,9 @@ namespace Wabbajack.Lib.CompilationSteps
             string rootDirectory = (string)_sourcePath;
             _reason = $"Ignored because folder was tagged with {_tag}";
 
-            _ignoreDirecrtory = Directory.EnumerateFiles(rootDirectory, _tag, SearchOption.AllDirectories).Select(str => (AbsolutePath)str.Replace(_tag, ""));
+            _ignoreDirecrtory = Directory.EnumerateFiles(rootDirectory, _tag, SearchOption.AllDirectories)
+                .Select(str => (AbsolutePath)str.Replace(_tag, ""))
+                .ToList();
         }
 
         public override async ValueTask<Directive?> Run(RawSourceFile source)

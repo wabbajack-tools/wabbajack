@@ -10,7 +10,7 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class IncludeTaggedFolders : ACompilationStep
     {
-        private readonly IEnumerable<AbsolutePath> _includeDirectly = new List<AbsolutePath>();
+        private readonly List<AbsolutePath> _includeDirectly;
         private readonly string _tag;
         private readonly ACompiler _aCompiler;
         private readonly AbsolutePath _sourcePath;
@@ -22,7 +22,9 @@ namespace Wabbajack.Lib.CompilationSteps
             _tag = tag;
             string rootDirectory = (string)_sourcePath;
 
-            _includeDirectly = Directory.EnumerateFiles(rootDirectory, _tag, SearchOption.AllDirectories).Select(str => (AbsolutePath)str.Replace(_tag, ""));
+            _includeDirectly = Directory.EnumerateFiles(rootDirectory, _tag, SearchOption.AllDirectories)
+                .Select(str => (AbsolutePath)str.Replace(_tag, ""))
+                .ToList();
         }
 
 
