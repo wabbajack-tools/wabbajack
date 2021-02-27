@@ -36,14 +36,21 @@ namespace Wabbajack.Common
         [Description("Darkest Dungeon")]
         DarkestDungeon,
         Dishonored,
+        [Description("Witcher 3")]
         Witcher3,
         [Description("Stardew Valley")]
         StardewValley,
+        [Description("Kingdom Come: Deliverance")]
         KingdomComeDeliverance,
+        [Description("MechWarrior 5: Mercenaries")]
         MechWarrior5Mercenaries,
+        [Description("No Man's Sky")]
         NoMansSky,
+        [Description("Dragon Age: Origins")]
         DragonAgeOrigins,
+        [Description("Dragon Age 2")]
         DragonAge2,
+        [Description("Dragon Age: Inquisition")]
         DragonAgeInquisition,
         [Description("Kerbal Space Program")]
         KerbalSpaceProgram,
