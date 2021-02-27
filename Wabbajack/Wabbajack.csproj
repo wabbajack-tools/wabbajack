@@ -6,8 +6,8 @@
     <UseWPF>true</UseWPF>
     <Platforms>x64</Platforms>
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-      <AssemblyVersion>2.4.2.5</AssemblyVersion>
-      <FileVersion>2.4.2.5</FileVersion>
+      <AssemblyVersion>2.4.2.6</AssemblyVersion>
+      <FileVersion>2.4.2.6</FileVersion>
     <Copyright>Copyright © 2019-2020</Copyright>
     <Description>An automated ModList installer</Description>
     <PublishReadyToRun>true</PublishReadyToRun>
@@ -69,8 +69,8 @@
     </PackageReference>
     <PackageReference Include="MahApps.Metro" Version="2.4.3" />
     <PackageReference Include="MahApps.Metro.IconPacks" Version="4.8.0" />
-    <PackageReference Include="PInvoke.Gdi32" Version="0.7.78" />
-    <PackageReference Include="PInvoke.User32" Version="0.7.78" />
+    <PackageReference Include="PInvoke.Gdi32" Version="0.7.104" />
+    <PackageReference Include="PInvoke.User32" Version="0.7.104" />
     <PackageReference Include="ReactiveUI" Version="13.1.1" />
     <PackageReference Include="ReactiveUI.Fody" Version="13.1.1" />
     <PackageReference Include="ReactiveUI.WPF" Version="13.1.1" />
