@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
+using SharpDX.Text;
 using Wabbajack.Common;
 
 namespace Wabbajack
@@ -85,14 +86,19 @@ namespace Wabbajack
                 {
                     try
                     {
+                        var (found, mstream) = await FindCachedImage(url);
+                        if (found) return mstream;
+                        
                         var ret = new MemoryStream();
                         using (var client = new HttpClient())
-                        using (var stream = await client.GetStreamAsync(url))
+                        await using (var stream = await client.GetStreamAsync(url))
                         {
-                            stream.CopyTo(ret);
+                            await stream.CopyToAsync(ret);
                         }
 
                         ret.Seek(0, SeekOrigin.Begin);
+
+                        await WriteCachedImage(url, ret.ToArray());
                         return ret;
                     }
                     catch (Exception ex)
@@ -101,7 +107,6 @@ namespace Wabbajack
                         return default;
                     }
                 })
-                .ObserveOnGuiThread()
                 .Select(memStream =>
                 {
                     if (memStream == null) return default;
@@ -118,7 +123,26 @@ namespace Wabbajack
                     {
                         memStream.Dispose();
                     }
-                });
+                })
+                .ObserveOnGuiThread();
+        }
+
+        private static async Task WriteCachedImage(string url, byte[] data)
+        {
+            var folder = Consts.LocalAppDataPath.Combine("ModListImages");
+            if (!folder.Exists) folder.CreateDirectory();
+            
+            var path = folder.Combine(Encoding.UTF8.GetBytes(url).xxHash().ToHex());
+            await path.WriteAllBytesAsync(data);
+        }
+
+        private static async Task<(bool Found, MemoryStream data)> FindCachedImage(string uri)
+        {
+            var folder = Consts.LocalAppDataPath.Combine("ModListImages");
+            if (!folder.Exists) folder.CreateDirectory();
+            
+            var path = folder.Combine(Encoding.UTF8.GetBytes(uri).xxHash().ToHex());
+            return path.Exists ? (true, new MemoryStream(await path.ReadAllBytesAsync())) : (false, default);
         }
 
         /// <summary>

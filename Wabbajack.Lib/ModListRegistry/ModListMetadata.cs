@@ -56,19 +56,8 @@ namespace Wabbajack.Lib.ModListRegistry
         [JsonName("Links")]
         public class LinksObject
         {
-            [JsonProperty("image")] public string ImageUri { get; set; } = string.Empty;
-
-            [JsonIgnore]
-            public string ImageUrlFast
-            {
-                get
-                {
-                    if (ImageUri.StartsWith("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/"))
-                        return ImageUri.Replace("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/",
-                            "https://mod-lists.wabbajack.org/");
-                    return ImageUri;
-                }
-            }
+            [JsonProperty("image")] 
+            public string ImageUri { get; set; } = string.Empty;
 
             [JsonProperty("readme")]
             public string Readme { get; set; } = string.Empty;
