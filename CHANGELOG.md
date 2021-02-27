@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.4.2.6 - 2/26/2021
+* Cache Modlist images (based on the URL)
+* Load Gallery images off the GUI thread improving UI performance
+
 #### Version - 2.4.2.5 - 2/24/2021
 * HOTFIX: Fix a O(n*m) performance bug in compilation
 * Add support for Enderal SSE
