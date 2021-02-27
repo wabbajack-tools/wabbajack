@@ -37,7 +37,7 @@ namespace Wabbajack
 
         [Reactive]
         public bool ShowNSFW { get; set; }
-        
+
         [Reactive]
         public bool ShowUtilityLists { get; set; }
 
@@ -197,6 +197,7 @@ namespace Wabbajack
         {
             List<string> gameEntries = new List<string> { ALL_GAME_TYPE };
             gameEntries.AddRange(EnumExtensions.GetAllItems<Game>().Select(gameType => gameType.GetDescription<Game>()));
+            gameEntries.Sort();
             return gameEntries;
         }
 
