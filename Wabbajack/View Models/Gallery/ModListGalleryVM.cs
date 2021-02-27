@@ -95,7 +95,6 @@ namespace Wabbajack
                 })
                 .DisposeWith(CompositeDisposable);
 
-            var random = new Random();
             var sourceList = Observable.Return(Unit.Default)
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .SelectTask(async _ =>
@@ -106,8 +105,6 @@ namespace Wabbajack
                         var list = await ModlistMetadata.LoadFromGithub();
                         Error = ErrorResponse.Success;
                         return list
-                            // Sort randomly initially, just to give each list a fair shake
-                            .Shuffle(random)
                             .AsObservableChangeSet(x => x.DownloadMetadata?.Hash ?? Hash.Empty);
                     }
                     catch (Exception ex)
@@ -170,8 +167,6 @@ namespace Wabbajack
                         return GameType == vm.Metadata.Game.GetDescription<Game>().ToString();
 
                     }))
-                // Put broken lists at bottom
-                .Sort(Comparer<ModListMetadataVM>.Create((a, b) => a.IsBroken.CompareTo(b.IsBroken)))
                 .Bind(ModLists)
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
