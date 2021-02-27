@@ -34,10 +34,10 @@ namespace Wabbajack.Lib.ModListRegistry
 
         [JsonProperty("nsfw")]
         public bool NSFW { get; set; }
-        
+
         [JsonProperty("utility_list")]
         public bool UtilityList { get; set; }
-        
+
         [JsonProperty("image_contains_title")]
         public bool ImageContainsTitle { get; set; }
 
@@ -50,13 +50,13 @@ namespace Wabbajack.Lib.ModListRegistry
         [JsonProperty("download_metadata")]
         public DownloadMetadata? DownloadMetadata { get; set; }
 
-        [JsonIgnore] 
+        [JsonIgnore]
         public ModListSummary ValidationSummary { get; set; } = new ModListSummary();
 
         [JsonName("Links")]
         public class LinksObject
         {
-            [JsonProperty("image")] 
+            [JsonProperty("image")]
             public string ImageUri { get; set; } = string.Empty;
 
             [JsonProperty("readme")]
@@ -92,7 +92,13 @@ namespace Wabbajack.Lib.ModListRegistry
                 // ignored
             }
 
-            return metadata.OrderBy(m => (m.ValidationSummary?.HasFailures ?? false ? 1 : 0, m.Title)).ToList();
+            var random = new Random();
+            return metadata
+                // Sort randomly initially, just to give each list a fair shake
+                .Shuffle(random)
+                // Put broken lists at bottom
+                .OrderBy(m => (m.ValidationSummary?.HasFailures ?? false ? 1 : 0))
+                .ToList();
         }
 
         public static async Task<List<ModlistMetadata>> LoadUnlistedFromGithub()
@@ -109,7 +115,7 @@ namespace Wabbajack.Lib.ModListRegistry
             }
 
         }
-        
+
         public async ValueTask<bool> NeedsDownload(AbsolutePath modlistPath)
         {
             if (!modlistPath.Exists) return true;
@@ -150,7 +156,7 @@ namespace Wabbajack.Lib.ModListRegistry
         public int Passed { get; set; }
         [JsonProperty("updating")]
         public int Updating { get; set; }
-        
+
         [JsonProperty("mirrored")]
         public int Mirrored { get; set; }
 
