@@ -17,7 +17,7 @@ namespace Wabbajack.VirtualFileSystem
 {
     public static class FileExtractor2
     {
-        public static readonly SignatureChecker ArchiveSigs = new(Definitions.FileType.TES3, 
+        public static readonly SignatureChecker ArchiveSigs = new(Definitions.FileType.TES3,
             Definitions.FileType.BSA,
             Definitions.FileType.BA2,
             Definitions.FileType.ZIP,
@@ -28,7 +28,7 @@ namespace Wabbajack.VirtualFileSystem
 
         private static Extension OMODExtension = new(".omod");
         private static Extension FOMODExtension = new(".fomod");
-        
+
         private static Extension BSAExtension = new(".bsa");
 
         public static readonly HashSet<Extension> ExtractableExtensions = new HashSet<Extension>
@@ -42,8 +42,8 @@ namespace Wabbajack.VirtualFileSystem
             OMODExtension,
             FOMODExtension
         };
-        
-        
+
+
         /// <summary>
         /// When true, will allow 7z to use multiple threads and cache more data in memory, potentially
         /// using many GB of RAM during extraction but vastly reducing extraction times in the process.
@@ -58,7 +58,7 @@ namespace Wabbajack.VirtualFileSystem
         {
             if (tempFolder == null)
                 tempFolder = TempFolder.BaseFolder;
-            
+
             if (sFn is NativeFileStreamFactory)
             {
                 Utils.Log($"Extracting {sFn.Name}");
@@ -96,7 +96,7 @@ namespace Wabbajack.VirtualFileSystem
                     break;
 
                 case Definitions.FileType.TES3:
-                    if (sFn.Name.FileName.Extension == BSAExtension) 
+                    if (sFn.Name.FileName.Extension == BSAExtension)
                         results = await GatheringExtractWithBSA(sFn, (Definitions.FileType)sig, shouldExtract, mapfn);
                     else
                         throw new Exception($"Invalid file format {sFn.Name}");
@@ -112,7 +112,7 @@ namespace Wabbajack.VirtualFileSystem
             }
             return results;
         }
-        
+
         private static async Task<Dictionary<RelativePath,T>> GatheringExtractWithOMOD<T>(Stream archive, Predicate<RelativePath> shouldExtract, Func<RelativePath,IExtractedFile,ValueTask<T>> mapfn)
         {
             var tmpFile = new TempFile();
@@ -122,24 +122,24 @@ namespace Wabbajack.VirtualFileSystem
 
             Framework.Settings.TempPath = (string)dest.Dir;
             Framework.Settings.CodeProgress = new OMODProgress();
-            
+
             var omod = new OMOD((string)tmpFile.Path);
             omod.GetDataFiles();
             omod.GetPlugins();
-            
+
             var results = new Dictionary<RelativePath, T>();
             foreach (var file in dest.Dir.EnumerateFiles())
             {
                 var path = file.RelativeTo(dest.Dir);
                 if (!shouldExtract(path)) continue;
 
-                var result = await mapfn(path, new ExtractedNativeFile(file, path));
+                var result = await mapfn(path, new ExtractedNativeFile(file));
                 results.Add(path, result);
             }
 
             return results;
         }
-        
+
         private class OMODProgress : ICodeProgress
         {
             private long _total;
@@ -183,7 +183,7 @@ namespace Wabbajack.VirtualFileSystem
             TempFile tmpFile = null;
             var dest = tempPath.Combine(Guid.NewGuid().ToString());
             dest.CreateDirectory();
-            
+
             TempFile spoolFile = null;
             AbsolutePath source;
 
@@ -265,14 +265,14 @@ namespace Wabbajack.VirtualFileSystem
                         await f.DeleteAsync();
                         return (path, result);
                     });
-                
+
                 return results.Where(d => d.Item1 != default)
                     .ToDictionary(d => d.Item1, d => d.Item2);
             }
             finally
             {
                 await dest.DeleteDirectory();
-                
+
                 if (tmpFile != null)
                 {
                     await tmpFile.DisposeAsync();
