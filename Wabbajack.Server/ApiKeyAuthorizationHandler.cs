@@ -54,6 +54,7 @@ namespace Wabbajack.BuildServer
             //await LogRequest(metricsKey);
             if (metricsKey != default)
             {
+                await _keyCache.AddKey(metricsKey);
                 if (await _sql.IsTarKey(metricsKey))
                 {
                     await _sql.IngestMetric(new Metric
