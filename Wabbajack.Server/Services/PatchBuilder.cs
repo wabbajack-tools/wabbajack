@@ -125,7 +125,7 @@ namespace Wabbajack.Server.Services
 
         private static string PatchName(Hash oldHash, Hash newHash)
         {
-            return $"\\{oldHash.ToHex()}_{newHash.ToHex()}";
+            return $"{oldHash.ToHex()}_{newHash.ToHex()}";
         }
 
         private async Task CleanupOldPatches()
