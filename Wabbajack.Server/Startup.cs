@@ -144,7 +144,7 @@ namespace Wabbajack.Server
             app.UseService<MirrorQueueService>();
             app.UseService<Watchdog>();
             app.UseService<DiscordFrontend>();
-            app.UseService<AuthoredFilesCleanup>();
+            //app.UseService<AuthoredFilesCleanup>();
             app.UseService<MetricsKeyCache>();
 
             app.Use(next =>

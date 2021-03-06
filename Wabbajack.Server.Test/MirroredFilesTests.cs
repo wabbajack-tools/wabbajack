@@ -48,8 +48,9 @@ namespace Wabbajack.Server.Test
                 Size = file.Path.Size
             };
             
-            var file2 = new TempFile();
+            await using var file2 = new TempFile();
             await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, file2.Path);
+            Assert.Equal(dataHash!.Value, await file2.Path.FileHashAsync());
         }
 
         [Fact]

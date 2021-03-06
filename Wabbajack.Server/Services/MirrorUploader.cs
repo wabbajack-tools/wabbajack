@@ -86,7 +86,7 @@ namespace Wabbajack.Server.Services
                     await definition.Parts.PMap(queue, async part =>
                     {
                         _logger.LogInformation($"Uploading mirror part ({part.Index}/{definition.Parts.Length})");
-                        var name = MakePath(part.Index);
+
                         var buffer = new byte[part.Size];
                         await using (var fs = await path.OpenShared())
                         {
@@ -95,7 +95,9 @@ namespace Wabbajack.Server.Services
                         }
 
                         using var client = await GetClient(creds);
+                        var name = MakePath(part.Index);
                         await client.UploadAsync(new MemoryStream(buffer), name);
+                        
                     });
 
                     using (var client = await GetClient(creds))
@@ -108,7 +110,8 @@ namespace Wabbajack.Server.Services
                         }
 
                         ms.Position = 0;
-                        await client.UploadAsync(ms, $"{definition.Hash.ToHex()}/definition.json.gz");
+                        var remoteName = $"{definition.Hash.ToHex()}/definition.json.gz";
+                        await client.UploadAsync(ms, remoteName);
                     }
 
                     await toUpload.Finish(_sql);

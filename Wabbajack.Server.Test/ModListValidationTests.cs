@@ -29,7 +29,7 @@ namespace Wabbajack.BuildServer.Test
             var modlist = await MakeModList("CanLoadMetadataFromTestServer.txt");
             Consts.ModlistMetadataURL = modlist.ToString();
             var data = await ModlistMetadata.LoadFromGithub();
-            Assert.Equal(2, data.Count);
+            Assert.Equal(3, data.Count);
             Assert.Equal("test_list", data.First().Links.MachineURL);
         }
 

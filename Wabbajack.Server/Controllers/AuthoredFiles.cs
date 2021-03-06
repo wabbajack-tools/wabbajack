@@ -79,6 +79,12 @@ namespace Wabbajack.BuildServer.Controllers
             _logger.Log(LogLevel.Information, $"Creating File upload {definition.OriginalFileName}");
 
             definition = await _sql.CreateAuthoredFile(definition, user);
+            
+            using (var client = await GetBunnyCdnFtpClient())
+            {
+                await client.CreateDirectoryAsync($"{definition.MungedName}");
+                await client.CreateDirectoryAsync($"{definition.MungedName}/parts");
+            }
 
             await _discord.Send(Channel.Ham,
                 new DiscordMessage() {Content = $"{user} has started uploading {definition.OriginalFileName} ({definition.Size.ToFileSizeString()})"});
@@ -123,7 +129,14 @@ namespace Wabbajack.BuildServer.Controllers
         private async Task UploadAsync(Stream stream, string path)
         {
             using var client = await GetBunnyCdnFtpClient();
-            await client.UploadAsync(stream, path);
+            try
+            {
+                await client.UploadAsync(stream, path);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         [HttpDelete]

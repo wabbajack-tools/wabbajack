@@ -41,7 +41,7 @@ namespace Wabbajack.Server.Services
                     bool isValid = false;
                     switch (archive.State)
                     {
-                        case WabbajackCDNDownloader.State _: 
+                        //case WabbajackCDNDownloader.State _: 
                         //case GoogleDriveDownloader.State _: // Let's try validating Google again 2/10/2021
                         case ManualDownloader.State _:
                         case ModDBDownloader.State _:
