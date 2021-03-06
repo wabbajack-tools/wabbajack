@@ -30,7 +30,7 @@ namespace Wabbajack.BuildServer.Test
             Consts.ModlistMetadataURL = modlist.ToString();
             var data = await ModlistMetadata.LoadFromGithub();
             Assert.Equal(3, data.Count);
-            Assert.Equal("test_list", data.First().Links.MachineURL);
+            Assert.Equal("test_list", data.OrderByDescending(x => x.Links.MachineURL).First().Links.MachineURL);
         }
 
         [Fact]
