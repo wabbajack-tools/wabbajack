@@ -236,7 +236,12 @@ namespace Wabbajack.Server.Services
 
                 return _archives.TryGetPath(foundArchive.Archive.Hash, out var path) ? path : default;
             };
-            
+
+            if (archive.State is NexusDownloader.State)
+            {
+                DownloadDispatcher.GetInstance<NexusDownloader>().Client = await _nexus.GetClient();
+            }
+
             var upgrade = await DownloadDispatcher.FindUpgrade(archive, resolver);
             
             

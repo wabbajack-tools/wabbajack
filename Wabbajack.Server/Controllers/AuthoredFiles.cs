@@ -114,8 +114,9 @@ namespace Wabbajack.BuildServer.Controllers
             
             await _discord.Send(Channel.Ham,
                 new DiscordMessage {Content = $"{user} has finished uploading {definition.OriginalFileName} ({definition.Size.ToFileSizeString()})"});
-            
-            return Ok($"https://{_settings.BunnyCDN_StorageZone}.b-cdn.net/{definition.MungedName}");
+
+            var host = Consts.TestMode ? "test-files" : "authored-files";
+            return Ok($"https://{host}.wabbajack.org/{definition.MungedName}");
         }
 
         private async Task<FtpClient> GetBunnyCdnFtpClient()
@@ -172,7 +173,7 @@ namespace Wabbajack.BuildServer.Controllers
             <html><body>
                 <table>
                 {{each $.files }}
-                <tr><td><a href='https://wabbajack.b-cdn.net/{{$.MungedName}}'>{{$.OriginalFileName}}</a></td><td>{{$.Size}}</td><td>{{$.LastTouched}}</td><td>{{$.Finalized}}</td><td>{{$.Author}}</td></tr>
+                <tr><td><a href='https://authored-files.wabbajack.org/{{$.MungedName}}'>{{$.OriginalFileName}}</a></td><td>{{$.Size}}</td><td>{{$.LastTouched}}</td><td>{{$.Finalized}}</td><td>{{$.Author}}</td></tr>
                 {{/each}}
                 </table>
             </body></html>

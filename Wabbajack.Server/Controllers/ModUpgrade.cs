@@ -102,10 +102,11 @@ namespace Wabbajack.BuildServer.Controllers
                 if (patch.PatchSize != 0)
                 {
                     //_logger.Log(LogLevel.Information, $"Upgrade requested from {oldDownload.Archive.Hash} to {newDownload.Archive.Hash} patch Found");
+                    var host = (await _creds).Username == "wabbajacktest" ? "test-files" : "patches";
                     await _sql.MarkPatchUsage(oldDownload.Id, newDownload.Id);
                     return
                         Ok(
-                            $"https://{(await _creds).Username}.b-cdn.net/{request.OldArchive.Hash.ToHex()}_{request.NewArchive.Hash.ToHex()}");
+                            $"https://{host}.wabbajack.org/{request.OldArchive.Hash.ToHex()}_{request.NewArchive.Hash.ToHex()}");
                 }
                 //_logger.Log(LogLevel.Information, $"Upgrade requested from {oldDownload.Archive.Hash} to {newDownload.Archive.Hash} patch found but was failed");
 

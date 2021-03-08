@@ -159,8 +159,6 @@ namespace Wabbajack.Common
         public static Uri WabbajackOrg = new Uri("https://www.wabbajack.org/");
         
         public static long UPLOADED_FILE_BLOCK_SIZE = (long)1024 * 1024 * 2;
-        
-        public static Uri WabbajackMirror = new Uri("https://wabbajack-mirror.b-cdn.net");
 
     }
 }

@@ -62,7 +62,7 @@ namespace Wabbajack.BuildServer.Test
             _token = new CancellationTokenSource();
             _task = _host.RunAsync(_token.Token);
             Consts.WabbajackBuildServerUri = new Uri("http://localhost:8080");
-            Consts.WabbajackMirror = new Uri("https://wabbajack-test.b-cdn.net");
+            Consts.TestMode = true;
 
             await "ServerWhitelist.yaml".RelativeTo(ServerPublicFolder).WriteAllTextAsync(
                 "GoogleIDs:\nAllowedPrefixes:\n    - http://localhost");
