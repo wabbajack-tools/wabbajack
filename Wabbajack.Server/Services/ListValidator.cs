@@ -68,8 +68,8 @@ namespace Wabbajack.Server.Services
                         var (_, result) = await ValidateArchive(data, archive);
                         if (result == ArchiveStatus.InValid)
                         {
-                            if (data.Mirrors.Contains(archive.Hash))
-                                return (archive, ArchiveStatus.Mirrored);
+                            if (data.Mirrors.TryGetValue(archive.Hash, out var done))
+                                return (archive, done ? ArchiveStatus.Mirrored : ArchiveStatus.Updating);
                             return await TryToHeal(data, archive, metadata);
                         }
 

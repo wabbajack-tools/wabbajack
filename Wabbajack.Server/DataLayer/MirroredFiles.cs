@@ -24,10 +24,12 @@ namespace Wabbajack.Server.DataLayer
             };
         }
         
-        public async Task<HashSet<Hash>> GetAllMirroredHashes()
+        public async Task<Dictionary<Hash, bool>> GetAllMirroredHashes()
         {
             await using var conn = await Open();
-            return (await conn.QueryAsync<Hash>("SELECT Hash FROM dbo.MirroredArchives")).ToHashSet();
+            return (await conn.QueryAsync<(Hash, DateTime?)>("SELECT Hash, Uploaded FROM dbo.MirroredArchives"))
+                .GroupBy(d => d.Item1)
+                .ToDictionary(d => d.Key, d => d.First().Item2.HasValue);
         }
         
         public async Task UpsertMirroredFile(MirroredFile file)
@@ -70,7 +72,7 @@ namespace Wabbajack.Server.DataLayer
             foreach (var (key, _) in permissions)
             {
                 if (!downloads.TryGetValue(key, out var hash)) continue;
-                if (existing.Contains(hash)) continue;
+                if (existing.ContainsKey(hash)) continue;
 
                 await UpsertMirroredFile(new MirroredFile
                 {
