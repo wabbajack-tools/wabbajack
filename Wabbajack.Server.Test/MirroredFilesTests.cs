@@ -51,6 +51,22 @@ namespace Wabbajack.Server.Test
             await using var file2 = new TempFile();
             await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, file2.Path);
             Assert.Equal(dataHash!.Value, await file2.Path.FileHashAsync());
+
+            var onServer = await uploader.GetHashesOnCDN();
+            Assert.Contains(dataHash.Value, onServer);
+
+            await uploader.DeleteOldMirrorFiles();
+            
+            // Still in SQL so it will still exist
+            await using var file3 = new TempFile();
+            await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, file3.Path);
+            Assert.Equal(dataHash!.Value, await file3.Path.FileHashAsync());
+
+            await sql.DeleteMirroredFile(dataHash.Value);
+            Assert.Equal(0, await uploader.Execute());
+            
+            var onServer2 = await uploader.GetHashesOnCDN();
+            Assert.DoesNotContain(dataHash.Value, onServer2);
         }
 
         [Fact]
