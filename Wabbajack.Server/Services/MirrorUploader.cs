@@ -25,6 +25,8 @@ namespace Wabbajack.Server.Services
         private ArchiveMaintainer _archives;
         private DiscordWebHook _discord;
 
+        public bool ActiveFileSyncEnabled { get; set; } = true;
+
         public MirrorUploader(ILogger<MirrorUploader> logger, AppSettings settings, SqlService sql, QuickSync quickSync, ArchiveMaintainer archives, DiscordWebHook discord)
             : base(logger, settings, quickSync, TimeSpan.FromHours(1))
         {
@@ -37,6 +39,9 @@ namespace Wabbajack.Server.Services
         {
         
             int uploaded = 0;
+            
+            if (ActiveFileSyncEnabled)
+                await _sql.SyncActiveMirroredFiles();
             TOP:
             var toUpload = await _sql.GetNextMirroredFile();
             if (toUpload == default)

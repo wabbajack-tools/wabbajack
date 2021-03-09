@@ -1,9 +1,8 @@
 USE [master]
 GO
-/****** Object:  Database [wabbajack_prod]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Database [wabbajack_prod]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE DATABASE [wabbajack_prod]
  CONTAINMENT = NONE
- WITH CATALOG_COLLATION = DATABASE_DEFAULT
 GO
 ALTER DATABASE [wabbajack_prod] SET COMPATIBILITY_LEVEL = 150
 GO
@@ -74,24 +73,20 @@ ALTER DATABASE [wabbajack_prod] SET QUERY_STORE = OFF
 GO
 USE [wabbajack_prod]
 GO
-/****** Object:  User [wabbajack]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  User [wabbajack]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE USER [wabbajack] WITHOUT LOGIN WITH DEFAULT_SCHEMA=[dbo]
 GO
-ALTER ROLE [db_datareader] ADD MEMBER [wabbajack]
-GO
-ALTER ROLE [db_datawriter] ADD MEMBER [wabbajack]
-GO
-/****** Object:  Schema [test]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Schema [test]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE SCHEMA [test]
 GO
-/****** Object:  UserDefinedTableType [dbo].[ArchiveContentType]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  UserDefinedTableType [dbo].[ArchiveContentType]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE TYPE [dbo].[ArchiveContentType] AS TABLE(
 	[Parent] [bigint] NOT NULL,
 	[Child] [bigint] NOT NULL,
 	[Path] [nvarchar](max) NOT NULL
 )
 GO
-/****** Object:  UserDefinedTableType [dbo].[IndexedFileType]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  UserDefinedTableType [dbo].[IndexedFileType]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE TYPE [dbo].[IndexedFileType] AS TABLE(
 	[Hash] [bigint] NOT NULL,
 	[Sha256] [binary](32) NOT NULL,
@@ -101,7 +96,7 @@ CREATE TYPE [dbo].[IndexedFileType] AS TABLE(
 	[Size] [bigint] NOT NULL
 )
 GO
-/****** Object:  UserDefinedFunction [dbo].[Base64ToLong]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  UserDefinedFunction [dbo].[Base64ToLong]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -130,7 +125,7 @@ SELECT @ResultVar = CAST(@Input as varbinary(max)) FOR XML PATH(''), BINARY BASE
 
 END
 GO
-/****** Object:  UserDefinedFunction [dbo].[MaxMetricDate]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  UserDefinedFunction [dbo].[MaxMetricDate]    Script Date: 3/9/2021 3:12:32 PM ******/
     SET ANSI_NULLS ON
     GO
     SET QUOTED_IDENTIFIER ON
@@ -158,7 +153,7 @@ SELECT @Result = max(Timestamp) from dbo.Metrics where MetricsKey is not null
 
 END
     GO
-/****** Object:  UserDefinedFunction [dbo].[MinMetricDate]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  UserDefinedFunction [dbo].[MinMetricDate]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -186,7 +181,7 @@ SELECT @Result = min(Timestamp) from dbo.Metrics WHERE MetricsKey is not null
 
 END
     GO
-/****** Object:  Table [dbo].[ModLists]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[ModLists]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -203,7 +198,7 @@ CREATE TABLE [dbo].[ModLists](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[AllModListArchives]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  View [dbo].[AllModListArchives]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -222,7 +217,7 @@ State nvarchar(max) as json
 
 ) p 
 GO
-/****** Object:  Table [dbo].[IndexedFile]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[IndexedFile]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -240,7 +235,7 @@ CREATE TABLE [dbo].[IndexedFile](
                                         )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[ArchiveContent]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[ArchiveContent]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -252,14 +247,14 @@ CREATE TABLE [dbo].[ArchiveContent](
 	[PathHash]  AS (CONVERT([binary](32),hashbytes('SHA2_256',replace(lower([Path]),'/','\')))) PERSISTED NOT NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Index [Child_Parent_IDX]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [Child_Parent_IDX]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE CLUSTERED INDEX [Child_Parent_IDX] ON [dbo].[ArchiveContent]
 (
 	[Child] ASC,
 	[Parent] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[AllFilesInArchive]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[AllFilesInArchive]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -274,7 +269,7 @@ CREATE TABLE [dbo].[AllFilesInArchive](
                                               )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[AllArchiveContent]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  View [dbo].[AllArchiveContent]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -290,7 +285,7 @@ FROM
         LEFT JOIN dbo.ArchiveContent ac on af.Child = ac.Child
         LEFT JOIN dbo.IndexedFile idx on af.Child = idx.Hash
     GO
-/****** Object:  Table [dbo].[DownloadStates]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[DownloadStates]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
     GO
     SET QUOTED_IDENTIFIER ON
@@ -307,7 +302,7 @@ CREATE TABLE [dbo].[DownloadStates](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[GameFiles]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  View [dbo].[GameFiles]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -335,7 +330,7 @@ SET ARITHABORT ON
     SET ANSI_WARNINGS ON
     SET NUMERIC_ROUNDABORT OFF
         GO
-/****** Object:  Index [ByGameAndVersion]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [ByGameAndVersion]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE UNIQUE CLUSTERED INDEX [ByGameAndVersion] ON [dbo].[GameFiles]
     (
     [Game] ASC,
@@ -343,7 +338,7 @@ CREATE UNIQUE CLUSTERED INDEX [ByGameAndVersion] ON [dbo].[GameFiles]
     [Id] ASC
     )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
     GO
-/****** Object:  Table [dbo].[AuthoredFiles]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[AuthoredFiles]    Script Date: 3/9/2021 3:12:32 PM ******/
     SET ANSI_NULLS ON
     GO
     SET QUOTED_IDENTIFIER ON
@@ -359,7 +354,7 @@ CREATE TABLE [dbo].[AuthoredFiles](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[AuthoredFilesSummaries]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  View [dbo].[AuthoredFilesSummaries]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -379,7 +374,7 @@ SELECT
      ,JSON_VALUE(CDNFILEDefinition, '$.Hash') as Hash
 FROM [wabbajack_prod].[dbo].[AuthoredFiles]
          GO
-/****** Object:  Table [dbo].[NexusModInfos]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[NexusModInfos]    Script Date: 3/9/2021 3:12:32 PM ******/
         SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -396,7 +391,7 @@ CREATE TABLE [dbo].[NexusModInfos](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[ModListArchives]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[ModListArchives]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -415,7 +410,7 @@ CREATE TABLE [dbo].[ModListArchives](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[NexusModPermissions]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[NexusModPermissions]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -431,7 +426,7 @@ CREATE TABLE [dbo].[NexusModPermissions](
                                                 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[GameMetadata]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[GameMetadata]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -445,7 +440,7 @@ CREATE TABLE [dbo].[GameMetadata](
                                          )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[ArchiveDownloads]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[ArchiveDownloads]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -466,7 +461,7 @@ CREATE TABLE [dbo].[ArchiveDownloads](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[NexusModsWithOpenPerms]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[NexusModsWithOpenPerms]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -481,7 +476,7 @@ CREATE TABLE [dbo].[NexusModsWithOpenPerms](
                                                    )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[NexusAuthorsWithOpenPerms]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[NexusAuthorsWithOpenPerms]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -490,7 +485,7 @@ CREATE TABLE [dbo].[NexusAuthorsWithOpenPerms](
     [NexusAuthor] [nvarchar](64) NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[AllowedMirrors]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  View [dbo].[AllowedMirrors]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -562,7 +557,7 @@ UNION
 SELECT DISTINCT Hash, GETUTCDATE(), 'Distribution allowed by author' /*, Name*/
 from dbo.ModListArchives mla WHERE Name like '%particle%patch%'
     GO
-/****** Object:  View [dbo].[ActiveMirrors]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  View [dbo].[ActiveMirrors]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -573,7 +568,7 @@ SELECT DISTINCT am.Hash, am.Reason, am.Date from dbo.AllowedMirrors am
                                                      LEFT JOIN dbo.ArchiveDownloads ad on am.Hash = ad.Hash
                                                      LEFT JOIN dbo.ModListArchives mla on am.Hash = mla.Hash
     GO
-/****** Object:  Table [dbo].[AccessLog]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[AccessLog]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -590,7 +585,7 @@ CREATE TABLE [dbo].[AccessLog](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[ApiKeys]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[ApiKeys]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -605,7 +600,7 @@ CREATE TABLE [dbo].[ApiKeys](
                                     )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[ArchivePatches]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[ArchivePatches]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -631,7 +626,7 @@ CREATE TABLE [dbo].[ArchivePatches](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[IPFSPins]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[IPFSPins]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -646,7 +641,7 @@ CREATE TABLE [dbo].[IPFSPins](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Jobs]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[Jobs]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -665,14 +660,14 @@ CREATE TABLE [dbo].[Jobs](
 	[RunBy] [uniqueidentifier] NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Index [ClusteredIndex-20200506-123511]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [ClusteredIndex-20200506-123511]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE CLUSTERED INDEX [ClusteredIndex-20200506-123511] ON [dbo].[Jobs]
 (
 	[Priority] DESC,
 	[Started] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Metrics]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[Metrics]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -690,7 +685,7 @@ CREATE TABLE [dbo].[Metrics](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[MetricsKeys]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[MetricsKeys]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -703,7 +698,7 @@ CREATE TABLE [dbo].[MetricsKeys](
                                         )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[MirroredArchives]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[MirroredArchives]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -720,7 +715,7 @@ CREATE TABLE [dbo].[MirroredArchives](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[ModListArchiveStatus]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[ModListArchiveStatus]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -737,7 +732,7 @@ CREATE TABLE [dbo].[ModListArchiveStatus](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[NexusFileInfos]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[NexusFileInfos]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -756,7 +751,7 @@ CREATE TABLE [dbo].[NexusFileInfos](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[NexusKeys]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[NexusKeys]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -771,7 +766,7 @@ CREATE TABLE [dbo].[NexusKeys](
                                       )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[NexusModFiles]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[NexusModFiles]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -788,7 +783,7 @@ CREATE TABLE [dbo].[NexusModFiles](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[NexusModFilesSlow]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[NexusModFilesSlow]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -806,7 +801,7 @@ CREATE TABLE [dbo].[NexusModFilesSlow](
                                               )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[NoPatch]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[NoPatch]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -821,7 +816,7 @@ CREATE TABLE [dbo].[NoPatch](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Patches]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[Patches]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -842,7 +837,7 @@ CREATE TABLE [dbo].[Patches](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[TarKey]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[TarKey]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -855,7 +850,7 @@ CREATE TABLE [dbo].[TarKey](
                                    )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[toDeleteTemp]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[toDeleteTemp]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -867,7 +862,7 @@ CREATE TABLE [dbo].[toDeleteTemp](
 	[PathHash] [binary](32) NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[UploadedFiles]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[UploadedFiles]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -886,7 +881,7 @@ CREATE TABLE [dbo].[UploadedFiles](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[VirusScanResults]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Table [dbo].[VirusScanResults]    Script Date: 3/9/2021 3:12:32 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -900,7 +895,7 @@ CREATE TABLE [dbo].[VirusScanResults](
                                              )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Index [IX_Child]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [IX_Child]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE NONCLUSTERED INDEX [IX_Child] ON [dbo].[AllFilesInArchive]
 (
 	[Child] ASC
@@ -908,14 +903,14 @@ CREATE NONCLUSTERED INDEX [IX_Child] ON [dbo].[AllFilesInArchive]
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [ByAPIKey]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [ByAPIKey]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE UNIQUE NONCLUSTERED INDEX [ByAPIKey] ON [dbo].[ApiKeys]
     (
     [APIKey] ASC
     )
     INCLUDE([Owner]) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
     GO
-/****** Object:  Index [_dta_index_ArchiveDownloads_5_1058102810__K6_1_3_4_7]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [_dta_index_ArchiveDownloads_5_1058102810__K6_1_3_4_7]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE NONCLUSTERED INDEX [_dta_index_ArchiveDownloads_5_1058102810__K6_1_3_4_7] ON [dbo].[ArchiveDownloads]
 (
 	[DownloadFinished] ASC
@@ -924,7 +919,7 @@ INCLUDE([Id],[Size],[Hash],[DownloadState]) WITH (PAD_INDEX = OFF, STATISTICS_NO
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [ByDownloaderAndFinished]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [ByDownloaderAndFinished]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE NONCLUSTERED INDEX [ByDownloaderAndFinished] ON [dbo].[ArchiveDownloads]
 (
 	[DownloadFinished] ASC,
@@ -933,28 +928,28 @@ CREATE NONCLUSTERED INDEX [ByDownloaderAndFinished] ON [dbo].[ArchiveDownloads]
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [ByPrimaryKeyAndHash]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [ByPrimaryKeyAndHash]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE NONCLUSTERED INDEX [ByPrimaryKeyAndHash] ON [dbo].[ArchiveDownloads]
 (
 	[PrimaryKeyString] ASC,
 	[Hash] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-/****** Object:  Index [IDX_ID_HASH]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [IDX_ID_HASH]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE NONCLUSTERED INDEX [IDX_ID_HASH] ON [dbo].[ArchiveDownloads]
 (
 	[Id] ASC,
 	[Hash] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-/****** Object:  Index [_dta_index_AuthoredFiles_LastTouched]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [_dta_index_AuthoredFiles_LastTouched]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE NONCLUSTERED INDEX [_dta_index_AuthoredFiles_LastTouched] ON [dbo].[AuthoredFiles]
 (
 	[LastTouched] ASC
 )
 INCLUDE([ServerAssignedUniqueId],[CDNFileDefinition],[Finalized]) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-/****** Object:  Index [ByHash]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [ByHash]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE NONCLUSTERED INDEX [ByHash] ON [dbo].[DownloadStates]
 (
 	[Hash] ASC
@@ -963,14 +958,14 @@ INCLUDE([IniState]) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [GameAndName-20200804-164236]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [GameAndName-20200804-164236]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE NONCLUSTERED INDEX [GameAndName-20200804-164236] ON [dbo].[GameMetadata]
 (
 	[NexusGameId] ASC,
 	[WabbajackName] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-/****** Object:  Index [JobsByEnded]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [JobsByEnded]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE NONCLUSTERED INDEX [JobsByEnded] ON [dbo].[Jobs]
 (
 	[Ended] ASC
@@ -979,20 +974,20 @@ INCLUDE([Id],[Priority],[Started],[Created],[Payload]) WITH (PAD_INDEX = OFF, ST
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [IDX_MetricsKey]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [IDX_MetricsKey]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE NONCLUSTERED INDEX [IDX_MetricsKey] ON [dbo].[Metrics]
 (
 	[MetricsKey] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-/****** Object:  Index [IDX_MirroredArchives_HashUploaded]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [IDX_MirroredArchives_HashUploaded]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE UNIQUE NONCLUSTERED INDEX [IDX_MirroredArchives_HashUploaded] ON [dbo].[MirroredArchives]
     (
     [Hash] ASC,
     [Uploaded] ASC
     )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
     GO
-/****** Object:  Index [IDX_HASH]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  Index [IDX_HASH]    Script Date: 3/9/2021 3:12:32 PM ******/
 CREATE NONCLUSTERED INDEX [IDX_HASH] ON [dbo].[ModListArchives]
 (
 	[Hash] ASC
@@ -1012,7 +1007,7 @@ ALTER TABLE [dbo].[Patches]  WITH CHECK ADD  CONSTRAINT [FK_SrcId] FOREIGN KEY([
     GO
 ALTER TABLE [dbo].[Patches] CHECK CONSTRAINT [FK_SrcId]
     GO
-/****** Object:  StoredProcedure [dbo].[MergeAllFilesInArchive]    Script Date: 3/9/2021 7:39:37 AM ******/
+/****** Object:  StoredProcedure [dbo].[QueueMirroredFiles]    Script Date: 3/9/2021 3:12:32 PM ******/
     SET ANSI_NULLS ON
     GO
     SET QUOTED_IDENTIFIER ON
@@ -1022,64 +1017,18 @@ ALTER TABLE [dbo].[Patches] CHECK CONSTRAINT [FK_SrcId]
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE PROCEDURE [dbo].[MergeAllFilesInArchive]
+CREATE PROCEDURE [dbo].[QueueMirroredFiles]
 AS
 BEGIN
     -- SET NOCOUNT ON added to prevent extra result sets from
     -- interfering with SELECT statements.
     SET NOCOUNT ON;
 
-MERGE dbo.AllFilesInArchive t USING (
-	SELECT DISTINCT TopParent, unpvt.Child
-	FROM
-	(SELECT a3.Parent AS P3, a2.Parent as P2, a1.Parent P1, a0.Parent P0, a0.Parent as Parent, a0.Child FROM
-	dbo.ArChiveContent a0
-	LEFT JOIN dbo.ArChiveContent a1 ON a0.Parent = a1.Child
-	LEFT JOIN dbo.ArChiveContent a2 ON a1.Parent = a2.Child
-	LEFT JOIN dbo.ArChiveContent a3 ON a2.Parent = a3.Child) p
-	UNPIVOT
-	(TopParent For C IN (p.P3, p.P2, p.P1, p.P0)) as unpvt
-	LEFT JOIN dbo.IndexedFile idf on unpvt.Child = idf.Hash
-	WHERE TopParent is not null) s
-	ON t.TopParent = s.TopParent AND t.Child = s.Child
-	WHEN NOT MATCHED
-	  THEN INSERT (TopParent, Child) VALUES (s.TopParent, s.Child);
-END
-    GO
-/****** Object:  StoredProcedure [dbo].[MergeIndexedFiles]    Script Date: 3/9/2021 7:39:37 AM ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
--- =============================================
-CREATE PROCEDURE [dbo].[MergeIndexedFiles]
-	-- Add the parameters for the stored procedure here
-	@Files dbo.IndexedFileType READONLY,
-	@Contents dbo.ArchiveContentType READONLY
-AS
-BEGIN
-    -- SET NOCOUNT ON added to prevent extra result sets from
-    -- interfering with SELECT statements.
-    SET NOCOUNT ON;
-BEGIN TRANSACTION;
+INSERT INTO dbo.MirroredArchives (Hash, Created, Rationale)
+SELECT Hash, Date, Reason FROM dbo.ActiveMirrors
+WHERE Hash not in (SELECT Hash from dbo.MirroredArchives);
 
-MERGE dbo.IndexedFile AS TARGET
-    USING (SELECT DISTINCT * FROM @Files) as SOURCE
-    ON (TARGET.Hash = SOURCE.HASH)
-    WHEN NOT MATCHED BY TARGET
-    THEN INSERT (Hash, Sha256, Sha1, Md5, Crc32, Size)
-VALUES (Source.Hash, Source.Sha256, Source.Sha1, Source.Md5, Source.Crc32, Source.Size);
-
-MERGE dbo.ArchiveContent AS TARGET
-	USING (SELECT DISTINCT * FROM @Contents) as SOURCE
-	ON (TARGET.Parent = SOURCE.Parent AND TARGET.PathHash = CAST(HASHBYTES('SHA2_256', REPLACE(LOWER(SOURCE.Path), '/', '\')) as binary(32)))
-	WHEN NOT MATCHED
-	THEN INSERT (Parent, Child, Path)
-VALUES (Source.Parent, Source.Child, Source.Path);
-
-
-COMMIT;
-
+DELETE from dbo.MirroredArchives where Hash not in (SELECT Hash from dbo.ActiveMirrors);
 END
     GO
 USE [master]

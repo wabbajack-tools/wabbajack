@@ -132,5 +132,20 @@ namespace Wabbajack.Server.DataLayer
 
                 ");
         }
+
+        public async Task AddNexusModWithOpenPerms(Game gameGame, long modId)
+        {
+            await using var conn = await Open();
+
+            await conn.ExecuteAsync(
+                @"INSERT INTO dbo.NexusModsWithOpenPerms(NexusGameID, NexusModID) VALUES(@game, @mod)",
+                new {game = gameGame.MetaData().NexusGameId, modId});
+        }
+
+        public async Task SyncActiveMirroredFiles()
+        {
+            await using var conn = await Open();
+            await conn.ExecuteAsync(@"EXEC dbo.QueueMirroredFiles");
+        }
     }
 }
