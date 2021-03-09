@@ -65,14 +65,14 @@ namespace Wabbajack.Launcher
             {
                 FinishAndExit();
             }
-            
+
             if (_version == null)
                 FinishAndExit();
 
             Status = "Looking for Updates";
-            
+
             var base_folder = Path.Combine(Directory.GetCurrentDirectory(), _version.Tag);
-            
+
             if (File.Exists(Path.Combine(base_folder, "Wabbajack.exe")))
                 FinishAndExit();
 
@@ -83,8 +83,17 @@ namespace Wabbajack.Launcher
             var wc = new WebClient();
             wc.DownloadProgressChanged += UpdateProgress;
             Status = $"Downloading {_version.Tag} ...";
-            var data = await wc.DownloadDataTaskAsync(asset.BrowserDownloadUrlFast);
-            
+            byte[] data;
+            try
+            {
+                data = await wc.DownloadDataTaskAsync(asset.BrowserDownloadUrlFast);
+            }
+            catch (Exception)
+            {
+                // Something went wrong so fallback to original URL
+				data = await wc.DownloadDataTaskAsync(asset.BrowserDownloadUrl);
+            }
+
             using (var zip = new ZipArchive(new MemoryStream(data), ZipArchiveMode.Read))
             {
                 foreach (var entry in zip.Entries)
@@ -113,7 +122,7 @@ namespace Wabbajack.Launcher
                 .FirstOrDefault();
             var info = new ProcessStartInfo
             {
-                FileName = Path.Combine(wjFolder, "Wabbajack.exe"), 
+                FileName = Path.Combine(wjFolder, "Wabbajack.exe"),
                 Arguments = string.Join(" ", Environment.GetCommandLineArgs().Skip(1).Select(s => s.Contains(' ') ? '\"' + s + '\"' : s)),
                 WorkingDirectory = wjFolder,
             };
@@ -139,17 +148,17 @@ namespace Wabbajack.Launcher
         {
             [JsonProperty("tag_name")]
             public string Tag { get; set; }
-            
+
             [JsonProperty("assets")]
             public Asset[] Assets { get; set; }
-           
+
         }
 
         class Asset
         {
             [JsonProperty("browser_download_url")]
             public Uri BrowserDownloadUrl { get; set; }
-            
+
             [JsonIgnore]
             public Uri BrowserDownloadUrlFast {
                 get
@@ -162,8 +171,8 @@ namespace Wabbajack.Launcher
                     return BrowserDownloadUrl;
                 }
             }
-            
-            
+
+
             [JsonProperty("name")]
             public string Name { get; set; }
         }
