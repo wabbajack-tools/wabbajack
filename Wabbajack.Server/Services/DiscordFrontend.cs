@@ -20,8 +20,9 @@ namespace Wabbajack.Server.Services
         private DiscordSocketClient _client;
         private SqlService _sql;
         private MetricsKeyCache _keyCache;
+        private ListValidator _listValidator;
 
-        public DiscordFrontend(ILogger<DiscordFrontend> logger, AppSettings settings, QuickSync quickSync, SqlService sql, MetricsKeyCache keyCache)
+        public DiscordFrontend(ILogger<DiscordFrontend> logger, AppSettings settings, QuickSync quickSync, ListValidator listValidator, SqlService sql, MetricsKeyCache keyCache)
         {
             _logger = logger;
             _settings = settings;
@@ -35,6 +36,7 @@ namespace Wabbajack.Server.Services
 
             _sql = sql;
             _keyCache = keyCache;
+            _listValidator = listValidator;
         }
 
         private async Task MessageReceivedAsync(SocketMessage arg)
@@ -86,6 +88,7 @@ namespace Wabbajack.Server.Services
                     else
                     {
                         var deleted = await _sql.PurgeList(parts[2]);
+                        _listValidator.ValidationInfo.TryRemove(parts[2], out var _); 
                         await _quickSync.Notify<ModListDownloader>();
                         await ReplyTo(arg, $"Purged all traces of #{parts[2]} from the server, triggered list downloading. {deleted} records removed");
                     }
