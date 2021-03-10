@@ -70,6 +70,11 @@ namespace Wabbajack.Server.Services
                         {
                             if (data.Mirrors.TryGetValue(archive.Hash, out var done))
                                 return (archive, done ? ArchiveStatus.Mirrored : ArchiveStatus.Updating);
+                            if ((await data.AllowedMirrors.Value).TryGetValue(archive.Hash, out var reason))
+                            {
+                                await _sql.StartMirror((archive.Hash, reason));
+                                return (archive, ArchiveStatus.Updating);
+                            }
                             return await TryToHeal(data, archive, metadata);
                         }
 
@@ -88,7 +93,7 @@ namespace Wabbajack.Server.Services
                     }
                 });
 
-                var failedCount = archives.Count(f => f.Item2 == ArchiveStatus.InValid);
+                var failedCount = archives.Count(f => f.Item2 == ArchiveStatus.InValid || f.Item2 == ArchiveStatus.Updating);
                 var passCount = archives.Count(f => f.Item2 == ArchiveStatus.Valid || f.Item2 == ArchiveStatus.Updated);
                 var updatingCount = archives.Count(f => f.Item2 == ArchiveStatus.Updating);
                 var mirroredCount = archives.Count(f => f.Item2 == ArchiveStatus.Mirrored);

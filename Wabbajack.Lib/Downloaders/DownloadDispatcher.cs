@@ -125,7 +125,7 @@ namespace Wabbajack.Lib.Downloaders
             Utils.Log($"Trying to find solution to broken download for {archive.Name}");
             
             var result = await FindUpgrade(archive);
-            if (result == default)
+            if (result == default )
             {
                 result = await AbstractDownloadState.ServerFindUpgrade(archive);
                 if (result == default)

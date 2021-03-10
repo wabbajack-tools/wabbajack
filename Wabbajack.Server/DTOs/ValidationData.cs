@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.ModListRegistry;
@@ -13,5 +15,6 @@ namespace Wabbajack.Server.DTOs
         
         public ConcurrentHashSet<(Game Game, long ModId)> SlowQueriedFor { get; set; } = new ConcurrentHashSet<(Game Game, long ModId)>();
         public Dictionary<Hash, bool> Mirrors { get; set; }
+        public Lazy<Task<Dictionary<Hash, string>>> AllowedMirrors { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CefSharp.DevTools.Network;
 using Dapper;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
@@ -30,6 +31,32 @@ namespace Wabbajack.Server.DataLayer
             return (await conn.QueryAsync<(Hash, DateTime?)>("SELECT Hash, Uploaded FROM dbo.MirroredArchives"))
                 .GroupBy(d => d.Item1)
                 .ToDictionary(d => d.Key, d => d.First().Item2.HasValue);
+        }
+        
+        public async Task StartMirror((Hash Hash, string Reason) mirror)
+        {
+            await using var conn = await Open();
+            await using var trans = await conn.BeginTransactionAsync();
+
+            if (await conn.QueryFirstOrDefaultAsync<Hash>(@"SELECT Hash FROM dbo.MirroredArchives WHERE Hash = @Hash",
+                new {Hash = mirror.Hash}, trans) != default)
+            {
+                return;
+            }
+
+            await conn.ExecuteAsync(
+                @"INSERT INTO dbo.MirroredArchives (Hash, Created, Rationale) VALUES (@Hash, GETUTCDATE(), @Reason)",
+                new {Hash = mirror.Hash, Reason = mirror.Reason}, trans);
+            await trans.CommitAsync();
+
+        }
+
+        public async Task<Dictionary<Hash, string>> GetAllowedMirrors()
+        {
+            await using var conn = await Open();
+            return (await conn.QueryAsync<(Hash, string)>("SELECT Hash, Reason FROM dbo.AllowedMirrorsCache"))
+                .GroupBy(d => d.Item1)
+                .ToDictionary(d => d.Key, d => d.First().Item2);
         }
         
         public async Task UpsertMirroredFile(MirroredFile file)
