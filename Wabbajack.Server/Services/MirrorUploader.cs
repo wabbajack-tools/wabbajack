@@ -102,16 +102,21 @@ namespace Wabbajack.Server.Services
                             fs.Position = part.Offset;
                             await fs.ReadAsync(buffer);
                         }
-
-                        using var client = await GetClient(creds);
-                        var name = MakePath(part.Index);
-                        await client.UploadAsync(new MemoryStream(buffer), name);
                         
+                        await CircuitBreaker.WithAutoRetryAllAsync(async () =>{
+                            using var client = await GetClient(creds);
+                            var name = MakePath(part.Index);
+                            await client.UploadAsync(new MemoryStream(buffer), name);
+                        });
+
                     });
 
-                    using (var client = await GetClient(creds))
+                    await CircuitBreaker.WithAutoRetryAllAsync(async () =>
                     {
+                        using var client = await GetClient(creds);
                         _logger.LogInformation($"Finishing mirror upload");
+
+
                         await using var ms = new MemoryStream();
                         await using (var gz = new GZipStream(ms, CompressionLevel.Optimal, true))
                         {
@@ -121,7 +126,7 @@ namespace Wabbajack.Server.Services
                         ms.Position = 0;
                         var remoteName = $"{definition.Hash.ToHex()}/definition.json.gz";
                         await client.UploadAsync(ms, remoteName);
-                    }
+                    });
 
                     await toUpload.Finish(_sql);
                 }
@@ -144,6 +149,7 @@ namespace Wabbajack.Server.Services
             creds ??= await BunnyCdnFtpInfo.GetCreds(StorageSpace.Mirrors);
             
             var ftpClient = new FtpClient(creds.Hostname, new NetworkCredential(creds.Username, creds.Password));
+            ftpClient.DataConnectionType = FtpDataConnectionType.EPSV;
             await ftpClient.ConnectAsync();
             return ftpClient;
         }
