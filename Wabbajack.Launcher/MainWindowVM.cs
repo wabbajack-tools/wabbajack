@@ -97,7 +97,7 @@ namespace Wabbajack.Launcher
             byte[] data;
             try
             {
-                data = await wc.DownloadDataTaskAsync(asset.BrowserDownloadUrlFast);
+                data = await wc.DownloadDataTaskAsync(asset.BrowserDownloadUrl);
             }
             catch (Exception ex)
             {
@@ -209,21 +209,7 @@ namespace Wabbajack.Launcher
         {
             [JsonProperty("browser_download_url")]
             public Uri BrowserDownloadUrl { get; set; }
-
-            [JsonIgnore]
-            public Uri BrowserDownloadUrlFast {
-                get
-                {
-                    if (BrowserDownloadUrl.ToString()
-                        .StartsWith("https://github.com/wabbajack-tools/wabbajack/releases/"))
-                        return new Uri(BrowserDownloadUrl.ToString()
-                            .Replace("https://github.com/wabbajack-tools/wabbajack/releases/",
-                                "https://releases.wabbajack.org/"));
-                    return BrowserDownloadUrl;
-                }
-            }
-
-
+            
             [JsonProperty("name")]
             public string Name { get; set; }
         }

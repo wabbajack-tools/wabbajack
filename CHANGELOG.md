@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 2.4.5.7 - 3/11/2021
+* Several fixes for working off the new CDN
+* Better detect failures in the launcher
+* The app now cleans up older versions (leaving a total of 2 previous versions)
+* The app now updates the launcher
+
 #### Version - 2.4.2.6 - 2/26/2021
 * Cache Modlist images (based on the URL)
 * Load Gallery images off the GUI thread improving UI performance

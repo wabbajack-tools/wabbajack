@@ -63,7 +63,7 @@ namespace Wabbajack.Lib
 
             if (release != default && launcherVersion != null && release.version > Version.Parse(launcherVersion.FileVersion!))
             {
-                Utils.Log($"Updating Launcher from {launcherVersion} to {release.version}");
+                Utils.Log($"Updating Launcher from {launcherVersion.FileVersion} to {release.version}");
                 var tempPath = launcherFolder.Combine("Wabbajack.exe.temp");
                 var client = new Client();
                 client.UseChromeUserAgent();
@@ -81,6 +81,7 @@ namespace Wabbajack.Lib
                 await tempPath.MoveToAsync(exePath);
                 
                 Utils.Log("Finished updating wabbajack");
+                await Metrics.Send("updated_launcher", $"{launcherVersion.FileVersion} -> {release.version}");
             }
         }
         
