@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CefSharp.DevTools.Network;
 using Dapper;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
@@ -24,10 +25,38 @@ namespace Wabbajack.Server.DataLayer
             };
         }
         
-        public async Task<HashSet<Hash>> GetAllMirroredHashes()
+        public async Task<Dictionary<Hash, bool>> GetAllMirroredHashes()
         {
             await using var conn = await Open();
-            return (await conn.QueryAsync<Hash>("SELECT Hash FROM dbo.MirroredArchives")).ToHashSet();
+            return (await conn.QueryAsync<(Hash, DateTime?)>("SELECT Hash, Uploaded FROM dbo.MirroredArchives"))
+                .GroupBy(d => d.Item1)
+                .ToDictionary(d => d.Key, d => d.First().Item2.HasValue);
+        }
+        
+        public async Task StartMirror((Hash Hash, string Reason) mirror)
+        {
+            await using var conn = await Open();
+            await using var trans = await conn.BeginTransactionAsync();
+
+            if (await conn.QueryFirstOrDefaultAsync<Hash>(@"SELECT Hash FROM dbo.MirroredArchives WHERE Hash = @Hash",
+                new {Hash = mirror.Hash}, trans) != default)
+            {
+                return;
+            }
+
+            await conn.ExecuteAsync(
+                @"INSERT INTO dbo.MirroredArchives (Hash, Created, Rationale) VALUES (@Hash, GETUTCDATE(), @Reason)",
+                new {Hash = mirror.Hash, Reason = mirror.Reason}, trans);
+            await trans.CommitAsync();
+
+        }
+
+        public async Task<Dictionary<Hash, string>> GetAllowedMirrors()
+        {
+            await using var conn = await Open();
+            return (await conn.QueryAsync<(Hash, string)>("SELECT Hash, Reason FROM dbo.AllowedMirrorsCache"))
+                .GroupBy(d => d.Item1)
+                .ToDictionary(d => d.Key, d => d.First().Item2);
         }
         
         public async Task UpsertMirroredFile(MirroredFile file)
@@ -70,7 +99,7 @@ namespace Wabbajack.Server.DataLayer
             foreach (var (key, _) in permissions)
             {
                 if (!downloads.TryGetValue(key, out var hash)) continue;
-                if (existing.Contains(hash)) continue;
+                if (existing.ContainsKey(hash)) continue;
 
                 await UpsertMirroredFile(new MirroredFile
                 {
@@ -129,6 +158,21 @@ namespace Wabbajack.Server.DataLayer
 
 
                 ");
+        }
+
+        public async Task AddNexusModWithOpenPerms(Game gameGame, long modId)
+        {
+            await using var conn = await Open();
+
+            await conn.ExecuteAsync(
+                @"INSERT INTO dbo.NexusModsWithOpenPerms(NexusGameID, NexusModID) VALUES(@game, @mod)",
+                new {game = gameGame.MetaData().NexusGameId, modId});
+        }
+
+        public async Task SyncActiveMirroredFiles()
+        {
+            await using var conn = await Open();
+            await conn.ExecuteAsync(@"EXEC dbo.QueueMirroredFiles");
         }
     }
 }

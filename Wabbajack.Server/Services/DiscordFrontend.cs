@@ -20,8 +20,9 @@ namespace Wabbajack.Server.Services
         private DiscordSocketClient _client;
         private SqlService _sql;
         private MetricsKeyCache _keyCache;
+        private ListValidator _listValidator;
 
-        public DiscordFrontend(ILogger<DiscordFrontend> logger, AppSettings settings, QuickSync quickSync, SqlService sql, MetricsKeyCache keyCache)
+        public DiscordFrontend(ILogger<DiscordFrontend> logger, AppSettings settings, QuickSync quickSync, ListValidator listValidator, SqlService sql, MetricsKeyCache keyCache)
         {
             _logger = logger;
             _settings = settings;
@@ -35,6 +36,7 @@ namespace Wabbajack.Server.Services
 
             _sql = sql;
             _keyCache = keyCache;
+            _listValidator = listValidator;
         }
 
         private async Task MessageReceivedAsync(SocketMessage arg)
@@ -86,15 +88,54 @@ namespace Wabbajack.Server.Services
                     else
                     {
                         var deleted = await _sql.PurgeList(parts[2]);
+                        _listValidator.ValidationInfo.TryRemove(parts[2], out var _); 
                         await _quickSync.Notify<ModListDownloader>();
                         await ReplyTo(arg, $"Purged all traces of #{parts[2]} from the server, triggered list downloading. {deleted} records removed");
                     }
+                }
+                else if (parts[1] == "mirror-mod")
+                {
+                    await MirrorModCommand(arg, parts);
                 }
                 else if (parts[1] == "users")
                 {
                     await ReplyTo(arg, $"Wabbajack has {await _keyCache.KeyCount()} known unique users");
                 }
             }
+        }
+
+        private async Task MirrorModCommand(SocketMessage msg, string[] parts)
+        {
+            if (parts.Length != 2)
+            {
+                await ReplyTo(msg, "Command is: mirror-mod <game-name> <mod-id>");
+                return;
+            }
+
+            if (long.TryParse(parts[2], out var modId))
+            {
+                await ReplyTo(msg, $"Got {modId} for a mod-id, expected a integer");
+                return;
+            }
+
+            if (GameRegistry.TryGetByFuzzyName(parts[1], out var game))
+            {
+                var gameNames = GameRegistry.Games.Select(g => g.Value.NexusName)
+                    .Where(g => !string.IsNullOrWhiteSpace(g))
+                    .Select(g => (string)g)
+                    .ToHashSet();
+                var joined = string.Join(", ", gameNames.OrderBy(g => g));
+                await ReplyTo(msg, $"Got {parts[1]} for a game name, expected something like: {joined}");
+            }
+
+            if (game!.NexusGameId == default)
+            {
+                await ReplyTo(msg, $"No NexusGameID found for {game}");
+            }
+
+            await _sql.AddNexusModWithOpenPerms(game.Game, modId);
+            await _quickSync.Notify<MirrorUploader>();
+            await ReplyTo(msg, "Done, and I notified the uploader");
         }
 
         private async Task PurgeNexusCache(SocketMessage arg, string mod)

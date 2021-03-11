@@ -112,6 +112,11 @@ namespace Wabbajack.Server.Services
                         }
                     }
 
+                    await _discord.Send(Channel.Ham,
+                        new DiscordMessage
+                        {
+                            Content = $"Ingesting {list.Links.MachineURL} version {modlist.Version}"
+                        });
                     await _sql.IngestModList(list.DownloadMetadata!.Hash, list, modlist, false);
                 }
                 catch (Exception ex)

@@ -24,6 +24,7 @@ namespace Wabbajack.Server.DataLayer
                 ArchiveStatus = await archiveStatus,
                 ModLists = await modLists,
                 Mirrors = await mirrors,
+                AllowedMirrors = new Lazy<Task<Dictionary<Hash, string>>>(async () => await GetAllowedMirrors()),
             };
         }
         

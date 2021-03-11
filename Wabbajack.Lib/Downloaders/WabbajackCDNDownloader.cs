@@ -26,7 +26,7 @@ namespace Wabbajack.Lib.Downloaders
             {"wabbajacktest.b-cdn.net", "test-files.wabbajack.org"}
         };
 
-        
+
         public string[]? Mirrors;
         public long TotalRetries;
         
@@ -68,6 +68,11 @@ namespace Wabbajack.Lib.Downloaders
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
                 return true;
+            }
+
+            public override async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver)
+            {
+                return default;
             }
 
             public override async Task<bool> Download(Archive a, AbsolutePath destination)

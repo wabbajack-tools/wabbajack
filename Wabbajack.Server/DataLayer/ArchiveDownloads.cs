@@ -248,7 +248,8 @@ namespace Wabbajack.Server.DataLayer
             if (await HaveMirror(hash) && files.Count > 0)
             {
                 var ffile = files.First();
-                var url = new Uri($"https://{(await _mirrorCreds).Username}.b-cdn.net/{hash.ToHex()}");
+                var host = Consts.TestMode ? "test-files" : "mirror";
+                var url = new Uri($"https://{host}.wabbajack.org/{hash.ToHex()}");
                 files.Add(new Archive(
                     new WabbajackCDNDownloader.State(url)) {Hash = hash, Size = ffile.Size, Name = ffile.Name});
             }

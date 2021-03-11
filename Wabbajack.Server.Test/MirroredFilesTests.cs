@@ -39,6 +39,7 @@ namespace Wabbajack.Server.Test
             });
 
             var uploader = Fixture.GetService<MirrorUploader>();
+            uploader.ActiveFileSyncEnabled = false;
             Assert.Equal(1, await uploader.Execute());
             
             
@@ -51,6 +52,23 @@ namespace Wabbajack.Server.Test
             await using var file2 = new TempFile();
             await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, file2.Path);
             Assert.Equal(dataHash!.Value, await file2.Path.FileHashAsync());
+
+            var onServer = await uploader.GetHashesOnCDN();
+            Assert.Contains(dataHash.Value, onServer);
+
+            await uploader.DeleteOldMirrorFiles();
+            
+            // Still in SQL so it will still exist
+            await using var file3 = new TempFile();
+            await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, file3.Path);
+            Assert.Equal(dataHash!.Value, await file3.Path.FileHashAsync());
+
+            // Enabling the sync should kill off the unattached file
+            uploader.ActiveFileSyncEnabled = true;
+            Assert.Equal(0, await uploader.Execute());
+            
+            var onServer2 = await uploader.GetHashesOnCDN();
+            Assert.DoesNotContain(dataHash.Value, onServer2);
         }
 
         [Fact]

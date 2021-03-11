@@ -141,7 +141,7 @@ namespace Wabbajack.Server
             app.UseService<CDNMirrorList>();
             app.UseService<NexusPermissionsUpdater>();
             app.UseService<MirrorUploader>();
-            app.UseService<MirrorQueueService>();
+            //app.UseService<MirrorQueueService>();
             app.UseService<Watchdog>();
             app.UseService<DiscordFrontend>();
             //app.UseService<AuthoredFilesCleanup>();

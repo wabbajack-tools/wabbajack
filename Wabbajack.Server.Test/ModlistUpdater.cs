@@ -76,7 +76,7 @@ namespace Wabbajack.Server.Test
             await Assert.ThrowsAsync<HttpException>(async () => await ClientAPI.GetModUpgrade(oldArchive, newArchive, TimeSpan.Zero, TimeSpan.Zero));
             Assert.True(await patcher.Execute() > 1);
 
-            Assert.Equal(new Uri("https://wabbajacktest.b-cdn.net/79223277e28e1b7b_3286c571d95f5666"),await ClientAPI.GetModUpgrade(oldArchive, newArchive, TimeSpan.Zero, TimeSpan.Zero));
+            Assert.Equal(new Uri("https://test-files.wabbajack.org/79223277e28e1b7b_3286c571d95f5666"),await ClientAPI.GetModUpgrade(oldArchive, newArchive, TimeSpan.Zero, TimeSpan.Zero));
 
             Assert.Equal("Purged", await AuthorAPI.NoPatch(oldArchive.Hash, "Testing NoPatch"));
             

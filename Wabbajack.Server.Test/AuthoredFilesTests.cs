@@ -83,26 +83,5 @@ namespace Wabbajack.BuildServer.Test
             Assert.Empty(toDelete.SQLDelete);
 
         }
-
-        [Fact]
-        public async Task ServerGetsEdgeServerInfo()
-        {
-            var service = Fixture.GetService<CDNMirrorList>();
-            Assert.True(await service.Execute() > 0);
-            Assert.NotEmpty(service.Mirrors);
-            Assert.True(DateTime.UtcNow - service.LastUpdate < TimeSpan.FromMinutes(1));
-
-            var servers = await ClientAPI.GetCDNMirrorList();
-            Assert.Equal(service.Mirrors, servers);
-            
-            var state = new WabbajackCDNDownloader.State(new Uri("https://wabbajack.b-cdn.net/this_file_doesn_t_exist"));
-            await DownloadDispatcher.PrepareAll(new[] {state});
-            await using var tmp = new TempFile();
-            
-            await Assert.ThrowsAsync<HttpException>(async () => await state.Download(new Archive(state) {Name = "test"}, tmp.Path));
-            var downloader = DownloadDispatcher.GetInstance<WabbajackCDNDownloader>();
-            Assert.Null(downloader.Mirrors); // Now works through a host remap
-        }
-
     }
 }

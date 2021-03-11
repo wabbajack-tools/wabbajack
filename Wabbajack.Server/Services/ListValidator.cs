@@ -68,8 +68,13 @@ namespace Wabbajack.Server.Services
                         var (_, result) = await ValidateArchive(data, archive);
                         if (result == ArchiveStatus.InValid)
                         {
-                            if (data.Mirrors.Contains(archive.Hash))
-                                return (archive, ArchiveStatus.Mirrored);
+                            if (data.Mirrors.TryGetValue(archive.Hash, out var done))
+                                return (archive, done ? ArchiveStatus.Mirrored : ArchiveStatus.Updating);
+                            if ((await data.AllowedMirrors.Value).TryGetValue(archive.Hash, out var reason))
+                            {
+                                await _sql.StartMirror((archive.Hash, reason));
+                                return (archive, ArchiveStatus.Updating);
+                            }
                             return await TryToHeal(data, archive, metadata);
                         }
 
@@ -88,7 +93,7 @@ namespace Wabbajack.Server.Services
                     }
                 });
 
-                var failedCount = archives.Count(f => f.Item2 == ArchiveStatus.InValid);
+                var failedCount = archives.Count(f => f.Item2 == ArchiveStatus.InValid || f.Item2 == ArchiveStatus.Updating);
                 var passCount = archives.Count(f => f.Item2 == ArchiveStatus.Valid || f.Item2 == ArchiveStatus.Updated);
                 var updatingCount = archives.Count(f => f.Item2 == ArchiveStatus.Updating);
                 var mirroredCount = archives.Count(f => f.Item2 == ArchiveStatus.Mirrored);
@@ -236,7 +241,12 @@ namespace Wabbajack.Server.Services
 
                 return _archives.TryGetPath(foundArchive.Archive.Hash, out var path) ? path : default;
             };
-            
+
+            if (archive.State is NexusDownloader.State)
+            {
+                DownloadDispatcher.GetInstance<NexusDownloader>().Client = await _nexus.GetClient();
+            }
+
             var upgrade = await DownloadDispatcher.FindUpgrade(archive, resolver);
             
             

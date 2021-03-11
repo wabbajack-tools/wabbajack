@@ -25,6 +25,8 @@ namespace Wabbajack.Server.Services
         private ArchiveMaintainer _archives;
         private DiscordWebHook _discord;
 
+        public bool ActiveFileSyncEnabled { get; set; } = true;
+
         public MirrorUploader(ILogger<MirrorUploader> logger, AppSettings settings, SqlService sql, QuickSync quickSync, ArchiveMaintainer archives, DiscordWebHook discord)
             : base(logger, settings, quickSync, TimeSpan.FromHours(1))
         {
@@ -37,9 +39,16 @@ namespace Wabbajack.Server.Services
         {
         
             int uploaded = 0;
+            
+            if (ActiveFileSyncEnabled)
+                await _sql.SyncActiveMirroredFiles();
             TOP:
             var toUpload = await _sql.GetNextMirroredFile();
-            if (toUpload == default) return uploaded;
+            if (toUpload == default)
+            {
+                await DeleteOldMirrorFiles();
+                return uploaded;
+            }
             uploaded += 1;
 
             try
@@ -93,16 +102,21 @@ namespace Wabbajack.Server.Services
                             fs.Position = part.Offset;
                             await fs.ReadAsync(buffer);
                         }
-
-                        using var client = await GetClient(creds);
-                        var name = MakePath(part.Index);
-                        await client.UploadAsync(new MemoryStream(buffer), name);
                         
+                        await CircuitBreaker.WithAutoRetryAllAsync(async () =>{
+                            using var client = await GetClient(creds);
+                            var name = MakePath(part.Index);
+                            await client.UploadAsync(new MemoryStream(buffer), name);
+                        });
+
                     });
 
-                    using (var client = await GetClient(creds))
+                    await CircuitBreaker.WithAutoRetryAllAsync(async () =>
                     {
+                        using var client = await GetClient(creds);
                         _logger.LogInformation($"Finishing mirror upload");
+
+
                         await using var ms = new MemoryStream();
                         await using (var gz = new GZipStream(ms, CompressionLevel.Optimal, true))
                         {
@@ -112,7 +126,7 @@ namespace Wabbajack.Server.Services
                         ms.Position = 0;
                         var remoteName = $"{definition.Hash.ToHex()}/definition.json.gz";
                         await client.UploadAsync(ms, remoteName);
-                    }
+                    });
 
                     await toUpload.Finish(_sql);
                 }
@@ -130,11 +144,64 @@ namespace Wabbajack.Server.Services
             goto TOP;
         }
 
-        private static async Task<FtpClient> GetClient(BunnyCdnFtpInfo creds)
+        private static async Task<FtpClient> GetClient(BunnyCdnFtpInfo creds = null)
         {
-            var ftpClient = new FtpClient(creds.Hostname, new NetworkCredential(creds.Username, creds.Password));
-            await ftpClient.ConnectAsync();
-            return ftpClient;
+            return await CircuitBreaker.WithAutoRetryAllAsync<FtpClient>(async () =>
+            {
+                creds ??= await BunnyCdnFtpInfo.GetCreds(StorageSpace.Mirrors);
+
+                var ftpClient = new FtpClient(creds.Hostname, new NetworkCredential(creds.Username, creds.Password));
+                ftpClient.DataConnectionType = FtpDataConnectionType.EPSV;
+                await ftpClient.ConnectAsync();
+                return ftpClient;
+            });
+        }
+
+        /// <summary>
+        /// Gets a list of all the Mirrored file hashes that physically exist on the CDN (via FTP lookup)
+        /// </summary>
+        /// <returns></returns>
+        public async Task<HashSet<Hash>> GetHashesOnCDN()
+        {
+            using var ftpClient = await GetClient();
+            var serverFiles = (await ftpClient.GetNameListingAsync("\\"));
+            
+            return serverFiles
+                .Select(f => ((RelativePath)f).FileName)
+                .Select(l =>
+                {
+                    try
+                    {
+                        return Hash.FromHex((string)l);
+                    }
+                    catch (Exception) { return default; }
+                })
+                .Where(h => h != default)
+                .ToHashSet();
+        }
+
+        public async Task DeleteOldMirrorFiles()
+        {
+            var existingHashes = await GetHashesOnCDN();
+            var fromSql = await _sql.GetAllMirroredHashes();
+            
+            foreach (var (hash, _) in fromSql.Where(s => s.Value))
+            {
+                Utils.Log($"Removing {hash} from SQL it's no longer in the CDN");
+                if (!existingHashes.Contains(hash))
+                    await _sql.DeleteMirroredFile(hash);
+            }
+
+            var toDelete = existingHashes.Where(h => !fromSql.ContainsKey(h)).ToArray();
+
+            using var client = await GetClient();
+            foreach (var hash in toDelete)
+            {
+                await _discord.Send(Channel.Spam,
+                    new DiscordMessage {Content = $"Removing mirrored file {hash}, as it's no longer in sql"});
+                Utils.Log($"Removing {hash} from the CDN it's no longer in SQL");
+                await client.DeleteDirectoryAsync(hash.ToHex());
+            }
         }
     }
 }

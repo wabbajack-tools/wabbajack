@@ -141,7 +141,7 @@ namespace Wabbajack.BuildServer.Test
 
             data = (await ModlistMetadata.LoadFromGithub()).FirstOrDefault(l => l.Links.MachineURL == "test_list");
             Assert.NotNull(data);
-            Assert.Equal(0, data.ValidationSummary.Failed);
+            Assert.Equal(1, data.ValidationSummary.Failed);
             Assert.Equal(0, data.ValidationSummary.Passed);
             Assert.Equal(1, data.ValidationSummary.Updating);
 
