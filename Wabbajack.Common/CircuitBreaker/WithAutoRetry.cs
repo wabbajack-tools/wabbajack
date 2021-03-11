@@ -58,7 +58,7 @@ namespace Wabbajack.Common
             }
         }
         
-        public static async ValueTask WithAutoRetryAllAsync(Func<ValueTask> f, TimeSpan? delay = null, int? multipler = null, int? maxRetries = null)
+        public static async ValueTask<T> WithAutoRetryAllAsync<T>(Func<ValueTask<T>> f, TimeSpan? delay = null, int? multipler = null, int? maxRetries = null)
         {
             int retries = 0;
             delay ??= DEFAULT_DELAY;
@@ -68,7 +68,7 @@ namespace Wabbajack.Common
             TOP:
             try
             {
-                await f();
+                return await f();
             }
             catch (Exception ex)
             {

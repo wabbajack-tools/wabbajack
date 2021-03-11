@@ -146,12 +146,15 @@ namespace Wabbajack.Server.Services
 
         private static async Task<FtpClient> GetClient(BunnyCdnFtpInfo creds = null)
         {
-            creds ??= await BunnyCdnFtpInfo.GetCreds(StorageSpace.Mirrors);
-            
-            var ftpClient = new FtpClient(creds.Hostname, new NetworkCredential(creds.Username, creds.Password));
-            ftpClient.DataConnectionType = FtpDataConnectionType.EPSV;
-            await ftpClient.ConnectAsync();
-            return ftpClient;
+            return await CircuitBreaker.WithAutoRetryAllAsync<FtpClient>(async () =>
+            {
+                creds ??= await BunnyCdnFtpInfo.GetCreds(StorageSpace.Mirrors);
+
+                var ftpClient = new FtpClient(creds.Hostname, new NetworkCredential(creds.Username, creds.Password));
+                ftpClient.DataConnectionType = FtpDataConnectionType.EPSV;
+                await ftpClient.ConnectAsync();
+                return ftpClient;
+            });
         }
 
         /// <summary>
