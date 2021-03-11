@@ -26,9 +26,12 @@ namespace Wabbajack.Server.DTOs
         
         public async Task<FtpClient> GetClient()
         {
-            var ftpClient = new FtpClient(Hostname, new NetworkCredential(Username, Password));
-            await ftpClient.ConnectAsync();
-            return ftpClient;
+            return await CircuitBreaker.WithAutoRetryAllAsync(async () =>
+            {
+                var ftpClient = new FtpClient(Hostname, new NetworkCredential(Username, Password));
+                await ftpClient.ConnectAsync();
+                return ftpClient;
+            });
         }
     }
 }
