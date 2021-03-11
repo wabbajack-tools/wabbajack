@@ -158,5 +158,19 @@ namespace Wabbajack.Lib.Http
         {
             Cookies.AddRange(cookies.Select(c => new Cookie {Domain = c.Domain, Name = c.Name, Value = c.Value, Path = c.Path}));
         }
+
+        public void UseChromeUserAgent()
+        {
+            Headers.Add(("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36"));
+        }
+
+        public async Task DownloadAsync(Uri url, AbsolutePath path)
+        {
+            using var response = await GetAsync(url);
+            await using var content = await response.Content.ReadAsStreamAsync();
+            path.Parent.CreateDirectory();
+            await using var of = await path.Create();
+            await content.CopyToAsync(of);
+        }
     }
 }
