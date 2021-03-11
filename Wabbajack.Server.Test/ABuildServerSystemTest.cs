@@ -168,7 +168,7 @@ namespace Wabbajack.BuildServer.Test
             _authedClient = new Wabbajack.Lib.Http.Client();
             Fixture = fixture.Deref();
             var cache = Fixture.GetService<MetricsKeyCache>();
-            cache.AddKey(Metrics.GetMetricsKey().Result);
+            cache.AddKey(Metrics.GetMetricsKey().Result).Wait();
             _authedClient.Headers.Add(("x-api-key", Fixture.APIKey));
             AuthorAPI.ApiKeyOverride = Fixture.APIKey;
             _queue = new WorkQueue();
