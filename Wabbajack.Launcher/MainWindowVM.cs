@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Wabbajack.Launcher.Annotations;
+using System.Collections.Generic;
 
 namespace Wabbajack.Launcher
 {
@@ -27,6 +28,7 @@ namespace Wabbajack.Launcher
 
         private string _status = "Checking for Updates";
         private Release _version;
+        private List<string> _errors = new List<string>();
 
         public string Status
         {
@@ -61,64 +63,122 @@ namespace Wabbajack.Launcher
                     return new Version(0, 0, 0, 0);
                 }).FirstOrDefault();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                FinishAndExit();
+                _errors.Add(ex.Message);
+                await FinishAndExit();
             }
-            
+
             if (_version == null)
-                FinishAndExit();
+            {
+                _errors.Add("Unable to parse Github releases");
+                await FinishAndExit();
+            }
 
             Status = "Looking for Updates";
-            
+
             var base_folder = Path.Combine(Directory.GetCurrentDirectory(), _version.Tag);
-            
+
             if (File.Exists(Path.Combine(base_folder, "Wabbajack.exe")))
-                FinishAndExit();
+            {
+                await FinishAndExit();
+            }
 
             var asset = _version.Assets.FirstOrDefault(a => a.Name == _version.Tag + ".zip");
             if (asset == null)
-                FinishAndExit();
+            {
+                _errors.Add("No zip file for release " + _version.Tag);
+                await FinishAndExit();
+            }
 
             var wc = new WebClient();
             wc.DownloadProgressChanged += UpdateProgress;
             Status = $"Downloading {_version.Tag} ...";
-            var data = await wc.DownloadDataTaskAsync(asset.BrowserDownloadUrlFast);
-            
-            using (var zip = new ZipArchive(new MemoryStream(data), ZipArchiveMode.Read))
+            byte[] data;
+            try
             {
-                foreach (var entry in zip.Entries)
+                data = await wc.DownloadDataTaskAsync(asset.BrowserDownloadUrlFast);
+            }
+            catch (Exception ex)
+            {
+                _errors.Add(ex.Message);
+                // Something went wrong so fallback to original URL
+                try
                 {
-                    Status = $"Extracting: {entry.Name}";
-                    var outPath = Path.Combine(base_folder, entry.FullName);
-                    if (!Directory.Exists(Path.GetDirectoryName(outPath)))
-                        Directory.CreateDirectory(Path.GetDirectoryName(outPath));
-
-                    if (entry.FullName.EndsWith("/") || entry.FullName.EndsWith("\\"))
-                        continue;
-                    await using var o = entry.Open();
-                    await using var of = File.Create(outPath);
-                    await o.CopyToAsync(of);
+                    data = await wc.DownloadDataTaskAsync(asset.BrowserDownloadUrl);
+                }
+                catch (Exception ex2)
+                {
+                    _errors.Add(ex2.Message);
+                    await FinishAndExit();
+                    throw; // avoid unsigned variable 'data'
                 }
             }
-            FinishAndExit();
+
+            try
+            {
+                using (var zip = new ZipArchive(new MemoryStream(data), ZipArchiveMode.Read))
+                {
+                    foreach (var entry in zip.Entries)
+                    {
+                        Status = $"Extracting: {entry.Name}";
+                        var outPath = Path.Combine(base_folder, entry.FullName);
+                        if (!Directory.Exists(Path.GetDirectoryName(outPath)))
+                            Directory.CreateDirectory(Path.GetDirectoryName(outPath));
+
+                        if (entry.FullName.EndsWith("/") || entry.FullName.EndsWith("\\"))
+                            continue;
+                        await using var o = entry.Open();
+                        await using var of = File.Create(outPath);
+                        await o.CopyToAsync(of);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _errors.Add(ex.Message);
+            }
+            finally
+            {
+                await FinishAndExit();
+            }
+
         }
 
-        private void FinishAndExit()
+        private async Task FinishAndExit()
         {
-            Status = "Launching...";
-            var wjFolder = Directory.EnumerateDirectories(Directory.GetCurrentDirectory())
-                .OrderByDescending(v =>
-                    Version.TryParse(Path.GetFileName(v), out var ver) ? ver : new Version(0, 0, 0, 0))
-                .FirstOrDefault();
-            var info = new ProcessStartInfo
+            try
             {
-                FileName = Path.Combine(wjFolder, "Wabbajack.exe"), 
-                Arguments = string.Join(" ", Environment.GetCommandLineArgs().Skip(1).Select(s => s.Contains(' ') ? '\"' + s + '\"' : s)),
-                WorkingDirectory = wjFolder,
-            };
-            Process.Start(info);
-            Environment.Exit(0);
+                Status = "Launching...";
+                var wjFolder = Directory.EnumerateDirectories(Directory.GetCurrentDirectory())
+                    .OrderByDescending(v =>
+                        Version.TryParse(Path.GetFileName(v), out var ver) ? ver : new Version(0, 0, 0, 0))
+                    .FirstOrDefault();
+                var info = new ProcessStartInfo
+                {
+                    FileName = Path.Combine(wjFolder, "Wabbajack.exe"),
+                    Arguments = string.Join(" ", Environment.GetCommandLineArgs().Skip(1).Select(s => s.Contains(' ') ? '\"' + s + '\"' : s)),
+                    WorkingDirectory = wjFolder,
+                };
+                Process.Start(info);
+            }
+            catch (Exception ex)
+            {
+                if (_errors.Count == 0)
+                {
+                    Status = "Failed: Unknown error";
+                    await Task.Delay(10000);
+                }
+                foreach (var error in _errors)
+                {
+                    Status = "Failed: " + error;
+                    await Task.Delay(10000);
+                }
+            }
+            finally
+            {
+                Environment.Exit(0);
+            }
         }
 
         private void UpdateProgress(object sender, DownloadProgressChangedEventArgs e)
@@ -139,17 +199,17 @@ namespace Wabbajack.Launcher
         {
             [JsonProperty("tag_name")]
             public string Tag { get; set; }
-            
+
             [JsonProperty("assets")]
             public Asset[] Assets { get; set; }
-           
+
         }
 
         class Asset
         {
             [JsonProperty("browser_download_url")]
             public Uri BrowserDownloadUrl { get; set; }
-            
+
             [JsonIgnore]
             public Uri BrowserDownloadUrlFast {
                 get
@@ -162,8 +222,8 @@ namespace Wabbajack.Launcher
                     return BrowserDownloadUrl;
                 }
             }
-            
-            
+
+
             [JsonProperty("name")]
             public string Name { get; set; }
         }
