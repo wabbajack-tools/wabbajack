@@ -7,6 +7,7 @@ using MahApps.Metro.Controls;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Common.StoreHandlers;
+using Wabbajack.Lib;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Util;
 using Application = System.Windows.Application;
@@ -55,6 +56,8 @@ namespace Wabbajack
                     Utils.Log("Pagefile below recommended! Consider increasing to 20000MB. A suboptimal pagefile can cause crashes and poor in-game performance.");
 
                 Warmup();
+                
+                var _ = LauncherUpdater.Run();
 
                 var (settings, loadedSettings) = MainSettings.TryLoadTypicalSettings().AsTask().Result;
                 // Load settings

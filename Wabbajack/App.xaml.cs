@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using Wabbajack.Common;
+using Wabbajack.Lib;
 
 namespace Wabbajack
 {

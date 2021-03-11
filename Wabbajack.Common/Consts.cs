@@ -59,6 +59,8 @@ namespace Wabbajack.Common
         public static string DOWNLOAD_PATH_MAGIC_BACK = "{--||DOWNLOAD_PATH_MAGIC_BACK||--}";
         public static string DOWNLOAD_PATH_MAGIC_DOUBLE_BACK = "{--||DOWNLOAD_PATH_MAGIC_DOUBLE_BACK||--}";
         public static string DOWNLOAD_PATH_MAGIC_FORWARD = "{--||DOWNLOAD_PATH_MAGIC_FORWARD||--}";
+        
+        public static Uri GITHUB_REPO_RELEASES = new Uri("https://api.github.com/repos/wabbajack-tools/wabbajack/releases");
 
 
         public static string AppName = "Wabbajack";
