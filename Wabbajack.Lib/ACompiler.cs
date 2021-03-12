@@ -585,7 +585,8 @@ namespace Wabbajack.Lib
             var grouped = ModList.Directives.OfType<InlineFile>()
                 .Where(f => f.SourceDataID == default)
                 .GroupBy(f => f.SourceDataFile)
-                .ToDictionary(f => f.Key);
+                .Where(x => x.Key != null)
+                .ToDictionary(f => f.Key!);
 
             if (grouped.Count == 0) return;
             await VFS.Extract(Queue, grouped.Keys.ToHashSet(), async (vf, sfn) =>
