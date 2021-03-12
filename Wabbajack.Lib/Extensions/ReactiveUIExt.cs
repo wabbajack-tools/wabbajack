@@ -103,7 +103,7 @@ namespace Wabbajack
             this IObservable<TRet> source,
             ViewModel vm,
             string property,
-            TRet initialValue = default,
+            TRet? initialValue = default,
             bool deferSubscription = false)
         {
             return source
