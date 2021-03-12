@@ -24,7 +24,7 @@ namespace Wabbajack.Common
             var startTime = DateTime.Now;
             while (true)
             {
-                if (_collection.TryPop(out T result))
+                if (_collection.TryPop(out var result))
                 {
                     return (true, result);
                 }

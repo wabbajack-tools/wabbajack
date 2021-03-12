@@ -29,7 +29,7 @@ namespace Wabbajack
 
         private GetResponse(
             bool succeeded,
-            T val = default,
+            T? val = default,
             string? reason = null,
             Exception? ex = null)
         {
@@ -126,7 +126,7 @@ namespace Wabbajack
             return new GetResponse<T>(false, val);
         }
 
-        public static GetResponse<T> Create(bool successful, T val = default(T), string? reason = null)
+        public static GetResponse<T> Create(bool successful, T? val = default(T), string? reason = null)
         {
             return new GetResponse<T>(successful, val!, reason);
         }
