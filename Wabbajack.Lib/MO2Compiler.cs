@@ -451,6 +451,7 @@ namespace Wabbajack.Lib
                 new DirectMatch(this),
                 new IncludeTaggedMods(this, Consts.WABBAJACK_INCLUDE),
                 new IncludeTaggedFolders(this, Consts.WABBAJACK_INCLUDE),
+                new IncludeSplashScreen(this),
                 new IgnoreEndsWith(this, ".pyc"),
                 new IgnoreEndsWith(this, ".log"),
                 new DeconstructBSAs(
