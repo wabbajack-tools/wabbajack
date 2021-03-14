@@ -180,7 +180,7 @@ In Wabbajack select _Create a Modlist_ to navigate to the configuration screen. 
 | Field | Description | Notes |
 |-------|-------------|-------|
 | Modlist Name | **REQUIRED:** Name of your Modlist | |
-| Version | **REQUIRED:** Current Version | Do note that this has to be a semantic version and not some random text like "The best version on Earth" (this is not the Nexus)! |
+| Version | **REQUIRED:** Current Version | Do note that this has to be a semantic version (1.0 or 0.1 (it can have multiple `.` separators)) and not some random text like "The best version on Earth" (this is not the Nexus)! |
 | Author | Modlist Author | Should be your name in original Modlists and/or the name of the original Modlist author if you adapted a normal Modlist to a Wabbajack Modlist |
 | Description | 700 characters Descriptions | |
 | Image | Modlist Image | Aspect ratio should be 16:9 for the best result |
