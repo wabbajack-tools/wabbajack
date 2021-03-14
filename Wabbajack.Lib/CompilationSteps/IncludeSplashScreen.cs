@@ -13,7 +13,7 @@ namespace Wabbajack.Lib.CompilationSteps
         private readonly string _splash;
 
         private readonly AbsolutePath _sourcePath;
-        private List<AbsolutePath> _splashPath;
+        private List<AbsolutePath> _splashPath =  new List<AbsolutePath>();
         private readonly bool _splashExists;
 
         public IncludeSplashScreen(ACompiler compiler) : base(compiler)
@@ -21,10 +21,18 @@ namespace Wabbajack.Lib.CompilationSteps
             _splash = "splash.png";
             _sourcePath = compiler.SourcePath;
             string rootDirectory = (string)_sourcePath;
-            _splashExists = File.Exists(((String)Directory.EnumerateFiles(rootDirectory, _splash).ToList().First())) ? true : false;
+            try
+            {
+                _splashExists = File.Exists(((String)Directory.EnumerateFiles(rootDirectory, _splash).ToList().First()));
 
-            _splashPath = Directory.EnumerateFiles(rootDirectory, _splash).Select(str => (AbsolutePath)str)
-                .ToList();
+                _splashPath.Concat(Directory.EnumerateFiles(rootDirectory, _splash)
+                    .Select(str => (AbsolutePath)str)
+                    .ToList());
+            }
+            catch
+            {
+                _splashExists = false;
+            }
         }
 
 
