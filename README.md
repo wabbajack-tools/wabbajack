@@ -70,7 +70,7 @@ Aside from needed a portable MO2 installation you need to have a specific setup 
 
 Compilation itself is similar to Installation as you just configure some paths and start the process, sit back and wait for Wabbajack to finish. Wabbajack requires a rather specific MO2 setup and you might have to change your workflow when modding for a WJ Modlist.
 
-#### Everything comes for somewhere
+#### Everything comes from somewhere
 
 > Wabbajack is an automated Modlist Installer that can reproduce an entire modding setup on another machine without bundling any assets or re-distributing any mods.
 
