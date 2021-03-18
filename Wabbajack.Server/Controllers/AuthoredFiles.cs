@@ -130,14 +130,7 @@ namespace Wabbajack.BuildServer.Controllers
         private async Task UploadAsync(Stream stream, string path)
         {
             using var client = await GetBunnyCdnFtpClient();
-            try
-            {
-                await client.UploadAsync(stream, path);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            await client.UploadAsync(stream, path);
         }
 
         [HttpDelete]

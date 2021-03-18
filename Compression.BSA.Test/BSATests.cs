@@ -156,7 +156,7 @@ namespace Compression.BSA.Test
                         {
                             Assert.Equal(await GetData(pair.ai), await GetData(pair.bi));
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             
                         }

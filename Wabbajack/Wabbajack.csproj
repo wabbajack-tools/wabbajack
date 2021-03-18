@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -55,7 +55,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CefSharp.Wpf" Version="88.2.90" />
+    <PackageReference Include="CefSharp.Wpf.NETCore" Version="88.2.90" />
     <PackageReference Include="DynamicData" Version="7.1.1" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.0.2" />
     <PackageReference Include="Fody" Version="6.4.0">
@@ -69,13 +69,13 @@
     </PackageReference>
     <PackageReference Include="MahApps.Metro" Version="2.4.4" />
     <PackageReference Include="MahApps.Metro.IconPacks" Version="4.8.0" />
+    <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
     <PackageReference Include="PInvoke.Gdi32" Version="0.7.104" />
     <PackageReference Include="PInvoke.User32" Version="0.7.104" />
     <PackageReference Include="ReactiveUI" Version="13.2.2" />
     <PackageReference Include="ReactiveUI.Fody" Version="13.2.2" />
     <PackageReference Include="ReactiveUI.WPF" Version="13.2.2" />
     <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
-    <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
   </ItemGroup>
 
