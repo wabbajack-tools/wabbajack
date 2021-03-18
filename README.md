@@ -70,7 +70,7 @@ Aside from needed a portable MO2 installation you need to have a specific setup 
 
 Compilation itself is similar to Installation as you just configure some paths and start the process, sit back and wait for Wabbajack to finish. Wabbajack requires a rather specific MO2 setup and you might have to change your workflow when modding for a WJ Modlist.
 
-#### Everything comes for somewhere
+#### Everything comes from somewhere
 
 > Wabbajack is an automated Modlist Installer that can reproduce an entire modding setup on another machine without bundling any assets or re-distributing any mods.
 
@@ -127,7 +127,7 @@ There are some special cases where you want to change the default Wabbajack beha
 | `WABBAJACK_ALWAYS_ENABLE` | The mod will not be ignored by Wabbajack even if it's disabled | Wabbajack will normally ignore all mods you disabled in MO2 but there are some cases where you might want to give some choice to the end user and want to have the mod included |
 | `WABBAJACK_ALWAYS_DISABLE` | The mod will always be ignored by Wabbajack | Useful if you don't want some mods included in the Modlist but still want to keep it active in your own setup |
 
-#### Folder Tags
+#### Tagfile Tags
 
 You can create an empty `tagfile` with no extention in any folder you want to apply this tags to. This is meant to be used with folders that aren't mods.
 
@@ -138,6 +138,7 @@ You can create an empty `tagfile` with no extention in any folder you want to ap
 | `WABBAJACK_IGNORE` | All files in this folder will be ignored by Wabbajack and therefore not be put into into the `.wabbajack` file. | Useful for tools or other things outside a mod you don't want/need reproduced on a users machine. Handle with care since excluded stuff can potentially break a setup.\* |
 | `WABBAJACK_NOMATCH_INCLUDE_FILES.txt` | All files listed in this file will be included in the `.wabbajack` file. | Every file needs to be in the same folder as the tag file. Every file need to be written into a new line. Every file needs to be added with its file extension.|
 | `WABBAJACK_IGNORE_FILES.txt` | All files listed in this file will be ignored by Wabbajack and not included in the `.wabbajack` file. | Every file needs to be in the same folder as the tag file. Every file need to be written into a new line. Every file needs to be added with its file extension.|
+| `WABBAJACK_INCLUDE_SAVES` | When this file exists Wabbajack will include your save files in the `.wabbajack` file.||
 
 \*It will finish the installation of a modlist, but the installed list might not run if you excluded a crutial part of it.
 
@@ -182,7 +183,7 @@ In Wabbajack select _Create a Modlist_ to navigate to the configuration screen. 
 | Field | Description | Notes |
 |-------|-------------|-------|
 | Modlist Name | **REQUIRED:** Name of your Modlist | |
-| Version | **REQUIRED:** Current Version | Do note that this has to be a semantic version and not some random text like "The best version on Earth" (this is not the Nexus)! |
+| Version | **REQUIRED:** Current Version | Do note that this has to be a semantic version (1.0 or 0.1 (it can have multiple `.` separators)) and not some random text like "The best version on Earth" (this is not the Nexus)! |
 | Author | Modlist Author | Should be your name in original Modlists and/or the name of the original Modlist author if you adapted a normal Modlist to a Wabbajack Modlist |
 | Description | 700 characters Descriptions | |
 | Image | Modlist Image | Aspect ratio should be 16:9 for the best result |
