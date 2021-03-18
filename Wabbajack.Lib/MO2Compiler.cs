@@ -451,7 +451,6 @@ namespace Wabbajack.Lib
                 new DirectMatch(this),
                 new IncludeTaggedMods(this, Consts.WABBAJACK_INCLUDE),
                 new IncludeTaggedFolders(this, Consts.WABBAJACK_INCLUDE),
-                new IncludeSplashScreen(this),
                 new IgnoreEndsWith(this, ".pyc"),
                 new IgnoreEndsWith(this, ".log"),
                 new DeconstructBSAs(
@@ -467,7 +466,7 @@ namespace Wabbajack.Lib
                 // Don't know why, but this seems to get copied around a bit
                 new IgnoreEndsWith(this, "HavokBehaviorPostProcess.exe"),
                 // Theme file MO2 downloads somehow
-                new IgnoreEndsWith(this, "splash.png"),
+                new IncludeRegex(this, "splash.png"),
                 // File to force MO2 into portable mode
                 new IgnoreEndsWith(this, "portable.txt"),
                 new IgnoreEndsWith(this, ".bin"),
