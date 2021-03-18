@@ -136,9 +136,10 @@ You can create an empty `tagfile` with no extention in any folder you want to ap
 | `WABBAJACK_INCLUDE` | All files in this folder will be inlined into the `.wabbajack` file | |
 | `WABBAJACK_NOMATCH_INCLUDE` | All files in this folder will be inlined into the `.wabbajack` file even if Wabbajack did not found a match for them. | Useful for generated files.|
 | `WABBAJACK_IGNORE` | All files in this folder will be ignored by Wabbajack and therefore not be put into into the `.wabbajack` file. | Useful for tools or other things outside a mod you don't want/need reproduced on a users machine. Handle with care since excluded stuff can potentially break a setup.\* |
+|  The Options below will be added in a version after `Wabbajack v2.4.2.7`. |||
+| `WABBAJACK_INCLUDE_SAVES` | When this file exists Wabbajack will include your save files in the `.wabbajack` file.| This will remove previous savefiles when the list gets installed as an update. |
 | `WABBAJACK_NOMATCH_INCLUDE_FILES.txt` | All files listed in this file will be included in the `.wabbajack` file. | Every file needs to be in the same folder as the tag file. Every file need to be written into a new line. Every file needs to be added with its file extension.|
 | `WABBAJACK_IGNORE_FILES.txt` | All files listed in this file will be ignored by Wabbajack and not included in the `.wabbajack` file. | Every file needs to be in the same folder as the tag file. Every file need to be written into a new line. Every file needs to be added with its file extension.|
-| `WABBAJACK_INCLUDE_SAVES` | When this file exists Wabbajack will include your save files in the `.wabbajack` file.||
 
 \*It will finish the installation of a modlist, but the installed list might not run if you excluded a crutial part of it.
 
