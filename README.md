@@ -127,7 +127,7 @@ There are some special cases where you want to change the default Wabbajack beha
 | `WABBAJACK_ALWAYS_ENABLE` | The mod will not be ignored by Wabbajack even if it's disabled | Wabbajack will normally ignore all mods you disabled in MO2 but there are some cases where you might want to give some choice to the end user and want to have the mod included |
 | `WABBAJACK_ALWAYS_DISABLE` | The mod will always be ignored by Wabbajack | Useful if you don't want some mods included in the Modlist but still want to keep it active in your own setup |
 
-#### Folder Tags
+#### Tagfile Tags
 
 You can create an empty `tagfile` with no extention in any folder you want to apply this tags to. This is meant to be used with folders that aren't mods.
 
@@ -136,6 +136,7 @@ You can create an empty `tagfile` with no extention in any folder you want to ap
 | `WABBAJACK_INCLUDE` | All files in this folder will be inlined into the `.wabbajack` file | |
 | `WABBAJACK_NOMATCH_INCLUDE` | All files in this folder will be inlined into the `.wabbajack` file even if Wabbajack did not found a match for them. | Useful for generated files.|
 | `WABBAJACK_IGNORE` | All files in this folder will be ignored by Wabbajack and therefore not be put into into the `.wabbajack` file. | Useful for tools or other things outside a mod you don't want/need reproduced on a users machine. Handle with care since excluded stuff can potentially break a setup.\* |
+| `WABBAJACK_INCLUDE_SAVES` | When this file exists Wabbajack will include your save files in the `.wabbajack` file.||
 
 \*It will finish the installation of a modlist, but the installed list might not run if you excluded a crutial part of it.
 
