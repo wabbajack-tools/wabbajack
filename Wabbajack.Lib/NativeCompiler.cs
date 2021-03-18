@@ -280,11 +280,13 @@ namespace Wabbajack.Lib
             {
                 "IgnoreStartsWith" => new IgnoreStartsWith(this, step[1]),
                 "IgnoreTaggedFolders" => new IgnoreTaggedFolders(this, Consts.WABBAJACK_IGNORE),
+                "IgnoreTaggedFiles" => new IgnoreTaggedFiles(this, Consts.WABBAJACK_IGNORE_FILES),
                 "IncludeTaggedFolders" => new IncludeTaggedFolders(this, Consts.WABBAJACK_INCLUDE),
                 "IncludeConfigs" => new IncludeAllConfigs(this),
                 "IncludeDirectMatches" => new DirectMatch(this),
                 "IncludePatches" => new IncludePatches(this),
                 "IncludeUnmatchedFilesInTaggedFolders" => new IncludeTaggedFolders(this, Consts.WABBAJACK_NOMATCH_INCLUDE),
+                "IncludeUnmatchedTaggedFiles" => new IncludeTaggedFiles(this, Consts.WABBAJACK_NOMATCH_INCLUDE_FILES),
                 _ => throw new ArgumentException($"No interpretation for step {step[0]}")
             };
         }

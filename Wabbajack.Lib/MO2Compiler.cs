@@ -437,6 +437,7 @@ namespace Wabbajack.Lib
                 new IgnorePathContains(this, "SSEEdit Cache"),
                 new IgnoreOtherProfiles(this),
                 new IgnoreDisabledMods(this),
+                new IgnoreTaggedFiles(this, Consts.WABBAJACK_IGNORE_FILES),
                 new IgnoreTaggedFolders(this,Consts.WABBAJACK_IGNORE),
                 new IncludeThisProfile(this),
                 // Ignore the ModOrganizer.ini file it contains info created by MO2 on startup
@@ -481,6 +482,7 @@ namespace Wabbajack.Lib
                 new zEditIntegration.IncludeZEditPatches(this),
                 new IncludeTaggedMods(this, Consts.WABBAJACK_NOMATCH_INCLUDE),
                 new IncludeTaggedFolders(this,Consts.WABBAJACK_NOMATCH_INCLUDE),
+                new IncludeTaggedFiles(this,Consts.WABBAJACK_NOMATCH_INCLUDE_FILES),
                 new IgnorePathContains(this,@"\Edit Scripts\Export\"),
                 new IgnoreExtension(this, new Extension(".CACHE")),
                 new DropAll(this)

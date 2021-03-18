@@ -47,6 +47,8 @@ namespace Wabbajack.Common
         public static string WABBAJACK_ALWAYS_DISABLE = "WABBAJACK_ALWAYS_DISABLE";
         public static string WABBAJACK_NOMATCH_INCLUDE = "WABBAJACK_NOMATCH_INCLUDE";
         public static string WABBAJACK_IGNORE = "WABBAJACK_IGNORE";
+        public static string WABBAJACK_NOMATCH_INCLUDE_FILES = "WABBAJACK_NOMATCH_INCLUDE_FILES.txt";
+        public static string WABBAJACK_IGNORE_FILES = "WABBAJACK_IGNORE_FILES.txt";
         public static string WABBAJACK_INCLUDE_SAVES = "WABBAJACK_INCLUDE_SAVES";
 
         public static string GAME_PATH_MAGIC_BACK = "{--||GAME_PATH_MAGIC_BACK||--}";
