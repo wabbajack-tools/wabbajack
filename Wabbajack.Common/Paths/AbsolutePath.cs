@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using Wabbajack.Common.IO;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using DriveInfo = Alphaleonis.Win32.Filesystem.DriveInfo;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -163,6 +164,11 @@ namespace Wabbajack.Common
                 return ((AbsolutePath)location).Parent;
             }
         }
+
+        /// <summary>
+        /// Returns the path to the Windows folder, most often c:\Windows
+        /// </summary>
+        public static AbsolutePath WindowsFolder => (AbsolutePath)KnownFolders.Windows.Path;
 
         public AbsolutePath Root => (AbsolutePath)Path.GetPathRoot(_path);
 
