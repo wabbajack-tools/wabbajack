@@ -10,25 +10,37 @@ namespace Wabbajack.Lib
 {
     public class LauncherUpdater
     {
-        public static async Task Run()
+        public static Lazy<AbsolutePath> CommonFolder = new (() =>
         {
             var entryPoint = AbsolutePath.EntryPoint;
-            
+
             // If we're not in a folder that looks like a version, abort
             if (!Version.TryParse(entryPoint.FileName.ToString(), out var version))
             {
-                Utils.Log($"Not in a version folder, not attempting update. Got {entryPoint.Parent}");
-                return; 
+                return entryPoint;
             }
 
             // If we're not in a folder that has Wabbajack.exe in the parent folder, abort
-            if (!entryPoint.Parent.Parent.Combine(Consts.AppName).WithExtension(new Extension(".exe")).IsFile)
+            if (!entryPoint.Parent.Combine(Consts.AppName).WithExtension(new Extension(".exe")).IsFile)
             {
-                Utils.Log("Parent folder does not contain launcher, not updating");
+                return entryPoint;
+            }
+
+            return entryPoint.Parent;
+        });
+        
+        public static async Task Run()
+        {
+
+            if (CommonFolder.Value == AbsolutePath.EntryPoint)
+            {
+                Utils.Log("Outside of standard install folder, not updating");
                 return;
             }
 
-            var oldVersions = entryPoint.Parent
+            var version = Version.Parse(AbsolutePath.EntryPoint.FileName.ToString());
+
+            var oldVersions = CommonFolder.Value
                 .EnumerateDirectories()
                 .Select(f => Version.TryParse(f.FileName.ToString(), out var ver) ? (ver, f) : default)
                 .Where(f => f != default)

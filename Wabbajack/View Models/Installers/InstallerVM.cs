@@ -91,6 +91,7 @@ namespace Wabbajack
         public ReactiveCommand<Unit, Unit> VisitModListWebsiteCommand { get; }
         
         public ReactiveCommand<Unit, Unit> CloseWhenCompleteCommand { get; }
+        public ReactiveCommand<Unit, Unit> OpenLogsCommand { get; }
         public ReactiveCommand<Unit, Unit> GoToInstallCommand { get; }
         public ReactiveCommand<Unit, Unit> BeginCommand { get; }
 
@@ -319,6 +320,9 @@ namespace Wabbajack
                 canExecute: this.WhenAny(x => x.ModList)
                     .Select(modList => !string.IsNullOrEmpty(modList?.Readme))
                     .ObserveOnGuiThread());
+            
+            OpenLogsCommand = ReactiveCommand.Create(
+                execute: () => Utils.OpenFolder(Consts.LogsFolder));
             VisitModListWebsiteCommand = ReactiveCommand.Create(
                 execute: () =>
                 {

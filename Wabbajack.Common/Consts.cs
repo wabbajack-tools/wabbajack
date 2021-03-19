@@ -127,7 +127,7 @@ namespace Wabbajack.Common
         public static AbsolutePath PatchCacheFolder => LocalAppDataPath.Combine("patch_cache");
         public static int MaxConnectionsPerServer = 4;
 
-        public static AbsolutePath LogsFolder => ((RelativePath)"logs").RelativeToEntryPoint();
+        public static AbsolutePath LogsFolder { get; set; } = ((RelativePath)"logs").RelativeToEntryPoint();
         public static AbsolutePath EntryPoint => (AbsolutePath)(Assembly.GetEntryAssembly()?.Location ?? (string)((RelativePath)"Unknown").RelativeToWorkingDirectory());
         public static AbsolutePath LogFile => LogsFolder.Combine(EntryPoint.FileNameWithoutExtension + ".current.log");
         public static int MaxOldLogs = 50;

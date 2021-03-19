@@ -75,7 +75,7 @@ namespace Wabbajack
         {            
             _parent = parent;
             Metadata = metadata;
-            Location = Consts.ModListDownloadFolder.Combine(Metadata.Links.MachineURL + (string)Consts.ModListExtension);
+            Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.Links.MachineURL + (string)Consts.ModListExtension);
             ModListTagList = new List<ModListTag>();
             Metadata.tags.ForEach(tag =>
             {

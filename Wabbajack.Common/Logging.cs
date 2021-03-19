@@ -30,7 +30,7 @@ namespace Wabbajack.Common
         private static readonly Subject<IStatusMessage> LoggerSubj = new Subject<IStatusMessage>();
         public static IObservable<IStatusMessage> LogMessages => LoggerSubj;
 
-        private static async Task InitalizeLogging()
+        public static async Task InitalizeLogging()
         {
             _startTime = DateTime.Now;
 

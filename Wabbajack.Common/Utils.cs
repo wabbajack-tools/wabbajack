@@ -863,6 +863,14 @@ namespace Wabbajack.Common
                 CreateNoWindow = true,
             });
         }
+        
+        public static void OpenFolder(AbsolutePath path)
+        {
+            Process.Start(new ProcessStartInfo(AbsolutePath.WindowsFolder.Combine("explorer.exe").ToString(), path.ToString())
+            {
+                CreateNoWindow = true,
+            });
+        }
 
         public static bool IsInPath(this string path, string parent)
         {
