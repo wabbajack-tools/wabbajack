@@ -22,6 +22,7 @@ using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 using SectionData = Wabbajack.Common.SectionData;
 using System.Collections.Generic;
+using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.VirtualFileSystem;
 
 namespace Wabbajack.Lib
@@ -33,6 +34,8 @@ namespace Wabbajack.Lib
         public override ModManager ModManager => ModManager.MO2;
 
         public AbsolutePath? GameFolder { get; set; }
+        
+        public ModlistMetadata? Metadata { get; set; }
 
         public MO2Installer(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters)
             : base(
@@ -194,8 +197,9 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Create Empty Output Mods");
             CreateOutputMods();
 
-            UpdateTracker.NextStep("Updating System-specific ini settings");
+            UpdateTracker.NextStep("Updating System-specific ini settings and writing metadata");
             SetScreenSizeInPrefs();
+            await InstalledModLists.AddModListInstall(Metadata, ModList, OutputFolder, DownloadFolder, ModListArchive);
             
             UpdateTracker.NextStep("Compacting files");
             await CompactFiles();

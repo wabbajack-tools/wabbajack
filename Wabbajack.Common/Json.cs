@@ -62,7 +62,7 @@ namespace Wabbajack.Common
         
         public static void ToJson<T>(this T obj, Stream stream, bool useGenericSettings = false, bool prettyPrint = false)
         {
-            using var tw = new StreamWriter(stream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true);
+            using var tw = new StreamWriter(stream, new UTF8Encoding(false), bufferSize: 1024, leaveOpen: true);
             using var writer = new JsonTextWriter(tw);
 
             JsonSerializerSettings settings = (useGenericSettings, prettyPrint) switch
@@ -91,6 +91,12 @@ namespace Wabbajack.Common
         public static T FromJson<T>(this AbsolutePath filename)
         {
             return JsonConvert.DeserializeObject<T>(filename.ReadAllText(), JsonSettings)!;
+        }
+
+        
+        public static async Task<T> FromJsonAsync<T>(this AbsolutePath filename)
+        {
+            return JsonConvert.DeserializeObject<T>(await filename.ReadAllTextAsync(), JsonSettings)!;
         }
 
         public static T FromJsonString<T>(this string data)

@@ -168,6 +168,7 @@ namespace Wabbajack
                 downloadFolder: DownloadLocation.TargetPath,
                 parameters: SystemParametersConstructor.Create()))
             {
+                installer.Metadata = Parent.ModList.SourceModListMetadata;
                 installer.UseCompression = Parent.MWVM.Settings.Filters.UseCompression;
                 Parent.MWVM.Settings.Performance.SetProcessorSettings(installer);
 
