@@ -113,7 +113,7 @@ namespace Wabbajack
                 PathType = FilePickerVM.PathTypeOptions.File,
                 PromptTitle = "Select a ModList to install"
             };
-            ModListLocation.Filters.Add(new CommonFileDialogFilter("Wabbajack Modlist", ".wabbajack"));
+            ModListLocation.Filters.Add(new CommonFileDialogFilter("Wabbajack Modlist", "*.wabbajack"));
 
             // Swap to proper sub VM based on selected type
             _installer = this.WhenAny(x => x.TargetManager)

@@ -50,7 +50,7 @@ namespace Wabbajack
                 PathType = FilePickerVM.PathTypeOptions.File,
                 PromptTitle = "Select a Modlist"
             };
-            ModListLocation.Filters.Add(new CommonFileDialogFilter("MO2 Profile (modlist.txt) or Native Settings (native_compiler_settings.json)", ".txt,.json"));
+            ModListLocation.Filters.Add(new CommonFileDialogFilter("MO2 Profile (modlist.txt) or Native Settings (native_compiler_settings.json)", "*.txt,*.json"));
 
             DownloadLocation = new FilePickerVM()
             {
