@@ -82,7 +82,7 @@ namespace Wabbajack.Lib.Downloaders
                 await using var fs = await destination.Create();
                 using var mmfile = MemoryMappedFile.CreateFromFile(fs, null, definition.Size, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
                 var client = new Wabbajack.Lib.Http.Client();
-                ~
+                
                 if (!DomainRemaps.ContainsKey(Url.Host)) 
                     client.Headers.Add(("Host", Url.Host));
                 
