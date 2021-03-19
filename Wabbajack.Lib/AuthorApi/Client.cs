@@ -80,12 +80,13 @@ namespace Wabbajack.Lib.AuthorApi
         {
             var definition = await GenerateFileDefinition(queue, path, progressFn);
 
-            using (var result = await _client.PutAsync($"{Consts.WabbajackBuildServerUri}authored_files/create",
-                new StringContent(definition.ToJson())))
+            await CircuitBreaker.WithAutoRetryAllAsync(async () =>
             {
+                using var result = await _client.PutAsync($"{Consts.WabbajackBuildServerUri}authored_files/create",
+                    new StringContent(definition.ToJson()));
                 progressFn("Starting upload", Percent.Zero);
                 definition.ServerAssignedUniqueId = await result.Content.ReadAsStringAsync();
-            }
+            });
 
             var results = await definition.Parts.PMap(queue, async part =>
             {
@@ -96,41 +97,29 @@ namespace Wabbajack.Lib.AuthorApi
                     fs.Position = part.Offset;
                     await fs.ReadAsync(buffer);
                 }
-
-                int retries = 0;
-                while (true)
+                
+                return await CircuitBreaker.WithAutoRetryAllAsync(async () =>
                 {
-                    try
-                    {
-                        using var putResult = await _client.PutAsync(
-                            $"{Consts.WabbajackBuildServerUri}authored_files/{definition.ServerAssignedUniqueId}/part/{part.Index}",
-                            new ByteArrayContent(buffer));
-                        var hash = Hash.FromBase64(await putResult.Content.ReadAsStringAsync());
-                        if (hash != part.Hash)
-                            throw new InvalidDataException("Hashes don't match");
-                        return hash;
-                    }
-                    catch (Exception ex)
-                    {
-                        Utils.Log("Failure uploading part");
-                        Utils.Log(ex.ToString());
-                        if (retries <= 4)
-                        {
-                            retries++;
-                            continue;
-                        }
-                        Utils.ErrorThrow(ex);
-                    }
-                }
+                    using var putResult = await _client.PutAsync(
+                        $"{Consts.WabbajackBuildServerUri}authored_files/{definition.ServerAssignedUniqueId}/part/{part.Index}",
+                        new ByteArrayContent(buffer));
+                    var hash = Hash.FromBase64(await putResult.Content.ReadAsStringAsync());
+                    if (hash != part.Hash)
+                        throw new InvalidDataException("Hashes don't match");
+                    return hash;
+                });
+
             });
             
             progressFn("Finalizing upload", Percent.Zero);
-            using (var result = await _client.PutAsync($"{Consts.WabbajackBuildServerUri}authored_files/{definition.ServerAssignedUniqueId}/finish",
-                new StringContent(definition.ToJson())))
+            return await CircuitBreaker.WithAutoRetryAllAsync(async () =>
             {
+                using var result = await _client.PutAsync(
+                    $"{Consts.WabbajackBuildServerUri}authored_files/{definition.ServerAssignedUniqueId}/finish",
+                    new StringContent(definition.ToJson()));
                 progressFn("Finished", Percent.One);
                 return new Uri(await result.Content.ReadAsStringAsync());
-            }
+            });
         }
     }
 }
