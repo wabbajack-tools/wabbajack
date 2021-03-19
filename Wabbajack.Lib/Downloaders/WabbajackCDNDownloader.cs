@@ -103,7 +103,7 @@ namespace Wabbajack.Lib.Downloaders
                     }
                     else
                     {
-                        using var response = await GetWithMirroredRetry(client, $"{Url}/parts/{part.Index}");
+                        using var response = await GetWithRetry(client, $"{Url}/parts/{part.Index}");
                         if (!response.IsSuccessStatusCode)
                             throw new HttpException((int)response.StatusCode, response.ReasonPhrase ?? "Unknown");
                         await response.Content.CopyToAsync(ostream);
@@ -134,7 +134,6 @@ namespace Wabbajack.Lib.Downloaders
                 {
                     if (retries > 2)
                     {
-                        Utils.Log($"Trying CDN...");
                         var remap = url.Replace(new Uri(url).Host, DomainRemaps.FirstOrDefault(x => x.Value == new Uri(url).Host).Key);
                         return await client.GetAsync(remap, retry: false, token: token);
                     }
@@ -145,41 +144,9 @@ namespace Wabbajack.Lib.Downloaders
                 }
             }
 
-            private async Task<HttpResponseMessage> GetWithMirroredRetry(Http.Client client, string url)
+            private async Task<HttpResponseMessage> GetWithRetry(Http.Client client, string url)
             {
-                int retries = 0;
-                var downloader = DownloadDispatcher.GetInstance<WabbajackCDNDownloader>();
-                if (downloader.Mirrors != null)
-                    url = ReplaceHost(downloader.Mirrors, url);
-                
-                TOP:
-
-                try
-                {
-                    return await client.GetAsync(url, retry: false);
-                }
-                catch (Exception ex)
-                {
-                    if (retries > 5)
-                    {
-                        Utils.Log($"Tried to read from {retries} CDN servers, giving up");
-                        throw;
-                    }
-                    Utils.Log($"Error reading {url} retying with a mirror");
-                    Utils.Log(ex.ToString());
-                    downloader.Mirrors ??= await ClientAPI.GetCDNMirrorList();
-                    url = ReplaceHost(downloader.Mirrors, url);
-                    retries += 1;
-                    Interlocked.Increment(ref downloader.TotalRetries);
-                    goto TOP;
-                }
-            }
-
-            private string ReplaceHost(string[] hosts, string url)
-            {
-                var rnd = new Random();
-                var builder = new UriBuilder(url) {Host = hosts[rnd.Next(0, hosts.Length)]};
-                return builder.ToString();
+                return await client.GetAsync(url, retry: false);
             }
             
             private async Task<CDNFileDefinition> GetDefinition(CancellationToken? token = null)
@@ -196,7 +163,7 @@ namespace Wabbajack.Lib.Downloaders
                 else
                 {
                     client.Headers.Add(("Host", Url.Host));
-                    using var data = await GetWithMirroredRetry(client, Url + "/definition.json.gz");
+                    using var data = await GetWithRetry(client, Url + "/definition.json.gz");
                     await using var gz = new GZipStream(await data.Content.ReadAsStreamAsync(),
                         CompressionMode.Decompress);
                     return gz.FromJson<CDNFileDefinition>();
