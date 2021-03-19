@@ -199,6 +199,9 @@ namespace Wabbajack
                         // Want to rehash to current file, even if failed?
                         await Location.FileHashCachedAsync();
                         Utils.Log($"Done hashing {Metadata.Links.MachineURL}");
+
+                        await Metadata.ToJsonAsync(Location.WithExtension(Consts.ModlistMetadataExtension));
+                        
                         tcs.SetResult(result);
                     }
                     catch (Exception ex)

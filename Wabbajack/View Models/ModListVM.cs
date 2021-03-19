@@ -7,12 +7,14 @@ using System.Reactive.Linq;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.Lib.ModListRegistry;
 
 namespace Wabbajack
 {
     public class ModListVM : ViewModel
     {
         public ModList SourceModList { get; private set; }
+        public ModlistMetadata SourceModListMetadata { get; private set; }
         public Exception Error { get; }
         public AbsolutePath ModListPath { get; }
         public string Name => SourceModList?.Name;
@@ -36,6 +38,18 @@ namespace Wabbajack
             try
             {
                 SourceModList = AInstaller.LoadFromFile(modListPath);
+                var metadataPath = modListPath.WithExtension(Consts.ModlistMetadataExtension);
+                if (metadataPath.Exists)
+                {
+                    try
+                    {
+                        SourceModListMetadata = metadataPath.FromJson<ModlistMetadata>();
+                    }
+                    catch (Exception)
+                    {
+                        SourceModListMetadata = null;
+                    }
+                }
             }
             catch (Exception ex)
             {
