@@ -162,7 +162,7 @@ namespace Wabbajack.Launcher
                 };
                 Process.Start(info);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 if (_errors.Count == 0)
                 {

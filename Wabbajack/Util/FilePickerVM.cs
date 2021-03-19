@@ -65,7 +65,7 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<string> _errorTooltip;
         public string ErrorTooltip => _errorTooltip.Value;
 
-        public SourceList<CommonFileDialogFilter> Filters { get; } = new SourceList<CommonFileDialogFilter>();
+        public SourceList<CommonFileDialogFilter> Filters { get; } = new();
 
         public const string PathDoesNotExistText = "Path does not exist";
         public const string DoesNotPassFiltersText = "Path does not pass designated filters";
@@ -158,6 +158,7 @@ namespace Wabbajack
                     Filters.Connect().QueryWhenChanged(),
                 resultSelector: (target, type, checkOption, query) =>
                 {
+                    Console.WriteLine("fff");
                     switch (type)
                     {
                         case PathTypeOptions.Either:

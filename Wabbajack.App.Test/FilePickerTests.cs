@@ -291,11 +291,11 @@ namespace Wabbajack.Test
         public async Task FileWithFilters_Passes()
         {
             var vm = new FilePickerVM();
-            await using (CreateSetFile(vm))
+            await using (var file = CreateSetFile(vm))
             {
                 vm.PathType = FilePickerVM.PathTypeOptions.File;
                 vm.ExistCheckOption = FilePickerVM.CheckOptions.Off;
-                vm.Filters.Add(new Microsoft.WindowsAPICodePack.Dialogs.CommonFileDialogFilter("test", $"*.{vm.TargetPath.Extension}"));
+                vm.Filters.Add(new Microsoft.WindowsAPICodePack.Dialogs.CommonFileDialogFilter("test", $"*{vm.TargetPath.Extension}"));
                 await Task.Delay(250);
                 Assert.False(vm.Exists);
                 Assert.True(vm.ErrorState.Succeeded);
@@ -312,7 +312,7 @@ namespace Wabbajack.Test
             {
                 vm.PathType = FilePickerVM.PathTypeOptions.File;
                 vm.ExistCheckOption = FilePickerVM.CheckOptions.Off;
-                vm.Filters.Add(new Microsoft.WindowsAPICodePack.Dialogs.CommonFileDialogFilter("test", $"*.{vm.TargetPath.Extension}z"));
+                vm.Filters.Add(new Microsoft.WindowsAPICodePack.Dialogs.CommonFileDialogFilter("test", $"*{vm.TargetPath.Extension}z"));
                 await Task.Delay(250);
                 Assert.False(vm.Exists);
                 Assert.False(vm.ErrorState.Succeeded);
@@ -328,7 +328,7 @@ namespace Wabbajack.Test
             vm.PathType = FilePickerVM.PathTypeOptions.File;
             vm.ExistCheckOption = FilePickerVM.CheckOptions.Off;
             vm.TargetPath = (AbsolutePath)"SomePath.png";
-            vm.Filters.Add(new Microsoft.WindowsAPICodePack.Dialogs.CommonFileDialogFilter("test", $"*.{vm.TargetPath.Extension}"));
+            vm.Filters.Add(new Microsoft.WindowsAPICodePack.Dialogs.CommonFileDialogFilter("test", $"*{vm.TargetPath.Extension}"));
             await Task.Delay(250);
             Assert.False(vm.Exists);
             Assert.True(vm.ErrorState.Succeeded, vm.ErrorState.Reason);
@@ -345,7 +345,7 @@ namespace Wabbajack.Test
                 ExistCheckOption = FilePickerVM.CheckOptions.Off,
                 FilterCheckOption = FilePickerVM.CheckOptions.IfPathNotEmpty
             };
-            vm.Filters.Add(new Microsoft.WindowsAPICodePack.Dialogs.CommonFileDialogFilter("test", $"*.{vm.TargetPath.Extension}"));
+            vm.Filters.Add(new Microsoft.WindowsAPICodePack.Dialogs.CommonFileDialogFilter("test", $"*{vm.TargetPath.Extension}"));
             await Task.Delay(250);
             Assert.False(vm.Exists);
             Assert.True(vm.ErrorState.Succeeded);
