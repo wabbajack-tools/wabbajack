@@ -1,6 +1,12 @@
 ### Changelog
 
-#### Version - 2.4.5.7 - 3/11/2021
+#### Version - 2.4.3.0 - 3/20/2021
+* CDN part uploads are now retried
+* New compiler options for including saves/splashscreens
+* Save the location of modlists when installing
+* Update several deps that were still based on .NET Framework
+
+#### Version - 2.4.2.7 - 3/11/2021
 * Several fixes for working off the new CDN
 * Better detect failures in the launcher
 * The app now cleans up older versions (leaving a total of 2 previous versions)
