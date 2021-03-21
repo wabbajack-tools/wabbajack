@@ -7,10 +7,10 @@
       <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-      <PackageReference Include="CefSharp.Common.NETCore">
+      <PackageReference Include="CefSharp.Common">
         <Version>88.2.90</Version>
       </PackageReference>
-      <PackageReference Include="CefSharp.OffScreen.NETCore">
+      <PackageReference Include="CefSharp.OffScreen">
         <Version>88.2.90</Version>
       </PackageReference>
       <PackageReference Include="F23.StringSimilarity">
