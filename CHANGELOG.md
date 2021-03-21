@@ -1,6 +1,9 @@
 ### Changelog
 
 #### Version - 2.4.3.0 - 3/20/2021
+* HOTFIX : Go back to the non-core version of CEF, .NET Core version was crashing
+
+#### Version - 2.4.3.0 - 3/20/2021
 * CDN part uploads are now retried
 * New compiler options for including saves/splashscreens
 * Save the location of modlists when installing
