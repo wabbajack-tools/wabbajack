@@ -1,7 +1,9 @@
 ### Changelog
 
-#### Version - 2.4.3.0 - 3/20/2021
+#### Version - 2.4.3.1 - 3/24/2021
 * HOTFIX : Go back to the non-core version of CEF, .NET Core version was crashing
+* Folders prefixed with `[NoDelete]` in the name will be ignored when WJ cleans a installed modlist
+* Resolution detection and setting is now supported for `SSEDisplayTweaks.ini` and `Oblivion.ini`
 
 #### Version - 2.4.3.0 - 3/20/2021
 * CDN part uploads are now retried

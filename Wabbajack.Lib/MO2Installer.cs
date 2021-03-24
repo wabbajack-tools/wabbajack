@@ -409,8 +409,9 @@ namespace Wabbajack.Lib
                 throw new ArgumentNullException("System Parameters was null.  Cannot set screen size prefs");
             }
             var config = new IniParserConfiguration {AllowDuplicateKeys = true, AllowDuplicateSections = true};
+            var oblivionPath = (RelativePath)"Oblivion.ini";
             foreach (var file in OutputFolder.Combine("profiles").EnumerateFiles()
-                .Where(f => ((string)f.FileName).EndsWith("refs.ini")))
+                .Where(f => ((string)f.FileName).EndsWith("refs.ini") || f.FileName == oblivionPath))
             {
                 try
                 {
@@ -440,6 +441,36 @@ namespace Wabbajack.Lib
                         }
                     }
 
+                    if (modified) 
+                        parser.WriteFile((string)file, data);
+                }
+                catch (Exception)
+                {
+                    Utils.Log($"Skipping screen size remap for {file} due to parse error.");
+                }
+            }
+            
+            var tweaksPath = (RelativePath)"SSEDisplayTweaks.ini";
+            foreach (var file in OutputFolder.EnumerateFiles()
+                .Where(f => f.FileName == tweaksPath))
+            {
+                try
+                {
+                    var parser = new FileIniDataParser(new IniDataParser(config));
+                    var data = parser.ReadFile((string)file);
+                    bool modified = false;
+                    if (data.Sections["Render"] != null)
+                    {
+
+                        if (data.Sections["Render"]["Resolution"] != null)
+                        {
+                            data.Sections["Render"]["Resolution"] =
+                                $"{SystemParameters.ScreenWidth.ToString(CultureInfo.CurrentCulture)}x{SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture)}";
+                            modified = true;
+                        }
+
+                    }
+                    
                     if (modified) 
                         parser.WriteFile((string)file, data);
                 }

@@ -168,6 +168,10 @@ namespace Wabbajack.Test
             await utils.VerifyInstalledFile(mod, @"Data\scripts\deleted.pex");
             await utils.VerifyInstalledFile(mod, @"Data\scripts\modified.pex");
 
+            var nodeletefile = utils.InstallPath.Combine("mods", "[NoDelete] Mod I added", "somefile.esp");
+            nodeletefile.Parent.CreateDirectory();
+            await nodeletefile.WriteAllTextAsync("some data");
+
             var unchangedPath = utils.PathOfInstalledFile(mod, @"Data\scripts\unchanged.pex");
             var deletedPath = utils.PathOfInstalledFile(mod, @"Data\scripts\deleted.pex");
             var modifiedPath = utils.PathOfInstalledFile(mod, @"Data\scripts\modified.pex");
@@ -200,6 +204,8 @@ namespace Wabbajack.Test
             Assert.NotEqual(modifiedModified, modifiedPath.LastModified);
             Assert.False(extraPath.Exists);
             Assert.False(extraFolder.Exists);
+            
+            Assert.True(nodeletefile.Exists, "File should exist because it's in a [NoDelete] folder");
         }
 
         [Fact]
@@ -248,6 +254,18 @@ namespace Wabbajack.Test
                 "iSize W=100",
                 "[MEMORY]",
                 "VideoMemorySizeMb=22");
+            
+            await utils.SourcePath.Combine("profiles", profile, "oblivion.ini").WriteAllLinesAsync(
+                // Beth inis are messy, let's make ours just as messy to catch some parse failures
+                "STestFile=",
+                "[Display]",
+                "foo=4",
+                "iSize H=50", 
+                "iSize W=100");
+            
+            await utils.SourcePath.Combine("SseDisplayTweaks.ini").WriteAllLinesAsync(
+                "[Render]",
+                "Resolution=100x100");
 
             var modlist = await CompileAndInstall(profile);
 
@@ -258,6 +276,13 @@ namespace Wabbajack.Test
             Assert.Equal(sysinfo.ScreenHeight.ToString(), ini?.Display?["iSize H"]);
             Assert.Equal(sysinfo.ScreenWidth.ToString(), ini?.Display?["iSize W"]);
             Assert.Equal(sysinfo.EnbLEVRAMSize.ToString(), ini?.MEMORY?["VideoMemorySizeMb"]);
+            
+            var ini2 = utils.InstallPath.Combine("profiles", profile, "Oblivion.ini").LoadIniFile();
+            Assert.Equal(sysinfo.ScreenHeight.ToString(), ini2?.Display?["iSize H"]);
+            Assert.Equal(sysinfo.ScreenWidth.ToString(), ini2?.Display?["iSize W"]);
+            
+            var ini3 = utils.InstallPath.Combine("sseDisplayTweaks.ini").LoadIniFile();
+            Assert.Equal($"{sysinfo.ScreenWidth}x{sysinfo.ScreenHeight}", ini3?.Render?.Resolution);
         }
 
         [Fact]

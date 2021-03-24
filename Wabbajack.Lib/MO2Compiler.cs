@@ -461,7 +461,6 @@ namespace Wabbajack.Lib
 
                 // There are some types of files that will error the compilation, because they're created on-the-fly via tools
                 // so if we don't have a match by this point, just drop them.
-                new IgnoreEndsWith(this, ".ini"),
                 new IgnoreEndsWith(this, ".html"),
                 new IgnoreEndsWith(this, ".txt"),
                 // Don't know why, but this seems to get copied around a bit

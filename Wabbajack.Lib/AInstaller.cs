@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
@@ -360,6 +361,7 @@ namespace Wabbajack.Lib
             var savePath = (RelativePath)"saves";
             
             UpdateTracker.NextStep("Looking for files to delete");
+            var regex = new Regex(@"(?i)[\\\/]\[NoDelete\]");
             await OutputFolder.EnumerateFiles()
                 .PMap(Queue, UpdateTracker, async f =>
                 {
@@ -368,7 +370,10 @@ namespace Wabbajack.Lib
                         return;
 
                     if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return;
-
+                    
+                    if (regex.IsMatch(f.ToString()))
+                        return;
+                        
                     Utils.Log($"Deleting {relativeTo} it's not part of this ModList");
                     await f.DeleteAsync();
                 });
