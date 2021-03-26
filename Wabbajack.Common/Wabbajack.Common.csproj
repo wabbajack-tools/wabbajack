@@ -48,10 +48,10 @@
         <Folder Include="Properties\" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="GameFinder.StoreHandlers.BethNet" Version="1.3.1" />
-        <PackageReference Include="GameFinder.StoreHandlers.EGS" Version="1.3.1" />
-        <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="1.3.1" />
-        <PackageReference Include="GameFinder.StoreHandlers.Steam" Version="1.3.1" />
+        <PackageReference Include="GameFinder.StoreHandlers.BethNet" Version="1.4.0" />
+        <PackageReference Include="GameFinder.StoreHandlers.EGS" Version="1.4.0" />
+        <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="1.4.0" />
+        <PackageReference Include="GameFinder.StoreHandlers.Steam" Version="1.4.0" />
         <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
         <PackageReference Include="HtmlAgilityPack" Version="1.11.33" />
         <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
