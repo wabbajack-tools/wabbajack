@@ -30,11 +30,11 @@ namespace Wabbajack.Common.StoreHandlers
         private static readonly Lazy<OriginHandler> _originHandler = new(() => new OriginHandler());
         public OriginHandler OriginHandler = _originHandler.Value;
 
-        public List<AStoreGame> StoreGames;
+        private List<AStoreGame> _storeGames;
 
         public Dictionary<Game, AStoreGame> Games = new();
         
-        private void FindGames<THandler, TGame>(THandler handler, string name) 
+        private void FindGames<THandler, TGame>(THandler handler) 
             where THandler : AStoreHandler<TGame> 
             where TGame : AStoreGame
         {
@@ -44,23 +44,23 @@ namespace Wabbajack.Common.StoreHandlers
                 foreach (var game in handler.Games)
                 {
                     Utils.Log($"{handler.StoreType}: Found game {game}");
-                    StoreGames.Add(game);
+                    _storeGames.Add(game);
                 }
             }
             catch (Exception e)
             {
-                Utils.Error(e, $"Could not load all Games from the {name}");
+                Utils.Error(e, $"Could not load all Games from the {handler}");
             }
         }
         
         public StoreHandler()
         {
-            StoreGames = new List<AStoreGame>();
+            _storeGames = new List<AStoreGame>();
             
-            FindGames<SteamHandler, SteamGame>(SteamHandler, "SteamHandler");
-            FindGames<GOGHandler, GOGGame>(GOGHandler, "GOGHandler");
-            FindGames<BethNetHandler, BethNetGame>(BethNetHandler, "BethNetHandler");
-            FindGames<EGSHandler, EGSGame>(EpicGameStoreHandler, "EpicGameStoreHandler");
+            FindGames<SteamHandler, SteamGame>(SteamHandler);
+            FindGames<GOGHandler, GOGGame>(GOGHandler);
+            FindGames<BethNetHandler, BethNetGame>(BethNetHandler);
+            FindGames<EGSHandler, EGSGame>(EpicGameStoreHandler);
             
             if (OriginHandler.Init())
             {
@@ -72,7 +72,7 @@ namespace Wabbajack.Common.StoreHandlers
                 Utils.Error(new StoreException("Could not Init the OriginHandler, check previous error messages!"));
             }
 
-            foreach (var storeGame in StoreGames)
+            foreach (var storeGame in _storeGames)
             {
                 IEnumerable<KeyValuePair<Game, GameMetaData>>? enumerable = storeGame switch
                 {
