@@ -120,46 +120,30 @@ namespace Wabbajack.VirtualFileSystem
             var dest = await TempFolder.Create();
             Utils.Log($"Extracting {(string)tmpFile.Path}");
 
-            Framework.Settings.TempPath = (string)dest.Dir;
-            Framework.Settings.CodeProgress = new OMODProgress();
-
-            var omod = new OMOD((string)tmpFile.Path);
-            omod.GetDataFiles();
-            omod.GetPlugins();
+            using var omod = new OMOD((string) tmpFile.Path);
 
             var results = new Dictionary<RelativePath, T>();
-            foreach (var file in dest.Dir.EnumerateFiles())
+            
+            omod.ExtractFilesParallel((string) dest.Dir, 4);
+            if (omod.HasEntryFile(OMODEntryFileType.PluginsCRC))
+                omod.ExtractFiles(false, (string) dest.Dir);
+
+            var files = omod.GetDataFiles();
+            if (omod.HasEntryFile(OMODEntryFileType.PluginsCRC))
+                files.UnionWith(omod.GetPluginFiles());
+            
+            foreach (var compressedFile in files)
             {
-                var path = file.RelativeTo(dest.Dir);
-                if (!shouldExtract(path)) continue;
+                var abs = compressedFile.Name.RelativeTo(dest.Dir);
+                var rel = abs.RelativeTo(dest.Dir); 
+                if (!shouldExtract(rel)) continue;
 
-                var result = await mapfn(path, new ExtractedNativeFile(file));
-                results.Add(path, result);
+                var result = await mapfn(rel, new ExtractedNativeFile(abs));
+                results.Add(rel, result);
             }
-
+            
             return results;
         }
-
-        private class OMODProgress : ICodeProgress
-        {
-            private long _total;
-
-            public void SetProgress(long inSize, long outSize)
-            {
-                Utils.Status("Extracting OMOD", Percent.FactoryPutInRange(inSize, _total));
-            }
-
-            public void Init(long totalSize, bool compressing)
-            {
-                _total = totalSize;
-            }
-
-            public void Dispose()
-            {
-                //
-            }
-        }
-
 
         private static async Task<Dictionary<RelativePath,T>> GatheringExtractWithBSA<T>(IStreamFactory sFn, Definitions.FileType sig, Predicate<RelativePath> shouldExtract, Func<RelativePath,IExtractedFile,ValueTask<T>> mapfn)
         {
