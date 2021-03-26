@@ -34,13 +34,13 @@ namespace Wabbajack.Common.StoreHandlers
 
         public Dictionary<Game, AStoreGame> Games = new();
         
-        private void FindGames<THandler, TGame>(Func<THandler> getHandler) 
+        private void FindGames<THandler, TGame>(Lazy<THandler> lazyHandler, string name) 
             where THandler : AStoreHandler<TGame> 
             where TGame : AStoreGame
         {
-            var handler = getHandler();
             try
             {
+                var handler = lazyHandler.Value;
                 handler.FindAllGames();
                 foreach (var game in handler.Games)
                 {
@@ -50,7 +50,7 @@ namespace Wabbajack.Common.StoreHandlers
             }
             catch (Exception e)
             {
-                Utils.Error(e, $"Could not load all Games from the {handler}");
+                Utils.Error(e, $"Could not load all Games from {name}");
             }
         }
         
@@ -58,10 +58,10 @@ namespace Wabbajack.Common.StoreHandlers
         {
             _storeGames = new List<AStoreGame>();
             
-            FindGames<SteamHandler, SteamGame>(() => SteamHandler);
-            FindGames<GOGHandler, GOGGame>(() => GOGHandler);
-            FindGames<BethNetHandler, BethNetGame>(() => BethNetHandler);
-            FindGames<EGSHandler, EGSGame>(() => EpicGameStoreHandler);
+            FindGames<SteamHandler, SteamGame>(_steamHandler, "SteamHandler");
+            FindGames<GOGHandler, GOGGame>(_gogHandler, "GOGHandler");
+            FindGames<BethNetHandler, BethNetGame>(_bethNetHandler, "BethNetHandler");
+            FindGames<EGSHandler, EGSGame>(_epicGameStoreHandler, "EGSHandler");
             
             if (OriginHandler.Init())
             {
