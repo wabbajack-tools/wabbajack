@@ -34,10 +34,11 @@ namespace Wabbajack.Common.StoreHandlers
 
         public Dictionary<Game, AStoreGame> Games = new();
         
-        private void FindGames<THandler, TGame>(THandler handler) 
+        private void FindGames<THandler, TGame>(Func<THandler> getHandler) 
             where THandler : AStoreHandler<TGame> 
             where TGame : AStoreGame
         {
+            var handler = getHandler();
             try
             {
                 handler.FindAllGames();
@@ -57,10 +58,10 @@ namespace Wabbajack.Common.StoreHandlers
         {
             _storeGames = new List<AStoreGame>();
             
-            FindGames<SteamHandler, SteamGame>(SteamHandler);
-            FindGames<GOGHandler, GOGGame>(GOGHandler);
-            FindGames<BethNetHandler, BethNetGame>(BethNetHandler);
-            FindGames<EGSHandler, EGSGame>(EpicGameStoreHandler);
+            FindGames<SteamHandler, SteamGame>(() => SteamHandler);
+            FindGames<GOGHandler, GOGGame>(() => GOGHandler);
+            FindGames<BethNetHandler, BethNetGame>(() => BethNetHandler);
+            FindGames<EGSHandler, EGSGame>(() => EpicGameStoreHandler);
             
             if (OriginHandler.Init())
             {
