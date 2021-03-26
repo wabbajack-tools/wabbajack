@@ -87,8 +87,11 @@ namespace Wabbajack.Common.StoreHandlers
                 
                 var list = enumerable.ToList();
                 if (list.Count == 0) continue;
+
+                var game = list.First().Key;
+                if (Games.ContainsKey(game)) continue;
                 
-                Games.Add(list.First().Key, storeGame);
+                Games.Add(game, storeGame);
             }
         }
 
