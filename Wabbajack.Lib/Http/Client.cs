@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
@@ -105,6 +106,8 @@ namespace Wabbajack.Lib.Http
                     retries++;
                     var ms = Utils.NextRandom(100, 1000);
                     Utils.Log($"Got a {http.Code} from {msg.RequestUri} retrying in {ms}ms");
+
+                    if (retries > Consts.MaxHTTPRetries) throw;
 
                     await Task.Delay(ms, token ?? CancellationToken.None);
                     msg = CloneMessage(msg);
