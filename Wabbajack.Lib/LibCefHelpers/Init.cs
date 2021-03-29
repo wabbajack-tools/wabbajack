@@ -84,15 +84,20 @@ namespace Wabbajack.Lib.LibCefHelpers
             public string Domain { get; set; } = string.Empty;
             public string Path { get; set; } = string.Empty;
         }
-
+        private static object _syncCefInit = new object();
         public static void Init()
         {
             if (Inited || Cef.IsInitialized) return;
-            Inited = true;
-            CefSettings settings = new CefSettings();
-            settings.CachePath = Consts.CefCacheLocation.ToString();
-            settings.JavascriptFlags = "--noexpose_wasm";
-            Cef.Initialize(settings);
+            lock (_syncCefInit)
+            {
+                if (Inited || Cef.IsInitialized) return;
+
+                Inited = true;
+                CefSettings settings = new CefSettings();
+                settings.CachePath = Consts.CefCacheLocation.ToString();
+                settings.JavascriptFlags = "--noexpose_wasm";
+                Cef.Initialize(settings);
+            }
         }
 
         public static bool Inited { get; set; }
