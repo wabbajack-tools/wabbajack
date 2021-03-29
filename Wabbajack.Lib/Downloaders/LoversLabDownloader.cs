@@ -21,7 +21,7 @@ namespace Wabbajack.Lib.Downloaders
         public LoversLabDownloader() : base(new Uri("https://www.loverslab.com/login"), 
             "loverslabcookies", "loverslab.com")
         {
-            IsCloudFlareProtected = false;
+            IsCloudFlareProtected = true;
         }
         protected override async Task WhileWaiting(IWebDriver browser)
         {
