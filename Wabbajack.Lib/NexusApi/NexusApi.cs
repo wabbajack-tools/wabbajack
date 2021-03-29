@@ -223,18 +223,19 @@ namespace Wabbajack.Lib.NexusApi
 
         protected virtual async Task UpdateRemaining(HttpResponseMessage response)
         {
-            try
-            {
-                _dailyRemaining = int.Parse(response.Headers.GetValues("x-rl-daily-remaining").First());
-                _hourlyRemaining = int.Parse(response.Headers.GetValues("x-rl-hourly-remaining").First());
+            _dailyRemaining = ParseRemaining(response, "x-rl-daily-remaining");
+            _hourlyRemaining = ParseRemaining(response, "x-rl-hourly-remaining");
 
-                this.RaisePropertyChanged(nameof(DailyRemaining));
-                this.RaisePropertyChanged(nameof(HourlyRemaining));
-            }
-            catch (Exception)
-            {
-            }
+            this.RaisePropertyChanged(nameof(DailyRemaining));
+            this.RaisePropertyChanged(nameof(HourlyRemaining));
+        }
 
+        private int ParseRemaining(HttpResponseMessage response, string headerName)
+        {
+            return (response.Headers.TryGetValues(headerName, out var remainingValues)
+                    && int.TryParse(remainingValues.FirstOrDefault(), out var remaining))
+                ? remaining
+                : default;
         }
 
         #endregion
