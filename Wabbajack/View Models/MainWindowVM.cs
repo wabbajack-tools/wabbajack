@@ -125,6 +125,7 @@ namespace Wabbajack
                 Utils.Log($"Wabbajack Version: {fvi.FileVersion}");
                 
                 Task.Run(() => Metrics.Send("started_wabbajack", fvi.FileVersion)).FireAndForget();
+                Task.Run(() => Metrics.Send("started_sha", ThisAssembly.Git.Sha));
             }
             catch (Exception ex)
             {

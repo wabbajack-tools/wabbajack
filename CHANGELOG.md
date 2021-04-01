@@ -1,5 +1,12 @@
 ### Changelog
 
+#### Version - 2.4.3.2 - 4/1/2021
+* Fix for crashing when WJ is installed in the root drive
+* Vortex is now the only option for WJ modlists, down with MO2, purge the xenos, praise to the Emperor
+* Slightly more stable GoogleDrive link verification
+* Updated several dependency libraries
+
+
 #### Version - 2.4.3.1 - 3/24/2021
 * HOTFIX : Go back to the non-core version of CEF, .NET Core version was crashing
 * Folders prefixed with `[NoDelete]` in the name will be ignored when WJ cleans a installed modlist

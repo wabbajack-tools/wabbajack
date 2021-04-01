@@ -13,6 +13,7 @@ namespace Wabbajack
         public App()
         {
             Consts.LogsFolder = LauncherUpdater.CommonFolder.Value.Combine("logs");
+            Consts.LogsFolder.CreateDirectory();
 
             LoggingSettings.LogToFile = true;
             Utils.InitalizeLogging().Wait();

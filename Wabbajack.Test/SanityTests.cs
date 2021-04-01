@@ -43,6 +43,45 @@ namespace Wabbajack.Test
         }
         
         [Fact]
+        public async Task TestFilesAreRemappedDuringInstallation() 
+        {
+
+            var profile = utils.AddProfile();
+            var mod = await utils.AddMod();
+            var testPex = await utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
+            
+            var src = @"Resources\test_ini01.ini".RelativeTo(AbsolutePath.EntryPoint);
+
+            var srcIniData = await src.ReadAllTextAsync();
+            var inMod = await utils.AddModFile(mod, "test.ini", 1);
+            await src.CopyToAsync(inMod);
+
+            var inMO2Folder = utils.SourcePath.Combine("some_tool", "config.ini");
+            inMO2Folder.Parent.CreateDirectory();
+            await src.CopyToAsync(inMO2Folder);
+
+            await utils.Configure();
+
+            await utils.AddManualDownload(
+                new Dictionary<string, byte[]> {{"/baz/biz.pex", await testPex.ReadAllBytesAsync()}});
+
+            await CompileAndInstall(profile);
+
+            await utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
+
+            var location = inMO2Folder.RelativeTo(utils.SourcePath).RelativeTo(utils.InstallPath);
+            Assert.True(location.Exists, "The file should be installed");
+            var remappedData = await location.ReadAllTextAsync();
+            Assert.NotEqual(srcIniData, remappedData);
+            
+            var location2 = inMod.RelativeTo(utils.SourcePath).RelativeTo(utils.InstallPath);
+            Assert.True(location.Exists, "The file should be installed");
+            var remappedData2 = await location2.ReadAllTextAsync();
+            Assert.NotEqual(srcIniData, remappedData2);
+        }
+
+        
+        [Fact]
         public async Task TestCacheFileAreIgnored() 
         {
 

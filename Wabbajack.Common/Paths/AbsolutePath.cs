@@ -48,7 +48,15 @@ namespace Wabbajack.Common
 
         public AbsolutePath(string path, bool skipValidation = false)
         {
-            _nullable_path = path.Replace("/", "\\").TrimEnd('\\');
+            if (path.Length == 3 && path[1] == ':' && (path[2] == '\\' || path[2] == '/'))
+            {
+                _nullable_path = path.Substring(0, 2) + '\\';
+            }
+            else
+            {
+                _nullable_path = path.Replace("/", "\\").TrimEnd('\\');
+            }
+
             if (!skipValidation)
             {
                 ValidateAbsolutePath();

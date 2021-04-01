@@ -73,7 +73,7 @@ namespace Wabbajack.Lib
             
             var launcherVersion = FileVersionInfo.GetVersionInfo(exePath.ToString());
 
-            if (release != default && launcherVersion != null && release.version > Version.Parse(launcherVersion.FileVersion!))
+            if (release != default && release.version > Version.Parse(launcherVersion.FileVersion!))
             {
                 Utils.Log($"Updating Launcher from {launcherVersion.FileVersion} to {release.version}");
                 var tempPath = launcherFolder.Combine("Wabbajack.exe.temp");
