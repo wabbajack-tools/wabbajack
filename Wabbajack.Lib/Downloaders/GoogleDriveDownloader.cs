@@ -40,7 +40,7 @@ namespace Wabbajack.Lib.Downloaders
         public class State : AbstractDownloadState
         {
             public string Id { get; }
-            
+
             [JsonIgnore]
             public override object[] PrimaryKey => new object[] { Id };
 
@@ -56,35 +56,48 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
-                var state = await ToHttpState();
+                var state = await ToHttpState(download: true);
                 if (state == null)
                     return false;
                 return await state.Download(a, destination);
             }
 
-            private async Task<HTTPDownloader.State?> ToHttpState()
+            private async Task<HTTPDownloader.State?> ToHttpState(bool download)
             {
-                var initialURL = $"https://drive.google.com/uc?id={Id}&export=download";
-                var client = new Wabbajack.Lib.Http.Client();
-                using var response = await client.GetAsync(initialURL);
-                if (!response.IsSuccessStatusCode)
-                    throw new HttpException((int)response.StatusCode, response.ReasonPhrase ?? "Unknown");
-                var cookies = response.GetSetCookies();
-                var warning = cookies.FirstOrDefault(c => c.Key.StartsWith("download_warning_"));
-                response.Dispose();
-                if (warning == default)
+                if (download)
                 {
-                    return new HTTPDownloader.State(initialURL) { Client = client };
-                }
+                    var initialURL = $"https://drive.google.com/uc?id={Id}&export=download";
+                    var client = new Wabbajack.Lib.Http.Client();
+                    using var response = await client.GetAsync(initialURL);
+                    if (!response.IsSuccessStatusCode)
+                        throw new HttpException((int)response.StatusCode, response.ReasonPhrase ?? "Unknown");
+                    var cookies = response.GetSetCookies();
+                    var warning = cookies.FirstOrDefault(c => c.Key.StartsWith("download_warning_"));
+                    response.Dispose();
+                    if (warning == default)
+                    {
+                        return new HTTPDownloader.State(initialURL) { Client = client };
+                    }
 
-                var url = $"https://drive.google.com/uc?export=download&confirm={warning.Value}&id={Id}";
-                var httpState = new HTTPDownloader.State(url) { Client = client };
-                return httpState;
+                    var url = $"https://drive.google.com/uc?export=download&confirm={warning.Value}&id={Id}";
+                    var httpState = new HTTPDownloader.State(url) { Client = client };
+                    return httpState;
+                }
+                else
+                {
+                    var url = $"https://drive.google.com/file/d/{Id}/edit";
+                    var client = new Wabbajack.Lib.Http.Client();
+                    using var response = await client.GetAsync(url, errorsAsExceptions: false);
+                    if (!response.IsSuccessStatusCode)
+                        throw new HttpException((int)response.StatusCode, response.ReasonPhrase ?? "Unknown");
+                    var httpState = new HTTPDownloader.State(url) { Client = client };
+                    return httpState;
+                }
             }
 
             public override async Task<bool> Verify(Archive a, CancellationToken? token)
             {
-                var state = await ToHttpState();
+                var state = await ToHttpState(download: false);
                 if (state == null)
                     return false;
                 return await state.Verify(a, token);
