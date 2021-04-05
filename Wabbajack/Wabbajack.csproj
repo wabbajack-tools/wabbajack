@@ -60,7 +60,7 @@
       <PackageReference Include="CefSharp.Wpf" Version="88.2.90" />
     <PackageReference Include="DynamicData" Version="7.1.1" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.0.2" />
-    <PackageReference Include="Fody" Version="6.5.0">
+    <PackageReference Include="Fody" Version="6.5.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
