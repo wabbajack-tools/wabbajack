@@ -11,7 +11,7 @@
         <Version>88.2.90</Version>
       </PackageReference>
       <PackageReference Include="CefSharp.OffScreen">
-        <Version>88.2.90</Version>
+        <Version>89.0.170</Version>
       </PackageReference>
       <PackageReference Include="F23.StringSimilarity">
         <Version>4.0.0</Version>
