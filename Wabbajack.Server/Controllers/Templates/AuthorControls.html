@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Author Controls - {{$.User}}</title>
+</head>
+<body>
+<h2>Author Controls - {{$.User}}</h2>
+<br/>
+<h3>Wabbajack Files - {{$.TotalUsage}}</h3>
+<table>
+    <tr>
+        <td><b>Name</b></td>
+        <td><b>Size</b></td>
+        <td><b>Finished Uploading</b></td>
+        <td><b>Unique Name</b></td>
+    </tr>
+    {{each $.WabbajackFiles }}
+    <tr>
+        <td>{{$.Name}}</td>
+        <td>{{$.Size}}</td>
+        <td>{{$.UploadedDate}}</td>
+        <td>{{$.MangledName}}</td>
+    </tr>
+    {{/each}}
+</table>
+
+<h3>Other Files</h3>
+<table>
+    <tr>
+        <td><b>Name</b></td>
+        <td><b>Size</b></td>
+        <td><b>Finished Uploading</b></td>
+        <td><b>Unique Name</b></td>
+    </tr>
+    {{each $.OtherFiles }}
+    <tr>
+        <td>{{$.Name}}</td>
+        <td>{{$.Size}}</td>
+        <td>{{$.UploadedDate}}</td>
+        <td>{{$.MangledName}}</td>
+    </tr>
+    {{/each}}
+</table>
+</body>
+</html>

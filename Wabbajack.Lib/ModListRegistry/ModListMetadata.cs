@@ -164,8 +164,12 @@ namespace Wabbajack.Lib.ModListRegistry
         public string Link => $"/lists/status/{MachineURL}.json";
         [JsonProperty("report")]
         public string Report => $"/lists/status/{MachineURL}.html";
+        
+        [JsonProperty("modlist_missing")]
+        public bool ModListIsMissing { get; set; }
+        
         [JsonProperty("has_failures")]
-        public bool HasFailures => Failed > 0;
+        public bool HasFailures => Failed > 0 || ModListIsMissing;
     }
 
 }
