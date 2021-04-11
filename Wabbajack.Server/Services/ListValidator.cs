@@ -53,10 +53,33 @@ namespace Wabbajack.Server.Services
                 timer.Start();
                 var oldSummary =
                     oldSummaries.FirstOrDefault(s => s.Summary.MachineURL == metadata.Links.MachineURL);
-                
+
+                var mainFile = await DownloadDispatcher.Infer(new Uri(metadata.Links.Download));
+                var mainArchive = new Archive(mainFile!)
+                {
+                    Size = metadata.DownloadMetadata!.Size, 
+                    Hash = metadata.DownloadMetadata!.Hash
+                };
+                bool mainFailed = false;
+
+                try
+                {
+                    if (!await mainArchive.State.Verify(mainArchive))
+                    {
+                        mainFailed = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    mainFailed = true;
+                }
+
                 var listArchives = await _sql.ModListArchives(metadata.Links.MachineURL);
                 var archives = await listArchives.PMap(queue, async archive =>
                 {
+                    if (mainFailed)
+                        return (archive, ArchiveStatus.InValid);
+                    
                     try
                     {
                         ReportStarting(archive.State.PrimaryKeyString);
@@ -107,6 +130,7 @@ namespace Wabbajack.Server.Services
                     Mirrored = mirroredCount,
                     MachineURL = metadata.Links.MachineURL,
                     Name = metadata.Title,
+                    ModListIsMissing = mainFailed
                 };
 
                 var detailed = new DetailedStatus

@@ -18,6 +18,7 @@ namespace Wabbajack.Server.DataLayer
             var archiveStatus = AllModListArchivesStatus();
             var modLists = AllModLists();
             var mirrors = GetAllMirroredHashes();
+            var authoredFiles = AllAuthoredFiles();
             return new ValidationData
             {
                 NexusFiles = new ConcurrentHashSet<(long Game, long ModId, long FileId)>((await nexusFiles).Select(f => (f.NexusGameId, f.ModId, f.FileId))),
@@ -25,6 +26,7 @@ namespace Wabbajack.Server.DataLayer
                 ModLists = await modLists,
                 Mirrors = await mirrors,
                 AllowedMirrors = new Lazy<Task<Dictionary<Hash, string>>>(async () => await GetAllowedMirrors()),
+                AllAuthoredFiles = await authoredFiles,
             };
         }
         

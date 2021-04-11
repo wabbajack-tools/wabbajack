@@ -27,6 +27,7 @@ namespace Wabbajack.Lib.Http
             };
             Utils.Log($"Configuring with SSL {_socketsHandler.SslOptions.EnabledSslProtocols}");
             Client = new SysHttp.HttpClient(_socketsHandler);
+            Client.DefaultRequestHeaders.Add("User-Agent", Consts.UserAgent);
         }
     }
 }
