@@ -31,7 +31,7 @@ namespace Wabbajack.BuildServer
     {
         private const string ProblemDetailsContentType = "application/problem+json";
         private readonly SqlService _sql;
-        private const string ApiKeyHeaderName = "X-Api-Key";
+        public const string ApiKeyHeaderName = "X-Api-Key";
 
         private MetricsKeyCache _keyCache;
 
@@ -70,6 +70,10 @@ namespace Wabbajack.BuildServer
             }
 
             var authorKey = Request.Headers[ApiKeyHeaderName].FirstOrDefault();
+
+            if (authorKey == null)
+                Request.Cookies.TryGetValue(ApiKeyHeaderName, out authorKey);
+                
 
             if (authorKey == null && metricsKey == null)
             {

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using ReactiveUI;
@@ -19,6 +21,7 @@ namespace Wabbajack
         public ICommand SelectFile { get; }
         public ICommand HyperlinkCommand { get; }
         public IReactiveCommand Upload { get; }
+        public IReactiveCommand ManageFiles { get; }
 
         [Reactive] public double UploadProgress { get; set; }
         [Reactive] public string FinalUrl { get; set; }
@@ -41,6 +44,12 @@ namespace Wabbajack
             SelectFile = Picker.ConstructTypicalPickerCommand(IsUploading.StartWith(false).Select(u => !u));
 
             HyperlinkCommand = ReactiveCommand.Create(() => Clipboard.SetText(FinalUrl));
+
+            ManageFiles = ReactiveCommand.Create(async () =>
+            {
+                var authorApiKey = await AuthorAPI.GetAPIKey();
+                Utils.OpenWebsite(new Uri($"{Consts.WabbajackBuildServerUri}author_controls/login/{authorApiKey}"));
+            });
             
             Upload = ReactiveCommand.Create(async () =>
             {
@@ -69,5 +78,6 @@ namespace Wabbajack
                 .CombineLatest(Picker.WhenAnyValue(t => t.TargetPath).Select(f => f != default),
                 (a, b) => a && b));
         }
+
     }
 }
