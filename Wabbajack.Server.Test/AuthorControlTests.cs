@@ -21,7 +21,7 @@ namespace Wabbajack.Server.Test
             var result =
                 await client.GetStringAsync($"{Consts.WabbajackBuildServerUri}author_controls/login/{Fixture.APIKey}");
 
-            Assert.Contains("Wabbajack Files -", result);
+            Assert.Contains("Wabbajack Files", result);
         }
     }
 }

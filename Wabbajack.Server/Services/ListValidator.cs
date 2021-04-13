@@ -64,9 +64,12 @@ namespace Wabbajack.Server.Services
 
                 try
                 {
-                    if (!await mainArchive.State.Verify(mainArchive))
+                    if (mainArchive.State is WabbajackCDNDownloader.State)
                     {
-                        mainFailed = true;
+                        if (!await mainArchive.State.Verify(mainArchive))
+                        {
+                            mainFailed = true;
+                        }
                     }
                 }
                 catch (Exception ex)
