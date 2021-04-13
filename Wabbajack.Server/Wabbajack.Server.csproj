@@ -42,6 +42,9 @@
       <None Update="Controllers\Templates\AuthorControls.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Controllers\Templates\AuthorControls.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -49,8 +52,6 @@
       <EmbeddedResource Include="sheo_quotes.txt" />
       <None Remove="Controllers\Templates\TotalListTemplate.html" />
       <EmbeddedResource Include="Controllers\Templates\TotalListTemplate.html" />
-      <None Remove="Controllers\Templates\AuthorControls.html" />
-      <EmbeddedResource Include="Controllers\Templates\AuthorControls.html" />
     </ItemGroup>
 
     <ItemGroup>
