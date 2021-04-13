@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version - 2.4.3.3 - 4/12/2021
+* Default to a "Wabbajack" user agent when making HTTP calls
+* Some niceties for Mod authors uploading to our CDN
+* upgrade several external dependencies
+
 #### Version - 2.4.3.2 - 4/1/2021
 * Fix for crashing when WJ is installed in the root drive
 * Vortex is now the only option for WJ modlists, down with MO2, purge the xenos, praise to the Emperor

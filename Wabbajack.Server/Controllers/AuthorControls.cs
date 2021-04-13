@@ -36,22 +36,12 @@ namespace Wabbajack.BuildServer.Controllers
             return Redirect($"{Consts.WabbajackBuildServerUri}author_controls/home");
         }
         
-        private static Func<object, string> _homePageTemplate;
-
-        private static Func<object, string> HomePageTemplate
+        private static async Task<string> HomePageTemplate(object o)
         {
-            get
-            {
-                if (_homePageTemplate == null)
-                {
-                    var resource = Assembly.GetExecutingAssembly()
-                            .GetManifestResourceStream("Wabbajack.Server.Controllers.Templates.AuthorControls.html")!
-                        .ReadAll();
-                    _homePageTemplate = NettleEngine.GetCompiler().Compile(Encoding.UTF8.GetString(resource));
-                }
-
-                return _homePageTemplate;
-            }
+            var data = await AbsolutePath.EntryPoint.Combine(@"Controllers\Templates\AuthorControls.html")
+                .ReadAllTextAsync();
+            var func = NettleEngine.GetCompiler().Compile(data);
+            return func(o);
         }
 
         [Route("home")]
@@ -84,7 +74,7 @@ namespace Wabbajack.BuildServer.Controllers
             return new ContentResult {
                 ContentType = "text/html", 
                 StatusCode = (int)HttpStatusCode.OK, 
-                Content = result};
+                Content = await result};
         }
     }
 }

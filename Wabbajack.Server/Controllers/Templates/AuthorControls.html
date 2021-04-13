@@ -10,6 +10,7 @@
 <h3>Wabbajack Files - {{$.TotalUsage}}</h3>
 <table>
     <tr>
+        <td><b>Commands</b></td>
         <td><b>Name</b></td>
         <td><b>Size</b></td>
         <td><b>Finished Uploading</b></td>
@@ -17,10 +18,12 @@
     </tr>
     {{each $.WabbajackFiles }}
     <tr>
+        <td><button>Delete</button></td>
         <td>{{$.Name}}</td>
         <td>{{$.Size}}</td>
         <td>{{$.UploadedDate}}</td>
         <td>{{$.MangledName}}</td>
+
     </tr>
     {{/each}}
 </table>
@@ -28,13 +31,16 @@
 <h3>Other Files</h3>
 <table>
     <tr>
+        <td><b>Commands</b></td>
         <td><b>Name</b></td>
         <td><b>Size</b></td>
         <td><b>Finished Uploading</b></td>
         <td><b>Unique Name</b></td>
+
     </tr>
     {{each $.OtherFiles }}
     <tr>
+        <td><button>Delete</button></td>
         <td>{{$.Name}}</td>
         <td>{{$.Size}}</td>
         <td>{{$.UploadedDate}}</td>
@@ -42,5 +48,8 @@
     </tr>
     {{/each}}
 </table>
+<script lang="javascript">
+
+</script>
 </body>
 </html>
