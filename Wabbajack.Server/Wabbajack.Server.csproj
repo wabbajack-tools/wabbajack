@@ -3,8 +3,8 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net5.0-windows</TargetFramework>
-        <AssemblyVersion>2.4.3.2</AssemblyVersion>
-        <FileVersion>2.4.3.2</FileVersion>
+        <AssemblyVersion>2.4.3.3</AssemblyVersion>
+        <FileVersion>2.4.3.3</FileVersion>
         <Copyright>Copyright © 2019-2020</Copyright>
         <Description>Wabbajack Server</Description>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -16,9 +16,9 @@
     <ItemGroup>
         <PackageReference Include="Dapper" Version="2.0.78" />
         <PackageReference Include="Discord.Net.WebSocket" Version="2.3.1" />
-        <PackageReference Include="FluentFTP" Version="33.1.4" />
+        <PackageReference Include="FluentFTP" Version="33.1.5" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.4" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.5" />
         <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
         <PackageReference Include="Nettle" Version="1.3.0" />
         <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
@@ -39,6 +39,12 @@
       <None Update="public\metrics.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Controllers\Templates\AuthorControls.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Controllers\Templates\AuthorControls.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -46,8 +52,6 @@
       <EmbeddedResource Include="sheo_quotes.txt" />
       <None Remove="Controllers\Templates\TotalListTemplate.html" />
       <EmbeddedResource Include="Controllers\Templates\TotalListTemplate.html" />
-      <None Remove="Controllers\Templates\AuthorControls.html" />
-      <EmbeddedResource Include="Controllers\Templates\AuthorControls.html" />
     </ItemGroup>
 
     <ItemGroup>
