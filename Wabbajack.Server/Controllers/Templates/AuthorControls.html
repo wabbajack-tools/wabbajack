@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Author Controls - {{$.User}}</title>
+    <title>Author Controls - {{$.User}} - {{$.TotalUsage}}</title>
 </head>
 <body>
-<h2>Author Controls - {{$.User}}</h2>
+<h2>Author Controls - {{$.User}} - {{$.TotalUsage}}</h2>
 <br/>
-<h3>Wabbajack Files - {{$.TotalUsage}}</h3>
+<h3>Wabbajack Files</h3>
 <table>
     <tr>
         <td><b>Commands</b></td>
@@ -18,7 +18,7 @@
     </tr>
     {{each $.WabbajackFiles }}
     <tr>
-        <td><button>Delete</button></td>
+        <td><button onclick="deleteFile('{{$.MangledName}}');">Delete</button></td>
         <td>{{$.Name}}</td>
         <td>{{$.Size}}</td>
         <td>{{$.UploadedDate}}</td>
@@ -40,7 +40,7 @@
     </tr>
     {{each $.OtherFiles }}
     <tr>
-        <td><button>Delete</button></td>
+        <td><button onclick="deleteFile('{{$.MangledName}}');">Delete</button></td>
         <td>{{$.Name}}</td>
         <td>{{$.Size}}</td>
         <td>{{$.UploadedDate}}</td>
@@ -49,6 +49,21 @@
     {{/each}}
 </table>
 <script lang="javascript">
+
+    if (!Array.prototype.last){
+        Array.prototype.last = function(){
+            return this[this.length - 1];
+        };
+    };
+
+    function deleteFile(mangled)
+    {
+        if(window.confirm("Are you sure you want to delete: " + mangled)) {
+            fetch("/authored_files/"+mangled.split("_").last(), {method: "DELETE"})
+                    .then(r => location.reload());
+        }
+    }
+
 
 </script>
 </body>
