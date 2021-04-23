@@ -126,7 +126,7 @@ namespace Wabbajack.Common
             if (!LoggingSettings.LogToFile || LogFile == default) return;
             lock (_logLock)
             {
-                File.AppendAllText(LogFile.ToString(), $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}\r\n");
+                File.AppendAllText(LogFile.ToString(), $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}\r\n", new UTF8Encoding(false, true));
             }
         }
 
