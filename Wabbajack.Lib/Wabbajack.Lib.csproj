@@ -43,7 +43,7 @@
         <Version>13.2.18</Version>
       </PackageReference>
       <PackageReference Include="SharpCompress">
-        <Version>0.28.1</Version>
+        <Version>0.28.2</Version>
       </PackageReference>
       <PackageReference Include="System.Collections.Immutable">
         <Version>5.0.0</Version>
