@@ -75,7 +75,7 @@ namespace Wabbajack.CLI.Verbs
 
             var mdText =
                 $"## {update.Version}\n\n" +
-                $"**Build at:** `{File.GetCreationTime(Update)}`\n\n" +
+                $"**Build at:** `{File.GetLastWriteTime(Update)}`\n\n" +
                 "**Info**:\n\n" +
                 $"- Download Size change: {downloadSizeChanges.ToFileSizeString()} (Total: {update.DownloadSize.ToFileSizeString()})\n" +
                 $"- Install Size change: {installSizeChanges.ToFileSizeString()} (Total: {update.InstallSize.ToFileSizeString()})\n\n";
