@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Alphaleonis.Win32.Filesystem;
+using DynamicData;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
@@ -77,10 +78,13 @@ namespace Wabbajack
             Metadata = metadata;
             Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.Links.MachineURL + (string)Consts.ModListExtension);
             ModListTagList = new List<ModListTag>();
+
             Metadata.tags.ForEach(tag =>
             {
                 ModListTagList.Add(new ModListTag(tag));
             });
+            ModListTagList.Add(new ModListTag(metadata.Game.MetaData().HumanFriendlyGameName));
+
             DownloadSizeText = "Download size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
             InstallSizeText = "Installation size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
             IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;

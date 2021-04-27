@@ -144,7 +144,7 @@ namespace Wabbajack
                     .Select<string, Func<ModListMetadataVM, bool>>(search => (vm) =>
                     {
                         if (string.IsNullOrWhiteSpace(search)) return true;
-                        return vm.Metadata.Title.ContainsCaseInsensitive(search);
+                        return vm.Metadata.Title.ContainsCaseInsensitive(search) || vm.Metadata.tags.Any(t => t.ContainsCaseInsensitive(search));
                     }))
                 .Filter(this.WhenAny(x => x.ShowNSFW)
                     .Select<bool, Func<ModListMetadataVM, bool>>(showNSFW => vm =>

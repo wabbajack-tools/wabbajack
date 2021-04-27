@@ -1,6 +1,9 @@
 ### Changelog
 
-#### Version - 2.4.3.3 - 4/12/2021
+#### Version - 2.4.4.0 - ???
+* Search by tags in the gallery view
+
+#### Version - 2.4.3.3 - 4/13/2021
 * Default to a "Wabbajack" user agent when making HTTP calls
 * Some niceties for Mod authors uploading to our CDN
 * upgrade several external dependencies
