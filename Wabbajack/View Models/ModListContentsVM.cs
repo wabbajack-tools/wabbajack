@@ -15,7 +15,7 @@ using Wabbajack.Common;
 
 namespace Wabbajack
 {
-    public class ModListContentsVM : ViewModel
+    public class ModListContentsVM : BackNavigatingVM
     {
         private MainWindowVM _mwvm;
         [Reactive]
@@ -30,10 +30,11 @@ namespace Wabbajack
         private readonly ReadOnlyObservableCollection<ModListArchive> _archives;
         public ReadOnlyObservableCollection<ModListArchive> Archives => _archives;
 
-        public ModListContentsVM(MainWindowVM mwvm)
+        public ModListContentsVM(MainWindowVM mwvm) : base(mwvm)
         {
             _mwvm = mwvm;
             Status = new ObservableCollectionExtended<DetailedStatusItem>();
+            
 
             Regex nameMatcher = new Regex(@"(?<=\.)[^\.]+(?=\+State)");
             string TransformClassName(Archive a)
@@ -50,11 +51,22 @@ namespace Wabbajack
                 .Transform(a => new ModListArchive
                 {
                     Name = a.Name,
-                    Size = a.Archive?.Size.ToFileSizeString(),
+                    Size = a.Archive?.Size ?? 0,
                     Url = a.Url ?? "",
                     Downloader = TransformClassName(a.Archive) ?? "Unknown",
                     Hash = a.Archive!.Hash.ToBase64()
                 })
+                .Filter(this.WhenAny(x => x.SearchString)
+                    .StartWith("")
+                    .Throttle(TimeSpan.FromMilliseconds(250))
+                    .Select<string, Func<ModListArchive, bool>>(s => (ModListArchive ar) => 
+                        string.IsNullOrEmpty(s) ||
+                        ar.Name.ContainsCaseInsensitive(s) ||
+                        ar.Downloader.ContainsCaseInsensitive(s) ||
+                        ar.Hash.ContainsCaseInsensitive(s) ||
+                        ar.Size.ToString() == s ||
+                        ar.Url.ContainsCaseInsensitive(s)))
+                .ObserveOnGuiThread()
                 .Bind(out _archives)
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
@@ -64,7 +76,7 @@ namespace Wabbajack
     public class ModListArchive
     {
         public string Name { get; set; }
-        public string Size { get; set; }
+        public long Size { get; set; }
         public string Url { get; set; }
         public string Downloader { get; set; }
         public string Hash { get; set; }

@@ -19,27 +19,17 @@ namespace Wabbajack
             InitializeComponent();
             this.WhenActivated(disposable =>
             {
-                /*
-                var queryText = this
-                    .WhenAny(x => x.SearchBox)
-                    .Select(t => t.Text)
-                    .StartWith("")
-                    .Select<string, Func<ModListArchive, bool>>(s => (ModListArchive ar) => 
-                        string.IsNullOrEmpty(s) ||
-                        ar.Name.ContainsCaseInsensitive(s) ||
-                        ar.Downloader.ContainsCaseInsensitive(s) ||
-                        ar.Hash.ContainsCaseInsensitive(s) ||
-                        ar.Size.ContainsCaseInsensitive(s) ||
-                        ar.Url.ContainsCaseInsensitive(s));
-                        */
+
                 this.ArchiveGrid.ItemsSource = this.ViewModel.Archives;
                 
                 this.WhenAny(x => x.ViewModel.Name)
                     .BindToStrict(this, x => x.ModListTitle.Title)
                     .DisposeWith(disposable);
-                /*this.WhenAny(x => x.ViewModel.Archives)
-                    .BindToStrict(this, x => x.ArchiveGrid.ItemsSource)
-                    .DisposeWith(disposable);*/
+                this.BindStrict(ViewModel, x => x.SearchString, x => x.SearchBox.Text)
+                    .DisposeWith(disposable);
+                this.WhenAny(x => x.ViewModel.BackCommand)
+                    .BindToStrict(this, x => x.BackButton.Command)
+                    .DisposeWith(disposable);
             });
         }
     }

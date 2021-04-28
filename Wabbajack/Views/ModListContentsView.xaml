@@ -30,15 +30,8 @@
                 Text="Search" />
             <TextBox
                 x:Name="SearchBox"
-                Width="300"
+                Width="400"
                 VerticalContentAlignment="Center" />
-            <Button
-                x:Name="ClearFiltersButton"
-                Margin="0,0,10,0"
-                Style="{StaticResource IconBareButtonStyle}"
-                ToolTip="Clear All Filters">
-                <iconPacks:Material Kind="FilterRemove" />
-            </Button>
         </WrapPanel>
         <Button Grid.Row="0"
             x:Name="BackButton"
@@ -54,11 +47,11 @@
                 
         <DataGrid Grid.Row="1" x:Name="ArchiveGrid" AutoGenerateColumns="False" AlternatingRowBackground="#131313" FontSize="14">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}"></DataGridTextColumn>
-                <DataGridTextColumn Header="Downloader" Binding="{Binding Downloader}"></DataGridTextColumn>
-                <DataGridTextColumn Header="Size" Binding="{Binding Size}"></DataGridTextColumn>
-                <DataGridTextColumn Header="Hash" Binding="{Binding Hash}"></DataGridTextColumn>
-                <DataGridHyperlinkColumn Header="Link" Binding="{Binding Url}"></DataGridHyperlinkColumn>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True"></DataGridTextColumn>
+                <DataGridTextColumn Header="Downloader" Binding="{Binding Downloader}" IsReadOnly="True"></DataGridTextColumn>
+                <DataGridTextColumn Header="Size" Binding="{Binding Size, Converter={StaticResource FileSizeConverter}}" IsReadOnly="True"></DataGridTextColumn>
+                <DataGridTextColumn Header="Hash" Binding="{Binding Hash}" IsReadOnly="True"></DataGridTextColumn>
+                <DataGridHyperlinkColumn Header="Link" Binding="{Binding Url}" IsReadOnly="True"></DataGridHyperlinkColumn>
             </DataGrid.Columns>
         </DataGrid>
         

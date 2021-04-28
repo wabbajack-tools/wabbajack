@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -74,6 +75,8 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<bool> _LoadingImage;
         public bool LoadingImage => _LoadingImage.Value;
 
+        private Subject<bool> IsLoadingIdle;
+
         public ModListMetadataVM(ModListGalleryVM parent, ModlistMetadata metadata)
         {            
             _parent = parent;
@@ -92,15 +95,26 @@ namespace Wabbajack
             IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;
             //https://www.wabbajack.org/#/modlists/info?machineURL=eldersouls
             OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite(new Uri($"https://www.wabbajack.org/#/modlists/info?machineURL={Metadata.Links.MachineURL}")));
+
+            IsLoadingIdle = new Subject<bool>();
+            
             ModListContentsCommend = ReactiveCommand.Create(async () =>
             {
                 _parent.MWVM.ModListContentsVM.Value.Name = metadata.Title;
-                var status = await ClientAPI.GetDetailedStatus(metadata.Links.MachineURL);
-                var coll = _parent.MWVM.ModListContentsVM.Value.Status;
-                coll.Clear();
-                coll.AddRange(status.Archives);
-                _parent.MWVM.NavigateTo(_parent.MWVM.ModListContentsVM.Value);
-            });
+                IsLoadingIdle.OnNext(false);
+                try
+                {
+                    var status = await ClientAPI.GetDetailedStatus(metadata.Links.MachineURL);
+                    var coll = _parent.MWVM.ModListContentsVM.Value.Status;
+                    coll.Clear();
+                    coll.AddRange(status.Archives);
+                    _parent.MWVM.NavigateTo(_parent.MWVM.ModListContentsVM.Value);
+                }
+                finally
+                {
+                    IsLoadingIdle.OnNext(true);
+                }
+            }, IsLoadingIdle.StartWith(true));
             ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, Unit>(
                 canExecute: this.WhenAny(x => x.IsBroken).Select(x => !x),
                 execute: (unit) => 
