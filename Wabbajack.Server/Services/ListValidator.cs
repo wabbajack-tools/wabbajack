@@ -13,6 +13,9 @@ using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
+using ArchiveStatus = Wabbajack.Server.DTOs.ArchiveStatus;
+using DetailedStatus = Wabbajack.Server.DTOs.DetailedStatus;
+using DetailedStatusItem = Wabbajack.Server.DTOs.DetailedStatusItem;
 
 namespace Wabbajack.Server.Services
 {

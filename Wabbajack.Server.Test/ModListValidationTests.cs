@@ -14,6 +14,7 @@ using Wabbajack.Server.DTOs;
 using Wabbajack.Server.Services;
 using Xunit;
 using Xunit.Abstractions;
+using DetailedStatus = Wabbajack.Server.DTOs.DetailedStatus;
 
 namespace Wabbajack.BuildServer.Test
 {
