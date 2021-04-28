@@ -16,7 +16,7 @@
     <ItemGroup>
         <PackageReference Include="Dapper" Version="2.0.78" />
         <PackageReference Include="Discord.Net.WebSocket" Version="2.3.1" />
-        <PackageReference Include="FluentFTP" Version="33.1.5" />
+        <PackageReference Include="FluentFTP" Version="33.1.8" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.5" />
         <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
