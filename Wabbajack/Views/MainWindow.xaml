@@ -40,6 +40,9 @@
             <DataTemplate DataType="{x:Type local:SettingsVM}">
                 <local:SettingsView ViewModel="{Binding}" />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type local:ModListContentsVM}">
+                <local:ModListContentsView ViewModel="{Binding}" />
+            </DataTemplate>
         </ContentPresenter.Resources>
     </ContentPresenter>
 

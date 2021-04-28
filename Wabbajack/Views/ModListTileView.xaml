@@ -262,7 +262,7 @@
                        FontSize="14"
                        TextWrapping="Wrap" />
             </ScrollViewer>
-            <ItemsControl Grid.Row="2" Grid.ColumnSpan="2" ItemsSource="{Binding ModListTagList}">
+            <ItemsControl Grid.Row="2" ItemsSource="{Binding ModListTagList}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel/>
@@ -285,29 +285,42 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-            <Grid Grid.Row="1" Grid.Column="1">
+            <Grid Grid.Row="1" Grid.Column="1" Grid.RowSpan="2">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Button Grid.Row="0"
-                    x:Name="OpenWebsiteButton"
-                    Width="40"
-                    Height="40"
-                    Margin="5,0"
-                    VerticalAlignment="Bottom"
-                    Style="{StaticResource IconBareButtonStyle}">
+                        x:Name="OpenWebsiteButton"
+                        Width="40"
+                        Height="40"
+                        Margin="5,0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource IconBareButtonStyle}">
                     <iconPacks:Material
                         Width="20"
                         Height="20"
                         Kind="Web" />
                 </Button>
                 <Button Grid.Row="1"
+                        x:Name="ModListContentsButton"
+                        Width="40"
+                        Height="40"
+                        Margin="5,0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource IconBareButtonStyle}">
+                    <iconPacks:Material
+                        Width="20"
+                        Height="20"
+                        Kind="TableSearch" />
+                </Button>
+                <Button Grid.Row="2"
                     x:Name="ExecuteButton"
                     Width="40"
                     Height="40"
                     Margin="5,0"
-                    VerticalAlignment="Top">
+                    VerticalAlignment="Center">
                     <Button.Style>
                         <Style BasedOn="{StaticResource IconBareButtonStyle}" TargetType="Button">
                             <Setter Property="Content">
@@ -354,6 +367,7 @@
                         </Style>
                     </Button.Style>
                 </Button>
+
             </Grid>
         </Grid>
     </Border>

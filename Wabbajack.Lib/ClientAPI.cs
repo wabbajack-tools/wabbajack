@@ -8,12 +8,14 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
  using K4os.Compression.LZ4.Internal;
+ using Newtonsoft.Json;
  using Org.BouncyCastle.Crypto.Agreement.Srp;
  using Wabbajack.Common;
 using Wabbajack.Common.Exceptions;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Downloaders;
  using Wabbajack.Lib.LibCefHelpers;
+ using Wabbajack.Lib.ModListRegistry;
 
  namespace Wabbajack.Lib
 {
@@ -78,6 +80,40 @@ using Wabbajack.Lib.Downloaders;
 
             return false;
         }
+    }
+    
+    [JsonName("DetailedStatus")]
+    public class DetailedStatus
+    {
+        public string Name { get; set; } = "";
+        public DateTime Checked { get; set; } = DateTime.UtcNow;
+        public List<DetailedStatusItem> Archives { get; set; } = new();
+        public DownloadMetadata DownloadMetaData { get; set; } = new();
+        public bool HasFailures { get; set; }
+        public string MachineName { get; set; } = "";
+    }
+
+    [JsonName("DetailedStatusItem")]
+    public class DetailedStatusItem
+    {
+        public bool IsFailing { get; set; }
+        public Archive? Archive { get; set; } 
+
+        public string Name => string.IsNullOrWhiteSpace(Archive!.Name) ? Archive.State.PrimaryKeyString : Archive.Name;
+        public string? Url => Archive?.State.GetManifestURL(Archive!);
+
+        [JsonIgnore]
+        public bool HasUrl => Url != null;
+        public ArchiveStatus ArchiveStatus { get; set; }
+    }
+    
+    public enum ArchiveStatus
+    {
+        Valid,
+        InValid,
+        Updating,
+        Updated,
+        Mirrored
     }
     
     public class ClientAPI
@@ -296,6 +332,15 @@ using Wabbajack.Lib.Downloaders;
             var results =
                 await client.GetJsonAsync<(Game, string)[]>(
                     $"{Consts.WabbajackBuildServerUri}game_files");
+            return results;
+        }
+
+        public static async Task<DetailedStatus> GetDetailedStatus(string machineURL)
+        {
+            var client = await GetClient();
+            var results =
+                await client.GetJsonAsync<DetailedStatus>(
+                    $"{Consts.WabbajackBuildServerUri}lists/status/{machineURL}.json");
             return results;
         }
     }
