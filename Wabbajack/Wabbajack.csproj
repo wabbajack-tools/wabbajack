@@ -6,8 +6,8 @@
     <UseWPF>true</UseWPF>
     <Platforms>x64</Platforms>
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-      <AssemblyVersion>2.4.3.3</AssemblyVersion>
-      <FileVersion>2.4.3.3</FileVersion>
+      <AssemblyVersion>2.4.4.0</AssemblyVersion>
+      <FileVersion>2.4.4.0</FileVersion>
     <Copyright>Copyright © 2019-2020</Copyright>
     <Description>An automated ModList installer</Description>
     <PublishReadyToRun>true</PublishReadyToRun>
@@ -55,7 +55,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="cef.redist.x64" Version="89.0.17" />
+    <PackageReference Include="cef.redist.x64" Version="90.5.7" />
       <PackageReference Include="CefSharp.Common" Version="89.0.170" />
       <PackageReference Include="CefSharp.Wpf" Version="89.0.170" />
     <PackageReference Include="DynamicData" Version="7.1.1" />
@@ -69,7 +69,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MahApps.Metro" Version="2.4.4" />
+    <PackageReference Include="MahApps.Metro" Version="2.4.5" />
     <PackageReference Include="MahApps.Metro.IconPacks" Version="4.8.0" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
     <PackageReference Include="PInvoke.Gdi32" Version="0.7.104" />
