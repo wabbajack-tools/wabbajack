@@ -1,17 +1,12 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Lib;
-using ReactiveUI;
 using DynamicData;
 using DynamicData.Binding;
-using Wabbajack.Common;
 
 namespace Wabbajack
 {

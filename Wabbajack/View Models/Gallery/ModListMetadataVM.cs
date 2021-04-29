@@ -104,7 +104,7 @@ namespace Wabbajack
                 IsLoadingIdle.OnNext(false);
                 try
                 {
-                    var status = await ClientAPI.GetDetailedStatus(metadata.Links.MachineURL);
+                    var status = await ClientAPIEx.GetDetailedStatus(metadata.Links.MachineURL);
                     var coll = _parent.MWVM.ModListContentsVM.Value.Status;
                     coll.Clear();
                     coll.AddRange(status.Archives);
