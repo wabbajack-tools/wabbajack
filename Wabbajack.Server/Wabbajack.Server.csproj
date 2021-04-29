@@ -14,7 +14,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Dapper" Version="2.0.78" />
+        <PackageReference Include="Dapper" Version="2.0.90" />
         <PackageReference Include="Discord.Net.WebSocket" Version="2.3.1" />
         <PackageReference Include="FluentFTP" Version="33.1.8" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0" />
