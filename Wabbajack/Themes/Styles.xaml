@@ -18,6 +18,7 @@
     <local:EqualsToBoolConverter x:Key="EqualsToBoolConverter" />
     <local:IsTypeVisibilityConverter x:Key="IsTypeVisibilityConverter" />
     <local:AbsolutePathToStringConverter x:Key="AbsolutePathToStringConverter" />
+    <local:FileSizeConverter x:Key="FileSizeConverter"/>
 
     <!--  Colors  -->
     <Color x:Key="WindowBackgroundColor">#121212</Color>

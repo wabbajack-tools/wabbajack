@@ -8,12 +8,14 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
  using K4os.Compression.LZ4.Internal;
+ using Newtonsoft.Json;
  using Org.BouncyCastle.Crypto.Agreement.Srp;
  using Wabbajack.Common;
 using Wabbajack.Common.Exceptions;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Downloaders;
  using Wabbajack.Lib.LibCefHelpers;
+ using Wabbajack.Lib.ModListRegistry;
 
  namespace Wabbajack.Lib
 {
@@ -79,7 +81,7 @@ using Wabbajack.Lib.Downloaders;
             return false;
         }
     }
-    
+
     public class ClientAPI
     {
         public static async Task<Wabbajack.Lib.Http.Client> GetClient()

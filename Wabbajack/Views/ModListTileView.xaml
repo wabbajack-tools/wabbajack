@@ -69,11 +69,12 @@
         </Border.Style>
         <Grid
             Width="570"
-            Height="440"
+            Height="480"
             Background="{StaticResource DarkBackgroundBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="40" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -143,28 +144,6 @@
                             </Style>
                         </Ellipse.Style>
                     </Ellipse>
-                    <ItemsControl ItemsSource="{Binding ModListTagList}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Grid.Row="0" Grid.ColumnSpan="2"
-                                    Margin="10,5,0,5"
-                                    Background="{StaticResource Analogous1Brush}"
-                                    BorderThickness="1"
-                                    CornerRadius="7,7,7,7"
-                                    Opacity="0.90">
-                                    <TextBlock
-                                        Margin="5,5,5,5"
-                                        FontSize="15"
-                                        Text="{Binding Name}" />
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
                     <Label
                         Margin="10,257,0,0"
                         HorizontalAlignment="Left"
@@ -275,35 +254,73 @@
                 Foreground="{StaticResource SecondaryBrush}"
                 Maximum="1"
                 Visibility="{Binding IsEnabled, ElementName=ExecuteButton, Converter={StaticResource bool2VisibilityHiddenConverter}, ConverterParameter=False}" />
-            <TextBlock Grid.Row="1" Grid.Column="0"
-                x:Name="MetadataDescription"
-                Margin="8,5"
-                VerticalAlignment="Center"
-                FontSize="14"
-                TextWrapping="Wrap" />
-            <Grid Grid.Row="1" Grid.Column="1">
+            <ScrollViewer Grid.Row="1" Grid.Column="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <TextBlock 
+                       x:Name="MetadataDescription"
+                       Margin="8,5"
+                       VerticalAlignment="Center"
+                       FontSize="14"
+                       TextWrapping="Wrap" />
+            </ScrollViewer>
+            <ItemsControl Grid.Row="2" ItemsSource="{Binding ModListTagList}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Grid.Row="0" Grid.ColumnSpan="2"
+                                    Margin="5,5,0,5"
+                                    Background="{StaticResource Analogous1Brush}"
+                                    BorderThickness="1"
+                                    CornerRadius="7,7,7,7"
+                                    VerticalAlignment="Center"
+                                    Opacity="0.90">
+                                    <TextBlock
+                                        Margin="5,5,5,5"
+                                        FontSize="15"
+                                        Text="{Binding Name}" />
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+            <Grid Grid.Row="1" Grid.Column="1" Grid.RowSpan="2">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Button Grid.Row="0"
-                    x:Name="OpenWebsiteButton"
-                    Width="40"
-                    Height="40"
-                    Margin="5,0"
-                    VerticalAlignment="Bottom"
-                    Style="{StaticResource IconBareButtonStyle}">
+                        x:Name="OpenWebsiteButton"
+                        Width="40"
+                        Height="40"
+                        Margin="5,0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource IconBareButtonStyle}">
                     <iconPacks:Material
                         Width="20"
                         Height="20"
                         Kind="Web" />
                 </Button>
                 <Button Grid.Row="1"
+                        x:Name="ModListContentsButton"
+                        Width="40"
+                        Height="40"
+                        Margin="5,0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource IconBareButtonStyle}">
+                    <iconPacks:Material
+                        Width="20"
+                        Height="20"
+                        Kind="TableSearch" />
+                </Button>
+                <Button Grid.Row="2"
                     x:Name="ExecuteButton"
                     Width="40"
                     Height="40"
                     Margin="5,0"
-                    VerticalAlignment="Top">
+                    VerticalAlignment="Center">
                     <Button.Style>
                         <Style BasedOn="{StaticResource IconBareButtonStyle}" TargetType="Button">
                             <Setter Property="Content">
@@ -350,6 +367,7 @@
                         </Style>
                     </Button.Style>
                 </Button>
+
             </Grid>
         </Grid>
     </Border>

@@ -41,6 +41,7 @@ namespace Wabbajack
         public readonly Lazy<SettingsVM> SettingsPane;
         public readonly Lazy<ModListGalleryVM> Gallery;
         public readonly ModeSelectionVM ModeSelectionVM;
+        public readonly Lazy<ModListContentsVM> ModListContentsVM;
         public readonly UserInterventionHandlers UserInterventionHandlers;
 
         public ICommand CopyVersionCommand { get; }
@@ -62,6 +63,7 @@ namespace Wabbajack
             SettingsPane = new Lazy<SettingsVM>(() => new SettingsVM(this));
             Gallery = new Lazy<ModListGalleryVM>(() => new ModListGalleryVM(this));
             ModeSelectionVM = new ModeSelectionVM(this);
+            ModListContentsVM = new Lazy<ModListContentsVM>(() => new ModListContentsVM(this));
             UserInterventionHandlers = new UserInterventionHandlers(this);
 
             // Set up logging

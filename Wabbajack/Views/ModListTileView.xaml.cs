@@ -59,6 +59,9 @@ namespace Wabbajack
                 this.WhenAny(x => x.ViewModel.OpenWebsiteCommand)
                     .BindToStrict(this, x => x.OpenWebsiteButton.Command)
                     .DisposeWith(dispose);
+                this.WhenAny(x => x.ViewModel.ModListContentsCommend)
+                    .BindToStrict(this, x => x.ModListContentsButton.Command)
+                    .DisposeWith(dispose);
                 this.WhenAny(x => x.ViewModel.ExecuteCommand)
                     .BindToStrict(this, x => x.ExecuteButton.Command)
                     .DisposeWith(dispose);

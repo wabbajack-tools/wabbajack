@@ -1,6 +1,11 @@
 ### Changelog
 
-#### Version - 2.4.3.3 - 4/12/2021
+#### Version - 2.4.4.0 - 4/28/2021
+* Search by tags in the gallery view
+* Moved tags to a place where they won't break the UI so much if we have a lot of them
+* Added a modlist contents viewer (does not require downloading the modlist)
+
+#### Version - 2.4.3.3 - 4/13/2021
 * Default to a "Wabbajack" user agent when making HTTP calls
 * Some niceties for Mod authors uploading to our CDN
 * upgrade several external dependencies

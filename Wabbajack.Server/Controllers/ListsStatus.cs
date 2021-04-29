@@ -14,6 +14,7 @@ using Wabbajack.Server;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
 using Wabbajack.Server.Services;
+using ArchiveStatus = Wabbajack.Server.DTOs.ArchiveStatus;
 
 namespace Wabbajack.BuildServer.Controllers
 {
