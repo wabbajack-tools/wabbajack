@@ -7,7 +7,7 @@ using Wabbajack.Common;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 // Yeah, we know, but BSAs use UTF7, that's how old they are
-#pragma warning disable 618
+#pragma warning disable CS0618, SYSLIB0001
 
 namespace Compression.BSA
 {

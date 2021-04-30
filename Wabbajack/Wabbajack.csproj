@@ -57,9 +57,13 @@
   <ItemGroup>
     <PackageReference Include="cef.redist.x64" Version="90.5.7" />
       <PackageReference Include="CefSharp.Common" Version="89.0.170" />
-      <PackageReference Include="CefSharp.Wpf" Version="89.0.170" />
+      <PackageReference Include="CefSharp.Wpf" Version="89.0.170">
+        <NoWarn>NU1701</NoWarn>
+      </PackageReference>
     <PackageReference Include="DynamicData" Version="7.1.1" />
-    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.0.2" />
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.0.2">
+      <NoWarn>NU1701</NoWarn>
+    </PackageReference>
     <PackageReference Include="Fody" Version="6.5.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
