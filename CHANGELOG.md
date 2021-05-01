@@ -1,6 +1,9 @@
 ### Changelog
 
-#### Version - 2.4.4.0 - 4/28/2021
+#### Version - 2.4.4.1 - 5/1/2021
+* HOTFIX: downgrade cefsharp to fix the in-app browser (fixes Nexus login issue)
+
+#### Version - 2.4.4.0 - 4/30/2021
 * Search by tags in the gallery view
 * Moved tags to a place where they won't break the UI so much if we have a lot of them
 * Added a modlist contents viewer (does not require downloading the modlist)
