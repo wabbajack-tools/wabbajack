@@ -175,7 +175,9 @@ namespace Wabbajack.Lib.Downloaders
 
                 var fileLink = new Uri(Url);
                 Utils.Status($"Downloading MEGA file: {a.Name}");
-                await MegaApiClient.DownloadFileAsync(fileLink, (string)destination, new Progress<double>(p => Utils.Status($"Downloading MEGA File: {a.Name}", Percent.FactoryPutInRange(p))));
+                await MegaApiClient.DownloadFileAsync(fileLink, (string)destination, new Progress<double>(p => 
+                    Utils.Status($"Downloading MEGA File: {a.Name}", Percent.FactoryPutInRange(p / 100d))
+                ));
                 return true;
             }
 
