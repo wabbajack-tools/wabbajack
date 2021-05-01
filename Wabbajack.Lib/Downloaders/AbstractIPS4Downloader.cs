@@ -250,10 +250,15 @@ namespace Wabbajack.Lib.Downloaders
                         return false;
                     }
 
+                    if (quickMode)
+                    {
+                        streamResult.Dispose();
+                        return true;
+                    }
+
                     await using (var os = await path.Create())
                     await using (var ins = await streamResult.Content.ReadAsStreamAsync())
                     {
-                        if (quickMode) return true;
                         if (a.Size == 0)
                         {
                             Utils.Status($"Downloading {a.Name}");
