@@ -27,13 +27,16 @@ namespace Wabbajack.Server.Services
         {
             var archives = await _sql.GetNonNexusModlistArchives();
             _logger.Log(LogLevel.Information, $"Validating {archives.Count} non-Nexus archives");
-            using var queue = new WorkQueue();
+            using var queue = new WorkQueue(10);
             await DownloadDispatcher.PrepareAll(archives.Select(a => a.State));
 
+            var random = new Random();
             var results = await archives.PMap(queue, async archive =>
             {
                 try
                 {
+                    await Task.Delay(random.Next(1000, 5000));
+                    
                     var token = new CancellationTokenSource();
                     token.CancelAfter(TimeSpan.FromMinutes(10));
                     
@@ -43,6 +46,9 @@ namespace Wabbajack.Server.Services
                     {
                         //case WabbajackCDNDownloader.State _: 
                         //case GoogleDriveDownloader.State _: // Let's try validating Google again 2/10/2021
+                        case GameFileSourceDownloader.State _:
+                            isValid = true;
+                            break;
                         case ManualDownloader.State _:
                         case ModDBDownloader.State _:
                         case HTTPDownloader.State h when h.Url.StartsWith("https://wabbajack"):

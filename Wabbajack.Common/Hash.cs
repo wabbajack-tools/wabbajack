@@ -289,6 +289,7 @@ namespace Wabbajack.Common
             try
             {
                 await using var fs = await file.OpenRead();
+                await using var bs = new BufferedStream(fs, 1024 * 1024 * 10);
                 var config = new xxHashConfig { HashSizeInBits = 64 };
                 await using var hs = new StatusFileStream(fs, $"Hashing {file}");
                 var value = await xxHashFactory.Instance.Create(config).ComputeHashAsync(hs);
