@@ -27,6 +27,7 @@
                 <RowDefinition Height="25" />
                 <RowDefinition Height="25" />
                 <RowDefinition Height="25" />
+                <RowDefinition Height="25" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
@@ -86,7 +87,18 @@
                       HorizontalAlignment="Right"
                       VerticalAlignment="Center"
                       Foreground="White"
-                ></CheckBox>
+            ></CheckBox>
+            
+            <TextBlock Grid.Row="7" Grid.Column="0"
+                       x:Name="UseNetworkWorkaroundLabel"
+                       VerticalAlignment="Center"
+                       Text="Use Network Workaround (slow)" />
+            <CheckBox Grid.Row="7" Grid.Column="2"
+                      x:Name="UseNetworkWorkAround"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Center"
+                      Foreground="White"
+            ></CheckBox>
         </Grid>
     </Border>
 </rxui:ReactiveUserControl>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Wabbajack.Common;
 using Wabbajack.Lib;
 using Xunit;
 
@@ -10,13 +11,17 @@ namespace Wabbajack.Test
         [Fact]
         public async Task CanSendExceptions()
         {
-            try
+            foreach (var mode in new[] {true, false})
             {
-                throw new Exception("Test Exception");
-            }
-            catch (Exception ex)
-            {
-                await Metrics.Error(this.GetType(), ex);
+                Consts.UseNetworkWorkaroundMode = mode;
+                try
+                {
+                    throw new Exception("Test Exception");
+                }
+                catch (Exception ex)
+                {
+                    await Metrics.Error(this.GetType(), ex);
+                }
             }
         }
         

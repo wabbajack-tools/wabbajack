@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
@@ -16,11 +17,21 @@ namespace Wabbajack.Server.DataLayer
         /// </summary>
         /// <param name="patch"></param>
         /// <returns></returns>
-        public async Task AddPatch(Patch patch)
+        public async Task<bool> AddPatch(Patch patch)
         {
             await using var conn = await Open();
+            await using var trans = conn.BeginTransaction();
+
+            if (await conn.QuerySingleOrDefaultAsync<(Guid, Guid)>(
+                "Select SrcID, DestID FROM dbo.Patches where SrcID = @SrcId and DestID = @DestId",
+                new {SrcId = patch.Src.Id, DestId = patch.Dest.Id}, trans) != default)
+                return false;
+
             await conn.ExecuteAsync("INSERT INTO dbo.Patches (SrcId, DestId) VALUES (@SrcId, @DestId)",
-                new {SrcId = patch.Src.Id, DestId = patch.Dest.Id});
+                new {SrcId = patch.Src.Id, DestId = patch.Dest.Id}, trans);
+            await trans.CommitAsync();
+            return true;
+
         }
         
         /// <summary>

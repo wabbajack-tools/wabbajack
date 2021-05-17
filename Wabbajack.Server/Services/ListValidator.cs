@@ -322,16 +322,18 @@ namespace Wabbajack.Server.Services
             var existing = await _sql.FindPatch(srcDownload.Id, destDownload.Id);
             if (existing == null)
             {
-                await _sql.AddPatch(new Patch {Src = srcDownload, Dest = destDownload});
+                if (await _sql.AddPatch(new Patch {Src = srcDownload, Dest = destDownload}))
+                {
 
-                _logger.Log(LogLevel.Information,
-                    $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash}");
-                await _discord.Send(Channel.Ham,
-                    new DiscordMessage
-                    {
-                        Content =
-                            $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash} to auto-heal `{modList.Links.MachineURL}`"
-                    });
+                    _logger.Log(LogLevel.Information,
+                        $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash}");
+                    await _discord.Send(Channel.Ham,
+                        new DiscordMessage
+                        {
+                            Content =
+                                $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash} to auto-heal `{modList.Links.MachineURL}`"
+                        });
+                }
             }
 
             await upgrade.NewFile.DisposeAsync();

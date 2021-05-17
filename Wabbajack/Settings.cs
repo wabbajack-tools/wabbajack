@@ -133,6 +133,17 @@ namespace Wabbajack
 
         private bool _favorPerfOverRam;
         public bool FavorPerfOverRam { get => _favorPerfOverRam; set => RaiseAndSetIfChanged(ref _favorPerfOverRam, value); }
+        
+        private bool _networkWorkaroundMode;
+        public bool NetworkWorkaroundMode
+        {
+            get => _networkWorkaroundMode;
+            set
+            {
+                Consts.UseNetworkWorkaroundMode = value;
+                RaiseAndSetIfChanged(ref _networkWorkaroundMode, value);
+            }
+        }
 
 
         public void SetProcessorSettings(ABatchProcessor processor)

@@ -75,6 +75,7 @@ namespace Wabbajack.Lib.Http
 
         public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage msg, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true, bool retry = true, CancellationToken? token = null)
         {
+            msg = FixupMessage(msg);
             foreach (var (k, v) in Headers) 
                 msg.Headers.Add(k, v);
             if (Cookies.Count > 0)
@@ -121,6 +122,30 @@ namespace Wabbajack.Lib.Http
 
             }
 
+        }
+
+        private Dictionary<string, Func<(string Ip, string Host)>> _workaroundMappings = new()
+        {
+            {"patches.wabbajack.org", () => (Consts.NetworkWorkaroundHost, "patches.wabbajack.org")},
+            {"authored-files.wabbajack.org", () => (Consts.NetworkWorkaroundHost, "authored-files.wabbajack.org")},
+            {"mirror.wabbajack.org", () => (Consts.NetworkWorkaroundHost, "mirror.wabbajack.org")},
+            {"build.wabbajack.org", () => (Consts.NetworkWorkaroundHost, "proxy-build.wabbajack.org")},
+            {"test-files.wabbajack.org", () => (Consts.NetworkWorkaroundHost, "test-files.wabbajack.org")},
+        };
+        private HttpRequestMessage FixupMessage(HttpRequestMessage msg)
+        {
+            if (!Consts.UseNetworkWorkaroundMode) return msg;
+            var uri = new UriBuilder(msg.RequestUri!);
+            
+            if (!_workaroundMappings.TryGetValue(uri.Host, out var f))
+                return msg;
+
+            var (ip, host) = f();
+            uri.Host = ip;
+            msg.Headers.Host = host;
+            msg.RequestUri = uri.Uri;
+
+            return msg;
         }
 
         private HttpRequestMessage CloneMessage(HttpRequestMessage msg)

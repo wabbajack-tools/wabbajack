@@ -118,6 +118,11 @@ namespace Wabbajack.Common
         public static string WabbajackCacheLocation = "http://build.wabbajack.org/nexus_api_cache/";
 
         public static string WabbajackCacheHostname = "build.wabbajack.org";
+        
+        // Direct IP to the CDN
+        public static string NetworkWorkaroundHost = "storage.wabbajack.org"; //"51.81.80.6";
+        public static bool UseNetworkWorkaroundMode = false;
+        
         public static Uri WabbajackBuildServerUri = new Uri("https://build.wabbajack.org");
         public static int WabbajackCachePort = 80;
         public static int MaxHTTPRetries = 4;
