@@ -76,8 +76,14 @@ namespace Wabbajack.Lib.Http
         public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage msg, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true, bool retry = true, CancellationToken? token = null)
         {
             msg = FixupMessage(msg);
-            foreach (var (k, v) in Headers) 
-                msg.Headers.Add(k, v);
+            foreach (var (k, v) in Headers)
+            {
+                if (k == "Host")
+                    msg.Headers.Host = v;
+                else 
+                    msg.Headers.Add(k, v);
+            }
+
             if (Cookies.Count > 0)
                 Cookies.ForEach(c => ClientFactory.Cookies.Add(c));   
             int retries = 0;

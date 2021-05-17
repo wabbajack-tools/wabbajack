@@ -92,7 +92,7 @@ namespace Wabbajack.Common
         public static string ModlistMetadataURL = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json";
         public static string UtilityModlistMetadataURL = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/utility_modlists.json";
         public static string UnlistedModlistMetadataURL = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/unlisted_modlists.json";
-        public static string ModlistSummaryURL = "http://build.wabbajack.org/lists/status.json";
+        public static string ModlistSummaryURL = "https://build.wabbajack.org/lists/status.json";
         public static string UserAgent
         {
             get
@@ -120,7 +120,7 @@ namespace Wabbajack.Common
         public static string WabbajackCacheHostname = "build.wabbajack.org";
         
         // Direct IP to the CDN
-        public static string NetworkWorkaroundHost = "storage.wabbajack.org"; //"51.81.80.6";
+        public static string NetworkWorkaroundHost = "51.81.80.6";
         public static bool UseNetworkWorkaroundMode = false;
         
         public static Uri WabbajackBuildServerUri = new Uri("https://build.wabbajack.org");

@@ -22,10 +22,18 @@ namespace Wabbajack.Lib.Http
                 MaxConnectionsPerServer = 20,
                 PooledConnectionLifetime = TimeSpan.FromMilliseconds(100),
                 PooledConnectionIdleTimeout = TimeSpan.FromMilliseconds(100),
-                AutomaticDecompression = DecompressionMethods.All
-               
+                AutomaticDecompression = DecompressionMethods.All,
+
             };
             Utils.Log($"Configuring with SSL {_socketsHandler.SslOptions.EnabledSslProtocols}");
+
+            ServicePointManager.ServerCertificateValidationCallback +=
+                (sender, certificate, chain, errors) =>
+                {
+                    if (Consts.UseNetworkWorkaroundMode)
+                        return true;
+                    return errors == SslPolicyErrors.None;
+                };
             Client = new SysHttp.HttpClient(_socketsHandler);
             Client.DefaultRequestHeaders.Add("User-Agent", Consts.UserAgent);
         }
