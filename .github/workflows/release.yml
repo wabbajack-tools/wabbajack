@@ -27,7 +27,7 @@ jobs:
     - name: Remove Previous Launcher
       uses: JesseTG/rm@v1.0.0
       with:
-        path: x:\tmp\PublishLauncher    
+        path: z:\tmp\PublishLauncher    
 
     - name: Build
       run: dotnet build --no-restore
@@ -42,9 +42,9 @@ jobs:
       run: C:\"Program Files (x86)"\"Windows Kits"\10\bin\10.0.17763.0\x86\signtool.exe sign /sm c:\tmp\PublishLauncher\Wabbajack.exe
       shell: cmd
     - name: Create Release Folder
-      run: mkdir x:\wabbajack_releases\${{ github.event.inputs.version }}
+      run: mkdir z:\wabbajack_releases\${{ github.event.inputs.version }}
     - name: Copy Launcher
-      run: copy x:\tmp\PublishLauncher\Wabbajack.exe x:\wabbajack_releases\${{ github.event.inputs.version }}\Wabbajack.exe
+      run: copy z:\tmp\PublishLauncher\Wabbajack.exe z:\wabbajack_releases\${{ github.event.inputs.version }}\Wabbajack.exe
     - name: Zip Release
-      run: Compress-Archive -Path c:\tmp\PublishApp\* -DestinationPath x:\wabbajack_releases\${{ github.event.inputs.version }}\${{ github.event.inputs.version }}.zip
+      run: Compress-Archive -Path c:\tmp\PublishApp\* -DestinationPath z:\wabbajack_releases\${{ github.event.inputs.version }}\${{ github.event.inputs.version }}.zip
 
