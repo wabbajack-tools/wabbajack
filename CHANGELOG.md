@@ -1,7 +1,10 @@
 ### Changelog
 
-#### Version - 2.4.4.2 - ???
+#### Version - 2.4.4.2 - 5/17/2021
 * Modlists are now exported as X.wabbajack where X is the name chosen in the Compiler UI
+* Added a new `Network Workaround` mode to the WJ settings panel. Enabling this will bypass Cloudflare and
+a lot of caching/DNS layers. Give this a try if you're getting strange SSL errors instead of using a VPN
+Should also help get around problems with Telekom and their interaction with Cloudflare.  
 
 #### Version - 2.4.4.1 - 5/1/2021
 * HOTFIX: downgrade cefsharp to fix the in-app browser (fixes Nexus login issue)
