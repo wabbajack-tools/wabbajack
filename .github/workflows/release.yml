@@ -23,7 +23,7 @@ jobs:
     - name: Remove Previous App
       uses: JesseTG/rm@v1.0.0
       with:
-        path: x:\tmp\PublishApp    
+        path: z:\tmp\PublishApp    
     - name: Remove Previous Launcher
       uses: JesseTG/rm@v1.0.0
       with:
@@ -32,14 +32,14 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Publish App
-      run: dotnet publish Wabbajack\Wabbajack.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o c:\tmp\PublishApp --self-contained
+      run: dotnet publish Wabbajack\Wabbajack.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o z:\tmp\PublishApp --self-contained
     - name: Publish Launcher
-      run: dotnet publish Wabbajack.Launcher\Wabbajack.Launcher.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o c:\tmp\PublishLauncher --self-contained
+      run: dotnet publish Wabbajack.Launcher\Wabbajack.Launcher.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o z:\tmp\PublishLauncher --self-contained
     - name: Sign App
-      run: C:\"Program Files (x86)"\"Windows Kits"\10\bin\10.0.17763.0\x86\signtool.exe sign /sm c:\tmp\PublishApp\Wabbajack.exe
+      run: C:\"Program Files (x86)"\"Windows Kits"\10\bin\10.0.17763.0\x86\signtool.exe sign /sm z:\tmp\PublishApp\Wabbajack.exe
       shell: cmd
     - name: Sign Launcher
-      run: C:\"Program Files (x86)"\"Windows Kits"\10\bin\10.0.17763.0\x86\signtool.exe sign /sm c:\tmp\PublishLauncher\Wabbajack.exe
+      run: C:\"Program Files (x86)"\"Windows Kits"\10\bin\10.0.17763.0\x86\signtool.exe sign /sm z:\tmp\PublishLauncher\Wabbajack.exe
       shell: cmd
     - name: Create Release Folder
       run: mkdir z:\wabbajack_releases\${{ github.event.inputs.version }}
