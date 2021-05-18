@@ -43,6 +43,8 @@ namespace Wabbajack
                     .DisposeWith(disposable);
                 this.BindStrict(this.ViewModel, x => x.FavorPerfOverRam, x => x.FavorPerfOverRam.IsChecked)
                     .DisposeWith(disposable);
+                this.BindStrict(this.ViewModel, x => x.NetworkWorkaroundMode, x => x.UseNetworkWorkAround.IsChecked)
+                    .DisposeWith(disposable);
             });
         }
     }

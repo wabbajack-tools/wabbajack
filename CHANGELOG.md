@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.4.4.2 - ???
+* Modlists are now exported as X.wabbajack where X is the name chosen in the Compiler UI
+
 #### Version - 2.4.4.1 - 5/1/2021
 * HOTFIX: downgrade cefsharp to fix the in-app browser (fixes Nexus login issue)
 

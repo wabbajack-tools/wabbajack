@@ -184,13 +184,18 @@ namespace Wabbajack
         public async Task<GetResponse<ModList>> Compile()
         {
             AbsolutePath outputFile;
+
+            var profileName = string.IsNullOrWhiteSpace(ModlistSettings.ModListName)
+                ? MOProfile
+                : ModlistSettings.ModListName;
+            
             if (Parent.OutputLocation.TargetPath == default)
             {
-                outputFile = (MOProfile + Consts.ModListExtension).RelativeTo(AbsolutePath.EntryPoint);
+                outputFile = (profileName + Consts.ModListExtension).RelativeTo(AbsolutePath.EntryPoint);
             }
             else
             {
-                outputFile = Parent.OutputLocation.TargetPath.Combine(MOProfile + Consts.ModListExtension);
+                outputFile = Parent.OutputLocation.TargetPath.Combine(profileName + Consts.ModListExtension);
             }
 
             try
