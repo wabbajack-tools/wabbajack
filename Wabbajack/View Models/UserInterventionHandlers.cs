@@ -10,6 +10,7 @@ using System.Windows.Threading;
 using CefSharp;
 using ReactiveUI;
 using Wabbajack.Common;
+using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.LibCefHelpers;
@@ -57,12 +58,12 @@ namespace Wabbajack
             MainWindow.NavigateTo(oldPane);
         }
 
-        public async Task Handle(IUserIntervention msg)
+        public async Task Handle(IStatusMessage msg)
         {
             switch (msg)
             {
                 case RequestNexusAuthorization c:
-                    await WrapBrowserJob(msg, async (vm, cancel) =>
+                    await WrapBrowserJob(c, async (vm, cancel) =>
                     {
                         await vm.Driver.WaitForInitialized();
                         var key = await NexusApiClient.SetupNexusLogin(new CefSharpWrapper(vm.Browser), m => vm.Instructions = m, cancel.Token);
@@ -70,13 +71,13 @@ namespace Wabbajack
                     });
                     break;
                 case ManuallyDownloadNexusFile c:
-                    await WrapBrowserJob(msg, (vm, cancel) => HandleManualNexusDownload(vm, cancel, c));
+                    await WrapBrowserJob(c, (vm, cancel) => HandleManualNexusDownload(vm, cancel, c));
                     break;
                 case ManuallyDownloadFile c:
-                    await WrapBrowserJob(msg, (vm, cancel) => HandleManualDownload(vm, cancel, c));
+                    await WrapBrowserJob(c, (vm, cancel) => HandleManualDownload(vm, cancel, c));
                     break;
                 case AbstractNeedsLoginDownloader.RequestSiteLogin c:
-                    await WrapBrowserJob(msg, async (vm, cancel) =>
+                    await WrapBrowserJob(c, async (vm, cancel) =>
                     {
                         await vm.Driver.WaitForInitialized();
                         var data = await c.Downloader.GetAndCacheCookies(new CefSharpWrapper(vm.Browser), m => vm.Instructions = m, cancel.Token);
@@ -87,6 +88,7 @@ namespace Wabbajack
                     MessageBox.Show(c.ExtendedDescription, c.ShortDescription, MessageBoxButton.OK,
                         MessageBoxImage.Error);
                     c.Cancel();
+                    if (c.ExitApplication) await MainWindow.ShutdownApplication();
                     break;
                 case ConfirmationIntervention c:
                     break;

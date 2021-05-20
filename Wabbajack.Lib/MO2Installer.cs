@@ -70,21 +70,19 @@ namespace Wabbajack.Lib
                 var otherGame = Game.CommonlyConfusedWith.Where(g => g.MetaData().IsInstalled).Select(g => g.MetaData()).FirstOrDefault();
                 if (otherGame != null)
                 {
-                    await Utils.Log(new CriticalFailureIntervention(
-                            $"In order to do a proper install Wabbajack needs to know where your {Game.HumanFriendlyGameName} folder resides. However this game doesn't seem to be installed, we did however find a installed " +
-                            $"copy of {otherGame.HumanFriendlyGameName}, did you install the wrong game?",
-                            $"Could not locate {Game.HumanFriendlyGameName}"))
-                        .Task;
+                    Utils.Error(new CriticalFailureIntervention(
+                        $"In order to do a proper install Wabbajack needs to know where your {Game.HumanFriendlyGameName} folder resides. However this game doesn't seem to be installed, we did however find an installed " +
+                        $"copy of {otherGame.HumanFriendlyGameName}, did you install the wrong game?",
+                        $"Could not locate {Game.HumanFriendlyGameName}"));
                 }
                 else
                 {
-                    await Utils.Log(new CriticalFailureIntervention(
-                            $"In order to do a proper install Wabbajack needs to know where your {Game.HumanFriendlyGameName} folder resides. However this game doesn't seem to be installed",
-                            $"Could not locate {Game.HumanFriendlyGameName}"))
-                        .Task;
+                    Utils.Error(new CriticalFailureIntervention(
+                        $"In order to do a proper install Wabbajack needs to know where your {Game.HumanFriendlyGameName} folder resides. However this game doesn't seem to be installed.",
+                        $"Could not locate {Game.HumanFriendlyGameName}"));
                 }
 
-                Utils.Log("Exiting because we couldn't find the game folder.");
+                Utils.Error("Exiting because we couldn't find the game folder.");
                 return false;
             }
 
