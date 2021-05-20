@@ -174,7 +174,12 @@ namespace Wabbajack.Lib
                 {
                     Utils.Log("Installation has Started");
                     _isRunning.OnNext(true);
-                    return await _Begin(_cancel.Token);
+                    var task = await _Begin(_cancel.Token);
+                    Utils.Log("Vacuuming databases");
+                    HashCache.VacuumDatabase();
+                    VirtualFile.VacuumDatabase();
+                    Utils.Log("Vacuuming completed");
+                    return task;
                 }
                 catch (Exception ex)
                 {
@@ -183,10 +188,6 @@ namespace Wabbajack.Lib
                 }
                 finally
                 {
-                    Utils.Log("Vacuuming databases");
-                    HashCache.VacuumDatabase();
-                    VirtualFile.VacuumDatabase();
-                    Utils.Log("Vacuuming completed");
                     _isRunning.OnNext(false);
                 }
             });
