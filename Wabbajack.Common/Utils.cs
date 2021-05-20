@@ -38,7 +38,7 @@ namespace Wabbajack.Common
 
         static Utils()
         {
-            InitalizeLogging().Wait();
+            InitializeLogging().Wait();
         }
 
         private static readonly string[] Suffix = {"B", "KB", "MB", "GB", "TB", "PB", "EB"}; // Longs run out around EB
