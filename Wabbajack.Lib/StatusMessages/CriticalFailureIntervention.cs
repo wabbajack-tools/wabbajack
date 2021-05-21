@@ -12,13 +12,17 @@ namespace Wabbajack.Lib
         private TaskCompletionSource<ConfirmationIntervention.Choice> _source = new TaskCompletionSource<ConfirmationIntervention.Choice>();
         public Task<ConfirmationIntervention.Choice> Task => _source.Task;
 
-        public CriticalFailureIntervention(string description, string title)
+        public CriticalFailureIntervention(string description, string title, bool exit = false)
         {
             ExtendedDescription = description;
             ShortDescription = title;
+            ExitApplication = exit;
         }
+
         public override string ShortDescription { get; }
         public override string ExtendedDescription { get; }
+        public bool ExitApplication { get; }
+
         public void Cancel()
         {
             _source.SetResult(ConfirmationIntervention.Choice.Abort);

@@ -30,7 +30,7 @@ namespace Wabbajack.Common
         private static readonly Subject<IStatusMessage> LoggerSubj = new Subject<IStatusMessage>();
         public static IObservable<IStatusMessage> LogMessages => LoggerSubj;
 
-        public static async Task InitalizeLogging()
+        public static async Task InitializeLogging()
         {
             _startTime = DateTime.Now;
 
@@ -126,7 +126,7 @@ namespace Wabbajack.Common
             if (!LoggingSettings.LogToFile || LogFile == default) return;
             lock (_logLock)
             {
-                File.AppendAllText(LogFile.ToString(), $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}\r\n");
+                File.AppendAllText(LogFile.ToString(), $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}\r\n", new UTF8Encoding(false, true));
             }
         }
 

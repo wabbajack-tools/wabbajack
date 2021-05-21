@@ -63,7 +63,7 @@ namespace Wabbajack
                     this.WhenAny(x => x.DownloadLocation.TargetPath),
                     resultSelector: (target, download) => (target, download))
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .Select(i => MO2Installer.CheckValidInstallPath(i.target, i.download))
+                .Select(i => MO2Installer.CheckValidInstallPath(i.target, i.download, Parent.ModList?.SourceModList.GameType.MetaData()))
                 .ObserveOnGuiThread();
 
             _CanInstall = Observable.CombineLatest(
@@ -83,7 +83,7 @@ namespace Wabbajack
                 {
                     if (DownloadLocation.TargetPath == default || DownloadLocation.TargetPath == installPath)
                     {
-                        DownloadLocation.TargetPath = installPath.Combine("downloads");
+                        if (installPath.Exists) DownloadLocation.TargetPath = installPath.Combine("downloads");
                     }
                 })
                 .DisposeWith(CompositeDisposable);

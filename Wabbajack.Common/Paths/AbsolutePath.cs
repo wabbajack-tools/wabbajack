@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -209,6 +209,21 @@ namespace Wabbajack.Common
             return new RelativePath(relPath);
         }
 
+        public bool IsChildOf(AbsolutePath? parent)
+        {
+            if (parent is null) return false;
+            var child = this;
+            if (child == parent) return true;
+            while (child.Parent.Exists)
+            {
+                if (child.Parent == parent)
+                {
+                    return true;
+                }
+                child = child.Parent;
+            }
+            return false;
+        }
 
         public async Task<string> ReadAllTextAsync()
         {

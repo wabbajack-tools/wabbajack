@@ -16,7 +16,7 @@ namespace Wabbajack
             Consts.LogsFolder.CreateDirectory();
 
             LoggingSettings.LogToFile = true;
-            Utils.InitalizeLogging().Wait();
+            Utils.InitializeLogging().Wait();
 
             CLIOld.ParseOptions(Environment.GetCommandLineArgs());
             if (CLIArguments.Help)

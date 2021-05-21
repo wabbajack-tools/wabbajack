@@ -77,9 +77,9 @@ namespace Wabbajack
                 .Bind(Log)
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
-            
+
             Utils.LogMessages
-                .OfType<IUserIntervention>()
+                .Where(a => a is IUserIntervention or CriticalFailureIntervention)
                 .ObserveOnGuiThread()
                 .SelectTask(async msg =>
                 {
@@ -93,9 +93,9 @@ namespace Wabbajack
                         Utils.Error(ex, $"Error while handling user intervention of type {msg?.GetType()}");
                         try
                         {
-                            if (!msg.Handled)
+                            if (msg is IUserIntervention {Handled: false} intervention)
                             {
-                                msg.Cancel();
+                                intervention.Cancel();
                             }
                         }
                         catch (Exception cancelEx)

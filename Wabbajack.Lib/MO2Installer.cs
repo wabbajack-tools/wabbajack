@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.IO;
@@ -22,6 +22,7 @@ using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 using SectionData = Wabbajack.Common.SectionData;
 using System.Collections.Generic;
+using Wabbajack.Common.IO;
 using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.VirtualFileSystem;
 
@@ -69,21 +70,19 @@ namespace Wabbajack.Lib
                 var otherGame = Game.CommonlyConfusedWith.Where(g => g.MetaData().IsInstalled).Select(g => g.MetaData()).FirstOrDefault();
                 if (otherGame != null)
                 {
-                    await Utils.Log(new CriticalFailureIntervention(
-                            $"In order to do a proper install Wabbajack needs to know where your {Game.HumanFriendlyGameName} folder resides. However this game doesn't seem to be installed, we did however find a installed " +
-                            $"copy of {otherGame.HumanFriendlyGameName}, did you install the wrong game?",
-                            $"Could not locate {Game.HumanFriendlyGameName}"))
-                        .Task;
+                    Utils.Error(new CriticalFailureIntervention(
+                        $"In order to do a proper install Wabbajack needs to know where your {Game.HumanFriendlyGameName} folder resides. However this game doesn't seem to be installed, we did however find an installed " +
+                        $"copy of {otherGame.HumanFriendlyGameName}, did you install the wrong game?",
+                        $"Could not locate {Game.HumanFriendlyGameName}"));
                 }
                 else
                 {
-                    await Utils.Log(new CriticalFailureIntervention(
-                            $"In order to do a proper install Wabbajack needs to know where your {Game.HumanFriendlyGameName} folder resides. However this game doesn't seem to be installed",
-                            $"Could not locate {Game.HumanFriendlyGameName}"))
-                        .Task;
+                    Utils.Error(new CriticalFailureIntervention(
+                        $"In order to do a proper install Wabbajack needs to know where your {Game.HumanFriendlyGameName} folder resides. However this game doesn't seem to be installed.",
+                        $"Could not locate {Game.HumanFriendlyGameName}"));
                 }
 
-                Utils.Log("Exiting because we couldn't find the game folder.");
+                Utils.Error("Exiting because we couldn't find the game folder.");
                 return false;
             }
 
@@ -503,14 +502,24 @@ namespace Wabbajack.Lib
             await OutputFolder.Combine(directive.To).WriteAllTextAsync(data);
         }
 
-        public static IErrorResponse CheckValidInstallPath(AbsolutePath path, AbsolutePath? downloadFolder)
+        public static IErrorResponse CheckValidInstallPath(AbsolutePath path, AbsolutePath? downloadFolder, GameMetaData? game)
         {
+            // Check if null path
+            if (string.IsNullOrEmpty(path.ToString())) return ErrorResponse.Fail("Please select an install directory.");
+
+            // Check if child of game folder
+            if (game?.TryGetGameLocation() != null && path.IsChildOf(game.TryGetGameLocation())) return ErrorResponse.Fail("Cannot install to game directory.");
+
+            // Check if child of Program Files
+            if (path.IsChildOf(new AbsolutePath(KnownFolders.ProgramFiles.Path))) return ErrorResponse.Fail("Cannot install to Program Files directory.");
+
+            // If the folder doesn't exist, it's empty so we don't need to check further
             if (!path.Exists) return ErrorResponse.Success;
 
             // Check folder does not have a Wabbajack ModList
             if (path.EnumerateFiles(false).Where(file => file.Exists).Any(file => file.Extension == Consts.ModListExtension))
             {
-                return ErrorResponse.Fail($"Cannot install into a folder with a Wabbajack ModList inside of it");
+                return ErrorResponse.Fail($"Cannot install into a folder with a Wabbajack ModList inside of it.");
             }
 
             // Check if folder is empty
