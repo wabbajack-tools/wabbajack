@@ -461,8 +461,7 @@ namespace Wabbajack.Lib
 
                 // There are some types of files that will error the compilation, because they're created on-the-fly via tools
                 // so if we don't have a match by this point, just drop them.
-                new IgnoreEndsWith(this, ".html"),
-                new IgnoreEndsWith(this, ".txt"),
+                new IgnoreEndsWith(this, ".html"),                
                 // Don't know why, but this seems to get copied around a bit
                 new IgnoreEndsWith(this, "HavokBehaviorPostProcess.exe"),
                 // Theme file MO2 downloads somehow
@@ -482,6 +481,7 @@ namespace Wabbajack.Lib
                 new IncludeTaggedMods(this, Consts.WABBAJACK_NOMATCH_INCLUDE),
                 new IncludeTaggedFolders(this,Consts.WABBAJACK_NOMATCH_INCLUDE),
                 new IncludeTaggedFiles(this,Consts.WABBAJACK_NOMATCH_INCLUDE_FILES),
+                new IncludeRegex(this, ".*\\.txt"),
                 new IgnorePathContains(this,@"\Edit Scripts\Export\"),
                 new IgnoreExtension(this, new Extension(".CACHE")),
                 new DropAll(this)

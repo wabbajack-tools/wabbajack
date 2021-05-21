@@ -10,7 +10,7 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class IncludeTaggedFiles : ACompilationStep
     {
-        private readonly List<AbsolutePath> _includeDirectly = new List<AbsolutePath>();
+        private List<AbsolutePath> _includeDirectly = new List<AbsolutePath>();
         private List<AbsolutePath> _tagFiles;
         private readonly string _tag;
         private readonly ACompiler _aCompiler;
@@ -45,7 +45,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             foreach (var folderpath in _includeDirectly)
             {
-                if (!source.AbsolutePath.InFolder(folderpath)) continue;
+                if (!source.AbsolutePath.Equals(folderpath) || !source.AbsolutePath.InFolder(folderpath)) continue;
                 var result = source.EvolveTo<InlineFile>();
                 result.SourceDataID = await _compiler.IncludeFile(source.AbsolutePath);
                 return result;

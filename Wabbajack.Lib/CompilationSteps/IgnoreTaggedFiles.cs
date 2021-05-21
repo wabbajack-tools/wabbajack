@@ -10,7 +10,7 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class IgnoreTaggedFiles : ACompilationStep
     {
-        private readonly List<AbsolutePath> _ignoreList = new List<AbsolutePath>();
+        private List<AbsolutePath> _ignoreList = new List<AbsolutePath>();
         private List<AbsolutePath> _tagFiles;
         private readonly string _tag;
         private readonly ACompiler _aCompiler;
@@ -18,13 +18,13 @@ namespace Wabbajack.Lib.CompilationSteps
         private readonly string _reason;
 
         public IgnoreTaggedFiles(ACompiler compiler, string tag) : base(compiler)
-        {   
+        {
             _aCompiler = (ACompiler)compiler;
             _sourcePath = _aCompiler.SourcePath;
             _tag = tag;
             string rootDirectory = (string)_sourcePath;
 
-            _reason = $"Ignored because folder was tagged with {_tag}";
+            _reason = $"Ignored because folder/file was tagged with {_tag}";
 
             _tagFiles = Directory.EnumerateFiles(rootDirectory, _tag, SearchOption.AllDirectories)
                 .Select(str => (AbsolutePath)str)
@@ -48,7 +48,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             foreach (var folderpath in _ignoreList)
             {
-                if (!source.AbsolutePath.InFolder(folderpath)) continue;
+                if (!source.AbsolutePath.Equals(folderpath) || !source.AbsolutePath.InFolder(folderpath)) continue;
                 var result = source.EvolveTo<IgnoredDirectly>();
                 result.Reason = _reason;
                 return result;
