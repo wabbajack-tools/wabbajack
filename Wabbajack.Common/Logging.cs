@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Subjects;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Common.StatusFeed.Errors;
 using File = Alphaleonis.Win32.Filesystem.File;
-using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
-using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Common
 {
@@ -29,6 +28,15 @@ namespace Wabbajack.Common
 
         private static readonly Subject<IStatusMessage> LoggerSubj = new Subject<IStatusMessage>();
         public static IObservable<IStatusMessage> LogMessages => LoggerSubj;
+
+        public enum LogLevel
+        {
+            Fatal,
+            Error,
+            Warn,
+            Info,
+            Trace
+        }
 
         public static async Task InitializeLogging()
         {
@@ -71,7 +79,7 @@ namespace Wabbajack.Common
                         catch (Exception e)
                         {
                             failed++;
-                            Log($"Could not delete log at {f}!\n{e}");
+                            Warn($"Could not delete log at {f}!\n{e}");
                         }
                     });
 
@@ -80,68 +88,80 @@ namespace Wabbajack.Common
             }
         }
 
-
-        public static void Log(string msg)
+        public static void Fatal(Exception exception, string? msg = null, bool throwException = true, [CallerFilePath] string caller = "")
         {
-            Log(new GenericInfo(msg));
+            if (exception is IException ex)
+            {
+                Log(ex, level: LogLevel.Fatal, caller: caller);
+                if (throwException) throw ex.Exception;
+            }
+            else
+            {
+                Log(new GenericException(exception, msg), LogLevel.Fatal, caller: caller);
+                if (throwException) throw exception;
+            }
         }
 
-        public static T Log<T>(T msg) where T : IStatusMessage
+        public static void Error(Exception exception, string? message = null, bool showInLog = true, bool writeToFile = true, [CallerFilePath] string caller = "")
         {
-            LogStraightToFile(string.IsNullOrWhiteSpace(msg.ExtendedDescription) ? msg.ShortDescription : msg.ExtendedDescription);
-            LoggerSubj.OnNext(msg);
+            Log(new GenericException(exception, message), LogLevel.Error, showInLog, writeToFile, caller: caller);
+        }
+
+        public static void Error(string msg, bool showInLog = true, bool writeToFile = true, [CallerFilePath] string caller = "")
+        {
+            Log(new GenericInfo(msg), LogLevel.Error, showInLog, writeToFile, caller);
+        }
+
+        public static void Warn(string msg, bool showInLog = true, bool writeToFile = true, [CallerFilePath] string caller = "")
+        {
+            Log(new GenericInfo(msg), LogLevel.Warn, writeToFile, writeToFile, caller);
+        }
+
+        public static void Trace(string msg, [CallerFilePath] string caller = "")
+        {
+            Log(new GenericInfo(msg), LogLevel.Trace, showInLog: false, caller: caller);
+        }
+
+        public static void Log(string msg, bool showInLog = true, bool writeToFile = true, [CallerFilePath] string caller = "")
+        {
+            Log(new GenericInfo(msg), LogLevel.Info, writeToFile, writeToFile, caller);
+        }
+
+        public static T Log<T>(T msg, LogLevel level = LogLevel.Info, bool? showInLog = true, bool? writeToFile = true, [CallerFilePath] string caller = "") where T : IStatusMessage
+        {
+            if (writeToFile == true) AppendToLogFile(string.IsNullOrWhiteSpace(msg.ExtendedDescription) ? msg.ShortDescription : msg.ExtendedDescription, level, caller: caller);
+            if (showInLog == true) LoggerSubj.OnNext(msg);
             return msg;
         }
 
-        public static void Error(string errMessage)
-        {
-            Log(errMessage);
-        }
-
-        public static void Error(Exception ex, string? extraMessage = null)
-        {
-            Log(new GenericException(ex, extraMessage));
-        }
-
-        public static void ErrorThrow(Exception ex, string? extraMessage = null)
-        {
-            Error(ex, extraMessage);
-            throw ex;
-        }
-
-        public static void Error(IException err)
-        {
-            LogStraightToFile($"{err.ShortDescription}\n{err.Exception.StackTrace}");
-            LoggerSubj.OnNext(err);
-        }
-
-        public static void ErrorThrow(IException err)
-        {
-            Error(err);
-            throw err.Exception;
-        }
-
-        public static void LogStraightToFile(string msg)
+        private static void AppendToLogFile(string msg, LogLevel level, string caller)
         {
             if (!LoggingSettings.LogToFile || LogFile == default) return;
             lock (_logLock)
             {
-                File.AppendAllText(LogFile.ToString(), $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}\r\n", new UTF8Encoding(false, true));
+                var t = (DateTime.Now - _startTime);
+                var formattedTimeSince = string.Format($"[{((int)t.TotalHours):D2}:{t:mm}:{t:ss}.{t:ff}] ");
+                // Regex matches last file in a path string, supports "\\", "\", "/" separators.
+                Regex regex = new Regex(@"[^\\\/]+(?=[\w]*$)|[^\\\/]+$");
+                if (!string.IsNullOrEmpty(caller))
+                {
+                    var match = regex.Match(caller);
+                    if (match.Success) caller = $"[{match.Groups[0].Value}] ";
+                }
+                string formattedLevel = $"[{level}] ".PadRight(8);
+                File.AppendAllText(LogFile.ToString(), $"{formattedTimeSince}{formattedLevel}{caller}{msg}\r\n", new UTF8Encoding(false, true));
             }
         }
 
-        public static void Status(string msg, Percent progress, bool alsoLog = false)
+        public static void Status(string msg, Percent progress, bool alsoLog = false, LogLevel level = LogLevel.Info, [CallerFilePath] string caller = "")
         {
             WorkQueue.AsyncLocalCurrentQueue.Value?.Report(msg, progress);
-            if (alsoLog)
-            {
-                Utils.Log(msg);
-            }
+            if (alsoLog) Log(msg, caller: caller);
         }
 
-        public static void Status(string msg, bool alsoLog = false)
+        public static void Status(string msg, bool alsoLog = false, LogLevel level = LogLevel.Info, [CallerFilePath] string caller = "")
         {
-            Status(msg, Percent.Zero, alsoLog: alsoLog);
+            Status(msg, Percent.Zero, alsoLog, level, caller);
         }
 
         public static void CatchAndLog(Action a)
@@ -152,7 +172,7 @@ namespace Wabbajack.Common
             }
             catch (Exception ex)
             {
-                Utils.Error(ex);
+                Error(ex);
             }
         }
 
@@ -164,13 +184,8 @@ namespace Wabbajack.Common
             }
             catch (Exception ex)
             {
-                Utils.Error(ex);
+                Error(ex);
             }
-        }
-
-        public static void ErrorMetric(Exception exception)
-        {
-            throw new NotImplementedException();
         }
     }
 }
