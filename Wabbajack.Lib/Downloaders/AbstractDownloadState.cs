@@ -122,8 +122,8 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log($"Verification error for failed for possible upgrade {result.State.PrimaryKeyString}");
-                    Utils.Log(ex.ToString());
+                    Utils.Error($"Verification error for failed for possible upgrade {result.State.PrimaryKeyString}");
+                    Utils.Error(ex.ToString());
                 }
             }
 

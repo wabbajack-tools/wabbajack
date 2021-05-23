@@ -31,12 +31,13 @@ namespace Wabbajack
                 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
                 {
                     // Don't do any special logging side effects
-                    Utils.LogStraightToFile("Error.");
-                    Utils.LogStraightToFile(((Exception)e.ExceptionObject).ToString());
+                    Utils.Error("Error.", showInLog: false);
+                    Utils.Error(((Exception)e.ExceptionObject).ToString(), showInLog: false);
                     Environment.Exit(-1);
                 };
 
                 Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
+                Utils.Log($"Time started: {DateTime.Now:o}");
                 Utils.Log($"Running in {AbsolutePath.EntryPoint}");
 
                 var p = SystemParametersConstructor.Create();
@@ -44,16 +45,14 @@ namespace Wabbajack
                 Utils.Log($"Detected Windows Version: {p.WindowsVersion}");
 
                 if (!(p.WindowsVersion.Major >= 10 && p.WindowsVersion.Minor >= 0))
-                    Utils.Log(
-                        $"You are not running a recent version of Windows (version 10 or greater), Wabbajack is not supported on OS versions older than Windows 10.");
+                    Utils.Error($"You are not running a recent version of Windows (version 10 or greater), Wabbajack is not supported on OS versions older than Windows 10.");
 
-                Utils.Log(
-                    $"System settings - ({p.SystemMemorySize.ToFileSizeString()} RAM) ({p.SystemPageSize.ToFileSizeString()} Page), Display: {p.ScreenWidth} x {p.ScreenHeight} ({p.VideoMemorySize.ToFileSizeString()} VRAM - VideoMemorySizeMb={p.EnbLEVRAMSize})");
+                Utils.Log($"System settings - ({p.SystemMemorySize.ToFileSizeString()} RAM) ({p.SystemPageSize.ToFileSizeString()} Page), Display: {p.ScreenWidth} x {p.ScreenHeight} ({p.VideoMemorySize.ToFileSizeString()} VRAM - VideoMemorySizeMb={p.EnbLEVRAMSize})");
 
                 if (p.SystemPageSize == 0)
-                    Utils.Log("Pagefile is disabled! Consider increasing to 20000MB. A disabled pagefile can cause crashes and poor in-game performance.");
+                    Utils.Warn("Pagefile is disabled! Consider increasing to 20000MB. A disabled pagefile can cause crashes and poor in-game performance.");
                 else if (p.SystemPageSize < 2e+10)
-                    Utils.Log("Pagefile below recommended! Consider increasing to 20000MB. A suboptimal pagefile can cause crashes and poor in-game performance.");
+                    Utils.Warn("Pagefile below recommended! Consider increasing to 20000MB. A suboptimal pagefile can cause crashes and poor in-game performance.");
 
                 Warmup();
                 
@@ -90,8 +89,8 @@ namespace Wabbajack
             }
             catch (Exception ex)
             {
-                Utils.LogStraightToFile("Error");
-                Utils.LogStraightToFile(ex.ToString());
+                Utils.Error("Error", showInLog: false);
+                Utils.Error(ex.ToString(), showInLog: false);
                 Environment.Exit(-1);
             }
         }
@@ -133,7 +132,7 @@ namespace Wabbajack
             }
             catch (Exception e)
             {
-                Utils.Log($"ExtensionManager had an exception:\n{e}");
+                Utils.Warn($"ExtensionManager had an exception:\n{e}");
             }
         }
 

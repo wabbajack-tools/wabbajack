@@ -245,7 +245,7 @@ namespace Wabbajack.VirtualFileSystem
             }
             catch (Exception)
             {
-                Utils.Log($"Error while examining the contents of {relPath.FileName}");
+                Utils.Error($"Error while examining the contents of {relPath.FileName}");
                 throw;
             }
 

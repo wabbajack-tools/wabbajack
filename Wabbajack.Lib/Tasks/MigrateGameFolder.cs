@@ -10,7 +10,7 @@ namespace Wabbajack.Lib.Tasks
             var iniPath = mo2Folder.Combine(Consts.ModOrganizer2Ini);
             if (!iniPath.Exists)
             {
-                Utils.Log($"Game folder conversion failed, {Consts.ModOrganizer2Ini} does not exist in {mo2Folder}");
+                Utils.Error($"Game folder conversion failed, {Consts.ModOrganizer2Ini} does not exist in {mo2Folder}");
                 return false;
             }
 
@@ -20,7 +20,7 @@ namespace Wabbajack.Lib.Tasks
 
             if (!GameRegistry.TryGetByFuzzyName((string)gameIni.General.gameName, out var gameMeta))
             {
-                Utils.Log($"Could not locate game for {gameIni.General.gameName}");
+                Utils.Error($"Could not locate game for {gameIni.General.gameName}");
                 return false;
             }
 

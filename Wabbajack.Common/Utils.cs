@@ -789,7 +789,7 @@ namespace Wabbajack.Common
             }
             catch (Exception ex)
             {
-                Log($"Error encrypting data {key} {ex}");
+                Error($"Error encrypting data {key} {ex}");
                 throw;
             }
         }

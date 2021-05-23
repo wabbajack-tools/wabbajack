@@ -27,7 +27,7 @@ namespace Wabbajack.Common
                 retries += 1;
                 if (retries > maxRetries)
                     throw;
-                Utils.Log($"(Retry {retries} of {maxRetries}), got exception {ex.Message}, waiting {delay!.Value.TotalMilliseconds}ms");
+                Utils.Warn($"(Retry {retries} of {maxRetries}), got exception {ex.Message}, waiting {delay!.Value.TotalMilliseconds}ms");
                 await Task.Delay(delay.Value);
                 delay = delay * multipler;
                 goto TOP;
@@ -51,7 +51,7 @@ namespace Wabbajack.Common
                 retries += 1;
                 if (retries > maxRetries)
                     throw;
-                Utils.Log($"(Retry {retries} of {maxRetries}), got exception {ex.Message}, waiting {delay!.Value.TotalMilliseconds}ms");
+                Utils.Warn($"(Retry {retries} of {maxRetries}), got exception {ex.Message}, waiting {delay!.Value.TotalMilliseconds}ms");
                 await Task.Delay(delay.Value);
                 delay = delay * multipler;
                 goto TOP;
@@ -76,7 +76,7 @@ namespace Wabbajack.Common
                 retries += 1;
                 if (retries > maxRetries)
                     throw;
-                Utils.Log($"(Retry {retries} of {maxRetries}), got exception {ex.Message}, waiting {delay!.Value.TotalMilliseconds}ms");
+                Utils.Warn($"(Retry {retries} of {maxRetries}), got exception {ex.Message}, waiting {delay!.Value.TotalMilliseconds}ms");
                 await Task.Delay(delay.Value);
                 delay = delay * multipler;
                 goto TOP;
@@ -99,7 +99,7 @@ namespace Wabbajack.Common
                 retries += 1;
                 if (retries > maxRetries)
                     throw;
-                Utils.Log($"(Retry {retries} of {maxRetries}), got exception {ex.Message}, waiting {delay!.Value.TotalMilliseconds}ms");
+                Utils.Warn($"(Retry {retries} of {maxRetries}), got exception {ex.Message}, waiting {delay!.Value.TotalMilliseconds}ms");
                 await Task.Delay(delay.Value);
                 delay = delay * multipler;
                 goto TOP;
@@ -123,7 +123,7 @@ namespace Wabbajack.Common
                 retries += 1;
                 if (retries > maxRetries)
                     throw;
-                Utils.Log($"(Retry {retries} of {maxRetries}), got exception {ex.Message}, waiting {delay!.Value.TotalMilliseconds}ms");
+                Utils.Warn($"(Retry {retries} of {maxRetries}), got exception {ex.Message}, waiting {delay!.Value.TotalMilliseconds}ms");
                 Thread.Sleep(delay.Value);
                 delay = delay * multipler;
                 goto TOP;

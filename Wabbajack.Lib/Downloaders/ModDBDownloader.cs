@@ -66,7 +66,7 @@ namespace Wabbajack.Lib.Downloaders
                     {
                         if (idx == urls.Length - 1)
                             throw;
-                        Utils.Log($"Download from {url} failed, trying next mirror");
+                        Utils.Error($"Download from {url} failed, trying next mirror");
                     }
                 }
                 return false;

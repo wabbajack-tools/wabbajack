@@ -74,7 +74,7 @@ namespace Wabbajack.Server.Services
                         catch (Exception ex)
                         {
                             _logger.LogError(ex, "Running Service Loop");
-                            Utils.Log($"Error in service {this.GetType()} : {ex}");
+                            Utils.Error($"Error in service {this.GetType()} : {ex}");
                         }
 
                         var token = await _quickSync.GetToken<TP>();

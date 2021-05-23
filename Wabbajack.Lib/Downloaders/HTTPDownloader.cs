@@ -104,6 +104,7 @@ namespace Wabbajack.Lib.Downloaders
                 if (!response.IsSuccessStatusCode) 
                 {
                     response.Dispose();
+                    Utils.Error($"\"{a.Name}\" responded with code {(int)response.StatusCode} while downloading!");
                     return false;
                 }
 
@@ -171,8 +172,7 @@ namespace Wabbajack.Lib.Downloaders
                                     throw;
                                 }
 
-                                Utils.Log(
-                                    $"Abort during download, trying to resume {Url} from {totalRead.ToFileSizeString()}");
+                                Utils.Error($"Abort during download, trying to resume {Url} from {totalRead.ToFileSizeString()}");
 
                                 var msg = new HttpRequestMessage(HttpMethod.Get, Url);
                                 msg.Headers.Range = new RangeHeaderValue(totalRead, null);
@@ -238,7 +238,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 catch (HttpException ex)
                 {
-                    Utils.Log($"Error finding upgrade via HTTP to find Upgrade for {Url} {ex}");
+                    Utils.Error($"Error finding upgrade via HTTP to find Upgrade for {Url} {ex}");
                     return default;
                 }
 

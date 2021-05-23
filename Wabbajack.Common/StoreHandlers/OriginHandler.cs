@@ -49,7 +49,7 @@ namespace Wabbajack.Common.StoreHandlers
                     }
                     catch (Exception ex)
                     {
-                        Utils.Log($"Origin got {ex.Message} when loading info for {known}");
+                        Utils.Warn($"Origin got {ex.Message} when loading info for {known}");
                         continue;
                     }
 
@@ -84,7 +84,7 @@ namespace Wabbajack.Common.StoreHandlers
             }
             catch (Exception ex)
             {
-                Utils.Log(ex.ToString());
+                Utils.Error(ex.ToString());
                 return false;
             }
         }
@@ -137,7 +137,7 @@ namespace Wabbajack.Common.StoreHandlers
             var matchPath = Regex.Match(path, @"\[(.*?)\\(.*)\\(.*)\](.*)");
             if (!matchPath.Success)
             {
-                Utils.Log("Unknown path format " + path);
+                Utils.Warn("Unknown path format " + path);
                 return default;
             }
 

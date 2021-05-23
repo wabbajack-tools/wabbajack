@@ -205,8 +205,8 @@ using Wabbajack.Lib.Downloaders;
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log($"Verification error for failed for inferenced archive {result.State.PrimaryKeyString}");
-                    Utils.Log(ex.ToString());
+                    Utils.Error($"Verification error for failed for inferenced archive {result.State.PrimaryKeyString}");
+                    Utils.Error(ex.ToString());
                 }
             }
             return null;
@@ -224,7 +224,7 @@ using Wabbajack.Lib.Downloaders;
         public static async Task<Archive[]> GetModUpgrades(Hash src)
         {
             var client = await GetClient();
-            Utils.Log($"Looking for generic upgrade for {src} ({(long)src})");
+            Utils.Trace($"Looking for generic upgrade for {src} ({(long)src})");
             var results = await client.GetJsonAsync<Archive[]>($"{Consts.WabbajackBuildServerUri}mod_upgrade/find/{src.ToHex()}");
             return results;
         }

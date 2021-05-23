@@ -203,7 +203,7 @@ namespace Wabbajack.Lib.Downloaders
 
                     if (!Downloader.IsCloudFlareProtected && csrfKey == null)
                     {
-                        Utils.Log($"Returning null from IPS4 Downloader because no csrfKey was found");
+                        Utils.Error($"Returning null from IPS4 Downloader because no csrfKey was found");
                         return false;
                     }
 
@@ -220,7 +220,7 @@ namespace Wabbajack.Lib.Downloaders
 
                     if (a.Size == 0 || size == 0 || a.Size == size) return true;
 
-                    Utils.Log($"Bad Header Content sizes {a.Size} vs {size}");
+                    Utils.Error($"Bad Header Content sizes {a.Size} vs {size}");
                     return false;
 
                 }
@@ -228,7 +228,7 @@ namespace Wabbajack.Lib.Downloaders
                 var streamResult = await GetDownloadAsync(new Uri(url));
                 if (streamResult.StatusCode != HttpStatusCode.OK)
                 {
-                    Utils.ErrorThrow(new InvalidOperationException(), $"{Downloader.SiteName} servers reported an error for file: {FileID}");
+                    Utils.Fatal(new InvalidOperationException(), $"{Downloader.SiteName} servers reported an error for file: {FileID}");
                 }
 
                 var contentType = streamResult.Content.Headers.ContentType;
@@ -246,7 +246,7 @@ namespace Wabbajack.Lib.Downloaders
                     
                     if (a.Size != 0 && headerContentSize != 0 && a.Size != headerContentSize)
                     {
-                        Utils.Log($"Bad Header Content sizes {a.Size} vs {headerContentSize}");
+                        Utils.Error($"Bad Header Content sizes {a.Size} vs {headerContentSize}");
                         return false;
                     }
 
@@ -372,7 +372,7 @@ namespace Wabbajack.Lib.Downloaders
                 var csrfKey = await GetCsrfKey(token.Token);
                 if (csrfKey == null)
                 {
-                    Utils.Log($"Could not load CRSF key");
+                    Utils.Error($"Could not load CRSF key");
                     return new List<Archive>();
                 }
                 

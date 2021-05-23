@@ -186,8 +186,8 @@ namespace Wabbajack.VirtualFileSystem
                     source = spoolFile.Path;
                 }
 
-                Utils.Log(new GenericInfo($"Extracting {(string)source.FileName}",
-                    $"The contents of {(string)source.FileName} are being extracted to {(string)source.FileName} using 7zip.exe"));
+                Utils.Log($"Extracting {(string)source.FileName}", writeToFile: false);
+                Utils.Log($"The contents of {(string)source.FileName} are being extracted to {(string)source.FileName} using 7zip.exe", showInLog: false);
 
                 var process = new ProcessHelper {Path = @"Extractors\7z.exe".RelativeTo(AbsolutePath.EntryPoint),};
 
@@ -232,7 +232,7 @@ namespace Wabbajack.VirtualFileSystem
 
                 if (exitCode != 0)
                 {
-                    Utils.ErrorThrow(new _7zipReturnError(exitCode, source, dest, ""));
+                    Utils.Fatal(new _7zipReturnError(exitCode, source, dest));
                 }
                 else
                 {

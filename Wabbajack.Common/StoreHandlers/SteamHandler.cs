@@ -100,7 +100,7 @@ namespace Wabbajack.Common.StoreHandlers
 
                 if (!path.Exists)
                 {
-                    Utils.Log($"Directory {path} does not exist, skipping");
+                    Utils.Trace($"Directory {path} does not exist, skipping");
                     return;
                 }
 
@@ -124,7 +124,7 @@ namespace Wabbajack.Common.StoreHandlers
 
             if (SteamUniverses.Count == 0)
             {
-                Utils.Log("Could not find any Steam Libraries");
+                Utils.Warn("Could not find any Steam Libraries");
                 return false;
             }
 
@@ -179,7 +179,7 @@ namespace Wabbajack.Common.StoreHandlers
 
                     if (gameMeta == null)
                     {
-                        Utils.Log($"Steam Game \"{game.Name}\" ({game.ID}) is not supported, skipping");
+                        Utils.Trace($"Steam Game \"{game.Name}\" ({game.ID}) is not supported");
                         return;
                     }
 

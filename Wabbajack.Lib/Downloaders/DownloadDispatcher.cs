@@ -118,7 +118,7 @@ namespace Wabbajack.Lib.Downloaders
 
             if (!(archive.State is IUpgradingState))
             {
-                Utils.Log($"Download failed for {archive.Name} and no upgrade from this download source is possible");
+                Utils.Error($"Download failed for {archive.Name} and no upgrade from this download source is possible");
                 return DownloadResult.Failure;
             }
 
@@ -130,8 +130,7 @@ namespace Wabbajack.Lib.Downloaders
                 result = await AbstractDownloadState.ServerFindUpgrade(archive);
                 if (result == default)
                 {
-                    Utils.Log(
-                        $"No solution for broken download {archive.Name} {archive.State.PrimaryKeyString} could be found");
+                    Utils.Error($"No solution for broken download {archive.Name} ({archive.State.PrimaryKeyString}) could be found");
                     return DownloadResult.Failure;
                 }
             }
@@ -164,7 +163,7 @@ namespace Wabbajack.Lib.Downloaders
             var hash = await destination.FileHashCachedAsync();
             if (hash != archive.Hash && archive.Hash != default)
             {
-                Utils.Log("Archive hash didn't match after patching");
+                Utils.Error("Archive hash didn't match after patching");
                 return DownloadResult.Failure;
             }
 
@@ -210,12 +209,13 @@ namespace Wabbajack.Lib.Downloaders
                 var hash = await destination.FileHashCachedAsync();
                 if (hash == archive.Hash) return true;
 
-                Utils.Log($"Hashed download is incorrect");
+                Utils.Error($"Hashed download is incorrect");
                 return false;
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Utils.Error($"Exception during download dispatch for \"{archive.Name}\": {ex.Message}", showInLog: false);
                 return false;
             }
         }

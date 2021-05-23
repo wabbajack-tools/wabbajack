@@ -46,25 +46,25 @@ namespace Wabbajack.Lib
 
                         if (settings.modManager != "Mod Organizer 2")
                         {
-                            Utils.Log($"zEdit settings file {f}: modManager is not Mod Organizer 2 but {settings.modManager}!");
+                            Utils.Error($"zEdit settings file {f}: modManager is not Mod Organizer 2 but {settings.modManager}!");
                             return false;
                         }
 
                         if (settings.managerPath != _mo2Compiler.SourcePath)
                         {
-                            Utils.Log($"zEdit settings file {f}: managerPath is not {_mo2Compiler.SourcePath} but {settings.managerPath}!");
+                            Utils.Error($"zEdit settings file {f}: managerPath is not {_mo2Compiler.SourcePath} but {settings.managerPath}!");
                             return false;
                         }
 
                         if (settings.modsPath != _mo2Compiler.SourcePath.Combine(Consts.MO2ModFolderName))
                         {
-                            Utils.Log($"zEdit settings file {f}: modsPath is not {_mo2Compiler.SourcePath}\\{Consts.MO2ModFolderName} but {settings.modsPath}!");
+                            Utils.Error($"zEdit settings file {f}: modsPath is not {_mo2Compiler.SourcePath}\\{Consts.MO2ModFolderName} but {settings.modsPath}!");
                             return false;
                         }
 
                         if (settings.mergePath != _mo2Compiler.SourcePath.Combine(Consts.MO2ModFolderName))
                         {
-                            Utils.Log($"zEdit settings file {f}: modsPath is not {_mo2Compiler.SourcePath}\\{Consts.MO2ModFolderName} but {settings.modsPath}!");
+                            Utils.Error($"zEdit settings file {f}: modsPath is not {_mo2Compiler.SourcePath}\\{Consts.MO2ModFolderName} but {settings.modsPath}!");
                             return false;
                         }
 
@@ -73,7 +73,7 @@ namespace Wabbajack.Lib
 
                 if (!settingsFiles.Any())
                 {
-                    Utils.Log($"Found not acceptable settings.json file for zEdit!");
+                    Utils.Error($"Found not acceptable settings.json file for zEdit!");
                     return;
                 }
                 
@@ -84,7 +84,7 @@ namespace Wabbajack.Lib
 
                 if (profileFolder == default)
                 {
-                    Utils.Log("Found no acceptable profiles folder for zEdit!");
+                    Utils.Error("Found no acceptable profiles folder for zEdit!");
                     return;
                 }
 
@@ -97,8 +97,7 @@ namespace Wabbajack.Lib
                 merges.Where(m => m.Count() > 1)
                     .Do(m =>
                     {
-                        Utils.Log(
-                            $"WARNING, you have two patches named {m.Key.name}\\{m.Key.filename} in your zEdit profiles. We'll pick one at random, this probably isn't what you want.");
+                        Utils.Warn($"WARNING, you have two patches named {m.Key.name}\\{m.Key.filename} in your zEdit profiles. We'll pick one at random, this probably isn't what you want.");
                     });
 
                 _mergesIndexed =
