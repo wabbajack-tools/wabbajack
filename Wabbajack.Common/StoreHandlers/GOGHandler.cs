@@ -104,7 +104,7 @@ namespace Wabbajack.Common.StoreHandlers
                     
                     if (gameMeta == null)
                     {
-                        Utils.Log($"GOG Game \"{gameName}\" ({gameID}) is not supported, skipping");
+                        Utils.Trace($"GOG Game \"{gameName}\" ({gameID}) is not supported");
                         return;
                     }
 
@@ -125,7 +125,7 @@ namespace Wabbajack.Common.StoreHandlers
             }
             catch (Exception e)
             {
-                Utils.ErrorThrow(e);
+                Utils.Fatal(e);
             }
 
             Utils.Log($"Total number of GOG Games found: {Games.Count}");

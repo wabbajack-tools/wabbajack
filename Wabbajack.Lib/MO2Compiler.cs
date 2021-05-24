@@ -63,7 +63,7 @@ namespace Wabbajack.Lib
             Settings = await CompilerSettings.Load(MO2ProfileDir);
             Settings.IncludedGames = Settings.IncludedGames.Add(CompilingGame.Game);
 
-            Info("Looking for other profiles");
+            Utils.Log("Looking for other profiles");
             var otherProfilesPath = MO2ProfileDir.Combine("otherprofiles.txt");
             SelectedProfiles = new HashSet<string>();
             if (otherProfilesPath.Exists)
@@ -73,7 +73,7 @@ namespace Wabbajack.Lib
 
             SelectedProfiles.Add(MO2Profile!);
 
-            Info("Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
+            Utils.Log("Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
 
             Utils.Log($"Compiling Game: {CompilingGame.Game}");
             Utils.Log("Games from setting files:");
@@ -91,7 +91,7 @@ namespace Wabbajack.Lib
                 new[] {SourcePath, DownloadsPath, GamePath, AbsolutePath.EntryPoint}, (long)2 << 31,
                 drive =>
                 {
-                    Utils.Log($"Aborting due to low space on {drive.Name}");
+                    Utils.Error($"Aborting due to low space on {drive.Name}");
                     Abort();
                 });
             var watcherTask = watcher.Start();
@@ -159,8 +159,7 @@ namespace Wabbajack.Lib
 
                     if (!lootFiles.Any())
                     {
-                        Utils.Log(
-                            $"Found no LOOT user data for {CompilingGame.HumanFriendlyGameName} at {lootGameDir}!");
+                        Utils.Warn($"Found no LOOT user data for {CompilingGame.HumanFriendlyGameName} at {lootGameDir}!");
                     }
                 }
             }
@@ -224,7 +223,7 @@ namespace Wabbajack.Lib
                 {
                     if (!VFS.Index.ByRootPath.ContainsKey(p))
                     {
-                        Utils.Log($"WELL THERE'S YOUR PROBLEM: {p} {VFS.Index.ByRootPath.Count}");
+                        Utils.Error($"WELL THERE'S YOUR PROBLEM: {p} {VFS.Index.ByRootPath.Count}");
                     }
 
                     return new RawSourceFile(VFS.Index.ByRootPath[p], p.RelativeTo(SourcePath));
@@ -240,7 +239,7 @@ namespace Wabbajack.Lib
                 .Concat(lootFiles)
                 .DistinctBy(f => f.Path));
 
-            Info($"Found {AllFiles.Count} files to build into mod list");
+            Utils.Log($"Found {AllFiles.Count} files to build into mod list");
 
             if (cancel.IsCancellationRequested)
             {
@@ -253,14 +252,13 @@ namespace Wabbajack.Lib
                 .Where(fs => fs.Count() > 1)
                 .Select(fs =>
                 {
-                    Utils.Log(
-                        $"Duplicate files installed to {fs.Key} from : {String.Join(", ", fs.Select(f => f.AbsolutePath))}");
+                    Utils.Error($"Duplicate files installed to {fs.Key} from : {String.Join(", ", fs.Select(f => f.AbsolutePath))}");
                     return fs;
                 }).ToList();
 
             if (dups.Count > 0)
             {
-                Error($"Found {dups.Count} duplicates, exiting");
+                Utils.Fatal(new Exception($"Found {dups.Count} duplicates, exiting"));
             }
 
             if (cancel.IsCancellationRequested)
@@ -310,12 +308,12 @@ namespace Wabbajack.Lib
 
             foreach (var ignored in results.OfType<IgnoredDirectly>())
             {
-                Utils.Log($"Ignored {ignored.To} because {ignored.Reason}");
+                Utils.Trace($"Ignored {ignored.To} because {ignored.Reason}");
             }
 
             InstallDirectives.SetTo(results.Where(i => !(i is IgnoredDirectly)));
 
-            Info("Getting Nexus api_key, please click authorize if a browser window appears");
+            Utils.Log("Getting Nexus api_key, please click authorize if a browser window appears");
 
             UpdateTracker.NextStep("Verifying Files");
             zEditIntegration.VerifyMerges(this);

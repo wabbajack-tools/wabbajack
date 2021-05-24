@@ -121,7 +121,7 @@ namespace Wabbajack.Lib.CompilationSteps
             {
                 if (await ClientAPI.GetVirusScanResult(source.File.AbsoluteName) == VirusScanner.Result.Malware)
                 {
-                    Utils.ErrorThrow(new Exception($"Executable file {source.File.AbsoluteName} ({source.File}) has been marked as malware."));
+                    Utils.Fatal(new Exception($"Executable file {source.File.AbsoluteName} ({source.File}) has been marked as malware."));
                 }
             }
             

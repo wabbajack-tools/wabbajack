@@ -53,20 +53,9 @@ namespace Wabbajack.Lib
             await FileExtractor2.ExtractAll(Queue, ModListArchive, ExtractedModlistFolder.Dir);
         }
 
-        public void Info(string msg)
-        {
-            Utils.Log(msg);
-        }
-
         public void Status(string msg)
         {
             Queue.Report(msg, Percent.Zero);
-        }
-
-        public void Error(string msg)
-        {
-            Utils.Log(msg);
-            throw new Exception(msg);
         }
 
         public async Task<byte[]> LoadBytesFromPath(RelativePath path)
@@ -107,7 +96,7 @@ namespace Wabbajack.Lib
 
         public void BuildFolderStructure()
         {
-            Info("Building Folder Structure");
+            Utils.Log("Building Folder Structure");
             ModList.Directives
                 .Select(d => OutputFolder.Combine(d.To.Parent))
                 .Distinct()
@@ -148,7 +137,7 @@ namespace Wabbajack.Lib
                                 await ClientAPI.GetVirusScanResult(toFile) == VirusScanner.Result.Malware)
                             {
                                 await toFile.DeleteAsync();
-                                Utils.ErrorThrow(new Exception($"Virus scan of patched executable reported possible malware: {toFile.ToString()} ({(long)(await toFile.FileHashCachedAsync())!.Value})"));
+                                Utils.Fatal(new Exception($"Virus scan of patched executable reported possible malware: {toFile.ToString()} ({(long)(await toFile.FileHashCachedAsync())!.Value})"));
                             }
                         }
                             break;
@@ -192,9 +181,9 @@ namespace Wabbajack.Lib
         public async Task DownloadArchives()
         {
             var missing = ModList.Archives.Where(a => !HashedArchives.ContainsKey(a.Hash)).ToList();
-            Info($"Missing {missing.Count} archives");
+            Utils.Log($"Missing {missing.Count} archives");
 
-            Info("Getting Nexus API Key, if a browser appears, please accept");
+            Utils.Log("Getting Nexus API Key, if a browser appears, please accept");
 
             var dispatchers = missing.Select(m => m.State.GetDownloader())
                 .Distinct()
@@ -234,7 +223,7 @@ namespace Wabbajack.Lib
             await missing.Where(a => a.State.GetType() != typeof(ManualDownloader.State))
                 .PMap(Queue, UpdateTracker, async archive =>
                 {
-                    Info($"Downloading {archive.Name}");
+                    Utils.Log($"Downloading {archive.Name}");
                     var outputPath = DownloadFolder.Combine(archive.Name);
 
                     if (download)
@@ -409,7 +398,7 @@ namespace Wabbajack.Lib
             catch (Exception)
             {
                 // ignored because it's not worth throwing a fit over
-                Utils.Log("Error when trying to clean empty folders. This doesn't really matter.");
+                Utils.Warn("Error when trying to clean empty folders. This doesn't really matter.");
             }
 
             var existingfiles = OutputFolder.EnumerateFiles().ToHashSet();

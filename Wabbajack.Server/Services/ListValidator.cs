@@ -111,7 +111,7 @@ namespace Wabbajack.Server.Services
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, $"During Validation of {archive.Hash} {archive.State.PrimaryKeyString}");
-                        Utils.Log($"Exception in validation of {archive.Hash} {archive.State.PrimaryKeyString} " + ex);
+                        Utils.Error($"Exception in validation of {archive.Hash} {archive.State.PrimaryKeyString} " + ex);
                         return (archive, ArchiveStatus.InValid);
                     }
                     finally
@@ -410,7 +410,7 @@ namespace Wabbajack.Server.Services
                             }
                             catch (Exception ex)
                             {
-                                Utils.Log("Exception in Nexus Validation " + ex);
+                                Utils.Error("Exception in Nexus Validation " + ex);
                                 mod = new ModInfo
                                 {
                                     mod_id = ns.ModID.ToString(),

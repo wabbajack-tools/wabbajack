@@ -269,7 +269,7 @@ namespace Wabbajack.Lib.NexusApi
                 await UpdateRemaining(response);
                 if (!response.IsSuccessStatusCode)
                 {
-                    Utils.Log($"Nexus call failed: {response.RequestMessage!.RequestUri}");
+                    Utils.Error($"Nexus call failed: {response.RequestMessage!.RequestUri}");
                     throw new HttpException(response);
                 }
 
@@ -280,13 +280,13 @@ namespace Wabbajack.Lib.NexusApi
             {
                 if (retries == Consts.MaxHTTPRetries)
                     throw;
-                Utils.Log($"Nexus call to {url} failed, retrying {retries} of {Consts.MaxHTTPRetries}");
+                Utils.Error($"Nexus call to {url} failed, retrying {retries} of {Consts.MaxHTTPRetries}");
                 retries++;
                 goto TOP;
             }
             catch (Exception e)
             {
-                Utils.Log($"Nexus call failed `{url}`: " + e);
+                Utils.Error($"Nexus call failed `{url}`: " + e);
                 throw;
             }
         }
@@ -333,7 +333,7 @@ namespace Wabbajack.Lib.NexusApi
                 using var _ = await ManualDownloadLock.WaitAsync();
                 await Task.Delay(1000);
                 Utils.Log($"Requesting manual download for {archive.Name} {archive.PrimaryKeyString}");
-                return (await Utils.Log(await ManuallyDownloadNexusFile.Create(archive)).Task).ToString();
+                return (await Utils.Log(await ManuallyDownloadNexusFile.Create(archive), writeToFile: false).Task).ToString();
             }
             catch (TaskCanceledException ex)
             {

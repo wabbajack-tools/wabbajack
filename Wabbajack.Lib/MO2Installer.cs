@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.IO;
@@ -95,7 +95,7 @@ namespace Wabbajack.Lib
             var watcher = new DiskSpaceWatcher(cancel, new[]{OutputFolder, DownloadFolder, GameFolder.Value, AbsolutePath.EntryPoint}, (long)2 << 31,
                 drive =>
                 {
-                    Utils.Log($"Aborting due to low space on {drive.Name}");
+                    Utils.Error($"Aborting due to low space on {drive.Name}");
                     Abort();
                 });
             var watcherTask = watcher.Start();
@@ -114,7 +114,7 @@ namespace Wabbajack.Lib
             {
                 if ((await Utils.Log(new ConfirmUpdateOfExistingInstall { ModListName = ModList.Name, OutputFolder = OutputFolder }).Task) == ConfirmUpdateOfExistingInstall.Choice.Abort)
                 {
-                    Utils.Log("Exiting installation at the request of the user, existing mods folder found.");
+                    Utils.Error("Exiting installation at the request of the user, existing mods folder found.");
                     return false;
                 }
             }
@@ -148,11 +148,11 @@ namespace Wabbajack.Lib
             if (missing.Count > 0)
             {
                 foreach (var a in missing)
-                    Info($"Unable to download {a.Name} ({a.State.PrimaryKeyString})");
+                    Utils.Error($"Unable to download \"{a.Name}\" {a.State.GetManifestURL(a)}");
                 if (IgnoreMissingFiles)
-                    Info("Missing some archives, but continuing anyways at the request of the user");
+                    Utils.Warn("Missing some archives, but continuing anyways at the request of the user");
                 else
-                    Error("Cannot continue, was unable to download one or more archives");
+                    Utils.Fatal(new Exception("Cannot continue, was unable to download one or more archives"));
             }
 
             // Reduce to two threads if output on HDD, else use specified. Installing files seems to have a slight benefit with two threads.
@@ -307,7 +307,7 @@ namespace Wabbajack.Lib
                 var hash = await gameFile.FileHashAsync();
                 if (hash != esm.SourceESMHash)
                 {
-                    Utils.ErrorThrow(new InvalidGameESMError(esm, hash ?? Hash.Empty, gameFile));
+                    Utils.Fatal(new InvalidGameESMError(esm, hash ?? Hash.Empty, gameFile));
                 }
             }
         }
@@ -315,12 +315,12 @@ namespace Wabbajack.Lib
         private async Task BuildBSAs()
         {
             var bsas = ModList.Directives.OfType<CreateBSA>().ToList();
-            Info($"Building {bsas.Count} bsa files");
+            Utils.Log($"Building {bsas.Count} bsa files");
 
             foreach (var bsa in bsas)
             {
                 Status($"Building {bsa.To}");
-                Info($"Building {bsa.To}");
+                Utils.Log($"Building {bsa.To}");
                 var sourceDir = OutputFolder.Combine(Consts.BSACreationDir, bsa.TempID);
 
                 var bsaSize = bsa.FileStates.Select(state => sourceDir.Combine(state.Path).Size).Sum();
@@ -334,7 +334,7 @@ namespace Wabbajack.Lib
                     return fs;
                 });
 
-                Info($"Writing {bsa.To}");
+                Utils.Log($"Writing {bsa.To}");
                 await a.Build(OutputFolder.Combine(bsa.To));
                 streams.Do(s => s.Dispose());
 
@@ -347,14 +347,14 @@ namespace Wabbajack.Lib
             var bsaDir = OutputFolder.Combine(Consts.BSACreationDir);
             if (bsaDir.Exists)
             {
-                Info($"Removing temp folder {Consts.BSACreationDir}");
+                Utils.Log($"Removing temp folder {Consts.BSACreationDir}");
                 await Utils.DeleteDirectory(bsaDir);
             }
         }
 
         private async Task InstallIncludedFiles()
         {
-            Info("Writing inline files");
+            Utils.Log("Writing inline files");
             await ModList.Directives
                 .OfType<InlineFile>()
                 .PMap(Queue, UpdateTracker, async directive =>
@@ -385,7 +385,7 @@ namespace Wabbajack.Lib
         {
             var filename = directive.To.FileName;
             var gameFile = GameFolder!.Value.Combine((RelativePath)"Data", filename);
-            Info($"Generating cleaned ESM for {filename}");
+            Utils.Log($"Generating cleaned ESM for {filename}");
             if (!gameFile.Exists) throw new InvalidDataException($"Missing {filename} at {gameFile}");
             Status($"Hashing game version of {filename}");
             var sha = await gameFile.FileHashCachedAsync();
@@ -445,7 +445,7 @@ namespace Wabbajack.Lib
                 }
                 catch (Exception)
                 {
-                    Utils.Log($"Skipping screen size remap for {file} due to parse error.");
+                    Utils.Warn($"Skipping screen size remap for {file} due to parse error.");
                 }
             }
             
@@ -475,7 +475,7 @@ namespace Wabbajack.Lib
                 }
                 catch (Exception)
                 {
-                    Utils.Log($"Skipping screen size remap for {file} due to parse error.");
+                    Utils.Warn($"Skipping screen size remap for {file} due to parse error.");
                 }
             }
         }

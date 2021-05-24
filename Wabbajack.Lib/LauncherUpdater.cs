@@ -34,7 +34,7 @@ namespace Wabbajack.Lib
 
             if (CommonFolder.Value == AbsolutePath.EntryPoint)
             {
-                Utils.Log("Outside of standard install folder, not updating");
+                Utils.Trace("Outside of standard install folder, not updating");
                 return;
             }
 
@@ -52,7 +52,7 @@ namespace Wabbajack.Lib
 
             foreach (var (_, path) in oldVersions)
             {
-                Utils.Log($"Deleting old Wabbajack version at: {path}");
+                Utils.Trace($"Deleting old Wabbajack version at: {path}");
                 await path.DeleteDirectory();
             }
 
@@ -83,8 +83,7 @@ namespace Wabbajack.Lib
 
                 if (tempPath.Size != release.asset.Size)
                 {
-                    Utils.Log(
-                        $"Downloaded launcher did not match expected size: {tempPath.Size} expected {release.asset.Size}");
+                    Utils.Error($"Downloaded launcher did not match expected size: {tempPath.Size} expected {release.asset.Size}");
                     return;
                 }
 

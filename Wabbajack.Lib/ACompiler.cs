@@ -91,20 +91,9 @@ namespace Wabbajack.Lib
         public Dictionary<AbsolutePath, IndexedArchive> ArchivesByFullPath { get; set; } =
             new Dictionary<AbsolutePath, IndexedArchive>();
 
-        public static void Info(string msg)
-        {
-            Utils.Log(msg);
-        }
-
         public void Status(string msg)
         {
             Queue.Report(msg, Percent.Zero);
-        }
-
-        public static void Error(string msg)
-        {
-            Utils.Log(msg);
-            throw new Exception(msg);
         }
 
         internal RelativePath IncludeId()
@@ -165,9 +154,8 @@ namespace Wabbajack.Lib
                         return;
 
                     var b = await metaState.LoadMetaData();
-                    Utils.Log(b
-                        ? $"Getting meta data for {a.Name} was successful!"
-                        : $"Getting meta data for {a.Name} failed!");
+                    if (b) Utils.Log($"Getting meta data for {a.Name} was successful!"); 
+                    else Utils.Error($"Getting meta data for {a.Name} failed!");
                 }
                 else
                 {
@@ -227,7 +215,7 @@ namespace Wabbajack.Lib
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log(ex.ToString());
+                    Utils.Error(ex.ToString());
                     return a;
                 }
             }))
@@ -238,9 +226,8 @@ namespace Wabbajack.Lib
                 return;
             }
 
-            Utils.Log(
-                $"Removing {remove.Count} archives from the compilation state, this is probably not an issue but reference this if you have compilation failures");
-            remove.Do(r => Utils.Log($"Resolution failed for: ({r.File.Size} {r.File.Hash}) {r.File.FullPath}"));
+            Utils.Warn($"Removing {remove.Count} archives from the compilation state, this is probably not an issue but reference this if you have compilation failures");
+            remove.Do(r => Utils.Error($"Resolution failed for: ({r.File.Size} {r.File.Hash}) {r.File.FullPath}"));
             IndexedArchives.RemoveAll(a => remove.Contains(a));
         }
 
@@ -260,7 +247,7 @@ namespace Wabbajack.Lib
                 }
                 catch (Exception e)
                 {
-                    Utils.ErrorThrow(e, $"Exception while checking meta {filename}");
+                    Utils.Fatal(e, $"Exception while checking meta {filename}");
                     return false;
                 }
             }
@@ -370,7 +357,7 @@ namespace Wabbajack.Lib
         /// </summary>
         protected async Task BuildPatches()
         {
-            Info("Gathering patch files");
+            Utils.Log("Gathering patch files");
 
             var toBuild = InstallDirectives.OfType<PatchedFromArchive>()
                 .Where(p => p.Choices.Length > 0)
@@ -405,13 +392,13 @@ namespace Wabbajack.Lib
                         await VFS.Extract(iqueue, new[] {destFile}.ToHashSet(),
                             async (destvf, destsfn) =>
                             {
-                                Info($"Patching {match.To}");
+                                Utils.Log($"Patching {match.To}");
                                 Status($"Patching {match.To}");
                                 await using var srcStream = await sf.GetStream();
                                 await using var destStream = await destsfn.GetStream();
                                 var patchSize =
                                     await Utils.CreatePatchCached(srcStream, vf.Hash, destStream, destvf.Hash);
-                                Info($"Patch size {patchSize} for {match.To}");
+                                Utils.Log($"Patch size {patchSize} for {match.To}");
                             });
                     }
                 });
@@ -440,16 +427,15 @@ namespace Wabbajack.Lib
                 InstallDirectives.OfType<PatchedFromArchive>().FirstOrDefault(f => f.PatchID == default);
             if (firstFailedPatch != null)
             {
-                Utils.Log("Missing data from failed patch, starting data dump");
-                Utils.Log($"Dest File: {firstFailedPatch.To}");
-                Utils.Log($"Options ({firstFailedPatch.Choices.Length}:");
+                Utils.Error("Missing data from failed patch, starting data dump");
+                Utils.Error($"Dest File: {firstFailedPatch.To}");
+                Utils.Error($"Options ({firstFailedPatch.Choices.Length}:");
                 foreach (var choice in firstFailedPatch.Choices)
                 {
-                    Utils.Log($"  {choice.FullPath}");
+                    Utils.Error($"  {choice.FullPath}");
                 }
 
-                Error(
-                    $"Missing patches after generation, this should not happen. First failure: {firstFailedPatch.FullPath}");
+                Utils.Fatal(new Exception($"Missing patches after generation, this should not happen. First failure: {firstFailedPatch.FullPath}"));
             }
         }
 
@@ -481,7 +467,7 @@ namespace Wabbajack.Lib
 
         public async Task GatherArchives()
         {
-            Info("Building a list of archives based on the files required");
+            Utils.Log("Building a list of archives based on the files required");
 
             var hashes = InstallDirectives.OfType<FromArchive>()
                 .Select(a => a.ArchiveHashPath.BaseHash)
@@ -507,16 +493,15 @@ namespace Wabbajack.Lib
         public async Task<Archive> ResolveArchive([NotNull] IndexedArchive archive)
         {
             if (!string.IsNullOrWhiteSpace(archive.Name))
-                Utils.Status($"Checking link for {archive.Name}", alsoLog: true);
+                Utils.Status($"Checking link for {archive.Name}", true);
 
             if (archive.IniData == null)
-                Error(
-                    $"No download metadata found for {archive.Name}, please use MO2 to query info or add a .meta file and try again.");
+                Utils.Fatal(new Exception($"No download metadata found for {archive.Name}, please use MO2 to query info or add a .meta file and try again."));
 
             var state = (AbstractDownloadState?)await DownloadDispatcher.ResolveArchive(archive.IniData);
 
             if (state == null)
-                Error($"{archive.Name} could not be handled by any of the downloaders");
+                Utils.Fatal(new Exception($"{archive.Name} could not be handled by any of the downloaders"));
 
             var result = new Archive(state!)
             {
@@ -530,8 +515,7 @@ namespace Wabbajack.Lib
             var token = new CancellationTokenSource();
             token.CancelAfter(Consts.MaxVerifyTime);
             if (!await result.State.Verify(result, token.Token))
-                Error(
-                    $"Unable to resolve link for {archive.Name}. If this is hosted on the Nexus the file may have been removed.");
+                Utils.Fatal(new Exception($"Unable to resolve link for {archive.Name}. If this is hosted on the Nexus the file may have been removed."));
 
             result.Meta = string.Join("\n", result.State!.GetMetaIni());
 
@@ -557,7 +541,7 @@ namespace Wabbajack.Lib
         public static void PrintNoMatches(ICollection<NoMatch> noMatches)
         {
             const int max = 10;
-            Info($"No match for {noMatches.Count} files");
+            Utils.Error($"No match for {noMatches.Count} files");
             if (noMatches.Count > 0)
             {
                 int count = 0;
@@ -565,16 +549,16 @@ namespace Wabbajack.Lib
                 {
                     if (count++ < max)
                     {
-                        Utils.Log($"     {file.To} - {file.Reason}");
+                        Utils.Error($"     {file.To} - {file.Reason}");
                     }
                     else
                     {
-                        Utils.LogStraightToFile($"     {file.To} - {file.Reason}");
+                        Utils.Error($"     {file.To} - {file.Reason}", showInLog: false);
                     }
 
                     if (count == max && noMatches.Count > max)
                     {
-                        Utils.Log($"     ...");
+                        Utils.Error($"     ...");
                     }
                 }
             }
@@ -608,11 +592,11 @@ namespace Wabbajack.Lib
             {
                 if (IgnoreMissingFiles)
                 {
-                    Info("Continuing even though files were missing at the request of the user.");
+                    Utils.Warn("Continuing even though files were missing at the request of the user.");
                 }
                 else
                 {
-                    Info("Exiting due to no way to compile these files");
+                    Utils.Error("Exiting due to no way to compile these files");
                     return true;
                 }
             }

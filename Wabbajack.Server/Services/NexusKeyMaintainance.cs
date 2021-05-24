@@ -38,7 +38,7 @@ namespace Wabbajack.Server.Services
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log($"Error getting tracking client: {ex}");
+                    Utils.Error($"Error getting tracking client: {ex}");
                 }
 
             }

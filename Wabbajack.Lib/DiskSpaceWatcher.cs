@@ -26,12 +26,10 @@ namespace Wabbajack.Lib
 
         public async Task Start()
         {
-            Utils.Log(
-                $"Drive watcher is starting. Will warn at {(_minSpace * 2).ToFileSizeString()} and error at {_minSpace.ToFileSizeString()}");
+            Utils.Trace($"Drive watcher is starting. Will warn at {(_minSpace * 2).ToFileSizeString()} and error at {_minSpace.ToFileSizeString()}");
             foreach (var drive in _drives)
             {
-                Utils.Log(
-                    $"Starting Drive watcher on {drive.Name} currently {drive.AvailableFreeSpace.ToFileSizeString()} free out of {drive.TotalSize.ToFileSizeString()}");
+                Utils.Log($"Starting Drive watcher on {drive.Name} currently {drive.AvailableFreeSpace.ToFileSizeString()} free out of {drive.TotalSize.ToFileSizeString()}");
             }
 
             
@@ -43,13 +41,12 @@ namespace Wabbajack.Lib
                     if (used < _minSpace)
                     {
                         _onFailure(drive);
-                        Utils.ErrorThrow(new Exception($"Out of space on drive {drive.Name}"));
+                        Utils.Fatal(new Exception($"Out of space on drive {drive.Name}"));
                     }
 
                     if (used < _minSpace * 2)
                     {
-                        Utils.Log(
-                            $"Warning! Drive {drive.Name} only has {used.ToFileSizeString()} of free space left, processing will stop when you only have {used.ToFileSizeString()}");
+                        Utils.Warn($"Warning! Drive {drive.Name} only has {used.ToFileSizeString()} of free space left, processing will stop when you only have {used.ToFileSizeString()}");
                     }
                 }
 

@@ -28,7 +28,7 @@ namespace Wabbajack.Common.StoreHandlers
                 var name = eosKey.GetValue("ModSdkMetadataDir");
                 if (name == null)
                 {
-                    Utils.Log("Registry key entry does not exist for Epic Game store");
+                    Utils.Warn("Registry key entry does not exist for Epic Game store");
                     return false;
                 }
 
@@ -42,23 +42,26 @@ namespace Wabbajack.Common.StoreHandlers
                     try
                     {
                         var item = itm.FromJson<EpicGameItem>();
-                        Utils.Log($"Found Epic Game Store Game: {item.DisplayName} at {item.InstallLocation}");
-
                         if (byID.TryGetValue(item.CatalogItemId, out var game))
                         {
+                            Utils.Log($"Found Epic Game Store Game: \"{item.DisplayName}\" ({item.CatalogItemId}) at {item.InstallLocation}");
                             Games.Add(new EpicStoreGame(game, item));
+                        }
+                        else
+                        {
+                            Utils.Trace($"Epic Game Store Game \"{item.DisplayName}\" ({item.CatalogItemId}) is not supported");
                         }
                     }
                     catch (Newtonsoft.Json.JsonReaderException)
                     {
-                        Utils.Log($"Failure parsing Epic Game Store manifest: {itm}");
+                        Utils.Error($"Failure parsing Epic Game Store manifest: {itm}");
                     }
 
                 }
             }
             catch (NullReferenceException)
             {
-                Utils.Log("Epic Game Store is does not appear to be installed");
+                Utils.Log("Epic Game Store does not appear to be installed");
                 return false;
             }
 

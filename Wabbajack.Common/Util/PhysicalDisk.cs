@@ -38,7 +38,7 @@ namespace Wabbajack.Common
             } 
             catch (Exception ex)
             {
-                Utils.Log($"Caught error getting disk info: {ex.Message}. Treating disk as Unspecified.");
+                Utils.Warn($"Caught error getting disk info: {ex.Message}. Treating disk as Unspecified.");
             }
         }
 

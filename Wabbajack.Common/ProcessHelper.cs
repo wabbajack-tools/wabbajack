@@ -75,8 +75,7 @@ namespace Wabbajack.Common
             {
                 if (string.IsNullOrEmpty(data.Data)) return;
                 Output.OnNext((StreamType.Error, data.Data));
-                if (LogError)
-                    Utils.Log($"{Path.FileName} ({p.Id}) StdErr: {data.Data}");
+                if (LogError) Utils.Error($"{Path.FileName} ({p.Id}) StdErr: {data.Data}");
             };
             p.ErrorDataReceived += ErrorEventHandler;
 

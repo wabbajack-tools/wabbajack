@@ -52,7 +52,7 @@ namespace Wabbajack.Lib
                 new[] {SourcePath, DownloadsPath, GamePath, AbsolutePath.EntryPoint}, (long)2 << 31,
                 drive =>
                 {
-                    Utils.Log($"Aborting due to low space on {drive.Name}");
+                    Utils.Error($"Aborting due to low space on {drive.Name}");
                     Abort();
                 });
             var watcherTask = watcher.Start();
@@ -128,7 +128,7 @@ namespace Wabbajack.Lib
                 {
                     if (!VFS.Index.ByRootPath.ContainsKey(p))
                     {
-                        Utils.Log($"WELL THERE'S YOUR PROBLEM: {p} {VFS.Index.ByRootPath.Count}");
+                        Utils.Error($"WELL THERE'S YOUR PROBLEM: {p} {VFS.Index.ByRootPath.Count}");
                     }
 
                     return new RawSourceFile(VFS.Index.ByRootPath[p], p.RelativeTo(SourcePath));
@@ -143,7 +143,7 @@ namespace Wabbajack.Lib
             AllFiles.SetTo(mo2Files
                 .DistinctBy(f => f.Path));
 
-            Info($"Found {AllFiles.Count} files to build into mod list");
+            Utils.Log($"Found {AllFiles.Count} files to build into mod list");
 
             if (cancel.IsCancellationRequested)
             {
@@ -156,14 +156,13 @@ namespace Wabbajack.Lib
                 .Where(fs => fs.Count() > 1)
                 .Select(fs =>
                 {
-                    Utils.Log(
-                        $"Duplicate files installed to {fs.Key} from : {String.Join(", ", fs.Select(f => f.AbsolutePath))}");
+                    Utils.Error($"Duplicate files installed to {fs.Key} from : {String.Join(", ", fs.Select(f => f.AbsolutePath))}");
                     return fs;
                 }).ToList();
 
             if (dups.Count > 0)
             {
-                Error($"Found {dups.Count} duplicates, exiting");
+                Utils.Fatal(new Exception($"Found {dups.Count} duplicates, exiting"));
             }
 
             if (cancel.IsCancellationRequested)
@@ -203,7 +202,7 @@ namespace Wabbajack.Lib
 
             InstallDirectives.SetTo(results.Where(i => !(i is IgnoredDirectly)));
 
-            Info("Getting Nexus api_key, please click authorize if a browser window appears");
+            Utils.Log("Getting Nexus api_key, please click authorize if a browser window appears");
 
             UpdateTracker.NextStep("Building Patches");
             await BuildPatches();

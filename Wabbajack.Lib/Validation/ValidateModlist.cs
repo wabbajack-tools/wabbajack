@@ -44,7 +44,7 @@ namespace Wabbajack.Lib.Validation
 
             Utils.Log("Running validation checks");
             var errors = await validator.Validate(modlist);
-            errors.Do(e => Utils.Log(e));
+            errors.Do(e => Utils.Error(e));
             if (errors.Count() > 0)
             {
                 throw new Exception($"{errors.Count()} validation errors found, cannot continue.");

@@ -138,8 +138,8 @@ namespace Wabbajack.Lib.Downloaders
                         return await client.GetAsync(remap, retry: false, token: token);
                     }
                     retries += 1;
-                    Utils.Log($"Error reading {url} retrying [{retries}]");
-                    Utils.Log(ex.ToString());
+                    Utils.Error($"Error reading {url} retrying [{retries}]");
+                    Utils.Error(ex.ToString());
                     goto TOP;
                 }
             }

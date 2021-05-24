@@ -75,7 +75,7 @@ namespace Wabbajack.Lib
                 return;
 
             var key = await GetMetricsKey();
-            Utils.Log($"File hash check (-42) {key}");
+            Utils.Trace($"File hash check (-42) {key}", "");
             var client = new Http.Client();
             client.Headers.Add((Consts.MetricsKeyHeader, key));
             await client.GetAsync($"{Consts.WabbajackBuildServerUri}metrics/{action}/{subject}");

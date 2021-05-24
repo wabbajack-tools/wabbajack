@@ -95,8 +95,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 catch (FormatException)
                 {
-                    Utils.Log(
-                        $"Cannot parse ModID/FileID from {(string)general.gameName} {(string)general.modID} {(string)general.fileID}");
+                    Utils.Error($"Cannot parse ModID/FileID from {(string)general.gameName} {(string)general.modID} {(string)general.fileID}");
                     throw;
                 }
             }
@@ -121,7 +120,7 @@ namespace Wabbajack.Lib.Downloaders
                     _status = await Client.GetUserStatus();
                     if (!Client.IsAuthenticated)
                     {
-                        Utils.ErrorThrow(new UnconvertedError(
+                        Utils.Fatal(new UnconvertedError(
                             $"Authenticating for the Nexus failed. A nexus account is required to automatically download mods."));
                         return;
                     }
@@ -202,7 +201,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 catch (NexusAPIQuotaExceeded ex)
                 {
-                    Utils.Log(ex.ExtendedDescription);
+                    Utils.Error(ex.ExtendedDescription);
                     throw;
                 }
                 catch (Exception)
@@ -232,7 +231,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log($"{Name} - {Game} - {ModID} - {FileID} - Error getting Nexus download URL - {ex}");
+                    Utils.Error($"{Name} - {Game} - {ModID} - {FileID} - Error getting Nexus download URL - {ex}");
                     return false;
                 }
 

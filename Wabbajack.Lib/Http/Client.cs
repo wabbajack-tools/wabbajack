@@ -65,10 +65,10 @@ namespace Wabbajack.Lib.Http
             using var result = await SendAsync(request, token: token);
             if (!result.IsSuccessStatusCode)
             {
-                Utils.Log("Internal Error");
-                Utils.Log(await result.Content.ReadAsStringAsync());
-                throw new Exception(
-                    $"Bad HTTP request {result.StatusCode} {result.ReasonPhrase} - {request.RequestUri}");
+                Utils.Error("Internal Error");
+                Utils.Error(await result.Content.ReadAsStringAsync());
+                Utils.Error(new Exception(
+                    $"Bad HTTP request {result.StatusCode} {result.ReasonPhrase} - {request.RequestUri}"));
             }
             return await result.Content.ReadAsStringAsync();
         }
@@ -111,7 +111,7 @@ namespace Wabbajack.Lib.Http
 
                     retries++;
                     var ms = Utils.NextRandom(100, 1000);
-                    Utils.Log($"Got a {http.Code} from {msg.RequestUri} retrying in {ms}ms");
+                    Utils.Warn($"Got a {http.Code} from {msg.RequestUri} retrying in {ms}ms");
 
                     await Task.Delay(ms, token ?? CancellationToken.None);
                     msg = CloneMessage(msg);
@@ -120,14 +120,12 @@ namespace Wabbajack.Lib.Http
                 if (retries > Consts.MaxHTTPRetries) throw;
 
                 retries++;
-                Utils.LogStraightToFile(ex.ToString());
-                Utils.Log($"Http Connect error to {msg.RequestUri} retry {retries}");
+                Utils.Error(ex, showInLog: false);
+                Utils.Error($"Http Connect error to {msg.RequestUri} retry {retries}");
                 await Task.Delay(100 * retries, token ?? CancellationToken.None);
                 msg = CloneMessage(msg);
                 goto TOP;
-
             }
-
         }
 
         private Dictionary<string, Func<(string Ip, string Host)>> _workaroundMappings = new()
