@@ -55,13 +55,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="cef.redist.x64" Version="89.0.17" />
-      <PackageReference Include="CefSharp.Common" Version="89.0.170" />
-      <PackageReference Include="CefSharp.Wpf" Version="89.0.170">
+    <PackageReference Include="cef.redist.x64" Version="90.6.5" />
+      <PackageReference Include="CefSharp.Common" Version="90.6.50" />
+      <PackageReference Include="CefSharp.Wpf" Version="90.6.50">
         <NoWarn>NU1701</NoWarn>
       </PackageReference>
-    <PackageReference Include="DynamicData" Version="7.1.1" />
-    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.0.2">
+    <PackageReference Include="DynamicData" Version="7.1.17" />
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.1.0">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
     <PackageReference Include="Fody" Version="6.5.1">
@@ -78,9 +78,9 @@
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
     <PackageReference Include="PInvoke.Gdi32" Version="0.7.104" />
     <PackageReference Include="PInvoke.User32" Version="0.7.104" />
-    <PackageReference Include="ReactiveUI" Version="13.2.18" />
-    <PackageReference Include="ReactiveUI.Fody" Version="13.2.18" />
-    <PackageReference Include="ReactiveUI.WPF" Version="13.2.18" />
+    <PackageReference Include="ReactiveUI" Version="13.3.2" />
+    <PackageReference Include="ReactiveUI.Fody" Version="13.3.2" />
+    <PackageReference Include="ReactiveUI.WPF" Version="13.3.2" />
     <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
   </ItemGroup>
