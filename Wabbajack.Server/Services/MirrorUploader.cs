@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentFTP;
+using FluentFTP.Helpers;
 using Microsoft.Extensions.Logging;
 using Org.BouncyCastle.Utilities.Collections;
 using Wabbajack.BuildServer;

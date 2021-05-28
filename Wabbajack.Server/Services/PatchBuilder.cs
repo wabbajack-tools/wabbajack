@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentFTP;
+using FluentFTP.Helpers;
 using Microsoft.Extensions.Logging;
 using Splat;
 using Wabbajack.BuildServer;
