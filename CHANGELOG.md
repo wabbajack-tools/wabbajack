@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.4.4.3 - 5/28/2021
+* Several quality of life fixes with install paths, logging and null pointer errors 
+
 #### Version - 2.4.4.2 - 5/17/2021
 * Modlists are now exported as X.wabbajack where X is the name chosen in the Compiler UI
 * Added a new `Network Workaround` mode to the WJ settings panel. Enabling this will bypass Cloudflare and
