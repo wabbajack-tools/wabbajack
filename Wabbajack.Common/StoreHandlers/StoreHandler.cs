@@ -41,7 +41,13 @@ namespace Wabbajack.Common.StoreHandlers
             try
             {
                 var handler = lazyHandler.Value;
-                handler.FindAllGames();
+                var res = handler.FindAllGames();
+                
+                if (res.HasErrors)
+                {
+                    Utils.Error($"Errors while finding Games from {name}\n{res.ErrorsToString()}");
+                }
+                
                 foreach (var game in handler.Games)
                 {
                     Utils.Log($"{handler.StoreType}: Found game {game}");
