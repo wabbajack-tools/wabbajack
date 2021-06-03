@@ -8,10 +8,10 @@
     </PropertyGroup>
     <ItemGroup>
       <PackageReference Include="CefSharp.Common">
-        <Version>90.6.50</Version>
+        <Version>90.6.70</Version>
       </PackageReference>
       <PackageReference Include="CefSharp.OffScreen">
-        <Version>90.6.50</Version>
+        <Version>90.6.70</Version>
         <NoWarn>NU1701</NoWarn>
       </PackageReference>
       <PackageReference Include="F23.StringSimilarity">
