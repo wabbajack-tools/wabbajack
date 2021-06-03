@@ -7,16 +7,16 @@ using Microsoft.Win32;
 
 namespace Wabbajack.Common.StoreHandlers
 {
-    public class OriginHandler : AStoreHandler
+    public class OriginHandler
     {
         private AbsolutePath OriginDataPath = (AbsolutePath)@"C:\ProgramData\Origin\LocalContent";
         private Extension MFSTExtension = new Extension(".mfst");
         private HashSet<string> KnownMFSTs = new();
 
-        public override StoreType Type { get; internal set; } = StoreType.Origin;
-
+        public List<OriginGame> Games = new();
+        
         private static Regex SplitRegex = new Regex("(.*)([0-9]+)(@subscription)?", RegexOptions.RightToLeft);
-        public override bool Init()
+        public bool Init()
         {
             try
             {
@@ -66,7 +66,7 @@ namespace Wabbajack.Common.StoreHandlers
             }
         }
 
-        public override bool LoadAllGames()
+        public bool LoadAllGames()
         {
             try
             {
@@ -90,7 +90,7 @@ namespace Wabbajack.Common.StoreHandlers
         }
     }
 
-    public sealed class OriginGame : AStoreGame
+    public sealed class OriginGame
     {
         private string _mfst;
         private GameMetaData _metaData;
@@ -101,10 +101,9 @@ namespace Wabbajack.Common.StoreHandlers
             Game = game;
             _metaData = metaData;
         }
-        public override Game Game { get; internal set; }
-        public override StoreType Type { get; internal set; } = StoreType.Origin;
+        public Game Game { get; internal set; }
 
-        public override AbsolutePath Path
+        public AbsolutePath Path
         {
             get
             {
