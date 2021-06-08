@@ -33,7 +33,7 @@
         <Version>2.2.2.1</Version>
       </PackageReference>
       <PackageReference Include="HtmlAgilityPack">
-        <Version>1.11.33</Version>
+        <Version>1.11.34</Version>
       </PackageReference>
       <PackageReference Include="MegaApiClient">
         <Version>1.9.0</Version>
