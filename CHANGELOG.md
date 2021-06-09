@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version - 2.4.4.4 - 6/9/2021
+* Use Erri's Game finder library so we can centralize game detection
+* Fix to a compilation error mis-detecting Skyrim folders
+* Several other dependency updates
+
 #### Version - 2.4.4.3 - 5/28/2021
 * Several quality of life fixes with install paths, logging and null pointer errors 
 
