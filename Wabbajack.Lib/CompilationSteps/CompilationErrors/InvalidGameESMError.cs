@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
-using Wabbajack.Common;
+﻿using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 
 namespace Wabbajack.Lib.CompilationSteps.CompilationErrors

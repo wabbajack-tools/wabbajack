@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Wabbajack.Common.Serialization.Json;
-using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
 {

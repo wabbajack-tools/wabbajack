@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
-using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Common
 {

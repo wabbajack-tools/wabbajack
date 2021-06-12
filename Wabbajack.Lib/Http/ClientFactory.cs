@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Security;
-using System.Security.Authentication;
 using Wabbajack.Common;
 using SysHttp = System.Net.Http;
 

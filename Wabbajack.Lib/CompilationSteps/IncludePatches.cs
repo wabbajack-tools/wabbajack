@@ -4,9 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using F23.StringSimilarity;
-using Newtonsoft.Json;
 using Wabbajack.Common;
-using Wabbajack.Lib.Downloaders;
 using Wabbajack.VirtualFileSystem;
 
 namespace Wabbajack.Lib.CompilationSteps

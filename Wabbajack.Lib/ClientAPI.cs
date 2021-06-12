@@ -1,21 +1,17 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
- using System.IO;
- using System.IO.Compression;
- using System.Linq;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
- using K4os.Compression.LZ4.Internal;
- using Newtonsoft.Json;
- using Org.BouncyCastle.Crypto.Agreement.Srp;
- using Wabbajack.Common;
+using Wabbajack.Common;
 using Wabbajack.Common.Exceptions;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Downloaders;
- using Wabbajack.Lib.LibCefHelpers;
- using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.Lib.LibCefHelpers;
 
  namespace Wabbajack.Lib
 {

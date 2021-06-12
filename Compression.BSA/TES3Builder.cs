@@ -1,9 +1,7 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
-using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
 {

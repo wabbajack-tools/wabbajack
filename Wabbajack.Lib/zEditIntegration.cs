@@ -1,12 +1,8 @@
-﻿using Alphaleonis.Win32.Filesystem;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
-using Directory = Alphaleonis.Win32.Filesystem.Directory;
-using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 using System.Threading.Tasks;
 

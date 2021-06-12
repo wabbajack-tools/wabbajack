@@ -1,5 +1,4 @@
 ﻿using System;
-using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
 
 namespace Wabbajack.Lib.Downloaders

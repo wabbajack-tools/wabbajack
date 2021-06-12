@@ -1,11 +1,8 @@
-﻿using System.IO;
-using System.Linq;
-using System.Reactive.Subjects;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Wabbajack.Common;
-using Wabbajack.Common.IO;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
 

@@ -1,16 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using Org.BouncyCastle.Crypto.Parameters;
 using ReactiveUI;
 using Wabbajack.Common;
-using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.WebAutomation;
 
