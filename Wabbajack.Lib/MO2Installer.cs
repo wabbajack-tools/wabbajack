@@ -511,7 +511,11 @@ namespace Wabbajack.Lib
             if (game?.TryGetGameLocation() != null && path.IsChildOf(game.TryGetGameLocation())) return ErrorResponse.Fail("Cannot install to game directory.");
 
             // Check if child of Program Files
-            if (path.IsChildOf(new AbsolutePath(KnownFolders.ProgramFiles.Path))) return ErrorResponse.Fail("Cannot install to Program Files directory.");
+            var programFilesPath = KnownFolders.ProgramFiles.Path;
+            if (programFilesPath != null)
+            {
+                if (path.IsChildOf(new AbsolutePath(programFilesPath))) return ErrorResponse.Fail("Cannot install to Program Files directory.");
+            }
 
             // If the folder doesn't exist, it's empty so we don't need to check further
             if (!path.Exists) return ErrorResponse.Success;

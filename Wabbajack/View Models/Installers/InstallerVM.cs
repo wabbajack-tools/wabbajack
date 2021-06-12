@@ -97,17 +97,21 @@ namespace Wabbajack
 
         public InstallerVM(MainWindowVM mainWindowVM) : base(mainWindowVM)
         {
-            if (AbsolutePath.EntryPoint.IsChildOf(new AbsolutePath(KnownFolders.Downloads.Path)))
+            var downloadsPath = KnownFolders.Downloads.Path;
+            var skyDrivePath = KnownFolders.SkyDrive.Path;
+
+            if (downloadsPath != null && AbsolutePath.EntryPoint.IsChildOf(new AbsolutePath(downloadsPath)))
             {
                 Utils.Error(new CriticalFailureIntervention(
                     "Wabbajack is running inside your Downloads folder. This folder is often highly monitored by antivirus software and these can often " +
                     "conflict with the operations Wabbajack needs to perform. Please move Wabbajack outside of your Downloads folder and then restart the app.",
                     "Cannot run inside Downloads", true));
             }
-            else if (AbsolutePath.EntryPoint.IsChildOf(new AbsolutePath(KnownFolders.SkyDrive.Path)))
+
+            if (skyDrivePath != null && AbsolutePath.EntryPoint.IsChildOf(new AbsolutePath(skyDrivePath)))
             {
                 Utils.Error(new CriticalFailureIntervention(
-                    $"Wabbajack is running inside a OneDrive folder \"{new AbsolutePath(KnownFolders.SkyDrive.Path)}\". This folder is known to cause issues with Wabbajack. " +
+                    $"Wabbajack is running inside a OneDrive folder \"{skyDrivePath}\". This folder is known to cause issues with Wabbajack. " +
                     "Please move Wabbajack outside of your OneDrive folder and then restart the app.",
                     "Cannot run inside OneDrive", true));
             }
