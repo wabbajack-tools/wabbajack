@@ -17,5 +17,12 @@ namespace Wabbajack.Common.Test
                 Assert.Equal(game, result.Game);
             }
         }
+
+        [Fact]
+        public void GamePathsDontIncludeDuplicateBackslash()
+        {
+            var path = Game.Morrowind.MetaData().GameLocation();
+            Assert.DoesNotContain("\\\\", path.ToString());
+        }
     }
 }

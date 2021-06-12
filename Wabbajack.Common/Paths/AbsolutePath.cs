@@ -57,6 +57,8 @@ namespace Wabbajack.Common
                 _nullable_path = path.Replace("/", "\\").TrimEnd('\\');
             }
 
+            _nullable_path = _nullable_path.Replace("\\\\", "\\");
+
             if (!skipValidation)
             {
                 ValidateAbsolutePath();
