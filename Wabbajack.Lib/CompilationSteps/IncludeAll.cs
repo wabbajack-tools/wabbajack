@@ -1,7 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
-using Newtonsoft.Json;
-using Wabbajack.Common;
 
 namespace Wabbajack.Lib.CompilationSteps
 {

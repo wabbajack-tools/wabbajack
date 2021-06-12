@@ -1,7 +1,5 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
-using Newtonsoft.Json;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.VirtualFileSystem;
 

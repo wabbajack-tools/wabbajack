@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using CefSharp;
 using CefSharp.OffScreen;
 using HtmlAgilityPack;

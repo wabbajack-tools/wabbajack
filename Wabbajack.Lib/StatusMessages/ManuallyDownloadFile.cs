@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 
 namespace Wabbajack.Lib

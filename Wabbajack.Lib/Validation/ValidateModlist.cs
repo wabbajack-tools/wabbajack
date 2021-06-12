@@ -2,11 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Wabbajack.Common;
-using Wabbajack.Lib.Downloaders;
-using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib.Validation
 {

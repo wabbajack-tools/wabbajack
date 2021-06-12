@@ -1,6 +1,4 @@
-﻿using Wabbajack.Common;
-
-namespace Wabbajack.Lib
+﻿namespace Wabbajack.Lib
 {
     public class YesNoIntervention : ConfirmationIntervention
     {

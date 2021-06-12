@@ -1,7 +1,5 @@
 ﻿using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
-using Newtonsoft.Json;
 
 namespace Wabbajack.Lib.CompilationSteps
 {

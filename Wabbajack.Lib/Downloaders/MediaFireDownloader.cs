@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
-using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack.Lib.Downloaders
 {

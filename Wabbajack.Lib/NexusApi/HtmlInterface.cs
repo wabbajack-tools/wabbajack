@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Linq;
-using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Wabbajack.Common;
-using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack.Lib.NexusApi
