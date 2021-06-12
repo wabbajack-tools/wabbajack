@@ -4,7 +4,11 @@
     </Found>
     <NotFound>
         <LayoutView Layout="@typeof(MainLayout)">
-            <p>Sorry, there's nothing at this address.</p>
+            <MudContainer Class="mt-12">
+                <MudAlert Severity="Severity.Error" Variant="Variant.Filled">
+                    <MudText>Invalid Url</MudText>
+                </MudAlert>
+            </MudContainer>
         </LayoutView>
     </NotFound>
 </Router>
