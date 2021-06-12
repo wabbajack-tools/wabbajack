@@ -2,7 +2,6 @@
 using System.IO;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Text;
 
 namespace Wabbajack.Common
 {

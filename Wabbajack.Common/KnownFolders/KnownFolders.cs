@@ -1,5 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
+
 #nullable disable
 
 namespace Wabbajack.Common.IO
