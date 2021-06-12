@@ -1,0 +1,43 @@
+﻿@page "/gallery"
+@using System.Net.Http.Json
+@using System.Text.Json
+@using System.Threading
+@using Wabbajack.Web.DTO
+@inject IHttpClientFactory _clientFactory;
+
+<MudContainer Class="mt-16" MaxWidth="MaxWidth.Large">
+    <MudGrid Spacing="2" Justify="Justify.FlexStart">
+        @foreach (var modlist in _modlists)
+        {
+            <MudItem xs="12" sm="12" md="6" lg="6" xl="4">
+                <GalleryItem Modlist="@modlist"/>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    
+    private const string ModlistsJsonUrl = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json";
+
+    private bool _shouldRender;
+    protected override bool ShouldRender() => _shouldRender;
+
+    private List<ModlistMetadata> _modlists = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var client = _clientFactory.CreateClient();
+
+        var res = await client.GetFromJsonAsync<List<ModlistMetadata>>(ModlistsJsonUrl, new JsonSerializerOptions
+        {
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            IgnoreNullValues = true,
+        }, CancellationToken.None);
+
+        if (res != null)
+            _modlists = res;
+        
+        _shouldRender = true;
+    }
+}
