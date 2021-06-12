@@ -176,7 +176,16 @@ namespace Wabbajack.Common
         /// <summary>
         /// Returns the path to the Windows folder, most often c:\Windows
         /// </summary>
-        public static AbsolutePath WindowsFolder => (AbsolutePath)KnownFolders.Windows.Path;
+        public static AbsolutePath WindowsFolder
+        {
+            get
+            {
+                var path = KnownFolders.Windows.Path;
+                if (path == null)
+                    throw new ArgumentNullException(nameof(path), "Unable to find path to the Windows folder!");
+                return new AbsolutePath(path);
+            }
+        }
 
         public AbsolutePath Root => (AbsolutePath)Path.GetPathRoot(_path);
 

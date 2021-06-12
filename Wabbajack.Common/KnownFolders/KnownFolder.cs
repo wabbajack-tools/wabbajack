@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
-#nullable disable
 
 namespace Wabbajack.Common.IO
 {
@@ -48,7 +47,7 @@ namespace Wabbajack.Common.IO
         /// Gets the default path of the folder. This does not require the folder to be existent.
         /// </summary>
         /// <exception cref="ExternalException">The known folder could not be retrieved.</exception>
-        public string DefaultPath
+        public string? DefaultPath
         {
             get => GetPath(KnownFolderFlags.DontVerify | KnownFolderFlags.DefaultPath);
         }
@@ -57,10 +56,14 @@ namespace Wabbajack.Common.IO
         /// Gets or sets the path as currently configured. This does not require the folder to be existent.
         /// </summary>
         /// <exception cref="ExternalException">The known folder could not be retrieved.</exception>
-        public string Path
+        public string? Path
         {
             get => GetPath(KnownFolderFlags.DontVerify);
-            set => SetPath(KnownFolderFlags.None, value);
+            set
+            {
+                if (value != null)
+                    SetPath(KnownFolderFlags.None, value);
+            }
         }
 
         /// <summary>
@@ -68,10 +71,14 @@ namespace Wabbajack.Common.IO
         /// This does not require the folder to be existent.
         /// </summary>
         /// <exception cref="ExternalException">The known folder could not be retrieved.</exception>
-        public string ExpandedPath
+        public string? ExpandedPath
         {
             get => GetPath(KnownFolderFlags.DontVerify | KnownFolderFlags.NoAlias);
-            set => SetPath(KnownFolderFlags.DontUnexpand, value);
+            set
+            {
+                if (value != null)
+                    SetPath(KnownFolderFlags.DontUnexpand, value);
+            }
         }
 
         // ---- METHODS (PUBLIC) ---------------------------------------------------------------------------------------
@@ -87,20 +94,17 @@ namespace Wabbajack.Common.IO
 
         // ---- METHODS (PRIVATE) --------------------------------------------------------------------------------------
 
-        private string GetPath(KnownFolderFlags flags)
+        private string? GetPath(KnownFolderFlags flags)
         {
             int result = SHGetKnownFolderPath(Type.GetGuid(), (uint)flags, Identity.Token, out IntPtr outPath);
-            if (result >= 0)
-            {
-                string path = Marshal.PtrToStringUni(outPath);
-                Marshal.FreeCoTaskMem(outPath);
-                return path;
-            }
-            else
-            {
-                throw new ExternalException("Cannot get the known folder path. It may not be available on this system.",
-                    result);
-            }
+            if (result < 0)
+                return null;
+
+            var path = Marshal.PtrToStringUni(outPath);
+            Marshal.FreeCoTaskMem(outPath);
+            return path;
+
+            //throw new ExternalException("Cannot get the known folder path. It may not be available on this system." result);
         }
 
         private void SetPath(KnownFolderFlags flags, string path)

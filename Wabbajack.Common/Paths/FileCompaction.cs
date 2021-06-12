@@ -13,7 +13,12 @@ namespace Wabbajack.Common
         {
             if (_haveCompact != null && _haveCompact.Value) return _compactExecutable;
             if (_haveCompact != null) return null;
-            _compactExecutable = ((AbsolutePath)KnownFolders.SystemX86.Path).Combine("compact.exe");
+
+            var x86Path = KnownFolders.SystemX86.Path;
+            if (x86Path == null)
+                return null;
+            
+            _compactExecutable = ((AbsolutePath)x86Path).Combine("compact.exe");
             
             if (!_compactExecutable.Exists) return null;
 
