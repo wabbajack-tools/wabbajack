@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
-using File = Alphaleonis.Win32.Filesystem.File;
+
 #nullable disable
 
 namespace Compression.BSA

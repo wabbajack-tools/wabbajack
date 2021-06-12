@@ -6,8 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
-using Wabbajack.Common.Serialization.Json;
-using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
 {

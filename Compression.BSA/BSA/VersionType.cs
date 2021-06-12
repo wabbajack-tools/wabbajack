@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Compression.BSA
+﻿namespace Compression.BSA
 {
     public enum VersionType : uint
     {

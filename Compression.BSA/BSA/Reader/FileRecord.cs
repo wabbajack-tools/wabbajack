@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Buffers.Binary;
-using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Versioning;
-using System.Text;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using K4os.Compression.LZ4.Streams;
 using Wabbajack.Common;
-using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
 {
