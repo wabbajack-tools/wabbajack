@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.4.4.5 - 6/12/2021
+* HOTFIX: Fix a game location detection error caused by `\\` in game paths
+
 #### Version - 2.4.4.4 - 6/9/2021
 * Use Erri's Game finder library so we can centralize game detection
 * Fix to a compilation error mis-detecting Skyrim folders
