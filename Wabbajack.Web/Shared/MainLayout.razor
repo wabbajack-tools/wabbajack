@@ -5,13 +5,36 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="0">
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <MudLink Typo="Typo.h5" Class="ml-3" Href="/" Style="color: var(--mud-palette-primary-text) !important" Underline="Underline.None">
+            Wabbajack
+        </MudLink>
         <MudAppBarSpacer />
-        <MudIconButton Icon="@Icons.Custom.Brands.MudBlazor" Color="Color.Inherit" Link="https://mudblazor.com/" Target="_blank" />
-        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/Garderoben/MudBlazor" Target="_blank" />
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/wabbajack-tools/wabbajack" Target="_blank" />
     </MudAppBar>
+    <MudDrawer @bind-Open="@_drawerOpen" Elevation="1" Variant="DrawerVariant.Responsive" Breakpoint="Breakpoint.Xl" ClipMode="DrawerClipMode.Always">
+        <MudNavMenu>
+            <MudNavLink Match="NavLinkMatch.All" Href="/gallery" Icon="@Icons.Material.Filled.Album">
+                Gallery
+            </MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All" Href="/status" Icon="@Icons.Material.Filled.Dashboard">
+                Status Dashboard
+            </MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
     <MudMainContent>
         @Body
     </MudMainContent>
     <CustomFooter/>
 </MudLayout>
+
+@code{
+    private bool _drawerOpen;
+
+    private void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}
+
