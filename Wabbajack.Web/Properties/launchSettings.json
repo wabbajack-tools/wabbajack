@@ -23,6 +23,12 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "Watch Wabbajack.Web": {
+      "commandName": "Executable",
+      "executablePath": "dotnet",
+      "commandLineArgs": "watch run Wabbajack.Web.csproj",
+      "workingDirectory": "../../../"
     }
   }
 }
