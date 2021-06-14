@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using System.Windows;
 using System.Windows.Threading;
 using CefSharp;
@@ -16,6 +17,7 @@ using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.WebAutomation;
+using WebSocketSharp;
 
 namespace Wabbajack
 {
@@ -84,6 +86,14 @@ namespace Wabbajack
                         c.Resume(data);
                     });
                     break;
+                case RequestOAuthLogin oa:
+                    await WrapBrowserJob(oa, async (vm, cancel) =>
+                    {
+                        await OAuthLogin(oa, vm, cancel);
+                    });
+
+
+                    break;
                 case CriticalFailureIntervention c:
                     MessageBox.Show(c.ExtendedDescription, c.ShortDescription, MessageBoxButton.OK,
                         MessageBoxImage.Error);
@@ -95,6 +105,34 @@ namespace Wabbajack
                 default:
                     throw new NotImplementedException($"No handler for {msg}");
             }
+        }
+
+        private async Task OAuthLogin(RequestOAuthLogin oa, WebBrowserVM vm, CancellationTokenSource cancel)
+        {
+            await vm.Driver.WaitForInitialized();
+            vm.Instructions = "Please log in and allow Wabbajack to access your account";
+            
+            var wrapper = new CefSharpWrapper(vm.Browser);
+            await wrapper.NavigateTo(new Uri(oa.AuthorizationEndpoint + $"?response_type=code&client_id={oa.ClientID}"));
+
+            Helpers.SchemeHandler = (browser, frame, _, request) =>
+            {
+                var req = new Uri(request.Url);
+                var parsed = HttpUtility.ParseQueryString(req.Query);
+                if (parsed.Contains("code"))
+                {
+                    oa.Resume(parsed.Get("code"));
+                }
+                else
+                {
+                    oa.Cancel();
+                }
+
+                return new ResourceHandler();
+            };
+
+            while (!oa.Task.IsCanceled && !oa.Task.IsCompleted && !cancel.IsCancellationRequested)
+                await Task.Delay(250);
         }
 
         private async Task HandleManualDownload(WebBrowserVM vm, CancellationTokenSource cancel, ManuallyDownloadFile manuallyDownloadFile)

@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using HtmlAgilityPack;
+using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
+using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class VectorPlexusDownloader : AbstractIPS4Downloader<VectorPlexusDownloader, VectorPlexusDownloader.State>
+    public class VectorPlexusDownloader : AbstractIPS4OAuthDownloader<VectorPlexusDownloader, VectorPlexusDownloader.State>
     {
         #region INeedsDownload
         public override string SiteName => "Vector Plexus";
@@ -15,13 +18,50 @@ namespace Wabbajack.Lib.Downloaders
         public override Uri IconUri => new Uri("https://www.vectorplexus.com/favicon.ico");
         #endregion
 
-        public VectorPlexusDownloader() : base(new Uri("https://vectorplexus.com/login"), 
-            "vectorplexus", "vectorplexus.com")
+        public VectorPlexusDownloader() : base("45c6d3c9867903a7daa6ded0a38cedf8", 
+            new Uri("https://vectorplexus.com/oauth/authorize/"), new Uri("https://vectorplexus.com/oauth/token/"), 
+            "vector-plexus-oauth2")
         {
         }
+
+
+        public class State : AbstractDownloadState
+        {
+            public override object[] PrimaryKey { get; } = Array.Empty<object>();
+            public override bool IsWhitelisted(ServerWhitelist whitelist)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override Task<bool> Download(Archive a, AbsolutePath destination)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override Task<bool> Verify(Archive archive, CancellationToken? token = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override IDownloader GetDownloader()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override string? GetManifestURL(Archive a)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override string[] GetMetaIni()
+            {
+                throw new NotImplementedException();
+            }
+        }
         
+        /*
         [JsonName("VectorPlexusDownloader")]
-        public class State : State<VectorPlexusDownloader>
+        public class State //: State<VectorPlexusDownloader>
         {
             public override async Task<bool> LoadMetaData()
             {
@@ -68,5 +108,6 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
         }
+        */
     }
 }
