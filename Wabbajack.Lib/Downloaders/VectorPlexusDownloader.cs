@@ -25,7 +25,7 @@ namespace Wabbajack.Lib.Downloaders
         }
 
 
-        public class State : AbstractDownloadState
+        public class State : AbstractIPS4OAuthDownloader<VectorPlexusDownloader, VectorPlexusDownloader.State>.State
         {
             public override object[] PrimaryKey { get; } = Array.Empty<object>();
             public override bool IsWhitelisted(ServerWhitelist whitelist)

@@ -396,7 +396,7 @@ namespace Wabbajack.Test
 
         }
         
-        /*
+        
         [Fact]
         public async Task VectorPlexusDownload()
         {
@@ -420,7 +420,7 @@ namespace Wabbajack.Test
 
             Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
             
-        }*/
+        }
         
         [Fact]
         public async Task YandexDownloader()

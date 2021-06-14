@@ -113,12 +113,23 @@ namespace Wabbajack
             vm.Instructions = "Please log in and allow Wabbajack to access your account";
             
             var wrapper = new CefSharpWrapper(vm.Browser);
-            await wrapper.NavigateTo(new Uri(oa.AuthorizationEndpoint + $"?response_type=code&client_id={oa.ClientID}"));
+            var scopes = string.Join("&", oa.Scopes.Select(s => $"scope={s}"));
+            var state = Guid.NewGuid().ToString();
+            await wrapper.NavigateTo(new Uri(oa.AuthorizationEndpoint + $"?response_type=code&client_id={oa.ClientID}&state={state}&{scopes}"));
 
             Helpers.SchemeHandler = (browser, frame, _, request) =>
             {
                 var req = new Uri(request.Url);
                 var parsed = HttpUtility.ParseQueryString(req.Query);
+                if (parsed.Contains("state"))
+                {
+                    if (parsed.Get("state") != state)
+                    {
+                        Utils.Log("Bad OAuth state, state, this shouldn't happen");
+                        oa.Cancel();
+                        return new ResourceHandler();
+                    }
+                }
                 if (parsed.Contains("code"))
                 {
                     oa.Resume(parsed.Get("code"));
@@ -127,7 +138,6 @@ namespace Wabbajack
                 {
                     oa.Cancel();
                 }
-
                 return new ResourceHandler();
             };
 
