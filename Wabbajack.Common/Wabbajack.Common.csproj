@@ -66,7 +66,7 @@
         <PackageReference Include="System.Reactive" Version="5.0.0" />
         <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="5.0.0" />
         <PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />
-        <PackageReference Include="YamlDotNet" Version="11.1.1" />
+        <PackageReference Include="YamlDotNet" Version="11.2.0" />
     </ItemGroup>
     <ItemGroup>
       <Compile Update="Serialization\PrimitiveHandlers.cs">
