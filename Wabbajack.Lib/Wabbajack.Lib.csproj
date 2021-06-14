@@ -23,7 +23,7 @@
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
       <PackageReference Include="GameFinder" Version="1.5.2" />
-      <PackageReference Include="GameFinder.RegistryUtils" Version="1.5.2" />
+      <PackageReference Include="GameFinder.RegistryUtils" Version="1.5.3" />
       <PackageReference Include="GameFinder.StoreHandlers.BethNet" Version="1.5.2" />
       <PackageReference Include="GameFinder.StoreHandlers.EGS" Version="1.5.2" />
       <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="1.5.2" />
