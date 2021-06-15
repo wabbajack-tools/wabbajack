@@ -5,13 +5,16 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json;
 using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
+using Wabbajack.Lib.Downloaders.DTOs;
 using Wabbajack.Lib.Http;
+using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -19,7 +22,7 @@ namespace Wabbajack.Lib.Downloaders
     where TState : AbstractIPS4OAuthDownloader<TDownloader, TState>.State, new()
     where TDownloader : IDownloader
     {
-        public AbstractIPS4OAuthDownloader(string clientID, Uri authEndpoint, Uri tokenEndpoint, string encryptedKeyName)
+        public AbstractIPS4OAuthDownloader(string clientID, Uri authEndpoint, Uri tokenEndpoint, IEnumerable<string> scopes, string encryptedKeyName)
         {
             ClientID = clientID;
             AuthorizationEndpoint = authEndpoint;
@@ -27,7 +30,7 @@ namespace Wabbajack.Lib.Downloaders
             EncryptedKeyName = encryptedKeyName;
 
             TriggerLogin = ReactiveCommand.CreateFromTask(
-                execute: () => Utils.CatchAndLog(async () => await Utils.Log(new RequestOAuthLogin(ClientID, authEndpoint, tokenEndpoint, SiteName, new []{"profile"}, EncryptedKeyName)).Task),
+                execute: () => Utils.CatchAndLog(async () => await Utils.Log(new RequestOAuthLogin(ClientID, authEndpoint, tokenEndpoint, SiteName, scopes, EncryptedKeyName)).Task),
                 canExecute: IsLoggedIn.Select(b => !b).ObserveOnGuiThread());
             ClearLogin = ReactiveCommand.CreateFromTask(
                 execute: () => Utils.CatchAndLog(async () => await Utils.DeleteEncryptedJson(EncryptedKeyName)),
@@ -51,20 +54,32 @@ namespace Wabbajack.Lib.Downloaders
         private bool _isPrepared = false;
         public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode = false)
         {
-            if (archiveINI.General != null && archiveINI.General.directURL != null)
+            if (archiveINI.General.ips4Site == SiteName && archiveINI.General.ips4Mod != null && archiveINI.General.ips4File != null)
             {
-                var parsed = new Uri(archiveINI.General.directURL);
-                var fileID = parsed.AbsolutePath.Split("/").Last().Split("-").First();
-                var modID = HttpUtility.ParseQueryString(parsed.Query).Get("r");
+                if (!long.TryParse(archiveINI.General.ips4Mod, out long parsedMod))
+                    return null;
+                var state = new TState {IPS4Mod = parsedMod, IPS4File = archiveINI.General.ips4File};
 
-                if (!long.TryParse(fileID, out var fileIDParsed))
-                    return null;
-                if (modID != null && !long.TryParse(modID, out var modIDParsed))
-                    return null;
+                if (!quickMode)
+                {
+                    var downloads = await GetDownloads(state.IPS4Mod);
+                    state.IPS4Url = downloads.Url ?? "";
+                }
+
+                return state;
+
             }
 
-            throw new NotImplementedException();
+            return null;
         }
+
+        public async Task<IPS4OAuthFilesResponse.Root> GetDownloads(long modID)
+        {
+            var responseString = await (await GetAuthedClient())!.GetStringAsync(SiteURL+ $"api/downloads/files/{modID}") ;
+            return responseString.FromJsonString<IPS4OAuthFilesResponse.Root>();
+        }
+
+
 
         public async Task Prepare()
         {
@@ -95,8 +110,56 @@ namespace Wabbajack.Lib.Downloaders
                 
         public abstract class State : AbstractDownloadState
         {
-            public long FileID { get; set; }
-            public long? ModID { get; set; }
+            public long IPS4Mod { get; set; }
+            public string IPS4File { get; set; } = "";
+
+            public string IPS4Url { get; set; } = "";
+
+            public override object[] PrimaryKey => new object[] {IPS4Mod, IPS4File};
+
+            public override bool IsWhitelisted(ServerWhitelist whitelist)
+            {
+                return true;
+            }
+
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
+            {
+                var downloads = await TypedDownloader.GetDownloads(IPS4Mod);
+                var fileEntry = downloads.Files.First(f => f.Name == IPS4File);
+                if (a.Size != 0 && fileEntry.Size != a.Size)
+                    throw new Exception(
+                        $"File {IPS4File} on mod {IPS4Mod} on {TypedDownloader.SiteName} appears to be re-uploaded with the same name");
+
+                var state = new HTTPDownloader.State(fileEntry.Url!) {Client = TypedDownloader.AuthedClient!};
+                if (a.Size == 0) a.Size = fileEntry.Size!.Value;
+                return await state.Download(a, destination);
+            }
+
+            private static AbstractIPS4OAuthDownloader<TDownloader, TState> TypedDownloader => (AbstractIPS4OAuthDownloader<TDownloader, TState>)(object)DownloadDispatcher.GetInstance<TDownloader>();
+
+            public override async Task<bool> Verify(Archive archive, CancellationToken? token = null)
+            {
+                var downloads = await DownloadDispatcher.GetInstance<VectorPlexusOAuthDownloader>().GetDownloads(IPS4Mod);
+                var fileEntry = downloads.Files.FirstOrDefault(f => f.Name == IPS4File);
+                if (fileEntry == null) return false;
+                return archive.Size == 0 || fileEntry.Size == archive.Size;
+            }
+
+            public override string? GetManifestURL(Archive a)
+            {
+                return IPS4Url;
+            }
+
+            public override string[] GetMetaIni()
+            {
+                return new[]
+                {
+                    "[General]", 
+                    $"ips4Site={TypedDownloader.SiteName}", 
+                    $"ips4Mod={IPS4Mod}",
+                    $"ips4File={IPS4File}"
+                };
+            }
         }
     }
 
@@ -215,7 +278,5 @@ namespace Wabbajack.Lib.Downloaders
             Handled = true;
             _source.TrySetCanceled();
         }
-
-
     }
 }

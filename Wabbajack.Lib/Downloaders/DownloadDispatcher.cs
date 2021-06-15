@@ -22,7 +22,7 @@ namespace Wabbajack.Lib.Downloaders
             new NexusDownloader(),
             new MediaFireDownloader(),
             new LoversLabDownloader(),
-            new VectorPlexusDownloader(),
+            new VectorPlexusOAuthDownloader(),
             new DeadlyStreamDownloader(),
             new TESAllianceDownloader(),
             new TESAllDownloader(),

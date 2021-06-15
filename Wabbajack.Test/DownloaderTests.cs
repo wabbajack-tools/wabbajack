@@ -400,9 +400,11 @@ namespace Wabbajack.Test
         [Fact]
         public async Task VectorPlexusDownload()
         {
-            await DownloadDispatcher.GetInstance<VectorPlexusDownloader>().Prepare();
+            await DownloadDispatcher.GetInstance<VectorPlexusOAuthDownloader>().Prepare();
             var ini = @"[General]
-                        directURL=https://vectorplexus.com/files/file/290-wabbajack-test-file";
+                        ips4Site=Vector Plexus
+                        ips4Mod=290
+                        ips4File=WABBAJACK_TEST_FILE.zip";
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 

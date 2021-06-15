@@ -113,9 +113,9 @@ namespace Wabbajack
             vm.Instructions = "Please log in and allow Wabbajack to access your account";
             
             var wrapper = new CefSharpWrapper(vm.Browser);
-            var scopes = string.Join("&", oa.Scopes.Select(s => $"scope={s}"));
+            var scopes = string.Join(" ", oa.Scopes);
             var state = Guid.NewGuid().ToString();
-            await wrapper.NavigateTo(new Uri(oa.AuthorizationEndpoint + $"?response_type=code&client_id={oa.ClientID}&state={state}&{scopes}"));
+            await wrapper.NavigateTo(new Uri(oa.AuthorizationEndpoint + $"?response_type=code&client_id={oa.ClientID}&state={state}&scope={scopes}"));
 
             Helpers.SchemeHandler = (browser, frame, _, request) =>
             {
