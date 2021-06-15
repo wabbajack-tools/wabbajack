@@ -108,11 +108,10 @@ namespace Wabbajack.Lib.Downloaders
         }
         
                 
-        public abstract class State : AbstractDownloadState
+        public abstract class State : AbstractDownloadState, IMetaState
         {
             public long IPS4Mod { get; set; }
             public string IPS4File { get; set; } = "";
-
             public string IPS4Url { get; set; } = "";
 
             public override object[] PrimaryKey => new object[] {IPS4Mod, IPS4File};
@@ -159,6 +158,26 @@ namespace Wabbajack.Lib.Downloaders
                     $"ips4Mod={IPS4Mod}",
                     $"ips4File={IPS4File}"
                 };
+            }
+
+            public Uri URL => new(IPS4Url);
+            public string? Name { get; set; }
+            public string? Author { get; set; }
+            public string? Version { get; set; }
+            public Uri? ImageURL { get; set; }
+            public bool IsNSFW { get; set; }
+            public string? Description { get; set; }
+            public async Task<bool> LoadMetaData()
+            {
+                var data = await TypedDownloader.GetDownloads(IPS4Mod);
+                Name = data.Title;
+                Author = data.Author?.Name;
+                Version = data.Version;
+                ImageURL = data.PrimaryScreenshot.Url != null ? new Uri(data.PrimaryScreenshot.Url) : null;
+                IsNSFW = true;
+                Description = "";
+                IPS4Url = data.Url!;
+                return true;
             }
         }
     }
