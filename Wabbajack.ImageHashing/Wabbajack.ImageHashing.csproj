@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0-windows</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="DirectXTexNet" Version="1.0.2" />
+      <PackageReference Include="Magick.NET.Core" Version="7.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
+    </ItemGroup>
+
+</Project>
