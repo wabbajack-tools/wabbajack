@@ -2,11 +2,13 @@
 
     <PropertyGroup>
         <TargetFramework>net5.0-windows</TargetFramework>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="DirectXTexNet" Version="1.0.2" />
-      <PackageReference Include="Magick.NET.Core" Version="7.0.1" />
+      <PackageReference Include="Shipwreck.Phash" Version="0.5.0" />
     </ItemGroup>
 
     <ItemGroup>

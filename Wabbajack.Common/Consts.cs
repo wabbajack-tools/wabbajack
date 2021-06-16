@@ -172,5 +172,6 @@ namespace Wabbajack.Common
         
         public static long UPLOADED_FILE_BLOCK_SIZE = (long)1024 * 1024 * 2;
 
+        public static HashSet<Extension> TextureExtensions = new() {new Extension(".dds"), new Extension(".tga")};
     }
 }

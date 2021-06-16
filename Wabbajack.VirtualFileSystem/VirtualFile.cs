@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using K4os.Hash.Crc;
 using Wabbajack.Common;
+using Wabbajack.Common.FileSignatures;
+using Wabbajack.ImageHashing;
 
 namespace Wabbajack.VirtualFileSystem
 {
@@ -47,6 +49,7 @@ namespace Wabbajack.VirtualFileSystem
         public FullPath FullPath { get; private set; }
 
         public Hash Hash { get; internal set; }
+        public PHash PerceptualHash { get; internal set; }
         
         public ExtendedHashes ExtendedHashes { get; set; }
         public long Size { get; internal set; }
@@ -177,16 +180,17 @@ namespace Wabbajack.VirtualFileSystem
 
         private IndexedVirtualFile ToIndexedVirtualFile()
         {
-            return new IndexedVirtualFile
+            return new()
             {
                 Hash = Hash,
+                PerceptualHash = PerceptualHash,
                 Name = Name,
                 Children = Children.Select(c => c.ToIndexedVirtualFile()).ToList(),
                 Size = Size
             };
         }
-
-
+        
+        
         public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, IStreamFactory extractedFile,
             IPath relPath, int depth = 0)
         {
@@ -219,8 +223,11 @@ namespace Wabbajack.VirtualFileSystem
                 Size = stream.Length,
                 LastModified = extractedFile.LastModifiedUtc.AsUnixTime(),
                 LastAnalyzed = DateTime.Now.AsUnixTime(),
-                Hash = hash
+                Hash = hash,
             };
+
+            if (Consts.TextureExtensions.Contains(relPath.FileName.Extension))
+                self.PerceptualHash = await PHash.FromStream(stream, relPath.FileName.Extension, false);
 
             self.FillFullPath(depth);
             

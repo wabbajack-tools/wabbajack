@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
+using Wabbajack.ImageHashing;
 
 namespace Wabbajack.VirtualFileSystem
 {
@@ -16,13 +17,16 @@ namespace Wabbajack.VirtualFileSystem
     {
         public IPath Name { get; set; }
         public Hash Hash { get; set; }
+        
+        public PHash PerceptualHash { get; set; }
         public long Size { get; set; }
-        public List<IndexedVirtualFile> Children { get; set; } = new List<IndexedVirtualFile>();
+        public List<IndexedVirtualFile> Children { get; set; } = new();
 
         private void Write(BinaryWriter bw)
         {
             bw.Write(Name.ToString());
             bw.Write((ulong)Hash);
+            PerceptualHash.Write(bw);
             bw.Write(Size);
             bw.Write(Children.Count);
             foreach (var file in Children)
@@ -44,6 +48,7 @@ namespace Wabbajack.VirtualFileSystem
             {
                 Name = (RelativePath)br.ReadString(),
                 Hash = Hash.FromULong(br.ReadUInt64()),
+                PerceptualHash = PHash.Read(br),
                 Size = br.ReadInt64(),
             };
             var lst = new List<IndexedVirtualFile>();
