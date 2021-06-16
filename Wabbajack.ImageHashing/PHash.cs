@@ -11,12 +11,24 @@ namespace Wabbajack.ImageHashing
     {
         private const int SIZE = 40;
         private readonly byte[] _data;
+        private readonly int _hash;
 
-        private PHash(byte[]? data)
+        private PHash(byte[] data)
         {
-            _data = data ?? new byte[SIZE];
+            _data = data;
             if (_data.Length != SIZE)
                 throw new DataException();
+            
+            long h = 0;
+            h |= _data[0];
+            h <<= 8;
+            h |= _data[1];
+            h <<= 8;
+            h |= _data[2];
+            h <<= 8;
+            h |= _data[3];
+            h <<= 8;
+            _hash = (int)h;
         }
 
         public static PHash FromBase64(string base64)
@@ -34,7 +46,10 @@ namespace Wabbajack.ImageHashing
 
         public void Write(BinaryWriter br)
         {
-            br.Write((_data?.Length ?? 0) == 0 ? new byte[SIZE] : _data);
+            if (_hash == 0)
+                br.Write(new byte[SIZE]);
+            else 
+                br.Write(_data);
         }
         
         public static PHash FromDigest(Digest digest)

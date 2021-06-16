@@ -12,10 +12,11 @@ namespace Wabbajack.ImageHashing
 {
     public class DDSImage
     {
-        private DDSImage(ScratchImage img, TexMetadata metadata)
+        private DDSImage(ScratchImage img, TexMetadata metadata, Extension ext)
         {
             _image = img;
             _metaData = metadata;
+            _extension = ext;
         }
 
         private static Extension DDSExtension = new(".dds");
@@ -29,7 +30,7 @@ namespace Wabbajack.ImageHashing
 
             var img = TexHelper.Instance.LoadFromDDSFile(file.ToString(), DDS_FLAGS.NONE);
             
-            return new DDSImage(img, img.GetMetadata());
+            return new DDSImage(img, img.GetMetadata(), new Extension(".dds"));
         }
         
         public static DDSImage FromDDSMemory(byte[] data)
@@ -39,7 +40,7 @@ namespace Wabbajack.ImageHashing
                 fixed (byte* ptr = data)
                 {
                     var img = TexHelper.Instance.LoadFromDDSMemory((IntPtr)ptr, data.Length, DDS_FLAGS.NONE);
-                    return new DDSImage(img, img.GetMetadata());
+                    return new DDSImage(img, img.GetMetadata(), new Extension(".dds"));
                 }
             }
         }
@@ -51,7 +52,7 @@ namespace Wabbajack.ImageHashing
                 fixed (byte* ptr = data)
                 {
                     var img = TexHelper.Instance.LoadFromTGAMemory((IntPtr)ptr, data.Length);
-                    return new DDSImage(img, img.GetMetadata());
+                    return new DDSImage(img, img.GetMetadata(), new Extension(".tga"));
                 }
             }
         }
@@ -95,11 +96,24 @@ namespace Wabbajack.ImageHashing
             DXGI_FORMAT.BC7_UNORM_SRGB,
         };
 
+        private Extension _extension;
+
+        public ImageState ImageState()
+        {
+            return new()
+            {
+                Width = _metaData.Width,
+                Height = _metaData.Height,
+                PerceptualHash = PerceptionHash()
+            };
+        }
+
         public PHash PerceptionHash()
         {
             ScratchImage? resized = default;
             try
             {
+                // First we resize the image, so that changes due to image scaling matter less in the final hash
                 if (CompressedTypes.Contains(_metaData.Format))
                 {
                     using var decompressed = _image.Decompress(DXGI_FORMAT.UNKNOWN);
@@ -109,8 +123,7 @@ namespace Wabbajack.ImageHashing
                 {
                     resized = _image.Resize(512, 512, TEX_FILTER_FLAGS.DEFAULT);
                 }
-
-                var data = new List<(int, int)>();
+                
                 var image = new byte[512 * 512];
 
                 unsafe void EvaluatePixels(IntPtr pixels, IntPtr width, IntPtr line)
@@ -121,7 +134,6 @@ namespace Wabbajack.ImageHashing
                     if (widthV != 512) return;
 
                     var y = line.ToInt32();
-                    data.Add((widthV, y));
 
                     for (int i = 0; i < widthV; i++)
                     {
