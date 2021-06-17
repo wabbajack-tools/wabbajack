@@ -2,11 +2,26 @@
 @using System.Text.Json
 @using System.Threading
 @using Wabbajack.Web.DTO
+@using Wabbajack.Web.Extensions
 @inject HttpClient _httpClient;
 
 <MudContainer Class="mt-16" MaxWidth="MaxWidth.Large">
-    <MudGrid Spacing="2" Justify="Justify.FlexStart">
-        @foreach (var modlist in _modlists)
+    <MudGrid Class="d-inline-flex flex-nowrap align-end">
+        <MudItem xs="8">
+            <MudCheckBox @bind-Checked="@_showNsfw" Class="mud-float-end">Show NSFW</MudCheckBox>
+        </MudItem>
+        <MudItem xs="4">
+            <MudSelect T="string" @bind-Value="_selectedGame" Label="Game" Variant="Variant.Outlined">
+                @foreach (var game in _allGames)
+                {
+                    <MudSelectItem Value="@game">@game</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+    </MudGrid>
+
+    <MudGrid Class="mt-2" Spacing="2" Justify="Justify.FlexStart">
+        @foreach (var modlist in FilteredList)
         {
             <MudItem xs="12" sm="12" md="6" lg="6" xl="4">
                 <GalleryItem Modlist="@modlist"/>
@@ -18,11 +33,25 @@
 @code {
     
     private const string ModlistsJsonUrl = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json";
+    private const string AllGames = "All";
 
     private bool _shouldRender;
     protected override bool ShouldRender() => _shouldRender;
 
-    private List<ModlistMetadata> _modlists = new();
+    private bool _showNsfw;
+    private string _selectedGame = AllGames;
+    
+    private IReadOnlyList<ModlistMetadata> _modlists = new List<ModlistMetadata>();
+    
+    private IEnumerable<ModlistMetadata> FilteredList => _modlists
+        .Where(x => _showNsfw || !x.Nsfw)
+        .Where(x =>
+        {
+            if (_selectedGame is null or AllGames) return true;
+            return x.Game == _selectedGame;
+        });
+
+    private IReadOnlyList<string> _allGames = new List<string>();
     
     protected override async Task OnInitializedAsync()
     {
@@ -33,8 +62,19 @@
         }, CancellationToken.None);
 
         if (res != null)
+        {
             _modlists = res;
-        
+            var allGames = _modlists
+                .Select(x => x.Game)
+                .NotNull()
+                .Distinct()
+                .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            allGames.Insert(0, AllGames);
+            _allGames = allGames;
+        }
+
+        _showNsfw = false;
         _shouldRender = true;
     }
 }

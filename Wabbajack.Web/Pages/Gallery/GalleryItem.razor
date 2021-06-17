@@ -12,9 +12,17 @@
     <MudCardContent>
         <MudText Typo="Typo.caption">By @Modlist.Author</MudText>
         <MudText Typo="Typo.body1">@Modlist.Description</MudText>
+        <MudDivider DividerType="DividerType.FullWidth"/>
+        @if (Modlist.Tags != null)
+        {
+            @foreach (var tag in Modlist.Tags)
+            {
+                <MudChip Size="Size.Small">@tag</MudChip>
+            }
+        }
     </MudCardContent>
     <MudCardActions>
-        <MudIconButton Icon="@Icons.Material.Filled.FileDownload" Color="Color.Default"/>
+        <MudButton Variant="Variant.Text" ButtonType="ButtonType.Button" Color="Color.Info">View</MudButton>
     </MudCardActions>
 </MudCard>
 
