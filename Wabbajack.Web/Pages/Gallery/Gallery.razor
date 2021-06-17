@@ -1,9 +1,8 @@
 ﻿@page "/gallery"
-@using System.Net.Http.Json
 @using System.Text.Json
 @using System.Threading
 @using Wabbajack.Web.DTO
-@inject IHttpClientFactory _clientFactory;
+@inject HttpClient _httpClient;
 
 <MudContainer Class="mt-16" MaxWidth="MaxWidth.Large">
     <MudGrid Spacing="2" Justify="Justify.FlexStart">
@@ -27,9 +26,7 @@
     
     protected override async Task OnInitializedAsync()
     {
-        var client = _clientFactory.CreateClient();
-
-        var res = await client.GetFromJsonAsync<List<ModlistMetadata>>(ModlistsJsonUrl, new JsonSerializerOptions
+        var res = await _httpClient.GetFromJsonAsync<List<ModlistMetadata>>(ModlistsJsonUrl, new JsonSerializerOptions
         {
             ReadCommentHandling = JsonCommentHandling.Skip,
             IgnoreNullValues = true,

@@ -1,48 +1,31 @@
 using System;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using NLog.Web;
+using MudBlazor.Services;
 
 namespace Wabbajack.Web
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            var logFactory = NLogBuilder.ConfigureNLog("nlog.config");
-            var logger = logFactory.GetCurrentClassLogger();
-            
-            logger.Info("Creating Host");
-            var host = CreateHostBuilder(args).Build();
-            
-            logger.Info("Starting Application");
-            try
-            {
-                host.Run();
-            }
-            catch (Exception e)
-            {
-                logger.Error(e, "Application stopped because of an exception");
-                throw;
-            }
-            finally
-            {
-                NLog.LogManager.Shutdown();
-            }
-        }
+            var builder = WebAssemblyHostBuilder.CreateDefault(args);
+            builder.RootComponents.Add<App>("#app");
 
-        private static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                })
-                .ConfigureLogging(logging =>
-                {
-                    logging.ClearProviders();
-                    logging.SetMinimumLevel(LogLevel.Trace);
-                })
-                .UseNLog();
+            builder.Services.AddScoped(_ => new HttpClient
+            {
+                BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
+            });
+            builder.Services.AddMudServices();
+
+            builder.Logging.SetMinimumLevel(builder.HostEnvironment.IsDevelopment()
+                ? LogLevel.Debug
+                : LogLevel.Information);
+
+            await builder.Build().RunAsync();
+        }
     }
 }
