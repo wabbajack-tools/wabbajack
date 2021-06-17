@@ -148,7 +148,7 @@ Reading all the previous section you might wonder if Wabbajack is able to detect
 
 This basically means `original + patch = final` and we only include `patch` in the `.wabbajack` file which, by itself, is just gibberish and completely useless without the original file. This allows us to distribute arbitrary changes without violating copyrights as we do not copy copyrighted material. Instead, we copy instructions on how to modify the copyrighted material.
 
-You don't even have to tell Wabbajack that a specific file was modified, that you be way too much work. Instead Wabbajack will figure out which file got modified and create a binary patch. The modified file can be anything from some modified settings file to a patched plugin or optimized mesh/texture.
+You don't even have to tell Wabbajack that a specific file was modified, that would be way too much work. Instead Wabbajack will figure out which file got modified and create a binary patch. The modified file can be anything from some modified settings file to a patched plugin or optimized mesh/texture.
 
 #### BSA Decomposition
 
