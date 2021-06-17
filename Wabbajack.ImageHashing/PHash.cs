@@ -2,31 +2,34 @@
 using System.Data;
 using System.IO;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Shipwreck.Phash;
 using Wabbajack.Common;
 
 namespace Wabbajack.ImageHashing
 {
+    [JsonConverter(typeof(PHashJsonConverter))]
     public struct PHash
     {
         private const int SIZE = 40;
-        private readonly byte[] _data;
         private readonly int _hash;
+
+        public byte[] Data { get; }
 
         private PHash(byte[] data)
         {
-            _data = data;
-            if (_data.Length != SIZE)
+            Data = data;
+            if (Data.Length != SIZE)
                 throw new DataException();
             
             long h = 0;
-            h |= _data[0];
+            h |= Data[0];
             h <<= 8;
-            h |= _data[1];
+            h |= Data[1];
             h <<= 8;
-            h |= _data[2];
+            h |= Data[2];
             h <<= 8;
-            h |= _data[3];
+            h |= Data[3];
             h <<= 8;
             _hash = (int)h;
         }
@@ -49,7 +52,7 @@ namespace Wabbajack.ImageHashing
             if (_hash == 0)
                 br.Write(new byte[SIZE]);
             else 
-                br.Write(_data);
+                br.Write(Data);
         }
         
         public static PHash FromDigest(Digest digest)
@@ -59,24 +62,24 @@ namespace Wabbajack.ImageHashing
 
         public float Similarity(PHash other)
         {
-            return ImagePhash.GetCrossCorrelation(this._data, other._data);
+            return ImagePhash.GetCrossCorrelation(this.Data, other.Data);
         }
 
         public override string ToString()
         {
-            return _data.ToBase64();
+            return Data.ToBase64();
         }
 
         public override int GetHashCode()
         {
             long h = 0;
-            h |= _data[0];
+            h |= Data[0];
             h <<= 8;
-            h |= _data[1];
+            h |= Data[1];
             h <<= 8;
-            h |= _data[2];
+            h |= Data[2];
             h <<= 8;
-            h |= _data[3];
+            h |= Data[3];
             h <<= 8;
             return (int)h;
         }
@@ -99,6 +102,28 @@ namespace Wabbajack.ImageHashing
                 throw new NotImplementedException("Only DDS and TGA files supported by PHash");
             }
             return img.PerceptionHash();
+        }
+
+        public static async Task<PHash> FromFile(AbsolutePath path)
+        {
+            await using var s = await path.OpenRead();
+            return await FromStream(s, path.Extension);
+
+        }
+    }
+    
+            
+    public class PHashJsonConverter : JsonConverter<PHash>
+    {
+        public override void WriteJson(JsonWriter writer, PHash value, JsonSerializer serializer)
+        {
+            writer.WriteValue(value.Data.ToBase64());
+        }
+
+        public override PHash ReadJson(JsonReader reader, Type objectType, PHash existingValue, bool hasExistingValue,
+            JsonSerializer serializer)
+        {
+            return PHash.FromBase64((string)reader.Value!);
         }
     }
 }

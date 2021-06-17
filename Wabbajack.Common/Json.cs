@@ -128,7 +128,7 @@ namespace Wabbajack.Common
                 return Hash.FromBase64((string)reader.Value!);
             }
         }
-
+        
         public class RelativePathConverter : JsonConverter<RelativePath>
         {
             public override void WriteJson(JsonWriter writer, RelativePath value, JsonSerializer serializer)

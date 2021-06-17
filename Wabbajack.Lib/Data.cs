@@ -6,6 +6,7 @@ using Compression.BSA;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
+using Wabbajack.ImageHashing;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.VirtualFileSystem;
 
@@ -37,10 +38,7 @@ namespace Wabbajack.Lib
 
         public T EvolveTo<T>() where T : Directive, new()
         {
-            var v = new T();
-            v.To = Path;
-            v.Hash = File.Hash;
-            v.Size = File.Size;
+            var v = new T {To = Path, Hash = File.Hash, Size = File.Size};
             return v;
         }
     }
@@ -251,6 +249,15 @@ namespace Wabbajack.Lib
         /// </summary>
         [JsonIgnore]
         public VirtualFile[] Choices { get; set; } = { };
+    }
+    
+    [JsonName("TransformedTexture")]
+    public class TransformedTexture : FromArchive
+    {
+        /// <summary>
+        ///     The file to apply to the source file to patch it
+        /// </summary>
+        public ImageState ImageState { get; set; } = new();
     }
 
     [JsonName("SourcePatch")]

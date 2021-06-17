@@ -456,6 +456,7 @@ namespace Wabbajack.Lib
                 new IgnoreEndsWith(this, ".log"),
                 new DeconstructBSAs(
                     this), // Deconstruct BSAs before building patches so we don't generate massive patch files
+                new MatchSimilarTextures(this),
                 new IncludePatches(this),
                 new IncludeDummyESPs(this),
 

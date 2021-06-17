@@ -49,8 +49,7 @@ namespace Wabbajack.VirtualFileSystem
         public FullPath FullPath { get; private set; }
 
         public Hash Hash { get; internal set; }
-        public PHash PerceptualHash { get; internal set; }
-        
+        public ImageState ImageState { get; internal set; }
         public ExtendedHashes ExtendedHashes { get; set; }
         public long Size { get; internal set; }
 
@@ -148,7 +147,8 @@ namespace Wabbajack.VirtualFileSystem
                 Size = file.Size,
                 LastModified = extractedFile.LastModifiedUtc.AsUnixTime(),
                 LastAnalyzed = DateTime.Now.AsUnixTime(),
-                Hash = file.Hash
+                Hash = file.Hash,
+                ImageState = file.ImageState
             };
                         
             vself.FillFullPath();
@@ -183,7 +183,7 @@ namespace Wabbajack.VirtualFileSystem
             return new()
             {
                 Hash = Hash,
-                PerceptualHash = PerceptualHash,
+                ImageState = ImageState,
                 Name = Name,
                 Children = Children.Select(c => c.ToIndexedVirtualFile()).ToList(),
                 Size = Size
@@ -227,7 +227,7 @@ namespace Wabbajack.VirtualFileSystem
             };
 
             if (Consts.TextureExtensions.Contains(relPath.FileName.Extension))
-                self.PerceptualHash = await PHash.FromStream(stream, relPath.FileName.Extension, false);
+                self.ImageState = await ImageHashing.ImageState.FromImageStream(stream, relPath.FileName.Extension, false);
 
             self.FillFullPath(depth);
             

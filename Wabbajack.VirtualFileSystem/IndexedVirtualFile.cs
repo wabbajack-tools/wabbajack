@@ -19,7 +19,7 @@ namespace Wabbajack.VirtualFileSystem
         public IPath Name { get; set; }
         public Hash Hash { get; set; }
         
-        public ImageState? ImageState { get; set; }
+        public ImageState ImageState { get; set; }
         public long Size { get; set; }
         public List<IndexedVirtualFile> Children { get; set; } = new();
 

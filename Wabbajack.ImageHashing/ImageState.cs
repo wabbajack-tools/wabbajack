@@ -1,9 +1,13 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 using DirectXTexNet;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 
 namespace Wabbajack.ImageHashing
 {
+    [JsonName("ImageState")]
     public class ImageState
     {
         public int Width { get; set; }
@@ -28,6 +32,35 @@ namespace Wabbajack.ImageHashing
             bw.Write((ushort)Height);
             bw.Write((byte)Format);
             PerceptualHash.Write(bw);
+        }
+
+        public static async Task<ImageState> FromImageStream(Stream stream, Extension ext, bool takeStreamOwnership = true)
+        {
+            var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            if (takeStreamOwnership) await stream.DisposeAsync();
+
+            DDSImage? img = default;
+            try
+            {
+                if (ext == new Extension(".dds"))
+                    img = DDSImage.FromDDSMemory(ms.GetBuffer());
+                else if (ext == new Extension(".tga"))
+                {
+                    img = DDSImage.FromTGAMemory(ms.GetBuffer());
+                }
+                else
+                {
+                    throw new NotImplementedException("Only DDS and TGA files supported by PHash");
+                }
+
+                return img.ImageState();
+
+            }
+            finally
+            {
+                img?.Dispose();
+            }
         }
     }
 }

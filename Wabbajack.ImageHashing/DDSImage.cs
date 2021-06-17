@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using DirectXTexNet;
 using Shipwreck.Phash;
 using Shipwreck.Phash.Imaging;
@@ -10,7 +12,7 @@ using Wabbajack.Common;
 
 namespace Wabbajack.ImageHashing
 {
-    public class DDSImage
+    public class DDSImage : IDisposable
     {
         private DDSImage(ScratchImage img, TexMetadata metadata, Extension ext)
         {
@@ -20,6 +22,7 @@ namespace Wabbajack.ImageHashing
         }
 
         private static Extension DDSExtension = new(".dds");
+        private static Extension TGAExtension = new(".tga");
         private ScratchImage _image;
         private TexMetadata _metaData;
 
@@ -32,7 +35,7 @@ namespace Wabbajack.ImageHashing
             
             return new DDSImage(img, img.GetMetadata(), new Extension(".dds"));
         }
-        
+
         public static DDSImage FromDDSMemory(byte[] data)
         {
             unsafe
@@ -56,6 +59,17 @@ namespace Wabbajack.ImageHashing
                 }
             }
         }
+        
+        
+        public static async Task<DDSImage> FromStream(Stream stream, IPath arg1Name)
+        {
+            var data = await stream.ReadAllAsync();
+            if (arg1Name.FileName.Extension == DDSExtension)
+                return FromDDSMemory(data);
+            if (arg1Name.FileName.Extension == TGAExtension)
+                return FromTGAMemory(data);
+            throw new NotImplementedException("Only DDS and TGA files supported");
+        }
 
         public void Dispose()
         {
@@ -66,9 +80,34 @@ namespace Wabbajack.ImageHashing
         public int Width => _metaData.Width;
         public int Height => _metaData.Height;
 
-        public void Resize(int width, int height)
+        // Destructively resize a Image
+        public void ResizeRecompressAndSave(int width, int height, DXGI_FORMAT newFormat, AbsolutePath dest)
         {
+            ScratchImage? resized = default;
+            try
+            {
+                // First we resize the image, so that changes due to image scaling matter less in the final hash
+                if (CompressedTypes.Contains(_metaData.Format))
+                {
+                    using var decompressed = _image.Decompress(DXGI_FORMAT.UNKNOWN);
+                    resized = decompressed.Resize(width, height, TEX_FILTER_FLAGS.DEFAULT);
+                }
+                else
+                {
+                    resized = _image.Resize(width, height, TEX_FILTER_FLAGS.DEFAULT);
+                }
 
+                using var compressed = resized.Compress(newFormat, TEX_COMPRESS_FLAGS.BC7_QUICK, 0.5f);
+
+                if (dest.Extension == new Extension(".dds"))
+                {
+                    compressed.SaveToDDSFile(DDS_FLAGS.NONE, dest.ToString());
+                }
+            }
+            finally
+            {
+                resized?.Dispose();
+            }
         }
 
         private static HashSet<DXGI_FORMAT> CompressedTypes = new HashSet<DXGI_FORMAT>()
@@ -104,6 +143,7 @@ namespace Wabbajack.ImageHashing
             {
                 Width = _metaData.Width,
                 Height = _metaData.Height,
+                Format = _metaData.Format,
                 PerceptualHash = PerceptionHash()
             };
         }
@@ -159,6 +199,10 @@ namespace Wabbajack.ImageHashing
                 resized?.Dispose();
             }
         }
-        
+
+        public void ResizeRecompressAndSave(ImageState state, AbsolutePath dest)
+        {
+            ResizeRecompressAndSave(state.Width, state.Height, state.Format, dest);
+        }
     }
 }
