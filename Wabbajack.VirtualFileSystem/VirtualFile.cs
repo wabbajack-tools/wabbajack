@@ -17,7 +17,7 @@ namespace Wabbajack.VirtualFileSystem
 {
     public class VirtualFile
     {
-        private static AbsolutePath DBLocation = Consts.LocalAppDataPath.Combine("GlobalVFSCache.sqlite");
+        private static AbsolutePath DBLocation = Consts.LocalAppDataPath.Combine("GlobalVFSCache2.sqlite");
         private static string _connectionString;
         private static SQLiteConnection _conn;
 
