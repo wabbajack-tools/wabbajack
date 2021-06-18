@@ -227,7 +227,7 @@ namespace Wabbajack.VirtualFileSystem
             };
 
             if (Consts.TextureExtensions.Contains(relPath.FileName.Extension))
-                self.ImageState = await ImageHashing.ImageState.FromImageStream(stream, relPath.FileName.Extension, false);
+                self.ImageState = await ImageState.FromImageStream(stream, relPath.FileName.Extension, false);
 
             self.FillFullPath(depth);
             

@@ -34,7 +34,7 @@ namespace Wabbajack.ImageHashing
             PerceptualHash.Write(bw);
         }
 
-        public static async Task<ImageState> FromImageStream(Stream stream, Extension ext, bool takeStreamOwnership = true)
+        public static async Task<ImageState?> FromImageStream(Stream stream, Extension ext, bool takeStreamOwnership = true)
         {
             var ms = new MemoryStream();
             await stream.CopyToAsync(ms);
@@ -56,6 +56,11 @@ namespace Wabbajack.ImageHashing
 
                 return img.ImageState();
 
+            }
+            catch (Exception ex)
+            {
+                Utils.Log($"Error getting ImageState: {ex}");
+                return null;
             }
             finally
             {
