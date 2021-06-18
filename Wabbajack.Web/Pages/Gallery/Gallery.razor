@@ -1,9 +1,8 @@
 ﻿@page "/gallery"
-@using System.Text.Json
-@using System.Threading
 @using Wabbajack.Web.DTO
 @using Wabbajack.Web.Extensions
-@inject HttpClient _httpClient;
+@using Wabbajack.Web.Services
+@inject StateContainer _stateContainer;
 
 <MudContainer Class="mt-16" MaxWidth="MaxWidth.Large">
     <MudGrid Class="d-inline-flex flex-nowrap align-end">
@@ -32,7 +31,6 @@
 
 @code {
     
-    private const string ModlistsJsonUrl = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json";
     private const string AllGames = "All";
 
     private bool _shouldRender;
@@ -55,26 +53,28 @@
     
     protected override async Task OnInitializedAsync()
     {
-        var res = await _httpClient.GetFromJsonAsync<List<ModlistMetadata>>(ModlistsJsonUrl, new JsonSerializerOptions
+        if (!_stateContainer.HasModlistMetadata)
         {
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            IgnoreNullValues = true,
-        }, CancellationToken.None);
+            var res = await _stateContainer.RefreshMetadata();
+            //TODO: use result and show to user if failed
 
-        if (res != null)
-        {
-            _modlists = res;
-            var allGames = _modlists
-                .Select(x => x.Game)
-                .NotNull()
-                .Distinct()
-                .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-            allGames.Insert(0, AllGames);
-            _allGames = allGames;
+            if (!res) return;
         }
 
+        _modlists = _stateContainer.Modlists;
+
+        var allGames = _modlists
+            .Select(x => x.Game)
+            .NotNull()
+            .Distinct()
+            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        
+        allGames.Insert(0, AllGames);
+        
+        _allGames = allGames;
         _showNsfw = false;
+
         _shouldRender = true;
     }
 }

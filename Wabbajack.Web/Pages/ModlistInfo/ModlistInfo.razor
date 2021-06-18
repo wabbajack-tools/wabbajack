@@ -1,0 +1,65 @@
+﻿@page "/modlist/{machineUrl}"
+@using Wabbajack.Web.Services
+@using Wabbajack.Web.DTO
+@inject StateContainer _stateContainer;
+
+<MudContainer Class="mt-16" MaxWidth="MaxWidth.Large">
+
+    <MudButton Size="Size.Large" Variant="Variant.Text" Link="/gallery" StartIcon="@Icons.Material.Filled.ArrowBack">
+        Back to the Gallery
+    </MudButton>
+    
+    @if (_modlist == null)
+    {
+        <MudAlert Severity="Severity.Error" Variant="Variant.Filled">
+            Unable to find Modlist with MachineUrl @MachineUrl
+        </MudAlert>
+    }
+    else
+    {
+        <MudText Typo="Typo.h3" Align="Align.Center">@_modlist.Title</MudText>
+        
+        @if (_modlist.Links?.Image != null)
+        {
+            <img src="@_modlist.Links?.Image" alt="Image of the Modlist @_modlist.Title"
+                 style="width: 100%; height: auto"
+                 loading="lazy" crossorigin="anonymous"/>
+        }
+        
+        <MudText Typo="Typo.caption">Created by @_modlist.Author, current Version: @_modlist.Version</MudText>
+        <!--<MudDivider/>
+        <MudText Typo="Typo.subtitle2">@_modlist.Description</MudText>
+        <MudDivider/>-->
+        
+        @if (_readmeUrl != null)
+        {
+            <div class="markdown-body mt-2">
+                <MarkdownComponent MarkdownUrl="@_readmeUrl"/>
+            </div>
+        }
+    }
+    
+</MudContainer>
+
+@code {
+
+    [Parameter]
+    public string MachineUrl { get; set; }
+
+    private ModlistMetadata _modlist;
+    private string _readmeUrl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!_stateContainer.HasModlistMetadata)
+        {
+            var res = await _stateContainer.RefreshMetadata();
+            //TODO: do something with res
+            
+            if (!res) return;
+        }
+        
+        _modlist = _stateContainer.GetByMachineUrl(MachineUrl);
+        _readmeUrl = _modlist?.Links?.Readme;
+    }
+}

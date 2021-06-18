@@ -22,11 +22,13 @@
         }
     </MudCardContent>
     <MudCardActions>
-        <MudButton Variant="Variant.Text" ButtonType="ButtonType.Button" Color="Color.Info">View</MudButton>
+        <MudButton Variant="Variant.Text" ButtonType="ButtonType.Button" Color="Color.Info" Link="@ModlistInfoLink">View</MudButton>
     </MudCardActions>
 </MudCard>
 
 @code {
     [Parameter]
     public ModlistMetadata Modlist { get; set; }
+
+    private string ModlistInfoLink => $"/modlist/{Modlist.Links!.MachineUrl}";
 }

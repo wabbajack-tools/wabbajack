@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MudBlazor.Services;
+using Wabbajack.Web.Services;
 
 namespace Wabbajack.Web
 {
@@ -15,11 +16,12 @@ namespace Wabbajack.Web
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
 
-            builder.Services.AddScoped(_ => new HttpClient
+            builder.Services.AddSingleton(_ => new HttpClient
             {
                 BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
             });
             builder.Services.AddMudServices();
+            builder.Services.AddSingleton<StateContainer>();
 
             builder.Logging.SetMinimumLevel(builder.HostEnvironment.IsDevelopment()
                 ? LogLevel.Debug
