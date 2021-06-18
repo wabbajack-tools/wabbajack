@@ -29,7 +29,7 @@
 
   <ItemGroup>
     <PackageReference Include="CefSharp.Common.NETCore" Version="90.6.70" />
-    <PackageReference Include="CefSharp.OffScreen.NETCore" Version="90.6.70" />
+    <PackageReference Include="CefSharp.OffScreen.NETCore" Version="91.1.160" />
       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
       <PackageReference Include="xunit" Version="2.4.1" />
       <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
