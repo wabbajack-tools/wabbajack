@@ -8,10 +8,10 @@
     </PropertyGroup>
     <ItemGroup>
       <PackageReference Include="CefSharp.Common">
-        <Version>90.6.70</Version>
+        <Version>91.1.160</Version>
       </PackageReference>
       <PackageReference Include="CefSharp.OffScreen">
-        <Version>90.6.70</Version>
+        <Version>91.1.160</Version>
         <NoWarn>NU1701</NoWarn>
       </PackageReference>
       <PackageReference Include="F23.StringSimilarity">
@@ -38,10 +38,10 @@
         <Version>2.1.1</Version>
       </PackageReference>
       <PackageReference Include="ReactiveUI">
-        <Version>13.3.2</Version>
+        <Version>14.1.1</Version>
       </PackageReference>
       <PackageReference Include="ReactiveUI.Fody">
-        <Version>13.3.2</Version>
+        <Version>14.1.1</Version>
       </PackageReference>
       <PackageReference Include="SharpCompress">
         <Version>0.28.3</Version>
