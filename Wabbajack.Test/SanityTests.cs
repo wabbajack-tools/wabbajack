@@ -397,8 +397,8 @@ namespace Wabbajack.Test
             
             await CompileAndInstall(profile, true);
             await utils.VerifyInstalledFile(mod, @"native\whitestagbody.dds");
-            Assert.Equal(0.9999227f, (await PHash.FromFile(recompressedFile)).Similarity(await PHash.FromFile(utils.InstalledPath(mod, @"recompressed\whitestagbody.dds"))));
-            Assert.Equal(0.98703325f, (await PHash.FromFile(resizedFile)).Similarity(await PHash.FromFile(utils.InstalledPath(mod, @"resized\whitestagbody.dds"))));
+            Assert.True(0.99f <=(await PHash.FromFile(recompressedFile)).Similarity(await PHash.FromFile(utils.InstalledPath(mod, @"recompressed\whitestagbody.dds"))));
+            Assert.True(0.98f <=(await PHash.FromFile(resizedFile)).Similarity(await PHash.FromFile(utils.InstalledPath(mod, @"resized\whitestagbody.dds"))));
         }
         
         [Fact]
