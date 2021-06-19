@@ -35,7 +35,7 @@ namespace Wabbajack.Lib.Downloaders
             typeof(MegaDownloader.State),
             typeof(ModDBDownloader.State),
             typeof(NexusDownloader.State),
-            typeof(VectorPlexusDownloader.State),
+            typeof(VectorPlexusOAuthDownloader.State),
             typeof(DeadlyStreamDownloader.State),
             typeof(TESAllianceDownloader.State),
             typeof(TESAllDownloader.State),

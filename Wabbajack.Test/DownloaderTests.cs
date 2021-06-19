@@ -396,13 +396,15 @@ namespace Wabbajack.Test
 
         }
         
-        /*
+        
         [Fact]
         public async Task VectorPlexusDownload()
         {
-            await DownloadDispatcher.GetInstance<VectorPlexusDownloader>().Prepare();
+            await DownloadDispatcher.GetInstance<VectorPlexusOAuthDownloader>().Prepare();
             var ini = @"[General]
-                        directURL=https://vectorplexus.com/files/file/290-wabbajack-test-file";
+                        ips4Site=Vector Plexus
+                        ips4Mod=290
+                        ips4File=WABBAJACK_TEST_FILE.zip";
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
@@ -414,13 +416,25 @@ namespace Wabbajack.Test
 
             Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            await converted.Download(new Archive(state: null!) { Name = "Vector Plexus Test.zip" }, filename.Path);
+            var archive = new Archive(state: null!) {Name = "Vector Plexus Test.zip"};
+            await converted.Download(archive, filename.Path);
 
             Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
 
             Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
+            Assert.True(converted is VectorPlexusOAuthDownloader.State);
             
-        }*/
+            var st = (VectorPlexusOAuthDownloader.State)converted;
+            Assert.True(await st.LoadMetaData());
+            Assert.Equal("halgari", st.Author);
+            Assert.Equal("Wabbajack Test File", st.Name);
+            Assert.True(st.IsNSFW);
+            Assert.Equal("1.0.0", st.Version);
+            Assert.Equal("https://vectorplexus.com/files/file/290-wabbajack-test-file/", st.GetManifestURL(archive));
+            Assert.True(st.ImageURL != null);
+            
+            
+        }
         
         [Fact]
         public async Task YandexDownloader()
