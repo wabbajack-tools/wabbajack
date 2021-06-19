@@ -362,8 +362,6 @@ namespace Wabbajack.Server.Services
                     return (archive, ArchiveStatus.Valid);
                 case MediaFireDownloader.State _:
                     return (archive, ArchiveStatus.Valid);
-                case LoversLabDownloader.State _ :
-                    return (archive, ArchiveStatus.Valid);
                 default:
                 {
                     if (data.ArchiveStatus.TryGetValue((archive.State.PrimaryKeyString, archive.Hash),

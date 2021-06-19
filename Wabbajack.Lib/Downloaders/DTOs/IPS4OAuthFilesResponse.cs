@@ -74,13 +74,13 @@ namespace Wabbajack.Lib.Downloaders.DTOs
         public int Posts { get; set; }
 
         [JsonProperty("lastActivity")]
-        public DateTime LastActivity { get; set; }
+        public DateTime? LastActivity { get; set; }
 
         [JsonProperty("lastVisit")]
-        public DateTime LastVisit { get; set; }
+        public DateTime? LastVisit { get; set; }
 
         [JsonProperty("lastPost")]
-        public DateTime LastPost { get; set; }
+        public DateTime? LastPost { get; set; }
 
         [JsonProperty("profileViews")]
         public int ProfileViews { get; set; }

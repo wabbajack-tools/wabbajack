@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using F23.StringSimilarity;
 using Newtonsoft.Json;
 using ReactiveUI;
 using Wabbajack.Common;
@@ -138,7 +139,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify(Archive archive, CancellationToken? token = null)
             {
-                var downloads = await DownloadDispatcher.GetInstance<VectorPlexusOAuthDownloader>().GetDownloads(IPS4Mod);
+                var downloads = await TypedDownloader.GetDownloads(IPS4Mod);
                 var fileEntry = downloads.Files.FirstOrDefault(f => f.Name == IPS4File);
                 if (fileEntry == null) return false;
                 return archive.Size == 0 || fileEntry.Size == archive.Size;
@@ -173,11 +174,40 @@ namespace Wabbajack.Lib.Downloaders
                 Name = data.Title;
                 Author = data.Author?.Name;
                 Version = data.Version;
-                ImageURL = data.PrimaryScreenshot.Url != null ? new Uri(data.PrimaryScreenshot.Url) : null;
+                ImageURL = data.PrimaryScreenshot?.Url != null ? new Uri(data.PrimaryScreenshot.Url) : null;
                 IsNSFW = true;
                 Description = "";
                 IPS4Url = data.Url!;
                 return true;
+            }
+            
+            public async Task<List<Archive>> GetFilesInGroup()
+            {
+                var data = await TypedDownloader.GetDownloads(IPS4Mod);
+                return data.Files.Select(f => new Archive(new TState {IPS4Mod = IPS4Mod, IPS4File = f.Name!}) {Size = f.Size!.Value}).ToList();
+            }
+
+            public override async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver)
+            {
+                var files = await GetFilesInGroup();
+                var nl = new Levenshtein();
+
+                foreach (var newFile in files.OrderBy(f => nl.Distance(a.Name.ToLowerInvariant(), f.Name.ToLowerInvariant())))
+                {
+                    var tmp = new TempFile();
+                    await DownloadDispatcher.PrepareAll(new[] {newFile.State});
+                    if (await newFile.State.Download(newFile, tmp.Path))
+                    {
+                        newFile.Size = tmp.Path.Size;
+                        var tmpHash = await tmp.Path.FileHashAsync();
+                        if (tmpHash == null) return default;
+                        newFile.Hash = tmpHash.Value;
+                        return (newFile, tmp);
+                    }
+
+                    await tmp.DisposeAsync();
+                }
+                return default;
             }
         }
     }

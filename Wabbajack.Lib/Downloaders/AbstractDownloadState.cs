@@ -29,7 +29,7 @@ namespace Wabbajack.Lib.Downloaders
             typeof(HTTPDownloader.State),
             typeof(GameFileSourceDownloader.State),
             typeof(GoogleDriveDownloader.State),
-            typeof(LoversLabDownloader.State),
+            typeof(LoversLabOAuthDownloader.State),
             typeof(ManualDownloader.State),
             typeof(MediaFireDownloader.State),
             typeof(MegaDownloader.State),
