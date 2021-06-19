@@ -285,77 +285,50 @@ namespace Wabbajack.Test
             Assert.Equal(Hash.FromBase64("2lZt+1h6wxM="), await filename.Path.FileHashAsync());
         }
 
+
         [Fact]
         public async Task CanFindOtherLLMods()
         {
-            await DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
+            await DownloadDispatcher.GetInstance<LoversLabOAuthDownloader>().Prepare();
            
             var ini = @"[General]
-                    directURL=https://www.loverslab.com/files/file/1382-milk-mod-economy/?do=download&r=913360&confirm=1&t=1&csrfKey=7984faa4d27f6b638125daf38ae5f1191";
+                    ips4Site=Lovers Lab
+                    ips4Mod=11116
+                    ips4File=ffooo.zip";
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
-            var otherfiles = await ((LoversLabDownloader.State)state).GetFilesInGroup();
+            var otherfiles = await ((LoversLabOAuthDownloader.State)state).GetFilesInGroup();
         }
-
-        [Fact]
-        public async Task CanCancelLLValidation()
-        {
-            await using var filename = new TempFile();
-            if (!DownloadDispatcher.GetInstance<LoversLabDownloader>().IsCloudFlareProtected)
-                return;
-            
-            await DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
-
-            var state = new LoversLabDownloader.State
-            {
-                FileName = "14424-books-of-dibella-se-alternate-start-plugin", FileID = "870820",
-            };
-
-            using var queue = new WorkQueue();
-            var tcs = new CancellationTokenSource();
-            tcs.CancelAfter(2);
-            await Assert.ThrowsAsync<TaskCanceledException>(async () =>
-            {
-                await Enumerable.Range(0, 2).PMap(queue,
-                    async x =>
-                    {
-                        Assert.True(await state.Verify(new Archive(state: null!) {Size = 252269}, tcs.Token));
-                    });
-            });
-
-
-
-        }
+        
 
         [Fact]
         public async Task CanGetLLMetadata()
         {
-            await DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
+            await DownloadDispatcher.GetInstance<LoversLabOAuthDownloader>().Prepare();
             var ini = @"[General]
-                        directURL=https://www.loverslab.com/files/file/11116-test-file-for-wabbajack-integration/?do=download&r=737123&confirm=1&t=1";
+                        ips4Site=Lovers Lab
+                        ips4Mod=11116
+                        ips4File=WABBAJACK_TEST_FILE.zip";
 
-            var state = (LoversLabDownloader.State)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            var state = (LoversLabOAuthDownloader.State)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
             Assert.True(await state.LoadMetaData());
             Assert.Equal("halgari", state.Author);
         }
-
+        
         [Fact]
         public async Task LoversLabDownload()
         {
 
             
-            await DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
+            await DownloadDispatcher.GetInstance<LoversLabOAuthDownloader>().Prepare();
             var ini = @"[General]
-                        directURL=https://www.loverslab.com/files/file/11116-test-file-for-wabbajack-integration/?do=download&r=737123&confirm=1&t=1";
+                        ips4Site=Lovers Lab
+                        ips4Mod=11116
+                        ips4File=WABBAJACK_TEST_FILE.zip";
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.NotNull(state);
-
-            /*var url_state = DownloadDispatcher.ResolveArchive("https://www.loverslab.com/files/file/11116-test-file-for-wabbajack-integration/?do=download&r=737123&confirm=1&t=1");
-            Assert.Equal("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
-                ((HTTPDownloader.State)url_state).Url);
-                */
 
             var converted = RoundTripState(state);
             Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20}));
@@ -373,28 +346,8 @@ namespace Wabbajack.Test
 
             Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
 
-            var files = await ((LoversLabDownloader.State)converted).GetFilesInGroup();
-
-
-            
-            Assert.NotEmpty(files);
-            Assert.Equal("WABBAJACK_TEST_FILE.zip", files.First().Name);
-            Assert.True(files.All(f => !string.IsNullOrWhiteSpace(((LoversLabDownloader.State)f.State).FileID)));
-
-            ((LoversLabDownloader.State)converted).FileID = "42";
-
-            var upgrade = await DownloadDispatcher.FindUpgrade(new Archive(converted) {Name = "WABBAJACK_TEST_FILE.zip"});
-            Assert.True(upgrade != default);
-
-            var newState = ((LoversLabDownloader.State)upgrade.Archive.State);
-            Assert.False(string.IsNullOrWhiteSpace(newState.FileID));
-
-            var roundTripped = newState.ViaJSON();
-            Assert.False(string.IsNullOrWhiteSpace(roundTripped.FileID));
-
-
-
         }
+        
         
         
         [Fact]
@@ -539,7 +492,6 @@ namespace Wabbajack.Test
         {
             // Test mode off for this test
             Consts.TestMode = false;
-            await DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
             var ini = $@"[General]
                         gameName={Game.SkyrimSpecialEdition.MetaData().MO2ArchiveName}
                         gameFile=Data/Update.esm";
