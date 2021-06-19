@@ -95,14 +95,17 @@ namespace Wabbajack.Test
         /// </summary>
         /// <param name="mod_name"></param>
         /// <param name="path"></param>
-        /// <param name="random_fill"></param>
+        /// <param name="randomFill"></param>
         /// <returns></returns>
-        public async Task<AbsolutePath> AddModFile(string mod_name, string path, int random_fill=128)
+        public async Task<AbsolutePath> AddModFile(string mod_name, string path, int randomFill=128)
         {
-            var full_path = ModsPath.Combine(mod_name, path);
-            full_path.Parent.CreateDirectory();
-            await GenerateRandomFileData(full_path, random_fill);
-            return full_path;
+            var fullPath = ModsPath.Combine(mod_name, path);
+            fullPath.Parent.CreateDirectory();
+            
+            if (randomFill != 0) 
+                await GenerateRandomFileData(fullPath, randomFill);
+            
+            return fullPath;
         }
 
         public async Task GenerateRandomFileData(AbsolutePath full_path, int random_fill)
@@ -198,6 +201,9 @@ namespace Wabbajack.Test
                     Assert.True(false, $"Index {x} of {mod}\\{file} are not the same");
             }
         }
+
+        public AbsolutePath InstalledPath(string mod, string file) =>
+            InstallPath.Combine((string)Consts.MO2ModFolderName, mod, file);
         
         public async Task VerifyInstalledGameFile(string file)
         {

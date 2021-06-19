@@ -5,12 +5,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Compression.BSA;
 using Wabbajack.Common;
+using Wabbajack.ImageHashing;
 using Wabbajack.Lib;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.CompilationSteps.CompilationErrors;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
+using DXGI_FORMAT = DirectXTexNet.DXGI_FORMAT;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
@@ -362,6 +364,41 @@ namespace Wabbajack.Test
             await CompileAndInstall(profile);
             await utils.VerifyInstalledFile(mod, @"baz.bin");
             
+        }
+        
+        
+
+        [Fact]
+        public async Task CanRecompressAndResizeDDSImages()
+        {
+            var profile = utils.AddProfile();
+            var mod = await utils.AddMod();
+            var nativeFile = await utils.AddModFile(mod, @"native\whitestagbody.dds", 0);
+            var recompressedFile = await utils.AddModFile(mod, @"recompressed\whitestagbody.dds", 0);
+            var resizedFile = await utils.AddModFile(mod, @"resized\whitestagbody.dds", 0);
+
+            var gameBSA = Game.SkyrimSpecialEdition.MetaData().GameLocation().Combine(@"Data\Skyrim - Textures1.bsa");
+            var bsa = await BSADispatch.OpenRead(gameBSA);
+            var ddsExtension = new Extension(".dds");
+            var firstFile = bsa.Files.First(f => f.Path.Extension == ddsExtension);
+            
+            await using (var nf = await nativeFile.OpenWrite())
+            {
+                await firstFile.CopyDataTo(nf);
+            }
+
+            {
+                using var originalDDS = DDSImage.FromFile(nativeFile);
+                originalDDS.ResizeRecompressAndSave(originalDDS.Width, originalDDS.Height, DXGI_FORMAT.BC7_UNORM, recompressedFile);
+                originalDDS.ResizeRecompressAndSave(128, 128, DXGI_FORMAT.BC7_UNORM, resizedFile);
+            }
+
+            await utils.Configure();
+            
+            await CompileAndInstall(profile, true);
+            await utils.VerifyInstalledFile(mod, @"native\whitestagbody.dds");
+            Assert.True(0.99f <=(await PHash.FromFile(recompressedFile)).Similarity(await PHash.FromFile(utils.InstalledPath(mod, @"recompressed\whitestagbody.dds"))));
+            Assert.True(0.98f <=(await PHash.FromFile(resizedFile)).Similarity(await PHash.FromFile(utils.InstalledPath(mod, @"resized\whitestagbody.dds"))));
         }
         
         [Fact]

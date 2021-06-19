@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.ImageHashing;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.Validation;
 using Wabbajack.VirtualFileSystem;
@@ -150,6 +151,16 @@ namespace Wabbajack.Lib
                                 await toFile.DeleteAsync();
                                 Utils.ErrorThrow(new Exception($"Virus scan of patched executable reported possible malware: {toFile.ToString()} ({(long)(await toFile.FileHashCachedAsync())!.Value})"));
                             }
+                        }
+                            break;
+
+                        case TransformedTexture tt:
+                        {
+                            await using var s = await sf.GetStream();
+                            using var img = await DDSImage.FromStream(s, vf.Name);
+                            
+                            img.ResizeRecompressAndSave(tt.ImageState, directive.Directive.To.RelativeTo(OutputFolder));
+
                         }
                             break;
 

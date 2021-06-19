@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
+using Wabbajack.ImageHashing;
 
 namespace Wabbajack.VirtualFileSystem
 {
@@ -16,13 +18,24 @@ namespace Wabbajack.VirtualFileSystem
     {
         public IPath Name { get; set; }
         public Hash Hash { get; set; }
+        
+        public ImageState ImageState { get; set; }
         public long Size { get; set; }
-        public List<IndexedVirtualFile> Children { get; set; } = new List<IndexedVirtualFile>();
+        public List<IndexedVirtualFile> Children { get; set; } = new();
 
         private void Write(BinaryWriter bw)
         {
             bw.Write(Name.ToString());
             bw.Write((ulong)Hash);
+            
+            if (ImageState == null)
+                bw.Write(false);
+            else
+            {
+                bw.Write(true);
+                ImageState.Write(bw);
+            }
+
             bw.Write(Size);
             bw.Write(Children.Count);
             foreach (var file in Children)
@@ -31,7 +44,8 @@ namespace Wabbajack.VirtualFileSystem
 
         public void Write(Stream s)
         {
-            using var bw = new BinaryWriter(s, Encoding.UTF8, true);
+            using var cs = new GZipStream(s, CompressionLevel.Optimal , true);
+            using var bw = new BinaryWriter(cs, Encoding.UTF8, true);
             bw.Write(Size);
             bw.Write(Children.Count);
             foreach (var file in Children)
@@ -44,8 +58,13 @@ namespace Wabbajack.VirtualFileSystem
             {
                 Name = (RelativePath)br.ReadString(),
                 Hash = Hash.FromULong(br.ReadUInt64()),
-                Size = br.ReadInt64(),
             };
+
+            if (br.ReadBoolean()) 
+                ivf.ImageState = ImageState.Read(br);
+            
+            ivf.Size = br.ReadInt64();
+            
             var lst = new List<IndexedVirtualFile>();
             ivf.Children = lst;
             var count = br.ReadInt32();
@@ -59,7 +78,8 @@ namespace Wabbajack.VirtualFileSystem
 
         public static IndexedVirtualFile Read(Stream s)
         {
-            using var br = new BinaryReader(s);
+            using var cs = new GZipStream(s, CompressionMode.Decompress, true);
+            using var br = new BinaryReader(cs);
             var ivf = new IndexedVirtualFile
             {
                 Size = br.ReadInt64(),

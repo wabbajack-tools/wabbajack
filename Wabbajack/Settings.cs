@@ -145,6 +145,18 @@ namespace Wabbajack
             }
         }
 
+        
+        private bool _disableTextureResizing;
+        public bool DisableTextureResizing
+        {
+            get => _disableTextureResizing;
+            set
+            {
+                RaiseAndSetIfChanged(ref _disableTextureResizing, value);
+            }
+        }
+
+
 
         public void SetProcessorSettings(ABatchProcessor processor)
         {
@@ -152,6 +164,9 @@ namespace Wabbajack
             processor.DiskThreads = DiskThreads;
             processor.ReduceHDDThreads = ReduceHDDThreads;
             processor.FavorPerfOverRam = FavorPerfOverRam;
+
+            if (processor is MO2Compiler mo2c)
+                mo2c.DisableTextureResizing = DisableTextureResizing;
         }
     }
 
