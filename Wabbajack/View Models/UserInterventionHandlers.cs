@@ -110,12 +110,12 @@ namespace Wabbajack
         private async Task OAuthLogin(RequestOAuthLogin oa, WebBrowserVM vm, CancellationTokenSource cancel)
         {
             await vm.Driver.WaitForInitialized();
-            vm.Instructions = "Please log in and allow Wabbajack to access your account";
+            vm.Instructions = $"Please log in and allow Wabbajack to access your {oa.SiteName} account";
             
             var wrapper = new CefSharpWrapper(vm.Browser);
             var scopes = string.Join(" ", oa.Scopes);
             var state = Guid.NewGuid().ToString();
-            await wrapper.NavigateTo(new Uri(oa.AuthorizationEndpoint + $"?response_type=code&client_id={oa.ClientID}&state={state}&scope={scopes}"));
+
 
             Helpers.SchemeHandler = (browser, frame, _, request) =>
             {
@@ -140,6 +140,8 @@ namespace Wabbajack
                 }
                 return new ResourceHandler();
             };
+            
+            await wrapper.NavigateTo(new Uri(oa.AuthorizationEndpoint + $"?response_type=code&client_id={oa.ClientID}&state={state}&scope={scopes}"));
 
             while (!oa.Task.IsCanceled && !oa.Task.IsCompleted && !cancel.IsCancellationRequested)
                 await Task.Delay(250);
