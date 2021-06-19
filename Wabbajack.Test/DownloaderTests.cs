@@ -347,8 +347,13 @@ namespace Wabbajack.Test
             Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
 
         }
-        
-        
+
+        [Fact]
+        public async Task CanLoadOldLLMeta()
+        {
+            var state = (DeprecatedLoversLabDownloader.State)(AbsolutePath.EntryPoint.Combine(@"Resources\LoversLabState.json").FromJson<Archive>().State);
+            Assert.Equal("", state.PrimaryKeyString);
+        }
         
         [Fact]
         public async Task VectorPlexusDownload()

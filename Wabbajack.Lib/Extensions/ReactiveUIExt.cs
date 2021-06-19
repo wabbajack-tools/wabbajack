@@ -24,9 +24,9 @@ namespace Wabbajack
         /// <param name="This">Object to watch</param>
         /// <param name="property1">Expression path to the property to subscribe to</param>
         /// <returns></returns>
-        public static IObservable<TRet> WhenAny<TSender, TRet>(
+        public static IObservable<TRet?> WhenAny<TSender, TRet>(
             this TSender This,
-            Expression<Func<TSender, TRet>> property1)
+            Expression<Func<TSender, TRet?>> property1)
             where TSender : class
         {
             return This.WhenAny(property1, selector: x => x.GetValue());

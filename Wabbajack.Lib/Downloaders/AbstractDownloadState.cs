@@ -26,6 +26,7 @@ namespace Wabbajack.Lib.Downloaders
     {
         public static List<Type> KnownSubTypes = new List<Type>
         {
+            typeof(DeprecatedLoversLabDownloader.State),
             typeof(HTTPDownloader.State),
             typeof(GameFileSourceDownloader.State),
             typeof(GoogleDriveDownloader.State),

@@ -1,0 +1,21 @@
+{
+  "$type": "Archive, Wabbajack.Lib",
+  "Hash": "WLBnqZUBA/8=",
+  "Meta": "[General]\ndirectURL=http://www.loverslab.com/files/file/5815-uslep-unpatch/?do=download&r=665125&confirm=1&t=1",
+  "Name": "USLEP_UnPatch_V104.7z",
+  "Size": 11962608,
+  "State": {
+    "$type": "LoversLabDownloader, Wabbajack.Lib",
+    "FullURL": "/files/file/5815-uslep-unpatch/",
+    "IsAttachment": false,
+    "FileID": "665125",
+    "FileName": "5815-uslep-unpatch",
+    "URL": "http://www.loverslab.com/files/file/5815-uslep-unpatch",
+    "Name": "USLEP UnPatch V1.04",
+    "Author": "MadMansGun",
+    "Version": "V1.04",
+    "ImageURL": null,
+    "Description": null,
+    "PrimaryKeyString": "LoversLabDownloader+State|https://www.loverslab.com/|5815-uslep-unpatch|665125"
+  }
+}

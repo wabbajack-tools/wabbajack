@@ -27,7 +27,7 @@ namespace Wabbajack.Lib.Downloaders
         }
 
 
-        [JsonName("LoversLabOAuthDownloader+State")]
+        [JsonName("LoversLabOAuthDownloader")]
         public class State :  AbstractIPS4OAuthDownloader<LoversLabOAuthDownloader, LoversLabOAuthDownloader.State>.State
         {
             public override IDownloader GetDownloader()

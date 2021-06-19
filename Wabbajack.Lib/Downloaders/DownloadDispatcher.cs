@@ -30,6 +30,8 @@ namespace Wabbajack.Lib.Downloaders
             new YandexDownloader(),
             new HTTPDownloader(),
             new ManualDownloader(),
+            new DeprecatedVectorPlexusDownloader(),
+            new DeprecatedLoversLabDownloader(),
         };
 
         public static readonly List<IUrlInferencer> Inferencers = new List<IUrlInferencer>()
