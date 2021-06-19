@@ -45,6 +45,8 @@ namespace Wabbajack
                     .DisposeWith(disposable);
                 this.BindStrict(this.ViewModel, x => x.NetworkWorkaroundMode, x => x.UseNetworkWorkAround.IsChecked)
                     .DisposeWith(disposable);
+                this.BindStrict(this.ViewModel, x => x.DisableTextureResizing, x => x.DisableTextureResizing.IsChecked)
+                    .DisposeWith(disposable);
             });
         }
     }

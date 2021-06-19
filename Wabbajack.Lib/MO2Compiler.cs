@@ -39,6 +39,7 @@ namespace Wabbajack.Lib
         public Dictionary<AbsolutePath, dynamic> ModInis { get; } = new Dictionary<AbsolutePath, dynamic>();
 
         public HashSet<string> SelectedProfiles { get; set; } = new HashSet<string>();
+        public bool DisableTextureResizing { get; set; }
 
         public static AbsolutePath GetTypicalDownloadsFolder(AbsolutePath mo2Folder)
         {
@@ -421,7 +422,7 @@ namespace Wabbajack.Lib
         public override IEnumerable<ICompilationStep> MakeStack()
         {
             Utils.Log("Generating compilation stack");
-            return new List<ICompilationStep>
+            var steps = new List<ICompilationStep>
             {
                 new IgnoreGameFilesIfGameFolderFilesExist(this),
                 new IncludePropertyFiles(this),
@@ -487,6 +488,11 @@ namespace Wabbajack.Lib
                 new IgnoreExtension(this, new Extension(".CACHE")),
                 new DropAll(this)
             };
+
+            if (DisableTextureResizing)
+                steps = steps.Where(s => !(s is MatchSimilarTextures)).ToList();
+
+            return steps;
         }
     }
 }

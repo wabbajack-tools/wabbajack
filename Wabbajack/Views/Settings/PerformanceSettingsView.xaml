@@ -28,6 +28,7 @@
                 <RowDefinition Height="25" />
                 <RowDefinition Height="25" />
                 <RowDefinition Height="25" />
+                <RowDefinition Height="25" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
@@ -95,6 +96,17 @@
                        Text="Use Network Workaround (slow)" />
             <CheckBox Grid.Row="7" Grid.Column="2"
                       x:Name="UseNetworkWorkAround"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Center"
+                      Foreground="White"
+            ></CheckBox>
+            
+            <TextBlock Grid.Row="8" Grid.Column="0"
+                       x:Name="DisableTextureResizingLabel"
+                       VerticalAlignment="Center"
+                       Text="Disable Texture Resizing (during compilation)" />
+            <CheckBox Grid.Row="8" Grid.Column="2"
+                      x:Name="DisableTextureResizing"
                       HorizontalAlignment="Right"
                       VerticalAlignment="Center"
                       Foreground="White"
