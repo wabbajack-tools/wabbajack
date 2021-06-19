@@ -130,7 +130,7 @@ namespace Wabbajack.Lib.Downloaders
                     throw new Exception(
                         $"File {IPS4File} on mod {IPS4Mod} on {TypedDownloader.SiteName} appears to be re-uploaded with the same name");
 
-                var state = new HTTPDownloader.State(fileEntry.Url!) {Client = TypedDownloader.AuthedClient!};
+                var state = new HTTPDownloader.State(fileEntry.Url!);
                 if (a.Size == 0) a.Size = fileEntry.Size!.Value;
                 return await state.Download(a, destination);
             }
