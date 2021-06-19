@@ -352,7 +352,7 @@ namespace Wabbajack.Test
         public async Task CanLoadOldLLMeta()
         {
             var state = (DeprecatedLoversLabDownloader.State)(AbsolutePath.EntryPoint.Combine(@"Resources\LoversLabState.json").FromJson<Archive>().State);
-            Assert.Equal("", state.PrimaryKeyString);
+            Assert.Equal("DeprecatedLoversLabDownloader+State|", state.PrimaryKeyString);
         }
         
         [Fact]

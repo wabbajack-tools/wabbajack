@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 2.5.0.0 - ??
+* LoversLab downloader switched to OAuth2
+* VectorPlexus downloader switched to OAuth2
+* Wabbajack can now detect and compile modlists that contain resized/recompressed textures without binary 
+  patching the textures resulting in massively reduced sizes for `.wabbajack` files
+
 #### Version - 2.4.4.5 - 6/12/2021
 * HOTFIX: Fix a game location detection error caused by `\\` in game paths
 
