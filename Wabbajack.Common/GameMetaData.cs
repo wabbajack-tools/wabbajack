@@ -622,7 +622,7 @@ namespace Wabbajack.Common
                     NexusGameId = 141,
                     MO2Name = "Dragon Age 2", // Probably wrong
                     SteamIDs = new List<int>{1238040},
-                    OriginIDs = new List<string>{"OFB-EAST:59474"},
+                    OriginIDs = new List<string>{"OFB-EAST:59474", "DR:201797000"},
                     RequiredFiles = new List<string>
                     {
                         @"bin_ship\DragonAge2.exe"
