@@ -183,34 +183,19 @@ namespace Wabbajack
         {
             var state = manuallyDownloadNexusFile.State;
             var game = state.Game.MetaData();
-            var hrefs = new[]
-            {
-                $"/Core/Libs/Common/Widgets/DownloadPopUp?id={state.FileID}&game_id={game.NexusGameId}",
-                $"https://www.nexusmods.com/{game.NexusName}/mods/{state.ModID}?tab=files&file_id={state.FileID}",
-                $"/Core/Libs/Common/Widgets/ModRequirementsPopUp?id={state.FileID}&game_id={game.NexusGameId}"
-            };
             await vm.Driver.WaitForInitialized();
             IWebDriver browser = new CefSharpWrapper(vm.Browser);
-            vm.Instructions = $"Click the highlighted file (get a NexusMods.com Premium account to automate this)";
+            vm.Instructions = $"Click the download button to continue (get a NexusMods.com Premium account to automate this)";
             browser.DownloadHandler = uri =>
             {
                 manuallyDownloadNexusFile.Resume(uri);
                 browser.DownloadHandler = null;
             };
-            await browser.NavigateTo(NexusApiClient.ManualDownloadUrl(manuallyDownloadNexusFile.State));
-
-            var buttin_href = $"/Core/Libs/Common/Widgets/DownloadPopUp?id={manuallyDownloadNexusFile.State.FileID}&game_id={Game.SkyrimSpecialEdition}";
-
+            var url = new Uri(@$"https://www.nexusmods.com/{game.NexusName}/mods/{state.ModID}?tab=files&file_id={state.FileID}");
+            await browser.NavigateTo(url);
+            
             while (!cancel.IsCancellationRequested && !manuallyDownloadNexusFile.Task.IsCompleted) {
-                await browser.EvaluateJavaScript(
-                    @"Array.from(document.getElementsByClassName('accordion')).forEach(e => Array.from(e.children).forEach(c => c.style=''))");
-                foreach (var href in hrefs)
-                {
-                    const string style = "border-thickness: thick; border-color: #ff0000;border-width: medium;border-style: dashed;background-color: teal;padding: 7px";
-                    await browser.EvaluateJavaScript($"Array.from(document.querySelectorAll('.accordion a[href=\"{href}\"]')).forEach(e => {{e.scrollIntoView({{behavior: 'smooth', block: 'center', inline: 'nearest'}}); e.setAttribute('style', '{style}');}});");
-                }
                 await Task.Delay(250);
-                
             }
         }
     }
