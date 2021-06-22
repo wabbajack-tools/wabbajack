@@ -29,6 +29,7 @@ namespace Wabbajack.Lib.Downloaders
             AuthorizationEndpoint = authEndpoint;
             TokenEndpoint = tokenEndpoint;
             EncryptedKeyName = encryptedKeyName;
+            Scopes = scopes;
 
             TriggerLogin = ReactiveCommand.CreateFromTask(
                 execute: () => Utils.CatchAndLog(async () => await Utils.Log(new RequestOAuthLogin(ClientID, authEndpoint, tokenEndpoint, SiteName, scopes, EncryptedKeyName)).Task),
@@ -39,6 +40,8 @@ namespace Wabbajack.Lib.Downloaders
 
         }
 
+
+        public IEnumerable<string> Scopes { get; }
         public string EncryptedKeyName { get; }
         public Uri TokenEndpoint { get; }
         public Uri AuthorizationEndpoint { get; }
@@ -94,7 +97,14 @@ namespace Wabbajack.Lib.Downloaders
         private async Task<Http.Client?> GetAuthedClient()
         {
             if (!Utils.HaveEncryptedJson(EncryptedKeyName))
-                return null;
+            {
+                await Utils.CatchAndLog(async () => await Utils.Log(new RequestOAuthLogin(ClientID,
+                    AuthorizationEndpoint, TokenEndpoint, SiteName, Scopes, EncryptedKeyName)).Task);
+                if (!Utils.HaveEncryptedJson(EncryptedKeyName))
+                    Utils.ErrorThrow(new Exception($"Must log into {SiteName} to continue"));
+                
+                return await GetAuthedClient();
+            }
 
             var data = await Utils.FromEncryptedJson<OAuthResultState>(EncryptedKeyName);
             await data.Refresh();
