@@ -41,7 +41,7 @@ namespace Wabbajack.BuildServer.Controllers
         }
 
         private const int MAX_LOG_SIZE = 128;
-        private static List<string> Log  = new List<string>();
+        private static List<string> Log  = new();
         private GlobalInformation _globalInformation;
         private SqlService _sql;
         private ILogger<Heartbeat> _logger;

@@ -806,6 +806,29 @@ CREATE TABLE [dbo].[NexusModFiles](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
+    
+/****** Object:  Table [dbo].[NexusModFile]    Script Date: 6/24/2021 2:39:17 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[NexusModFile](
+                                     [Game] [int] NOT NULL,
+                                     [ModId] [bigint] NOT NULL,
+                                     [FileId] [bigint] NOT NULL,
+                                     [Data] [nvarchar](max) NOT NULL,
+	[LastChecked] [datetime] NOT NULL,
+ CONSTRAINT [PK_NexusModFile] PRIMARY KEY CLUSTERED 
+(
+	[Game] ASC,
+	[ModId] ASC,
+	[FileId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+    
 /****** Object:  Table [dbo].[NexusModFilesSlow]    Script Date: 3/9/2021 11:12:53 PM ******/
 SET ANSI_NULLS ON
 GO

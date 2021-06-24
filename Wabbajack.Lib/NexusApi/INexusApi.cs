@@ -8,6 +8,7 @@ namespace Wabbajack.Lib.NexusApi
     {
         public Task<string> GetNexusDownloadLink(NexusDownloader.State archive);
         public Task<NexusApiClient.GetModFilesResponse> GetModFiles(Game game, long modid, bool useCache = true);
+        public Task<NexusFileInfo> GetModFile(Game game, long modid, long fileId, bool useCache = true);
         public Task<ModInfo> GetModInfo(Game game, long modId, bool useCache = true);
 
         public Task<UserStatus> GetUserStatus();

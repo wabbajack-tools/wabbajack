@@ -74,8 +74,12 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 catch (Exception)
                 {
-                    Utils.Error($"Error getting mod info for Nexus mod with {general.modID}");
-                    throw;
+                    return new State
+                    {
+                        Game = GameRegistry.GetByFuzzyName((string)general.gameName).Game,
+                        ModID = long.Parse(general.modID),
+                        FileID = long.Parse(general.fileID),
+                    };
                 }
 
                 try
@@ -220,15 +224,8 @@ namespace Wabbajack.Lib.Downloaders
                     var nclient = DownloadDispatcher.GetInstance<NexusDownloader>();
                     await nclient.Prepare();
                     var client = nclient.Client!;
-
-                    var modInfo = await client.GetModInfo(Game, ModID);
-                    if (!modInfo.available) return false;
-                    var modFiles = await client.GetModFiles(Game, ModID);
-
-                    var found = modFiles.files
-                        .FirstOrDefault(file => file.file_id == FileID && file.category_name != null);
-
-                    return found != null;
+                    var file = await client.GetModFile(Game, ModID, FileID);
+                    return file?.category_name != null;
                 }
                 catch (Exception ex)
                 {
@@ -245,7 +242,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override string GetManifestURL(Archive a)
             {
-                return $"http://nexusmods.com/{Game.MetaData().NexusName}/mods/{ModID}";
+                return $"https://www.nexusmods.com/{Game.MetaData().NexusName}/mods/{ModID}/?tab=files&file_id={FileID}";
             }
 
             public override string[] GetMetaIni()

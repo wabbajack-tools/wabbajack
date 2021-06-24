@@ -126,6 +126,43 @@ namespace Wabbajack.BuildServer.Controllers
             Response.Headers.Add("x-cache-result", method);
             return result;
         }
+        
+        [HttpGet]
+        [Route("{GameName}/mods/{ModId}/files/{FileId}.json")]
+        public async Task<ActionResult<NexusFileInfo>> GetModFile(string GameName, long ModId, long FileId)
+        {
+            try
+            {
+                var game = GameRegistry.GetByFuzzyName(GameName).Game;
+                var result = await _sql.GetModFile(game, ModId, FileId);
+
+                string method = "CACHED";
+                if (result == null)
+                {
+                    var api = await GetClient();
+                    result = await api.GetModFile(game, ModId, FileId, false);
+
+                    var date = result.uploaded_time;
+                    date = date == default ? DateTime.UtcNow : date;
+                    await _sql.AddNexusModFile(game, ModId, FileId, date, result);
+
+                    method = "NOT_CACHED";
+                    Interlocked.Increment(ref ForwardCount);
+                }
+                else
+                {
+                    Interlocked.Increment(ref CachedCount);
+                }
+
+                Response.Headers.Add("x-cache-result", method);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation("Unable to find mod file {GameName} {ModId}, {FileId}", GameName, ModId, FileId);
+                return NotFound();
+            }
+        }
 
         [HttpGet]
         [Authorize(Roles ="Author")]

@@ -195,5 +195,32 @@ namespace Wabbajack.Server.DataLayer
 
             await tx.CommitAsync();
         }
+
+        public async Task<NexusFileInfo> GetModFile(Game game, long modId, long fileId)
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryFirstOrDefaultAsync<string>(
+                "SELECT Data FROM dbo.NexusModFile WHERE Game = @Game AND @ModId = ModId AND @FileId = FileId",
+                new {Game = game.MetaData().NexusGameId, ModId = modId, FileId = fileId});
+            return result == null ? null : JsonConvert.DeserializeObject<NexusFileInfo>(result);
+        }
+        
+        public async Task AddNexusModFile(Game game, long modId, long fileId, DateTime lastCheckedUtc, NexusFileInfo data)
+        {
+            await using var conn = await Open();
+
+            await conn.ExecuteAsync(                
+                @"INSERT INTO dbo.NexusModFile (Game, ModId, FileId, LastChecked, Data)
+                     VALUES (@Game, @ModId, @FileId, @LastChecked, @Data)",
+                new
+                {
+                    Game = game.MetaData().NexusGameId,
+                    ModId = modId,
+                    FileId = fileId,
+                    LastChecked = lastCheckedUtc,
+                    Data = JsonConvert.SerializeObject(data)
+                });
+        }
+        
     }
 }

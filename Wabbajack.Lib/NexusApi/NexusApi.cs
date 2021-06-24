@@ -357,6 +357,13 @@ namespace Wabbajack.Lib.NexusApi
             return result;
         }
 
+        public async Task<NexusFileInfo> GetModFile(Game game, long modId, long fileId, bool useCache = true)
+        {
+            var url = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/{modId}/files/{fileId}.json";
+            var result = useCache ? await GetCached<NexusFileInfo>(url) : await Get<NexusFileInfo>(url);
+            return result;
+        }
+
         public async Task<List<MD5Response>> GetModInfoFromMD5(Game game, string md5Hash)
         {
             var url = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/md5_search/{md5Hash}.json";

@@ -256,6 +256,11 @@ namespace Wabbajack.Test
             await converted.Download(new Archive(state: null!) { Name = "SkyUI.7z" }, filename.Path);
 
             Assert.Equal(Hash.FromBase64("dF2yafV2Oks="), await filename.Path.FileHashAsync());
+
+            // Verify that we can see a older file
+            var data = await (await NexusApiClient.Get()).GetModFile(Game.SkyrimSpecialEdition, 45221, 185392, useCache:false);
+            Assert.Equal("Smooth Combat - Non Combat Animation System 2.3", data.name);
+            
         }
 
         [Fact]

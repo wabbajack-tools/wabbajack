@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Wabbajack.Common;
@@ -9,7 +10,7 @@ namespace Wabbajack.Server.DTOs
 {
     public class ValidationData
     {
-        public ConcurrentHashSet<(long Game, long ModId, long FileId)> NexusFiles { get; set; } = new ConcurrentHashSet<(long Game, long ModId, long FileId)>();
+        public Dictionary<(long Game, long ModId, long FileId), string> NexusFiles { get; set; } = new ();
         public Dictionary<(string PrimaryKeyString, Hash Hash), bool> ArchiveStatus { get; set; }
         public List<ModlistMetadata> ModLists { get; set; }
         
