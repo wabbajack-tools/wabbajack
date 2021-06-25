@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.0.2 - 6/25/2021
+* HOTFIX: Fix for Nexus files that are downloadable but some API endpoints are unreachable
+
 #### Version - 2.5.0.1 - 6/25/2021
 * HOTFIX: Fix NPE with LL downloader
 

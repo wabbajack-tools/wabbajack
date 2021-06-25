@@ -311,9 +311,8 @@ namespace Wabbajack.Lib.NexusApi
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             
-            var info = await GetModInfo(archive.Game, archive.ModID);
-            var fileInfo = await GetModFiles(archive.Game, archive.ModID);
-            if (!info.available || !fileInfo.files.Any(f => f.file_id == archive.FileID && f.category_name != null))
+            var fileInfo = await GetModFile(archive.Game, archive.ModID, archive.FileID);
+            if (fileInfo.category_name == null)
                 throw new Exception("Mod unavailable");
             
             if (await IsPremium() && !ManualTestingMode)
