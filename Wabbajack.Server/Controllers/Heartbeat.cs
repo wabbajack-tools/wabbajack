@@ -85,7 +85,7 @@ namespace Wabbajack.BuildServer.Controllers
                 <h3>Lists ({{lists.Length}}):</h3>
                 <ul>
                 {{each $.lists }}
-                <li><a href='/lists/status/{{$.Name}}.html'>{{$.Name}}</a> - {{$.Time}}</li>
+                <li><a href='/lists/status/{{$.Name}}.html'>{{$.Name}}</a> - {{$.Time}} {{$.FailMessage}}</li>
                 {{/each}}
                 </ul>
             </body></html>
@@ -100,7 +100,12 @@ namespace Wabbajack.BuildServer.Controllers
                     .Select(s => new {Name = s.Key.Name, Time = s.Value.LastRunTime, MaxTime = s.Value.Delay, IsLate = s.Value.LastRunTime > s.Value.Delay})
                     .OrderBy(s => s.Name)
                     .ToArray(),
-                lists = _listValidator.ValidationInfo.Select(s => new {Name = s.Key, Time = s.Value.ValidationTime})
+                lists = _listValidator.ValidationInfo.Select(s => new
+                    {
+                        Name = s.Key, 
+                        Time = s.Value.ValidationTime,
+                        FailMessage = s.Value.Detailed.HasFailures ? "Failed" : ""
+                    })
                     .OrderBy(l => l.Name)
                     .ToArray()
             });

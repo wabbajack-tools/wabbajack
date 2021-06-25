@@ -38,7 +38,7 @@ namespace Wabbajack.Lib.Downloaders.DTOs
     public class Author
     {
         [JsonProperty("id")]
-        public int Id { get; set; }
+        public int? Id { get; set; }
 
         [JsonProperty("name")]
         public string? Name { get; set; }
@@ -83,7 +83,7 @@ namespace Wabbajack.Lib.Downloaders.DTOs
         public DateTime? LastPost { get; set; }
 
         [JsonProperty("profileViews")]
-        public int ProfileViews { get; set; }
+        public int? ProfileViews { get; set; }
 
     }
 

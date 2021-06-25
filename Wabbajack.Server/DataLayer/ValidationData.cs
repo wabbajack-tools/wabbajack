@@ -44,7 +44,7 @@ namespace Wabbajack.Server.DataLayer
         public async Task<HashSet<(long NexusGameId, long ModId, long FileId, string category)>> AllNexusFiles()
         {
             await using var conn = await Open();
-            var results = await conn.QueryAsync<(long, long, long, string)>(@"SELECT Game, ModId, FileId, JSON_VALUE(Data, '$.category') FROM dbo.NexusModFile");
+            var results = await conn.QueryAsync<(long, long, long, string)>(@"SELECT Game, ModId, FileId, JSON_VALUE(Data, '$.category_name') FROM dbo.NexusModFile");
             return results.ToHashSet();
         }
         

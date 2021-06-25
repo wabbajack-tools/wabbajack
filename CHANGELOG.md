@@ -1,6 +1,9 @@
 ### Changelog
 
-#### Version - 2.5.0.0 - ??
+#### Version - 2.5.0.1 - 6/25/2021
+* HOTFIX: Fix NPE with LL downloader
+
+#### Version - 2.5.0.0 - 6/24/2021
 * LoversLab downloader switched to OAuth2
 * VectorPlexus downloader switched to OAuth2
 * Wabbajack can now detect and compile modlists that contain resized/recompressed textures without binary 

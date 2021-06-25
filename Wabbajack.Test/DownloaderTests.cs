@@ -294,7 +294,8 @@ namespace Wabbajack.Test
         [Fact]
         public async Task CanFindOtherLLMods()
         {
-            await DownloadDispatcher.GetInstance<LoversLabOAuthDownloader>().Prepare();
+            var downloader = DownloadDispatcher.GetInstance<LoversLabOAuthDownloader>();
+            await downloader.Prepare();
            
             var ini = @"[General]
                     ips4Site=Lovers Lab
@@ -303,6 +304,9 @@ namespace Wabbajack.Test
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
             var otherfiles = await ((LoversLabOAuthDownloader.State)state).GetFilesInGroup();
+            
+            // Throws a NPE
+            var data = await downloader.GetDownloads(9023);
         }
         
 
