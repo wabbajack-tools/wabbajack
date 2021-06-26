@@ -1,0 +1,27 @@
+﻿@page "/status/{machineUrl}"
+@using Wabbajack.Web.Services
+@using Wabbajack.Web.DTO
+@inject StateContainer _stateContainer;
+
+@MachineUrl
+
+@code {
+
+    [Parameter]
+    public string MachineUrl { get; set; }
+
+    private ModlistStatus _modlistStatus;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (!_stateContainer.HasModlistStatusList)
+        {
+            var res = await _stateContainer.RefreshModlistStatus();
+            //TODO: do something with res
+            
+            if (!res) return;
+        }
+
+        _modlistStatus = _stateContainer.GetStatusByMachineUrl(MachineUrl);
+    }
+}

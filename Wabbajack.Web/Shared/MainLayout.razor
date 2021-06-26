@@ -1,4 +1,6 @@
-﻿@inherits LayoutComponentBase
+﻿@using Wabbajack.Web.Pages.Gallery
+@using Wabbajack.Web.Pages.StatusDashboard
+@inherits LayoutComponentBase
 
 <MudThemeProvider />
 <MudDialogProvider />
@@ -11,6 +13,8 @@
             Wabbajack
         </MudLink>
         <MudAppBarSpacer />
+        <MudLink Class="mx-1 mx-sm-3" Typo="Typo.h6" Href="@Gallery.Route" Style="color: var(--mud-palette-primary-text) !important" Underline="Underline.None">Gallery</MudLink>
+        <MudLink Class="mx-1 mx-sm-3" Typo="Typo.h6" Href="@StatusDashboard.Route" Style="color: var(--mud-palette-primary-text) !important" Underline="Underline.None">Status</MudLink>
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/wabbajack-tools/wabbajack" Target="_blank" />
     </MudAppBar>
     <MudDrawer @bind-Open="@_drawerOpen" Elevation="1" Variant="DrawerVariant.Responsive" Breakpoint="Breakpoint.Xl" ClipMode="DrawerClipMode.Always">

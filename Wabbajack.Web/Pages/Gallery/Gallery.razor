@@ -23,13 +23,14 @@
         @foreach (var modlist in FilteredList)
         {
             <MudItem xs="12" sm="12" md="6" lg="6" xl="4">
-                <GalleryItem Modlist="@modlist"/>
+                @_renderModlistInfo(modlist)
             </MudItem>
         }
     </MudGrid>
 </MudContainer>
 
 @code {
+    public const string Route = "/gallery";
     
     private const string AllGames = "All";
 
@@ -50,7 +51,40 @@
         });
 
     private IReadOnlyList<string> _allGames = new List<string>();
-    
+
+    // DO NOT CHANGE "__builder"
+    // ReSharper disable InconsistentNaming
+    // ReSharper disable once UnusedParameter.Local
+    private readonly RenderFragment<ModlistMetadata> _renderModlistInfo = modlist => __builder =>
+    {
+        var href = $"/modlist/{modlist.Links!.MachineUrl}";
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">@modlist.Title</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <img src="@modlist.Links?.Image" alt="Image of the Modlist @modlist.Title"
+                 style="width: 100%; height: auto"
+                 loading="lazy" crossorigin="anonymous"/>
+            <MudCardContent>
+                <MudText Typo="Typo.caption">By @modlist.Author</MudText>
+                <MudText Typo="Typo.body1">@modlist.Description</MudText>
+                <MudDivider DividerType="DividerType.FullWidth"/>
+                @if (modlist.Tags != null)
+                {
+                    @foreach (var tag in modlist.Tags)
+                    {
+                        <MudChip Size="Size.Small">@tag</MudChip>
+                    }
+                }
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Text" ButtonType="ButtonType.Button" Color="Color.Info" Link="@href">View</MudButton>
+            </MudCardActions>
+        </MudCard>
+    };
+
     protected override async Task OnInitializedAsync()
     {
         if (!_stateContainer.HasModlistMetadata)

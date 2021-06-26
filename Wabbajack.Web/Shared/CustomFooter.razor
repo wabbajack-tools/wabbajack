@@ -1,12 +1,12 @@
 ﻿<footer>
     <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-12 mud-theme-primary">
-        <MudContainer MaxWidth="MaxWidth.Large">
-            <MudGrid Class="d-flex flex-nowrap flex-row">
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge">
+            <MudGrid Class="d-flex flex-wrap flex-sm-nowrap flex-row">
                 @_renderFooterLink(new Tuple<string, string>("GitHub", "https://www.github.com/wabbajack-tools/wabbajack"))
                 @_renderFooterLink(new Tuple<string, string>("Discord", "https://www.discord.gg/wabbajack"))
                 @_renderFooterLink(new Tuple<string, string>("Patreon", "https://www.patreon.com/user?u=11907933"))
                 @_renderFooterLink(new Tuple<string, string>("Reddit", "https://www.reddit.com/r/wabbajack"))
-                <MudItem xs="8">
+                <MudItem xs="0" sm="8">
                     <MudText Style="color: var(--mud-palette-primary-text) !important" Align="Align.Right">
                         &copy; The Wabbajack Team 2019 - @DateTime.UtcNow.Year
                     </MudText>
@@ -22,7 +22,7 @@
     // DO NOT CHANGE "__builder"
     // ReSharper disable InconsistentNaming
     // ReSharper disable once UnusedParameter.Local
-    private RenderFragment<Tuple<string, string>> _renderFooterLink = tuple => __builder =>
+    private readonly RenderFragment<Tuple<string, string>> _renderFooterLink = tuple => __builder =>
     {
         var (name, link) = tuple;
          // TODO: changing the class on MudContainer to mud-theme-primary does not correctly override the color

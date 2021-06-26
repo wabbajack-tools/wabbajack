@@ -59,7 +59,7 @@
             if (!res) return;
         }
         
-        _modlist = _stateContainer.GetByMachineUrl(MachineUrl);
+        _modlist = _stateContainer.GetModlistByMachineUrl(MachineUrl);
         _readmeUrl = _modlist?.Links?.Readme;
     }
 }
