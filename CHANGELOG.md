@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.0.3 - 6/26/2021
+* HOTFIX: Fix "argument out of range" error when installing modlists
+
 #### Version - 2.5.0.2 - 6/25/2021
 * HOTFIX: Fix for Nexus files that are downloadable but some API endpoints are unreachable
 

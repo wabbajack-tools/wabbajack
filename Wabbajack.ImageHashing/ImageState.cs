@@ -59,7 +59,7 @@ namespace Wabbajack.ImageHashing
             }
             catch (Exception ex)
             {
-                Utils.Log($"Error getting ImageState: {ex}");
+                Utils.Log($"Unable to read image state (this is fine)");
                 return null;
             }
             finally

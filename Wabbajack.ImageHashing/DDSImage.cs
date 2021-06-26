@@ -97,11 +97,17 @@ namespace Wabbajack.ImageHashing
                     resized = _image.Resize(width, height, TEX_FILTER_FLAGS.DEFAULT);
                 }
 
-                using var compressed = resized.Compress(newFormat, TEX_COMPRESS_FLAGS.BC7_QUICK, 0.5f);
+                
+                if (CompressedTypes.Contains(newFormat))
+                {
+                    var old = resized;
+                    resized = resized.Compress(newFormat, TEX_COMPRESS_FLAGS.BC7_QUICK, 0.5f);
+                    old.Dispose();
+                }
 
                 if (dest.Extension == new Extension(".dds"))
                 {
-                    compressed.SaveToDDSFile(DDS_FLAGS.NONE, dest.ToString());
+                    resized.SaveToDDSFile(DDS_FLAGS.NONE, dest.ToString());
                 }
             }
             finally
