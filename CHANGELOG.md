@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.5.0.4 - 6/27/2021
+* Fix for NPE in Texture analysis compiler step
+* Implemented attachment support in IPS4 sites
+
 #### Version - 2.5.0.3 - 6/26/2021
 * HOTFIX: Fix "argument out of range" error when installing modlists
 

@@ -25,6 +25,7 @@ namespace Wabbajack.Lib.WebAutomation
         }
         public static async Task<Driver> Create()
         {
+            Helpers.Init();
             var driver = new Driver();
             await driver._driver.WaitForInitialized();
             return driver;

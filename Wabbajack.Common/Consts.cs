@@ -104,14 +104,14 @@ namespace Wabbajack.Common
             }
         }
         
-        public static RelativePath MetaIni = new RelativePath("meta.ini");
-        public static Extension IniExtension = new Extension(".ini");
+        public static RelativePath MetaIni = new("meta.ini");
+        public static Extension IniExtension = new(".ini");
 
-        public static Extension HashFileExtension = new Extension(".xxHash");
-        public static Extension MetaFileExtension = new Extension(".meta");
+        public static Extension HashFileExtension = new(".xxHash");
+        public static Extension MetaFileExtension = new(".meta");
         public const string ModListExtensionString = ".wabbajack";
-        public static Extension ModListExtension = new Extension(ModListExtensionString);
-        public static AbsolutePath LocalAppDataPath => new AbsolutePath(Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack"));
+        public static Extension ModListExtension = new(ModListExtensionString);
+        public static AbsolutePath LocalAppDataPath => new(Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack"));
         public static AbsolutePath FaviconCacheFolderPath => LocalAppDataPath.Combine("favicons");
         public static string MetricsKeyHeader => "x-metrics-key";
 
@@ -136,8 +136,8 @@ namespace Wabbajack.Common
         public static AbsolutePath EntryPoint => (AbsolutePath)(Assembly.GetEntryAssembly()?.Location ?? (string)((RelativePath)"Unknown").RelativeToWorkingDirectory());
         public static AbsolutePath LogFile => LogsFolder.Combine(EntryPoint.FileNameWithoutExtension + ".current.log");
         public static int MaxOldLogs = 50;
-        public static Extension BSA = new Extension(".BSA");
-        public static Extension MOHIDDEN = new Extension(".mohidden");
+        public static Extension BSA = new(".BSA");
+        public static Extension MOHIDDEN = new(".mohidden");
 
         public static AbsolutePath SettingsFile => LocalAppDataPath.Combine("settings.json");
         public static RelativePath SettingsIni = (RelativePath)"settings.ini";

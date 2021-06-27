@@ -87,21 +87,24 @@ namespace Wabbajack.Lib.LibCefHelpers
 
         public static Func<IBrowser, IFrame, string, IRequest, IResourceHandler>? SchemeHandler { get; set; }
 
+        private static object _initLock = new object();
         public static void Init()
         {
-            if (Inited || Cef.IsInitialized) return;
-            Inited = true;
-            CefSettings settings = new CefSettings();
-            settings.CachePath = Consts.CefCacheLocation.ToString();
-            settings.JavascriptFlags = "--noexpose_wasm";
-            settings.RegisterScheme(new CefCustomScheme()
+            lock (_initLock)
             {
-                SchemeName = "wabbajack",
-                SchemeHandlerFactory = new SchemeHandlerFactor()
-            });
-            
-            
-            Cef.Initialize(settings);
+                if (Inited || Cef.IsInitialized) return;
+                Inited = true;
+                CefSettings settings = new CefSettings();
+                settings.CachePath = Consts.CefCacheLocation.ToString();
+                settings.JavascriptFlags = "--noexpose_wasm";
+                settings.RegisterScheme(new CefCustomScheme()
+                {
+                    SchemeName = "wabbajack", SchemeHandlerFactory = new SchemeHandlerFactor()
+                });
+
+
+                Cef.Initialize(settings);
+            }
         }
 
         private class SchemeHandlerFactor : ISchemeHandlerFactory

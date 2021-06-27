@@ -40,7 +40,8 @@ namespace Wabbajack.CLI
             typeof(VerifyAllDownloads),
             typeof(HashBenchmark),
             typeof(StressTestURL),
-            typeof(MirrorFolder)
+            typeof(MirrorFolder),
+            typeof(DownloadFromMeta)
         };
     }
 }
