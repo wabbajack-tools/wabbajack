@@ -13,6 +13,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             _byName = _compiler.IndexedFiles.SelectMany(kv => kv.Value)
                 .Where(f => f.Name.FileName.Extension == DDS)
+                .Where(f => f.ImageState != null)
                 .ToLookup(f => f.Name.FileName.FileNameWithoutExtension);
         }
 

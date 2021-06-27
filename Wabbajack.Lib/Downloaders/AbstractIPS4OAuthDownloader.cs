@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Printing;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
@@ -74,6 +75,19 @@ namespace Wabbajack.Lib.Downloaders
 
             }
 
+            if (archiveINI.General.ips4Site == SiteName && archiveINI.General.ips4Attachment != null)
+            {
+                if (!long.TryParse(archiveINI.General.ips4Attachment, out long parsedMod))
+                    return null;
+                var state = new TState
+                {
+                    IPS4Mod = parsedMod, IPS4File = archiveINI.General.ips4File, IsAttachment = true,
+                    IPS4Url=$"{SiteURL}/applications/core/interface/file/attachment.php?id={parsedMod}"
+                };
+
+                return state;
+            }
+
             return null;
         }
 
@@ -122,10 +136,12 @@ namespace Wabbajack.Lib.Downloaders
         public abstract class State : AbstractDownloadState, IMetaState
         {
             public long IPS4Mod { get; set; }
+            
+            public bool IsAttachment { get; set; } = false;
             public string IPS4File { get; set; } = "";
             public string IPS4Url { get; set; } = "";
 
-            public override object[] PrimaryKey => new object[] {IPS4Mod, IPS4File};
+            public override object[] PrimaryKey => new object[] {IPS4Mod, IPS4File ?? "", IsAttachment};
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
@@ -134,25 +150,50 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
-                var downloads = await TypedDownloader.GetDownloads(IPS4Mod);
-                var fileEntry = downloads.Files.First(f => f.Name == IPS4File);
-                if (a.Size != 0 && fileEntry.Size != a.Size)
-                    throw new Exception(
-                        $"File {IPS4File} on mod {IPS4Mod} on {TypedDownloader.SiteName} appears to be re-uploaded with the same name");
+                if (IsAttachment)
+                {
+                    var downloader = TypedDownloader;
+                    using var driver = await WebAutomation.Driver.Create();
+                    await driver.NavigateToAndDownload(
+                        new Uri($"{downloader.SiteURL}/applications/core/interface/file/attachment.php?id={IPS4Mod}"), destination);
+                    return true;
+                }
+                else
+                {
 
-                var state = new HTTPDownloader.State(fileEntry.Url!);
-                if (a.Size == 0) a.Size = fileEntry.Size!.Value;
-                return await state.Download(a, destination);
+                    var downloads = await TypedDownloader.GetDownloads(IPS4Mod);
+                    var fileEntry = downloads.Files.First(f => f.Name == IPS4File);
+                    if (a.Size != 0 && fileEntry.Size != a.Size)
+                        throw new Exception(
+                            $"File {IPS4File} on mod {IPS4Mod} on {TypedDownloader.SiteName} appears to be re-uploaded with the same name");
+
+                    var state = new HTTPDownloader.State(fileEntry.Url!);
+                    if (a.Size == 0) a.Size = fileEntry.Size!.Value;
+                    return await state.Download(a, destination);
+                }
             }
 
             private static AbstractIPS4OAuthDownloader<TDownloader, TState> TypedDownloader => (AbstractIPS4OAuthDownloader<TDownloader, TState>)(object)DownloadDispatcher.GetInstance<TDownloader>();
 
             public override async Task<bool> Verify(Archive archive, CancellationToken? token = null)
             {
-                var downloads = await TypedDownloader.GetDownloads(IPS4Mod);
-                var fileEntry = downloads.Files.FirstOrDefault(f => f.Name == IPS4File);
-                if (fileEntry == null) return false;
-                return archive.Size == 0 || fileEntry.Size == archive.Size;
+                if (IsAttachment)
+                {
+                    var downloader = TypedDownloader;
+                    using var driver = await WebAutomation.Driver.Create();
+                    await using var tmp = new TempFile();
+                    var foundSize = await driver.NavigateToAndDownload(
+                        new Uri($"{downloader.SiteURL}/applications/core/interface/file/attachment.php?id={IPS4Mod}"), tmp.Path);
+                    return archive.Size == 0 || foundSize == archive.Size;
+                }
+                else
+                {
+                    var downloads = await TypedDownloader.GetDownloads(IPS4Mod);
+                    var fileEntry = downloads.Files.FirstOrDefault(f => f.Name == IPS4File);
+                    if (fileEntry == null) return false;
+                    return archive.Size == 0 || fileEntry.Size == archive.Size;
+                }
+
             }
 
             public override string? GetManifestURL(Archive a)
