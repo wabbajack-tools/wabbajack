@@ -356,6 +356,36 @@ namespace Wabbajack.Test
             Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
 
         }
+        
+        [Fact]
+        public async Task LoversLabAttachmentDownload()
+        {
+
+            
+            await DownloadDispatcher.GetInstance<LoversLabOAuthDownloader>().Prepare();
+            var ini = @"[General]
+                        ips4Site=Lovers Lab
+                        ips4Attachment=853295";
+
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+
+            Assert.NotNull(state);
+
+            var converted = RoundTripState(state);
+            Assert.True(await converted.Verify(new Archive(state: null!) { Size = 1363396}));
+
+            // Verify with different Size
+            Assert.False(await converted.Verify(new Archive(state: null!) { Size = 15}));
+
+            
+            await using var filename = new TempFile();
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            await converted.Download(new Archive(state: null!) { Name = "LoversLab Test.txt" }, filename.Path);
+
+            Assert.Equal(Hash.FromBase64("gLJDxGDaeQ0="), await filename.Path.FileHashAsync());
+
+        }
 
         [Fact]
         public async Task CanLoadOldLLMeta()
