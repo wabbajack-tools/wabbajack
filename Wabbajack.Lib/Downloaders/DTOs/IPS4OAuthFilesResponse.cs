@@ -107,8 +107,7 @@ namespace Wabbajack.Lib.Downloaders.DTOs
         [JsonProperty("url")]
         public string? Url { get; set; }
 
-        [JsonProperty("size")]
-        public int Size { get; set; }
+        [JsonProperty("size")] public string Size { get; set; } = "";
     }
 
     public class PrimaryScreenshot
