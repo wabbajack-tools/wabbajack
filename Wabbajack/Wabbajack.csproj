@@ -57,7 +57,7 @@
   <ItemGroup>
     <PackageReference Include="cef.redist.x64" Version="91.1.16" />
       <PackageReference Include="CefSharp.Common" Version="91.1.160" />
-      <PackageReference Include="CefSharp.Wpf" Version="91.1.160">
+      <PackageReference Include="CefSharp.Wpf" Version="91.1.211">
         <NoWarn>NU1701</NoWarn>
       </PackageReference>
     <PackageReference Include="DynamicData" Version="7.1.17" />
