@@ -2,7 +2,7 @@
   "profiles": {
     "Wabbajack.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "download-from-meta -m c:\\tmp\\test.meta -o c:\\tmp\\out.7z"
+      "commandLineArgs": "download-from-meta -m \"c:\\tmp\\test (2).meta\" -o c:\\tmp\\out.7z"
     }
   }
 }

@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.5.0.5 - 6/28/2021
+* Fix another NPE on texture matching
+* Better logging on bad calls to IPS4 sites
+
 #### Version - 2.5.0.4 - 6/27/2021
 * Fix for NPE in Texture analysis compiler step
 * Implemented attachment support in IPS4 sites

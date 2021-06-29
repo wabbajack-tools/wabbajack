@@ -22,7 +22,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
-            if (source.Path.Extension == DDS)
+            if (source.Path.Extension == DDS && source.File.ImageState != null)
             {
                 var found = _byName[source.Path.FileNameWithoutExtension]
                     .Select(f => (f.ImageState.PerceptualHash.Similarity(source.File.ImageState.PerceptualHash), f))

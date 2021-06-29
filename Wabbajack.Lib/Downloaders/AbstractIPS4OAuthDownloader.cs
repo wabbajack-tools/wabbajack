@@ -13,6 +13,7 @@ using F23.StringSimilarity;
 using Newtonsoft.Json;
 using ReactiveUI;
 using Wabbajack.Common;
+using Wabbajack.Common.Exceptions;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Downloaders.DTOs;
 using Wabbajack.Lib.Http;
@@ -93,8 +94,24 @@ namespace Wabbajack.Lib.Downloaders
 
         public async Task<IPS4OAuthFilesResponse.Root> GetDownloads(long modID)
         {
-            var responseString = await (await GetAuthedClient())!.GetStringAsync(SiteURL+ $"api/downloads/files/{modID}") ;
-            return responseString.FromJsonString<IPS4OAuthFilesResponse.Root>();
+            var url = SiteURL + $"api/downloads/files/{modID}";
+            var client = await GetAuthedClient();
+            using var response = await client!.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, errorsAsExceptions: false);
+            string body = "";
+            try
+            {
+                body = await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception _)
+            {
+                // ignored
+            }
+
+            if (response.IsSuccessStatusCode)
+                return body.FromJsonString<IPS4OAuthFilesResponse.Root>();
+
+            Utils.Log($"IPS4 Request Error {response.StatusCode} {response.ReasonPhrase} - \n {url} \n {body}");
+            throw new HttpException(response);
         }
 
 
