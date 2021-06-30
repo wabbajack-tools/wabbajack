@@ -117,8 +117,10 @@ namespace Wabbajack
             var state = Guid.NewGuid().ToString();
 
 
+            var oldHandler = Helpers.SchemeHandler;
             Helpers.SchemeHandler = (browser, frame, _, request) =>
             {
+                Helpers.SchemeHandler = oldHandler;
                 var req = new Uri(request.Url);
                 var parsed = HttpUtility.ParseQueryString(req.Query);
                 if (parsed.Contains("state"))

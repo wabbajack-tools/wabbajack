@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.0.6 - 6/29/2021
+* Add Logging for IPS4 scheme handler should help with debugging login issues
+
 #### Version - 2.5.0.5 - 6/28/2021
 * Fix another NPE on texture matching
 * Better logging on bad calls to IPS4 sites

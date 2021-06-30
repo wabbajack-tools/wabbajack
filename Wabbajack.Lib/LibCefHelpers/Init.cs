@@ -111,6 +111,7 @@ namespace Wabbajack.Lib.LibCefHelpers
         {
             public IResourceHandler Create(IBrowser browser, IFrame frame, string schemeName, IRequest request)
             {
+                Utils.LogStraightToFile($"Scheme Handler Got: {schemeName} : {request.Url}");
                 if (SchemeHandler != null && schemeName == "wabbajack")
                 {
                     return SchemeHandler!(browser, frame, schemeName, request);
