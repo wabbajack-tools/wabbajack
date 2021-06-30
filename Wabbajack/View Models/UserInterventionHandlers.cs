@@ -24,6 +24,7 @@ namespace Wabbajack
     public class UserInterventionHandlers
     {
         public MainWindowVM MainWindow { get; }
+        private AsyncLock _browserLock = new();
 
         public UserInterventionHandlers(MainWindowVM mvm)
         {
@@ -32,6 +33,7 @@ namespace Wabbajack
 
         private async Task WrapBrowserJob(IUserIntervention intervention, Func<WebBrowserVM, CancellationTokenSource, Task> toDo)
         {
+            var wait = await _browserLock.WaitAsync();
             var cancel = new CancellationTokenSource();
             var oldPane = MainWindow.ActivePane;
             using var vm = await WebBrowserVM.GetNew();
@@ -55,6 +57,10 @@ namespace Wabbajack
             {
                 Utils.Error(ex);
                 intervention.Cancel();
+            }
+            finally
+            {
+                wait.Dispose();
             }
 
             MainWindow.NavigateTo(oldPane);
@@ -120,8 +126,8 @@ namespace Wabbajack
             var oldHandler = Helpers.SchemeHandler;
             Helpers.SchemeHandler = (browser, frame, _, request) =>
             {
-                Helpers.SchemeHandler = oldHandler;
                 var req = new Uri(request.Url);
+                Utils.LogStraightToFile($"Got Scheme callback {req}");
                 var parsed = HttpUtility.ParseQueryString(req.Query);
                 if (parsed.Contains("state"))
                 {
@@ -134,6 +140,7 @@ namespace Wabbajack
                 }
                 if (parsed.Contains("code"))
                 {
+                    Helpers.SchemeHandler = oldHandler;
                     oa.Resume(parsed.Get("code"));
                 }
                 else

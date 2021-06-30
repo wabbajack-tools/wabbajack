@@ -57,6 +57,8 @@ namespace Wabbajack.Lib.Downloaders
         public virtual Uri? IconUri { get; }
         public Client? AuthedClient { get; set; }
 
+        private AsyncLock _prepareLock = new();
+
         private bool _isPrepared = false;
         public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode = false)
         {
@@ -118,7 +120,6 @@ namespace Wabbajack.Lib.Downloaders
 
         public async Task Prepare()
         {
-
             if (_isPrepared) return;
             AuthedClient = (await GetAuthedClient()) ?? throw new Exception($"Not logged into {SiteName}");
             _isPrepared = true;
@@ -127,6 +128,7 @@ namespace Wabbajack.Lib.Downloaders
 
         private async Task<Http.Client?> GetAuthedClient()
         {
+            using var _ = await _prepareLock.WaitAsync();
             if (!Utils.HaveEncryptedJson(EncryptedKeyName))
             {
                 await Utils.CatchAndLog(async () => await Utils.Log(new RequestOAuthLogin(ClientID,

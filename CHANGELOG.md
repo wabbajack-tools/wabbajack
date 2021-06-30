@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.0.7 - 6/30/2021
+* Make IPS4 downloader threadsafe during logins
+
 #### Version - 2.5.0.6 - 6/29/2021
 * Add Logging for IPS4 scheme handler should help with debugging login issues
 
