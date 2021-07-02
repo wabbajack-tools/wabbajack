@@ -323,7 +323,20 @@ namespace Wabbajack.Test
             Assert.True(await state.LoadMetaData());
             Assert.Equal("halgari", state.Author);
         }
-        
+
+        [Fact]
+        public async Task CanGetLLAttachmentMetadata()
+        {
+            await DownloadDispatcher.GetInstance<LoversLabOAuthDownloader>().Prepare();
+            var ini = @"[General]
+                        ips4Site=Lovers Lab
+                        ips4Attachment=853295";
+
+            var state = (LoversLabOAuthDownloader.State)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            Assert.True(await state.LoadMetaData());
+            // Assert.Equal("halgari", state.Author);
+        }
+
         [Fact]
         public async Task LoversLabDownload()
         {
@@ -361,7 +374,6 @@ namespace Wabbajack.Test
         public async Task LoversLabAttachmentDownload()
         {
 
-            
             await DownloadDispatcher.GetInstance<LoversLabOAuthDownloader>().Prepare();
             var ini = @"[General]
                         ips4Site=Lovers Lab
