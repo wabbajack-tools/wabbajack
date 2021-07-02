@@ -2,7 +2,7 @@
 @using Wabbajack.Web.Pages.StatusDashboard
 @inherits LayoutComponentBase
 
-<MudThemeProvider />
+<MudThemeProvider Theme="CustomTheme"/>
 <MudDialogProvider />
 <MudSnackbarProvider />
 
@@ -35,6 +35,16 @@
 
 @code{
     private bool _drawerOpen;
+
+    private static readonly MudTheme CustomTheme = new()
+    {
+        /*Palette = new Palette
+        {
+            Background = Colors.Grey.Darken4,
+            White = "#FFF",
+            Primary = Colors.Purple.Default
+        }*/
+    };
 
     private void ToggleDrawer()
     {
