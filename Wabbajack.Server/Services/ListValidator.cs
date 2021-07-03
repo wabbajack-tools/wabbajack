@@ -102,9 +102,6 @@ namespace Wabbajack.Server.Services
                                 await _sql.StartMirror((archive.Hash, reason));
                                 return (archive, ArchiveStatus.Updating);
                             }
-
-                            if (archive.State is NexusDownloader.State)
-                                return (archive, result);
                             return await TryToHeal(data, archive, metadata);
                         }
 
@@ -352,9 +349,9 @@ namespace Wabbajack.Server.Services
                 case GoogleDriveDownloader.State _:
                     // Disabled for now due to GDrive rate-limiting the build server
                     return (archive, ArchiveStatus.Valid);
-                case NexusDownloader.State nexusState when data.NexusFiles.TryGetValue(
-                    (nexusState.Game.MetaData().NexusGameId, nexusState.ModID, nexusState.FileID), out var category):
-                    return (archive, category != null ? ArchiveStatus.Valid : ArchiveStatus.InValid);
+                case NexusDownloader.State nexusState when data.NexusFiles.Contains((
+                    nexusState.Game.MetaData().NexusGameId, nexusState.ModID, nexusState.FileID)):
+                    return (archive, ArchiveStatus.Valid);
                 case NexusDownloader.State ns:
                     return (archive, await FastNexusModStats(ns));
                 case ManualDownloader.State _:
@@ -364,10 +361,6 @@ namespace Wabbajack.Server.Services
                 case GameFileSourceDownloader.State _:
                     return (archive, ArchiveStatus.Valid);
                 case MediaFireDownloader.State _:
-                    return (archive, ArchiveStatus.Valid);
-                case DeprecatedLoversLabDownloader.State _:
-                    return (archive, ArchiveStatus.Valid);
-                case DeprecatedVectorPlexusDownloader.State _:
                     return (archive, ArchiveStatus.Valid);
                 default:
                 {
@@ -381,45 +374,94 @@ namespace Wabbajack.Server.Services
                 }
             }
         }
+        
+        private AsyncLock _lock = new();
 
         public async Task<ArchiveStatus> FastNexusModStats(NexusDownloader.State ns)
         {
             // Check if some other thread has added them
-            var file = await _sql.GetModFile(ns.Game, ns.ModID, ns.FileID);
+            var mod = await _sql.GetNexusModInfoString(ns.Game, ns.ModID);
+            var files = await _sql.GetModFiles(ns.Game, ns.ModID);
 
-            if (file == null)
+            if (mod == null || files == null)
             {
-                try
+                // Acquire the lock
+                //using var lck = await _lock.WaitAsync();
+                
+                // Check again
+                mod = await _sql.GetNexusModInfoString(ns.Game, ns.ModID);
+                files = await _sql.GetModFiles(ns.Game, ns.ModID);
+
+                if (mod == null || files == null)
                 {
-                    NexusApiClient nexusClient = await _nexus.GetClient();
-                    var queryTime = DateTime.UtcNow;
 
-                    _logger.Log(LogLevel.Information, "Found missing Nexus file info {Game} {ModID} {FileID}", ns.Game, ns.ModID, ns.FileID);
-                    try
-                    {
-                        file = await nexusClient.GetModFile(ns.Game, ns.ModID, ns.FileID, false);
-                    }
-                    catch
-                    {
-                        file = new NexusFileInfo() {category_name = null};
-                    }
 
                     try
                     {
-                        await _sql.AddNexusModFile(ns.Game, ns.ModID, ns.FileID, queryTime, file);
+                        NexusApiClient nexusClient = await _nexus.GetClient();
+                        var queryTime = DateTime.UtcNow;
+
+                        if (mod == null)
+                        {
+                            _logger.Log(LogLevel.Information, $"Found missing Nexus mod info {ns.Game} {ns.ModID}");
+                            try
+                            {
+                                mod = await nexusClient.GetModInfo(ns.Game, ns.ModID, false);
+                            }
+                            catch (Exception ex)
+                            {
+                                Utils.Log("Exception in Nexus Validation " + ex);
+                                mod = new ModInfo
+                                {
+                                    mod_id = ns.ModID.ToString(),
+                                    game_id = ns.Game.MetaData().NexusGameId,
+                                    available = false
+                                };
+                            }
+
+                            try
+                            {
+                                await _sql.AddNexusModInfo(ns.Game, ns.ModID, queryTime, mod);
+                            }
+                            catch (Exception)
+                            {
+                                // Could be a PK constraint failure
+                            }
+
+                        }
+
+                        if (files == null)
+                        {
+                            _logger.Log(LogLevel.Information, $"Found missing Nexus mod info {ns.Game} {ns.ModID}");
+                            try
+                            {
+                                files = await nexusClient.GetModFiles(ns.Game, ns.ModID, false);
+                            }
+                            catch
+                            {
+                                files = new NexusApiClient.GetModFilesResponse {files = new List<NexusFileInfo>()};
+                            }
+
+                            try
+                            {
+                                await _sql.AddNexusModFiles(ns.Game, ns.ModID, queryTime, files);
+                            }
+                            catch (Exception)
+                            {
+                                // Could be a PK constraint failure
+                            }
+                        }
                     }
                     catch (Exception)
                     {
-                        // Could be a PK constraint failure
+                        return ArchiveStatus.InValid;
                     }
-                }
-                catch (Exception)
-                {
-                    return ArchiveStatus.InValid;
                 }
             }
 
-            return file?.category_name != null ? ArchiveStatus.Valid : ArchiveStatus.InValid;
+            if (mod.available && files.files.Any(f => !string.IsNullOrEmpty(f.category_name) && f.file_id == ns.FileID))
+                return ArchiveStatus.Valid;
+            return ArchiveStatus.InValid;
 
         }
     }

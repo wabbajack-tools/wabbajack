@@ -384,6 +384,10 @@ namespace Wabbajack.Test
             await converted.Download(new Archive(state: null!) { Name = "LoversLab Test.txt" }, filename.Path);
 
             Assert.Equal(Hash.FromBase64("gLJDxGDaeQ0="), await filename.Path.FileHashAsync());
+            
+            Assert.False(await ((LoversLabOAuthDownloader.State) state).LoadMetaData());
+            
+
 
         }
 

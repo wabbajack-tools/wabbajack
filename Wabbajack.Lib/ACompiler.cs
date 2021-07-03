@@ -165,13 +165,7 @@ namespace Wabbajack.Lib
                         return;
 
                     var b = await metaState.LoadMetaData();
-                    Utils.Log(b
-                        ? $"Getting meta data for {a.Name} was successful!"
-                        : $"Getting meta data for {a.Name} failed!");
-                }
-                else
-                {
-                    Utils.Log($"Archive {a.Name} is not an AbstractMetaState!");
+                    if (b) Utils.Log($"Getting meta data for {a.Name} was successful!");
                 }
             });
 

@@ -224,15 +224,21 @@ namespace Wabbajack.Lib.Downloaders
                     var nclient = DownloadDispatcher.GetInstance<NexusDownloader>();
                     await nclient.Prepare();
                     var client = nclient.Client!;
-                    var file = await client.GetModFile(Game, ModID, FileID);
-                    return file?.category_name != null;
+
+                    var modInfo = await client.GetModInfo(Game, ModID);
+                    if (!modInfo.available) return false;
+                    var modFiles = await client.GetModFiles(Game, ModID);
+
+                    var found = modFiles.files
+                        .FirstOrDefault(file => file.file_id == FileID && file.category_name != null);
+
+                    return found != null;
                 }
                 catch (Exception ex)
                 {
                     Utils.Log($"{Name} - {Game} - {ModID} - {FileID} - Error getting Nexus download URL - {ex}");
                     return false;
                 }
-
             }
 
             public override IDownloader GetDownloader()

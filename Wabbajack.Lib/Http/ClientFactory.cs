@@ -25,7 +25,6 @@ namespace Wabbajack.Lib.Http
                 AutomaticDecompression = DecompressionMethods.All,
 
             };
-            Utils.Log($"Configuring with SSL {_socketsHandler.SslOptions.EnabledSslProtocols}");
 
             ServicePointManager.ServerCertificateValidationCallback +=
                 (sender, certificate, chain, errors) =>

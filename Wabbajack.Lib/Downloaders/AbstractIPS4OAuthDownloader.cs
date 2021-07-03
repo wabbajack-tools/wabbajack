@@ -140,7 +140,7 @@ namespace Wabbajack.Lib.Downloaders
             }
 
             var data = await Utils.FromEncryptedJson<OAuthResultState>(EncryptedKeyName);
-            await data.Refresh();
+            await data.Refresh(SiteName);
             var client = new Http.Client();
             client.Headers.Add(("Authorization", $"Bearer {data.AccessToken}"));
             return client;
@@ -240,6 +240,7 @@ namespace Wabbajack.Lib.Downloaders
             public string? Description { get; set; }
             public async Task<bool> LoadMetaData()
             {
+                if (IsAttachment) return false;
                 var data = await TypedDownloader.GetDownloads(IPS4Mod);
                 Name = data.Title;
                 Author = data.Author?.Name;
@@ -321,7 +322,7 @@ namespace Wabbajack.Lib.Downloaders
         }
 
 
-        public async Task<bool> Refresh()
+        public async Task<bool> Refresh(string siteName = "")
         {
             if (ExpiresAt > DateTime.UtcNow + TimeSpan.FromHours(6))
                 return true;
@@ -333,13 +334,28 @@ namespace Wabbajack.Lib.Downloaders
                 new ("refresh_token", RefreshToken),
                 new ("client_id", ClientID)
             };
-            using var response = await client.PostAsync(TokenEndpoint!.ToString(), new FormUrlEncodedContent(formData.ToList()));
-            var responseData = (await response.Content.ReadAsStringAsync()).FromJsonString<OAuthResultState>();
+            try
+            {
+                using var response = await client.PostAsync(TokenEndpoint!.ToString(),
+                    new FormUrlEncodedContent(formData.ToList()));
+                var responseData = (await response.Content.ReadAsStringAsync()).FromJsonString<OAuthResultState>();
 
-            AccessToken = responseData.AccessToken;
-            ExpiresIn = responseData.ExpiresIn;
-            ExpiresAt = DateTime.UtcNow + TimeSpan.FromSeconds(ExpiresIn);
-            
+                AccessToken = responseData.AccessToken;
+                ExpiresIn = responseData.ExpiresIn;
+                ExpiresAt = DateTime.UtcNow + TimeSpan.FromSeconds(ExpiresIn);
+
+                return true;
+            }
+            catch (HttpException ex)
+            {
+                if (ex.Code == 400)
+                {
+                    throw new CriticalFailureIntervention(
+                        $"You have been logged out of {siteName} for reasons out of our control, please log back in via the settings panel",
+                        $"Logged out of {siteName}");
+                }
+            }
+
             return true;
         }
 
