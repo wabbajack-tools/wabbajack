@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 2.5.0.8 - 6/30/2021
+#### Version - 2.5.0.8 - 7/3/2021
 * Fix broken LL attachments
 * Detect expired IPS4 accounts and prompt users to re-login
 
