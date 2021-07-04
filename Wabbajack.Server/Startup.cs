@@ -13,6 +13,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Wabbajack.BuildServer;
+using Wabbajack.Common;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.Services;
@@ -37,6 +38,7 @@ namespace Wabbajack.Server
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            Consts.UseNetworkWorkaroundMode = true;
             Helpers.Init();
             /*services.AddSwaggerGen(c =>
             {

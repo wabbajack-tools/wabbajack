@@ -102,23 +102,7 @@ namespace Wabbajack.BuildServer.Test
             var found = hs.FirstOrDefault(h =>
                 h.NexusGameId == gameId && h.ModId == 1137 && h.FileId == 121449);
             Assert.True(found != default);
-            
-            Assert.True(found.LastChecked > startTime && found.LastChecked < DateTime.UtcNow);
 
-            // Delete with exactly the same date, shouldn't clear out the record
-            await sql.DeleteNexusModFilesUpdatedBeforeDate(Game.SkyrimSpecialEdition, 1137, found.LastChecked);
-            var hs2 = await sql.AllNexusFiles();
-
-            var found2 = hs2.FirstOrDefault(h =>
-                h.NexusGameId == gameId && h.ModId == 1137 && h.FileId == 121449);
-            Assert.True(found != default);
-
-            Assert.True(found2.LastChecked == found.LastChecked);
-
-            // Delete all the records, it should now be gone
-            await sql.DeleteNexusModFilesUpdatedBeforeDate(Game.SkyrimSpecialEdition, 1137, DateTime.UtcNow);
-            var hs3 = await sql.AllNexusFiles();
-            Assert.DoesNotContain(hs3, f => f.NexusGameId == gameId && f.ModId == 1137);
             
         }
 

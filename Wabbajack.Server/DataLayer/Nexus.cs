@@ -118,6 +118,7 @@ namespace Wabbajack.Server.DataLayer
             await conn.ExecuteAsync("DELETE FROM dbo.NexusModFiles WHERE ModId = @ModId", new {ModId = modId});
             await conn.ExecuteAsync("DELETE FROM dbo.NexusModInfos WHERE ModId = @ModId", new {ModId = modId});
             await conn.ExecuteAsync("DELETE FROM dbo.NexusModPermissions WHERE ModId = @ModId", new {ModId = modId});
+            await conn.ExecuteAsync("DELETE FROM dbo.NexusModFile WHERE ModId = @ModID", new {ModId = modId});
         }
 
         public async Task<Dictionary<(Game, long), HTMLInterface.PermissionValue>> GetNexusPermissions()

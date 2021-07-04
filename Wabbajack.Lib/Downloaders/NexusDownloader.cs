@@ -221,18 +221,12 @@ namespace Wabbajack.Lib.Downloaders
             {
                 try
                 {
-                    var nclient = DownloadDispatcher.GetInstance<NexusDownloader>();
-                    await nclient.Prepare();
-                    var client = nclient.Client!;
+                    var nexusClient = DownloadDispatcher.GetInstance<NexusDownloader>();
+                    await nexusClient.Prepare();
+                    var client = nexusClient.Client!;
 
-                    var modInfo = await client.GetModInfo(Game, ModID);
-                    if (!modInfo.available) return false;
-                    var modFiles = await client.GetModFiles(Game, ModID);
-
-                    var found = modFiles.files
-                        .FirstOrDefault(file => file.file_id == FileID && file.category_name != null);
-
-                    return found != null;
+                    var file = await client.GetModFile(Game, ModID, FileID);
+                    return file?.category_name != null;
                 }
                 catch (Exception ex)
                 {
