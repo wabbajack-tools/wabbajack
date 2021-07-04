@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using DirectXTexNet;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
@@ -7,7 +8,7 @@ namespace Wabbajack.ImageHashing
 {
     public unsafe class DX11Device
     {
-        private readonly ID3D11Device* _device;
+        private ID3D11Device* _device;
 
         public DX11Device()
         {
@@ -52,12 +53,17 @@ namespace Wabbajack.ImageHashing
             {
                 if (_device != null)
                 {
-                    return input.Compress((IntPtr)_device, format, compress, threshold);
+                    try
+                    {
+                        return input.Compress((IntPtr)_device, format, compress, threshold);
+                    }
+                    catch (COMException _)
+                    {
+                        _device->Release();
+                        _device = null;
+                    }
                 }
-                else
-                {
-                    return input.Compress(format, compress, threshold);
-                }
+                return input.Compress(format, compress, threshold);
             }
         }
 
