@@ -9,6 +9,8 @@
     <ItemGroup>
       <PackageReference Include="DirectXTexNet" Version="1.0.2" />
       <PackageReference Include="Shipwreck.Phash" Version="0.5.0" />
+      <PackageReference Include="Silk.NET.Direct3D11" Version="2.6.0" />
+      <PackageReference Include="Silk.NET.DXGI" Version="2.6.0" />
     </ItemGroup>
 
     <ItemGroup>

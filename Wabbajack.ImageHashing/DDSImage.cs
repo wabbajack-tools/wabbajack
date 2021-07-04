@@ -14,6 +14,7 @@ namespace Wabbajack.ImageHashing
 {
     public class DDSImage : IDisposable
     {
+        private static Lazy<DX11Device> DX11Device = new(() => new DX11Device());
         private DDSImage(ScratchImage img, TexMetadata metadata, Extension ext)
         {
             _image = img;
@@ -101,7 +102,7 @@ namespace Wabbajack.ImageHashing
                 if (CompressedTypes.Contains(newFormat))
                 {
                     var old = resized;
-                    resized = resized.Compress(newFormat, TEX_COMPRESS_FLAGS.BC7_QUICK, 0.5f);
+                    resized = DX11Device.Value.Compress(resized, newFormat, TEX_COMPRESS_FLAGS.BC7_QUICK, 0.5f);
                     old.Dispose();
                 }
 
