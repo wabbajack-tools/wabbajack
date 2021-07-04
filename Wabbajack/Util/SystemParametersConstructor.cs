@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using MahApps.Metro.Controls;
-using Microsoft.VisualBasic;
+using System.Text;
 using PInvoke;
-using SharpDX.DXGI;
+using Silk.NET.Core.Native;
+using Silk.NET.DXGI;
+using Wabbajack.Common;
 using Wabbajack.Lib;
 using static PInvoke.User32;
-using static PInvoke.Gdi32;
 
 namespace Wabbajack.Util
 {
@@ -16,7 +17,7 @@ namespace Wabbajack.Util
     // Thanks to MO2 for being good citizens and supporting OSS code
     public static class SystemParametersConstructor
     {
-        private static List<(int Width, int Height, bool IsPrimary)> GetDisplays()
+        private static IEnumerable<(int Width, int Height, bool IsPrimary)> GetDisplays()
         {
             // Needed to make sure we get the right values from this call
             SetProcessDPIAware();
@@ -45,16 +46,69 @@ namespace Wabbajack.Util
         public static SystemParameters Create()
         {
             var (width, height, _) = GetDisplays().First(d => d.IsPrimary);
-            
-            using var f = new Factory1();
+
+            /*using var f = new SharpDX.DXGI.Factory1();
             var video_memory = f.Adapters1.Select(a =>
-                Math.Max(a.Description.DedicatedSystemMemory, (long)a.Description.DedicatedVideoMemory)).Max();
-            var memory = Common.Utils.GetMemoryStatus();
+                Math.Max(a.Description.DedicatedSystemMemory, (long)a.Description.DedicatedVideoMemory)).Max();*/
+
+            var dxgiMemory = 0UL;
+            
+            unsafe
+            {
+                using var api = DXGI.GetApi();
+                
+                IDXGIFactory1* factory1 = default;
+                
+                try
+                {
+                    //https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-createdxgifactory1
+                    SilkMarshal.ThrowHResult(api.CreateDXGIFactory1(SilkMarshal.GuidPtrOf<IDXGIFactory1>(), (void**)&factory1));
+                    
+                    uint i = 0u;
+                    while (true)
+                    {
+                        IDXGIAdapter1* adapter1 = default;
+                        
+                        //https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgifactory1-enumadapters1
+                        var res = factory1->EnumAdapters1(i, &adapter1);
+                        
+                        var exception = Marshal.GetExceptionForHR(res);
+                        if (exception != null) break;
+
+                        AdapterDesc1 adapterDesc = default;
+                        
+                        //https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiadapter1-getdesc1
+                        SilkMarshal.ThrowHResult(adapter1->GetDesc1(&adapterDesc));
+                        
+                        var systemMemory = (ulong) adapterDesc.DedicatedSystemMemory;
+                        var videoMemory = (ulong) adapterDesc.DedicatedVideoMemory;
+                        
+                        var maxMemory = Math.Max(systemMemory, videoMemory);
+                        if (maxMemory > dxgiMemory)
+                            dxgiMemory = maxMemory;
+                        
+                        adapter1->Release();
+                        i++;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Utils.ErrorThrow(e);
+                }
+                finally
+                {
+                    
+                    if (factory1->LpVtbl != (void**)IntPtr.Zero)
+                        factory1->Release();
+                }
+            }
+            
+            var memory = Utils.GetMemoryStatus();
             return new SystemParameters
             {
                 ScreenWidth = width,
                 ScreenHeight = height,
-                VideoMemorySize = video_memory,
+                VideoMemorySize = (long)dxgiMemory,
                 SystemMemorySize = (long)memory.ullTotalPhys,
                 SystemPageSize = (long)memory.ullTotalPageFile - (long)memory.ullTotalPhys
             };
