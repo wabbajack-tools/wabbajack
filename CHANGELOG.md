@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 2.5.0.9 - 7/4/2021
+* Use DX11 GPUs for compression when possible
+* Don't threadbomb the system by creating O(N*M) threads when compressing textures
+* Warn users that are running on old builds of Windows 10 (10.0.18363.0 or older) that some things (like LL logins) may not work
+* Re-enable Nexus downloads for archived/hidden mods
+
 #### Version - 2.5.0.8 - 7/3/2021
 * Fix broken LL attachments
 * Detect expired IPS4 accounts and prompt users to re-login
