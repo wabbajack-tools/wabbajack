@@ -11,7 +11,8 @@ namespace Wabbajack.Common
 {
     public static class Consts
     {
-        public static Version? CurrentMinimumWabbajackVersion = new Version("2.2.2.0");
+        public static Version? CurrentMinimumWabbajackVersion = new("2.2.2.0");
+        public static Version MaximumUnsupportedWindowsVersion = new("10.0.18363.0");
         public static bool TestMode { get; set; } = false;
 
         public static RelativePath GameFolderFilesDir = (RelativePath)"Game Folder Files";

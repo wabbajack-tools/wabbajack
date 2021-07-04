@@ -42,10 +42,12 @@ namespace Wabbajack
                 var p = SystemParametersConstructor.Create();
 
                 Utils.Log($"Detected Windows Version: {p.WindowsVersion}");
+                
+                
 
-                if (!(p.WindowsVersion.Major >= 10 && p.WindowsVersion.Minor >= 0))
+                if (!(p.WindowsVersion > Consts.MaximumUnsupportedWindowsVersion))
                     Utils.Log(
-                        $"You are not running a recent version of Windows (version 10 or greater), Wabbajack is not supported on OS versions older than Windows 10.");
+                        $"You are not running a recent version of Windows ({p.WindowsVersion}), Wabbajack is only supported on Windows versions greater than {Consts.MaximumUnsupportedWindowsVersion}.");
 
                 Utils.Log(
                     $"System settings - ({p.SystemMemorySize.ToFileSizeString()} RAM) ({p.SystemPageSize.ToFileSizeString()} Page), Display: {p.ScreenWidth} x {p.ScreenHeight} ({p.VideoMemorySize.ToFileSizeString()} VRAM - VideoMemorySizeMb={p.EnbLEVRAMSize})");
