@@ -350,9 +350,9 @@ namespace Wabbajack.Lib.Downloaders
             {
                 if (ex.Code == 400)
                 {
-                    throw new CriticalFailureIntervention(
-                        $"You have been logged out of {siteName} for reasons out of our control, please log back in via the settings panel",
-                        $"Logged out of {siteName}");
+                    Utils.ErrorThrow(new CriticalFailureIntervention(
+                        $"You have been logged out of {siteName} for reasons out of our control, please re-login via the settings panel.",
+                        $"Bad Request: Logged Out - {siteName}"));
                 }
             }
 
