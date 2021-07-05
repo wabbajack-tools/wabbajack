@@ -235,7 +235,11 @@ namespace Wabbajack.VirtualFileSystem
                 self.ExtendedHashes = await ExtendedHashes.FromStream(stream);
 
             // Can't extract, so return
-            if (!sig.HasValue || !FileExtractor2.ExtractableExtensions.Contains(relPath.FileName.Extension)) return self;
+            if (!sig.HasValue || !FileExtractor2.ExtractableExtensions.Contains(relPath.FileName.Extension))
+            {
+                await WriteToCache(self);
+                return self;
+            }
 
             try
             {
@@ -256,11 +260,16 @@ namespace Wabbajack.VirtualFileSystem
                 throw;
             }
 
+            await WriteToCache(self);
+            return self;
+        }
+
+        private static async Task WriteToCache(VirtualFile self)
+        {
             await using var ms = new MemoryStream();
             self.ToIndexedVirtualFile().Write(ms);
             ms.Position = 0;
             await InsertIntoVFSCache(self.Hash, ms);
-            return self;
         }
 
         private static async Task InsertIntoVFSCache(Hash hash, MemoryStream data)
