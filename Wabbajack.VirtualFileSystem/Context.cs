@@ -345,16 +345,27 @@ namespace Wabbajack.VirtualFileSystem
             await _unstage();
         }
     }
+    
+    public static class EmptyLookup<TKey, TElement>
+    {
+        private static readonly ILookup<TKey, TElement> _instance
+            = Enumerable.Empty<TElement>().ToLookup(x => default(TKey));
+
+        public static ILookup<TKey, TElement> Instance
+        {
+            get { return _instance; }
+        }
+    }
 
     public class IndexRoot
     {
         public static IndexRoot Empty = new IndexRoot();
 
-        public IndexRoot(ImmutableList<VirtualFile> aFiles,
-            Dictionary<FullPath, VirtualFile> byFullPath,
-            ImmutableDictionary<Hash, ImmutableStack<VirtualFile>> byHash,
-            ImmutableDictionary<AbsolutePath, VirtualFile> byRoot,
-            ImmutableDictionary<IPath, ImmutableStack<VirtualFile>> byName)
+        public IndexRoot(IReadOnlyList<VirtualFile> aFiles,
+            IDictionary<FullPath, VirtualFile> byFullPath,
+            ILookup<Hash, VirtualFile> byHash,
+            IDictionary<AbsolutePath, VirtualFile> byRoot,
+            ILookup<IPath, VirtualFile> byName)
         {
             AllFiles = aFiles;
             ByFullPath = byFullPath;
@@ -367,17 +378,17 @@ namespace Wabbajack.VirtualFileSystem
         {
             AllFiles = ImmutableList<VirtualFile>.Empty;
             ByFullPath = new Dictionary<FullPath, VirtualFile>();
-            ByHash = ImmutableDictionary<Hash, ImmutableStack<VirtualFile>>.Empty;
-            ByRootPath = ImmutableDictionary<AbsolutePath, VirtualFile>.Empty;
-            ByName = ImmutableDictionary<IPath, ImmutableStack<VirtualFile>>.Empty;
+            ByHash = EmptyLookup<Hash, VirtualFile>.Instance;
+            ByRootPath = new Dictionary<AbsolutePath, VirtualFile>();
+            ByName = EmptyLookup<IPath, VirtualFile>.Instance;
         }
 
 
-        public ImmutableList<VirtualFile> AllFiles { get; }
-        public Dictionary<FullPath, VirtualFile> ByFullPath { get; }
-        public ImmutableDictionary<Hash, ImmutableStack<VirtualFile>> ByHash { get; }
-        public ImmutableDictionary<IPath, ImmutableStack<VirtualFile>> ByName { get; set; }
-        public ImmutableDictionary<AbsolutePath, VirtualFile> ByRootPath { get; }
+        public IReadOnlyList<VirtualFile> AllFiles { get; }
+        public IDictionary<FullPath, VirtualFile> ByFullPath { get; }
+        public ILookup<Hash, VirtualFile> ByHash { get; }
+        public ILookup<IPath, VirtualFile> ByName { get; set; }
+        public IDictionary<AbsolutePath, VirtualFile> ByRootPath { get; }
 
         public async Task<IndexRoot> Integrate(ICollection<VirtualFile> files)
         {
@@ -385,19 +396,19 @@ namespace Wabbajack.VirtualFileSystem
             var allFiles = AllFiles.Concat(files)
                 .OrderByDescending(f => f.LastModified)
                 .GroupBy(f => f.FullPath).Select(g => g.Last())
-                .ToImmutableList();
+                .ToList();
 
             var byFullPath = Task.Run(() => allFiles.SelectMany(f => f.ThisAndAllChildren)
                                      .ToDictionary(f => f.FullPath));
 
             var byHash = Task.Run(() => allFiles.SelectMany(f => f.ThisAndAllChildren)
                                  .Where(f => f.Hash != Hash.Empty)
-                                 .ToGroupedImmutableDictionary(f => f.Hash));
+                                 .ToLookup(f => f.Hash));
 
             var byName = Task.Run(() => allFiles.SelectMany(f => f.ThisAndAllChildren)
-                                 .ToGroupedImmutableDictionary(f => f.Name));
+                                 .ToLookup(f => f.Name));
 
-            var byRootPath = Task.Run(() => allFiles.ToImmutableDictionary(f => f.AbsoluteName));
+            var byRootPath = Task.Run(() => allFiles.ToDictionary(f => f.AbsoluteName));
 
             var result = new IndexRoot(allFiles,
                 await byFullPath,

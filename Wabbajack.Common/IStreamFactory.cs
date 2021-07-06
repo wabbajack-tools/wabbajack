@@ -34,7 +34,16 @@ namespace Wabbajack.Common
             return await _file.OpenRead();
         }
 
-        public DateTime LastModifiedUtc => _file.LastModifiedUtc;
+        private DateTime? _lastModifiedCache = null;
+        public DateTime LastModifiedUtc
+        {
+            get
+            {
+                _lastModifiedCache ??= _file.LastModifiedUtc;
+                return _lastModifiedCache.Value;
+            }
+        }
+
         public IPath Name { get; }
     }
     
