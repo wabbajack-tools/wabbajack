@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.1.0 - 7/6/2021
+* Drastically improve compilation times by the removal of several bugs in the compiler
+
 #### Version - 2.5.0.9 - 7/4/2021
 * Use DX11 GPUs for compression when possible
 * Don't threadbomb the system by creating O(N*M) threads when compressing textures

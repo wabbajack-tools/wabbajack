@@ -10,6 +10,8 @@ namespace Wabbajack.Test
 {
     public class NexusTests : ATestBase
     {
+        // Disable for now
+        /*
         [Fact]
         public async Task CanGetNexusRSSUpdates()
         {
@@ -21,7 +23,7 @@ namespace Wabbajack.Test
             {
                 Assert.True(DateTime.UtcNow - result.TimeStamp < TimeSpan.FromDays(1));
             }
-        }
+        }*/
 
         public NexusTests(ITestOutputHelper output) : base(output)
         {
