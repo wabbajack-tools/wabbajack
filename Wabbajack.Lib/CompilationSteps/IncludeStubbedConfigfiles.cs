@@ -42,15 +42,14 @@ namespace Wabbajack.Lib.CompilationSteps
             data = data.Replace(gamePath.Replace("\\", "/"), Consts.GAME_PATH_MAGIC_FORWARD, StringComparison.InvariantCultureIgnoreCase);
 
             var sourcePath = compiler.SourcePath.Normalize();
-            data = data.Replace(sourcePath, Consts.MO2_PATH_MAGIC_BACK);
-            data = data.Replace(sourcePath.Replace("\\", "\\\\"), Consts.MO2_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(sourcePath.Replace("\\", "/"), Consts.MO2_PATH_MAGIC_FORWARD);
+            data = data.Replace(sourcePath, Consts.MO2_PATH_MAGIC_BACK, StringComparison.InvariantCultureIgnoreCase);
+            data = data.Replace(sourcePath.Replace("\\", "\\\\"), Consts.MO2_PATH_MAGIC_DOUBLE_BACK, StringComparison.InvariantCultureIgnoreCase);
+            data = data.Replace(sourcePath.Replace("\\", "/"), Consts.MO2_PATH_MAGIC_FORWARD, StringComparison.InvariantCultureIgnoreCase);
 
             var downloadsPath = compiler.DownloadsPath.Normalize();
-            data = data.Replace(downloadsPath, Consts.DOWNLOAD_PATH_MAGIC_BACK);
-            data = data.Replace(downloadsPath.Replace("\\", "\\\\"),
-                Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(downloadsPath.Replace("\\", "/"), Consts.DOWNLOAD_PATH_MAGIC_FORWARD);
+            data = data.Replace(downloadsPath, Consts.DOWNLOAD_PATH_MAGIC_BACK, StringComparison.InvariantCultureIgnoreCase);
+            data = data.Replace(downloadsPath.Replace("\\", "\\\\"), Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK, StringComparison.InvariantCultureIgnoreCase);
+            data = data.Replace(downloadsPath.Replace("\\", "/"), Consts.DOWNLOAD_PATH_MAGIC_FORWARD, StringComparison.InvariantCultureIgnoreCase);
             return data;
         }
     }

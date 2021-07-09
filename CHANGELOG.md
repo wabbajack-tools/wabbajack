@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.1.1 - 7/9/2021
+* Fix a bug with INI path remapping, was using case sensitive replace
+
 #### Version - 2.5.1.0 - 7/6/2021
 * Drastically improve compilation times by the removal of several bugs in the compiler
 
