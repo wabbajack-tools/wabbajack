@@ -157,9 +157,7 @@ namespace Wabbajack.Lib
                         case TransformedTexture tt:
                         {
                             await using var s = await sf.GetStream();
-                            using var img = await DDSImage.FromStream(s, vf.Name);
-                            
-                            img.ResizeRecompressAndSave(tt.ImageState, directive.Directive.To.RelativeTo(OutputFolder));
+                            await ImageState.ConvertImage(s, tt.ImageState, tt.To.Extension, directive.Directive.To.RelativeTo(OutputFolder));
 
                         }
                             break;

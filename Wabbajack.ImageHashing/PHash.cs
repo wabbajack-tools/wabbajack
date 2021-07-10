@@ -83,42 +83,6 @@ namespace Wabbajack.ImageHashing
             h <<= 8;
             return (int)h;
         }
-
-        public static async Task<PHash> FromStream(Stream stream, Extension ext, bool takeStreamOwnership = true)
-        {
-            try
-            {
-                var ms = new MemoryStream();
-                await stream.CopyToAsync(ms);
-                if (takeStreamOwnership) await stream.DisposeAsync();
-
-                DDSImage img;
-                if (ext == new Extension(".dds"))
-                    img = DDSImage.FromDDSMemory(ms.GetBuffer());
-                else if (ext == new Extension(".tga"))
-                {
-                    img = DDSImage.FromTGAMemory(ms.GetBuffer());
-                }
-                else
-                {
-                    throw new NotImplementedException("Only DDS and TGA files supported by PHash");
-                }
-
-                return img.PerceptionHash();
-            }
-            catch (Exception ex)
-            {
-                Utils.Log($"Error getting PHASH {ex}");
-                return default;
-            }
-        }
-
-        public static async Task<PHash> FromFile(AbsolutePath path)
-        {
-            await using var s = await path.OpenRead();
-            return await FromStream(s, path.Extension);
-
-        }
     }
     
             

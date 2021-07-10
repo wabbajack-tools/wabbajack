@@ -1,9 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using DirectXTexNet;
+using Shipwreck.Phash;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
+using Shipwreck.Phash.Bitmaps;
 
 namespace Wabbajack.ImageHashing
 {
@@ -36,36 +42,68 @@ namespace Wabbajack.ImageHashing
 
         public static async Task<ImageState?> FromImageStream(Stream stream, Extension ext, bool takeStreamOwnership = true)
         {
-            var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            if (takeStreamOwnership) await stream.DisposeAsync();
+            await using var tf = new TempFile(ext);
+            await tf.Path.WriteAllAsync(stream, takeStreamOwnership);
+            return await GetState(tf.Path);
+        }
 
-            DDSImage? img = default;
-            try
-            {
-                if (ext == new Extension(".dds"))
-                    img = DDSImage.FromDDSMemory(ms.GetBuffer());
-                else if (ext == new Extension(".tga"))
-                {
-                    img = DDSImage.FromTGAMemory(ms.GetBuffer());
-                }
-                else
-                {
-                    throw new NotImplementedException("Only DDS and TGA files supported by PHash");
-                }
+        private static readonly Extension PNGExtension = new(".png");
+        public static async Task<PHash> GetPHash(AbsolutePath path)
+        {
+            await using var tmp = await TempFolder.Create();
+            await ConvertImage(path, tmp.Dir, 512, 512, DXGI_FORMAT.R8G8B8A8_UNORM, PNGExtension);
+            
+            using var img = (Bitmap)Image.FromFile(path.FileName.RelativeTo(tmp.Dir).ReplaceExtension(PNGExtension).ToString());
+            return PHash.FromDigest(ImagePhash.ComputeDigest(img.ToLuminanceImage()));
+        }
 
-                return img.ImageState();
+        public static async Task ConvertImage(AbsolutePath from, AbsolutePath toFolder, int w, int h, DXGI_FORMAT format, Extension fileFormat)
+        {
+            // User isn't renaming the file, so we don't have to create a temporary folder
+            var ph = new ProcessHelper
+            {
+                Path = @"Tools\texconv.exe".RelativeTo(AbsolutePath.EntryPoint),
+                Arguments = new object[] {from, "-ft", fileFormat.ToString()[1..], "-f", format, "-o", toFolder, "-w", w, "-h", h, "-if", "CUBIC", "-singleproc"},
+                ThrowOnNonZeroExitCode = true
+            }; 
+            await ph.Start();
 
-            }
-            catch (Exception ex)
+        }
+
+        public static async Task ConvertImage(Stream from, ImageState state, Extension ext, AbsolutePath to)
+        {
+            await using var tmpFile = await TempFolder.Create();
+            var inFile = to.FileName.RelativeTo(tmpFile.Dir).WithExtension(ext);
+            await inFile.WriteAllAsync(from);
+            await ConvertImage(inFile, to.Parent, state.Width, state.Height, state.Format, ext);
+        }
+
+        public static async Task<ImageState> GetState(AbsolutePath path)
+        {
+            var ph = new ProcessHelper
             {
-                Utils.Log($"Unable to read image state (this is fine)");
-                return null;
-            }
-            finally
+                Path = @"Tools\texdiag.exe".RelativeTo(AbsolutePath.EntryPoint), Arguments = new object[] {"info", path, "-nologo"},
+                ThrowOnNonZeroExitCode = true
+            };
+            var lines = new List<string>();
+            using var _ = ph.Output.Where(p => p.Type == ProcessHelper.StreamType.Output)
+                .Select(p => p.Line)
+                .Where(p => p.Contains(" = "))
+                .Subscribe(l => lines.Add(l));
+            await ph.Start();
+            var data = lines.Select(l =>
             {
-                img?.Dispose();
-            }
+                var split = l.Split(" = ");
+                return (split[0].Trim(), split[1].Trim());
+            }).ToDictionary(p => p.Item1, p => p.Item2);
+            
+            return new ImageState
+            {
+                Width = int.Parse(data["width"]),
+                Height = int.Parse(data["height"]),
+                Format = Enum.Parse<DXGI_FORMAT>(data["format"]),
+                PerceptualHash = await GetPHash(path)
+            };
         }
     }
 }
