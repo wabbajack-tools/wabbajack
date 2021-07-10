@@ -126,7 +126,7 @@ namespace Wabbajack.Server.Services
                         new DiscordMessage
                         {
                             Content =
-                                $"Error downloading modlist {list.Links.MachineURL} - {list.DownloadMetadata.Hash}"
+                                $"Error downloading modlist {list.Links.MachineURL} - {list.DownloadMetadata.Hash} - {ex.Message}"
                         });
                 }
                 finally

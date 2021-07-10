@@ -260,6 +260,8 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver)
             {
+                if (IsAttachment) return default;
+                
                 var files = await GetFilesInGroup();
                 var nl = new Levenshtein();
 
@@ -273,6 +275,8 @@ namespace Wabbajack.Lib.Downloaders
                         var tmpHash = await tmp.Path.FileHashAsync();
                         if (tmpHash == null) return default;
                         newFile.Hash = tmpHash.Value;
+                        var state = ((TState)newFile.State);
+                        await state.LoadMetaData();
                         return (newFile, tmp);
                     }
 

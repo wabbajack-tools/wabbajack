@@ -233,116 +233,131 @@ namespace Wabbajack.Server.Services
         private AsyncLock _healLock = new AsyncLock();
         private async Task<(Archive, ArchiveStatus)> TryToHeal(ValidationData data, Archive archive, ModlistMetadata modList)
         {
-            using var _ = await _healLock.WaitAsync();  
-            var srcDownload = await _sql.GetArchiveDownload(archive.State.PrimaryKeyString, archive.Hash, archive.Size);
-            if (srcDownload == null || srcDownload.IsFailed == true)
+            try
             {
-                _logger.Log(LogLevel.Information, $"Cannot heal {archive.State.PrimaryKeyString} Size: {archive.Size} Hash: {(long)archive.Hash} because it hasn't been previously successfully downloaded");
-                return (archive, ArchiveStatus.InValid);
-            }
-
-         
-            var patches = await _sql.PatchesForSource(archive.Hash);
-            foreach (var patch in patches)
-            {
-                if (patch.Finished is null)
-                    return (archive, ArchiveStatus.Updating);
-
-                if (patch.IsFailed == true)
-                    return (archive, ArchiveStatus.InValid);
-                
-                var (_, status) = await ValidateArchive(data, patch.Dest.Archive);
-                if (status == ArchiveStatus.Valid)
-                    return (archive, ArchiveStatus.Updated);
-            }
-
-
-            var upgradeTime = DateTime.UtcNow;
-            _logger.LogInformation($"Validator Finding Upgrade for {archive.Hash} {archive.State.PrimaryKeyString}");
-
-            Func<Archive, Task<AbsolutePath>> resolver = async findIt =>
-            {
-                _logger.LogInformation($"Quick find for {findIt.State.PrimaryKeyString}");
-                var foundArchive = await _sql.GetArchiveDownload(findIt.State.PrimaryKeyString);
-                if (foundArchive == null)
+                using var _ = await _healLock.WaitAsync();
+                var srcDownload =
+                    await _sql.GetArchiveDownload(archive.State.PrimaryKeyString, archive.Hash, archive.Size);
+                if (srcDownload == null || srcDownload.IsFailed == true)
                 {
-                    _logger.LogInformation($"No Quick find for {findIt.State.PrimaryKeyString}");
-                    return default;
-                }
-
-                return _archives.TryGetPath(foundArchive.Archive.Hash, out var path) ? path : default;
-            };
-
-            if (archive.State is NexusDownloader.State)
-            {
-                DownloadDispatcher.GetInstance<NexusDownloader>().Client = await _nexus.GetClient();
-            }
-
-            var upgrade = await DownloadDispatcher.FindUpgrade(archive, resolver);
-            
-            
-            if (upgrade == default)
-            {
-                _logger.Log(LogLevel.Information, $"Cannot heal {archive.State.PrimaryKeyString} because an alternative wasn't found");
-                return (archive, ArchiveStatus.InValid);
-            }
-            
-            _logger.LogInformation($"Upgrade {upgrade.Archive.State.PrimaryKeyString} found for {archive.State.PrimaryKeyString}");
-
-
-            {
-            }
-
-            var found = await _sql.GetArchiveDownload(upgrade.Archive.State.PrimaryKeyString, upgrade.Archive.Hash,
-                upgrade.Archive.Size);
-            Guid id;
-            if (found == null)
-            {
-                 if (upgrade.NewFile.Path.Exists)
-                    await _archives.Ingest(upgrade.NewFile.Path);
-                 id = await _sql.AddKnownDownload(upgrade.Archive, upgradeTime);
-            }
-            else
-            {
-                id = found.Id;
-            }
-
-            var destDownload = await _sql.GetArchiveDownload(id);
-
-            if (destDownload.Archive.Hash == srcDownload.Archive.Hash && destDownload.Archive.State.PrimaryKeyString == srcDownload.Archive.State.PrimaryKeyString)
-            {
-                _logger.Log(LogLevel.Information, $"Can't heal because src and dest match");
-                return (archive, ArchiveStatus.InValid);
-            }
-
-            if (destDownload.Archive.Hash == default)
-            {
-                _logger.Log(LogLevel.Information, "Can't heal because we got back a default hash for the downloaded file");
-                return (archive, ArchiveStatus.InValid);
-            }
-
-
-            var existing = await _sql.FindPatch(srcDownload.Id, destDownload.Id);
-            if (existing == null)
-            {
-                if (await _sql.AddPatch(new Patch {Src = srcDownload, Dest = destDownload}))
-                {
-
                     _logger.Log(LogLevel.Information,
-                        $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash}");
-                    await _discord.Send(Channel.Ham,
-                        new DiscordMessage
-                        {
-                            Content =
-                                $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash} to auto-heal `{modList.Links.MachineURL}`"
-                        });
+                        $"Cannot heal {archive.State.PrimaryKeyString} Size: {archive.Size} Hash: {(long)archive.Hash} because it hasn't been previously successfully downloaded");
+                    return (archive, ArchiveStatus.InValid);
                 }
+
+
+                var patches = await _sql.PatchesForSource(archive.Hash);
+                foreach (var patch in patches)
+                {
+                    if (patch.Finished is null)
+                        return (archive, ArchiveStatus.Updating);
+
+                    if (patch.IsFailed == true)
+                        return (archive, ArchiveStatus.InValid);
+
+                    var (_, status) = await ValidateArchive(data, patch.Dest.Archive);
+                    if (status == ArchiveStatus.Valid)
+                        return (archive, ArchiveStatus.Updated);
+                }
+
+
+                var upgradeTime = DateTime.UtcNow;
+                _logger.LogInformation(
+                    $"Validator Finding Upgrade for {archive.Hash} {archive.State.PrimaryKeyString}");
+
+                Func<Archive, Task<AbsolutePath>> resolver = async findIt =>
+                {
+                    _logger.LogInformation($"Quick find for {findIt.State.PrimaryKeyString}");
+                    var foundArchive = await _sql.GetArchiveDownload(findIt.State.PrimaryKeyString);
+                    if (foundArchive == null)
+                    {
+                        _logger.LogInformation($"No Quick find for {findIt.State.PrimaryKeyString}");
+                        return default;
+                    }
+
+                    return _archives.TryGetPath(foundArchive.Archive.Hash, out var path) ? path : default;
+                };
+
+                if (archive.State is NexusDownloader.State)
+                {
+                    DownloadDispatcher.GetInstance<NexusDownloader>().Client = await _nexus.GetClient();
+                }
+
+                var upgrade = await DownloadDispatcher.FindUpgrade(archive, resolver);
+
+
+                if (upgrade == default)
+                {
+                    _logger.Log(LogLevel.Information,
+                        $"Cannot heal {archive.State.PrimaryKeyString} because an alternative wasn't found");
+                    return (archive, ArchiveStatus.InValid);
+                }
+
+                _logger.LogInformation(
+                    $"Upgrade {upgrade.Archive.State.PrimaryKeyString} found for {archive.State.PrimaryKeyString}");
+
+
+                {
+                }
+
+                var found = await _sql.GetArchiveDownload(upgrade.Archive.State.PrimaryKeyString, upgrade.Archive.Hash,
+                    upgrade.Archive.Size);
+                Guid id;
+                if (found == null)
+                {
+                    if (upgrade.NewFile.Path.Exists)
+                        await _archives.Ingest(upgrade.NewFile.Path);
+                    id = await _sql.AddKnownDownload(upgrade.Archive, upgradeTime);
+                }
+                else
+                {
+                    id = found.Id;
+                }
+
+                var destDownload = await _sql.GetArchiveDownload(id);
+
+                if (destDownload.Archive.Hash == srcDownload.Archive.Hash &&
+                    destDownload.Archive.State.PrimaryKeyString == srcDownload.Archive.State.PrimaryKeyString)
+                {
+                    _logger.Log(LogLevel.Information, $"Can't heal because src and dest match");
+                    return (archive, ArchiveStatus.InValid);
+                }
+
+                if (destDownload.Archive.Hash == default)
+                {
+                    _logger.Log(LogLevel.Information,
+                        "Can't heal because we got back a default hash for the downloaded file");
+                    return (archive, ArchiveStatus.InValid);
+                }
+
+
+                var existing = await _sql.FindPatch(srcDownload.Id, destDownload.Id);
+                if (existing == null)
+                {
+                    if (await _sql.AddPatch(new Patch {Src = srcDownload, Dest = destDownload}))
+                    {
+
+                        _logger.Log(LogLevel.Information,
+                            $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash}");
+                        await _discord.Send(Channel.Ham,
+                            new DiscordMessage
+                            {
+                                Content =
+                                    $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash} to auto-heal `{modList.Links.MachineURL}`"
+                            });
+                    }
+                }
+
+                await upgrade.NewFile.DisposeAsync();
+
+                _logger.LogInformation($"Patch in progress {archive.Hash} {archive.State.PrimaryKeyString}");
+                return (archive, ArchiveStatus.Updating);
             }
-
-            await upgrade.NewFile.DisposeAsync();
-
-            _logger.LogInformation($"Patch in progress {archive.Hash} {archive.State.PrimaryKeyString}");
-            return (archive, ArchiveStatus.Updating);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "During healing");
+                return (archive, ArchiveStatus.InValid);
+            }
         }
 
         private async Task<(Archive archive, ArchiveStatus)> ValidateArchive(ValidationData data, Archive archive)
