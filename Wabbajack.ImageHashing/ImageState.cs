@@ -64,7 +64,8 @@ namespace Wabbajack.ImageHashing
             {
                 Path = @"Tools\texconv.exe".RelativeTo(AbsolutePath.EntryPoint),
                 Arguments = new object[] {from, "-ft", fileFormat.ToString()[1..], "-f", format, "-o", toFolder, "-w", w, "-h", h, "-if", "CUBIC", "-singleproc"},
-                ThrowOnNonZeroExitCode = true
+                ThrowOnNonZeroExitCode = true,
+                LogError = true
             }; 
             await ph.Start();
 
@@ -83,7 +84,8 @@ namespace Wabbajack.ImageHashing
             var ph = new ProcessHelper
             {
                 Path = @"Tools\texdiag.exe".RelativeTo(AbsolutePath.EntryPoint), Arguments = new object[] {"info", path, "-nologo"},
-                ThrowOnNonZeroExitCode = true
+                ThrowOnNonZeroExitCode = true,
+                LogError = true
             };
             var lines = new List<string>();
             using var _ = ph.Output.Where(p => p.Type == ProcessHelper.StreamType.Output)
