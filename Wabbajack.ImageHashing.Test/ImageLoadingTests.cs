@@ -40,7 +40,7 @@ namespace Wabbajack.ImageHashing.Test
             Assert.Equal(64, state2.Height);
             Assert.Equal(DXGI_FORMAT.BC7_UNORM_SRGB, state2.Format);
             
-            Assert.Equal(0.8811911940574646, hash1.Similarity(hash2));
+            Assert.True(hash1.Similarity(hash2) >= 0.8811f);
         }
         
                 
@@ -51,7 +51,7 @@ namespace Wabbajack.ImageHashing.Test
             
             var hash2 = await ImageState.GetPHash(AbsolutePath.EntryPoint.Combine("Resources", "test-dxt5-small-bc7-vflip.dds"));
             
-            Assert.Equal(0.19484494626522064, hash1.Similarity(hash2));
+            Assert.True(hash1.Similarity(hash2) >= 0.1948f);
         }
         
         [Fact]
@@ -61,7 +61,7 @@ namespace Wabbajack.ImageHashing.Test
 
             var hash2 = await ImageState.GetPHash(AbsolutePath.EntryPoint.Combine("Resources", "test-dxt5-recompressed.dds"));
 
-            Assert.Equal(0.9298737645149231, hash1.Similarity(hash2));
+            Assert.True(hash1.Similarity(hash2) >= 0.92f);
         }
     }
 }
