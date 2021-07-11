@@ -6,32 +6,26 @@ using GameFinder;
 using GameFinder.StoreHandlers.BethNet;
 using GameFinder.StoreHandlers.EGS;
 using GameFinder.StoreHandlers.GOG;
+using GameFinder.StoreHandlers.Origin;
 using GameFinder.StoreHandlers.Steam;
+using Microsoft.Extensions.Logging;
 
 namespace Wabbajack.Common.StoreHandlers
 {
     public class StoreHandler
     {
+        private static readonly StoreHandlerLogger Logger = new();
+        
         private static readonly Lazy<StoreHandler> _instance = new(() => new StoreHandler(), isThreadSafe: true);
         public static StoreHandler Instance => _instance.Value;
 
-        private static readonly Lazy<SteamHandler> _steamHandler = new(() => new SteamHandler());
-        public SteamHandler SteamHandler = _steamHandler.Value;
+        private static readonly Lazy<SteamHandler> SteamHandler = new(() => new SteamHandler(Logger));
+        private static readonly Lazy<GOGHandler> GogHandler = new(() => new GOGHandler(Logger));
+        private static readonly Lazy<BethNetHandler> BethNetHandler = new(() => new BethNetHandler(Logger));
+        private static readonly Lazy<EGSHandler> EpicGameStoreHandler = new(() => new EGSHandler(Logger));
+        private static readonly Lazy<OriginHandler> OriginHandler = new(() => new OriginHandler(true, true, Logger));
 
-        private static readonly Lazy<GOGHandler> _gogHandler = new(() => new GOGHandler());
-        public GOGHandler GOGHandler = _gogHandler.Value;
-
-        private static readonly Lazy<BethNetHandler> _bethNetHandler = new(() => new BethNetHandler());
-        public BethNetHandler BethNetHandler = _bethNetHandler.Value;
-        
-        private static readonly Lazy<EGSHandler> _epicGameStoreHandler = new(() => new EGSHandler());
-        public EGSHandler EpicGameStoreHandler = _epicGameStoreHandler.Value;
-        
-        private static readonly Lazy<OriginHandler> _originHandler = new(() => new OriginHandler());
-        public OriginHandler OriginHandler = _originHandler.Value;
-
-        private List<AStoreGame> _storeGames;
-
+        private readonly List<AStoreGame> _storeGames;
         public Dictionary<Game, AStoreGame> Games = new();
         
         private void FindGames<THandler, TGame>(Lazy<THandler> lazyHandler, string name) 
@@ -42,11 +36,7 @@ namespace Wabbajack.Common.StoreHandlers
             {
                 var handler = lazyHandler.Value;
                 var res = handler.FindAllGames();
-                
-                if (res.HasErrors)
-                {
-                    Utils.Error($"Errors while finding Games from {name}\n{res.ErrorsToString()}");
-                }
+                if (!res) return;
                 
                 foreach (var game in handler.Games)
                 {
@@ -64,20 +54,11 @@ namespace Wabbajack.Common.StoreHandlers
         {
             _storeGames = new List<AStoreGame>();
             
-            FindGames<SteamHandler, SteamGame>(_steamHandler, "SteamHandler");
-            FindGames<GOGHandler, GOGGame>(_gogHandler, "GOGHandler");
-            FindGames<BethNetHandler, BethNetGame>(_bethNetHandler, "BethNetHandler");
-            FindGames<EGSHandler, EGSGame>(_epicGameStoreHandler, "EGSHandler");
-            
-            if (OriginHandler.Init())
-            {
-                if (!OriginHandler.LoadAllGames())
-                    Utils.Error(new StoreException("Could not load all Games from the OriginHandler, check previous error messages!"));
-            }
-            else
-            {
-                Utils.Error(new StoreException("Could not Init the OriginHandler, check previous error messages!"));
-            }
+            FindGames<SteamHandler, SteamGame>(SteamHandler, "SteamHandler");
+            FindGames<GOGHandler, GOGGame>(GogHandler, "GOGHandler");
+            FindGames<BethNetHandler, BethNetGame>(BethNetHandler, "BethNetHandler");
+            FindGames<EGSHandler, EGSGame>(EpicGameStoreHandler, "EGSHandler");
+            FindGames<OriginHandler, OriginGame>(OriginHandler, "OriginHandler");
 
             foreach (var storeGame in _storeGames)
             {
@@ -87,6 +68,7 @@ namespace Wabbajack.Common.StoreHandlers
                     GOGGame gogGame => GameRegistry.Games.Where(y => y.Value.GOGIDs?.Contains(gogGame.GameID) ?? false),
                     BethNetGame bethNetGame => GameRegistry.Games.Where(y => y.Value.BethNetID.Equals((int)bethNetGame.ID)),
                     EGSGame egsGame => GameRegistry.Games.Where(y => y.Value.EpicGameStoreIDs.Contains(egsGame.CatalogItemId ?? string.Empty)),
+                    OriginGame originGame => GameRegistry.Games.Where(y => y.Value.OriginIDs.Contains(originGame.Id ?? string.Empty)),
                     _ => null
                 };
 
@@ -106,7 +88,7 @@ namespace Wabbajack.Common.StoreHandlers
         {
             if (Games.TryGetValue(game, out var storeGame))
                 return (AbsolutePath) storeGame.Path;
-            return OriginHandler.Games.FirstOrDefault(x => x.Game == game)?.Path;
+            return null;
         }
 
         public static void Warmup()
@@ -114,12 +96,19 @@ namespace Wabbajack.Common.StoreHandlers
             Task.Run(() => _instance.Value).FireAndForget();
         }
     }
-    
-    public class StoreException : Exception
-    {
-        public StoreException(string msg) : base(msg)
-        {
 
+    internal class StoreHandlerLogger : ILogger
+    {
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            Utils.Log(formatter(state, exception));
+        }
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            throw new NotImplementedException();
         }
     }
 }
