@@ -12,8 +12,8 @@ namespace Wabbajack.ImageHashing.Test
             var hash1 = await ImageState.GetPHash(AbsolutePath.EntryPoint.Combine("Resources", "test-dxt5.dds"));
             var state1 = await ImageState.GetState(AbsolutePath.EntryPoint.Combine("Resources", "test-dxt5.dds"));
             
-            Assert.Equal(512, state1.Width);
-            Assert.Equal(512, state1.Height);
+            Assert.Equal(512, state1!.Width);
+            Assert.Equal(512, state1!.Height);
             Assert.Equal(DXGI_FORMAT.BC3_UNORM, state1.Format);
 
             var hash2 = await ImageState.GetPHash(AbsolutePath.EntryPoint.Combine("Resources", "test-dxt5.dds"));
@@ -36,8 +36,8 @@ namespace Wabbajack.ImageHashing.Test
             
             var state2 = await ImageState.GetState(AbsolutePath.EntryPoint.Combine("Resources", "test-dxt5-small-bc7.dds"));
             
-            Assert.Equal(64, state2.Width);
-            Assert.Equal(64, state2.Height);
+            Assert.Equal(64, state2!.Width);
+            Assert.Equal(64, state2!.Height);
             Assert.Equal(DXGI_FORMAT.BC7_UNORM_SRGB, state2.Format);
             
             Assert.True(hash1.Similarity(hash2) >= 0.8811f);
