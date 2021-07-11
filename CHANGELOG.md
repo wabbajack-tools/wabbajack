@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version - 2.5.1.2 - 7/11/2021
+* Fix issue with LL file upgrading
+* Update GameFinder library to latest version
+* Switch texture recompression to use TextConv for better compatability
+
 #### Version - 2.5.1.1 - 7/9/2021
 * Fix a bug with INI path remapping, was using case sensitive replace
 

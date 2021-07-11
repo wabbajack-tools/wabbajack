@@ -79,33 +79,42 @@ namespace Wabbajack.ImageHashing
             await ConvertImage(inFile, to.Parent, state.Width, state.Height, state.Format, ext);
         }
 
-        public static async Task<ImageState> GetState(AbsolutePath path)
+        public static async Task<ImageState?> GetState(AbsolutePath path)
         {
             var ph = new ProcessHelper
-            {
-                Path = @"Tools\texdiag.exe".RelativeTo(AbsolutePath.EntryPoint), Arguments = new object[] {"info", path, "-nologo"},
-                ThrowOnNonZeroExitCode = true,
-                LogError = true
-            };
-            var lines = new List<string>();
-            using var _ = ph.Output.Where(p => p.Type == ProcessHelper.StreamType.Output)
-                .Select(p => p.Line)
-                .Where(p => p.Contains(" = "))
-                .Subscribe(l => lines.Add(l));
-            await ph.Start();
-            var data = lines.Select(l =>
-            {
-                var split = l.Split(" = ");
-                return (split[0].Trim(), split[1].Trim());
-            }).ToDictionary(p => p.Item1, p => p.Item2);
-            
-            return new ImageState
-            {
-                Width = int.Parse(data["width"]),
-                Height = int.Parse(data["height"]),
-                Format = Enum.Parse<DXGI_FORMAT>(data["format"]),
-                PerceptualHash = await GetPHash(path)
-            };
-        }
+                {
+                    Path = @"Tools\texdiag.exe".RelativeTo(AbsolutePath.EntryPoint),
+                    Arguments = new object[] {"info", path, "-nologo"},
+                    ThrowOnNonZeroExitCode = true,
+                    LogError = true
+                };
+                var lines = new List<string>();
+                using var _ = ph.Output.Where(p => p.Type == ProcessHelper.StreamType.Output)
+                    .Select(p => p.Line)
+                    .Where(p => p.Contains(" = "))
+                    .Subscribe(l => lines.Add(l));
+                try
+                {
+                    await ph.Start();
+                }
+                catch (Exception ex)
+                {
+                    return null;
+                }
+
+                var data = lines.Select(l =>
+                {
+                    var split = l.Split(" = ");
+                    return (split[0].Trim(), split[1].Trim());
+                }).ToDictionary(p => p.Item1, p => p.Item2);
+
+                return new ImageState
+                {
+                    Width = int.Parse(data["width"]),
+                    Height = int.Parse(data["height"]),
+                    Format = Enum.Parse<DXGI_FORMAT>(data["format"]),
+                    PerceptualHash = await GetPHash(path)
+                };
+            }
     }
 }
