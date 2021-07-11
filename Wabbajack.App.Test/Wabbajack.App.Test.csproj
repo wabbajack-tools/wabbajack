@@ -4,6 +4,9 @@
         <TargetFramework>net5.0-windows</TargetFramework>
         <Platforms>x64</Platforms>
         <IsPackable>false</IsPackable>
+
+        <!-- temp fix for NETSDK1151 https://github.com/dotnet/sdk/issues/17579-->
+        <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
     </PropertyGroup>
 
     <ItemGroup>
