@@ -8,13 +8,10 @@ using Wabbajack.Common;
 using Wabbajack.ImageHashing;
 using Wabbajack.Lib;
 using Wabbajack.Lib.CompilationSteps;
-using Wabbajack.Lib.CompilationSteps.CompilationErrors;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
-using DXGI_FORMAT = DirectXTexNet.DXGI_FORMAT;
-using File = Alphaleonis.Win32.Filesystem.File;
-using Path = Alphaleonis.Win32.Filesystem.Path;
+using DXGI_FORMAT = Wabbajack.ImageHashing.DXGI_FORMAT;
 
 namespace Wabbajack.Test
 {
@@ -388,17 +385,17 @@ namespace Wabbajack.Test
             }
 
             {
-                using var originalDDS = DDSImage.FromFile(nativeFile);
-                originalDDS.ResizeRecompressAndSave(originalDDS.Width, originalDDS.Height, DXGI_FORMAT.BC7_UNORM, recompressedFile);
-                originalDDS.ResizeRecompressAndSave(128, 128, DXGI_FORMAT.BC7_UNORM, resizedFile);
+                var originalDDS = await ImageState.GetState(nativeFile);
+                await ImageState.ConvertImage(nativeFile, recompressedFile.Parent, originalDDS.Width, originalDDS.Height, DXGI_FORMAT.BC7_UNORM, recompressedFile.Extension);
+                await ImageState.ConvertImage(nativeFile, resizedFile.Parent, 128, 128, DXGI_FORMAT.BC7_UNORM, resizedFile.Extension);
             }
 
             await utils.Configure();
             
             await CompileAndInstall(profile, true);
             await utils.VerifyInstalledFile(mod, @"native\whitestagbody.dds");
-            Assert.True(0.99f <=(await PHash.FromFile(recompressedFile)).Similarity(await PHash.FromFile(utils.InstalledPath(mod, @"recompressed\whitestagbody.dds"))));
-            Assert.True(0.98f <=(await PHash.FromFile(resizedFile)).Similarity(await PHash.FromFile(utils.InstalledPath(mod, @"resized\whitestagbody.dds"))));
+            Assert.True(0.99f <=(await ImageState.GetState(recompressedFile)).PerceptualHash.Similarity(await ImageState.GetPHash(utils.InstalledPath(mod, @"recompressed\whitestagbody.dds"))));
+            Assert.True(0.98f <=(await ImageState.GetState(resizedFile)).PerceptualHash.Similarity(await ImageState.GetPHash(utils.InstalledPath(mod, @"resized\whitestagbody.dds"))));
         }
         
         [Fact]
