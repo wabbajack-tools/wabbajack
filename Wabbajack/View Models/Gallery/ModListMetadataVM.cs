@@ -65,6 +65,9 @@ namespace Wabbajack
 
         [Reactive]
         public string InstallSizeText { get; private set; }
+        
+        [Reactive]
+        public string VersionText { get; private set; }
 
         [Reactive]
         public IErrorResponse Error { get; private set; }
@@ -78,7 +81,7 @@ namespace Wabbajack
         private Subject<bool> IsLoadingIdle;
 
         public ModListMetadataVM(ModListGalleryVM parent, ModlistMetadata metadata)
-        {            
+        {
             _parent = parent;
             Metadata = metadata;
             Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.Links.MachineURL + (string)Consts.ModListExtension);
@@ -92,6 +95,7 @@ namespace Wabbajack
 
             DownloadSizeText = "Download size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
             InstallSizeText = "Installation size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
+            VersionText = "Modlist version : " + Metadata.Version;
             IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;
             //https://www.wabbajack.org/#/modlists/info?machineURL=eldersouls
             OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite(new Uri($"https://www.wabbajack.org/#/modlists/info?machineURL={Metadata.Links.MachineURL}")));
@@ -117,7 +121,7 @@ namespace Wabbajack
             }, IsLoadingIdle.StartWith(true));
             ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, Unit>(
                 canExecute: this.WhenAny(x => x.IsBroken).Select(x => !x),
-                execute: (unit) => 
+                execute: (unit) =>
                 Observable.Return(unit)
                 .WithLatestFrom(
                     this.WhenAny(x => x.Exists),
