@@ -80,9 +80,10 @@ namespace Wabbajack.Common
             };
             p.ErrorDataReceived += ErrorEventHandler;
 
+
+            p.Start();
             p.BeginErrorReadLine();
             p.BeginOutputReadLine();
-            p.Start();
 
             ChildProcessTracker.AddProcess(p);
 
@@ -95,8 +96,10 @@ namespace Wabbajack.Common
                 // ignored
             }
 
-
+            
             var result =  await finished.Task;
+            // Do this to make sure everything flushes
+            p.WaitForExit();
             p.CancelErrorRead();
             p.CancelOutputRead();
             p.OutputDataReceived -= OutputDataReceived;
