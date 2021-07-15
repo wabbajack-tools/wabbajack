@@ -49,6 +49,9 @@ namespace Wabbajack.Lib.ModListRegistry
 
         [JsonProperty("download_metadata")]
         public DownloadMetadata? DownloadMetadata { get; set; }
+        
+        [JsonProperty("version")]
+        public Version? Version { get; set; }
 
         [JsonIgnore]
         public ModListSummary ValidationSummary { get; set; } = new ModListSummary();
