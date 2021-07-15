@@ -54,7 +54,6 @@ namespace Wabbajack.Common
 
         public async ValueTask DisposeAsync()
         {
-            Utils.Log($"Deleting {Dir}");
             if (DeleteAfter && Dir.Exists)
             {
                 await Utils.DeleteDirectory(Dir);

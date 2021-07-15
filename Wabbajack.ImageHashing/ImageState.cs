@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -88,11 +89,11 @@ namespace Wabbajack.ImageHashing
                     ThrowOnNonZeroExitCode = true,
                     LogError = true
                 };
-                var lines = new List<string>();
+                var lines = new ConcurrentStack<string>();
                 using var _ = ph.Output.Where(p => p.Type == ProcessHelper.StreamType.Output)
                     .Select(p => p.Line)
                     .Where(p => p.Contains(" = "))
-                    .Subscribe(l => lines.Add(l));
+                    .Subscribe(l => lines.Push(l));
                 try
                 {
                     await ph.Start();
@@ -115,6 +116,6 @@ namespace Wabbajack.ImageHashing
                     Format = Enum.Parse<DXGI_FORMAT>(data["format"]),
                     PerceptualHash = await GetPHash(path)
                 };
-            }
+        }
     }
 }

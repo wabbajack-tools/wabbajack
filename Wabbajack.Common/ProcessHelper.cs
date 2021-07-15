@@ -80,9 +80,10 @@ namespace Wabbajack.Common
             };
             p.ErrorDataReceived += ErrorEventHandler;
 
-            p.Start();
             p.BeginErrorReadLine();
             p.BeginOutputReadLine();
+            p.Start();
+
             ChildProcessTracker.AddProcess(p);
 
             try

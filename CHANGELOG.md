@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.5.1.3 - 7/15/2021
+* Fix textconv issue caused by a bug in ProcessHelper 
+* Add version info to gallery view (thanks JanuarySnow)
+
 #### Version - 2.5.1.2 - 7/11/2021
 * Fix issue with LL file upgrading
 * Update GameFinder library to latest version
