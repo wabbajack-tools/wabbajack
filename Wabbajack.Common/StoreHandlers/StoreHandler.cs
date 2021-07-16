@@ -40,7 +40,7 @@ namespace Wabbajack.Common.StoreHandlers
                 
                 foreach (var game in handler.Games)
                 {
-                    Utils.Log($"{handler.StoreType}: Found game {game}");
+                    Utils.Log($"{handler.StoreType}: Found game {game} at \"{game.Path}\"");
                     _storeGames.Add(game);
                 }
             }
@@ -86,9 +86,10 @@ namespace Wabbajack.Common.StoreHandlers
 
         public AbsolutePath? TryGetGamePath(Game game)
         {
-            if (Games.TryGetValue(game, out var storeGame))
-                return (AbsolutePath) storeGame.Path;
-            return null;
+            if (!Games.TryGetValue(game, out var storeGame))
+                return null;
+            
+            return (AbsolutePath)storeGame.Path;
         }
 
         public static void Warmup()
