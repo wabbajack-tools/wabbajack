@@ -727,6 +727,7 @@ namespace Wabbajack.Test
             var settingsPath = utils.SourcePath.Combine("native_compiler_settings.json");
             await settings.ToJsonAsync(utils.SourcePath.Combine("native_compiler_settings.json"), true);
 
+            await utils.Configure();
             await CompileAndInstall(settingsPath, true);
             
             Assert.Equal(await some_dds.FileHashAsync(), await utils.InstallPath.Combine("some_file.txx").FileHashAsync());
