@@ -700,7 +700,7 @@ namespace Wabbajack.Test
             var gameFolder = Game.SkyrimSpecialEdition.MetaData().GameLocation();
             await gameFolder.Combine("SkyrimSE.exe").CopyToAsync(utils.SourcePath.Combine("SkyrimSE.exe"));
 
-            var some_dds = utils.SourcePath.Combine("some_file.dds");
+            var some_dds = utils.SourcePath.Combine("some_file.txx");
             await some_dds.WriteAllBytesAsync(utils.RandomData());
 
             var blerg = utils.SourcePath.Combine("file1.blerg");
@@ -729,7 +729,7 @@ namespace Wabbajack.Test
 
             await CompileAndInstall(settingsPath, true);
             
-            Assert.Equal(await some_dds.FileHashAsync(), await utils.InstallPath.Combine("some_file.dds").FileHashAsync());
+            Assert.Equal(await some_dds.FileHashAsync(), await utils.InstallPath.Combine("some_file.txx").FileHashAsync());
             Assert.Equal(await gameFolder.Combine("SkyrimSE.exe").FileHashAsync(), 
                 await utils.InstallPath.Combine("SkyrimSE.exe").FileHashAsync());
         }
