@@ -1,7 +1,11 @@
 ### Changelog
 
+#### Version - 2.5.1.4 - 7/17/2021
+* Fix some broken VFS caching (that's existed for awhile)
+* Enable perceptual hashing for files inside BSA file
+
 #### Version - 2.5.1.3 - 7/15/2021
-* Fix textconv issue caused by a bug in ProcessHelper 
+* Fix textconv issue caused by a bug in ProcessHelper
 * Add version info to gallery view (thanks JanuarySnow)
 
 #### Version - 2.5.1.2 - 7/11/2021
