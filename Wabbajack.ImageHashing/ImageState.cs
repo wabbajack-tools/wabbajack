@@ -41,7 +41,7 @@ namespace Wabbajack.ImageHashing
             PerceptualHash.Write(bw);
         }
 
-        public static async Task<ImageState?> FromImageStream(Stream stream, Extension ext, bool takeStreamOwnership = true)
+        public static async Task<ImageState> FromImageStream(Stream stream, Extension ext, bool takeStreamOwnership = true)
         {
             await using var tf = new TempFile(ext);
             await tf.Path.WriteAllAsync(stream, takeStreamOwnership);
@@ -80,7 +80,7 @@ namespace Wabbajack.ImageHashing
             await ConvertImage(inFile, to.Parent, state.Width, state.Height, state.Format, ext);
         }
 
-        public static async Task<ImageState?> GetState(AbsolutePath path)
+        public static async Task<ImageState> GetState(AbsolutePath path)
         {
             var ph = new ProcessHelper
                 {
@@ -94,14 +94,7 @@ namespace Wabbajack.ImageHashing
                     .Select(p => p.Line)
                     .Where(p => p.Contains(" = "))
                     .Subscribe(l => lines.Push(l));
-                try
-                {
-                    await ph.Start();
-                }
-                catch (Exception ex)
-                {
-                    return null;
-                }
+                await ph.Start();
 
                 var data = lines.Select(l =>
                 {

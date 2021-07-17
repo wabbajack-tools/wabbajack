@@ -44,12 +44,12 @@ namespace Wabbajack.Lib.AuthorApi
             IEnumerable<CDNFilePartDefinition> Blocks(AbsolutePath path)
             {
                 var size = path.Size;
-                for (long block = 0; block * Consts.UPLOADED_FILE_BLOCK_SIZE < size; block ++)
+                for (long block = 0; block * Consts.UploadedFileBlockSize < size; block ++)
                     yield return new CDNFilePartDefinition
                     {
                         Index = block,
-                        Size = Math.Min(Consts.UPLOADED_FILE_BLOCK_SIZE, size - block * Consts.UPLOADED_FILE_BLOCK_SIZE),
-                        Offset = block * Consts.UPLOADED_FILE_BLOCK_SIZE
+                        Size = Math.Min(Consts.UploadedFileBlockSize, size - block * Consts.UploadedFileBlockSize),
+                        Offset = block * Consts.UploadedFileBlockSize
                     };
             }
             

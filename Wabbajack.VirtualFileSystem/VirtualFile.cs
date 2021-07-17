@@ -17,7 +17,7 @@ namespace Wabbajack.VirtualFileSystem
 {
     public class VirtualFile
     {
-        private static AbsolutePath DBLocation = Consts.LocalAppDataPath.Combine("GlobalVFSCache2.sqlite");
+        private static AbsolutePath DBLocation = Consts.LocalAppDataPath.Combine("GlobalVFSCache3.sqlite");
         private static string _connectionString;
         private static SQLiteConnection _conn;
 
@@ -227,7 +227,10 @@ namespace Wabbajack.VirtualFileSystem
             };
 
             if (Consts.TextureExtensions.Contains(relPath.FileName.Extension))
+            {
                 self.ImageState = await ImageState.FromImageStream(stream, relPath.FileName.Extension, false);
+                stream.Position = 0;
+            }
 
             self.FillFullPath(depth);
             
@@ -267,7 +270,11 @@ namespace Wabbajack.VirtualFileSystem
         private static async Task WriteToCache(VirtualFile self)
         {
             await using var ms = new MemoryStream();
-            self.ToIndexedVirtualFile().Write(ms);
+            var ivf = self.ToIndexedVirtualFile();
+            // Top level path gets renamed when read, we don't want the absolute path
+            // here else the reader will blow up when it tries to convert the value
+            ivf.Name = (RelativePath)"not/applicable";
+            ivf.Write(ms);
             ms.Position = 0;
             await InsertIntoVFSCache(self.Hash, ms);
         }
@@ -435,6 +442,12 @@ namespace Wabbajack.VirtualFileSystem
 
             var path = new HashRelativePath(FilesInFullPath.First().Hash, paths);
             return path;
+        }
+
+        public VirtualFile InSameFolder(RelativePath relativePath)
+        {
+            var newPath = FullPath.InSameFolder(relativePath);
+            return Context.Index.ByFullPath.TryGetValue(newPath, out var found) ? found : null;
         }
     }
 

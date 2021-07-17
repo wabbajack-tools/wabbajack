@@ -21,14 +21,13 @@ namespace Wabbajack.Lib
 {
     public abstract class ACompiler : ABatchProcessor
     {
-        protected readonly Subject<(string, float)> _progressUpdates = new Subject<(string, float)>();
+        protected readonly Subject<(string, float)> _progressUpdates = new();
 
-        public List<IndexedArchive> IndexedArchives = new List<IndexedArchive>();
+        public List<IndexedArchive> IndexedArchives = new();
 
-        public Dictionary<Hash, IEnumerable<VirtualFile>> IndexedFiles =
-            new Dictionary<Hash, IEnumerable<VirtualFile>>();
+        public Dictionary<Hash, IEnumerable<VirtualFile>> IndexedFiles = new();
 
-        public ModList ModList = new ModList();
+        public ModList ModList = new();
         public AbsolutePath ModListImage;
         public bool ModlistIsNSFW;
 

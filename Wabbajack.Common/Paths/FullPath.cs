@@ -72,5 +72,25 @@ namespace Wabbajack.Common
         }
 
         public RelativePath FileName => Paths.Length == 0 ? Base.FileName : Paths.Last().FileName;
+
+        /// <summary>
+        /// Creates a new full path, with relativePath combined with the deepest leaf in the full path
+        /// </summary>
+        /// <param name="relativePath"></param>
+        /// <returns></returns>
+        public FullPath InSameFolder(RelativePath relativePath)
+        {
+            if (Paths.Length == 0)
+            {
+                return new FullPath(Base.Parent.Combine(relativePath));
+            }
+            else
+            {
+                var paths = new RelativePath[Paths.Length];
+                Paths.CopyTo(paths, 0);
+                paths[^1] = paths[^1].Parent.Combine(relativePath);
+                return new FullPath(Base, paths);
+            }
+        }
     }
 }
