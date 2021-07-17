@@ -65,6 +65,12 @@ namespace Wabbajack.Lib
             if (GameFolder == null)
                 GameFolder = Game.TryGetGameLocation();
 
+            if (GameFolder is { Exists: false })
+            {
+                Utils.Error($"Located game {Game.HumanFriendlyGameName} at \"{GameFolder.Value}\" but the folder does not exist!");
+                return false;
+            }
+            
             if (GameFolder == null)
             {
                 var otherGame = Game.CommonlyConfusedWith.Where(g => g.MetaData().IsInstalled).Select(g => g.MetaData()).FirstOrDefault();

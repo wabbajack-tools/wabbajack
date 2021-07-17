@@ -14,16 +14,15 @@ namespace Wabbajack.Common.StoreHandlers
 {
     public class StoreHandler
     {
-        private static readonly StoreHandlerLogger Logger = new();
-        
+
         private static readonly Lazy<StoreHandler> _instance = new(() => new StoreHandler(), isThreadSafe: true);
         public static StoreHandler Instance => _instance.Value;
 
-        private static readonly Lazy<SteamHandler> SteamHandler = new(() => new SteamHandler(Logger));
-        private static readonly Lazy<GOGHandler> GogHandler = new(() => new GOGHandler(Logger));
-        private static readonly Lazy<BethNetHandler> BethNetHandler = new(() => new BethNetHandler(Logger));
-        private static readonly Lazy<EGSHandler> EpicGameStoreHandler = new(() => new EGSHandler(Logger));
-        private static readonly Lazy<OriginHandler> OriginHandler = new(() => new OriginHandler(true, true, Logger));
+        private static readonly Lazy<SteamHandler> SteamHandler = new(() => new SteamHandler(new StoreHandlerLogger("Steam")));
+        private static readonly Lazy<GOGHandler> GogHandler = new(() => new GOGHandler(new StoreHandlerLogger("GOG")));
+        private static readonly Lazy<BethNetHandler> BethNetHandler = new(() => new BethNetHandler(new StoreHandlerLogger("BethNet")));
+        private static readonly Lazy<EGSHandler> EpicGameStoreHandler = new(() => new EGSHandler(new StoreHandlerLogger("EGS")));
+        private static readonly Lazy<OriginHandler> OriginHandler = new(() => new OriginHandler(true, true, new StoreHandlerLogger("Origin")));
 
         private readonly List<AStoreGame> _storeGames;
         public Dictionary<Game, AStoreGame> Games = new();
@@ -40,7 +39,7 @@ namespace Wabbajack.Common.StoreHandlers
                 
                 foreach (var game in handler.Games)
                 {
-                    Utils.Log($"{handler.StoreType}: Found game {game}");
+                    Utils.Log($"{handler.StoreType}: Found game {game} at \"{game.Path}\"");
                     _storeGames.Add(game);
                 }
             }
@@ -86,9 +85,10 @@ namespace Wabbajack.Common.StoreHandlers
 
         public AbsolutePath? TryGetGamePath(Game game)
         {
-            if (Games.TryGetValue(game, out var storeGame))
-                return (AbsolutePath) storeGame.Path;
-            return null;
+            if (!Games.TryGetValue(game, out var storeGame))
+                return null;
+            
+            return (AbsolutePath)storeGame.Path;
         }
 
         public static void Warmup()
@@ -99,9 +99,16 @@ namespace Wabbajack.Common.StoreHandlers
 
     internal class StoreHandlerLogger : ILogger
     {
+        private readonly string _name;
+        
+        public StoreHandlerLogger(string name)
+        {
+            _name = name;
+        }
+        
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            Utils.Log(formatter(state, exception));
+            Utils.Log($"{_name}: {formatter(state, exception)}");
         }
 
         public bool IsEnabled(LogLevel logLevel) => true;
