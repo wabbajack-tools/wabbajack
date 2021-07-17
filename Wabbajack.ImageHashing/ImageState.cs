@@ -85,7 +85,9 @@ namespace Wabbajack.ImageHashing
 
         public static async Task<ImageState> GetState(AbsolutePath path)
         {
-            var ph = new ProcessHelper
+            try
+            {
+                var ph = new ProcessHelper
                 {
                     Path = @"Tools\texdiag.exe".RelativeTo(AbsolutePath.EntryPoint),
                     Arguments = new object[] {"info", path, "-nologo"},
@@ -112,6 +114,11 @@ namespace Wabbajack.ImageHashing
                     Format = Enum.Parse<DXGI_FORMAT>(data["format"]),
                     PerceptualHash = await GetPHash(path)
                 };
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
     }
 }

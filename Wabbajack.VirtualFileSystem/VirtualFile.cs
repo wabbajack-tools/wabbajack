@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Compression.BSA;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using K4os.Hash.Crc;
 using Wabbajack.Common;
@@ -189,8 +190,8 @@ namespace Wabbajack.VirtualFileSystem
                 Size = Size
             };
         }
-        
-        
+
+        private static SignatureChecker DDSSig = new(Definitions.FileType.DSS);
         public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, IStreamFactory extractedFile,
             IPath relPath, int depth = 0)
         {
@@ -226,10 +227,18 @@ namespace Wabbajack.VirtualFileSystem
                 Hash = hash,
             };
 
-            if (Consts.TextureExtensions.Contains(relPath.FileName.Extension))
+            if (Consts.TextureExtensions.Contains(relPath.FileName.Extension) && (await DDSSig.MatchesAsync(stream)) != null)
             {
-                self.ImageState = await ImageState.FromImageStream(stream, relPath.FileName.Extension, false);
-                stream.Position = 0;
+                try
+                {
+                    self.ImageState = await ImageState.FromImageStream(stream, relPath.FileName.Extension, false);
+                    stream.Position = 0;
+                }
+                catch (Exception)
+                {
+                    Utils.Log($"Unable to perform perceptual hashing on {relPath.FileName} in {parent.FullPath}");
+                    throw;
+                }
             }
 
             self.FillFullPath(depth);

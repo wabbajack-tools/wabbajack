@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.1.5 - 7/17/2021
+* HOTFIX - Don't attempt to analyze files that have .dds extensions but are not DDS files internally
+
 #### Version - 2.5.1.4 - 7/17/2021
 * Fix some broken VFS caching (that's existed for awhile)
 * Enable perceptual hashing for files inside BSA file
