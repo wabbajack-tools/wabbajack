@@ -28,7 +28,7 @@ namespace Wabbajack.BuildServer.Test
             var toDelete = await cleanup.FindFilesToDelete();
             
             await using var file = new TempFile();
-            await file.Path.WriteAllBytesAsync(RandomData(Consts.UPLOADED_FILE_BLOCK_SIZE * 4 + Consts.UPLOADED_FILE_BLOCK_SIZE / 3));
+            await file.Path.WriteAllBytesAsync(RandomData(Consts.UploadedFileBlockSize * 4 + Consts.UploadedFileBlockSize / 3));
             var originalHash = await file.Path.FileHashAsync();
 
             var client = await Client.Create(Fixture.APIKey);

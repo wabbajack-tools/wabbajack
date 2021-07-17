@@ -46,10 +46,7 @@ namespace Wabbajack.VirtualFileSystem
         {
             using var cs = new GZipStream(s, CompressionLevel.Optimal , true);
             using var bw = new BinaryWriter(cs, Encoding.UTF8, true);
-            bw.Write(Size);
-            bw.Write(Children.Count);
-            foreach (var file in Children)
-                file.Write(bw);
+            Write(bw);
         }
 
         private static IndexedVirtualFile Read(BinaryReader br)
@@ -80,18 +77,7 @@ namespace Wabbajack.VirtualFileSystem
         {
             using var cs = new GZipStream(s, CompressionMode.Decompress, true);
             using var br = new BinaryReader(cs);
-            var ivf = new IndexedVirtualFile
-            {
-                Size = br.ReadInt64(),
-            };
-            var lst = new List<IndexedVirtualFile>();
-            ivf.Children = lst;
-            var count = br.ReadInt32();
-            for (int x = 0; x < count; x++)
-            {
-                lst.Add(Read(br));
-            }
-            return ivf;
+            return Read(br);
         }
     }
 }

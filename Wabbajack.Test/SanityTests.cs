@@ -387,15 +387,18 @@ namespace Wabbajack.Test
             {
                 var originalDDS = await ImageState.GetState(nativeFile);
                 await ImageState.ConvertImage(nativeFile, recompressedFile.Parent, originalDDS.Width, originalDDS.Height, DXGI_FORMAT.BC7_UNORM, recompressedFile.Extension);
-                await ImageState.ConvertImage(nativeFile, resizedFile.Parent, 128, 128, DXGI_FORMAT.BC7_UNORM, resizedFile.Extension);
+                await ImageState.ConvertImage(nativeFile, resizedFile.Parent, 1024, 1024, DXGI_FORMAT.BC7_UNORM, resizedFile.Extension);
             }
 
             await utils.Configure();
             
-            await CompileAndInstall(profile, true);
+            var compilerData = await CompileAndInstall(profile, true);
             await utils.VerifyInstalledFile(mod, @"native\whitestagbody.dds");
-            Assert.True(0.99f <=(await ImageState.GetState(recompressedFile)).PerceptualHash.Similarity(await ImageState.GetPHash(utils.InstalledPath(mod, @"recompressed\whitestagbody.dds"))));
-            Assert.True(0.98f <=(await ImageState.GetState(resizedFile)).PerceptualHash.Similarity(await ImageState.GetPHash(utils.InstalledPath(mod, @"resized\whitestagbody.dds"))));
+
+            var directies = compilerData.Directives;
+            
+            Assert.True(0.99f <= (await ImageState.GetState(recompressedFile)).PerceptualHash.Similarity(await ImageState.GetPHash(utils.InstalledPath(mod, @"recompressed\whitestagbody.dds"))));
+            Assert.True(0.98f <= (await ImageState.GetState(resizedFile)).PerceptualHash.Similarity(await ImageState.GetPHash(utils.InstalledPath(mod, @"resized\whitestagbody.dds"))));
         }
         
         [Fact]
@@ -697,7 +700,7 @@ namespace Wabbajack.Test
             var gameFolder = Game.SkyrimSpecialEdition.MetaData().GameLocation();
             await gameFolder.Combine("SkyrimSE.exe").CopyToAsync(utils.SourcePath.Combine("SkyrimSE.exe"));
 
-            var some_dds = utils.SourcePath.Combine("some_file.dds");
+            var some_dds = utils.SourcePath.Combine("some_file.txx");
             await some_dds.WriteAllBytesAsync(utils.RandomData());
 
             var blerg = utils.SourcePath.Combine("file1.blerg");
@@ -726,7 +729,7 @@ namespace Wabbajack.Test
 
             await CompileAndInstall(settingsPath, true);
             
-            Assert.Equal(await some_dds.FileHashAsync(), await utils.InstallPath.Combine("some_file.dds").FileHashAsync());
+            Assert.Equal(await some_dds.FileHashAsync(), await utils.InstallPath.Combine("some_file.txx").FileHashAsync());
             Assert.Equal(await gameFolder.Combine("SkyrimSE.exe").FileHashAsync(), 
                 await utils.InstallPath.Combine("SkyrimSE.exe").FileHashAsync());
         }

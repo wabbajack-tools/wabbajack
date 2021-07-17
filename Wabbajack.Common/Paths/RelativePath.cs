@@ -139,6 +139,11 @@ namespace Wabbajack.Common
             return _path.StartsWith(s, StringComparison.OrdinalIgnoreCase);
         }
         
+        public bool EndsWith(string s)
+        {
+            return _path.EndsWith(s, StringComparison.OrdinalIgnoreCase);
+        }
+        
         public bool StartsWith(RelativePath s)
         {
             return _path.StartsWith(s._path, StringComparison.OrdinalIgnoreCase);

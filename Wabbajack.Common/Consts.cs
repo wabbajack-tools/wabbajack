@@ -167,12 +167,12 @@ namespace Wabbajack.Common
         public static RelativePath ModListTxt = (RelativePath)"modlist.txt";
         public static RelativePath ModOrganizer2Exe = (RelativePath)"ModOrganizer.exe";
         public static RelativePath ModOrganizer2Ini = (RelativePath)"ModOrganizer.ini";
-        public static string AuthorAPIKeyFile = "author-api-key.txt";
+        public static readonly string AuthorAPIKeyFile = "author-api-key.txt";
 
-        public static Uri WabbajackOrg = new Uri("https://www.wabbajack.org/");
+        public static readonly Uri WabbajackOrg = new Uri("https://www.wabbajack.org/");
         
-        public static long UPLOADED_FILE_BLOCK_SIZE = (long)1024 * 1024 * 2;
+        public static readonly long UploadedFileBlockSize = (long)1024 * 1024 * 2;
 
-        public static HashSet<Extension> TextureExtensions = new() {new Extension(".dds"), new Extension(".tga")};
+        public static readonly HashSet<Extension> TextureExtensions = new() {new Extension(".dds"), new Extension(".tga")};
     }
 }

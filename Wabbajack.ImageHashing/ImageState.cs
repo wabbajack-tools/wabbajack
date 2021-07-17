@@ -41,7 +41,7 @@ namespace Wabbajack.ImageHashing
             PerceptualHash.Write(bw);
         }
 
-        public static async Task<ImageState?> FromImageStream(Stream stream, Extension ext, bool takeStreamOwnership = true)
+        public static async Task<ImageState> FromImageStream(Stream stream, Extension ext, bool takeStreamOwnership = true)
         {
             await using var tf = new TempFile(ext);
             await tf.Path.WriteAllAsync(stream, takeStreamOwnership);
@@ -51,6 +51,9 @@ namespace Wabbajack.ImageHashing
         private static readonly Extension PNGExtension = new(".png");
         public static async Task<PHash> GetPHash(AbsolutePath path)
         {
+            if (!path.Exists)
+                throw new FileNotFoundException($"Can't hash non-existent file {path}");
+            
             await using var tmp = await TempFolder.Create();
             await ConvertImage(path, tmp.Dir, 512, 512, DXGI_FORMAT.R8G8B8A8_UNORM, PNGExtension);
             
@@ -75,12 +78,12 @@ namespace Wabbajack.ImageHashing
         public static async Task ConvertImage(Stream from, ImageState state, Extension ext, AbsolutePath to)
         {
             await using var tmpFile = await TempFolder.Create();
-            var inFile = to.FileName.RelativeTo(tmpFile.Dir).WithExtension(ext);
+            var inFile = to.FileName.RelativeTo(tmpFile.Dir);
             await inFile.WriteAllAsync(from);
             await ConvertImage(inFile, to.Parent, state.Width, state.Height, state.Format, ext);
         }
 
-        public static async Task<ImageState?> GetState(AbsolutePath path)
+        public static async Task<ImageState> GetState(AbsolutePath path)
         {
             var ph = new ProcessHelper
                 {
@@ -94,14 +97,7 @@ namespace Wabbajack.ImageHashing
                     .Select(p => p.Line)
                     .Where(p => p.Contains(" = "))
                     .Subscribe(l => lines.Push(l));
-                try
-                {
-                    await ph.Start();
-                }
-                catch (Exception ex)
-                {
-                    return null;
-                }
+                await ph.Start();
 
                 var data = lines.Select(l =>
                 {
