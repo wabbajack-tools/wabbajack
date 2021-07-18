@@ -1,0 +1,78 @@
+﻿@page "/status"
+@using Wabbajack.Web.Services
+@using Wabbajack.Web.DTO
+@inject StateContainer _stateContainer;
+
+<MudContainer Class="mt-16" MaxWidth="MaxWidth.Large">
+    <MudText Typo="Typo.h5">Failing Modlists: @_failing</MudText>
+    <MudText Typo="Typo.h5">Working Modlists: @_succeeding</MudText>
+
+    <MudGrid Class="mt-3">
+        @foreach (var modlistStatus in _modlistStatusList
+            .OrderByDescending(x => x.HasFailures)
+            .ThenBy(x => x.Name))
+        {
+            @_renderStatusItem(modlistStatus)
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    public const string Route = "/status";
+    
+    private bool _shouldRender;
+    protected override bool ShouldRender() => _shouldRender;
+    
+    private IReadOnlyList<ModlistStatus> _modlistStatusList = new List<ModlistStatus>();
+    private int _failing;
+    private int _succeeding;
+
+    // DO NOT CHANGE "__builder"
+    // ReSharper disable InconsistentNaming
+    // ReSharper disable once UnusedParameter.Local
+    private readonly RenderFragment<ModlistStatus> _renderStatusItem = status => __builder =>
+    {
+        var href = $"/status/{status.MachineUrl}";
+        <MudItem xs="12" sm="6" md="4" lg="4" xl="4">
+            <MudCard>
+                <MudCardHeader Class="pb-1 align-stretch">
+                    <CardHeaderAvatar>
+                        @if (status.HasFailures)
+                        {
+                            <MudAvatar Color="Color.Error"/>
+                        }
+                        else
+                        {
+                            <MudAvatar Color="Color.Info"/>
+                        }
+                    </CardHeaderAvatar>
+                    <CardHeaderContent>
+                        <MudLink Color="Color.Dark" Typo="Typo.h5" Href="@href">@status.Name</MudLink>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Typo="Typo.body1">Passed: @status.Passed</MudText>
+                    <MudText Typo="Typo.body1">Failed: @status.Failed</MudText>
+                    <MudText Typo="Typo.body2">Last Checked: @status.Checked.ToString("G")</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    };
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (!_stateContainer.HasModlistMetadata)
+        {
+            var res = await _stateContainer.RefreshModlistStatus();
+            //TODO: use result and show to user if failed
+
+            if (!res) return;
+        }
+
+        _modlistStatusList = _stateContainer.ModlistStatusList;
+        _failing = _modlistStatusList.Count(x => x.HasFailures);
+        _succeeding = _modlistStatusList.Count(x => !x.HasFailures);
+        
+        _shouldRender = true;
+    }
+}
