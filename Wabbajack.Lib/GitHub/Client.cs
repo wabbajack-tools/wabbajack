@@ -19,6 +19,9 @@ namespace Wabbajack.Lib.GitHub
         }
         public static async Task<Client> Get()
         {
+            if (!Utils.HaveEncryptedJson("github-key"))
+                return new Client(new GitHubClient(ProductHeaderValue.Parse("wabbajack")));
+
             var key = Encoding.UTF8.GetString(await Utils.FromEncryptedData("github-key"));
             var creds = new Credentials(key);
             return new Client(new GitHubClient(ProductHeaderValue.Parse("wabbajack_build_server")){Credentials = creds});
