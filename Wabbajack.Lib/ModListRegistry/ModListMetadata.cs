@@ -21,6 +21,9 @@ namespace Wabbajack.Lib.ModListRegistry
         [JsonProperty("author")]
         public string Author { get; set; } = string.Empty;
 
+        [JsonProperty("maintainers")] public string[] 
+            Maintainers { get; set; } = Array.Empty<string>();
+
         [JsonProperty("game")]
         public Game Game { get; set; }
 

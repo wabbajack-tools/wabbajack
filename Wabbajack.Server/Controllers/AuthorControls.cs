@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -12,6 +13,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
 using Wabbajack.Common;
+using Wabbajack.Lib.GitHub;
+using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Server.DataLayer;
 
 namespace Wabbajack.BuildServer.Controllers
@@ -35,6 +38,40 @@ namespace Wabbajack.BuildServer.Controllers
         {
             Response.Cookies.Append(ApiKeyAuthenticationHandler.ApiKeyHeaderName, authorKey);
             return Redirect($"{Consts.WabbajackBuildServerUri}author_controls/home");
+        }
+
+        [Route("lists")]
+        [HttpGet]
+        public async Task<IActionResult> AuthorLists()
+        {
+            var user = User.FindFirstValue(ClaimTypes.Name);
+            List<string> lists = new();
+            var client = await Client.Get();
+            foreach (var file in Enum.GetValues<Client.List>())
+            {
+                lists.AddRange((await client.GetData(file)).Lists.Where(l => l.Maintainers.Contains(user))
+                    .Select(lst => lst.Links.MachineURL));
+            }
+
+            return Ok(lists);
+        }
+        
+        [Route("lists/{machineUrl}/download_metadata")]
+        [HttpPost]
+        public async Task<IActionResult> AuthorLists(string machineUrl)
+        {
+            var user = User.FindFirstValue(ClaimTypes.Name);
+            var data = (await Request.Body.ReadAllTextAsync()).FromJsonString<DownloadMetadata>();
+            var client = await Client.Get();
+            try
+            {
+                await client.UpdateList(user, machineUrl, data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+            return Ok(data);
         }
         
         private static async Task<string> HomePageTemplate(object o)

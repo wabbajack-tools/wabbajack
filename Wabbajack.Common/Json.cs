@@ -65,27 +65,32 @@ namespace Wabbajack.Common
             using var tw = new StreamWriter(stream, new UTF8Encoding(false), bufferSize: 1024, leaveOpen: true);
             using var writer = new JsonTextWriter(tw);
 
-            JsonSerializerSettings settings = (useGenericSettings, prettyPrint) switch
+            JsonSerializerSettings settings = SettingsForOptions(useGenericSettings, prettyPrint);
+
+            var ser = JsonSerializer.Create(settings);
+            ser.Serialize(writer, obj);
+        }
+
+        private static JsonSerializerSettings SettingsForOptions(bool useGenericSettings, bool prettyPrint)
+        {
+            return (useGenericSettings, prettyPrint) switch
             {
                 (true, true) => GenericJsonSettings,
                 (false, true) => JsonSettingsPretty,
                 (false, false) => JsonSettings,
                 (true, false) => GenericJsonSettings
             };
-
-            var ser = JsonSerializer.Create(settings);
-            ser.Serialize(writer, obj);
         }
-        
+
         public static async ValueTask ToJsonAsync<T>(this T obj, AbsolutePath path, bool useGenericSettings = false, bool prettyPrint = false)
         {
             await using var fs = await path.Create();
             obj.ToJson(fs, useGenericSettings, prettyPrint: prettyPrint);
         }
 
-        public static string ToJson<T>(this T obj, bool useGenericSettings = false)
+        public static string ToJson<T>(this T obj, bool useGenericSettings = false, bool prettyPrint = false)
         {
-            return JsonConvert.SerializeObject(obj, useGenericSettings ? GenericJsonSettings : JsonSettings);
+            return JsonConvert.SerializeObject(obj, SettingsForOptions(useGenericSettings, prettyPrint));
         }
 
         public static T FromJson<T>(this AbsolutePath filename)

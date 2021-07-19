@@ -272,7 +272,7 @@ namespace Compression.BSA
                 case VersionType.SSE:
                 {
                     var r = new MemoryStream();
-                    await using (var w = LZ4Stream.Encode(r, new LZ4EncoderSettings {CompressionLevel = LZ4Level.L08_HC}, true))
+                    await using (var w = LZ4Stream.Encode(r, new LZ4EncoderSettings {CompressionLevel = LZ4Level.L12_MAX}, true))
                     {
                         await _srcData.CopyToWithStatusAsync(_srcData.Length, w, $"Compressing {_path}");
                     }

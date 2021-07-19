@@ -307,7 +307,7 @@ namespace Wabbajack.Lib
             await ModListOutputFolder.Combine("sig")
                 .WriteAllBytesAsync(((await ModListOutputFolder.Combine("modlist").FileHashAsync()) ?? Hash.Empty).ToArray());
 
-            await ClientAPI.SendModListDefinition(ModList);
+            //await ClientAPI.SendModListDefinition(ModList);
 
             await ModListOutputFile.DeleteAsync();
 
