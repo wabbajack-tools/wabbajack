@@ -139,6 +139,7 @@ namespace Wabbajack.Lib.ModListRegistry
         public Hash Hash { get; set; }
         public long Size { get; set; }
 
+        public Version Version { get; set; } = new();
         public long NumberOfArchives { get; set; }
         public long SizeOfArchives { get; set; }
         public long NumberOfInstalledFiles { get; set; }

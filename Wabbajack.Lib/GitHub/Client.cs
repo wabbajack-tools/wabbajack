@@ -62,6 +62,7 @@ namespace Wabbajack.Lib.GitHub
                 if (found == null) continue;
 
                 found.DownloadMetadata = newData;
+                found.Version = newData.Version;
 
                 await WriteData(file, machineUrl, data.Hash, data.Lists);
                 return;
