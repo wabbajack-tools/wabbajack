@@ -56,18 +56,19 @@ namespace Wabbajack.Lib.GitHub
             await _client.Repository.Content.UpdateFile("wabbajack-tools", "mod-lists", PathNames[file], updateRequest);
         }
 
-        public async Task UpdateList(string maintainer, string machineUrl, DownloadMetadata newData)
+        public async Task UpdateList(string maintainer, UpdateRequest newData)
         {
             foreach (var file in Enum.GetValues<List>())
             {
                 var data = await GetData(file);
-                var found = data.Lists.FirstOrDefault(l => l.Links.MachineURL == machineUrl && l.Maintainers.Contains(maintainer));
+                var found = data.Lists.FirstOrDefault(l => l.Links.MachineURL == newData.MachineUrl && l.Maintainers.Contains(maintainer));
                 if (found == null) continue;
 
-                found.DownloadMetadata = newData;
+                found.DownloadMetadata = newData.DownloadMetadata;
                 found.Version = newData.Version;
+                found.Links.Download = newData.DownloadUrl.ToString();
 
-                await WriteData(file, machineUrl, data.Hash, data.Lists);
+                await WriteData(file, newData.MachineUrl, data.Hash, data.Lists);
                 return;
             }
 

@@ -141,6 +141,7 @@ namespace Wabbajack.BuildServer.Controllers
             var definition = await _sql.GetCDNFileDefinition(serverAssignedUniqueId);
             if (definition.Author != user)
                 return Forbid("File Id does not match authorized user");
+            await _discord.Send(Channel.Ham, new DiscordMessage() {Content = $"{user} is deleting {definition.MungedName}, {definition.Size.ToFileSizeString()} to be freed"});
             _logger.Log(LogLevel.Information, $"Finalizing file upload {definition.OriginalFileName}");
 
             await DeleteFolderOrSilentlyFail($"{definition.MungedName}");

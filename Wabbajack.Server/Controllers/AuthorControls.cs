@@ -16,6 +16,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib.GitHub;
 using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Server.DataLayer;
+using Wabbajack.Server.Services;
 
 namespace Wabbajack.BuildServer.Controllers
 {
@@ -25,11 +26,13 @@ namespace Wabbajack.BuildServer.Controllers
     {
         private ILogger<AuthorControls> _logger;
         private SqlService _sql;
+        private readonly QuickSync _quickSync;
 
-        public AuthorControls(ILogger<AuthorControls> logger, SqlService sql)
+        public AuthorControls(ILogger<AuthorControls> logger, SqlService sql, QuickSync quickSync)
         {
             _logger = logger;
             _sql = sql;
+            _quickSync = quickSync;
         }
         
         [Route("login/{authorKey}")]
@@ -56,19 +59,21 @@ namespace Wabbajack.BuildServer.Controllers
             return Ok(lists);
         }
         
-        [Route("lists/{machineUrl}/download_metadata")]
+        [Route("lists/download_metadata")]
         [HttpPost]
-        public async Task<IActionResult> AuthorLists(string machineUrl)
+        public async Task<IActionResult> PostDownloadMetadata()
         {
             var user = User.FindFirstValue(ClaimTypes.Name);
-            var data = (await Request.Body.ReadAllTextAsync()).FromJsonString<DownloadMetadata>();
+            var data = (await Request.Body.ReadAllTextAsync()).FromJsonString<UpdateRequest>();
             var client = await Client.Get();
             try
             {
-                await client.UpdateList(user, machineUrl, data);
+                await client.UpdateList(user, data);
+                await _quickSync.Notify<ModListDownloader>();
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "During posting of download_metadata");
                 return BadRequest(ex);
             }
             return Ok(data);

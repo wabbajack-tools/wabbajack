@@ -14,6 +14,8 @@ using Org.BouncyCastle.Asn1.Cms;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.FileUploader;
+using Wabbajack.Lib.GitHub;
 using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.VirtualFileSystem;
 
@@ -34,9 +36,10 @@ namespace Wabbajack.Lib
         public string? ModListName, ModListAuthor, ModListDescription, ModListWebsite, ModlistReadme;
         public Version? ModlistVersion;
         protected Version? WabbajackVersion;
+        public UpdateRequest? PublishData;
 
         public ACompiler(int steps, string modlistName, AbsolutePath sourcePath, AbsolutePath downloadsPath,
-            AbsolutePath outputModListName)
+            AbsolutePath outputModListName, UpdateRequest? publishData)
             : base(steps)
         {
             SourcePath = sourcePath;
@@ -48,7 +51,10 @@ namespace Wabbajack.Lib
             Settings = new CompilerSettings();
             ModListOutputFolder = AbsolutePath.EntryPoint.Combine("output_folder", Guid.NewGuid().ToString());
             CompilingGame = new GameMetaData();
+            PublishData = publishData;
         }
+
+
 
         /// <summary>
         /// Set to true to include game files during compilation, only ever disabled
@@ -169,6 +175,35 @@ namespace Wabbajack.Lib
             });
 
             return true;
+        }
+
+        public async Task PreflightChecks()
+        {
+            Utils.Log($"Running preflight checks");
+            if (PublishData == null) return;
+
+            var ourLists = await (await AuthorApi.Client.Create()).GetMyModlists();
+            if (ourLists.All(l => l.MachineURL != PublishData.MachineUrl))
+            {
+                Utils.ErrorThrow(new CriticalFailureIntervention(
+                    $"Cannot publish to {PublishData.MachineUrl}, you are not listed as a maintainer",
+                    "Cannot publish"));
+            }
+        }
+
+        public async Task PublishModlist()
+        {
+            if (PublishData == null) return;
+            var api = await AuthorApi.Client.Create();
+            Utils.Log($"Uploading modlist {PublishData!.MachineUrl}");
+
+            var metadata = ((AbsolutePath)(ModListOutputFile + ".meta.json")).FromJson<DownloadMetadata>();
+            var uri = await api.UploadFile(Queue, ModListOutputFile, (s, percent) => Utils.Status(s, percent));
+            PublishData.DownloadUrl = uri;
+            PublishData.DownloadMetadata = metadata;
+            
+            Utils.Log($"Publishing modlist {PublishData!.MachineUrl}");
+            await api.UpdateModListInformation(PublishData);
         }
 
         protected async Task IndexGameFileHashes()

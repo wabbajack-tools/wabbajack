@@ -2,6 +2,7 @@
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -10,6 +11,9 @@ using System.Threading.Tasks;
 using DynamicData;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.Lib.AuthorApi;
+using Wabbajack.Lib.FileUploader;
+using Wabbajack.Lib.GitHub;
 using WebSocketSharp;
 
 namespace Wabbajack
@@ -34,6 +38,7 @@ namespace Wabbajack
         public ACompiler ActiveCompilation { get; private set; }
 
         private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _modlistSettings;
+        private readonly IObservable<IChangeSet<string>> _authorKeys;
         public ModlistSettingsEditorVM ModlistSettings => _modlistSettings.Value;
 
         [Reactive]
@@ -201,11 +206,20 @@ namespace Wabbajack
             try
             {
                 ACompiler compiler;
+                UpdateRequest request = null;
+                if (ModlistSettings.Publish)
+                {
+                    request = new UpdateRequest
+                    {
+                        MachineUrl = ModlistSettings.MachineUrl.Trim(), 
+                        Version = ModlistSettings.Version,
+                    };
+                }
                 
                 if (ModListLocation.TargetPath.FileName == Consts.NativeSettingsJson)
                 {
                     var settings = ModListLocation.TargetPath.FromJson<NativeCompilerSettings>();
-                    compiler = new NativeCompiler(settings, Mo2Folder, DownloadLocation.TargetPath, outputFile)
+                    compiler = new NativeCompiler(settings, Mo2Folder, DownloadLocation.TargetPath, outputFile, request)
                     {
                         ModListName = ModlistSettings.ModListName,
                         ModListAuthor = ModlistSettings.AuthorText,
@@ -219,11 +233,13 @@ namespace Wabbajack
                 }
                 else
                 {
+
                     compiler = new MO2Compiler(
                         sourcePath: Mo2Folder,
                         downloadsPath: DownloadLocation.TargetPath,
                         mo2Profile: MOProfile,
-                        outputFile: outputFile)
+                        outputFile: outputFile,
+                        publishData: request)
                     {
                         ModListName = ModlistSettings.ModListName,
                         ModListAuthor = ModlistSettings.AuthorText,

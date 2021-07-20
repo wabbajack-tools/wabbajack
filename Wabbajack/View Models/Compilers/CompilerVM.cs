@@ -16,6 +16,8 @@ using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
+using Wabbajack.Lib.AuthorApi;
+using Wabbajack.Lib.FileUploader;
 
 namespace Wabbajack
 {
@@ -65,11 +67,11 @@ namespace Wabbajack
 
         private readonly ObservableAsPropertyHelper<(int CurrentCPUs, int DesiredCPUs)> _CurrentCpuCount;
         public (int CurrentCPUs, int DesiredCPUs) CurrentCpuCount => _CurrentCpuCount.Value;
-
+        
         public CompilerVM(MainWindowVM mainWindowVM) : base(mainWindowVM)
         {
             MWVM = mainWindowVM;
-
+            
             OutputLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.IfPathNotEmpty,

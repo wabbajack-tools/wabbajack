@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.Lib.GitHub;
 using Wabbajack.Lib.ModListRegistry;
 
 namespace Wabbajack.Lib.AuthorApi
@@ -77,12 +78,12 @@ namespace Wabbajack.Lib.AuthorApi
             return definition;
         }
 
-        public async Task UpdateModListInformation(string machineUrl, DownloadMetadata metadata)
+        public async Task UpdateModListInformation(UpdateRequest metadata)
         {
             await CircuitBreaker.WithAutoRetryAllAsync(async () =>
             {
-                Utils.Log($"Updating modlist information for {machineUrl} - {metadata.Version}");
-                using var result = await _client.PostAsync($"{Consts.WabbajackBuildServerUri}author_controls/{machineUrl}/download_metadata",
+                Utils.Log($"Updating modlist information for {metadata.MachineUrl} - {metadata.Version}");
+                using var result = await _client.PostAsync($"{Consts.WabbajackBuildServerUri}author_controls/lists/download_metadata",
                     new StringContent(metadata.ToJson()));
             });
         }
