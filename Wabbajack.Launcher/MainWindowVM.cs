@@ -154,9 +154,12 @@ namespace Wabbajack.Launcher
                     .OrderByDescending(v =>
                         Version.TryParse(Path.GetFileName(v), out var ver) ? ver : new Version(0, 0, 0, 0))
                     .FirstOrDefault();
+
+                var filename = Path.Combine(wjFolder, "Wabbajack.exe");
+                await CreateBatchFile(filename);
                 var info = new ProcessStartInfo
                 {
-                    FileName = Path.Combine(wjFolder, "Wabbajack.exe"),
+                    FileName = filename,
                     Arguments = string.Join(" ", Environment.GetCommandLineArgs().Skip(1).Select(s => s.Contains(' ') ? '\"' + s + '\"' : s)),
                     WorkingDirectory = wjFolder,
                 };
@@ -179,6 +182,15 @@ namespace Wabbajack.Launcher
             {
                 Environment.Exit(0);
             }
+        }
+
+        private async Task CreateBatchFile(string filename)
+        {
+            filename = Path.Combine(Path.GetDirectoryName(filename), "wabbajack-cli.exe");
+            var data = $"\"{filename}\" %*";
+            var file = Path.Combine(Directory.GetCurrentDirectory(), "wabbajack-cli.bat");
+            if (File.Exists(file) && await File.ReadAllTextAsync(file) == data) return;
+            await File.WriteAllTextAsync(file, data);
         }
 
         private void UpdateProgress(object sender, DownloadProgressChangedEventArgs e)
