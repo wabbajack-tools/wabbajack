@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 2.5.2.0 - 7/20/2021
+* Added compilation step that allows for automatic uploading to CDN
+* Added CLI command to upload MO2 mods to CDN (and add them to the MO2 downloads)
+* Upped BSA Compression to MAX to hopefully solve some >2GB errors
+* Launcher now creates a `wabbajack-cli.bat` file that points to the most recent version of the cli
+
 #### Version - 2.5.1.5 - 7/17/2021
 * HOTFIX - Don't attempt to analyze files that have .dds extensions but are not DDS files internally
 
