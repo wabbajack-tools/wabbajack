@@ -12,7 +12,7 @@ namespace Wabbajack.Test
 {
     public class GitHubTests
     {
-        [Fact]
+        //[Fact] - Disabled for build server, run locally
         public async Task CanLogIntoGithub()
         {
             var client = await Wabbajack.Lib.GitHub.Client.Get();
