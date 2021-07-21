@@ -7,6 +7,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.Lib.GitHub;
+using Wabbajack.Lib.ModListRegistry;
 
 namespace Wabbajack.Lib.AuthorApi
 {
@@ -74,6 +76,34 @@ namespace Wabbajack.Lib.AuthorApi
             };
 
             return definition;
+        }
+
+        public async Task UpdateModListInformation(UpdateRequest metadata)
+        {
+            await CircuitBreaker.WithAutoRetryAllAsync(async () =>
+            {
+                Utils.Log($"Updating modlist information for {metadata.MachineUrl} - {metadata.Version}");
+                using var result = await _client.PostAsync($"{Consts.WabbajackBuildServerUri}author_controls/lists/download_metadata",
+                    new StringContent(metadata.ToJson()));
+            });
+        }
+
+        public async Task<IReadOnlyList<(string MachineURL, Version Version)>> GetMyModlists()
+        {
+            var myLists = await _client.GetJsonAsync<string[]>($"{Consts.WabbajackBuildServerUri}author_controls/lists");
+            List<(string MachineURL, Version Version)> lists = new();
+            var client = await GitHub.Client.Get();
+            foreach (var file in Enum.GetValues<GitHub.Client.List>())
+            {
+                foreach (var lst in (await client.GetData(file)).Lists)
+                {
+                    if (myLists.Contains(lst.Links.MachineURL))
+                    {
+                        lists.Add((lst.Links.MachineURL, lst.Version ?? new Version()));
+                    }
+                }
+            }
+            return lists;
         }
 
         public async Task<Uri> UploadFile(WorkQueue queue, AbsolutePath path, Action<string, Percent> progressFn)

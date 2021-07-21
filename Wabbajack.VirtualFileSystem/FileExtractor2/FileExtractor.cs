@@ -51,6 +51,7 @@ namespace Wabbajack.VirtualFileSystem
         public static bool FavorPerfOverRAM { get; set; }
 
 
+
         public static async Task<Dictionary<RelativePath, T>> GatheringExtract<T>(WorkQueue queue, IStreamFactory sFn,
             Predicate<RelativePath> shouldExtract, Func<RelativePath, IExtractedFile, ValueTask<T>> mapfn,
             AbsolutePath? tempFolder = null,
@@ -279,6 +280,31 @@ namespace Wabbajack.VirtualFileSystem
                 await abs.WriteAllAsync(stream);
                 return 0;
             });
+        }
+        
+        
+        /// <summary>
+        /// Compresses all the files with 7zip
+        /// </summary>
+        /// <param name="to"></param>
+        /// <param name="filesAndFolders"></param>
+        public static async Task CompressFiles(AbsolutePath to, AbsolutePath[] filesAndFolders, Action<string> status)
+        {
+            var args = new List<object>() {"a", to, "-mx9"};
+            args.AddRange(filesAndFolders.Cast<object>());
+            var process = new ProcessHelper
+            {
+                Path = @"Extractors\7z.exe".RelativeTo(AbsolutePath.EntryPoint), 
+                Arguments = args,
+                ThrowOnNonZeroExitCode = true
+            };
+
+            using var _ = process.Output.Where(o => o.Type == ProcessHelper.StreamType.Output)
+                .Subscribe(l => status(l.Line));
+
+            await process.Start();
+            return;
+
         }
     }
 }

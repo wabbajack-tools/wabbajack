@@ -180,7 +180,10 @@ namespace Wabbajack
         public string Website { get; set; }
         public string Readme { get; set; }
         public bool IsNSFW { get; set; }
+        
+        public string MachineUrl { get; set; }
         public AbsolutePath SplashScreen { get; set; }
+        public bool Publish { get; set; }
     }
 
     [JsonName("MO2CompilationSettings")]

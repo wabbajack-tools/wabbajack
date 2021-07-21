@@ -8,6 +8,7 @@ using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.GitHub;
 using Wabbajack.Lib.Validation;
 using Wabbajack.VirtualFileSystem;
 
@@ -15,8 +16,8 @@ namespace Wabbajack.Lib
 {
     public class MO2Compiler : ACompiler
     {
-        public MO2Compiler(AbsolutePath sourcePath, AbsolutePath downloadsPath, string mo2Profile, AbsolutePath outputFile)
-            : base(21, mo2Profile, sourcePath, downloadsPath, outputFile)
+        public MO2Compiler(AbsolutePath sourcePath, AbsolutePath downloadsPath, string mo2Profile, AbsolutePath outputFile, UpdateRequest? publishData = null)
+            : base(23, mo2Profile, sourcePath, downloadsPath, outputFile, publishData)
         {
             MO2Profile = mo2Profile;
             MO2Ini = SourcePath.Combine("ModOrganizer.ini").LoadIniFile();
@@ -25,6 +26,7 @@ namespace Wabbajack.Lib
             GamePath = CompilingGame.GameLocation();
         }
 
+        public UpdateRequest? PublishData { get; set; }
         public AbsolutePath MO2ModsFolder => SourcePath.Combine(Consts.MO2ModFolderName);
 
         public string MO2Profile { get; }
@@ -58,6 +60,10 @@ namespace Wabbajack.Lib
             FileExtractor2.FavorPerfOverRAM = FavorPerfOverRam;
 
             UpdateTracker.Reset();
+            
+            UpdateTracker.NextStep("Running Preflight Checks");
+            await PreflightChecks();
+
             UpdateTracker.NextStep("Gathering information");
 
             Utils.Log("Loading compiler Settings");
@@ -362,6 +368,9 @@ namespace Wabbajack.Lib
 
             UpdateTracker.NextStep("Exporting Modlist");
             await ExportModList();
+            
+            UpdateTracker.NextStep("Publishing Modlist");
+            await PublishModlist();
 
             ResetMembers();
 

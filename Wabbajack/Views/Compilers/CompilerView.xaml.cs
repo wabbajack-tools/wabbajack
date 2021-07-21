@@ -1,8 +1,10 @@
-﻿using System.Reactive.Disposables;
+﻿using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Controls;
 using ReactiveUI;
 using System.Windows;
+using DynamicData;
 using Wabbajack.Common;
 
 namespace Wabbajack
@@ -78,7 +80,13 @@ namespace Wabbajack
                     .DisposeWith(dispose);
                 this.BindStrict(ViewModel, x => x.CurrentModlistSettings.IsNSFW, x => x.NSFWSetting.IsChecked)
                     .DisposeWith(dispose);
-
+                
+                this.BindStrict(ViewModel, x => x.CurrentModlistSettings.MachineUrl, x => x.MachineUrl.Text)
+                    .DisposeWith(dispose);
+                
+                this.BindStrict(ViewModel, x => x.CurrentModlistSettings.Publish, x => x.PublishUpdate.IsChecked)
+                    .DisposeWith(dispose);
+                
                 // Bottom Compiler Settings
                 this.WhenAny(x => x.ViewModel.StartedCompilation)
                     .Select(started => started ? Visibility.Hidden : Visibility.Visible)

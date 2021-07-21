@@ -133,6 +133,15 @@
                     x:Name="NSFWSetting"
                     Content="NSFW"
                     ToolTip="Select this if your Modlist has adult themed content such as SexLab or other mods involving sexual acts. Nude body replacer do not fall under this category neither do revealing outfits or gore." />
+                <CheckBox
+                    x:Name="PublishUpdate"
+                    Content="Publish Update"
+                    ToolTip="Select this if your want Wabbajack to automatically publish this modlist when compilation finished (requires a selected machineURL)" />
+                <TextBlock
+                    Margin="{StaticResource TitleMargin}"
+                    Text="MachineUrl"
+                    ToolTip="If this box has a value the modlist will be published to this MachineUrl after compilation" />
+                <TextBox x:Name="MachineUrl" Style="{StaticResource ValueStyle}" />
             </StackPanel>
         </ScrollViewer>
         <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5"

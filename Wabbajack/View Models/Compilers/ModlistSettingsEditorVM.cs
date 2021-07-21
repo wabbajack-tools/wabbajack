@@ -34,6 +34,9 @@ namespace Wabbajack
         [Reactive]
         public string Readme { get; set; }
 
+        [Reactive] public string MachineUrl { get; set; } = "";
+        [Reactive] public bool Publish { get; set; } = false;
+
         [Reactive]
         public string Website { get; set; }
 
@@ -85,6 +88,8 @@ namespace Wabbajack
             Website = _settings.Website;
             VersionText = _settings.Version;
             IsNSFW = _settings.IsNSFW;
+            MachineUrl = _settings.MachineUrl;
+            Publish = _settings.Publish;
         }
 
         public void Save()
@@ -97,6 +102,8 @@ namespace Wabbajack
             _settings.SplashScreen = ImagePath.TargetPath;
             _settings.Website = Website;
             _settings.IsNSFW = IsNSFW;
+            _settings.MachineUrl = MachineUrl;
+            _settings.Publish = Publish;
         }
     }
 }

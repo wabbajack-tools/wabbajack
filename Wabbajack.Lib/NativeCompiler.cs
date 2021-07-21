@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
+using Wabbajack.Lib.GitHub;
 using Wabbajack.Lib.Validation;
 using Wabbajack.VirtualFileSystem;
 
@@ -12,8 +13,8 @@ namespace Wabbajack.Lib
 {
     public class NativeCompiler : ACompiler
     {
-        public NativeCompiler(NativeCompilerSettings settings, AbsolutePath sourcePath, AbsolutePath downloadsPath, AbsolutePath outputModListPath) 
-            : base(3, settings.ModListName, sourcePath, downloadsPath, outputModListPath)
+        public NativeCompiler(NativeCompilerSettings settings, AbsolutePath sourcePath, AbsolutePath downloadsPath, AbsolutePath outputModListPath, UpdateRequest? publishData = null) 
+            : base(5, settings.ModListName, sourcePath, downloadsPath, outputModListPath, publishData)
         {
             CompilingGame = settings.CompilingGame.MetaData();
             GamePath = CompilingGame.GameLocation();
@@ -34,6 +35,10 @@ namespace Wabbajack.Lib
             FileExtractor2.FavorPerfOverRAM = FavorPerfOverRam;
 
             UpdateTracker.Reset();
+            
+            UpdateTracker.NextStep("Running Preflight Checks");
+            await PreflightChecks();
+            
             UpdateTracker.NextStep("Gathering information");
 
             Utils.Log($"Compiling Game: {CompilingGame.Game}");
@@ -243,6 +248,9 @@ namespace Wabbajack.Lib
 
             UpdateTracker.NextStep("Exporting Modlist");
             await ExportModList();
+            
+            UpdateTracker.NextStep("Publishing Modlist");
+            await PublishModlist();
 
             ResetMembers();
 
