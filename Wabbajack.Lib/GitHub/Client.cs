@@ -52,7 +52,12 @@ namespace Wabbajack.Lib.GitHub
         
         private async Task WriteData(List file, string machinenUrl, string dataHash, IReadOnlyList<ModlistMetadata> dataLists)
         {
-            var updateRequest = new UpdateFileRequest($"New release of {machinenUrl}", dataLists.ToJson(prettyPrint:true), dataHash);
+            var listData = dataLists.ToJson(prettyPrint: true);
+            // the website requires all names be in lowercase;
+            listData = GameRegistry.Games.Keys.Aggregate(listData, 
+                (current, g) => current.Replace($"\"game\": \"{g}\",", $"\"game\": \"{g.ToString().ToLower()}\","));
+
+            var updateRequest = new UpdateFileRequest($"New release of {machinenUrl}", listData, dataHash);
             await _client.Repository.Content.UpdateFile("wabbajack-tools", "mod-lists", PathNames[file], updateRequest);
         }
 
