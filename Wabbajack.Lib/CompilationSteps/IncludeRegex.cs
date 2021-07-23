@@ -13,7 +13,7 @@ namespace Wabbajack.Lib.CompilationSteps
         public IncludeRegex(ACompiler compiler, string pattern) : base(compiler)
         {
             _pattern = pattern;
-            _regex = new Regex(pattern);
+            _regex = new Regex(pattern, RegexOptions.Compiled);
         }
 
         public override async ValueTask<Directive?> Run(RawSourceFile source)
