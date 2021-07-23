@@ -11,3 +11,8 @@ $ dotnet watch run Wabbajack.Web.csproj
 ```
 
 This will open your browser and dotnet-watch will automatically rebuild and reload when it detects changes.
+
+### Docs
+
+- [ASP.NET Core Blazor](https://docs.microsoft.com/en-us/aspnet/core/blazor/)
+- [MudBlazor](https://mudblazor.com/)
