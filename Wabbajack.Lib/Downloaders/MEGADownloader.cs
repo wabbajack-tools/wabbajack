@@ -54,15 +54,9 @@ namespace Wabbajack.Lib.Downloaders
         {
             MegaApiClient.AuthInfos authInfos;
 
-            try
-            {
-                MegaApiClient.Logout();
-            }
-            catch (NotSupportedException)
-            {
-                // Not logged in, so ignore
-            }
-
+            if (MegaApiClient.IsLoggedIn)
+                await MegaApiClient.LogoutAsync();
+            
             try
             {
                 authInfos = MegaApiClient.GenerateAuthInfos(username, password.ToNormalString(), mfa);
@@ -81,7 +75,7 @@ namespace Wabbajack.Lib.Downloaders
             
             try
             {
-                MegaApiClient.Login(authInfos);
+                await MegaApiClient.LoginAsync(authInfos);
             }
             catch (ApiException e)
             {
@@ -98,37 +92,34 @@ namespace Wabbajack.Lib.Downloaders
                     _ => new LoginReturnMessage($"Error during login: {e.Message}", LoginReturnCode.InternalError)
                 };
             }
-
-            if (MegaApiClient.IsLoggedIn)
-            {
-                var infos = MEGAAuthInfos.ToMEGAAuthInfos(authInfos);
-                await infos.ToEcryptedJson(DataName);
-            }
-
-            return new LoginReturnMessage("Logged in successfully, you can now close this window.",
-                !MegaApiClient.IsLoggedIn || !Utils.HaveEncryptedJson(DataName) ? LoginReturnCode.Success : LoginReturnCode.InternalError);
+            
+            var infos = MEGAAuthInfos.ToMEGAAuthInfos(authInfos);
+            await infos.ToEcryptedJson(DataName);
+            return new LoginReturnMessage("Logged in successfully, you can now close this window.", LoginReturnCode.Success);
         }
 
         public MegaDownloader()
         {
             MegaApiClient = new MegaApiClient();
 
-            TriggerLogin = ReactiveCommand.Create(() => { },
+            TriggerLogin = ReactiveCommand
+                .Create(() => { },
                 IsLoggedIn.Select(b => !b).ObserveOnGuiThread());
 
-            ClearLogin = ReactiveCommand.CreateFromTask(() => Utils.CatchAndLog(async () => await Utils.DeleteEncryptedJson(DataName)),
+            ClearLogin = ReactiveCommand
+                .CreateFromTask(() => Utils.CatchAndLog(async () => await Utils.DeleteEncryptedJson(DataName)),
                 IsLoggedIn.ObserveOnGuiThread());
         }
 
         public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
-            var url = archiveINI?.General?.directURL;
+            var url = archiveINI.General?.directURL;
             return GetDownloaderState(url);
         }
 
         public AbstractDownloadState? GetDownloaderState(string url)
         {
-            if (url != null && (url.StartsWith(Consts.MegaPrefix) || url.StartsWith(Consts.MegaFilePrefix)))
+            if ((url.StartsWith(Consts.MegaPrefix) || url.StartsWith(Consts.MegaFilePrefix)))
                 return new State(url);
             return null;
         }
@@ -147,10 +138,10 @@ namespace Wabbajack.Lib.Downloaders
 
             private static MegaApiClient MegaApiClient => DownloadDispatcher.GetInstance<MegaDownloader>().MegaApiClient;
 
-            private static readonly AsyncLock _loginLock = new AsyncLock();
+            private static readonly AsyncLock LoginLock = new();
             private static async Task MegaLogin()
             {
-                using var _ = await _loginLock.WaitAsync();
+                using var _ = await LoginLock.WaitAsync();
 
                 if (MegaApiClient.IsLoggedIn)
                     return;
@@ -171,7 +162,8 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
-                await MegaLogin();
+                if (!MegaApiClient.IsLoggedIn)
+                    await MegaLogin();
 
                 var fileLink = new Uri(Url);
                 Utils.Status($"Downloading MEGA file: {a.Name}");
@@ -183,7 +175,8 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify(Archive a, CancellationToken? token)
             {
-                await MegaLogin();
+                if (!MegaApiClient.IsLoggedIn)
+                    await MegaLogin();
 
                 var fileLink = new Uri(Url);
                 try
@@ -213,7 +206,7 @@ namespace Wabbajack.Lib.Downloaders
         public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable(DataName);
         public string SiteName => "MEGA";
         public IObservable<string> MetaInfo => Observable.Return("");
-        public Uri SiteURL => new Uri("https://mega.nz/");
-        public Uri IconUri => new Uri("https://mega.nz/favicon.ico");
+        public Uri SiteURL => new("https://mega.nz/");
+        public Uri IconUri => new("https://mega.nz/favicon.ico");
     }
 }
