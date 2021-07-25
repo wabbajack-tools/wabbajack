@@ -117,8 +117,10 @@ namespace Wabbajack.Lib.Downloaders
             return GetDownloaderState(url);
         }
 
-        public AbstractDownloadState? GetDownloaderState(string url)
+        public AbstractDownloadState? GetDownloaderState(string? url)
         {
+            if (url == null) return null;
+            
             if ((url.StartsWith(Consts.MegaPrefix) || url.StartsWith(Consts.MegaFilePrefix)))
                 return new State(url);
             return null;

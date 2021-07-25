@@ -20,16 +20,17 @@ namespace Wabbajack.Lib.Downloaders
             return GetDownloaderState(url);
         }
 
-        public AbstractDownloadState? GetDownloaderState(string url)
+        public AbstractDownloadState? GetDownloaderState(string? url)
         {
-            if (url != null && url.StartsWith("https://drive.google.com"))
-            {
-                var regex = new Regex("((?<=id=)[a-zA-Z0-9_-]*)|(?<=\\/file\\/d\\/)[a-zA-Z0-9_-]*");
-                var match = regex.Match(url);
-                return new State(match.ToString());
-            }
+            if (url == null) return null;
 
-            return null;
+            if (!url.StartsWith("https://drive.google.com"))
+                return null;
+
+            var regex = new Regex("((?<=id=)[a-zA-Z0-9_-]*)|(?<=\\/file\\/d\\/)[a-zA-Z0-9_-]*");
+            var match = regex.Match(url);
+            return new State(match.ToString());
+
         }
 
         public async Task Prepare()

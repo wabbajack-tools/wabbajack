@@ -40,9 +40,9 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
-        public AbstractDownloadState? GetDownloaderState(string url)
+        public AbstractDownloadState? GetDownloaderState(string? url)
         {
-            return StateFromUrl(new Uri(url));
+            return url == null ? null : StateFromUrl(new Uri(url));
         }
 
 
