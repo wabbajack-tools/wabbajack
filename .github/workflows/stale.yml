@@ -29,6 +29,6 @@ jobs:
         close-issue-message: "Closed due to inactivity"
         close-pr-message: "Closed due ot inactivity"
         days-before-stale: 180
-        debug-only: true
+        debug-only: false
         operations-per-run: 100
         
