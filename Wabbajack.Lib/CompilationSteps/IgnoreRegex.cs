@@ -14,7 +14,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             _pattern = pattern;
             _reason = $"Ignored because path matches regex {pattern}";
-            _regex = new Regex(pattern);
+            _regex = new Regex(pattern, RegexOptions.Compiled);
         }
 
         public override async ValueTask<Directive?> Run(RawSourceFile source)

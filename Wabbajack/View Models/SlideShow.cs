@@ -132,8 +132,11 @@ namespace Wabbajack
                 canExecute: this.WhenAny(x => x.TargetMod.State.URL)
                     .Select(x =>
                     {
-                        var regex = new Regex("^(http|https):\\/\\/");
-                        return x != null && regex.Match(x.ToString()).Success;
+                        //var regex = new Regex("^(http|https):\\/\\/");
+                        var scheme = x?.Scheme;
+                        return scheme != null && 
+                               (scheme.Equals("https", StringComparison.OrdinalIgnoreCase) ||
+                                scheme.Equals("http", StringComparison.OrdinalIgnoreCase));
                     })
                     .ObserveOnGuiThread());
 
