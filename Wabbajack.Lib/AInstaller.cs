@@ -350,13 +350,13 @@ namespace Wabbajack.Lib
                 });
             */
         }
-
-
+        
+        private static readonly Regex NoDeleteRegex = new(@"(?i)[\\\/]\[NoDelete\]", RegexOptions.Compiled);
         /// <summary>
         /// The user may already have some files in the OutputFolder. If so we can go through these and
         /// figure out which need to be updated, deleted, or left alone
         /// </summary>
-        public async Task OptimizeModlist()
+        protected async Task OptimizeModlist()
         {
             Utils.Log("Optimizing ModList directives");
             
@@ -370,7 +370,6 @@ namespace Wabbajack.Lib
             var savePath = (RelativePath)"saves";
             
             UpdateTracker.NextStep("Looking for files to delete");
-            var regex = new Regex(@"(?i)[\\\/]\[NoDelete\]");
             await OutputFolder.EnumerateFiles()
                 .PMap(Queue, UpdateTracker, async f =>
                 {
@@ -380,7 +379,7 @@ namespace Wabbajack.Lib
 
                     if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return;
                     
-                    if (regex.IsMatch(f.ToString()))
+                    if (NoDeleteRegex.IsMatch(f.ToString()))
                         return;
                         
                     Utils.Log($"Deleting {relativeTo} it's not part of this ModList");

@@ -12,24 +12,23 @@ using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class GoogleDriveDownloader : IDownloader, IUrlDownloader
+    public class GoogleDriveDownloader : IUrlDownloader
     {
         public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
-            var url = archiveINI?.General?.directURL;
+            var url = archiveINI.General?.directURL;
             return GetDownloaderState(url);
         }
 
+        private static readonly Regex GDriveRegex = new("((?<=id=)[a-zA-Z0-9_-]*)|(?<=\\/file\\/d\\/)[a-zA-Z0-9_-]*", RegexOptions.Compiled);
         public AbstractDownloadState? GetDownloaderState(string url)
         {
-            if (url != null && url.StartsWith("https://drive.google.com"))
-            {
-                var regex = new Regex("((?<=id=)[a-zA-Z0-9_-]*)|(?<=\\/file\\/d\\/)[a-zA-Z0-9_-]*");
-                var match = regex.Match(url);
-                return new State(match.ToString());
-            }
+            if (!url.StartsWith("https://drive.google.com"))
+                return null;
 
-            return null;
+            var match = GDriveRegex.Match(url);
+            return new State(match.ToString());
+
         }
 
         public async Task Prepare()

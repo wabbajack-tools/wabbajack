@@ -25,19 +25,18 @@ namespace Wabbajack
         private readonly ReadOnlyObservableCollection<ModListArchive> _archives;
         public ReadOnlyObservableCollection<ModListArchive> Archives => _archives;
 
+        private static readonly Regex NameMatcher = new(@"(?<=\.)[^\.]+(?=\+State)", RegexOptions.Compiled); 
         public ModListContentsVM(MainWindowVM mwvm) : base(mwvm)
         {
             _mwvm = mwvm;
             Status = new ObservableCollectionExtended<DetailedStatusItem>();
             
-
-            Regex nameMatcher = new Regex(@"(?<=\.)[^\.]+(?=\+State)");
             string TransformClassName(Archive a)
             {
                 var cname = a.State.GetType().FullName;
                 if (cname == null) return null;
 
-                var match = nameMatcher.Match(cname);
+                var match = NameMatcher.Match(cname);
                 return match.Success ? match.ToString() : null;
             }
 
