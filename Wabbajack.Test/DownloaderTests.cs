@@ -263,7 +263,8 @@ namespace Wabbajack.Test
             
         }
 
-        [Fact]
+        
+        // [Fact] - Disabled while Moddb is dead
         public async Task ModDbTests()
         {
             var ini = @"[General]
