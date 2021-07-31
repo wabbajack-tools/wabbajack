@@ -18,7 +18,7 @@ namespace Wabbajack.Lib.Downloaders
             return GetDownloaderState(url);
         }
 
-        public AbstractDownloadState? GetDownloaderState(string url)
+        public AbstractDownloadState? GetDownloaderState(string? url)
         {
             if (url != null && url.StartsWith("https://www.moddb.com/downloads/start"))
             {

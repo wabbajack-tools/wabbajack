@@ -21,12 +21,15 @@ namespace Wabbajack.Lib.Downloaders
         }
 
         private static readonly Regex GDriveRegex = new("((?<=id=)[a-zA-Z0-9_-]*)|(?<=\\/file\\/d\\/)[a-zA-Z0-9_-]*", RegexOptions.Compiled);
-        public AbstractDownloadState? GetDownloaderState(string url)
+        public AbstractDownloadState? GetDownloaderState(string? url)
         {
+            if (url == null) return null;
+
             if (!url.StartsWith("https://drive.google.com"))
                 return null;
 
             var match = GDriveRegex.Match(url);
+
             return new State(match.ToString());
 
         }

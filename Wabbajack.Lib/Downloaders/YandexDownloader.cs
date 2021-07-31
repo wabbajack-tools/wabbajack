@@ -22,15 +22,12 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
-        public AbstractDownloadState? GetDownloaderState(string url)
+        public AbstractDownloadState? GetDownloaderState(string? url)
         {
+            if (url == null) return null;
+            
             var uri = new Uri(url);
-            if (uri.Host == "yadi.sk")
-            {
-                return new State(uri);
-            }
-
-            return null;
+            return uri.Host == "yadi.sk" ? new State(uri) : null;
         }
 
         [JsonName("YandexDownloader+State")]

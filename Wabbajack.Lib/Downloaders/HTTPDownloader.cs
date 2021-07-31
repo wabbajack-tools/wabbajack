@@ -23,24 +23,23 @@ namespace Wabbajack.Lib.Downloaders
             return GetDownloaderState(url, archiveINI);
         }
 
-        public AbstractDownloadState? GetDownloaderState(string uri)
+        public AbstractDownloadState? GetDownloaderState(string? uri)
         {
             return GetDownloaderState(uri, null);
         }
 
-        public AbstractDownloadState? GetDownloaderState(string url, dynamic? archiveINI)
+        public AbstractDownloadState? GetDownloaderState(string? url, dynamic? archiveINI)
         {
-            if (url != null)
-            {
-                var tmp = new State(url);
-                if (archiveINI?.General?.directURLHeaders != null)
-                {
-                    tmp.Headers.AddRange(archiveINI?.General.directURLHeaders.Split('|'));
-                }
-                return tmp;
-            }
+            if (url == null)
+                return null;
 
-            return null;
+            var tmp = new State(url);
+            if (archiveINI?.General?.directURLHeaders != null)
+            {
+                tmp.Headers.AddRange(archiveINI?.General.directURLHeaders.Split('|'));
+            }
+            return tmp;
+
         }
 
         public async Task Prepare()

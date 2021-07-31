@@ -92,12 +92,12 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
-        public AbstractDownloadState? GetDownloaderState(string u)
+        public AbstractDownloadState? GetDownloaderState(string? u)
         {
+            if (u == null) return null;
+            
             var url = new Uri(u);
-            if (url.Host != "www.mediafire.com") return null;
-
-            return new State(url.ToString());
+            return url.Host != "www.mediafire.com" ? null : new State(url.ToString());
         }
     }
 }

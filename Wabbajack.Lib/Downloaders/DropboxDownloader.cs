@@ -13,11 +13,12 @@ namespace Wabbajack.Lib.Downloaders
             return GetDownloaderState(urlstring);
         }
 
-        public AbstractDownloadState? GetDownloaderState(string url)
+        public AbstractDownloadState? GetDownloaderState(string? url)
         {
+            if (url == null) return null;
+        
             try
             {
-                if (url == null) return null;
                 var uri = new UriBuilder(url);
                 if (uri.Host != "www.dropbox.com") return null;
                 var query = HttpUtility.ParseQueryString(uri.Query);
