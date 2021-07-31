@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.2.1 - 7/30/2021
+* Update deps to solve Steam game issue
+
 #### Version - 2.5.2.0 - 7/20/2021
 * Added compilation step that allows for automatic uploading to CDN
 * Added CLI command to upload MO2 mods to CDN (and add them to the MO2 downloads)
