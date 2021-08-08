@@ -55,7 +55,9 @@ namespace Wabbajack.Common
         [Description("Kerbal Space Program")]
         KerbalSpaceProgram,
         [Description("Enderal Special Edition")]
-        EnderalSpecialEdition
+        EnderalSpecialEdition,
+        [Description("Nehrim: At Fate's Edge")]
+        Nehrim
     }
 
     public static class GameExtensions
@@ -661,6 +663,24 @@ namespace Wabbajack.Common
                         @"KSP_x64.exe"
                     },
                     MainExecutable = @"KSP_x64.exe"
+                }
+            },
+            {
+                Game.Nehrim, new GameMetaData
+                {
+                    SupportedModManager = ModManager.MO2,
+                    Game = Game.Nehrim,
+                    NexusName = "nehrim",
+                    NexusGameId = 3312,
+                    MO2Name = "Oblivion",
+                    MO2ArchiveName = "oblivion",
+                    SteamIDs = new List<int>{1014940},
+                    RequiredFiles = new List<string>
+                    {
+                        "Oblivion.exe"
+                    },
+                    MainExecutable = "Oblivion.exe",
+                    CommonlyConfusedWith = new []{Game.Oblivion}
                 }
             }
         };
