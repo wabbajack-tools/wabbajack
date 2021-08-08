@@ -673,7 +673,7 @@ namespace Wabbajack.Common
                     NexusName = "nehrim",
                     NexusGameId = 3312,
                     MO2Name = "Oblivion",
-                    MO2ArchiveName = "oblivion",
+                    MO2ArchiveName = "nehrim",
                     SteamIDs = new List<int>{1014940},
                     RequiredFiles = new List<string>
                     {
