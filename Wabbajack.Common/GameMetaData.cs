@@ -672,7 +672,7 @@ namespace Wabbajack.Common
                     Game = Game.Nehrim,
                     NexusName = "nehrim",
                     NexusGameId = 3312,
-                    MO2Name = "Oblivion",
+                    MO2Name = "Nehrim",
                     MO2ArchiveName = "nehrim",
                     SteamIDs = new List<int>{1014940},
                     RequiredFiles = new List<string>
@@ -680,7 +680,8 @@ namespace Wabbajack.Common
                         "Oblivion.exe"
                     },
                     MainExecutable = "Oblivion.exe",
-                    CommonlyConfusedWith = new []{Game.Oblivion}
+                    CommonlyConfusedWith = new []{Game.Oblivion},
+                    CanSourceFrom = new [] {Game.Oblivion}
                 }
             }
         };
