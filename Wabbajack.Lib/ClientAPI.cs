@@ -240,6 +240,7 @@ using Wabbajack.Lib.Downloaders;
 
         public static async Task<VirusScanner.Result> GetVirusScanResult(AbsolutePath path)
         {
+            return VirusScanner.Result.NotMalware;
             var client = await GetClient();
             Utils.Log($"Checking virus result for {path}");
 

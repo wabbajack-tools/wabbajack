@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.2.2 - 8/11/2021
+* Hotfix for compilation errors with TW3 modlists
+
 #### Version - 2.5.2.1 - 7/30/2021
 * Update deps to solve Steam game issue
 
