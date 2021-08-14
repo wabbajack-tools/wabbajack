@@ -55,7 +55,8 @@ namespace Wabbajack.Common
         [Description("Kerbal Space Program")]
         KerbalSpaceProgram,
         [Description("Enderal Special Edition")]
-        EnderalSpecialEdition
+        EnderalSpecialEdition,
+        Nehrim
     }
 
     public static class GameExtensions
@@ -315,7 +316,23 @@ namespace Wabbajack.Common
                     MainExecutable = "Oblivion.exe"
                 }
             },
-
+            {
+                Game.Nehrim, new GameMetaData
+                {
+                    SupportedModManager = ModManager.MO2,
+                    Game = Game.Nehrim,
+                    NexusName = "nehrim",
+                    NexusGameId = 3312,
+                    MO2Name = "Nehrim",
+                    MO2ArchiveName = "nehrim",
+                    SteamIDs = new List<int>{1014940},
+                    RequiredFiles = new List<string>
+                    {
+                        "NehrimInstallSwitch.exe"
+                    },
+                    MainExecutable = "NehrimInstallSwitch.exe"
+                }
+            },
             {
                 Game.Fallout3, new GameMetaData
                 {
