@@ -421,7 +421,8 @@ namespace Wabbajack.Lib
             }
 
             var existingfiles = OutputFolder.EnumerateFiles().ToHashSet();
-            
+            var cacheFiles = HashCache.GetChildrenFromCache(OutputFolder);
+
             UpdateTracker.NextStep("Looking for unmodified files");
             (await indexed.Values.PMap(Queue, UpdateTracker, async d =>
             {
@@ -431,6 +432,10 @@ namespace Wabbajack.Lib
                 var path = OutputFolder.Combine(d.To);
                 if (!existingfiles.Contains(path)) return null;
 
+                if (cacheFiles.TryGetValue(path.ToString(), out (long, Hash) row) && path.LastModifiedUtc.ToFileTimeUtc() == row.Item1)
+                {
+                    return row.Item2 == d.Hash ? d : null;
+                }
                 return await path.FileHashCachedAsync() == d.Hash ? d : null;
             }))
               .Do(d =>

@@ -138,10 +138,6 @@ namespace Wabbajack.Common
             Hash BIGINT)
             WITHOUT ROWID";
             cmd.ExecuteNonQuery();
-
-
-
-
         }
 
         private static (AbsolutePath Path, long LastModified, Hash Hash) GetFromCache(AbsolutePath path)
@@ -159,7 +155,25 @@ namespace Wabbajack.Common
 
             return default;
         }
-        
+
+        public static Dictionary<string, (long, Hash)> GetChildrenFromCache(AbsolutePath path)
+        {
+            using var cmd = new SQLiteCommand(_conn);
+            cmd.CommandText = "SELECT Path, LastModified, Hash FROM HashCache WHERE Path LIKE @path";
+            cmd.Parameters.AddWithValue("@path", path.ToString() + '%');
+            cmd.PrepareAsync();
+
+            Dictionary<string, (long, Hash)> dictionary = new();
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                dictionary.Add(reader.GetString(0), (reader.GetInt64(1), Hash.FromLong(reader.GetInt64(2))));
+            }
+
+            return dictionary;
+        }
+
         private static void PurgeCacheEntry(AbsolutePath path)
         {
             using var cmd = new SQLiteCommand(_conn);
