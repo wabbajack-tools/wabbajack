@@ -78,7 +78,7 @@
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
     <PackageReference Include="PInvoke.User32" Version="0.7.104" />
     <PackageReference Include="ReactiveUI" Version="14.1.1" />
-    <PackageReference Include="ReactiveUI.Fody" Version="14.1.1" />
+    <PackageReference Include="ReactiveUI.Fody" Version="14.3.10" />
     <PackageReference Include="ReactiveUI.WPF" Version="14.1.1" />
     <PackageReference Include="Silk.NET.DXGI" Version="2.6.0" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
