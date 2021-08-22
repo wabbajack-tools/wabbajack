@@ -266,10 +266,10 @@ namespace Wabbajack.VirtualFileSystem
             {
                 return self;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Utils.Log($"Error while examining the contents of {relPath.FileName}");
-                throw;
+                Utils.Log($"Error while examining the contents of {relPath.FileName}: {e.Message}");
+                return self;
             }
 
             await WriteToCache(self);
