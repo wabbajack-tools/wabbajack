@@ -122,8 +122,8 @@ There are some special cases where you want to change the default Wabbajack beha
 
 | Flag | Description | Notes |
 |------|-------------|-------|
-| `WABBAJACK_INCLUDE` | All mod files will be inlined into the `.wabbajack` file | |
-| `WABBAJACK_NOMATCH_INCLUDE` | All mod files will be inlined into the `.wabbajack` file even if Wabbajack did not found a match for them | Useful for custom patches you created |
+| `WABBAJACK_INCLUDE` | All mod files will be inlined into the `.wabbajack` file | **DO NOT USE ON DOWNLOADED MODS** As it would result in you distributing that mod. Can lead to large `.wabbajack` files if used unsparingly |
+| `WABBAJACK_NOMATCH_INCLUDE` | Any unmatched files will be inlined into the `.wabbajack` file | Useful for custom patches or generated files |
 | `WABBAJACK_ALWAYS_ENABLE` | The mod will not be ignored by Wabbajack even if it's disabled | Wabbajack will normally ignore all mods you disabled in MO2 but there are some cases where you might want to give some choice to the end user and want to have the mod included |
 | `WABBAJACK_ALWAYS_DISABLE` | The mod will always be ignored by Wabbajack | Useful if you don't want some mods included in the Modlist but still want to keep it active in your own setup |
 
@@ -133,8 +133,8 @@ You can create an empty `tagfile` with no extention in any folder you want to ap
 
 | Flag/File | Description | Notes |
 |------|-------------|-------|
-| `WABBAJACK_INCLUDE` | All files in this folder will be inlined into the `.wabbajack` file | |
-| `WABBAJACK_NOMATCH_INCLUDE` | All files in this folder will be inlined into the `.wabbajack` file even if Wabbajack did not found a match for them. | Useful for generated files.|
+| `WABBAJACK_INCLUDE` | All files in this folder will be inlined into the `.wabbajack` file | **DO NOT USE ON DOWNLOADED MODS** As it would result in you distributing that mod. Can lead to large `.wabbajack` files if used unsparingly |
+| `WABBAJACK_NOMATCH_INCLUDE` | Any unmatched files will be inlined into the `.wabbajack` file | Useful for custom patches or generated files |
 | `WABBAJACK_IGNORE` | All files in this folder will be ignored by Wabbajack and therefore not be put into into the `.wabbajack` file. | Useful for tools or other things outside a mod you don't want/need reproduced on a users machine. Handle with care since excluded stuff can potentially break a setup.\* |
 | `WABBAJACK_INCLUDE_SAVES` | When this file exists Wabbajack will include your save files in the `.wabbajack` file.| This will remove previous savefiles when the list gets installed as an update. |
 | `WABBAJACK_NOMATCH_INCLUDE_FILES.txt` | All files listed in this file will be included in the `.wabbajack` file. | Every file needs to be in the same folder as the tag file. Every file need to be written into a new line. Every file needs to be added with its file extension.|
