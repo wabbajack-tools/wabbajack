@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Printing;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using F23.StringSimilarity;
 using Newtonsoft.Json;
 using ReactiveUI;
@@ -18,13 +17,15 @@ using Wabbajack.Common.Exceptions;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Downloaders.DTOs;
 using Wabbajack.Lib.Http;
+using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.Validation;
+using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public abstract class AbstractIPS4OAuthDownloader<TDownloader, TState> : INeedsLogin, IDownloader, IWaitForWindowDownloader
-    where TState : AbstractIPS4OAuthDownloader<TDownloader, TState>.State, new()
-    where TDownloader : IDownloader
+    public abstract class AbstractIPS4OAuthDownloader<TDownloader, TState> : INeedsLogin, ICancellableDownloader, IWaitForWindowDownloader
+        where TState : AbstractIPS4OAuthDownloader<TDownloader, TState>.State, new()
+        where TDownloader : IDownloader
     {
         public AbstractIPS4OAuthDownloader(string clientID, Uri authEndpoint, Uri tokenEndpoint, IEnumerable<string> scopes, string encryptedKeyName)
         {
@@ -35,7 +36,19 @@ namespace Wabbajack.Lib.Downloaders
             Scopes = scopes;
 
             TriggerLogin = ReactiveCommand.CreateFromTask(
-                execute: () => Utils.CatchAndLog(async () => await Utils.Log(new RequestOAuthLogin(ClientID, authEndpoint, tokenEndpoint, SiteName, scopes, EncryptedKeyName)).Task),
+                execute: () => Utils.CatchAndLog(() =>
+                {
+                    return Utils.Log(
+                        new RequestOAuthLogin(
+                            ClientID,
+                            authEndpoint,
+                            tokenEndpoint,
+                            SiteName,
+                            scopes,
+                            EncryptedKeyName,
+                            GetClient,
+                            default)).Task;
+                }),
                 canExecute: IsLoggedIn.Select(b => !b).ObserveOnGuiThread());
             ClearLogin = ReactiveCommand.CreateFromTask(
                 execute: () => Utils.CatchAndLog(async () => await Utils.DeleteEncryptedJson(EncryptedKeyName)),
@@ -56,7 +69,6 @@ namespace Wabbajack.Lib.Downloaders
         public IObservable<string>? MetaInfo { get; }
         public abstract Uri SiteURL { get; }
         public virtual Uri? IconUri { get; }
-        public Client? AuthedClient { get; set; }
 
         private AsyncLock _prepareLock = new();
 
@@ -101,7 +113,7 @@ namespace Wabbajack.Lib.Downloaders
         {
             var url = SiteURL + $"api/downloads/files/{modID}";
             var client = await GetAuthedClient();
-            using var response = await client!.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, errorsAsExceptions: false);
+            using var response = await client!.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
             string body = "";
             try
             {
@@ -119,46 +131,76 @@ namespace Wabbajack.Lib.Downloaders
             throw new HttpException(response);
         }
 
+        public Task Prepare() => Prepare(default);
 
-
-        public async Task Prepare()
+        public async Task Prepare(CancellationToken cancellationToken)
         {
             if (_isPrepared) return;
-            AuthedClient = (await GetAuthedClient()) ?? throw new Exception($"Not logged into {SiteName}");
+            _ = await GetAuthedClient(cancellationToken);
             _isPrepared = true;
         }
 
-
-        private async Task<Http.Client?> GetAuthedClient()
+        private async Task<Client> GetAuthedClient(CancellationToken cancellationToken = default)
         {
             using var _ = await _prepareLock.WaitAsync();
+
             if (!Utils.HaveEncryptedJson(EncryptedKeyName))
             {
-                await Utils.CatchAndLog(async () => await Utils.Log(new RequestOAuthLogin(ClientID,
-                    AuthorizationEndpoint, TokenEndpoint, SiteName, Scopes, EncryptedKeyName)).Task);
+                await Utils.CatchAndLog(() =>
+                {
+                    return Utils.Log(
+                        new RequestOAuthLogin(
+                            ClientID,
+                            AuthorizationEndpoint,
+                            TokenEndpoint,
+                            SiteName,
+                            Scopes,
+                            EncryptedKeyName,
+                            GetClient,
+                            cancellationToken)).Task;
+                });
+
                 if (!Utils.HaveEncryptedJson(EncryptedKeyName))
                     Utils.ErrorThrow(new Exception($"Must log into {SiteName} to continue"));
-                
-                return await GetAuthedClient();
             }
 
+            Client client = await GetClient();
+
             var data = await Utils.FromEncryptedJson<OAuthResultState>(EncryptedKeyName);
-            await data.Refresh(SiteName);
-            var client = new Http.Client();
+            try
+            {
+                await data.Refresh(client, SiteName);
+                await Utils.ToEcryptedJson(data, EncryptedKeyName);
+            }
+            catch (CriticalFailureIntervention)
+            {
+                await Utils.DeleteEncryptedJson(EncryptedKeyName);
+                throw;
+            }
+
             client.Headers.Add(("Authorization", $"Bearer {data.AccessToken}"));
+
             return client;
         }
 
-        public async Task WaitForNextRequestWindow()
+        public Task WaitForNextRequestWindow() => Task.CompletedTask;
+
+        private async Task<Client> GetClient()
         {
-            
+            Uri protectedPageUrl = SiteURL;
+
+            var strippedHost = WafProtectedClient.StripUri(protectedPageUrl);
+            var client = new WafProtectedClient(strippedHost);
+
+            client.AddCookies(await Helpers.GetCookies());
+
+            return client;
         }
-        
-                
+
         public abstract class State : AbstractDownloadState, IMetaState
         {
             public long IPS4Mod { get; set; }
-            
+
             public bool IsAttachment { get; set; } = false;
             public string IPS4File { get; set; } = "";
             public string IPS4Url { get; set; } = "";
@@ -293,12 +335,12 @@ namespace Wabbajack.Lib.Downloaders
     [JsonName("OAuthResultState")]
     public class OAuthResultState
     {
-        [JsonProperty("access_token")]
+        [JsonProperty("access_token", Required = Required.Always)]
         public string AccessToken { get; set; } = "";
         
         [JsonProperty("token_type")]
         public string TokenType { get; set; } = "";
-        
+
         [JsonProperty("expires_in")]
         public long ExpiresIn { get; set; }
         
@@ -315,70 +357,102 @@ namespace Wabbajack.Lib.Downloaders
         public Uri? TokenEndpoint { get; set; }
         
         [JsonProperty("expires_at")]
-        public DateTime ExpiresAt { get; set; }
-        
+        public DateTime ExpiresAt
+        {
+            get => Created + TimeSpan.FromSeconds(ExpiresIn);
+        }
+
         [JsonProperty("client_id")]
         public string ClientID { get; set; } = "";
+
+        [JsonProperty("created")]
+        private DateTime Created { get; set; } = DateTime.UtcNow;
 
         internal void FillInData(string authCode, RequestOAuthLogin oa)
         {
             AuthorizationCode = authCode;
             TokenEndpoint = oa.TokenEndpoint;
-            ExpiresAt = DateTime.UtcNow + TimeSpan.FromSeconds(ExpiresIn);
             ClientID = oa.ClientID;
         }
 
-
-        public async Task<bool> Refresh(string siteName = "")
+        public async Task Refresh(Client client, string siteName = "")
         {
+            if (client is null)
+                throw new ArgumentNullException(nameof(client));
+
             if (ExpiresAt > DateTime.UtcNow + TimeSpan.FromHours(6))
-                return true;
-            
-            var client = new Http.Client();
+                return;
+
             var formData = new KeyValuePair<string?, string?>[]
             {
                 new ("grant_type", "refresh_token"), 
                 new ("refresh_token", RefreshToken),
                 new ("client_id", ClientID)
             };
+
+            HttpResponseMessage? response = null;
             try
             {
-                using var response = await client.PostAsync(TokenEndpoint!.ToString(),
+                response = await client.PostAsync(
+                    TokenEndpoint!.ToString(),
                     new FormUrlEncodedContent(formData.ToList()));
-                var responseData = (await response.Content.ReadAsStringAsync()).FromJsonString<OAuthResultState>();
 
+                var responseString = await response.Content.ReadAsStringAsync();
+                var responseData = responseString.FromJsonString<OAuthResultState>();
+
+                Created = responseData.Created;
                 AccessToken = responseData.AccessToken;
                 ExpiresIn = responseData.ExpiresIn;
-                ExpiresAt = DateTime.UtcNow + TimeSpan.FromSeconds(ExpiresIn);
-
-                return true;
+                if (!string.IsNullOrEmpty(responseData.RefreshToken))
+                {
+                    RefreshToken = responseData.RefreshToken;
+                }
             }
             catch (HttpException ex)
             {
                 if (ex.Code == HttpStatusCode.BadRequest)
                 {
-                    Utils.ErrorThrow(new CriticalFailureIntervention(
-                        $"You have been logged out of {siteName} for reasons out of our control, please re-login via the settings panel.",
-                        $"Bad Request: Logged Out - {siteName}"));
+                    StringBuilder errorBuilder = new(
+                        $"You have been logged out of {siteName} for reasons " +
+                        $"out of our control, please re-login via the settings panel.");
+                    try
+                    {
+                        if (response is null)
+                            return;
+
+                        string errorContent = await response.Content.ReadAsStringAsync();
+                        OAuthError error = errorContent.FromJsonString<OAuthError>();
+                        _ = errorBuilder.Append($" Reason: {error.Description} ({error.Error}).");
+                    }
+                    finally
+                    {
+                        Utils.ErrorThrow(new CriticalFailureIntervention(
+                            errorBuilder.ToString(),
+                            $"Bad Request: Logged Out - {siteName}."));
+                    }
                 }
             }
-
-            return true;
         }
-
-
     }
-    
+
     public class RequestOAuthLogin : AUserIntervention
     {
         public string ClientID { get; }
         public Uri AuthorizationEndpoint { get; }
         public Uri TokenEndpoint { get; }
         public string SiteName { get; }
-        
+
         public string[] Scopes { get; }
-            
-        public RequestOAuthLogin(string clientID, Uri authEndpoint, Uri tokenEndpoint, string siteName, IEnumerable<string> scopes, string key)
+
+        public RequestOAuthLogin(
+            string clientID,
+            Uri authEndpoint,
+            Uri tokenEndpoint,
+            string siteName,
+            IEnumerable<string> scopes,
+            string key,
+            Func<Task<Client>> clientFactory,
+            CancellationToken cancellationToken)
         {
             ClientID = clientID;
             AuthorizationEndpoint = authEndpoint;
@@ -386,6 +460,8 @@ namespace Wabbajack.Lib.Downloaders
             SiteName = siteName;
             Scopes = scopes.ToArray();
             EncryptedDataKey = key;
+            _clientFactory = clientFactory;
+            _ = cancellationToken.Register(() => _source.TrySetCanceled());
         }
 
         public string EncryptedDataKey { get; set; }
@@ -393,32 +469,53 @@ namespace Wabbajack.Lib.Downloaders
         public override string ShortDescription => $"Getting {SiteName} Login";
         public override string ExtendedDescription { get; } = string.Empty;
 
-        private readonly TaskCompletionSource<OAuthResultState> _source = new ();
+        private readonly TaskCompletionSource<OAuthResultState> _source = new();
+
+        private readonly Func<Task<Client>> _clientFactory;
+
         public Task<OAuthResultState> Task => _source.Task;
 
         public async Task Resume(string authCode)
         {
-            Handled = true;
-
-            var client = new Http.Client();
-            var formData = new KeyValuePair<string?, string?>[]
+            try
             {
-                new ("grant_type", "authorization_code"), 
-                new ("code", authCode), 
-                new ("client_id", ClientID)
-            };
-            using var response = await client.PostAsync(TokenEndpoint.ToString(), new FormUrlEncodedContent(formData.ToList()));
-            var responseData = (await response.Content.ReadAsStringAsync()).FromJsonString<OAuthResultState>();
-            responseData.FillInData(authCode, this);
+                if (string.IsNullOrWhiteSpace(authCode))
+                    throw new ArgumentException($"'{nameof(authCode)}' cannot be null or whitespace.", nameof(authCode));
 
-            await responseData.ToEcryptedJson(EncryptedDataKey);
-            _source.SetResult(new OAuthResultState());
+                Handled = true;
+                string responseText = string.Empty;
+                using FormUrlEncodedContent formContent = new(
+                    new KeyValuePair<string?, string?>[]
+                    {
+                        new ("grant_type", "authorization_code"),
+                        new ("code", authCode),
+                        new ("client_id", ClientID)
+                    });
+
+                var client = await _clientFactory();
+                using var response = await client.PostAsync(TokenEndpoint.ToString(), formContent);
+                responseText = await response.Content.ReadAsStringAsync();
+
+                if (string.IsNullOrWhiteSpace(responseText))
+                    throw new InvalidDataException($"Authentication response is empty.");
+
+                var responseData = responseText.FromJsonString<OAuthResultState>();
+                responseData.FillInData(authCode, this);
+
+                await responseData.ToEcryptedJson(EncryptedDataKey);
+
+                _ = _source.TrySetResult(new OAuthResultState());
+            }
+            catch (Exception ex)
+            {
+                _ = _source.TrySetException(ex);
+            }
         }
 
         public override void Cancel()
         {
             Handled = true;
-            _source.TrySetCanceled();
+            _ = _source.TrySetCanceled();
         }
     }
 }
