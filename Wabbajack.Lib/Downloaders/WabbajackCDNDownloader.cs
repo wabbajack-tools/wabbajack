@@ -36,9 +36,7 @@ namespace Wabbajack.Lib.Downloaders
             return url == null ? null : StateFromUrl(url);
         }
 
-        public async Task Prepare()
-        {
-        }
+        public Task Prepare() => Task.CompletedTask;
 
         public AbstractDownloadState? GetDownloaderState(string? url)
         {
@@ -116,11 +114,11 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify(Archive archive, CancellationToken? token)
             {
-                var definition = await GetDefinition(token);
+                var definition = await GetDefinition(token ?? default);
                 return true;
             }
 
-            private async Task<HttpResponseMessage> GetWithCDNRetry(Http.Client client, string url, CancellationToken? token = null)
+            private async Task<HttpResponseMessage> GetWithCDNRetry(Http.Client client, string url, CancellationToken token = default)
             {
                 int retries = 0;
 
@@ -149,7 +147,7 @@ namespace Wabbajack.Lib.Downloaders
                 return await client.GetAsync(url, retry: false);
             }
             
-            private async Task<CDNFileDefinition> GetDefinition(CancellationToken? token = null)
+            private async Task<CDNFileDefinition> GetDefinition(CancellationToken token = default)
             {
                 var client = new Wabbajack.Lib.Http.Client();
                 if (DomainRemaps.TryGetValue(Url.Host, out var remap))

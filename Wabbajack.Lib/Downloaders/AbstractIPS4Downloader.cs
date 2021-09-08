@@ -187,7 +187,7 @@ namespace Wabbajack.Lib.Downloaders
                 return await ResolveDownloadStream(a, destination, false);
             }
 
-            private async Task<bool> ResolveDownloadStream(Archive a, AbsolutePath path, bool quickMode, CancellationToken? token = null)
+            private async Task<bool> ResolveDownloadStream(Archive a, AbsolutePath path, bool quickMode, CancellationToken token = default)
             {
 
                 
@@ -287,10 +287,11 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 streamResult.Dispose();
                 Utils.Status("Retrying download");
+
                 goto TOP;
             }
 
-            private async Task<string?> GetCsrfKey(CancellationToken? token)
+            private async Task<string?> GetCsrfKey(CancellationToken token)
             {
                 var csrfURL = string.IsNullOrWhiteSpace(FileID)
                     ? $"{Site}/files/file/{FileName}/?do=download"
@@ -322,7 +323,7 @@ namespace Wabbajack.Lib.Downloaders
                 if (Downloader.IsCloudFlareProtected) 
                     await ((IWaitForWindowDownloader)Downloader).WaitForNextRequestWindow();
                 await using var tp = new TempFile();
-                var isValid = await ResolveDownloadStream(a, tp.Path, true, token: token);
+                var isValid = await ResolveDownloadStream(a, tp.Path, true, token: token ?? default);
                 return isValid;
             }
             
@@ -403,7 +404,7 @@ namespace Wabbajack.Lib.Downloaders
                 return IsAttachment ? FullURL : $"{Site}/files/file/{FileName}/?do=download&r={FileID}";
             }
 
-            public async Task<string> GetStringAsync(Uri uri, CancellationToken? token = null)
+            public async Task<string> GetStringAsync(Uri uri, CancellationToken token = default)
             {
                 if (!Downloader.IsCloudFlareProtected)
                     return await Downloader.AuthedClient.GetStringAsync(uri, token);
@@ -418,7 +419,7 @@ namespace Wabbajack.Lib.Downloaders
                 //var cookies = await ClientAPI.GetAuthInfo<Helpers.Cookie[]>("loverslabcookies");
                 //await Helpers.IngestCookies(uri.ToString(), cookies);
                 await driver.NavigateTo(uri, token);
-                if ((token ?? CancellationToken.None).IsCancellationRequested)
+                if (token.IsCancellationRequested)
                     return "";
 
                 var source = await driver.GetSourceAsync();
@@ -439,8 +440,8 @@ namespace Wabbajack.Lib.Downloaders
                 */
                 return source;
             }
-            
-            public async Task<HtmlDocument> GetHtmlAsync(Uri s, CancellationToken? token = null)
+
+            public async Task<HtmlDocument> GetHtmlAsync(Uri s, CancellationToken token = default)
             {
                 var body = await GetStringAsync(s, token);
                 var doc = new HtmlDocument();

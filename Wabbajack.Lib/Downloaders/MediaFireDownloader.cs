@@ -46,10 +46,10 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify(Archive a, CancellationToken? token)
             {
-                return await Resolve(token) != null;
+                return await Resolve(token ?? default) != null;
             }
 
-            private async Task<HTTPDownloader.State?> Resolve(CancellationToken? token = null)
+            private async Task<HTTPDownloader.State?> Resolve(CancellationToken token = default)
             {
                 var client = new Http.Client();
                 var result = await client.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead, token:token);
@@ -88,9 +88,7 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
-        public async Task Prepare()
-        {
-        }
+        public Task Prepare() => Task.CompletedTask;
 
         public AbstractDownloadState? GetDownloaderState(string? u)
         {

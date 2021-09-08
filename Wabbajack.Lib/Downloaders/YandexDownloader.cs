@@ -18,9 +18,7 @@ namespace Wabbajack.Lib.Downloaders
             return uri.Host == "yadi.sk" ? new State(uri) : null;
         }
 
-        public async Task Prepare()
-        {
-        }
+        public Task Prepare() => Task.CompletedTask;
 
         public AbstractDownloadState? GetDownloaderState(string? url)
         {
@@ -60,7 +58,7 @@ namespace Wabbajack.Lib.Downloaders
             public override async Task<bool> Verify(Archive archive, CancellationToken? token)
             {
                 var client = new Wabbajack.Lib.Http.Client();
-                var result = await client.GetAsync(Url, errorsAsExceptions: false, token: token);
+                var result = await client.GetAsync(Url, errorsAsExceptions: false, token: token ?? default);
                 return result.IsSuccessStatusCode;
             }
 

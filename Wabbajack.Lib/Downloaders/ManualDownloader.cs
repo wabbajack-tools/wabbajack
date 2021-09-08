@@ -30,9 +30,7 @@ namespace Wabbajack.Lib.Downloaders
             return url != null ? new State(url) : null;
         }
 
-        public async Task Prepare()
-        {
-        }
+        public Task Prepare() => Task.CompletedTask;
 
         [JsonName("ManualDownloader")]
         public class State : AbstractDownloadState

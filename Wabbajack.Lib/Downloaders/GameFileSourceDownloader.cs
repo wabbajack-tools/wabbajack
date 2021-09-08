@@ -38,9 +38,7 @@ namespace Wabbajack.Lib.Downloaders
             };
         }
 
-        public async Task Prepare()
-        {
-        }
+        public Task Prepare() => Task.CompletedTask;
 
         [JsonName("GameFileSourceDownloader")]
         public class State : AbstractDownloadState

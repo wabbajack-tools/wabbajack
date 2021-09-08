@@ -126,9 +126,7 @@ namespace Wabbajack.Lib.Downloaders
             return null;
         }
 
-        public async Task Prepare()
-        {
-        }
+        public Task Prepare() => Task.CompletedTask;
 
         [JsonName("MegaDownloader")]
         public class State : HTTPDownloader.State

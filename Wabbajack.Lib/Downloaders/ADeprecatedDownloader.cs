@@ -17,11 +17,8 @@ namespace Wabbajack.Lib.Downloaders
             return null;
         }
 
-        public async Task Prepare()
-        {
-            return;
-        }
-        
+        public Task Prepare() => Task.CompletedTask;
+
         public class State : AbstractDownloadState
         {
             [JsonName("PrimaryKeyString")] private string _primaryKeyString { get; set; } = "";

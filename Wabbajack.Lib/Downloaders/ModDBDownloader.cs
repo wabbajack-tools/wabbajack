@@ -28,9 +28,7 @@ namespace Wabbajack.Lib.Downloaders
             return null;
         }
 
-        public async Task Prepare()
-        {
-        }
+        public Task Prepare() => Task.CompletedTask;
 
         [JsonName("ModDBDownloader")]
         public class State : AbstractDownloadState

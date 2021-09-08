@@ -22,50 +22,49 @@ namespace Wabbajack.Lib.Http
 
         public List<(string, string?)> Headers = new List<(string, string?)>();
         public List<Cookie> Cookies = new List<Cookie>();
-        public async Task<HttpResponseMessage> GetAsync(string url, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true, bool retry = true, CancellationToken? token = null)
+        public async Task<HttpResponseMessage> GetAsync(string url, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true, bool retry = true, CancellationToken token = default)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             return await SendAsync(request, responseHeadersRead, errorsAsExceptions: errorsAsExceptions, retry: retry, token: token);
         }
-        
-        public async Task<HttpResponseMessage> GetAsync(Uri url, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true, CancellationToken? token = null)
+
+        public async Task<HttpResponseMessage> GetAsync(Uri url, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true, CancellationToken token = default)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            return await SendAsync(request, responseHeadersRead, errorsAsExceptions: errorsAsExceptions, token:token);
+            return await SendAsync(request, responseHeadersRead, errorsAsExceptions: errorsAsExceptions, token: token);
         }
-        
-        
+
         public async Task<HttpResponseMessage> PostAsync(string url, HttpContent content, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, url) {Content = content};
+            var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
             return await SendAsync(request, responseHeadersRead, errorsAsExceptions);
         }
-        
+
         public async Task<HttpResponseMessage> PutAsync(string url, HttpContent content, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead)
         {
-            var request = new HttpRequestMessage(HttpMethod.Put, url) {Content = content};
+            var request = new HttpRequestMessage(HttpMethod.Put, url) { Content = content };
             return await SendAsync(request, responseHeadersRead);
         }
-        
-        public async Task<string> GetStringAsync(string url, CancellationToken? token = null)
+
+        public async Task<string> GetStringAsync(string url, CancellationToken token = default)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             return await SendStringAsync(request, token: token);
         }
-        
-        public async Task<string> GetStringAsync(Uri url, CancellationToken? token = null)
+
+        public async Task<string> GetStringAsync(Uri url, CancellationToken token = default)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             return await SendStringAsync(request, token: token);
         }
-        
+
         public async Task<string> DeleteStringAsync(string url)
         {
             var request = new HttpRequestMessage(HttpMethod.Delete, url);
             return await SendStringAsync(request);
         }
 
-        private async Task<string> SendStringAsync(HttpRequestMessage request, CancellationToken? token = null)
+        private async Task<string> SendStringAsync(HttpRequestMessage request, CancellationToken token = default)
         {
             using var result = await SendAsync(request, token: token);
             if (!result.IsSuccessStatusCode)
@@ -78,7 +77,12 @@ namespace Wabbajack.Lib.Http
             return await result.Content.ReadAsStringAsync();
         }
 
-        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage msg, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true, bool retry = true, CancellationToken? token = null)
+        public async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage msg,
+            HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead,
+            bool errorsAsExceptions = true,
+            bool retry = true,
+            CancellationToken token = default)
         {
             msg = FixupMessage(msg);
             foreach (var (k, v) in Headers)
@@ -96,7 +100,7 @@ namespace Wabbajack.Lib.Http
             TOP:
             try
             {
-                response = await ClientFactory.Client.SendAsync(msg, responseHeadersRead, token ?? CancellationToken.None);
+                response = await ClientFactory.Client.SendAsync(msg, responseHeadersRead, token);
                 if (response.IsSuccessStatusCode) return response;
 
                 if (errorsAsExceptions)
@@ -118,7 +122,7 @@ namespace Wabbajack.Lib.Http
                     var ms = Utils.NextRandom(100, 1000);
                     Utils.Log($"Got a {http.Code} from {msg.RequestUri} retrying in {ms}ms");
 
-                    await Task.Delay(ms, token ?? CancellationToken.None);
+                    await Task.Delay(ms, token);
                     msg = CloneMessage(msg);
                     goto TOP;
                 }
@@ -127,7 +131,7 @@ namespace Wabbajack.Lib.Http
                 retries++;
                 Utils.LogStraightToFile(ex.ToString());
                 Utils.Log($"Http Connect error to {msg.RequestUri} retry {retries}");
-                await Task.Delay(100 * retries, token ?? CancellationToken.None);
+                await Task.Delay(100 * retries, token);
                 msg = CloneMessage(msg);
                 goto TOP;
 
@@ -175,7 +179,7 @@ namespace Wabbajack.Lib.Http
             return result.FromJsonString<T>();
         }
 
-        public async Task<HtmlDocument> GetHtmlAsync(string s, CancellationToken? token = null)
+        public async Task<HtmlDocument> GetHtmlAsync(string s, CancellationToken token = default)
         {
             var body = await GetStringAsync(s, token: token);
             var doc = new HtmlDocument();

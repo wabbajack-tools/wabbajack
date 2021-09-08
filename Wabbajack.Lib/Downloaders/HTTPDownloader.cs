@@ -42,9 +42,7 @@ namespace Wabbajack.Lib.Downloaders
 
         }
 
-        public async Task Prepare()
-        {
-        }
+        public Task Prepare() => Task.CompletedTask;
 
         [JsonName("HttpDownloader")]
         public class State : AbstractDownloadState, IUpgradingState
@@ -74,7 +72,7 @@ namespace Wabbajack.Lib.Downloaders
                 return DoDownload(a, destination, true);
             }
 
-            public async Task<bool> DoDownload(Archive a, AbsolutePath destination, bool download, CancellationToken? token = null)
+            public async Task<bool> DoDownload(Archive a, AbsolutePath destination, bool download, CancellationToken token = default)
             {
                 if (download)
                 {
@@ -145,7 +143,7 @@ namespace Wabbajack.Lib.Downloaders
                     var buffer = new byte[bufferSize];
                     int readThisCycle = 0;
 
-                    while (!(token ?? CancellationToken.None).IsCancellationRequested)
+                    while (!token.IsCancellationRequested)
                     {
                         int read = 0;
                         try
@@ -198,7 +196,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify(Archive a, CancellationToken? token)
             {
-                return await DoDownload(a, ((RelativePath)"").RelativeToEntryPoint(), false, token: token);
+                return await DoDownload(a, ((RelativePath)"").RelativeToEntryPoint(), false, token: token ?? default);
             }
 
             public override IDownloader GetDownloader()

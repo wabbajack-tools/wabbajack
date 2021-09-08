@@ -122,9 +122,8 @@ namespace Wabbajack
             var scopes = string.Join(" ", oa.Scopes);
             var state = Guid.NewGuid().ToString();
 
-
             var oldHandler = Helpers.SchemeHandler;
-            Helpers.SchemeHandler = (browser, frame, _, request) =>
+            Helpers.SchemeHandler = (browser, frame, schema, request) =>
             {
                 var req = new Uri(request.Url);
                 Utils.LogStraightToFile($"Got Scheme callback {req}");

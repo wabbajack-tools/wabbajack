@@ -39,8 +39,6 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
-        public async Task Prepare()
-        {
-        }
+        public Task Prepare() => Task.CompletedTask;
     }
 }
