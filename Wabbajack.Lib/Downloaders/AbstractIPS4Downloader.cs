@@ -234,46 +234,7 @@ namespace Wabbajack.Lib.Downloaders
                 var contentType = streamResult.Content.Headers.ContentType;
 
                 if (contentType!.MediaType != "application/json")
-                {
-                    var headerVar = a.Size == 0 ? "1" : a.Size.ToString();
-                    long headerContentSize = 0;
-                    if (streamResult.Content.Headers.Contains("Content-Length"))
-                    {
-                        headerVar = streamResult.Content.Headers.GetValues("Content-Length").FirstOrDefault();
-                        if (headerVar != null)
-                            long.TryParse(headerVar, out headerContentSize);
-                    }
-                    
-                    if (a.Size != 0 && headerContentSize != 0 && a.Size != headerContentSize)
-                    {
-                        Utils.Log($"Bad Header Content sizes {a.Size} vs {headerContentSize}");
-                        return false;
-                    }
-
-                    if (quickMode)
-                    {
-                        streamResult.Dispose();
-                        return true;
-                    }
-
-                    await using (var os = await path.Create())
-                    await using (var ins = await streamResult.Content.ReadAsStreamAsync())
-                    {
-                        if (a.Size == 0)
-                        {
-                            Utils.Status($"Downloading {a.Name}");
-                            await ins.CopyToAsync(os);
-                        }
-                        else
-                        {
-                            await ins.CopyToWithStatusAsync(headerContentSize, os, $"Downloading {a.Name}");
-                        }
-                    }
-
-                    streamResult.Dispose();
-
-                    return true;
-                }
+                    return await TrySave(streamResult, a, path, quickMode);
 
                 // Sometimes LL hands back a json object telling us to wait until a certain time
                 var times = (await streamResult.Content.ReadAsStringAsync()).FromJsonString<WaitResponse>();

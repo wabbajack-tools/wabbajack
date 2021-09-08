@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -156,7 +157,40 @@ namespace Wabbajack.Lib.Downloaders
         {
             return await ServerValidateUpgrade(srcHash, newArchiveState);
         }
-        
 
+        internal static async Task<bool> TrySave(HttpResponseMessage streamResult, Archive archive, AbsolutePath path, bool quickMode = false)
+        {
+            long headerContentSize = streamResult.Content.Headers.ContentLength ?? 0;
+
+            if (archive.Size != 0 && headerContentSize != 0 && archive.Size != headerContentSize)
+            {
+                Utils.Log($"Bad Header Content sizes {archive.Size} vs {headerContentSize}");
+                return false;
+            }
+
+            if (quickMode)
+            {
+                streamResult.Dispose();
+                return true;
+            }
+
+            await using (var fileStream = await path.Create())
+            await using (var contentStream = await streamResult.Content.ReadAsStreamAsync())
+            {
+                if (archive.Size == 0)
+                {
+                    Utils.Status($"Downloading {archive.Name}");
+                    await contentStream.CopyToAsync(fileStream);
+                }
+                else
+                {
+                    await contentStream.CopyToWithStatusAsync(headerContentSize, fileStream, $"Downloading {archive.Name}");
+                }
+            }
+
+            streamResult.Dispose();
+
+            return true;
+        }
     }
 }
