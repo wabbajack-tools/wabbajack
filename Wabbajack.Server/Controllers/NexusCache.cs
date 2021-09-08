@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -104,7 +105,7 @@ namespace Wabbajack.BuildServer.Controllers
                 }
                 catch (HttpException ex)
                 {
-                    if (ex.Code == 403)
+                    if (ex.Code == HttpStatusCode.Forbidden)
                         result = new NexusApiClient.GetModFilesResponse {files = new List<NexusFileInfo>()};
                     else
                         throw;

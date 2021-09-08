@@ -15,6 +15,11 @@ namespace Wabbajack.Lib.Http
 {
     public class Client
     {
+        /// <summary>
+        /// Web server is down status code (CloudFlare).
+        /// </summary>
+        private const HttpStatusCode CloudFlareServerIsDown = (HttpStatusCode)521;
+
         public List<(string, string?)> Headers = new List<(string, string?)>();
         public List<Cookie> Cookies = new List<Cookie>();
         public async Task<HttpResponseMessage> GetAsync(string url, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true, bool retry = true, CancellationToken? token = null)
@@ -107,7 +112,7 @@ namespace Wabbajack.Lib.Http
                 if (!retry) throw;
                 if (ex is HttpException http)
                 {
-                    if (http.Code != 503 && http.Code != 521) throw;
+                    if (http.Code != HttpStatusCode.ServiceUnavailable && http.Code != CloudFlareServerIsDown) throw;
 
                     retries++;
                     var ms = Utils.NextRandom(100, 1000);

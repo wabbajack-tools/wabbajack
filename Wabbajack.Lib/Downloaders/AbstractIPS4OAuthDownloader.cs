@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Printing;
@@ -352,7 +353,7 @@ namespace Wabbajack.Lib.Downloaders
             }
             catch (HttpException ex)
             {
-                if (ex.Code == 400)
+                if (ex.Code == HttpStatusCode.BadRequest)
                 {
                     Utils.ErrorThrow(new CriticalFailureIntervention(
                         $"You have been logged out of {siteName} for reasons out of our control, please re-login via the settings panel.",
