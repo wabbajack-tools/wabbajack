@@ -225,8 +225,11 @@ namespace Wabbajack.Lib.NexusApi
         {
             try
             {
-                _dailyRemaining = int.Parse(response.Headers.GetValues("x-rl-daily-remaining").First());
-                _hourlyRemaining = int.Parse(response.Headers.GetValues("x-rl-hourly-remaining").First());
+                if (response.Headers.TryGetValues("x-rl-daily-remaining", out var dailyRemainingValues))
+                    _ = int.TryParse(dailyRemainingValues.First(), out _dailyRemaining);
+
+                if (response.Headers.TryGetValues("x-rl-hourly-remaining", out var hourlyRemainingValues))
+                    _ = int.TryParse(hourlyRemainingValues.First(), out _hourlyRemaining);
 
                 this.RaisePropertyChanged(nameof(DailyRemaining));
                 this.RaisePropertyChanged(nameof(HourlyRemaining));
