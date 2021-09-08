@@ -217,10 +217,13 @@ namespace Wabbajack.Lib.Downloaders
                 if (IsAttachment)
                 {
                     var downloader = TypedDownloader;
-                    using var driver = await WebAutomation.Driver.Create();
                     var modUri = new Uri(downloader.SiteURL, $"applications/core/interface/file/attachment.php?id={IPS4Mod}");
-                    await driver.NavigateToAndDownload(modUri, destination);
-                    return true;
+
+                    var client = await downloader.GetAuthedClient();
+                    var response = await client.GetAsync(modUri);
+                    var modStream = await response.Content.ReadAsStreamAsync();
+
+                    return await TrySave(response, a, destination);
                 }
                 else
                 {
@@ -241,14 +244,16 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify(Archive archive, CancellationToken? token = null)
             {
+                CancellationToken cancellationToken = token ?? default;
                 if (IsAttachment)
                 {
                     var downloader = TypedDownloader;
-                    using var driver = await WebAutomation.Driver.Create();
-                    await using var tmp = new TempFile();
                     var modUri = new Uri(downloader.SiteURL, $"applications/core/interface/file/attachment.php?id={IPS4Mod}");
-                    var foundSize = await driver.NavigateToAndDownload(modUri, tmp.Path);
-                    return archive.Size == 0 || foundSize == archive.Size;
+
+                    var client = await downloader.GetAuthedClient();
+                    var response = await client.GetAsync(modUri, token: token ?? default);
+
+                    return archive.Size == 0 || response.Content.Headers.ContentLength == archive.Size;
                 }
                 else
                 {
