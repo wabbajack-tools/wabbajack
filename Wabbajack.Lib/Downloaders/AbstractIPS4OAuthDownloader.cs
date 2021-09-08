@@ -85,8 +85,10 @@ namespace Wabbajack.Lib.Downloaders
                     return null;
                 var state = new TState
                 {
-                    IPS4Mod = parsedMod, IPS4File = archiveINI.General.ips4File, IsAttachment = true,
-                    IPS4Url=$"{SiteURL}/applications/core/interface/file/attachment.php?id={parsedMod}"
+                    IPS4Mod = parsedMod,
+                    IPS4File = archiveINI.General.ips4File,
+                    IsAttachment = true,
+                    IPS4Url = new Uri(SiteURL, $"applications/core/interface/file/attachment.php?id={parsedMod}").AbsoluteUri
                 };
 
                 return state;
@@ -174,8 +176,8 @@ namespace Wabbajack.Lib.Downloaders
                 {
                     var downloader = TypedDownloader;
                     using var driver = await WebAutomation.Driver.Create();
-                    await driver.NavigateToAndDownload(
-                        new Uri($"{downloader.SiteURL}/applications/core/interface/file/attachment.php?id={IPS4Mod}"), destination);
+                    var modUri = new Uri(downloader.SiteURL, $"applications/core/interface/file/attachment.php?id={IPS4Mod}");
+                    await driver.NavigateToAndDownload(modUri, destination);
                     return true;
                 }
                 else
@@ -202,8 +204,8 @@ namespace Wabbajack.Lib.Downloaders
                     var downloader = TypedDownloader;
                     using var driver = await WebAutomation.Driver.Create();
                     await using var tmp = new TempFile();
-                    var foundSize = await driver.NavigateToAndDownload(
-                        new Uri($"{downloader.SiteURL}/applications/core/interface/file/attachment.php?id={IPS4Mod}"), tmp.Path);
+                    var modUri = new Uri(downloader.SiteURL, $"applications/core/interface/file/attachment.php?id={IPS4Mod}");
+                    var foundSize = await driver.NavigateToAndDownload(modUri, tmp.Path);
                     return archive.Size == 0 || foundSize == archive.Size;
                 }
                 else

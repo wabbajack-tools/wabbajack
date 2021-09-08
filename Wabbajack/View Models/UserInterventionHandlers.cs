@@ -148,8 +148,9 @@ namespace Wabbajack
                 }
                 return new ResourceHandler();
             };
-            
-            await wrapper.NavigateTo(new Uri(oa.AuthorizationEndpoint + $"?response_type=code&client_id={oa.ClientID}&state={state}&scope={scopes}"));
+
+            string uri = oa.AuthorizationEndpoint + $"?response_type=code&client_id={oa.ClientID}&state={state}&scope={scopes}";
+            await wrapper.NavigateTo(new Uri(uri));
 
             while (!oa.Task.IsCanceled && !oa.Task.IsCompleted && !cancel.IsCancellationRequested)
                 await Task.Delay(250);
