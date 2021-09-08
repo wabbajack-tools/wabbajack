@@ -1,27 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Threading;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
-using Wabbajack.Lib.Http;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
-using Wabbajack.Lib.WebAutomation;
 using Xunit;
 using Xunit.Abstractions;
-using Directory = System.IO.Directory;
-using File = Alphaleonis.Win32.Filesystem.File;
 using Game = Wabbajack.Common.Game;
-using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Test
 {
@@ -291,13 +283,13 @@ namespace Wabbajack.Test
             Assert.Equal(Hash.FromBase64("2lZt+1h6wxM="), await filename.Path.FileHashAsync());
         }
 
-
         [Fact]
         public async Task CanFindOtherLLMods()
         {
+            using var timeoutSource = GetDefaultTimeoutSource();
             var downloader = DownloadDispatcher.GetInstance<LoversLabOAuthDownloader>();
-            await downloader.Prepare();
-           
+            await downloader.Prepare(timeoutSource.Token);
+
             var ini = @"[General]
                     ips4Site=Lovers Lab
                     ips4Mod=11116
@@ -305,16 +297,16 @@ namespace Wabbajack.Test
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
             var otherfiles = await ((LoversLabOAuthDownloader.LoversLabState)state).GetFilesInGroup();
-            
+
             // Throws a NPE
             var data = await downloader.GetDownloads(9023);
         }
-        
 
         [Fact]
         public async Task CanGetLLMetadata()
         {
-            await DownloadDispatcher.GetInstance<LoversLabOAuthDownloader>().Prepare();
+            using var timeoutSource = GetDefaultTimeoutSource();
+            await DownloadDispatcher.GetInstance<LoversLabOAuthDownloader>().Prepare(timeoutSource.Token);
             var ini = @"[General]
                         ips4Site=Lovers Lab
                         ips4Mod=11116
@@ -328,9 +320,8 @@ namespace Wabbajack.Test
         [Fact]
         public async Task LoversLabDownload()
         {
-
-            
-            await DownloadDispatcher.GetInstance<LoversLabOAuthDownloader>().Prepare();
+            using var timeoutSource = GetDefaultTimeoutSource();
+            await DownloadDispatcher.GetInstance<LoversLabOAuthDownloader>().Prepare(timeoutSource.Token);
             var ini = @"[General]
                         ips4Site=Lovers Lab
                         ips4Mod=11116
@@ -361,9 +352,8 @@ namespace Wabbajack.Test
         [Fact]
         public async Task LoversLabAttachmentDownload()
         {
-
-            
-            await DownloadDispatcher.GetInstance<LoversLabOAuthDownloader>().Prepare();
+            using var timeoutSource = GetDefaultTimeoutSource();
+            await DownloadDispatcher.GetInstance<LoversLabOAuthDownloader>().Prepare(timeoutSource.Token);
             var ini = @"[General]
                         ips4Site=Lovers Lab
                         ips4Attachment=853295";
@@ -398,11 +388,17 @@ namespace Wabbajack.Test
             var state = (DeprecatedLoversLabDownloader.State)(AbsolutePath.EntryPoint.Combine(@"Resources\LoversLabState.json").FromJson<Archive>().State);
             Assert.Equal("DeprecatedLoversLabDownloader+State|", state.PrimaryKeyString);
         }
-        
+
+        private static CancellationTokenSource GetDefaultTimeoutSource() =>
+            GetTimeoutSource(TimeSpan.FromSeconds(10));
+
+        private static CancellationTokenSource GetTimeoutSource(TimeSpan timeout) => new(timeout);
+
         [Fact]
         public async Task VectorPlexusDownload()
         {
-            await DownloadDispatcher.GetInstance<VectorPlexusOAuthDownloader>().Prepare();
+            using var timeoutSource = GetDefaultTimeoutSource();
+            await DownloadDispatcher.GetInstance<VectorPlexusOAuthDownloader>().Prepare(timeoutSource.Token);
             var ini = @"[General]
                         ips4Site=Vector Plexus
                         ips4Mod=290
