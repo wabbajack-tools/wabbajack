@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CefSharp;
 using Wabbajack.Common;
 using Wabbajack.Common.Exceptions;
+using Wabbajack.Lib.Http;
 using Wabbajack.Lib.LibCefHelpers;
 
 namespace Wabbajack.Lib.WebAutomation
@@ -26,23 +22,49 @@ namespace Wabbajack.Lib.WebAutomation
             _browser.LifeSpanHandler = new PopupBlocker(this);
         }
 
-        public Task NavigateTo(Uri uri, CancellationToken? token = null)
+        public Task NavigateTo(Uri uri, CancellationToken? token = null) => NavigateTo(uri, false, token);
+
+        private async Task NavigateTo(Uri uri, bool isFinalAttempt, CancellationToken? token = null)
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var navigateTaskSource = new TaskCompletionSource<bool>();
 
-            EventHandler<LoadingStateChangedEventArgs>? handler = null;
-            handler = (sender, e) =>
-            {
-                if (e.IsLoading) return;
-
-                _browser.LoadingStateChanged -= handler;
-                tcs.SetResult(true);
-            };
-            _browser.LoadingStateChanged += handler;
+            _browser.LoadingStateChanged += fastFailOnCloudflareHandler;
             _browser.Load(uri.ToString());
-            token?.Register(() => tcs.TrySetCanceled());
-            
-            return tcs.Task;
+            _ = token?.Register(() => navigateTaskSource.TrySetCanceled());
+
+            try
+            {
+                _ = await navigateTaskSource.Task;
+            }
+            catch (CloudflareProtectionException)
+            {
+                if (isFinalAttempt)
+                    throw;
+
+                var srtippedSite = WafProtectedClient.StripUri(uri);
+                var cookies = await WafProtectedClient.GetFreshCookies(srtippedSite, token ?? default);
+                var cookieManager = _browser.GetCookieManager();
+
+                var addTasks = cookies
+                    .Select(cookie => cookieManager.SetCookieAsync(srtippedSite.ToString(), cookie))
+                    .ToList();
+
+                _ = await Task.WhenAll(addTasks);
+
+                await NavigateTo(uri, true, token);
+            }
+
+            async void fastFailOnCloudflareHandler(object? sender, LoadingStateChangedEventArgs e)
+            {
+                if (e.IsLoading)
+                    return;
+
+                _ = WafProtectedClient.IsProtectedByCloudflare(await e.Browser.MainFrame.GetSourceAsync())
+                    ? navigateTaskSource.TrySetException(new CloudflareProtectionException())
+                    : navigateTaskSource.TrySetResult(true);
+
+                _browser.LoadingStateChanged -= fastFailOnCloudflareHandler;
+            }
         }
 
         private readonly string[] KnownServerLoadStrings =
@@ -131,6 +153,16 @@ namespace Wabbajack.Lib.WebAutomation
 
         public string Location => _browser.Address;
 
+        [Serializable]
+        private class CloudflareProtectionException : ApplicationException
+        {
+            public CloudflareProtectionException() { }
+            public CloudflareProtectionException(string message) : base(message) { }
+            public CloudflareProtectionException(string message, Exception inner) : base(message, inner) { }
+            protected CloudflareProtectionException(
+              System.Runtime.Serialization.SerializationInfo info,
+              System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+        }
     }
 
     public class PopupBlocker : ILifeSpanHandler

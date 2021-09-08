@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -93,11 +92,13 @@ namespace Wabbajack.Lib.Http
                     msg.Headers.Add(k, v);
             }
 
+            // TODO: Is not thread safe.
             if (Cookies.Count > 0)
                 Cookies.ForEach(c => ClientFactory.Cookies.Add(c));   
             int retries = 0;
-            HttpResponseMessage response;
-            TOP:
+            HttpResponseMessage? response = null;
+TOP:
+            response?.Dispose();
             try
             {
                 response = await ClientFactory.Client.SendAsync(msg, responseHeadersRead, token);
@@ -105,7 +106,6 @@ namespace Wabbajack.Lib.Http
 
                 if (errorsAsExceptions)
                 {
-                    response.Dispose();
                     throw new HttpException(response);
                 }
 
@@ -116,16 +116,30 @@ namespace Wabbajack.Lib.Http
                 if (!retry) throw;
                 if (ex is HttpException http)
                 {
-                    if (http.Code != HttpStatusCode.ServiceUnavailable && http.Code != CloudFlareServerIsDown) throw;
+                    switch (http.Code)
+                    {
+                        case HttpStatusCode.ServiceUnavailable:
+                            await HandleWafProtection(response!, token);
+                            break;
+
+                        case CloudFlareServerIsDown:
+                            break;
+
+                        default:
+                            throw;
+                    }
 
                     retries++;
                     var ms = Utils.NextRandom(100, 1000);
                     Utils.Log($"Got a {http.Code} from {msg.RequestUri} retrying in {ms}ms");
 
+                    if (retries > Consts.MaxHTTPRetries) throw;
+
                     await Task.Delay(ms, token);
                     msg = CloneMessage(msg);
                     goto TOP;
                 }
+
                 if (retries > Consts.MaxHTTPRetries) throw;
 
                 retries++;
@@ -136,7 +150,10 @@ namespace Wabbajack.Lib.Http
                 goto TOP;
 
             }
+        }
 
+        protected virtual async Task HandleWafProtection(HttpResponseMessage response, CancellationToken token)
+        {
         }
 
         private Dictionary<string, Func<(string Ip, string Host)>> _workaroundMappings = new()
@@ -194,9 +211,12 @@ namespace Wabbajack.Lib.Http
             return client;
         }
 
-        public void AddCookies(Helpers.Cookie[] cookies)
+        public void AddCookies(IEnumerable<Helpers.Cookie> cookies)
         {
-            Cookies.AddRange(cookies.Select(c => new Cookie {Domain = c.Domain, Name = c.Name, Value = c.Value, Path = c.Path}));
+            if (cookies is null)
+                return;
+
+            Cookies.AddRange(cookies.Select(c => new Cookie { Domain = c.Domain, Name = c.Name, Value = c.Value, Path = c.Path }));
         }
 
         public void UseChromeUserAgent()
