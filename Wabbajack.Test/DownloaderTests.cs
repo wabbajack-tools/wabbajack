@@ -304,7 +304,7 @@ namespace Wabbajack.Test
                     ips4File=ffooo.zip";
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
-            var otherfiles = await ((LoversLabOAuthDownloader.State)state).GetFilesInGroup();
+            var otherfiles = await ((LoversLabOAuthDownloader.LoversLabState)state).GetFilesInGroup();
             
             // Throws a NPE
             var data = await downloader.GetDownloads(9023);
@@ -320,7 +320,7 @@ namespace Wabbajack.Test
                         ips4Mod=11116
                         ips4File=WABBAJACK_TEST_FILE.zip";
 
-            var state = (LoversLabOAuthDownloader.State)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            var state = (LoversLabOAuthDownloader.LoversLabState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
             Assert.True(await state.LoadMetaData());
             Assert.Equal("halgari", state.Author);
         }
@@ -386,7 +386,7 @@ namespace Wabbajack.Test
 
             Assert.Equal(Hash.FromBase64("gLJDxGDaeQ0="), await filename.Path.FileHashAsync());
             
-            Assert.False(await ((LoversLabOAuthDownloader.State) state).LoadMetaData());
+            Assert.False(await ((LoversLabOAuthDownloader.LoversLabState) state).LoadMetaData());
             
 
 
