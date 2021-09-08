@@ -97,6 +97,7 @@ namespace Wabbajack.Lib.LibCefHelpers
                 CefSettings settings = new CefSettings();
                 settings.CachePath = Consts.CefCacheLocation.ToString();
                 settings.JavascriptFlags = "--noexpose_wasm";
+                settings.UserAgent = Consts.UserAgent;
                 settings.RegisterScheme(new CefCustomScheme()
                 {
                     SchemeName = "wabbajack", SchemeHandlerFactory = new SchemeHandlerFactor()
