@@ -98,7 +98,6 @@ namespace Wabbajack.BuildServer.Controllers
             if (result == null)
             {
                 var api = await GetClient();
-                var permission = HTMLInterface.GetUploadPermissions(game, ModId);
                 try
                 {
                     result = await api.GetModFiles(game, ModId, false);
@@ -114,7 +113,6 @@ namespace Wabbajack.BuildServer.Controllers
                 var date = result.files.Select(f => f.uploaded_time).OrderByDescending(o => o).FirstOrDefault();
                 date = date == default ? DateTime.UtcNow : date;
                 await _sql.AddNexusModFiles(game, ModId, date, result);
-                await _sql.SetNexusPermission(game, ModId, await permission);
 
                 method = "NOT_CACHED";
                 Interlocked.Increment(ref ForwardCount);
