@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
+using Wabbajack.Lib.Downloaders.DTOs.ModListValidation;
 using Wabbajack.Lib.Downloaders.UrlDownloaders;
 
 namespace Wabbajack.Lib.Downloaders
@@ -110,54 +111,46 @@ namespace Wabbajack.Lib.Downloaders
                 if (downloadedHash == archive.Hash || archive.Hash == default) 
                     return DownloadResult.Success;
             }
-
             
-            if (await DownloadFromMirror(archive, destination))
+            var client = new Http.Client();
+            Utils.Log($"Loading for alternative to {archive.Hash}");
+            var replacementMeta = (await client.GetJsonAsync<ValidatedArchive[]>(Consts.UpgradedFilesURL))
+                .FirstOrDefault(a => a.Original.Hash == archive.Hash);
+
+            if (replacementMeta == null)
+            {
+                Utils.Log($"No alternative for {archive.Hash} could be found");
+                return DownloadResult.Failure;
+            }
+            
+            if (replacementMeta.Status == ArchiveStatus.Mirrored && await DownloadFromMirror(replacementMeta.PatchedFrom!, destination))
             {
                 await destination.FileHashCachedAsync();
                 return DownloadResult.Mirror;
             }
 
-            if (!(archive.State is IUpgradingState))
+            if (replacementMeta.Status != ArchiveStatus.Updated || !(archive.State is IUpgradingState))
             {
                 Utils.Log($"Download failed for {archive.Name} and no upgrade from this download source is possible");
                 return DownloadResult.Failure;
             }
 
-            Utils.Log($"Trying to find solution to broken download for {archive.Name}");
+            Utils.Log($"Downloading patch for {archive.Name}");
             
-            var result = await FindUpgrade(archive);
-            if (result == default )
-            {
-                result = await AbstractDownloadState.ServerFindUpgrade(archive);
-                if (result == default)
-                {
-                    Utils.Log(
-                        $"No solution for broken download {archive.Name} {archive.State.PrimaryKeyString} could be found");
-                    return DownloadResult.Failure;
-                }
-            }
 
-            Utils.Log($"Looking for patch for {archive.Name} ({(long)archive.Hash} {archive.Hash.ToHex()} -> {(long)result.Archive!.Hash} {result.Archive!.Hash.ToHex()})");
-            var patchResult = await ClientAPI.GetModUpgrade(archive, result.Archive!);
+            await using var tempFile = new TempFile();
+            await using var newFile = new TempFile();
 
-            Utils.Log($"Downloading patch for {archive.Name} from {patchResult}");
+            await Download(replacementMeta.PatchedFrom!, newFile.Path);
             
-            var tempFile = new TempFile();
-
-            if (WabbajackCDNDownloader.DomainRemaps.TryGetValue(patchResult.Host, out var remap))
             {
-                var builder = new UriBuilder(patchResult) {Host = remap};
-                patchResult = builder.Uri;
+                using var response = await client.GetAsync(replacementMeta.PatchUrl!);
+                await using var strm = await response.Content.ReadAsStreamAsync();
+                await tempFile.Path.WriteAllAsync(await response.Content.ReadAsStreamAsync());
             }
-
-            using var response = await (await ClientAPI.GetClient()).GetAsync(patchResult);
-
-            await tempFile.Path.WriteAllAsync(await response.Content.ReadAsStreamAsync());
-            response.Dispose();
 
             Utils.Log($"Applying patch to {archive.Name}");
-            await using(var src = await result.NewFile.Path.OpenShared())
+            await using(var src = await newFile.Path.OpenShared())
             await using (var final = await destination.Create())
             {
                 Utils.ApplyPatch(src, () => tempFile.Path.OpenShared().Result, final);
