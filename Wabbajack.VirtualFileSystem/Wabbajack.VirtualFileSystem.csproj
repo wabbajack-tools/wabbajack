@@ -18,7 +18,7 @@
       <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
       <PackageReference Include="K4os.Hash.Crc" Version="1.1.4" />
       <PackageReference Include="OMODFramework" Version="3.0.1" />
-      <PackageReference Include="SharpCompress" Version="0.28.3" />
+      <PackageReference Include="SharpCompress" Version="0.29.0" />
       <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
     </ItemGroup>
     <ItemGroup>
