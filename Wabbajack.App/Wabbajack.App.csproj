@@ -37,6 +37,6 @@
 
   <Target Name="AferBuild" AfterTargets="Build">
     <Message Text="Downloading Cef" />
-    <Exec Command="$(OutDir)wabbajack-cli.exe download-cef" />
+    <Exec Command="dotnet run --project $(SolutionDir)Wabbajack.CLI\Wabbajack.CLI.csproj -- download-cef -f $(ProjectDir)$(OutDir)" />
   </Target>
 </Project>
