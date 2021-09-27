@@ -1,32 +1,35 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net5.0-windows</TargetFramework>
-        <AssemblyName>wabbajack-cli</AssemblyName>
-        <Company>Wabbajack</Company>
-        <Platforms>x64</Platforms>
-        <AssemblyVersion>2.5.3.1</AssemblyVersion>
-        <FileVersion>2.5.3.1</FileVersion>
-        <Copyright>Copyright © 2019-2021</Copyright>
-        <Description>An automated ModList installer</Description>
-        <PublishReadyToRun>true</PublishReadyToRun>        
-        <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-        <LangVersion>8.0</LangVersion>
+        <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net6.0-windows</TargetFramework>
+        <TargetFramework Condition=" '$(OS)' != 'Windows_NT'">net6.0</TargetFramework>
         <Nullable>enable</Nullable>
+        <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+        <Version>$(VERSION)</Version>
+        <AssemblyName>wabbajack-cli</AssemblyName>
+        <PublishTrimmed>true</PublishTrimmed>
+        <TimeMode>linked</TimeMode>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
-      <PackageReference Include="F23.StringSimilarity" Version="4.1.0" />
-      <PackageReference Include="Markdig" Version="0.25.0" />
-      <PackageReference Include="System.Reactive" Version="5.0.0" />
-      <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0-preview.7.21377.19" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0-preview.7.21377.19" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0-preview.7.21377.19" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0-preview.7.21377.19" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0-preview.7.21377.19" />
+        <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21471.2" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
-      <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj" />
+        <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.Discord\Wabbajack.Networking.Discord.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.GitHub\Wabbajack.Networking.GitHub.csproj" />
+        <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
+        <ProjectReference Include="..\Wabbajack.Server.Lib\Wabbajack.Server.Lib.csproj" />
+        <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
+        <ProjectReference Include="..\Wabbajack.VFS\Wabbajack.VFS.csproj" />
     </ItemGroup>
-
+    
 </Project>
