@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using Wabbajack.Common;
-using Wabbajack.Lib;
-using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.DTOs;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Server.DTOs;
 
 namespace Wabbajack.Server.DataLayer

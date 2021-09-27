@@ -8,15 +8,16 @@ using System.Threading.Tasks;
 using FluentFTP;
 using FluentFTP.Helpers;
 using Microsoft.Extensions.Logging;
-using Org.BouncyCastle.Utilities.Collections;
 using Wabbajack.BuildServer;
-using Wabbajack.BuildServer.Controllers;
 using Wabbajack.Common;
-using Wabbajack.Lib;
-using Wabbajack.Lib.AuthorApi;
-using Wabbajack.Lib.FileUploader;
+using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Networking.WabbajackClientApi;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
+using Wabbajack.Server.TokenProviders;
 
 namespace Wabbajack.Server.Services
 {
@@ -25,15 +26,27 @@ namespace Wabbajack.Server.Services
         private SqlService _sql;
         private ArchiveMaintainer _archives;
         private DiscordWebHook _discord;
+        private readonly IFtpSiteCredentials _credentials;
+        private readonly Client _wjClient;
+        private readonly ParallelOptions _parallelOptions;
+        private readonly DTOSerializer _dtos;
+        private readonly IFtpSiteCredentials _ftpCreds;
 
         public bool ActiveFileSyncEnabled { get; set; } = true;
 
-        public MirrorUploader(ILogger<MirrorUploader> logger, AppSettings settings, SqlService sql, QuickSync quickSync, ArchiveMaintainer archives, DiscordWebHook discord)
+        public MirrorUploader(ILogger<MirrorUploader> logger, AppSettings settings, SqlService sql, QuickSync quickSync, ArchiveMaintainer archives,
+            DiscordWebHook discord, IFtpSiteCredentials credentials, Client wjClient, ParallelOptions parallelOptions, DTOSerializer dtos,
+            IFtpSiteCredentials ftpCreds)
             : base(logger, settings, quickSync, TimeSpan.FromHours(1))
         {
             _sql = sql;
             _archives = archives;
             _discord = discord;
+            _credentials = credentials;
+            _wjClient = wjClient;
+            _parallelOptions = parallelOptions;
+            _dtos = dtos;
+            _ftpCreds = ftpCreds;
         }
 
         public override async Task<int> Execute()
@@ -54,12 +67,11 @@ namespace Wabbajack.Server.Services
 
             try
             {
-                var creds = await BunnyCdnFtpInfo.GetCreds(StorageSpace.Mirrors);
-
-                using var queue = new WorkQueue();
+                var creds = (await _credentials.Get())[StorageSpace.Mirrors];
+                
                 if (_archives.TryGetPath(toUpload.Hash, out var path))
                 {
-                    _logger.LogInformation($"Uploading mirror file {toUpload.Hash} {path.Size.FileSizeToString()}");
+                    _logger.LogInformation($"Uploading mirror file {toUpload.Hash} {path.Size().FileSizeToString()}");
 
                     bool exists = false;
                     using (var client = await GetClient(creds))
@@ -80,7 +92,7 @@ namespace Wabbajack.Server.Services
                             Content = $"Uploading {toUpload.Hash} - {toUpload.Created} because {toUpload.Rationale}"
                         });
 
-                    var definition = await Client.GenerateFileDefinition(queue, path, (s, percent) => { });
+                    var definition = await _wjClient.GenerateFileDefinition(path);
 
                     using (var client = await GetClient(creds))
                     {
@@ -93,18 +105,18 @@ namespace Wabbajack.Server.Services
                         return $"{definition.Hash.ToHex()}/parts/{idx}";
                     }
 
-                    await definition.Parts.PMap(queue, async part =>
+                    await definition.Parts.PDo(_parallelOptions, async part =>
                     {
-                        _logger.LogInformation($"Uploading mirror part ({part.Index}/{definition.Parts.Length})");
+                        _logger.LogInformation("Uploading mirror part ({index}/{length})", part.Index, definition.Parts.Length);
 
                         var buffer = new byte[part.Size];
-                        await using (var fs = await path.OpenShared())
+                        await using (var fs = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
                         {
                             fs.Position = part.Offset;
                             await fs.ReadAsync(buffer);
                         }
                         
-                        await CircuitBreaker.WithAutoRetryAllAsync(async () =>{
+                        await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>{
                             using var client = await GetClient(creds);
                             var name = MakePath(part.Index);
                             await client.UploadAsync(new MemoryStream(buffer), name);
@@ -112,7 +124,7 @@ namespace Wabbajack.Server.Services
 
                     });
 
-                    await CircuitBreaker.WithAutoRetryAllAsync(async () =>
+                    await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
                     {
                         using var client = await GetClient(creds);
                         _logger.LogInformation($"Finishing mirror upload");
@@ -121,7 +133,7 @@ namespace Wabbajack.Server.Services
                         await using var ms = new MemoryStream();
                         await using (var gz = new GZipStream(ms, CompressionLevel.Optimal, true))
                         {
-                            definition.ToJson(gz);
+                            await _dtos.Serialize(definition, gz);
                         }
 
                         ms.Position = 0;
@@ -145,11 +157,11 @@ namespace Wabbajack.Server.Services
             goto TOP;
         }
 
-        private static async Task<FtpClient> GetClient(BunnyCdnFtpInfo creds = null)
+        private async Task<FtpClient> GetClient(FtpSite? creds = null)
         {
-            return await CircuitBreaker.WithAutoRetryAllAsync<FtpClient>(async () =>
+            return await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
             {
-                creds ??= await BunnyCdnFtpInfo.GetCreds(StorageSpace.Mirrors);
+                creds ??= (await _ftpCreds.Get())[StorageSpace.Mirrors];
 
                 var ftpClient = new FtpClient(creds.Hostname, new NetworkCredential(creds.Username, creds.Password));
                 ftpClient.DataConnectionType = FtpDataConnectionType.EPSV;
@@ -188,7 +200,7 @@ namespace Wabbajack.Server.Services
             
             foreach (var (hash, _) in fromSql.Where(s => s.Value))
             {
-                Utils.Log($"Removing {hash} from SQL it's no longer in the CDN");
+                _logger.LogInformation("Removing {hash} from SQL it's no longer in the CDN", hash);
                 if (!existingHashes.Contains(hash))
                     await _sql.DeleteMirroredFile(hash);
             }
@@ -200,7 +212,7 @@ namespace Wabbajack.Server.Services
             {
                 await _discord.Send(Channel.Spam,
                     new DiscordMessage {Content = $"Removing mirrored file {hash}, as it's no longer in sql"});
-                Utils.Log($"Removing {hash} from the CDN it's no longer in SQL");
+                _logger.LogInformation("Removing {hash} from the CDN it's no longer in SQL", hash);
                 await client.DeleteDirectoryAsync(hash.ToHex());
             }
         }

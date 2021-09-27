@@ -1,22 +1,40 @@
-﻿using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
-using CommandLine;
-using Wabbajack.Common;
+using System.CommandLine;
+using System.CommandLine.Invocation;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
+using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.CLI.Verbs
 {
-    [Verb("decrypt", HelpText = @"Decrypt data from AppData\Local\Wabbajack and store it locally", Hidden = true)]
-    public class Decrypt : AVerb
+    public class Decrypt : IVerb
     {
-        [Option('n', "name", Required = true, HelpText = @"Credential to encrypt and store in AppData\Local\Wabbajack")]
-        public string Name { get; set; } = "";
+        private readonly ILogger<Decrypt> _logger;
 
-        [Option('o', "output", Required = true, HelpText = @"Output file for the decrypted data")]
-        public string Output { get; set; } = "";
-
-        protected override async Task<ExitCode> Run()
+        public Decrypt(ILogger<Decrypt> logger)
         {
-            await Output.RelativeTo(AbsolutePath.EntryPoint).WriteAllBytesAsync(await Utils.FromEncryptedData(Name));
+            _logger = logger;
+        }
+        
+        public Command MakeCommand()
+        {
+            var command = new Command("decrypt");
+            command.Add(new Option<AbsolutePath>(new[] { "-o", "-output" }, "Output file path"));
+            command.Add(new Option<string>(new[] { "-n", "-name" }, "Name of the key to load data from"));
+            command.Description = "Decrypts a file from the Wabbajack encrypted storage";
+            command.Handler = CommandHandler.Create(Run);
+            return command;
+        }
+        
+        public async Task<int> Run(AbsolutePath output, string name)
+        {
+            var data = await name.ToRelativePath()
+                .RelativeTo(KnownFolders.WabbajackAppLocal.Combine("encrypted"))
+                .FromEncryptedDataFile();
+            _logger.LogInformation("Decrypting {bytes} bytes into `{key}`", data.Length, name);
+            await output.WriteAllBytesAsync(data);
+
             return 0;
         }
     }

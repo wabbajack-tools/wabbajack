@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+        <Version>$(VERSION)</Version>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Wabbajack.Downloaders.Interfaces\Wabbajack.Downloaders.Interfaces.csproj" />
+        <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
+        <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.Http.Interfaces\Wabbajack.Networking.Http.Interfaces.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.Http\Wabbajack.Networking.Http.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.NexusApi\Wabbajack.Networking.NexusApi.csproj" />
+        <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Xunit.DependencyInjection" Version="7.4.0" />
+        <PackageReference Include="Xunit.DependencyInjection.Logging" Version="2.1.0" />
+    </ItemGroup>
+
+</Project>

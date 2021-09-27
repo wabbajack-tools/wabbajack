@@ -1,46 +1,53 @@
-﻿using System;
-using System.Reactive.Linq;
+using System;
+using System.CommandLine;
+using System.CommandLine.Invocation;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
-using CommandLine;
-using Wabbajack.Common;
-using Wabbajack.Lib;
-using Wabbajack.Lib.Downloaders;
+using Microsoft.Extensions.Logging;
+using Wabbajack.Downloaders;
+using Wabbajack.DTOs;
+using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack.CLI.Verbs
 {
-    [Verb("download-url", HelpText = "Infer a download state from a URL and download it")]
-    public class DownloadUrl : AVerb
+    
+    public class DownloadUrl : IVerb
     {
-        [Option('u', "url", Required = true, HelpText = "Url to download")]
-        public Uri? Url { get; set; }
+        private readonly ILogger<DownloadUrl> _logger;
+        private readonly DownloadDispatcher _dispatcher;
 
-        [Option('o', "output", Required = true, HelpText = "Output file name")]
-        public string Output { get; set; } = "";
-
-        protected override async Task<ExitCode> Run()
+        public DownloadUrl(ILogger<DownloadUrl> logger, DownloadDispatcher dispatcher)
         {
-            var state = await DownloadDispatcher.Infer(Url!);
-            if (state == null)
-                return CLIUtils.Exit($"Could not find download source for URL {Url}", ExitCode.Error);
-
-            await DownloadDispatcher.PrepareAll(new []{state});
-
-            using var queue = new WorkQueue();
-            queue.Status
-                .Where(s => s.ProgressPercent != Percent.Zero)
-                .Debounce(TimeSpan.FromSeconds(1))
-                .Subscribe(s => Console.WriteLine($"Downloading {s.ProgressPercent}"));
-
-                await new[] {state}
-                .PMap(queue, async s =>
-                {
-                    await s.Download(new Archive(state: null!) {Name = Path.GetFileName(Output)}, (AbsolutePath)Output);
-                });
-
-            File.WriteAllLines(Output + ".meta", state.GetMetaIni());
-            return 0;
+            _logger = logger;
+            _dispatcher = dispatcher;
         }
 
+        public Command MakeCommand()
+        {
+            var command = new Command("download-url");
+            command.Add(new Option<Uri>(new[] { "-u", "-url" }, "Url to parse"));
+            command.Add(new Option<AbsolutePath>(new[] { "-o", "-output" }, "Output file"));
+            command.Description = "Downloads a file to a given output";
+            command.Handler = CommandHandler.Create(Run);
+            return command;
+        }
+
+        private async Task<int> Run(Uri url, AbsolutePath output)
+        {
+            var parsed = _dispatcher.Parse(url);
+            if (parsed == null)
+            {
+                _logger.LogCritical("No downloader found for {Url}", url);
+
+                return 1;
+            }
+
+            var archive = new Archive() { State = parsed, Name = output.FileName.ToString() };
+            await _dispatcher.Download(archive, output, CancellationToken.None);
+            return 0;
+        }
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.BuildServer;
 using Wabbajack.Common;
+using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Server.DTOs;
 
 namespace Wabbajack.Server.Services
@@ -19,12 +20,16 @@ namespace Wabbajack.Server.Services
     }
     public class DiscordWebHook : AbstractService<DiscordWebHook, int>
     {
-        private Random _random = new Random();
+        private Random _random = new();
+        private readonly HttpClient _client;
+        private readonly DTOSerializer _dtos;
 
-        public DiscordWebHook(ILogger<DiscordWebHook> logger, AppSettings settings, QuickSync quickSync) : base(logger, settings, quickSync, TimeSpan.FromHours(1))
+        public DiscordWebHook(ILogger<DiscordWebHook> logger, AppSettings settings, QuickSync quickSync, HttpClient client, DTOSerializer dtos) : base(logger, settings, quickSync, TimeSpan.FromHours(1))
         {
             _settings = settings;
             _logger = logger;
+            _client = client;
+            _dtos = dtos;
 
             var message = new DiscordMessage
             {
@@ -39,28 +44,28 @@ namespace Wabbajack.Server.Services
         {
             try
             {
-                string url = channel switch
+                var url = channel switch
                 {
                     Channel.Spam => _settings.SpamWebHook,
                     Channel.Ham => _settings.HamWebHook,
                     _ => null
                 };
                 if (url == null) return;
-
-                var client = new Wabbajack.Lib.Http.Client();
-                await client.PostAsync(url, new StringContent(message.ToJson(true), Encoding.UTF8, "application/json"));
+                
+                await _client.PostAsync(url, new StringContent(_dtos.Serialize(message), Encoding.UTF8, "application/json"));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.ToString());
+                _logger.LogError(ex, "While sending discord message");
             }
         }
 
-        private string GetQuote()
+        private async Task<string> GetQuote()
         {
-            var data = Assembly.GetExecutingAssembly()!.GetManifestResourceStream("Wabbajack.Server.sheo_quotes.txt");
-            var lines = Encoding.UTF8.GetString(data.ReadAll()).Split('\n');
-            return lines[_random.Next(lines.Length)].Trim();
+            var lines = await Assembly.GetExecutingAssembly()!.GetManifestResourceStream("Wabbajack.Server.sheo_quotes.txt")!
+                .ReadLinesAsync()
+                .ToList();
+            return lines[_random.Next(lines.Count)].Trim();
         }
 
         public override async Task<int> Execute()

@@ -7,15 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
 using Wabbajack.Common;
-using Wabbajack.Common.Serialization.Json;
-using Wabbajack.Lib;
-using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.ServerResponses;
 using Wabbajack.Server;
-using Wabbajack.Server.DataLayer;
-using Wabbajack.Server.DTOs;
 using Wabbajack.Server.Services;
-using ArchiveStatus = Wabbajack.Server.DTOs.ArchiveStatus;
-
 namespace Wabbajack.BuildServer.Controllers
 {
     [ApiController]
@@ -23,19 +18,17 @@ namespace Wabbajack.BuildServer.Controllers
     public class ListsStatus : ControllerBase
     {
         private ILogger<ListsStatus> _logger;
-        private ListValidator _validator;
 
-        public ListsStatus(ILogger<ListsStatus> logger, ListValidator validator)
+        public ListsStatus(ILogger<ListsStatus> logger)
         {
             _logger = logger;
-            _validator = validator;
         }
         
         [HttpGet]
         [Route("status.json")]
         public async Task<IEnumerable<ModListSummary>> HandleGetLists()
         {
-            return (_validator.Summaries).Select(d => d.Summary);
+            throw new NotImplementedException();
         }
 
         
@@ -170,66 +163,27 @@ namespace Wabbajack.BuildServer.Controllers
         public async Task<IActionResult> HandleGetListJson(string Name)
         {
             var lst = await DetailedStatus(Name);
-            if (lst == null) return NotFound();
-            return Ok(lst.ToJson());
+            if (lst == default) return NotFound();
+            return Ok(lst);
         }
         
-        private async Task<DetailedStatus> DetailedStatus(string Name)
+        private async Task<DetailedStatus?> DetailedStatus(string Name)
         {
-            var results = _validator.Summaries
-                .Select(d => d.Detailed)
-                .FirstOrDefault(d => d.MachineName == Name);
-            
-            if (results == null)
-                return null;
-            
-            results!.Archives.Do(itm =>
-            {
-                if (string.IsNullOrWhiteSpace(itm.Archive.Name)) 
-                    itm.Archive.Name = itm.Archive.State.PrimaryKeyString;
-            });
-            results.Archives = results.Archives.OrderBy(a => a.Name).ToList();
-            return results;
+            throw new NotImplementedException();
         }
 
         [HttpGet]
         [Route("status/badge.json")]
         public async Task<IActionResult> HandleGitHubBadge()
         {
-            //var failing = _validator.Summaries.Select(x => x.Summary.Failed).Aggregate((x, y) => x + y);
-            var succeeding = _validator.Summaries.Select(x => x.Summary.Passed).Aggregate((x, y) => x + y);
-            var total = _validator.Summaries.Count();
-            double ration = total / (double)succeeding * 100.0;
-            string color;
-            if (ration >= 95)
-                color = "brightgreen";
-            else if (ration >= 80)
-                color = "green";
-            else if (ration >= 50)
-                color = "yellowgreen";
-            else if (ration >= 20)
-                color = "orange";
-            else
-                color = "red";
-
-            Response.ContentType = "application/json";
-            return Ok(new Badge("Modlist Availability", $"{ration}%"){color = color});
+            throw new NotImplementedException();
         }
 
         [HttpGet]
         [Route("status/{Name}/badge.json")]
         public async Task<IActionResult> HandleNamedGitHubBadge(string Name)
         {
-            var info = _validator.Summaries.Select(x => x.Summary)
-                .FirstOrDefault(x => x.MachineURL == Name);
-
-            if (info == null)
-                return new NotFoundObjectResult("Not Found!");
-
-            var failing = info.HasFailures;
-
-            Response.ContentType = "application/json";
-            return Ok(new Badge(info.Name, failing ? "Failing" : "Succeeding"){color = failing ? "red" : "green"});
+            throw new NotImplementedException();
         }
     }
 }

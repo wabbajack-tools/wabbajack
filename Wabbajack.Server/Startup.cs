@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -13,8 +12,6 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Wabbajack.BuildServer;
-using Wabbajack.Common;
-using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.Services;
 
@@ -38,13 +35,6 @@ namespace Wabbajack.Server
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            Consts.UseNetworkWorkaroundMode = true;
-            Helpers.Init();
-            /*services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo {Title = "Wabbajack Build API", Version = "v1"});
-            });*/
-            
             services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = ApiKeyAuthenticationOptions.DefaultScheme;
@@ -66,18 +56,13 @@ namespace Wabbajack.Server
             services.AddSingleton<ArchiveMaintainer>();
             services.AddSingleton<ModListDownloader>();
             services.AddSingleton<NonNexusDownloadValidator>();
-            services.AddSingleton<ListValidator>();
             services.AddSingleton<ArchiveDownloader>();
             services.AddSingleton<DiscordWebHook>();
-            services.AddSingleton<NexusKeyMaintainance>();
             services.AddSingleton<PatchBuilder>();
-            services.AddSingleton<CDNMirrorList>();
-            services.AddSingleton<NexusPermissionsUpdater>();
             services.AddSingleton<MirrorUploader>();
             services.AddSingleton<MirrorQueueService>();
             services.AddSingleton<Watchdog>();
             services.AddSingleton<DiscordFrontend>();
-            services.AddSingleton<AuthoredFilesCleanup>();
             services.AddSingleton<MetricsKeyCache>();
             services.AddResponseCompression(options =>
             {
@@ -105,7 +90,7 @@ namespace Wabbajack.Server
                 app.UseDeveloperExceptionPage();
             }
 
-            if (!(this is TestStartup)) 
+            if (this is not TestStartup) 
                 app.UseHttpsRedirection();
             
             app.UseDeveloperExceptionPage();
@@ -117,37 +102,21 @@ namespace Wabbajack.Server
             provider.Mappings[".wabbajack"] = "application/zip";
             app.UseStaticFiles();
 
-            /*
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Wabbajack Build API");
-                c.RoutePrefix = string.Empty;
-            }); */
-            
             app.UseRouting();
 
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseNexusPoll();
-            //app.UseArchiveMaintainer();
-            //app.UseModListDownloader();
+            app.UseModListDownloader();
             app.UseResponseCompression();
             
-            //app.UseService<NonNexusDownloadValidator>();
-            //app.UseService<ListValidator>();
-            //app.UseService<ArchiveDownloader>();
+            app.UseService<NonNexusDownloadValidator>();
+            app.UseService<ArchiveDownloader>();
             app.UseService<DiscordWebHook>();
-            //app.UseService<NexusKeyMaintainance>();
-            //app.UseService<PatchBuilder>();
-            //app.UseService<CDNMirrorList>();
-            //app.UseService<NexusPermissionsUpdater>();
-            //app.UseService<MirrorUploader>();
-            //app.UseService<MirrorQueueService>();
+            app.UseService<PatchBuilder>();
+            app.UseService<MirrorUploader>();
             app.UseService<Watchdog>();
             app.UseService<DiscordFrontend>();
-            // Don't enable Author Files Cleanup
-            //app.UseService<AuthoredFilesCleanup>();
             app.UseService<MetricsKeyCache>();
 
             app.Use(next =>

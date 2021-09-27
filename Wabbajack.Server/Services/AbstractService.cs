@@ -10,7 +10,7 @@ namespace Wabbajack.Server.Services
 {
     public interface IStartable
     {
-        public void Start();
+        public Task Start();
     }
 
     public interface IReportingService
@@ -50,44 +50,36 @@ namespace Wabbajack.Server.Services
             
         }
 
-        public void Start()
+        public async Task Start()
         {
-
-            if (_settings.RunBackEndJobs)
-            {
-                Task.Run(async () =>
-                {
-                    await Setup();
-                    await _quickSync.Register(this);
+            await Setup();
+            await _quickSync.Register(this);
                     
-                    while (true)
-                    {
-                        await _quickSync.ResetToken<TP>();
-                        try
-                        {
-                            _logger.LogInformation($"Running: {GetType().Name}");
-                            ActiveWorkStatus = Array.Empty<(String, DateTime)>();
-                            LastStart = DateTime.UtcNow;
-                            await Execute();
-                            LastEnd = DateTime.UtcNow;
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Running Service Loop");
-                            Utils.Log($"Error in service {this.GetType()} : {ex}");
-                        }
+            while (true)
+            {
+                await _quickSync.ResetToken<TP>();
+                try
+                {
+                    _logger.LogInformation($"Running: {GetType().Name}");
+                    ActiveWorkStatus = Array.Empty<(String, DateTime)>();
+                    LastStart = DateTime.UtcNow;
+                    await Execute();
+                    LastEnd = DateTime.UtcNow;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Running Service Loop");
+                }
 
-                        var token = await _quickSync.GetToken<TP>();
-                        try
-                        {
-                            await Task.Delay(_delay, token);
-                        }
-                        catch (TaskCanceledException)
-                        {
+                var token = await _quickSync.GetToken<TP>();
+                try
+                {
+                    await Task.Delay(_delay, token);
+                }
+                catch (TaskCanceledException)
+                {
                             
-                        }
-                    }
-                });
+                }
             }
         }
 
@@ -97,7 +89,7 @@ namespace Wabbajack.Server.Services
         {
             lock (this)
             {
-                ActiveWorkStatus = ActiveWorkStatus.Cons((value, DateTime.UtcNow)).ToArray();
+                ActiveWorkStatus = ActiveWorkStatus.Append((value, DateTime.UtcNow)).ToArray();
             }
         }
 

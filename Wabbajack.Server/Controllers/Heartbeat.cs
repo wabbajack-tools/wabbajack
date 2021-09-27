@@ -2,14 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
-using Wabbajack.Common;
-using Wabbajack.Common.StatusFeed;
 using Wabbajack.Server;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
@@ -28,16 +24,14 @@ namespace Wabbajack.BuildServer.Controllers
         private static DateTime _startTime;
         
         private QuickSync _quickSync;
-        private ListValidator _listValidator;
 
 
-        public Heartbeat(ILogger<Heartbeat> logger, SqlService sql, GlobalInformation globalInformation, QuickSync quickSync, ListValidator listValidator)
+        public Heartbeat(ILogger<Heartbeat> logger, SqlService sql, GlobalInformation globalInformation, QuickSync quickSync)
         {
             _globalInformation = globalInformation;
             _sql = sql;
             _logger = logger;
             _quickSync = quickSync;
-            _listValidator = listValidator;
         }
 
         private const int MAX_LOG_SIZE = 128;
@@ -45,16 +39,6 @@ namespace Wabbajack.BuildServer.Controllers
         private GlobalInformation _globalInformation;
         private SqlService _sql;
         private ILogger<Heartbeat> _logger;
-
-        public static void AddToLog(IStatusMessage msg)
-        {
-            lock (Log)
-            {
-                Log.Add(msg.ToString());
-                if (Log.Count > MAX_LOG_SIZE)
-                    Log.RemoveAt(0);
-            }
-        }
 
         [HttpGet]
         public async Task<IActionResult> GetHeartbeat()
@@ -100,14 +84,7 @@ namespace Wabbajack.BuildServer.Controllers
                     .Select(s => new {Name = s.Key.Name, Time = s.Value.LastRunTime, MaxTime = s.Value.Delay, IsLate = s.Value.LastRunTime > s.Value.Delay})
                     .OrderBy(s => s.Name)
                     .ToArray(),
-                lists = _listValidator.ValidationInfo.Select(s => new
-                    {
-                        Name = s.Key, 
-                        Time = s.Value.ValidationTime,
-                        FailMessage = s.Value.Detailed.HasFailures ? "Failed" : ""
-                    })
-                    .OrderBy(l => l.Name)
-                    .ToArray()
+
             });
             return new ContentResult
             {

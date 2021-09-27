@@ -11,9 +11,9 @@ namespace Wabbajack.Server.Services
 {
     public class QuickSync
     {
-        private Dictionary<Type, CancellationTokenSource> _syncs = new Dictionary<Type, CancellationTokenSource>();
-        private Dictionary<Type, IReportingService> _services = new Dictionary<Type, IReportingService>();
-        private AsyncLock _lock = new AsyncLock();
+        private Dictionary<Type, CancellationTokenSource> _syncs = new();
+        private Dictionary<Type, IReportingService> _services = new();
+        private AsyncLock _lock = new();
         private ILogger<QuickSync> _logger;
 
         public QuickSync(ILogger<QuickSync> logger)

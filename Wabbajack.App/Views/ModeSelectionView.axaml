@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:controls="clr-namespace:Wabbajack.App.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
+             x:Class="Wabbajack.App.Views.ModeSelectionView">
+    <Grid RowDefinitions="3*,1*,15">
+        <Viewbox Grid.Row="0"
+                 Name="Banner"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 Stretch="Uniform">
+            <Image Margin="40,20,40,0" Source="../Assets/Wabba_Mouth.png" />
+        </Viewbox>
+        <Grid Grid.Row="1" ColumnDefinitions="*, *, *, *" HorizontalAlignment="Center">
+            <controls:LargeIconButton Grid.Column="0" Text="Browse" Icon="CloudDownload" x:Name="BrowseButton"></controls:LargeIconButton>
+            <controls:LargeIconButton Grid.Column="1" Text="Install" Icon="HarddiskPlus" x:Name="InstallButton"></controls:LargeIconButton>
+            <controls:LargeIconButton Grid.Column="2" Text="Compile" Icon="DatabaseImport"></controls:LargeIconButton>
+            <controls:LargeIconButton Grid.Column="3" Text="Play" Icon="TelevisionPlay"></controls:LargeIconButton>
+        </Grid>
+    </Grid>
+</UserControl>

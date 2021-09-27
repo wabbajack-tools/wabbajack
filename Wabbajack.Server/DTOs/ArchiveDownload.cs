@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Wabbajack.Lib;
+using Wabbajack.DTOs;
 using Wabbajack.Server.DataLayer;
 
 namespace Wabbajack.Server.DTOs

@@ -48,7 +48,7 @@ namespace Wabbajack.Server.Services
             await _sql.AddMetricsKey(key);
         }
 
-        public void Start()
+        public async Task Start()
         {
             _knownKeys = (_sql.AllKeys().Result).ToHashSet();
         }

@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Wabbajack.CLI": {
-      "commandName": "Project",
-      "commandLineArgs": "upload-mod-to-cdn -m \"Generated Files\" -f \"Sanitarium Generated Files\"  -r \"C:\\Modding\\Sanitarium\""
-    }
-  }
-}

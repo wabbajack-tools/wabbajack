@@ -1,28 +1,40 @@
-﻿using System;
+using System.CommandLine;
+using System.CommandLine.Invocation;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
-using CommandLine;
-using Wabbajack.Common;
+using Microsoft.Extensions.Logging;
+using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack.CLI.Verbs
 {
-    [Verb("hash-file", HelpText = "Hash a file and print the result")]
-    public class HashFile : AVerb
+    public class HashFile : IVerb
     {
+        private readonly ILogger<HashFile> _logger;
 
-        [Option('i', "input", Required = true, HelpText = "Input file name")]
-        public string Input { get; set; } = "";
-
-        protected override async Task<ExitCode> Run()
+        public HashFile(ILogger<HashFile> logger)
         {
-            var abs = (AbsolutePath)Input;
-            var hash = await abs.FileHashAsync();
-            if (hash == null)
-            {
-                Console.WriteLine("Hash is null!");
-                return ExitCode.Error;
-            }
-            Console.WriteLine($"{abs} hash: {hash} {hash.Value.ToHex()} {(long)hash}");
-            return ExitCode.Ok;
+            _logger = logger;
+        }
+
+        public Command MakeCommand()
+        {
+            var command = new Command("hash-file");
+            command.Add(new Option<AbsolutePath>(new[] { "-i", "-input" }, "Path to the file to hash"));
+            command.Description = "Hashes a file with Wabbajack's xxHash64 implementation";
+            command.Handler = CommandHandler.Create(Run);
+            return command;
+        }
+
+
+        public async Task<int> Run(AbsolutePath input)
+        {
+            await using var istream = input.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+            var hash = await istream.HashingCopy(Stream.Null, CancellationToken.None);
+            _logger.LogInformation($"{input} hash: {hash} {hash.ToHex()} {(long)hash}");
+            return 0;
         }
     }
 }

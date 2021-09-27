@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Microsoft.VisualBasic;
-using Wabbajack.Common;
 using Wabbajack.Server.DataLayer;
 
 namespace Wabbajack.Server.DTOs

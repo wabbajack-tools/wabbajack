@@ -1,24 +1,41 @@
-﻿using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
-using CommandLine;
-using Wabbajack.Common;
+using System.CommandLine;
+using System.CommandLine.Invocation;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
+using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.CLI.Verbs
 {
-    [Verb("encrypt", HelpText = @"Encrypt local data and store it in AppData\Local\Wabbajack", Hidden = true)]
-    public class Encrypt : AVerb
+    public class Encrypt : IVerb
     {
-        [Option('n', "name", Required = true, HelpText = @"Credential to encrypt and store in AppData\Local\Wabbajack")]
-        public string Name { get; set; } = "";
-        
-        [IsFile(CustomMessage = "The input file %1 does not exist!")]
-        [Option('i', "input", Required = true, HelpText = @"Source data file name")]
+        private readonly ILogger<Encrypt> _logger;
 
-        public string Input { get; set; } = "";
-
-        protected override async Task<ExitCode> Run()
+        public Encrypt(ILogger<Encrypt> logger)
         {
-            await File.ReadAllBytes(Input).ToEcryptedData(Name);
+            _logger = logger;
+        }
+        
+        public Command MakeCommand()
+        {
+            var command = new Command("encrypt");
+            command.Add(new Option<AbsolutePath>(new[] { "-i", "-input" }, "Path to the file to enrypt"));
+            command.Add(new Option<string>(new[] { "-n", "-name" }, "Name of the key to store the data into"));
+            command.Description = "Encrypts a file and stores it in the Wabbajack encrypted storage";
+            command.Handler = CommandHandler.Create(Run);
+            return command;
+        }
+        
+        public async Task<int> Run(AbsolutePath input, string name)
+        {
+            var data = await input.ReadAllBytesAsync();
+            _logger.LogInformation("Encrypting {bytes} bytes into `{key}`", data.Length, name);
+            await data.AsEncryptedDataFile(name.ToRelativePath()
+                .RelativeTo(KnownFolders.WabbajackAppLocal.Combine("encrypted")));
             return 0;
         }
     }

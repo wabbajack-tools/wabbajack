@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:Wabbajack.App.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="Wabbajack.App.Views.InstallConfigurationView">
+    <Grid RowDefinitions="*, Auto">
+        <Viewbox Grid.Row="0"
+                 Name="Banner"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 Stretch="UniformToFill">
+            <Image x:Name="ModListImage" Margin="0,0,0,0" Source="../Assets/Wabba_Mouth.png" />
+        </Viewbox>
+        <Grid Grid.Row="0" RowDefinitions="40, 40" HorizontalAlignment="Left" VerticalAlignment="Bottom">
+            <TextBlock x:Name="ModListName"></TextBlock>
+        </Grid>
+        <Grid Margin="40" RowDefinitions="40, 40, 40, *" ColumnDefinitions="100, *, 200" Grid.Row="1">
+            <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Center">ModList:</Label>
+            <controls:FileSelectionBox Grid.Column="1" Grid.Row="0" AllowedExtensions=".wabbajack" x:Name="ModListFile"></controls:FileSelectionBox>
+            
+            <Label Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center">Install To:</Label>
+            <controls:FileSelectionBox Grid.Column="1" Grid.Row="1" SelectFolder="True" x:Name="InstallPath"></controls:FileSelectionBox>
+
+            <Label Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center">Download To:</Label>
+            <controls:FileSelectionBox Grid.Column="1" Grid.Row="2" SelectFolder="True" x:Name="DownloadPath"></controls:FileSelectionBox>
+
+            <controls:LargeIconButton x:Name="BeginInstall" Margin="40, 0, 0, 0" Grid.Row="0" Grid.Column="2" Grid.RowSpan="4" Icon="DownloadNetwork" Text="Install">
+                
+            </controls:LargeIconButton>
+        </Grid>
+    </Grid>
+
+</UserControl>

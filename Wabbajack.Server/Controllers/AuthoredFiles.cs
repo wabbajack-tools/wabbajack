@@ -1,21 +1,23 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentFTP;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
-using SharpCompress.Compressors.LZMA;
 using Wabbajack.Common;
-using Wabbajack.Lib.AuthorApi;
+using Wabbajack.DTOs.CDN;
+using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
 using Wabbajack.Server.Services;
+using Wabbajack.Server.TokenProviders;
 
 namespace Wabbajack.BuildServer.Controllers
 {
@@ -26,22 +28,28 @@ namespace Wabbajack.BuildServer.Controllers
         private SqlService _sql;
         private ILogger<AuthoredFiles> _logger;
         private AppSettings _settings;
-        private CDNMirrorList _mirrorList;
         private DiscordWebHook _discord;
+        
+        private readonly IFtpSiteCredentials _ftpCreds;
+
+        
+        private readonly DTOSerializer _dtos;
 
 
-        public AuthoredFiles(ILogger<AuthoredFiles> logger, SqlService sql, AppSettings settings, CDNMirrorList mirrorList, DiscordWebHook discord)
+        public AuthoredFiles(ILogger<AuthoredFiles> logger, SqlService sql, AppSettings settings, DiscordWebHook discord, 
+            DTOSerializer dtos, IFtpSiteCredentials ftpCreds)
         {
             _sql = sql;
             _logger = logger;
             _settings = settings;
-            _mirrorList = mirrorList;
             _discord = discord;
+            _dtos = dtos;
+            _ftpCreds = ftpCreds;
         }
 
         [HttpPut]
         [Route("{serverAssignedUniqueId}/part/{index}")]
-        public async Task<IActionResult> UploadFilePart(string serverAssignedUniqueId, long index)
+        public async Task<IActionResult> UploadFilePart(CancellationToken token, string serverAssignedUniqueId, long index)
         {
             var user = User.FindFirstValue(ClaimTypes.Name);
             var definition = await _sql.GetCDNFileDefinition(serverAssignedUniqueId);
@@ -53,12 +61,12 @@ namespace Wabbajack.BuildServer.Controllers
             var part = definition.Parts[index];
 
             await using var ms = new MemoryStream();
-            await Request.Body.CopyToLimitAsync(ms, part.Size);
+            await Request.Body.CopyToLimitAsync(ms, (int)part.Size, token);
             ms.Position = 0;
             if (ms.Length != part.Size)
                 return BadRequest($"Couldn't read enough data for part {part.Size} vs {ms.Length}");
 
-            var hash = ms.xxHash();
+            var hash = await ms.Hash(token);
             if (hash != part.Hash)
                 return BadRequest($"Hashes don't match for index {index}. Sizes ({ms.Length} vs {part.Size}). Hashes ({hash} vs {part.Hash}");
 
@@ -73,10 +81,9 @@ namespace Wabbajack.BuildServer.Controllers
         {
             var user = User.FindFirstValue(ClaimTypes.Name);
 
-            var data = await Request.Body.ReadAllTextAsync();
-            var definition = data.FromJsonString<CDNFileDefinition>();
+            var definition = (await _dtos.DeserializeAsync<FileDefinition>(Request.Body))!;
             
-            _logger.Log(LogLevel.Information, $"Creating File upload {definition.OriginalFileName}");
+            _logger.Log(LogLevel.Information, "Creating File upload {originalFileName}", definition.OriginalFileName);
 
             definition = await _sql.CreateAuthoredFile(definition, user);
             
@@ -107,7 +114,7 @@ namespace Wabbajack.BuildServer.Controllers
             await using var ms = new MemoryStream();
             await using (var gz = new GZipStream(ms, CompressionLevel.Optimal, true))
             {
-                definition.ToJson(gz);
+                await _dtos.Serialize(definition, gz);
             }
             ms.Position = 0;
             await UploadAsync(ms, $"{definition.MungedName}/definition.json.gz");
@@ -115,13 +122,13 @@ namespace Wabbajack.BuildServer.Controllers
             await _discord.Send(Channel.Ham,
                 new DiscordMessage {Content = $"{user} has finished uploading {definition.OriginalFileName} ({definition.Size.ToFileSizeString()})"});
 
-            var host = Consts.TestMode ? "test-files" : "authored-files";
+            var host = _settings.TestMode ? "test-files" : "authored-files";
             return Ok($"https://{host}.wabbajack.org/{definition.MungedName}");
         }
 
         private async Task<FtpClient> GetBunnyCdnFtpClient()
         {
-            var info = await BunnyCdnFtpInfo.GetCreds(StorageSpace.AuthoredFiles);
+            var info = (await _ftpCreds.Get())[StorageSpace.AuthoredFiles];
             var client = new FtpClient(info.Hostname) {Credentials = new NetworkCredential(info.Username, info.Password)};
             await client.ConnectAsync();
             return client;
@@ -174,7 +181,6 @@ namespace Wabbajack.BuildServer.Controllers
         ");
 
 
-
         [HttpGet]
         [AllowAnonymous]
         [Route("")]
@@ -189,16 +195,5 @@ namespace Wabbajack.BuildServer.Controllers
                 Content = response
             };
         }
-
-        [HttpGet]
-        [AllowAnonymous]
-        [Route("mirrors")]
-        public async Task<IActionResult> GetMirrorList()
-        {
-            Response.Headers.Add("x-last-updated", _mirrorList.LastUpdate.ToString(CultureInfo.InvariantCulture));
-            return Ok(_mirrorList.Mirrors);
-        }
-        
-
     }
 }

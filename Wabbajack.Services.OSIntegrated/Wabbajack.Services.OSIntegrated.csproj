@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <Version>$(VERSION)</Version>
+        <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="DeviceId" Version="6.0.0" />
+      <PackageReference Include="GitInfo" Version="2.1.2">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0-preview.7.21377.19" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Wabbajack.Compiler\Wabbajack.Compiler.csproj" />
+      <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj" />
+      <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj" />
+      <ProjectReference Include="..\Wabbajack.Networking.Discord\Wabbajack.Networking.Discord.csproj" />
+      <ProjectReference Include="..\Wabbajack.VFS\Wabbajack.VFS.csproj" />
+    </ItemGroup>
+
+</Project>

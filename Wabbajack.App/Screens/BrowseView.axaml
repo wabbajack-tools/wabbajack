@@ -1,0 +1,82 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:Wabbajack.App.Controls"
+             xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Wabbajack.App.Screens.BrowseView">
+    <Grid RowDefinitions="40, *">
+        <WrapPanel Grid.Row="0"
+                   Height="25"
+                   Margin="5,5,5,10"
+                   HorizontalAlignment="Right"
+                   Orientation="Horizontal">
+            <Label
+                Margin="0,0,0,0"
+                VerticalAlignment="Center"
+                Content="Game" />
+            <ComboBox
+                x:Name="GamesList"
+                Width="150"
+                Margin="0,0,10,0"
+                VerticalAlignment="Center">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Vertical" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <controls:GameSelectorItemView />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ComboBox>
+            <TextBlock
+                Margin="0,0,5,0"
+                VerticalAlignment="Center"
+                Text="Search" />
+            <TextBox
+                x:Name="SearchBox"
+                Width="95"
+                VerticalContentAlignment="Center" />
+            <CheckBox
+                x:Name="ShowNSFW"
+                Margin="10,0,10,0"
+                VerticalAlignment="Center"
+                Content="Show NSFW" />
+            <CheckBox
+                x:Name="ShowUtilityLists"
+                Margin="10,0,10,0"
+                VerticalAlignment="Center"
+                Content="Only Utility Lists" />
+            <CheckBox
+                x:Name="OnlyInstalledCheckbox"
+                Margin="10,0,10,0"
+                VerticalAlignment="Center"
+                Content="Only Installed"/>
+            <Button
+                x:Name="ClearFiltersButton"
+                Margin="0,0,10,0">
+                <avalonia:MaterialIcon Kind="FilterRemove" />
+            </Button>
+        </WrapPanel>
+
+        <ScrollViewer Grid.Row="1">
+            <ItemsControl x:Name="GalleryList">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <controls:BrowseItemView />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+
+    </Grid>
+</UserControl>

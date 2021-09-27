@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using Wabbajack.Common;
-using Wabbajack.Lib;
-using Wabbajack.Lib.AuthorApi;
-using Wabbajack.Lib.Downloaders;
+using Wabbajack.Compiler;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Server.DTOs;
 
 namespace Wabbajack.Server.DataLayer
@@ -26,7 +26,7 @@ namespace Wabbajack.Server.DataLayer
                     Size = a.Size == 0 ? null : (long?)a.Size,
                     Hash = a.Hash == default ? null : (Hash?)a.Hash,
                     DownloadState = a.State,
-                    Downloader = AbstractDownloadState.TypeToName[a.State.GetType()],
+                    Downloader = a.State.GetType().ToString(),
                     DownloadFinished = downloadFinished,
                     IsFailed = false
                 });
@@ -46,7 +46,7 @@ namespace Wabbajack.Server.DataLayer
                     Size = a.Size == 0 ? null : (long?)a.Size,
                     Hash = a.Hash == default ? null : (Hash?)a.Hash,
                     DownloadState = a.State,
-                    Downloader = AbstractDownloadState.TypeToName[a.State.GetType()],
+                    Downloader = a.State.GetType().ToString(),
                 });
             return Id;
         }
@@ -57,17 +57,17 @@ namespace Wabbajack.Server.DataLayer
             return (await conn.QueryAsync<(Hash, string)>("SELECT Hash, PrimaryKeyString FROM ArchiveDownloads")).ToHashSet();
         }
         
-        public async Task<HashSet<(Hash Hash, AbstractDownloadState State)>> GetAllArchiveDownloadStates()
+        public async Task<HashSet<(Hash Hash, IDownloadState State)>> GetAllArchiveDownloadStates()
         {
             await using var conn = await Open();
-            return (await conn.QueryAsync<(Hash, AbstractDownloadState)>("SELECT Hash, DownloadState FROM ArchiveDownloads")).ToHashSet();
+            return (await conn.QueryAsync<(Hash, IDownloadState)>("SELECT Hash, DownloadState FROM ArchiveDownloads")).ToHashSet();
         }
 
         
         public async Task<ArchiveDownload> GetArchiveDownload(Guid id)
         {
             await using var conn = await Open();
-            var result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, bool?, AbstractDownloadState, DateTime?)>(
+            var result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, bool?, IDownloadState, DateTime?)>(
                 "SELECT Id, Size, Hash, IsFailed, DownloadState, DownloadFinished FROM dbo.ArchiveDownloads WHERE Id = @id",
                 new {Id = id});
             if (result == default)
@@ -78,7 +78,7 @@ namespace Wabbajack.Server.DataLayer
                 Id = result.Item1,
                 IsFailed = result.Item4,
                 DownloadFinished = result.Item6,
-                Archive = new Archive(result.Item5) {Size = result.Item2 ?? 0, Hash = result.Item3 ?? default}
+                Archive = new Archive {State = result.Item5, Size = result.Item2 ?? 0, Hash = result.Item3 ?? default}
             };
 
         }
@@ -86,7 +86,7 @@ namespace Wabbajack.Server.DataLayer
         public async Task<ArchiveDownload> GetArchiveDownload(string primaryKeyString)
         {
             await using var conn = await Open();
-            var result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, bool?, AbstractDownloadState, DateTime?)>(
+            var result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, bool?, IDownloadState, DateTime?)>(
                 "SELECT Id, Size, Hash, IsFailed, DownloadState, DownloadFinished FROM dbo.ArchiveDownloads WHERE PrimaryKeyString = @PrimaryKeyString AND IsFailed = 0",
                 new {PrimaryKeyString = primaryKeyString});
             if (result == default)
@@ -97,7 +97,7 @@ namespace Wabbajack.Server.DataLayer
                 Id = result.Item1,
                 IsFailed = result.Item4,
                 DownloadFinished = result.Item6,
-                Archive = new Archive(result.Item5) {Size = result.Item2 ?? 0, Hash = result.Item3 ?? default}
+                Archive = new Archive{State = result.Item5, Size = result.Item2 ?? 0, Hash = result.Item3 ?? default}
             };
 
         }
@@ -105,7 +105,7 @@ namespace Wabbajack.Server.DataLayer
         public async Task<ArchiveDownload> GetArchiveDownload(string primaryKeyString, Hash hash, long size)
         {
             await using var conn = await Open();
-            var result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, bool?, AbstractDownloadState, DateTime?)>(
+            var result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, bool?, IDownloadState, DateTime?)>(
                 "SELECT Id, Size, Hash, IsFailed, DownloadState, DownloadFinished FROM dbo.ArchiveDownloads WHERE PrimaryKeyString = @PrimaryKeyString AND Hash = @Hash AND Size = @Size",
                 new
                 {
@@ -121,7 +121,7 @@ namespace Wabbajack.Server.DataLayer
                 Id = result.Item1,
                 IsFailed = result.Item4,
                 DownloadFinished = result.Item6,
-                Archive = new Archive(result.Item5) {Size = result.Item2 ?? 0, Hash = result.Item3 ?? default}
+                Archive = new Archive {State = result.Item5, Size = result.Item2 ?? 0, Hash = result.Item3 ?? default}
             };
 
         }
@@ -131,7 +131,7 @@ namespace Wabbajack.Server.DataLayer
         {
             await using var conn = await Open();
             await using var trans = await conn.BeginTransactionAsync();
-            var result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, bool?, AbstractDownloadState, DateTime?)>(
+            var result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, bool?, IDownloadState, DateTime?)>(
                 "SELECT Id, Size, Hash, IsFailed, DownloadState, DownloadFinished FROM dbo.ArchiveDownloads WHERE PrimaryKeyString = @PrimaryKeyString AND Hash = @Hash AND Size = @Size",
                 new
                 {
@@ -146,7 +146,7 @@ namespace Wabbajack.Server.DataLayer
                     Id = result.Item1,
                     IsFailed = result.Item4,
                     DownloadFinished = result.Item6,
-                    Archive = new Archive(result.Item5) {Size = result.Item2 ?? 0, Hash = result.Item3 ?? default}
+                    Archive = new Archive{State = result.Item5, Size = result.Item2 ?? 0, Hash = result.Item3 ?? default}
                 };
             }
 
@@ -160,7 +160,7 @@ namespace Wabbajack.Server.DataLayer
                     Size = a.Size == 0 ? null : (long?)a.Size,
                     Hash = a.Hash == default ? null : (Hash?)a.Hash,
                     DownloadState = a.State,
-                    Downloader = AbstractDownloadState.TypeToName[a.State.GetType()]
+                    Downloader = ""
                 }, trans);
 
             await trans.CommitAsync();
@@ -172,16 +172,16 @@ namespace Wabbajack.Server.DataLayer
         public async Task<ArchiveDownload> GetNextPendingDownload(bool ignoreNexus = false)
         {
             await using var conn = await Open();
-            (Guid, long?, Hash?, AbstractDownloadState) result;
+            (Guid, long?, Hash?, IDownloadState) result;
 
             if (ignoreNexus)
             {
-                result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, AbstractDownloadState)>(
+                result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, IDownloadState)>(
                     "SELECT TOP(1) Id, Size, Hash, DownloadState FROM dbo.ArchiveDownloads WHERE DownloadFinished is NULL AND Downloader != 'NexusDownloader+State'");
             }
             else
             {
-                result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, AbstractDownloadState)>(
+                result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, IDownloadState)>(
                     "SELECT TOP(1) Id, Size, Hash, DownloadState FROM dbo.ArchiveDownloads WHERE DownloadFinished is NULL");
             }
 
@@ -191,7 +191,7 @@ namespace Wabbajack.Server.DataLayer
             return new ArchiveDownload
             {
                 Id = result.Item1,
-                Archive = new Archive(result.Item4) {Size = result.Item2 ?? 0, Hash = result.Item3 ?? default,},
+                Archive = new Archive {State = result.Item4, Size = result.Item2 ?? 0, Hash = result.Item3 ?? default,},
             };
         }
         
@@ -225,10 +225,11 @@ namespace Wabbajack.Server.DataLayer
         public async Task<List<Archive>> GetGameFiles(Game game, string version)
         {
             await using var conn = await Open();
-            var files = (await conn.QueryAsync<(Hash, long, AbstractDownloadState)>(
+            var files = (await conn.QueryAsync<(Hash, long, IDownloadState)>(
                 $"SELECT Hash, Size, DownloadState FROM dbo.ArchiveDownloads WHERE PrimaryKeyString like 'GameFileSourceDownloader+State|{game}|{version}|%'"))
-                .Select(f => new Archive(f.Item3)
+                .Select(f => new Archive
                 {
+                    State = f.Item3,
                     Hash = f.Item1,
                     Size = f.Item2
                 }).ToList();
@@ -238,20 +239,19 @@ namespace Wabbajack.Server.DataLayer
         public async Task<Archive[]> ResolveDownloadStatesByHash(Hash hash)
         {
             await using var conn = await Open();
-            var files = (await conn.QueryAsync<(long, Hash, AbstractDownloadState)>(
+            var files = (await conn.QueryAsync<(long, Hash, IDownloadState)>(
                     @"SELECT Size, Hash,  DownloadState from dbo.ArchiveDownloads WHERE Hash = @Hash AND IsFailed = 0 AND DownloadFinished IS NOT NULL ORDER BY DownloadFinished DESC",
                     new {Hash = hash})
                 ).Select(e =>
-                    new Archive(e.Item3) {Size = e.Item1, Hash = e.Item2}
+                    new Archive{State = e.Item3, Size = e.Item1, Hash = e.Item2}
                 ).ToList();
 
             if (await HaveMirror(hash) && files.Count > 0)
             {
                 var ffile = files.First();
-                var host = Consts.TestMode ? "test-files" : "mirror";
+                var host = _settings.TestMode ? "test-files" : "mirror";
                 var url = new Uri($"https://{host}.wabbajack.org/{hash.ToHex()}");
-                files.Add(new Archive(
-                    new WabbajackCDNDownloader.State(url)) {Hash = hash, Size = ffile.Size, Name = ffile.Name});
+                files.Add(new Archive {State = new WabbajackCDN {Url = url}, Hash = hash, Size = ffile.Size, Name = ffile.Name});
             }
 
             return files.ToArray();

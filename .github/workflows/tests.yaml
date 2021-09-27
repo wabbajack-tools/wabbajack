@@ -1,0 +1,107 @@
+name: Main Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  VERSION: 3.0.0.0-alpha5
+
+jobs:
+  build:
+    
+    name: Test ${{ matrix.project }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    env:
+      NEXUS_API_KEY: ${{ secrets.NEXUS_API_KEY }}
+      NEXUS_LOGIN: ${{ secrets.NEXUS_LOGIN }}
+      VECTOR_PLEXUS: ${{ secrets.VECTOR_PLEXUS }}
+      LOVERS_LAB: ${{ secrets.LOVERS_LAB }}
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        project:
+          - Wabbajack.Compiler.Test
+          - Wabbajack.Compression.BSA.Test
+          - Wabbajack.Downloaders.Dispatcher.Test
+          - Wabbajack.DTOs.Test
+          - Wabbajack.FileExtractor.Test
+          - Wabbajack.Hashing.PHash.Test
+          - Wabbajack.Hashing.xxHash64.Test
+          - Wabbajack.Installer.Test
+          - Wabbajack.Networking.NexusApi.Test
+          - Wabbajack.Paths.Test
+          - Wabbajack.Paths.IO.Test
+          - Wabbajack.VFS.Test
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set Permissions
+        if: runner.os != 'Windows'
+        run: chmod -R +x Wabbajack.FileExtractor/Extractors
+    
+      - name: Setup .NET Core SDK 6.0.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0.x'
+          include-prerelease: true
+          
+      - name: Install dependencies
+        run: dotnet restore ${{ matrix.project }}/${{ matrix.project }}.csproj
+      - name: Build
+        run: dotnet build ${{ matrix.project }}/${{ matrix.project }}.csproj --configuration Release --no-restore
+      - name: Test
+        run: dotnet test ${{ matrix.project }}/${{ matrix.project }}.csproj --no-restore
+        
+  publish:
+    name: Publish ${{ matrix.project }}
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' }}
+    strategy:
+      matrix:
+        project:
+          - Wabbajack.Common
+          - Wabbajack.Compiler
+          - Wabbajack.Compression.BSA
+          - Wabbajack.Downloaders.Interfaces
+          - Wabbajack.Downloaders.GoogleDrive
+          - Wabbajack.Downloaders.Http
+          - Wabbajack.Downloaders.Nexus
+          - Wabbajack.Downloaders.WabbajackCDN
+          - Wabbajack.DTOs
+          - Wabbajack.FileExtractor
+          - Wabbajack.Hashing.PHash
+          - Wabbajack.Hashing.xxHash64
+          - Wabbajack.Installer
+          - Wabbajack.Networking.Http
+          - Wabbajack.Networking.Http.Interfaces
+          - Wabbajack.Networking.NexusApi
+          - Wabbajack.Networking.WabbajackClientApi
+          - Wabbajack.Paths
+          - Wabbajack.Paths.IO
+          - Wabbajack.RateLimiter
+          - Wabbajack.VFS
+        
+          
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Setup .NET Core SDK 6.0.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0.x'
+          include-prerelease: true      
+
+      - name: Publish ${{ matrix.project}} NuGet
+        uses: brandedoutcast/publish-nuget@v2.5.5
+        with:
+          PROJECT_FILE_PATH: ${{ matrix.project }}/${{ matrix.project }}.csproj
+          VERSION_STATIC: ${{ env.VERSION }}
+          NUGET_KEY: ${{secrets.NUGET_KEY}}
+    

@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Wabbajack.VirtualFileSystem.Test": {
-      "commandName": "Project",
-      "nativeDebugging": true
-    }
-  }
-}

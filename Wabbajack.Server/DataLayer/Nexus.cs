@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
 using Dapper;
-using Newtonsoft.Json;
-using Wabbajack.Common;
-using Wabbajack.Lib.NexusApi;
-using Wabbajack.Lib.Validation;
+using Wabbajack.DTOs;
+using Wabbajack.Networking.NexusApi.DTOs;
 
 namespace Wabbajack.Server.DataLayer
 {
@@ -36,13 +32,13 @@ namespace Wabbajack.Server.DataLayer
             return deleted;
         }
         
-        public async Task<ModInfo> GetNexusModInfoString(Game game, long modId)
+        public async Task<ModInfo?> GetNexusModInfoString(Game game, long modId)
         {
             await using var conn = await Open();
             var result = await conn.QueryFirstOrDefaultAsync<string>(
                 "SELECT Data FROM dbo.NexusModInfos WHERE Game = @Game AND @ModId = ModId",
                 new {Game = game.MetaData().NexusGameId, ModId = modId});
-            return result == null ? null : JsonConvert.DeserializeObject<ModInfo>(result);
+            return result == null ? null : _dtos.Deserialize<ModInfo>(result);
         }
         
         public async Task AddNexusModInfo(Game game, long modId, DateTime lastCheckedUtc, ModInfo data)
@@ -60,12 +56,12 @@ namespace Wabbajack.Server.DataLayer
                     Game = game.MetaData().NexusGameId,
                     ModId = modId,
                     LastChecked = lastCheckedUtc,
-                    Data = JsonConvert.SerializeObject(data)
+                    Data = _dtos.Serialize(data)
                 });
             
         }
         
-        public async Task AddNexusModFiles(Game game, long modId, DateTime lastCheckedUtc, NexusApiClient.GetModFilesResponse data)
+        public async Task AddNexusModFiles(Game game, long modId, DateTime lastCheckedUtc, ModFiles data)
         {
             await using var conn = await Open();
 
@@ -80,7 +76,7 @@ namespace Wabbajack.Server.DataLayer
                     Game = game.MetaData().NexusGameId,
                     ModId = modId,
                     LastChecked = lastCheckedUtc,
-                    Data = JsonConvert.SerializeObject(data)
+                    Data = _dtos.Serialize(data)
                 });
         }
         
@@ -103,13 +99,13 @@ namespace Wabbajack.Server.DataLayer
                 });
         }
         
-        public async Task<NexusApiClient.GetModFilesResponse> GetModFiles(Game game, long modId)
+        public async Task<ModFiles?> GetModFiles(Game game, long modId)
         {
             await using var conn = await Open();
             var result = await conn.QueryFirstOrDefaultAsync<string>(
                 "SELECT Data FROM dbo.NexusModFiles WHERE Game = @Game AND @ModId = ModId",
                 new {Game = game.MetaData().NexusGameId, ModId = modId});
-            return result == null ? null : JsonConvert.DeserializeObject<NexusApiClient.GetModFilesResponse>(result);
+            return result == null ? null : _dtos.Deserialize<ModFiles>(result);
         }
 
         public async Task PurgeNexusCache(long modId)
@@ -120,50 +116,6 @@ namespace Wabbajack.Server.DataLayer
             await conn.ExecuteAsync("DELETE FROM dbo.NexusModPermissions WHERE ModId = @ModId", new {ModId = modId});
             await conn.ExecuteAsync("DELETE FROM dbo.NexusModFile WHERE ModId = @ModID", new {ModId = modId});
         }
-
-        public async Task<Dictionary<(Game, long), HTMLInterface.PermissionValue>> GetNexusPermissions()
-        {
-            await using var conn = await Open();
-
-            var results =
-                await conn.QueryAsync<(int, long, int)>("SELECT NexusGameID, ModID, Permissions FROM NexusModPermissions");
-            return results.ToDictionary(f => (GameRegistry.ByNexusID[f.Item1], f.Item2),
-                f => (HTMLInterface.PermissionValue)f.Item3);
-        }
-        
-        public async Task<Dictionary<(Game, long), HTMLInterface.PermissionValue>> GetHiddenNexusMods()
-        {
-            await using var conn = await Open();
-
-            var results =
-                await conn.QueryAsync<(int, long, int)>(@"SELECT NexusGameID, ModID, Permissions FROM NexusModPermissions WHERE Permissions = @Permissions
-                                                              UNION
-                                                              SELECT Game, mf.ModID, 3 from dbo.NexusModFiles mf
-			                                                    LEFT JOIN NexusModPermissions mp on mf.Game = mp.NexusGameID AND mf.ModId = mp.ModID
-			                                                    WHERE JSON_QUERY(Data, '$.files') = '[]' AND mp.Permissions != 4",
-                    new {Permissions = (int)HTMLInterface.PermissionValue.Hidden});
-            return results.ToDictionary(f => (GameRegistry.ByNexusID[f.Item1], f.Item2),
-                f => (HTMLInterface.PermissionValue)f.Item3);
-        }
-
-        public async Task SetNexusPermissions(IEnumerable<(Game, long, HTMLInterface.PermissionValue)> permissions)
-        {
-            await using var conn = await Open();
-            var tx = await conn.BeginTransactionAsync();
-
-            await conn.ExecuteAsync("DELETE FROM NexusModPermissions", transaction:tx);
-
-            foreach (var (game, modId, perm) in permissions)
-            {
-                await conn.ExecuteAsync(
-                    "INSERT INTO NexusModPermissions (NexusGameID, ModID, Permissions) VALUES (@NexusGameID, @ModID, @Permissions)",
-                    new {NexusGameID = game.MetaData().NexusGameId, ModID = modId, Permissions = (int)perm}, tx);
-            }
-
-            await tx.CommitAsync();
-
-        }
-
         public async Task UpdateGameMetadata()
         {
             await using var conn = await Open();
@@ -178,35 +130,16 @@ namespace Wabbajack.Server.DataLayer
             }
         }
 
-        public async Task SetNexusPermission(Game game, long modId, HTMLInterface.PermissionValue perm)
-        {
-            await using var conn = await Open();
-            var tx = await conn.BeginTransactionAsync();
-
-            await conn.ExecuteAsync("DELETE FROM NexusModPermissions WHERE NexusGameID = @GameID AND ModID = @ModID", new
-                {
-                    GameID = game.MetaData().NexusGameId,
-                    ModID = modId
-                },
-                transaction:tx);
-            
-            await conn.ExecuteAsync(
-                "INSERT INTO NexusModPermissions (NexusGameID, ModID, Permissions) VALUES (@NexusGameID, @ModID, @Permissions)",
-                new {NexusGameID = game.MetaData().NexusGameId, ModID = modId, Permissions = (int)perm}, tx);
-
-            await tx.CommitAsync();
-        }
-
-        public async Task<NexusFileInfo> GetModFile(Game game, long modId, long fileId)
+        public async Task<ModFile?> GetModFile(Game game, long modId, long fileId)
         {
             await using var conn = await Open();
             var result = await conn.QueryFirstOrDefaultAsync<string>(
                 "SELECT Data FROM dbo.NexusModFile WHERE Game = @Game AND @ModId = ModId AND @FileId = FileId",
                 new {Game = game.MetaData().NexusGameId, ModId = modId, FileId = fileId});
-            return result == null ? null : JsonConvert.DeserializeObject<NexusFileInfo>(result);
+            return result == null ? null : _dtos.Deserialize<ModFile>(result);
         }
         
-        public async Task AddNexusModFile(Game game, long modId, long fileId, DateTime lastCheckedUtc, NexusFileInfo data)
+        public async Task AddNexusModFile(Game game, long modId, long fileId, DateTime lastCheckedUtc, ModFile data)
         {
             await using var conn = await Open();
 
@@ -219,7 +152,7 @@ namespace Wabbajack.Server.DataLayer
                     ModId = modId,
                     FileId = fileId,
                     LastChecked = lastCheckedUtc,
-                    Data = JsonConvert.SerializeObject(data)
+                    Data = _dtos.Serialize(data)
                 });
         }
         

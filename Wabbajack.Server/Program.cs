@@ -12,8 +12,6 @@ namespace Wabbajack.Server
     {
         public static void Main(string[] args)
         {
-            LoggingSettings.LogToFile = true;
-            Consts.IsServer = true;
             bool testMode = args.Contains("TESTMODE");
             CreateHostBuilder(args, testMode).Build().Run();
         }
@@ -30,14 +28,11 @@ namespace Wabbajack.Server
                             {
                                 options.Listen(IPAddress.Any, 443, listenOptions =>
                                 {
-                                    using (var store = new X509Store(StoreName.My))
-                                    {
-                                        store.Open(OpenFlags.ReadOnly);
-                                        var cert = store.Certificates.Find(X509FindType.FindBySubjectName,
-                                            "build.wabbajack.org", true)[0];
-                                        listenOptions.UseHttps(cert);
-
-                                    }
+                                    using var store = new X509Store(StoreName.My);
+                                    store.Open(OpenFlags.ReadOnly);
+                                    var cert = store.Certificates.Find(X509FindType.FindBySubjectName,
+                                        "build.wabbajack.org", true)[0];
+                                    listenOptions.UseHttps(cert);
                                 });
                             }
                             options.Limits.MaxRequestBodySize = null;

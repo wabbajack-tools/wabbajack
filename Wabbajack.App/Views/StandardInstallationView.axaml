@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="Wabbajack.App.Views.StandardInstallationView">
+    <Grid RowDefinitions="40, 5, 5, *, 40">
+        <TextBlock Grid.Row="0" x:Name="StatusText" FontSize="20" FontWeight="Bold">[20/30] Installing Files</TextBlock>
+        <ProgressBar Grid.Row="1" x:Name="StepsProgress" Maximum="1000" Value="40"></ProgressBar>
+        <ProgressBar Grid.Row="2" x:Name="StepProgress" Maximum="10000" Value="30"></ProgressBar>
+        <Viewbox Grid.Row="3" HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 Stretch="Uniform">
+          <Image x:Name="SlideImage" Source="C:\tmp\modlist-image.png"></Image>
+        </Viewbox>
+        <Grid Grid.Row="4" HorizontalAlignment="Center" ColumnDefinitions="40, 40, 40, 40">
+            <Button Grid.Column="0" x:Name="PrevSlide"><i:MaterialIcon Kind="ArrowLeft"></i:MaterialIcon></Button>
+            <Button Grid.Column="1" x:Name="PauseSlides"><i:MaterialIcon Kind="Pause"></i:MaterialIcon></Button>
+            <Button Grid.Column="2" x:Name="PlaySlides"><i:MaterialIcon Kind="PlayArrow"></i:MaterialIcon></Button>
+            <Button Grid.Column="3" x:Name="NextSlide"><i:MaterialIcon Kind="ArrowRight"></i:MaterialIcon></Button>
+        </Grid>
+    </Grid>
+</UserControl>

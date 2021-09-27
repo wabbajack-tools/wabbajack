@@ -1,82 +1,39 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
+
     <PropertyGroup>
-        <TargetFramework>net5.0-windows</TargetFramework>
-        <Platforms>x64</Platforms>
-        <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+        <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Title>Wabbajack Common Lib</Title>
-        <Authors>Wabbajack Team</Authors>
-        <Copyright>2020</Copyright>
-        <PackageProjectUrl>https://github.com/wabbajack-tools/wabbajack</PackageProjectUrl>
-        <PackageLicenseUrl>https://raw.githubusercontent.com/wabbajack-tools/wabbajack/master/LICENSE.txt</PackageLicenseUrl>
-        <PackageIconUrl>https://www.wabbajack.org/favicon.ico</PackageIconUrl>
-        <RepositoryUrl>https://github.com/wabbajack-tools/wabbajack</RepositoryUrl>
-        <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
-        <PackageVersion>2.4.1.2</PackageVersion>
-        <Version>2.4.1.2</Version>
-        <AssemblyVersion>2.4.1.2</AssemblyVersion>
-        <FileVersion>2.4.1.2</FileVersion>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+        <Version>$(VERSION)</Version>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      <DocumentationFile>Wabbajack.Common.xml</DocumentationFile>
-      <NoWarn></NoWarn>
-    </PropertyGroup>
+
     <ItemGroup>
-        <None Remove="7z.dll.gz" />
-        <None Remove="7z.exe.gz" />
-        <None Remove="innounp.exe.gz" />
-        <None Update="7Zip\7z.dll">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="7Zip\7z.exe">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="Serialization\PrimitiveHandlers.tt">
-          <Generator>TextTemplatingFileGenerator</Generator>
-          <LastGenOutput>PrimitiveHandlers.cs</LastGenOutput>
-        </None>
-        <None Update="FileSignatures\Signatures.tt">
-          <Generator>TextTemplatingFileGenerator</Generator>
-          <LastGenOutput>Signatures.cs</LastGenOutput>
-        </None>
+      <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
+      <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
     </ItemGroup>
+
     <ItemGroup>
-        <Folder Include="KnownFolders\" />
-        <Folder Include="Properties\" />
+      <None Update="FileSignatures\Signatures.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>Signatures.cs</LastGenOutput>
+      </None>
     </ItemGroup>
+
     <ItemGroup>
-        <PackageReference Include="GameFinder.StoreHandlers.BethNet" Version="1.6.3" />
-        <PackageReference Include="GameFinder.StoreHandlers.EGS" Version="1.6.3" />
-        <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="1.6.3" />
-        <PackageReference Include="GameFinder.StoreHandlers.Steam" Version="1.6.3" />
-        <PackageReference Include="GameFinder.StoreHandlers.Origin" Version="1.6.3" />
-        <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
-        <PackageReference Include="HtmlAgilityPack" Version="1.11.34" />
-        <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
-        <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-        <PackageReference Include="Octodiff" Version="1.2.1" />
-        <PackageReference Include="SharpZipLib" Version="1.3.2" />
-        <PackageReference Include="System.Data.HashFunction.xxHash" Version="2.0.0" />
-        <PackageReference Include="System.Data.SQLite.Core" Version="1.0.114.3" />
-        <PackageReference Include="System.Management" Version="5.0.0" />
-        <PackageReference Include="System.Net.Http" Version="4.3.4" />
-        <PackageReference Include="System.Reactive" Version="5.0.0" />
-        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="5.0.0" />
-        <PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />
-        <PackageReference Include="YamlDotNet" Version="11.2.1" />
-    </ItemGroup>
-    <ItemGroup>
-      <Compile Update="Serialization\PrimitiveHandlers.cs">
-        <DependentUpon>PrimitiveHandlers.tt</DependentUpon>
-      </Compile>
       <Compile Update="FileSignatures\Signatures.cs">
         <AutoGen>True</AutoGen>
         <DesignTime>True</DesignTime>
         <DependentUpon>Signatures.tt</DependentUpon>
       </Compile>
     </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0-preview.7.21377.19" />
+      <PackageReference Include="System.Reactive" Version="5.0.0" />
+    </ItemGroup>
+
+    <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
+        <DefineConstants>_WINDOWS</DefineConstants>
+    </PropertyGroup>
+
 </Project>

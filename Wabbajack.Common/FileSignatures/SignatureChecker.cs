@@ -2,40 +2,40 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack.Common.FileSignatures
 {
     public class SignatureChecker
     {
-        private readonly HashSet<Definitions.FileType> _types;
-        private readonly (Definitions.FileType, byte[])[] _signatures;
-
         private readonly int _maxLength;
+        private readonly (FileType, byte[])[] _signatures;
 
-        public SignatureChecker(params Definitions.FileType[] types)
+        public SignatureChecker(params FileType[] types)
         {
-            _types = new HashSet<Definitions.FileType>(types);
-            _signatures = Definitions.Signatures.Where(row => _types.Contains(row.Item1)).OrderByDescending(x => x.Item2.Length).ToArray();
+            HashSet<FileType> types1 = new(types);
+            _signatures = Definitions.Signatures.Where(row => types1.Contains(row.Item1))
+                .OrderByDescending(x => x.Item2.Length).ToArray();
             _maxLength = _signatures.First().Item2.Length;
         }
 
-        public async Task<Definitions.FileType?> MatchesAsync(AbsolutePath path)
+        public async ValueTask<FileType?> MatchesAsync(AbsolutePath path)
         {
-            await using var fs = await path.OpenShared();
+            await using var fs = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
             return await MatchesAsync(fs);
         }
-        
-        public async Task<Definitions.FileType?> MatchesAsync(Stream stream)
+
+        public async ValueTask<FileType?> MatchesAsync(Stream stream)
         {
             var buffer = new byte[_maxLength];
             stream.Position = 0;
             await stream.ReadAsync(buffer);
+            stream.Position = 0;
 
             foreach (var (fileType, signature) in _signatures)
-            {
                 if (AreEqual(buffer, signature))
                     return fileType;
-            }
 
             return null;
         }

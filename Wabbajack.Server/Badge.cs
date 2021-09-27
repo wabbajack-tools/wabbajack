@@ -1,8 +1,5 @@
-﻿using Wabbajack.Common.Serialization.Json;
-
-namespace Wabbajack.Server
+﻿namespace Wabbajack.Server
 {
-    [JsonName("Badge")]
     public class Badge
     {
         public int schemaVersion { get; set; } = 1;

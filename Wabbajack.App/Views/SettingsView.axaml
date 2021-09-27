@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Wabbajack.App.Views.SettingsView">
+    <WrapPanel>
+        <Border x:Name="LoginBorder" Margin="5" BorderThickness="1">
+            <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="20, *, Auto, Auto">
+                <TextBlock FontSize="20" Text="Logins" Grid.ColumnSpan="4"></TextBlock>
+                
+                <Image Grid.Row="1" Grid.Column="0" Width="16" Height="16" Source="../Assets/Downloaders/nexus.ico" HorizontalAlignment="Right"></Image>
+                <TextBlock  Grid.Row="1" Grid.Column="1" Text="Nexus" VerticalAlignment="Center" HorizontalAlignment="Left"></TextBlock>
+                <Button Grid.Row="1" Grid.Column="2" x:Name="NexusLogIn">Log In</Button>
+                <Button Grid.Row="1" Grid.Column="3" x:Name="NexusLogOut">Log Out</Button>
+                
+                <Image Grid.Row="2" Grid.Column="0" Width="16" Height="16" Source="../Assets/Downloaders/loverslab.ico" HorizontalAlignment="Right"></Image>
+                <TextBlock  Grid.Row="2" Grid.Column="1" Text="Lovers Lab" VerticalAlignment="Center" HorizontalAlignment="Left"></TextBlock>
+                <Button Grid.Row="2" Grid.Column="2" x:Name="LoversLabLogIn">Log In</Button>
+                <Button Grid.Row="2" Grid.Column="3" x:Name="LoversLabLogOut">Log Out</Button>
+                
+                <Image Grid.Row="3" Grid.Column="0" Width="16" Height="16" Source="../Assets/Downloaders/vectorplexus.ico" HorizontalAlignment="Right"></Image>
+                <TextBlock  Grid.Row="3" Grid.Column="1" Text="Vector Plexus" VerticalAlignment="Center" HorizontalAlignment="Left"></TextBlock>
+                <Button Grid.Row="3" Grid.Column="2" x:Name="VectorPlexusLogIn">Log In</Button>
+                <Button Grid.Row="3" Grid.Column="3" x:Name="VectorPlexusLogOut">Log Out</Button>
+                
+            </Grid>
+            
+            
+        </Border>
+    </WrapPanel>
+</UserControl>

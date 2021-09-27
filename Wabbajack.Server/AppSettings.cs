@@ -1,14 +1,23 @@
-﻿using Microsoft.Extensions.Configuration;
-using Wabbajack.Common;
+﻿using System;
+using Microsoft.Extensions.Configuration;
+using Wabbajack.Paths;
 
 namespace Wabbajack.BuildServer
 {
     public class AppSettings
     {
+        public bool TestMode { get; set; }
+        public string AuthorAPIKeyFile { get; set; } = "exported_users";
+
+        public string CompressedBodyHeader { get; set; } = "x-compressed-body";
+        public string WabbajackBuildServerUri { get; set; } = "https://build.wabbajack.org/";
+
         public AppSettings(IConfiguration config)
         {
             config.Bind("WabbajackSettings", this);
         }
+
+        public string MetricsKeyHeader { get; set; } = "x-metrics-key";
         
         public string DownloadDir { get; set; }
         public AbsolutePath DownloadPath => (AbsolutePath)DownloadDir;

@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CefSharp.DevTools.Network;
 using Dapper;
-using Wabbajack.Common;
-using Wabbajack.Lib.Downloaders;
-using Wabbajack.Lib.NexusApi;
+using Wabbajack.DTOs;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Server.DTOs;
 
 namespace Wabbajack.Server.DataLayer
@@ -28,7 +26,7 @@ namespace Wabbajack.Server.DataLayer
         public async Task<Dictionary<Hash, bool>> GetAllMirroredHashes()
         {
             await using var conn = await Open();
-            return (await conn.QueryAsync<(Hash, DateTime?)>("SELECT Hash, Uploaded FROM dbo.MirroredArchives"))
+            return (await conn.QueryAsync<(Hashing.xxHash64.Hash, DateTime?)>("SELECT Hash, Uploaded FROM dbo.MirroredArchives"))
                 .GroupBy(d => d.Item1)
                 .ToDictionary(d => d.Key, d => d.First().Item2.HasValue);
         }
@@ -84,33 +82,6 @@ namespace Wabbajack.Server.DataLayer
             await conn.ExecuteAsync("DELETE FROM dbo.MirroredArchives WHERE Hash = @Hash",
                 new {Hash = hash});
         }
-
-        public async Task InsertAllNexusMirrors()
-        {
-            var permissions = (await GetNexusPermissions()).Where(p => p.Value == HTMLInterface.PermissionValue.Yes);
-            var downloads = (await GetAllArchiveDownloadStates()).Where(a => a.State is NexusDownloader.State).ToDictionary(a =>
-            {
-                var nd = (NexusDownloader.State)a.State;
-                return (nd.Game, nd.ModID);
-            }, a => a.Hash);
-            
-            var existing = await GetAllMirroredHashes();
-
-            foreach (var (key, _) in permissions)
-            {
-                if (!downloads.TryGetValue(key, out var hash)) continue;
-                if (existing.ContainsKey(hash)) continue;
-
-                await UpsertMirroredFile(new MirroredFile
-                {
-                    Hash = hash,
-                    Created = DateTime.UtcNow,
-                    Rationale =
-                        $"Mod ({key.Item1} {key.Item2}) has allowed re-upload permissions on the Nexus"
-                });
-            }
-        }
-
         public async Task<bool> HaveMirror(Hash hash)
         {
             await using var conn = await Open();

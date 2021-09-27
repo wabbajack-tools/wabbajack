@@ -1,0 +1,55 @@
+<app:FluentWindow xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Wabbajack.App.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:app="clr-namespace:Wabbajack.App"
+        xmlns:views="clr-namespace:Wabbajack.App.Views"
+        
+        xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+        xmlns:reactiveUi="http://reactiveui.net"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Wabbajack.App.Views.MainWindow"
+        Icon="{x:Null}"
+        WindowStartupLocation="CenterScreen"
+        Background="#121212"
+        
+        MaxWidth="1920"
+        MaxHeight="1080"
+        
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        
+        Title="Wabbajack 3.0 - WIP">
+    
+    <app:FluentWindow.Styles>
+        <Style Selector="TitleBar:fullscreen">
+            <Setter Property="Background" Value="#7f000000" />
+        </Style>
+    </app:FluentWindow.Styles>
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="40, *">
+        <Grid ColumnDefinitions="40, *, 40, 40">
+            <Button Grid.Column="0" x:Name="BackButton">
+                <i:MaterialIcon Kind="ArrowBack"> </i:MaterialIcon>
+            </Button>
+            <TextBlock Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" x:Name="ResourceStatus"></TextBlock>
+            <Button Grid.Column="2" x:Name="MinimizeButton">
+               <i:MaterialIcon Kind="WindowMinimize" />
+            </Button>
+            
+            <Button Grid.Column="3" x:Name="CloseButton">
+                <i:MaterialIcon Kind="Close"/>
+            </Button>
+            
+        </Grid>
+        <ContentControl Grid.Row="1" x:Name="Contents"></ContentControl>
+        
+    </Grid>
+
+</app:FluentWindow>

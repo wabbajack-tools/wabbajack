@@ -1,10 +1,8 @@
 ﻿using System;
 using Newtonsoft.Json;
-using Wabbajack.Common.Serialization.Json;
 
 namespace Wabbajack.Server.DTOs
 {
-    [JsonName("DiscordMessage")]
     public class DiscordMessage
     {
         [JsonProperty("username")]
@@ -20,7 +18,6 @@ namespace Wabbajack.Server.DTOs
         public DiscordEmbed[] Embeds { get; set; }
     }
 
-    [JsonName("DiscordEmbed")]
     public class DiscordEmbed
     {
         [JsonProperty("title")]
@@ -54,7 +51,6 @@ namespace Wabbajack.Server.DTOs
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     }
 
-    [JsonName("DiscordAuthor")]
     public class DiscordAuthor
     {
         [JsonProperty("name")]
@@ -67,7 +63,6 @@ namespace Wabbajack.Server.DTOs
         public Uri IconUrl { get; set; }
     }
 
-    [JsonName("DiscordField")]
     public class DiscordField
     {
         [JsonProperty("name")]
@@ -80,21 +75,18 @@ namespace Wabbajack.Server.DTOs
         public bool Inline { get; set; }
     }
 
-    [JsonName("DiscordThumbnail")]
     public class DiscordNumbnail
     {
         [JsonProperty("Url")]
         public Uri Url { get; set; }
     }
     
-    [JsonName("DiscordImage")]
     public class DiscordImage
     {
         [JsonProperty("Url")]
         public Uri Url { get; set; }
     }
     
-    [JsonName("DiscordFooter")]
     public class DiscordFooter
     {
         [JsonProperty("text")]

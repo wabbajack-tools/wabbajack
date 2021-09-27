@@ -1,6 +1,6 @@
 ﻿
 namespace Wabbajack.Common.FileSignatures {
-    public static class Definitions {
+
     public enum FileType {       _123,
           _386,
           _3G2,
@@ -104,6 +104,7 @@ namespace Wabbajack.Common.FileSignatures {
           DBX,
           DCI,
           DCX,
+          DDS,
           dex,
           DIB,
           DLL,
@@ -432,6 +433,9 @@ namespace Wabbajack.Common.FileSignatures {
           ZOO,
         }
 
+    public static class Definitions {
+
+
     public static (FileType, byte[])[] Signatures = {
             // Morrowind BSA
         (FileType.TES3, new byte[] {0x00, 0x01, 0x00, 0x00}),
@@ -450,6 +454,9 @@ namespace Wabbajack.Common.FileSignatures {
 
                 // RAR4 or older
         (FileType.RAR_OLD, new byte[] {0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x00}),
+
+                // DDS
+        (FileType.DDS, new byte[] {0x44, 0x44, 0x53, 0x20}),
 
                 // JPEG2000 image files
         (FileType.JP2, new byte[] {0x00, 0x00, 0x00, 0x0C, 0x6A, 0x50, 0x20, 0x20}),

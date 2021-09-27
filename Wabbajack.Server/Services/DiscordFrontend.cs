@@ -4,11 +4,10 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
-using OMODFramework;
 using Wabbajack.BuildServer;
-using Wabbajack.Common;
+using Wabbajack.DTOs;
 using Wabbajack.Server.DataLayer;
-using Utils = Wabbajack.Common.Utils;
+using Wabbajack.Server.TokenProviders;
 
 namespace Wabbajack.Server.Services
 {
@@ -20,9 +19,9 @@ namespace Wabbajack.Server.Services
         private DiscordSocketClient _client;
         private SqlService _sql;
         private MetricsKeyCache _keyCache;
-        private ListValidator _listValidator;
+        private readonly IDiscordToken _token;
 
-        public DiscordFrontend(ILogger<DiscordFrontend> logger, AppSettings settings, QuickSync quickSync, ListValidator listValidator, SqlService sql, MetricsKeyCache keyCache)
+        public DiscordFrontend(ILogger<DiscordFrontend> logger, AppSettings settings, QuickSync quickSync, SqlService sql, MetricsKeyCache keyCache, IDiscordToken token)
         {
             _logger = logger;
             _settings = settings;
@@ -36,7 +35,7 @@ namespace Wabbajack.Server.Services
 
             _sql = sql;
             _keyCache = keyCache;
-            _listValidator = listValidator;
+            _token = token;
         }
 
         private async Task MessageReceivedAsync(SocketMessage arg)
@@ -88,7 +87,6 @@ namespace Wabbajack.Server.Services
                     else
                     {
                         var deleted = await _sql.PurgeList(parts[2]);
-                        _listValidator.ValidationInfo.TryRemove(parts[2], out var _); 
                         await _quickSync.Notify<ModListDownloader>();
                         await ReplyTo(arg, $"Purged all traces of #{parts[2]} from the server, triggered list downloading. {deleted} records removed");
                     }
@@ -148,7 +146,6 @@ namespace Wabbajack.Server.Services
             if (int.TryParse(mod, out var mod_id))
             {
                 await _sql.PurgeNexusCache(mod_id);
-                await _quickSync.Notify<ListValidator>();
                 await ReplyTo(arg, $"It is done, {mod_id} has been purged, list validation has been triggered");
             }
         }
@@ -189,10 +186,10 @@ namespace Wabbajack.Server.Services
             }
         }
 
-        public void Start()
+        public async Task Start()
         {
-            _client.LoginAsync(TokenType.Bot, Utils.FromEncryptedJson<string>("discord-key").Result).Wait();
-            _client.StartAsync().Wait();
+            await _client.LoginAsync(TokenType.Bot, await _token.Get());
+            await _client.StartAsync();
         }
         
     }

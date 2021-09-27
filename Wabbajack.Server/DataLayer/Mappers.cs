@@ -1,22 +1,24 @@
 ﻿using System;
 using System.Data;
 using Dapper;
-using Wabbajack.Common;
-using Wabbajack.Lib;
-using Wabbajack.Lib.AuthorApi;
-using Wabbajack.Lib.Downloaders;
-using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.CDN;
+using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Paths;
 
 namespace Wabbajack.Server.DataLayer
 {
     public partial class SqlService
     {
+        private static DTOSerializer _dtoStatic;
         static SqlService()
         {
             SqlMapper.AddTypeHandler(new HashMapper());
             SqlMapper.AddTypeHandler(new RelativePathMapper());
-            SqlMapper.AddTypeHandler(new JsonMapper<AbstractDownloadState>());
-            SqlMapper.AddTypeHandler(new JsonMapper<CDNFileDefinition>());
+            SqlMapper.AddTypeHandler(new JsonMapper<IDownloadState>());
+            SqlMapper.AddTypeHandler(new JsonMapper<FileDefinition>());
             SqlMapper.AddTypeHandler(new JsonMapper<ModlistMetadata>());
             SqlMapper.AddTypeHandler(new VersionMapper());
             SqlMapper.AddTypeHandler(new GameMapper());
@@ -43,12 +45,12 @@ namespace Wabbajack.Server.DataLayer
         {
             public override void SetValue(IDbDataParameter parameter, T value)
             {
-                parameter.Value = value.ToJson();
+                parameter.Value = _dtoStatic.Serialize(value);
             }
 
             public override T Parse(object value)
             {
-                return ((string)value).FromJsonString<T>();
+                return _dtoStatic.Deserialize<T>((string)value)!;
             }
         }
 
@@ -56,7 +58,7 @@ namespace Wabbajack.Server.DataLayer
         {
             public override void SetValue(IDbDataParameter parameter, RelativePath value)
             {
-                parameter.Value = value.ToJson();
+                parameter.Value = value.ToString();
             }
 
             public override RelativePath Parse(object value)

@@ -1,21 +1,16 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Wabbajack.BuildServer.Controllers;
-using Wabbajack.Common;
-using Wabbajack.Lib.AuthorApi;
+using Wabbajack.DTOs.CDN;
 using Wabbajack.Server.DTOs;
 
 namespace Wabbajack.Server.DataLayer
 {
     public partial class SqlService
     {
-        public async Task TouchAuthoredFile(CDNFileDefinition definition, DateTime? date = null)
+        public async Task TouchAuthoredFile(FileDefinition definition, DateTime? date = null)
         {
             await using var conn = await Open();
             if (date == null)
@@ -32,7 +27,7 @@ namespace Wabbajack.Server.DataLayer
             }
         }
 
-        public async Task<CDNFileDefinition> CreateAuthoredFile(CDNFileDefinition definition, string login)
+        public async Task<FileDefinition> CreateAuthoredFile(FileDefinition definition, string login)
         {
             definition.Author = login;
             var uid = Guid.NewGuid().ToString();
@@ -46,7 +41,7 @@ namespace Wabbajack.Server.DataLayer
             return definition;
         }
 
-        public async Task Finalize(CDNFileDefinition definition)
+        public async Task Finalize(FileDefinition definition)
         {
             await using var conn = await Open();
             await conn.ExecuteAsync("UPDATE AuthoredFiles SET LastTouched = GETUTCDATE(), Finalized = GETUTCDATE() WHERE ServerAssignedUniqueId = @Uid",
@@ -55,15 +50,15 @@ namespace Wabbajack.Server.DataLayer
                 });
         }
 
-        public async Task<CDNFileDefinition> GetCDNFileDefinition(string serverAssignedUniqueId)
+        public async Task<FileDefinition> GetCDNFileDefinition(string serverAssignedUniqueId)
         {
             await using var conn = await Open();
-            return (await conn.QueryAsync<CDNFileDefinition>(
+            return (await conn.QueryAsync<FileDefinition>(
                 "SELECT CDNFileDefinition FROM dbo.AuthoredFiles WHERE ServerAssignedUniqueID = @Uid",
                 new {Uid = serverAssignedUniqueId})).First();
         }
         
-        public async Task DeleteFileDefinition(CDNFileDefinition definition)
+        public async Task DeleteFileDefinition(FileDefinition definition)
         {
             await using var conn = await Open();
             await conn.ExecuteAsync(

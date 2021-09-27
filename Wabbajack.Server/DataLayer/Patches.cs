@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using Wabbajack.Common;
-using Wabbajack.Lib;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Server.DTOs;
 
 namespace Wabbajack.Server.DataLayer

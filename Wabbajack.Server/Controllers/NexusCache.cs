@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-
-using Wabbajack.Common;
-using Wabbajack.Common.Exceptions;
-using Wabbajack.Lib.NexusApi;
+using Wabbajack.DTOs;
+using Wabbajack.Networking.NexusApi;
+using Wabbajack.Networking.NexusApi.DTOs;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.Services;
 
@@ -22,18 +19,16 @@ namespace Wabbajack.BuildServer.Controllers
     public class NexusCache : ControllerBase
     {
         private AppSettings _settings;
-        private static long CachedCount = 0;
-        private static long ForwardCount = 0;
         private SqlService _sql;
         private ILogger<NexusCache> _logger;
-        private NexusKeyMaintainance _keys;
+        private readonly NexusApi _api;
 
-        public NexusCache(ILogger<NexusCache> logger, SqlService sql, AppSettings settings, NexusKeyMaintainance keys)
+        public NexusCache(ILogger<NexusCache> logger, SqlService sql, AppSettings settings, NexusApi api)
         {
             _settings = settings;
             _sql = sql;
             _logger = logger;
-            _keys = keys;
+            _api = api;
         }
 
         /// <summary>
@@ -48,109 +43,72 @@ namespace Wabbajack.BuildServer.Controllers
         [Route("{GameName}/mods/{ModId}.json")]
         public async Task<ModInfo> GetModInfo(string GameName, long ModId)
         {
-            var game = GameRegistry.GetByFuzzyName(GameName).Game;
-            var result = await _sql.GetNexusModInfoString(game, ModId);
+            var game = GameRegistry.GetByNexusName(GameName)!;
+            var result = await _sql.GetNexusModInfoString(game.Game, ModId);
             
             string method = "CACHED";
             if (result == null)
             {
-                var api = await GetClient();
-                result = await api.GetModInfo(game, ModId, false);
-                await _sql.AddNexusModInfo(game, ModId, result.updated_time, result);
+                var (result2, headers) = await _api.ModInfo(game.NexusName!, ModId);
+                result = result2;
+                await _sql.AddNexusModInfo(game.Game, ModId, result.UpdatedTime, result);
 
                 
                 method = "NOT_CACHED";
-                Interlocked.Increment(ref ForwardCount);
-            }
-            else
-            {
-                Interlocked.Increment(ref CachedCount);
             }
 
             Response.Headers.Add("x-cache-result", method);
             return result;
         }
 
-        private async Task<NexusApiClient> GetClient()
-        {
-            var key = Request.Headers["apikey"].FirstOrDefault();
-            if (key == null)
-                return await _keys.GetClient();
-
-            if (await _sql.HaveKey(key))
-                return await NexusApiClient.Get(key);
-
-            var client = await NexusApiClient.Get(key);
-            var (daily, hourly) = await client.GetRemainingApiCalls();
-            await _sql.SetNexusAPIKey(key, daily, hourly);
-            return client;
-        }
-
         [HttpGet]
         [Route("{GameName}/mods/{ModId}/files.json")]
-        public async Task<NexusApiClient.GetModFilesResponse> GetModFiles(string GameName, long ModId)
+        public async Task<ModFiles> GetModFiles(string GameName, long ModId)
         {
             //_logger.Log(LogLevel.Information, $"{GameName} {ModId}");
-            var game = GameRegistry.GetByFuzzyName(GameName).Game;
-            var result = await _sql.GetModFiles(game, ModId);
+            var game = GameRegistry.GetByNexusName(GameName)!;
+            var result = await _sql.GetModFiles(game!.Game, ModId);
 
             string method = "CACHED";
             if (result == null)
             {
-                var api = await GetClient();
-                try
-                {
-                    result = await api.GetModFiles(game, ModId, false);
-                }
-                catch (HttpException ex)
-                {
-                    if (ex.Code == 403)
-                        result = new NexusApiClient.GetModFilesResponse {files = new List<NexusFileInfo>()};
-                    else
-                        throw;
-                }
+                var (result2, _) = await _api.ModFiles(game.NexusName!, ModId);
+                result = result2;
 
-                var date = result.files.Select(f => f.uploaded_time).OrderByDescending(o => o).FirstOrDefault();
+                var date = result.Files.Select(f => f.UploadedTime).OrderByDescending(o => o).FirstOrDefault();
                 date = date == default ? DateTime.UtcNow : date;
-                await _sql.AddNexusModFiles(game, ModId, date, result);
+                await _sql.AddNexusModFiles(game.Game, ModId, date, result);
 
                 method = "NOT_CACHED";
-                Interlocked.Increment(ref ForwardCount);
             }
-            else
-            {
-                Interlocked.Increment(ref CachedCount);
-            }
+
             Response.Headers.Add("x-cache-result", method);
             return result;
         }
         
         [HttpGet]
         [Route("{GameName}/mods/{ModId}/files/{FileId}.json")]
-        public async Task<ActionResult<NexusFileInfo>> GetModFile(string GameName, long ModId, long FileId)
+        public async Task<ActionResult<ModFile>> GetModFile(string GameName, long ModId, long FileId)
         {
             try
             {
-                var game = GameRegistry.GetByFuzzyName(GameName).Game;
-                var result = await _sql.GetModFile(game, ModId, FileId);
+                var game = GameRegistry.GetByNexusName(GameName)!;
+                var result = await _sql.GetModFile(game.Game, ModId, FileId);
 
                 string method = "CACHED";
                 if (result == null)
                 {
-                    var api = await GetClient();
-                    result = await api.GetModFile(game, ModId, FileId, false);
+                    var (result2, _) = await _api.FileInfo(game.NexusName, ModId, FileId);
+                    result = result2;
 
-                    var date = result.uploaded_time;
+                    
+                    var date = result.UploadedTime;
                     date = date == default ? DateTime.UtcNow : date;
-                    await _sql.AddNexusModFile(game, ModId, FileId, date, result);
+                    await _sql.AddNexusModFile(game.Game, ModId, FileId, date, result);
 
                     method = "NOT_CACHED";
-                    Interlocked.Increment(ref ForwardCount);
                 }
-                else
-                {
-                    Interlocked.Increment(ref CachedCount);
-                }
+
 
                 Response.Headers.Add("x-cache-result", method);
                 return result;
@@ -160,16 +118,6 @@ namespace Wabbajack.BuildServer.Controllers
                 _logger.LogInformation("Unable to find mod file {GameName} {ModId}, {FileId}", GameName, ModId, FileId);
                 return NotFound();
             }
-        }
-
-        [HttpGet]
-        [Authorize(Roles ="Author")]
-        [Route("/purge_nexus_cache/{ModId}")]
-        public async Task<IActionResult> PurgeNexusCache(long ModId)
-        {
-            _logger.LogInformation($"Purging nexus cache for {ModId}");
-            await _sql.PurgeNexusCache(ModId);
-            return Ok("Purged");
         }
     }
 }

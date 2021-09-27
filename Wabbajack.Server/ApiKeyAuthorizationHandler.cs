@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -9,9 +8,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using Wabbajack.Common;
-using Wabbajack.Common.Serialization.Json;
+using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Server;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
 using Wabbajack.Server.Services;
@@ -34,6 +32,8 @@ namespace Wabbajack.BuildServer
         public const string ApiKeyHeaderName = "X-Api-Key";
 
         private MetricsKeyCache _keyCache;
+        private readonly DTOSerializer _dtos;
+        private readonly AppSettings _settings;
 
         public ApiKeyAuthenticationHandler(
             IOptionsMonitor<ApiKeyAuthenticationOptions> options,
@@ -41,15 +41,19 @@ namespace Wabbajack.BuildServer
             UrlEncoder encoder,
             ISystemClock clock,
             MetricsKeyCache keyCache,
+            DTOSerializer dtos,
+            AppSettings settings,
             SqlService db) : base(options, logger, encoder, clock)
         {
             _sql = db;
+            _dtos = dtos;
             _keyCache = keyCache;
+            _settings = settings;
         }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            var metricsKey = Request.Headers[Consts.MetricsKeyHeader].FirstOrDefault();
+            var metricsKey = Request.Headers[_settings.MetricsKeyHeader].FirstOrDefault();
             // Never needed this, disabled for now
             //await LogRequest(metricsKey);
             if (metricsKey != default)
@@ -118,28 +122,7 @@ namespace Wabbajack.BuildServer
                 return AuthenticateResult.Success(ticket);
             }
         }
-
-        [JsonName("RequestLog")]
-        public class RequestLog
-        {
-            public string Path { get; set; }
-            public string Query { get; set; }
-            public Dictionary<string, string[]> Headers { get; set; }
-        }
-        private async Task LogRequest(string metricsKey)
-        {
-            var action = new RequestLog {
-                Path = Request.Path, 
-                Query = Request.QueryString.Value, 
-                Headers = Request.Headers.GroupBy(s => s.Key)
-                    .ToDictionary(s => s.Key, s => s.SelectMany(v => v.Value).ToArray())
-            };
-            var ip = Request.Headers["CF-Connecting-IP"].FirstOrDefault() ??
-                     Request.Headers["X-Forwarded-For"].FirstOrDefault() ??
-                     Request.HttpContext.Connection.RemoteIpAddress.ToString();
-            await _sql.IngestAccess(ip, action.ToJson());
-        }
-
+        
         protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
         {
             Response.StatusCode = 401;

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
+using Wabbajack.Compiler;
+using Wabbajack.Paths.IO;
 using Wabbajack.Server.DataLayer;
 
 namespace Wabbajack.BuildServer.Controllers
@@ -40,7 +42,7 @@ namespace Wabbajack.BuildServer.Controllers
             {
                 var folder = mainFolder.Combine(owner);
                 folder.CreateDirectory();
-                await folder.Combine(Consts.AuthorAPIKeyFile).WriteAllTextAsync(key);
+                await folder.Combine(_settings.AuthorAPIKeyFile).WriteAllTextAsync(key);
             }
 
             return "done";

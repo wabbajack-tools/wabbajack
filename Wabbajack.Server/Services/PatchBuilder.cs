@@ -7,13 +7,15 @@ using System.Threading.Tasks;
 using FluentFTP;
 using FluentFTP.Helpers;
 using Microsoft.Extensions.Logging;
-using Splat;
 using Wabbajack.BuildServer;
 using Wabbajack.Common;
-using Wabbajack.Lib;
-using Wabbajack.Lib.CompilationSteps;
+using Wabbajack.Compiler.PatchCache;
+using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
+using Wabbajack.Server.TokenProviders;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Wabbajack.Server.Services
@@ -23,13 +25,17 @@ namespace Wabbajack.Server.Services
         private DiscordWebHook _discordWebHook;
         private SqlService _sql;
         private ArchiveMaintainer _maintainer;
+        private readonly TemporaryFileManager _manager;
+        private readonly IFtpSiteCredentials _ftpCreds;
 
         public PatchBuilder(ILogger<PatchBuilder> logger, SqlService sql, AppSettings settings, ArchiveMaintainer maintainer,
-            DiscordWebHook discordWebHook, QuickSync quickSync) : base(logger, settings, quickSync, TimeSpan.FromMinutes(1))
+            DiscordWebHook discordWebHook, QuickSync quickSync, TemporaryFileManager manager, IFtpSiteCredentials ftpCreds) : base(logger, settings, quickSync, TimeSpan.FromMinutes(1))
         {
             _discordWebHook = discordWebHook;
             _sql = sql;
             _maintainer = maintainer;
+            _manager = manager;
+            _ftpCreds = ftpCreds;
         }
         
         public bool NoCleaning { get; set; }
@@ -71,15 +77,15 @@ namespace Wabbajack.Server.Services
                     _maintainer.TryGetPath(patch.Src.Archive.Hash, out var srcPath);
                     _maintainer.TryGetPath(patch.Dest.Archive.Hash, out var destPath);
 
-                    await using var sigFile = new TempFile();
-                    await using var patchFile = new TempFile();
-                    await using var srcStream = await srcPath.OpenShared();
-                    await using var destStream = await destPath.OpenShared();
-                    await using var sigStream = await sigFile.Path.Create();
-                    await using var patchOutput = await patchFile.Path.Create();
-                    OctoDiff.Create(destStream, srcStream, sigStream, patchOutput, new OctoDiff.ProgressReporter(TimeSpan.FromSeconds(1), (s, p) => _logger.LogInformation($"Patch Builder: {p} {s}")));
+                    await using var sigFile = _manager.CreateFile();
+                    await using var patchFile = _manager.CreateFile();
+                    await using var srcStream = srcPath.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                    await using var destStream = destPath.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                    await using var sigStream = sigFile.Path.Open(FileMode.Create, FileAccess.ReadWrite);
+                    await using var patchOutput = patchFile.Path.Open(FileMode.Create, FileAccess.ReadWrite);
+                    OctoDiff.Create(destStream, srcStream, sigStream, patchOutput);
                     await patchOutput.DisposeAsync();
-                    var size = patchFile.Path.Size;
+                    var size = patchFile.Path.Size();
 
                     await UploadToCDN(patchFile.Path, PatchName(patch));
                    
@@ -108,8 +114,7 @@ namespace Wabbajack.Server.Services
 
             if (count > 0)
             {
-                // Notify the List Validator that we may have more patches
-                await _quickSync.Notify<ListValidator>();
+
             }
 
             if (!NoCleaning) 
@@ -192,7 +197,7 @@ namespace Wabbajack.Server.Services
             var hashPairs = NamesToPairs(files);
             foreach (var sqlFile in sqlFiles.Where(s => !hashPairs.Contains(s)))
             {
-                _logger.LogInformation($"Removing SQL File entry for {sqlFile.Item1} -> {sqlFile.Item2} it's not on the CDN");
+                _logger.LogInformation("Removing SQL File entry for {from} -> {to} it's not on the CDN", sqlFile.Item1, sqlFile.Item2);
                 await _sql.DeletePatchesForHashPair(sqlFile);
             }
 
@@ -208,10 +213,10 @@ namespace Wabbajack.Server.Services
                 try
                 {
                     _logger.Log(LogLevel.Information,
-                        $"Uploading {patchFile.Size.ToFileSizeString()} patch file to CDN {patchName}");
+                        $"Uploading {patchFile.Size().ToFileSizeString()} patch file to CDN {patchName}");
                     using var client = await GetBunnyCdnFtpClient();
                     
-                    await client.UploadFileAsync((string)patchFile, patchName, FtpRemoteExists.Overwrite);
+                    await client.UploadFileAsync(patchFile.ToString(), patchName, FtpRemoteExists.Overwrite);
                     return;
                 }
                 catch (Exception ex)
@@ -232,7 +237,7 @@ namespace Wabbajack.Server.Services
 
         private async Task<FtpClient> GetBunnyCdnFtpClient()
         {
-            var info = await BunnyCdnFtpInfo.GetCreds(StorageSpace.Patches);
+            var info = (await _ftpCreds.Get())[StorageSpace.Patches];
             var client = new FtpClient(info.Hostname) {Credentials = new NetworkCredential(info.Username, info.Password)};
             await client.ConnectAsync();
             return client;

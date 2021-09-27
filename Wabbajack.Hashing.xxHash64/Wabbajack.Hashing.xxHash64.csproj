@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <Version>$(VERSION)</Version>
+        <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj" />
+        <ProjectReference Include="..\Wabbajack.RateLimiter\Wabbajack.RateLimiter.csproj" />
+    </ItemGroup>
+</Project>

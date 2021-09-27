@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+        <Version>$(VERSION)</Version>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj"/>
+    </ItemGroup>
+
+</Project>

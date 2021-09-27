@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
@@ -16,8 +12,6 @@ using Wabbajack.Server;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
 using Wabbajack.Server.Services;
-using WebSocketSharp;
-using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Wabbajack.BuildServer.Controllers
 {
@@ -29,11 +23,12 @@ namespace Wabbajack.BuildServer.Controllers
         private ILogger<MetricsController> _logger;
         private MetricsKeyCache _keyCache;
 
-        public MetricsController(ILogger<MetricsController> logger, SqlService sql, MetricsKeyCache keyCache)
+        public MetricsController(ILogger<MetricsController> logger, SqlService sql, MetricsKeyCache keyCache, AppSettings settings)
         {
             _sql = sql;
             _logger = logger;
             _keyCache = keyCache;
+            _settings = settings;
         }
 
         [HttpGet]
@@ -41,7 +36,7 @@ namespace Wabbajack.BuildServer.Controllers
         public async Task<Result> LogMetricAsync(string subject, string value)
         {
             var date = DateTime.UtcNow;
-            var metricsKey = Request.Headers[Consts.MetricsKeyHeader].FirstOrDefault();
+            var metricsKey = Request.Headers[_settings.MetricsKeyHeader].FirstOrDefault();
             if (metricsKey != null)
                 await _keyCache.AddKey(metricsKey);
             
@@ -179,6 +174,7 @@ namespace Wabbajack.BuildServer.Controllers
         }
 
         private static Func<object, string> _totalListTemplate;
+        private readonly AppSettings _settings;
 
 
         private static Func<object, string> TotalListTemplate
@@ -189,8 +185,8 @@ namespace Wabbajack.BuildServer.Controllers
                 {
                     var resource = Assembly.GetExecutingAssembly()
                         .GetManifestResourceStream("Wabbajack.Server.Controllers.Templates.TotalListTemplate.html")!
-                        .ReadAll();
-                    _totalListTemplate = NettleEngine.GetCompiler().Compile(Encoding.UTF8.GetString(resource));
+                        .ReadAllText();
+                    _totalListTemplate = NettleEngine.GetCompiler().Compile(resource);
                 }
 
                 return _totalListTemplate;

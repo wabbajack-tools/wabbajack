@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Server.DataLayer;
 
 namespace Wabbajack.Server.DTOs

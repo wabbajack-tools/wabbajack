@@ -1,0 +1,13 @@
+{
+  "$type": "Archive, Wabbajack.Lib",
+  "Hash": "PfX6zen7m2M=",
+  "Meta": "[General]\ndirectURL=https://github.com/ModOrganizer2/modorganizer/releases/download/v2.4.2/Mod.Organizer-2.4.2.7z",
+  "Name": "Mod.Organizer-2.4.2.7z",
+  "Size": 89503525,
+  "State": {
+    "$type": "HttpDownloader, Wabbajack.Lib",
+    "Url": "https://github.com/ModOrganizer2/modorganizer/releases/download/v2.4.2/Mod.Organizer-2.4.2.7z",
+    "Headers": [],
+    "PrimaryKeyString": "HTTPDownloader+State|https://github.com/ModOrganizer2/modorganizer/releases/download/v2.4.2/Mod.Organizer-2.4.2.7z"
+  }
+}

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <Version>$(VERSION)</Version>
+        <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Wabbajack.Downloaders.GoogleDrive\Wabbajack.Downloaders.GoogleDrive.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders.Http\Wabbajack.Downloaders.Http.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders.Interfaces\Wabbajack.Downloaders.Interfaces.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders.IPS4OAuth2Downloader\Wabbajack.Downloaders.IPS4OAuth2Downloader.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders.MediaFire\Wabbajack.Downloaders.MediaFire.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders.Mega\Wabbajack.Downloaders.Mega.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders.ModDB\Wabbajack.Downloaders.ModDB.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders.Nexus\Wabbajack.Downloaders.Nexus.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders.WabbajackCDN\Wabbajack.Downloaders.WabbajackCDN.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.WabbajackClientApi\Wabbajack.Networking.WabbajackClientApi.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0-preview.7.21377.19" />
+    </ItemGroup>
+
+</Project>

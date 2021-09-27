@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using Wabbajack.Lib;
-using Wabbajack.Lib.ModListRegistry;
-using Wabbajack.Common;
-using Wabbajack.Lib.Downloaders;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.Hashing.xxHash64;
 
 namespace Wabbajack.Server.DataLayer
 {
@@ -21,8 +21,8 @@ namespace Wabbajack.Server.DataLayer
 
             var archives = modlist.Archives;
             var directives = modlist.Directives;
-            modlist.Archives = new List<Archive>();
-            modlist.Directives = new List<Directive>();
+            modlist.Archives = Array.Empty<Archive>();
+            modlist.Directives = Array.Empty<Directive>();
 
             await conn.ExecuteAsync(
                 @"INSERT INTO dbo.ModLists (MachineUrl, Hash, Metadata, ModList, BrokenDownload) VALUES (@MachineUrl, @Hash, @Metadata, @ModList, @BrokenDownload)",
@@ -30,8 +30,8 @@ namespace Wabbajack.Server.DataLayer
                 {
                     MachineUrl = metadata.Links.MachineURL,
                     Hash = hash,
-                    MetaData = metadata.ToJson(),
-                    ModList = modlist.ToJson(),
+                    MetaData = _dtos.Serialize(metadata),
+                    ModList = _dtos.Serialize(modlist),
                     BrokenDownload = brokenDownload
                 }, tran);
             
@@ -42,7 +42,7 @@ namespace Wabbajack.Server.DataLayer
                     Name = a.Name,
                     Hash = a.Hash,
                     Size = a.Size,
-                    State = a.State.ToJson(),
+                    State = _dtos.Serialize(a.State),
                     PrimaryKeyString = a.State.PrimaryKeyString
                 }).ToArray();
 
@@ -79,10 +79,11 @@ namespace Wabbajack.Server.DataLayer
         public async Task<List<Archive>> ModListArchives(string machineURL)
         {
             await using var conn = await Open();
-            var archives = await conn.QueryAsync<(string, Hash, long, AbstractDownloadState)>("SELECT Name, Hash, Size, State FROM dbo.ModListArchives WHERE MachineUrl = @MachineUrl",
+            var archives = await conn.QueryAsync<(string, Hash, long, IDownloadState)>("SELECT Name, Hash, Size, State FROM dbo.ModListArchives WHERE MachineUrl = @MachineUrl",
                 new {MachineUrl = machineURL});
-            return archives.Select(t => new Archive(t.Item4)
+            return archives.Select(t => new Archive
             {
+                State = t.Item4,
                 Name = string.IsNullOrWhiteSpace(t.Item1) ? t.Item4.PrimaryKeyString : t.Item1, 
                 Size = t.Item3, 
                 Hash = t.Item2
@@ -92,9 +93,10 @@ namespace Wabbajack.Server.DataLayer
         public async Task<List<Archive>> ModListArchives()
         {
             await using var conn = await Open();
-            var archives = await conn.QueryAsync<(string, Hash, long, AbstractDownloadState)>("SELECT Name, Hash, Size, State FROM dbo.ModListArchives");
-            return archives.Select(t => new Archive(t.Item4)
+            var archives = await conn.QueryAsync<(string, Hash, long, IDownloadState)>("SELECT Name, Hash, Size, State FROM dbo.ModListArchives");
+            return archives.Select(t => new Archive
             {
+                State = t.Item4,
                 Name = string.IsNullOrWhiteSpace(t.Item1) ? t.Item4.PrimaryKeyString : t.Item1, 
                 Size = t.Item3, 
                 Hash = t.Item2

@@ -2,12 +2,11 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Dapper;
 using Microsoft.Extensions.Logging;
-using Splat;
 using Wabbajack.BuildServer;
 using Wabbajack.Common;
-using Wabbajack.Lib.Downloaders;
+using Wabbajack.Downloaders;
+using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Server.DataLayer;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
@@ -16,22 +15,26 @@ namespace Wabbajack.Server.Services
     public class NonNexusDownloadValidator : AbstractService<NonNexusDownloadValidator, int>
     {
         private SqlService _sql;
+        private readonly DownloadDispatcher _dispatcher;
+        private readonly ParallelOptions _parallelOptions;
 
-        public NonNexusDownloadValidator(ILogger<NonNexusDownloadValidator> logger, AppSettings settings, SqlService sql, QuickSync quickSync)
+        public NonNexusDownloadValidator(ILogger<NonNexusDownloadValidator> logger, AppSettings settings, SqlService sql, 
+            QuickSync quickSync, DownloadDispatcher dispatcher, ParallelOptions parallelOptions)
             : base(logger, settings, quickSync, TimeSpan.FromHours(2))
         {
             _sql = sql;
+            _dispatcher = dispatcher;
+            _parallelOptions = parallelOptions;
         }
 
         public override async Task<int> Execute()
         {
             var archives = await _sql.GetNonNexusModlistArchives();
             _logger.Log(LogLevel.Information, $"Validating {archives.Count} non-Nexus archives");
-            using var queue = new WorkQueue(10);
-            await DownloadDispatcher.PrepareAll(archives.Select(a => a.State));
-
+            await _dispatcher.PrepareAll(archives.Select(a => a.State));
             var random = new Random();
-            var results = await archives.PMap(queue, async archive =>
+
+            var results = await archives.PMap(_parallelOptions, async archive =>
             {
                 try
                 {
@@ -46,16 +49,16 @@ namespace Wabbajack.Server.Services
                     {
                         //case WabbajackCDNDownloader.State _: 
                         //case GoogleDriveDownloader.State _: // Let's try validating Google again 2/10/2021
-                        case GameFileSourceDownloader.State _:
+                        case GameFileSource _:
                             isValid = true;
                             break;
-                        case ManualDownloader.State _:
-                        case ModDBDownloader.State _:
-                        case HTTPDownloader.State h when h.Url.StartsWith("https://wabbajack"):
+                        case Manual _:
+                        case ModDB _:
+                        case Http h when h.Url.ToString().StartsWith("https://wabbajack"):
                             isValid = true;
                             break;
                         default:
-                            isValid = await archive.State.Verify(archive, token.Token);
+                            isValid = await _dispatcher.Verify(archive, token.Token);
                             break;
                     }
                     return (Archive: archive, IsValid: isValid);
@@ -70,7 +73,7 @@ namespace Wabbajack.Server.Services
                     ReportEnding(archive.State.PrimaryKeyString);
                 }
 
-            });
+            }).ToList();
 
             await _sql.UpdateNonNexusModlistArchivesStatus(results);
             var failed = results.Count(r => !r.IsValid);

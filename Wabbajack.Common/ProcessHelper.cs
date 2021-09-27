@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using AlphaPath = Alphaleonis.Win32.Filesystem.Path;
+using Wabbajack.Paths;
 
 namespace Wabbajack.Common
 {
@@ -12,23 +12,19 @@ namespace Wabbajack.Common
     {
         public enum StreamType
         {
-            Output, 
-            Error,
+            Output,
+            Error
         }
+
+        public readonly Subject<(StreamType Type, string Line)> Output = new Subject<(StreamType Type, string)>();
+
 
         public AbsolutePath Path { get; set; }
         public IEnumerable<object> Arguments { get; set; } = Enumerable.Empty<object>();
 
         public bool LogError { get; set; } = true;
-        
-        public readonly Subject<(StreamType Type, string Line)> Output = new Subject<(StreamType Type, string)>();
 
         public bool ThrowOnNonZeroExitCode { get; set; } = false;
-
-
-        public ProcessHelper()
-        {
-        }
 
         public async Task<int> Start()
         {
@@ -43,7 +39,7 @@ namespace Wabbajack.Common
             });
             var info = new ProcessStartInfo
             {
-                FileName = (string)Path,
+                FileName = Path.ToString(),
                 Arguments = string.Join(" ", args),
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
@@ -58,10 +54,7 @@ namespace Wabbajack.Common
                 StartInfo = info,
                 EnableRaisingEvents = true
             };
-            EventHandler Exited = (sender, args) =>
-            {
-                finished.SetResult(p.ExitCode);
-            };
+            EventHandler Exited = (sender, args) => { finished.SetResult(p.ExitCode); };
             p.Exited += Exited;
 
             DataReceivedEventHandler OutputDataReceived = (sender, data) =>
@@ -75,8 +68,6 @@ namespace Wabbajack.Common
             {
                 if (string.IsNullOrEmpty(data.Data)) return;
                 Output.OnNext((StreamType.Error, data.Data));
-                if (LogError)
-                    Utils.Log($"{Path.FileName} ({p.Id}) StdErr: {data.Data}");
             };
             p.ErrorDataReceived += ErrorEventHandler;
 
@@ -96,8 +87,8 @@ namespace Wabbajack.Common
                 // ignored
             }
 
-            
-            var result =  await finished.Task;
+
+            var result = await finished.Task;
             // Do this to make sure everything flushes
             p.WaitForExit();
             p.CancelErrorRead();
@@ -105,13 +96,13 @@ namespace Wabbajack.Common
             p.OutputDataReceived -= OutputDataReceived;
             p.ErrorDataReceived -= ErrorEventHandler;
             p.Exited -= Exited;
-            
+
             Output.OnCompleted();
 
             if (result != 0 && ThrowOnNonZeroExitCode)
-                throw new Exception($"Error executing {Path} - Exit Code {result} - Check the log for more information - {string.Join(" ", args.Select(a => a!.ToString()))}");
+                throw new Exception(
+                    $"Error executing {Path} - Exit Code {result} - Check the log for more information - {string.Join(" ", args.Select(a => a!.ToString()))}");
             return result;
         }
-        
     }
 }
