@@ -24,19 +24,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        project:
-          - Wabbajack.Compiler.Test
-          - Wabbajack.Compression.BSA.Test
-          - Wabbajack.Downloaders.Dispatcher.Test
-          - Wabbajack.DTOs.Test
-          - Wabbajack.FileExtractor.Test
-          - Wabbajack.Hashing.PHash.Test
-          - Wabbajack.Hashing.xxHash64.Test
-          - Wabbajack.Installer.Test
-          - Wabbajack.Networking.NexusApi.Test
-          - Wabbajack.Paths.Test
-          - Wabbajack.Paths.IO.Test
-          - Wabbajack.VFS.Test
 
     steps:
       - uses: actions/checkout@v2
@@ -52,11 +39,11 @@ jobs:
           include-prerelease: true
           
       - name: Install dependencies
-        run: dotnet restore ${{ matrix.project }}/${{ matrix.project }}.csproj
+        run: dotnet restore
       - name: Build
-        run: dotnet build ${{ matrix.project }}/${{ matrix.project }}.csproj --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore
       - name: Test
-        run: dotnet test ${{ matrix.project }}/${{ matrix.project }}.csproj --no-restore
+        run: dotnet test --no-restore
         
   publish:
     name: Publish ${{ matrix.project }}
