@@ -127,16 +127,22 @@ namespace Wabbajack.CLI.DTOs
 
         public File FindSource(string downloadVersion)
         {
-            var tuple = (OSDescription.Split(" ").First().Trim(), ProcessArchitecture);
-            
-            if (OSDescription.StartsWith("Microsoft Windows"))
-                tuple = ("Windows", tuple.ProcessArchitecture);
+            string os = "";
+            if (IsOSPlatform(OSPlatform.Linux))
+                os = "Linux";
+            if (IsOSPlatform(OSPlatform.Windows))
+                os = "Windows";
+            if (IsOSPlatform(OSPlatform.OSX))
+                os = "OSX";
+
+            var tuple = (os, ProcessArchitecture);
             
             List<Version> versions = new();
             
             if (tuple == ("Linux", Architecture.X64)) versions = Linux64.Versions;
             else if (tuple == ("Linux", Architecture.X86)) versions = Linux32.Versions;
             else if (tuple == ("Windows", Architecture.X64)) versions = Windows64.Versions;
+            else if (tuple == ("OSX", Architecture.X64)) versions = Macosx64.Versions;
 
             var version = versions.Where(v => v.CefVersion.StartsWith(downloadVersion + "."))
                 .OrderByDescending(v => v.ChromiumVersion)
