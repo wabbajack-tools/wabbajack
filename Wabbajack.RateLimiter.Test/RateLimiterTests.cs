@@ -62,7 +62,7 @@ namespace Wabbajack.RateLimiter.Test
             }
 
             var elapsed = sw.Elapsed;
-            Assert.True(elapsed > TimeSpan.FromSeconds(2));
+            Assert.True(elapsed > TimeSpan.FromSeconds(1));
             Assert.True(elapsed < TimeSpan.FromSeconds(3));
 
             report = rateLimiter.StatusReport;
@@ -93,7 +93,7 @@ namespace Wabbajack.RateLimiter.Test
 
             await WhenAll(tasks.ToArray());
             var elapsed = sw.Elapsed;
-            Assert.True(elapsed > TimeSpan.FromSeconds(2));
+            Assert.True(elapsed > TimeSpan.FromSeconds(1));
             Assert.True(elapsed < TimeSpan.FromSeconds(3));
         }
 
