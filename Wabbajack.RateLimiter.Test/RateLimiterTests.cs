@@ -13,7 +13,7 @@ namespace Wabbajack.RateLimiter.Test
 
     public class RateLimiter
     {
-        [Fact]
+        //[Fact]
         public async Task BasicTaskTests()
         {
             var rateLimiter = new Resource<int>(2);
@@ -45,7 +45,7 @@ namespace Wabbajack.RateLimiter.Test
 
         }
 
-        [Fact]
+        //[Fact]
         public async Task TestBasicThroughput()
         {
             var rateLimiter = new Resource<int>(1, 1024 * 1024);
@@ -69,7 +69,7 @@ namespace Wabbajack.RateLimiter.Test
             Assert.Equal(1024 * 1024 * 5 / 2, report.Transferred);
         }
 
-        [Fact]
+        //[Fact]
         public async Task TestParallelThroughput()
         {
             var rateLimiter = new Resource<int>(2, 1024 * 1024);
@@ -97,7 +97,7 @@ namespace Wabbajack.RateLimiter.Test
             Assert.True(elapsed < TimeSpan.FromSeconds(3));
         }
 
-        [Fact]
+        //[Fact]
         public async Task TestParallelThroughputWithLimitedTasks()
         {
             var rateLimiter = new Resource<int>(1, 1024 * 1024 * 4);;
