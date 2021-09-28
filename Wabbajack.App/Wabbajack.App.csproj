@@ -14,7 +14,7 @@
     <PackageReference Include="Avalonia.Desktop" Version="0.10.7" />
     <PackageReference Include="Avalonia.Diagnostics" Version="0.10.7" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.7" />
-    <PackageReference Include="CefNet.Avalonia" Version="94.0.21246.700" />
+    <PackageReference Include="CefNet.Avalonia" Version="95.1.21270.1946" />
     <PackageReference Include="DynamicData" Version="7.3.1" />
     <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.36" />
