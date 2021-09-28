@@ -109,7 +109,7 @@ namespace Wabbajack.RateLimiter.Test
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    using var job = await rateLimiter.Begin("Transferring", 1024 * 1024 / 10 * 5,CancellationToken.None);
+                    using var job = await rateLimiter.Begin("Transferring", 1024 * 1024 / 10 * 5, CancellationToken.None);
                     for (var x = 0; x < 5; x++)
                     {
                         await job.Report(1024 * 1024 / 10, CancellationToken.None);
@@ -120,7 +120,7 @@ namespace Wabbajack.RateLimiter.Test
             await WhenAll(tasks.ToArray());
             var elapsed = sw.Elapsed;
             Assert.True(elapsed > TimeSpan.FromSeconds(0.5));
-            Assert.True(elapsed < TimeSpan.FromSeconds(1));
+            Assert.True(elapsed < TimeSpan.FromSeconds(1.5));
         }
     }
 }
