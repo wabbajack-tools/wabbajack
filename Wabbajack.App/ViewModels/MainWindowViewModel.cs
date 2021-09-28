@@ -38,6 +38,9 @@ namespace Wabbajack.App.ViewModels
         public ReactiveCommand<Unit, Unit> BackButton { get; set; }
         
         [Reactive]
+        public ReactiveCommand<Unit, Unit> SettingsButton { get; set; }
+
+        [Reactive]
         public string ResourceStatus { get; set; }
         
         public MainWindowViewModel(IEnumerable<IScreenView> screens, IEnumerable<IResource> resources, IServiceProvider provider)
@@ -61,6 +64,12 @@ namespace Wabbajack.App.ViewModels
                         },
                         this.ObservableForProperty(vm => vm.BreadCrumbs)
                             .Select(bc => bc.Value.Count() > 1))
+                    .DisposeWith(disposables);
+                
+                SettingsButton = ReactiveCommand.Create(() =>
+                {
+                    Receive(new NavigateTo(typeof(SettingsViewModel)));
+                })
                     .DisposeWith(disposables);
                 
             });
