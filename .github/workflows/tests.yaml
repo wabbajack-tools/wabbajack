@@ -46,16 +46,22 @@ jobs:
         run: dotnet test --no-restore
         
   publish:
-    name: Publish ${{ matrix.project }}
+    name: Publish Projects
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' }}
     strategy:
       matrix:
         project:
+          - Wabbajack.CLI
           - Wabbajack.Common
           - Wabbajack.Compiler
-          - Wabbajack.Compression.BSA
           - Wabbajack.Downloaders.Interfaces
+          - Wabbajack.Downloaders.Dispatcher
+          - Wabbajack.Compression.BSA
+          - Wabbajack.Downloaders.IPS4OAuth2Downloader
+          - Wabbajack.Downloaders.MediaFire
+          - Wabbajack.Downloaders.Mega
+          - Wabbajack.Downloaders.ModDB
           - Wabbajack.Downloaders.GoogleDrive
           - Wabbajack.Downloaders.Http
           - Wabbajack.Downloaders.Nexus
@@ -65,6 +71,8 @@ jobs:
           - Wabbajack.Hashing.PHash
           - Wabbajack.Hashing.xxHash64
           - Wabbajack.Installer
+          - Wabbajack.Networking.Discord
+          - Wabbajack.Networking.GitHub
           - Wabbajack.Networking.Http
           - Wabbajack.Networking.Http.Interfaces
           - Wabbajack.Networking.NexusApi
@@ -73,7 +81,6 @@ jobs:
           - Wabbajack.Paths.IO
           - Wabbajack.RateLimiter
           - Wabbajack.VFS
-        
           
     needs: build
     steps:
