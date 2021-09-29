@@ -188,7 +188,7 @@ namespace Wabbajack.Downloaders.Dispatcher.Test
                 }
             };
 
-        [Theory]
+        [Theory, Trait("Category", "FlakeyNetwork")]
         [MemberData(nameof(TestStates))]
         public async Task TestDownloadingFile(Archive archive, Archive badArchive)
         {
@@ -198,7 +198,7 @@ namespace Wabbajack.Downloaders.Dispatcher.Test
             Assert.Equal(archive.Hash, hash);
         }
 
-        [Theory]
+        [Theory, Trait("Category", "FlakeyNetwork")]
         [MemberData(nameof(TestStates))]
         public async Task TestFileVerification(Archive goodArchive, Archive badArchive)
         {
@@ -207,7 +207,7 @@ namespace Wabbajack.Downloaders.Dispatcher.Test
             Assert.False(await _dispatcher.Verify(badArchive, CancellationToken.None));
         }
 
-        [Theory]
+        [Theory, Trait("Category", "FlakeyNetwork")]
         [MemberData(nameof(TestStates))]
         public async Task CanParseAndUnParseUrls(Archive goodArchive, Archive badArchive)
         {
