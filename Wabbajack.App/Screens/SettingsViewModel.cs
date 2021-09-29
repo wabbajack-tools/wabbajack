@@ -56,7 +56,7 @@ namespace Wabbajack.App.Screens
 
         private void Pulse(object sender, FileSystemEventArgs e)
         {
-            _fileSystemEvents.OnNext(e.Name?.ToAbsolutePath() ?? default);
+            _fileSystemEvents.OnNext(e.FullPath?.ToAbsolutePath() ?? default);
         }
     }
 }
