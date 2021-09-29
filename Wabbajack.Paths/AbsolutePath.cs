@@ -12,6 +12,7 @@ namespace Wabbajack.Paths
 
     public readonly struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<AbsolutePath>
     {
+        public static readonly AbsolutePath Empty = "".ToAbsolutePath();
         public PathFormat PathFormat { get; }
 
 

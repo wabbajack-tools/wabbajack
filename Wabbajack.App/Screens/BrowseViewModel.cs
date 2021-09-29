@@ -198,7 +198,7 @@ namespace Wabbajack.App.Screens
                     summary = new ModListSummary();
                 }
 
-                return new BrowseItemViewModel(m, summary, _httpClient, _limiter, _hashCache, _configuration, _dispatcher, _dispatcherLimiter, _logger);
+                return new BrowseItemViewModel(m, summary, _httpClient, _limiter, _hashCache, _configuration, _dispatcher, _dispatcherLimiter, _gameLocator, _logger);
             });
             
             _modLists.Edit(lsts =>

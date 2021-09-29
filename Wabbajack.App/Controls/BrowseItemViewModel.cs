@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -16,6 +17,7 @@ using Wabbajack.App.ViewModels;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs;
+using Wabbajack.Installer;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
@@ -29,7 +31,7 @@ namespace Wabbajack.App.Controls
         NotDownloaded,
         Downloading
     }
-    
+
     public class BrowseItemViewModel : ViewModelBase, IActivatableViewModel
     {
         private readonly ModlistMetadata _metadata;
@@ -66,9 +68,13 @@ namespace Wabbajack.App.Controls
 
         public bool IsUtilityList => _metadata.UtilityList;
         public bool IsNSFW => _metadata.NSFW;
+        
+        [Reactive]
+        public TagViewModel[] Tags { get; set; }
 
         public BrowseItemViewModel(ModlistMetadata metadata, ModListSummary summary, HttpClient client, IResource<HttpClient> limiter, 
-            FileHashCache hashCache, Configuration configuration, DownloadDispatcher dispatcher, IResource<DownloadDispatcher> downloadLimiter, ILogger logger)
+            FileHashCache hashCache, Configuration configuration, DownloadDispatcher dispatcher, IResource<DownloadDispatcher> downloadLimiter, GameLocator gameLocator,
+            ILogger logger)
         {
             Activator = new ViewModelActivator();
             _metadata = metadata;
@@ -80,6 +86,11 @@ namespace Wabbajack.App.Controls
             _dispatcher = dispatcher;
             _downloadLimiter = downloadLimiter;
             _logger = logger;
+            var haveGame = gameLocator.IsInstalled(_metadata.Game);
+            Tags = metadata.tags
+                .Select(t => new TagViewModel(t, "ModList"))
+                .Prepend(new TagViewModel(_metadata.Game.MetaData().HumanFriendlyGameName, haveGame ? "Game" : "GameNotInstalled"))
+                .ToArray();
             
             OpenWebsiteCommand = ReactiveCommand.Create(() =>
             {

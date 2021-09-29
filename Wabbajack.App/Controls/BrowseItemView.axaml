@@ -3,10 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:controls="clr-namespace:Wabbajack.App.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Wabbajack.App.Controls.BrowseItemView">
     <Border BorderThickness="1" Margin="10, 10, 10, 10">
-        <Grid Width="570" Height="480" RowDefinitions="Auto, *, 40" ColumnDefinitions="*, Auto">
+        <Grid Width="540" Height="480" RowDefinitions="Auto, *, 40" ColumnDefinitions="*, Auto">
             <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" BorderThickness="0, 0, 0, 1">
                 <Grid ClipToBounds="True">
                     <Viewbox Height="340" HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -38,6 +39,18 @@
                     FontSize="14"
                     TextWrapping="Wrap" />
             </ScrollViewer>
+            <ItemsControl Grid.Row="2" x:Name="TagsList">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <controls:TagView></controls:TagView>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
             <Grid Grid.Row="1" Grid.Column="1" Grid.RowSpan="2">
                 <Grid.RowDefinitions>

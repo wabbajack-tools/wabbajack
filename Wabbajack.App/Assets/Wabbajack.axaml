@@ -1,0 +1,42 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Wabbajack.App.Controls">
+    <Design.PreviewWith>
+        <Border>
+            <TextBlock>Test</TextBlock>
+        </Border>
+    </Design.PreviewWith>
+
+    
+    <Style Selector="controls|TagView Border">
+        <Setter Property="BorderThickness" Value="1"></Setter>
+        <Setter Property="BorderBrush" Value="#121212"></Setter>
+        <Setter Property="CornerRadius" Value="5"></Setter>
+    </Style>
+
+    
+    <Style Selector="controls|TagView.ModList Border">
+        <Setter Property="Background" Value="#868CFC"></Setter>
+    </Style>
+    
+    <Style Selector="controls|TagView.Game Border">
+        <Setter Property="Background" Value="#F686FC"></Setter>
+    </Style>
+    
+    <Style Selector="controls|TagView.GameNotInstalled Border">
+        <Setter Property="Background" Value="#FCBB86"></Setter>
+    </Style>
+    
+    <Style Selector="controls|TagView.GameNotInstalled Border">
+        <Setter Property="Background" Value="#FCBB86"></Setter>
+    </Style>
+    
+    <Style Selector="controls|TagView TextBlock">
+        <Setter Property="Foreground" Value="#121212"></Setter>
+    </Style>
+    
+    
+
+    
+    
+</Styles>

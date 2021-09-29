@@ -10,6 +10,7 @@
     <Application.Styles>
         <StyleInclude Source="avares://Material.Icons.Avalonia/App.xaml"></StyleInclude>
         <FluentTheme Mode="Dark"/>
+        <StyleInclude Source="avares://Wabbajack.App/Assets/Wabbajack.axaml"></StyleInclude>
         <Style Selector="Button:not(:pointerover) /template/ ContentPresenter">
             <Setter Property="Background" Value="Transparent"></Setter>
         </Style>

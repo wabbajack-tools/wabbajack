@@ -14,6 +14,7 @@ using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Helpers;
 using Wabbajack.App.Interfaces;
 using Wabbajack.App.Messages;
+using Wabbajack.App.Screens;
 using Wabbajack.App.Views;
 using Wabbajack.Common;
 using Wabbajack.RateLimiter;
