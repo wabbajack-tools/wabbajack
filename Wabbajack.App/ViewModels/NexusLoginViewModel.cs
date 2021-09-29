@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Fizzler.Systems.HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using Wabbajack.App.Extensions;
+using Wabbajack.App.Messages;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 
@@ -87,6 +88,8 @@ namespace Wabbajack.App.ViewModels
 
                 token.ThrowIfCancellationRequested();
                 await Task.Delay(500, token);
+                
+                MessageBus.Instance.Send(new NavigateBack());
 
             }
 

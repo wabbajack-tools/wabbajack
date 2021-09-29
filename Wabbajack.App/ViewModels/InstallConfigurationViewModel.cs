@@ -79,22 +79,22 @@ namespace Wabbajack.App.ViewModels
                     .SelectAsync(disposables, async x => await LoadModListImage(x))
                     .ObserveOn(AvaloniaScheduler.Instance)
                     .BindTo(this, t => t.ModListImage)
-                    .DisposeWith(disposables);  
+                    .DisposeWith(disposables);
+
+                var settings = this.WhenAnyValue(t => t.ModListPath)
+                    .SelectAsync(disposables, async v => await _stateManager.Get(v))
+                    .Where(s => s != null);
+
+                settings.Select(s => s!.Install)
+                    .BindTo(this, vm => vm.Install)
+                    .DisposeWith(disposables);
                 
-                SetupDefaults().FireAndForget();
+                settings.Select(s => s!.Downloads)
+                    .BindTo(this, vm => vm.Download)
+                    .DisposeWith(disposables);
             });
 
 
-        }
-
-        private async Task SetupDefaults()
-        {
-            var lastState = await _stateManager.GetLastState();
-            if (!lastState.ModList.FileExists()) return;
-            await Task.Delay(250); // Ugly hack
-            ModListPath = lastState.ModList;
-            Install = lastState.Install;
-            Download = lastState.Downloads;
         }
 
         private void StartInstall()

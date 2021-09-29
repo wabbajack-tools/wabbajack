@@ -23,6 +23,7 @@ using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
+using SettingsView = Wabbajack.App.Screens.SettingsView;
 
 namespace Wabbajack.App
 {
@@ -32,7 +33,6 @@ namespace Wabbajack.App
         {
             services.AddSingleton<MessageBus>();
             services.AddSingleton<MainWindow>();
-            services.AddSingleton<InstallConfigurationViewModel>();
             services.AddSingleton<BrowseViewModel>();
 
             services.AddTransient<BrowseItemViewModel>();
@@ -50,6 +50,7 @@ namespace Wabbajack.App
             services.AddSingleton<HttpClient>();
             
             services.AddAllSingleton<IReceiverMarker, StandardInstallationViewModel>();
+            services.AddAllSingleton<IReceiverMarker, InstallConfigurationViewModel>();
             services.AddAllSingleton<IReceiverMarker, MainWindowViewModel>();
             services.AddAllSingleton<IReceiverMarker, SettingsViewModel>();
             services.AddAllSingleton<IReceiverMarker, NexusLoginViewModel>();
@@ -75,6 +76,7 @@ namespace Wabbajack.App
 
             services.AddSingleton(s => new Configuration
             {
+                EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
                 ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
                 SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings")
             });

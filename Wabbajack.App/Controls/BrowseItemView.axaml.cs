@@ -36,6 +36,9 @@ namespace Wabbajack.App.Controls
                 this.OneWayBind(ViewModel, vm => vm.Progress, view => view.DownloadProgressBar.Value,
                         s => s.Value * 1000)
                     .DisposeWith(disposables);
+
+                this.OneWayBind(ViewModel, vm => vm.Tags, view => view.TagsList.Items)
+                    .DisposeWith(disposables);
             });
         }
 

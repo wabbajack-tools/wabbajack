@@ -14,13 +14,14 @@ using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Helpers;
 using Wabbajack.App.Interfaces;
 using Wabbajack.App.Messages;
+using Wabbajack.App.Screens;
 using Wabbajack.App.Views;
 using Wabbajack.Common;
 using Wabbajack.RateLimiter;
 
 namespace Wabbajack.App.ViewModels
 {
-    public class MainWindowViewModel : ReactiveValidationObject, IActivatableViewModel, IReceiver<NavigateTo>
+    public class MainWindowViewModel : ReactiveValidationObject, IActivatableViewModel, IReceiver<NavigateTo>, IReceiver<NavigateBack>
     {
         private readonly IEnumerable<IScreenView> _screens;
         private readonly IServiceProvider _provider;
@@ -37,6 +38,9 @@ namespace Wabbajack.App.ViewModels
         [Reactive]
         public ReactiveCommand<Unit, Unit> BackButton { get; set; }
         
+        [Reactive]
+        public ReactiveCommand<Unit, Unit> SettingsButton { get; set; }
+
         [Reactive]
         public string ResourceStatus { get; set; }
         
@@ -56,11 +60,16 @@ namespace Wabbajack.App.ViewModels
             {
                 BackButton = ReactiveCommand.Create(() =>
                         {
-                            CurrentScreen = BreadCrumbs.Peek();
-                            BreadCrumbs = BreadCrumbs.Pop();
+                            Receive(new NavigateBack());
                         },
                         this.ObservableForProperty(vm => vm.BreadCrumbs)
                             .Select(bc => bc.Value.Count() > 1))
+                    .DisposeWith(disposables);
+                
+                SettingsButton = ReactiveCommand.Create(() =>
+                {
+                    Receive(new NavigateTo(typeof(SettingsViewModel)));
+                })
                     .DisposeWith(disposables);
                 
             });
@@ -110,6 +119,12 @@ namespace Wabbajack.App.ViewModels
             {
                 CurrentScreen = (Control)_screens.First(s => s.ViewModelType == val.ViewModel);
             }
+        }
+
+        public void Receive(NavigateBack val)
+        {
+            CurrentScreen = BreadCrumbs.Peek();
+            BreadCrumbs = BreadCrumbs.Pop();
         }
     }
 }

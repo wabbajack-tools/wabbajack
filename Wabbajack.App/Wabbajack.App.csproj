@@ -8,6 +8,8 @@
   <ItemGroup>
     <Folder Include="Models\" />
     <AvaloniaResource Include="Assets\**" />
+    <AvaloniaXaml Remove="Assets\Wabbajack.axaml" />
+    <AvaloniaResource Include="Assets\Wabbajack.axaml" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.10.7" />
@@ -33,6 +35,12 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.AspNetCore.Mvc.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Screens\SettingsView.axaml.cs">
+      <DependentUpon>SettingsView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
   <Target Name="AferBuild" AfterTargets="Build">
