@@ -21,7 +21,7 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack.App.ViewModels
 {
-    public class MainWindowViewModel : ReactiveValidationObject, IActivatableViewModel, IReceiver<NavigateTo>
+    public class MainWindowViewModel : ReactiveValidationObject, IActivatableViewModel, IReceiver<NavigateTo>, IReceiver<NavigateBack>
     {
         private readonly IEnumerable<IScreenView> _screens;
         private readonly IServiceProvider _provider;
@@ -60,8 +60,7 @@ namespace Wabbajack.App.ViewModels
             {
                 BackButton = ReactiveCommand.Create(() =>
                         {
-                            CurrentScreen = BreadCrumbs.Peek();
-                            BreadCrumbs = BreadCrumbs.Pop();
+                            Receive(new NavigateBack());
                         },
                         this.ObservableForProperty(vm => vm.BreadCrumbs)
                             .Select(bc => bc.Value.Count() > 1))
@@ -120,6 +119,12 @@ namespace Wabbajack.App.ViewModels
             {
                 CurrentScreen = (Control)_screens.First(s => s.ViewModelType == val.ViewModel);
             }
+        }
+
+        public void Receive(NavigateBack val)
+        {
+            CurrentScreen = BreadCrumbs.Peek();
+            BreadCrumbs = BreadCrumbs.Pop();
         }
     }
 }
