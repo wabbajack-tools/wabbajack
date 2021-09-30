@@ -46,6 +46,8 @@ namespace Wabbajack.App
             services.AddSingleton<IScreenView, StandardInstallationView>();
             services.AddSingleton<IScreenView, SettingsView>();
             services.AddSingleton<IScreenView, BrowseView>();
+            services.AddSingleton<IScreenView, LauncherView>();
+            
             services.AddSingleton<InstallationStateManager>();
             services.AddSingleton<HttpClient>();
             
@@ -56,6 +58,7 @@ namespace Wabbajack.App
             services.AddAllSingleton<IReceiverMarker, NexusLoginViewModel>();
             services.AddAllSingleton<IReceiverMarker, LoversLabOAuthLoginViewModel>();
             services.AddAllSingleton<IReceiverMarker, VectorPlexusOAuthLoginViewModel>();
+            services.AddAllSingleton<IReceiverMarker, LauncherViewModel>();
             
             // Services
             services.AddAllSingleton<IDownloader, IDownloader<Manual>, ManualDownloader>();

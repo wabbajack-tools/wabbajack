@@ -3,9 +3,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Wabbajack.App.Screens.LauncherScreen">
+             x:Class="Wabbajack.App.Screens.LauncherView">
     <Grid RowDefinitions="40, *, Auto">
-        <TextBlock Grid.Row="0" x:Name="StatusText" FontSize="20" FontWeight="Bold">[20/30] Installing Files</TextBlock>
+        <TextBlock Grid.Row="0" x:Name="StatusText" FontSize="20" FontWeight="Bold"></TextBlock>
         <Viewbox Grid.Row="1" HorizontalAlignment="Center"
                  VerticalAlignment="Center"
                  Stretch="Uniform">

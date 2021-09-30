@@ -23,6 +23,9 @@ namespace Wabbajack.App.Screens
         [Reactive]
         public InstallationConfigurationSetting? Setting { get; set; }
         
+        [Reactive]
+        public string Title { get; set; }
+
         public LauncherViewModel(InstallationStateManager manager)
         {
             Activator = new ViewModelActivator();
@@ -31,6 +34,7 @@ namespace Wabbajack.App.Screens
             {
                 this.WhenAnyValue(v => v.InstallFolder)
                     .SelectAsync(disposables, async folder => await manager.GetByInstallFolder(folder))
+                    .ObserveOn(RxApp.MainThreadScheduler)
                     .Where(v => v != null)
                     .BindTo(this, vm => vm.Setting)
                     .DisposeWith(disposables);
@@ -40,7 +44,13 @@ namespace Wabbajack.App.Screens
                     .Select(v => new Bitmap((v!.Image).ToString()))
                     .BindTo(this, vm => vm.Image)
                     .DisposeWith(disposables);
-                
+
+                this.WhenAnyValue(v => v.Setting)
+                    .Where(v => v is { Metadata: { } })
+                    .Select(v => $"{v!.Metadata!.Title} v{v!.Metadata.Version}")
+                    .BindTo(this, vm => vm.Title)
+                    .DisposeWith(disposables);
+
             });
         }
 
