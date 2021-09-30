@@ -1,14 +1,24 @@
+using System.Diagnostics;
+using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
+using GameFinder.StoreHandlers.Origin.DTO;
+using Microsoft.CodeAnalysis;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.App.Extensions;
 using Wabbajack.App.Messages;
 using Wabbajack.App.Models;
 using Wabbajack.App.ViewModels;
+using Wabbajack.Common;
+using Wabbajack.DTOs;
 using Wabbajack.DTOs.SavedSettings;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack.App.Screens
 {
@@ -26,9 +36,17 @@ namespace Wabbajack.App.Screens
         [Reactive]
         public string Title { get; set; }
 
-        public LauncherViewModel(InstallationStateManager manager)
+        public ReactiveCommand<Unit, Unit> PlayButton;
+        private readonly ILogger<LauncherViewModel> _logger;
+
+        public LauncherViewModel(ILogger<LauncherViewModel> logger, InstallationStateManager manager)
         {
             Activator = new ViewModelActivator();
+            PlayButton = ReactiveCommand.Create(() =>
+            {
+                StartGame().FireAndForget();
+            });
+            _logger = logger;
             
             this.WhenActivated(disposables =>
             {
@@ -52,6 +70,27 @@ namespace Wabbajack.App.Screens
                     .DisposeWith(disposables);
 
             });
+        }
+
+        private async Task StartGame()
+        {
+            var mo2Path = InstallFolder.Combine("ModOrganizer.exe");
+            var gamePath = GameRegistry.Games.Values.Select(g => g.MainExecutable)
+                .Where(ge => ge != null)
+                .Select(ge => InstallFolder.Combine(ge!))
+                .FirstOrDefault(ge => ge.FileExists());
+            if (mo2Path.FileExists())
+            {
+                Process.Start(mo2Path.ToString());
+            }
+            else if (gamePath.FileExists())
+            {
+                Process.Start(gamePath.ToString());
+            }
+            else
+            {
+                _logger.LogError("No way to launch game, no acceptable executable found");
+            }
         }
 
         public void Receive(ConfigureLauncher val)

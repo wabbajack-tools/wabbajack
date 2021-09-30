@@ -14,9 +14,10 @@ namespace Wabbajack.App.Screens
             InitializeComponent();
             this.WhenActivated(disposables =>
             {
-                this.OneWayBind(ViewModel, vm => vm.Image, view => view.SlideImage.Source)
+                this.OneWayBind(ViewModel, vm => vm.Image, view => view.ModListImage.Source)
                     .DisposeWith(disposables);
-                this.OneWayBind(ViewModel, vm => vm.Title, view => view.StatusText.Text)
+
+                this.BindCommand(ViewModel, vm => vm.PlayButton, view => view.PlayGame.Button)
                     .DisposeWith(disposables);
             });
         }
