@@ -12,7 +12,7 @@
         <Viewbox Grid.Row="3" HorizontalAlignment="Center"
                  VerticalAlignment="Center"
                  Stretch="Uniform">
-          <Image x:Name="SlideImage" Source="C:\tmp\modlist-image.png"></Image>
+          <Image x:Name="SlideImage"></Image>
         </Viewbox>
         <Grid Grid.Row="4" HorizontalAlignment="Center" ColumnDefinitions="40, 40, 40, 40">
             <Button Grid.Column="0" x:Name="PrevSlide"><i:MaterialIcon Kind="ArrowLeft"></i:MaterialIcon></Button>

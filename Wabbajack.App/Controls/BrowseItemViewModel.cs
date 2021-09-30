@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
@@ -17,6 +18,7 @@ using Wabbajack.App.ViewModels;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -43,6 +45,7 @@ namespace Wabbajack.App.Controls
         private readonly DownloadDispatcher _dispatcher;
         private readonly ILogger _logger;
         private readonly IResource<DownloadDispatcher> _downloadLimiter;
+        private readonly DTOSerializer _dtos;
 
         public string Title => _metadata.ImageContainsTitle ? "" : _metadata.Title;
         public string MachineURL => _metadata.Links.MachineURL;
@@ -74,7 +77,7 @@ namespace Wabbajack.App.Controls
 
         public BrowseItemViewModel(ModlistMetadata metadata, ModListSummary summary, HttpClient client, IResource<HttpClient> limiter, 
             FileHashCache hashCache, Configuration configuration, DownloadDispatcher dispatcher, IResource<DownloadDispatcher> downloadLimiter, GameLocator gameLocator,
-            ILogger logger)
+            DTOSerializer dtos, ILogger logger)
         {
             Activator = new ViewModelActivator();
             _metadata = metadata;
@@ -86,6 +89,8 @@ namespace Wabbajack.App.Controls
             _dispatcher = dispatcher;
             _downloadLimiter = downloadLimiter;
             _logger = logger;
+            _dtos = dtos;
+            
             var haveGame = gameLocator.IsInstalled(_metadata.Game);
             Tags = metadata.tags
                 .Select(t => new TagViewModel(t, "ModList"))
@@ -149,6 +154,9 @@ namespace Wabbajack.App.Controls
             }
             
             _hashCache.FileHashWriteCache(ModListLocation, hash);
+
+            var metadataPath = ModListLocation.WithExtension(Ext.MetaData);
+            await metadataPath.WriteAllTextAsync(_dtos.Serialize(_metadata));
 
             await UpdateState();
         }

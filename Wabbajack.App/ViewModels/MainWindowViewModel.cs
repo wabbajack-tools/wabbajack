@@ -14,9 +14,11 @@ using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Helpers;
 using Wabbajack.App.Interfaces;
 using Wabbajack.App.Messages;
+using Wabbajack.App.Models;
 using Wabbajack.App.Screens;
 using Wabbajack.App.Views;
 using Wabbajack.Common;
+using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 
 namespace Wabbajack.App.ViewModels
@@ -28,6 +30,7 @@ namespace Wabbajack.App.ViewModels
         private readonly IResource[] _resources;
         private StatusReport[] _prevReport;
         private readonly Task _resourcePoller;
+        private readonly InstallationStateManager _manager;
 
         [Reactive]
         public Control CurrentScreen { get; set; }
@@ -44,11 +47,13 @@ namespace Wabbajack.App.ViewModels
         [Reactive]
         public string ResourceStatus { get; set; }
         
-        public MainWindowViewModel(IEnumerable<IScreenView> screens, IEnumerable<IResource> resources, IServiceProvider provider)
+        public MainWindowViewModel(IEnumerable<IScreenView> screens, IEnumerable<IResource> resources, IServiceProvider provider,
+            InstallationStateManager manager)
         {
             _provider = provider;
             _screens = screens;
             _resources = resources.ToArray();
+            _manager = manager;
 
             _prevReport = NextReport();
             
@@ -73,9 +78,26 @@ namespace Wabbajack.App.ViewModels
                     .DisposeWith(disposables);
                 
             });
-            
-            Receive(new NavigateTo(typeof(ModeSelectionViewModel)));
 
+            LoadFirstScreen().FireAndForget();
+
+        }
+
+        private async Task LoadFirstScreen()
+        {
+            var setting = await _manager.GetLastState();
+            if (setting.Install != default && setting.Install.DirectoryExists())
+            {
+                BreadCrumbs =
+                    BreadCrumbs.Push((Control)_screens.First(s => s.ViewModelType == typeof(ModeSelectionViewModel)));
+                
+                MessageBus.Instance.Send(new ConfigureLauncher(setting.Install));
+                Receive(new NavigateTo(typeof(LauncherViewModel)));
+            }
+            else
+            {
+                Receive(new NavigateTo(typeof(ModeSelectionViewModel)));
+            }
         }
 
         private StatusReport[] NextReport()

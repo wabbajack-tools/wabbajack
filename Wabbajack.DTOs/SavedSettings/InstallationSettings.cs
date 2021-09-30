@@ -16,5 +16,9 @@ namespace Wabbajack.DTOs.SavedSettings
         public AbsolutePath ModList { get; set; }
         public AbsolutePath Install { get; set; }
         public AbsolutePath Downloads { get; set; }
+        
+        public ModlistMetadata? Metadata { get; set; }
+        
+        public AbsolutePath Image { get; set; }
     }
 }

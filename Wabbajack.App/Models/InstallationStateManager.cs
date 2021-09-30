@@ -73,5 +73,10 @@ namespace Wabbajack.App.Models
         {
             return (await GetAll()).Settings.FirstOrDefault(f => f.ModList == modListPath);
         }
+
+        public async Task<InstallationConfigurationSetting?> GetByInstallFolder(AbsolutePath folder)
+        {
+            return (await GetAll()).Settings.FirstOrDefault(f => f.Install == folder);
+        }
     }
 }
