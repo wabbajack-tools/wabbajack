@@ -52,7 +52,6 @@ jobs:
     strategy:
       matrix:
         project:
-          - Wabbajack.CLI
           - Wabbajack.Common
           - Wabbajack.Compiler
           - Wabbajack.Downloaders.Interfaces
