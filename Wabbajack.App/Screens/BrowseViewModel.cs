@@ -24,6 +24,7 @@ using Wabbajack.Networking.WabbajackClientApi;
 using DynamicData.Binding;
 using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.Downloaders;
+using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -52,6 +53,7 @@ namespace Wabbajack.App.Screens
         private SourceCache<GameSelectorItemViewModel, string> _gamesList = new(x => x.Name);
         public readonly ReadOnlyObservableCollection<GameSelectorItemViewModel> _filteredGamesList;
         private readonly GameLocator _gameLocator;
+        private readonly DTOSerializer _dtos;
         public ReadOnlyObservableCollection<GameSelectorItemViewModel> GamesList => _filteredGamesList;
         
         [Reactive]
@@ -67,7 +69,7 @@ namespace Wabbajack.App.Screens
         [Reactive] public bool ShowNSFW { get; set; } = false;
 
         public BrowseViewModel(ILogger<BrowseViewModel> logger, Client wjClient, HttpClient httpClient, IResource<HttpClient> limiter, FileHashCache hashCache,
-            IResource<DownloadDispatcher> dispatcherLimiter, DownloadDispatcher dispatcher, GameLocator gameLocator, Configuration configuration)
+            IResource<DownloadDispatcher> dispatcherLimiter, DownloadDispatcher dispatcher, GameLocator gameLocator, DTOSerializer dtos, Configuration configuration)
         {
             Activator = new ViewModelActivator();
             _wjClient = wjClient;
@@ -79,6 +81,7 @@ namespace Wabbajack.App.Screens
             _dispatcher = dispatcher;
             _dispatcherLimiter = dispatcherLimiter;
             _gameLocator = gameLocator;
+            _dtos = dtos;
             
             
             IObservable<Func<BrowseItemViewModel, bool>> searchTextPredicates = this.ObservableForProperty(vm => vm.SearchText)
@@ -198,7 +201,7 @@ namespace Wabbajack.App.Screens
                     summary = new ModListSummary();
                 }
 
-                return new BrowseItemViewModel(m, summary, _httpClient, _limiter, _hashCache, _configuration, _dispatcher, _dispatcherLimiter, _gameLocator, _logger);
+                return new BrowseItemViewModel(m, summary, _httpClient, _limiter, _hashCache, _configuration, _dispatcher, _dispatcherLimiter, _gameLocator, _dtos, _logger);
             });
             
             _modLists.Edit(lsts =>

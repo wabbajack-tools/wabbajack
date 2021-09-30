@@ -12,5 +12,7 @@ namespace Wabbajack.Installer
         public SystemParameters? SystemParameters { get; set; }
         public Game Game { get; set; }
         public AbsolutePath GameFolder { get; set; }
+        
+        public ModlistMetadata? Metadata { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
@@ -13,12 +14,17 @@ using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.App.Messages;
+using Wabbajack.App.Models;
+using Wabbajack.App.Screens;
+using Wabbajack.App.Utilities;
 using Wabbajack.App.ViewModels.SubViewModels;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.DTOs.SavedSettings;
 using Wabbajack.Installer;
+using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 
 namespace Wabbajack.App.ViewModels
@@ -36,6 +42,7 @@ namespace Wabbajack.App.ViewModels
         private readonly HttpClient _httpClient;
         private Timer _slideTimer;
         private int _currentSlideIndex;
+        private readonly InstallationStateManager _installStateManager;
 
         [Reactive]
         public SlideViewModel Slide { get; set; }
@@ -58,13 +65,15 @@ namespace Wabbajack.App.ViewModels
         [Reactive] public Percent StepsProgress { get; set; } = Percent.Zero;
         [Reactive] public Percent StepProgress { get; set; } = Percent.Zero;
 
-        public StandardInstallationViewModel(ILogger<StandardInstallationViewModel> logger, IServiceProvider provider, GameLocator locator, DTOSerializer dtos, HttpClient httpClient)
+        public StandardInstallationViewModel(ILogger<StandardInstallationViewModel> logger, IServiceProvider provider, GameLocator locator, DTOSerializer dtos, 
+            HttpClient httpClient, InstallationStateManager manager)
         {
             _provider = provider;
             _locator = locator;
             _logger = logger;
             _dtos = dtos;
             _httpClient = httpClient;
+            _installStateManager = manager;
             Activator = new ViewModelActivator();
 
             this.WhenActivated(disposables => {
@@ -142,6 +151,7 @@ namespace Wabbajack.App.ViewModels
             _config.Downloads = msg.Download;
             _config.Install = msg.Install;
             _config.ModlistArchive = msg.ModListPath;
+            _config.Metadata = msg.Metadata;
 
             _logger.LogInformation("Loading ModList Data");
             _config.ModList = await StandardInstaller.LoadFromFile(_dtos, msg.ModListPath);
@@ -180,7 +190,34 @@ namespace Wabbajack.App.ViewModels
             };
             
             _logger.LogInformation("Installer created, starting the installation process");
-            await _installer.Begin(CancellationToken.None);
+            var result = await _installer.Begin(CancellationToken.None);
+
+            if (result)
+            {
+                await SaveConfigAndContinue(_config);
+            }
+        }
+
+        private async Task SaveConfigAndContinue(InstallerConfiguration config)
+        {
+            var path = config.Install.Combine("modlist-image.png");
+            {
+                var image = await ModListUtilities.GetModListImageStream(config.ModlistArchive);
+                await using var os = path.Open(FileMode.Create, FileAccess.Write);
+                await image.CopyToAsync(os);
+            }
+
+            await _installStateManager.SetLastState(new InstallationConfigurationSetting
+            {
+                Downloads = config.Downloads,
+                Install = config.Install,
+                Metadata = config.Metadata,
+                ModList = config.ModlistArchive,
+                Image = path
+            });
+            
+            MessageBus.Instance.Send(new ConfigureLauncher(config.Install));
+            MessageBus.Instance.Send(new NavigateTo(typeof(LauncherViewModel)));
         }
     }
 }

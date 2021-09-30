@@ -41,6 +41,10 @@
       <DependentUpon>SettingsView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Screens\StandardInstallationView.axaml.cs">
+      <DependentUpon>StandardInstallationView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
   <Target Name="AferBuild" AfterTargets="Build">

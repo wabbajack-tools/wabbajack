@@ -12,6 +12,7 @@ using ReactiveUI.Validation.Extensions;
 using Wabbajack.App.Extensions;
 using Wabbajack.App.Messages;
 using Wabbajack.App.Models;
+using Wabbajack.App.Utilities;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
@@ -63,7 +64,7 @@ namespace Wabbajack.App.ViewModels
                 this.ValidationRule(x => x.Install, p => p.DirectoryExists(), "Install folder file must exist");
                 this.ValidationRule(x => x.Download, p => p != default, "Download folder must be set");
                 
-                BeginCommand = ReactiveCommand.Create(StartInstall, this.IsValid());
+                BeginCommand = ReactiveCommand.Create(() => {StartInstall().FireAndForget();}, this.IsValid());
                 
 
                 this.WhenAnyValue(t => t.ModListPath)
@@ -97,26 +98,30 @@ namespace Wabbajack.App.ViewModels
 
         }
 
-        private void StartInstall()
+        private async Task StartInstall()
         {
+            ModlistMetadata? metadata = null;
+            var metadataPath = ModListPath.WithExtension(Ext.MetaData);
+            if (metadataPath.FileExists())
+            {
+                metadata = _dtos.Deserialize<ModlistMetadata>(await metadataPath.ReadAllTextAsync());
+            }
+
             _stateManager.SetLastState(new InstallationConfigurationSetting
             {
                 ModList = ModListPath,
                 Downloads = Download,
-                Install = Install
+                Install = Install,
+                Metadata = metadata
             }).FireAndForget();
             
             MessageBus.Instance.Send(new NavigateTo(typeof(StandardInstallationViewModel)));
-            MessageBus.Instance.Send(new StartInstallation(ModListPath, Install, Download));
+            MessageBus.Instance.Send(new StartInstallation(ModListPath, Install, Download, metadata));
         }
 
         private async Task<IBitmap> LoadModListImage(AbsolutePath path)
         {
-            await using var fs = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
-            using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
-            var entry = ar.GetEntry("modlist-image.png");
-            await using var stream = entry!.Open();
-            return new Bitmap(new MemoryStream(await stream.ReadAllAsync()));
+            return new Bitmap(await ModListUtilities.GetModListImageStream(path));
         }
 
         private async Task<ModList> LoadModList(AbsolutePath modlist)
