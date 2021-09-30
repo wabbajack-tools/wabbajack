@@ -24,6 +24,7 @@ namespace Wabbajack.App.Screens
 {
     public class LauncherViewModel : ViewModelBase, IActivatableViewModel, IReceiver<ConfigureLauncher>
     {
+
         [Reactive]
         public AbsolutePath InstallFolder { get; set; }
         
