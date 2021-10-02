@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net6.0-windows</TargetFramework>
+        <TargetFramework Condition=" '$(OS)' != 'Windows_NT'">net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <AssemblyVersion>2.5.3.1</AssemblyVersion>
+        <FileVersion>2.5.3.1</FileVersion>
+        <Copyright>Copyright © 2019-2020</Copyright>
+        <Description>Wabbajack Application Launcher</Description>
+        <PublishReadyToRun>true</PublishReadyToRun>
+        <PublishSingleFile>true</PublishSingleFile>
+        <AssemblyName>Wabbajack</AssemblyName>
+        <RootNamespace>Wabbajack</RootNamespace>
+        <IncludeSymbolsInSingleFile>false</IncludeSymbolsInSingleFile>
+        <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+        <TrimMode>Link</TrimMode>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <ApplicationIcon>Resources\Icons\wabbajack.ico</ApplicationIcon>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <None Remove="Wabba_Mouth_Small.png" />
+      <Resource Include="Wabba_Mouth_Small.png" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="0.10.7" />
+        <PackageReference Include="Avalonia.Desktop" Version="0.10.7" />
+        <PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" />
+    </ItemGroup>
+
+</Project>
