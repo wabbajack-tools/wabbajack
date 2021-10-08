@@ -1,0 +1,27 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Wabbajack.Launcher.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Wabbajack.Launcher.Views.MainWindow"
+        Icon="/Assets/wabbajack.ico"
+        
+        Title="Wabbajack Launcher" Height="320" Width="600"
+        Background="#121212"
+        BorderThickness="0"
+        WindowStartupLocation="CenterScreen"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        
+        >
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="275"></RowDefinition>
+            <RowDefinition Height="45"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Image Grid.Row="0" Source="/Assets/Wabba_Mouth_Small.png"></Image>
+        <Label Grid.Row="1" Margin="4" Foreground="White" FontSize="20" Content="{Binding Status}"></Label>
+    </Grid>
+</Window>

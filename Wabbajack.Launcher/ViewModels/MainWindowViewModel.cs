@@ -1,51 +1,36 @@
 ﻿using System;
-using System.ComponentModel;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.ComponentModel;
+using System.Threading.Tasks;
+using ReactiveUI.Fody.Helpers;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 
-namespace Wabbajack.Launcher
+namespace Wabbajack.Launcher.ViewModels
 {
-    public class MainWindowVM : INotifyPropertyChanged
+    public class MainWindowViewModel : ViewModelBase
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        [Reactive]
+        public string Status { get; set; }
+
+        public MainWindowViewModel()
+        {
+            Status = "Checking for new versions";
+            var tsk = CheckForUpdates();
+        }
+        
         private WebClient _client = new();
         public Uri GITHUB_REPO = new("https://api.github.com/repos/wabbajack-tools/wabbajack/releases");
         
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        private string _status = "Checking for Updates";
         private Release _version;
-        private List<string> _errors = new List<string>();
-
-        public string Status
-        {
-            set
-            {
-                _status = value;
-                OnPropertyChanged("Status");
-            }
-            get
-            {
-                return _status;
-            }
-        }
-
-        public MainWindowVM()
-        {
-            Task.Run(CheckForUpdates);
-        }
+        private List<string> _errors = new();
 
         private async Task CheckForUpdates()
         {
@@ -149,18 +134,18 @@ namespace Wabbajack.Launcher
             try
             {
                 Status = "Launching...";
-                var wjFolder = Directory.EnumerateDirectories(Directory.GetCurrentDirectory())
+                var wjFolder = KnownFolders.CurrentDirectory.EnumerateDirectories()
                     .OrderByDescending(v =>
-                        Version.TryParse(Path.GetFileName(v), out var ver) ? ver : new Version(0, 0, 0, 0))
+                        Version.TryParse(v.FileName.ToString(), out var ver) ? ver : new Version(0, 0, 0, 0))
                     .FirstOrDefault();
 
-                var filename = Path.Combine(wjFolder, "Wabbajack.exe");
+                var filename = wjFolder.Combine("Wabbajack.exe");
                 await CreateBatchFile(filename);
                 var info = new ProcessStartInfo
                 {
-                    FileName = filename,
+                    FileName = filename.ToString(),
                     Arguments = string.Join(" ", Environment.GetCommandLineArgs().Skip(1).Select(s => s.Contains(' ') ? '\"' + s + '\"' : s)),
-                    WorkingDirectory = wjFolder,
+                    WorkingDirectory = wjFolder.ToString(),
                 };
                 Process.Start(info);
             }
@@ -183,9 +168,9 @@ namespace Wabbajack.Launcher
             }
         }
 
-        private async Task CreateBatchFile(string filename)
+        private async Task CreateBatchFile(AbsolutePath filename)
         {
-            filename = Path.Combine(Path.GetDirectoryName(filename), "wabbajack-cli.exe");
+            filename = filename.Parent.Combine("wabbajack-cli.exe");
             var data = $"\"{filename}\" %*";
             var file = Path.Combine(Directory.GetCurrentDirectory(), "wabbajack-cli.bat");
             if (File.Exists(file) && await File.ReadAllTextAsync(file) == data) return;
@@ -224,5 +209,6 @@ namespace Wabbajack.Launcher
             [JsonPropertyName("name")]
             public string Name { get; set; }
         }
+
     }
 }
