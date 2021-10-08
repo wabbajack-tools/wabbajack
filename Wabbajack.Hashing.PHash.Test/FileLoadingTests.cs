@@ -27,7 +27,7 @@ namespace Wabbajack.Hashing.PHash.Test
                 ImagePhash.GetCrossCorrelation(
                     new Digest { Coefficients = baseState.PerceptualHash.Data },
                     new Digest { Coefficients = state.PerceptualHash.Data }),
-                1);
+                1.0);
         }
     }
 }

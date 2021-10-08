@@ -19,7 +19,7 @@
     <PackageReference Include="CefNet.Avalonia" Version="94.0.21246.700" />
     <PackageReference Include="DynamicData" Version="7.3.1" />
     <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.36" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.37" />
     <PackageReference Include="Material.Icons.Avalonia" Version="1.0.2" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0-rc.1.21451.13" />
     <PackageReference Include="ReactiveUI.Fody" Version="16.2.6" />
