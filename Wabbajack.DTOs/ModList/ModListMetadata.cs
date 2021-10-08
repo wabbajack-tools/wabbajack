@@ -40,5 +40,9 @@ namespace Wabbajack.DTOs
         [JsonPropertyName("version")] public Version? Version { get; set; }
 
         [JsonIgnore] public ModListSummary ValidationSummary { get; set; } = new();
+        
+        [JsonPropertyName("dateCreated")] public DateTime DateCreated { get; set; } = DateTime.UnixEpoch;
+        
+        [JsonPropertyName("dateUpdated")] public DateTime DateUpdated { get; set; }
     }
 }
