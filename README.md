@@ -239,7 +239,7 @@ Other modlists opt to host all of their information on a dedicated website:
 
 ### Meta Files
 
-_Read [Everything comes for somewhere](#everything-comes-for-somewhere) first, as that section explains the basic concept of meta files. This section focuses more on advances uses._
+_Read [Everything comes from somewhere](#everything-comes-from-somewhere) first, as that section explains the basic concept of meta files. This section focuses more on advanced uses._
 
 You already know how `.meta` files should look for mods that come from Nexus Mods:
 
