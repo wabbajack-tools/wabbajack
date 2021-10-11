@@ -38,6 +38,7 @@
             <Button Grid.Column="0" x:Name="BackButton">
                 <i:MaterialIcon Kind="ArrowBack"> </i:MaterialIcon>
             </Button>
+
             <TextBlock Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" x:Name="ResourceStatus"></TextBlock>
             
             <Button Grid.Column="2" x:Name="SettingsButton">

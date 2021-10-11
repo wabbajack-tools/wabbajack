@@ -43,6 +43,7 @@ namespace Wabbajack.App
             services.AddTransient<FileSelectionBoxViewModel>();
             services.AddSingleton<IScreenView, ModeSelectionView>();
             services.AddSingleton<IScreenView, InstallConfigurationView>();
+            services.AddSingleton<IScreenView, CompilerConfigurationView>();
             services.AddSingleton<IScreenView, StandardInstallationView>();
             services.AddSingleton<IScreenView, SettingsView>();
             services.AddSingleton<IScreenView, BrowseView>();
@@ -53,6 +54,7 @@ namespace Wabbajack.App
             
             services.AddAllSingleton<IReceiverMarker, StandardInstallationViewModel>();
             services.AddAllSingleton<IReceiverMarker, InstallConfigurationViewModel>();
+            services.AddAllSingleton<IReceiverMarker, CompilerConfigurationViewModel>();
             services.AddAllSingleton<IReceiverMarker, MainWindowViewModel>();
             services.AddAllSingleton<IReceiverMarker, SettingsViewModel>();
             services.AddAllSingleton<IReceiverMarker, NexusLoginViewModel>();
