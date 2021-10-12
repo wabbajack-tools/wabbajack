@@ -59,6 +59,7 @@ namespace Wabbajack.Services.OSIntegrated
             service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount});
             service.AddAllSingleton<IResource, IResource<DownloadDispatcher>>(s => new Resource<DownloadDispatcher>(12));
             service.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>(12));
+            service.AddAllSingleton<IResource, IResource<Context>>(s => new Resource<Context>(12));
             service.AddAllSingleton<IResource, IResource<FileExtractor.FileExtractor>>(s =>
                 new Resource<FileExtractor.FileExtractor>(12));
 

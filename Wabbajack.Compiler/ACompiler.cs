@@ -547,7 +547,7 @@ namespace Wabbajack.Compiler
             if (!await _dispatcher.Verify(result, token.Token))
             {
                 _logger.LogWarning(
-                    "Unable to resolve link for {archive}. If this is hosted on the Nexus the file may have been removed.", archive);
+                    "Unable to resolve link for {Archive}. If this is hosted on the Nexus the file may have been removed.", archive.State!.PrimaryKeyString);
             }
 
             result.Meta = "[General]\n" + string.Join("\n", _dispatcher.MetaIni(result));

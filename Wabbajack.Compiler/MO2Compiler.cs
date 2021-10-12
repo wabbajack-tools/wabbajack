@@ -275,6 +275,10 @@ namespace Wabbajack.Compiler
                 new IncludeRegex(this, ".*\\.txt"),
                 new IgnorePathContains(this,@"\Edit Scripts\Export\"),
                 new IgnoreExtension(this, new Extension(".CACHE")),
+                
+                // Misc
+                new IncludeRegex(this, "modlist-image\\.png"),
+
                 new DropAll(this)
             };
 

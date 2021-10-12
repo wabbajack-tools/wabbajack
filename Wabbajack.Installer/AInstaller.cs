@@ -256,15 +256,18 @@ namespace Wabbajack.Installer
 
             await Task.WhenAll(dispatchers.Select(d => d.Prepare()));
 
+            _logger.LogInformation("Downloading validation data");
             var validationData = await _wjClient.LoadDownloadAllowList();
 
+            _logger.LogInformation("Validating Archives");
             foreach (var archive in missing.Where(archive =>
                 !_downloadDispatcher.Downloader(archive).IsAllowed(validationData, archive.State)))
             {
                 _logger.LogCritical("File {primaryKeyString} failed validation", archive.State.PrimaryKeyString);
                 return;
             }
-
+            
+            _logger.LogInformation("Downloading missing archives");
             await DownloadMissingArchives(missing, token);
         }
 

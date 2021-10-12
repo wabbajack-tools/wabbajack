@@ -162,14 +162,20 @@ namespace Wabbajack.VFS
             IPath relPath, CancellationToken token, int depth = 0)
         {
             Hash hash;
-            if (extractedFile is NativeFileStreamFactory)
+            using (var job = await context.Limiter.Begin("Hash file", 0, token))
             {
-                hash = await context.HashCache.FileHashCachedAsync((AbsolutePath)extractedFile.Name, token);
-            }
-            else
-            {
-                await using var hstream = await extractedFile.GetStream();
-                hash = await hstream.HashingCopy(Stream.Null, token);
+                if (extractedFile is NativeFileStreamFactory)
+                {
+                    var absPath = (AbsolutePath)extractedFile.Name;
+                    job.Size = absPath.Size();
+                    hash = await context.HashCache.FileHashCachedAsync(absPath, token, job);
+                }
+                else
+                {
+                    await using var hstream = await extractedFile.GetStream();
+                    job.Size = hstream.Length;
+                    hash = await hstream.HashingCopy(Stream.Null, token, job);
+                }
             }
 
             if (context.VfsCache.TryGetFromCache(context, parent, relPath, extractedFile, hash, out var vself))
@@ -195,7 +201,9 @@ namespace Wabbajack.VFS
             if (TextureExtensions.Contains(relPath.FileName.Extension) && await DDSSig.MatchesAsync(stream) != null)
                 try
                 {
+                    using var job = await context.Limiter.Begin("Perceptual hash", self.Size, token);
                     self.ImageState = await ImageLoader.Load(stream);
+                    await job.Report((int)self.Size, token);
                     stream.Position = 0;
                 }
                 catch (Exception)
