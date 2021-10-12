@@ -9,6 +9,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
+      <ProjectReference Include="..\Wabbajack.Networking.Http\Wabbajack.Networking.Http.csproj" />
       <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
     </ItemGroup>
 

@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using Avalonia.Controls.Mixins;
 using Avalonia.ReactiveUI;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,5 +19,9 @@ public partial class LogView : ReactiveUserControl<LogViewModel>
                 .DisposeWith(disposables);
         });
     }
-    
+
+    private void ScrollViewer_OnScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        ScrollViewer.ScrollToEnd();
+    }
 }

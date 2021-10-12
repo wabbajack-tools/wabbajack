@@ -11,12 +11,15 @@ using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.CDN;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.DTOs.Logins;
 using Wabbajack.DTOs.ModListValidation;
 using Wabbajack.DTOs.ServerResponses;
 using Wabbajack.DTOs.Validation;
 using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -28,27 +31,35 @@ namespace Wabbajack.Networking.WabbajackClientApi
         
         private readonly HttpClient _client;
 
-        private readonly Configuration _configuration;
+        private readonly ITokenProvider<WabbajackApiState> _token;
         private readonly ILogger<Client> _logger;
         private readonly DTOSerializer _dtos;
         private readonly ParallelOptions _parallelOptions;
+        private readonly IResource<HttpClient> _limiter;
+        private readonly Configuration _configuration;
 
 
-        public Client(ILogger<Client> logger, HttpClient client, Configuration configuration, DTOSerializer dtos, ParallelOptions parallelOptions)
+        public Client(ILogger<Client> logger, HttpClient client, ITokenProvider<WabbajackApiState> token, DTOSerializer dtos, IResource<HttpClient> limiter, Configuration configuration)
         {
             _configuration = configuration;
+            _token = token;
             _client = client;
             _logger = logger;
-            _logger.LogInformation("File hash check (-42) {key}", _configuration.MetricsKey);
             _dtos = dtos;
-            _parallelOptions = parallelOptions;
+            _limiter = limiter;
+        }
+
+        private async ValueTask<HttpRequestMessage> MakeMessage(HttpMethod method, Uri uri)
+        {
+            var msg = new HttpRequestMessage(method, uri);
+            var key = (await _token.Get())!;
+            msg.Headers.Add(_configuration.MetricsKeyHeader, key.MetricsKey);
+            return msg;
         }
 
         public async Task SendMetric(string action, string subject)
         {
-            var msg = new HttpRequestMessage(HttpMethod.Get,
-                $"{_configuration.BuildServerUrl}metrics/{action}/{subject}");
-            msg.Headers.Add(_configuration.MetricsKeyHeader, _configuration.MetricsKey);
+            var msg = await MakeMessage(HttpMethod.Get, new Uri($"{_configuration.BuildServerUrl}metrics/{action}/{subject}"));
             await _client.SendAsync(msg);
         }
 
@@ -83,8 +94,9 @@ namespace Wabbajack.Networking.WabbajackClientApi
         
         public async Task<Archive[]> GetArchivesForHash(Hash hash)
         {
-            return await _client.GetFromJsonAsync<Archive[]>(
-                $"{_configuration.BuildServerUrl}mod_files/by_hash/{hash.ToHex()}", _dtos.Options) ?? Array.Empty<Archive>();
+            var msg = await MakeMessage(HttpMethod.Get,
+                new Uri($"{_configuration.BuildServerUrl}mod_files/by_hash/{hash.ToHex()}"));
+            return await _client.GetFromJsonAsync<Archive[]>(_limiter, msg, _dtos.Options) ?? Array.Empty<Archive>();
         }
 
         public async Task<Uri?> GetMirrorUrl(Hash archiveHash)
@@ -175,7 +187,7 @@ namespace Wabbajack.Networking.WabbajackClientApi
                 "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/unlisted_modlists.json"})
                 .Take(includeUnlisted ? 3 : 2);
 
-            return await lists.PMap(_parallelOptions, async url => await _client.GetFromJsonAsync<ModlistMetadata[]>(url, _dtos.Options)!)
+            return await lists.PMapAll(async url => await _client.GetFromJsonAsync<ModlistMetadata[]>(_limiter, new HttpRequestMessage(HttpMethod.Get, url), _dtos.Options)!)
                 .SelectMany(x => x)
                 .ToArray();
 

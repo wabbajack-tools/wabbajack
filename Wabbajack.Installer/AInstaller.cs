@@ -437,7 +437,7 @@ namespace Wabbajack.Installer
             var existingfiles = _configuration.Install.EnumerateFiles().ToHashSet();
 
             NextStep("Optimizing Modlist: Removing redundant directives", indexed.Count);
-            await indexed.Values.PMap<Directive, Directive?>(_parallelOptions, async d =>
+            await indexed.Values.PMapAll<Directive, Directive?>(async d =>
                 {
                     UpdateProgress(1);
                     // Bit backwards, but we want to return null for 

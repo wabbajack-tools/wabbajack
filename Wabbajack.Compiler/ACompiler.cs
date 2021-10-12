@@ -280,7 +280,7 @@ namespace Wabbajack.Compiler
 
             _logger.LogInformation("Attempting to infer {count} metas from the server.", toFind.Count);
 
-            await toFind.PDo(_parallelOptions, async f =>
+            await toFind.PDoAll(async f =>
             {
                 var vf = _vfs.Index.ByRootPath[f];
 

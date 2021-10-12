@@ -5,13 +5,18 @@
              xmlns:controls="clr-namespace:Wabbajack.App.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Wabbajack.App.Controls.LogView">
-    <Border>
-        <ListBox x:Name="Messages">
-            <ListBox.ItemTemplate>
+    <ScrollViewer ScrollChanged="ScrollViewer_OnScrollChanged" x:Name="ScrollViewer">
+        <ItemsControl x:Name="Messages">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel></StackPanel>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <controls:LogViewItem></controls:LogViewItem>
                 </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-    </Border>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </ScrollViewer>
 </UserControl>
