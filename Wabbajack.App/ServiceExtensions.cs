@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Avalonia.Threading;
 using CefNet;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Wabbajack.App.Controls;
 using Wabbajack.App.Interfaces;
 using Wabbajack.App.Messages;
@@ -31,12 +32,15 @@ namespace Wabbajack.App
     {
         public static IServiceCollection AddAppServices(this IServiceCollection services)
         {
+            services.AddAllSingleton<ILoggerProvider, LoggerProvider>();
             services.AddSingleton<MessageBus>();
             services.AddSingleton<MainWindow>();
             services.AddSingleton<BrowseViewModel>();
 
             services.AddTransient<BrowseItemViewModel>();
-            
+
+            services.AddTransient<LogViewModel>();
+
             services.AddDTOConverters();
             services.AddDTOSerializer();
             services.AddSingleton<ModeSelectionViewModel>();
@@ -45,6 +49,7 @@ namespace Wabbajack.App
             services.AddSingleton<IScreenView, InstallConfigurationView>();
             services.AddSingleton<IScreenView, CompilerConfigurationView>();
             services.AddSingleton<IScreenView, StandardInstallationView>();
+            services.AddSingleton<IScreenView, CompilationView>();
             services.AddSingleton<IScreenView, SettingsView>();
             services.AddSingleton<IScreenView, BrowseView>();
             services.AddSingleton<IScreenView, LauncherView>();
@@ -60,6 +65,7 @@ namespace Wabbajack.App
             services.AddAllSingleton<IReceiverMarker, NexusLoginViewModel>();
             services.AddAllSingleton<IReceiverMarker, LoversLabOAuthLoginViewModel>();
             services.AddAllSingleton<IReceiverMarker, VectorPlexusOAuthLoginViewModel>();
+            services.AddAllSingleton<IReceiverMarker, CompilationViewModel>();
             services.AddAllSingleton<IReceiverMarker, LauncherViewModel>();
             
             // Services

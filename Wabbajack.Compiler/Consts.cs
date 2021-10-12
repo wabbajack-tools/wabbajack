@@ -50,7 +50,7 @@ namespace Wabbajack.Compiler
         public static string DOWNLOAD_PATH_MAGIC_BACK = "{--||DOWNLOAD_PATH_MAGIC_BACK||--}";
         public static string DOWNLOAD_PATH_MAGIC_DOUBLE_BACK = "{--||DOWNLOAD_PATH_MAGIC_DOUBLE_BACK||--}";
         public static string DOWNLOAD_PATH_MAGIC_FORWARD = "{--||DOWNLOAD_PATH_MAGIC_FORWARD||--}";
-
-        
+        public static RelativePath MO2IniName => "ModOrganizer.ini".ToRelativePath();
+        public static object CompilerSettings => "compiler_settings.json".ToRelativePath();
     }
 }

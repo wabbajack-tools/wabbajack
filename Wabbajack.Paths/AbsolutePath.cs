@@ -66,6 +66,8 @@ namespace Wabbajack.Paths
             }
         }
 
+        public int Depth => Parts.Length;
+
         public AbsolutePath ReplaceExtension(Extension newExtension)
         {
             var paths = new string[Parts.Length];

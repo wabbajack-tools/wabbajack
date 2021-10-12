@@ -21,14 +21,13 @@ namespace Wabbajack.Compiler
 {
     public class MO2Compiler : ACompiler
     {
-        private readonly MO2CompilerSettings _mo2Settings;
+        private MO2CompilerSettings _mo2Settings => (MO2CompilerSettings)Settings;
 
         public MO2Compiler(ILogger<MO2Compiler> logger, FileExtractor.FileExtractor extractor, FileHashCache hashCache, Context vfs, 
             TemporaryFileManager manager, MO2CompilerSettings settings, ParallelOptions parallelOptions, DownloadDispatcher dispatcher, 
             Client wjClient, IGameLocator locator, DTOSerializer dtos, IBinaryPatchCache patchCache) : 
             base(logger, extractor, hashCache, vfs, manager, settings, parallelOptions, dispatcher, wjClient, locator, dtos, patchCache)
         {
-            _mo2Settings = settings;
         }
         
         public AbsolutePath MO2ModsFolder => _settings.Source.Combine(Consts.MO2ModFolderName);
@@ -45,7 +44,7 @@ namespace Wabbajack.Compiler
             return mo2Folder.Combine("downloads");
         }
 
-        public async Task<bool> Begin(CancellationToken token)
+        public override async Task<bool> Begin(CancellationToken token)
         {
             await _wjClient.SendMetric("begin_compiling", _mo2Settings.Profile);
             

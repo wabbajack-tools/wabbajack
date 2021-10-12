@@ -45,8 +45,7 @@ namespace Wabbajack.App.Screens
         private readonly IResource<DownloadDispatcher> _dispatcherLimiter;
 
         private SourceCache<BrowseItemViewModel, string> _modLists = new(x => x.MachineURL);
-
-
+        
         public readonly ReadOnlyObservableCollection<BrowseItemViewModel> _filteredModLists;
         public ReadOnlyObservableCollection<BrowseItemViewModel> ModLists => _filteredModLists;
         

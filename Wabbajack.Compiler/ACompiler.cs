@@ -37,7 +37,7 @@ namespace Wabbajack.Compiler
         private readonly FileHashCache _hashCache;
         protected readonly Context _vfs;
         private readonly TemporaryFileManager _manager;
-        public readonly CompilerSettings _settings;
+        public CompilerSettings _settings;
         private readonly AbsolutePath _stagingFolder;
         public readonly ParallelOptions _parallelOptions;
 
@@ -72,7 +72,13 @@ namespace Wabbajack.Compiler
 
         }
 
-        public CompilerSettings Settings { get; set; }
+        public abstract Task<bool> Begin(CancellationToken token);
+
+        public CompilerSettings Settings
+        {
+            get => _settings;
+            set => _settings = value;
+        }
 
         public Dictionary<Game, HashSet<Hash>> GameHashes { get; set; } = new Dictionary<Game, HashSet<Hash>>();
         public Dictionary<Hash, Game[]> GamesWithHashes { get; set; } = new Dictionary<Hash, Game[]>();
