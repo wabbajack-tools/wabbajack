@@ -1,14 +1,17 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls.Mixins;
+using DynamicData;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.App.Extensions;
 using Wabbajack.App.Messages;
 using Wabbajack.App.ViewModels;
+using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.DTOs;
 using Wabbajack.Installer;
@@ -39,10 +42,16 @@ public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
     public string SelectedProfile { get; set; }
     
     [Reactive]
+    public AbsolutePath OutputFolder { get; set; }
+    
+    [Reactive]
     public IEnumerable<GameMetaData> AllGames { get; set; }
     
     [Reactive]
     public ReactiveCommand<Unit, Unit> StartCompilation { get; set; }
+
+    [Reactive] 
+    public IEnumerable<RelativePath> AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
 
 
     public CompilerConfigurationViewModel()
@@ -52,6 +61,8 @@ public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
         AllGames = GameRegistry.Games.Values.ToArray();
         
         StartCompilation = ReactiveCommand.Create(() => BeginCompilation());
+
+        OutputFolder = KnownFolders.EntryPoint;
         
         this.WhenActivated(disposables =>
         {
@@ -88,7 +99,9 @@ public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
             Source = BasePath,
             Game = BaseGame.Game,
             Profile = SelectedProfile,
-            UseGamePaths = true
+            UseGamePaths = true,
+            OutputFile = OutputFolder.Combine(SelectedProfile).WithExtension(Ext.Wabbajack),
+            AlwaysEnabled = AlwaysEnabled.ToArray()
         };
         
         MessageBus.Instance.Send(new StartCompilation(settings));
@@ -124,6 +137,19 @@ public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
         }
 
         return default;
+    }
+
+    public bool AddAlwaysExcluded(AbsolutePath path)
+    {
+        if (!path.InFolder(BasePath)) return false;
+        var relative = path.RelativeTo(BasePath);
+        AlwaysEnabled = AlwaysEnabled.Append(relative).Distinct().ToArray();
+        return true;
+    }
+
+    public void RemoveAlwaysExcluded(RelativePath path)
+    {
+        AlwaysEnabled = AlwaysEnabled.Where(p => p != path).ToArray();
     }
     
 }

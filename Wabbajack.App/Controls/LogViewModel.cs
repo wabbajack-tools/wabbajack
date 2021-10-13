@@ -30,14 +30,8 @@ public class LogViewModel : ViewModelBase, IActivatableViewModel
             .Bind(out _messagesFiltered)
             .Subscribe();
         
-        this.WhenActivated(disposables =>
-        {
-            _provider.Messages
-                .Subscribe(m => _messages.AddOrUpdate(m))
-                .DisposeWith(disposables);
-        });
-        
-
+        _provider.Messages
+            .Subscribe(m => _messages.AddOrUpdate(m));
     }
     
 }
