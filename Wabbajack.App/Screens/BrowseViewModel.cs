@@ -24,6 +24,7 @@ using Wabbajack.Networking.WabbajackClientApi;
 using DynamicData.Binding;
 using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;
 using Wabbajack.Paths;

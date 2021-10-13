@@ -89,7 +89,7 @@ namespace Wabbajack.Networking.WabbajackClientApi
         public async Task<Archive[]> GetGameArchives(Game game, string version)
         {
             var url = $"https://raw.githubusercontent.com/wabbajack-tools/indexed-game-files/master/{game}/{version}.json";
-            return await _client.GetFromJsonAsync<Archive[]>(url) ?? Array.Empty<Archive>();
+            return await _client.GetFromJsonAsync<Archive[]>(url, _dtos.Options) ?? Array.Empty<Archive>();
         }
         
         public async Task<Archive[]> GetArchivesForHash(Hash hash)

@@ -19,6 +19,7 @@ using Wabbajack.App.Screens;
 using Wabbajack.App.Utilities;
 using Wabbajack.App.ViewModels.SubViewModels;
 using Wabbajack.Common;
+using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;

@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Compiler.CompilationSteps;
 using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.DownloadStates;
@@ -195,7 +196,8 @@ namespace Wabbajack.Compiler
                             return new IndexedArchive(
                                 _vfs.Index.ByRootPath[path.Combine(state.GameFile)])
                             {
-                                Name = state.GameFile.ToString().Replace("/", "_").Replace("\\", "_")
+                                Name = state.GameFile.ToString().Replace("/", "_").Replace("\\", "_"),
+                                State = state
                             };
                         }));
                     }
@@ -515,7 +517,7 @@ namespace Wabbajack.Compiler
 
         public async Task<Archive?> ResolveArchive(IndexedArchive archive)
         {
-            if (archive.IniData == null)
+            if (archive.State == null && archive.IniData == null)
             {
                 _logger.LogWarning(
                     "No download metadata found for {archive}, please use MO2 to query info or add a .meta file and try again.",
@@ -523,31 +525,38 @@ namespace Wabbajack.Compiler
                 return null;
             }
 
-            var state = await _dispatcher.ResolveArchive(archive.IniData!["General"].ToDictionary(d => d.KeyName, d => d.Value));
-
-            if (state == null)
+            IDownloadState? state;
+            if (archive.State == null)
             {
-                _logger.LogWarning("{archive} could not be handled by any of the downloaders", archive.Name);
-                return null;
+                state = await _dispatcher.ResolveArchive(archive.IniData!["General"]
+                    .ToDictionary(d => d.KeyName, d => d.Value));
+
+                if (state == null)
+                {
+                    _logger.LogWarning("{archive} could not be handled by any of the downloaders", archive.Name);
+                    return null;
+                }
+
+            }
+            else
+            {
+                state = archive.State;
             }
 
             var result = new Archive
             {
-                State = state,
+                State = state!,
                 Name = archive.Name ?? "", 
                 Hash = archive.File.Hash, 
                 Size = archive.File.Size
             };
-
-            var downloader = _dispatcher.Downloader(result);
-            await downloader.Prepare();
 
             var token = new CancellationTokenSource();
             token.CancelAfter(_settings.MaxVerificationTime);
             if (!await _dispatcher.Verify(result, token.Token))
             {
                 _logger.LogWarning(
-                    "Unable to resolve link for {Archive}. If this is hosted on the Nexus the file may have been removed.", archive.State!.PrimaryKeyString);
+                    "Unable to resolve link for {Archive}. If this is hosted on the Nexus the file may have been removed.", result.State!.PrimaryKeyString);
             }
 
             result.Meta = "[General]\n" + string.Join("\n", _dispatcher.MetaIni(result));

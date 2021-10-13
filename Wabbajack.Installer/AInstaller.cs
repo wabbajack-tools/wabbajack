@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.DownloadStates;

@@ -87,7 +87,8 @@ public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
             Downloads = Downloads,
             Source = BasePath,
             Game = BaseGame.Game,
-            Profile = SelectedProfile
+            Profile = SelectedProfile,
+            UseGamePaths = true
         };
         
         MessageBus.Instance.Send(new StartCompilation(settings));

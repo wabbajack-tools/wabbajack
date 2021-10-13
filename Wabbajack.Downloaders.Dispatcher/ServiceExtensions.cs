@@ -22,6 +22,7 @@ namespace Wabbajack.Downloaders
                 .AddNexusDownloader()
                 .AddIPS4OAuth2Downloaders()
                 .AddWabbajackCDNDownloader()
+                .AddGameFileDownloader()
                 .AddSingleton<DownloadDispatcher>();
         }
     }

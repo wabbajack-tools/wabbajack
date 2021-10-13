@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs;
 using Wabbajack.Paths;
 
-namespace Wabbajack.Installer
+namespace Wabbajack.Downloaders.GameFile
 {
     public class GameLocator : IGameLocator
     {
