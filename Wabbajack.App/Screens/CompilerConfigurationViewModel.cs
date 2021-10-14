@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia.Controls.Mixins;
 using DynamicData;
@@ -10,10 +13,12 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.App.Extensions;
 using Wabbajack.App.Messages;
+using Wabbajack.App.Models;
 using Wabbajack.App.ViewModels;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -23,6 +28,12 @@ namespace Wabbajack.App.Screens;
 
 public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
 {
+    private readonly DTOSerializer _dtos;
+    private readonly SettingsManager _settingsManager;
+
+    [Reactive]
+    public string Title { get; set; }
+    
     [Reactive]
     public AbsolutePath SettingsFile { get; set; }
     
@@ -33,7 +44,7 @@ public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
     public GameMetaData BaseGame { get; set; }
     
     [Reactive]
-    public AbsolutePath BasePath { get; set; }
+    public AbsolutePath Source { get; set; }
     
     [Reactive]
     public AbsolutePath GamePath { get; set; }
@@ -53,96 +64,66 @@ public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
     [Reactive] 
     public IEnumerable<RelativePath> AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
 
+    public AbsolutePath SettingsOutputLocation => Source.Combine(Title).WithExtension(IsMO2Compilation ? Ext.MO2CompilerSettings : Ext.CompilerSettings);
+    
+    [Reactive]
+    public bool IsMO2Compilation { get; set; }
 
-    public CompilerConfigurationViewModel()
+
+    public CompilerConfigurationViewModel(DTOSerializer dtos, SettingsManager settingsManager)
     {
+        _settingsManager = settingsManager;
+        _dtos = dtos;
         Activator = new ViewModelActivator();
 
         AllGames = GameRegistry.Games.Values.ToArray();
         
-        StartCompilation = ReactiveCommand.Create(() => BeginCompilation());
+        StartCompilation = ReactiveCommand.Create(() => BeginCompilation().FireAndForget());
 
         OutputFolder = KnownFolders.EntryPoint;
         
-        this.WhenActivated(disposables =>
+        this.WhenActivated((CompositeDisposable disposables) =>
         {
-            var tuples = this.WhenAnyValue(vm => vm.SettingsFile)
-                .Where(file => file != default)
-                .SelectAsync(disposables, InterpretSettingsFile)
-                .Where(t => t != default)
-                .ObserveOn(RxApp.MainThreadScheduler);
-
-            tuples.Select(t => t.Downloads)
-                .BindTo(this, vm => vm.Downloads)
-                .DisposeWith(disposables);
-
-            tuples.Select(t => t.Root)
-                .BindTo(this, vm => vm.BasePath)
-                .DisposeWith(disposables);
-
-            tuples.Select(t => t.Game)
-                .BindTo(this, vm => vm.BaseGame)
-                .DisposeWith(disposables);
-
-            tuples.Select(t => t.SelectedProfile)
-                .BindTo(this, vm => vm.SelectedProfile)
-                .DisposeWith(disposables);
-
+            LoadLastCompilation().FireAndForget();
         });
+        
     }
 
-    private void BeginCompilation()
+    private async Task LoadLastCompilation()
     {
-        var settings = new MO2CompilerSettings
+        var location = await _settingsManager.Load<AbsolutePath>("last_compilation");
+        if (location == default) return;
+        if (location.FileExists()) await LoadSettings(location);
+    }
+
+    private async Task BeginCompilation()
+    {
+        var settings = GetSettings();
+        await SaveSettingsFile();
+        await _settingsManager.Save("last_compilation", SettingsOutputLocation);
+        
+        MessageBus.Instance.Send(new StartCompilation(settings));
+        MessageBus.Instance.Send(new NavigateTo(typeof(CompilationViewModel)));
+    }
+
+    private CompilerSettings GetSettings()
+    {
+        return new MO2CompilerSettings
         {
             Downloads = Downloads,
-            Source = BasePath,
+            Source = Source,
             Game = BaseGame.Game,
             Profile = SelectedProfile,
             UseGamePaths = true,
             OutputFile = OutputFolder.Combine(SelectedProfile).WithExtension(Ext.Wabbajack),
             AlwaysEnabled = AlwaysEnabled.ToArray()
         };
-        
-        MessageBus.Instance.Send(new StartCompilation(settings));
-        MessageBus.Instance.Send(new NavigateTo(typeof(CompilationViewModel)));
-    }
-
-    public async ValueTask<(AbsolutePath Root, AbsolutePath Downloads, AbsolutePath Settings, GameMetaData Game, string SelectedProfile)> 
-        InterpretSettingsFile(AbsolutePath settingsFile)
-    {
-        if (settingsFile.FileName == "modlist.txt".ToRelativePath() && settingsFile.Depth > 3)
-        {
-            var mo2Folder = settingsFile.Parent.Parent.Parent;
-            var compilerSettingsFile = settingsFile.Parent.Combine(Consts.CompilerSettings);
-            var mo2Ini = mo2Folder.Combine(Consts.MO2IniName);
-            if (mo2Ini.FileExists())
-            {
-                var iniData = mo2Ini.LoadIniFile();
-
-                var general = iniData["General"];
-
-                var game = GameRegistry.GetByFuzzyName(general["gameName"].FromMO2Ini());
-
-                var selectedProfile = general["selected_profile"].FromMO2Ini();
-                var gamePath = general["gamePath"].FromMO2Ini().ToAbsolutePath();
-
-                var settings = iniData["Settings"];
-                var downloadFolder = settings["download_directory"].FromMO2Ini().ToAbsolutePath();
-
-
-                return (mo2Folder, downloadFolder, compilerSettingsFile, game, selectedProfile);
-            }
-
-        }
-
-        return default;
     }
 
     public bool AddAlwaysExcluded(AbsolutePath path)
     {
-        if (!path.InFolder(BasePath)) return false;
-        var relative = path.RelativeTo(BasePath);
+        if (!path.InFolder(Source)) return false;
+        var relative = path.RelativeTo(Source);
         AlwaysEnabled = AlwaysEnabled.Append(relative).Distinct().ToArray();
         return true;
     }
@@ -151,5 +132,90 @@ public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
     {
         AlwaysEnabled = AlwaysEnabled.Where(p => p != path).ToArray();
     }
-    
+
+    public async Task InferSettingsFromModlistTxt(AbsolutePath settingsFile)
+    {
+        if (settingsFile.FileName == "modlist.txt".ToRelativePath() && settingsFile.Depth > 3)
+        {
+            var mo2Folder = settingsFile.Parent.Parent.Parent;
+            var mo2Ini = mo2Folder.Combine(Consts.MO2IniName);
+            if (mo2Ini.FileExists())
+            {
+                var iniData = mo2Ini.LoadIniFile();
+
+                var general = iniData["General"];
+
+                BaseGame = GameRegistry.GetByFuzzyName(general["gameName"].FromMO2Ini());
+                Source = mo2Folder;
+                
+                SelectedProfile = general["selected_profile"].FromMO2Ini();
+                GamePath = general["gamePath"].FromMO2Ini().ToAbsolutePath();
+                Title = SelectedProfile;
+                
+                var settings = iniData["Settings"];
+                Downloads = settings["download_directory"].FromMO2Ini().ToAbsolutePath();
+                IsMO2Compilation = true;
+
+                
+                // Find Always Enabled mods
+                foreach (var modFolder in mo2Folder.Combine("mods").EnumerateDirectories())
+                {
+                    var iniFile = modFolder.Combine("meta.ini");
+                    if (!iniFile.FileExists()) continue;
+                    
+                    var data = iniFile.LoadIniFile();
+                    var generalModData = data["General"];
+                    if ((generalModData["notes"]?.Contains("WABBAJACK_ALWAYS_ENABLE") ?? false) || 
+                        (generalModData["comments"]?.Contains("WABBAJACK_ALWAYS_ENABLE") ?? false))
+                    {
+                        AlwaysEnabled = AlwaysEnabled.Append(modFolder.RelativeTo(mo2Folder)).ToArray();
+                    }
+
+                }
+
+                if (mo2Folder.Depth > 1)
+                    OutputFolder = mo2Folder.Parent;
+                
+                await SaveSettingsFile();
+                SettingsFile = SettingsOutputLocation;
+            }
+
+        }
+    }
+
+    private async Task SaveSettingsFile()
+    {
+        await using var st = SettingsOutputLocation.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+        if (IsMO2Compilation) 
+            await JsonSerializer.SerializeAsync(st, (MO2CompilerSettings)GetSettings(), _dtos.Options);
+        else 
+            await JsonSerializer.SerializeAsync(st, GetSettings(), _dtos.Options);
+    }
+
+    private async Task LoadSettings(AbsolutePath path)
+    {
+        CompilerSettings s;
+        if (path.Extension == Ext.MO2CompilerSettings)
+        {
+            var mo2 = await LoadSettingsFile<MO2CompilerSettings>(path);
+            AlwaysEnabled = mo2.AlwaysEnabled;
+            SelectedProfile = mo2.Profile;
+            s = mo2;
+        }
+        else
+        {
+            throw new NotImplementedException();
+        }
+
+        Source = s.Source;
+        Downloads = s.Downloads;
+        OutputFolder = s.OutputFile.Depth > 1 ? s.OutputFile.Parent : s.OutputFile;
+        BaseGame = s.Game.MetaData();
+    }
+
+    private async Task<T> LoadSettingsFile<T>(AbsolutePath path)
+    {
+        await using var st = path.Open(FileMode.Open);
+        return (await JsonSerializer.DeserializeAsync<T>(st, _dtos.Options))!;
+    }
 }

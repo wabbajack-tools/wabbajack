@@ -91,6 +91,8 @@ namespace Wabbajack.App
                 ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
                 SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings")
             });
+
+            services.AddSingleton<SettingsManager>();
             
             services.AddSingleton(s =>
             {

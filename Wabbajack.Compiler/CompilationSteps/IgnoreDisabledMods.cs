@@ -25,7 +25,7 @@ namespace Wabbajack.Compiler.CompilationSteps
                 .SelectMany(p => _mo2Compiler._settings.Source.Combine("profiles", p, "modlist.txt").ReadAllLines())
                 .Where(line => line.StartsWith("+") || line.EndsWith("_separator"))
                 .Select(line => line[1..].ToRelativePath().RelativeTo(_mo2Compiler.MO2ModsFolder))
-                //.Concat(alwaysEnabled)
+                .Concat(_mo2Compiler.Mo2Settings.AlwaysEnabled.Select(r => r.RelativeTo(_mo2Compiler.Settings.Source)))
                 //.Except(alwaysDisabled)
                 .ToList();
         }

@@ -15,8 +15,8 @@
             <controls:FileSelectionBox Grid.Column="1" Grid.Row="1" x:Name="SettingsFile"
                                        AllowedExtensions=".txt|.json">
             </controls:FileSelectionBox>
-            <Label Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right">Mod List Folder:</Label>
-            <controls:FileSelectionBox Grid.Column="1" Grid.Row="2" x:Name="BaseFolder" SelectFolder="True"></controls:FileSelectionBox>
+            <Label Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right">Source:</Label>
+            <controls:FileSelectionBox Grid.Column="1" Grid.Row="2" x:Name="Source" SelectFolder="True"></controls:FileSelectionBox>
             <Label Grid.Column="0" Grid.Row="3" HorizontalAlignment="Right">Downloads Folder:</Label>
             <controls:FileSelectionBox Grid.Column="1" Grid.Row="3" x:Name="DownloadsFolder" SelectFolder="True"></controls:FileSelectionBox>
             <Label Grid.Column="0" Grid.Row="4" HorizontalAlignment="Right">Base Game:</Label>
@@ -51,8 +51,11 @@
 
             
         </Grid>
-        <Grid ColumnDefinitions="*, Auto" Grid.Row="2">
-            <Button Grid.Column="1" x:Name="StartCompilation">
+        <Grid ColumnDefinitions="*, Auto, Auto" Grid.Row="2">
+            <Button Grid.Column="1" x:Name="InferSettings" Click="InferSettings_OnClick">
+                <TextBlock>Infer Settings</TextBlock>
+            </Button>
+            <Button Grid.Column="2" x:Name="StartCompilation">
                 <TextBlock>Start Compilation</TextBlock>
             </Button>
         </Grid>

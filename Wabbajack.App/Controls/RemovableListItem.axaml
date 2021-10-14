@@ -9,6 +9,6 @@
         <Button x:Name="DeleteButton">
             <i:MaterialIcon Kind="MinusCircle"></i:MaterialIcon>
         </Button>
-        <TextBlock x:Name="Text"></TextBlock>
+        <TextBlock x:Name="Text" VerticalAlignment="Center"></TextBlock>
     </StackPanel>
 </UserControl>
