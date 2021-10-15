@@ -3,15 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia.Controls.Mixins;
-using DynamicData;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using Wabbajack.App.Extensions;
 using Wabbajack.App.Messages;
 using Wabbajack.App.Models;
 using Wabbajack.App.ViewModels;
@@ -82,18 +78,29 @@ public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
 
         OutputFolder = KnownFolders.EntryPoint;
         
-        this.WhenActivated((CompositeDisposable disposables) =>
+        this.WhenActivated(disposables =>
         {
             LoadLastCompilation().FireAndForget();
+            this.WhenAnyValue(v => v.SettingsFile)
+                .Subscribe( location =>
+                {
+                    LoadNewSettingsFile(location).FireAndForget();
+                })
+                .DisposeWith(disposables);
         });
         
+    }
+
+    private async Task LoadNewSettingsFile(AbsolutePath location)
+    {
+        if (location == default) return;
+        if (location.FileExists()) await LoadSettings(location);
     }
 
     private async Task LoadLastCompilation()
     {
         var location = await _settingsManager.Load<AbsolutePath>("last_compilation");
-        if (location == default) return;
-        if (location.FileExists()) await LoadSettings(location);
+        SettingsFile = location;
     }
 
     private async Task BeginCompilation()

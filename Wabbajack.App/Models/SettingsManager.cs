@@ -46,9 +46,9 @@ public class SettingsManager
         {
             if (path.FileExists())
             {
-                await using (var s = path.Open(FileMode.Create, FileAccess.Write))
+                await using (var s = path.Open(FileMode.Open))
                 {
-                    await JsonSerializer.DeserializeAsync<T>(s, _dtos.Options);
+                    return (await JsonSerializer.DeserializeAsync<T>(s, _dtos.Options))!;
                 }
             }
         }

@@ -21,7 +21,7 @@ public class LogViewModel : ViewModelBase, IActivatableViewModel
     public LogViewModel(LoggerProvider provider)
     {
         _messages = new SourceCache<LoggerProvider.ILogMessage, long>(m => m.MessageId);
-        _messages.LimitSizeTo(100);
+        //_messages.LimitSizeTo(100);
         
         Activator = new ViewModelActivator();
         _provider = provider;

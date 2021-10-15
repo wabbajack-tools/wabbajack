@@ -6,6 +6,7 @@ using Avalonia.Markup.Xaml;
 using CefNet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Splat;
 using Wabbajack.App.Controls;
@@ -36,6 +37,10 @@ namespace Wabbajack.App
         public override void OnFrameworkInitializationCompleted()
         {
             var host = Host.CreateDefaultBuilder(Array.Empty<string>())
+                .ConfigureLogging(c =>
+                {
+                    c.ClearProviders();
+                })
                 .ConfigureServices((host, services) =>
                 {
                     services.AddAppServices();
