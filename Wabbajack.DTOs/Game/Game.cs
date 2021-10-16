@@ -40,5 +40,8 @@ namespace Wabbajack.DTOs
 
         [Description("Enderal Special Edition")]
         EnderalSpecialEdition
+        
+        [Description("Terraria")]
+        Terraria
     }
 }
