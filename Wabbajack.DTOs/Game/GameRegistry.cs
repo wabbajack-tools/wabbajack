@@ -385,6 +385,20 @@ namespace Wabbajack.DTOs
                     },
                     MainExecutable = @"KSP_x64.exe".ToRelativePath()
                 }
+            },
+            {
+                Game.Terraria, new GameMetaDta
+                {
+                    Game = Game.Terraria,
+                    SteamIDs = new[] { 1281930 },
+                    MO2Name = "Terraria",
+                    IsGenericMO2Plugin = true,
+                    RequiredFiles = new[]
+                    {
+                        @"tModLoader.exe".ToRelativePath()
+                    },
+                    MainExecutable = @"tModLoader.exe".ToRelativePath()
+                 }
             }
         };
 
