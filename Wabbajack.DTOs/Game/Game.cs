@@ -39,6 +39,9 @@ namespace Wabbajack.DTOs
         [Description("Kerbal Space Program")] KerbalSpaceProgram,
 
         [Description("Enderal Special Edition")]
-        EnderalSpecialEdition
+        EnderalSpecialEdition,
+        
+        [Description("Terraria")]
+        Terraria
     }
 }
