@@ -387,7 +387,7 @@ namespace Wabbajack.DTOs
                 }
             },
             {
-                Game.Terraria, new GameMetaDta
+                Game.Terraria, new GameMetaData
                 {
                     Game = Game.Terraria,
                     SteamIDs = new[] { 1281930 },
