@@ -78,6 +78,7 @@ namespace Wabbajack.App.ViewModels
                     .DisposeWith(disposables);
                 
             });
+            CurrentScreen = (Control)_screens.First(s => s.ViewModelType == typeof(ModeSelectionViewModel));
 
             LoadFirstScreen().FireAndForget();
 

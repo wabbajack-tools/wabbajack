@@ -1,7 +1,7 @@
 using Wabbajack.DTOs;
 using Wabbajack.Paths;
 
-namespace Wabbajack.Installer
+namespace Wabbajack.Downloaders.GameFile
 {
     public interface IGameLocator
     {

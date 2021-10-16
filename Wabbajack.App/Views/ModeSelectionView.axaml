@@ -17,7 +17,7 @@
         <Grid Grid.Row="1" ColumnDefinitions="*, *, *, *" HorizontalAlignment="Center">
             <controls:LargeIconButton Grid.Column="0" Text="Browse" Icon="CloudDownload" x:Name="BrowseButton"></controls:LargeIconButton>
             <controls:LargeIconButton Grid.Column="1" Text="Install" Icon="HarddiskPlus" x:Name="InstallButton"></controls:LargeIconButton>
-            <controls:LargeIconButton Grid.Column="2" Text="Compile" Icon="DatabaseImport"></controls:LargeIconButton>
+            <controls:LargeIconButton Grid.Column="2" Text="Compile" Icon="DatabaseImport" x:Name="CompileButton"></controls:LargeIconButton>
             <controls:LargeIconButton Grid.Column="3" Text="Play" Icon="TelevisionPlay"></controls:LargeIconButton>
         </Grid>
     </Grid>

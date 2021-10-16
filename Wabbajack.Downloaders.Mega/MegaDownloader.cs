@@ -71,16 +71,24 @@ namespace Wabbajack.Downloaders.ModDB
         {
             if (!_apiClient.IsLoggedIn)
                 await _apiClient.LoginAsync();
-            
-            try
+
+            for (var times = 0; times < 5; times ++)
             {
-                var node = await _apiClient.GetNodeFromLinkAsync(archiveState.Url);
-                return node != null;
+                try
+                {
+                    var node = await _apiClient.GetNodeFromLinkAsync(archiveState.Url);
+                    if (node != null) 
+                        return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+
+                await Task.Delay(TimeSpan.FromMilliseconds(500), token);
             }
-            catch (Exception)
-            {
-                return false;
-            }
+
+            return false;
         }
 
         public override IEnumerable<string> MetaIni(Archive a, Mega state)

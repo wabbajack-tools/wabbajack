@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 
 namespace Wabbajack.VFS
 {
@@ -113,13 +114,13 @@ namespace Wabbajack.VFS
             WriteHashCache(file, hash);
         }
 
-        public async Task<Hash> FileHashCachedAsync(AbsolutePath file, CancellationToken token)
+        public async Task<Hash> FileHashCachedAsync(AbsolutePath file, CancellationToken token, IJob? job = null)
         {
             if (TryGetHashCache(file, out var foundHash)) return foundHash;
 
             await using var fs = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
 
-            var hash = await fs.HashingCopy(Stream.Null, token);
+            var hash = await fs.HashingCopy(Stream.Null, token, job);
             if (hash != default)
                 WriteHashCache(file, hash);
             return hash;

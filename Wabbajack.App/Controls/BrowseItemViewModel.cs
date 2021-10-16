@@ -17,6 +17,7 @@ using Wabbajack.App.Messages;
 using Wabbajack.App.ViewModels;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;

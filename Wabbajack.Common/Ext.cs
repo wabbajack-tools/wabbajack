@@ -20,5 +20,8 @@ namespace Wabbajack.Common
         public static Extension Json = new(".json");
         public static Extension Md = new(".md");
         public static Extension MetaData = new(".metadata");
+        public static Extension CompilerSettings = new(".compiler_settings");
+        public static Extension MO2CompilerSettings = new (".mo2_compiler_settings");
+        public static Extension Temp = new(".temp");
     }
 }

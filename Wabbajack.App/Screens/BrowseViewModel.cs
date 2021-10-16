@@ -24,6 +24,7 @@ using Wabbajack.Networking.WabbajackClientApi;
 using DynamicData.Binding;
 using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;
 using Wabbajack.Paths;
@@ -45,8 +46,7 @@ namespace Wabbajack.App.Screens
         private readonly IResource<DownloadDispatcher> _dispatcherLimiter;
 
         private SourceCache<BrowseItemViewModel, string> _modLists = new(x => x.MachineURL);
-
-
+        
         public readonly ReadOnlyObservableCollection<BrowseItemViewModel> _filteredModLists;
         public ReadOnlyObservableCollection<BrowseItemViewModel> ModLists => _filteredModLists;
         

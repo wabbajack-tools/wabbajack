@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs;
 using Wabbajack.Paths;
 
-namespace Wabbajack.Installer
+namespace Wabbajack.Downloaders.GameFile
 {
     public class GameLocator : IGameLocator
     {
@@ -28,17 +28,17 @@ namespace Wabbajack.Installer
             if (OperatingSystem.IsWindows())
             {
                 _origin = new OriginHandler(true, false, logger);
+                _gog = new GOGHandler(logger);
+
+                _egs = new EGSHandler(logger);
             }
 
-            _gog = new GOGHandler(logger);
-            _egs = new EGSHandler(logger);
-            
             _locationCache = new Dictionary<Game, AbsolutePath>();
 
             _steam.FindAllGames();
             _origin?.FindAllGames();
-            _gog.FindAllGames();
-            _egs.FindAllGames();
+            _gog?.FindAllGames();
+            _egs?.FindAllGames();
         }
 
         public AbsolutePath GameLocation(Game game)

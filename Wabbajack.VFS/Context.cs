@@ -10,6 +10,7 @@ using Wabbajack.FileExtractor.ExtractedFiles;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 
 namespace Wabbajack.VFS
 {
@@ -25,10 +26,12 @@ namespace Wabbajack.VFS
         public readonly FileHashCache HashCache;
         public readonly ILogger<Context> Logger;
         public readonly VFSCache VfsCache;
+        public readonly IResource<Context> Limiter;
 
         public Context(ILogger<Context> logger, ParallelOptions parallelOptions, TemporaryFileManager manager, VFSCache vfsCache,
-            FileHashCache hashCache, FileExtractor.FileExtractor extractor)
+            FileHashCache hashCache, IResource<Context> limiter, FileExtractor.FileExtractor extractor)
         {
+            Limiter = limiter;
             Logger = logger;
             _manager = manager;
             Extractor = extractor;
@@ -49,7 +52,7 @@ namespace Wabbajack.VFS
             var filesToIndex = root.EnumerateFiles().Distinct().ToList();
 
             var allFiles = await filesToIndex
-                .PMap(_parallelOptions, async f =>
+                .PMapAll(async f =>
                 {
                     if (byPath.TryGetValue(f, out var found))
                         if (found.LastModified == f.LastModifiedUtc().AsUnixTime() && found.Size == f.Size())

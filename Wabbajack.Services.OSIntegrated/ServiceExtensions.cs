@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Installer;
@@ -59,6 +58,7 @@ namespace Wabbajack.Services.OSIntegrated
             service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount});
             service.AddAllSingleton<IResource, IResource<DownloadDispatcher>>(s => new Resource<DownloadDispatcher>(12));
             service.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>(12));
+            service.AddAllSingleton<IResource, IResource<Context>>(s => new Resource<Context>(12));
             service.AddAllSingleton<IResource, IResource<FileExtractor.FileExtractor>>(s =>
                 new Resource<FileExtractor.FileExtractor>(12));
 

@@ -1,3 +1,4 @@
+using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.Installer;
 using Wabbajack.Paths;

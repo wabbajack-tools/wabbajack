@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.DownloadStates;
@@ -256,15 +257,18 @@ namespace Wabbajack.Installer
 
             await Task.WhenAll(dispatchers.Select(d => d.Prepare()));
 
+            _logger.LogInformation("Downloading validation data");
             var validationData = await _wjClient.LoadDownloadAllowList();
 
+            _logger.LogInformation("Validating Archives");
             foreach (var archive in missing.Where(archive =>
                 !_downloadDispatcher.Downloader(archive).IsAllowed(validationData, archive.State)))
             {
                 _logger.LogCritical("File {primaryKeyString} failed validation", archive.State.PrimaryKeyString);
                 return;
             }
-
+            
+            _logger.LogInformation("Downloading missing archives");
             await DownloadMissingArchives(missing, token);
         }
 
@@ -437,7 +441,7 @@ namespace Wabbajack.Installer
             var existingfiles = _configuration.Install.EnumerateFiles().ToHashSet();
 
             NextStep("Optimizing Modlist: Removing redundant directives", indexed.Count);
-            await indexed.Values.PMap<Directive, Directive?>(_parallelOptions, async d =>
+            await indexed.Values.PMapAll<Directive, Directive?>(async d =>
                 {
                     UpdateProgress(1);
                     // Bit backwards, but we want to return null for 

@@ -35,7 +35,7 @@ namespace Wabbajack.Compiler
         public static readonly HashSet<Extension> SupportedBSAs = new[] {".bsa", ".ba2"}
             .Select(s => new Extension(s)).ToHashSet();
         
-        public static HashSet<Extension> ConfigFileExtensions = new[]{".json", ".ini", ".yml", ".xml"}.Select(s => new Extension(s)).ToHashSet();
+        public static HashSet<Extension> ConfigFileExtensions = new[]{".json", ".ini", ".yml", ".xml", ".yaml", ".compiler_settings", ".mo2_compiler_settings"}.Select(s => new Extension(s)).ToHashSet();
         public static HashSet<Extension> ESPFileExtensions = new []{ ".esp", ".esm", ".esl"}.Select(s => new Extension(s)).ToHashSet();
         public static HashSet<Extension> AssetFileExtensions = new[] {".dds", ".tga", ".nif", ".psc", ".pex"}.Select(s => new Extension(s)).ToHashSet();
         
@@ -50,7 +50,7 @@ namespace Wabbajack.Compiler
         public static string DOWNLOAD_PATH_MAGIC_BACK = "{--||DOWNLOAD_PATH_MAGIC_BACK||--}";
         public static string DOWNLOAD_PATH_MAGIC_DOUBLE_BACK = "{--||DOWNLOAD_PATH_MAGIC_DOUBLE_BACK||--}";
         public static string DOWNLOAD_PATH_MAGIC_FORWARD = "{--||DOWNLOAD_PATH_MAGIC_FORWARD||--}";
-
-        
+        public static RelativePath MO2IniName => "ModOrganizer.ini".ToRelativePath();
+        public static object CompilerSettings => "compiler_settings.json".ToRelativePath();
     }
 }

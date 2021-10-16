@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Compiler.CompilationSteps;
 using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.DownloadStates;
@@ -20,6 +21,7 @@ using Wabbajack.Installer;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 using Wabbajack.VFS;
 
 namespace Wabbajack.Compiler
@@ -37,7 +39,7 @@ namespace Wabbajack.Compiler
         private readonly FileHashCache _hashCache;
         protected readonly Context _vfs;
         private readonly TemporaryFileManager _manager;
-        public readonly CompilerSettings _settings;
+        public CompilerSettings _settings;
         private readonly AbsolutePath _stagingFolder;
         public readonly ParallelOptions _parallelOptions;
 
@@ -48,6 +50,16 @@ namespace Wabbajack.Compiler
         public readonly IGameLocator _locator;
         private readonly DTOSerializer _dtos;
         public readonly IBinaryPatchCache _patchCache;
+        
+        private long _maxStepProgress = 0;
+        private int _currentStep = 0;
+        private string _statusText;
+        private long _currentStepProgress;
+        private readonly Stopwatch _updateStopWatch = new();
+
+        protected long MaxSteps { get; set; }
+
+        public event EventHandler<StatusUpdate> OnStatusUpdate; 
 
         public ACompiler(ILogger logger, FileExtractor.FileExtractor extractor, FileHashCache hashCache, Context vfs, TemporaryFileManager manager, CompilerSettings settings,
             ParallelOptions parallelOptions, DownloadDispatcher dispatcher, Client wjClient, IGameLocator locator, DTOSerializer dtos,
@@ -69,10 +81,49 @@ namespace Wabbajack.Compiler
             _patchOptions = new();
             _sourceFileLinks = new();
             _patchCache = patchCache;
+            _updateStopWatch = new();
 
         }
+        
+        public void NextStep(string statusText, long maxStepProgress = 1)
+        {
+            _updateStopWatch.Restart();
+            _maxStepProgress = maxStepProgress;
+            _currentStep += 1;
+            _statusText = statusText;
+            _logger.LogInformation("Compiler Step: {Step}", statusText);
 
-        public CompilerSettings Settings { get; set; }
+            if (OnStatusUpdate != null)
+            {
+                OnStatusUpdate(this, new StatusUpdate($"[{_currentStep}/{MaxSteps}] " + statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
+                    Percent.Zero));
+            }
+        }
+
+        public void UpdateProgress(long stepProgress)
+        {
+            Interlocked.Add(ref _currentStepProgress, stepProgress);
+
+            lock (_updateStopWatch)
+            {
+                if (_updateStopWatch.ElapsedMilliseconds < 100) return;
+                _updateStopWatch.Restart();
+            }
+
+            if (OnStatusUpdate != null)
+            {
+                OnStatusUpdate(this, new StatusUpdate(_statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
+                    Percent.FactoryPutInRange(_currentStepProgress, _maxStepProgress)));
+            }
+        }
+
+        public abstract Task<bool> Begin(CancellationToken token);
+
+        public CompilerSettings Settings
+        {
+            get => _settings;
+            set => _settings = value;
+        }
 
         public Dictionary<Game, HashSet<Hash>> GameHashes { get; set; } = new Dictionary<Game, HashSet<Hash>>();
         public Dictionary<Hash, Game[]> GamesWithHashes { get; set; } = new Dictionary<Hash, Game[]>();
@@ -144,8 +195,10 @@ namespace Wabbajack.Compiler
         public async Task<bool> GatherMetaData()
         {
             _logger.LogInformation("Getting meta data for {count} archives", SelectedArchives.Count);
+            NextStep("Gathering Metadata", SelectedArchives.Count);
             await SelectedArchives.PDo(_parallelOptions, async a =>
             {
+                UpdateProgress(1);
                 await _dispatcher.FillInMetadata(a);
             });
 
@@ -155,6 +208,7 @@ namespace Wabbajack.Compiler
 
         protected async Task IndexGameFileHashes()
         {
+            NextStep("Indexing Game Files", 1);
             if (_settings.UseGamePaths)
             {
                 //taking the games in Settings.IncludedGames + currently compiling game so you can eg
@@ -189,7 +243,8 @@ namespace Wabbajack.Compiler
                             return new IndexedArchive(
                                 _vfs.Index.ByRootPath[path.Combine(state.GameFile)])
                             {
-                                Name = state.GameFile.ToString().Replace("/", "_").Replace("\\", "_")
+                                Name = state.GameFile.ToString().Replace("/", "_").Replace("\\", "_"),
+                                State = state
                             };
                         }));
                     }
@@ -207,6 +262,7 @@ namespace Wabbajack.Compiler
 
         protected async Task CleanInvalidArchivesAndFillState()
         {
+            NextStep("Cleaning Invalid Archives", 1);
             var remove = await IndexedArchives.PMap(_parallelOptions, async a =>
             {
                 try
@@ -240,6 +296,7 @@ namespace Wabbajack.Compiler
 
         protected async Task InferMetas(CancellationToken token)
         {
+
             async Task<bool> HasInvalidMeta(AbsolutePath filename)
             {
                 var metaName = filename.WithExtension(Ext.Meta);
@@ -267,6 +324,7 @@ namespace Wabbajack.Compiler
                 .Where(f => f.FileExists())
                 .ToList();
 
+            NextStep("InferMetas", toFind.Count);
             if (toFind.Count == 0)
             {
                 return;
@@ -274,8 +332,9 @@ namespace Wabbajack.Compiler
 
             _logger.LogInformation("Attempting to infer {count} metas from the server.", toFind.Count);
 
-            await toFind.PDo(_parallelOptions, async f =>
+            await toFind.PDoAll(async f =>
             {
+                UpdateProgress(1);
                 var vf = _vfs.Index.ByRootPath[f];
 
                 var archives = await _wjClient.GetArchivesForHash(vf.Hash);
@@ -307,6 +366,7 @@ namespace Wabbajack.Compiler
 
         protected async Task ExportModList(CancellationToken token)
         {
+            NextStep("Exporting Modlist");
             _logger.LogInformation("Exporting ModList to {location}", _settings.OutputFile);
 
             // Modify readme and ModList image to relative paths if they exist
@@ -374,8 +434,6 @@ namespace Wabbajack.Compiler
         /// </summary>
         protected async Task BuildPatches(CancellationToken token)
         {
-            _logger.LogInformation("Gathering patch files");
-
             var toBuild = InstallDirectives.OfType<PatchedFromArchive>()
                 .Where(p => _patchOptions.GetValueOrDefault(p, Array.Empty<VirtualFile>()).Length > 0)
                 .SelectMany(p => _patchOptions[p].Select(c => new PatchedFromArchive
@@ -387,6 +445,7 @@ namespace Wabbajack.Compiler
                 }))
                 .ToArray();
 
+            NextStep("Generating Patches", toBuild.Length);
             if (toBuild.Length == 0)
             {
                 return;
@@ -398,6 +457,7 @@ namespace Wabbajack.Compiler
             await _vfs.Extract( indexed.Keys.ToHashSet(),
                 async (vf, sf) =>
                 {
+                    UpdateProgress(1);
                     // For each, extract the destination
                     var matches = indexed[vf];
                     foreach (var match in matches)
@@ -476,6 +536,7 @@ namespace Wabbajack.Compiler
 
         public async Task GenerateManifest()
         {
+            NextStep("Generating Manifest");
             var manifest = new Manifest(ModList);
             await using var of = _settings.OutputFile.Open(FileMode.Create, FileAccess.Write);
             await _dtos.Serialize(manifest, of);
@@ -483,6 +544,7 @@ namespace Wabbajack.Compiler
 
         public async Task GatherArchives()
         {
+            NextStep("Gathering Archives");
             _logger.LogInformation("Building a list of archives based on the files required");
 
             var hashes = InstallDirectives.OfType<FromArchive>()
@@ -494,7 +556,11 @@ namespace Wabbajack.Compiler
                 .ToDictionary(f => f.Key, f => f.First());
 
             SelectedArchives.Clear();
-            SelectedArchives.AddRange(await hashes.PMap(_parallelOptions, hash => ResolveArchive(hash, archives)).ToList());
+            SelectedArchives.AddRange(await hashes.PMap(_parallelOptions, hash =>
+            {
+                UpdateProgress(1);
+                return ResolveArchive(hash, archives);
+            }).ToList());
         }
 
         public async Task<Archive> ResolveArchive(Hash hash, IDictionary<Hash, IndexedArchive> archives)
@@ -509,7 +575,7 @@ namespace Wabbajack.Compiler
 
         public async Task<Archive?> ResolveArchive(IndexedArchive archive)
         {
-            if (archive.IniData == null)
+            if (archive.State == null && archive.IniData == null)
             {
                 _logger.LogWarning(
                     "No download metadata found for {archive}, please use MO2 to query info or add a .meta file and try again.",
@@ -517,31 +583,38 @@ namespace Wabbajack.Compiler
                 return null;
             }
 
-            var state = await _dispatcher.ResolveArchive(archive.IniData!["General"].ToDictionary(d => d.KeyName, d => d.Value));
-
-            if (state == null)
+            IDownloadState? state;
+            if (archive.State == null)
             {
-                _logger.LogWarning("{archive} could not be handled by any of the downloaders", archive.Name);
-                return null;
+                state = await _dispatcher.ResolveArchive(archive.IniData!["General"]
+                    .ToDictionary(d => d.KeyName, d => d.Value));
+
+                if (state == null)
+                {
+                    _logger.LogWarning("{archive} could not be handled by any of the downloaders", archive.Name);
+                    return null;
+                }
+
+            }
+            else
+            {
+                state = archive.State;
             }
 
             var result = new Archive
             {
-                State = state,
+                State = state!,
                 Name = archive.Name ?? "", 
                 Hash = archive.File.Hash, 
                 Size = archive.File.Size
             };
-
-            var downloader = _dispatcher.Downloader(result);
-            await downloader.Prepare();
 
             var token = new CancellationTokenSource();
             token.CancelAfter(_settings.MaxVerificationTime);
             if (!await _dispatcher.Verify(result, token.Token))
             {
                 _logger.LogWarning(
-                    "Unable to resolve link for {archive}. If this is hosted on the Nexus the file may have been removed.", archive);
+                    "Unable to resolve link for {Archive}. If this is hosted on the Nexus the file may have been removed.", result.State!.PrimaryKeyString);
             }
 
             result.Meta = "[General]\n" + string.Join("\n", _dispatcher.MetaIni(result));
@@ -581,11 +654,13 @@ namespace Wabbajack.Compiler
                 .GroupBy(f => _sourceFileLinks[f].File)
                 .ToDictionary(k => k.Key);
 
+            NextStep("Inlining Files");
             if (grouped.Count == 0) return;
             await _vfs.Extract(grouped.Keys.ToHashSet(), async (vf, sfn) =>
             {
+                UpdateProgress(1);
                 await using var stream = await sfn.GetStream();
-                var id = await IncludeFile(stream);
+                var id = await IncludeFile(stream, token);
                 foreach (var file in grouped[vf])
                 {
                     file.SourceDataID = id;

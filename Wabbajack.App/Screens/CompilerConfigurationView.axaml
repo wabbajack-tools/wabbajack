@@ -1,0 +1,63 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:controls="clr-namespace:Wabbajack.App.Controls"
+             x:Class="Wabbajack.App.Screens.CompilerConfigurationView">
+    <Grid RowDefinitions="40, *, 40">
+        <TextBlock Grid.Row="0" x:Name="StatusText" FontSize="20" FontWeight="Bold">Compiler Configuration</TextBlock>
+        <Grid Grid.Row="1" ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto" Margin="4">
+            <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right">Title:</Label>
+            <TextBox Grid.Column="1" Grid.Row="0" x:Name="Title"></TextBox>
+            <Label Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right">Settings File:</Label>
+            <controls:FileSelectionBox Grid.Column="1" Grid.Row="1" x:Name="SettingsFile"
+                                       AllowedExtensions=".txt|.json">
+            </controls:FileSelectionBox>
+            <Label Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right">Source:</Label>
+            <controls:FileSelectionBox Grid.Column="1" Grid.Row="2" x:Name="Source" SelectFolder="True"></controls:FileSelectionBox>
+            <Label Grid.Column="0" Grid.Row="3" HorizontalAlignment="Right">Downloads Folder:</Label>
+            <controls:FileSelectionBox Grid.Column="1" Grid.Row="3" x:Name="DownloadsFolder" SelectFolder="True"></controls:FileSelectionBox>
+            <Label Grid.Column="0" Grid.Row="4" HorizontalAlignment="Right">Base Game:</Label>
+            <ComboBox Grid.Column="1" Grid.Row="4" x:Name="BaseGame">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Path=HumanFriendlyGameName}"></TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Label Grid.Column="0" Grid.Row="5" HorizontalAlignment="Right">Output Folder:</Label>
+            <controls:FileSelectionBox Grid.Column="1" Grid.Row="5" x:Name="OutputFolder" SelectFolder="True"></controls:FileSelectionBox>
+            
+            <Label Grid.Column="0" Grid.Row="6" HorizontalAlignment="Right" VerticalAlignment="Top">Always Enabled:</Label>
+            <StackPanel Grid.Column="1" Grid.Row="6" Orientation="Vertical">
+                <Button x:Name="AddAlwaysEnabled">
+                    <i:MaterialIcon Kind="AddCircle"></i:MaterialIcon>
+                </Button>
+                <ItemsControl x:Name="AlwaysEnabledList">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical"></StackPanel>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <controls:RemovableListItem></controls:RemovableListItem>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            
+        </Grid>
+        <Grid ColumnDefinitions="*, Auto, Auto" Grid.Row="2">
+            <Button Grid.Column="1" x:Name="InferSettings" Click="InferSettings_OnClick">
+                <TextBlock>Infer Settings</TextBlock>
+            </Button>
+            <Button Grid.Column="2" x:Name="StartCompilation">
+                <TextBlock>Start Compilation</TextBlock>
+            </Button>
+        </Grid>
+    </Grid>
+</UserControl>

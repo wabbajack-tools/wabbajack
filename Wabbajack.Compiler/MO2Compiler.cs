@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Compiler.CompilationSteps;
 using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.JsonConverters;
@@ -21,22 +22,22 @@ namespace Wabbajack.Compiler
 {
     public class MO2Compiler : ACompiler
     {
-        private readonly MO2CompilerSettings _mo2Settings;
+        public MO2CompilerSettings Mo2Settings => (MO2CompilerSettings)Settings;
 
         public MO2Compiler(ILogger<MO2Compiler> logger, FileExtractor.FileExtractor extractor, FileHashCache hashCache, Context vfs, 
             TemporaryFileManager manager, MO2CompilerSettings settings, ParallelOptions parallelOptions, DownloadDispatcher dispatcher, 
             Client wjClient, IGameLocator locator, DTOSerializer dtos, IBinaryPatchCache patchCache) : 
             base(logger, extractor, hashCache, vfs, manager, settings, parallelOptions, dispatcher, wjClient, locator, dtos, patchCache)
         {
-            _mo2Settings = settings;
+            MaxSteps = 14;
         }
         
-        public AbsolutePath MO2ModsFolder => _settings.Source.Combine(Consts.MO2ModFolderName);
+        public AbsolutePath MO2ModsFolder => Settings.Source.Combine(Consts.MO2ModFolderName);
         
 
         public IniData MO2Ini { get; }
 
-        public AbsolutePath MO2ProfileDir => _settings.Source.Combine(Consts.MO2Profiles, _mo2Settings.Profile);
+        public AbsolutePath MO2ProfileDir => Settings.Source.Combine(Consts.MO2Profiles, Mo2Settings.Profile);
 
         public ConcurrentBag<Directive> ExtraFiles { get; private set; } = new();
         public Dictionary<AbsolutePath, IniData> ModInis { get; set; } = new();
@@ -45,21 +46,23 @@ namespace Wabbajack.Compiler
             return mo2Folder.Combine("downloads");
         }
 
-        public async Task<bool> Begin(CancellationToken token)
+        public override async Task<bool> Begin(CancellationToken token)
         {
-            await _wjClient.SendMetric("begin_compiling", _mo2Settings.Profile);
+            await _wjClient.SendMetric("begin_compiling", Mo2Settings.Profile);
             
-            var roots = new List<AbsolutePath> {_settings.Source, _settings.Downloads};
-            roots.AddRange(_settings.OtherGames.Append(_settings.Game).Select(g => _locator.GameLocation(g)));
+            var roots = new List<AbsolutePath> {Settings.Source, Settings.Downloads};
+            roots.AddRange(Settings.OtherGames.Append(Settings.Game).Select(g => _locator.GameLocation(g)));
             
-            await _vfs.AddRoots(roots, token);
+            NextStep("Add Roots", 1);
+            await _vfs.AddRoots(roots, token); // Step 1
             
-            await InferMetas(token);
+            await InferMetas(token); // Step 2
 
-            await _vfs.AddRoot(_settings.Downloads, token);
+            NextStep("Add Download Roots", 1);
+            await _vfs.AddRoot(Settings.Downloads, token); // Step 3
 
             // Find all Downloads
-            IndexedArchives = await _settings.Downloads.EnumerateFiles()
+            IndexedArchives = await Settings.Downloads.EnumerateFiles()
                 .Where(f => f.WithExtension(Ext.Meta).FileExists())
                 .PMap(_parallelOptions,
                     async f => new IndexedArchive(_vfs.Index.ByRootPath[f])
@@ -68,8 +71,7 @@ namespace Wabbajack.Compiler
                         IniData = f.WithExtension(Ext.Meta).LoadIniFile(),
                         Meta = await f.WithExtension(Ext.Meta).ReadAllTextAsync()
                     }).ToList();
-
-
+            
             await IndexGameFileHashes();
 
             IndexedArchives = IndexedArchives.DistinctBy(a => a.File.AbsoluteName).ToList();
@@ -77,9 +79,9 @@ namespace Wabbajack.Compiler
             await CleanInvalidArchivesAndFillState();
 
 
-            var mo2Files = _settings.Source.EnumerateFiles()
+            var mo2Files = Settings.Source.EnumerateFiles()
                 .Where(p => p.FileExists())
-                .Select(p => new RawSourceFile(_vfs.Index.ByRootPath[p], p.RelativeTo(_settings.Source)));
+                .Select(p => new RawSourceFile(_vfs.Index.ByRootPath[p], p.RelativeTo(Settings.Source)));
 
             // If Game Folder Files exists, ignore the game folder
             IndexedFiles = IndexedArchives.SelectMany(f => f.File.ThisAndAllChildren)
@@ -101,7 +103,7 @@ namespace Wabbajack.Compiler
                 return false;
             }
             
-            ModInis = _settings.Source.Combine(Consts.MO2ModFolderName)
+            ModInis = Settings.Source.Combine(Consts.MO2ModFolderName)
                 .EnumerateDirectories()
                 .Select(f =>
                 {
@@ -117,10 +119,15 @@ namespace Wabbajack.Compiler
 
             var stack = MakeStack();
 
-            var results = await AllFiles.PMap(_parallelOptions, f => RunStack(stack, f)).ToList();
+            NextStep("Running Compilation Stack", AllFiles.Count);
+            var results = await AllFiles.PMap(_parallelOptions, f =>
+            {
+                UpdateProgress(1);
+                return RunStack(stack, f);
+            }).ToList();
 
+            NextStep("Updating Extra files");
             // Add the extra files that were generated by the stack
-
             results = results.Concat(ExtraFiles).ToList();
 
             var noMatch = results.OfType<NoMatch>().ToArray();
@@ -147,18 +154,18 @@ namespace Wabbajack.Compiler
 
             ModList = new ModList
             {
-                GameType = _settings.Game,
+                GameType = Settings.Game,
                 WabbajackVersion = Consts.CurrentMinimumWabbajackVersion,
                 Archives = SelectedArchives.ToArray(),
                 Directives = InstallDirectives.ToArray(),
-                Name = _settings.ModListName,
-                Author = _settings.ModListAuthor,
-                Description = _settings.ModListDescription,
-                Readme = _settings.ModlistReadme,
+                Name = Settings.ModListName,
+                Author = Settings.ModListAuthor,
+                Description = Settings.ModListDescription,
+                Readme = Settings.ModlistReadme,
                 Image = ModListImage != default ? ModListImage.FileName : default,
-                Website = _settings.ModListWebsite,
-                Version = _settings.ModlistVersion,
-                IsNSFW = _settings.ModlistIsNSFW
+                Website = Settings.ModListWebsite,
+                Version = Settings.ModlistVersion,
+                IsNSFW = Settings.ModlistIsNSFW
             };
 
             await InlineFiles(token);
@@ -176,9 +183,11 @@ namespace Wabbajack.Compiler
 
         private async Task RunValidation(ModList modList)
         {
+            NextStep("Validating Archives", modList.Archives.Length);
             var allowList = await _wjClient.LoadDownloadAllowList();
             foreach (var archive in modList.Archives)
             {
+                UpdateProgress(1);
                 if (!_dispatcher.IsAllowed(archive, allowList))
                 {
                     _logger.LogCritical("Archive {name}, {primaryKeyString} is not allowed", archive.Name,
@@ -242,7 +251,7 @@ namespace Wabbajack.Compiler
                 new IncludeRegex(this, "^[^\\\\]*\\.bat$"),
                 new IncludeModIniData(this),
                 new DirectMatch(this),
-                new IncludeTaggedFiles(this, _settings.Include),
+                new IncludeTaggedFiles(this, Settings.Include),
                 // TODO: rework tagged files
                 // new IncludeTaggedFolders(this, Consts.WABBAJACK_INCLUDE),
                 new IgnoreExtension(this, Ext.Pyc),
@@ -272,10 +281,14 @@ namespace Wabbajack.Compiler
                 // TODO
                 //new zEditIntegration.IncludeZEditPatches(this),
                 
-                new IncludeTaggedFiles(this, _settings.NoMatchInclude),
+                new IncludeTaggedFiles(this, Settings.NoMatchInclude),
                 new IncludeRegex(this, ".*\\.txt"),
                 new IgnorePathContains(this,@"\Edit Scripts\Export\"),
                 new IgnoreExtension(this, new Extension(".CACHE")),
+                
+                // Misc
+                new IncludeRegex(this, "modlist-image\\.png"),
+
                 new DropAll(this)
             };
 
