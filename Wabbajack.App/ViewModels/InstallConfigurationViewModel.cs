@@ -84,6 +84,7 @@ namespace Wabbajack.App.ViewModels
 
                 var settings = this.WhenAnyValue(t => t.ModListPath)
                     .SelectAsync(disposables, async v => await _stateManager.Get(v))
+                    .ObserveOn(RxApp.MainThreadScheduler)
                     .Where(s => s != null);
 
                 settings.Select(s => s!.Install)

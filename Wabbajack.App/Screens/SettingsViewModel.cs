@@ -8,6 +8,7 @@ using ReactiveUI;
 using Wabbajack.App.Messages;
 using Wabbajack.App.ViewModels;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 
 namespace Wabbajack.App.Screens
@@ -30,6 +31,7 @@ namespace Wabbajack.App.Screens
             
             this.WhenActivated(disposables =>
             {
+                configuration.EncryptedDataLocation.CreateDirectory();
                 Watcher = new FileSystemWatcher(configuration.EncryptedDataLocation.ToString());
                 Watcher.DisposeWith(disposables);
                 Watcher.Created += Pulse;

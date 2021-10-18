@@ -89,7 +89,7 @@ namespace Wabbajack.Installer
 
             if (OnStatusUpdate != null)
             {
-                OnStatusUpdate(this, new StatusUpdate(statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
+                OnStatusUpdate(this, new StatusUpdate($"[{_currentStep}/{MaxSteps}] " + statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
                     Percent.Zero));
             }
         }

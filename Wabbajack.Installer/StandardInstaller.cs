@@ -38,7 +38,7 @@ namespace Wabbajack.Installer
             base(logger, config, gameLocator, extractor, jsonSerializer, vfs, fileHashCache, downloadDispatcher,
                 parallelOptions, wjClient)
         {
-            MaxSteps = 20;
+            MaxSteps = 6;
 
         }
 
