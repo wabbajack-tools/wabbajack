@@ -18,12 +18,14 @@ namespace Wabbajack.RateLimiter
         private long _totalUsed = 0;
         private readonly int _maxTasks;
         private readonly long _maxThroughput;
-        public string Name => typeof(T).Name;
+        private readonly string _humanName;
+        public string Name => _humanName;
         
         
 
-        public Resource(int maxTasks = Int32.MaxValue, long maxThroughput = long.MaxValue)
+        public Resource(string humanName, int maxTasks = Int32.MaxValue, long maxThroughput = long.MaxValue)
         {
+            _humanName = humanName;
             _maxTasks = maxTasks;
             _maxThroughput = maxThroughput;
 

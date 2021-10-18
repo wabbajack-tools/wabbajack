@@ -15,7 +15,7 @@ namespace Wabbajack.Server.Lib
         {
             return services
                 .AddAllSingleton<ITokenProvider<Dictionary<StorageSpace, FtpSite>>, IFtpSiteCredentials, FtpSiteCredentialsProvider>()
-                .AddSingleton<IResource<IFtpSiteCredentials>>(s => new Resource<IFtpSiteCredentials>(8));
+                .AddSingleton<IResource<IFtpSiteCredentials>>(s => new Resource<IFtpSiteCredentials>("FTP Uploads", 8));
         }
         
     }

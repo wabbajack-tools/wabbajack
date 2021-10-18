@@ -16,7 +16,7 @@ namespace Wabbajack.RateLimiter.Test
         //[Fact]
         public async Task BasicTaskTests()
         {
-            var rateLimiter = new Resource<int>(2);
+            var rateLimiter = new Resource<int>("Test Resource", 2);
 
             var current = 0;
             var max = 0;
@@ -48,7 +48,7 @@ namespace Wabbajack.RateLimiter.Test
         //[Fact]
         public async Task TestBasicThroughput()
         {
-            var rateLimiter = new Resource<int>(1, 1024 * 1024);
+            var rateLimiter = new Resource<int>("Test Resource", 1, 1024 * 1024);
 
             using var job = await rateLimiter.Begin( "Transferring", 1024 * 1024 * 5 / 2, CancellationToken.None);
 
@@ -72,7 +72,7 @@ namespace Wabbajack.RateLimiter.Test
         //[Fact]
         public async Task TestParallelThroughput()
         {
-            var rateLimiter = new Resource<int>(2, 1024 * 1024);
+            var rateLimiter = new Resource<int>("Test Resource", 2, 1024 * 1024);
 
 
 
@@ -100,7 +100,7 @@ namespace Wabbajack.RateLimiter.Test
         //[Fact]
         public async Task TestParallelThroughputWithLimitedTasks()
         {
-            var rateLimiter = new Resource<int>(1, 1024 * 1024 * 4);;
+            var rateLimiter = new Resource<int>("Test Resource", 1, 1024 * 1024 * 4);;
 
             var sw = Stopwatch.StartNew();
 
