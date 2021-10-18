@@ -19,7 +19,7 @@ namespace Wabbajack.FileExtractor.Test
             service.AddSingleton<TemporaryFileManager, TemporaryFileManager>();
             service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount});
             service.AddAllSingleton<IResource, IResource<FileExtractor>, Resource<FileExtractor>>(s =>
-                new Resource<FileExtractor>(2));
+                new Resource<FileExtractor>("File Extractor", 2));
             service.AddSingleton<FileExtractor>();
             service.AddSingleton(new JsonSerializerOptions());
         }

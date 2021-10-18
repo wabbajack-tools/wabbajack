@@ -56,11 +56,11 @@ namespace Wabbajack.Services.OSIntegrated
                 : new BinaryPatchCache(KnownFolders.EntryPoint.Combine("patchCache.sqlite")));
             
             service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount});
-            service.AddAllSingleton<IResource, IResource<DownloadDispatcher>>(s => new Resource<DownloadDispatcher>(12));
-            service.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>(12));
-            service.AddAllSingleton<IResource, IResource<Context>>(s => new Resource<Context>(12));
+            service.AddAllSingleton<IResource, IResource<DownloadDispatcher>>(s => new Resource<DownloadDispatcher>("Downloads", 12));
+            service.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", 12));
+            service.AddAllSingleton<IResource, IResource<Context>>(s => new Resource<Context>("VFS", 12));
             service.AddAllSingleton<IResource, IResource<FileExtractor.FileExtractor>>(s =>
-                new Resource<FileExtractor.FileExtractor>(12));
+                new Resource<FileExtractor.FileExtractor>("File Extractor", 12));
 
             service.AddSingleton<LoggingRateLimiterReporter>();
 
