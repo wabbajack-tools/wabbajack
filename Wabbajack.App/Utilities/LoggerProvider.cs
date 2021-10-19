@@ -1,9 +1,16 @@
 using System;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Reactive.Disposables;
 using System.Reactive.Subjects;
+using System.Text;
 using System.Threading;
+using DynamicData;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack.App.Utilities;
 
@@ -12,16 +19,67 @@ public class LoggerProvider : ILoggerProvider
     private Subject<ILogMessage> _messages = new();
     public IObservable<ILogMessage> Messages => _messages;
 
-    private long _messageID = 0;
+    private long _messageId = 0;
+    private SourceCache<ILogMessage, long> _messageLog = new(m => m.MessageId);
 
-    public long NextMessageId()
+    public readonly ReadOnlyObservableCollection<ILogMessage> _messagesFiltered;
+    private readonly CompositeDisposable _disposables;
+    private readonly Configuration _configuration;
+    private readonly DateTime _startupTime;
+    private readonly RelativePath _appName;
+    public AbsolutePath LogPath { get; }
+    private readonly Stream _logFile;
+    private readonly StreamWriter _logStream;
+    public ReadOnlyObservableCollection<ILogMessage> MessageLog => _messagesFiltered;
+
+    public LoggerProvider(Configuration configuration)
     {
-        return Interlocked.Increment(ref _messageID);
+        _startupTime = DateTime.UtcNow;
+        _configuration = configuration;
+        _configuration.LogLocation.CreateDirectory();
+        
+        _disposables = new CompositeDisposable();
+        
+        Messages.Subscribe(m => _messageLog.AddOrUpdate(m))
+            .DisposeWith(_disposables);
+
+        Messages.Subscribe(m => LogToFile(m))
+            .DisposeWith(_disposables);
+                
+        _messageLog.Connect()
+            .Bind(out _messagesFiltered)
+            .Subscribe()
+            .DisposeWith(_disposables);
+
+        _messages.DisposeWith(_disposables);
+
+        _appName = typeof(LoggerProvider).Assembly.Location.ToAbsolutePath().FileName;
+        LogPath = _configuration.LogLocation.Combine($"{_appName}.current.log");
+        _logFile = LogPath.Open(FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+        _logFile.DisposeWith(_disposables);
+
+        _logStream = new StreamWriter(_logFile, Encoding.UTF8);
+
     }
-    
+
+    private void LogToFile(ILogMessage logMessage)
+    {
+        var line = $"[{logMessage.TimeStamp - _startupTime}] {logMessage.LongMessage}";
+        lock (_logStream)
+        {
+            _logStream.Write(line);
+            _logStream.Flush();
+        }
+    }
+
+    private long NextMessageId()
+    {
+        return Interlocked.Increment(ref _messageId);
+    }
+
     public void Dispose()
     {
-       _messages.Dispose();
+       _disposables.Dispose();
     }
 
     public ILogger CreateLogger(string categoryName)
@@ -43,7 +101,7 @@ public class LoggerProvider : ILoggerProvider
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            _provider._messages.OnNext(new LogMessage<TState>(_provider.NextMessageId(), logLevel, eventId, state, exception, formatter));
+            _provider._messages.OnNext(new LogMessage<TState>(DateTime.UtcNow, _provider.NextMessageId(), logLevel, eventId, state, exception, formatter));
         }
 
         public bool IsEnabled(LogLevel logLevel)
@@ -63,10 +121,28 @@ public class LoggerProvider : ILoggerProvider
         long MessageId { get; }
 
         string ShortMessage { get; }
+        DateTime TimeStamp { get; }
+        string LongMessage { get; }
     }
 
-    record LogMessage<TState>(long MessageId, LogLevel LogLevel, EventId EventId, TState State, Exception? Exception, Func<TState, Exception?, string> Formatter) : ILogMessage
+    record LogMessage<TState>(DateTime TimeStamp, long MessageId, LogLevel LogLevel, EventId EventId, TState State, Exception? Exception, Func<TState, Exception?, string> Formatter) : ILogMessage
     {
         public string ShortMessage => Formatter(State, Exception);
+        
+        public string LongMessage
+        {
+            get
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine(ShortMessage);
+                if (Exception != null)
+                {
+                    sb.Append("Exception: ");
+                    sb.Append(Exception);
+                }
+
+                return sb.ToString();
+            }
+        }
     }
 }

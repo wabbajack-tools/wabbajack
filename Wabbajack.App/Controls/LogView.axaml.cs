@@ -17,6 +17,8 @@ public partial class LogView : ReactiveUserControl<LogViewModel>
         {
             this.OneWayBind(ViewModel, vm => vm.Messages, view => view.Messages.Items)
                 .DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.CopyLogFile, view => view.CopyLog)
+                .DisposeWith(disposables);
         });
     }
 

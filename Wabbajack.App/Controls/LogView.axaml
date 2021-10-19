@@ -3,20 +3,33 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:Wabbajack.App.Controls"
+             xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Wabbajack.App.Controls.LogView">
-    <ScrollViewer ScrollChanged="ScrollViewer_OnScrollChanged" x:Name="ScrollViewer">
-        <ItemsControl x:Name="Messages">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel></StackPanel>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <controls:LogViewItem></controls:LogViewItem>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </ScrollViewer>
+    <Grid RowDefinitions="Auto, *, Auto">
+        <TextBlock Grid.Row="0">Current Log Contents</TextBlock>
+        <ScrollViewer Grid.Row="1" ScrollChanged="ScrollViewer_OnScrollChanged" x:Name="ScrollViewer"
+                      HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible">
+            <ItemsControl x:Name="Messages">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel></StackPanel>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <controls:LogViewItem></controls:LogViewItem>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="CopyLog">
+                <avalonia:MaterialIcon Kind="ContentCopy"></avalonia:MaterialIcon>
+            </Button>
+            <Button x:Name="OpenFolder">
+                <avalonia:MaterialIcon Kind="Folder"></avalonia:MaterialIcon>
+            </Button>
+        </StackPanel>
+    </Grid>
 </UserControl>
