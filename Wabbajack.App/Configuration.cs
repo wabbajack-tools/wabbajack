@@ -8,5 +8,7 @@ namespace Wabbajack.App
         public AbsolutePath SavedSettingsLocation { get; set; }
         
         public AbsolutePath EncryptedDataLocation { get; set; }
+        
+        public AbsolutePath LogLocation { get; set; }
     }
 }

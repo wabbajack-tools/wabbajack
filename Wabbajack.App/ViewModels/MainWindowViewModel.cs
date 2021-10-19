@@ -43,6 +43,9 @@ namespace Wabbajack.App.ViewModels
         
         [Reactive]
         public ReactiveCommand<Unit, Unit> SettingsButton { get; set; }
+        
+        [Reactive]
+        public ReactiveCommand<Unit, Unit> LogViewButton { get; set; }
 
         [Reactive]
         public string ResourceStatus { get; set; }
@@ -72,9 +75,15 @@ namespace Wabbajack.App.ViewModels
                     .DisposeWith(disposables);
                 
                 SettingsButton = ReactiveCommand.Create(() =>
-                {
-                    Receive(new NavigateTo(typeof(SettingsViewModel)));
-                })
+                    {
+                        Receive(new NavigateTo(typeof(SettingsViewModel)));
+                    })
+                    .DisposeWith(disposables);
+                
+                LogViewButton = ReactiveCommand.Create(() =>
+                    {
+                        Receive(new NavigateTo(typeof(LogScreenViewModel)));
+                    })
                     .DisposeWith(disposables);
                 
             });

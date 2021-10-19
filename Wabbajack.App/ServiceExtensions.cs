@@ -45,6 +45,7 @@ namespace Wabbajack.App
             services.AddDTOSerializer();
             services.AddSingleton<ModeSelectionViewModel>();
             services.AddTransient<FileSelectionBoxViewModel>();
+            services.AddSingleton<IScreenView, LogScreenView>();
             services.AddSingleton<IScreenView, ModeSelectionView>();
             services.AddSingleton<IScreenView, InstallConfigurationView>();
             services.AddSingleton<IScreenView, CompilerConfigurationView>();
@@ -57,6 +58,7 @@ namespace Wabbajack.App
             services.AddSingleton<InstallationStateManager>();
             services.AddSingleton<HttpClient>();
             
+            services.AddSingleton<LogScreenViewModel>();
             services.AddAllSingleton<IReceiverMarker, StandardInstallationViewModel>();
             services.AddAllSingleton<IReceiverMarker, InstallConfigurationViewModel>();
             services.AddAllSingleton<IReceiverMarker, CompilerConfigurationViewModel>();
@@ -89,7 +91,8 @@ namespace Wabbajack.App
             {
                 EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
                 ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
-                SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings")
+                SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings"),
+                LogLocation = KnownFolders.EntryPoint.Combine("logs")
             });
 
             services.AddSingleton<SettingsManager>();

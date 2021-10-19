@@ -31,6 +31,9 @@ namespace Wabbajack.App.Views
                 this.BindCommand(ViewModel, vm => vm.SettingsButton, view => view.SettingsButton)
                     .DisposeWith(dispose);
                 
+                this.BindCommand(ViewModel, vm => vm.LogViewButton, view => view.LogButton)
+                    .DisposeWith(dispose);
+                
                 this.Bind(ViewModel, vm => vm.CurrentScreen, view => view.Contents.Content)
                     .DisposeWith(dispose);
 

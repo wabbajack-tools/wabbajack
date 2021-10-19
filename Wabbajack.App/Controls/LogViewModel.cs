@@ -1,9 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Reactive;
+using System.Reactive.Disposables;
+using Avalonia;
 using Avalonia.Controls.Mixins;
+using Avalonia.Input;
 using DynamicData;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using Wabbajack.App.Utilities;
 using Wabbajack.App.ViewModels;
 
@@ -12,26 +18,21 @@ namespace Wabbajack.App.Controls;
 public class LogViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly LoggerProvider _provider;
-
-    private readonly SourceCache<LoggerProvider.ILogMessage, long> _messages;
-
-    public readonly ReadOnlyObservableCollection<LoggerProvider.ILogMessage> _messagesFiltered;
-    public ReadOnlyObservableCollection<LoggerProvider.ILogMessage> Messages => _messagesFiltered;
+    public ReadOnlyObservableCollection<LoggerProvider.ILogMessage> Messages => _provider.MessageLog;
+    
+    [Reactive]
+    public ReactiveCommand<Unit, Unit> CopyLogFile { get; set; } 
 
     public LogViewModel(LoggerProvider provider)
     {
-        _messages = new SourceCache<LoggerProvider.ILogMessage, long>(m => m.MessageId);
-        //_messages.LimitSizeTo(100);
-        
         Activator = new ViewModelActivator();
         _provider = provider;
         
-        _messages.Connect()
-            .Bind(out _messagesFiltered)
-            .Subscribe();
-        
-        _provider.Messages
-            .Subscribe(m => _messages.AddOrUpdate(m));
+        CopyLogFile = ReactiveCommand.Create(() =>
+        {
+            var obj = new DataObject();
+            obj.Set(DataFormats.FileNames, new List<string> {_provider.LogPath.ToString()});
+            Application.Current.Clipboard.SetDataObjectAsync(obj);
+        });
     }
-    
 }
