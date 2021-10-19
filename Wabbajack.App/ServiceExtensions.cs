@@ -45,6 +45,7 @@ namespace Wabbajack.App
             services.AddDTOSerializer();
             services.AddSingleton<ModeSelectionViewModel>();
             services.AddTransient<FileSelectionBoxViewModel>();
+            services.AddSingleton<IScreenView, ErrorPageView>();
             services.AddSingleton<IScreenView, LogScreenView>();
             services.AddSingleton<IScreenView, ModeSelectionView>();
             services.AddSingleton<IScreenView, InstallConfigurationView>();
@@ -59,6 +60,7 @@ namespace Wabbajack.App
             services.AddSingleton<HttpClient>();
             
             services.AddSingleton<LogScreenViewModel>();
+            services.AddAllSingleton<IReceiverMarker, ErrorPageViewModel>();
             services.AddAllSingleton<IReceiverMarker, StandardInstallationViewModel>();
             services.AddAllSingleton<IReceiverMarker, InstallConfigurationViewModel>();
             services.AddAllSingleton<IReceiverMarker, CompilerConfigurationViewModel>();

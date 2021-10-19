@@ -191,11 +191,19 @@ namespace Wabbajack.App.ViewModels
             };
             
             _logger.LogInformation("Installer created, starting the installation process");
-            var result = await _installer.Begin(CancellationToken.None);
-
-            if (result)
+            try
             {
-                await SaveConfigAndContinue(_config);
+                var result = await _installer.Begin(CancellationToken.None);
+                if (!result) throw new Exception("Installation failed");
+
+                if (result)
+                {
+                    await SaveConfigAndContinue(_config);
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorPageViewModel.Display("During installation", ex);
             }
         }
 

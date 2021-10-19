@@ -127,7 +127,7 @@ namespace Wabbajack.App.ViewModels
                     if (throughput != 0)
                     {
                         sb.Append(
-                            $"{limiter.Name}: [{next.Running}/{next.Pending}] {throughput.ToFileSizeString()}/sec ");
+                            $"{limiter.Name}: [{next.Running}/{next.Pending + next.Running}] {throughput.ToFileSizeString()}/sec ");
                     }
                 }
 
