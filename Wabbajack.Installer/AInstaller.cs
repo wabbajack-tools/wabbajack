@@ -285,9 +285,12 @@ namespace Wabbajack.Installer
             }
 
             _logger.LogInformation("Downloading {count} archives", missing.Count);
+            NextStep("Downloading files", missing.Count);
 
-            await missing.Where(a => a.State is not Manual)
-                .PDo(_parallelOptions, async archive =>
+            await missing
+                .OrderBy(a => a.Size)
+                .Where(a => a.State is not Manual)
+                .PDoAll(async archive =>
                 {
                     _logger.LogInformation("Downloading {archive}", archive.Name);
                     var outputPath = _configuration.Downloads.Combine(archive.Name);
@@ -303,6 +306,7 @@ namespace Wabbajack.Installer
                         }
 
                     await DownloadArchive(archive, download, token, outputPath);
+                    UpdateProgress(1);
                 });
         }
 

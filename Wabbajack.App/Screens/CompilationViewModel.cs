@@ -63,6 +63,7 @@ public class CompilationViewModel : ViewModelBase, IReceiverMarker, IReceiver<St
         {
             _logger.LogError(ex, "During Compilation: {Message}", ex.Message);
             StatusText = $"ERRORED: {ex.Message}";
+            ErrorPageViewModel.Display("During compilation", ex);
         }
     }
 }

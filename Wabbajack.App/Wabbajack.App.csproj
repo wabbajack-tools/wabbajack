@@ -45,6 +45,9 @@
       <DependentUpon>StandardInstallationView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Screens\LogScreenView.axaml.cs">
+      <DependentUpon>LogScreenView.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <Target Name="AferBuild" AfterTargets="Build" Condition="!Exists('$(ProjectDir)$(OutDir)libcef.dll')">
