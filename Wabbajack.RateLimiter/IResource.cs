@@ -7,6 +7,7 @@ namespace Wabbajack.RateLimiter
     {
         StatusReport StatusReport { get; }
         string Name { get; }
+        
     }
     public interface IResource<T> : IResource
     {

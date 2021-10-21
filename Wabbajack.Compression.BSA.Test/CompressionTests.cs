@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 using Xunit;
 
 namespace Wabbajack.Compression.BSA.Test
@@ -55,7 +56,7 @@ namespace Wabbajack.Compression.BSA.Test
             var reader = await BSADispatch.Open(path);
 
             var dataStates = await reader.Files
-                .PMap(_parallelOptions,
+                .PMapAll(new Resource<CompressionTests>("Compression Test", 4),
                     async file =>
                     {
                         var ms = new MemoryStream();
@@ -69,7 +70,7 @@ namespace Wabbajack.Compression.BSA.Test
 
             var build = BSADispatch.CreateBuilder(oldState, _tempManager);
 
-            await dataStates.PDo(_parallelOptions,
+            await dataStates.PDoAll(
                 async itm => { await build.AddFile(itm.State, itm.Stream, CancellationToken.None); });
 
 
@@ -79,7 +80,7 @@ namespace Wabbajack.Compression.BSA.Test
 
             var reader2 = await BSADispatch.Open(new MemoryStreamFactory(rebuiltStream, path, path.LastModifiedUtc()));
             await reader.Files.Zip(reader2.Files)
-                .PDo(_parallelOptions, async pair =>
+                .PDoAll(async pair =>
                 {
                     var (oldFile, newFile) = pair;
                     _logger.LogInformation("Comparing {old} and {new}", oldFile.Path, newFile.Path);

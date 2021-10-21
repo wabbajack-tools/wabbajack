@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
@@ -20,6 +21,7 @@ using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
+using Wabbajack.VFS;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -37,9 +39,11 @@ namespace Wabbajack.Networking.WabbajackClientApi
         private readonly ParallelOptions _parallelOptions;
         private readonly IResource<HttpClient> _limiter;
         private readonly Configuration _configuration;
+        private readonly IResource<FileHashCache> _hashLimiter;
 
 
-        public Client(ILogger<Client> logger, HttpClient client, ITokenProvider<WabbajackApiState> token, DTOSerializer dtos, IResource<HttpClient> limiter, Configuration configuration)
+        public Client(ILogger<Client> logger, HttpClient client, ITokenProvider<WabbajackApiState> token, DTOSerializer dtos, 
+            IResource<HttpClient> limiter, IResource<FileHashCache> hashLimiter, Configuration configuration)
         {
             _configuration = configuration;
             _token = token;
@@ -47,6 +51,7 @@ namespace Wabbajack.Networking.WabbajackClientApi
             _logger = logger;
             _dtos = dtos;
             _limiter = limiter;
+            _hashLimiter = hashLimiter;
         }
 
         private async ValueTask<HttpRequestMessage> MakeMessage(HttpMethod method, Uri uri)
@@ -163,15 +168,16 @@ namespace Wabbajack.Networking.WabbajackClientApi
                 OriginalFileName = path.FileName, 
                 Size = path.Size(), 
                 Hash = await path.Hash(),
-                Parts = await parts.PMap(_parallelOptions, async part =>
+                Parts = await parts.PMapAll(async part =>
                 {
                     var buffer = new byte[part.Size];
+                    using var job = await _hashLimiter.Begin("Hashing part", part.Size, CancellationToken.None);
                     await using (var fs = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
                         fs.Position = part.Offset;
                         await fs.ReadAsync(buffer);
                     }
-                    part.Hash = await buffer.Hash();
+                    part.Hash = await buffer.Hash(job);
                     return part;
                 }).ToArray()
             };

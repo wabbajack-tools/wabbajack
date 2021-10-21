@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Wabbajack.Common
 {
@@ -37,6 +38,15 @@ namespace Wabbajack.Common
             foreach (var itm in coll)
             {
                 fn(itm);
+                yield return itm;
+            }
+        }
+        
+        public static async IAsyncEnumerable<T> OnEach<T>(this IEnumerable<T> coll, Func<T, Task> fn)
+        {
+            foreach (var itm in coll)
+            {
+                await fn(itm);
                 yield return itm;
             }
         }

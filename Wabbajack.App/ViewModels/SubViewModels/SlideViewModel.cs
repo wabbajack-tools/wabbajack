@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.DTOs.DownloadStates;
@@ -29,7 +30,13 @@ namespace Wabbajack.App.ViewModels.SubViewModels
         {
             Loading = true;
             var url = await client.GetByteArrayAsync(MetaState.ImageURL);
-            Image = new Bitmap(new MemoryStream(url));
+            var img = new Bitmap(new MemoryStream(url));
+            
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                Image = img;
+            });
+            
             Loading = false;
         }
 

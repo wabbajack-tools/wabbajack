@@ -7,6 +7,7 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Validation;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 using Xunit;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -79,7 +80,8 @@ namespace Wabbajack.DTOs.Test
             var statuses = await _wjClient.GetListStatuses();
             Assert.True(statuses.Length > 10);
 
-            await statuses.PDo(_parallelOptions, async status =>
+            await statuses.PDoAll(new Resource<ModListTests>("Resource Test", 4),
+                async status =>
             {
                 _logger.LogInformation("Loading {machineURL}", status.MachineURL);
                 var detailed = await _wjClient.GetDetailedStatus(status.MachineURL);

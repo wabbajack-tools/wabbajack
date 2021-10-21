@@ -33,6 +33,12 @@ namespace Wabbajack.Installer
             return new FileIniDataParser(IniParser()).ReadFile(file.ToString());
         }
 
+        public static void SaveIniFile(this IniData data, AbsolutePath file)
+        {
+            var parser = new FileIniDataParser(IniParser());
+            parser.WriteFile(file.ToString(), data);
+        }
+
         /// <summary>
         ///     Loads a INI from the given string
         /// </summary>

@@ -44,8 +44,8 @@ namespace Wabbajack.Services.OSIntegrated
             service.AddTransient(s => new TemporaryFileManager(KnownFolders.EntryPoint.Combine("temp", Guid.NewGuid().ToString())));
             
             service.AddSingleton(s => options.UseLocalCache ? 
-                new FileHashCache(s.GetService<TemporaryFileManager>()!.CreateFile().Path) 
-                : new FileHashCache(KnownFolders.AppDataLocal.Combine("Wabbajack", "GlobalHashCache.sqlite")));
+                new FileHashCache(s.GetService<TemporaryFileManager>()!.CreateFile().Path, s.GetService<IResource<FileHashCache>>()!) 
+                : new FileHashCache(KnownFolders.AppDataLocal.Combine("Wabbajack", "GlobalHashCache.sqlite"), s.GetService<IResource<FileHashCache>>()!));
             
             service.AddSingleton(s => options.UseLocalCache ? 
                 new VFSCache(s.GetService<TemporaryFileManager>()!.CreateFile().Path)
@@ -59,6 +59,7 @@ namespace Wabbajack.Services.OSIntegrated
             service.AddAllSingleton<IResource, IResource<DownloadDispatcher>>(s => new Resource<DownloadDispatcher>("Downloads", 12));
             service.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", 12));
             service.AddAllSingleton<IResource, IResource<Context>>(s => new Resource<Context>("VFS", 12));
+            service.AddAllSingleton<IResource, IResource<FileHashCache>>(s => new Resource<FileHashCache>("File Hashing", 12));
             service.AddAllSingleton<IResource, IResource<FileExtractor.FileExtractor>>(s =>
                 new Resource<FileExtractor.FileExtractor>("File Extractor", 12));
 

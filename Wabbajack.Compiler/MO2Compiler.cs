@@ -16,6 +16,7 @@ using Wabbajack.Installer;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 using Wabbajack.VFS;
 
 namespace Wabbajack.Compiler
@@ -26,8 +27,8 @@ namespace Wabbajack.Compiler
 
         public MO2Compiler(ILogger<MO2Compiler> logger, FileExtractor.FileExtractor extractor, FileHashCache hashCache, Context vfs, 
             TemporaryFileManager manager, MO2CompilerSettings settings, ParallelOptions parallelOptions, DownloadDispatcher dispatcher, 
-            Client wjClient, IGameLocator locator, DTOSerializer dtos, IBinaryPatchCache patchCache) : 
-            base(logger, extractor, hashCache, vfs, manager, settings, parallelOptions, dispatcher, wjClient, locator, dtos, patchCache)
+            Client wjClient, IGameLocator locator, DTOSerializer dtos, IResource<ACompiler> compilerLimiter, IBinaryPatchCache patchCache) : 
+            base(logger, extractor, hashCache, vfs, manager, settings, parallelOptions, dispatcher, wjClient, locator, dtos, compilerLimiter, patchCache)
         {
             MaxSteps = 14;
         }
@@ -64,7 +65,7 @@ namespace Wabbajack.Compiler
             // Find all Downloads
             IndexedArchives = await Settings.Downloads.EnumerateFiles()
                 .Where(f => f.WithExtension(Ext.Meta).FileExists())
-                .PMap(_parallelOptions,
+                .PMapAll(CompilerLimiter,
                     async f => new IndexedArchive(_vfs.Index.ByRootPath[f])
                     {
                         Name = (string)f.FileName,
@@ -120,7 +121,7 @@ namespace Wabbajack.Compiler
             var stack = MakeStack();
 
             NextStep("Running Compilation Stack", AllFiles.Count);
-            var results = await AllFiles.PMap(_parallelOptions, f =>
+            var results = await AllFiles.PMapAll(CompilerLimiter, f =>
             {
                 UpdateProgress(1);
                 return RunStack(stack, f);

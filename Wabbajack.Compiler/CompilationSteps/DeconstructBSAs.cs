@@ -83,7 +83,7 @@ namespace Wabbajack.Compiler.CompilationSteps
                 //_cleanup = await source.File.Context.Stage(source.File.Children);
             }
 
-            var matches = await sourceFiles.PMap(_compiler._parallelOptions, e => _mo2Compiler.RunStack(stack, new RawSourceFile(e, Consts.BSACreationDir.Combine((RelativePath)id, (RelativePath)e.Name))))
+            var matches = await sourceFiles.PMapAll(_compiler.CompilerLimiter, e => _mo2Compiler.RunStack(stack, new RawSourceFile(e, Consts.BSACreationDir.Combine((RelativePath)id, (RelativePath)e.Name))))
                 .ToList();
 
 

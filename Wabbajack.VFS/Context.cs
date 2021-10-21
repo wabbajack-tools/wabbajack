@@ -80,7 +80,7 @@ namespace Wabbajack.VFS
             var filesToIndex = roots.SelectMany(root => root.EnumerateFiles()).ToList();
 
             var allFiles = await filesToIndex
-                .PMap(_parallelOptions, async f =>
+                .PMapAll(async f =>
                 {
                     if (native.TryGetValue(f, out var found))
                         if (found.LastModified == f.LastModifiedUtc().AsUnixTime() && found.Size == f.Size())
@@ -151,7 +151,7 @@ namespace Wabbajack.VFS
                 }
             }
 
-            await filesByParent[top].PDo(_parallelOptions,
+            await filesByParent[top].PDoAll(
                 async file => await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName) { CanMove = false }));
         }
 

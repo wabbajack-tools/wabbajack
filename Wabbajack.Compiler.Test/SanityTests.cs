@@ -16,6 +16,7 @@ using Wabbajack.DTOs.Texture;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 using Xunit;
 
 namespace Wabbajack.Compiler.Test
@@ -125,7 +126,8 @@ namespace Wabbajack.Compiler.Test
             bsa.Delete();
 
             var creator = BSADispatch.CreateBuilder(bsaState, _manager);
-            await fileStates.Take(2).PDo(_parallelOptions, async f => await creator.AddFile(f, f.Path.RelativeTo(_mod.FullPath).Open(FileMode.Open),CancellationToken.None));
+            await fileStates.Take(2).PDoAll(new Resource<CompilerSanityTests>(),
+                async f => await creator.AddFile(f, f.Path.RelativeTo(_mod.FullPath).Open(FileMode.Open),CancellationToken.None));
             {
                 await using var fs = bsa.Open(FileMode.Create, FileAccess.Write);
                 await creator.Build(fs, CancellationToken.None);

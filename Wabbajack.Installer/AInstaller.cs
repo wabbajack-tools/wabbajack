@@ -55,7 +55,7 @@ namespace Wabbajack.Installer
 
         protected long MaxSteps { get; set; }
 
-        public event EventHandler<StatusUpdate> OnStatusUpdate; 
+        public Func<StatusUpdate, Task>? OnStatusUpdate; 
 
 
 
@@ -79,7 +79,7 @@ namespace Wabbajack.Installer
             _wjClient = wjClient;
         }
 
-        public void NextStep(string statusText, long maxStepProgress)
+        public async Task NextStep(string statusText, long maxStepProgress)
         {
             _updateStopWatch.Restart();
             _maxStepProgress = maxStepProgress;
@@ -89,24 +89,27 @@ namespace Wabbajack.Installer
 
             if (OnStatusUpdate != null)
             {
-                OnStatusUpdate(this, new StatusUpdate($"[{_currentStep}/{MaxSteps}] " + statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
-                    Percent.Zero));
+                await OnStatusUpdate!(new StatusUpdate($"[{_currentStep}/{MaxSteps}] " + statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps), Percent.Zero));
             }
         }
 
-        public void UpdateProgress(long stepProgress)
+
+        private const int _limitMS = 100;
+        public async ValueTask UpdateProgress(long stepProgress)
         {
+            
             Interlocked.Add(ref _currentStepProgress, stepProgress);
 
+            if (_updateStopWatch.ElapsedMilliseconds < _limitMS) return;
             lock (_updateStopWatch)
             {
-                if (_updateStopWatch.ElapsedMilliseconds < 100) return;
+                if (_updateStopWatch.ElapsedMilliseconds < _limitMS) return;
                 _updateStopWatch.Restart();
             }
 
             if (OnStatusUpdate != null)
             {
-                OnStatusUpdate(this, new StatusUpdate(_statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
+                await OnStatusUpdate!(new StatusUpdate(_statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
                     Percent.FactoryPutInRange(_currentStepProgress, _maxStepProgress)));
             }
         }
@@ -184,7 +187,7 @@ namespace Wabbajack.Installer
 
         public async Task InstallArchives(CancellationToken token)
         {
-            NextStep("Installing files", ModList.Directives.Sum(d => d.Size));
+            await NextStep("Installing files", ModList.Directives.Sum(d => d.Size));
             var grouped = ModList.Directives
                 .OfType<FromArchive>()
                 .Select(a => new { VF = _vfs.Index.FileForArchiveHashPath(a.ArchiveHashPath), Directive = a })
@@ -198,7 +201,7 @@ namespace Wabbajack.Installer
                 foreach (var directive in grouped[vf])
                 {
                     var file = directive.Directive;
-                    UpdateProgress(file.Size);
+                    await UpdateProgress(file.Size);
 
                     switch (file)
                     {
@@ -285,7 +288,7 @@ namespace Wabbajack.Installer
             }
 
             _logger.LogInformation("Downloading {count} archives", missing.Count);
-            NextStep("Downloading files", missing.Count);
+            await NextStep("Downloading files", missing.Count);
 
             await missing
                 .OrderBy(a => a.Size)
@@ -306,7 +309,7 @@ namespace Wabbajack.Installer
                         }
 
                     await DownloadArchive(archive, download, token, outputPath);
-                    UpdateProgress(1);
+                    await UpdateProgress(1);
                 });
         }
 
@@ -362,7 +365,7 @@ namespace Wabbajack.Installer
 
             var hashResults = await
                 toHash
-                    .PMap(_parallelOptions, async e => (await _fileHashCache.FileHashCachedAsync(e, token), e))
+                    .PMapAll(async e => (await _fileHashCache.FileHashCachedAsync(e, token), e))
                     .ToList();
 
             HashedArchives = hashResults
@@ -391,11 +394,11 @@ namespace Wabbajack.Installer
             var savePath = (RelativePath)"saves";
 
             var existingFiles = _configuration.Install.EnumerateFiles().ToList();
-            NextStep("Optimizing Modlist: Looking for files to delete", existingFiles.Count);
+            await NextStep("Optimizing Modlist: Looking for files to delete", existingFiles.Count);
             await existingFiles
-                .PDo(_parallelOptions, async f =>
+                .PDoAll(async f =>
                 {
-                    UpdateProgress(1);
+                    await UpdateProgress(1);
                     var relativeTo = f.RelativeTo(_configuration.Install);
                     if (indexed.ContainsKey(relativeTo) || f.InFolder(_configuration.Downloads))
                         return;
@@ -410,12 +413,12 @@ namespace Wabbajack.Installer
                 });
 
             _logger.LogInformation("Cleaning empty folders");
-            NextStep("Optimizing Modlist: Cleaning empty folders", indexed.Keys.Count);
-            var expectedFolders = indexed.Keys
+            await NextStep("Optimizing Modlist: Cleaning empty folders", indexed.Keys.Count);
+            var expectedFolders = (await indexed.Keys
                 .Select(f => f.RelativeTo(_configuration.Install))
                 // We ignore the last part of the path, so we need a dummy file name
                 .Append(_configuration.Downloads.Combine("_"))
-                .OnEach(_ => UpdateProgress(1))
+                .OnEach(async _ => await UpdateProgress(1))
                 .Where(f => f.InFolder(_configuration.Install))
                 .SelectMany(path =>
                 {
@@ -424,6 +427,7 @@ namespace Wabbajack.Installer
                     var split = ((string)path.RelativeTo(_configuration.Install)).Split('\\');
                     return Enumerable.Range(1, split.Length - 1).Select(t => string.Join("\\", split.Take(t)));
                 })
+                .ToList())
                 .Distinct()
                 .Select(p => _configuration.Install.Combine(p))
                 .ToHashSet();
@@ -444,10 +448,10 @@ namespace Wabbajack.Installer
 
             var existingfiles = _configuration.Install.EnumerateFiles().ToHashSet();
 
-            NextStep("Optimizing Modlist: Removing redundant directives", indexed.Count);
+            await NextStep("Optimizing Modlist: Removing redundant directives", indexed.Count);
             await indexed.Values.PMapAll<Directive, Directive?>(async d =>
                 {
-                    UpdateProgress(1);
+                    await UpdateProgress(1);
                     // Bit backwards, but we want to return null for 
                     // all files we *want* installed. We return the files
                     // to remove from the install list.

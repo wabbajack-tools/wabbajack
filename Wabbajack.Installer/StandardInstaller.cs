@@ -121,6 +121,7 @@ namespace Wabbajack.Installer
             await GenerateZEditMerges(token);
 
             await ForcePortable();
+            await RemapMO2File();
 
             CreateOutputMods();
 
@@ -129,9 +130,22 @@ namespace Wabbajack.Installer
             await ExtractedModlistFolder!.DisposeAsync();
             await _wjClient.SendMetric(MetricNames.FinishInstall, ModList.Name);
 
-            NextStep("Finished", 1);
+            await NextStep("Finished", 1);
             _logger.LogInformation("Finished Installation");
             return true;
+        }
+
+        private async Task RemapMO2File()
+        {
+            var iniFile = _configuration.Install.Combine("ModOrganizer.ini");
+            if (!iniFile.FileExists()) return;
+            
+            _logger.LogInformation("Remapping ModOrganizer.ini");
+
+            var iniData = iniFile.LoadIniFile();
+            var settings = iniData["Settings"];
+            settings["download_directory"] = _configuration.Downloads.ToString();
+            iniData.SaveIniFile(iniFile);
         }
 
         private void CreateOutputMods()
@@ -185,7 +199,7 @@ namespace Wabbajack.Installer
         private async Task InstallIncludedDownloadMetas(CancellationToken token)
         {
             await ModList.Archives
-                .PDo(_parallelOptions, async archive =>
+                .PDoAll(async archive =>
                 {
                     if (HashedArchives.TryGetValue(archive.Hash, out var paths))
                     {
@@ -219,8 +233,9 @@ namespace Wabbajack.Installer
                 var sourceDir = _configuration.Install.Combine(BSACreationDir, bsa.TempID);
 
                 var a = BSADispatch.CreateBuilder(bsa.State, _manager);
-                var streams = await bsa.FileStates.PMap(_parallelOptions, async state =>
+                var streams = await bsa.FileStates.PMapAll(async state =>
                 {
+                    
                     var fs = sourceDir.Combine(state.Path).Open(FileMode.Open, FileAccess.Read, FileShare.Read);
                     await a.AddFile(state, fs, token);
                     return fs;
@@ -246,12 +261,12 @@ namespace Wabbajack.Installer
         private async Task InstallIncludedFiles(CancellationToken token)
         {
             _logger.LogInformation("Writing inline files");
-            NextStep("Installing Included Files", ModList.Directives.OfType<InlineFile>().Count());
+            await NextStep("Installing Included Files", ModList.Directives.OfType<InlineFile>().Count());
             await ModList.Directives
                 .OfType<InlineFile>()
-                .PDo(_parallelOptions, async directive =>
+                .PDoAll(async directive =>
                 {
-                    UpdateProgress(1);
+                    await UpdateProgress(1);
                     var outPath = _configuration.Install.Combine(directive.To);
                     outPath.Delete();
 
@@ -261,7 +276,7 @@ namespace Wabbajack.Installer
                             await WriteRemappedFile(file);
                             break;
                         default:
-                            await outPath.WriteAllBytesAsync(await LoadBytesFromPath(directive.SourceDataID));
+                            await outPath.WriteAllBytesAsync(await LoadBytesFromPath(directive.SourceDataID), token: token);
                             break;
                     }
                 });
@@ -363,7 +378,7 @@ namespace Wabbajack.Installer
             await _configuration.ModList
                 .Directives
                 .OfType<MergedPatch>()
-                .PDo(_parallelOptions, async m =>
+                .PDoAll(async m =>
                 {
                     _logger.LogInformation("Generating zEdit merge: {to}", m.To);
 
