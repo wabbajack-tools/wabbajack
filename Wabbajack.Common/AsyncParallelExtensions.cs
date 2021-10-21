@@ -4,35 +4,21 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Common
 {
     public static class AsyncParallelExtensions
     {
-        public static IAsyncEnumerable<TOut> PMap<TIn, TOut>(this IEnumerable<TIn> coll, ParallelOptions options,
-            Func<TIn, Task<TOut>> mapFn)
-        {
-
-            var queue = Channel.CreateBounded<TOut>(options.MaxDegreeOfParallelism); 
-            Parallel.ForEachAsync(coll, options, async (x, token) =>
-            {
-                var result = await mapFn(x);
-                await queue.Writer.WriteAsync(result, token);
-            }).ContinueWith(async t =>
-            {
-                queue.Writer.TryComplete();
-            }).FireAndForget();
-
-            return queue.Reader.ReadAllAsync();
-        }
-        
-        public static async Task PDo<TIn>(this IEnumerable<TIn> coll, ParallelOptions options, Func<TIn, Task> mapFn)
-        {
-            await Parallel.ForEachAsync(coll, options, async (x, token) => await mapFn(x));
-        }
-        
         public static async Task PDoAll<TIn>(this IEnumerable<TIn> coll, Func<TIn, Task> mapFn)
         {
+            var tasks = coll.Select(mapFn).ToList();
+            await Task.WhenAll(tasks);
+        }
+        
+        public static async Task PDoAll<TIn, TJob>(this IEnumerable<TIn> coll, IResource<TJob> limiter, Func<TIn, Task> mapFn)
+        {
+            using var job = await limiter.Begin("", 0, CancellationToken.None);
             var tasks = coll.Select(mapFn).ToList();
             await Task.WhenAll(tasks);
         }
@@ -42,6 +28,16 @@ namespace Wabbajack.Common
             var tasks = coll.Select(mapFn).ToList();
             foreach (var itm in tasks)
             {
+                yield return await itm;
+            }
+        }
+        
+        public static async IAsyncEnumerable<TOut> PMapAll<TIn, TJob, TOut>(this IEnumerable<TIn> coll, IResource<TJob> limiter, Func<TIn, Task<TOut>> mapFn)
+        {
+            var tasks = coll.Select(mapFn).ToList();
+            foreach (var itm in tasks)
+            {
+                using var job = await limiter.Begin("", 0, CancellationToken.None);
                 yield return await itm;
             }
         }

@@ -277,7 +277,7 @@ namespace Wabbajack.FileExtractor
                 }*/
 
                 var results = await dest.Path.EnumerateFiles()
-                    .PMap(_parallelOptions, async f =>
+                    .PMapAll(async f =>
                     {
                         var path = f.RelativeTo(dest.Path);
                         if (!shouldExtract(path)) return ((RelativePath, T))default;

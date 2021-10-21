@@ -15,6 +15,7 @@ using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
 using Wabbajack.Server.TokenProviders;
@@ -105,7 +106,7 @@ namespace Wabbajack.Server.Services
                         return $"{definition.Hash.ToHex()}/parts/{idx}";
                     }
 
-                    await definition.Parts.PDo(_parallelOptions, async part =>
+                    await definition.Parts.PDoAll(new Resource<MirrorUploader>(), async part =>
                     {
                         _logger.LogInformation("Uploading mirror part ({index}/{length})", part.Index, definition.Parts.Length);
 

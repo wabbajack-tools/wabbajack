@@ -56,15 +56,17 @@ namespace Wabbajack.Compiler
         private string _statusText;
         private long _currentStepProgress;
         private readonly Stopwatch _updateStopWatch = new();
+        public readonly IResource<ACompiler> CompilerLimiter;
 
         protected long MaxSteps { get; set; }
 
         public event EventHandler<StatusUpdate> OnStatusUpdate; 
 
         public ACompiler(ILogger logger, FileExtractor.FileExtractor extractor, FileHashCache hashCache, Context vfs, TemporaryFileManager manager, CompilerSettings settings,
-            ParallelOptions parallelOptions, DownloadDispatcher dispatcher, Client wjClient, IGameLocator locator, DTOSerializer dtos,
+            ParallelOptions parallelOptions, DownloadDispatcher dispatcher, Client wjClient, IGameLocator locator, DTOSerializer dtos, IResource<ACompiler> compilerLimiter,
             IBinaryPatchCache patchCache)
         {
+            CompilerLimiter = compilerLimiter;
             _logger = logger;
             _extractor = extractor;
             _hashCache = hashCache;
@@ -196,7 +198,7 @@ namespace Wabbajack.Compiler
         {
             _logger.LogInformation("Getting meta data for {count} archives", SelectedArchives.Count);
             NextStep("Gathering Metadata", SelectedArchives.Count);
-            await SelectedArchives.PDo(_parallelOptions, async a =>
+            await SelectedArchives.PDoAll(CompilerLimiter, async a =>
             {
                 UpdateProgress(1);
                 await _dispatcher.FillInMetadata(a);
@@ -263,7 +265,7 @@ namespace Wabbajack.Compiler
         protected async Task CleanInvalidArchivesAndFillState()
         {
             NextStep("Cleaning Invalid Archives", 1);
-            var remove = await IndexedArchives.PMap(_parallelOptions, async a =>
+            var remove = await IndexedArchives.PMapAll(CompilerLimiter, async a =>
             {
                 try
                 {
@@ -319,7 +321,7 @@ namespace Wabbajack.Compiler
 
             var toFind = await _settings.Downloads.EnumerateFiles()
                 .Where(f => f.Extension != Ext.Meta)
-                .PMap(_parallelOptions, async f => await HasInvalidMeta(f) ? f : default)
+                .PMapAll(CompilerLimiter,async f => await HasInvalidMeta(f) ? f : default)
                 .Where(f => f != default)
                 .Where(f => f.FileExists())
                 .ToList();
@@ -480,7 +482,7 @@ namespace Wabbajack.Compiler
             // Load in the patches
             await InstallDirectives.OfType<PatchedFromArchive>()
                 .Where(p => p.PatchID == default)
-                .PDo(_parallelOptions, async pfa =>
+                .PDoAll(CompilerLimiter,async pfa =>
                 {
                     
                     var patches = await _patchOptions[pfa]
@@ -556,7 +558,7 @@ namespace Wabbajack.Compiler
                 .ToDictionary(f => f.Key, f => f.First());
 
             SelectedArchives.Clear();
-            SelectedArchives.AddRange(await hashes.PMap(_parallelOptions, hash =>
+            SelectedArchives.AddRange(await hashes.PMapAll(CompilerLimiter,hash =>
             {
                 UpdateProgress(1);
                 return ResolveArchive(hash, archives);

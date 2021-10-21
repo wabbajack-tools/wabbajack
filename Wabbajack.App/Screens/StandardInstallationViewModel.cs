@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -119,8 +120,8 @@ namespace Wabbajack.App.ViewModels
             _slides[InSlideRange(_currentSlideIndex + 1)].PreCache(_httpClient).FireAndForget();
 
             var prevSlide = _slides[InSlideRange(_currentSlideIndex - 2)];
-            if (prevSlide.Image != null)
-                prevSlide.Image = null;
+            //if (prevSlide.Image != null)
+            //    prevSlide.Image = null;
 
             Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -180,14 +181,15 @@ namespace Wabbajack.App.ViewModels
 
             _installer = _provider.GetService<StandardInstaller>()!;
             
-            _installer.OnStatusUpdate += (_, update) =>
+            _installer.OnStatusUpdate = async update =>
             {
-                Dispatcher.UIThread.InvokeAsync(() =>
+                Trace.TraceInformation("Update....");
+                await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     StatusText = update.StatusText;
                     StepsProgress = update.StepsProgress;
                     StepProgress = update.StepProgress;
-                });
+                }, DispatcherPriority.Background);
             };
             
             _logger.LogInformation("Installer created, starting the installation process");

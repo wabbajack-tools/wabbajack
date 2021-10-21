@@ -34,6 +34,7 @@ namespace Wabbajack.Server.Services
             await _dispatcher.PrepareAll(archives.Select(a => a.State));
             var random = new Random();
 
+            /*
             var results = await archives.PMap(_parallelOptions, async archive =>
             {
                 try
@@ -82,7 +83,8 @@ namespace Wabbajack.Server.Services
                 _logger.Log(LogLevel.Warning, $"Validation failed for {archive.Name} from {archive.State.PrimaryKeyString}");
             
             _logger.Log(LogLevel.Information, $"Non-nexus validation completed {failed} out of {passed} failed");
-            return failed;
+            */
+            return default;
         }
     }
 }

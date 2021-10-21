@@ -468,6 +468,7 @@ namespace Wabbajack.CLI.Verbs
                 return $"{definition!.Hash.ToHex()}/parts/{idx}";
             }
 
+            /* Outdated
             await definition.Parts.PDo(_parallelOptions, async part =>
             {
                 _logger.LogInformation("Uploading mirror part of {name} {hash} ({index}/{length})", archive.Name, archive.Hash, part.Index, definition.Parts.Length);
@@ -490,6 +491,7 @@ namespace Wabbajack.CLI.Verbs
 
             });
 
+*/
             await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
             {
                 using var client = await GetMirrorFtpClient(token);

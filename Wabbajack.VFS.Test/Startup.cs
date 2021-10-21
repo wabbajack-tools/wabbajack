@@ -21,7 +21,7 @@ namespace Wabbajack.VFS.Test
 
             // Keep this fixed at 2 so that we can detect deadlocks in the VFS parallelOptions
             service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = 2});
-            service.AddSingleton(new FileHashCache(KnownFolders.EntryPoint.Combine("hashcache.sqlite")));
+            service.AddSingleton(new FileHashCache(KnownFolders.EntryPoint.Combine("hashcache.sqlite"), new Resource<FileHashCache>("File Hashing", 10)));
             service.AddSingleton(new VFSCache(KnownFolders.EntryPoint.Combine("vfscache.sqlite")));
             service.AddTransient<Context>();
             service.AddSingleton<FileExtractor.FileExtractor>();

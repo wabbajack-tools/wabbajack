@@ -14,9 +14,11 @@ namespace Wabbajack.VFS
         private readonly SQLiteConnection _conn;
         private readonly string _connectionString;
         private readonly AbsolutePath _location;
+        private readonly IResource<FileHashCache> _limiter;
 
-        public FileHashCache(AbsolutePath location)
+        public FileHashCache(AbsolutePath location, IResource<FileHashCache> limiter)
         {
+            _limiter = limiter;
             _location = location;
             
             if (!_location.Parent.DirectoryExists())
@@ -114,10 +116,11 @@ namespace Wabbajack.VFS
             WriteHashCache(file, hash);
         }
 
-        public async Task<Hash> FileHashCachedAsync(AbsolutePath file, CancellationToken token, IJob? job = null)
+        public async Task<Hash> FileHashCachedAsync(AbsolutePath file, CancellationToken token)
         {
             if (TryGetHashCache(file, out var foundHash)) return foundHash;
-
+            
+            using var job = await _limiter.Begin($"Hasing {file.FileName}", file.Size(), token);
             await using var fs = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
 
             var hash = await fs.HashingCopy(Stream.Null, token, job);

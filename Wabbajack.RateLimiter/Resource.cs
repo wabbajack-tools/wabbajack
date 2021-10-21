@@ -23,10 +23,10 @@ namespace Wabbajack.RateLimiter
         
         
 
-        public Resource(string humanName, int maxTasks = Int32.MaxValue, long maxThroughput = long.MaxValue)
+        public Resource(string? humanName = null, int? maxTasks = 0, long maxThroughput = long.MaxValue)
         {
-            _humanName = humanName;
-            _maxTasks = maxTasks;
+            _humanName = humanName ?? "<unknown>";
+            _maxTasks = maxTasks ?? Environment.ProcessorCount;
             _maxThroughput = maxThroughput;
 
             _semaphore = new SemaphoreSlim(_maxTasks);

@@ -168,7 +168,7 @@ namespace Wabbajack.VFS
                 {
                     var absPath = (AbsolutePath)extractedFile.Name;
                     job.Size = absPath.Size();
-                    hash = await context.HashCache.FileHashCachedAsync(absPath, token, job);
+                    hash = await context.HashCache.FileHashCachedAsync(absPath, token);
                 }
                 else
                 {
