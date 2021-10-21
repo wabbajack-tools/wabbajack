@@ -1,14 +1,18 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
+using Wabbajack.App.Controls;
 using Wabbajack.App.Messages;
 using Wabbajack.App.ViewModels;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 
 namespace Wabbajack.App.Screens
@@ -23,10 +27,12 @@ namespace Wabbajack.App.Screens
         public FileSystemWatcher Watcher { get; set; }
 
         private readonly Subject<AbsolutePath> _fileSystemEvents = new();
-        
-        public SettingsViewModel(ILogger<SettingsViewModel> logger, Configuration configuration, NexusApiTokenProvider nexusProvider)
+        public readonly IEnumerable<ResourceViewModel> Resources;
+
+        public SettingsViewModel(ILogger<SettingsViewModel> logger, Configuration configuration, NexusApiTokenProvider nexusProvider, IEnumerable<IResource> resources)
         {
             _logger = logger;
+            Resources = resources.Select(r => new ResourceViewModel(r)).ToArray();
             Activator = new ViewModelActivator();
             
             this.WhenActivated(disposables =>

@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:Wabbajack.App.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Wabbajack.App.Screens.SettingsView">
     <WrapPanel Margin="40">
@@ -23,6 +24,26 @@
                 <TextBlock  Grid.Row="3" Grid.Column="1" Text="Vector Plexus" VerticalAlignment="Center" HorizontalAlignment="Left"></TextBlock>
                 <Button Grid.Row="3" Grid.Column="2" x:Name="VectorPlexusLogIn">Log In</Button>
                 <Button Grid.Row="3" Grid.Column="3" x:Name="VectorPlexusLogOut">Log Out</Button>
+                
+            </Grid>
+        </Border>
+        
+        <Border x:Name="ResourcesBorder" Margin="5" BorderThickness="1">
+            <Grid RowDefinitions="Auto, Auto">
+                <TextBlock FontSize="20" Grid.ColumnSpan="4">Resource Limits</TextBlock>
+                
+                <ItemsControl Grid.Row="1" x:Name="ResourceList">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical"></StackPanel>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <controls:ResourceView></controls:ResourceView>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
                 
             </Grid>
         </Border>

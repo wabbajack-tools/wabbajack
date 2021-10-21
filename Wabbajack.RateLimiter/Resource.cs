@@ -16,8 +16,8 @@ namespace Wabbajack.RateLimiter
         private readonly ConcurrentDictionary<ulong, Job<T>> _tasks;
         private ulong _nextId = 0;
         private long _totalUsed = 0;
-        private readonly int _maxTasks;
-        private readonly long _maxThroughput;
+        public int MaxTasks { get; set; }
+        public long MaxThroughput { get; set; }
         private readonly string _humanName;
         public string Name => _humanName;
         
@@ -26,10 +26,10 @@ namespace Wabbajack.RateLimiter
         public Resource(string? humanName = null, int? maxTasks = 0, long maxThroughput = long.MaxValue)
         {
             _humanName = humanName ?? "<unknown>";
-            _maxTasks = maxTasks ?? Environment.ProcessorCount;
-            _maxThroughput = maxThroughput;
+            MaxTasks = maxTasks ?? Environment.ProcessorCount;
+            MaxThroughput = maxThroughput;
 
-            _semaphore = new SemaphoreSlim(_maxTasks);
+            _semaphore = new SemaphoreSlim(MaxTasks);
             _channel = Channel.CreateBounded<PendingReport>(10);
             _tasks = new ();
 
@@ -44,14 +44,14 @@ namespace Wabbajack.RateLimiter
             await foreach (var item in _channel.Reader.ReadAllAsync(token))
             {
                 Interlocked.Add(ref _totalUsed, item.Size);
-                if (_maxThroughput == long.MaxValue)
+                if (MaxThroughput == long.MaxValue)
                 {
                     item.Result.TrySetResult();
                     sw.Restart();
                     continue;
                 }
                 
-                var span = TimeSpan.FromSeconds((double)item.Size / _maxThroughput);
+                var span = TimeSpan.FromSeconds((double)item.Size / MaxThroughput);
                 
 
                 await Task.Delay(span, token);
