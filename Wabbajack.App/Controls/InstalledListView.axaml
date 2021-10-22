@@ -1,0 +1,15 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Wabbajack.App.Controls.InstalledListView">
+    <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="*, Auto">
+        <TextBlock Grid.Row="0" Grid.Column="0" x:Name="Title"></TextBlock>
+        <TextBlock Grid.Row="1" Grid.Column="0" x:Name="InstallationPath"></TextBlock>
+        <Button Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" x:Name="PlayButton">
+            <i:MaterialIcon Kind="PlayArrow"></i:MaterialIcon>
+        </Button>
+    </Grid>
+</UserControl>

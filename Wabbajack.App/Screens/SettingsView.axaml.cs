@@ -16,6 +16,8 @@ namespace Wabbajack.App.Screens
                     .DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.NexusLogout, view => view.NexusLogOut)
                     .DisposeWith(disposables);
+                this.OneWayBind(ViewModel, vm => vm.Resources, view => view.ResourceList.Items)
+                    .DisposeWith(disposables);
 
             });
         }

@@ -36,10 +36,10 @@ namespace Wabbajack.App
             services.AddSingleton<MessageBus>();
             services.AddSingleton<MainWindow>();
             services.AddSingleton<BrowseViewModel>();
-
             services.AddTransient<BrowseItemViewModel>();
-
             services.AddTransient<LogViewModel>();
+
+            services.AddTransient<InstalledListViewModel>();
 
             services.AddDTOConverters();
             services.AddDTOSerializer();
@@ -55,11 +55,13 @@ namespace Wabbajack.App
             services.AddSingleton<IScreenView, SettingsView>();
             services.AddSingleton<IScreenView, BrowseView>();
             services.AddSingleton<IScreenView, LauncherView>();
+            services.AddSingleton<IScreenView, PlaySelectView>();
             
             services.AddSingleton<InstallationStateManager>();
             services.AddSingleton<HttpClient>();
             
             services.AddSingleton<LogScreenViewModel>();
+            services.AddSingleton<PlaySelectViewModel>();
             services.AddAllSingleton<IReceiverMarker, ErrorPageViewModel>();
             services.AddAllSingleton<IReceiverMarker, StandardInstallationViewModel>();
             services.AddAllSingleton<IReceiverMarker, InstallConfigurationViewModel>();
