@@ -29,6 +29,11 @@ namespace Wabbajack.App.Views
                 {
                     MessageBus.Instance.Send(new NavigateTo(typeof(CompilerConfigurationViewModel)));
                 }).DisposeWith(disposables);
+
+                LaunchButton.Button.Command = ReactiveCommand.Create(() =>
+                {
+                    MessageBus.Instance.Send(new NavigateTo(typeof(PlaySelectViewModel)));
+                });
             });
         }
 
