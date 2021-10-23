@@ -11,8 +11,12 @@ public class Job<T> : IJob, IDisposable
     public bool Started { get; internal set; }
     public IResource<T> Resource { get; init; }
 
+    private bool _isFinished = false;
+
     public void Dispose()
     {
+        if (!_isFinished) return;
+        _isFinished = true;
         Resource.Finish(this);
     }
 

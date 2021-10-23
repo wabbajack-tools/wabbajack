@@ -63,6 +63,9 @@ public static class ServiceExtensions
         service.AddAllSingleton<IResource, IResource<FileExtractor.FileExtractor>>(s =>
             new Resource<FileExtractor.FileExtractor>("File Extractor", 12));
 
+        service.AddAllSingleton<IResource, IResource<ACompiler>>(s =>
+            new Resource<ACompiler>("Compiler", 12));
+
         service.AddSingleton<LoggingRateLimiterReporter>();
 
         service.AddScoped<Context>();

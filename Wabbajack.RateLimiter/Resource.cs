@@ -17,7 +17,7 @@ public class Resource<T> : IResource<T>
     private long _totalUsed;
 
 
-    public Resource(string? humanName = null, int? maxTasks = 0, long maxThroughput = long.MaxValue)
+    public Resource(string? humanName = null, int? maxTasks = null, long maxThroughput = long.MaxValue)
     {
         Name = humanName ?? "<unknown>";
         MaxTasks = maxTasks ?? Environment.ProcessorCount;

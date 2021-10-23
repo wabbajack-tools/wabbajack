@@ -76,7 +76,6 @@ public class FileExtractor
 
 
         IDictionary<RelativePath, T> results;
-        using var job = await _limiter.Begin($"Extracting {sFn.Name}", 0, token);
 
         switch (sig)
         {
@@ -93,7 +92,7 @@ public class FileExtractor
                 {
                     await using var tempFolder = _manager.CreateFolder();
                     results = await GatheringExtractWith7Zip(sFn, shouldExtract,
-                        mapfn, onlyFiles, job, token);
+                        mapfn, onlyFiles, token);
                 }
 
                 break;
@@ -153,7 +152,7 @@ public class FileExtractor
         return results;
     }
 
-    public static async Task<Dictionary<RelativePath, T>> GatheringExtractWithBSA<T>(IStreamFactory sFn,
+    public async Task<Dictionary<RelativePath, T>> GatheringExtractWithBSA<T>(IStreamFactory sFn,
         FileType sig,
         Predicate<RelativePath> shouldExtract,
         Func<RelativePath, IExtractedFile, ValueTask<T>> mapFn,
@@ -171,7 +170,8 @@ public class FileExtractor
             var result = await mapFn(entry.Path, new ExtractedMemoryFile(await entry.GetStreamFactory(token)));
             results.Add(entry.Path, result);
         }
-
+        
+        _logger.LogInformation("Finished extracting {Name}", sFn.Name);
         return results;
     }
 
@@ -179,7 +179,6 @@ public class FileExtractor
         Predicate<RelativePath> shouldExtract,
         Func<RelativePath, IExtractedFile, ValueTask<T>> mapfn,
         IReadOnlyCollection<RelativePath>? onlyFiles,
-        Job<FileExtractor> job,
         CancellationToken token)
     {
         TemporaryPath? tmpFile = null;
@@ -187,7 +186,8 @@ public class FileExtractor
 
         TemporaryPath? spoolFile = null;
         AbsolutePath source;
-
+        
+        var job = await _limiter.Begin($"Extracting {sf.Name}", 0, token);
         try
         {
             if (sf.Name is AbsolutePath abs)
@@ -202,7 +202,7 @@ public class FileExtractor
                 source = spoolFile.Value.Path;
             }
 
-            _logger.LogInformation("Extracting {source}", source.FileName);
+            _logger.LogInformation("Extracting {Source}", source.FileName);
 
 
             var initialPath = "";
@@ -278,6 +278,8 @@ public class FileExtractor
                 Utils.Status($"Extracting {source.FileName} - done", Percent.One, alsoLog: true);
             }*/
 
+            
+            job.Dispose();
             var results = await dest.Path.EnumerateFiles()
                 .PMapAll(async f =>
                 {
@@ -295,6 +297,8 @@ public class FileExtractor
         }
         finally
         {
+            job.Dispose();
+            
             if (tmpFile != null) await tmpFile.Value.DisposeAsync();
 
             if (spoolFile != null) await spoolFile.Value.DisposeAsync();

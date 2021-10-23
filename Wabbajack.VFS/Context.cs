@@ -156,11 +156,6 @@ public class Context
             async file => await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName) {CanMove = false}));
     }
 
-    private class Box<T>
-    {
-        public T Value { get; set; }
-    }
-
     #region KnownFiles
 
     private List<HashRelativePath> _knownFiles = new();
