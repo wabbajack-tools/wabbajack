@@ -22,6 +22,11 @@ public class Startup
             .AddAllSingleton<IResource, IResource<Context>, Resource<Context>>(
                 s =>
                     new ("VFS Context", 2));
+        
+        service
+            .AddAllSingleton<IResource, IResource<FileHashCache>, Resource<FileHashCache>>(
+                s =>
+                    new ("File Hash Cache", 2));
 
         // Keep this fixed at 2 so that we can detect deadlocks in the VFS parallelOptions
         service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = 2});

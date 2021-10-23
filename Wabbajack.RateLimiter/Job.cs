@@ -15,7 +15,7 @@ public class Job<T> : IJob, IDisposable
 
     public void Dispose()
     {
-        if (!_isFinished) return;
+        if (_isFinished) return;
         _isFinished = true;
         Resource.Finish(this);
     }

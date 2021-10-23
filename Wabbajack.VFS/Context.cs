@@ -25,14 +25,16 @@ public class Context
     public readonly FileExtractor.FileExtractor Extractor;
     public readonly FileHashCache HashCache;
     public readonly IResource<Context> Limiter;
+    public readonly IResource<FileHashCache> HashLimiter;
     public readonly ILogger<Context> Logger;
     public readonly VFSCache VfsCache;
 
     public Context(ILogger<Context> logger, ParallelOptions parallelOptions, TemporaryFileManager manager,
         VFSCache vfsCache,
-        FileHashCache hashCache, IResource<Context> limiter, FileExtractor.FileExtractor extractor)
+        FileHashCache hashCache, IResource<Context> limiter, IResource<FileHashCache> hashLimiter, FileExtractor.FileExtractor extractor)
     {
         Limiter = limiter;
+        HashLimiter = hashLimiter;
         Logger = logger;
         _manager = manager;
         Extractor = extractor;
@@ -40,6 +42,7 @@ public class Context
         HashCache = hashCache;
         _parallelOptions = parallelOptions;
     }
+
 
     public IndexRoot Index { get; private set; } = IndexRoot.Empty;
 

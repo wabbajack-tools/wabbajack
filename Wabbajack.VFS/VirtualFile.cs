@@ -162,20 +162,17 @@ public class VirtualFile
         IPath relPath, CancellationToken token, int depth = 0)
     {
         Hash hash;
-        using (var job = await context.Limiter.Begin("Hash file", 0, token))
+        if (extractedFile is NativeFileStreamFactory)
         {
-            if (extractedFile is NativeFileStreamFactory)
-            {
-                var absPath = (AbsolutePath) extractedFile.Name;
-                job.Size = absPath.Size();
-                hash = await context.HashCache.FileHashCachedAsync(absPath, token);
-            }
-            else
-            {
-                await using var hstream = await extractedFile.GetStream();
-                job.Size = hstream.Length;
-                hash = await hstream.HashingCopy(Stream.Null, token, job);
-            }
+            var absPath = (AbsolutePath) extractedFile.Name;
+            hash = await context.HashCache.FileHashCachedAsync(absPath, token);
+        }
+        else
+        {
+            using var job = await context.HashLimiter.Begin("Hashing memory stream", 0, token);
+            await using var hstream = await extractedFile.GetStream();
+            job.Size = hstream.Length;
+            hash = await hstream.HashingCopy(Stream.Null, token, job);
         }
 
         if (context.VfsCache.TryGetFromCache(context, parent, relPath, extractedFile, hash, out var vself))
@@ -201,7 +198,7 @@ public class VirtualFile
         if (TextureExtensions.Contains(relPath.FileName.Extension) && await DDSSig.MatchesAsync(stream) != null)
             try
             {
-                using var job = await context.Limiter.Begin("Perceptual hash", self.Size, token);
+                using var job = await context.HashLimiter.Begin("Hashing image", 0, token);
                 self.ImageState = await ImageLoader.Load(stream);
                 await job.Report((int) self.Size, token);
                 stream.Position = 0;
@@ -220,7 +217,7 @@ public class VirtualFile
             await context.VfsCache.WriteToCache(self);
             return self;
         }
-
+        
         try
         {
             var list = await context.Extractor.GatheringExtract(extractedFile,

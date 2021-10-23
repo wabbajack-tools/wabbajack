@@ -13,6 +13,7 @@ using Wabbajack.DTOs.Texture;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
+using Wabbajack.Services.OSIntegrated;
 using Xunit;
 
 namespace Wabbajack.Compiler.Test;
@@ -28,11 +29,13 @@ public class CompilerSanityTests : IAsyncLifetime
     private readonly IServiceProvider _serviceProvider;
     private Mod _mod;
     private ModList? _modlist;
+    private readonly LoggingRateLimiterReporter _reporter;
 
     public CompilerSanityTests(ILogger<CompilerSanityTests> logger, IServiceProvider serviceProvider,
         FileExtractor.FileExtractor fileExtractor,
-        TemporaryFileManager manager, ParallelOptions parallelOptions)
+        TemporaryFileManager manager, ParallelOptions parallelOptions, LoggingRateLimiterReporter reporter)
     {
+        _reporter = reporter;
         _logger = logger;
         _serviceProvider = serviceProvider;
         _scope = _serviceProvider.CreateScope();
