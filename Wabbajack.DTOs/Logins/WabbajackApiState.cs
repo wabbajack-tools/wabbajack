@@ -1,8 +1,7 @@
-namespace Wabbajack.DTOs.Logins
+namespace Wabbajack.DTOs.Logins;
+
+public class WabbajackApiState
 {
-    public class WabbajackApiState
-    {
-        public string MetricsKey { get; set; }
-        public string? AuthorKey { get; set; }
-    }
+    public string MetricsKey { get; set; }
+    public string? AuthorKey { get; set; }
 }

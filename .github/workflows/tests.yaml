@@ -43,7 +43,7 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
       - name: Test
-        run: dotnet test --no-restore --filter "Category=!FlakeyNetwork"
+        run: dotnet test --no-restore --filter "Category!=FlakeyNetwork"
         
   publish:
     name: Publish Projects

@@ -6,8 +6,8 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Wabbajack.App.Screens.ErrorPageView">
     <Grid RowDefinitions="Auto, Auto, *">
-        <TextBlock Grid.Row="0" x:Name="Prefix"></TextBlock>
-        <TextBlock Grid.Row="1" x:Name="Message"></TextBlock>
-        <controls:LogView Grid.Row="3"></controls:LogView>
+        <TextBlock Grid.Row="0" x:Name="Prefix" />
+        <TextBlock Grid.Row="1" x:Name="Message" />
+        <controls:LogView Grid.Row="3" />
     </Grid>
 </UserControl>

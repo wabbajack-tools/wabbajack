@@ -6,14 +6,15 @@ using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Networking.Http.Interfaces;
 
-namespace Wabbajack.Downloaders.IPS4OAuth2Downloader
+namespace Wabbajack.Downloaders.IPS4OAuth2Downloader;
+
+public class
+    VectorPlexusDownloader : AIPS4OAuth2Downloader<VectorPlexusDownloader, VectorPlexusLoginState, VectorPlexus>
 {
-    public class VectorPlexusDownloader : AIPS4OAuth2Downloader<VectorPlexusDownloader, VectorPlexusLoginState, VectorPlexus>
+    public VectorPlexusDownloader(ILogger<VectorPlexusDownloader> logger,
+        ITokenProvider<VectorPlexusLoginState> loginInfo, HttpClient client,
+        IHttpDownloader downloader, ApplicationInfo appInfo)
+        : base(logger, loginInfo, client, downloader, appInfo, new Uri("https://vectorplexus.com"), "Vector Plexus")
     {
-        public VectorPlexusDownloader(ILogger<VectorPlexusDownloader> logger, ITokenProvider<VectorPlexusLoginState> loginInfo, HttpClient client, 
-            IHttpDownloader downloader, ApplicationInfo appInfo) 
-            : base(logger, loginInfo, client, downloader, appInfo, new Uri("https://vectorplexus.com"), "Vector Plexus")
-        {
-        }
     }
 }

@@ -1,14 +1,13 @@
 using System.Text.Json.Serialization;
 
-namespace Wabbajack.DTOs.ServerResponses
+namespace Wabbajack.DTOs.ServerResponses;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum ArchiveStatus
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ArchiveStatus
-    {
-        Valid,
-        InValid,
-        Updating,
-        Updated,
-        Mirrored
-    }
+    Valid,
+    InValid,
+    Updating,
+    Updated,
+    Mirrored
 }

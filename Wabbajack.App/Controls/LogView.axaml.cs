@@ -3,7 +3,6 @@ using Avalonia.Controls.Mixins;
 using Avalonia.ReactiveUI;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
-using Wabbajack.App.Utilities;
 
 namespace Wabbajack.App.Controls;
 

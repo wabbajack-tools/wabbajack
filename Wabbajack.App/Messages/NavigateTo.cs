@@ -1,10 +1,7 @@
 using System;
-using Wabbajack.App.ViewModels;
 
-namespace Wabbajack.App.Messages
+namespace Wabbajack.App.Messages;
+
+public record NavigateTo(Type ViewModel)
 {
-    public record NavigateTo(Type ViewModel)
-    {
-        
-    }
 }

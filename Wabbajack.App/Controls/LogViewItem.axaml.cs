@@ -16,5 +16,4 @@ public partial class LogViewItem : ReactiveUserControl<LoggerProvider.ILogMessag
                 .DisposeWith(disposables);
         });
     }
-    
 }

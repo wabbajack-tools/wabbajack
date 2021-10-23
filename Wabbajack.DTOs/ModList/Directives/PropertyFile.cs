@@ -1,14 +1,16 @@
 using Wabbajack.DTOs.JsonConverters;
 
-namespace Wabbajack.DTOs.Directives
+namespace Wabbajack.DTOs.Directives;
+
+public enum PropertyType
 {
-    
-    public enum PropertyType { Banner, Readme }
-    
-    [JsonName("PropertyFile")]
-    [JsonAlias("PropertyFile, Wabbajack.Lib")]
-    public class PropertyFile : InlineFile
-    {
-        public PropertyType Type;
-    }
+    Banner,
+    Readme
+}
+
+[JsonName("PropertyFile")]
+[JsonAlias("PropertyFile, Wabbajack.Lib")]
+public class PropertyFile : InlineFile
+{
+    public PropertyType Type;
 }

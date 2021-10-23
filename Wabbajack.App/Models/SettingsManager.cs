@@ -3,7 +3,6 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.DTOs.JsonConverters;
@@ -26,7 +25,10 @@ public class SettingsManager
         _configuration.SavedSettingsLocation.CreateDirectory();
     }
 
-    private AbsolutePath GetPath(string key) => _configuration.SavedSettingsLocation.Combine(key).WithExtension(Ext.Json);
+    private AbsolutePath GetPath(string key)
+    {
+        return _configuration.SavedSettingsLocation.Combine(key).WithExtension(Ext.Json);
+    }
 
     public async Task Save<T>(string key, T value)
     {
@@ -35,22 +37,21 @@ public class SettingsManager
         {
             await JsonSerializer.SerializeAsync(s, value, _dtos.Options);
         }
+
         await tmp.MoveToAsync(GetPath(key), true, CancellationToken.None);
     }
 
     public async Task<T> Load<T>(string key)
-    where T : new()
+        where T : new()
     {
         var path = GetPath(key);
         try
         {
             if (path.FileExists())
-            {
                 await using (var s = path.Open(FileMode.Open))
                 {
                     return (await JsonSerializer.DeserializeAsync<T>(s, _dtos.Options))!;
                 }
-            }
         }
         catch (Exception ex)
         {

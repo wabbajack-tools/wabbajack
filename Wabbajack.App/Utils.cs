@@ -1,13 +1,12 @@
 using System;
-using Wabbajack.Common;
+using System.Diagnostics;
 
-namespace Wabbajack.App
+namespace Wabbajack.App;
+
+public static class Utils
 {
-    public static class Utils
+    public static void OpenWebsiteInExternalBrowser(Uri uri)
     {
-        public static void OpenWebsiteInExternalBrowser(Uri uri)
-        {
-            System.Diagnostics.Process.Start(uri.ToString());
-        }
+        Process.Start(uri.ToString());
     }
 }

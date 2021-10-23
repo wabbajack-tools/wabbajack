@@ -8,18 +8,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Wabbajack.Downloaders.Interfaces\Wabbajack.Downloaders.Interfaces.csproj" />
-        <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
-        <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj" />
-        <ProjectReference Include="..\Wabbajack.Networking.Http.Interfaces\Wabbajack.Networking.Http.Interfaces.csproj" />
-        <ProjectReference Include="..\Wabbajack.Networking.Http\Wabbajack.Networking.Http.csproj" />
-        <ProjectReference Include="..\Wabbajack.Networking.NexusApi\Wabbajack.Networking.NexusApi.csproj" />
-        <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders.Interfaces\Wabbajack.Downloaders.Interfaces.csproj"/>
+        <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj"/>
+        <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj"/>
+        <ProjectReference Include="..\Wabbajack.Networking.Http.Interfaces\Wabbajack.Networking.Http.Interfaces.csproj"/>
+        <ProjectReference Include="..\Wabbajack.Networking.Http\Wabbajack.Networking.Http.csproj"/>
+        <ProjectReference Include="..\Wabbajack.Networking.NexusApi\Wabbajack.Networking.NexusApi.csproj"/>
+        <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Xunit.DependencyInjection" Version="7.7.0" />
-        <PackageReference Include="Xunit.DependencyInjection.Logging" Version="7.5.1" />
+        <PackageReference Include="Xunit.DependencyInjection" Version="7.7.0"/>
+        <PackageReference Include="Xunit.DependencyInjection.Logging" Version="7.5.1"/>
     </ItemGroup>
 
 </Project>

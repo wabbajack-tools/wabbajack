@@ -15,5 +15,4 @@ public partial class PlaySelectView : ScreenBase<PlaySelectViewModel>
                 .DisposeWith(disposables);
         });
     }
-    
 }

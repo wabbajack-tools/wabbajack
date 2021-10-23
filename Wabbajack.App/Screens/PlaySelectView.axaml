@@ -9,12 +9,12 @@
         <ItemsControl x:Name="Lists">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <StackPanel></StackPanel>
+                    <StackPanel />
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <controls:InstalledListView></controls:InstalledListView>
+                    <controls:InstalledListView />
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>

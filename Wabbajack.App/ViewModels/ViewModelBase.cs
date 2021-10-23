@@ -1,10 +1,9 @@
 ﻿using ReactiveUI;
 using ReactiveUI.Validation.Helpers;
 
-namespace Wabbajack.App.ViewModels
+namespace Wabbajack.App.ViewModels;
+
+public class ViewModelBase : ReactiveValidationObject, IActivatableViewModel
 {
-    public class ViewModelBase : ReactiveValidationObject, IActivatableViewModel
-    {
-        public ViewModelActivator Activator { get; protected set; }
-    }
+    public ViewModelActivator Activator { get; protected set; }
 }

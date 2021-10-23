@@ -1,10 +1,5 @@
-namespace Wabbajack.App.Messages
+namespace Wabbajack.App.Messages;
+
+public class NavigateBack
 {
-    public class NavigateBack
-    {
-        public NavigateBack()
-        {
-            
-        }
-    }
 }

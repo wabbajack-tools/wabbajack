@@ -1,7 +1,6 @@
-namespace Wabbajack.Common
+namespace Wabbajack.Common;
+
+public interface IUnlockable
 {
-    public interface IUnlockable
-    {
-        public void Unlock();
-    }
+    public void Unlock();
 }

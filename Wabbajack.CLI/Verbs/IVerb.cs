@@ -1,9 +1,8 @@
 using System.CommandLine;
 
-namespace Wabbajack.CLI.Verbs
+namespace Wabbajack.CLI.Verbs;
+
+public interface IVerb
 {
-    public interface IVerb
-    {
-        public Command MakeCommand();
-    }
+    public Command MakeCommand();
 }

@@ -5,37 +5,37 @@
              xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Wabbajack.App.Controls.FileSelectionBox">
-    
+
     <UserControl.Styles>
         <Style Selector="Button:not(:pointerover) /template/ ContentPresenter">
-            <Setter Property="Background" Value="Transparent"></Setter>
-            <Setter Property="BorderBrush" Value="LightGray"></Setter>
-            <Setter Property="CornerRadius" Value="0, 5, 5, 0"></Setter>
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="LightGray" />
+            <Setter Property="CornerRadius" Value="0, 5, 5, 0" />
         </Style>
-        
+
         <Style Selector="Button:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="Transparent"></Setter>
-            <Setter Property="BorderBrush" Value="LightGray"></Setter>
-            <Setter Property="CornerRadius" Value="0, 5, 5, 0"></Setter>
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="LightGray" />
+            <Setter Property="CornerRadius" Value="0, 5, 5, 0" />
         </Style>
-        
+
         <Style Selector="TextBox:not(:focus) /template/ ContentPresenter">
-            <Setter Property="Background" Value="Transparent"></Setter>
-            <Setter Property="BorderBrush" Value="LightGray"></Setter>
-            <Setter Property="CornerRadius" Value="5, 0, 0, 5"></Setter>
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="LightGray" />
+            <Setter Property="CornerRadius" Value="5, 0, 0, 5" />
         </Style>
-        
+
         <Style Selector="TextBox:focus /template/ ContentPresenter">
-            <Setter Property="Background" Value="Transparent"></Setter>
-            <Setter Property="BorderBrush" Value="LightGray"></Setter>
-            <Setter Property="CornerRadius" Value="5, 0, 0, 5"></Setter>
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="LightGray" />
+            <Setter Property="CornerRadius" Value="5, 0, 0, 5" />
         </Style>
     </UserControl.Styles>
-    
+
     <Grid ColumnDefinitions="*, 30" Height="30">
-        <TextBox Grid.Column="0" Name="Path" Height="30" x:Name="TextBox" IsEnabled="False"></TextBox>
+        <TextBox Grid.Column="0" Name="Path" Height="30" x:Name="TextBox" IsEnabled="False" />
         <Button Grid.Column="1" Name="SelectButton" Height="30">
-            <i:MaterialIcon Kind="Search"></i:MaterialIcon>
+            <i:MaterialIcon Kind="Search" />
         </Button>
     </Grid>
 </UserControl>

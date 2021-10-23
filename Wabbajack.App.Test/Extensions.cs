@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Avalonia.Threading;
-using ReactiveUI;
 using Wabbajack.App.Models;
 
 namespace Wabbajack.App.Test;
@@ -28,6 +27,7 @@ public static class Extensions
             await Task.Delay(100);
         }
     }
+
     public static async Task WaitForUnlock(this LoadingLock l)
     {
         Dispatcher.UIThread.RunJobs();

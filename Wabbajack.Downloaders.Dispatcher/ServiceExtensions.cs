@@ -5,25 +5,24 @@ using Wabbajack.Downloaders.MediaFire;
 using Wabbajack.Downloaders.ModDB;
 using Wabbajack.DTOs.JsonConverters;
 
-namespace Wabbajack.Downloaders
+namespace Wabbajack.Downloaders;
+
+public static class ServiceExtensions
 {
-    public static class ServiceExtensions
+    public static IServiceCollection AddDownloadDispatcher(this IServiceCollection services)
     {
-        public static IServiceCollection AddDownloadDispatcher(this IServiceCollection services)
-        {
-            return services
-                .AddDTOConverters()
-                .AddDTOSerializer()
-                .AddGoogleDriveDownloader()
-                .AddHttpDownloader()
-                .AddMegaDownloader()
-                .AddMediaFireDownloader()
-                .AddModDBDownloader()
-                .AddNexusDownloader()
-                .AddIPS4OAuth2Downloaders()
-                .AddWabbajackCDNDownloader()
-                .AddGameFileDownloader()
-                .AddSingleton<DownloadDispatcher>();
-        }
+        return services
+            .AddDTOConverters()
+            .AddDTOSerializer()
+            .AddGoogleDriveDownloader()
+            .AddHttpDownloader()
+            .AddMegaDownloader()
+            .AddMediaFireDownloader()
+            .AddModDBDownloader()
+            .AddNexusDownloader()
+            .AddIPS4OAuth2Downloaders()
+            .AddWabbajackCDNDownloader()
+            .AddGameFileDownloader()
+            .AddSingleton<DownloadDispatcher>();
     }
 }

@@ -1,5 +1,4 @@
 using System;
-using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Wabbajack.App.Controls;
@@ -15,23 +14,21 @@ namespace Wabbajack.App.Test;
 
 public class GalleryItemTests
 {
-    private readonly BrowseViewModel _gallery;
     private readonly Configuration _config;
+    private readonly BrowseViewModel _gallery;
 
     public GalleryItemTests(BrowseViewModel bvm, Configuration config)
     {
         _config = config;
         _gallery = bvm;
     }
-    
+
     [Fact]
     public async Task CanDownloadGalleryItem()
     {
         foreach (var file in _config.ModListsDownloadLocation.EnumerateFiles().Where(f => f.Extension == Ext.Wabbajack))
-        {
             file.Delete();
-        }
-        
+
         using var _ = _gallery.Activator.Activate();
         await _gallery.LoadingLock.WaitForLock();
         await _gallery.LoadingLock.WaitForUnlock();
@@ -44,7 +41,7 @@ public class GalleryItemTests
                 Assert.True(item.ModListLocation.FileExists());
             else
                 Assert.False(item.ModListLocation.FileExists());
-            
+
             Assert.Equal(Percent.Zero, item.Progress);
         }
 
@@ -58,18 +55,18 @@ public class GalleryItemTests
             Assert.True(modList.Progress >= progress);
             progress = modList.Progress;
         });
-        
+
         Assert.Equal(Percent.Zero, modList.Progress);
-        Assert.Equal(ModListState.Downloaded, modList.State); 
-        
-        
+        Assert.Equal(ModListState.Downloaded, modList.State);
+
+
         modList.ExecuteCommand.Execute().Subscribe().Dispose();
 
         var msgs = ((SimpleMessageBus) MessageBus.Instance).Messages.TakeLast(2).ToArray();
 
         var configure = msgs.OfType<StartInstallConfiguration>().First();
         Assert.Equal(modList.ModListLocation, configure.ModList);
-        
+
         var navigate = msgs.OfType<NavigateTo>().First();
         Assert.Equal(typeof(InstallConfigurationViewModel), navigate.ViewModel);
     }

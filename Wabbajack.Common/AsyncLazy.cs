@@ -1,18 +1,17 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Wabbajack.Common
-{
-    public class AsyncLazy<T> : Lazy<Task<T>>
-    {
-        public AsyncLazy(Func<T> valueFactory) :
-            base(() => Task.Factory.StartNew(valueFactory))
-        { 
-        }
+namespace Wabbajack.Common;
 
-        public AsyncLazy(Func<Task<T>> taskFactory) :
-            base(() => Task.Factory.StartNew(taskFactory).Unwrap())
-        { 
-        }
+public class AsyncLazy<T> : Lazy<Task<T>>
+{
+    public AsyncLazy(Func<T> valueFactory) :
+        base(() => Task.Factory.StartNew(valueFactory))
+    {
+    }
+
+    public AsyncLazy(Func<Task<T>> taskFactory) :
+        base(() => Task.Factory.StartNew(taskFactory).Unwrap())
+    {
     }
 }

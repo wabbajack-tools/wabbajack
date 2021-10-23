@@ -3,14 +3,13 @@ using Wabbajack.Downloaders.GoogleDrive;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
 
-namespace Wabbajack.Downloaders
+namespace Wabbajack.Downloaders;
+
+public static class ServiceExtensions
 {
-    public static class ServiceExtensions
+    public static IServiceCollection AddGoogleDriveDownloader(this IServiceCollection services)
     {
-        public static IServiceCollection AddGoogleDriveDownloader(this IServiceCollection services)
-        {
-            return services.AddAllSingleton<IDownloader, IDownloader<DTOs.DownloadStates.GoogleDrive>, 
-                GoogleDriveDownloader>();
-        }
+        return services.AddAllSingleton<IDownloader, IDownloader<DTOs.DownloadStates.GoogleDrive>,
+            GoogleDriveDownloader>();
     }
 }

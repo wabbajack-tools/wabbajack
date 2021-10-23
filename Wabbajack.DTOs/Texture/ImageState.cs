@@ -1,15 +1,14 @@
-namespace Wabbajack.DTOs.Texture
-{
-    public class ImageState
-    {
-        public int Width { get; set; }
-        public int Height { get; set; }
-        public DXGI_FORMAT Format { get; set; }
-        public PHash PerceptualHash { get; set; }
+namespace Wabbajack.DTOs.Texture;
 
-        public override string ToString()
-        {
-            return $"ImageState<{Width}, {Height}, {Format}>";
-        }
+public class ImageState
+{
+    public int Width { get; set; }
+    public int Height { get; set; }
+    public DXGI_FORMAT Format { get; set; }
+    public PHash PerceptualHash { get; set; }
+
+    public override string ToString()
+    {
+        return $"ImageState<{Width}, {Height}, {Format}>";
     }
 }

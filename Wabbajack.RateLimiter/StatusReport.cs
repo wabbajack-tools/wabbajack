@@ -1,6 +1,5 @@
-namespace Wabbajack.RateLimiter
+namespace Wabbajack.RateLimiter;
+
+public record StatusReport(int Running, int Pending, long Transferred)
 {
-    public record StatusReport(int Running, int Pending, long Transferred)
-    {
-    }
 }

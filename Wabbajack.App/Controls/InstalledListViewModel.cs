@@ -1,6 +1,5 @@
 using System.Reactive;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
 using Wabbajack.App.Messages;
 using Wabbajack.App.Screens;
 using Wabbajack.App.ViewModels;
@@ -12,10 +11,6 @@ namespace Wabbajack.App.Controls;
 public class InstalledListViewModel : ViewModelBase
 {
     private readonly InstallationConfigurationSetting _setting;
-    public AbsolutePath InstallPath => _setting.Install;
-    
-    public string Name => _setting.Metadata?.Title ?? "";
-    public ReactiveCommand<Unit, Unit> Play { get; }
 
     public InstalledListViewModel(InstallationConfigurationSetting setting)
     {
@@ -28,5 +23,9 @@ public class InstalledListViewModel : ViewModelBase
             MessageBus.Instance.Send(new NavigateTo(typeof(LauncherViewModel)));
         });
     }
-    
+
+    public AbsolutePath InstallPath => _setting.Install;
+
+    public string Name => _setting.Metadata?.Title ?? "";
+    public ReactiveCommand<Unit, Unit> Play { get; }
 }
