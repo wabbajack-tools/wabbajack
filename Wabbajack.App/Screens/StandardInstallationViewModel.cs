@@ -8,7 +8,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia.Media;
 using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -29,206 +28,193 @@ using Wabbajack.Installer;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 
-namespace Wabbajack.App.ViewModels
+namespace Wabbajack.App.ViewModels;
+
+public class StandardInstallationViewModel : ViewModelBase, IReceiver<StartInstallation>
 {
-    public class StandardInstallationViewModel : ViewModelBase, IReceiver<StartInstallation>
+    private readonly DTOSerializer _dtos;
+    private readonly HttpClient _httpClient;
+    private readonly InstallationStateManager _installStateManager;
+    private readonly GameLocator _locator;
+    private readonly ILogger<StandardInstallationViewModel> _logger;
+    private readonly IServiceProvider _provider;
+    private InstallerConfiguration _config;
+    private int _currentSlideIndex;
+    private StandardInstaller _installer;
+    private IServiceScope _scope;
+    private SlideViewModel[] _slides = Array.Empty<SlideViewModel>();
+    private Timer _slideTimer;
+
+    public StandardInstallationViewModel(ILogger<StandardInstallationViewModel> logger, IServiceProvider provider,
+        GameLocator locator, DTOSerializer dtos,
+        HttpClient httpClient, InstallationStateManager manager)
     {
-        private readonly IServiceProvider _provider;
-        private readonly GameLocator _locator;
-        private IServiceScope _scope;
-        private InstallerConfiguration _config;
-        private StandardInstaller _installer;
-        private readonly ILogger<StandardInstallationViewModel> _logger;
-        private readonly DTOSerializer _dtos;
-        private SlideViewModel[] _slides = Array.Empty<SlideViewModel>();
-        private readonly HttpClient _httpClient;
-        private Timer _slideTimer;
-        private int _currentSlideIndex;
-        private readonly InstallationStateManager _installStateManager;
+        _provider = provider;
+        _locator = locator;
+        _logger = logger;
+        _dtos = dtos;
+        _httpClient = httpClient;
+        _installStateManager = manager;
+        Activator = new ViewModelActivator();
 
-        [Reactive]
-        public SlideViewModel Slide { get; set; }
-        
-        [Reactive]
-        public ReactiveCommand<Unit,Unit> NextCommand { get; set; }
-        
-        [Reactive]
-        public ReactiveCommand<Unit, Unit> PrevCommand { get; set; }
-        
-        [Reactive]
-        public ReactiveCommand<Unit, bool> PauseCommand { get; set; }
-        
-        [Reactive]
-        public ReactiveCommand<Unit, bool> PlayCommand { get; set; }
-
-        [Reactive] public bool IsPlaying { get; set; } = true;
-
-        [Reactive] public string StatusText { get; set; } = "";
-        [Reactive] public Percent StepsProgress { get; set; } = Percent.Zero;
-        [Reactive] public Percent StepProgress { get; set; } = Percent.Zero;
-
-        public StandardInstallationViewModel(ILogger<StandardInstallationViewModel> logger, IServiceProvider provider, GameLocator locator, DTOSerializer dtos, 
-            HttpClient httpClient, InstallationStateManager manager)
+        this.WhenActivated(disposables =>
         {
-            _provider = provider;
-            _locator = locator;
-            _logger = logger;
-            _dtos = dtos;
-            _httpClient = httpClient;
-            _installStateManager = manager;
-            Activator = new ViewModelActivator();
+            _slideTimer = new Timer(_ =>
+            {
+                if (IsPlaying) NextSlide(1);
+            }, null, TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(5));
 
-            this.WhenActivated(disposables => {
-                _slideTimer = new Timer(_ =>
-                {
-                    if (IsPlaying) NextSlide(1);
-                }, null, TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(5));
-                
-                _currentSlideIndex = 0;
-                _slideTimer.DisposeWith(disposables);
+            _currentSlideIndex = 0;
+            _slideTimer.DisposeWith(disposables);
 
-                NextCommand = ReactiveCommand.Create(() => NextSlide(1))
-                    .DisposeWith(disposables);
-                PrevCommand = ReactiveCommand.Create(() => NextSlide(-1))
-                    .DisposeWith(disposables);
-                PauseCommand = ReactiveCommand.Create(() => IsPlaying = false,
-                        this.ObservableForProperty(vm => vm.IsPlaying, skipInitial:false)
-                            .Select(v => v.Value))
-                    .DisposeWith(disposables);
-                
-                PlayCommand = ReactiveCommand.Create(() => IsPlaying = true,
-                        this.ObservableForProperty(vm => vm.IsPlaying, skipInitial:false)
-                            .Select(v => !v.Value))
-                    .DisposeWith(disposables);
-            });
+            NextCommand = ReactiveCommand.Create(() => NextSlide(1))
+                .DisposeWith(disposables);
+            PrevCommand = ReactiveCommand.Create(() => NextSlide(-1))
+                .DisposeWith(disposables);
+            PauseCommand = ReactiveCommand.Create(() => IsPlaying = false,
+                    this.ObservableForProperty(vm => vm.IsPlaying, skipInitial: false)
+                        .Select(v => v.Value))
+                .DisposeWith(disposables);
+
+            PlayCommand = ReactiveCommand.Create(() => IsPlaying = true,
+                    this.ObservableForProperty(vm => vm.IsPlaying, skipInitial: false)
+                        .Select(v => !v.Value))
+                .DisposeWith(disposables);
+        });
+    }
+
+    [Reactive] public SlideViewModel Slide { get; set; }
+
+    [Reactive] public ReactiveCommand<Unit, Unit> NextCommand { get; set; }
+
+    [Reactive] public ReactiveCommand<Unit, Unit> PrevCommand { get; set; }
+
+    [Reactive] public ReactiveCommand<Unit, bool> PauseCommand { get; set; }
+
+    [Reactive] public ReactiveCommand<Unit, bool> PlayCommand { get; set; }
+
+    [Reactive] public bool IsPlaying { get; set; } = true;
+
+    [Reactive] public string StatusText { get; set; } = "";
+    [Reactive] public Percent StepsProgress { get; set; } = Percent.Zero;
+    [Reactive] public Percent StepProgress { get; set; } = Percent.Zero;
+
+    public void Receive(StartInstallation msg)
+    {
+        Install(msg).FireAndForget();
+    }
+
+
+    private void NextSlide(int direction)
+    {
+        if (_slides.Length == 0) return;
+        _currentSlideIndex = InSlideRange(_currentSlideIndex + direction);
+
+        var thisSlide = _slides[_currentSlideIndex];
+
+        if (thisSlide.Image == null)
+            thisSlide.PreCache(_httpClient).FireAndForget();
+
+        // Cache the next image
+        _slides[InSlideRange(_currentSlideIndex + 1)].PreCache(_httpClient).FireAndForget();
+
+        var prevSlide = _slides[InSlideRange(_currentSlideIndex - 2)];
+        //if (prevSlide.Image != null)
+        //    prevSlide.Image = null;
+
+        Dispatcher.UIThread.InvokeAsync(() => { Slide = thisSlide; });
+    }
+
+    private int InSlideRange(int i)
+    {
+        while (!(i >= 0 && i <= _slides.Length))
+        {
+            if (i >= _slides.Length) i -= _slides.Length;
+            if (i < 0) i += _slides.Length;
         }
 
+        return i;
+    }
 
+    private async Task Install(StartInstallation msg)
+    {
+        _scope = _provider.CreateScope();
+        _config = _provider.GetService<InstallerConfiguration>()!;
+        _config.Downloads = msg.Download;
+        _config.Install = msg.Install;
+        _config.ModlistArchive = msg.ModListPath;
+        _config.Metadata = msg.Metadata;
 
+        _logger.LogInformation("Loading ModList Data");
+        _config.ModList = await StandardInstaller.LoadFromFile(_dtos, msg.ModListPath);
+        _config.Game = _config.ModList.GameType;
 
-        private void NextSlide(int direction)
+        _slides = _config.ModList.Archives.Select(a => a.State).OfType<IMetaState>()
+            .Select(m => new SlideViewModel {MetaState = m})
+            .Shuffle()
+            .ToArray();
+
+        _slides[1].PreCache(_httpClient).FireAndForget();
+        Slide = _slides[1];
+
+        if (_config.GameFolder == default)
         {
-            if (_slides.Length == 0) return;
-            _currentSlideIndex = InSlideRange(_currentSlideIndex + direction);
-            
-            var thisSlide = _slides[_currentSlideIndex];
-            
-            if (thisSlide.Image == null)
-                thisSlide.PreCache(_httpClient).FireAndForget();
-            
-            // Cache the next image
-            _slides[InSlideRange(_currentSlideIndex + 1)].PreCache(_httpClient).FireAndForget();
-
-            var prevSlide = _slides[InSlideRange(_currentSlideIndex - 2)];
-            //if (prevSlide.Image != null)
-            //    prevSlide.Image = null;
-
-            Dispatcher.UIThread.InvokeAsync(() =>
+            if (!_locator.TryFindLocation(_config.Game, out var found))
             {
-                Slide = thisSlide;
-            });
-        }
-
-        private int InSlideRange(int i)
-        {
-            while (!(i >= 0 && i <= _slides.Length))
-            {
-                if (i >= _slides.Length) i -= _slides.Length;
-                if (i < 0) i += _slides.Length;
+                _logger.LogCritical("Game {game} is not installed on this system",
+                    _config.Game.MetaData().HumanFriendlyGameName);
+                throw new Exception("Game not found");
             }
 
-            return i;
+            _config.GameFolder = found;
         }
 
-        public void Receive(StartInstallation msg)
+        _installer = _provider.GetService<StandardInstaller>()!;
+
+        _installer.OnStatusUpdate = async update =>
         {
-            
-            Install(msg).FireAndForget();
-        }
+            Trace.TraceInformation("Update....");
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                StatusText = update.StatusText;
+                StepsProgress = update.StepsProgress;
+                StepProgress = update.StepProgress;
+            }, DispatcherPriority.Background);
+        };
 
-        private async Task Install(StartInstallation msg)
+        _logger.LogInformation("Installer created, starting the installation process");
+        try
         {
-            _scope = _provider.CreateScope();
-            _config = _provider.GetService<InstallerConfiguration>()!;
-            _config.Downloads = msg.Download;
-            _config.Install = msg.Install;
-            _config.ModlistArchive = msg.ModListPath;
-            _config.Metadata = msg.Metadata;
+            var result = await _installer.Begin(CancellationToken.None);
+            if (!result) throw new Exception("Installation failed");
 
-            _logger.LogInformation("Loading ModList Data");
-            _config.ModList = await StandardInstaller.LoadFromFile(_dtos, msg.ModListPath);
-            _config.Game = _config.ModList.GameType;
-
-            _slides = _config.ModList.Archives.Select(a => a.State).OfType<IMetaState>()
-                .Select(m => new SlideViewModel { MetaState = m })
-                .Shuffle()
-                .ToArray();
-
-            _slides[1].PreCache(_httpClient).FireAndForget();
-            Slide = _slides[1];
-            
-            if (_config.GameFolder == default)
-            {
-                if (!_locator.TryFindLocation(_config.Game, out var found))
-                {
-                    _logger.LogCritical("Game {game} is not installed on this system",
-                        _config.Game.MetaData().HumanFriendlyGameName);
-                    throw new Exception("Game not found");
-                }
-
-                _config.GameFolder = found;
-            }
-
-            _installer = _provider.GetService<StandardInstaller>()!;
-            
-            _installer.OnStatusUpdate = async update =>
-            {
-                Trace.TraceInformation("Update....");
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    StatusText = update.StatusText;
-                    StepsProgress = update.StepsProgress;
-                    StepProgress = update.StepProgress;
-                }, DispatcherPriority.Background);
-            };
-            
-            _logger.LogInformation("Installer created, starting the installation process");
-            try
-            {
-                var result = await _installer.Begin(CancellationToken.None);
-                if (!result) throw new Exception("Installation failed");
-
-                if (result)
-                {
-                    await SaveConfigAndContinue(_config);
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorPageViewModel.Display("During installation", ex);
-            }
+            if (result) await SaveConfigAndContinue(_config);
         }
-
-        private async Task SaveConfigAndContinue(InstallerConfiguration config)
+        catch (Exception ex)
         {
-            var path = config.Install.Combine("modlist-image.png");
-            {
-                var image = await ModListUtilities.GetModListImageStream(config.ModlistArchive);
-                await using var os = path.Open(FileMode.Create, FileAccess.Write);
-                await image.CopyToAsync(os);
-            }
-
-            await _installStateManager.SetLastState(new InstallationConfigurationSetting
-            {
-                Downloads = config.Downloads,
-                Install = config.Install,
-                Metadata = config.Metadata,
-                ModList = config.ModlistArchive,
-                Image = path
-            });
-            
-            MessageBus.Instance.Send(new ConfigureLauncher(config.Install));
-            MessageBus.Instance.Send(new NavigateTo(typeof(LauncherViewModel)));
+            ErrorPageViewModel.Display("During installation", ex);
         }
+    }
+
+    private async Task SaveConfigAndContinue(InstallerConfiguration config)
+    {
+        var path = config.Install.Combine("modlist-image.png");
+        {
+            var image = await ModListUtilities.GetModListImageStream(config.ModlistArchive);
+            await using var os = path.Open(FileMode.Create, FileAccess.Write);
+            await image.CopyToAsync(os);
+        }
+
+        await _installStateManager.SetLastState(new InstallationConfigurationSetting
+        {
+            Downloads = config.Downloads,
+            Install = config.Install,
+            Metadata = config.Metadata,
+            ModList = config.ModlistArchive,
+            Image = path
+        });
+
+        MessageBus.Instance.Send(new ConfigureLauncher(config.Install));
+        MessageBus.Instance.Send(new NavigateTo(typeof(LauncherViewModel)));
     }
 }

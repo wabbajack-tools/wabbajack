@@ -1,13 +1,12 @@
 using System.Text.Json.Serialization;
 
-namespace Wabbajack.DTOs.DownloadStates
+namespace Wabbajack.DTOs.DownloadStates;
+
+public interface IDownloadState
 {
-    public interface IDownloadState
-    {
-        [JsonIgnore] object[] PrimaryKey { get; }
+    [JsonIgnore] object[] PrimaryKey { get; }
 
-        [JsonIgnore] string TypeName { get; }
+    [JsonIgnore] string TypeName { get; }
 
-        string PrimaryKeyString { get; }
-    }
+    string PrimaryKeyString { get; }
 }

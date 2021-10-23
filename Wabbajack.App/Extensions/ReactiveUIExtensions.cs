@@ -1,12 +1,5 @@
-using System;
-using System.Linq.Expressions;
-using System.Reactive.Linq;
-using ReactiveUI;
+namespace Wabbajack.App.Extensions;
 
-namespace Wabbajack.App.Extensions
+public static class ReactiveUIExtensions
 {
-    public static class ReactiveUIExtensions
-    {
-        
-    }
 }

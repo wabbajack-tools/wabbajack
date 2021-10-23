@@ -1,13 +1,10 @@
 using System.Text.Json.Serialization;
 
-namespace Wabbajack.DTOs.Logins
+namespace Wabbajack.DTOs.Logins;
+
+public class NexusApiState
 {
-    public class NexusApiState
-    {
-        [JsonPropertyName("api-key")]
-        public string ApiKey { get; set; }
-        
-        [JsonPropertyName("cookies")]
-        public Cookie[] Cookies { get; set; }
-    }
+    [JsonPropertyName("api-key")] public string ApiKey { get; set; }
+
+    [JsonPropertyName("cookies")] public Cookie[] Cookies { get; set; }
 }

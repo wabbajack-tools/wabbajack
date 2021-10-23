@@ -6,6 +6,6 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Wabbajack.App.Screens.LogScreenView">
     <Grid RowDefinitions="*">
-        <controls:LogView></controls:LogView>
+        <controls:LogView />
     </Grid>
 </UserControl>

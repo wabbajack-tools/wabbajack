@@ -3,13 +3,12 @@ using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 
-namespace Wabbajack.Downloaders
+namespace Wabbajack.Downloaders;
+
+public static class ServiceExtensions
 {
-    public static class ServiceExtensions
+    public static IServiceCollection AddNexusDownloader(this IServiceCollection services)
     {
-        public static IServiceCollection AddNexusDownloader(this IServiceCollection services)
-        {
-            return services.AddAllSingleton<IDownloader, IDownloader<Nexus>, NexusDownloader>();
-        }
+        return services.AddAllSingleton<IDownloader, IDownloader<Nexus>, NexusDownloader>();
     }
 }

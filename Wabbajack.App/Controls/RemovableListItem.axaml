@@ -7,8 +7,8 @@
              x:Class="Wabbajack.App.Controls.RemovableListItem">
     <StackPanel Orientation="Horizontal">
         <Button x:Name="DeleteButton">
-            <i:MaterialIcon Kind="MinusCircle"></i:MaterialIcon>
+            <i:MaterialIcon Kind="MinusCircle" />
         </Button>
-        <TextBlock x:Name="Text" VerticalAlignment="Center"></TextBlock>
+        <TextBlock x:Name="Text" VerticalAlignment="Center" />
     </StackPanel>
 </UserControl>

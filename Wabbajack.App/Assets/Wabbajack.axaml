@@ -7,36 +7,33 @@
         </Border>
     </Design.PreviewWith>
 
-    
+
     <Style Selector="controls|TagView Border">
-        <Setter Property="BorderThickness" Value="1"></Setter>
-        <Setter Property="BorderBrush" Value="#121212"></Setter>
-        <Setter Property="CornerRadius" Value="5"></Setter>
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="#121212" />
+        <Setter Property="CornerRadius" Value="5" />
     </Style>
 
-    
+
     <Style Selector="controls|TagView.ModList Border">
-        <Setter Property="Background" Value="#868CFC"></Setter>
+        <Setter Property="Background" Value="#868CFC" />
     </Style>
-    
-    <Style Selector="controls|TagView.Game Border">
-        <Setter Property="Background" Value="#F686FC"></Setter>
-    </Style>
-    
-    <Style Selector="controls|TagView.GameNotInstalled Border">
-        <Setter Property="Background" Value="#FCBB86"></Setter>
-    </Style>
-    
-    <Style Selector="controls|TagView.GameNotInstalled Border">
-        <Setter Property="Background" Value="#FCBB86"></Setter>
-    </Style>
-    
-    <Style Selector="controls|TagView TextBlock">
-        <Setter Property="Foreground" Value="#121212"></Setter>
-    </Style>
-    
-    
 
-    
-    
+    <Style Selector="controls|TagView.Game Border">
+        <Setter Property="Background" Value="#F686FC" />
+    </Style>
+
+    <Style Selector="controls|TagView.GameNotInstalled Border">
+        <Setter Property="Background" Value="#FCBB86" />
+    </Style>
+
+    <Style Selector="controls|TagView.GameNotInstalled Border">
+        <Setter Property="Background" Value="#FCBB86" />
+    </Style>
+
+    <Style Selector="controls|TagView TextBlock">
+        <Setter Property="Foreground" Value="#121212" />
+    </Style>
+
+
 </Styles>

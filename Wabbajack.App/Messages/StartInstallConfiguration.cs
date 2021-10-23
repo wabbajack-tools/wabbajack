@@ -1,8 +1,7 @@
 using Wabbajack.Paths;
 
-namespace Wabbajack.App.Messages
+namespace Wabbajack.App.Messages;
+
+public record StartInstallConfiguration(AbsolutePath ModList)
 {
-    public record StartInstallConfiguration(AbsolutePath ModList)
-    {
-    }
 }

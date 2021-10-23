@@ -1,10 +1,9 @@
 using Wabbajack.Paths;
 
-namespace Wabbajack.Compiler
+namespace Wabbajack.Compiler;
+
+public class MO2CompilerSettings : CompilerSettings
 {
-    public class MO2CompilerSettings : CompilerSettings 
-    {
-        public string Profile { get; set; }
-        public RelativePath[] AlwaysEnabled { get; set; }
-    }
+    public string Profile { get; set; }
+    public RelativePath[] AlwaysEnabled { get; set; }
 }

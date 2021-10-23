@@ -1,10 +1,9 @@
-namespace Wabbajack.DTOs.GitHub
+namespace Wabbajack.DTOs.GitHub;
+
+public enum List
 {
-    public enum List
-    {
-        CI,
-        Unlisted,
-        Utility,
-        Published
-    }
+    CI,
+    Unlisted,
+    Utility,
+    Published
 }

@@ -1,7 +1,5 @@
-﻿using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wabbajack.BuildServer;
@@ -10,57 +8,59 @@ using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.VFS;
 
-namespace Wabbajack.Server.Services
+namespace Wabbajack.Server.Services;
+
+/// <summary>
+///     Maintains a concurrent cache of all the files we've downloaded, indexed by Hash.
+/// </summary>
+public class ArchiveMaintainer
 {
-    /// <summary>
-    /// Maintains a concurrent cache of all the files we've downloaded, indexed by Hash. 
-    /// </summary>
-    public class ArchiveMaintainer
+    private readonly ILogger<ArchiveMaintainer> _logger;
+    private readonly AppSettings _settings;
+
+    public ArchiveMaintainer(ILogger<ArchiveMaintainer> logger, AppSettings settings)
     {
-        private AppSettings _settings;
-        private ILogger<ArchiveMaintainer> _logger;
-
-        public ArchiveMaintainer(ILogger<ArchiveMaintainer> logger, AppSettings settings)
-        {
-            _settings = settings;
-            _logger = logger;
-            _logger.Log(LogLevel.Information, "Creating Archive Maintainer");
-        }
-
-        private AbsolutePath ArchivePath(Hash hash)
-        {
-            return _settings.ArchivePath.Combine(hash.ToHex());
-        }
-
-        public async Task Ingest(AbsolutePath file)
-        {
-            var hash = await file.Hash(CancellationToken.None);
-            if (hash == default) return;
-            
-            var newPath = ArchivePath(hash);
-            if (HaveArchive(hash))
-            {
-                file.Delete();
-                return;
-            }
-            
-            await file.MoveToAsync(newPath, true, CancellationToken.None);
-        }
-
-        public bool HaveArchive(Hash hash)
-        {
-            return ArchivePath(hash).FileExists();
-        }
-
-        public bool TryGetPath(Hash hash, out AbsolutePath path)
-        {
-            path = ArchivePath(hash);
-            return path.FileExists();
-        }
+        _settings = settings;
+        _logger = logger;
+        _logger.Log(LogLevel.Information, "Creating Archive Maintainer");
     }
-    
-    public static class ArchiveMaintainerExtensions 
+
+    private AbsolutePath ArchivePath(Hash hash)
     {
-        public static IServiceCollection UseArchiveMaintainer(this IServiceCollection b) => b.AddSingleton<ArchiveMaintainer>();
+        return _settings.ArchivePath.Combine(hash.ToHex());
+    }
+
+    public async Task Ingest(AbsolutePath file)
+    {
+        var hash = await file.Hash(CancellationToken.None);
+        if (hash == default) return;
+
+        var newPath = ArchivePath(hash);
+        if (HaveArchive(hash))
+        {
+            file.Delete();
+            return;
+        }
+
+        await file.MoveToAsync(newPath, true, CancellationToken.None);
+    }
+
+    public bool HaveArchive(Hash hash)
+    {
+        return ArchivePath(hash).FileExists();
+    }
+
+    public bool TryGetPath(Hash hash, out AbsolutePath path)
+    {
+        path = ArchivePath(hash);
+        return path.FileExists();
+    }
+}
+
+public static class ArchiveMaintainerExtensions
+{
+    public static IServiceCollection UseArchiveMaintainer(this IServiceCollection b)
+    {
+        return b.AddSingleton<ArchiveMaintainer>();
     }
 }

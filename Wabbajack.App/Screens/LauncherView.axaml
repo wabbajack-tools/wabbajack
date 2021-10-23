@@ -14,14 +14,14 @@
             <Image x:Name="ModListImage" Margin="0,0,0,0" Source="../Assets/Wabba_Mouth.png" />
         </Viewbox>
         <Grid Grid.Row="0" RowDefinitions="40, 40" HorizontalAlignment="Left" VerticalAlignment="Bottom">
-            <TextBlock x:Name="ModListName"></TextBlock>
+            <TextBlock x:Name="ModListName" />
         </Grid>
         <Grid Margin="40" RowDefinitions="40, 40, 40, *" ColumnDefinitions="100, *, 200" Grid.Row="1">
             <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Center">ModList:</Label>
-            <TextBox Grid.Column="1" Grid.Row="0" IsEnabled="False" Height="20" x:Name="ModList"></TextBox>
-            
+            <TextBox Grid.Column="1" Grid.Row="0" IsEnabled="False" Height="20" x:Name="ModList" />
+
             <Label Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center">Location:</Label>
-            <TextBox Grid.Column="1" Grid.Row="1" IsEnabled="False" Height="20" x:Name="InstallPath"></TextBox>
+            <TextBox Grid.Column="1" Grid.Row="1" IsEnabled="False" Height="20" x:Name="InstallPath" />
 
             <Grid Grid.Column="1" Grid.Row="3" Grid.ColumnDefinitions="*, *, *" HorizontalAlignment="Center">
                 <Button Grid.Column="0" x:Name="WebsiteButton">Website</Button>
@@ -29,9 +29,8 @@
                 <Button Grid.Column="2" x:Name="LocalFilesButton">Local Files</Button>
             </Grid>
 
-            <controls:LargeIconButton x:Name="PlayGame" Margin="40, 0, 0, 0" Grid.Row="0" Grid.Column="2" Grid.RowSpan="4" Icon="PlayCircle" Text="Play">
-                
-            </controls:LargeIconButton>
+            <controls:LargeIconButton x:Name="PlayGame" Margin="40, 0, 0, 0" Grid.Row="0" Grid.Column="2"
+                                      Grid.RowSpan="4" Icon="PlayCircle" Text="Play" />
         </Grid>
     </Grid>
 </UserControl>

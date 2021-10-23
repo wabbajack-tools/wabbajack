@@ -6,10 +6,10 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Wabbajack.App.Controls.LargeIconButton">
     <Button x:Name="Button">
-    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <i:MaterialIcon x:Name="IconControl" Width="140" Height="140"></i:MaterialIcon>
-        <TextBlock x:Name="TextBlock" HorizontalAlignment="Center" FontSize="28" FontWeight="Bold"></TextBlock>
-    </StackPanel>
+        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <i:MaterialIcon x:Name="IconControl" Width="140" Height="140" />
+            <TextBlock x:Name="TextBlock" HorizontalAlignment="Center" FontSize="28" FontWeight="Bold" />
+        </StackPanel>
     </Button>
 
 </UserControl>

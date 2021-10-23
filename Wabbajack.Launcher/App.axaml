@@ -3,10 +3,10 @@
              xmlns:local="using:Wabbajack.Launcher"
              x:Class="Wabbajack.Launcher.App">
     <Application.DataTemplates>
-        <local:ViewLocator/>
+        <local:ViewLocator />
     </Application.DataTemplates>
 
     <Application.Styles>
-        <FluentTheme Mode="Light"/>
+        <FluentTheme Mode="Light" />
     </Application.Styles>
 </Application>

@@ -1,11 +1,10 @@
 using System;
 
-namespace Wabbajack.Paths
+namespace Wabbajack.Paths;
+
+public class PathException : Exception
 {
-    public class PathException : Exception
+    public PathException(string ex) : base(ex)
     {
-        public PathException(string ex) : base(ex)
-        {
-        }
     }
 }

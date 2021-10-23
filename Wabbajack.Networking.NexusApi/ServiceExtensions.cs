@@ -1,13 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Wabbajack.Networking.NexusApi
+namespace Wabbajack.Networking.NexusApi;
+
+public static class ServiceExtensions
 {
-    public static class ServiceExtensions
+    public static void AddNexusApi(this IServiceCollection services)
     {
-        public static void AddNexusApi(this IServiceCollection services)
-        {
-            services.AddSingleton<NexusApi>();
-            services.AddSingleton<ProxiedNexusApi>();
-        }
+        services.AddSingleton<NexusApi>();
+        services.AddSingleton<ProxiedNexusApi>();
     }
 }

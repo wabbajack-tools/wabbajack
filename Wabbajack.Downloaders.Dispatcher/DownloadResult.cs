@@ -1,10 +1,9 @@
-namespace Wabbajack.Downloaders
+namespace Wabbajack.Downloaders;
+
+public enum DownloadResult
 {
-    public enum DownloadResult
-    {
-        Failure,
-        Update,
-        Mirror,
-        Success
-    }
+    Failure,
+    Update,
+    Mirror,
+    Success
 }

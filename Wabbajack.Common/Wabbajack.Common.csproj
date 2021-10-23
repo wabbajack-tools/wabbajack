@@ -8,29 +8,29 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
-      <ProjectReference Include="..\Wabbajack.Networking.Http\Wabbajack.Networking.Http.csproj" />
-      <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
+        <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj"/>
+        <ProjectReference Include="..\Wabbajack.Networking.Http\Wabbajack.Networking.Http.csproj"/>
+        <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="FileSignatures\Signatures.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>Signatures.cs</LastGenOutput>
-      </None>
+        <None Update="FileSignatures\Signatures.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>Signatures.cs</LastGenOutput>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="FileSignatures\Signatures.cs">
-        <AutoGen>True</AutoGen>
-        <DesignTime>True</DesignTime>
-        <DependentUpon>Signatures.tt</DependentUpon>
-      </Compile>
+        <Compile Update="FileSignatures\Signatures.cs">
+            <AutoGen>True</AutoGen>
+            <DesignTime>True</DesignTime>
+            <DependentUpon>Signatures.tt</DependentUpon>
+        </Compile>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0-rc.2.21480.5" />
-      <PackageReference Include="System.Reactive" Version="5.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0-rc.2.21480.5"/>
+        <PackageReference Include="System.Reactive" Version="5.0.0"/>
     </ItemGroup>
 
     <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">

@@ -1,12 +1,11 @@
 using System.Text.Json.Serialization;
 
-namespace Wabbajack.DTOs.ModListValidation
+namespace Wabbajack.DTOs.ModListValidation;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum ListStatus
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ListStatus : int
-    {
-        Available,
-        Failed,
-        ForcedDown
-    }
+    Available,
+    Failed,
+    ForcedDown
 }

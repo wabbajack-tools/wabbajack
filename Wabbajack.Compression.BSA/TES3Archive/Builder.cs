@@ -7,67 +7,66 @@ using Wabbajack.Compression.BSA.Interfaces;
 using Wabbajack.DTOs.BSA.ArchiveStates;
 using Wabbajack.DTOs.BSA.FileStates;
 
-namespace Wabbajack.Compression.BSA.TES3Archive
+namespace Wabbajack.Compression.BSA.TES3Archive;
+
+public class Builder : IBuilder
 {
-    public class Builder : IBuilder
+    private readonly (TES3File state, Stream data)[] _files;
+    private readonly TES3State _state;
+
+    public Builder(TES3State state)
     {
-        private readonly (TES3File state, Stream data)[] _files;
-        private readonly TES3State _state;
+        _state = state;
+        _files = new (TES3File state, Stream data)[_state.FileCount];
+    }
 
-        public Builder(TES3State state)
+    public async ValueTask AddFile(AFile state, Stream src, CancellationToken token)
+    {
+        var tesState = (TES3File) state;
+        _files[state.Index] = (tesState, src);
+    }
+
+    public async ValueTask Build(Stream file, CancellationToken token)
+    {
+        await using var bw = new BinaryWriter(file, Encoding.Default, true);
+
+        bw.Write(_state.VersionNumber);
+        bw.Write(_state.HashOffset);
+        bw.Write(_state.FileCount);
+
+        foreach (var (state, _) in _files)
         {
-            _state = state;
-            _files = new (TES3File state, Stream data)[_state.FileCount];
+            bw.Write(state.Size);
+            bw.Write(state.Offset);
         }
 
-        public async ValueTask AddFile(AFile state, Stream src, CancellationToken token)
+        foreach (var (state, _) in _files) bw.Write(state.NameOffset);
+
+        var orgPos = bw.BaseStream.Position;
+
+        foreach (var (state, _) in _files)
         {
-            var tesState = (TES3File)state;
-            _files[state.Index] = (tesState, src);
+            if (bw.BaseStream.Position != orgPos + state.NameOffset)
+                throw new BSAException("Offsets don't match when writing TES3 BSA");
+            bw.Write(Encoding.ASCII.GetBytes((string) state.Path));
+            bw.Write((byte) 0);
         }
 
-        public async ValueTask Build(Stream file, CancellationToken token)
+        bw.BaseStream.Position = _state.HashOffset + 12;
+        foreach (var (state, _) in _files)
         {
-            await using var bw = new BinaryWriter(file, Encoding.Default, true);
+            bw.Write(state.Hash1);
+            bw.Write(state.Hash2);
+        }
 
-            bw.Write(_state.VersionNumber);
-            bw.Write(_state.HashOffset);
-            bw.Write(_state.FileCount);
+        if (bw.BaseStream.Position != _state.DataOffset)
+            throw new InvalidDataException("Data offset doesn't match when writing TES3 BSA");
 
-            foreach (var (state, _) in _files)
-            {
-                bw.Write(state.Size);
-                bw.Write(state.Offset);
-            }
-
-            foreach (var (state, _) in _files) bw.Write(state.NameOffset);
-
-            var orgPos = bw.BaseStream.Position;
-
-            foreach (var (state, _) in _files)
-            {
-                if (bw.BaseStream.Position != orgPos + state.NameOffset)
-                    throw new BSAException("Offsets don't match when writing TES3 BSA");
-                bw.Write(Encoding.ASCII.GetBytes((string)state.Path));
-                bw.Write((byte)0);
-            }
-
-            bw.BaseStream.Position = _state.HashOffset + 12;
-            foreach (var (state, _) in _files)
-            {
-                bw.Write(state.Hash1);
-                bw.Write(state.Hash2);
-            }
-
-            if (bw.BaseStream.Position != _state.DataOffset)
-                throw new InvalidDataException("Data offset doesn't match when writing TES3 BSA");
-
-            foreach (var (state, data) in _files)
-            {
-                bw.BaseStream.Position = _state.DataOffset + state.Offset;
-                await data.CopyToWithStatusAsync(data.Length, bw.BaseStream, token);
-                await data.DisposeAsync();
-            }
+        foreach (var (state, data) in _files)
+        {
+            bw.BaseStream.Position = _state.DataOffset + state.Offset;
+            await data.CopyToWithStatusAsync(data.Length, bw.BaseStream, token);
+            await data.DisposeAsync();
         }
     }
 }

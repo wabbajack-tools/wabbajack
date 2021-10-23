@@ -4,39 +4,38 @@ using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.VFS;
 
-namespace Wabbajack.Compiler
+namespace Wabbajack.Compiler;
+
+/// <summary>
+///     Contains everything we know about a given file from the source folder
+/// </summary>
+public class RawSourceFile
 {
-    /// <summary>
-    /// Contains everything we know about a given file from the source folder
-    /// </summary>
-    public class RawSourceFile
+    public readonly RelativePath Path;
+
+    public RawSourceFile(VirtualFile file, RelativePath path)
     {
-        public readonly RelativePath Path;
+        File = file;
+        Path = path;
+    }
 
-        public RawSourceFile(VirtualFile file, RelativePath path)
+    public AbsolutePath AbsolutePath
+    {
+        get
         {
-            File = file;
-            Path = path;
+            if (!File.IsNative)
+                throw new InvalidDataException("Can't get the absolute path of a non-native file");
+            return File.FullPath.Base;
         }
+    }
 
-        public AbsolutePath AbsolutePath
-        {
-            get
-            {
-                if (!File.IsNative)
-                    throw new InvalidDataException("Can't get the absolute path of a non-native file");
-                return File.FullPath.Base;
-            }
-        }
+    public VirtualFile File { get; }
 
-        public VirtualFile File { get; }
+    public Hash Hash => File.Hash;
 
-        public Hash Hash => File.Hash;
-
-        public T EvolveTo<T>() where T : Directive, new()
-        {
-            var v = new T {To = Path, Hash = File.Hash, Size = File.Size};
-            return v;
-        }
+    public T EvolveTo<T>() where T : Directive, new()
+    {
+        var v = new T {To = Path, Hash = File.Hash, Size = File.Size};
+        return v;
     }
 }

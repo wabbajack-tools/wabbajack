@@ -1,14 +1,13 @@
 using System;
 using System.Text.Json.Serialization;
 
-namespace Wabbajack.Networking.NexusApi.DTOs
+namespace Wabbajack.Networking.NexusApi.DTOs;
+
+public class DownloadLink
 {
-    public class DownloadLink
-    {
-        [JsonPropertyName("name")] public string Name { get; set; }
+    [JsonPropertyName("name")] public string Name { get; set; }
 
-        [JsonPropertyName("short_name")] public string ShortName { get; set; }
+    [JsonPropertyName("short_name")] public string ShortName { get; set; }
 
-        [JsonPropertyName("URI")] public Uri URI { get; set; }
-    }
+    [JsonPropertyName("URI")] public Uri URI { get; set; }
 }

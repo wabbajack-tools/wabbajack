@@ -13,22 +13,22 @@
             <ItemsControl x:Name="Messages">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <StackPanel></StackPanel>
+                        <StackPanel />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <controls:LogViewItem></controls:LogViewItem>
+                        <controls:LogViewItem />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button x:Name="CopyLog">
-                <avalonia:MaterialIcon Kind="ContentCopy"></avalonia:MaterialIcon>
+                <avalonia:MaterialIcon Kind="ContentCopy" />
             </Button>
             <Button x:Name="OpenFolder">
-                <avalonia:MaterialIcon Kind="Folder"></avalonia:MaterialIcon>
+                <avalonia:MaterialIcon Kind="Folder" />
             </Button>
         </StackPanel>
     </Grid>
