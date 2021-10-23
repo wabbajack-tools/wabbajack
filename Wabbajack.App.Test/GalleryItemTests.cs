@@ -26,6 +26,7 @@ public class GalleryItemTests
     [Fact]
     public async Task CanDownloadGalleryItem()
     {
+        _config.ModListsDownloadLocation.CreateDirectory();
         foreach (var file in _config.ModListsDownloadLocation.EnumerateFiles().Where(f => f.Extension == Ext.Wabbajack))
             file.Delete();
 
