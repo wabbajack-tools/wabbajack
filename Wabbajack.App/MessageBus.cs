@@ -9,9 +9,14 @@ using Wabbajack.App.Messages;
 
 namespace Wabbajack.App
 {
-    public class MessageBus
+    public interface IMessageBus
     {
-        public static MessageBus Instance { get; private set; }
+        public void Send<T>(T message);
+    }
+    
+    public class MessageBus : IMessageBus
+    {
+        public static IMessageBus Instance { get; set; }
         private readonly IReceiverMarker[] _receivers;
         private readonly ILogger<MessageBus> _logger;
 

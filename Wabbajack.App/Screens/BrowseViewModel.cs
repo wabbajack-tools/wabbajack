@@ -23,6 +23,7 @@ using Wabbajack.DTOs;
 using Wabbajack.Networking.WabbajackClientApi;
 using DynamicData.Binding;
 using Microsoft.Extensions.DependencyInjection;
+using Wabbajack.App.Models;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs.JsonConverters;
@@ -68,9 +69,15 @@ namespace Wabbajack.App.Screens
 
         [Reactive] public bool ShowNSFW { get; set; } = false;
 
+        [Reactive] public bool IsLoading { get; set; } = false;
+        
+        [Reactive]
+        public LoadingLock LoadingLock { get; set; }
+
         public BrowseViewModel(ILogger<BrowseViewModel> logger, Client wjClient, HttpClient httpClient, IResource<HttpClient> limiter, FileHashCache hashCache,
             IResource<DownloadDispatcher> dispatcherLimiter, DownloadDispatcher dispatcher, GameLocator gameLocator, DTOSerializer dtos, Configuration configuration)
         {
+            LoadingLock = new LoadingLock();
             Activator = new ViewModelActivator();
             _wjClient = wjClient;
             _logger = logger;
@@ -187,11 +194,13 @@ namespace Wabbajack.App.Screens
             });
         }
 
+
         [Reactive]
         public ReactiveCommand<Unit, Unit> ResetFiltersCommand { get; set; }
 
         private async Task LoadData()
         {
+            using var _ = LoadingLock.WithLoading();
             var modlists = await _wjClient.LoadLists();
             var summaries = (await _wjClient.GetListStatuses()).ToDictionary(m => m.MachineURL);
             var vms = modlists.Select(m =>
@@ -215,6 +224,7 @@ namespace Wabbajack.App.Screens
 
         private async Task LoadSettings()
         {
+            using var _ = LoadingLock.WithLoading();
             try
             {
                 if (SavedSettingsLocation.FileExists())

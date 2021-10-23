@@ -159,6 +159,7 @@ namespace Wabbajack.App.Controls
             var metadataPath = ModListLocation.WithExtension(Ext.MetaData);
             await metadataPath.WriteAllTextAsync(_dtos.Serialize(_metadata));
 
+            Progress = Percent.Zero;
             await UpdateState();
         }
 
