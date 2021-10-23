@@ -25,7 +25,6 @@ public class ExtractorTests
     public async Task CanExtract7z()
     {
         var src = KnownFolders.EntryPoint.Combine("TestData", "cheese.7z");
-        using var job = await _limiter.Begin("Extracting files", 0, CancellationToken.None);
         var results = await _extractor.GatheringExtractWith7Zip(
             new NativeFileStreamFactory(src), path => true,
             async (path, file) =>
@@ -33,7 +32,7 @@ public class ExtractorTests
                 await using var s = await file.GetStream();
                 using var sr = new StreamReader(s);
                 return new {Path = path, Data = await sr.ReadToEndAsync()};
-            }, null, job, CancellationToken.None);
+            }, null, CancellationToken.None);
 
         Assert.True(results.Count == 1);
     }
