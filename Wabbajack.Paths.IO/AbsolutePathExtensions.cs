@@ -178,6 +178,8 @@ public static class AbsolutePathExtensions
 
     public static void CreateDirectory(this AbsolutePath path)
     {
+        if (path.Depth > 1 && !path.Parent.DirectoryExists())
+            path.Parent.CreateDirectory();
         Directory.CreateDirectory(ToNativePath(path));
     }
 
