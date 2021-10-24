@@ -24,4 +24,9 @@
         <ProjectReference Include="..\Wabbajack.App\Wabbajack.App.csproj"/>
     </ItemGroup>
 
+    <Target Name="AferBuild" AfterTargets="Build" Condition="!Exists('$(ProjectDir)$(OutDir)libcef.dll')">
+        <Message Text="Downloading Cef"/>
+        <Exec Command="dotnet run --project $(ProjectDir)../Wabbajack.CLI/Wabbajack.CLI.csproj -- download-cef -f $(ProjectDir)$(OutDir)"/>
+    </Target>
+
 </Project>

@@ -19,7 +19,7 @@ public class DownloaderTests
     private readonly DownloadDispatcher _dispatcher;
     private readonly TemporaryFileManager _temp;
 
-    public DownloaderTests(DownloadDispatcher dispatcher, TemporaryFileManager temp, LoggingRateLimiterReporter _)
+    public DownloaderTests(DownloadDispatcher dispatcher, TemporaryFileManager temp)
     {
         _temp = temp;
         _dispatcher = dispatcher;

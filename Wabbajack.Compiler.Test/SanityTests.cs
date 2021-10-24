@@ -33,9 +33,8 @@ public class CompilerSanityTests : IAsyncLifetime
 
     public CompilerSanityTests(ILogger<CompilerSanityTests> logger, IServiceProvider serviceProvider,
         FileExtractor.FileExtractor fileExtractor,
-        TemporaryFileManager manager, ParallelOptions parallelOptions, LoggingRateLimiterReporter reporter)
+        TemporaryFileManager manager, ParallelOptions parallelOptions)
     {
-        _reporter = reporter;
         _logger = logger;
         _serviceProvider = serviceProvider;
         _scope = _serviceProvider.CreateScope();
