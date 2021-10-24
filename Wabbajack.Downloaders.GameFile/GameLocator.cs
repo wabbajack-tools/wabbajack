@@ -10,8 +10,8 @@ namespace Wabbajack.Downloaders.GameFile;
 
 public class GameLocator : IGameLocator
 {
-    private readonly EGSHandler _egs;
-    private readonly GOGHandler _gog;
+    private readonly EGSHandler? _egs;
+    private readonly GOGHandler? _gog;
     private readonly Dictionary<Game, AbsolutePath> _locationCache;
     private readonly ILogger<GameLocator> _logger;
     private readonly OriginHandler? _origin;
@@ -76,25 +76,34 @@ public class GameLocator : IGameLocator
             return true;
         }
 
-        foreach (var gogGame in _gog.Games.Where(gogGame => metaData.GOGIDs.Contains(gogGame.GameID)))
+        if (_gog != null)
         {
-            path = gogGame!.Path.ToAbsolutePath();
-            return true;
+            foreach (var gogGame in _gog.Games.Where(gogGame => metaData.GOGIDs.Contains(gogGame.GameID)))
+            {
+                path = gogGame!.Path.ToAbsolutePath();
+                return true;
+            }
         }
 
-        foreach (var egsGame in _egs.Games.Where(egsGame => metaData.EpicGameStoreIDs.Contains(egsGame.CatalogItemId)))
+        if (_egs != null)
         {
-            path = egsGame!.Path.ToAbsolutePath();
-            return true;
+            foreach (var egsGame in _egs.Games.Where(egsGame =>
+                metaData.EpicGameStoreIDs.Contains(egsGame.CatalogItemId)))
+            {
+                path = egsGame!.Path.ToAbsolutePath();
+                return true;
+            }
         }
 
         if (_origin != null)
+        {
             foreach (var originGame in _origin.Games.Where(originGame =>
                 metaData.EpicGameStoreIDs.Contains(originGame.Id)))
             {
                 path = originGame.Path.ToAbsolutePath();
                 return true;
             }
+        }
 
         path = default;
         return false;
