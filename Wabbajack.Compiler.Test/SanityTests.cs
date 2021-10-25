@@ -104,7 +104,9 @@ public class CompilerSanityTests : IAsyncLifetime
     [Fact]
     public async Task CanExtractBSAs()
     {
-        var bsa = _mod.FullPath.EnumerateFiles(Ext.Bsa).First();
+        var bsa = _mod.FullPath.EnumerateFiles(Ext.Bsa)
+            .OrderBy(d => d.Size())
+            .First();
         await _fileExtractor.ExtractAll(bsa, _mod.FullPath, CancellationToken.None);
         bsa.Delete();
 
@@ -115,7 +117,9 @@ public class CompilerSanityTests : IAsyncLifetime
     [Fact]
     public async Task CanRecreateBSAs()
     {
-        var bsa = _mod.FullPath.EnumerateFiles(Ext.Bsa).First();
+        var bsa = _mod.FullPath.EnumerateFiles(Ext.Bsa)
+            .OrderBy(d => d.Size())
+            .First();
         await _fileExtractor.ExtractAll(bsa, _mod.FullPath, CancellationToken.None);
 
         var reader = await BSADispatch.Open(bsa);

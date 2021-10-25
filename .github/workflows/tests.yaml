@@ -45,12 +45,12 @@ jobs:
       - name: Test
         run: dotnet test --no-restore --filter "Category!=FlakeyNetwork"
         
-      - name: Upload Test Folder on Failure
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: Failed Files
-          path: ./
+      #- name: Upload Test Folder on Failure
+      #  if: ${{ failure() }}
+      #  uses: actions/upload-artifact@v2
+      #  with:
+      #    name: Failed Files
+      #    path: ./
   
   publish:
     name: Publish Projects
