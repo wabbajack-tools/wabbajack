@@ -1,73 +1,72 @@
 using System;
 
-namespace Wabbajack.Paths
+namespace Wabbajack.Paths;
+
+public struct Extension
 {
-    public struct Extension
+    private static readonly Extension None = new("");
+
+    #region ObjectEquality
+
+    private bool Equals(Extension other)
     {
-        private static readonly Extension None = new("");
+        return string.Equals(_extension, other._extension, StringComparison.InvariantCultureIgnoreCase);
+    }
 
-        #region ObjectEquality
+    public override bool Equals(object? obj)
+    {
+        return obj is Extension other && Equals(other);
+    }
 
-        private bool Equals(Extension other)
-        {
-            return string.Equals(_extension, other._extension, StringComparison.InvariantCultureIgnoreCase);
-        }
+    public override string ToString()
+    {
+        return _extension;
+    }
 
-        public override bool Equals(object? obj)
-        {
-            return obj is Extension other && Equals(other);
-        }
+    public override int GetHashCode()
+    {
+        return _extension.GetHashCode(StringComparison.InvariantCultureIgnoreCase);
+    }
 
-        public override string ToString()
-        {
-            return _extension;
-        }
+    #endregion
 
-        public override int GetHashCode()
-        {
-            return _extension.GetHashCode(StringComparison.InvariantCultureIgnoreCase);
-        }
+    private readonly string _extension;
 
-        #endregion
+    public Extension(string extension)
+    {
+        _extension = extension;
+        Validate();
+    }
 
-        private readonly string _extension;
+    private void Validate()
+    {
+        if (!_extension.StartsWith(".") && _extension != "")
+            throw new PathException($"Extensions must start with '.' got {_extension}");
+    }
 
-        public Extension(string extension)
-        {
-            _extension = extension;
-            Validate();
-        }
+    public static explicit operator string(Extension path)
+    {
+        return path._extension;
+    }
 
-        private void Validate()
-        {
-            if (!_extension.StartsWith(".") && _extension != "")
-                throw new PathException($"Extensions must start with '.' got {_extension}");
-        }
+    public static explicit operator Extension(string path)
+    {
+        return new Extension(path);
+    }
 
-        public static explicit operator string(Extension path)
-        {
-            return path._extension;
-        }
+    public static bool operator ==(Extension a, Extension b)
+    {
+        return string.Equals(a._extension, b._extension, StringComparison.CurrentCultureIgnoreCase);
+    }
 
-        public static explicit operator Extension(string path)
-        {
-            return new Extension(path);
-        }
+    public static bool operator !=(Extension a, Extension b)
+    {
+        return !(a == b);
+    }
 
-        public static bool operator ==(Extension a, Extension b)
-        {
-            return string.Equals(a._extension, b._extension, StringComparison.CurrentCultureIgnoreCase);
-        }
-
-        public static bool operator !=(Extension a, Extension b)
-        {
-            return !(a == b);
-        }
-
-        public static Extension FromPath(string path)
-        {
-            var lastIndex = path.LastIndexOf(".", StringComparison.Ordinal);
-            return lastIndex == -1 ? None : new Extension(path[lastIndex..]);
-        }
+    public static Extension FromPath(string path)
+    {
+        var lastIndex = path.LastIndexOf(".", StringComparison.Ordinal);
+        return lastIndex == -1 ? None : new Extension(path[lastIndex..]);
     }
 }

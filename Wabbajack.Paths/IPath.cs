@@ -1,8 +1,7 @@
-namespace Wabbajack.Paths
+namespace Wabbajack.Paths;
+
+public interface IPath
 {
-    public interface IPath
-    {
-        Extension Extension { get; }
-        RelativePath FileName { get; }
-    }
+    Extension Extension { get; }
+    RelativePath FileName { get; }
 }

@@ -6,13 +6,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Wabbajack.Downloaders.Interfaces\Wabbajack.Downloaders.Interfaces.csproj" />
-      <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders.Interfaces\Wabbajack.Downloaders.Interfaces.csproj"/>
+        <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MegaApiClient" Version="1.9.0" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0-rc.2.21480.5" />
+        <PackageReference Include="MegaApiClient" Version="1.9.0"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0-rc.2.21480.5"/>
     </ItemGroup>
 
 </Project>

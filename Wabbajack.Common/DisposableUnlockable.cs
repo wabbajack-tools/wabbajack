@@ -1,19 +1,18 @@
 using System;
 
-namespace Wabbajack.Common
+namespace Wabbajack.Common;
+
+public struct DisposableUnlockable : IDisposable
 {
-    public struct DisposableUnlockable : IDisposable
+    private readonly IUnlockable _unlock;
+
+    public DisposableUnlockable(IUnlockable unlock)
     {
-        private readonly IUnlockable _unlock;
+        _unlock = unlock;
+    }
 
-        public DisposableUnlockable(IUnlockable unlock)
-        {
-            _unlock = unlock;
-        }
-
-        public void Dispose()
-        {
-            _unlock.Unlock();
-        }
+    public void Dispose()
+    {
+        _unlock.Unlock();
     }
 }

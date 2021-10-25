@@ -1,12 +1,11 @@
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Paths;
 
-namespace Wabbajack.DTOs.Directives
+namespace Wabbajack.DTOs.Directives;
+
+[JsonName("ArchiveMeta")]
+[JsonAlias("ArchiveMeta, Wabbajack.Lib")]
+public class ArchiveMeta : Directive
 {
-    [JsonName("ArchiveMeta")]
-    [JsonAlias("ArchiveMeta, Wabbajack.Lib")]
-    public class ArchiveMeta : Directive
-    {
-        public RelativePath SourceDataID { get; set; }
-    }
+    public RelativePath SourceDataID { get; set; }
 }

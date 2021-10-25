@@ -1,7 +1,8 @@
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Timers;using ReactiveUI;
+using System.Timers;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.App.ViewModels;
 using Wabbajack.RateLimiter;
@@ -12,18 +13,6 @@ public class ResourceViewModel : ViewModelBase, IActivatableViewModel, IDisposab
 {
     private readonly IResource _resource;
     private readonly Timer _timer;
-    
-    [Reactive]
-    public int MaxTasks { get; set; }
-    
-    [Reactive]
-    public long MaxThroughput { get; set; }
-    
-    [Reactive]
-    public long CurrentThroughput { get; set; }
-    
-    [Reactive]
-    public string Name { get; set; }
 
     public ResourceViewModel(IResource resource)
     {
@@ -32,12 +21,12 @@ public class ResourceViewModel : ViewModelBase, IActivatableViewModel, IDisposab
         _timer = new Timer(1.0);
 
         Name = resource.Name;
-        
+
         this.WhenActivated(disposables =>
         {
-            _timer.Elapsed += TimerElapsed; 
+            _timer.Elapsed += TimerElapsed;
             _timer.Start();
-            
+
             Disposable.Create(() =>
             {
                 _timer.Stop();
@@ -46,19 +35,26 @@ public class ResourceViewModel : ViewModelBase, IActivatableViewModel, IDisposab
 
             this.WhenAnyValue(vm => vm.MaxThroughput)
                 .Skip(1)
-                .Subscribe(v =>
-                {
-                    _resource.MaxThroughput = MaxThroughput;
-                }).DisposeWith(disposables);
-            
+                .Subscribe(v => { _resource.MaxThroughput = MaxThroughput; }).DisposeWith(disposables);
+
             this.WhenAnyValue(vm => vm.MaxTasks)
                 .Skip(1)
-                .Subscribe(v =>
-                {
-                    _resource.MaxTasks = MaxTasks;
-                }).DisposeWith(disposables);
-
+                .Subscribe(v => { _resource.MaxTasks = MaxTasks; }).DisposeWith(disposables);
         });
+    }
+
+    [Reactive] public int MaxTasks { get; set; }
+
+    [Reactive] public long MaxThroughput { get; set; }
+
+    [Reactive] public long CurrentThroughput { get; set; }
+
+    [Reactive] public string Name { get; set; }
+
+
+    public void Dispose()
+    {
+        _timer.Dispose();
     }
 
     private void TimerElapsed(object? sender, ElapsedEventArgs e)
@@ -66,11 +62,5 @@ public class ResourceViewModel : ViewModelBase, IActivatableViewModel, IDisposab
         MaxTasks = _resource.MaxTasks;
         MaxThroughput = _resource.MaxThroughput;
         CurrentThroughput = _resource.StatusReport.Transferred;
-    }
-
-
-    public void Dispose()
-    {
-        _timer.Dispose();
     }
 }

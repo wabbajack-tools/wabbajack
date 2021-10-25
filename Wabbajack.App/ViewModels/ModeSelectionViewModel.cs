@@ -1,14 +1,11 @@
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
 
-namespace Wabbajack.App.ViewModels
+namespace Wabbajack.App.ViewModels;
+
+public class ModeSelectionViewModel : ViewModelBase
 {
-    public class ModeSelectionViewModel : ViewModelBase
+    public ModeSelectionViewModel()
     {
-        public ModeSelectionViewModel()
-        {
-            Activator = new ViewModelActivator();
-
-        }
+        Activator = new ViewModelActivator();
     }
 }

@@ -5,12 +5,12 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Wabbajack.App.Controls.ResourceView">
     <StackPanel Orientation="Horizontal">
-        <TextBlock x:Name="ResourceName" Width="100" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+        <TextBlock x:Name="ResourceName" Width="100" HorizontalAlignment="Left" VerticalAlignment="Center" />
         <Label Width="100" HorizontalContentAlignment="Right" VerticalAlignment="Center">Tasks:</Label>
-        <TextBox x:Name="MaxTasks" Width="20" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBox>
+        <TextBox x:Name="MaxTasks" Width="20" HorizontalAlignment="Left" VerticalAlignment="Center" />
         <Label Width="100" HorizontalContentAlignment="Right" VerticalAlignment="Center">Throughput:</Label>
-        <TextBox x:Name="MaxThroughput" Width="20" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBox>
+        <TextBox x:Name="MaxThroughput" Width="20" HorizontalAlignment="Left" VerticalAlignment="Center" />
         <Label Width="100" HorizontalContentAlignment="Right" VerticalAlignment="Center">Status:</Label>
-        <TextBlock x:Name="CurrentThrougput" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+        <TextBlock x:Name="CurrentThrougput" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center" />
     </StackPanel>
 </UserControl>

@@ -27,44 +27,6 @@ public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
     private readonly DTOSerializer _dtos;
     private readonly SettingsManager _settingsManager;
 
-    [Reactive]
-    public string Title { get; set; }
-    
-    [Reactive]
-    public AbsolutePath SettingsFile { get; set; }
-    
-    [Reactive]
-    public AbsolutePath Downloads { get; set; }
-    
-    [Reactive]
-    public GameMetaData BaseGame { get; set; }
-    
-    [Reactive]
-    public AbsolutePath Source { get; set; }
-    
-    [Reactive]
-    public AbsolutePath GamePath { get; set; }
-    
-    [Reactive]
-    public string SelectedProfile { get; set; }
-    
-    [Reactive]
-    public AbsolutePath OutputFolder { get; set; }
-    
-    [Reactive]
-    public IEnumerable<GameMetaData> AllGames { get; set; }
-    
-    [Reactive]
-    public ReactiveCommand<Unit, Unit> StartCompilation { get; set; }
-
-    [Reactive] 
-    public IEnumerable<RelativePath> AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
-
-    public AbsolutePath SettingsOutputLocation => Source.Combine(Title).WithExtension(IsMO2Compilation ? Ext.MO2CompilerSettings : Ext.CompilerSettings);
-    
-    [Reactive]
-    public bool IsMO2Compilation { get; set; }
-
 
     public CompilerConfigurationViewModel(DTOSerializer dtos, SettingsManager settingsManager)
     {
@@ -73,23 +35,46 @@ public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
         Activator = new ViewModelActivator();
 
         AllGames = GameRegistry.Games.Values.ToArray();
-        
+
         StartCompilation = ReactiveCommand.Create(() => BeginCompilation().FireAndForget());
 
         OutputFolder = KnownFolders.EntryPoint;
-        
+
         this.WhenActivated(disposables =>
         {
             LoadLastCompilation().FireAndForget();
             this.WhenAnyValue(v => v.SettingsFile)
-                .Subscribe( location =>
-                {
-                    LoadNewSettingsFile(location).FireAndForget();
-                })
+                .Subscribe(location => { LoadNewSettingsFile(location).FireAndForget(); })
                 .DisposeWith(disposables);
         });
-        
     }
+
+    [Reactive] public string Title { get; set; }
+
+    [Reactive] public AbsolutePath SettingsFile { get; set; }
+
+    [Reactive] public AbsolutePath Downloads { get; set; }
+
+    [Reactive] public GameMetaData BaseGame { get; set; }
+
+    [Reactive] public AbsolutePath Source { get; set; }
+
+    [Reactive] public AbsolutePath GamePath { get; set; }
+
+    [Reactive] public string SelectedProfile { get; set; }
+
+    [Reactive] public AbsolutePath OutputFolder { get; set; }
+
+    [Reactive] public IEnumerable<GameMetaData> AllGames { get; set; }
+
+    [Reactive] public ReactiveCommand<Unit, Unit> StartCompilation { get; set; }
+
+    [Reactive] public IEnumerable<RelativePath> AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
+
+    public AbsolutePath SettingsOutputLocation => Source.Combine(Title)
+        .WithExtension(IsMO2Compilation ? Ext.MO2CompilerSettings : Ext.CompilerSettings);
+
+    [Reactive] public bool IsMO2Compilation { get; set; }
 
     private async Task LoadNewSettingsFile(AbsolutePath location)
     {
@@ -108,7 +93,7 @@ public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
         var settings = GetSettings();
         await SaveSettingsFile();
         await _settingsManager.Save("last_compilation", SettingsOutputLocation);
-        
+
         MessageBus.Instance.Send(new StartCompilation(settings));
         MessageBus.Instance.Send(new NavigateTo(typeof(CompilationViewModel)));
     }
@@ -154,48 +139,44 @@ public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
 
                 BaseGame = GameRegistry.GetByFuzzyName(general["gameName"].FromMO2Ini());
                 Source = mo2Folder;
-                
+
                 SelectedProfile = general["selected_profile"].FromMO2Ini();
                 GamePath = general["gamePath"].FromMO2Ini().ToAbsolutePath();
                 Title = SelectedProfile;
-                
+
                 var settings = iniData["Settings"];
                 Downloads = settings["download_directory"].FromMO2Ini().ToAbsolutePath();
                 IsMO2Compilation = true;
 
-                
+
                 // Find Always Enabled mods
                 foreach (var modFolder in mo2Folder.Combine("mods").EnumerateDirectories())
                 {
                     var iniFile = modFolder.Combine("meta.ini");
                     if (!iniFile.FileExists()) continue;
-                    
+
                     var data = iniFile.LoadIniFile();
                     var generalModData = data["General"];
-                    if ((generalModData["notes"]?.Contains("WABBAJACK_ALWAYS_ENABLE") ?? false) || 
+                    if ((generalModData["notes"]?.Contains("WABBAJACK_ALWAYS_ENABLE") ?? false) ||
                         (generalModData["comments"]?.Contains("WABBAJACK_ALWAYS_ENABLE") ?? false))
-                    {
                         AlwaysEnabled = AlwaysEnabled.Append(modFolder.RelativeTo(mo2Folder)).ToArray();
-                    }
-
                 }
 
                 if (mo2Folder.Depth > 1)
                     OutputFolder = mo2Folder.Parent;
-                
+
                 await SaveSettingsFile();
                 SettingsFile = SettingsOutputLocation;
             }
-
         }
     }
 
     private async Task SaveSettingsFile()
     {
         await using var st = SettingsOutputLocation.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-        if (IsMO2Compilation) 
-            await JsonSerializer.SerializeAsync(st, (MO2CompilerSettings)GetSettings(), _dtos.Options);
-        else 
+        if (IsMO2Compilation)
+            await JsonSerializer.SerializeAsync(st, (MO2CompilerSettings) GetSettings(), _dtos.Options);
+        else
             await JsonSerializer.SerializeAsync(st, GetSettings(), _dtos.Options);
     }
 

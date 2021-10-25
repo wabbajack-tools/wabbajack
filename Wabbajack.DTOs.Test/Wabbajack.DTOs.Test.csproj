@@ -27,6 +27,7 @@
         <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.WabbajackClientApi\Wabbajack.Networking.WabbajackClientApi.csproj" />
         <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
+        <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
     </ItemGroup>
 
     <ItemGroup>

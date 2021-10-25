@@ -1,11 +1,10 @@
-namespace Wabbajack.Downloaders.Interfaces
+namespace Wabbajack.Downloaders.Interfaces;
+
+public enum Priority
 {
-    public enum Priority
-    {
-        Highest = 1,
-        High,
-        Normal,
-        Low,
-        Lowest
-    }
+    Highest = 1,
+    High,
+    Normal,
+    Low,
+    Lowest
 }

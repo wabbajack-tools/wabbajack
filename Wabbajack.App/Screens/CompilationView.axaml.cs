@@ -1,6 +1,5 @@
 using Avalonia.Controls.Mixins;
 using ReactiveUI;
-using Wabbajack.App.ViewModels;
 using Wabbajack.App.Views;
 
 namespace Wabbajack.App.Screens;

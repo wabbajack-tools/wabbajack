@@ -1,14 +1,11 @@
-using System.Text.Json.Serialization;
+namespace Wabbajack.DTOs.ServerResponses;
 
-namespace Wabbajack.DTOs.ServerResponses
+public class DetailedStatusItem
 {
-    public class DetailedStatusItem
-    {
-        public bool IsFailing { get; set; }
-        public Archive Archive { get; set; }
+    public bool IsFailing { get; set; }
+    public Archive Archive { get; set; }
 
-        public string Name => string.IsNullOrWhiteSpace(Archive.Name) ? Archive.State.PrimaryKeyString : Archive.Name;
+    public string Name => string.IsNullOrWhiteSpace(Archive.Name) ? Archive.State.PrimaryKeyString : Archive.Name;
 
-        public ArchiveStatus ArchiveStatus { get; set; }
-    }
+    public ArchiveStatus ArchiveStatus { get; set; }
 }

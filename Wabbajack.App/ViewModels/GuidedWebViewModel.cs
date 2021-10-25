@@ -1,36 +1,29 @@
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
-using CefNet;
 using CefNet.Avalonia;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.App.Messages;
-using Wabbajack.Common;
 
-namespace Wabbajack.App.ViewModels
+namespace Wabbajack.App.ViewModels;
+
+public abstract class GuidedWebViewModel : ViewModelBase, IReceiverMarker
 {
-    public abstract class GuidedWebViewModel : ViewModelBase, IReceiverMarker
+    protected ILogger _logger;
+
+    public GuidedWebViewModel(ILogger logger)
     {
-        protected ILogger _logger;
+        _logger = logger;
+        Activator = new ViewModelActivator();
 
-        [Reactive]
-        public string Instructions { get; set; }
-        
-        public GuidedWebViewModel(ILogger logger)
-        {
-            _logger = logger;
-            Activator = new ViewModelActivator();
-            
-            this.WhenActivated(disposables =>
-            {
-                Disposable.Empty.DisposeWith(disposables);
-            });
-        }
-
-        public WebView Browser { get; set; }
-
-        public abstract Task Run(CancellationToken token);
+        this.WhenActivated(disposables => { Disposable.Empty.DisposeWith(disposables); });
     }
+
+    [Reactive] public string Instructions { get; set; }
+
+    public WebView Browser { get; set; }
+
+    public abstract Task Run(CancellationToken token);
 }

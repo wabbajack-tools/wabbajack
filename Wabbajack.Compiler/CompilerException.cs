@@ -1,13 +1,10 @@
 using System;
 
-namespace Wabbajack.Compiler
+namespace Wabbajack.Compiler;
+
+public class CompilerException : Exception
 {
-    public class CompilerException : Exception
+    public CompilerException(string msg) : base(msg)
     {
-        public CompilerException(string msg) : base(msg)
-        {
-            
-        }
-        
     }
 }

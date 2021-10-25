@@ -1,35 +1,34 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Wabbajack.Paths.IO
+namespace Wabbajack.Paths.IO;
+
+public struct TemporaryPath : IDisposable, IAsyncDisposable
 {
-    public struct TemporaryPath : IDisposable, IAsyncDisposable
+    public readonly AbsolutePath Path { get; init; }
+
+    public TemporaryPath(AbsolutePath path)
     {
-        public readonly AbsolutePath Path { get; init; }
+        Path = path;
+    }
 
-        public TemporaryPath(AbsolutePath path)
-        {
-            Path = path;
-        }
+    public void Dispose()
+    {
+        Path.Delete();
+    }
 
-        public void Dispose()
-        {
-            Path.Delete();
-        }
+    public override string ToString()
+    {
+        return Path.ToString();
+    }
 
-        public override string ToString()
-        {
-            return Path.ToString();
-        }
+    public static implicit operator AbsolutePath(TemporaryPath tp)
+    {
+        return tp.Path;
+    }
 
-        public static implicit operator AbsolutePath(TemporaryPath tp)
-        {
-            return tp.Path;
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            Path.Delete();
-        }
+    public async ValueTask DisposeAsync()
+    {
+        Path.Delete();
     }
 }

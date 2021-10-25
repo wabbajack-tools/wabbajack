@@ -5,10 +5,9 @@ using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
 
-namespace Wabbajack.Networking.Http.Interfaces
+namespace Wabbajack.Networking.Http.Interfaces;
+
+public interface IHttpDownloader
 {
-    public interface IHttpDownloader
-    {
-        public Task<Hash> Download(HttpRequestMessage message, AbsolutePath dest, IJob job, CancellationToken token);
-    }
+    public Task<Hash> Download(HttpRequestMessage message, AbsolutePath dest, IJob job, CancellationToken token);
 }

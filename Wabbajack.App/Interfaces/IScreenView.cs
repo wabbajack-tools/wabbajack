@@ -1,10 +1,8 @@
 using System;
 
-namespace Wabbajack.App.Interfaces
+namespace Wabbajack.App.Interfaces;
+
+public interface IScreenView
 {
-    public interface IScreenView
-    {
-        public Type ViewModelType { get; }
-        
-    }
+    public Type ViewModelType { get; }
 }

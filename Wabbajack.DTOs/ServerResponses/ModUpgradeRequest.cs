@@ -1,8 +1,7 @@
-namespace Wabbajack.DTOs.ServerResponses
+namespace Wabbajack.DTOs.ServerResponses;
+
+public class ModUpgradeRequest
 {
-    public class ModUpgradeRequest
-    {
-        public Archive OldArchive { get; set; }
-        public Archive NewArchive { get; set; }
-    }
+    public Archive OldArchive { get; set; }
+    public Archive NewArchive { get; set; }
 }

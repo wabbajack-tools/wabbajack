@@ -6,33 +6,16 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
-using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.ServerResponses;
-using Wabbajack.Server;
-using Wabbajack.Server.Services;
-namespace Wabbajack.BuildServer.Controllers
+
+namespace Wabbajack.BuildServer.Controllers;
+
+[ApiController]
+[Route("/lists")]
+public class ListsStatus : ControllerBase
 {
-    [ApiController]
-    [Route("/lists")]
-    public class ListsStatus : ControllerBase
-    {
-        private ILogger<ListsStatus> _logger;
-
-        public ListsStatus(ILogger<ListsStatus> logger)
-        {
-            _logger = logger;
-        }
-        
-        [HttpGet]
-        [Route("status.json")]
-        public async Task<IEnumerable<ModListSummary>> HandleGetLists()
-        {
-            throw new NotImplementedException();
-        }
-
-        
-        private static readonly Func<object, string> HandleGetRssFeedTemplate = NettleEngine.GetCompiler().Compile(@"
+    private static readonly Func<object, string> HandleGetRssFeedTemplate = NettleEngine.GetCompiler().Compile(@"
 <?xml version=""1.0""?>
 <rss version=""2.0"">
   <channel>
@@ -49,26 +32,7 @@ namespace Wabbajack.BuildServer.Controllers
 </rss>
         ");
 
-        [HttpGet]
-        [Route("status/{Name}/broken.rss")]
-        public async Task<ContentResult> HandleGetRSSFeed(string Name)
-        {
-            var lst = await DetailedStatus(Name);
-            var response = HandleGetRssFeedTemplate(new
-            {
-                lst,
-                failed = lst.Archives.Where(a => a.IsFailing).ToList(),
-                passed = lst.Archives.Where(a => !a.IsFailing).ToList()
-            });
-            return new ContentResult
-            {
-                ContentType = "application/rss+xml",
-                StatusCode = (int) HttpStatusCode.OK,
-                Content = response
-            };
-        }
-        
-        private static readonly Func<object, string> HandleGetListTemplate = NettleEngine.GetCompiler().Compile(@"
+    private static readonly Func<object, string> HandleGetListTemplate = NettleEngine.GetCompiler().Compile(@"
             <html><body>
                 <h2>{{lst.Name}} - {{lst.Checked}} - {{ago}}min ago</h2>
 
@@ -132,58 +96,89 @@ namespace Wabbajack.BuildServer.Controllers
             </body></html>
         ");
 
-        [HttpGet]
-        [Route("status/{Name}.html")]
-        public async Task<ContentResult> HandleGetListHtml(string Name)
-        {
+    private ILogger<ListsStatus> _logger;
 
-            var lst = await DetailedStatus(Name);
-            
-            var response = HandleGetListTemplate(new
-            {
-                lst,
-                ago = (DateTime.UtcNow - lst.Checked).TotalMinutes,
-                failed = lst.Archives.Where(a => a.IsFailing).ToList(),
-                passed = lst.Archives.Where(a => !a.IsFailing).ToList(),
-                updated = lst.Archives.Where(a => a.ArchiveStatus == ArchiveStatus.Updated).ToList(),
-                updating = lst.Archives.Where(a => a.ArchiveStatus == ArchiveStatus.Updating).ToList(),
-                mirrored = lst.Archives.Where(a => a.ArchiveStatus == ArchiveStatus.Mirrored).ToList()
-            });
-            return new ContentResult
-            {
-                ContentType = "text/html",
-                StatusCode = (int) HttpStatusCode.OK,
-                Content = response
-            };
-        }
-        
-        [HttpGet]
-        [Route("status/{Name}.json")]
-        [ResponseCache(Duration = 60 * 5)]
-        public async Task<IActionResult> HandleGetListJson(string Name)
-        {
-            var lst = await DetailedStatus(Name);
-            if (lst == default) return NotFound();
-            return Ok(lst);
-        }
-        
-        private async Task<DetailedStatus?> DetailedStatus(string Name)
-        {
-            throw new NotImplementedException();
-        }
+    public ListsStatus(ILogger<ListsStatus> logger)
+    {
+        _logger = logger;
+    }
 
-        [HttpGet]
-        [Route("status/badge.json")]
-        public async Task<IActionResult> HandleGitHubBadge()
-        {
-            throw new NotImplementedException();
-        }
+    [HttpGet]
+    [Route("status.json")]
+    public async Task<IEnumerable<ModListSummary>> HandleGetLists()
+    {
+        throw new NotImplementedException();
+    }
 
-        [HttpGet]
-        [Route("status/{Name}/badge.json")]
-        public async Task<IActionResult> HandleNamedGitHubBadge(string Name)
+    [HttpGet]
+    [Route("status/{Name}/broken.rss")]
+    public async Task<ContentResult> HandleGetRSSFeed(string Name)
+    {
+        var lst = await DetailedStatus(Name);
+        var response = HandleGetRssFeedTemplate(new
         {
-            throw new NotImplementedException();
-        }
+            lst,
+            failed = lst.Archives.Where(a => a.IsFailing).ToList(),
+            passed = lst.Archives.Where(a => !a.IsFailing).ToList()
+        });
+        return new ContentResult
+        {
+            ContentType = "application/rss+xml",
+            StatusCode = (int) HttpStatusCode.OK,
+            Content = response
+        };
+    }
+
+    [HttpGet]
+    [Route("status/{Name}.html")]
+    public async Task<ContentResult> HandleGetListHtml(string Name)
+    {
+        var lst = await DetailedStatus(Name);
+
+        var response = HandleGetListTemplate(new
+        {
+            lst,
+            ago = (DateTime.UtcNow - lst.Checked).TotalMinutes,
+            failed = lst.Archives.Where(a => a.IsFailing).ToList(),
+            passed = lst.Archives.Where(a => !a.IsFailing).ToList(),
+            updated = lst.Archives.Where(a => a.ArchiveStatus == ArchiveStatus.Updated).ToList(),
+            updating = lst.Archives.Where(a => a.ArchiveStatus == ArchiveStatus.Updating).ToList(),
+            mirrored = lst.Archives.Where(a => a.ArchiveStatus == ArchiveStatus.Mirrored).ToList()
+        });
+        return new ContentResult
+        {
+            ContentType = "text/html",
+            StatusCode = (int) HttpStatusCode.OK,
+            Content = response
+        };
+    }
+
+    [HttpGet]
+    [Route("status/{Name}.json")]
+    [ResponseCache(Duration = 60 * 5)]
+    public async Task<IActionResult> HandleGetListJson(string Name)
+    {
+        var lst = await DetailedStatus(Name);
+        if (lst == default) return NotFound();
+        return Ok(lst);
+    }
+
+    private async Task<DetailedStatus?> DetailedStatus(string Name)
+    {
+        throw new NotImplementedException();
+    }
+
+    [HttpGet]
+    [Route("status/badge.json")]
+    public async Task<IActionResult> HandleGitHubBadge()
+    {
+        throw new NotImplementedException();
+    }
+
+    [HttpGet]
+    [Route("status/{Name}/badge.json")]
+    public async Task<IActionResult> HandleNamedGitHubBadge(string Name)
+    {
+        throw new NotImplementedException();
     }
 }

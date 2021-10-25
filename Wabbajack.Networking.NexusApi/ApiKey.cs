@@ -1,10 +1,8 @@
-using System.Threading.Tasks;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Networking.Http.Interfaces;
 
-namespace Wabbajack.Networking.NexusApi
+namespace Wabbajack.Networking.NexusApi;
+
+public interface ApiKey : ITokenProvider<NexusApiState>
 {
-    public interface ApiKey : ITokenProvider<NexusApiState>
-    {
-    }
 }

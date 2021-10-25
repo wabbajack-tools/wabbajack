@@ -1,57 +1,56 @@
 using System;
 
-namespace Wabbajack.Paths
+namespace Wabbajack.Paths;
+
+public static class ArrayExtensions
 {
-    public static class ArrayExtensions
+    public static bool AreEqual<T>(T[] a, int startA, T[] b, int startB, int length)
     {
-        public static bool AreEqual<T>(T[] a, int startA, T[] b, int startB, int length)
+        if (startA + length > a.Length) return false;
+        if (startB + length > b.Length) return false;
+
+        for (var i = 0; i < length; i++)
+            if (!a[startA + i]!.Equals(b[startB + i]))
+                return false;
+        return true;
+    }
+
+    public static int Compare<T>(T[] a, T[] b)
+        where T : IComparable<T>
+    {
+        var idx = 0;
+        while (true)
         {
-            if (startA + length > a.Length) return false;
-            if (startB + length > b.Length) return false;
+            if (idx == a.Length && idx == b.Length) return 0;
+            if (idx == a.Length && idx < b.Length) return -1;
+            if (idx == b.Length && idx < a.Length) return 1;
 
-            for (var i = 0; i < length; i++)
-                if (!a[startA + i]!.Equals(b[startB + i]))
-                    return false;
-            return true;
+            var comp = a[idx].CompareTo(b[idx]);
+            if (comp != 0) return comp;
+            idx++;
         }
+    }
 
-        public static int Compare<T>(T[] a, T[] b)
-            where T : IComparable<T>
+    public static int CompareString(string[] a, string[] b)
+    {
+        var idx = 0;
+        while (true)
         {
-            var idx = 0;
-            while (true)
-            {
-                if (idx == a.Length && idx == b.Length) return 0;
-                if (idx == a.Length && idx < b.Length) return -1;
-                if (idx == b.Length && idx < a.Length) return 1;
+            if (idx == a.Length && idx == b.Length) return 0;
+            if (idx == a.Length && idx < b.Length) return -1;
+            if (idx == b.Length && idx < a.Length) return 1;
 
-                var comp = a[idx].CompareTo(b[idx]);
-                if (comp != 0) return comp;
-                idx++;
-            }
+            var comp = string.Compare(a[idx], b[idx], StringComparison.CurrentCultureIgnoreCase);
+            if (comp != 0) return comp;
+            idx++;
         }
+    }
 
-        public static int CompareString(string[] a, string[] b)
-        {
-            var idx = 0;
-            while (true)
-            {
-                if (idx == a.Length && idx == b.Length) return 0;
-                if (idx == a.Length && idx < b.Length) return -1;
-                if (idx == b.Length && idx < a.Length) return 1;
-
-                var comp = string.Compare(a[idx], b[idx], StringComparison.CurrentCultureIgnoreCase);
-                if (comp != 0) return comp;
-                idx++;
-            }
-        }
-
-        public static T[] Add<T>(this T[] arr, T itm)
-        {
-            var newArr = new T[arr.Length + 1];
-            Array.Copy(arr, 0, newArr, 0, arr.Length);
-            newArr[arr.Length] = itm;
-            return newArr;
-        }
+    public static T[] Add<T>(this T[] arr, T itm)
+    {
+        var newArr = new T[arr.Length + 1];
+        Array.Copy(arr, 0, newArr, 0, arr.Length);
+        newArr[arr.Length] = itm;
+        return newArr;
     }
 }

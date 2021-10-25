@@ -54,7 +54,7 @@
                 x:Name="OnlyInstalledCheckbox"
                 Margin="10,0,10,0"
                 VerticalAlignment="Center"
-                Content="Only Installed"/>
+                Content="Only Installed" />
             <Button
                 x:Name="ClearFiltersButton"
                 Margin="0,0,10,0">

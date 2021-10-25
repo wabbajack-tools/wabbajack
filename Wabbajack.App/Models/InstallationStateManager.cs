@@ -8,75 +8,74 @@ using Wabbajack.DTOs.SavedSettings;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
-namespace Wabbajack.App.Models
+namespace Wabbajack.App.Models;
+
+public class InstallationStateManager
 {
-    public class InstallationStateManager
+    private readonly DTOSerializer _dtos;
+    private readonly ILogger<InstallationStateManager> _logger;
+
+    public InstallationStateManager(ILogger<InstallationStateManager> logger, DTOSerializer dtos)
     {
-        private static AbsolutePath Path => KnownFolders.WabbajackAppLocal.Combine("install-configuration-state.json");
-        private readonly DTOSerializer _dtos;
-        private readonly ILogger<InstallationStateManager> _logger;
+        _dtos = dtos;
+        _logger = logger;
+    }
 
-        public InstallationStateManager(ILogger<InstallationStateManager> logger, DTOSerializer dtos)
+    private static AbsolutePath Path => KnownFolders.WabbajackAppLocal.Combine("install-configuration-state.json");
+
+    public async Task<InstallationConfigurationSetting> GetLastState()
+    {
+        var state = await GetAll();
+        var result = state.Settings.FirstOrDefault(s => s.ModList == state.LastModlist) ??
+                     new InstallationConfigurationSetting();
+
+        if (!result.ModList.FileExists())
+            return new InstallationConfigurationSetting();
+        return result;
+    }
+
+    public async Task SetLastState(InstallationConfigurationSetting setting)
+    {
+        if (!setting.ModList.FileExists())
         {
-            _dtos = dtos;
-            _logger = logger;
+            _logger.LogCritical("ModList path doesn't exist, not saving settings");
+            return;
         }
 
-        public async Task<InstallationConfigurationSetting> GetLastState()
+        var state = await GetAll();
+        state.LastModlist = setting.ModList;
+        state.Settings = state.Settings
+            .Where(s => s.ModList != setting.ModList)
+            .Append(setting)
+            .ToArray();
+
+        await using var fs = Path.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+        await _dtos.Serialize(state, fs, true);
+    }
+
+    public async Task<InstallConfigurationState> GetAll()
+    {
+        if (!Path.FileExists()) return new InstallConfigurationState();
+
+        try
         {
-            var state = await GetAll();
-            var result = state.Settings.FirstOrDefault(s => s.ModList == state.LastModlist) ?? 
-                         new InstallationConfigurationSetting();
-
-            if (!result.ModList.FileExists())
-                return new InstallationConfigurationSetting();
-            return result;
+            await using var fs = Path.Open(FileMode.Open);
+            return (await _dtos.DeserializeAsync<InstallConfigurationState>(fs))!;
         }
-
-        public async Task SetLastState(InstallationConfigurationSetting setting)
+        catch (Exception ex)
         {
-            if (!setting.ModList.FileExists())
-            {
-                _logger.LogCritical("ModList path doesn't exist, not saving settings");
-                return;
-            }
-            
-            var state = await GetAll();
-            state.LastModlist = setting.ModList;
-            state.Settings = state.Settings
-                .Where(s => s.ModList != setting.ModList)
-                .Append(setting)
-                .ToArray();
-            
-            await using var fs = Path.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-            await _dtos.Serialize(state, fs, true);
+            _logger.LogError(ex, "While loading json");
+            return new InstallConfigurationState();
         }
+    }
 
-        public async Task<InstallConfigurationState> GetAll()
-        {
-            if (!Path.FileExists()) return new InstallConfigurationState();
+    public async Task<InstallationConfigurationSetting?> Get(AbsolutePath modListPath)
+    {
+        return (await GetAll()).Settings.FirstOrDefault(f => f.ModList == modListPath);
+    }
 
-            try
-            {
-                await using var fs = Path.Open(FileMode.Open);
-                return (await _dtos.DeserializeAsync<InstallConfigurationState>(fs))!;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "While loading json");
-                return new InstallConfigurationState();
-            }
-
-        }
-
-        public async Task<InstallationConfigurationSetting?> Get(AbsolutePath modListPath)
-        {
-            return (await GetAll()).Settings.FirstOrDefault(f => f.ModList == modListPath);
-        }
-
-        public async Task<InstallationConfigurationSetting?> GetByInstallFolder(AbsolutePath folder)
-        {
-            return (await GetAll()).Settings.FirstOrDefault(f => f.Install == folder);
-        }
+    public async Task<InstallationConfigurationSetting?> GetByInstallFolder(AbsolutePath folder)
+    {
+        return (await GetAll()).Settings.FirstOrDefault(f => f.Install == folder);
     }
 }

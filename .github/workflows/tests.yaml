@@ -43,8 +43,15 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
       - name: Test
-        run: dotnet test --no-restore --filter "Category=!FlakeyNetwork"
+        run: dotnet test --no-restore --filter "Category!=FlakeyNetwork"
         
+      #- name: Upload Test Folder on Failure
+      #  if: ${{ failure() }}
+      #  uses: actions/upload-artifact@v2
+      #  with:
+      #    name: Failed Files
+      #    path: ./
+  
   publish:
     name: Publish Projects
     runs-on: ubuntu-latest

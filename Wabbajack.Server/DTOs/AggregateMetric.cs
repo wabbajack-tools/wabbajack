@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace Wabbajack.Server.DTOs
+namespace Wabbajack.Server.DTOs;
+
+public class AggregateMetric
 {
-    public class AggregateMetric
-    {
-        public DateTime Date { get; set; }
-        public string Subject { get; set; }
-        public int Count { get; set; }
-    }
+    public DateTime Date { get; set; }
+    public string Subject { get; set; }
+    public int Count { get; set; }
 }

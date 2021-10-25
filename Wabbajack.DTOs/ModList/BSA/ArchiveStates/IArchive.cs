@@ -1,6 +1,5 @@
-namespace Wabbajack.DTOs.BSA.ArchiveStates
+namespace Wabbajack.DTOs.BSA.ArchiveStates;
+
+public interface IArchive
 {
-    public interface IArchive
-    {
-    }
 }

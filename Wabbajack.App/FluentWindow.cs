@@ -5,43 +5,42 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Platform;
 using Avalonia.Styling;
 
-namespace Wabbajack.App
+namespace Wabbajack.App;
+
+public class FluentWindow : Window, IStyleable
 {
-    public class FluentWindow : Window, IStyleable
+    public FluentWindow()
     {
-        Type IStyleable.StyleKey => typeof(Window);
+        ExtendClientAreaToDecorationsHint = true;
+        ExtendClientAreaTitleBarHeightHint = -1;
 
-        public FluentWindow()
-        {
-            ExtendClientAreaToDecorationsHint = true;
-            ExtendClientAreaTitleBarHeightHint = -1;            
+        TransparencyLevelHint = WindowTransparencyLevel.AcrylicBlur;
 
-            TransparencyLevelHint = WindowTransparencyLevel.AcrylicBlur;            
+        this.GetObservable(WindowStateProperty)
+            .Subscribe(x =>
+            {
+                PseudoClasses.Set(":maximized", x == WindowState.Maximized);
+                PseudoClasses.Set(":fullscreen", x == WindowState.FullScreen);
+            });
 
-            this.GetObservable(WindowStateProperty)
-                .Subscribe(x =>
+        this.GetObservable(IsExtendedIntoWindowDecorationsProperty)
+            .Subscribe(x =>
+            {
+                if (!x)
                 {
-                    PseudoClasses.Set(":maximized", x == WindowState.Maximized);
-                    PseudoClasses.Set(":fullscreen", x == WindowState.FullScreen);
-                });
+                    SystemDecorations = SystemDecorations.Full;
+                    TransparencyLevelHint = WindowTransparencyLevel.Blur;
+                }
+            });
+    }
 
-            this.GetObservable(IsExtendedIntoWindowDecorationsProperty)
-                .Subscribe(x =>
-                {
-                    if (!x)
-                    {
-                        SystemDecorations = SystemDecorations.Full;
-                        TransparencyLevelHint = WindowTransparencyLevel.Blur;
-                    }
-                });
-        }
+    Type IStyleable.StyleKey => typeof(Window);
 
-        protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
-        {
-            base.OnApplyTemplate(e);            
-            ExtendClientAreaChromeHints = 
-                ExtendClientAreaChromeHints.PreferSystemChrome |                 
-                ExtendClientAreaChromeHints.OSXThickTitleBar;
-        }
+    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+    {
+        base.OnApplyTemplate(e);
+        ExtendClientAreaChromeHints =
+            ExtendClientAreaChromeHints.PreferSystemChrome |
+            ExtendClientAreaChromeHints.OSXThickTitleBar;
     }
 }

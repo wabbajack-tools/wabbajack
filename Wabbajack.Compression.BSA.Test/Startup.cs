@@ -3,28 +3,26 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Wabbajack.Common;
 using Wabbajack.Paths.IO;
 using Xunit.DependencyInjection;
 using Xunit.DependencyInjection.Logging;
 
-namespace Wabbajack.Compression.BSA.Test
-{
-    public class Startup
-    {
-        public void ConfigureServices(IServiceCollection service)
-        {
-            service.AddSingleton<TemporaryFileManager, TemporaryFileManager>();
-            service.AddSingleton(new ParallelOptions
-            {
-                MaxDegreeOfParallelism = Environment.ProcessorCount
-            });
-            service.AddSingleton(new JsonSerializerOptions());
-        }
+namespace Wabbajack.Compression.BSA.Test;
 
-        public void Configure(ILoggerFactory loggerFactory, ITestOutputHelperAccessor accessor)
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection service)
+    {
+        service.AddSingleton<TemporaryFileManager, TemporaryFileManager>();
+        service.AddSingleton(new ParallelOptions
         {
-            loggerFactory.AddProvider(new XunitTestOutputLoggerProvider(accessor, delegate { return true; }));
-        }
+            MaxDegreeOfParallelism = Environment.ProcessorCount
+        });
+        service.AddSingleton(new JsonSerializerOptions());
+    }
+
+    public void Configure(ILoggerFactory loggerFactory, ITestOutputHelperAccessor accessor)
+    {
+        loggerFactory.AddProvider(new XunitTestOutputLoggerProvider(accessor, delegate { return true; }));
     }
 }

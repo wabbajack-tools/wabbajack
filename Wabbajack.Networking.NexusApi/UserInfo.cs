@@ -1,6 +1,5 @@
-namespace Wabbajack.Networking.NexusApi
+namespace Wabbajack.Networking.NexusApi;
+
+public class UserInfo
 {
-    public class UserInfo
-    {
-    }
 }
