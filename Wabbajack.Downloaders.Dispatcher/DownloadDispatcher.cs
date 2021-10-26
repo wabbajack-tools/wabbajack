@@ -222,12 +222,20 @@ public class DownloadDispatcher
 
     public async Task<Archive?> FindUpgrade(Archive archive, TemporaryFileManager fileManager, CancellationToken token)
     {
-        var downloader = Downloader(archive);
-        if (downloader is not IUpgradingDownloader ud) return null;
+        try
+        {
+            var downloader = Downloader(archive);
+            if (downloader is not IUpgradingDownloader ud) return null;
 
-        var job = await _limiter.Begin($"Finding upgrade for {archive.Name} - {archive.State.PrimaryKeyString}", 0,
-            token);
-        return await ud.TryGetUpgrade(archive, job, fileManager, token);
+            var job = await _limiter.Begin($"Finding upgrade for {archive.Name} - {archive.State.PrimaryKeyString}", 0,
+                token);
+            return await ud.TryGetUpgrade(archive, job, fileManager, token);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "While finding upgrade for {PrimaryKeyString}", archive.State.PrimaryKeyString);
+            return null;
+        }
     }
 
     public async Task PrepareAll(IEnumerable<IDownloadState> downloadStates)
