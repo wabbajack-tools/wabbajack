@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fizzler.Systems.HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
+using ReactiveUI;
 using Wabbajack.App.Extensions;
 using Wabbajack.App.Messages;
 using Wabbajack.DTOs.Logins;
@@ -87,7 +88,7 @@ public class NexusLoginViewModel : GuidedWebViewModel
             token.ThrowIfCancellationRequested();
             await Task.Delay(500, token);
 
-            MessageBus.Instance.Send(new NavigateBack());
+            MessageBus.Current.SendMessage(new NavigateBack());
         }
 
         Instructions = "Success, saving information...";

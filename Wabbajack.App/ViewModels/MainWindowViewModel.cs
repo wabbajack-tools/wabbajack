@@ -22,8 +22,7 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack.App.ViewModels;
 
-public class MainWindowViewModel : ReactiveValidationObject, IActivatableViewModel, IReceiver<NavigateTo>,
-    IReceiver<NavigateBack>
+public class MainWindowViewModel : ReactiveValidationObject, IActivatableViewModel, IDisposable
 {
     private readonly InstallationStateManager _manager;
     private readonly IServiceProvider _provider;
@@ -31,6 +30,8 @@ public class MainWindowViewModel : ReactiveValidationObject, IActivatableViewMod
     private readonly IResource[] _resources;
     private readonly IEnumerable<IScreenView> _screens;
     private StatusReport[] _prevReport;
+
+    private CompositeDisposable VMDisposables = new();
 
     public MainWindowViewModel(IEnumerable<IScreenView> screens, IEnumerable<IResource> resources,
         IServiceProvider provider,
@@ -44,6 +45,14 @@ public class MainWindowViewModel : ReactiveValidationObject, IActivatableViewMod
         _prevReport = NextReport();
 
         Activator = new ViewModelActivator();
+
+        MessageBus.Current.Listen<NavigateTo>()
+            .Subscribe(Receive)
+            .DisposeWith(VMDisposables);
+
+        MessageBus.Current.Listen<NavigateBack>()
+            .Subscribe(Receive)
+            .DisposeWith(VMDisposables);
 
         _resourcePoller = StartResourcePoller(TimeSpan.FromSeconds(0.25));
 
@@ -103,7 +112,7 @@ public class MainWindowViewModel : ReactiveValidationObject, IActivatableViewMod
             BreadCrumbs =
                 BreadCrumbs.Push((Control) _screens.First(s => s.ViewModelType == typeof(ModeSelectionViewModel)));
 
-            MessageBus.Instance.Send(new ConfigureLauncher(setting.Install));
+            MessageBus.Current.SendMessage(new ConfigureLauncher(setting.Install));
             Receive(new NavigateTo(typeof(LauncherViewModel)));
         }
         else
@@ -136,5 +145,15 @@ public class MainWindowViewModel : ReactiveValidationObject, IActivatableViewMod
 
             await Task.Delay(TimeSpan.FromSeconds(0.5));
         }
+    }
+
+    public void Dispose()
+    {
+        _resourcePoller.Dispose();
+        VMDisposables.Dispose();
+        BackButton.Dispose();
+        SettingsButton.Dispose();
+        LogViewButton.Dispose();
+        Activator.Dispose();
     }
 }

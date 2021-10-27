@@ -39,7 +39,7 @@
             <TextBox
                 x:Name="SearchBox"
                 Width="95"
-                VerticalContentAlignment="Center" />
+                VerticalContentAlignment="Center" x:FieldModifier="public" />
             <CheckBox
                 x:Name="ShowNSFW"
                 Margin="10,0,10,0"
@@ -63,7 +63,7 @@
         </WrapPanel>
 
         <ScrollViewer Grid.Row="1">
-            <ItemsControl x:Name="GalleryList">
+            <ItemsControl x:Name="GalleryList" x:FieldModifier="public">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel />

@@ -30,7 +30,7 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack.App.ViewModels;
 
-public class StandardInstallationViewModel : ViewModelBase, IReceiver<StartInstallation>
+public class StandardInstallationViewModel : ViewModelBase
 {
     private readonly DTOSerializer _dtos;
     private readonly HttpClient _httpClient;
@@ -56,6 +56,10 @@ public class StandardInstallationViewModel : ViewModelBase, IReceiver<StartInsta
         _httpClient = httpClient;
         _installStateManager = manager;
         Activator = new ViewModelActivator();
+
+        MessageBus.Current.Listen<StartInstallation>()
+            .Subscribe(Receive)
+            .DisposeWith(VMDisposables);
 
         this.WhenActivated(disposables =>
         {
@@ -214,7 +218,7 @@ public class StandardInstallationViewModel : ViewModelBase, IReceiver<StartInsta
             Image = path
         });
 
-        MessageBus.Instance.Send(new ConfigureLauncher(config.Install));
-        MessageBus.Instance.Send(new NavigateTo(typeof(LauncherViewModel)));
+        MessageBus.Current.SendMessage(new ConfigureLauncher(config.Install));
+        MessageBus.Current.SendMessage(new NavigateTo(typeof(LauncherViewModel)));
     }
 }

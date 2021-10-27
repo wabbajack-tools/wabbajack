@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using Wabbajack.App.Models;
+using Wabbajack.App.ViewModels;
+using Wabbajack.App.Views;
 
 namespace Wabbajack.App.Test;
 
@@ -36,5 +38,10 @@ public static class Extensions
             Dispatcher.UIThread.RunJobs();
             await Task.Delay(100);
         }
+    }
+
+    public static T GetScreen<T>(this MainWindow view)
+    {
+        return (T) view.Contents.Content;
     }
 }

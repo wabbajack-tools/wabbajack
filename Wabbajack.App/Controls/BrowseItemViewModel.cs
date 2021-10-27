@@ -78,8 +78,8 @@ public class BrowseItemViewModel : ViewModelBase, IActivatableViewModel
             {
                 if (State == ModListState.Downloaded)
                 {
-                    MessageBus.Instance.Send(new StartInstallConfiguration(ModListLocation));
-                    MessageBus.Instance.Send(new NavigateTo(typeof(InstallConfigurationViewModel)));
+                    MessageBus.Current.SendMessage(new StartInstallConfiguration(ModListLocation));
+                    MessageBus.Current.SendMessage(new NavigateTo(typeof(InstallConfigurationViewModel)));
                 }
                 else
                 {

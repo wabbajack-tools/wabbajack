@@ -17,7 +17,7 @@ using Wabbajack.Services.OSIntegrated.TokenProviders;
 
 namespace Wabbajack.App.Screens;
 
-public class SettingsViewModel : ViewModelBase, IReceiverMarker
+public class SettingsViewModel : ViewModelBase
 {
     private readonly Subject<AbsolutePath> _fileSystemEvents = new();
     private readonly ILogger<SettingsViewModel> _logger;
@@ -47,7 +47,7 @@ public class SettingsViewModel : ViewModelBase, IReceiverMarker
                 .Select(_ => nexusProvider.HaveToken());
 
             NexusLogin =
-                ReactiveCommand.Create(() => { MessageBus.Instance.Send(new NavigateTo(typeof(NexusLoginViewModel))); },
+                ReactiveCommand.Create(() => { MessageBus.Current.SendMessage(new NavigateTo(typeof(NexusLoginViewModel))); },
                     haveNexusToken.Select(x => !x));
             NexusLogout = ReactiveCommand.Create(nexusProvider.DeleteToken, haveNexusToken.Select(x => x));
         });

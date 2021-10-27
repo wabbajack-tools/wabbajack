@@ -9,7 +9,7 @@ using Wabbajack.App.Messages;
 
 namespace Wabbajack.App.ViewModels;
 
-public abstract class GuidedWebViewModel : ViewModelBase, IReceiverMarker
+public abstract class GuidedWebViewModel : ViewModelBase
 {
     protected ILogger _logger;
 

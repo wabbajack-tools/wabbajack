@@ -16,16 +16,5 @@ public class Startup
     public void Configure(ILoggerFactory loggerFactory, ITestOutputHelperAccessor accessor)
     {
         loggerFactory.AddProvider(new XunitTestOutputLoggerProvider(accessor, delegate { return true; }));
-        MessageBus.Instance = new SimpleMessageBus();
-    }
-}
-
-public class SimpleMessageBus : IMessageBus
-{
-    public List<object> Messages { get; } = new();
-
-    public void Send<T>(T message)
-    {
-        Messages.Add(message);
     }
 }

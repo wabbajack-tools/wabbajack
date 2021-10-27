@@ -22,7 +22,7 @@ using Consts = Wabbajack.Compiler.Consts;
 
 namespace Wabbajack.App.Screens;
 
-public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
+public class CompilerConfigurationViewModel : ViewModelBase
 {
     private readonly DTOSerializer _dtos;
     private readonly SettingsManager _settingsManager;
@@ -94,8 +94,8 @@ public class CompilerConfigurationViewModel : ViewModelBase, IReceiverMarker
         await SaveSettingsFile();
         await _settingsManager.Save("last_compilation", SettingsOutputLocation);
 
-        MessageBus.Instance.Send(new StartCompilation(settings));
-        MessageBus.Instance.Send(new NavigateTo(typeof(CompilationViewModel)));
+        MessageBus.Current.SendMessage(new StartCompilation(settings));
+        MessageBus.Current.SendMessage(new NavigateTo(typeof(CompilationViewModel)));
     }
 
     private CompilerSettings GetSettings()
