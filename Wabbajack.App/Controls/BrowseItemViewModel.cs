@@ -167,7 +167,7 @@ public class BrowseItemViewModel : ViewModelBase, IActivatableViewModel
 
     public async Task LoadListImage()
     {
-        Image = await _imageCache.From(ImageUri);
+        Image = await _imageCache.From(ImageUri, 540, 300);
     }
 
     public async Task<ModListState> GetState()
