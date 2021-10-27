@@ -57,6 +57,7 @@ public static class ServiceExtensions
         services.AddSingleton<IScreenView, BrowseView>();
         services.AddSingleton<IScreenView, LauncherView>();
         services.AddSingleton<IScreenView, PlaySelectView>();
+        services.AddSingleton<ImageCache>();
 
         services.AddSingleton<InstallationStateManager>();
         services.AddSingleton<HttpClient>();
@@ -97,7 +98,8 @@ public static class ServiceExtensions
             EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
             ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
             SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings"),
-            LogLocation = KnownFolders.EntryPoint.Combine("logs")
+            LogLocation = KnownFolders.EntryPoint.Combine("logs"),
+            ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
         });
 
         services.AddSingleton<SettingsManager>();
