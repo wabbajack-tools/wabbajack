@@ -42,6 +42,7 @@ public partial class BrowseItemView : ReactiveUserControl<BrowseItemViewModel>
     {
         return modListState switch
         {
+            ModListState.Disabled => MaterialIconKind.Error,
             ModListState.Downloaded => MaterialIconKind.PlayArrow,
             ModListState.Downloading => MaterialIconKind.LocalAreaNetworkPending,
             ModListState.NotDownloaded => MaterialIconKind.Download,

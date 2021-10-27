@@ -14,7 +14,7 @@
             <Image Margin="40,20,40,0" Source="../Assets/Wabba_Mouth.png" />
         </Viewbox>
         <Grid Grid.Row="1" ColumnDefinitions="*, *, *, *" HorizontalAlignment="Center">
-            <controls:LargeIconButton Grid.Column="0" Text="Browse" Icon="CloudDownload" x:Name="BrowseButton" />
+            <controls:LargeIconButton Grid.Column="0" Text="Browse" Icon="CloudDownload" x:Name="BrowseButton" x:FieldModifier="public"/>
             <controls:LargeIconButton Grid.Column="1" Text="Install" Icon="HarddiskPlus" x:Name="InstallButton" />
             <controls:LargeIconButton Grid.Column="2" Text="Compile" Icon="DatabaseImport" x:Name="CompileButton" />
             <controls:LargeIconButton Grid.Column="3" Text="Play" Icon="TelevisionPlay" x:Name="LaunchButton" />

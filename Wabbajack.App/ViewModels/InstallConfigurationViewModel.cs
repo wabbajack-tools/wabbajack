@@ -1,7 +1,9 @@
+
+using System;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia.Controls.Mixins;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using ReactiveUI;
@@ -21,7 +23,7 @@ using Wabbajack.Paths.IO;
 
 namespace Wabbajack.App.ViewModels;
 
-public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewModel, IReceiver<StartInstallConfiguration>
+public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly DTOSerializer _dtos;
     private readonly InstallationStateManager _stateManager;
@@ -33,6 +35,11 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
 
         _dtos = dtos;
         Activator = new ViewModelActivator();
+
+        MessageBus.Current.Listen<StartInstallConfiguration>()
+            .Subscribe(Receive)
+            .DisposeWith(VMDisposables);
+        
         this.WhenActivated(disposables =>
         {
             this.ValidationRule(x => x.ModListPath, p => p.FileExists(), "Wabbajack file must exist");
@@ -88,7 +95,7 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
 
     public ViewModelActivator Activator { get; }
 
-    public void Receive(StartInstallConfiguration val)
+    private void Receive(StartInstallConfiguration val)
     {
         ModListPath = val.ModList;
     }
@@ -108,8 +115,8 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
             Metadata = metadata
         }).FireAndForget();
 
-        MessageBus.Instance.Send(new NavigateTo(typeof(StandardInstallationViewModel)));
-        MessageBus.Instance.Send(new StartInstallation(ModListPath, Install, Download, metadata));
+        MessageBus.Current.SendMessage(new NavigateTo(typeof(StandardInstallationViewModel)));
+        MessageBus.Current.SendMessage(new StartInstallation(ModListPath, Install, Download, metadata));
     }
 
     private async Task<IBitmap> LoadModListImage(AbsolutePath path)

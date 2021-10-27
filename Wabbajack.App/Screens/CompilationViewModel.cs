@@ -1,4 +1,5 @@
 using System;
+using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
@@ -14,7 +15,7 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack.App.Screens;
 
-public class CompilationViewModel : ViewModelBase, IReceiverMarker, IReceiver<StartCompilation>
+public class CompilationViewModel : ViewModelBase
 {
     private readonly ILogger<CompilationViewModel> _logger;
     private readonly IServiceProvider _provider;
@@ -26,13 +27,17 @@ public class CompilationViewModel : ViewModelBase, IReceiverMarker, IReceiver<St
         _logger = logger;
         _provider = provider;
         Activator = new ViewModelActivator();
+
+        MessageBus.Current.Listen<StartCompilation>()
+            .Subscribe(Receive)
+            .DisposeWith(VMDisposables);
     }
 
     [Reactive] public string StatusText { get; set; } = "";
     [Reactive] public Percent StepsProgress { get; set; } = Percent.Zero;
     [Reactive] public Percent StepProgress { get; set; } = Percent.Zero;
 
-    public void Receive(StartCompilation val)
+    private void Receive(StartCompilation val)
     {
         if (val.Settings is MO2CompilerSettings mo2)
         {

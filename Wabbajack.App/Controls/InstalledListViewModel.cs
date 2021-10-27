@@ -19,8 +19,8 @@ public class InstalledListViewModel : ViewModelBase
 
         Play = ReactiveCommand.Create(() =>
         {
-            MessageBus.Instance.Send(new ConfigureLauncher(InstallPath));
-            MessageBus.Instance.Send(new NavigateTo(typeof(LauncherViewModel)));
+            MessageBus.Current.SendMessage(new ConfigureLauncher(InstallPath));
+            MessageBus.Current.SendMessage(new NavigateTo(typeof(LauncherViewModel)));
         });
     }
 

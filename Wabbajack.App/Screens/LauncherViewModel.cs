@@ -1,3 +1,5 @@
+
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
@@ -20,7 +22,7 @@ using Wabbajack.Paths.IO;
 
 namespace Wabbajack.App.Screens;
 
-public class LauncherViewModel : ViewModelBase, IActivatableViewModel, IReceiver<ConfigureLauncher>
+public class LauncherViewModel : ViewModelBase
 {
     private readonly ILogger<LauncherViewModel> _logger;
 
@@ -31,6 +33,10 @@ public class LauncherViewModel : ViewModelBase, IActivatableViewModel, IReceiver
         Activator = new ViewModelActivator();
         PlayButton = ReactiveCommand.Create(() => { StartGame().FireAndForget(); });
         _logger = logger;
+
+        MessageBus.Current.Listen<ConfigureLauncher>()
+            .Subscribe(v => Receive(v))
+            .DisposeWith(VMDisposables);
 
         this.WhenActivated(disposables =>
         {

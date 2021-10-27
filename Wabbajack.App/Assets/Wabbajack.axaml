@@ -34,6 +34,10 @@
     <Style Selector="controls|TagView TextBlock">
         <Setter Property="Foreground" Value="#121212" />
     </Style>
+    
+    <Style Selector="Border.Settings">
+        <Setter Property="BorderThickness" Value="2"></Setter>
+    </Style>
 
 
 </Styles>

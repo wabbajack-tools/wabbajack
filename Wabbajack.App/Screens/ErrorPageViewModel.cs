@@ -1,4 +1,5 @@
 using System;
+using Avalonia.Controls.Mixins;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.App.Messages;
@@ -6,11 +7,14 @@ using Wabbajack.App.ViewModels;
 
 namespace Wabbajack.App.Screens;
 
-public class ErrorPageViewModel : ViewModelBase, IActivatableViewModel, IReceiver<Error>
+public class ErrorPageViewModel : ViewModelBase
 {
     public ErrorPageViewModel()
     {
         Activator = new ViewModelActivator();
+        MessageBus.Current.Listen<Error>()
+            .Subscribe(Receive)
+            .DisposeWith(VMDisposables);
     }
 
     [Reactive] public string ShortMessage { get; set; }
@@ -25,7 +29,7 @@ public class ErrorPageViewModel : ViewModelBase, IActivatableViewModel, IReceive
 
     public static void Display(string prefix, Exception ex)
     {
-        MessageBus.Instance.Send(new Error(prefix, ex));
-        MessageBus.Instance.Send(new NavigateTo(typeof(ErrorPageViewModel)));
+        MessageBus.Current.SendMessage(new Error(prefix, ex));
+        MessageBus.Current.SendMessage(new NavigateTo(typeof(ErrorPageViewModel)));
     }
 }

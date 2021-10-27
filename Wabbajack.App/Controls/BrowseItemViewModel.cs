@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.App.Messages;
+using Wabbajack.App.Models;
 using Wabbajack.App.ViewModels;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
@@ -28,7 +29,8 @@ public enum ModListState
 {
     Downloaded,
     NotDownloaded,
-    Downloading
+    Downloading,
+    Disabled
 }
 
 public class BrowseItemViewModel : ViewModelBase, IActivatableViewModel
@@ -43,11 +45,12 @@ public class BrowseItemViewModel : ViewModelBase, IActivatableViewModel
     private readonly ILogger _logger;
     private readonly ModlistMetadata _metadata;
     private readonly ModListSummary _summary;
+    private readonly ImageCache _imageCache;
 
     public BrowseItemViewModel(ModlistMetadata metadata, ModListSummary summary, HttpClient client,
         IResource<HttpClient> limiter,
         FileHashCache hashCache, Configuration configuration, DownloadDispatcher dispatcher,
-        IResource<DownloadDispatcher> downloadLimiter, GameLocator gameLocator,
+        IResource<DownloadDispatcher> downloadLimiter, GameLocator gameLocator, ImageCache imageCache,
         DTOSerializer dtos, ILogger logger)
     {
         Activator = new ViewModelActivator();
@@ -59,6 +62,7 @@ public class BrowseItemViewModel : ViewModelBase, IActivatableViewModel
         _configuration = configuration;
         _dispatcher = dispatcher;
         _downloadLimiter = downloadLimiter;
+        _imageCache = imageCache;
         _logger = logger;
         _dtos = dtos;
 
@@ -78,8 +82,8 @@ public class BrowseItemViewModel : ViewModelBase, IActivatableViewModel
             {
                 if (State == ModListState.Downloaded)
                 {
-                    MessageBus.Instance.Send(new StartInstallConfiguration(ModListLocation));
-                    MessageBus.Instance.Send(new NavigateTo(typeof(InstallConfigurationViewModel)));
+                    MessageBus.Current.SendMessage(new StartInstallConfiguration(ModListLocation));
+                    MessageBus.Current.SendMessage(new NavigateTo(typeof(InstallConfigurationViewModel)));
                 }
                 else
                 {
@@ -87,7 +91,7 @@ public class BrowseItemViewModel : ViewModelBase, IActivatableViewModel
                 }
             },
             this.ObservableForProperty(t => t.State)
-                .Select(c => c.Value != ModListState.Downloading)
+                .Select(c => c.Value != ModListState.Downloading && c.Value != ModListState.Disabled)
                 .StartWith(true));
 
         LoadListImage().FireAndForget();
@@ -96,7 +100,7 @@ public class BrowseItemViewModel : ViewModelBase, IActivatableViewModel
 
     public string Title => _metadata.ImageContainsTitle ? "" : _metadata.Title;
     public string MachineURL => _metadata.Links.MachineURL;
-    public string Description => _metadata.Description;
+    public string Description => State == ModListState.Disabled ? "Disabled: Under Construction \n " + _metadata.Description : _metadata.Description;
 
     public Uri ImageUri => new(_metadata.Links.ImageUri);
 
@@ -163,13 +167,14 @@ public class BrowseItemViewModel : ViewModelBase, IActivatableViewModel
 
     public async Task LoadListImage()
     {
-        using var job = await _limiter.Begin("Loading modlist image", 0, CancellationToken.None);
-        var response = await _client.GetByteArrayAsync(ImageUri);
-        Image = new Bitmap(new MemoryStream(response));
+        Image = await _imageCache.From(ImageUri);
     }
 
     public async Task<ModListState> GetState()
     {
+        if (_metadata.ForceDown || _summary.HasFailures)
+            return ModListState.Disabled;
+        
         var file = ModListLocation;
         if (!file.FileExists())
             return ModListState.NotDownloaded;

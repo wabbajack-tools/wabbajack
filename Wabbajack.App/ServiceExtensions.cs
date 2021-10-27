@@ -35,7 +35,6 @@ public static class ServiceExtensions
     public static IServiceCollection AddAppServices(this IServiceCollection services)
     {
         services.AddAllSingleton<ILoggerProvider, LoggerProvider>();
-        services.AddSingleton<MessageBus>();
         services.AddSingleton<MainWindow>();
         services.AddSingleton<BrowseViewModel>();
         services.AddTransient<BrowseItemViewModel>();
@@ -58,23 +57,24 @@ public static class ServiceExtensions
         services.AddSingleton<IScreenView, BrowseView>();
         services.AddSingleton<IScreenView, LauncherView>();
         services.AddSingleton<IScreenView, PlaySelectView>();
+        services.AddSingleton<ImageCache>();
 
         services.AddSingleton<InstallationStateManager>();
         services.AddSingleton<HttpClient>();
 
         services.AddSingleton<LogScreenViewModel>();
         services.AddSingleton<PlaySelectViewModel>();
-        services.AddAllSingleton<IReceiverMarker, ErrorPageViewModel>();
-        services.AddAllSingleton<IReceiverMarker, StandardInstallationViewModel>();
-        services.AddAllSingleton<IReceiverMarker, InstallConfigurationViewModel>();
-        services.AddAllSingleton<IReceiverMarker, CompilerConfigurationViewModel>();
-        services.AddAllSingleton<IReceiverMarker, MainWindowViewModel>();
-        services.AddAllSingleton<IReceiverMarker, SettingsViewModel>();
-        services.AddAllSingleton<IReceiverMarker, NexusLoginViewModel>();
-        services.AddAllSingleton<IReceiverMarker, LoversLabOAuthLoginViewModel>();
-        services.AddAllSingleton<IReceiverMarker, VectorPlexusOAuthLoginViewModel>();
-        services.AddAllSingleton<IReceiverMarker, CompilationViewModel>();
-        services.AddAllSingleton<IReceiverMarker, LauncherViewModel>();
+        services.AddSingleton<ErrorPageViewModel>();
+        services.AddSingleton<StandardInstallationViewModel>();
+        services.AddSingleton<InstallConfigurationViewModel>();
+        services.AddSingleton<CompilerConfigurationViewModel>();
+        services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<SettingsViewModel>();
+        services.AddSingleton<NexusLoginViewModel>();
+        services.AddSingleton<LoversLabOAuthLoginViewModel>();
+        services.AddSingleton<VectorPlexusOAuthLoginViewModel>();
+        services.AddSingleton<CompilationViewModel>();
+        services.AddSingleton<LauncherViewModel>();
 
         // Services
         services.AddAllSingleton<IDownloader, IDownloader<Manual>, ManualDownloader>();
@@ -98,7 +98,8 @@ public static class ServiceExtensions
             EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
             ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
             SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings"),
-            LogLocation = KnownFolders.EntryPoint.Combine("logs")
+            LogLocation = KnownFolders.EntryPoint.Combine("logs"),
+            ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
         });
 
         services.AddSingleton<SettingsManager>();

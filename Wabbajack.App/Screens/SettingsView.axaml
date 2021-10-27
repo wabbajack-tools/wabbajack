@@ -6,7 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Wabbajack.App.Screens.SettingsView">
     <WrapPanel Margin="40">
-        <Border x:Name="LoginBorder" Margin="5" BorderThickness="1">
+        <Border x:Name="LoginBorder" Margin="5" BorderThickness="1" Classes="Settings">
             <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="20, 100, Auto, Auto">
                 <TextBlock FontSize="20" Grid.ColumnSpan="4">Logins</TextBlock>
 
@@ -34,7 +34,7 @@
             </Grid>
         </Border>
 
-        <Border x:Name="ResourcesBorder" Margin="5" BorderThickness="1">
+        <Border x:Name="ResourcesBorder" Margin="5" BorderThickness="1" Classes="Settings">
             <Grid RowDefinitions="Auto, Auto">
                 <TextBlock FontSize="20" Grid.ColumnSpan="4">Resource Limits</TextBlock>
 

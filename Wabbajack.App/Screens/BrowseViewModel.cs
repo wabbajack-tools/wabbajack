@@ -48,10 +48,12 @@ public class BrowseViewModel : ViewModelBase, IActivatableViewModel
     private readonly SourceCache<GameSelectorItemViewModel, string> _gamesList = new(x => x.Name);
 
     private readonly SourceCache<BrowseItemViewModel, string> _modLists = new(x => x.MachineURL);
+    private readonly ImageCache _imageCache;
 
     public BrowseViewModel(ILogger<BrowseViewModel> logger, Client wjClient, HttpClient httpClient,
         IResource<HttpClient> limiter, FileHashCache hashCache,
         IResource<DownloadDispatcher> dispatcherLimiter, DownloadDispatcher dispatcher, GameLocator gameLocator,
+        ImageCache imageCache,
         DTOSerializer dtos, Configuration configuration)
     {
         LoadingLock = new LoadingLock();
@@ -65,6 +67,7 @@ public class BrowseViewModel : ViewModelBase, IActivatableViewModel
         _dispatcher = dispatcher;
         _dispatcherLimiter = dispatcherLimiter;
         _gameLocator = gameLocator;
+        _imageCache = imageCache;
         _dtos = dtos;
 
 
@@ -131,6 +134,7 @@ public class BrowseViewModel : ViewModelBase, IActivatableViewModel
             .Filter(onlyInstalledGamesFilter)
             .Filter(onlyUtilityListsFilter)
             .Filter(showNSFWFilter)
+            .SortBy(x => x.State == ModListState.Disabled ? 1 : 0)
             .Bind(out _filteredModLists)
             .Subscribe();
 
@@ -191,7 +195,7 @@ public class BrowseViewModel : ViewModelBase, IActivatableViewModel
             if (!summaries.TryGetValue(m.Links.MachineURL, out var summary)) summary = new ModListSummary();
 
             return new BrowseItemViewModel(m, summary, _httpClient, _limiter, _hashCache, _configuration, _dispatcher,
-                _dispatcherLimiter, _gameLocator, _dtos, _logger);
+                _dispatcherLimiter, _gameLocator, _imageCache, _dtos, _logger);
         });
 
         _modLists.Edit(lsts =>
