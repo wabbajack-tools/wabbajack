@@ -28,16 +28,18 @@ public class ImageCache
         _limiter = limiter;
     }
 
-    public async Task<IBitmap> From(Uri uri)
+    public async Task<IBitmap> From(Uri uri, int width, int height)
     {
         var hash = (await Encoding.UTF8.GetBytes(uri.ToString()).Hash()).ToHex();
-        var file = _configuration.ImageCacheLocation.Combine(hash);
+        var file = _configuration.ImageCacheLocation.Combine(hash + $"_{width}_{height}");
+        
         if (!file.FileExists())
         {
             using var job = await _limiter.Begin("Loading Image", 0, CancellationToken.None);
+            
             var wdata = await _client.GetByteArrayAsync(uri);
-            await file.WriteAllBytesAsync(wdata);
-            return new Bitmap(new MemoryStream(wdata));
+            var resized = SKBitmap.Decode(wdata).Resize(new SKSizeI(width, height), SKFilterQuality.High);
+            await file.WriteAllBytesAsync(resized.Encode(SKEncodedImageFormat.Webp, 90).ToArray());
         }
         
         var data = await file.ReadAllBytesAsync();

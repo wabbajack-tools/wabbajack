@@ -10,11 +10,7 @@
         <Grid Width="540" Height="480" RowDefinitions="Auto, *, 40" ColumnDefinitions="*, Auto">
             <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" BorderThickness="0, 0, 0, 1">
                 <Grid ClipToBounds="True">
-                    <Viewbox Height="340" HorizontalAlignment="Center" VerticalAlignment="Center"
-                             Stretch="UniformToFill">
-                        <Image x:Name="ModListImage" />
-                    </Viewbox>
-
+                    <Image x:Name="ModListImage" />
                     <Label Margin="10, 242, 0,  0" HorizontalAlignment="Left" VerticalAlignment="Top"
                            x:Name="VersionText" />
                 </Grid>

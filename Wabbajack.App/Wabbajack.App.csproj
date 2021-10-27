@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿ <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net6.0-windows</TargetFramework>
@@ -50,7 +50,7 @@
         </Compile>
     </ItemGroup>
 
-    <Target Name="AferBuild" AfterTargets="Build" Condition="!Exists('$(ProjectDir)$(OutDir)libcef.dll')">
+    <Target Name="AferBuild" AfterTargets="Build" Condition="!Exists('$(ProjectDir)$(OutDir)swiftshader')">
         <Message Text="Downloading Cef" />
         <Exec Command="dotnet run --project $(ProjectDir)../Wabbajack.CLI/Wabbajack.CLI.csproj -- download-cef -f $(ProjectDir)$(OutDir)" />
     </Target>
