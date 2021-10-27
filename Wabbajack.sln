@@ -116,8 +116,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Downloaders.GameF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Launcher", "Wabbajack.Launcher\Wabbajack.Launcher.csproj", "{23D49FCC-A6CB-4873-879B-F90DA1871AA3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.App.Test", "Wabbajack.App.Test\Wabbajack.App.Test.csproj", "{05E7E8BB-1F44-4E3D-8443-110FD237AA92}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -324,10 +322,6 @@ Global
 		{23D49FCC-A6CB-4873-879B-F90DA1871AA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23D49FCC-A6CB-4873-879B-F90DA1871AA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23D49FCC-A6CB-4873-879B-F90DA1871AA3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{05E7E8BB-1F44-4E3D-8443-110FD237AA92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{05E7E8BB-1F44-4E3D-8443-110FD237AA92}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{05E7E8BB-1F44-4E3D-8443-110FD237AA92}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{05E7E8BB-1F44-4E3D-8443-110FD237AA92}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{4057B668-8595-44FE-9805-007B284A838F} = {98B731EE-4FC0-4482-A069-BCBA25497871}

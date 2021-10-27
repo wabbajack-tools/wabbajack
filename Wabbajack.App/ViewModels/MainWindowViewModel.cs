@@ -151,9 +151,5 @@ public class MainWindowViewModel : ReactiveValidationObject, IActivatableViewMod
     {
         _resourcePoller.Dispose();
         VMDisposables.Dispose();
-        BackButton.Dispose();
-        SettingsButton.Dispose();
-        LogViewButton.Dispose();
-        Activator.Dispose();
     }
 }
