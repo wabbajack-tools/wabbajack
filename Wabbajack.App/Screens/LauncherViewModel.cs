@@ -48,7 +48,7 @@ public class LauncherViewModel : ViewModelBase
                 .DisposeWith(disposables);
 
             this.WhenAnyValue(v => v.Setting)
-                .Where(v => v != default)
+                .Where(v => v != default && v!.Image != default)
                 .Select(v => new Bitmap(v!.Image.ToString()))
                 .BindTo(this, vm => vm.Image)
                 .DisposeWith(disposables);

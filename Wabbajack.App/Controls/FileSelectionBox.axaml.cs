@@ -41,7 +41,7 @@ public partial class FileSelectionBox : ReactiveUserControl<FileSelectionBoxView
                     exts.Split("|", StringSplitOptions.RemoveEmptyEntries).Select(s => new Extension(s)).ToArray())
                 .BindTo(ViewModel, vm => vm.Extensions)
                 .DisposeWith(disposables);
-            this.Bind(ViewModel, vm => vm.Path,
+            this.OneWayBind(ViewModel, vm => vm.Path,
                     view => view.TextBox.Text)
                 .DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.BrowseCommand,
