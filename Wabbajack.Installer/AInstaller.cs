@@ -51,11 +51,11 @@ public abstract class AInstaller<T>
     private long _currentStepProgress;
 
 
-    private long _maxStepProgress;
+    protected long MaxStepProgress { get; set; }
     private string _statusText;
     private readonly Stopwatch _updateStopWatch = new();
 
-    public Func<StatusUpdate, Task>? OnStatusUpdate;
+    public Action<StatusUpdate>? OnStatusUpdate;
 
 
     public AInstaller(ILogger<T> logger, InstallerConfiguration config, IGameLocator gameLocator,
@@ -90,38 +90,30 @@ public abstract class AInstaller<T>
     public async Task NextStep(string statusText, long maxStepProgress)
     {
         _updateStopWatch.Restart();
-        _maxStepProgress = maxStepProgress;
+        MaxStepProgress = maxStepProgress;
         _currentStep += 1;
         _statusText = statusText;
         _logger.LogInformation("Next Step: {Step}", statusText);
 
-        if (OnStatusUpdate != null)
-            await OnStatusUpdate!(new StatusUpdate($"[{_currentStep}/{MaxSteps}] " + statusText,
-                Percent.FactoryPutInRange(_currentStep, MaxSteps), Percent.Zero));
+        OnStatusUpdate?.Invoke(new StatusUpdate($"[{_currentStep}/{MaxSteps}] " + statusText,
+            Percent.FactoryPutInRange(_currentStep, MaxSteps), Percent.Zero));
     }
 
-    public async ValueTask UpdateProgress(long stepProgress)
+    public void UpdateProgress(long stepProgress)
     {
         Interlocked.Add(ref _currentStepProgress, stepProgress);
 
-        if (_updateStopWatch.ElapsedMilliseconds < _limitMS) return;
-        lock (_updateStopWatch)
-        {
-            if (_updateStopWatch.ElapsedMilliseconds < _limitMS) return;
-            _updateStopWatch.Restart();
-        }
-
-        if (OnStatusUpdate != null)
-            await OnStatusUpdate!(new StatusUpdate(_statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
-                Percent.FactoryPutInRange(_currentStepProgress, _maxStepProgress)));
+        OnStatusUpdate?.Invoke(new StatusUpdate($"[{_currentStep}/{MaxSteps}] " + _statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
+            Percent.FactoryPutInRange(_currentStepProgress, MaxStepProgress)));
     }
 
     public abstract Task<bool> Begin(CancellationToken token);
 
     public async Task ExtractModlist(CancellationToken token)
     {
+        await NextStep("Extracting Modlist", 100);
         ExtractedModlistFolder = _manager.CreateFolder();
-        await _extractor.ExtractAll(_configuration.ModlistArchive, ExtractedModlistFolder, token);
+        await _extractor.ExtractAll(_configuration.ModlistArchive, ExtractedModlistFolder, token, updateProgress: p => UpdateProgress((long)(p.Value * 100)));
     }
 
     public async Task<byte[]> LoadBytesFromPath(RelativePath path)
@@ -165,13 +157,15 @@ public abstract class AInstaller<T>
     /// </summary>
     protected async Task PrimeVFS()
     {
+        await NextStep("Priming VFS", 0);
         _vfs.AddKnown(_configuration.ModList.Directives.OfType<FromArchive>().Select(d => d.ArchiveHashPath),
             HashedArchives);
         await _vfs.BackfillMissing();
     }
 
-    public void BuildFolderStructure()
-    {
+    public async Task BuildFolderStructure()
+    { 
+        await NextStep("Building Folder Structure", 0);
         _logger.LogInformation("Building Folder Structure");
         ModList.Directives
             .Where(d => d.To.Depth > 1)
@@ -196,7 +190,7 @@ public abstract class AInstaller<T>
             foreach (var directive in grouped[vf])
             {
                 var file = directive.Directive;
-                await UpdateProgress(file.Size);
+                UpdateProgress(file.Size);
 
                 switch (file)
                 {
@@ -305,7 +299,7 @@ public abstract class AInstaller<T>
                     }
 
                 await DownloadArchive(archive, download, token, outputPath);
-                await UpdateProgress(1);
+                UpdateProgress(1);
             });
     }
 
@@ -345,23 +339,30 @@ public abstract class AInstaller<T>
 
     public async Task HashArchives(CancellationToken token)
     {
+        await NextStep("Hashing Archives", 0);
         _logger.LogInformation("Looking for files to hash");
 
         var allFiles = _configuration.Downloads.EnumerateFiles()
             .Concat(_gameLocator.GameLocation(_configuration.Game).EnumerateFiles())
             .ToList();
-
+        
         var hashDict = allFiles.GroupBy(f => f.Size()).ToDictionary(g => g.Key);
 
         var toHash = ModList.Archives.Where(a => hashDict.ContainsKey(a.Size))
             .SelectMany(a => hashDict[a.Size]).ToList();
+
+        MaxStepProgress = toHash.Count;
 
         _logger.LogInformation("Found {count} total files, {hashedCount} matching filesize", allFiles.Count,
             toHash.Count);
 
         var hashResults = await
             toHash
-                .PMapAll(async e => (await _fileHashCache.FileHashCachedAsync(e, token), e))
+                .PMapAll(async e =>
+                {
+                    UpdateProgress(1);
+                    return (await _fileHashCache.FileHashCachedAsync(e, token), e);
+                })
                 .ToList();
 
         HashedArchives = hashResults
@@ -393,7 +394,7 @@ public abstract class AInstaller<T>
         await existingFiles
             .PDoAll(async f =>
             {
-                await UpdateProgress(1);
+                UpdateProgress(1);
                 var relativeTo = f.RelativeTo(_configuration.Install);
                 if (indexed.ContainsKey(relativeTo) || f.InFolder(_configuration.Downloads))
                     return;
@@ -409,11 +410,11 @@ public abstract class AInstaller<T>
 
         _logger.LogInformation("Cleaning empty folders");
         await NextStep("Optimizing Modlist: Cleaning empty folders", indexed.Keys.Count);
-        var expectedFolders = (await indexed.Keys
+        var expectedFolders = (indexed.Keys
                 .Select(f => f.RelativeTo(_configuration.Install))
                 // We ignore the last part of the path, so we need a dummy file name
                 .Append(_configuration.Downloads.Combine("_"))
-                .OnEach(async _ => await UpdateProgress(1))
+                .OnEach(_ => UpdateProgress(1))
                 .Where(f => f.InFolder(_configuration.Install))
                 .SelectMany(path =>
                 {
@@ -446,7 +447,7 @@ public abstract class AInstaller<T>
         await NextStep("Optimizing Modlist: Removing redundant directives", indexed.Count);
         await indexed.Values.PMapAll<Directive, Directive?>(async d =>
             {
-                await UpdateProgress(1);
+                UpdateProgress(1);
                 // Bit backwards, but we want to return null for 
                 // all files we *want* installed. We return the files
                 // to remove from the install list.
@@ -462,6 +463,7 @@ public abstract class AInstaller<T>
 
         _logger.LogInformation("Optimized {optimized} directives to {indexed} required", ModList.Directives.Length,
             indexed.Count);
+        await NextStep("Finalizing modlist optimization", 0);
         var requiredArchives = indexed.Values.OfType<FromArchive>()
             .GroupBy(d => d.ArchiveHashPath.Hash)
             .Select(d => d.Key)

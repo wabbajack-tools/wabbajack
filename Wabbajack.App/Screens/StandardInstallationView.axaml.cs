@@ -1,5 +1,9 @@
+using System;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using Avalonia.Threading;
 using ReactiveUI;
+using Wabbajack.App.Extensions;
 using Wabbajack.App.ViewModels;
 
 namespace Wabbajack.App.Views;
@@ -27,14 +31,15 @@ public partial class StandardInstallationView : ScreenBase<StandardInstallationV
             this.BindCommand(ViewModel, vm => vm.PlayCommand, view => view.PlaySlides)
                 .DisposeWith(disposables);
 
-            this.OneWayBind(ViewModel, vm => vm.StatusText, view => view.StatusText.Text)
+            this.SimpleOneWayBind(ViewModel, vm => vm.StatusText, view => view.StatusText.Text)
                 .DisposeWith(disposables);
 
-            this.OneWayBind(ViewModel, vm => vm.StepsProgress, view => view.StepsProgress.Value, p => p.Value * 1000)
+            this.SimpleOneWayBind(ViewModel, vm => vm.StepsProgress, view => view.StepsProgress.Value, p => p.Value * 1000)
                 .DisposeWith(disposables);
 
-            this.OneWayBind(ViewModel, vm => vm.StepProgress, view => view.StepProgress.Value, p => p.Value * 10000)
+            this.SimpleOneWayBind(ViewModel, vm => vm.StepProgress, p => p.StepProgress.Value, p => p.Value * 10000)
                 .DisposeWith(disposables);
+
         });
     }
 }
