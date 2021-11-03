@@ -9,7 +9,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0-rc.2.21480.5"/>
-        <PackageReference Include="System.Data.SQLite.Core" Version="1.0.115"/>
+        <PackageReference Include="System.Data.SQLite.Core" Version="1.0.115.5"/>
     </ItemGroup>
 
     <ItemGroup>
