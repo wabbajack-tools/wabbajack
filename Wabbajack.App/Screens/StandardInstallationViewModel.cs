@@ -20,6 +20,7 @@ using Wabbajack.App.Utilities;
 using Wabbajack.App.ViewModels.SubViewModels;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.GameFile;
+using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
@@ -64,7 +65,7 @@ public class StandardInstallationViewModel : ViewModelBase
 
         this.WhenActivated(disposables =>
         {
-            _updateTimer = new Timer(UpdateStatus, null, TimeSpan.FromMilliseconds(1), TimeSpan.FromMilliseconds(250));
+            _updateTimer = new Timer(UpdateStatus, null, TimeSpan.FromMilliseconds(1), TimeSpan.FromMilliseconds(100));
             _updateTimer.DisposeWith(disposables);
             
             _slideTimer = new Timer(_ =>
@@ -108,7 +109,7 @@ public class StandardInstallationViewModel : ViewModelBase
     [Reactive] public Percent StepProgress { get; set; } = Percent.Zero;
     
     // Not Reactive, so we don't end up spamming the UI threads with events
-    public StatusUpdate _latestStatus { get; set; } = new("", Percent.Zero, Percent.Zero);
+    public StatusUpdate _latestStatus = new("", Percent.Zero, Percent.Zero);
 
     public void Receive(StartInstallation msg)
     {
@@ -117,11 +118,12 @@ public class StandardInstallationViewModel : ViewModelBase
 
     private void UpdateStatus(object? state)
     {
-        Dispatcher.UIThread.Post(() => {
+        Dispatcher.UIThread.Post(() =>
+        {
             StepsProgress = _latestStatus.StepsProgress;
             StepProgress = _latestStatus.StepProgress;
             StatusText = _latestStatus.StatusText;
-        });
+        }, DispatcherPriority.Render);
     }
 
     private void NextSlide(int direction)

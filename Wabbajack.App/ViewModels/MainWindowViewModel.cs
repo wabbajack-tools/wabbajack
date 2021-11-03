@@ -59,8 +59,8 @@ public class MainWindowViewModel : ReactiveValidationObject, IActivatableViewMod
         this.WhenActivated(disposables =>
         {
             BackButton = ReactiveCommand.Create(() => { Receive(new NavigateBack()); },
-                    this.ObservableForProperty(vm => vm.BreadCrumbs)
-                        .Select(bc => bc.Value.Count() > 1))
+                    this.WhenAnyValue(vm => vm.BreadCrumbs)
+                        .Select(bc => bc.Count() > 1))
                 .DisposeWith(disposables);
 
             SettingsButton = ReactiveCommand.Create(() => { Receive(new NavigateTo(typeof(SettingsViewModel))); })

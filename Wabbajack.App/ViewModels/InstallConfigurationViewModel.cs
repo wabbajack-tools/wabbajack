@@ -27,11 +27,13 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
 {
     private readonly DTOSerializer _dtos;
     private readonly InstallationStateManager _stateManager;
+    private readonly SettingsManager _settingsManager;
 
 
-    public InstallConfigurationViewModel(DTOSerializer dtos, InstallationStateManager stateManager)
+    public InstallConfigurationViewModel(DTOSerializer dtos, InstallationStateManager stateManager, SettingsManager settingsManager)
     {
         _stateManager = stateManager;
+        _settingsManager = settingsManager;
 
         _dtos = dtos;
         Activator = new ViewModelActivator();
@@ -76,7 +78,18 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
             settings.Select(s => s!.Downloads)
                 .BindTo(this, vm => vm.Download)
                 .DisposeWith(disposables);
+
+
+            LoadSettings().FireAndForget();
+
         });
+    }
+
+    private async Task LoadSettings()
+    {
+        var path = await _settingsManager.Load<AbsolutePath>("last-install-path");
+        if (path != default && path.FileExists())
+            ModListPath = path;
     }
 
     [Reactive] public AbsolutePath ModListPath { get; set; }
@@ -107,13 +120,15 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
         if (metadataPath.FileExists())
             metadata = _dtos.Deserialize<ModlistMetadata>(await metadataPath.ReadAllTextAsync());
 
-        _stateManager.SetLastState(new InstallationConfigurationSetting
+        await _stateManager.SetLastState(new InstallationConfigurationSetting
         {
             ModList = ModListPath,
             Downloads = Download,
             Install = Install,
             Metadata = metadata
-        }).FireAndForget();
+        });
+
+        await _settingsManager.Save("last-install-path", ModListPath);
 
         MessageBus.Current.SendMessage(new NavigateTo(typeof(StandardInstallationViewModel)));
         MessageBus.Current.SendMessage(new StartInstallation(ModListPath, Install, Download, metadata));

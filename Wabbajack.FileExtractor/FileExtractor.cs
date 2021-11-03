@@ -321,6 +321,6 @@ public class FileExtractor
             await using var stream = await factory.GetStream();
             await abs.WriteAllAsync(stream, token);
             return 0;
-        }, token);
+        }, token, progressFunction: updateProgress);
     }
 }

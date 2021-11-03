@@ -87,7 +87,7 @@ public abstract class AInstaller<T>
 
     public ModList ModList => _configuration.ModList;
 
-    public async Task NextStep(string statusText, long maxStepProgress)
+    public void NextStep(string statusText, long maxStepProgress)
     {
         _updateStopWatch.Restart();
         MaxStepProgress = maxStepProgress;
@@ -109,11 +109,20 @@ public abstract class AInstaller<T>
 
     public abstract Task<bool> Begin(CancellationToken token);
 
-    public async Task ExtractModlist(CancellationToken token)
+    protected async Task ExtractModlist(CancellationToken token)
     {
-        await NextStep("Extracting Modlist", 100);
         ExtractedModlistFolder = _manager.CreateFolder();
-        await _extractor.ExtractAll(_configuration.ModlistArchive, ExtractedModlistFolder, token, updateProgress: p => UpdateProgress((long)(p.Value * 100)));
+        await using var stream = _configuration.ModlistArchive.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+        using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
+        NextStep("Extracting Modlist", archive.Entries.Count);
+        foreach (var entry in archive.Entries)
+        {
+            var path = entry.FullName.ToRelativePath().RelativeTo(ExtractedModlistFolder);
+            path.Parent.CreateDirectory();
+            await using var of = path.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+            await entry.Open().CopyToAsync(of, token);
+            UpdateProgress(1);
+        }
     }
 
     public async Task<byte[]> LoadBytesFromPath(RelativePath path)
@@ -157,7 +166,7 @@ public abstract class AInstaller<T>
     /// </summary>
     protected async Task PrimeVFS()
     {
-        await NextStep("Priming VFS", 0);
+        NextStep("Priming VFS", 0);
         _vfs.AddKnown(_configuration.ModList.Directives.OfType<FromArchive>().Select(d => d.ArchiveHashPath),
             HashedArchives);
         await _vfs.BackfillMissing();
@@ -165,7 +174,7 @@ public abstract class AInstaller<T>
 
     public async Task BuildFolderStructure()
     { 
-        await NextStep("Building Folder Structure", 0);
+        NextStep("Building Folder Structure", 0);
         _logger.LogInformation("Building Folder Structure");
         ModList.Directives
             .Where(d => d.To.Depth > 1)
@@ -176,7 +185,7 @@ public abstract class AInstaller<T>
 
     public async Task InstallArchives(CancellationToken token)
     {
-        await NextStep("Installing files", ModList.Directives.Sum(d => d.Size));
+        NextStep("Installing files", ModList.Directives.Sum(d => d.Size));
         var grouped = ModList.Directives
             .OfType<FromArchive>()
             .Select(a => new {VF = _vfs.Index.FileForArchiveHashPath(a.ArchiveHashPath), Directive = a})
@@ -278,7 +287,7 @@ public abstract class AInstaller<T>
         }
 
         _logger.LogInformation("Downloading {count} archives", missing.Count);
-        await NextStep("Downloading files", missing.Count);
+        NextStep("Downloading files", missing.Count);
 
         await missing
             .OrderBy(a => a.Size)
@@ -339,7 +348,7 @@ public abstract class AInstaller<T>
 
     public async Task HashArchives(CancellationToken token)
     {
-        await NextStep("Hashing Archives", 0);
+        NextStep("Hashing Archives", 0);
         _logger.LogInformation("Looking for files to hash");
 
         var allFiles = _configuration.Downloads.EnumerateFiles()
@@ -390,7 +399,7 @@ public abstract class AInstaller<T>
         var savePath = (RelativePath) "saves";
 
         var existingFiles = _configuration.Install.EnumerateFiles().ToList();
-        await NextStep("Optimizing Modlist: Looking for files to delete", existingFiles.Count);
+        NextStep("Optimizing Modlist: Looking for files to delete", existingFiles.Count);
         await existingFiles
             .PDoAll(async f =>
             {
@@ -409,7 +418,7 @@ public abstract class AInstaller<T>
             });
 
         _logger.LogInformation("Cleaning empty folders");
-        await NextStep("Optimizing Modlist: Cleaning empty folders", indexed.Keys.Count);
+        NextStep("Optimizing Modlist: Cleaning empty folders", indexed.Keys.Count);
         var expectedFolders = (indexed.Keys
                 .Select(f => f.RelativeTo(_configuration.Install))
                 // We ignore the last part of the path, so we need a dummy file name
@@ -444,10 +453,9 @@ public abstract class AInstaller<T>
 
         var existingfiles = _configuration.Install.EnumerateFiles().ToHashSet();
 
-        await NextStep("Optimizing Modlist: Removing redundant directives", indexed.Count);
+        NextStep("Optimizing Modlist: Removing redundant directives", indexed.Count);
         await indexed.Values.PMapAll<Directive, Directive?>(async d =>
             {
-                UpdateProgress(1);
                 // Bit backwards, but we want to return null for 
                 // all files we *want* installed. We return the files
                 // to remove from the install list.
@@ -458,12 +466,13 @@ public abstract class AInstaller<T>
             })
             .Do(d =>
             {
+                UpdateProgress(1);
                 if (d != null) indexed.Remove(d.To);
             });
 
         _logger.LogInformation("Optimized {optimized} directives to {indexed} required", ModList.Directives.Length,
             indexed.Count);
-        await NextStep("Finalizing modlist optimization", 0);
+        NextStep("Finalizing modlist optimization", 0);
         var requiredArchives = indexed.Values.OfType<FromArchive>()
             .GroupBy(d => d.ArchiveHashPath.Hash)
             .Select(d => d.Key)
