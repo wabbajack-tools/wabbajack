@@ -68,6 +68,13 @@ public class MainWindowViewModel : ReactiveValidationObject, IActivatableViewMod
 
             LogViewButton = ReactiveCommand.Create(() => { Receive(new NavigateTo(typeof(LogScreenViewModel))); })
                 .DisposeWith(disposables);
+
+            this.WhenAnyValue(vm => vm.CurrentScreen)
+                .Where(view => view != default)
+                .Select(view => ((IScreenView) view).HumanName)
+                .Select(txt => txt == "" ? "Wabbajack" : $"Wabbajack - {txt}")
+                .BindTo(this, vm => vm.TitleText)
+                .DisposeWith(disposables);
         });
         CurrentScreen = (Control) _screens.First(s => s.ViewModelType == typeof(ModeSelectionViewModel));
 
@@ -85,6 +92,8 @@ public class MainWindowViewModel : ReactiveValidationObject, IActivatableViewMod
     [Reactive] public ReactiveCommand<Unit, Unit> LogViewButton { get; set; }
 
     [Reactive] public string ResourceStatus { get; set; }
+    
+    [Reactive] public string TitleText { get; set; }
 
     public ViewModelActivator Activator { get; }
 

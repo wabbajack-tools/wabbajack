@@ -9,7 +9,7 @@ namespace Wabbajack.App.Views;
 
 public partial class ModeSelectionView : ScreenBase<ModeSelectionViewModel>
 {
-    public ModeSelectionView(IServiceProvider provider)
+    public ModeSelectionView(IServiceProvider provider) : base("")
     {
         InitializeComponent();
         this.WhenActivated(disposables =>

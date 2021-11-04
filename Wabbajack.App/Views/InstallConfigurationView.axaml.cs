@@ -9,9 +9,9 @@ using Wabbajack.App.ViewModels;
 
 namespace Wabbajack.App.Views;
 
-public partial class InstallConfigurationView : ReactiveUserControl<InstallConfigurationViewModel>, IScreenView
+public partial class InstallConfigurationView : ScreenBase<InstallConfigurationViewModel>, IScreenView
 {
-    public InstallConfigurationView()
+    public InstallConfigurationView() : base("Install Configuration")
     {
         InitializeComponent();
         DataContext = App.Services.GetService<InstallConfigurationViewModel>()!;
@@ -44,6 +44,9 @@ public partial class InstallConfigurationView : ReactiveUserControl<InstallConfi
 
             this.WhenAnyValue(view => view.InstallPath.SelectedPath)
                 .BindTo(ViewModel, vm => vm.Install)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.BeginCommand, view => view.BeginInstall.Button)
                 .DisposeWith(disposables);
         });
     }

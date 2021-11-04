@@ -6,7 +6,7 @@ namespace Wabbajack.App.Screens;
 
 public partial class PlaySelectView : ScreenBase<PlaySelectViewModel>
 {
-    public PlaySelectView()
+    public PlaySelectView() : base("Modlist Selection")
     {
         InitializeComponent();
         this.WhenActivated(disposables =>

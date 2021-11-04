@@ -10,7 +10,7 @@ namespace Wabbajack.App.Views;
 
 public partial class StandardInstallationView : ScreenBase<StandardInstallationViewModel>
 {
-    public StandardInstallationView()
+    public StandardInstallationView() : base("Installing")
     {
         InitializeComponent();
 

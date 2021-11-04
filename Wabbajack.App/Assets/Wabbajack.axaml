@@ -37,7 +37,31 @@
     
     <Style Selector="Border.Settings">
         <Setter Property="BorderThickness" Value="2"></Setter>
+        <Setter Property="BorderBrush" Value="DarkGray"></Setter>
+        <Setter Property="CornerRadius" Value="4"></Setter>
     </Style>
+    
+    <Style Selector="Border.Settings Grid">
+        <Setter Property="Margin" Value="4"></Setter>
+    </Style>
+    
+    <Style Selector="Grid.LogView ItemsControl">
+        <Setter Property="Margin" Value="4"></Setter>
+    </Style>
+    
+    <Style Selector="Grid.LogView > TextBlock.Title">
+        <Setter Property="FontWeight" Value="Bold"></Setter>
+        <Setter Property="FontSize" Value="18"></Setter>
+        <Setter Property="Margin" Value="4"/>
+    </Style>
+    
+    <Style Selector="Grid.LogView > Border">
+        <Setter Property="Margin" Value="4"/>
+        <Setter Property="BorderThickness" Value="2"></Setter>
+        <Setter Property="BorderBrush" Value="DarkGray"></Setter>
+        <Setter Property="CornerRadius" Value="4"></Setter>
+    </Style>
+    
 
 
 </Styles>

@@ -15,7 +15,7 @@ namespace Wabbajack.App.Screens;
 
 public partial class CompilerConfigurationView : ScreenBase<CompilerConfigurationViewModel>
 {
-    public CompilerConfigurationView()
+    public CompilerConfigurationView() : base("Compiler Configuration")
     {
         InitializeComponent();
         AddAlwaysEnabled.Command = ReactiveCommand.Create(() => AddAlwaysEnabled_Command().FireAndForget());
