@@ -29,7 +29,6 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
     private readonly InstallationStateManager _stateManager;
     private readonly SettingsManager _settingsManager;
 
-
     public InstallConfigurationViewModel(DTOSerializer dtos, InstallationStateManager stateManager, SettingsManager settingsManager)
     {
         _stateManager = stateManager;
@@ -89,7 +88,11 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
     {
         var path = await _settingsManager.Load<AbsolutePath>("last-install-path");
         if (path != default && path.FileExists())
-            ModListPath = path;
+        {
+            Dispatcher.UIThread.Post(() => {
+                ModListPath = path;
+            });
+        }
     }
 
     [Reactive] public AbsolutePath ModListPath { get; set; }

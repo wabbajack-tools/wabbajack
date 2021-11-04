@@ -30,7 +30,7 @@ public partial class FileSelectionBox : ReactiveUserControl<FileSelectionBoxView
 
         this.WhenActivated(disposables =>
         {
-            this.Bind(ViewModel, vm => vm.Path, view => view.SelectedPath)
+            this.OneWayBind(ViewModel, vm => vm.Path, view => view.SelectedPath)
                 .DisposeWith(disposables);
             this.WhenAnyValue(view => view.SelectFolder)
                 .BindTo(ViewModel, vm => vm.SelectFolder)
@@ -66,5 +66,10 @@ public partial class FileSelectionBox : ReactiveUserControl<FileSelectionBoxView
     {
         get => GetValue(SelectFolderProperty);
         set => SetValue(SelectFolderProperty, value);
+    }
+
+    public void Load(AbsolutePath path)
+    {
+        ViewModel.Path = path;
     }
 }

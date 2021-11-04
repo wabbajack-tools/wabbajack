@@ -18,30 +18,32 @@ public partial class InstallConfigurationView : ReactiveUserControl<InstallConfi
 
         this.WhenActivated(disposables =>
         {
-            this.Bind(ViewModel, x => x.ModListPath,
-                    view => view.ModListFile.SelectedPath)
+            ViewModel.WhenAnyValue(vm => vm.ModListPath)
+                .Subscribe(path => ModListFile.Load(path))
                 .DisposeWith(disposables);
-            this.Bind(ViewModel, x => x.Download,
-                    view => view.DownloadPath.SelectedPath)
+            
+            ViewModel.WhenAnyValue(vm => vm.ModListPath)
+                .Subscribe(path => ModListFile.Load(path))
                 .DisposeWith(disposables);
-            this.Bind(ViewModel, x => x.Install,
-                    view => view.InstallPath.SelectedPath)
+            
+            ViewModel.WhenAnyValue(vm => vm.Download)
+                .Subscribe(path => DownloadPath.Load(path))
                 .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(x => x.BeginCommand)
-                .Where(x => x != default)
-                .BindTo(BeginInstall, x => x.Button.Command)
-                .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(x => x.ModList)
-                .Where(x => x != default)
-                .Select(x => x!.Name)
-                .BindTo(ModListName, x => x.Text)
+            
+            ViewModel.WhenAnyValue(vm => vm.Install)
+                .Subscribe(path => InstallPath.Load(path))
                 .DisposeWith(disposables);
 
-            ViewModel.WhenAnyValue(x => x.ModListImage)
-                .Where(x => x != default)
-                .BindTo(ModListImage, x => x.Source)
+            this.WhenAnyValue(view => view.ModListFile.SelectedPath)
+                .BindTo(ViewModel, vm => vm.ModListPath)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(view => view.DownloadPath.SelectedPath)
+                .BindTo(ViewModel, vm => vm.Download)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(view => view.InstallPath.SelectedPath)
+                .BindTo(ViewModel, vm => vm.Install)
                 .DisposeWith(disposables);
         });
     }
