@@ -30,7 +30,7 @@ public readonly struct Percent : IComparable, IEquatable<Percent>
 
     public static bool InRange(double d)
     {
-        return d >= 0 || d <= 1;
+        return d is >= 0 or <= 1;
     }
 
     public static Percent operator +(Percent c1, Percent c2)

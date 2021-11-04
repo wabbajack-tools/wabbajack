@@ -8,7 +8,7 @@ namespace Wabbajack.App.Views;
 
 public partial class GuidedWebView : ScreenBase<GuidedWebViewModel>
 {
-    public GuidedWebView() : base(false)
+    public GuidedWebView() : base("Web View", false)
     {
         InitializeComponent();
 

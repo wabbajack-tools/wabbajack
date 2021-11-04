@@ -172,7 +172,7 @@ public class Context
             _knownArchives.TryAdd(key, value);
     }
 
-    public async Task BackfillMissing()
+    public async ValueTask BackfillMissing()
     {
         var newFiles = _knownArchives.ToDictionary(kv => kv.Key,
             kv => new VirtualFile

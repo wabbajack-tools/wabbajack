@@ -16,27 +16,30 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         InitializeComponent();
         DataContext = App.Services.GetService<MainWindowViewModel>()!;
 
-        this.WhenActivated(dispose =>
+        this.WhenActivated(disposables =>
         {
             CloseButton.Command = ReactiveCommand.Create(() => Environment.Exit(0))
-                .DisposeWith(dispose);
+                .DisposeWith(disposables);
             MinimizeButton.Command = ReactiveCommand.Create(() => WindowState = WindowState.Minimized)
-                .DisposeWith(dispose);
+                .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.BackButton, view => view.BackButton)
-                .DisposeWith(dispose);
+                .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.SettingsButton, view => view.SettingsButton)
-                .DisposeWith(dispose);
+                .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.LogViewButton, view => view.LogButton)
-                .DisposeWith(dispose);
+                .DisposeWith(disposables);
 
-            this.Bind(ViewModel, vm => vm.CurrentScreen, view => view.Contents.Content)
-                .DisposeWith(dispose);
+            this.OneWayBind(ViewModel, vm => vm.CurrentScreen, view => view.Contents.Content)
+                .DisposeWith(disposables);
 
-            this.Bind(ViewModel, vm => vm.ResourceStatus, view => view.ResourceStatus.Text)
-                .DisposeWith(dispose);
+            this.OneWayBind(ViewModel, vm => vm.ResourceStatus, view => view.ResourceStatus.Text)
+                .DisposeWith(disposables);
+            
+            this.OneWayBind(ViewModel, vm => vm.TitleText, view => view.TitleText.Text)
+                .DisposeWith(disposables);
         });
 
 

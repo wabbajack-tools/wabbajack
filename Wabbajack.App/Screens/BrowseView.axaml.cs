@@ -6,7 +6,7 @@ namespace Wabbajack.App.Screens;
 
 public partial class BrowseView : ScreenBase<BrowseViewModel>
 {
-    public BrowseView()
+    public BrowseView() : base("Web Browser")
     {
         InitializeComponent();
         this.WhenActivated(disposables =>

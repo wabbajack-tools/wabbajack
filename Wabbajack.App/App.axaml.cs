@@ -1,8 +1,10 @@
 using System;
+using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -24,6 +26,7 @@ public class App : Application
 
     public override void Initialize()
     {
+        Dispatcher.UIThread.Post(() => Thread.CurrentThread.Name = "UIThread");
         AvaloniaXamlLoader.Load(this);
     }
 

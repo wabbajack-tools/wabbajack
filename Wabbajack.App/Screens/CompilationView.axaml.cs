@@ -6,7 +6,7 @@ namespace Wabbajack.App.Screens;
 
 public partial class CompilationView : ScreenBase<CompilationViewModel>
 {
-    public CompilationView()
+    public CompilationView() : base("Compiling")
     {
         InitializeComponent();
 
