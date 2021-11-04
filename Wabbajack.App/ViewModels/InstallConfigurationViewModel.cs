@@ -53,22 +53,22 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
 
             this.WhenAnyValue(t => t.ModListPath)
                 .Where(t => t != default)
-                .SelectAsync(disposables, async x => await LoadModList(x))
-                .Select(x => x)
+                .SelectMany(async x => await LoadModList(x))
+                .OnUIThread()
                 .ObserveOn(AvaloniaScheduler.Instance)
                 .BindTo(this, t => t.ModList)
                 .DisposeWith(disposables);
 
             this.WhenAnyValue(t => t.ModListPath)
                 .Where(t => t != default)
-                .SelectAsync(disposables, async x => await LoadModListImage(x))
-                .ObserveOn(AvaloniaScheduler.Instance)
+                .SelectMany(async x => await LoadModListImage(x))
+                .OnUIThread()
                 .BindTo(this, t => t.ModListImage)
                 .DisposeWith(disposables);
 
             var settings = this.WhenAnyValue(t => t.ModListPath)
-                .SelectAsync(disposables, async v => await _stateManager.Get(v))
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .SelectMany(async v => await _stateManager.Get(v))
+                .OnUIThread()
                 .Where(s => s != null);
 
             settings.Select(s => s!.Install)

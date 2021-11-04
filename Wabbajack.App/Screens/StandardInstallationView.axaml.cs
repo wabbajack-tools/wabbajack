@@ -16,7 +16,7 @@ public partial class StandardInstallationView : ScreenBase<StandardInstallationV
 
         this.WhenActivated(disposables =>
         {
-            this.Bind(ViewModel, vm => vm.Slide.Image, view => view.SlideImage.Source)
+            this.OneWayBind(ViewModel, vm => vm.Slide.Image, view => view.SlideImage.Source)
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.NextCommand, view => view.NextSlide)
@@ -31,13 +31,13 @@ public partial class StandardInstallationView : ScreenBase<StandardInstallationV
             this.BindCommand(ViewModel, vm => vm.PlayCommand, view => view.PlaySlides)
                 .DisposeWith(disposables);
 
-            this.SimpleOneWayBind(ViewModel, vm => vm.StatusText, view => view.StatusText.Text)
+            this.OneWayBind(ViewModel, vm => vm.StatusText, view => view.StatusText.Text)
                 .DisposeWith(disposables);
 
-            this.SimpleOneWayBind(ViewModel, vm => vm.StepsProgress, view => view.StepsProgress.Value, p => p.Value * 1000)
+            this.OneWayBind(ViewModel, vm => vm.StepsProgress, view => view.StepsProgress.Value, p => p.Value * 1000)
                 .DisposeWith(disposables);
 
-            this.SimpleOneWayBind(ViewModel, vm => vm.StepProgress, p => p.StepProgress.Value, p => p.Value * 10000)
+            this.OneWayBind(ViewModel, vm => vm.StepProgress, p => p.StepProgress.Value, p => p.Value * 10000)
                 .DisposeWith(disposables);
 
         });
