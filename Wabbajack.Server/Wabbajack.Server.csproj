@@ -15,15 +15,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Dapper" Version="2.0.90"/>
-        <PackageReference Include="Discord.Net.WebSocket" Version="2.4.0"/>
-        <PackageReference Include="FluentFTP" Version="35.0.5"/>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0"/>
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.0-rc.2.21480.10"/>
-        <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0"/>
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0-rc.2.21480.5"/>
-        <PackageReference Include="Nettle" Version="1.3.0"/>
-        <PackageReference Include="System.Data.SqlClient" Version="4.8.3"/>
+        <PackageReference Include="Dapper" Version="2.0.123" />
+        <PackageReference Include="Discord.Net.WebSocket" Version="2.4.0" />
+        <PackageReference Include="FluentFTP" Version="35.0.5" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.0-rc.2.21480.10" />
+        <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0-rc.2.21480.5" />
+        <PackageReference Include="Nettle" Version="1.3.0" />
+        <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
     </ItemGroup>
 
     <ItemGroup>
@@ -45,27 +45,27 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="sheo_quotes.txt"/>
-        <EmbeddedResource Include="sheo_quotes.txt"/>
-        <None Remove="Controllers\Templates\TotalListTemplate.html"/>
-        <EmbeddedResource Include="Controllers\Templates\TotalListTemplate.html"/>
+        <None Remove="sheo_quotes.txt" />
+        <EmbeddedResource Include="sheo_quotes.txt" />
+        <None Remove="Controllers\Templates\TotalListTemplate.html" />
+        <EmbeddedResource Include="Controllers\Templates\TotalListTemplate.html" />
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Remove="Controllers\UploadedFiles.cs"/>
-        <Compile Remove="Services\ListValidator.cs"/>
+        <Compile Remove="Controllers\UploadedFiles.cs" />
+        <Compile Remove="Services\ListValidator.cs" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj"/>
-        <ProjectReference Include="..\Wabbajack.Compiler\Wabbajack.Compiler.csproj"/>
-        <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj"/>
-        <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj"/>
-        <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj"/>
-        <ProjectReference Include="..\Wabbajack.Networking.GitHub\Wabbajack.Networking.GitHub.csproj"/>
-        <ProjectReference Include="..\Wabbajack.Networking.NexusApi\Wabbajack.Networking.NexusApi.csproj"/>
-        <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj"/>
-        <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj"/>
+        <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
+        <ProjectReference Include="..\Wabbajack.Compiler\Wabbajack.Compiler.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj" />
+        <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
+        <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.GitHub\Wabbajack.Networking.GitHub.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.NexusApi\Wabbajack.Networking.NexusApi.csproj" />
+        <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
+        <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj" />
     </ItemGroup>
 
 
