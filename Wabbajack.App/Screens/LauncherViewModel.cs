@@ -35,20 +35,20 @@ public class LauncherViewModel : ViewModelBase
         _logger = logger;
 
         MessageBus.Current.Listen<ConfigureLauncher>()
-            .Subscribe(v => Receive(v))
+            .Subscribe(Receive)
             .DisposeWith(VMDisposables);
 
         this.WhenActivated(disposables =>
         {
             this.WhenAnyValue(v => v.InstallFolder)
-                .SelectAsync(disposables, async folder => await manager.GetByInstallFolder(folder))
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .SelectMany(async folder => await manager.GetByInstallFolder(folder))
+                .OnUIThread()
                 .Where(v => v != null)
                 .BindTo(this, vm => vm.Setting)
                 .DisposeWith(disposables);
 
             this.WhenAnyValue(v => v.Setting)
-                .Where(v => v != default)
+                .Where(v => v != default && v!.Image != default && v!.Image.FileExists())
                 .Select(v => new Bitmap(v!.Image.ToString()))
                 .BindTo(this, vm => vm.Image)
                 .DisposeWith(disposables);

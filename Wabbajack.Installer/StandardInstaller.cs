@@ -38,13 +38,14 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         base(logger, config, gameLocator, extractor, jsonSerializer, vfs, fileHashCache, downloadDispatcher,
             parallelOptions, wjClient)
     {
-        MaxSteps = 7;
+        MaxSteps = 14;
     }
 
     public override async Task<bool> Begin(CancellationToken token)
     {
         if (token.IsCancellationRequested) return false;
         await _wjClient.SendMetric(MetricNames.BeginInstall, ModList.Name);
+        NextStep("Configuring Installer", 0);
         _logger.LogInformation("Configuring Processor");
 
         if (_configuration.GameFolder == default)
@@ -84,8 +85,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         _configuration.Downloads.CreateDirectory();
 
         await OptimizeModlist(token);
-
-
+        
         await HashArchives(token);
 
         await DownloadArchives(token);
@@ -106,7 +106,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
         await PrimeVFS();
 
-        BuildFolderStructure();
+        await BuildFolderStructure();
 
         await InstallArchives(token);
 
@@ -129,7 +129,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         await ExtractedModlistFolder!.DisposeAsync();
         await _wjClient.SendMetric(MetricNames.FinishInstall, ModList.Name);
 
-        await NextStep("Finished", 1);
+        NextStep("Finished", 1);
         _logger.LogInformation("Finished Installation");
         return true;
     }
@@ -259,12 +259,12 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     private async Task InstallIncludedFiles(CancellationToken token)
     {
         _logger.LogInformation("Writing inline files");
-        await NextStep("Installing Included Files", ModList.Directives.OfType<InlineFile>().Count());
+        NextStep("Installing Included Files", ModList.Directives.OfType<InlineFile>().Count());
         await ModList.Directives
             .OfType<InlineFile>()
             .PDoAll(async directive =>
             {
-                await UpdateProgress(1);
+                UpdateProgress(1);
                 var outPath = _configuration.Install.Combine(directive.To);
                 outPath.Delete();
 

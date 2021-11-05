@@ -6,7 +6,7 @@ namespace Wabbajack.App.Screens;
 
 public partial class ErrorPageView : ScreenBase<ErrorPageViewModel>
 {
-    public ErrorPageView()
+    public ErrorPageView() : base("Error")
     {
         InitializeComponent();
         this.WhenActivated(disposables =>

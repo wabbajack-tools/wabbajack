@@ -32,25 +32,26 @@
     </Design.DataContext>
 
     <Grid RowDefinitions="40, *">
-        <Grid ColumnDefinitions="40, *, 40, 40, 40, 40">
+        <Grid ColumnDefinitions="40, Auto, *, 40, 40, 40, 40">
             <Button Grid.Column="0" x:Name="BackButton" x:FieldModifier="public">
                 <i:MaterialIcon Kind="ArrowBack" />
             </Button>
+            <TextBlock Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" x:Name="TitleText"></TextBlock>
 
-            <TextBlock Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" x:Name="ResourceStatus" />
+            <TextBlock Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" x:Name="ResourceStatus" />
 
-            <Button Grid.Column="2" x:Name="LogButton">
+            <Button Grid.Column="3" x:Name="LogButton">
                 <i:MaterialIcon Kind="ViewList" />
             </Button>
 
-            <Button Grid.Column="3" x:Name="SettingsButton">
+            <Button Grid.Column="4" x:Name="SettingsButton">
                 <i:MaterialIcon Kind="Gear" />
             </Button>
-            <Button Grid.Column="4" x:Name="MinimizeButton">
+            <Button Grid.Column="5" x:Name="MinimizeButton">
                 <i:MaterialIcon Kind="WindowMinimize" />
             </Button>
 
-            <Button Grid.Column="5" x:Name="CloseButton" x:FieldModifier="public">
+            <Button Grid.Column="6" x:Name="CloseButton" x:FieldModifier="public">
                 <i:MaterialIcon Kind="Close" />
             </Button>
 

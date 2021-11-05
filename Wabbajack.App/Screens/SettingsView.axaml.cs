@@ -6,7 +6,7 @@ namespace Wabbajack.App.Screens;
 
 public partial class SettingsView : ScreenBase<SettingsViewModel>
 {
-    public SettingsView()
+    public SettingsView() : base("Settings")
     {
         InitializeComponent();
         this.WhenActivated(disposables =>

@@ -20,6 +20,7 @@ using Wabbajack.App.Utilities;
 using Wabbajack.App.ViewModels.SubViewModels;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.GameFile;
+using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
@@ -44,6 +45,7 @@ public class StandardInstallationViewModel : ViewModelBase
     private IServiceScope _scope;
     private SlideViewModel[] _slides = Array.Empty<SlideViewModel>();
     private Timer _slideTimer;
+    private Timer _updateTimer;
 
     public StandardInstallationViewModel(ILogger<StandardInstallationViewModel> logger, IServiceProvider provider,
         GameLocator locator, DTOSerializer dtos,
@@ -63,6 +65,9 @@ public class StandardInstallationViewModel : ViewModelBase
 
         this.WhenActivated(disposables =>
         {
+            _updateTimer = new Timer(UpdateStatus, null, TimeSpan.FromMilliseconds(1), TimeSpan.FromMilliseconds(100));
+            _updateTimer.DisposeWith(disposables);
+            
             _slideTimer = new Timer(_ =>
             {
                 if (IsPlaying) NextSlide(1);
@@ -102,12 +107,24 @@ public class StandardInstallationViewModel : ViewModelBase
     [Reactive] public string StatusText { get; set; } = "";
     [Reactive] public Percent StepsProgress { get; set; } = Percent.Zero;
     [Reactive] public Percent StepProgress { get; set; } = Percent.Zero;
+    
+    // Not Reactive, so we don't end up spamming the UI threads with events
+    public StatusUpdate _latestStatus = new("", Percent.Zero, Percent.Zero);
 
     public void Receive(StartInstallation msg)
     {
         Install(msg).FireAndForget();
     }
 
+    private void UpdateStatus(object? state)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            StepsProgress = _latestStatus.StepsProgress;
+            StepProgress = _latestStatus.StepProgress;
+            StatusText = _latestStatus.StatusText;
+        }, DispatcherPriority.Render);
+    }
 
     private void NextSlide(int direction)
     {
@@ -175,21 +192,12 @@ public class StandardInstallationViewModel : ViewModelBase
 
         _installer = _provider.GetService<StandardInstaller>()!;
 
-        _installer.OnStatusUpdate = async update =>
-        {
-            Trace.TraceInformation("Update....");
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                StatusText = update.StatusText;
-                StepsProgress = update.StepsProgress;
-                StepProgress = update.StepProgress;
-            }, DispatcherPriority.Background);
-        };
+        _installer.OnStatusUpdate = update => _latestStatus = update;
 
         _logger.LogInformation("Installer created, starting the installation process");
         try
         {
-            var result = await _installer.Begin(CancellationToken.None);
+            var result = await Task.Run(async () => await _installer.Begin(CancellationToken.None));
             if (!result) throw new Exception("Installation failed");
 
             if (result) await SaveConfigAndContinue(_config);
@@ -199,6 +207,7 @@ public class StandardInstallationViewModel : ViewModelBase
             ErrorPageViewModel.Display("During installation", ex);
         }
     }
+
 
     private async Task SaveConfigAndContinue(InstallerConfiguration config)
     {

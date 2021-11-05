@@ -48,10 +48,12 @@ public class SettingsManager
         try
         {
             if (path.FileExists())
+            {
                 await using (var s = path.Open(FileMode.Open))
                 {
                     return (await JsonSerializer.DeserializeAsync<T>(s, _dtos.Options))!;
                 }
+            }
         }
         catch (Exception ex)
         {

@@ -6,23 +6,25 @@
              xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Wabbajack.App.Controls.LogView">
-    <Grid RowDefinitions="Auto, *, Auto">
-        <TextBlock Grid.Row="0">Current Log Contents</TextBlock>
-        <ScrollViewer Grid.Row="1" ScrollChanged="ScrollViewer_OnScrollChanged" x:Name="ScrollViewer"
-                      HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible">
-            <ItemsControl x:Name="Messages">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <controls:LogViewItem />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+    <Grid RowDefinitions="Auto, *, Auto" Classes="LogView">
+        <TextBlock Grid.Row="0" Classes="Title">Current Log Contents</TextBlock>
+        <Border Grid.Row="1">
+            <ScrollViewer ScrollChanged="ScrollViewer_OnScrollChanged" x:Name="ScrollViewer"
+                          HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible">
+                <ItemsControl x:Name="Messages">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <controls:LogViewItem />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button x:Name="CopyLog">
                 <avalonia:MaterialIcon Kind="ContentCopy" />
@@ -32,4 +34,5 @@
             </Button>
         </StackPanel>
     </Grid>
+
 </UserControl>

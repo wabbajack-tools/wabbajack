@@ -27,11 +27,12 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
 {
     private readonly DTOSerializer _dtos;
     private readonly InstallationStateManager _stateManager;
+    private readonly SettingsManager _settingsManager;
 
-
-    public InstallConfigurationViewModel(DTOSerializer dtos, InstallationStateManager stateManager)
+    public InstallConfigurationViewModel(DTOSerializer dtos, InstallationStateManager stateManager, SettingsManager settingsManager)
     {
         _stateManager = stateManager;
+        _settingsManager = settingsManager;
 
         _dtos = dtos;
         Activator = new ViewModelActivator();
@@ -51,22 +52,22 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
 
             this.WhenAnyValue(t => t.ModListPath)
                 .Where(t => t != default)
-                .SelectAsync(disposables, async x => await LoadModList(x))
-                .Select(x => x)
+                .SelectMany(async x => await LoadModList(x))
+                .OnUIThread()
                 .ObserveOn(AvaloniaScheduler.Instance)
                 .BindTo(this, t => t.ModList)
                 .DisposeWith(disposables);
 
             this.WhenAnyValue(t => t.ModListPath)
                 .Where(t => t != default)
-                .SelectAsync(disposables, async x => await LoadModListImage(x))
-                .ObserveOn(AvaloniaScheduler.Instance)
+                .SelectMany(async x => await LoadModListImage(x))
+                .OnUIThread()
                 .BindTo(this, t => t.ModListImage)
                 .DisposeWith(disposables);
 
             var settings = this.WhenAnyValue(t => t.ModListPath)
-                .SelectAsync(disposables, async v => await _stateManager.Get(v))
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .SelectMany(async v => await _stateManager.Get(v))
+                .OnUIThread()
                 .Where(s => s != null);
 
             settings.Select(s => s!.Install)
@@ -76,7 +77,22 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
             settings.Select(s => s!.Downloads)
                 .BindTo(this, vm => vm.Download)
                 .DisposeWith(disposables);
+
+
+            LoadSettings().FireAndForget();
+
         });
+    }
+
+    private async Task LoadSettings()
+    {
+        var path = await _settingsManager.Load<AbsolutePath>("last-install-path");
+        if (path != default && path.FileExists())
+        {
+            Dispatcher.UIThread.Post(() => {
+                ModListPath = path;
+            });
+        }
     }
 
     [Reactive] public AbsolutePath ModListPath { get; set; }
@@ -107,13 +123,15 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
         if (metadataPath.FileExists())
             metadata = _dtos.Deserialize<ModlistMetadata>(await metadataPath.ReadAllTextAsync());
 
-        _stateManager.SetLastState(new InstallationConfigurationSetting
+        await _stateManager.SetLastState(new InstallationConfigurationSetting
         {
             ModList = ModListPath,
             Downloads = Download,
             Install = Install,
             Metadata = metadata
-        }).FireAndForget();
+        });
+
+        await _settingsManager.Save("last-install-path", ModListPath);
 
         MessageBus.Current.SendMessage(new NavigateTo(typeof(StandardInstallationViewModel)));
         MessageBus.Current.SendMessage(new StartInstallation(ModListPath, Install, Download, metadata));

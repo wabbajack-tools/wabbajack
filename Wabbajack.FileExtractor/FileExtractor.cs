@@ -67,7 +67,8 @@ public class FileExtractor
         Predicate<RelativePath> shouldExtract,
         Func<RelativePath, IExtractedFile, ValueTask<T>> mapfn,
         CancellationToken token,
-        HashSet<RelativePath>? onlyFiles = null)
+        HashSet<RelativePath>? onlyFiles = null,
+        Action<Percent>? progressFunction = null)
     {
         if (sFn is NativeFileStreamFactory) _logger.LogInformation("Extracting {file}", sFn.Name);
         await using var archive = await sFn.GetStream();
@@ -92,7 +93,7 @@ public class FileExtractor
                 {
                     await using var tempFolder = _manager.CreateFolder();
                     results = await GatheringExtractWith7Zip(sFn, shouldExtract,
-                        mapfn, onlyFiles, token);
+                        mapfn, onlyFiles, token, progressFunction);
                 }
 
                 break;
@@ -179,7 +180,8 @@ public class FileExtractor
         Predicate<RelativePath> shouldExtract,
         Func<RelativePath, IExtractedFile, ValueTask<T>> mapfn,
         IReadOnlyCollection<RelativePath>? onlyFiles,
-        CancellationToken token)
+        CancellationToken token,
+        Action<Percent>? progressFunction = null)
     {
         TemporaryPath? tmpFile = null;
         await using var dest = _manager.CreateFolder();
@@ -262,6 +264,9 @@ public class FileExtractor
                     var newPosition = percentInt == 0 ? 0 : totalSize / percentInt;
                     var throughput = newPosition - oldPosition;
                     job.ReportNoWait((int) throughput);
+                    
+                    progressFunction?.Invoke(Percent.FactoryPutInRange(lastPercent, 100));
+                    
                     lastPercent = percentInt;
                 }, token);
 
@@ -306,7 +311,7 @@ public class FileExtractor
     }
 
     public async Task ExtractAll(AbsolutePath src, AbsolutePath dest, CancellationToken token,
-        Predicate<RelativePath>? filterFn = null)
+        Predicate<RelativePath>? filterFn = null, Action<Percent>? updateProgress = null)
     {
         filterFn ??= _ => true;
         await GatheringExtract(new NativeFileStreamFactory(src), filterFn, async (path, factory) =>
@@ -316,6 +321,6 @@ public class FileExtractor
             await using var stream = await factory.GetStream();
             await abs.WriteAllAsync(stream, token);
             return 0;
-        }, token);
+        }, token, progressFunction: updateProgress);
     }
 }

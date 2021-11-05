@@ -4,7 +4,7 @@ namespace Wabbajack.App.Screens;
 
 public partial class LogScreenView : ScreenBase<LogScreenViewModel>
 {
-    public LogScreenView()
+    public LogScreenView() : base("Application Log")
     {
         InitializeComponent();
     }

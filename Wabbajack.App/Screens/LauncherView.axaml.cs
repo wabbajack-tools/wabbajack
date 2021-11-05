@@ -6,7 +6,7 @@ namespace Wabbajack.App.Screens;
 
 public partial class LauncherView : ScreenBase<LauncherViewModel>
 {
-    public LauncherView()
+    public LauncherView() : base("Launch Modlist")
     {
         InitializeComponent();
         this.WhenActivated(disposables =>
