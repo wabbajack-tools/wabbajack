@@ -8,7 +8,7 @@
              x:Class="Wabbajack.App.Screens.CompilerConfigurationView">
     <Grid RowDefinitions="40, *, 40" Margin="8">
         <TextBlock Grid.Row="0" x:Name="StatusText" FontSize="20" FontWeight="Bold">Compiler Configuration</TextBlock>
-        <Grid Grid.Row="1" ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto"
+        <Grid Grid.Row="1" ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto"
               Margin="4">
             <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right">Title:</Label>
             <TextBox Grid.Column="1" Grid.Row="0" x:Name="Title" />
@@ -29,9 +29,28 @@
             </ComboBox>
             <Label Grid.Column="0" Grid.Row="5" HorizontalAlignment="Right">Output Folder:</Label>
             <controls:FileSelectionBox Grid.Column="1" Grid.Row="5" x:Name="OutputFolder" SelectFolder="True" />
-
-            <Label Grid.Column="0" Grid.Row="6" HorizontalAlignment="Right" VerticalAlignment="Top">Always Enabled:</Label>
+            
+            <Label Grid.Column="0" Grid.Row="6" HorizontalAlignment="Right" VerticalAlignment="Top">Other Profiles:</Label>
             <StackPanel Grid.Column="1" Grid.Row="6" Orientation="Vertical">
+                <Button x:Name="AddOtherProfile">
+                    <i:MaterialIcon Kind="AddCircle" />
+                </Button>
+                <ItemsControl x:Name="OtherProfilesList">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <controls:RemovableListItem />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <Label Grid.Column="0" Grid.Row="7" HorizontalAlignment="Right" VerticalAlignment="Top">Always Enabled:</Label>
+            <StackPanel Grid.Column="1" Grid.Row="7" Orientation="Vertical">
                 <Button x:Name="AddAlwaysEnabled">
                     <i:MaterialIcon Kind="AddCircle" />
                 </Button>
@@ -48,6 +67,8 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </StackPanel>
+            
+            
 
 
         </Grid>

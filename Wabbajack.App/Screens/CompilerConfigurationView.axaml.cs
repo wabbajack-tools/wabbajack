@@ -20,6 +20,7 @@ public partial class CompilerConfigurationView : ScreenBase<CompilerConfiguratio
     {
         InitializeComponent();
         AddAlwaysEnabled.Command = ReactiveCommand.Create(() => AddAlwaysEnabled_Command().FireAndForget());
+        AddOtherProfile.Command =  ReactiveCommand.Create(() => AddOtherProfile_Command().FireAndForget());
 
         this.WhenActivated(disposables =>
         {
@@ -54,7 +55,26 @@ public partial class CompilerConfigurationView : ScreenBase<CompilerConfiguratio
                         DeleteCommand = ReactiveCommand.Create(() => { ViewModel?.RemoveAlwaysExcluded(itm); })
                     }))
                 .DisposeWith(disposables);
+            
+            this.OneWayBind(ViewModel, vm => vm.OtherProfiles, view => view.OtherProfilesList.Items,
+                    d => d!.Select(itm => new RemovableItemViewModel
+                    {
+                        Text = itm.ToString(),
+                        DeleteCommand = ReactiveCommand.Create(() => { ViewModel?.RemoveOtherProfile(itm); })
+                    }))
+                .DisposeWith(disposables);
         });
+    }
+    
+    private async Task AddOtherProfile_Command()
+    {
+        var dialog = new OpenFolderDialog
+        {
+            Title = "Select a profile folder"
+        };
+        var result = await dialog.ShowAsync(App.MainWindow);
+        if (!string.IsNullOrWhiteSpace(result))
+            ViewModel!.AddOtherProfile(result.ToAbsolutePath());
     }
 
     private async Task AddAlwaysEnabled_Command()
