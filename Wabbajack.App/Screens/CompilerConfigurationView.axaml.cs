@@ -7,6 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using ReactiveUI;
 using Wabbajack.App.Controls;
+using Wabbajack.App.Extensions;
 using Wabbajack.App.Views;
 using Wabbajack.Common;
 using Wabbajack.Paths;
@@ -22,22 +23,19 @@ public partial class CompilerConfigurationView : ScreenBase<CompilerConfiguratio
 
         this.WhenActivated(disposables =>
         {
-            this.Bind(ViewModel, vm => vm.SettingsFile, view => view.SettingsFile.SelectedPath)
-                .DisposeWith(disposables);
-
             this.Bind(ViewModel, vm => vm.Title, view => view.Title.Text)
                 .DisposeWith(disposables);
 
-            this.Bind(ViewModel, vm => vm.SettingsFile, view => view.SettingsFile.SelectedPath)
+            SettingsFile.BindFileSelectionBox(ViewModel, vm => vm.SettingsFile)
                 .DisposeWith(disposables);
 
-            this.Bind(ViewModel, vm => vm.Source, view => view.Source.SelectedPath)
+            Source.BindFileSelectionBox(ViewModel, vm => vm.Source)
+                .DisposeWith(disposables);
+            
+            DownloadsFolder.BindFileSelectionBox(ViewModel, vm => vm.Downloads)
                 .DisposeWith(disposables);
 
-            this.Bind(ViewModel, vm => vm.Downloads, view => view.DownloadsFolder.SelectedPath)
-                .DisposeWith(disposables);
-
-            this.Bind(ViewModel, vm => vm.OutputFolder, view => view.OutputFolder.SelectedPath)
+            OutputFolder.BindFileSelectionBox(ViewModel, vm => vm.OutputFolder)
                 .DisposeWith(disposables);
 
             this.OneWayBind(ViewModel, vm => vm.AllGames, view => view.BaseGame.Items)

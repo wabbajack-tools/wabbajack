@@ -102,6 +102,7 @@ public class CompilerConfigurationViewModel : ViewModelBase
     {
         return new MO2CompilerSettings
         {
+            ModListName = Title,
             Downloads = Downloads,
             Source = Source,
             Game = BaseGame.Game,
@@ -157,6 +158,7 @@ public class CompilerConfigurationViewModel : ViewModelBase
 
                     var data = iniFile.LoadIniFile();
                     var generalModData = data["General"];
+                    AlwaysEnabled = Array.Empty<RelativePath>();
                     if ((generalModData["notes"]?.Contains("WABBAJACK_ALWAYS_ENABLE") ?? false) ||
                         (generalModData["comments"]?.Contains("WABBAJACK_ALWAYS_ENABLE") ?? false))
                         AlwaysEnabled = AlwaysEnabled.Append(modFolder.RelativeTo(mo2Folder)).ToArray();
@@ -195,6 +197,7 @@ public class CompilerConfigurationViewModel : ViewModelBase
             throw new NotImplementedException();
         }
 
+        Title = s.ModListName;
         Source = s.Source;
         Downloads = s.Downloads;
         OutputFolder = s.OutputFile.Depth > 1 ? s.OutputFile.Parent : s.OutputFile;
