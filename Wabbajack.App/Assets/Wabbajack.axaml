@@ -62,6 +62,22 @@
         <Setter Property="CornerRadius" Value="4"></Setter>
     </Style>
     
+    <Style Selector=".InstalledList Border">
+        <Setter Property="BorderThickness" Value="2"></Setter>
+        <Setter Property="BorderBrush" Value="DarkGray"></Setter>
+        <Setter Property="CornerRadius" Value="4"></Setter>
+    </Style>
+    
+    <Style Selector=".InstalledList TextBlock">
+        <Setter Property="FontWeight" Value="Bold"></Setter>
+        <Setter Property="FontSize" Value="18"></Setter>
+        <Setter Property="Margin" Value="4"/>
+    </Style>
+    
+    <Style Selector="Button.InstalledList">
+        <Setter Property="Margin" Value="4"></Setter>
+    </Style>
+    
 
 
 </Styles>

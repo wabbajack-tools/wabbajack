@@ -14,9 +14,11 @@ namespace Wabbajack.App.Screens;
 public class PlaySelectViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly InstallationStateManager _manager;
+    private readonly ImageCache _imageCache;
 
-    public PlaySelectViewModel(InstallationStateManager manager)
+    public PlaySelectViewModel(InstallationStateManager manager, ImageCache imageCache)
     {
+        _imageCache = imageCache;
         _manager = manager;
         Activator = new ViewModelActivator();
 
@@ -32,6 +34,6 @@ public class PlaySelectViewModel : ViewModelBase, IActivatableViewModel
     public async Task LoadAndSetItems()
     {
         var items = await _manager.GetAll();
-        Items = items.Settings.Select(a => new InstalledListViewModel(a)).ToArray();
+        Items = items.Settings.Select(a => new InstalledListViewModel(a, _imageCache)).ToArray();
     }
 }
