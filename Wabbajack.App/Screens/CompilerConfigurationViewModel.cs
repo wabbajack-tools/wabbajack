@@ -71,6 +71,9 @@ public class CompilerConfigurationViewModel : ViewModelBase
 
     [Reactive] public IEnumerable<RelativePath> AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
 
+    [Reactive]
+    public string[] OtherProfiles { get; set; } = Array.Empty<string>();
+
     public AbsolutePath SettingsOutputLocation => Source.Combine(Title)
         .WithExtension(IsMO2Compilation ? Ext.MO2CompilerSettings : Ext.CompilerSettings);
 
@@ -102,14 +105,29 @@ public class CompilerConfigurationViewModel : ViewModelBase
     {
         return new MO2CompilerSettings
         {
+            ModListName = Title,
             Downloads = Downloads,
             Source = Source,
             Game = BaseGame.Game,
             Profile = SelectedProfile,
             UseGamePaths = true,
             OutputFile = OutputFolder.Combine(SelectedProfile).WithExtension(Ext.Wabbajack),
-            AlwaysEnabled = AlwaysEnabled.ToArray()
+            AlwaysEnabled = AlwaysEnabled.ToArray(),
+            OtherProfiles = OtherProfiles.ToArray()
         };
+    }
+
+    public bool AddOtherProfile(AbsolutePath path)
+    {
+        if (!path.InFolder(Source.Combine(Consts.MO2Profiles))) return false;
+        var relative = path.RelativeTo(Source.Combine(Consts.MO2Profiles)).ToString();
+        OtherProfiles = OtherProfiles.Append(relative).Distinct().ToArray();
+        return true;
+    }
+
+    public void RemoveOtherProfile(string profile)
+    {
+        OtherProfiles = OtherProfiles.Where(p => p != profile).ToArray();
     }
 
     public bool AddAlwaysExcluded(AbsolutePath path)
@@ -149,6 +167,8 @@ public class CompilerConfigurationViewModel : ViewModelBase
                 IsMO2Compilation = true;
 
 
+                
+                AlwaysEnabled = Array.Empty<RelativePath>();
                 // Find Always Enabled mods
                 foreach (var modFolder in mo2Folder.Combine("mods").EnumerateDirectories())
                 {
@@ -162,6 +182,12 @@ public class CompilerConfigurationViewModel : ViewModelBase
                         AlwaysEnabled = AlwaysEnabled.Append(modFolder.RelativeTo(mo2Folder)).ToArray();
                 }
 
+                var otherProfilesFile = settingsFile.Parent.Combine("otherprofiles.txt");
+                if (otherProfilesFile.FileExists())
+                {
+                    OtherProfiles = await otherProfilesFile.ReadAllLinesAsync().ToArray();
+                }
+
                 if (mo2Folder.Depth > 1)
                     OutputFolder = mo2Folder.Parent;
 
@@ -170,6 +196,8 @@ public class CompilerConfigurationViewModel : ViewModelBase
             }
         }
     }
+
+
 
     private async Task SaveSettingsFile()
     {
@@ -187,6 +215,7 @@ public class CompilerConfigurationViewModel : ViewModelBase
         {
             var mo2 = await LoadSettingsFile<MO2CompilerSettings>(path);
             AlwaysEnabled = mo2.AlwaysEnabled;
+            OtherProfiles = mo2.OtherProfiles;
             SelectedProfile = mo2.Profile;
             s = mo2;
         }
@@ -195,6 +224,7 @@ public class CompilerConfigurationViewModel : ViewModelBase
             throw new NotImplementedException();
         }
 
+        Title = s.ModListName;
         Source = s.Source;
         Downloads = s.Downloads;
         OutputFolder = s.OutputFile.Depth > 1 ? s.OutputFile.Parent : s.OutputFile;

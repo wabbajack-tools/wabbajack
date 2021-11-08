@@ -5,11 +5,15 @@
              xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Wabbajack.App.Controls.InstalledListView">
-    <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="*, Auto">
-        <TextBlock Grid.Row="0" Grid.Column="0" x:Name="Title" />
-        <TextBlock Grid.Row="1" Grid.Column="0" x:Name="InstallationPath" />
-        <Button Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" x:Name="PlayButton">
-            <i:MaterialIcon Kind="PlayArrow" />
-        </Button>
-    </Grid>
+    <Button Name="ListButton" Classes="InstalledList" HorizontalAlignment="Stretch">
+        <Border Classes="InstalledList">
+            <Grid RowDefinitions="Auto, Auto Auto, Auto" ColumnDefinitions="Auto, *">
+                <Image x:Name="ListImage" Grid.RowSpan="4" Grid.Row="0" Grid.Column="0" Width="270" Height="150"></Image>
+                <TextBlock Grid.Row="0" Grid.Column="1" x:Name="Title" />
+                <TextBlock Grid.Row="1" Grid.Column="1" x:Name="Version" />
+                <TextBlock Grid.Row="2" Grid.Column="1" x:Name="Author"></TextBlock>
+                <TextBlock Grid.Row="3" Grid.Column="1" x:Name="InstallationPath" />
+            </Grid>
+        </Border>
+    </Button>
 </UserControl>

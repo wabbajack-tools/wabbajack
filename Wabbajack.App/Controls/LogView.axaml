@@ -9,21 +9,16 @@
     <Grid RowDefinitions="Auto, *, Auto" Classes="LogView">
         <TextBlock Grid.Row="0" Classes="Title">Current Log Contents</TextBlock>
         <Border Grid.Row="1">
-            <ScrollViewer ScrollChanged="ScrollViewer_OnScrollChanged" x:Name="ScrollViewer"
-                          HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible">
-                <ItemsControl x:Name="Messages">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <controls:LogViewItem />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+            <ItemsRepeater x:Name="Messages">
+                <ItemsRepeater.Layout>
+                    <StackLayout></StackLayout>
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate>
+                        <controls:LogViewItem />
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
         </Border>
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button x:Name="CopyLog">

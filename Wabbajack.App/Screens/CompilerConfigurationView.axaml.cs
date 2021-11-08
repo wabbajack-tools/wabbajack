@@ -7,6 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using ReactiveUI;
 using Wabbajack.App.Controls;
+using Wabbajack.App.Extensions;
 using Wabbajack.App.Views;
 using Wabbajack.Common;
 using Wabbajack.Paths;
@@ -19,25 +20,23 @@ public partial class CompilerConfigurationView : ScreenBase<CompilerConfiguratio
     {
         InitializeComponent();
         AddAlwaysEnabled.Command = ReactiveCommand.Create(() => AddAlwaysEnabled_Command().FireAndForget());
+        AddOtherProfile.Command =  ReactiveCommand.Create(() => AddOtherProfile_Command().FireAndForget());
 
         this.WhenActivated(disposables =>
         {
-            this.Bind(ViewModel, vm => vm.SettingsFile, view => view.SettingsFile.SelectedPath)
-                .DisposeWith(disposables);
-
             this.Bind(ViewModel, vm => vm.Title, view => view.Title.Text)
                 .DisposeWith(disposables);
 
-            this.Bind(ViewModel, vm => vm.SettingsFile, view => view.SettingsFile.SelectedPath)
+            SettingsFile.BindFileSelectionBox(ViewModel, vm => vm.SettingsFile)
                 .DisposeWith(disposables);
 
-            this.Bind(ViewModel, vm => vm.Source, view => view.Source.SelectedPath)
+            Source.BindFileSelectionBox(ViewModel, vm => vm.Source)
+                .DisposeWith(disposables);
+            
+            DownloadsFolder.BindFileSelectionBox(ViewModel, vm => vm.Downloads)
                 .DisposeWith(disposables);
 
-            this.Bind(ViewModel, vm => vm.Downloads, view => view.DownloadsFolder.SelectedPath)
-                .DisposeWith(disposables);
-
-            this.Bind(ViewModel, vm => vm.OutputFolder, view => view.OutputFolder.SelectedPath)
+            OutputFolder.BindFileSelectionBox(ViewModel, vm => vm.OutputFolder)
                 .DisposeWith(disposables);
 
             this.OneWayBind(ViewModel, vm => vm.AllGames, view => view.BaseGame.Items)
@@ -56,7 +55,26 @@ public partial class CompilerConfigurationView : ScreenBase<CompilerConfiguratio
                         DeleteCommand = ReactiveCommand.Create(() => { ViewModel?.RemoveAlwaysExcluded(itm); })
                     }))
                 .DisposeWith(disposables);
+            
+            this.OneWayBind(ViewModel, vm => vm.OtherProfiles, view => view.OtherProfilesList.Items,
+                    d => d!.Select(itm => new RemovableItemViewModel
+                    {
+                        Text = itm.ToString(),
+                        DeleteCommand = ReactiveCommand.Create(() => { ViewModel?.RemoveOtherProfile(itm); })
+                    }))
+                .DisposeWith(disposables);
         });
+    }
+    
+    private async Task AddOtherProfile_Command()
+    {
+        var dialog = new OpenFolderDialog
+        {
+            Title = "Select a profile folder"
+        };
+        var result = await dialog.ShowAsync(App.MainWindow);
+        if (!string.IsNullOrWhiteSpace(result))
+            ViewModel!.AddOtherProfile(result.ToAbsolutePath());
     }
 
     private async Task AddAlwaysEnabled_Command()

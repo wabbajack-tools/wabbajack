@@ -62,7 +62,7 @@ public class CompilationViewModel : ViewModelBase
     {
         try
         {
-            await _compiler.Begin(CancellationToken.None);
+            var result = await Task.Run(async () => await _compiler.Begin(CancellationToken.None));
         }
         catch (Exception ex)
         {
