@@ -1,16 +1,20 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.ReactiveUI;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using Wabbajack.Paths;
 
 namespace Wabbajack.App.Controls;
 
-public partial class FileSelectionBox : ReactiveUserControl<FileSelectionBoxViewModel>
+public partial class FileSelectionBox : UserControl
 {
     public static readonly DirectProperty<FileSelectionBox, AbsolutePath> SelectedPathProperty =
         AvaloniaProperty.RegisterDirect<FileSelectionBox, AbsolutePath>(nameof(SelectedPath), o => o.SelectedPath);
@@ -21,40 +25,45 @@ public partial class FileSelectionBox : ReactiveUserControl<FileSelectionBoxView
     public static readonly StyledProperty<bool> SelectFolderProperty =
         AvaloniaProperty.Register<FileSelectionBox, bool>(nameof(SelectFolder));
 
-    private AbsolutePath _selectedPath;
 
     public FileSelectionBox()
     {
-        DataContext = App.Services.GetService<FileSelectionBoxViewModel>()!;
         InitializeComponent();
-
-        this.WhenActivated(disposables =>
-        {
-            this.OneWayBind(ViewModel, vm => vm.Path, view => view.SelectedPath)
-                .DisposeWith(disposables);
-            this.WhenAnyValue(view => view.SelectFolder)
-                .BindTo(ViewModel, vm => vm.SelectFolder)
-                .DisposeWith(disposables);
-            this.WhenAnyValue(view => view.AllowedExtensions)
-                .Where(exts => !string.IsNullOrWhiteSpace(exts))
-                .Select(exts =>
-                    exts.Split("|", StringSplitOptions.RemoveEmptyEntries).Select(s => new Extension(s)).ToArray())
-                .BindTo(ViewModel, vm => vm.Extensions)
-                .DisposeWith(disposables);
-            this.OneWayBind(ViewModel, vm => vm.Path,
-                    view => view.TextBox.Text)
-                .DisposeWith(disposables);
-            this.BindCommand(ViewModel, vm => vm.BrowseCommand,
-                    view => view.SelectButton)
-                .DisposeWith(disposables);
-        });
+        SelectButton.Command = ReactiveCommand.CreateFromTask(ShowDialog);
     }
 
-    public AbsolutePath SelectedPath
+    private async Task ShowDialog()
     {
-        get => _selectedPath;
-        set => SetAndRaise(SelectedPathProperty, ref _selectedPath, value);
+        if (SelectFolder)
+        {
+            var dialog = new OpenFolderDialog
+            {
+                Title = "Select a folder"
+            };
+            var result = await dialog.ShowAsync(App.MainWindow);
+            if (result != null)
+                Load(result.ToAbsolutePath());
+        }
+        else
+        {
+            var extensions = AllowedExtensions.Split(",").Select(e => e.ToString()[1..]).ToList();
+            var dialog = new OpenFileDialog
+            {
+                AllowMultiple = false,
+                Title = "Select a file",
+                Filters = new List<FileDialogFilter>
+                {
+                    new FileDialogFilter {Extensions = extensions, Name = "*"}
+                }
+            };
+            var results = await dialog.ShowAsync(App.MainWindow);
+            if (results != null)
+                Load(results!.First().ToAbsolutePath());
+        }
     }
+
+    [Reactive]
+    public AbsolutePath SelectedPath { get; private set; }
 
     public string AllowedExtensions
     {
@@ -70,6 +79,7 @@ public partial class FileSelectionBox : ReactiveUserControl<FileSelectionBoxView
 
     public void Load(AbsolutePath path)
     {
-        ViewModel.Path = path;
+        TextBox.Text = path.ToString();
+        SelectedPath = path;
     }
 }

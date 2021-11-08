@@ -10,7 +10,7 @@
                  Name="Banner"
                  HorizontalAlignment="Center"
                  VerticalAlignment="Center"
-                 Stretch="UniformToFill">
+                 Stretch="Uniform">
             <Image x:Name="ModListImage" Margin="0,0,0,0" Source="../Assets/Wabba_Mouth.png" />
         </Viewbox>
         <Grid Grid.Row="0" RowDefinitions="40, 40" HorizontalAlignment="Left" VerticalAlignment="Bottom">

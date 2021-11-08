@@ -21,11 +21,7 @@ public partial class InstallConfigurationView : ScreenBase<InstallConfigurationV
             ViewModel.WhenAnyValue(vm => vm.ModListPath)
                 .Subscribe(path => ModListFile.Load(path))
                 .DisposeWith(disposables);
-            
-            ViewModel.WhenAnyValue(vm => vm.ModListPath)
-                .Subscribe(path => ModListFile.Load(path))
-                .DisposeWith(disposables);
-            
+
             ViewModel.WhenAnyValue(vm => vm.Download)
                 .Subscribe(path => DownloadPath.Load(path))
                 .DisposeWith(disposables);
@@ -44,6 +40,9 @@ public partial class InstallConfigurationView : ScreenBase<InstallConfigurationV
 
             this.WhenAnyValue(view => view.InstallPath.SelectedPath)
                 .BindTo(ViewModel, vm => vm.Install)
+                .DisposeWith(disposables);
+
+            this.OneWayBind(ViewModel, vm => vm.ModListImage, view => view.ModListImage.Source)
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.BeginCommand, view => view.BeginInstall.Button)
