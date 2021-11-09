@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.ReactiveUI;
+using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -14,11 +16,8 @@ using Wabbajack.Paths;
 
 namespace Wabbajack.App.Controls;
 
-public partial class FileSelectionBox : UserControl
+public partial class FileSelectionBox : ReactiveUserControl<FileSelectionBoxViewModel>
 {
-    public static readonly DirectProperty<FileSelectionBox, AbsolutePath> SelectedPathProperty =
-        AvaloniaProperty.RegisterDirect<FileSelectionBox, AbsolutePath>(nameof(SelectedPath), o => o.SelectedPath);
-
     public static readonly StyledProperty<string> AllowedExtensionsProperty =
         AvaloniaProperty.Register<FileSelectionBox, string>(nameof(AllowedExtensions));
 
@@ -63,7 +62,7 @@ public partial class FileSelectionBox : UserControl
     }
 
     [Reactive]
-    public AbsolutePath SelectedPath { get; private set; }
+    public AbsolutePath SelectedPath { get; set; }
 
     public string AllowedExtensions
     {
@@ -79,7 +78,9 @@ public partial class FileSelectionBox : UserControl
 
     public void Load(AbsolutePath path)
     {
-        TextBox.Text = path.ToString();
-        SelectedPath = path;
+        Dispatcher.UIThread.Post(() => { 
+            TextBox.Text = path.ToString();
+            SelectedPath = path;
+        });
     }
 }

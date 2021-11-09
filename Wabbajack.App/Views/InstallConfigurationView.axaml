@@ -18,13 +18,13 @@
         </Grid>
         <Grid Margin="40" RowDefinitions="40, 40, 40, *" ColumnDefinitions="100, *, 200" Grid.Row="1">
             <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Center">ModList:</Label>
-            <controls:FileSelectionBox Grid.Column="1" Grid.Row="0" AllowedExtensions=".wabbajack" x:Name="ModListFile" />
+            <controls:ButtonSettingTextBox Grid.Column="1" Grid.Row="0" x:Name="ModListFile" />
 
             <Label Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center">Install To:</Label>
-            <controls:FileSelectionBox Grid.Column="1" Grid.Row="1" SelectFolder="True" x:Name="InstallPath" />
+            <controls:ButtonSettingTextBox Grid.Column="1" Grid.Row="1" x:Name="InstallPath" />
 
             <Label Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center">Download To:</Label>
-            <controls:FileSelectionBox Grid.Column="1" Grid.Row="2" SelectFolder="True" x:Name="DownloadPath" />
+            <controls:ButtonSettingTextBox Grid.Column="1" Grid.Row="2" x:Name="DownloadPath" />
 
             <controls:LargeIconButton x:Name="BeginInstall" Margin="40, 0, 0, 0" Grid.Row="0" Grid.Column="2"
                                       Grid.RowSpan="4" Icon="DownloadNetwork" Text="Install" />

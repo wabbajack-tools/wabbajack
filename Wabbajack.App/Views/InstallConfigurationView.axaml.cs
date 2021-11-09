@@ -1,11 +1,18 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.ReactiveUI;
+using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using Wabbajack.App.Interfaces;
 using Wabbajack.App.ViewModels;
+using Wabbajack.Common;
+using Wabbajack.Paths;
 
 namespace Wabbajack.App.Views;
 
@@ -18,35 +25,63 @@ public partial class InstallConfigurationView : ScreenBase<InstallConfigurationV
 
         this.WhenActivated(disposables =>
         {
-            ViewModel.WhenAnyValue(vm => vm.ModListPath)
-                .Subscribe(path => ModListFile.Load(path))
+            ModListFile.SelectButton.Command = ReactiveCommand.CreateFromTask(SelectWabbajackFile)
+                .DisposeWith(disposables);
+            this.OneWayBind(ViewModel, vm => vm.ModListPath, view => view.ModListFile.TextBox.Text)
                 .DisposeWith(disposables);
 
-            ViewModel.WhenAnyValue(vm => vm.Download)
-                .Subscribe(path => DownloadPath.Load(path))
+            InstallPath.SelectButton.Command = ReactiveCommand.CreateFromTask(() =>
+                    SelectFolder("Select Install Location", p => ViewModel!.Install = p))
+                .DisposeWith(disposables);
+            this.OneWayBind(ViewModel, vm => vm.Install, view => view.InstallPath.TextBox.Text)
                 .DisposeWith(disposables);
             
-            ViewModel.WhenAnyValue(vm => vm.Install)
-                .Subscribe(path => InstallPath.Load(path))
+            DownloadPath.SelectButton.Command = ReactiveCommand.CreateFromTask(() =>
+                    SelectFolder("Select Download Location", p => ViewModel!.Download = p))
                 .DisposeWith(disposables);
-
-            this.WhenAnyValue(view => view.ModListFile.SelectedPath)
-                .BindTo(ViewModel, vm => vm.ModListPath)
+            this.OneWayBind(ViewModel, vm => vm.Download, view => view.DownloadPath.TextBox.Text)
                 .DisposeWith(disposables);
-
-            this.WhenAnyValue(view => view.DownloadPath.SelectedPath)
-                .BindTo(ViewModel, vm => vm.Download)
-                .DisposeWith(disposables);
-
-            this.WhenAnyValue(view => view.InstallPath.SelectedPath)
-                .BindTo(ViewModel, vm => vm.Install)
-                .DisposeWith(disposables);
-
+            
             this.OneWayBind(ViewModel, vm => vm.ModListImage, view => view.ModListImage.Source)
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.BeginCommand, view => view.BeginInstall.Button)
                 .DisposeWith(disposables);
+        });
+    }
+
+    private async Task SelectWabbajackFile()
+    {
+        var fod = new OpenFileDialog()
+        {
+            Filters = new List<FileDialogFilter> {new()
+                {
+                    Name = "Wabbajack",
+                    Extensions = new List<string> {Ext.Wabbajack.ToString()}
+                }
+            }
+        };
+        var result = await fod.ShowAsync(App.MainWindow);
+        if (result == null) return;
+        
+        Dispatcher.UIThread.Post(() =>
+        {
+            ViewModel!.ModListPath = result.First().ToAbsolutePath();
+        });
+    }
+
+    public async Task SelectFolder(string title, Action<AbsolutePath> toCall)
+    {
+        var fod = new OpenFolderDialog
+        {
+            Title = title
+        };
+        var result = await fod.ShowAsync(App.MainWindow);
+        if (result == null) return;
+        
+        Dispatcher.UIThread.Post(() =>
+        {
+            toCall(result.ToAbsolutePath());
         });
     }
 
