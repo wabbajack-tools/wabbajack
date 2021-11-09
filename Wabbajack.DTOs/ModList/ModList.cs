@@ -66,4 +66,20 @@ public class ModList
     ///     Whether the Modlist is NSFW or not
     /// </summary>
     public bool IsNSFW { get; set; }
+
+    public ModList Strip()
+    {
+        return new ModList
+        {
+            Author = Author,
+            Description = Description,
+            GameType = GameType,
+            Name = Name,
+            Readme = Readme,
+            WabbajackVersion = WabbajackVersion,
+            Website = Website,
+            Version = Version,
+            IsNSFW = IsNSFW,
+        };
+    }
 }

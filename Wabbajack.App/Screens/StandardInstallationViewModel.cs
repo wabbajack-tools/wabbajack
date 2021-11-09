@@ -225,7 +225,8 @@ public class StandardInstallationViewModel : ViewModelBase
             Install = config.Install,
             Metadata = config.Metadata,
             ModList = config.ModlistArchive,
-            Image = path
+            Image = path,
+            StrippedModListData = config.ModList.Strip()
         });
 
         MessageBus.Current.SendMessage(new ConfigureLauncher(config.Install));

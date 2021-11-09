@@ -4,13 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Wabbajack.App.Controls.ResourceView">
-    <StackPanel Orientation="Horizontal">
-        <TextBlock x:Name="ResourceName" Width="100" HorizontalAlignment="Left" VerticalAlignment="Center" />
-        <Label Width="100" HorizontalContentAlignment="Right" VerticalAlignment="Center">Tasks:</Label>
-        <TextBox x:Name="MaxTasks" Width="20" HorizontalAlignment="Left" VerticalAlignment="Center" />
-        <Label Width="100" HorizontalContentAlignment="Right" VerticalAlignment="Center">Throughput:</Label>
-        <TextBox x:Name="MaxThroughput" Width="20" HorizontalAlignment="Left" VerticalAlignment="Center" />
-        <Label Width="100" HorizontalContentAlignment="Right" VerticalAlignment="Center">Status:</Label>
-        <TextBlock x:Name="CurrentThrougput" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center" />
-    </StackPanel>
+    <Grid ColumnDefinitions="Auto, Auto, 300" RowDefinitions="20, 20, 20">
+        <TextBlock Grid.Row="0" Grid.Column="0" x:Name="ResourceName"/>
+        <TextBlock Grid.Row="0" Grid.Column="1" >Total Throughput:</TextBlock>
+        <TextBlock Grid.Row="0" Grid.Column="2"  x:Name="CurrentThrougput"/>
+        <TextBlock Grid.Row="1" Grid.Column="1">Tasks:</TextBlock>
+        <ButtonSpinner Grid.Row="1" Grid.Column="2"></ButtonSpinner>
+        <TextBlock Grid.Row="2" Grid.Column="1">Throughput:</TextBlock>
+        <Slider Grid.Row="2" Grid.Column="2" Minimum="0" Maximum="16384"></Slider>
+
+    </Grid>
 </UserControl>

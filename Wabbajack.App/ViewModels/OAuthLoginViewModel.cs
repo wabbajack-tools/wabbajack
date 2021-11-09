@@ -9,8 +9,11 @@ using System.Web;
 using CefNet;
 using Microsoft.Extensions.Logging;
 using Wabbajack.App.Extensions;
+using Wabbajack.App.Messages;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Services.OSIntegrated;
+using Xunit.Sdk;
+using MessageBus = ReactiveUI.MessageBus;
 
 namespace Wabbajack.App.ViewModels;
 
@@ -87,6 +90,8 @@ public abstract class OAuthLoginViewModel<TLoginType> : GuidedWebViewModel
             Cookies = cookies,
             ResultState = data!
         });
+        
+        MessageBus.Current.SendMessage(new NavigateBack());
     }
 
     private class AsyncSchemeHandler : CefSchemeHandlerFactory

@@ -24,9 +24,9 @@
             <TextBox Grid.Column="1" Grid.Row="1" IsEnabled="False" Height="20" x:Name="InstallPath" />
 
             <Grid Grid.Column="1" Grid.Row="3" Grid.ColumnDefinitions="*, *, *" HorizontalAlignment="Center">
-                <Button Grid.Column="0" x:Name="WebsiteButton">Website</Button>
-                <Button Grid.Column="1" x:Name="ReadmeButton">Readme</Button>
-                <Button Grid.Column="2" x:Name="LocalFilesButton">Local Files</Button>
+                <Button Grid.Column="0" x:Name="WebsiteButton" Click="ShowWebsite">Website</Button>
+                <Button Grid.Column="1" x:Name="ReadmeButton" Click="ShowReadme">Readme</Button>
+                <Button Grid.Column="2" x:Name="LocalFilesButton" Click="ShowLocalFiles">Local Files</Button>
             </Grid>
 
             <controls:LargeIconButton x:Name="PlayGame" Margin="40, 0, 0, 0" Grid.Row="0" Grid.Column="2"

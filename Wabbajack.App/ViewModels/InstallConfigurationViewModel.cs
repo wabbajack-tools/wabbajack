@@ -124,7 +124,8 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
             ModList = ModListPath,
             Downloads = Download,
             Install = Install,
-            Metadata = metadata
+            Metadata = metadata,
+            StrippedModListData = ModList?.Strip()
         });
 
         await _settingsManager.Save("last-install-path", ModListPath);
