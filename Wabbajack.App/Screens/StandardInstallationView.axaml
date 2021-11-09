@@ -5,7 +5,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              x:Class="Wabbajack.App.Views.StandardInstallationView">
-    <Grid RowDefinitions="40, 5, 5, *, 40">
+    <Grid RowDefinitions="40, 5, 5, *, 40" Margin="4">
         <TextBlock Grid.Row="0" x:Name="StatusText" FontSize="20" FontWeight="Bold">[20/30] Installing Files</TextBlock>
         <ProgressBar Grid.Row="1" x:Name="StepsProgress" Maximum="1000" Value="0" />
         <ProgressBar Grid.Row="2" x:Name="StepProgress" Maximum="10000" Value="0" />
@@ -14,6 +14,16 @@
                  Stretch="Uniform">
             <Image x:Name="SlideImage" />
         </Viewbox>
+        <Border Grid.Row="3" VerticalAlignment="Bottom" HorizontalAlignment="Center" CornerRadius="4" Background="#111111" Opacity="25">
+            <StackPanel Orientation="Vertical" Margin="4">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock FontSize="24" x:Name="ModTitle" FontWeight="Bold"></TextBlock>
+                    <TextBlock FontSize="12" FontStyle="Italic" Text="by" Margin="8, 0, 4, 4" VerticalAlignment="Bottom"></TextBlock>
+                    <TextBlock FontSize="12" x:Name="AuthorName" FontStyle="Italic" VerticalAlignment="Bottom" Margin="0, 0, 4, 4" ></TextBlock>
+                </StackPanel>
+                <TextBlock FontSize="12" x:Name="ModDescription" TextWrapping="Wrap"></TextBlock>
+            </StackPanel>
+        </Border>
         <Grid Grid.Row="4" HorizontalAlignment="Center" ColumnDefinitions="40, 40, 40, 40">
             <Button Grid.Column="0" x:Name="PrevSlide">
                 <i:MaterialIcon Kind="ArrowLeft" />

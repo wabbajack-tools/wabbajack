@@ -40,6 +40,15 @@ public partial class StandardInstallationView : ScreenBase<StandardInstallationV
             this.OneWayBind(ViewModel, vm => vm.StepProgress, p => p.StepProgress.Value, p => p.Value * 10000)
                 .DisposeWith(disposables);
 
+            this.OneWayBind(ViewModel, vm => vm.Slide.MetaState.Name, view => view.ModTitle.Text)
+                .DisposeWith(disposables);
+
+            this.OneWayBind(ViewModel, vm => vm.Slide.MetaState.Description, view => view.ModDescription.Text)
+                .DisposeWith(disposables);
+            
+            this.OneWayBind(ViewModel, vm => vm.Slide.MetaState.Author, view => view.AuthorName.Text)
+                .DisposeWith(disposables);
+
         });
     }
 }
