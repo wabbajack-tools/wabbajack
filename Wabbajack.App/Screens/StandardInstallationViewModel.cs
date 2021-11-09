@@ -172,6 +172,7 @@ public class StandardInstallationViewModel : ViewModelBase
 
         _slides = _config.ModList.Archives.Select(a => a.State).OfType<IMetaState>()
             .Select(m => new SlideViewModel {MetaState = m})
+            .Where(s => !s.MetaState.IsNSFW)
             .Shuffle()
             .ToArray();
 

@@ -54,7 +54,6 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
                 .Where(t => t != default)
                 .SelectMany(async x => await LoadModList(x))
                 .OnUIThread()
-                .ObserveOn(AvaloniaScheduler.Instance)
                 .BindTo(this, t => t.ModList)
                 .DisposeWith(disposables);
 
@@ -68,7 +67,7 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
             var settings = this.WhenAnyValue(t => t.ModListPath)
                 .SelectMany(async v => await _stateManager.Get(v))
                 .OnUIThread()
-                .Where(s => s != null);
+                .Where(s => s != default && s.Install != default);
 
             settings.Select(s => s!.Install)
                 .BindTo(this, vm => vm.Install)
@@ -77,11 +76,8 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
             settings.Select(s => s!.Downloads)
                 .BindTo(this, vm => vm.Download)
                 .DisposeWith(disposables);
-
-
-            LoadSettings().FireAndForget();
-
         });
+        LoadSettings().FireAndForget();
     }
 
     private async Task LoadSettings()
@@ -139,7 +135,8 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
 
     private async Task<IBitmap> LoadModListImage(AbsolutePath path)
     {
-        return new Bitmap(await ModListUtilities.GetModListImageStream(path));
+        var img = new Bitmap(await ModListUtilities.GetModListImageStream(path));
+        return img;
     }
 
     private async Task<ModList> LoadModList(AbsolutePath modlist)
