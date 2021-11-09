@@ -24,7 +24,7 @@ public class SettingsViewModel : ViewModelBase
     public readonly IEnumerable<ResourceViewModel> Resources;
 
     public SettingsViewModel(ILogger<SettingsViewModel> logger, Configuration configuration,
-        NexusApiTokenProvider nexusProvider, IEnumerable<IResource> resources)
+        NexusApiTokenProvider nexusProvider, IEnumerable<IResource> resources, LoversLabTokenProvider llProvider, VectorPlexusTokenProvider vpProvider)
     {
         _logger = logger;
         Resources = resources.Select(r => new ResourceViewModel(r)).ToArray();
@@ -50,11 +50,36 @@ public class SettingsViewModel : ViewModelBase
                 ReactiveCommand.Create(() => { MessageBus.Current.SendMessage(new NavigateTo(typeof(NexusLoginViewModel))); },
                     haveNexusToken.Select(x => !x));
             NexusLogout = ReactiveCommand.Create(nexusProvider.DeleteToken, haveNexusToken.Select(x => x));
+            
+            var haveLLToken = _fileSystemEvents
+                .StartWith(AbsolutePath.Empty)
+                .Select(_ => llProvider.HaveToken());
+
+            LoversLabLogin =
+                ReactiveCommand.Create(() => { MessageBus.Current.SendMessage(new NavigateTo(typeof(LoversLabOAuthLoginViewModel))); },
+                    haveLLToken.Select(x => !x));
+            LoversLabLogout = ReactiveCommand.Create(llProvider.DeleteToken, haveLLToken.Select(x => x));
+            
+            var haveVectorPlexusToken = _fileSystemEvents
+                .StartWith(AbsolutePath.Empty)
+                .Select(_ => vpProvider.HaveToken());
+
+            VectorPlexusLogin =
+                ReactiveCommand.Create(() => { MessageBus.Current.SendMessage(new NavigateTo(typeof(VectorPlexusOAuthLoginViewModel))); },
+                    haveVectorPlexusToken.Select(x => !x));
+            VectorPlexusLogout = ReactiveCommand.Create(vpProvider.DeleteToken, haveVectorPlexusToken.Select(x => x));
         });
     }
 
     public ReactiveCommand<Unit, Unit> NexusLogin { get; set; }
     public ReactiveCommand<Unit, Unit> NexusLogout { get; set; }
+
+    
+    public ReactiveCommand<Unit, Unit> LoversLabLogin { get; set; }
+    public ReactiveCommand<Unit, Unit> LoversLabLogout { get; set; }
+    
+    public ReactiveCommand<Unit, Unit> VectorPlexusLogin { get; set; }
+    public ReactiveCommand<Unit, Unit> VectorPlexusLogout { get; set; }
 
     public FileSystemWatcher Watcher { get; set; }
 
