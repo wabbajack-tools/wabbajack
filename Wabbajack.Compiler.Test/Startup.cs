@@ -4,6 +4,7 @@ using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Services.OSIntegrated;
 using Xunit.DependencyInjection;
 using Xunit.DependencyInjection.Logging;
+using Configuration = Wabbajack.Services.OSIntegrated.Configuration;
 
 namespace Wabbajack.Compiler.Test;
 

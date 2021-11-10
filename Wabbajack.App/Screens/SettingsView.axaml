@@ -34,22 +34,28 @@
             </Grid>
         </Border>
 
-        <Border x:Name="ResourcesBorder" Margin="5" BorderThickness="1" Classes="Settings">
-            <Grid RowDefinitions="Auto, Auto">
-                <TextBlock FontSize="20" Grid.ColumnSpan="4">Resource Limits</TextBlock>
-
-                <ItemsControl Grid.Row="1" x:Name="ResourceList">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Vertical" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
+        <Border x:Name="ResourcesBorder" Margin="5" BorderThickness="1" Classes="ResourceSettings StandardBorder">
+            <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="140, 100, 140, 100">
+                <TextBlock Grid.Row="0" Text="Resources" FontSize="20" Grid.ColumnSpan="4" Margin="4"></TextBlock>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Name" FontWeight="Bold" Margin="4, 4"></TextBlock>
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="Max Tasks" FontWeight="Bold" Margin="4, 4"></TextBlock>
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="Max Throughput" FontWeight="Bold" Margin="4, 4"></TextBlock>
+                <TextBlock Grid.Row="1" Grid.Column="3" Text="Transferred" FontWeight="Bold" Margin="4, 4"></TextBlock>
+                
+                <ItemsRepeater Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" x:Name="ResourcesList" Margin="0, 4">
+                    <ItemsRepeater.Layout>
+                        <StackLayout></StackLayout>
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
                         <DataTemplate>
-                            <controls:ResourceView />
+                            <controls:ResourceView></controls:ResourceView>
                         </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+                
+                <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4" HorizontalAlignment="Stretch" Margin="4" Click="SaveSettingsAndRestart">
+                    <TextBlock Text="Save Settings and Restart Wabbajack" HorizontalAlignment="Center" TextAlignment="Center"></TextBlock>
+                </Button>
 
             </Grid>
         </Border>
