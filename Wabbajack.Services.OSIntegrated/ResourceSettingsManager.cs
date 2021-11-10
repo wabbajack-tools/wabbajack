@@ -18,12 +18,15 @@ public class ResourceSettingsManager
         _manager = manager;
     }
 
+    private SemaphoreSlim _lock = new(1);
+
     public async Task<ResourceSetting> GetSettings(string name)
     {
-        Monitor.Enter(_manager);
+
+        await _lock.WaitAsync();
         try
         {
-            _settings ??= await _manager.Load<Dictionary<string, ResourceSetting>>("resource-settings");
+            _settings ??= await _manager.Load<Dictionary<string, ResourceSetting>>("resource_settings");
 
             if (_settings.TryGetValue(name, out var found)) return found;
 
@@ -35,13 +38,13 @@ public class ResourceSettingsManager
             
             _settings.Add(name, newSetting);
 
-            await _manager.Save("resource-settings", _settings);
+            await _manager.Save("resource_settings", _settings);
             
             return _settings[name];
         }
         finally
         {
-            Monitor.Exit(_manager);
+            _lock.Release();
         }
 
     }
