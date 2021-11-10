@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Wabbajack.App.Models;
 using Wabbajack.Compiler;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
@@ -122,6 +123,21 @@ public static class ServiceExtensions
             OSVersion = Environment.OSVersion.VersionString,
             Version = version
         });
+        
+        // Settings
+        
+        service.AddSingleton(s => new Configuration
+        {
+            EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
+            ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
+            SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings"),
+            LogLocation = KnownFolders.EntryPoint.Combine("logs"),
+            ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
+        });
+
+        service.AddSingleton<SettingsManager>();
+        service.AddSingleton<ResourceSettingsManager>();
+        
         return service;
     }
 

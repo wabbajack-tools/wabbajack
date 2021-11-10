@@ -9,6 +9,7 @@
     <Application.Styles>
         <StyleInclude Source="avares://Material.Icons.Avalonia/App.xaml" />
         <FluentTheme Mode="Dark" />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
         <StyleInclude Source="avares://Wabbajack.App/Assets/Wabbajack.axaml" />
         <Style Selector="Button:not(:pointerover) /template/ ContentPresenter">
             <Setter Property="Background" Value="Transparent" />

@@ -9,7 +9,7 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
-namespace Wabbajack.App.Models;
+namespace Wabbajack.Services.OSIntegrated;
 
 public class SettingsManager
 {

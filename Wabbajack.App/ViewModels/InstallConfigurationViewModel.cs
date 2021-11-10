@@ -20,6 +20,7 @@ using Wabbajack.DTOs.SavedSettings;
 using Wabbajack.Installer;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.App.ViewModels;
 

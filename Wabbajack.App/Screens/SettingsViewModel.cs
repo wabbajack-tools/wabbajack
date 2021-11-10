@@ -13,6 +13,7 @@ using Wabbajack.App.ViewModels;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
+using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 
 namespace Wabbajack.App.Screens;
@@ -27,11 +28,18 @@ public class SettingsViewModel : ViewModelBase
         NexusApiTokenProvider nexusProvider, IEnumerable<IResource> resources, LoversLabTokenProvider llProvider, VectorPlexusTokenProvider vpProvider)
     {
         _logger = logger;
-        Resources = resources.Select(r => new ResourceViewModel(r)).ToArray();
+        Resources = resources.Select(r => new ResourceViewModel(r))
+            .OrderBy(o => o.Name)
+            .ToArray();
         Activator = new ViewModelActivator();
 
         this.WhenActivated(disposables =>
         {
+            foreach (var resource in Resources)
+            {
+                resource.Activator.Activate().DisposeWith(disposables);
+            }
+
             configuration.EncryptedDataLocation.CreateDirectory();
             Watcher = new FileSystemWatcher(configuration.EncryptedDataLocation.ToString());
             Watcher.DisposeWith(disposables);

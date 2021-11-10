@@ -5,6 +5,7 @@ using System.Timers;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.App.ViewModels;
+using Wabbajack.Common;
 using Wabbajack.RateLimiter;
 
 namespace Wabbajack.App.Controls;
@@ -18,7 +19,7 @@ public class ResourceViewModel : ViewModelBase, IActivatableViewModel, IDisposab
     {
         Activator = new ViewModelActivator();
         _resource = resource;
-        _timer = new Timer(1.0);
+        _timer = new Timer(250);
 
         Name = resource.Name;
 
@@ -50,6 +51,8 @@ public class ResourceViewModel : ViewModelBase, IActivatableViewModel, IDisposab
     [Reactive] public long CurrentThroughput { get; set; }
 
     [Reactive] public string Name { get; set; }
+    
+    [Reactive] public string ThroughputHumanFriendly { get; set; }
 
 
     public void Dispose()
@@ -62,5 +65,6 @@ public class ResourceViewModel : ViewModelBase, IActivatableViewModel, IDisposab
         MaxTasks = _resource.MaxTasks;
         MaxThroughput = _resource.MaxThroughput;
         CurrentThroughput = _resource.StatusReport.Transferred;
+        ThroughputHumanFriendly = _resource.StatusReport.Transferred.ToFileSizeString();
     }
 }

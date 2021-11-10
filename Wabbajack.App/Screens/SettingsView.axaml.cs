@@ -28,8 +28,9 @@ public partial class SettingsView : ScreenBase<SettingsViewModel>
                 .DisposeWith(disposables);
 
             
-            this.OneWayBind(ViewModel, vm => vm.Resources, view => view.ResourceList.Items)
+            this.OneWayBind(ViewModel, vm => vm.Resources, view => view.ResourcesList.Items)
                 .DisposeWith(disposables);
+
         });
     }
 }
