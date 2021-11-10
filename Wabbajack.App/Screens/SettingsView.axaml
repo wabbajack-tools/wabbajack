@@ -34,30 +34,18 @@
             </Grid>
         </Border>
 
-        <Border x:Name="ResourcesBorder" Margin="5" BorderThickness="1" Classes="Settings">
-            <Grid RowDefinitions="Auto, Auto">
-                <TextBlock FontSize="20" Grid.ColumnSpan="4">Resource Limits</TextBlock>
-
-                <DataGrid Grid.Row="1" AutoGenerateColumns="False" x:Name="ResourcesList">
-                    <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="Resource">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Name}" FontWeight="Bold"></TextBlock>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="Maximum Tasks" Binding="{Binding MaxTasks}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Maximum Throughput" Binding="{Binding MaxThroughput}"></DataGridTextColumn>
-                        <DataGridTemplateColumn Header="Transferred">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding TransferredHumanFriendly}"></TextBlock>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
+        <Border x:Name="ResourcesBorder" Margin="5" BorderThickness="1" Classes="ResourceSettings StandardBorder">
+            <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="Auto, Auto, Auto, Auto">
+                <TextBlock Grid.Row="0" Text="Resources" FontSize="20" Grid.ColumnSpan="4" Margin="4"></TextBlock>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Name" FontWeight="Bold" Margin="4, 4"></TextBlock>
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="Max Tasks" FontWeight="Bold" Margin="4, 4"></TextBlock>
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="Max Throughput" FontWeight="Bold" Margin="4, 4"></TextBlock>
+                <TextBlock Grid.Row="1" Grid.Column="3" Text="Transferred" FontWeight="Bold" Margin="4, 4"></TextBlock>
+                
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Compiler" VerticalAlignment="Center" Margin="4, 0"></TextBlock>
+                <TextBox Grid.Row="2" Grid.Column="1" Text="32" Margin="4, 0"></TextBox>
+                <TextBox Grid.Row="2" Grid.Column="2" Margin="4, 0"></TextBox>
+                <TextBlock Grid.Row="2" Grid.Column="3" Text="42GB" VerticalAlignment="Center" Margin="4, 0"></TextBlock>
 
             </Grid>
         </Border>

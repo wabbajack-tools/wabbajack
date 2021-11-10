@@ -33,9 +33,9 @@ public class ResourceSettingsManager
             var newSetting = new ResourceSetting
             {
                 MaxTasks = Environment.ProcessorCount,
-                MaxThroughput = long.MaxValue
+                MaxThroughput = 0
             };
-            
+
             _settings.Add(name, newSetting);
 
             await _manager.Save("resource_settings", _settings);
