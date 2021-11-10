@@ -93,6 +93,17 @@ public static class ServiceExtensions
             CachePath = KnownFolders.WabbajackAppLocal.Combine("cef_cache").ToString()
         });
 
+        services.AddSingleton(s => new Configuration
+        {
+            EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
+            ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
+            SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings"),
+            LogLocation = KnownFolders.EntryPoint.Combine("logs"),
+            ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
+        });
+
+        services.AddSingleton<SettingsManager>();
+
         services.AddSingleton(s =>
         {
             App.FrameworkInitialized += App_FrameworkInitialized;

@@ -12,7 +12,6 @@ using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
-using Wabbajack.Services.OSIntegrated;
 using Wabbajack.VFS;
 
 namespace Wabbajack.App.Models;

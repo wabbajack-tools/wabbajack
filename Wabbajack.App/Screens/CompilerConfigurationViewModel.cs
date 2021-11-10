@@ -18,7 +18,6 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Wabbajack.Services.OSIntegrated;
 using Consts = Wabbajack.Compiler.Consts;
 
 namespace Wabbajack.App.Screens;

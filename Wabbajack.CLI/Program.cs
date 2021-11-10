@@ -46,6 +46,7 @@ internal class Program
                 services.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount});
                 services.AddSingleton<Client>();
                 services.AddSingleton<Networking.WabbajackClientApi.Client>();
+                services.AddSingleton<Configuration>();
                 services.AddSingleton(s => new GitHubClient(new ProductHeaderValue("wabbajack")));
 
                 services.AddOSIntegrated();

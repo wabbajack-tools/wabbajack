@@ -1,6 +1,6 @@
 using Wabbajack.Paths;
 
-namespace Wabbajack.Services.OSIntegrated;
+namespace Wabbajack.App;
 
 public class Configuration
 {
