@@ -20,7 +20,6 @@ using Wabbajack.DTOs.SavedSettings;
 using Wabbajack.Installer;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.App.ViewModels;
 
@@ -125,8 +124,7 @@ public class InstallConfigurationViewModel : ViewModelBase, IActivatableViewMode
             ModList = ModListPath,
             Downloads = Download,
             Install = Install,
-            Metadata = metadata,
-            StrippedModListData = ModList?.Strip()
+            Metadata = metadata
         });
 
         await _settingsManager.Save("last-install-path", ModListPath);

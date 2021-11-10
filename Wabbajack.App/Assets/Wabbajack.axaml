@@ -41,12 +41,6 @@
         <Setter Property="CornerRadius" Value="4"></Setter>
     </Style>
     
-    <Style Selector="Border.StandardBorder">
-        <Setter Property="BorderThickness" Value="2"></Setter>
-        <Setter Property="BorderBrush" Value="DarkGray"></Setter>
-        <Setter Property="CornerRadius" Value="4"></Setter>
-    </Style>
-    
     <Style Selector="Border.Settings Grid">
         <Setter Property="Margin" Value="4"></Setter>
     </Style>

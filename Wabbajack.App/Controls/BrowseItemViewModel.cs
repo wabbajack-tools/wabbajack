@@ -21,7 +21,6 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
-using Wabbajack.Services.OSIntegrated;
 using Wabbajack.VFS;
 
 namespace Wabbajack.App.Controls;

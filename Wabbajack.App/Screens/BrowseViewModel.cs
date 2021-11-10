@@ -31,7 +31,7 @@ namespace Wabbajack.App.Screens;
 
 public class BrowseViewModel : ViewModelBase, IActivatableViewModel
 {
-    private readonly Wabbajack.Services.OSIntegrated.Configuration _configuration;
+    private readonly Configuration _configuration;
     private readonly DownloadDispatcher _dispatcher;
     private readonly IResource<DownloadDispatcher> _dispatcherLimiter;
     private readonly DTOSerializer _dtos;
@@ -54,7 +54,7 @@ public class BrowseViewModel : ViewModelBase, IActivatableViewModel
         IResource<HttpClient> limiter, FileHashCache hashCache,
         IResource<DownloadDispatcher> dispatcherLimiter, DownloadDispatcher dispatcher, GameLocator gameLocator,
         ImageCache imageCache,
-        DTOSerializer dtos, Wabbajack.Services.OSIntegrated.Configuration configuration)
+        DTOSerializer dtos, Configuration configuration)
     {
         LoadingLock = new LoadingLock();
         Activator = new ViewModelActivator();

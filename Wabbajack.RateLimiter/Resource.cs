@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -11,9 +10,9 @@ namespace Wabbajack.RateLimiter;
 
 public class Resource<T> : IResource<T>
 {
-    private Channel<PendingReport> _channel;
-    private SemaphoreSlim _semaphore;
-    private ConcurrentDictionary<ulong, Job<T>> _tasks;
+    private readonly Channel<PendingReport> _channel;
+    private readonly SemaphoreSlim _semaphore;
+    private readonly ConcurrentDictionary<ulong, Job<T>> _tasks;
     private ulong _nextId;
     private long _totalUsed;
 
@@ -23,28 +22,12 @@ public class Resource<T> : IResource<T>
         Name = humanName ?? "<unknown>";
         MaxTasks = maxTasks ?? Environment.ProcessorCount;
         MaxThroughput = maxThroughput;
+
         _semaphore = new SemaphoreSlim(MaxTasks);
         _channel = Channel.CreateBounded<PendingReport>(10);
         _tasks = new ConcurrentDictionary<ulong, Job<T>>();
-        
-        var tsk = StartTask(CancellationToken.None);
-    }
 
-    public Resource(string humanName, Func<Task<(int MaxTasks, long MaxThroughput)>> settingGetter)
-    {
-        Name = humanName;
-        _tasks = new ConcurrentDictionary<ulong, Job<T>>();
-        
-        Task.Run(async () =>
-        {
-            var (maxTasks, maxThroughput) = await settingGetter();
-            MaxTasks = maxTasks;
-            MaxThroughput = maxThroughput;
-            _semaphore = new SemaphoreSlim(MaxTasks);
-            _channel = Channel.CreateBounded<PendingReport>(10);
-            
-            await StartTask(CancellationToken.None);
-        });
+        var tsk = StartTask(CancellationToken.None);
     }
 
     public int MaxTasks { get; set; }
@@ -104,7 +87,7 @@ public class Resource<T> : IResource<T>
         await foreach (var item in _channel.Reader.ReadAllAsync(token))
         {
             Interlocked.Add(ref _totalUsed, item.Size);
-            if (MaxThroughput is long.MaxValue or 0)
+            if (MaxThroughput == long.MaxValue)
             {
                 item.Result.TrySetResult();
                 sw.Restart();
