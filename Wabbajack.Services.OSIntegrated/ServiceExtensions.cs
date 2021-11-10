@@ -64,6 +64,22 @@ public static class ServiceExtensions
                 return ((int) s.MaxTasks, s.MaxThroughput);
             };
         }
+        
+        // Settings
+        
+        service.AddSingleton(s => new Configuration
+        {
+            EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
+            ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
+            SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings"),
+            LogLocation = KnownFolders.EntryPoint.Combine("logs"),
+            ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
+        });
+
+        service.AddSingleton<SettingsManager>();
+        service.AddSingleton<ResourceSettingsManager>();
+        
+        // Resources
 
         service.AddAllSingleton<IResource, IResource<DownloadDispatcher>>(s =>
             new Resource<DownloadDispatcher>("Downloads", GetSettings(s, "Downloads")));
@@ -86,7 +102,6 @@ public static class ServiceExtensions
         // Networking
         service.AddSingleton<HttpClient>();
         service.AddAllSingleton<IHttpDownloader, SingleThreadedDownloader>();
-        service.AddSingleton<Configuration>();
 
         service.AddSingleton<Client>();
         service.AddSingleton<WriteOnlyClient>();
@@ -135,19 +150,7 @@ public static class ServiceExtensions
             Version = version
         });
         
-        // Settings
-        
-        service.AddSingleton(s => new Configuration
-        {
-            EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
-            ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
-            SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings"),
-            LogLocation = KnownFolders.EntryPoint.Combine("logs"),
-            ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
-        });
 
-        service.AddSingleton<SettingsManager>();
-        service.AddSingleton<ResourceSettingsManager>();
         
         return service;
     }

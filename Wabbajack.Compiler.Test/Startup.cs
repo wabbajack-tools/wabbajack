@@ -19,7 +19,6 @@ public class Startup
         });
 
         service.AddScoped<ModListHarness>();
-        service.AddSingleton<Configuration>();
     }
 
     public void Configure(ILoggerFactory loggerFactory, ITestOutputHelperAccessor accessor)
