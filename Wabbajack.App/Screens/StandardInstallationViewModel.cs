@@ -198,8 +198,15 @@ public class StandardInstallationViewModel : ViewModelBase
         _logger.LogInformation("Installer created, starting the installation process");
         try
         {
+                    
+            if (!string.IsNullOrWhiteSpace(_config.ModList.Readme)) 
+                OSUtil.OpenWebsite(new Uri(_config.ModList.Readme));
+            
             var result = await Task.Run(async () => await _installer.Begin(CancellationToken.None));
             if (!result) throw new Exception("Installation failed");
+            
+            if (!string.IsNullOrWhiteSpace(_config.ModList.Readme)) 
+                OSUtil.OpenWebsite(new Uri(_config.ModList.Readme));
 
             if (result) await SaveConfigAndContinue(_config);
         }
@@ -218,6 +225,7 @@ public class StandardInstallationViewModel : ViewModelBase
             await using var os = path.Open(FileMode.Create, FileAccess.Write);
             await image.CopyToAsync(os);
         }
+
 
         await _installStateManager.SetLastState(new InstallationConfigurationSetting
         {
