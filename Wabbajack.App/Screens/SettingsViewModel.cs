@@ -1,15 +1,21 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.App.Controls;
 using Wabbajack.App.Messages;
+using Wabbajack.App.Models;
 using Wabbajack.App.ViewModels;
+using Wabbajack.Common;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
@@ -23,10 +29,13 @@ public class SettingsViewModel : ViewModelBase
     private readonly Subject<AbsolutePath> _fileSystemEvents = new();
     private readonly ILogger<SettingsViewModel> _logger;
     public readonly IEnumerable<ResourceViewModel> Resources;
+    private readonly ResourceSettingsManager _resourceSettingsManager;
 
     public SettingsViewModel(ILogger<SettingsViewModel> logger, Configuration configuration,
+        ResourceSettingsManager resourceSettingsManager,
         NexusApiTokenProvider nexusProvider, IEnumerable<IResource> resources, LoversLabTokenProvider llProvider, VectorPlexusTokenProvider vpProvider)
     {
+        _resourceSettingsManager = resourceSettingsManager;
         _logger = logger;
         Resources = resources.Select(r => new ResourceViewModel(r))
             .OrderBy(o => o.Name)
@@ -94,5 +103,25 @@ public class SettingsViewModel : ViewModelBase
     private void Pulse(object sender, FileSystemEventArgs e)
     {
         _fileSystemEvents.OnNext(e.FullPath?.ToAbsolutePath() ?? default);
+    }
+
+    public async Task SaveResourceSettingsAndRestart()
+    {
+        await _resourceSettingsManager.SaveSettings(Resources.ToDictionary(r => r.Name, r =>
+            new ResourceSettingsManager.ResourceSetting()
+            {
+                MaxTasks = r.MaxTasks,
+                MaxThroughput = r.MaxThroughput
+            }));
+        
+        var proc = new Process()
+        {
+            StartInfo = new ProcessStartInfo()
+            {
+                FileName = Process.GetCurrentProcess().MainModule!.FileName 
+            }
+        };
+        proc.Start();
+        Environment.Exit(0);
     }
 }

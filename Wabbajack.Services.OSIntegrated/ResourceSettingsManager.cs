@@ -55,4 +55,8 @@ public class ResourceSettingsManager
         public long MaxThroughput { get; set; }
     }
 
+    public async Task SaveSettings(Dictionary<string, ResourceSetting> settings)
+    {
+        await _manager.Save("resource_settings", settings);
+    }
 }

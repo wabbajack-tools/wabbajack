@@ -35,7 +35,7 @@
         </Border>
 
         <Border x:Name="ResourcesBorder" Margin="5" BorderThickness="1" Classes="ResourceSettings StandardBorder">
-            <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="140, 100, 140, 100">
+            <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="140, 100, 140, 100">
                 <TextBlock Grid.Row="0" Text="Resources" FontSize="20" Grid.ColumnSpan="4" Margin="4"></TextBlock>
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Name" FontWeight="Bold" Margin="4, 4"></TextBlock>
                 <TextBlock Grid.Row="1" Grid.Column="1" Text="Max Tasks" FontWeight="Bold" Margin="4, 4"></TextBlock>
@@ -52,6 +52,10 @@
                         </DataTemplate>
                     </ItemsRepeater.ItemTemplate>
                 </ItemsRepeater>
+                
+                <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4" HorizontalAlignment="Stretch" Margin="4" Click="SaveSettingsAndRestart">
+                    <TextBlock Text="Save Settings and Restart Wabbajack" HorizontalAlignment="Center" TextAlignment="Center"></TextBlock>
+                </Button>
 
             </Grid>
         </Border>

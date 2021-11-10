@@ -2,6 +2,7 @@ using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Timers;
+using Avalonia.Threading;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.App.ViewModels;
@@ -33,17 +34,7 @@ public class ResourceViewModel : ViewModelBase, IActivatableViewModel, IDisposab
                 _timer.Stop();
                 _timer.Elapsed -= TimerElapsed;
             }).DisposeWith(disposables);
-
-            /*
-            this.WhenAnyValue(vm => vm.MaxThroughput)
-                .Skip(1)
-                .Subscribe(v => { _resource.MaxThroughput = MaxThroughput; }).DisposeWith(disposables);
-
-            this.WhenAnyValue(vm => vm.MaxTasks)
-                .Skip(1)
-                .Subscribe(v => { _resource.MaxTasks = MaxTasks; }).DisposeWith(disposables);
-                */
-
+            
             MaxTasks = _resource.MaxTasks;
             MaxThroughput = _resource.MaxThroughput;
         });
@@ -67,9 +58,9 @@ public class ResourceViewModel : ViewModelBase, IActivatableViewModel, IDisposab
 
     private void TimerElapsed(object? sender, ElapsedEventArgs e)
     {
-        MaxTasks = _resource.MaxTasks;
-        MaxThroughput = _resource.MaxThroughput;
-        CurrentThroughput = _resource.StatusReport.Transferred;
-        ThroughputHumanFriendly = _resource.StatusReport.Transferred.ToFileSizeString();
+        Dispatcher.UIThread.Post(() => {
+            CurrentThroughput = _resource.StatusReport.Transferred;
+            ThroughputHumanFriendly = _resource.StatusReport.Transferred.ToFileSizeString();
+        });
     }
 }

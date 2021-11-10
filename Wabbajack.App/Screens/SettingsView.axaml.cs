@@ -1,6 +1,8 @@
 using System.Reactive.Disposables;
+using Avalonia.Interactivity;
 using ReactiveUI;
 using Wabbajack.App.Views;
+using Wabbajack.Common;
 
 namespace Wabbajack.App.Screens;
 
@@ -32,5 +34,10 @@ public partial class SettingsView : ScreenBase<SettingsViewModel>
                 .DisposeWith(disposables);
 
         });
+    }
+
+    private void SaveSettingsAndRestart(object? sender, RoutedEventArgs e)
+    {
+        ViewModel!.SaveResourceSettingsAndRestart().FireAndForget();
     }
 }
