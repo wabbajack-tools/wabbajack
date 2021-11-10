@@ -34,6 +34,7 @@ public class ResourceViewModel : ViewModelBase, IActivatableViewModel, IDisposab
                 _timer.Elapsed -= TimerElapsed;
             }).DisposeWith(disposables);
 
+            /*
             this.WhenAnyValue(vm => vm.MaxThroughput)
                 .Skip(1)
                 .Subscribe(v => { _resource.MaxThroughput = MaxThroughput; }).DisposeWith(disposables);
@@ -41,6 +42,10 @@ public class ResourceViewModel : ViewModelBase, IActivatableViewModel, IDisposab
             this.WhenAnyValue(vm => vm.MaxTasks)
                 .Skip(1)
                 .Subscribe(v => { _resource.MaxTasks = MaxTasks; }).DisposeWith(disposables);
+                */
+
+            MaxTasks = _resource.MaxTasks;
+            MaxThroughput = _resource.MaxThroughput;
         });
     }
 

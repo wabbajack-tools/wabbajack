@@ -27,6 +27,9 @@ public partial class SettingsView : ScreenBase<SettingsViewModel>
             this.BindCommand(ViewModel, vm => vm.VectorPlexusLogout, view => view.VectorPlexusLogOut)
                 .DisposeWith(disposables);
 
+            
+            this.OneWayBind(ViewModel, vm => vm.Resources, view => view.ResourcesList.Items)
+                .DisposeWith(disposables);
 
         });
     }

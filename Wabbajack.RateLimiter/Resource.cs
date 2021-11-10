@@ -32,6 +32,7 @@ public class Resource<T> : IResource<T>
 
     public Resource(string humanName, Func<Task<(int MaxTasks, long MaxThroughput)>> settingGetter)
     {
+        Name = humanName;
         _tasks = new ConcurrentDictionary<ulong, Job<T>>();
         
         Task.Run(async () =>
@@ -103,7 +104,7 @@ public class Resource<T> : IResource<T>
         await foreach (var item in _channel.Reader.ReadAllAsync(token))
         {
             Interlocked.Add(ref _totalUsed, item.Size);
-            if (MaxThroughput == long.MaxValue)
+            if (MaxThroughput is long.MaxValue or 0)
             {
                 item.Result.TrySetResult();
                 sw.Restart();
