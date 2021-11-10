@@ -71,9 +71,9 @@ public static class ServiceExtensions
         service.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", GetSettings(s, "Web Requests")));
         service.AddAllSingleton<IResource, IResource<Context>>(s => new Resource<Context>("VFS", GetSettings(s, "VFS")));
         service.AddAllSingleton<IResource, IResource<FileHashCache>>(s =>
-            new Resource<FileHashCache>("File Hashing", GetSettings(s, "FileHashing")));
+            new Resource<FileHashCache>("File Hashing", GetSettings(s, "File Hashing")));
         service.AddAllSingleton<IResource, IResource<FileExtractor.FileExtractor>>(s =>
-            new Resource<FileExtractor.FileExtractor>("File Extractor", GetSettings(s, "FileExtractor")));
+            new Resource<FileExtractor.FileExtractor>("File Extractor", GetSettings(s, "File Extractor")));
 
         service.AddAllSingleton<IResource, IResource<ACompiler>>(s =>
             new Resource<ACompiler>("Compiler", GetSettings(s, "Compiler")));

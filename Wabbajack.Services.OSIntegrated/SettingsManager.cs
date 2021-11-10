@@ -35,7 +35,11 @@ public class SettingsManager
         var tmp = GetPath(key).WithExtension(Ext.Temp);
         await using (var s = tmp.Open(FileMode.Create, FileAccess.Write))
         {
-            await JsonSerializer.SerializeAsync(s, value, _dtos.Options);
+            var opts = new JsonSerializerOptions(_dtos.Options)
+            {
+                WriteIndented = true
+            };
+            await JsonSerializer.SerializeAsync(s, value, opts);
         }
 
         await tmp.MoveToAsync(GetPath(key), true, CancellationToken.None);
