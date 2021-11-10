@@ -10,6 +10,7 @@ using DynamicData;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.App.Utilities;
 

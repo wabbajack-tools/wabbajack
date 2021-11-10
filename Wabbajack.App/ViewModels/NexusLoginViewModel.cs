@@ -97,5 +97,7 @@ public class NexusLoginViewModel : GuidedWebViewModel
             Cookies = cookies,
             ApiKey = key
         });
+                
+        MessageBus.Current.SendMessage(new NavigateBack());
     }
 }

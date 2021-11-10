@@ -4,6 +4,7 @@ using Wabbajack.Downloaders.IPS4OAuth2Downloader;
 using Wabbajack.Downloaders.MediaFire;
 using Wabbajack.Downloaders.ModDB;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Networking.WabbajackClientApi;
 
 namespace Wabbajack.Downloaders;
 
@@ -23,6 +24,7 @@ public static class ServiceExtensions
             .AddIPS4OAuth2Downloaders()
             .AddWabbajackCDNDownloader()
             .AddGameFileDownloader()
+            .AddWabbajackClient()
             .AddSingleton<DownloadDispatcher>();
     }
 }

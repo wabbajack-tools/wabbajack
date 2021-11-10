@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Wabbajack.App.Models;
 using Wabbajack.Compiler;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
@@ -54,17 +55,28 @@ public static class ServiceExtensions
             : new BinaryPatchCache(KnownFolders.EntryPoint.Combine("patchCache.sqlite")));
 
         service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount});
+
+        Func<Task<(int MaxTasks, long MaxThroughput)>> GetSettings(IServiceProvider provider, string name)
+        {
+            return async () =>
+            {
+                var s = await provider.GetService<ResourceSettingsManager>()!.GetSettings(name);
+                return ((int) s.MaxTasks, s.MaxThroughput);
+            };
+        }
+
         service.AddAllSingleton<IResource, IResource<DownloadDispatcher>>(s =>
-            new Resource<DownloadDispatcher>("Downloads", 12));
-        service.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", 12));
-        service.AddAllSingleton<IResource, IResource<Context>>(s => new Resource<Context>("VFS", 12));
+            new Resource<DownloadDispatcher>("Downloads", GetSettings(s, "Downloads")));
+
+        service.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", GetSettings(s, "Web Requests")));
+        service.AddAllSingleton<IResource, IResource<Context>>(s => new Resource<Context>("VFS", GetSettings(s, "VFS")));
         service.AddAllSingleton<IResource, IResource<FileHashCache>>(s =>
-            new Resource<FileHashCache>("File Hashing", 12));
+            new Resource<FileHashCache>("File Hashing", GetSettings(s, "File Hashing")));
         service.AddAllSingleton<IResource, IResource<FileExtractor.FileExtractor>>(s =>
-            new Resource<FileExtractor.FileExtractor>("File Extractor", 12));
+            new Resource<FileExtractor.FileExtractor>("File Extractor", GetSettings(s, "File Extractor")));
 
         service.AddAllSingleton<IResource, IResource<ACompiler>>(s =>
-            new Resource<ACompiler>("Compiler", 12));
+            new Resource<ACompiler>("Compiler", GetSettings(s, "Compiler")));
 
         service.AddSingleton<LoggingRateLimiterReporter>();
 
@@ -122,6 +134,21 @@ public static class ServiceExtensions
             OSVersion = Environment.OSVersion.VersionString,
             Version = version
         });
+        
+        // Settings
+        
+        service.AddSingleton(s => new Configuration
+        {
+            EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
+            ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
+            SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings"),
+            LogLocation = KnownFolders.EntryPoint.Combine("logs"),
+            ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
+        });
+
+        service.AddSingleton<SettingsManager>();
+        service.AddSingleton<ResourceSettingsManager>();
+        
         return service;
     }
 

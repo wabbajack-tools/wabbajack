@@ -20,5 +20,5 @@ public class InstallationConfigurationSetting
     public ModlistMetadata? Metadata { get; set; }
 
     public AbsolutePath Image { get; set; }
-
+    public ModList? StrippedModListData { get; set; }
 }
