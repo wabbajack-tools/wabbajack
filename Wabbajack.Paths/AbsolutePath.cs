@@ -37,7 +37,7 @@ public readonly struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatab
     }
 
     private static readonly HashSet<char>
-        DriveLetters = new("ABCDEFGJIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+        DriveLetters = new("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
 
     private static PathFormat DetectPathType(string path)
     {
