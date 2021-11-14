@@ -528,6 +528,8 @@ public class ValidateLists : IVerb
                 return (ArchiveStatus.Valid, archive);
             case TESAlliance:
                 return (ArchiveStatus.Valid, archive);
+            case Mega:
+                return (ArchiveStatus.Valid, archive);
         }
 
         bool ShouldDownload()
