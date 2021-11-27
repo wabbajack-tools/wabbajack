@@ -15,7 +15,7 @@ using Wabbajack.DTOs.GitHub;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Networking.GitHub;
 using Wabbajack.Paths.IO;
-using Wabbajack.Server.DataLayer;
+using Wabbajack.Server.DataModels;
 using Wabbajack.Server.Services;
 
 namespace Wabbajack.BuildServer.Controllers;
@@ -30,19 +30,19 @@ public class AuthorControls : ControllerBase
     private readonly QuickSync _quickSync;
     private readonly AppSettings _settings;
     private readonly ILogger<AuthorControls> _logger;
-    private readonly SqlService _sql;
+    private readonly AuthorFiles _authorFiles;
 
-    public AuthorControls(ILogger<AuthorControls> logger, SqlService sql, QuickSync quickSync, HttpClient client,
-        AppSettings settings, DTOSerializer dtos,
+    public AuthorControls(ILogger<AuthorControls> logger, QuickSync quickSync, HttpClient client,
+        AppSettings settings, DTOSerializer dtos, AuthorFiles authorFiles,
         Client gitHubClient)
     {
         _logger = logger;
-        _sql = sql;
         _quickSync = quickSync;
         _client = client;
         _settings = settings;
         _dtos = dtos;
         _gitHubClient = gitHubClient;
+        _authorFiles = authorFiles;
     }
 
     [Route("login/{authorKey}")]
@@ -75,7 +75,6 @@ public class AuthorControls : ControllerBase
         try
         {
             await _gitHubClient.UpdateList(user, data);
-            await _quickSync.Notify<ModListDownloader>();
         }
         catch (Exception ex)
         {
@@ -99,15 +98,15 @@ public class AuthorControls : ControllerBase
     public async Task<IActionResult> HomePage()
     {
         var user = User.FindFirstValue(ClaimTypes.Name);
-        var files = (await _sql.AllAuthoredFiles())
-            .Where(af => af.Author == user)
+        var files = (await _authorFiles.AllAuthoredFiles())
+            .Where(af => af.Definition.Author == user)
             .Select(af => new
             {
-                Size = af.Size.FileSizeToString(),
-                OriginalSize = af.Size,
-                Name = af.OriginalFileName,
-                MangledName = af.MungedName,
-                UploadedDate = af.LastTouched
+                Size = af.Definition.Size.FileSizeToString(),
+                OriginalSize = af.Definition.Size,
+                Name = af.Definition.OriginalFileName,
+                MangledName = af.Definition.MungedName,
+                UploadedDate = af.Updated
             })
             .OrderBy(f => f.Name)
             .ThenBy(f => f.UploadedDate)

@@ -12,8 +12,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
+using Octokit;
 using Wabbajack.BuildServer;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Networking.GitHub;
 using Wabbajack.Server.DataModels;
 using Wabbajack.Server.Services;
 
@@ -60,6 +62,8 @@ public class Startup
         services.AddSingleton<HttpClient>();
         services.AddSingleton<AuthorFiles>();
         services.AddSingleton<AuthorKeys>();
+        services.AddSingleton<Client>();
+        services.AddSingleton(s => new GitHubClient(new ProductHeaderValue("wabbajack")));
         services.AddDTOSerializer();
         services.AddDTOConverters();
         services.AddResponseCompression(options =>
