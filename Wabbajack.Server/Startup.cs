@@ -63,7 +63,15 @@ public class Startup
         services.AddSingleton<AuthorFiles>();
         services.AddSingleton<AuthorKeys>();
         services.AddSingleton<Client>();
-        services.AddSingleton(s => new GitHubClient(new ProductHeaderValue("wabbajack")));
+        services.AddSingleton(s =>
+        {
+            var settings = s.GetService<AppSettings>()!;
+            if (string.IsNullOrWhiteSpace(settings.GitHubKey)) 
+                return new GitHubClient(new ProductHeaderValue("wabbajack"));
+            
+            var creds = new Credentials(settings.GitHubKey);
+            return new GitHubClient(new ProductHeaderValue("wabbajack")) {Credentials = creds};
+        });
         services.AddDTOSerializer();
         services.AddDTOConverters();
         services.AddResponseCompression(options =>
