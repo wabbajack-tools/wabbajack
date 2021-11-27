@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -12,7 +13,8 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Wabbajack.BuildServer;
-using Wabbajack.Server.DataLayer;
+using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Server.DataModels;
 using Wabbajack.Server.Services;
 
 namespace Wabbajack.Server;
@@ -51,20 +53,15 @@ public class Startup
 
         services.AddSingleton<AppSettings>();
         services.AddSingleton<QuickSync>();
-        services.AddSingleton<SqlService>();
         services.AddSingleton<GlobalInformation>();
-        services.AddSingleton<NexusPoll>();
-        services.AddSingleton<ArchiveMaintainer>();
-        services.AddSingleton<ModListDownloader>();
-        services.AddSingleton<NonNexusDownloadValidator>();
-        services.AddSingleton<ArchiveDownloader>();
         services.AddSingleton<DiscordWebHook>();
-        services.AddSingleton<PatchBuilder>();
-        services.AddSingleton<MirrorUploader>();
-        services.AddSingleton<MirrorQueueService>();
         services.AddSingleton<Watchdog>();
-        services.AddSingleton<DiscordFrontend>();
-        services.AddSingleton<MetricsKeyCache>();
+        services.AddSingleton<Metrics>();
+        services.AddSingleton<HttpClient>();
+        services.AddSingleton<AuthorFiles>();
+        services.AddSingleton<AuthorKeys>();
+        services.AddDTOSerializer();
+        services.AddDTOConverters();
         services.AddResponseCompression(options =>
         {
             options.Providers.Add<BrotliCompressionProvider>();
@@ -82,9 +79,6 @@ public class Startup
     {
         if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
 
-        if (this is not TestStartup)
-            app.UseHttpsRedirection();
-
         app.UseDeveloperExceptionPage();
 
         var provider = new FileExtensionContentTypeProvider();
@@ -98,18 +92,10 @@ public class Startup
 
         app.UseAuthentication();
         app.UseAuthorization();
-        app.UseNexusPoll();
-        app.UseModListDownloader();
         app.UseResponseCompression();
 
-        app.UseService<NonNexusDownloadValidator>();
-        app.UseService<ArchiveDownloader>();
         app.UseService<DiscordWebHook>();
-        app.UseService<PatchBuilder>();
-        app.UseService<MirrorUploader>();
         app.UseService<Watchdog>();
-        app.UseService<DiscordFrontend>();
-        app.UseService<MetricsKeyCache>();
 
         app.Use(next =>
         {

@@ -9,9 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Wabbajack.DTOs.JsonConverters;
-using Wabbajack.Server.DataLayer;
-using Wabbajack.Server.DTOs;
-using Wabbajack.Server.Services;
+using Wabbajack.Server.DataModels;
 
 namespace Wabbajack.BuildServer;
 
@@ -28,23 +26,19 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
     public const string ApiKeyHeaderName = "X-Api-Key";
     private readonly DTOSerializer _dtos;
     private readonly AppSettings _settings;
-    private readonly SqlService _sql;
-
-    private readonly MetricsKeyCache _keyCache;
+    private readonly AuthorKeys _authorKeys;
 
     public ApiKeyAuthenticationHandler(
         IOptionsMonitor<ApiKeyAuthenticationOptions> options,
+        AuthorKeys authorKeys,
         ILoggerFactory logger,
         UrlEncoder encoder,
         ISystemClock clock,
-        MetricsKeyCache keyCache,
         DTOSerializer dtos,
-        AppSettings settings,
-        SqlService db) : base(options, logger, encoder, clock)
+        AppSettings settings) : base(options, logger, encoder, clock)
     {
-        _sql = db;
         _dtos = dtos;
-        _keyCache = keyCache;
+        _authorKeys = authorKeys;
         _settings = settings;
     }
 
@@ -55,7 +49,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         //await LogRequest(metricsKey);
         if (metricsKey != default)
         {
-            await _keyCache.AddKey(metricsKey);
+            /*
             if (await _sql.IsTarKey(metricsKey))
             {
                 await _sql.IngestMetric(new Metric
@@ -68,6 +62,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
                 await Task.Delay(TimeSpan.FromSeconds(60));
                 throw new Exception("Error, lipsum timeout of the cross distant cloud.");
             }
+            */
         }
 
         var authorKey = Request.Headers[ApiKeyHeaderName].FirstOrDefault();
@@ -77,11 +72,10 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
 
 
         if (authorKey == null && metricsKey == null) return AuthenticateResult.NoResult();
-
-
+        
         if (authorKey != null)
         {
-            var owner = await _sql.LoginByApiKey(authorKey);
+            var owner = await _authorKeys.AuthorForKey(authorKey);
             if (owner == null)
                 return AuthenticateResult.Fail("Invalid author key");
 
@@ -98,12 +92,8 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
             return AuthenticateResult.Success(ticket);
         }
 
-
-        if (!await _keyCache.IsValidKey(metricsKey))
-        {
-            return AuthenticateResult.Fail("Invalid Metrics Key");
-        }
-
+        
+        if (!string.IsNullOrWhiteSpace(metricsKey))
         {
             var claims = new List<Claim> {new(ClaimTypes.Role, "User")};
 
@@ -115,6 +105,8 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
 
             return AuthenticateResult.Success(ticket);
         }
+
+        return AuthenticateResult.NoResult();
     }
 
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)

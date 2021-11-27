@@ -54,6 +54,10 @@
     <ItemGroup>
         <Compile Remove="Controllers\UploadedFiles.cs" />
         <Compile Remove="Services\ListValidator.cs" />
+        <Compile Remove="Controllers\ModFiles.cs" />
+        <Compile Remove="Controllers\Users.cs" />
+        <Compile Remove="Controllers\NexusCache.cs" />
+        <Compile Remove="Controllers\AuthorControls.cs" />
     </ItemGroup>
 
     <ItemGroup>
