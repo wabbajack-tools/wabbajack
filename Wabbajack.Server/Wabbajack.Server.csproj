@@ -2,7 +2,10 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net6.0-windows</TargetFramework>
+        <TargetFramework Condition=" '$(OS)' != 'Windows_NT'">net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <TargetName>Wabbajack.exe</TargetName>
         <AssemblyVersion>2.5.2.2</AssemblyVersion>
         <FileVersion>2.5.2.2</FileVersion>
         <Copyright>Copyright © 2019-2021</Copyright>
@@ -11,7 +14,6 @@
         <AssemblyName>Wabbajack.Server</AssemblyName>
         <RootNamespace>Wabbajack.Server</RootNamespace>
         <Nullable>enable</Nullable>
-
     </PropertyGroup>
 
     <ItemGroup>
