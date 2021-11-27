@@ -1,0 +1,13 @@
+name = "wabbajack_serverless"
+type = "webpack"
+
+account_id = ""
+workers_dev = true
+route = ""
+zone_id = ""
+compatibility_date = "2021-11-26"
+usage_model = "unbound"
+kv_namespaces = [
+   { binding = "AUTHOR_KEYS", id = "feed7308655c4371b0a0b0a227e57842", preview_id = "feed7308655c4371b0a0b0a227e57842"},
+   { binding = "AUTHOR_FILES", id = "86e14365eb714d7cb971030e2383eec3", preview_id = "86e14365eb714d7cb971030e2383eec3"}
+]

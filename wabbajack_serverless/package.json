@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "name": "wabbajack_serverless",
+  "version": "1.0.0",
+  "description": "A template for kick starting a Cloudflare Workers project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write '**/*.{js,css,json,md}'"
+  },
+  "author": "Timothy Baldridge <tbaldridge@gmail.com>",
+  "license": "GPL3",
+  "devDependencies": {
+    "prettier": "^1.18.2",
+    "itty-router": "^2.4.5"
+  }
+}
