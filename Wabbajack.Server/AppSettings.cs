@@ -19,7 +19,7 @@ public class AppSettings
     public string HamWebHook { get; set; } = null;
     
     public string AuthoredFilesFolder { get; set; }
-    public string MetricsFolder { get; set; }
+    public string MetricsFolder { get; set; } = "";
     public string TarLogPath { get; set; }
-    public string GitHubKey { get; set; }
+    public string GitHubKey { get; set; } = "";
 }
