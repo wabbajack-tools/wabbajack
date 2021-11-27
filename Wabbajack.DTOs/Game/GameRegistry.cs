@@ -401,7 +401,7 @@ public static class GameRegistry
             }
         },
         {
-           Game.CyberPunk2077, new GameMetaData
+           Game.Cyberpunk2077, new GameMetaData
            {
                 Game = Game.Cyberpunk2077,
                 SteamIDs = new[] {1091500},
