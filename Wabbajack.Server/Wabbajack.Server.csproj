@@ -10,7 +10,6 @@
         <FileVersion>2.5.2.2</FileVersion>
         <Copyright>Copyright © 2019-2021</Copyright>
         <Description>Wabbajack Server</Description>
-        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <AssemblyName>Wabbajack.Server</AssemblyName>
         <RootNamespace>Wabbajack.Server</RootNamespace>
         <Nullable>enable</Nullable>
