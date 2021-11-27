@@ -399,6 +399,22 @@ public static class GameRegistry
                 },
                 MainExecutable = @"tModLoader.exe".ToRelativePath()
             }
+        },
+        {
+            Game.Cyberpunk2077, new GameMetaData
+            {
+                Game = Game.Cyberpunk2077,
+                SteamIDs = new[] {1091500},
+                MO2Name = "Cyberpunk 2077",
+                NexusName = "cyberpunk2077",
+                NexusGameId = 3333,
+                IsGenericMO2Plugin = true,
+                RequiredFiles = new[]
+                {
+                    @"REDprelauncher.exe".ToRelativePath()
+                },
+                MainExecutable = @"REDprelauncher.exe".ToRelativePath()
+            }
         }
     };
 
