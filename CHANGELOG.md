@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.5.3.2 - 11/28/2021
+* Added support for Cyberpunk 2077
+* Fixed a bug with tagged files/folders
+
 #### Version - 2.5.2.2 - 8/11/2021
 * Hotfix for compilation errors with TW3 modlists
 
