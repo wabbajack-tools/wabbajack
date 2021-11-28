@@ -45,7 +45,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             foreach (var folderpath in _includeDirectly)
             {
-                if (!source.AbsolutePath.Equals(folderpath) || !source.AbsolutePath.InFolder(folderpath)) continue;
+                if (!source.AbsolutePath.Equals(folderpath) && !source.AbsolutePath.InFolder(folderpath)) continue;
                 var result = source.EvolveTo<InlineFile>();
                 result.SourceDataID = await _compiler.IncludeFile(source.AbsolutePath);
                 return result;
