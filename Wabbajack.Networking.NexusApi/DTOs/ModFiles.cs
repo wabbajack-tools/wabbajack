@@ -39,7 +39,7 @@ public class ModFile
 
     [JsonPropertyName("size_kb")] public int SizeKb { get; set; }
 
-    [JsonPropertyName("size_in_bytes")] public int SizeInBytes { get; set; }
+    [JsonPropertyName("size_in_bytes")] public int? SizeInBytes { get; set; }
 
     [JsonPropertyName("changelog_html")] public string ChangelogHtml { get; set; } = "";
 
