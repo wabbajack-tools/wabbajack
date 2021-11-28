@@ -530,6 +530,8 @@ public class ValidateLists : IVerb
                 return (ArchiveStatus.Valid, archive);
             case Mega:
                 return (ArchiveStatus.Valid, archive);
+            case Nexus:
+                return (ArchiveStatus.Valid, archive);
         }
 
         bool ShouldDownload()
