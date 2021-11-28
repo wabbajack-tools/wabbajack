@@ -41,5 +41,6 @@ public enum Game
     [Description("Enderal Special Edition")]
     EnderalSpecialEdition,
 
-    [Description("Terraria")] Terraria
+    [Description("Terraria")] Terraria,
+    [Description("Cyberpunk 2077")] Cyberpunk2077
 }
