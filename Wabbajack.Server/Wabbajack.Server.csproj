@@ -46,7 +46,6 @@
     <ItemGroup>
         <Compile Remove="Controllers\UploadedFiles.cs" />
         <Compile Remove="Services\ListValidator.cs" />
-        <Compile Remove="Controllers\ModFiles.cs" />
         <Compile Remove="Controllers\Users.cs" />
     </ItemGroup>
 
