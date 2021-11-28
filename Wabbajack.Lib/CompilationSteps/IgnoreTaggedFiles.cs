@@ -48,7 +48,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             foreach (var folderpath in _ignoreList)
             {
-                if (!source.AbsolutePath.Equals(folderpath) || !source.AbsolutePath.InFolder(folderpath)) continue;
+                if (!source.AbsolutePath.Equals(folderpath) && !source.AbsolutePath.InFolder(folderpath)) continue;
                 var result = source.EvolveTo<IgnoredDirectly>();
                 result.Reason = _reason;
                 return result;
