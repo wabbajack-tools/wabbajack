@@ -55,7 +55,9 @@ namespace Wabbajack.Common
         [Description("Kerbal Space Program")]
         KerbalSpaceProgram,
         [Description("Enderal Special Edition")]
-        EnderalSpecialEdition
+        EnderalSpecialEdition,
+        [Description("Cyberpunk 2077")] 
+        Cyberpunk2077
     }
 
     public static class GameExtensions
@@ -661,6 +663,23 @@ namespace Wabbajack.Common
                         @"KSP_x64.exe"
                     },
                     MainExecutable = @"KSP_x64.exe"
+                }
+            },
+            {
+               Game.Cyberpunk2077, new GameMetaData
+               {
+                    Game = Game.Cyberpunk2077,
+                    SteamIDs = new[] {1091500},
+                    GOGIDs = new [] {2093619782},
+                    MO2Name = "Cyberpunk 2077",
+                    NexusName = "cyberpunk2077",
+                    NexusGameId = 3333,
+                    IsGenericMO2Plugin = true,
+                    RequiredFiles = new[]
+                    {
+                        @"REDprelauncher.exe".ToRelativePath()
+                    },
+                    MainExecutable = @"REDprelauncher.exe".ToRelativePath()
                 }
             }
         };
