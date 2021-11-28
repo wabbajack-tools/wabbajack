@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Threading;
@@ -9,15 +10,15 @@ using FluentFTP;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using Nettle;
 using Wabbajack.Common;
 using Wabbajack.DTOs.CDN;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Hashing.xxHash64;
-using Wabbajack.Server.DataLayer;
+using Wabbajack.Server.DataModels;
 using Wabbajack.Server.DTOs;
 using Wabbajack.Server.Services;
-using Wabbajack.Server.TokenProviders;
 
 namespace Wabbajack.BuildServer.Controllers;
 
@@ -29,7 +30,13 @@ public class AuthoredFiles : ControllerBase
             <html><body>
                 <table>
                 {{each $.files }}
-                <tr><td><a href='https://authored-files.wabbajack.org/{{$.MungedName}}'>{{$.OriginalFileName}}</a></td><td>{{$.Size}}</td><td>{{$.LastTouched}}</td><td>{{$.Finalized}}</td><td>{{$.Author}}</td></tr>
+                <tr>
+                       <td><a href='https://authored-files.wabbajack.org/{{$.Definition.MungedName}}'>{{$.Definition.OriginalFileName}}</a></td>
+                       <td>{{$.HumanSize}}</td>
+                       <td>{{$.Definition.Author}}</td>
+                       <td>{{$.Updated}}</td>
+                       <td><a href='/authored_files/direct_link/{{$.Definition.MungedName}}'>(Slow) HTTP Direct Link</a></td>
+                </tr>
                 {{/each}}
                 </table>
             </body></html>
@@ -38,36 +45,33 @@ public class AuthoredFiles : ControllerBase
 
     private readonly DTOSerializer _dtos;
 
-    private readonly IFtpSiteCredentials _ftpCreds;
     private readonly DiscordWebHook _discord;
     private readonly ILogger<AuthoredFiles> _logger;
     private readonly AppSettings _settings;
-    private readonly SqlService _sql;
+    private readonly AuthorFiles _authoredFiles;
 
 
-    public AuthoredFiles(ILogger<AuthoredFiles> logger, SqlService sql, AppSettings settings, DiscordWebHook discord,
-        DTOSerializer dtos, IFtpSiteCredentials ftpCreds)
+    public AuthoredFiles(ILogger<AuthoredFiles> logger, AuthorFiles authorFiles, AppSettings settings, DiscordWebHook discord,
+        DTOSerializer dtos)
     {
-        _sql = sql;
         _logger = logger;
         _settings = settings;
         _discord = discord;
         _dtos = dtos;
-        _ftpCreds = ftpCreds;
+        _authoredFiles = authorFiles;
     }
-
+    
     [HttpPut]
     [Route("{serverAssignedUniqueId}/part/{index}")]
     public async Task<IActionResult> UploadFilePart(CancellationToken token, string serverAssignedUniqueId, long index)
     {
         var user = User.FindFirstValue(ClaimTypes.Name);
-        var definition = await _sql.GetCDNFileDefinition(serverAssignedUniqueId);
+        var definition = await _authoredFiles.ReadDefinitionForServerId(serverAssignedUniqueId);
         if (definition.Author != user)
             return Forbid("File Id does not match authorized user");
         _logger.Log(LogLevel.Information,
             $"Uploading File part {definition.OriginalFileName} - ({index} / {definition.Parts.Length})");
-
-        await _sql.TouchAuthoredFile(definition);
+        
         var part = definition.Parts[index];
 
         await using var ms = new MemoryStream();
@@ -82,7 +86,8 @@ public class AuthoredFiles : ControllerBase
                 $"Hashes don't match for index {index}. Sizes ({ms.Length} vs {part.Size}). Hashes ({hash} vs {part.Hash}");
 
         ms.Position = 0;
-        await UploadAsync(ms, $"{definition.MungedName}/parts/{index}");
+        await using var partStream = await _authoredFiles.CreatePart(definition.MungedName, (int)index);
+        await ms.CopyToAsync(partStream, token);
         return Ok(part.Hash.ToBase64());
     }
 
@@ -96,14 +101,10 @@ public class AuthoredFiles : ControllerBase
 
         _logger.Log(LogLevel.Information, "Creating File upload {originalFileName}", definition.OriginalFileName);
 
-        definition = await _sql.CreateAuthoredFile(definition, user);
-
-        using (var client = await GetBunnyCdnFtpClient())
-        {
-            await client.CreateDirectoryAsync($"{definition.MungedName}");
-            await client.CreateDirectoryAsync($"{definition.MungedName}/parts");
-        }
-
+        definition.ServerAssignedUniqueId = Guid.NewGuid().ToString();
+        definition.Author = user;
+        await _authoredFiles.WriteDefinition(definition);
+        
         await _discord.Send(Channel.Ham,
             new DiscordMessage
             {
@@ -119,21 +120,10 @@ public class AuthoredFiles : ControllerBase
     public async Task<IActionResult> CreateUpload(string serverAssignedUniqueId)
     {
         var user = User.FindFirstValue(ClaimTypes.Name);
-        var definition = await _sql.GetCDNFileDefinition(serverAssignedUniqueId);
+        var definition = await _authoredFiles.ReadDefinitionForServerId(serverAssignedUniqueId);
         if (definition.Author != user)
             return Forbid("File Id does not match authorized user");
         _logger.Log(LogLevel.Information, $"Finalizing file upload {definition.OriginalFileName}");
-
-        await _sql.Finalize(definition);
-
-        await using var ms = new MemoryStream();
-        await using (var gz = new GZipStream(ms, CompressionLevel.Optimal, true))
-        {
-            await _dtos.Serialize(definition, gz);
-        }
-
-        ms.Position = 0;
-        await UploadAsync(ms, $"{definition.MungedName}/definition.json.gz");
 
         await _discord.Send(Channel.Ham,
             new DiscordMessage
@@ -146,26 +136,14 @@ public class AuthoredFiles : ControllerBase
         return Ok($"https://{host}.wabbajack.org/{definition.MungedName}");
     }
 
-    private async Task<FtpClient> GetBunnyCdnFtpClient()
-    {
-        var info = (await _ftpCreds.Get())[StorageSpace.AuthoredFiles];
-        var client = new FtpClient(info.Hostname) {Credentials = new NetworkCredential(info.Username, info.Password)};
-        await client.ConnectAsync();
-        return client;
-    }
-
-    private async Task UploadAsync(Stream stream, string path)
-    {
-        using var client = await GetBunnyCdnFtpClient();
-        await client.UploadAsync(stream, path);
-    }
-
     [HttpDelete]
     [Route("{serverAssignedUniqueId}")]
     public async Task<IActionResult> DeleteUpload(string serverAssignedUniqueId)
     {
         var user = User.FindFirstValue(ClaimTypes.Name);
-        var definition = await _sql.GetCDNFileDefinition(serverAssignedUniqueId);
+        var definition = (await _authoredFiles.AllAuthoredFiles())
+            .First(f => f.Definition.ServerAssignedUniqueId == serverAssignedUniqueId)
+            .Definition;
         if (definition.Author != user)
             return Forbid("File Id does not match authorized user");
         await _discord.Send(Channel.Ham,
@@ -176,38 +154,38 @@ public class AuthoredFiles : ControllerBase
             });
         _logger.Log(LogLevel.Information, $"Deleting upload {definition.OriginalFileName}");
 
-        await DeleteFolderOrSilentlyFail($"{definition.MungedName}");
-
-        await _sql.DeleteFileDefinition(definition);
+        await _authoredFiles.DeleteFile(definition);
         return Ok();
     }
-
-    private async Task DeleteFolderOrSilentlyFail(string path)
-    {
-        try
-        {
-            using var client = await GetBunnyCdnFtpClient();
-            await client.DeleteDirectoryAsync(path);
-        }
-        catch (Exception)
-        {
-            _logger.Log(LogLevel.Information, $"Delete failed for {path}");
-        }
-    }
-
 
     [HttpGet]
     [AllowAnonymous]
     [Route("")]
     public async Task<ContentResult> UploadedFilesGet()
     {
-        var files = await _sql.AllAuthoredFiles();
-        var response = HandleGetListTemplate(new {files});
+        var files = await _authoredFiles.AllAuthoredFiles();
+        var response = HandleGetListTemplate(new {files = files.OrderByDescending(f => f.Updated).ToArray()});
         return new ContentResult
         {
             ContentType = "text/html",
             StatusCode = (int) HttpStatusCode.OK,
             Content = response
         };
+    }
+    
+    [HttpGet]
+    [AllowAnonymous]
+    [Route("direct_link/{mungedName}")]
+    public async Task DirectLink(string mungedName)
+    {
+        var definition = await _authoredFiles.ReadDefinition(mungedName);
+        Response.Headers.ContentDisposition =
+            new StringValues($"attachment; filename={definition.OriginalFileName}");
+        Response.Headers.ContentType = new StringValues("application/octet-stream");
+        foreach (var part in definition.Parts)
+        {
+            await using var partStream = await _authoredFiles.StreamForPart(mungedName, (int)part.Index);
+            await partStream.CopyToAsync(Response.Body);
+        }
     }
 }

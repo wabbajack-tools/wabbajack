@@ -1,19 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <OutputType>Exe</OutputType>
         <TargetFramework>net6.0</TargetFramework>
-        <AssemblyVersion>2.5.2.2</AssemblyVersion>
-        <FileVersion>2.5.2.2</FileVersion>
-        <Copyright>Copyright © 2019-2021</Copyright>
-        <Description>Wabbajack Server</Description>
-        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-        <AssemblyName>Wabbajack.Server</AssemblyName>
-        <RootNamespace>Wabbajack.Server</RootNamespace>
         <Nullable>enable</Nullable>
-
+        <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
-
+    
     <ItemGroup>
         <PackageReference Include="Dapper" Version="2.0.123" />
         <PackageReference Include="Discord.Net.WebSocket" Version="2.4.0" />
@@ -54,6 +46,8 @@
     <ItemGroup>
         <Compile Remove="Controllers\UploadedFiles.cs" />
         <Compile Remove="Services\ListValidator.cs" />
+        <Compile Remove="Controllers\ModFiles.cs" />
+        <Compile Remove="Controllers\Users.cs" />
     </ItemGroup>
 
     <ItemGroup>
