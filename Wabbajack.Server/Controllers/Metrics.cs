@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Chronic.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
@@ -81,6 +83,28 @@ public class MetricsController : ControllerBase
             UserAgent = Request.Headers.UserAgent.FirstOrDefault() ?? "<unknown>",
         });
         return new Result {Timestamp = date};
+    }
+
+    private static byte[] EOL = {(byte)'\n'};
+    [HttpGet]
+    [Route("report")]
+    public async Task GetMetrics([FromQuery] string action, [FromQuery] string from, [FromQuery] string? to)
+    {
+        var parser = new Parser();
+        
+        to ??= "now";
+
+        var toDate = parser.Parse(to).Start;
+        var fromDate = parser.Parse(from).Start;
+
+        var records = _metricsStore.GetRecords(fromDate!.Value, toDate!.Value, action);
+        Response.Headers.ContentType = "application/json";
+        await foreach (var record in records)
+        {
+            
+            await JsonSerializer.SerializeAsync(Response.Body, record);
+            await Response.Body.WriteAsync(EOL);
+        }
     }
 
     public class Result
