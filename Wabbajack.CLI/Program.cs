@@ -60,6 +60,7 @@ internal class Program
                 services.AddSingleton<IVerb, ValidateLists>();
                 services.AddSingleton<IVerb, DownloadCef>();
                 services.AddSingleton<IVerb, DownloadUrl>();
+                services.AddSingleton<IVerb, GenerateMetricsReports>();
             }).Build();
 
         var service = host.Services.GetService<CommandLineBuilder>();

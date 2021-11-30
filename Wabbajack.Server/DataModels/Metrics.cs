@@ -9,6 +9,7 @@ using Microsoft.Toolkit.HighPerformance;
 using Wabbajack.BuildServer;
 using Wabbajack.Common;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.DTOs.ServerResponses;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Server.DTOs;
@@ -104,13 +105,4 @@ public class Metrics
         }
     }
 
-    public class MetricResult
-    {
-        public string Action { get; set; }
-        public string Subject { get; set; }
-        public string GroupingSubject { get; set; }
-        public long MetricKey { get; set; }
-        public string UserAgent { get; set; }
-        public DateTime Timestamp { get; set; }
-    }
 }

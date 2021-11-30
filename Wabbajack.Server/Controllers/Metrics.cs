@@ -64,20 +64,20 @@ public class MetricsController : ControllerBase
     }
 
     [HttpGet]
-    [Route("{subject}/{value}")]
-    public async Task<Result> LogMetricAsync(string subject, string value)
+    [Route("{action}/{subject}")]
+    public async Task<Result> LogMetricAsync(string action, string subject)
     {
         var date = DateTime.UtcNow;
         var metricsKey = Request.Headers[_settings.MetricsKeyHeader].FirstOrDefault();
 
         // Used in tests
-        if (value is "Default" or "untitled" || subject == "failed_download" || Guid.TryParse(value, out _))
+        if (subject is "Default" or "untitled" || subject == "failed_download" || Guid.TryParse(subject, out _))
             return new Result {Timestamp = date};
 
         await _metricsStore.Ingest(new Metric
         {
             Timestamp = DateTime.UtcNow, 
-            Action = subject, 
+            Action = action, 
             Subject = subject, 
             MetricsKey = metricsKey,
             UserAgent = Request.Headers.UserAgent.FirstOrDefault() ?? "<unknown>",
