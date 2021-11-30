@@ -412,9 +412,9 @@ public static class GameRegistry
                 IsGenericMO2Plugin = true,
                 RequiredFiles = new[]
                 {
-                    @"REDprelauncher.exe".ToRelativePath()
+                    @"bin\x64\Cyberpunk2077.exe".ToRelativePath()
                 },
-                MainExecutable = @"REDprelauncher.exe".ToRelativePath()
+                MainExecutable = @"bin\x64\Cyberpunk2077.exe".ToRelativePath()
             }
         }
     };
