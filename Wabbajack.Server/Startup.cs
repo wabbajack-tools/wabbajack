@@ -63,6 +63,7 @@ public class Startup
         services.AddSingleton<AuthorFiles>();
         services.AddSingleton<AuthorKeys>();
         services.AddSingleton<Client>();
+        services.AddResponseCaching();
         services.AddSingleton(s =>
         {
             var settings = s.GetService<AppSettings>()!;
@@ -108,6 +109,8 @@ public class Startup
 
         app.UseService<DiscordWebHook>();
         app.UseService<Watchdog>();
+
+        app.UseResponseCaching();
 
         app.Use(next =>
         {
