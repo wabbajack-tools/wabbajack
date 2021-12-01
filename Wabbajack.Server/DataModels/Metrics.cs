@@ -86,7 +86,8 @@ public class Metrics
     {
         try
         {
-            return groupingRegex.Match(metricSubject).Groups[0].ToString();
+            var result = groupingRegex.Match(metricSubject).Groups[0].ToString();
+            return string.IsNullOrEmpty(result) ? metricSubject : result;
         }
         catch (Exception)
         {

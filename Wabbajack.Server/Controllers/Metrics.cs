@@ -1,13 +1,11 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Chronic.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
 using Wabbajack.Common;
+using Wabbajack.DTOs.ServerResponses;
 using Wabbajack.Server.DataModels;
 using Wabbajack.Server.DTOs;
 
@@ -86,8 +84,9 @@ public class MetricsController : ControllerBase
     }
 
     private static byte[] EOL = {(byte)'\n'};
+    
     [HttpGet]
-    [Route("report")]
+    [Route("dump")]
     public async Task GetMetrics([FromQuery] string action, [FromQuery] string from, [FromQuery] string? to)
     {
         var parser = new Parser();
@@ -106,6 +105,60 @@ public class MetricsController : ControllerBase
             await Response.Body.WriteAsync(EOL);
         }
     }
+    
+    [HttpGet]
+    [Route("report")]
+    public async Task GetReport([FromQuery] string action, [FromQuery] string from, [FromQuery] string? to)
+    {
+        var parser = new Parser();
+        
+        to ??= "now";
+
+        var toDate = parser.Parse(to).Start!.Value.TruncateToDate();
+        
+        var groupFilterStart = parser.Parse("three days ago").Start!.Value.TruncateToDate();
+        toDate = new DateTime(toDate.Year, toDate.Month, toDate.Day);
+
+        var prefetch = await _metricsStore.GetRecords(groupFilterStart, toDate, action)
+            .Where((Func<MetricResult, bool>) (d => d.Action != d.Subject))
+            .Select(async d => d.GroupingSubject)
+            .ToHashSet();;
+        
+        var fromDate = parser.Parse(from).Start!.Value.TruncateToDate();
+
+        var counts = new Dictionary<(DateTime, string), long>();
+
+        await foreach (var record in _metricsStore.GetRecords(fromDate, toDate, action))
+        {
+            if (record.Subject == record.Action) continue;
+            if (!prefetch.Contains(record.GroupingSubject)) continue;
+
+            var key = (record.Timestamp.TruncateToDate(), record.GroupingSubject);
+            if (counts.TryGetValue(key, out var old))
+                counts[key] = old + 1;
+            else
+                counts[key] = 1;
+        }
+
+        Response.Headers.ContentType = "application/json";
+        var row = new Dictionary<string, object>();
+        for (var d = fromDate; d <= toDate; d = d.AddDays(1))
+        {
+            row["_Timestamp"] = d;
+            foreach (var group in prefetch)
+            {
+                if (counts.TryGetValue((d, group), out var found))
+                    row[group] = found;
+                else
+                    row[group] = 0;
+            }
+            await JsonSerializer.SerializeAsync(Response.Body, row);
+            await Response.Body.WriteAsync(EOL);
+        }
+
+    }
+    
+    
 
     public class Result
     {
