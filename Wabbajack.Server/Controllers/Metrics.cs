@@ -84,6 +84,9 @@ public class MetricsController : ControllerBase
     }
 
     private static byte[] EOL = {(byte)'\n'};
+    private static byte[] LBRACKET = {(byte)'['};
+    private static byte[] RBRACKET = {(byte)']'};
+    private static byte[] COMMA = {(byte) ','};
     
     [HttpGet]
     [Route("dump")]
@@ -143,6 +146,8 @@ public class MetricsController : ControllerBase
 
         Response.Headers.ContentType = "application/json";
         var row = new Dictionary<string, object>();
+
+        await Response.Body.WriteAsync(LBRACKET);
         for (var d = fromDate; d <= toDate; d = d.AddDays(1))
         {
             row["_Timestamp"] = d;
@@ -155,7 +160,11 @@ public class MetricsController : ControllerBase
             }
             await JsonSerializer.SerializeAsync(Response.Body, row);
             await Response.Body.WriteAsync(EOL);
+            if (d != toDate)
+                await Response.Body.WriteAsync(COMMA);
         }
+
+        await Response.Body.WriteAsync(RBRACKET);
 
     }
     

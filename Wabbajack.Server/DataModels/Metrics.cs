@@ -52,6 +52,7 @@ public class Metrics
         var keys = new Dictionary<string, int>();
         int GetMetricKey(string key)
         {
+            if (string.IsNullOrWhiteSpace(key)) return -1;
             if (keys.TryGetValue(key, out var v))
                 return v;
             keys.Add(key, keys.Count);

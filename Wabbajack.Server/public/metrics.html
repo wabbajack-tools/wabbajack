@@ -40,20 +40,19 @@
 
 <script>
 
-    var getReport = function (subject, callback) {
-        $.getJSON("/metrics/report/" + subject, callback)
+    var getReport = function (subject, from, callback) {
+        $.getJSON("/metrics/report/?action=" + subject + "&from=" + from + "&to=now", callback)
     }
 
     var makeChart = function (ele, group) {
 
         var result_fn = function (data) {
-            var data = _.filter(data, series => _.some(series.values, v => v > 1));
-            var labels = _.uniq(_.flatten(_.map(data, series => series.labels)));
-            var datasets = _.map(data, series => {
+            var labels = _.map(data, f => f._Timestamp);
+            var datasets = _.map(_.filter(Object.keys(data[0]), key => key !== "_Timestamp"), key => {
                 return {
-                    label: series.seriesName,
+                    label: key,
                     fill: false,
-                    data: _.last(series.values, 90)
+                    data: _.map(data, row => row[key])
                 }
             });
             var ctx = document.getElementById(ele).getContext('2d');
@@ -71,38 +70,40 @@
                 options: {scales: {xAxes: [{stacked: true}], yAxes: [{stacked: true}]}}
             });
         };
-        getReport(group, result_fn);
+        getReport(group, "30 days ago", result_fn);
     };
 
 
     var makePieChart = function (ele, group) {
 
         var result_fn = function (data) {
-            var data = _.filter(data, series => _.some(series.values, v => v > 2));
-            var labels = _.map(data, series => series.seriesName);
-            var datasets = {
-                data: _.map(data, series => {
-                    return _.reduce(series.values, (x, y) => x + y, 0)
-                })
-            };
-            console.log(datasets);
-            console.log(labels);
+            const counts = {};
+            for (var row of data) {
+                for (var key of Object.keys(row)) {
+                    if (key === "_Timestamp") continue;
+                    counts[key] = (counts[key] || 0) + row[key]
+                }
+            }
+
             var ctx = document.getElementById(ele).getContext('2d');
             var chart = new Chart(ctx, {
                 // The type of chart we want to create
                 type: 'pie',
-
+                
                 // The data for our dataset
                 data: {
-                    labels: labels,
-                    datasets: [datasets]
+                    labels: Object.keys(counts),
+                    datasets: [{
+                      label: "Data",
+                      data: Object.values(counts)  
+                    }]
                 },
 
                 // Configuration options go here
                 options: {}
             });
         };
-        getReport(group, result_fn)
+        getReport(group, "10 years ago", result_fn)
     };
 
     makeChart("begin_download_chart", "downloading");
