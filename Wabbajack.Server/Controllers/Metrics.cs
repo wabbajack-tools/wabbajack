@@ -112,7 +112,7 @@ public class MetricsController : ControllerBase
     [HttpGet]
     [Route("report")]
     [ResponseCache(Duration = 60 * 60 * 4, VaryByQueryKeys = new [] {"action", "from", "to"})]
-    public async Task GetReport([FromQuery] string action, [FromQuery] string from, [FromQuery] string? to)
+    public void GetReport([FromQuery] string action, [FromQuery] string from, [FromQuery] string? to)
     {
         var parser = new Parser();
         
@@ -123,31 +123,26 @@ public class MetricsController : ControllerBase
         var groupFilterStart = parser.Parse("three days ago").Start!.Value.TruncateToDate();
         toDate = new DateTime(toDate.Year, toDate.Month, toDate.Day);
 
-        var prefetch = await _metricsStore.GetRecords(groupFilterStart, toDate, action)
-            .Where((Func<MetricResult, bool>) (d => d.Action != d.Subject))
-            .Select(async d => d.GroupingSubject)
+        var prefetch = _metricsStore.GetRecordsParallel(groupFilterStart, toDate, action)
+            .Where(d => d.Action != d.Subject)
+            .Select(d => d.GroupingSubject)
             .ToHashSet();;
         
         var fromDate = parser.Parse(from).Start!.Value.TruncateToDate();
 
-        var counts = new Dictionary<(DateTime, string), long>();
-
-        await foreach (var record in _metricsStore.GetRecords(fromDate, toDate, action))
-        {
-            if (record.Subject == record.Action) continue;
-            if (!prefetch.Contains(record.GroupingSubject)) continue;
-
-            var key = (record.Timestamp.TruncateToDate(), record.GroupingSubject);
-            if (counts.TryGetValue(key, out var old))
-                counts[key] = old + 1;
-            else
-                counts[key] = 1;
-        }
-
+        var counts = _metricsStore.GetRecordsParallel(fromDate, toDate, action)
+            .Where(r => r.Subject != r.Action)
+            .Where(r => prefetch.Contains(r.GroupingSubject))
+            .Select(r => (r.Timestamp.TruncateToDate(), r.GroupingSubject))
+            .ToLookup(r => r, v => 1)
+            .AsParallel()
+            .Select(entry => KeyValuePair.Create(entry.Key, entry.Count()))
+            .ToDictionary(kv => kv.Key, kv => kv.Value);
+        
         Response.Headers.ContentType = "application/json";
         var row = new Dictionary<string, object>();
 
-        await Response.Body.WriteAsync(LBRACKET);
+        Response.Body.Write(LBRACKET);
         for (var d = fromDate; d <= toDate; d = d.AddDays(1))
         {
             row["_Timestamp"] = d;
@@ -158,13 +153,13 @@ public class MetricsController : ControllerBase
                 else
                     row[group] = 0;
             }
-            await JsonSerializer.SerializeAsync(Response.Body, row);
-            await Response.Body.WriteAsync(EOL);
+            JsonSerializer.Serialize(Response.Body, row);
+            Response.Body.Write(EOL);
             if (d != toDate)
-                await Response.Body.WriteAsync(COMMA);
+                Response.Body.Write(COMMA);
         }
 
-        await Response.Body.WriteAsync(RBRACKET);
+        Response.Body.Write(RBRACKET);
 
     }
     

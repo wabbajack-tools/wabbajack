@@ -22,6 +22,7 @@ public class Program
                 webBuilder.UseStartup<Startup>()
                     .UseKestrel(options =>
                     {
+                        options.AllowSynchronousIO = true;
                         options.Listen(IPAddress.Any, 5000);
                         options.Limits.MaxRequestBodySize = null;
                     });

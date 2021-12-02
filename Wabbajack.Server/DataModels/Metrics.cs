@@ -1,15 +1,18 @@
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Chronic.Core;
 using Microsoft.Toolkit.HighPerformance;
 using Wabbajack.BuildServer;
 using Wabbajack.Common;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.ServerResponses;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Server.DTOs;
@@ -49,15 +52,12 @@ public class Metrics
 
     public async IAsyncEnumerable<MetricResult> GetRecords(DateTime fromDate, DateTime toDate, string action)
     {
-        var keys = new Dictionary<string, int>();
-        int GetMetricKey(string key)
+        ulong GetMetricKey(string key)
         {
-            if (string.IsNullOrWhiteSpace(key)) return -1;
-            if (keys.TryGetValue(key, out var v))
-                return v;
-            keys.Add(key, keys.Count);
-            return keys.Count - 1;
-
+            var hash = new xxHashAlgorithm(0);
+            Span<byte> bytes = stackalloc byte[key.Length];
+            Encoding.ASCII.GetBytes(key, bytes);
+            return hash.HashBytes(bytes);
         }
         
         foreach (var file in GetFiles(fromDate, toDate))
@@ -80,6 +80,34 @@ public class Metrics
                 }
             }
         }
+    }
+
+    public ParallelQuery<MetricResult> GetRecordsParallel(DateTime fromDate, DateTime toDate, string action)
+    {
+        ulong GetMetricKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return 0;
+            var hash = new xxHashAlgorithm(0);
+            Span<byte> bytes = stackalloc byte[key.Length];
+            Encoding.ASCII.GetBytes(key, bytes);
+            return hash.HashBytes(bytes);
+        }
+
+        var rows = GetFiles(fromDate, toDate).AsParallel()
+            .SelectMany(file => file.ReadAllLines())
+            .Select(row => _dtos.Deserialize<Metric>(row)!)
+            .Where(m => m.Action == action)
+            .Where(m => m.Timestamp >= fromDate && m.Timestamp <= toDate)
+            .Select(m => new MetricResult
+            {
+                Timestamp = m.Timestamp,
+                Subject = m.Subject,
+                Action = m.Action,
+                MetricKey = GetMetricKey(m.MetricsKey),
+                UserAgent = m.UserAgent,
+                GroupingSubject = GetGroupingSubject(m.Subject)
+            });
+        return rows;
     }
 
     private Regex groupingRegex = new("^[^0-9]*");
