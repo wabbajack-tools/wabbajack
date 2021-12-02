@@ -38,12 +38,19 @@ jobs:
           dotnet-version: '6.0.x'
           include-prerelease: true
           
-      - name: Install dependencies
-        run: dotnet restore
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        if: runner.os != 'Windows'
+        shell: bash
+        run: find Wabbajack.* -maxdepth 0 -type d ! -name "Wabbajack.App.Wpf" -exec dotnet build --configuration Release {} \;
+
+      - name: Build
+        if: runner.os == 'Windows'
+        shell: bash
+        run: find Wabbajack.* -maxdepth 0 -type d -exec dotnet build --configuration Release {} \;
+      
       - name: Test
-        run: dotnet test --no-restore --filter "Category!=FlakeyNetwork"
+        shell: bash
+        run: find Wabbajack.*.Test -maxdepth 0 -type d ! -name "Wabbajack.App.Wpf" -exec dotnet test --filter "Category!=FlakeyNetwork" {} \;
         
       #- name: Upload Test Folder on Failure
       #  if: ${{ failure() }}
