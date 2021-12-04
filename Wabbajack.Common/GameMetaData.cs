@@ -677,9 +677,9 @@ namespace Wabbajack.Common
                     IsGenericMO2Plugin = true,
                     RequiredFiles = new[]
                     {
-                        @"REDprelauncher.exe".ToRelativePath()
+                        (RelativePath)@"bin\x64\Cyberpunk2077.exe"
                     },
-                    MainExecutable = @"bin\x64\Cyberpunk2077.exe".ToRelativePath()
+                    MainExecutable = (RelativePath)@"bin\x64\Cyberpunk2077.exe"
                 }
             }
         };
