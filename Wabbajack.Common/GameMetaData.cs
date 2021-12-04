@@ -679,7 +679,7 @@ namespace Wabbajack.Common
                     {
                         @"REDprelauncher.exe".ToRelativePath()
                     },
-                    MainExecutable = @"REDprelauncher.exe".ToRelativePath()
+                    MainExecutable = @"bin\x64\Cyberpunk2077.exe".ToRelativePath()
                 }
             }
         };
