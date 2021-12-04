@@ -1,0 +1,39 @@
+name: .NET
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    env:
+      configuration: Release
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.0.5
+    - uses: actions/cache@v2
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget
+#    - name: NuGet restore
+#      run: nuget restore
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    - name: Restore dependencies
+      run: dotnet restore .\Wabbajack\Wabbajack.csproj
+    - name: Build
+      run: dotnet build --no-restore .\Wabbajack\Wabbajack.csproj -c ${{ env.configuration }}
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        name: wabbajack
+        path: ./Wabbajack/bin/${{ env.configuration }}
