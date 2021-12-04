@@ -669,17 +669,17 @@ namespace Wabbajack.Common
                Game.Cyberpunk2077, new GameMetaData
                {
                     Game = Game.Cyberpunk2077,
-                    SteamIDs = new[] {1091500},
-                    GOGIDs = new [] {2093619782},
+                    SteamIDs = new List<int> {1091500},
+                    GOGIDs = new List<int> {2093619782},
                     MO2Name = "Cyberpunk 2077",
                     NexusName = "cyberpunk2077",
                     NexusGameId = 3333,
                     IsGenericMO2Plugin = true,
-                    RequiredFiles = new[]
+                    RequiredFiles = new List<string>
                     {
-                        (RelativePath)@"bin\x64\Cyberpunk2077.exe"
+                        @"bin\x64\Cyberpunk2077.exe"
                     },
-                    MainExecutable = (RelativePath)@"bin\x64\Cyberpunk2077.exe"
+                    MainExecutable = @"bin\x64\Cyberpunk2077.exe"
                 }
             }
         };
