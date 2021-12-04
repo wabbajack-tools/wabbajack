@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.3.3 - 12/4/2021
+* Added support for Cyberpunk 2077 on GoG
+
 #### Version - 2.5.3.2 - 11/28/2021
 * Added support for Cyberpunk 2077
 * Fixed a bug with tagged files/folders
