@@ -534,6 +534,9 @@ public class ValidateLists : IVerb
                 return (ArchiveStatus.Valid, archive);
         }
 
+        if (archive.State is Http http && http.Url.Host.EndsWith("github.com"))
+            return (ArchiveStatus.Valid, archive);
+
         bool ShouldDownload()
         {
             var downloader = _dispatcher.Downloader(archive);
