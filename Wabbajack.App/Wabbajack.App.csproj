@@ -22,7 +22,7 @@
         <PackageReference Include="HtmlAgilityPack" Version="1.11.38" />
         <PackageReference Include="Material.Icons.Avalonia" Version="1.0.2" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
-        <PackageReference Include="ReactiveUI.Fody" Version="16.2.6" />
+        <PackageReference Include="ReactiveUI.Fody" Version="17.1.9" />
         <PackageReference Include="ReactiveUI.Validation" Version="2.2.1" />
         <PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" />
     </ItemGroup>
