@@ -7,7 +7,24 @@
         </Border>
     </Design.PreviewWith>
 
+    <Style Selector="Button:not(:pointerover) /template/ ContentPresenter">
+        <Setter Property="Background" Value="#202020" />
+    </Style>
 
+    
+    <Style Selector="Button:not(:pointerover).Transparent /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#252525" />
+        <Setter Property="BorderBrush" Value="LightGray" />
+        <Setter Property="CornerRadius" Value="5" />
+    </Style>
+    
+    
     <Style Selector="controls|TagView Border">
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="BorderBrush" Value="#121212" />

@@ -212,6 +212,7 @@ public class StandardInstallationViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "During installation");
             ErrorPageViewModel.Display("During installation", ex);
         }
     }

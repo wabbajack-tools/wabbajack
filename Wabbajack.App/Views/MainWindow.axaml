@@ -33,7 +33,7 @@
 
     <Grid RowDefinitions="40, *">
         <Grid ColumnDefinitions="40, Auto, *, 40, 40, 40, 40">
-            <Button Grid.Column="0" x:Name="BackButton" x:FieldModifier="public">
+            <Button Grid.Column="0" x:Name="BackButton" x:FieldModifier="public" Classes="Transparent">
                 <i:MaterialIcon Kind="ArrowBack" />
             </Button>
             <TextBlock Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" x:Name="TitleText"></TextBlock>

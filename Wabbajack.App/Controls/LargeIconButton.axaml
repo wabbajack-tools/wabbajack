@@ -5,7 +5,7 @@
              xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Wabbajack.App.Controls.LargeIconButton">
-    <Button x:Name="Button" x:FieldModifier="public">
+    <Button x:Name="Button" x:FieldModifier="public" Classes="Transparent">
         <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
             <i:MaterialIcon x:Name="IconControl" Width="140" Height="140" />
             <TextBlock x:Name="TextBlock" HorizontalAlignment="Center" FontSize="28" FontWeight="Bold" />

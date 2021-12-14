@@ -11,15 +11,6 @@
         <FluentTheme Mode="Dark" />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
         <StyleInclude Source="avares://Wabbajack.App/Assets/Wabbajack.axaml" />
-        <Style Selector="Button:not(:pointerover) /template/ ContentPresenter">
-            <Setter Property="Background" Value="Transparent" />
-        </Style>
 
-
-        <Style Selector="Button:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="LightGray" />
-            <Setter Property="CornerRadius" Value="5" />
-        </Style>
     </Application.Styles>
 </Application>
