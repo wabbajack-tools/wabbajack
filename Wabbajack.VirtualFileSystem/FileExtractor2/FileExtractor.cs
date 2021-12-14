@@ -155,8 +155,15 @@ namespace Wabbajack.VirtualFileSystem
                 if (!shouldExtract(entry.Path))
                     continue;
 
-                var result = await mapfn(entry.Path, new ExtractedMemoryFile(await entry.GetStreamFactory()));
-                results.Add(entry.Path, result);
+                try
+                { 
+                    var result = await mapfn(entry.Path, new ExtractedMemoryFile(await entry.GetStreamFactory()));
+                    results.Add(entry.Path, result);
+                }
+                catch (Exception e)
+                {
+                    Utils.Error($"Failed to extract '{entry.Path}' from '{sFn.Name}'");
+                }
             }
 
             return results;
