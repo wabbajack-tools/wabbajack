@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -268,6 +269,7 @@ public class ValidateLists : IVerb
         await patchOutput.DisposeAsync();
         await UploadPatchToCDN(patchFile.Path, $"{upgrade.Hash.ToHex()}_{archive.Hash.ToHex()}", token);
 
+        _logger.LogInformation("Upgraded {FromHash} to {ToHash}", archive.Hash, upgrade.Hash);
         return (ArchiveStatus.Updated, new ValidatedArchive
         {
             Original = archive,
@@ -284,21 +286,23 @@ public class ValidateLists : IVerb
             try
             {
                 _logger.Log(LogLevel.Information,
-                    $"Uploading {patchFile.Size().ToFileSizeString()} patch file to CDN {patchName}");
+                    "Uploading {Size} patch file to CDN {Name}", patchFile.Size().ToFileSizeString(), patchName);
                 using var client = await (await _ftpSiteCredentials.Get())[StorageSpace.Patches].GetClient(_logger);
 
                 await client.UploadFileAsync(patchFile.ToString(), patchName, FtpRemoteExists.Overwrite, token: token);
+                _logger.Log(LogLevel.Information,
+                    "Finished uploading {Size} patch file to CDN {Name}", patchFile.Size().ToFileSizeString(), patchName);
                 return;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error uploading {patchFile} to CDN");
+                _logger.LogError(ex, "Error uploading {Name} to CDN", patchName);
                 if (ex.InnerException != null)
                     _logger.LogError(ex.InnerException, "Inner Exception");
             }
         }
 
-        _logger.Log(LogLevel.Error, $"Couldn't upload {patchFile} to {patchName}");
+        _logger.Log(LogLevel.Error, "Couldn't upload {File} to {Name}", patchFile, patchName);
     }
 
 
