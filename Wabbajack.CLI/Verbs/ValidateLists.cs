@@ -175,7 +175,7 @@ public class ValidateLists : IVerb
                 {
                     _logger.LogInformation("Looking for patch");
                     var patchResult = await patchCache.Get(archive);
-                    if (result.Status == ArchiveStatus.Updated)
+                    if (patchResult.Status == ArchiveStatus.Updated)
                         return patchResult.ValidatedArchive;
                     return new ValidatedArchive
                     {
