@@ -540,13 +540,7 @@ public class ValidateLists : IVerb
         if (archive.State is Http http && http.Url.Host.EndsWith("github.com"))
             return (ArchiveStatus.Valid, archive);
 
-        bool ShouldDownload()
-        {
-            var downloader = _dispatcher.Downloader(archive);
-            return downloader is IUrlDownloader && _dispatcher.Matches(archive, mirrorAllowList);
-        }
-
-        if (ShouldDownload() && !archiveManager.HaveArchive(archive.Hash) && archive.State is not Nexus or WabbajackCDN)
+        if (!archiveManager.HaveArchive(archive.Hash) && archive.State is not Nexus or WabbajackCDN)
         {
             _logger.LogInformation("Downloading {name} {hash}", archive.Name, archive.Hash);
 
