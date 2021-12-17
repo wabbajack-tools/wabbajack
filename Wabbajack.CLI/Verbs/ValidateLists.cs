@@ -543,13 +543,7 @@ public class ValidateLists : IVerb
         bool ShouldDownload()
         {
             var downloader = _dispatcher.Downloader(archive);
-            if (downloader == null ||
-                (downloader is not IUrlDownloader && !_dispatcher.Matches(archive, mirrorAllowList)))
-            {
-                return true;
-            }
-
-            return false;
+            return downloader is IUrlDownloader && _dispatcher.Matches(archive, mirrorAllowList);
         }
 
         if (ShouldDownload() && !archiveManager.HaveArchive(archive.Hash) && archive.State is not Nexus or WabbajackCDN)
