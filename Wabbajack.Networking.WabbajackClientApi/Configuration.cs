@@ -7,6 +7,10 @@ public class Configuration
     public Uri ServerUri { get; set; } = new("https://build.wabbajack.org");
     public string MetricsKey { get; set; }
     public string MetricsKeyHeader { get; set; } = "x-metrics-key";
+    public string AuthorKeyHeader { get; set; } = "x-api-key";
+
+    public string ResponseShaHeader { get; set; } = "x-response-sha";
+
 
     public Uri ServerAllowList { get; set; } =
         new("https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml");

@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -16,6 +17,7 @@ using Wabbajack.DTOs.Logins;
 using Wabbajack.DTOs.ModListValidation;
 using Wabbajack.DTOs.Validation;
 using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -59,6 +61,8 @@ public class Client
         var msg = new HttpRequestMessage(method, uri);
         var key = (await _token.Get())!;
         msg.Headers.Add(_configuration.MetricsKeyHeader, key.MetricsKey);
+        if (!string.IsNullOrWhiteSpace(key.AuthorKey))
+            msg.Headers.Add(_configuration.AuthorKeyHeader, key.AuthorKey);
         return msg;
     }
 
@@ -208,5 +212,41 @@ public class Client
     public Uri GetPatchUrl(Hash upgradeHash, Hash archiveHash)
     {
         return new Uri($"{_configuration.PatchBaseAddress}{upgradeHash.ToHex()}_{archiveHash.ToHex()}");
+    }
+
+    public async Task<ValidatedArchive> UploadPatch(ValidatedArchive validated, MemoryStream outData)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task AddForceHealedPatch(ValidatedArchive validated)
+    {
+        var oldData = await GetGithubFile<ValidatedArchive[]>("wabbajack-tools", "mod-lists", "configs/forced_healing.json");
+        var content = oldData.Content.Append(validated).ToArray();
+        await UpdateGitHubFile("wabbajack-tools", "mod-lists", "configs/forced_healing.json", content, oldData.Sha);
+    }
+
+    private async Task UpdateGitHubFile<T>(string owner, string repo, string path, T content, string oldSha)
+    {
+        var json = _dtos.Serialize(content);
+        var msg = await MakeMessage(HttpMethod.Post,
+            new Uri($"{_configuration.BuildServerUrl}/github/?owner={owner}&repo={repo}&path={path}&oldSha={oldSha}"));
+
+        msg.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        using var result = await _client.SendAsync(msg);
+        if (!result.IsSuccessStatusCode)
+            throw new HttpException(result);
+    }
+
+    private async Task<(string Sha, T Content)> GetGithubFile<T>(string owner, string repo, string path)
+    {
+        var msg = await MakeMessage(HttpMethod.Get,
+            new Uri($"{_configuration.BuildServerUrl}/github/?owner={owner}&repo={repo}&path={path}"));
+        using var oldData = await _client.SendAsync(msg);
+        if (!oldData.IsSuccessStatusCode)
+            throw new HttpException(oldData);
+
+        var sha = oldData.Headers.GetValues(_configuration.ResponseShaHeader).First();
+        return (sha, (await oldData.Content.ReadFromJsonAsync<T>())!);
     }
 }

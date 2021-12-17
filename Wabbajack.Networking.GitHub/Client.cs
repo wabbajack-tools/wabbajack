@@ -64,4 +64,15 @@ public class Client
 
         throw new Exception("List not found or user not authorized");
     }
+
+    public async Task<(string Sha, string Content)> GetData(string owner, string repo, string path)
+    {
+        var result = (await _client.Repository.Content.GetAllContents(owner, repo, path))[0];
+        return (result.Sha, result.Content);
+    }
+
+    public async Task PutData(string owner, string repo, string path, string message, string content, string oldSha)
+    {
+        await _client.Repository.Content.UpdateFile(owner, repo, path, new UpdateFileRequest(message, content, oldSha));
+    }
 }
