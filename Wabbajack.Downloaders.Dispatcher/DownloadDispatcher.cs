@@ -247,7 +247,7 @@ public class DownloadDispatcher
     public bool Matches(Archive archive, ServerAllowList mirrorAllowList)
     {
         if (archive.State is DTOs.DownloadStates.GoogleDrive gdrive)
-            return mirrorAllowList.GoogleIDs.Contains(gdrive.Id);
+            return mirrorAllowList.GoogleIDs?.Contains(gdrive.Id) ?? false;
 
         var downloader = Downloader(archive);
 
