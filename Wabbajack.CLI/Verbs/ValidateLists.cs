@@ -202,11 +202,11 @@ public class ValidateLists : IVerb
         }).ToArray();
 
         var allArchives = validatedLists.SelectMany(l => l.Archives).ToList();
-        _logger.LogInformation("Validated {count} lists in {elapsed}", validatedLists.Length, stopWatch.Elapsed);
-        _logger.LogInformation(" - {count} Valid", allArchives.Count(a => a.Status is ArchiveStatus.Valid));
-        _logger.LogInformation(" - {count} Invalid", allArchives.Count(a => a.Status is ArchiveStatus.InValid));
-        _logger.LogInformation(" - {count} Mirrored", allArchives.Count(a => a.Status is ArchiveStatus.Mirrored));
-        _logger.LogInformation(" - {count} Updated", allArchives.Count(a => a.Status is ArchiveStatus.Updated));
+        _logger.LogInformation("Validated {Count} lists in {Elapsed}", validatedLists.Length, stopWatch.Elapsed);
+        _logger.LogInformation(" - {Count} Valid", allArchives.Count(a => a.Status is ArchiveStatus.Valid));
+        _logger.LogInformation(" - {Count} Invalid", allArchives.Count(a => a.Status is ArchiveStatus.InValid));
+        _logger.LogInformation(" - {Count} Mirrored", allArchives.Count(a => a.Status is ArchiveStatus.Mirrored));
+        _logger.LogInformation(" - {Count} Updated", allArchives.Count(a => a.Status is ArchiveStatus.Updated));
 
         foreach (var invalid in allArchives.Where(a => a.Status is ArchiveStatus.InValid)
             .DistinctBy(a => a.Original.Hash))
@@ -476,30 +476,29 @@ public class ValidateLists : IVerb
             return $"{definition!.Hash.ToHex()}/parts/{idx}";
         }
 
-        /* Outdated
-        await definition.Parts.PDo(_parallelOptions, async part =>
+        foreach (var part in definition.Parts)
         {
-            _logger.LogInformation("Uploading mirror part of {name} {hash} ({index}/{length})", archive.Name, archive.Hash, part.Index, definition.Parts.Length);
+            _logger.LogInformation("Uploading mirror part of {Name} {Hash} ({Index}/{Length})", archive.Name,
+                archive.Hash, part.Index, definition.Parts.Length);
             using var job = await _ftpRateLimiter.Begin("Uploading mirror part", part.Size, token);
-            
+
             var buffer = new byte[part.Size];
             await using (var fs = srcPath.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 fs.Position = part.Offset;
                 await fs.ReadAsync(buffer, token);
             }
-            
-            var tsk = job.Report((int)part.Size, token);
-            await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>{
+
+            var tsk = job.Report((int) part.Size, token);
+            await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
+            {
                 using var client = await GetMirrorFtpClient(token);
                 var name = MakePath(part.Index);
                 await client.UploadAsync(new MemoryStream(buffer), name, token: token);
             });
             await tsk;
+        }
 
-        });
-
-*/
         await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
         {
             using var client = await GetMirrorFtpClient(token);
