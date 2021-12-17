@@ -17,13 +17,11 @@ public static class ProtectedData
 
     static ProtectedData()
     {
+        
         _deviceKey = Task.Run(async () =>
         {
-            var id = Encoding.UTF8.GetBytes(new DeviceIdBuilder()
-                .AddMacAddress()
-                .AddUserName()
-                .ToString());
-
+            var id = Encoding.UTF8.GetBytes(KnownFolders.AppDataLocal.ToString());
+            
             var hash1 = await id.Hash();
             var hash2 = new Hash((ulong) hash1 ^ 42);
             var hash3 = new Hash((ulong) hash1 ^ (ulong.MaxValue - 42));

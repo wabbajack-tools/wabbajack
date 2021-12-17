@@ -61,6 +61,8 @@ internal class Program
                 services.AddSingleton<IVerb, DownloadCef>();
                 services.AddSingleton<IVerb, DownloadUrl>();
                 services.AddSingleton<IVerb, GenerateMetricsReports>();
+                services.AddSingleton<IVerb, ForceHeal>();
+                services.AddSingleton<IVerb, MirrorFile>();
             }).Build();
 
         var service = host.Services.GetService<CommandLineBuilder>();

@@ -56,13 +56,16 @@ public class Client
         _hashLimiter = hashLimiter;
     }
 
-    private async ValueTask<HttpRequestMessage> MakeMessage(HttpMethod method, Uri uri)
+    private async ValueTask<HttpRequestMessage> MakeMessage(HttpMethod method, Uri uri, HttpContent? content = null)
     {
         var msg = new HttpRequestMessage(method, uri);
         var key = (await _token.Get())!;
         msg.Headers.Add(_configuration.MetricsKeyHeader, key.MetricsKey);
         if (!string.IsNullOrWhiteSpace(key.AuthorKey))
             msg.Headers.Add(_configuration.AuthorKeyHeader, key.AuthorKey);
+
+        if (content != null)
+            msg.Content = content;
         return msg;
     }
 
@@ -153,22 +156,23 @@ public class Client
             $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{machineURL}/status.json",
             _dtos.Options))!;
     }
+    
+    IEnumerable<PartDefinition> Blocks(long size)
+    {
+        for (long block = 0; block * UploadedFileBlockSize < size; block++)
+            yield return new PartDefinition
+            {
+                Index = block,
+                Size = Math.Min(UploadedFileBlockSize, size - block * UploadedFileBlockSize),
+                Offset = block * UploadedFileBlockSize
+            };
+    }
+
 
     public async Task<FileDefinition> GenerateFileDefinition(AbsolutePath path)
     {
-        IEnumerable<PartDefinition> Blocks(AbsolutePath path)
-        {
-            var size = path.Size();
-            for (long block = 0; block * UploadedFileBlockSize < size; block++)
-                yield return new PartDefinition
-                {
-                    Index = block,
-                    Size = Math.Min(UploadedFileBlockSize, size - block * UploadedFileBlockSize),
-                    Offset = block * UploadedFileBlockSize
-                };
-        }
 
-        var parts = Blocks(path).ToArray();
+        var parts = Blocks(path.Size()).ToArray();
         var definition = new FileDefinition
         {
             OriginalFileName = path.FileName,
@@ -214,9 +218,34 @@ public class Client
         return new Uri($"{_configuration.PatchBaseAddress}{upgradeHash.ToHex()}_{archiveHash.ToHex()}");
     }
 
-    public async Task<ValidatedArchive> UploadPatch(ValidatedArchive validated, MemoryStream outData)
+    public async Task<ValidatedArchive> UploadPatch(ValidatedArchive validated, Stream data)
     {
-        throw new NotImplementedException();
+        _logger.LogInformation("Uploading Patch {From} {To}", validated.Original.Hash, validated.PatchedFrom!.Hash);
+        var name = $"{validated.Original.Hash.ToHex()}_{validated.PatchedFrom.Hash.ToHex()}";
+        
+        var blocks = Blocks(data.Length).ToArray();
+        foreach (var block in blocks)
+        {
+            _logger.LogInformation("Uploading Block {Idx}/{Max}", block.Index, blocks.Length);
+            data.Position = block.Offset;
+            var blockData = new byte[block.Size];
+            await data.ReadAsync(blockData);
+            var hash = await blockData.Hash();
+
+            using var result = await _client.SendAsync(await MakeMessage(HttpMethod.Post,
+                new Uri($"{_configuration.BuildServerUrl}patches?name={name}&start={block.Offset}"),
+                new ByteArrayContent(blockData)));
+            if (!result.IsSuccessStatusCode)
+                throw new HttpException(result);
+
+            var resultHash = Hash.FromHex(await result.Content.ReadAsStringAsync());
+            if (resultHash != hash)
+                throw new Exception($"Result Hash does not match expected hash {hash} vs {resultHash}");
+        }
+
+        validated.PatchUrl = new Uri($"https://patches.wabbajack.org/{name}");
+
+        return validated;
     }
 
     public async Task AddForceHealedPatch(ValidatedArchive validated)
@@ -248,5 +277,45 @@ public class Client
 
         var sha = oldData.Headers.GetValues(_configuration.ResponseShaHeader).First();
         return (sha, (await oldData.Content.ReadFromJsonAsync<T>())!);
+    }
+
+
+    public async Task UploadMirror(FileDefinition definition, AbsolutePath file)
+    {
+        var hashAsHex = definition.Hash.ToHex();
+        _logger.LogInformation("Starting upload of {Name} ({Hash})", file.FileName, hashAsHex);
+        
+        using var result = await _client.SendAsync(await MakeMessage(HttpMethod.Put,
+            new Uri($"{_configuration.BuildServerUrl}mirrored_files/create/{hashAsHex}"),
+            new StringContent(_dtos.Serialize(definition), Encoding.UTF8, "application/json")));
+        if (!result.IsSuccessStatusCode)
+            throw new HttpException(result);
+        
+        _logger.LogInformation("Uploading Parts");
+
+        await using var dataIn = file.Open(FileMode.Open);
+
+        foreach (var (part, idx) in definition.Parts.Select((part, idx) => (part, idx)))
+        {
+            _logger.LogInformation("Uploading Part {Part}/{Max}", idx, definition.Parts.Length);
+
+            dataIn.Position = part.Offset;
+            var data = new byte[part.Size];
+            await dataIn.ReadAsync(data);
+
+            using var partResult = await _client.SendAsync(await MakeMessage(HttpMethod.Put,
+                new Uri($"{_configuration.BuildServerUrl}mirrored_files/{hashAsHex}/part/{idx}"),
+                new ByteArrayContent(data)));
+            
+            if (!partResult.IsSuccessStatusCode)
+                throw new HttpException(result);
+        }
+
+        using var finalResult = await _client.SendAsync(await MakeMessage(HttpMethod.Put,
+            new Uri($"{_configuration.BuildServerUrl}mirrored_files/{hashAsHex}/finish")));
+        
+        if (!finalResult.IsSuccessStatusCode)
+            throw new HttpException(result);
+
     }
 }
