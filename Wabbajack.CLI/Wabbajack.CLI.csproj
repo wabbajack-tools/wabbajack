@@ -18,7 +18,7 @@
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
         <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
-        <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21561.1" />
+        <PackageReference Include="System.CommandLine" Version="2.0.0-beta2.21616.4" />
     </ItemGroup>
 
     <ItemGroup>
