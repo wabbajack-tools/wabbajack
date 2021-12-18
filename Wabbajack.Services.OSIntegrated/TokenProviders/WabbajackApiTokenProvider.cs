@@ -1,6 +1,6 @@
 using System;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
-using SharpCompress.Common;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Networking.Http.Interfaces;
