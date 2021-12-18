@@ -123,13 +123,13 @@ namespace Wabbajack.Lib.Downloaders
                 return DownloadResult.Failure;
             }
             
-            if (replacementMeta.Status == ArchiveStatus.Mirrored && await DownloadFromMirror(replacementMeta.PatchedFrom!, destination))
+            if (replacementMeta.Status == ArchiveStatus.Mirrored && await Download(replacementMeta.PatchedFrom!, destination))
             {
                 await destination.FileHashCachedAsync();
                 return DownloadResult.Mirror;
             }
 
-            if (replacementMeta.Status != ArchiveStatus.Updated || !(archive.State is IUpgradingState))
+            if (replacementMeta.Status != ArchiveStatus.Updated)
             {
                 Utils.Log($"Download failed for {archive.Name} and no upgrade from this download source is possible");
                 return DownloadResult.Failure;
@@ -171,29 +171,7 @@ namespace Wabbajack.Lib.Downloaders
             downloadResolver ??= async a => default;
             return await a.State.FindUpgrade(a, downloadResolver);
         }
-
         
-        private static async Task<bool> DownloadFromMirror(Archive archive, AbsolutePath destination)
-        {
-            try
-            {
-                var url = await ClientAPI.GetMirrorUrl(archive.Hash);
-                if (url == null) return false;
-                
-                var newArchive =
-                    new Archive(
-                        new WabbajackCDNDownloader.State(url))
-                    {
-                        Hash = archive.Hash, Size = archive.Size, Name = archive.Name
-                    };
-                return await Download(newArchive, destination);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
-
         private static async Task<bool> Download(Archive archive, AbsolutePath destination)
         {
             try

@@ -58,7 +58,7 @@ namespace Wabbajack.BuildServer.Controllers
             if (ms.Length != part.Size)
                 return BadRequest($"Couldn't read enough data for part {part.Size} vs {ms.Length}");
 
-            var hash = ms.xxHash();
+            var hash = await ms.xxHashAsync();
             if (hash != part.Hash)
                 return BadRequest($"Hashes don't match for index {index}. Sizes ({ms.Length} vs {part.Size}). Hashes ({hash} vs {part.Hash}");
 
