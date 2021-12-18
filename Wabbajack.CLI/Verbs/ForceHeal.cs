@@ -45,8 +45,8 @@ public class ForceHeal : IVerb
     public Command MakeCommand()
     {
         var command = new Command("force-heal");
-        command.Add(new Option<AbsolutePath>(new[] {"-n", "-new"}, "New File"));
-        command.Add(new Option<string>(new[] {"-o", "-old"}, "Old File"));
+        command.Add(new Option<AbsolutePath>(new[] {"-n", "-new-file"}, "New File"));
+        command.Add(new Option<string>(new[] {"-o", "-old-file"}, "Old File"));
         command.Description = "Creates a patch from New file to Old File and uploads it";
         command.Handler = CommandHandler.Create(Run);
         return command;

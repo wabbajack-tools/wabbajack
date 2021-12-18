@@ -372,6 +372,8 @@ public class ValidateLists : IVerb
                 return (ArchiveStatus.Valid, archive);
             case Nexus:
                 return (ArchiveStatus.Valid, archive);
+            case VectorPlexus:
+                return (ArchiveStatus.Valid, archive);
         }
 
         if (archive.State is Http http && http.Url.Host.EndsWith("github.com"))
