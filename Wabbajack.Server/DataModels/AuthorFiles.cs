@@ -1,17 +1,9 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Threading.Tasks;
-using FluentFTP.Helpers;
 using Microsoft.Extensions.Logging;
 using Wabbajack.BuildServer;
 using Wabbajack.Common;
 using Wabbajack.DTOs.CDN;
 using Wabbajack.DTOs.JsonConverters;
-using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
@@ -102,11 +94,11 @@ public class AuthorFiles
         folder.DeleteDirectory();
     }
 
-    public async Task<FileDefinition> ReadDefinitionForServerId(string hashAsHex)
+    public async Task<FileDefinition> ReadDefinitionForServerId(string serverAssignedUniqueId)
     {
-        var data = await ReadDefinition(_settings.MirrorFilesFolder.ToAbsolutePath().Combine(hashAsHex).Combine("definition.json.gz"));
-        if (data.Hash != Hash.FromHex(hashAsHex))
-            throw new Exception($"Definition hex does not match {data.Hash.ToHex()} vs {hashAsHex}");
-        return data;
+        if (_byServerId.TryGetValue(serverAssignedUniqueId, out var found))
+            return found;
+        await AllAuthoredFiles();
+        return _byServerId[serverAssignedUniqueId];
     }
 }
