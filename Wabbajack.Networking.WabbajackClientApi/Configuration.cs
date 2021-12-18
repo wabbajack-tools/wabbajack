@@ -9,7 +9,7 @@ public class Configuration
     public string MetricsKeyHeader { get; set; } = "x-metrics-key";
     public string AuthorKeyHeader { get; set; } = "x-api-key";
 
-    public string ResponseShaHeader { get; set; } = "x-response-sha";
+    public string ResponseShaHeader { get; set; } = "x-content-sha";
 
 
     public Uri ServerAllowList { get; set; } =
@@ -21,7 +21,7 @@ public class Configuration
     public Uri UpgradedArchives { get; set; } =
         new("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/upgraded.json");
 
-    //public Uri BuildServerUrl { get; set; } = new("https://build.wabbajack.org/");
-    public Uri BuildServerUrl { get; set; } = new("http://localhost:5000/");
+    public Uri BuildServerUrl { get; set; } = new("https://build.wabbajack.org/");
+    //public Uri BuildServerUrl { get; set; } = new("http://localhost:5000/");
     public string PatchBaseAddress { get; set; } = new("https://patches.wabbajack.org/");
 }

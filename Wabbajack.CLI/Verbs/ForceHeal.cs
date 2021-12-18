@@ -75,6 +75,7 @@ public class ForceHeal : IVerb
         validated = await _client.UploadPatch(validated, outData);
         _logger.LogInformation("Patch Updated, validating result by downloading patch");
 
+        _logger.LogInformation("Checking URL {Url}", validated.PatchUrl);
         using var patchStream = await _httpClient.GetAsync(validated.PatchUrl);
         if (!patchStream.IsSuccessStatusCode)
             throw new HttpException(patchStream);

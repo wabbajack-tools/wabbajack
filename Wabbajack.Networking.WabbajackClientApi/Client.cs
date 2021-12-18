@@ -257,9 +257,9 @@ public class Client
 
     private async Task UpdateGitHubFile<T>(string owner, string repo, string path, T content, string oldSha)
     {
-        var json = _dtos.Serialize(content);
+        var json = _dtos.Serialize(content, writeIndented: true);
         var msg = await MakeMessage(HttpMethod.Post,
-            new Uri($"{_configuration.BuildServerUrl}/github/?owner={owner}&repo={repo}&path={path}&oldSha={oldSha}"));
+            new Uri($"{_configuration.BuildServerUrl}github/?owner={owner}&repo={repo}&path={path}&oldSha={oldSha}"));
 
         msg.Content = new StringContent(json, Encoding.UTF8, "application/json");
         using var result = await _client.SendAsync(msg);
@@ -270,13 +270,13 @@ public class Client
     private async Task<(string Sha, T Content)> GetGithubFile<T>(string owner, string repo, string path)
     {
         var msg = await MakeMessage(HttpMethod.Get,
-            new Uri($"{_configuration.BuildServerUrl}/github/?owner={owner}&repo={repo}&path={path}"));
+            new Uri($"{_configuration.BuildServerUrl}github/?owner={owner}&repo={repo}&path={path}"));
         using var oldData = await _client.SendAsync(msg);
         if (!oldData.IsSuccessStatusCode)
             throw new HttpException(oldData);
 
         var sha = oldData.Headers.GetValues(_configuration.ResponseShaHeader).First();
-        return (sha, (await oldData.Content.ReadFromJsonAsync<T>())!);
+        return (sha, (await oldData.Content.ReadFromJsonAsync<T>(_dtos.Options))!);
     }
 
 
