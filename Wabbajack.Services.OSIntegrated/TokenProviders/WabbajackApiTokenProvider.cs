@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using SharpCompress.Crypto;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Networking.Http.Interfaces;
@@ -18,9 +19,21 @@ public class WabbajackApiTokenProvider : ITokenProvider<WabbajackApiState>
         if (!MetricsPath.FileExists())
             await CreateMetricsKey();
 
+        string wjToken;
+        try
+        {
+            wjToken = (await MetricsPath.FromEncryptedJsonFile<string>())!;
+        }
+        catch (CryptoException)
+        {
+            MetricsPath.Delete();
+            await CreateMetricsKey();
+            wjToken = (await MetricsPath.FromEncryptedJsonFile<string>())!;
+        }
+
         return new WabbajackApiState
         {
-            MetricsKey = (await MetricsPath.FromEncryptedJsonFile<string>())!,
+            MetricsKey = wjToken,
             AuthorKey = AuthorKeyPath.FileExists() ? await AuthorKeyPath.ReadAllTextAsync() : null
         };
     }
