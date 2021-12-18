@@ -318,6 +318,6 @@ public class Client
 
     public async Task<ValidatedArchive[]> GetAllPatches(CancellationToken token)
     {
-        return (await GetGithubFile<ValidatedArchive[]>("wabbajack-tools", "mod-lists", "configs/forced_healing.json", token)).Content;
+        return (await _client.GetFromJsonAsync<ValidatedArchive[]>("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/configs/forced_healing.json", _dtos.Options, token))!;
     }
 }
