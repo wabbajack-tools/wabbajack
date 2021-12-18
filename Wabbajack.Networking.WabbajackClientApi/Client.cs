@@ -113,19 +113,9 @@ public class Client
         return await _client.GetFromJsonAsync<Archive[]>(_limiter, msg, _dtos.Options) ?? Array.Empty<Archive>();
     }
 
-    public async Task<Uri?> GetMirrorUrl(Hash archiveHash)
+    public Uri GetMirrorUrl(Hash archiveHash)
     {
-        try
-        {
-            var result =
-                await _client.GetStringAsync($"{_configuration.BuildServerUrl}mirror/{archiveHash.ToHex()}");
-            return new Uri(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogCritical(ex, "While downloading mirror for {hash}", archiveHash);
-            return null;
-        }
+        return new Uri($"{_configuration.MirrorServerUrl}{archiveHash.ToHex()}");
     }
 
     public async Task SendModListDefinition(ModList modList)
@@ -267,16 +257,18 @@ public class Client
             throw new HttpException(result);
     }
 
-    private async Task<(string Sha, T Content)> GetGithubFile<T>(string owner, string repo, string path)
+    private async Task<(string Sha, T Content)> GetGithubFile<T>(string owner, string repo, string path, CancellationToken? token = null)
     {
+        token ??= CancellationToken.None;
+        
         var msg = await MakeMessage(HttpMethod.Get,
             new Uri($"{_configuration.BuildServerUrl}github/?owner={owner}&repo={repo}&path={path}"));
-        using var oldData = await _client.SendAsync(msg);
+        using var oldData = await _client.SendAsync(msg, token.Value);
         if (!oldData.IsSuccessStatusCode)
             throw new HttpException(oldData);
 
         var sha = oldData.Headers.GetValues(_configuration.ResponseShaHeader).First();
-        return (sha, (await oldData.Content.ReadFromJsonAsync<T>(_dtos.Options))!);
+        return (sha, (await oldData.Content.ReadFromJsonAsync<T>(_dtos.Options, token.Value))!);
     }
 
 
@@ -316,6 +308,16 @@ public class Client
         
         if (!finalResult.IsSuccessStatusCode)
             throw new HttpException(result);
+    }
 
+    public async Task<FileDefinition[]> GetAllMirroredFileDefinitions(CancellationToken token)
+    {
+        return (await _client.GetFromJsonAsync<FileDefinition[]>($"{_configuration.BuildServerUrl}mirrored_files",
+            _dtos.Options, token))!;
+    }
+
+    public async Task<ValidatedArchive[]> GetAllPatches(CancellationToken token)
+    {
+        return (await GetGithubFile<ValidatedArchive[]>("wabbajack-tools", "mod-lists", "configs/forced_healing.json", token)).Content;
     }
 }

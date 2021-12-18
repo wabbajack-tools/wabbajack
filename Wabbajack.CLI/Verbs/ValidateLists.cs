@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -96,10 +94,10 @@ public class ValidateLists : IVerb
         var token = CancellationToken.None;
 
         _logger.LogInformation("Scanning for existing patches/mirrors");
-        var mirroredFiles = await AllMirroredFiles(token);
-        _logger.LogInformation("Found {count} mirrored files", mirroredFiles.Count);
-        var patchFiles = await AllPatchFiles(token);
-        _logger.LogInformation("Found {count} patches", patchFiles.Count);
+        var mirroredFiles = (await _wjClient.GetAllMirroredFileDefinitions(token)).Select(m => m.Hash).ToHashSet();
+        _logger.LogInformation("Found {Count} mirrored files", mirroredFiles.Count);
+        var patchFiles = await _wjClient.GetAllPatches(token);
+        _logger.LogInformation("Found {Count} patches", patchFiles.Length);
 
         var otherArchiveManager = otherArchives == default ? null : new ArchiveManager(_logger, otherArchives);
 
@@ -110,15 +108,7 @@ public class ValidateLists : IVerb
         var validationCache = new LazyCache<string, Archive, (ArchiveStatus Status, Archive archive)>
         (x => x.State.PrimaryKeyString + x.Hash,
             archive => DownloadAndValidate(archive, archiveManager, otherArchiveManager, mirrorAllowList, token));
-
-        var mirrorCache = new LazyCache<string, Archive, (ArchiveStatus Status, Archive archive)>
-        (x => x.State.PrimaryKeyString + x.Hash,
-            archive => AttemptToMirrorArchive(archive, archiveManager, mirrorAllowList, mirroredFiles, token));
-
-        var patchCache = new LazyCache<string, Archive, (ArchiveStatus Status, ValidatedArchive? ValidatedArchive)>
-        (x => x.State.PrimaryKeyString + x.Hash,
-            archive => AttemptToPatchArchive(archive, archiveManager, upgradedArchives, patchFiles, token));
-
+        
         var stopWatch = Stopwatch.StartNew();
         var listData = await lists.SelectAsync(async l => await _gitHubClient.GetData(l))
             .SelectMany(l => l.Lists)
@@ -141,8 +131,8 @@ public class ValidateLists : IVerb
                 return validatedList;
             }
 
-            using var scope = _logger.BeginScope("MachineURL: {machineURL}", modList.Links.MachineURL);
-            _logger.LogInformation("Verifying {machineURL} - {title}", modList.Links.MachineURL, modList.Title);
+            using var scope = _logger.BeginScope("MachineURL: {MachineUrl}", modList.Links.MachineURL);
+            _logger.LogInformation("Verifying {MachineUrl} - {Title}", modList.Links.MachineURL, modList.Title);
             await DownloadModList(modList, archiveManager, CancellationToken.None);
 
             ModList modListData;
@@ -159,7 +149,7 @@ public class ValidateLists : IVerb
                 return validatedList;
             }
 
-            _logger.LogInformation("Verifying {count} archives", modListData.Archives.Length);
+            _logger.LogInformation("Verifying {Count} archives", modListData.Archives.Length);
 
             var archives = await modListData.Archives.PMapAll(async archive =>
             {
@@ -168,29 +158,48 @@ public class ValidateLists : IVerb
 
                 if (result.Status == ArchiveStatus.InValid)
                 {
-                    result = await mirrorCache.Get(archive);
+                    if (mirroredFiles.Contains(archive.Hash))
+                    {
+                        return new ValidatedArchive
+                        {
+                            Status = ArchiveStatus.Mirrored,
+                            Original = archive,
+                            PatchedFrom = new Archive
+                            {
+                                State = new WabbajackCDN
+                                {
+                                    Url = _wjClient.GetMirrorUrl(archive.Hash)!
+                                },
+                                Size = archive.Size,
+                                Name = archive.Name,
+                                Hash = archive.Hash
+                            }
+                        };
+                    }
                 }
 
                 if (result.Status == ArchiveStatus.InValid)
                 {
-                    _logger.LogInformation("Looking for patch");
-                    var patchResult = await patchCache.Get(archive);
-                    if (patchResult.Status == ArchiveStatus.Updated)
-                        return patchResult.ValidatedArchive;
-                    return new ValidatedArchive
+                    _logger.LogInformation("Looking for patch for {Hash}", archive.Hash);
+                    foreach (var file in patchFiles.Where(p => p.Original.Hash == archive.Hash && p.Status == ArchiveStatus.Updated))
                     {
-                        Original = archive,
-                        Status = ArchiveStatus.InValid
-                    };
+                        if (await _dispatcher.Verify(file.PatchedFrom!, token))
+                        {
+                            return new ValidatedArchive()
+                            {
+                                Original = archive,
+                                Status = ArchiveStatus.Updated,
+                                PatchUrl = file.PatchUrl,
+                                PatchedFrom = file.PatchedFrom
+                            };
+                        }
+                    }
                 }
 
-                return new ValidatedArchive
+                return new ValidatedArchive()
                 {
-                    Original = archive,
-                    Status = result.Status,
-                    PatchedFrom = result.Status is ArchiveStatus.Mirrored or ArchiveStatus.Updated
-                        ? result.archive
-                        : null
+                    Status = ArchiveStatus.InValid,
+                    Original = archive
                 };
             }).ToArray();
 
@@ -430,94 +439,6 @@ public class ValidateLists : IVerb
         await using var upgradedMetasFile = reports.Combine("upgraded.json")
             .Open(FileMode.Create, FileAccess.Write, FileShare.None);
         await _dtos.Serialize(upgradedMetas, upgradedMetasFile, true);
-    }
-
-    private async Task<(ArchiveStatus Status, Archive archive)> AttemptToMirrorArchive(Archive archive,
-        ArchiveManager archiveManager, ServerAllowList mirrorAllowList, HashSet<Hash> previouslyMirrored,
-        CancellationToken token)
-    {
-        // Do we have a file to mirror?
-        if (!archiveManager.HaveArchive(archive.Hash)) return (ArchiveStatus.InValid, archive);
-
-        // Are we allowed to mirror the file?
-        if (!_dispatcher.Matches(archive, mirrorAllowList)) return (ArchiveStatus.InValid, archive);
-
-        var mirroredArchive = new Archive
-        {
-            Name = archive.Name,
-            Size = archive.Size,
-            Hash = archive.Hash,
-            State = new WabbajackCDN
-            {
-                Url = new Uri($"{MirrorPrefix}{archive.Hash.ToHex()}")
-            }
-        };
-        mirroredArchive.Meta = _dispatcher.MetaIniSection(mirroredArchive);
-
-        // If it's already mirrored, we can exit
-        if (previouslyMirrored.Contains(archive.Hash)) return (ArchiveStatus.Mirrored, mirroredArchive);
-
-        // We need to mirror the file, but do we have a copy to mirror?
-        if (!archiveManager.HaveArchive(archive.Hash)) return (ArchiveStatus.InValid, mirroredArchive);
-
-        var srcPath = archiveManager.GetPath(archive.Hash);
-
-        var definition = await _wjClient.GenerateFileDefinition(srcPath);
-
-        using (var client = await GetMirrorFtpClient(token))
-        {
-            using var job = await _ftpRateLimiter.Begin("Starting uploading mirrored file", 0, token);
-            await client.CreateDirectoryAsync($"{definition.Hash.ToHex()}", token);
-            await client.CreateDirectoryAsync($"{definition.Hash.ToHex()}/parts", token);
-        }
-
-        string MakePath(long idx)
-        {
-            return $"{definition!.Hash.ToHex()}/parts/{idx}";
-        }
-
-        foreach (var part in definition.Parts)
-        {
-            _logger.LogInformation("Uploading mirror part of {Name} {Hash} ({Index}/{Length})", archive.Name,
-                archive.Hash, part.Index, definition.Parts.Length);
-            using var job = await _ftpRateLimiter.Begin("Uploading mirror part", part.Size, token);
-
-            var buffer = new byte[part.Size];
-            await using (var fs = srcPath.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                fs.Position = part.Offset;
-                await fs.ReadAsync(buffer, token);
-            }
-
-            var tsk = job.Report((int) part.Size, token);
-            await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
-            {
-                using var client = await GetMirrorFtpClient(token);
-                var name = MakePath(part.Index);
-                await client.UploadAsync(new MemoryStream(buffer), name, token: token);
-            });
-            await tsk;
-        }
-
-        await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
-        {
-            using var client = await GetMirrorFtpClient(token);
-            _logger.LogInformation($"Finishing mirror upload");
-            using var job = await _ftpRateLimiter.Begin("Finishing mirror upload", 0, token);
-
-            await using var ms = new MemoryStream();
-            await using (var gz = new GZipStream(ms, CompressionLevel.Optimal, true))
-            {
-                await _dtos.Serialize(definition, gz);
-            }
-
-            ms.Position = 0;
-            var remoteName = $"{definition.Hash.ToHex()}/definition.json.gz";
-            await client.UploadAsync(ms, remoteName, token: token);
-        });
-
-
-        return (ArchiveStatus.Mirrored, mirroredArchive);
     }
 
     private async Task<(ArchiveStatus, Archive)> DownloadAndValidate(Archive archive, ArchiveManager archiveManager,

@@ -4,6 +4,7 @@ namespace Wabbajack.Networking.WabbajackClientApi;
 
 public class Configuration
 {
+    public Uri MirrorServerUrl { get; set; } = new ("https://mirror.wabbajack.org");
     public Uri ServerUri { get; set; } = new("https://build.wabbajack.org");
     public string MetricsKey { get; set; }
     public string MetricsKeyHeader { get; set; } = "x-metrics-key";

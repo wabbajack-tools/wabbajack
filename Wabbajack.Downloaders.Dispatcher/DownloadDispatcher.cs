@@ -143,7 +143,7 @@ public class DownloadDispatcher
     {
         try
         {
-            var url = await _wjClient.GetMirrorUrl(archive.Hash);
+            var url = _wjClient.GetMirrorUrl(archive.Hash);
             if (url == null) return default;
 
             var newArchive =
