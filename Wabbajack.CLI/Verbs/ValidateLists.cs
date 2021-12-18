@@ -147,8 +147,16 @@ public class ValidateLists : IVerb
 
             var archives = await modListData.Archives.PMapAll(async archive =>
             {
-                //var result = await DownloadAndValidate(archive, archiveManager, token);
                 var result = await validationCache.Get(archive);
+                if (result.Status == ArchiveStatus.Valid)
+                {
+                    return new ValidatedArchive
+                    {
+                        Status = ArchiveStatus.Valid,
+                        Original = archive
+                    };
+                }
+
 
                 if (result.Status == ArchiveStatus.InValid)
                 {
