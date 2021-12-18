@@ -99,15 +99,9 @@ public class ValidateLists : IVerb
         var patchFiles = await _wjClient.GetAllPatches(token);
         _logger.LogInformation("Found {Count} patches", patchFiles.Length);
 
-        var otherArchiveManager = otherArchives == default ? null : new ArchiveManager(_logger, otherArchives);
-
-        _logger.LogInformation("Loading Mirror Allow List");
-        var mirrorAllowList = await _wjClient.LoadMirrorAllowList();
-        var upgradedArchives = await _wjClient.LoadUpgradedArchives();
-
         var validationCache = new LazyCache<string, Archive, (ArchiveStatus Status, Archive archive)>
         (x => x.State.PrimaryKeyString + x.Hash,
-            archive => DownloadAndValidate(archive, archiveManager, otherArchiveManager, mirrorAllowList, token));
+            archive => DownloadAndValidate(archive, token));
         
         var stopWatch = Stopwatch.StartNew();
         var listData = await lists.SelectAsync(async l => await _gitHubClient.GetData(l))
@@ -227,91 +221,6 @@ public class ValidateLists : IVerb
         await ExportReports(reports, validatedLists, token);
 
         return 0;
-    }
-
-    private async Task<(ArchiveStatus Status, ValidatedArchive? archive)> AttemptToPatchArchive(Archive archive,
-        ArchiveManager archiveManager, Dictionary<Hash, ValidatedArchive> upgradedArchives,
-        HashSet<(Hash, Hash)> existingPatches, CancellationToken token)
-    {
-        if (!archiveManager.HaveArchive(archive.Hash))
-            return (ArchiveStatus.InValid, null);
-
-        if (upgradedArchives.TryGetValue(archive.Hash, out var foundUpgrade))
-        {
-            if (await _dispatcher.Verify(foundUpgrade.PatchedFrom!, token))
-            {
-                return (ArchiveStatus.Updated, foundUpgrade);
-            }
-        }
-
-        var upgrade = await _dispatcher.FindUpgrade(archive, _temporaryFileManager, token);
-        if (upgrade == null)
-            return (ArchiveStatus.InValid, null);
-
-        var tempFile = _temporaryFileManager.CreateFile();
-        await _dispatcher.Download(upgrade, tempFile.Path, token);
-        if (!await _dispatcher.Verify(upgrade, token))
-            return (ArchiveStatus.InValid, null);
-
-        await archiveManager.Ingest(tempFile.Path, token);
-
-        if (existingPatches.Contains((upgrade.Hash, archive.Hash)))
-        {
-            return (ArchiveStatus.Updated, new ValidatedArchive
-            {
-                Original = archive,
-                Status = ArchiveStatus.Updated,
-                PatchUrl = _wjClient.GetPatchUrl(upgrade.Hash, archive.Hash),
-                PatchedFrom = upgrade
-            });
-        }
-
-        await using var sigFile = _temporaryFileManager.CreateFile();
-        await using var patchFile = _temporaryFileManager.CreateFile();
-        await using var srcStream =
-            archiveManager.GetPath(upgrade.Hash).Open(FileMode.Open, FileAccess.Read, FileShare.Read);
-        await using var destStream =
-            archiveManager.GetPath(archive.Hash).Open(FileMode.Open, FileAccess.Read, FileShare.Read);
-        await using var sigStream = sigFile.Path.Open(FileMode.Create, FileAccess.ReadWrite);
-        await using var patchOutput = patchFile.Path.Open(FileMode.Create, FileAccess.ReadWrite);
-        OctoDiff.Create(destStream, srcStream, sigStream, patchOutput);
-        await patchOutput.DisposeAsync();
-        await UploadPatchToCDN(patchFile.Path, $"{upgrade.Hash.ToHex()}_{archive.Hash.ToHex()}", token);
-
-        _logger.LogInformation("Upgraded {FromHash} to {ToHash}", archive.Hash, upgrade.Hash);
-        return (ArchiveStatus.Updated, new ValidatedArchive
-        {
-            Original = archive,
-            Status = ArchiveStatus.Updated,
-            PatchUrl = _wjClient.GetPatchUrl(upgrade.Hash, archive.Hash),
-            PatchedFrom = upgrade
-        });
-    }
-
-    private async Task UploadPatchToCDN(AbsolutePath patchFile, string patchName, CancellationToken token)
-    {
-        for (var times = 0; times < 5; times++)
-        {
-            try
-            {
-                _logger.Log(LogLevel.Information,
-                    "Uploading {Size} patch file to CDN {Name}", patchFile.Size().ToFileSizeString(), patchName);
-                using var client = await (await _ftpSiteCredentials.Get())[StorageSpace.Patches].GetClient(_logger);
-
-                await client.UploadFileAsync(patchFile.ToString(), patchName, FtpRemoteExists.Overwrite, token: token);
-                _logger.Log(LogLevel.Information,
-                    "Finished uploading {Size} patch file to CDN {Name}", patchFile.Size().ToFileSizeString(), patchName);
-                return;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error uploading {Name} to CDN", patchName);
-                if (ex.InnerException != null)
-                    _logger.LogError(ex.InnerException, "Inner Exception");
-            }
-        }
-
-        _logger.Log(LogLevel.Error, "Couldn't upload {File} to {Name}", patchFile, patchName);
     }
 
 
@@ -441,8 +350,7 @@ public class ValidateLists : IVerb
         await _dtos.Serialize(upgradedMetas, upgradedMetasFile, true);
     }
 
-    private async Task<(ArchiveStatus, Archive)> DownloadAndValidate(Archive archive, ArchiveManager archiveManager,
-        ArchiveManager? otherArchiveManager, ServerAllowList mirrorAllowList, CancellationToken token)
+    private async Task<(ArchiveStatus, Archive)> DownloadAndValidate(Archive archive, CancellationToken token)
     {
         switch (archive.State)
         {
@@ -460,34 +368,7 @@ public class ValidateLists : IVerb
 
         if (archive.State is Http http && http.Url.Host.EndsWith("github.com"))
             return (ArchiveStatus.Valid, archive);
-
-        if (!archiveManager.HaveArchive(archive.Hash) && archive.State is not Nexus or WabbajackCDN)
-        {
-            _logger.LogInformation("Downloading {name} {hash}", archive.Name, archive.Hash);
-
-            if (otherArchiveManager != null && otherArchiveManager.HaveArchive(archive.Hash))
-            {
-                _logger.LogInformation("Found {name} {hash} in other archive manager", archive.Name, archive.Hash);
-                await archiveManager.Ingest(otherArchiveManager.GetPath(archive.Hash), token);
-            }
-            else
-            {
-                try
-                {
-                    await using var tempFile = _temporaryFileManager.CreateFile();
-                    var hash = await _dispatcher.Download(archive, tempFile.Path, token);
-                    if (hash != archive.Hash)
-                        return (ArchiveStatus.InValid, archive);
-                    await archiveManager.Ingest(tempFile.Path, token);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogCritical(ex, "Downloading {primaryKeyString}", archive.State.PrimaryKeyString);
-                    return (ArchiveStatus.InValid, archive);
-                }
-            }
-        }
-
+        
         try
         {
             for (var attempts = 0; attempts < 3; attempts++)
