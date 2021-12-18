@@ -45,21 +45,21 @@ public class ForceHeal : IVerb
     public Command MakeCommand()
     {
         var command = new Command("force-heal");
-        command.Add(new Option<AbsolutePath>(new[] {"-f", "-from"}, "Old File"));
-        command.Add(new Option<string>(new[] {"-t", "-to"}, "New File"));
+        command.Add(new Option<AbsolutePath>(new[] {"-n", "-new"}, "New File"));
+        command.Add(new Option<string>(new[] {"-o", "-old"}, "Old File"));
         command.Description = "Creates a patch from New file to Old File and uploads it";
         command.Handler = CommandHandler.Create(Run);
         return command;
     }
 
-    public async Task<int> Run(AbsolutePath from, AbsolutePath to)
+    public async Task<int> Run(AbsolutePath oldFile, AbsolutePath newFile)
     {
-        var fromResolved = await Resolve(from);
-        var toResolved = await Resolve(to);
+        var oldResolved = await Resolve(oldFile);
+        var newResolved = await Resolve(newFile);
 
         _logger.LogInformation("Creating patch");
         var outData = new MemoryStream();
-        OctoDiff.Create( await @from.ReadAllBytesAsync(), await to.ReadAllBytesAsync(), outData);
+        OctoDiff.Create( await @newFile.ReadAllBytesAsync(), await oldFile.ReadAllBytesAsync(), outData);
         
         _logger.LogInformation("Created {Size} patch", outData.Length.FileSizeToString());
 
@@ -67,8 +67,8 @@ public class ForceHeal : IVerb
         
         var validated = new ValidatedArchive
         {
-            Original = fromResolved,
-            PatchedFrom = toResolved,
+            Original = oldResolved,
+            PatchedFrom = newResolved,
             Status = ArchiveStatus.Updated
         };
         
