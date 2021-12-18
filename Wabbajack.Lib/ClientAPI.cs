@@ -155,9 +155,6 @@ using Wabbajack.Lib.Downloaders;
 
         public static async Task<Archive[]> GetExistingGameFiles(WorkQueue queue, Game game)
         {
-            if(BuildServerStatus.IsBuildServerDown)
-                return new Archive[0];
-            var client = await GetClient();
             var metaData = game.MetaData();
             var results = await GetGameFilesFromGithub(game, metaData.InstalledVersion);
 
