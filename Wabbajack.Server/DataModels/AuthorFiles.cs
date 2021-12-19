@@ -91,6 +91,8 @@ public class AuthorFiles
     public async Task DeleteFile(FileDefinition definition)
     {
         var folder = AuthorFilesLocation.Combine(definition.MungedName);
+        foreach (var file in folder.EnumerateFiles())
+            file.Delete();
         folder.DeleteDirectory();
     }
 
