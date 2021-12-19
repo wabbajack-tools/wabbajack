@@ -187,7 +187,24 @@ public static class AbsolutePathExtensions
     {
         if (!path.DirectoryExists()) return;
         if (dontDeleteIfNotEmpty && (path.EnumerateFiles().Any() || path.EnumerateDirectories().Any())) return;
-        Directory.Delete(ToNativePath(path), true);
+      
+        foreach (string directory in Directory.GetDirectories(path.ToString()))
+        {
+            DeleteDirectory(directory.ToAbsolutePath(), dontDeleteIfNotEmpty);
+        }
+
+        try
+        {
+            Directory.Delete(path.ToString(), true);
+        }
+        catch (IOException) 
+        {
+            Directory.Delete(path.ToString(), true);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            Directory.Delete(path.ToString(), true);
+        }
     }
 
     public static bool DirectoryExists(this AbsolutePath path)
