@@ -34,7 +34,7 @@ public class WabbajackApiTokenProvider : ITokenProvider<WabbajackApiState>
         return new WabbajackApiState
         {
             MetricsKey = wjToken,
-            AuthorKey = AuthorKeyPath.FileExists() ? await AuthorKeyPath.ReadAllTextAsync() : null
+            AuthorKey = AuthorKeyPath.FileExists() ? (await AuthorKeyPath.ReadAllTextAsync()).Trim() : null
         };
     }
 

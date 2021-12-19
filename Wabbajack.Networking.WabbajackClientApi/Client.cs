@@ -320,4 +320,13 @@ public class Client
     {
         return (await _client.GetFromJsonAsync<ValidatedArchive[]>("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/configs/forced_healing.json", _dtos.Options, token))!;
     }
+
+    public async Task DeleteMirror(Hash hash)
+    {
+        _logger.LogInformation("Deleting mirror of {Hash}", hash);
+        var msg = await MakeMessage(HttpMethod.Delete, new Uri($"{_configuration.BuildServerUrl}mirrored_files/{hash.ToHex()}"));
+        var result = await _client.SendAsync(msg);
+        if (!result.IsSuccessStatusCode)
+            throw new HttpException(result);
+    }
 }

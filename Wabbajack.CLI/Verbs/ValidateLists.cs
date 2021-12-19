@@ -227,6 +227,13 @@ public class ValidateLists : IVerb
         }
 
         await ExportReports(reports, validatedLists, token);
+        
+        
+        var usedMirroredFiles = validatedLists.SelectMany(a => a.Archives)
+            .Where(m => m.Status == ArchiveStatus.Mirrored)
+            .Select(m => m.Original.Hash)
+            .ToHashSet();
+        await DeleteOldMirrors(mirroredFiles, usedMirroredFiles);
 
         return 0;
     }
@@ -356,6 +363,16 @@ public class ValidateLists : IVerb
         await using var upgradedMetasFile = reports.Combine("upgraded.json")
             .Open(FileMode.Create, FileAccess.Write, FileShare.None);
         await _dtos.Serialize(upgradedMetas, upgradedMetasFile, true);
+
+
+    }
+
+    private async Task DeleteOldMirrors(IEnumerable<Hash> mirroredFiles, IReadOnlySet<Hash> usedMirroredFiles)
+    {
+        foreach (var file in mirroredFiles.Where(file => !usedMirroredFiles.Contains(file)))
+        {
+            await _wjClient.DeleteMirror(file);
+        }
     }
 
     private async Task<(ArchiveStatus, Archive)> DownloadAndValidate(Archive archive, CancellationToken token)
