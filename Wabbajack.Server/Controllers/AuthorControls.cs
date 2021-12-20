@@ -90,7 +90,7 @@ public class AuthorControls : ControllerBase
     {
         var data = await KnownFolders.EntryPoint.Combine(@"Controllers\Templates\AuthorControls.html")
             .ReadAllTextAsync();
-        var func = NettleEngine.GetCompiler().RegisterWJFunctions().Compile(data);
+        var func = NettleEngine.GetCompiler().Compile(data);
         return func(o);
     }
 

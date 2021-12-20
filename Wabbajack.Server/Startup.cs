@@ -11,12 +11,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using Nettle;
+using Nettle.Compiler;
 using Newtonsoft.Json;
 using Octokit;
 using Wabbajack.BuildServer;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Networking.GitHub;
 using Wabbajack.Server.DataModels;
+using Wabbajack.Server.Extensions;
 using Wabbajack.Server.Services;
 
 namespace Wabbajack.Server;
@@ -85,6 +88,8 @@ public class Startup
         services.AddMvc();
         services.AddControllers()
             .AddNewtonsoftJson(o => { o.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore; });
+
+        NettleEngine.GetCompiler().RegisterWJFunctions();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

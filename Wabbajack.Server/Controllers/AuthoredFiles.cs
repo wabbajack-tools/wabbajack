@@ -27,7 +27,7 @@ namespace Wabbajack.BuildServer.Controllers;
 [Route("/authored_files")]
 public class AuthoredFiles : ControllerBase
 {
-    private static readonly Func<object, string> HandleGetListTemplate = NettleEngine.GetCompiler().RegisterWJFunctions().Compile(@"
+    private static readonly Func<object, string> HandleGetListTemplate = NettleEngine.GetCompiler().Compile(@"
             <html><body>
                 <table>
                 {{each $.files }}
