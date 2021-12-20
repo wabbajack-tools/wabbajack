@@ -32,11 +32,11 @@ public class AuthoredFiles : ControllerBase
                 <table>
                 {{each $.files }}
                 <tr>
-                       <td><a href='https://authored-files.wabbajack.org/{{@UrlEncode($.Definition.MungedName)}}'>{{$.Definition.OriginalFileName}}</a></td>
+                       <td><a href='https://authored-files.wabbajack.org/{{$.Definition.MungedName}}'>{{$.Definition.OriginalFileName}}</a></td>
                        <td>{{$.HumanSize}}</td>
                        <td>{{$.Definition.Author}}</td>
                        <td>{{$.Updated}}</td>
-                       <td><a href='/authored_files/direct_link/{{@UrlEncode($.Definition.MungedName)}}'>(Slow) HTTP Direct Link</a></td>
+                       <td><a href='/authored_files/direct_link/{{$.Definition.MungedName}}'>(Slow) HTTP Direct Link</a></td>
                 </tr>
                 {{/each}}
                 </table>

@@ -9,7 +9,6 @@ public static class NettleFunctions
 {
     public static INettleCompiler RegisterWJFunctions(this INettleCompiler compiler)
     {
-        compiler.RegisterFunction(new UrlEncode());
         compiler.RegisterFunction(new Escape());
         return compiler;
     }
