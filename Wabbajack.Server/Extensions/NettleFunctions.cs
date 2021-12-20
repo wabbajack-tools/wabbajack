@@ -39,7 +39,7 @@ public static class NettleFunctions
         protected override object GenerateOutput(TemplateContext context, params object[] parameterValues)
         {
             var value = GetParameterValue<string>("text", parameterValues);
-            return Regex.Escape(value);
+            return Regex.Escape(value).Replace("'", "\'");
         }
 
         public override string Description => "Escapes a string";
