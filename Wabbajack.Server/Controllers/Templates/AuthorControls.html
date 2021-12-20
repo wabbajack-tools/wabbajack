@@ -19,7 +19,7 @@
     {{each $.WabbajackFiles }}
     <tr>
         <td>
-            <button onclick="deleteFile('{{$.MangledName}}');">Delete</button>
+            <button onclick="deleteFile('{{@Escape($.MangledName)}}');">Delete</button>
         </td>
         <td>{{$.Name}}</td>
         <td>{{$.Size}}</td>
@@ -43,7 +43,7 @@
     {{each $.OtherFiles }}
     <tr>
         <td>
-            <button onclick="deleteFile('{{$.MangledName}}');">Delete</button>
+            <button onclick="deleteFile('{{@Escape($.MangledName)}}');">Delete</button>
         </td>
         <td>{{$.Name}}</td>
         <td>{{$.Size}}</td>

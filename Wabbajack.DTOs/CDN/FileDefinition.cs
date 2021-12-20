@@ -1,3 +1,6 @@
+using System;
+using System.Text.Json.Serialization;
+using System.Web;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 
@@ -12,4 +15,5 @@ public class FileDefinition
     public PartDefinition[] Parts { get; set; } = { };
     public string? ServerAssignedUniqueId { get; set; }
     public string MungedName => $"{OriginalFileName}_{ServerAssignedUniqueId!}";
+
 }

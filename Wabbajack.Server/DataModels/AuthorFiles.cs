@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Web;
 using Microsoft.Extensions.Logging;
 using Wabbajack.BuildServer;
 using Wabbajack.Common;
@@ -44,9 +45,9 @@ public class AuthorFiles
         return defs.ToArray();
     }
 
-    public async Task<Stream> StreamForPart(string hashAsHex, int part)
+    public async Task<Stream> StreamForPart(string mungedName, int part)
     {
-        return AuthorFilesLocation.Combine(hashAsHex, "parts", part.ToString()).Open(FileMode.Open);
+        return AuthorFilesLocation.Combine(mungedName, "parts", part.ToString()).Open(FileMode.Open);
     }
     
     public async Task<Stream> CreatePart(string mungedName, int part)
@@ -72,6 +73,11 @@ public class AuthorFiles
     public async Task<FileDefinition> ReadDefinition(string mungedName)
     {
         return await ReadDefinition(AuthorFilesLocation.Combine(mungedName, "definition.json.gz"));
+    }
+    
+    public bool IsDefinition(string mungedName)
+    {
+        return AuthorFilesLocation.Combine(mungedName, "definition.json.gz").FileExists();
     }
     
     private async Task<FileDefinition> ReadDefinition(AbsolutePath file)
@@ -100,5 +106,11 @@ public class AuthorFiles
             return found;
         await AllAuthoredFiles();
         return _byServerId[serverAssignedUniqueId];
+    }
+
+    public string DecodeName(string mungedName)
+    {
+        var decoded = HttpUtility.UrlDecode(mungedName);
+        return IsDefinition(decoded) ? decoded : mungedName;
     }
 }

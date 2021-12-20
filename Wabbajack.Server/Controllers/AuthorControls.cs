@@ -16,6 +16,7 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Networking.GitHub;
 using Wabbajack.Paths.IO;
 using Wabbajack.Server.DataModels;
+using Wabbajack.Server.Extensions;
 using Wabbajack.Server.Services;
 
 namespace Wabbajack.BuildServer.Controllers;
@@ -89,7 +90,7 @@ public class AuthorControls : ControllerBase
     {
         var data = await KnownFolders.EntryPoint.Combine(@"Controllers\Templates\AuthorControls.html")
             .ReadAllTextAsync();
-        var func = NettleEngine.GetCompiler().Compile(data);
+        var func = NettleEngine.GetCompiler().RegisterWJFunctions().Compile(data);
         return func(o);
     }
 

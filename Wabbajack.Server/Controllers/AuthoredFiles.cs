@@ -18,6 +18,7 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Server.DataModels;
 using Wabbajack.Server.DTOs;
+using Wabbajack.Server.Extensions;
 using Wabbajack.Server.Services;
 
 namespace Wabbajack.BuildServer.Controllers;
@@ -26,16 +27,16 @@ namespace Wabbajack.BuildServer.Controllers;
 [Route("/authored_files")]
 public class AuthoredFiles : ControllerBase
 {
-    private static readonly Func<object, string> HandleGetListTemplate = NettleEngine.GetCompiler().Compile(@"
+    private static readonly Func<object, string> HandleGetListTemplate = NettleEngine.GetCompiler().RegisterWJFunctions().Compile(@"
             <html><body>
                 <table>
                 {{each $.files }}
                 <tr>
-                       <td><a href='https://authored-files.wabbajack.org/{{$.Definition.MungedName}}'>{{$.Definition.OriginalFileName}}</a></td>
+                       <td><a href='https://authored-files.wabbajack.org/{{@UrlEncode($.Definition.MungedName)}}'>{{$.Definition.OriginalFileName}}</a></td>
                        <td>{{$.HumanSize}}</td>
                        <td>{{$.Definition.Author}}</td>
                        <td>{{$.Updated}}</td>
-                       <td><a href='/authored_files/direct_link/{{$.Definition.MungedName}}'>(Slow) HTTP Direct Link</a></td>
+                       <td><a href='/authored_files/direct_link/{{@UrlEncode($.Definition.MungedName)}}'>(Slow) HTTP Direct Link</a></td>
                 </tr>
                 {{/each}}
                 </table>
@@ -178,6 +179,7 @@ public class AuthoredFiles : ControllerBase
     [Route("direct_link/{mungedName}")]
     public async Task DirectLink(string mungedName)
     {
+        mungedName = _authoredFiles.DecodeName(mungedName);
         var definition = await _authoredFiles.ReadDefinition(mungedName);
         Response.Headers.ContentDisposition =
             new StringValues($"attachment; filename={definition.OriginalFileName}");
