@@ -16,8 +16,8 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
-using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
+using Wabbajack.Lib.Interventions;
 
 namespace Wabbajack
 {

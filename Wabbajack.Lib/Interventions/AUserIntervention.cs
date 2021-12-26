@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using Wabbajack.Common;
+using Wabbajack.Lib.Interventions;
 
 namespace Wabbajack.Lib
 {
@@ -17,9 +18,6 @@ namespace Wabbajack.Lib
 
         private bool _handled;
         public bool Handled { get => _handled; set => this.RaiseAndSetIfChanged(ref _handled, value); }
-
-        public int CpuID { get; } = WorkQueue.AsyncLocalQueue?.CpuId ?? WorkQueue.UnassignedCpuId;
-
         public abstract void Cancel();
         public ICommand CancelCommand { get; }
 

@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ReactiveUI;
-using Wabbajack.Common.StatusFeed;
+﻿using ReactiveUI;
 
-namespace Wabbajack.Lib
+namespace Wabbajack.Lib.Interventions
 {
     /// <summary>
     /// Defines a message that requires user interaction. The user must perform some action
     /// or make a choice. 
     /// </summary>
-    public interface IUserIntervention : IStatusMessage, IReactiveObject
+    public interface IUserIntervention : IReactiveObject
     {
         /// <summary>
         /// The user didn't make a choice, so this action should be aborted
@@ -25,9 +19,5 @@ namespace Wabbajack.Lib
         /// </summary>
         bool Handled { get; }
 
-        /// <summary>
-        /// WorkQueue job ID that is blocking on this intervention
-        /// </summary>
-        int CpuID { get; }
     }
 }

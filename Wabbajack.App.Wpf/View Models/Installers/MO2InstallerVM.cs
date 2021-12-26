@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
-using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
+using Wabbajack.Lib.Interventions;
 using Wabbajack.Util;
 
 namespace Wabbajack

@@ -1,26 +1,25 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Wabbajack.Common;
-using Wabbajack.Lib.Downloaders;
+using Wabbajack.DTOs.DownloadStates;
 
 namespace Wabbajack.Lib
 {
     public class ManuallyDownloadFile : AUserIntervention
     {
-        public ManualDownloader.State State { get; }
+        public Manual State { get; }
         public override string ShortDescription { get; } = string.Empty;
         public override string ExtendedDescription { get; } = string.Empty;
 
-        private TaskCompletionSource<(Uri, Wabbajack.Lib.Http.Client)> _tcs = new TaskCompletionSource<(Uri, Wabbajack.Lib.Http.Client)>();
-        public Task<(Uri, Wabbajack.Lib.Http.Client)> Task => _tcs.Task;
+        private readonly TaskCompletionSource<(Uri, HttpResponseMessage)> _tcs = new ();
+        public Task<(Uri, HttpResponseMessage)> Task => _tcs.Task;
 
-        private ManuallyDownloadFile(ManualDownloader.State state)
+        private ManuallyDownloadFile(Manual state)
         {
             State = state;
         }
 
-        public static async Task<ManuallyDownloadFile> Create(ManualDownloader.State state)
+        public static async Task<ManuallyDownloadFile> Create(Manual state)
         {
             var result = new ManuallyDownloadFile(state);
             return result;
@@ -30,7 +29,7 @@ namespace Wabbajack.Lib
             _tcs.SetCanceled();
         }
 
-        public void Resume(Uri s, Wabbajack.Lib.Http.Client client)
+        public void Resume(Uri s, HttpResponseMessage client)
         {
             _tcs.SetResult((s, client));
         }

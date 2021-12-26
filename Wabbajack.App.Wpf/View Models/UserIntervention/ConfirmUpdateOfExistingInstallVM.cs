@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.Lib.Interventions;
 
 namespace Wabbajack
 {

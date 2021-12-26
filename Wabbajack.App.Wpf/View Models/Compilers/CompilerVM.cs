@@ -14,10 +14,10 @@ using System.Reactive.Subjects;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
-using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
 using Wabbajack.Lib.AuthorApi;
 using Wabbajack.Lib.FileUploader;
+using Wabbajack.Lib.Interventions;
 
 namespace Wabbajack
 {

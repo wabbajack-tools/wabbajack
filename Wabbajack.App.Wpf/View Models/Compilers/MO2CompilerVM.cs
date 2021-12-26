@@ -12,6 +12,7 @@ using DynamicData;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.AuthorApi;
+using Wabbajack.Lib.Extensions;
 using Wabbajack.Lib.FileUploader;
 using Wabbajack.Lib.GitHub;
 using WebSocketSharp;

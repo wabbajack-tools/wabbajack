@@ -16,13 +16,13 @@ using ReactiveUI.Fody.Helpers;
 using System.Windows.Media;
 using DynamicData;
 using DynamicData.Binding;
-using Wabbajack.Common.StatusFeed;
 using System.Reactive;
 using System.Collections.Generic;
 using System.Reactive.Subjects;
 using System.Windows.Input;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Wabbajack.Common.IO;
+using Wabbajack.Lib.Interventions;
 
 namespace Wabbajack
 {
