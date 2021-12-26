@@ -1,0 +1,118 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:Wabbajack">
+    <Style TargetType="local:AttentionBorder">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:AttentionBorder">
+                    <Border BorderThickness="1">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
+                                <Setter Property="BorderBrush" Value="{StaticResource DarkerSecondaryBrush}" />
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsVisible, RelativeSource={RelativeSource Self}}" Value="True" />
+                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="False" />
+                                            <Condition Binding="{Binding Failure, RelativeSource={RelativeSource AncestorType={x:Type local:AttentionBorder}}}" Value="False" />
+                                        </MultiDataTrigger.Conditions>
+                                        <MultiDataTrigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation
+                                                        AutoReverse="True"
+                                                        RepeatBehavior="Forever"
+                                                        Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                                        To="{StaticResource Secondary}"
+                                                        Duration="0:0:1.5" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation
+                                                        AutoReverse="True"
+                                                        RepeatBehavior="Forever"
+                                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                        To="{StaticResource SecondaryBackground}"
+                                                        Duration="0:0:1.5" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </MultiDataTrigger.EnterActions>
+                                        <MultiDataTrigger.ExitActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation
+                                                        Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                                        To="{StaticResource DarkerSecondary}"
+                                                        Duration="0:0:0.1" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation
+                                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                        To="{StaticResource WindowBackgroundColor}"
+                                                        Duration="0:0:0.1" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </MultiDataTrigger.ExitActions>
+                                    </MultiDataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsVisible, RelativeSource={RelativeSource Self}}" Value="True" />
+                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="False" />
+                                            <Condition Binding="{Binding Failure, RelativeSource={RelativeSource AncestorType={x:Type local:AttentionBorder}}}" Value="True" />
+                                        </MultiDataTrigger.Conditions>
+                                        <MultiDataTrigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation
+                                                        AutoReverse="True"
+                                                        RepeatBehavior="Forever"
+                                                        Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                                        To="#ff0026"
+                                                        Duration="0:0:1.5" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation
+                                                        AutoReverse="True"
+                                                        RepeatBehavior="Forever"
+                                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                        To="#540914"
+                                                        Duration="0:0:1.5" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </MultiDataTrigger.EnterActions>
+                                        <MultiDataTrigger.ExitActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation
+                                                        Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                                        To="#700d1c"
+                                                        Duration="0:0:0.1" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation
+                                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                        To="#1c0307"
+                                                        Duration="0:0:0.1" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </MultiDataTrigger.ExitActions>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <ContentPresenter Content="{TemplateBinding Content}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

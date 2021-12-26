@@ -1,0 +1,71 @@
+﻿<UserControl
+    x:Class="Wabbajack.ImageRadioButtonView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="35"
+    ClipToBounds="False"
+    mc:Ignorable="d">
+    <Grid>
+        <Border
+            x:Name="HoverOverPrimaryGlow"
+            Margin="-10"
+            Background="{StaticResource PrimaryVariantBrush}"
+            CornerRadius="15"
+            Opacity="0.3"
+            Visibility="{Binding IsChecked, Converter={StaticResource bool2VisibilityHiddenConverter}, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
+            <Border.Effect>
+                <BlurEffect Radius="15" />
+            </Border.Effect>
+        </Border>
+        <Border
+            x:Name="SelectedSecondaryGlow"
+            Margin="-2"
+            Background="{StaticResource SecondaryBrush}"
+            CornerRadius="12"
+            Opacity="0.3"
+            Visibility="{Binding IsChecked, Converter={StaticResource bool2VisibilityHiddenConverter}, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
+            <Border.Effect>
+                <BlurEffect Radius="10" />
+            </Border.Effect>
+        </Border>
+        <Button
+            Background="Transparent"
+            BorderThickness="0"
+            Click="Button_Click">
+            <Button.Template>
+                <ControlTemplate>
+                    <Image Source="{Binding Image, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
+                        <Image.Style>
+                            <Style TargetType="Image">
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="False" />
+                                            <Condition Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="False" />
+                                        </MultiDataTrigger.Conditions>
+                                        <MultiDataTrigger.Setters>
+                                            <Setter Property="Effect">
+                                                <Setter.Value>
+                                                    <BlurEffect Radius="2" />
+                                                </Setter.Value>
+                                            </Setter>
+                                        </MultiDataTrigger.Setters>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+        <Border
+            BorderBrush="{StaticResource SecondaryBrush}"
+            BorderThickness="1"
+            CornerRadius="9"
+            Opacity="0.8"
+            Visibility="{Binding IsChecked, Converter={StaticResource bool2VisibilityHiddenConverter}, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
+    </Grid>
+</UserControl>

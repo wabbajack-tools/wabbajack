@@ -1,0 +1,72 @@
+<mahapps:MetroWindow
+    x:Class="Wabbajack.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Wabbajack"
+    Width="1280"
+    Height="960"
+    MinWidth="850"
+    MinHeight="650"
+    Closing="Window_Closing"
+    RenderOptions.BitmapScalingMode="HighQuality"
+    ResizeMode="CanResize"
+    Style="{StaticResource {x:Type Window}}"
+    TitleBarHeight="25"
+    UseLayoutRounding="True"
+    WindowTitleBrush="{StaticResource MahApps.Brushes.Accent}"
+    mc:Ignorable="d">
+    <ContentPresenter Content="{Binding ActivePane}">
+        <ContentPresenter.Resources>
+            <DataTemplate DataType="{x:Type local:CompilerVM}">
+                <local:CompilerView ViewModel="{Binding}" />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type local:InstallerVM}">
+                <local:InstallationView ViewModel="{Binding}" />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
+                <local:ModeSelectionView ViewModel="{Binding}" />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
+                <local:ModListGalleryView ViewModel="{Binding}" />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type local:WebBrowserVM}">
+                <local:WebBrowserView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type local:SettingsVM}">
+                <local:SettingsView ViewModel="{Binding}" />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type local:ModListContentsVM}">
+                <local:ModListContentsView ViewModel="{Binding}" />
+            </DataTemplate>
+        </ContentPresenter.Resources>
+    </ContentPresenter>
+
+    <mahapps:MetroWindow.RightWindowCommands>
+        <mahapps:WindowCommands>
+            <mahapps:WindowCommands.Resources>
+                <Style BasedOn="{StaticResource IconBareButtonStyle}" TargetType="Button" />
+            </mahapps:WindowCommands.Resources>
+            <Button
+                Margin="5,0"
+                Command="{Binding CopyVersionCommand}"
+                Content="{Binding VersionDisplay}">
+                <Button.ToolTip>
+                    <ToolTip Content="Wabbajack Version&#x0a;Click to copy to clipboard"/>
+                </Button.ToolTip>
+            </Button>
+            <Button Grid.Column="1"
+                Margin="5,0"
+                Command="{Binding OpenSettingsCommand}">
+                <icon:PackIconMaterial
+                    Width="17"
+                    Height="17"
+                    Kind="Cog" />
+            </Button>
+        </mahapps:WindowCommands>
+    </mahapps:MetroWindow.RightWindowCommands>
+</mahapps:MetroWindow>
