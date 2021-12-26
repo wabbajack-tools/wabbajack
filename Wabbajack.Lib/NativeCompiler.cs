@@ -287,6 +287,7 @@ namespace Wabbajack.Lib
             return step[0] switch
             {
                 "IgnoreStartsWith" => new IgnoreStartsWith(this, step[1]),
+                "IgnoreEndsWith" => new IgnoreEndsWith(this, step[1]),
                 "IgnoreTaggedFolders" => new IgnoreTaggedFolders(this, Consts.WABBAJACK_IGNORE),
                 "IgnoreTaggedFiles" => new IgnoreTaggedFiles(this, Consts.WABBAJACK_IGNORE_FILES),
                 "IncludeTaggedFolders" => new IncludeTaggedFolders(this, Consts.WABBAJACK_INCLUDE),
