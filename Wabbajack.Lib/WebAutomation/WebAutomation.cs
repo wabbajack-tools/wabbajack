@@ -27,7 +27,6 @@ namespace Wabbajack.Lib.WebAutomation
         }
         public static async Task<Driver> Create(ILogger logger)
         {
-            Helpers.Init();
             var driver = new Driver(logger);
             await driver._driver.WaitForInitialized();
             return driver;

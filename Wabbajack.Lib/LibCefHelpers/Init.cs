@@ -4,26 +4,25 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using CefSharp;
 using CefSharp.OffScreen;
 using Wabbajack.Common;
-using Wabbajack.Common.Serialization.Json;
+using Wabbajack.DTOs.JsonConverters;
 using Cookie = CefSharp.Cookie;
 
 namespace Wabbajack.Lib.LibCefHelpers
 {
     public static class Helpers
     {
-        public static Wabbajack.Lib.Http.Client GetClient(IEnumerable<Cookie> cookies, string referer)
+        public static HttpRequestMessage MakeMessage(HttpMethod method, Uri uri, IEnumerable<Cookie> cookies, string referer)
         {
-            var client = new Wabbajack.Lib.Http.Client();
-            client.Headers.Add(("Referrer", referer));
-            client.Cookies.AddRange(cookies.Select(cookie => new System.Net.Cookie(cookie.Name, cookie.Value, cookie.Path, cookie.Domain)));
-            return client;
+            var msg = new HttpRequestMessage(method, uri);
+            msg.Headers.Add("Referrer", referer);
+            var cs = string.Join(",", cookies.Select(c => $"{c.Name}={c.Value}"));
+            msg.Headers.Add("Cookie", cs);
+            return msg;
         }
 
         private static CookieContainer ToCookieContainer(IEnumerable<Cookie> cookies)
@@ -85,43 +84,6 @@ namespace Wabbajack.Lib.LibCefHelpers
             public string Path { get; set; } = string.Empty;
         }
 
-        public static Func<IBrowser, IFrame, string, IRequest, IResourceHandler>? SchemeHandler { get; set; }
-
-        private static object _initLock = new object();
-        public static void Init()
-        {
-            lock (_initLock)
-            {
-                if (Inited || Cef.IsInitialized) return;
-                Inited = true;
-                CefSettings settings = new CefSettings();
-                settings.CachePath = Consts.CefCacheLocation.ToString();
-                settings.JavascriptFlags = "--noexpose_wasm";
-                settings.RegisterScheme(new CefCustomScheme()
-                {
-                    SchemeName = "wabbajack", SchemeHandlerFactory = new SchemeHandlerFactor()
-                });
-
-
-                Cef.Initialize(settings);
-            }
-        }
-
-        private class SchemeHandlerFactor : ISchemeHandlerFactory
-        {
-            public IResourceHandler Create(IBrowser browser, IFrame frame, string schemeName, IRequest request)
-            {
-                Utils.LogStraightToFile($"Scheme Handler Got: {schemeName} : {request.Url}");
-                if (SchemeHandler != null && schemeName == "wabbajack")
-                {
-                    return SchemeHandler!(browser, frame, schemeName, request);
-                }
-                return new ResourceHandler();
-            }
-        }
-
-        public static bool Inited { get; set; }
-
         public static void ClearCookies()
         {
             var manager = Cef.GetGlobalCookieManager();
@@ -166,16 +128,6 @@ namespace Wabbajack.Lib.LibCefHelpers
             }
 
             return true;
-        }
-    }
-
-    public static class ModuleInitializer
-    {
-        public static void Initialize()
-        {
-            var es = Assembly.GetEntryAssembly();
-            if (es != null && es.Location != null && Path.GetFileNameWithoutExtension(es.Location) == "Wabbajack") 
-                Helpers.Init();
         }
     }
 }
