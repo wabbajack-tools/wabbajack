@@ -286,15 +286,16 @@ namespace Wabbajack.Lib
         {
             return step[0] switch
             {
-                "IgnoreStartsWith" => new IgnoreStartsWith(this, step[1]),
                 "IgnoreEndsWith" => new IgnoreEndsWith(this, step[1]),
+                "IgnoreStartsWith" => new IgnoreStartsWith(this, step[1]),
                 "IgnoreRegex" => new IgnoreRegex(this, step[1]),
                 "IgnoreTaggedFolders" => new IgnoreTaggedFolders(this, Consts.WABBAJACK_IGNORE),
                 "IgnoreTaggedFiles" => new IgnoreTaggedFiles(this, Consts.WABBAJACK_IGNORE_FILES),
-                "IncludeTaggedFolders" => new IncludeTaggedFolders(this, Consts.WABBAJACK_INCLUDE),
                 "IncludeConfigs" => new IncludeAllConfigs(this),
                 "IncludeDirectMatches" => new DirectMatch(this),
                 "IncludePatches" => new IncludePatches(this),
+                "IncludeRegex" => new IncludeRegex(this, step[1]),
+                "IncludeTaggedFolders" => new IncludeTaggedFolders(this, Consts.WABBAJACK_INCLUDE),
                 "IncludeUnmatchedFilesInTaggedFolders" => new IncludeTaggedFolders(this, Consts.WABBAJACK_NOMATCH_INCLUDE),
                 "IncludeUnmatchedTaggedFiles" => new IncludeTaggedFiles(this, Consts.WABBAJACK_NOMATCH_INCLUDE_FILES),
                 _ => throw new ArgumentException($"No interpretation for step {step[0]}")
