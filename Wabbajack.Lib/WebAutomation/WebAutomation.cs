@@ -6,6 +6,7 @@ using System.Windows;
 using CefSharp;
 using CefSharp.OffScreen;
 using HtmlAgilityPack;
+using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Paths;
@@ -18,16 +19,16 @@ namespace Wabbajack.Lib.WebAutomation
         private readonly IWebBrowser _browser;
         private readonly CefSharpWrapper _driver;
 
-        public Driver()
+        public Driver(ILogger logger)
         {
 
             _browser = new ChromiumWebBrowser();
-            _driver = new CefSharpWrapper(_browser);
+            _driver = new CefSharpWrapper(logger, _browser);
         }
-        public static async Task<Driver> Create()
+        public static async Task<Driver> Create(ILogger logger)
         {
             Helpers.Init();
-            var driver = new Driver();
+            var driver = new Driver(logger);
             await driver._driver.WaitForInitialized();
             return driver;
         }

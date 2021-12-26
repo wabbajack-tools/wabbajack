@@ -74,6 +74,8 @@
     <ItemGroup>
       <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj" />
       <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
+      <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj" />
+      <ProjectReference Include="..\Wabbajack.Networking.WabbajackClientApi\Wabbajack.Networking.WabbajackClientApi.csproj" />
       <ProjectReference Include="..\Wabbajack.VirtualFileSystem\Wabbajack.VirtualFileSystem.csproj" />
     </ItemGroup>
     <ItemGroup>

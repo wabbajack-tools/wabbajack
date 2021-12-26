@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CefSharp;
-using Wabbajack.Common;
-using Wabbajack.Common.Exceptions;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic.CompilerServices;
 using Wabbajack.Lib.LibCefHelpers;
+using Wabbajack.Networking.Http;
+using Wabbajack.Paths;
 
 namespace Wabbajack.Lib.WebAutomation
 {
@@ -18,8 +14,9 @@ namespace Wabbajack.Lib.WebAutomation
     {
         private readonly IWebBrowser _browser;
         public Action<Uri>? DownloadHandler { get; set; }
-        public CefSharpWrapper(IWebBrowser browser)
+        public CefSharpWrapper(ILogger logger, IWebBrowser browser)
         {
+            _logger = logger;
             _browser = browser;
 
             _browser.DownloadHandler = new DownloadHandler(this);
@@ -59,6 +56,7 @@ namespace Wabbajack.Lib.WebAutomation
             ("We could not locate the item you are trying to view.", 404),
         };
         private static readonly Random RetryRandom = new Random();
+        private readonly ILogger _logger;
 
         public async Task<long> NavigateToAndDownload(Uri uri, AbsolutePath dest, bool quickMode = false, CancellationToken? token = null)
         {
@@ -86,7 +84,7 @@ namespace Wabbajack.Lib.WebAutomation
                     {
                         retryCount += 1;
                         var retry = RetryRandom.Next(retryCount * 5000, retryCount * 5000 * 2);
-                        Utils.Log($"Got server load error from {uri} retying in {retry}ms [{err}]");
+                        _logger.LogWarning("Got server load error from {Uri} retying in {Retry}ms [{Error}]", uri, retry, err);
                         await Task.Delay(TimeSpan.FromMilliseconds(retry));
                         goto RETRY;
                     }
@@ -98,7 +96,7 @@ namespace Wabbajack.Lib.WebAutomation
                         throw new HttpException(httpCode,$"Web driver failed: {err}");
                 }
 
-                Utils.Log($"Loaded page {uri} starting download...");
+                _logger.LogInformation("Loaded page {Uri} starting download", uri);
                 return await handler.TaskResult;
             }
             finally {

@@ -1,18 +1,51 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
-using Wabbajack.Common;
-using Wabbajack.Lib.Http;
+using Wabbajack.Downloaders;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Networking.Http;
+using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.Networking.WabbajackClientApi;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Lib
 {
     public class LauncherUpdater
     {
+        private readonly ILogger<LauncherUpdater> _logger;
+        private readonly HttpClient _client;
+        private readonly Client _wjclient;
+        private readonly DTOSerializer _dtos;
+        
+        private readonly DownloadDispatcher _downloader;
+        
+        private static Uri GITHUB_REPO_RELEASES = new("https://api.github.com/repos/wabbajack-tools/wabbajack/releases");
+
+        public LauncherUpdater(ILogger<LauncherUpdater> logger, HttpClient client, Client wjclient, DTOSerializer dtos,
+            DownloadDispatcher downloader)
+        {
+            _logger = logger;
+            _client = client;
+            _wjclient = wjclient;
+            _dtos = dtos;
+            _downloader = downloader;
+        }
+            
+            
         public static Lazy<AbsolutePath> CommonFolder = new (() =>
         {
-            var entryPoint = AbsolutePath.EntryPoint;
+            var entryPoint = KnownFolders.EntryPoint;
 
             // If we're not in a folder that looks like a version, abort
             if (!Version.TryParse(entryPoint.FileName.ToString(), out var version))
@@ -21,24 +54,26 @@ namespace Wabbajack.Lib
             }
 
             // If we're not in a folder that has Wabbajack.exe in the parent folder, abort
-            if (!entryPoint.Parent.Combine(Consts.AppName).WithExtension(new Extension(".exe")).IsFile)
+            if (!entryPoint.Parent.Combine(Consts.AppName).WithExtension(new Extension(".exe")).FileExists())
             {
                 return entryPoint;
             }
 
             return entryPoint.Parent;
         });
-        
-        public static async Task Run()
+
+
+
+        public async Task Run()
         {
 
-            if (CommonFolder.Value == AbsolutePath.EntryPoint)
+            if (CommonFolder.Value == KnownFolders.EntryPoint)
             {
-                Utils.Log("Outside of standard install folder, not updating");
+                _logger.LogInformation("Outside of standard install folder, not updating");
                 return;
             }
 
-            var version = Version.Parse(AbsolutePath.EntryPoint.FileName.ToString());
+            var version = Version.Parse(KnownFolders.EntryPoint.FileName.ToString());
 
             var oldVersions = CommonFolder.Value
                 .EnumerateDirectories()
@@ -52,8 +87,8 @@ namespace Wabbajack.Lib
 
             foreach (var (_, path) in oldVersions)
             {
-                Utils.Log($"Deleting old Wabbajack version at: {path}");
-                await path.DeleteDirectory();
+                _logger.LogInformation("Deleting old Wabbajack version at: {Path}", path);
+                path.DeleteDirectory();
             }
 
             var release = (await GetReleases())
@@ -68,41 +103,51 @@ namespace Wabbajack.Lib
                 })
                 .FirstOrDefault();
 
-            var launcherFolder = AbsolutePath.EntryPoint.Parent;
+            var launcherFolder = KnownFolders.EntryPoint.Parent;
             var exePath = launcherFolder.Combine("Wabbajack.exe");
             
             var launcherVersion = FileVersionInfo.GetVersionInfo(exePath.ToString());
 
             if (release != default && release.version > Version.Parse(launcherVersion.FileVersion!))
             {
-                Utils.Log($"Updating Launcher from {launcherVersion.FileVersion} to {release.version}");
+                _logger.LogInformation("Updating Launcher from {OldVersion} to {NewVersion}", launcherVersion.FileVersion, release.version);
                 var tempPath = launcherFolder.Combine("Wabbajack.exe.temp");
-                var client = new Client();
-                client.UseChromeUserAgent();
-                await client.DownloadAsync(release.asset.BrowserDownloadUrl!, tempPath);
 
-                if (tempPath.Size != release.asset.Size)
+                await _downloader.Download(new Archive
                 {
-                    Utils.Log(
-                        $"Downloaded launcher did not match expected size: {tempPath.Size} expected {release.asset.Size}");
+                    State = new Http {Url = release.asset.BrowserDownloadUrl!},
+                    Name = release.asset.Name,
+                    Size = release.asset.Size
+                }, tempPath, CancellationToken.None);
+                    
+                if (tempPath.Size() != release.asset.Size)
+                {
+                    _logger.LogInformation(
+                        "Downloaded launcher did not match expected size: {DownloadedSize} expected {ExpectedSize}", tempPath.Size(), release.asset.Size);
                     return;
                 }
 
-                if (exePath.Exists)
-                    await exePath.DeleteAsync();
-                await tempPath.MoveToAsync(exePath);
+                if (exePath.FileExists())
+                    exePath.Delete();
+                await tempPath.MoveToAsync(exePath, true, CancellationToken.None);
                 
-                Utils.Log("Finished updating wabbajack");
-                await Metrics.Send("updated_launcher", $"{launcherVersion.FileVersion} -> {release.version}");
+                _logger.LogInformation("Finished updating wabbajack");
+                await _wjclient.SendMetric("updated_launcher", $"{launcherVersion.FileVersion} -> {release.version}");
             }
         }
         
-        private static async Task<Release[]> GetReleases()
+        private async Task<Release[]> GetReleases()
         {
-            Utils.Log("Getting new Wabbajack version list");
-            var client = new Client();
-            client.UseChromeUserAgent();
-            return await client.GetJsonAsync<Release[]>(Consts.GITHUB_REPO_RELEASES.ToString());
+            _logger.LogInformation("Getting new Wabbajack version list");
+            var msg = MakeMessage(GITHUB_REPO_RELEASES);
+            return await _client.GetJsonFromSendAsync<Release[]>(msg, _dtos.Options);
+        }
+
+        private HttpRequestMessage MakeMessage(Uri uri)
+        {
+            var msg =  new HttpRequestMessage(HttpMethod.Get, uri);
+            msg.UseChromeUserAgent();
+            return msg;
         }
 
 
