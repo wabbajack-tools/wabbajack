@@ -12,6 +12,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Extensions;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack
 {
@@ -139,11 +140,11 @@ namespace Wabbajack
                     switch (t.Type)
                     {
                         case PathTypeOptions.Either:
-                            return t.Path.Exists;
+                            return t.Path.FileExists() || t.Path.DirectoryExists();
                         case PathTypeOptions.File:
-                            return t.Path.IsFile;
+                            return t.Path.FileExists();
                         case PathTypeOptions.Folder:
-                            return t.Path.IsDirectory;
+                            return t.Path.DirectoryExists();
                         case PathTypeOptions.Off:
                         default:
                             return false;
@@ -252,15 +253,15 @@ namespace Wabbajack
                 execute: () =>
                 {
                     AbsolutePath dirPath;
-                    dirPath = TargetPath.Exists ? TargetPath.Parent : TargetPath;
+                    dirPath = TargetPath.FileExists() ? TargetPath.Parent : TargetPath;
                     var dlg = new CommonOpenFileDialog
                     {
                         Title = PromptTitle,
                         IsFolderPicker = PathType == PathTypeOptions.Folder,
-                        InitialDirectory = (string)dirPath,
+                        InitialDirectory = dirPath.ToString(),
                         AddToMostRecentlyUsedList = false,
                         AllowNonFileSystemItems = false,
-                        DefaultDirectory = (string)dirPath,
+                        DefaultDirectory = dirPath.ToString(),
                         EnsureFileExists = true,
                         EnsurePathExists = true,
                         EnsureReadOnly = false,

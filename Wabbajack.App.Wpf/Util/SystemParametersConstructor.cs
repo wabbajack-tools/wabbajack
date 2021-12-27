@@ -4,20 +4,29 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using PInvoke;
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
 using Wabbajack.Common;
+using Wabbajack.Installer;
 using Wabbajack.Lib;
 using static PInvoke.User32;
+using UnmanagedType = System.Runtime.InteropServices.UnmanagedType;
 
 namespace Wabbajack.Util
 {
     // Much of the GDI code here is taken from : https://github.com/ModOrganizer2/modorganizer/blob/master/src/envmetrics.cpp
     // Thanks to MO2 for being good citizens and supporting OSS code
-    public static class SystemParametersConstructor
+    public class SystemParametersConstructor
     {
-        private static IEnumerable<(int Width, int Height, bool IsPrimary)> GetDisplays()
+        private readonly ILogger<SystemParametersConstructor> _logger;
+
+        public SystemParametersConstructor(ILogger<SystemParametersConstructor> logger)
+        {
+            _logger = logger;
+        }
+        private IEnumerable<(int Width, int Height, bool IsPrimary)> GetDisplays()
         {
             // Needed to make sure we get the right values from this call
             SetProcessDPIAware();
@@ -43,7 +52,7 @@ namespace Wabbajack.Util
             }
         }
         
-        public static SystemParameters Create()
+        public SystemParameters Create()
         {
             var (width, height, _) = GetDisplays().First(d => d.IsPrimary);
 
@@ -93,7 +102,7 @@ namespace Wabbajack.Util
                 }
                 catch (Exception e)
                 {
-                    Utils.ErrorThrow(e);
+                    _logger.LogError(e, "While getting SystemParameters");
                 }
                 finally
                 {
@@ -103,7 +112,7 @@ namespace Wabbajack.Util
                 }
             }
             
-            var memory = Utils.GetMemoryStatus();
+            var memory = GetMemoryStatus();
             return new SystemParameters
             {
                 ScreenWidth = width,
@@ -113,5 +122,36 @@ namespace Wabbajack.Util
                 SystemPageSize = (long)memory.ullTotalPageFile - (long)memory.ullTotalPhys
             };
         }
+        
+        [return: MarshalAs(UnmanagedType.Bool)]
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern bool GlobalMemoryStatusEx([In, Out] MEMORYSTATUSEX lpBuffer);
+
+        public static MEMORYSTATUSEX GetMemoryStatus()
+        {
+            var mstat = new MEMORYSTATUSEX();
+            GlobalMemoryStatusEx(mstat);
+            return mstat;
+        }
+        
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        public class MEMORYSTATUSEX
+        {
+            public uint dwLength;
+            public uint dwMemoryLoad;
+            public ulong ullTotalPhys;
+            public ulong ullAvailPhys;
+            public ulong ullTotalPageFile;
+            public ulong ullAvailPageFile;
+            public ulong ullTotalVirtual;
+            public ulong ullAvailVirtual;
+            public ulong ullAvailExtendedVirtual;
+            public MEMORYSTATUSEX()
+            {
+                dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
+            }
+        }
+
+
     }
 }
