@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -12,6 +13,7 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.ServerResponses;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Extensions;
 using Wabbajack.Networking.WabbajackClientApi;
@@ -79,11 +81,11 @@ namespace Wabbajack
         public bool LoadingImage => _LoadingImage.Value;
 
         private Subject<bool> IsLoadingIdle;
-        private readonly ILogger<ModListMetadataVM> _logger;
+        private readonly ILogger _logger;
         private readonly ModListDownloadMaintainer _maintainer;
         private readonly Client _wjClient;
 
-        public ModListMetadataVM(ILogger<ModListMetadataVM> logger, ModListGalleryVM parent, ModlistMetadata metadata,
+        public ModListMetadataVM(ILogger logger, ModListGalleryVM parent, ModlistMetadata metadata,
             ModListDownloadMaintainer maintainer, Client wjClient)
         {
             _logger = logger;
@@ -115,10 +117,15 @@ namespace Wabbajack
                 IsLoadingIdle.OnNext(false);
                 try
                 {
-                    var status = await ClientAPIEx.GetDetailedStatus(metadata.Links.MachineURL);
+                    var status = await wjClient.GetDetailedStatus(metadata.Links.MachineURL);
                     var coll = _parent.MWVM.ModListContentsVM.Value.Status;
                     coll.Clear();
-                    coll.AddRange(status.Archives);
+                    coll.AddRange(status.Archives.Select(a => new DetailedStatusItem
+                    {
+                        Archive = a.Original,
+                        ArchiveStatus = a.Status,
+                        IsFailing = a.Status != ArchiveStatus.InValid
+                    }));
                     _parent.MWVM.NavigateTo(_parent.MWVM.ModListContentsVM.Value);
                 }
                 finally

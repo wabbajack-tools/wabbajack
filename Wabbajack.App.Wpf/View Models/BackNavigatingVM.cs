@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
@@ -35,11 +31,11 @@ namespace Wabbajack
         public Subject<bool> IsBackEnabledSubject { get; } = new Subject<bool>();
         public IObservable<bool> IsBackEnabled { get; }
 
-        public BackNavigatingVM(MainWindowVM mainWindowVM)
+        public BackNavigatingVM(ILogger logger, MainWindowVM mainWindowVM)
         {
             IsBackEnabled = IsBackEnabledSubject.StartWith(true);
             BackCommand = ReactiveCommand.Create(
-                execute: () => Utils.CatchAndLog(() =>
+                execute: () => logger.CatchAndLog(() =>
                 {
                     mainWindowVM.NavigateTo(NavigateBackTarget);
                     Unload();

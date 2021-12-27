@@ -4,6 +4,7 @@ using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Lib;
@@ -33,7 +34,7 @@ namespace Wabbajack.View_Models.Settings
         private readonly Client _wjClient;
         private IObservable<bool> IsUploading { get; }
 
-        public AuthorFilesVM(WabbajackApiTokenProvider token, Client wjClient, SettingsVM vm) : base(vm.MWVM)
+        public AuthorFilesVM(ILogger<AuthorFilesVM> logger, WabbajackApiTokenProvider token, Client wjClient, SettingsVM vm) : base(logger, vm.MWVM)
         {
             _token = token;
             _wjClient = wjClient;

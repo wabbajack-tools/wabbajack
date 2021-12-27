@@ -29,6 +29,7 @@ namespace Wabbajack
 
         public void AbsorbStatus(IJob cpu)
         {
+            /* TODO
             bool starting = cpu.IsWorking && !IsWorking;
             if (starting)
             {
@@ -39,6 +40,7 @@ namespace Wabbajack
             Msg = cpu.Msg;
             ProgressPercent = cpu.ProgressPercent;
             IsWorking = cpu.IsWorking;
+            */
         }
     }
 }

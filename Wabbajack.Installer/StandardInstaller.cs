@@ -76,10 +76,10 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         }
 
 
-        _logger.LogInformation("Install Folder: {installFolder}", _configuration.Install);
-        _logger.LogInformation("Downloads Folder: {downloadFolder}", _configuration.Downloads);
-        _logger.LogInformation("Game Folder: {gameFolder}", _configuration.GameFolder);
-        _logger.LogInformation("Wabbajack Folder: {wabbajackFolder}", KnownFolders.EntryPoint);
+        _logger.LogInformation("Install Folder: {InstallFolder}", _configuration.Install);
+        _logger.LogInformation("Downloads Folder: {DownloadFolder}", _configuration.Downloads);
+        _logger.LogInformation("Game Folder: {GameFolder}", _configuration.GameFolder);
+        _logger.LogInformation("Wabbajack Folder: {WabbajackFolder}", KnownFolders.EntryPoint);
 
         _configuration.Install.CreateDirectory();
         _configuration.Downloads.CreateDirectory();

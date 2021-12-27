@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -16,6 +17,7 @@ using Wabbajack.DTOs;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Lib.Extensions;
 using Wabbajack.Networking.WabbajackClientApi;
+using Wabbajack.Services.OSIntegrated.Services;
 
 namespace Wabbajack
 {
@@ -59,8 +61,8 @@ namespace Wabbajack
         public ICommand ClearFiltersCommand { get; }
 
         public ModListGalleryVM(ILogger<ModListGalleryVM> logger, MainWindowVM mainWindowVM, Client wjClient,
-            GameLocator locator)
-            : base(mainWindowVM)
+            GameLocator locator, ServiceProvider provider)
+            : base(logger, mainWindowVM)
         {
             MWVM = mainWindowVM;
             _wjClient = wjClient;
@@ -136,7 +138,8 @@ namespace Wabbajack
             // Convert to VM and bind to resulting list
             sourceList
                 .ObserveOnGuiThread()
-                .Transform(m => new ModListMetadataVM(this, m))
+                .Transform(m => new ModListMetadataVM(provider.GetService<ILogger<ModListMetadataVM>>(),this, m,
+                    provider.GetService<ModListDownloadMaintainer>(), provider.GetService<Client>()))
                 .DisposeMany()
                 // Filter only installed
                 .Filter(this.WhenAny(x => x.OnlyInstalled)

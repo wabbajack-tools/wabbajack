@@ -5,9 +5,11 @@ using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using DynamicData;
 using DynamicData.Binding;
+using Microsoft.Extensions.Logging;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.ServerResponses;
 
 namespace Wabbajack.View_Models
 {
@@ -26,9 +28,12 @@ namespace Wabbajack.View_Models
         private readonly ReadOnlyObservableCollection<ModListArchive> _archives;
         public ReadOnlyObservableCollection<ModListArchive> Archives => _archives;
 
-        private static readonly Regex NameMatcher = new(@"(?<=\.)[^\.]+(?=\+State)", RegexOptions.Compiled); 
-        public ModListContentsVM(MainWindowVM mwvm) : base(mwvm)
+        private static readonly Regex NameMatcher = new(@"(?<=\.)[^\.]+(?=\+State)", RegexOptions.Compiled);
+        private readonly ILogger<ModListContentsVM> _logger;
+
+        public ModListContentsVM(ILogger<ModListContentsVM> logger, MainWindowVM mwvm) : base(logger, mwvm)
         {
+            _logger = logger;
             _mwvm = mwvm;
             Status = new ObservableCollectionExtended<DetailedStatusItem>();
             
@@ -47,7 +52,6 @@ namespace Wabbajack.View_Models
                 {
                     Name = a.Name,
                     Size = a.Archive?.Size ?? 0,
-                    Url = a.Url ?? "",
                     Downloader = TransformClassName(a.Archive) ?? "Unknown",
                     Hash = a.Archive!.Hash.ToBase64()
                 })

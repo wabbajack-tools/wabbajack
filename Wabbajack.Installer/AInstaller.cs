@@ -30,6 +30,11 @@ public record StatusUpdate(string StatusText, Percent StepsProgress, Percent Ste
 {
 }
 
+public interface IInstaller
+{
+    Task<bool> Begin(CancellationToken token);
+}
+
 public abstract class AInstaller<T>
     where T : AInstaller<T>
 {

@@ -8,9 +8,11 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Interventions;
+using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.View_Models;
 
@@ -38,6 +40,8 @@ namespace Wabbajack
         public readonly ModeSelectionVM ModeSelectionVM;
         public readonly Lazy<ModListContentsVM> ModListContentsVM;
         public readonly UserInterventionHandlers UserInterventionHandlers;
+        private readonly Client _wjClient;
+        private readonly ILogger<MainWindowVM> _logger;
 
         public ICommand CopyVersionCommand { get; }
         public ICommand ShowLoginManagerVM { get; }
@@ -48,8 +52,10 @@ namespace Wabbajack
         [Reactive]
         public bool UpdateAvailable { get; private set; }
 
-        public MainWindowVM(MainWindow mainWindow, MainSettings settings)
+        public MainWindowVM(ILogger<MainWindowVM> logger, MainWindow mainWindow, MainSettings settings, Client wjClient)
         {
+            _logger = logger;
+            _wjClient = wjClient;
             ConverterRegistration.Register();
             MainWindow = mainWindow;
             Settings = settings;
@@ -85,7 +91,7 @@ namespace Wabbajack
                     catch (Exception ex)
                         when (ex.GetType() != typeof(TaskCanceledException))
                     {
-                        Utils.Error(ex, $"Error while handling user intervention of type {msg?.GetType()}");
+                        _logger.LogError(ex, "Error while handling user intervention of type {Type}",msg?.GetType());
                         try
                         {
                             if (msg is IUserIntervention {Handled: false} intervention)
@@ -95,7 +101,7 @@ namespace Wabbajack
                         }
                         catch (Exception cancelEx)
                         {
-                            Utils.Error(cancelEx, $"Error while cancelling user intervention of type {msg?.GetType()}");
+                            _logger.LogError(cancelEx, "Error while cancelling user intervention of type {Type}",msg?.GetType());
                         }
                     }
                 })
@@ -119,14 +125,14 @@ namespace Wabbajack
                 var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
                 Consts.CurrentMinimumWabbajackVersion = Version.Parse(fvi.FileVersion);
                 VersionDisplay = $"v{fvi.FileVersion}";
-                Utils.Log($"Wabbajack Version: {fvi.FileVersion}");
+                _logger.LogInformation("Wabbajack Version: {FileVersion}", fvi.FileVersion);
                 
-                Task.Run(() => Metrics.Send("started_wabbajack", fvi.FileVersion)).FireAndForget();
-                Task.Run(() => Metrics.Send("started_sha", ThisAssembly.Git.Sha));
+                Task.Run(() => _wjClient.SendMetric("started_wabbajack", fvi.FileVersion)).FireAndForget();
+                Task.Run(() => _wjClient.SendMetric("started_sha", ThisAssembly.Git.Sha));
             }
             catch (Exception ex)
             {
-                Utils.Error(ex);
+                _logger.LogError(ex, "During App configuration");
                 VersionDisplay = "ERROR";
             }
             CopyVersionCommand = ReactiveCommand.Create(() =>
