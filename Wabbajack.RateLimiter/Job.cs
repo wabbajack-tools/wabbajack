@@ -27,10 +27,14 @@ public class Job<T> : IJob, IDisposable
     {
         await Resource.Report(this, processedSize, token);
         Current += processedSize;
+        OnUpdate?.Invoke(this, (Percent.FactoryPutInRange(Current, Size ?? 1), Current));
     }
 
     public void ReportNoWait(int processedSize)
     {
         Resource.ReportNoWait(this, processedSize);
+        OnUpdate?.Invoke(this, (Percent.FactoryPutInRange(Current, Size ?? 1), Current));
     }
+
+    public event EventHandler<(Percent Progress, long Processed)> OnUpdate;
 }

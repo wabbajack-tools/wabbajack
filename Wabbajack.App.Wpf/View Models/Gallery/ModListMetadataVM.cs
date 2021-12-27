@@ -13,6 +13,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Alphaleonis.Win32.Filesystem;
 using DynamicData;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
@@ -23,7 +24,9 @@ using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.Extensions;
 using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
+using Wabbajack.Services.OSIntegrated.Services;
 
 namespace Wabbajack
 {
@@ -84,12 +87,17 @@ namespace Wabbajack
         public bool LoadingImage => _LoadingImage.Value;
 
         private Subject<bool> IsLoadingIdle;
+        private readonly ILogger<ModListMetadataVM> _logger;
+        private readonly ModListDownloadMaintainer _maintainer;
 
-        public ModListMetadataVM(ModListGalleryVM parent, ModlistMetadata metadata)
+        public ModListMetadataVM(ILogger<ModListMetadataVM> logger, ModListGalleryVM parent, ModlistMetadata metadata,
+            ModListDownloadMaintainer maintainer)
         {
+            _logger = logger;
             _parent = parent;
+            _maintainer = maintainer;
             Metadata = metadata;
-            Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.Links.MachineURL + (string)Consts.ModListExtension);
+            Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.Links.MachineURL).WithExtension(Ext.Wabbajack);
             ModListTagList = new List<ModListTag>();
 
             Metadata.tags.ForEach(tag =>
@@ -103,7 +111,7 @@ namespace Wabbajack
             VersionText = "Modlist version : " + Metadata.Version;
             IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;
             //https://www.wabbajack.org/#/modlists/info?machineURL=eldersouls
-            OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite(new Uri($"https://www.wabbajack.org/#/modlists/info?machineURL={Metadata.Links.MachineURL}")));
+            OpenWebsiteCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/#/modlists/info?machineURL={Metadata.Links.MachineURL}")));
 
             IsLoadingIdle = new Subject<bool>();
             
@@ -152,7 +160,7 @@ namespace Wabbajack
                             return false;
                         }
                         // Return an updated check on exists
-                        return Location.Exists;
+                        return Location.FileExists();
                     }
                     return exists;
                 })
@@ -175,7 +183,7 @@ namespace Wabbajack
                             }
                             catch (Exception ex)
                             {
-                                Utils.Error(ex);
+                                _logger.LogError(ex, "While opening modlist README");
                             }
                         });
                 })
@@ -190,7 +198,7 @@ namespace Wabbajack
                 {
                     try
                     {
-                        return !IsDownloading && !(await metadata.NeedsDownload(Location));
+                        return !IsDownloading && !(await maintainer.HaveModList(metadata));
                     }
                     catch (Exception)
                     {
@@ -200,7 +208,7 @@ namespace Wabbajack
                 .ToGuiProperty(this, nameof(Exists));
 
             var imageObs = Observable.Return(Metadata.Links.ImageUri)
-                .DownloadBitmapImage((ex) => Utils.Log($"Error downloading modlist image {Metadata.Title}"));
+                .DownloadBitmapImage((ex) => _logger.LogError("Error downloading modlist image {Title}", Metadata.Title));
 
             _Image = imageObs
                 .ToGuiProperty(this, nameof(Image));
@@ -227,8 +235,8 @@ namespace Wabbajack
                     try
                     {
                         IsDownloading = true;
-                        Utils.Log($"Starting Download of {Metadata.Links.MachineURL}");
-                        var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
+                        _logger.LogInformation("Starting Download of {MachineUrl}", Metadata.Links.MachineURL);
+                        var downloader = await DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
                         var result = await downloader.Download(
                             new Archive(state: null!)
                             {
