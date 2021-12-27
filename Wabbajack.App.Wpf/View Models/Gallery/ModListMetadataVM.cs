@@ -1,28 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using Alphaleonis.Win32.Filesystem;
 using DynamicData;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
-using Wabbajack.Downloaders;
 using Wabbajack.DTOs;
 using Wabbajack.Lib;
-using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.Extensions;
-using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
@@ -89,14 +81,16 @@ namespace Wabbajack
         private Subject<bool> IsLoadingIdle;
         private readonly ILogger<ModListMetadataVM> _logger;
         private readonly ModListDownloadMaintainer _maintainer;
+        private readonly Client _wjClient;
 
         public ModListMetadataVM(ILogger<ModListMetadataVM> logger, ModListGalleryVM parent, ModlistMetadata metadata,
-            ModListDownloadMaintainer maintainer)
+            ModListDownloadMaintainer maintainer, Client wjClient)
         {
             _logger = logger;
             _parent = parent;
             _maintainer = maintainer;
             Metadata = metadata;
+            _wjClient = wjClient;
             Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.Links.MachineURL).WithExtension(Ext.Wabbajack);
             ModListTagList = new List<ModListTag>();
 
@@ -147,12 +141,7 @@ namespace Wabbajack
                     {
                         try
                         {
-                            var success = await Download();
-                            if (!success)
-                            {
-                                Error = ErrorResponse.Fail("Download was marked unsuccessful");
-                                return false;
-                            }
+                            await Download();
                         }
                         catch (Exception ex)
                         {
@@ -221,54 +210,15 @@ namespace Wabbajack
 
 
 
-        private async Task<bool> Download()
+        private async Task Download()
         {
-            ProgressPercent = Percent.Zero;
-            using (var queue = new WorkQueue(1))
-            using (queue.Status.Select(i => i.ProgressPercent)
-                .ObserveOnGuiThread()
-                .Subscribe(percent => ProgressPercent = percent))
-            {
-                var tcs = new TaskCompletionSource<bool>();
-                queue.QueueTask(async () =>
-                {
-                    try
-                    {
-                        IsDownloading = true;
-                        _logger.LogInformation("Starting Download of {MachineUrl}", Metadata.Links.MachineURL);
-                        var downloader = await DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
-                        var result = await downloader.Download(
-                            new Archive(state: null!)
-                            {
-                                Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0
-                            }, Location);
-                        Utils.Log($"Done downloading {Metadata.Links.MachineURL}");
+            var (progress, task) = _maintainer.DownloadModlist(Metadata);
+            var dispose = progress.Subscribe(p => ProgressPercent = p);
 
-                        // Want to rehash to current file, even if failed?
-                        await Location.FileHashCachedAsync();
-                        Utils.Log($"Done hashing {Metadata.Links.MachineURL}");
+            await task;
 
-                        await Metadata.ToJsonAsync(Location.WithExtension(Consts.ModlistMetadataExtension));
-                        
-                        tcs.SetResult(result);
-                    }
-                    catch (Exception ex)
-                    {
-                        Utils.Error(ex, $"Error Downloading of {Metadata.Links.MachineURL}");
-                        tcs.SetException(ex);
-                    }
-                    finally
-                    {
-                        IsDownloading = false;
-                    }
-                });
-
-
-                Task.Run(async () => await Metrics.Send(Metrics.Downloading, Metadata.Title))
-                    .FireAndForget(ex => Utils.Error(ex, "Error sending download metric"));
-
-                return await tcs.Task;
-            }
+            await _wjClient.SendMetric("downloading", Metadata.Title);
+            dispose.Dispose();
         }
     }
 }

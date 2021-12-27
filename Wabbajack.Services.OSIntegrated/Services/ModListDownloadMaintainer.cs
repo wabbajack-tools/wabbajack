@@ -56,21 +56,26 @@ public class ModListDownloadMaintainer
 
         var tsk = Task.Run(async () =>
         {
-            var job = await _rateLimiter.Begin($"Downloading {metadata.Title}", metadata.DownloadMetadata!.Size, token.Value);
-
-            job.OnUpdate += (_, pr) =>
+            try
             {
-                progress.OnNext(pr.Progress);
-            };
+                var job = await _rateLimiter.Begin($"Downloading {metadata.Title}", metadata.DownloadMetadata!.Size,
+                    token.Value);
 
-           var hash = await _dispatcher.Download(new Archive()
+                job.OnUpdate += (_, pr) => { progress.OnNext(pr.Progress); };
+
+                var hash = await _dispatcher.Download(new Archive()
+                {
+                    State = _dispatcher.Parse(new Uri(metadata.Links.Download))!,
+                    Size = metadata.DownloadMetadata.Size,
+                    Hash = metadata.DownloadMetadata.Hash
+                }, path, job, token.Value);
+
+                _hashCache.FileHashWriteCache(path, hash);
+            }
+            finally
             {
-                State = _dispatcher.Parse(new Uri(metadata.Links.Download))!,
-                Size = metadata.DownloadMetadata.Size,
-                Hash = metadata.DownloadMetadata.Hash
-            }, path, job, token.Value);
-           
-           _hashCache.FileHashWriteCache(path, hash);
+                progress.OnCompleted();
+            }
         });
 
         return (progress, tsk);
