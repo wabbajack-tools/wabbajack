@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using Wabbajack.Lib;
+using Wabbajack.View_Models.Settings;
 
 namespace Wabbajack
 {

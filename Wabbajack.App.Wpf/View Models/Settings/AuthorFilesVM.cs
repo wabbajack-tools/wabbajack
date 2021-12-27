@@ -1,27 +1,23 @@
 ﻿using System;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Threading;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using Wabbajack.Common;
-using Wabbajack.Lib.AuthorApi;
-using Wabbajack.Lib.FileUploader;
-using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.Lib;
+using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 
-namespace Wabbajack
+namespace Wabbajack.View_Models.Settings
 {
     public class AuthorFilesVM : BackNavigatingVM
     {
         private readonly ObservableAsPropertyHelper<Visibility> _isVisible;
         
         [Reactive]
-        public Visibility IsVisible { get; set; };
+        public Visibility IsVisible { get; set; }
         
         public ICommand SelectFile { get; }
         public ICommand HyperlinkCommand { get; }
@@ -32,13 +28,15 @@ namespace Wabbajack
         [Reactive] public string FinalUrl { get; set; }
         public FilePickerVM Picker { get;}
         
-        private Subject<bool> _isUploading = new Subject<bool>();
+        private Subject<bool> _isUploading = new();
         private readonly WabbajackApiTokenProvider _token;
+        private readonly Client _wjClient;
         private IObservable<bool> IsUploading { get; }
 
-        public AuthorFilesVM(WabbajackApiTokenProvider token, SettingsVM vm) : base(vm.MWVM)
+        public AuthorFilesVM(WabbajackApiTokenProvider token, Client wjClient, SettingsVM vm) : base(vm.MWVM)
         {
             _token = token;
+            _wjClient = wjClient;
             IsUploading = _isUploading;
             Picker = new FilePickerVM(this);
 
@@ -57,8 +55,8 @@ namespace Wabbajack
 
             ManageFiles = ReactiveCommand.Create(async () =>
             {
-                var authorApiKey = await AuthorAPI.GetAPIKey();
-                Utils.OpenWebsite(new Uri($"{Consts.WabbajackBuildServerUri}author_controls/login/{authorApiKey}"));
+                var authorApiKey = (await token.Get())!.AuthorKey;
+                UIUtils.OpenWebsite(new Uri($"{Consts.WabbajackBuildServerUri}author_controls/login/{authorApiKey}"));
             });
             
             Upload = ReactiveCommand.Create(async () =>
@@ -66,14 +64,17 @@ namespace Wabbajack
                 _isUploading.OnNext(true);
                 try
                 {
-                    using var queue = new WorkQueue();
-                    var result = await (await Client.Create()).UploadFile(queue, Picker.TargetPath,
-                        (msg, progress) =>
-                        {
-                            FinalUrl = msg;
-                            UploadProgress = (double)progress;
-                        });
-                    FinalUrl = result.ToString();
+                    var (progress, task) = _wjClient.UploadAuthorFile(Picker.TargetPath);
+
+                    var disposable = progress.Subscribe(m =>
+                    {
+                        FinalUrl = m.Message;
+                        UploadProgress = (double)m.PercentDone;
+                    });
+
+                    var final = await task;
+                    disposable.Dispose();
+                    FinalUrl = final.ToString();
                 }
                 catch (Exception ex)
                 {

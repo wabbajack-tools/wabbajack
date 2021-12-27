@@ -14,8 +14,10 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Lib.Extensions;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack
 {
@@ -38,12 +40,12 @@ namespace Wabbajack
         {
             try
             {
-                if (!path.Exists)
+                if (!path.FileExists())
                 {
                     bitmapImage = default;
                     return false;
                 }
-                bitmapImage = new BitmapImage(new Uri((string)path, UriKind.RelativeOrAbsolute));
+                bitmapImage = new BitmapImage(new Uri(path.ToString(), UriKind.RelativeOrAbsolute));
                 return true;
             }
             catch (Exception)
@@ -64,7 +66,7 @@ namespace Wabbajack
         
         public static void OpenFolder(AbsolutePath path)
         {
-            Process.Start(new ProcessStartInfo(AbsolutePath.WindowsFolder.Combine("explorer.exe").ToString(), path.ToString())
+            Process.Start(new ProcessStartInfo(KnownFolders.Windows.Combine("explorer.exe").ToString(), path.ToString())
             {
                 CreateNoWindow = true,
             });
@@ -79,24 +81,6 @@ namespace Wabbajack
             if (ofd.ShowDialog() == DialogResult.OK)
                 return (AbsolutePath)ofd.FileName;
             return default;
-        }
-
-        public static IDisposable BindCpuStatus(IObservable<CPUStatus> status, ObservableCollectionExtended<CPUDisplayVM> list)
-        {
-            return status.ObserveOn(RxApp.TaskpoolScheduler)
-                .ToObservableChangeSet(x => x.ID)
-                .Batch(TimeSpan.FromMilliseconds(50), RxApp.TaskpoolScheduler)
-                .EnsureUniqueChanges()
-                .ObserveOnGuiThread()
-                .TransformAndCache(
-                    onAdded: (key, cpu) => new CPUDisplayVM(cpu),
-                    onUpdated: (change, vm) => vm.AbsorbStatus(change.Current))
-                .AutoRefresh(x => x.IsWorking)
-                .AutoRefresh(x => x.StartTime)
-                .Filter(i => i.IsWorking && i.ID != WorkQueue.UnassignedCpuId)
-                .Sort(SortExpressionComparer<CPUDisplayVM>.Ascending(s => s.StartTime))
-                .Bind(list)
-                .Subscribe();
         }
 
         public static IObservable<BitmapImage> DownloadBitmapImage(this IObservable<string> obs, Action<Exception> exceptionHandler)
@@ -150,20 +134,20 @@ namespace Wabbajack
 
         private static async Task WriteCachedImage(string url, byte[] data)
         {
-            var folder = Consts.LocalAppDataPath.Combine("ModListImages");
-            if (!folder.Exists) folder.CreateDirectory();
+            var folder = KnownFolders.WabbajackAppLocal.Combine("ModListImages");
+            if (!folder.DirectoryExists()) folder.CreateDirectory();
             
-            var path = folder.Combine(Encoding.UTF8.GetBytes(url).xxHash().ToHex());
+            var path = folder.Combine(Encoding.UTF8.GetBytes(url).Hash().ToHex());
             await path.WriteAllBytesAsync(data);
         }
 
         private static async Task<(bool Found, MemoryStream data)> FindCachedImage(string uri)
         {
-            var folder = Consts.LocalAppDataPath.Combine("ModListImages");
-            if (!folder.Exists) folder.CreateDirectory();
+            var folder = KnownFolders.WabbajackAppLocal.Combine("ModListImages");
+            if (!folder.DirectoryExists()) folder.CreateDirectory();
             
-            var path = folder.Combine(Encoding.UTF8.GetBytes(uri).xxHash().ToHex());
-            return path.Exists ? (true, new MemoryStream(await path.ReadAllBytesAsync())) : (false, default);
+            var path = folder.Combine(Encoding.UTF8.GetBytes(uri).Hash().ToHex());
+            return path.FileExists() ? (true, new MemoryStream(await path.ReadAllBytesAsync())) : (false, default);
         }
 
         /// <summary>

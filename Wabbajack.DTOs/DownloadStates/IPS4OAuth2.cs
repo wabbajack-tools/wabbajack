@@ -18,4 +18,5 @@ public abstract class IPS4OAuth2 : ADownloadState, IMetaState
     public Uri? ImageURL { get; set; }
     public bool IsNSFW { get; set; }
     public string? Description { get; set; }
+    public Uri? LinkUrl => null;
 }

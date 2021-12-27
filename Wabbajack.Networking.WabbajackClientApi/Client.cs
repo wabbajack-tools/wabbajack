@@ -329,4 +329,9 @@ public class Client
         if (!result.IsSuccessStatusCode)
             throw new HttpException(result);
     }
+
+    public (IObservable<(Percent PercentDone, string Message)> Progress, Task<Uri> Task) UploadAuthorFile(AbsolutePath pickerTargetPath)
+    {
+        throw new NotImplementedException();
+    }
 }
