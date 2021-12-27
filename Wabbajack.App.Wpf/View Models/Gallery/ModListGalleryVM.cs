@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
-using Wabbajack.Lib;
-using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.Downloaders.GameFile;
+using Wabbajack.DTOs;
+using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Lib.Extensions;
+using Wabbajack.Networking.WabbajackClientApi;
 
 namespace Wabbajack
 {
@@ -48,6 +48,9 @@ namespace Wabbajack
         public List<string> GameTypeEntries { get { return GetGameTypeEntries(); } }
 
         private readonly ObservableAsPropertyHelper<bool> _Loaded;
+        private readonly Client _wjClient;
+        private readonly ILogger<ModListGalleryVM> _logger;
+        private readonly GameLocator _locator;
 
         private FiltersSettings settings => MWVM.Settings.Filters;
 
@@ -55,10 +58,14 @@ namespace Wabbajack
 
         public ICommand ClearFiltersCommand { get; }
 
-        public ModListGalleryVM(MainWindowVM mainWindowVM)
+        public ModListGalleryVM(ILogger<ModListGalleryVM> logger, MainWindowVM mainWindowVM, Client wjClient,
+            GameLocator locator)
             : base(mainWindowVM)
         {
             MWVM = mainWindowVM;
+            _wjClient = wjClient;
+            _logger = logger;
+            _locator = locator;
 
             // load persistent filter settings
             if (settings.IsPersistent)
@@ -103,14 +110,14 @@ namespace Wabbajack
                     try
                     {
                         Error = null;
-                        var list = await ModlistMetadata.LoadFromGithub();
+                        var list = await _wjClient.LoadLists();
                         Error = ErrorResponse.Success;
                         return list
-                            .AsObservableChangeSet(x => x.DownloadMetadata?.Hash ?? Hash.Empty);
+                            .AsObservableChangeSet(x => x.DownloadMetadata?.Hash ?? default);
                     }
                     catch (Exception ex)
                     {
-                        Utils.Error(ex);
+                        _logger.LogError(ex, "While Loading Lists");
                         Error = ErrorResponse.Fail(ex);
                         return Observable.Empty<IChangeSet<ModlistMetadata, Hash>>();
                     }
@@ -137,7 +144,7 @@ namespace Wabbajack
                     {
                         if (!onlyInstalled) return true;
                         if (!GameRegistry.Games.TryGetValue(vm.Metadata.Game, out var gameMeta)) return false;
-                        return gameMeta.IsInstalled;
+                        return _locator.IsInstalled(gameMeta.Game);
                     }))
                 // Filter on search box
                 .Filter(this.WhenAny(x => x.Search)
@@ -192,7 +199,7 @@ namespace Wabbajack
         private List<string> GetGameTypeEntries()
         {
             List<string> gameEntries = new List<string> { ALL_GAME_TYPE };
-            gameEntries.AddRange(EnumExtensions.GetAllItems<Game>().Select(gameType => gameType.GetDescription<Game>()));
+            gameEntries.AddRange(GameRegistry.Games.Values.Select(gameType => gameType.HumanFriendlyGameName));
             gameEntries.Sort();
             return gameEntries;
         }
