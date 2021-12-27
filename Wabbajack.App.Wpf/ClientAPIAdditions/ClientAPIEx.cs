@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Wabbajack.Common;
-using Wabbajack.Common.Serialization.Json;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Lib;
-using Wabbajack.Lib.ModListRegistry;
 
 namespace Wabbajack
 {

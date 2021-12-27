@@ -1,4 +1,4 @@
-﻿using Wabbajack.Common;
+﻿using Wabbajack.DTOs;
 
 namespace Wabbajack
 {

@@ -98,7 +98,7 @@ namespace Wabbajack
 
             var sourceList = Observable.Return(Unit.Default)
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .SelectTask(async _ =>
+                .SelectMany(async _ =>
                 {
                     try
                     {

@@ -10,8 +10,10 @@ using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
+using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.Extensions;
 
 namespace Wabbajack
 {

@@ -1,13 +1,8 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reactive;
-using System.Reactive.Subjects;
-using System.Threading.Tasks;
-using Wabbajack.Common;
-using Wabbajack.Common.Serialization.Json;
+﻿using Wabbajack.Compiler;
+using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Lib;
+using Wabbajack.Paths;
+using Consts = Wabbajack.Lib.Consts;
 
 namespace Wabbajack
 {

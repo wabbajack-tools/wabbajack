@@ -85,10 +85,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj" />
-    <ProjectReference Include="..\Wabbajack.CLI\Wabbajack.CLI.csproj" />
-    <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
     <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
+    <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
   </ItemGroup>
 
   <ItemGroup>

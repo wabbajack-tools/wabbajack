@@ -16,9 +16,14 @@ using DynamicData;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
+using Wabbajack.Downloaders;
+using Wabbajack.DTOs;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.Extensions;
 using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.Paths;
+using Wabbajack.RateLimiter;
 
 namespace Wabbajack
 {

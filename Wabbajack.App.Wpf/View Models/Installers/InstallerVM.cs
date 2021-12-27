@@ -21,8 +21,12 @@ using System.Collections.Generic;
 using System.Reactive.Subjects;
 using System.Windows.Input;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using Microsoft.WindowsAPICodePack.Shell;
 using Wabbajack.Common.IO;
+using Wabbajack.Lib.Extensions;
 using Wabbajack.Lib.Interventions;
+using Wabbajack.Paths;
+using Wabbajack.RateLimiter;
 
 namespace Wabbajack
 {

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using Wabbajack.Common;
+using Wabbajack.RateLimiter;
 
 namespace Wabbajack
 {

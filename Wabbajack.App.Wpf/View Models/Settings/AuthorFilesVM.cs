@@ -5,18 +5,23 @@ using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Lib.AuthorApi;
 using Wabbajack.Lib.FileUploader;
+using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.Services.OSIntegrated.TokenProviders;
 
 namespace Wabbajack
 {
     public class AuthorFilesVM : BackNavigatingVM
     {
         private readonly ObservableAsPropertyHelper<Visibility> _isVisible;
-        public Visibility IsVisible => _isVisible.Value;
+        
+        [Reactive]
+        public Visibility IsVisible { get; set; };
         
         public ICommand SelectFile { get; }
         public ICommand HyperlinkCommand { get; }
@@ -25,21 +30,26 @@ namespace Wabbajack
 
         [Reactive] public double UploadProgress { get; set; }
         [Reactive] public string FinalUrl { get; set; }
-        
-        private WorkQueue Queue = new WorkQueue(1);
-        
         public FilePickerVM Picker { get;}
         
         private Subject<bool> _isUploading = new Subject<bool>();
+        private readonly WabbajackApiTokenProvider _token;
         private IObservable<bool> IsUploading { get; }
 
-        public AuthorFilesVM(SettingsVM vm) : base(vm.MWVM)
+        public AuthorFilesVM(WabbajackApiTokenProvider token, SettingsVM vm) : base(vm.MWVM)
         {
+            _token = token;
             IsUploading = _isUploading;
             Picker = new FilePickerVM(this);
 
-            _isVisible = AuthorAPI.HaveAuthorAPIKey.Select(h => h ? Visibility.Visible : Visibility.Collapsed)
-                .ToProperty(this, x => x.IsVisible);
+
+            IsVisible = Visibility.Hidden;
+
+            Task.Run(async () =>
+            {
+                var isAuthor = string.IsNullOrWhiteSpace((await _token.Get())?.AuthorKey);
+                IsVisible = isAuthor ? Visibility.Visible : Visibility.Collapsed;
+            });
 
             SelectFile = Picker.ConstructTypicalPickerCommand(IsUploading.StartWith(false).Select(u => !u));
 
