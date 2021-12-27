@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Media.Imaging;
 using DynamicData;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Wabbajack.Common;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Extensions;
@@ -34,7 +38,7 @@ namespace Wabbajack.View_Models
 
         public const int PreloadAmount = 4;
 
-        public SlideShow(InstallerVM appState)
+        public SlideShow(InstallerVM appState, ServiceProvider provider)
         {
             Installer = appState;
 
@@ -85,15 +89,15 @@ namespace Wabbajack.View_Models
                     return modList.SourceModList.Archives
                         .Select(m => m.State)
                         .OfType<IMetaState>()
-                        .Where(x => x.URL != default && x.ImageURL != default)
-                        .DistinctBy(x => x.URL)
+                        .Where(x => x.LinkUrl != default && x.ImageURL != default)
+                        .DistinctBy(x => x.LinkUrl)
                         // Shuffle it
                         .Shuffle(_random)
-                        .AsObservableChangeSet(x => x.URL);
+                        .AsObservableChangeSet(x => x.LinkUrl);
                 })
                 // Switch to the new list after every ModList change
                 .Switch()
-                .Transform(mod => new ModVM(mod))
+                .Transform(mod => new ModVM(provider.GetService<ILogger<ModVM>>(), mod))
                 .DisposeMany()
                 // Filter out any NSFW slides if we don't want them
                 .AutoRefreshOnObservable(slide => this.WhenAny(x => x.ShowNSFW))
@@ -122,10 +126,10 @@ namespace Wabbajack.View_Models
             VisitURLCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
-                    UIUtils.OpenWebsite(TargetMod.State.URL);
+                    UIUtils.OpenWebsite(TargetMod.State.LinkUrl);
                     return Unit.Default;
                 },
-                canExecute: this.WhenAny(x => x.TargetMod.State.URL)
+                canExecute: this.WhenAny(x => x.TargetMod.State.LinkUrl)
                     .Select(x =>
                     {
                         //var regex = new Regex("^(http|https):\\/\\/");

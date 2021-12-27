@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ReactiveUI.Fody.Helpers;
-using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.RateLimiter;
 
 namespace Wabbajack
 {
@@ -26,12 +22,12 @@ namespace Wabbajack
         {
         }
 
-        public CPUDisplayVM(CPUStatus cpu)
+        public CPUDisplayVM(IJob cpu)
         {
             AbsorbStatus(cpu);
         }
 
-        public void AbsorbStatus(CPUStatus cpu)
+        public void AbsorbStatus(IJob cpu)
         {
             bool starting = cpu.IsWorking && !IsWorking;
             if (starting)
@@ -39,7 +35,7 @@ namespace Wabbajack
                 StartTime = DateTime.Now;
             }
 
-            ID = cpu.ID;
+            ID = cpu.;
             Msg = cpu.Msg;
             ProgressPercent = cpu.ProgressPercent;
             IsWorking = cpu.IsWorking;
