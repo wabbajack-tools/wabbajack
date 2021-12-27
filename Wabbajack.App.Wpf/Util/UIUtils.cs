@@ -3,6 +3,7 @@ using DynamicData.Binding;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Reactive.Linq;
@@ -13,6 +14,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
+using Wabbajack.Lib.Extensions;
+using Wabbajack.Paths;
 
 namespace Wabbajack
 {
@@ -49,6 +52,24 @@ namespace Wabbajack
                 return false;
             }
         }
+        
+        
+        public static void OpenWebsite(Uri url)
+        {
+            Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url}")
+            {
+                CreateNoWindow = true,
+            });
+        }
+        
+        public static void OpenFolder(AbsolutePath path)
+        {
+            Process.Start(new ProcessStartInfo(AbsolutePath.WindowsFolder.Combine("explorer.exe").ToString(), path.ToString())
+            {
+                CreateNoWindow = true,
+            });
+        }
+
 
         public static AbsolutePath OpenFileDialog(string filter, string initialDirectory = null)
         {

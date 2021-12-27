@@ -1,21 +1,15 @@
-﻿using DynamicData;
+﻿using System;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Windows.Media.Imaging;
+using DynamicData;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Reactive;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Text.RegularExpressions;
-using System.Windows.Media.Imaging;
-using Wabbajack.Common;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Lib;
-using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.Extensions;
 
-namespace Wabbajack
+namespace Wabbajack.View_Models
 {
     public class SlideShow : ViewModel
     {
@@ -86,7 +80,7 @@ namespace Wabbajack
                     if (modList?.SourceModList?.Archives == null)
                     {
                         return Observable.Empty<IMetaState>()
-                            .ToObservableChangeSet(x => x.URL);
+                            .ToObservableChangeSet(x => x.LinkUrl);
                     }
                     return modList.SourceModList.Archives
                         .Select(m => m.State)
@@ -128,7 +122,7 @@ namespace Wabbajack
             VisitURLCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
-                    Utils.OpenWebsite(TargetMod.State.URL);
+                    UIUtils.OpenWebsite(TargetMod.State.URL);
                     return Unit.Default;
                 },
                 canExecute: this.WhenAny(x => x.TargetMod.State.URL)

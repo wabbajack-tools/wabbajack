@@ -1,4 +1,10 @@
-﻿using Wabbajack.Compiler;
+﻿using System;
+using System.Collections.Generic;
+using System.Reactive;
+using System.Reactive.Subjects;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Wabbajack.Compiler;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Lib;
 using Wabbajack.Paths;

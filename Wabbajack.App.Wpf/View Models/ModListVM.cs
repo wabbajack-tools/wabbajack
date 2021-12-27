@@ -4,25 +4,36 @@ using System.IO;
 using System.IO.Compression;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using Microsoft.Extensions.Logging;
+using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Installer;
 using Wabbajack.Lib;
-using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
+using Consts = Wabbajack.Lib.Consts;
 
 namespace Wabbajack
 {
     public class ModListVM : ViewModel
     {
+        private readonly DTOSerializer _dtos;
+        private readonly ILogger<ModListVM> _logger;
         public ModList SourceModList { get; private set; }
         public ModlistMetadata SourceModListMetadata { get; private set; }
-        public Exception Error { get; }
+        
+        [Reactive]
+        public Exception Error { get; set; }
         public AbsolutePath ModListPath { get; }
         public string Name => SourceModList?.Name;
         public string Readme => SourceModList?.Readme;
         public string Author => SourceModList?.Author;
         public string Description => SourceModList?.Description;
         public Uri Website => SourceModList?.Website;
-        public ModManager ModManager => SourceModList?.ModManager ?? ModManager.MO2;
         public Version Version => SourceModList?.Version;
         public Version WabbajackVersion => SourceModList?.WabbajackVersion;
         public bool IsNSFW => SourceModList?.IsNSFW ?? false;
@@ -32,30 +43,37 @@ namespace Wabbajack
         // and the cached image will automatically be released when the last interested party is gone.
         public IObservable<BitmapImage> ImageObservable { get; }
 
-        public ModListVM(AbsolutePath modListPath)
+        public ModListVM(ILogger<ModListVM> logger, AbsolutePath modListPath, DTOSerializer dtos)
         {
+            _dtos = dtos;
+            _logger = logger;
+            
             ModListPath = modListPath;
-            try
+
+            Task.Run(async () =>
             {
-                SourceModList = AInstaller.LoadFromFile(modListPath);
-                var metadataPath = modListPath.WithExtension(Consts.ModlistMetadataExtension);
-                if (metadataPath.Exists)
+                try
                 {
-                    try
+                    SourceModList = await StandardInstaller.LoadFromFile(_dtos, modListPath);
+                    var metadataPath = modListPath.WithExtension(Ext.ModlistMetadataExtension);
+                    if (metadataPath.FileExists())
                     {
-                        SourceModListMetadata = metadataPath.FromJson<ModlistMetadata>();
-                    }
-                    catch (Exception)
-                    {
-                        SourceModListMetadata = null;
+                        try
+                        {
+                            SourceModListMetadata = await metadataPath.FromJson<ModlistMetadata>();
+                        }
+                        catch (Exception)
+                        {
+                            SourceModListMetadata = null;
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Error = ex;
-                Utils.Error(ex, "Exception while loading the modlist!");
-            }
+                catch (Exception ex)
+                {
+                    Error = ex;
+                    _logger.LogError(ex, "Exception while loading the modlist!");
+                }
+            });
 
             ImageObservable = Observable.Return(Unit.Default)
                 // Download and retrieve bytes on background thread
@@ -64,7 +82,7 @@ namespace Wabbajack
                 {
                     try
                     {
-                        await using var fs = await ModListPath.OpenShared();
+                        await using var fs = ModListPath.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
                         using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
                         var ms = new MemoryStream();
                         var entry = ar.GetEntry("modlist-image.png");
@@ -75,7 +93,7 @@ namespace Wabbajack
                     }
                     catch (Exception ex)
                     {
-                        Utils.Error(ex, $"Exception while caching Mod List image {Name}");
+                        _logger.LogError(ex, "Exception while caching Mod List image {Name}", Name);
                         return default(MemoryStream);
                     }
                 })
@@ -90,7 +108,7 @@ namespace Wabbajack
                     }
                     catch (Exception ex)
                     {
-                        Utils.Error(ex, $"Exception while caching Mod List image {Name}");
+                        _logger.LogError(ex, "Exception while caching Mod List image {Name}", Name);
                         return default(BitmapImage);
                     }
                 })
@@ -103,7 +121,7 @@ namespace Wabbajack
         public void OpenReadme()
         {
             if (string.IsNullOrEmpty(Readme)) return;
-            Utils.OpenWebsite(new Uri(Readme));
+            UIUtils.OpenWebsite(new Uri(Readme));
         }
 
         public override void Dispose()

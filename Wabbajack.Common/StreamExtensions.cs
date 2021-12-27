@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Wabbajack.DTOs.JsonConverters;
 
 namespace Wabbajack.Common;
 
@@ -55,6 +57,11 @@ public static class StreamExtensions
     {
         using var sr = new StreamReader(stream);
         return sr.ReadToEnd();
+    }
+
+    public static async Task<T> FromJson<T>(this Stream stream, DTOSerializer? dtos = null)
+    {
+        return (await JsonSerializer.DeserializeAsync<T>(stream, dtos?.Options))!;
     }
 
     public static async IAsyncEnumerable<string> ReadLinesAsync(this Stream stream)

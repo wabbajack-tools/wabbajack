@@ -27,6 +27,7 @@ using Wabbajack.Lib.Extensions;
 using Wabbajack.Lib.Interventions;
 using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
+using Wabbajack.View_Models;
 
 namespace Wabbajack
 {
