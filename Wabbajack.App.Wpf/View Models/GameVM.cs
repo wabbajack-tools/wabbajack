@@ -10,7 +10,7 @@ namespace Wabbajack
         public GameVM(Game game)
         {
             Game = game;
-            DisplayName = game.ToDescriptionString();
+            DisplayName = game.MetaData().HumanFriendlyGameName;
         }
     }
 }

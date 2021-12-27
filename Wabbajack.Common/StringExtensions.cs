@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -17,5 +18,10 @@ public static class StringExtensions
         }
 
         return sha.Hash!.ToHex();
+    }
+
+    public static bool ContainsCaseInsensitive(this string src, string contains)
+    {
+        return src.Contains(contains, StringComparison.InvariantCultureIgnoreCase);
     }
 }

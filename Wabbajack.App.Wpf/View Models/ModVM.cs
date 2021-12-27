@@ -2,14 +2,15 @@
 using System;
 using System.Reactive.Linq;
 using System.Windows.Media.Imaging;
-using Wabbajack.Common;
+using Microsoft.Extensions.Logging;
+using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Lib;
-using Wabbajack.Lib.Downloaders;
 
 namespace Wabbajack
 {
     public class ModVM : ViewModel
     {
+        private readonly ILogger<ModVM> _logger;
         public IMetaState State { get; }
 
         // Image isn't exposed as a direct property, but as an observable.
@@ -17,13 +18,14 @@ namespace Wabbajack
         // and the cached image will automatically be released when the last interested party is gone.
         public IObservable<BitmapImage> ImageObservable { get; }
 
-        public ModVM(IMetaState state)
+        public ModVM(ILogger<ModVM> logger, IMetaState state)
         {
+            _logger = logger;
             State = state;
 
-            ImageObservable = Observable.Return(State.ImageURL.ToString())
+            ImageObservable = Observable.Return(State.ImageURL?.ToString())
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .DownloadBitmapImage((ex) => Utils.Log($"Skipping slide for mod {State.Name}"))
+                .DownloadBitmapImage(ex => _logger.LogError(ex, "Skipping slide for mod {Name}", State.Name))
                 .Replay(1)
                 .RefCount(TimeSpan.FromMilliseconds(5000));
         }

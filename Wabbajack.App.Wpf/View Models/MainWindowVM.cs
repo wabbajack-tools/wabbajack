@@ -1,23 +1,18 @@
-﻿using DynamicData;
-using DynamicData.Binding;
+﻿using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Threading;
-using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Interventions;
+using Wabbajack.Paths;
+using Wabbajack.View_Models;
 
 namespace Wabbajack
 {

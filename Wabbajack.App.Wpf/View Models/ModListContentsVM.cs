@@ -3,12 +3,13 @@ using System.Collections.ObjectModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
-using ReactiveUI.Fody.Helpers;
-using Wabbajack.Lib;
 using DynamicData;
 using DynamicData.Binding;
+using ReactiveUI.Fody.Helpers;
+using Wabbajack.Common;
+using Wabbajack.DTOs;
 
-namespace Wabbajack
+namespace Wabbajack.View_Models
 {
     public class ModListContentsVM : BackNavigatingVM
     {

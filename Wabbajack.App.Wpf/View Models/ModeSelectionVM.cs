@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack
 {
@@ -27,9 +28,9 @@ namespace Wabbajack
                 execute: () =>
                 {
                     var path = mainVM.Settings.Installer.LastInstalledListLocation;
-                    if (path == default || !path.Exists)
+                    if (path == default || !path.FileExists())
                     {
-                        path = UIUtils.OpenFileDialog($"*{Consts.ModListExtension}|*{Consts.ModListExtension}");
+                        path = UIUtils.OpenFileDialog($"*{Ext.Wabbajack}|*{Ext.Wabbajack}");
                     }
                     _mainVM.OpenInstaller(path);
                 });

@@ -7,7 +7,8 @@
              xmlns:local="clr-namespace:Wabbajack"
              xmlns:rxui="http://reactiveui.net"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-             x:TypeArguments="local:ModListContentsVM"
+             xmlns:viewModels="clr-namespace:Wabbajack.View_Models"
+             x:TypeArguments="viewModels:ModListContentsVM"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
