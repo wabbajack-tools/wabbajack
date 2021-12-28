@@ -19,6 +19,7 @@ using Wabbajack.Lib;
 using System.Windows.Controls.Primitives;
 using System.Reactive.Linq;
 using Wabbajack.Common;
+using Wabbajack.RateLimiter;
 
 namespace Wabbajack
 {

@@ -1,10 +1,8 @@
 ﻿using System;
 using ReactiveUI;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Media.Imaging;
-using Wabbajack.Lib;
 using ReactiveUI.Fody.Helpers;
 using System.Windows.Media;
 using DynamicData;
@@ -15,13 +13,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Shell;
 using Wabbajack.DTOs.JsonConverters;
-using Wabbajack.Installer;
 using Wabbajack.Lib.Extensions;
 using Wabbajack.Lib.Interventions;
-using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
 using Wabbajack.View_Models;
+using Wabbajack.Paths.IO;
 using Consts = Wabbajack.Lib.Consts;
+using KnownFolders = Wabbajack.Paths.IO.KnownFolders;
 
 namespace Wabbajack;
 
@@ -103,8 +101,9 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     public InstallerVM(ILogger<InstallerVM> logger, MainWindowVM mainWindowVM, ServiceProvider serviceProvider) : base(logger, mainWindowVM)
     {
         _logger = logger;
+
+        /* TODO
         var downloadsPath = KnownFolders.Downloads.Path;
-        /* TODO 
         var skyDrivePath = KnownFolders.SkyDrive.Path;
 
         if (downloadsPath != null && AbsolutePath.EntryPoint.IsChildOf(new AbsolutePath(downloadsPath)))

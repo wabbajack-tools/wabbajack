@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
+using Wabbajack.Installer;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Interventions;
 using Wabbajack.Util;
@@ -24,7 +25,7 @@ namespace Wabbajack
         public ErrorResponse CanInstall => _CanInstall.Value;
 
         [Reactive]
-        public AInstaller ActiveInstallation { get; private set; }
+        public IInstaller ActiveInstallation { get; private set; }
 
         private readonly ObservableAsPropertyHelper<Mo2ModlistInstallationSettings> _CurrentSettings;
         public Mo2ModlistInstallationSettings CurrentSettings => _CurrentSettings.Value;
@@ -56,6 +57,7 @@ namespace Wabbajack
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select a location for MO2 downloads",
             };
+            /* TODO
             DownloadLocation.AdditionalError = this.WhenAny(x => x.DownloadLocation.TargetPath)
                 .Select(x => Utils.IsDirectoryPathValid(x));
             Location.AdditionalError = Observable.CombineLatest(
@@ -138,6 +140,7 @@ namespace Wabbajack
                     }
                 })
                 .DisposeWith(CompositeDisposable);
+                */
         }
 
         public void Unload()
@@ -156,11 +159,12 @@ namespace Wabbajack
 
         public void AfterInstallNavigation()
         {
-            Process.Start("explorer.exe", (string)Location.TargetPath);
+            Process.Start("explorer.exe", Location.TargetPath.ToString());
         }
 
         public async Task<bool> Install()
         {
+            /*
             using (var installer = new MO2Installer(
                 archive: Parent.ModListLocation.TargetPath,
                 modList: Parent.ModList.SourceModList,
@@ -186,6 +190,8 @@ namespace Wabbajack
                     }
                 });
             }
+            */
+            return true;
         }
 
         public IUserIntervention InterventionConverter(IUserIntervention intervention)

@@ -177,7 +177,7 @@
                         x:Name="MO2CompilerButton"
                         Height="35"
                         Margin="4"
-                        IsChecked="{Binding SelectedCompilerType, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter={x:Static wabbacommon:ModManager.MO2}}">
+                        IsChecked="{Binding SelectedCompilerType, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter={x:Static local:ModManager.Standard}}">
                         <local:ImageRadioButtonView.Image>
                             <BitmapImage UriSource="../../Resources/MO2Button.png" />
                         </local:ImageRadioButtonView.Image>

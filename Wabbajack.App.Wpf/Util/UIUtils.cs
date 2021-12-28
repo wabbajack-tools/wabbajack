@@ -137,7 +137,7 @@ namespace Wabbajack
             var folder = KnownFolders.WabbajackAppLocal.Combine("ModListImages");
             if (!folder.DirectoryExists()) folder.CreateDirectory();
             
-            var path = folder.Combine(Encoding.UTF8.GetBytes(url).Hash().ToHex());
+            var path = folder.Combine((await Encoding.UTF8.GetBytes(url).Hash()).ToHex());
             await path.WriteAllBytesAsync(data);
         }
 
@@ -146,7 +146,7 @@ namespace Wabbajack
             var folder = KnownFolders.WabbajackAppLocal.Combine("ModListImages");
             if (!folder.DirectoryExists()) folder.CreateDirectory();
             
-            var path = folder.Combine(Encoding.UTF8.GetBytes(uri).Hash().ToHex());
+            var path = folder.Combine((await Encoding.UTF8.GetBytes(uri).Hash()).ToHex());
             return path.FileExists() ? (true, new MemoryStream(await path.ReadAllBytesAsync())) : (false, default);
         }
 

@@ -63,7 +63,7 @@ namespace Wabbajack
             MainWindow = mainWindow;
             Settings = settings;
             Installer = new Lazy<InstallerVM>(() => new InstallerVM(serviceProvider.GetService<ILogger<InstallerVM>>(), this, serviceProvider));
-            Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
+            Compiler = new Lazy<CompilerVM>(() => new CompilerVM(serviceProvider.GetService<ILogger<CompilerVM>>(), this));
             SettingsPane = new Lazy<SettingsVM>(() => new SettingsVM(serviceProvider.GetService<ILogger<SettingsVM>>(), this, serviceProvider));
             Gallery = new Lazy<ModListGalleryVM>(() => new ModListGalleryVM(serviceProvider.GetService<ILogger<ModListGalleryVM>>(), this, 
                 serviceProvider.GetService<Client>(), serviceProvider.GetService<GameLocator>(), serviceProvider));

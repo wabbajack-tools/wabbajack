@@ -21,6 +21,7 @@ using Wabbajack.Lib.Downloaders;
 
 namespace Wabbajack
 {
+ 
     public class LoginManagerVM : BackNavigatingVM
     {
         public List<LoginTargetVM> Downloaders { get; }
@@ -28,12 +29,15 @@ namespace Wabbajack
         public LoginManagerVM(SettingsVM settingsVM)
             : base(settingsVM.MWVM)
         {
+            /*
             Downloaders = DownloadDispatcher.Downloaders
                 .OfType<INeedsLogin>()
                 .OrderBy(x => x.SiteName)
                 .Select(x => new LoginTargetVM(x))
                 .ToList();
+                */
         }
+        
     }
 
     public class LoginTargetVM : ViewModel
@@ -144,4 +148,5 @@ namespace Wabbajack
             });
         }
     }
+    */
 }

@@ -42,7 +42,7 @@ namespace Wabbajack
         public ModlistSettingsEditorVM ModlistSettings => _modlistSettings.Value;
 
         [Reactive]
-        public StatusUpdateTracker StatusTracker { get; private set; }
+        public object StatusTracker { get; private set; }
 
         public IObservable<bool> CanCompile { get; }
 
@@ -69,6 +69,7 @@ namespace Wabbajack
                 {
                     try
                     {
+                        /* TODO
                         if (loc.FileName == Consts.ModListTxt)
                         {
                             var profileFolder = loc.Parent;
@@ -79,6 +80,8 @@ namespace Wabbajack
                         {
                             return loc.Parent;
                         }
+                        */
+                        return loc.Parent;
 
                         return default;
                     }
@@ -91,6 +94,7 @@ namespace Wabbajack
             _moProfile = this.WhenAny(x => x.ModListLocation.TargetPath)
                 .Select(loc =>
                 {
+                    /* TODO
                     try
                     {
                         if (loc.FileName == Consts.NativeSettingsJson)
@@ -104,6 +108,8 @@ namespace Wabbajack
                     {
                         return null;
                     }
+                    */
+                    return (string)loc.Parent.FileName;
                 })
                 .ToGuiProperty(this, nameof(MOProfile));
 
@@ -125,11 +131,14 @@ namespace Wabbajack
                 .Select(u =>
                 {
                     if (u.State.Failed) return null;
+                    /* TODO
                     var modlistSettings = _settings.ModlistSettings.TryCreate(u.Path);
                     return new ModlistSettingsEditorVM(modlistSettings)
                     {
                         ModListName = MOProfile
                     };
+                    */
+                    return new ModlistSettingsEditorVM(null);
                 })
                 // Interject and save old while loading new
                 .Pairwise()

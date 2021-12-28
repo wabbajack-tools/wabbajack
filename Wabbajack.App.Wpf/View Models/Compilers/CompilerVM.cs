@@ -9,6 +9,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Media.Imaging;
 using DynamicData;
+using Microsoft.Extensions.Logging;
 using Wabbajack.Compiler;
 using Wabbajack.Lib.Extensions;
 using Wabbajack.Lib.Interventions;
@@ -63,7 +64,7 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<(int CurrentCPUs, int DesiredCPUs)> _CurrentCpuCount;
         public (int CurrentCPUs, int DesiredCPUs) CurrentCpuCount => _CurrentCpuCount.Value;
         
-        public CompilerVM(MainWindowVM mainWindowVM) : base(mainWindowVM)
+        public CompilerVM(ILogger<CompilerVM> logger, MainWindowVM mainWindowVM) : base(logger, mainWindowVM)
         {
             MWVM = mainWindowVM;
             
@@ -94,7 +95,7 @@ namespace Wabbajack
                 {
                     switch (type)
                     {
-                        case ModManager.MO2:
+                        case ModManager.Standard:
                             return new MO2CompilerVM(this);
                         default:
                             return null;
@@ -143,6 +144,7 @@ namespace Wabbajack
                         resultSelector: (i, b) => i && b)
                     .ObserveOnGuiThread());
 
+            /* TODO
             UIUtils.BindCpuStatus(
                 this.WhenAny(x => x.Compiler.ActiveCompilation)
                     .SelectMany(c => c?.QueueStatus ?? Observable.Empty<CPUStatus>()),
@@ -262,6 +264,8 @@ namespace Wabbajack
             _CurrentCpuCount = this.WhenAny(x => x.Compiler.ActiveCompilation.Queue.CurrentCpuCount)
                 .Switch()
                 .ToGuiProperty(this, nameof(CurrentCpuCount));
+                                */
+
         }
     }
 }
