@@ -60,12 +60,13 @@ namespace Wabbajack
                 LoginWithCredentials = loginWithCredentials;
             }
 
+            /*
             _metaInfo = (login.MetaInfo ?? Observable.Return(""))
-                .ToGuiProperty(this, nameof(MetaInfo));
+                .ToGuiProperty(this, nameof(MetaInfo));*/
 
             if (!UsesCredentials)
                 return;
-
+/*
             TriggerCredentialsLogin = ReactiveCommand.Create(() =>
             {
                 if (!(login is INeedsLoginCredentials))
@@ -74,10 +75,12 @@ namespace Wabbajack
                 var loginWindow = new LoginWindowView(LoginWithCredentials);
                 loginWindow.Show();
             }, LoginWithCredentials.IsLoggedIn.Select(b => !b).ObserveOnGuiThread());
+            */
         }
 
         private void LoadImage()
         {
+            /*
             Task.Run(async () =>
             {
                 if (Login.IconUri == null) return;
@@ -139,6 +142,7 @@ namespace Wabbajack
                     Favicon = source;
                 }
             });
+            */
         }
     }
     

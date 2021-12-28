@@ -54,13 +54,12 @@ namespace Wabbajack
         [Reactive]
         public bool UpdateAvailable { get; private set; }
 
-        public MainWindowVM(ILogger<MainWindowVM> logger, MainWindow mainWindow, MainSettings settings, Client wjClient,
+        public MainWindowVM(ILogger<MainWindowVM> logger, MainSettings settings, Client wjClient,
             ServiceProvider serviceProvider)
         {
             _logger = logger;
             _wjClient = wjClient;
             ConverterRegistration.Register();
-            MainWindow = mainWindow;
             Settings = settings;
             Installer = new Lazy<InstallerVM>(() => new InstallerVM(serviceProvider.GetService<ILogger<InstallerVM>>(), this, serviceProvider));
             Compiler = new Lazy<CompilerVM>(() => new CompilerVM(serviceProvider.GetService<ILogger<CompilerVM>>(), this));
@@ -189,6 +188,7 @@ namespace Wabbajack
 
         public async Task ShutdownApplication()
         {
+            /*
             Dispose();
             Settings.PosX = MainWindow.Left;
             Settings.PosY = MainWindow.Top;
@@ -196,6 +196,7 @@ namespace Wabbajack
             Settings.Height = MainWindow.Height;
             await MainSettings.SaveSettings(Settings);
             Application.Current.Shutdown();
+            */
         }
     }
 }

@@ -22,8 +22,11 @@ namespace Wabbajack
         private readonly ILogger<MainWindow> _logger;
         private readonly SystemParametersConstructor _systemParams;
 
-        public MainWindow(ILogger<MainWindow> logger, SystemParametersConstructor systemParams, LauncherUpdater updater)
+        public MainWindow(ILogger<MainWindow> logger, SystemParametersConstructor systemParams, LauncherUpdater updater, MainWindowVM vm)
         {
+            _mwvm = vm;
+            DataContext = _mwvm;
+            
             _logger = logger;
             _systemParams = systemParams;
             try
@@ -69,10 +72,7 @@ namespace Wabbajack
                     _settings = settings;
                     RunWhenLoaded(LoadSettings);
                 }*/
-
-                // Set datacontext
-                _mwvm = new MainWindowVM(this, _settings);
-                DataContext = _mwvm;
+                
 
                 // Bring window to the front if it isn't already
                 this.Initialized += (s, e) =>
