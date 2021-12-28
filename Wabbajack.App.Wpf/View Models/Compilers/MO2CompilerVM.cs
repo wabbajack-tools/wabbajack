@@ -10,12 +10,18 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
 using Wabbajack.Common;
+using Wabbajack.Compiler;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.GitHub;
 using Wabbajack.Lib;
 using Wabbajack.Lib.AuthorApi;
 using Wabbajack.Lib.Extensions;
 using Wabbajack.Lib.FileUploader;
 using Wabbajack.Lib.GitHub;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using WebSocketSharp;
+using Consts = Wabbajack.Lib.Consts;
 
 namespace Wabbajack
 {
@@ -112,7 +118,7 @@ namespace Wabbajack
             ModListLocation.AdditionalError = this.WhenAny(x => x.Mo2Folder)
                 .Select<AbsolutePath, IErrorResponse>(moFolder =>
                 {
-                    if (moFolder.IsDirectory) return ErrorResponse.Success;
+                    if (moFolder.DirectoryExists()) return ErrorResponse.Success;
                     return ErrorResponse.Fail($"MO2 folder could not be located from the given ModList location.{Environment.NewLine}Make sure your ModList is inside a valid MO2 distribution.");
                 });
 
@@ -167,7 +173,7 @@ namespace Wabbajack
             // If Mo2 folder changes and download location is empty, set it for convenience
             this.WhenAny(x => x.Mo2Folder)
                 .DelayInitial(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler)
-                .Where(x => x.IsDirectory)
+                .Where(x => x.DirectoryExists())
                 .FlowSwitch(
                     (this).WhenAny(x => x.DownloadLocation.Exists)
                         .Invert())
@@ -197,11 +203,11 @@ namespace Wabbajack
             
             if (Parent.OutputLocation.TargetPath == default)
             {
-                outputFile = (profileName + Consts.ModListExtension).RelativeTo(AbsolutePath.EntryPoint);
+                outputFile = (profileName.ToRelativePath().WithExtension(Ext.Wabbajack)).RelativeTo(KnownFolders.EntryPoint);
             }
             else
             {
-                outputFile = Parent.OutputLocation.TargetPath.Combine(profileName + Consts.ModListExtension);
+                outputFile = Parent.OutputLocation.TargetPath.Combine(profileName).WithExtension(Ext.Wabbajack);
             }
 
             try
@@ -216,7 +222,7 @@ namespace Wabbajack
                         Version = ModlistSettings.Version,
                     };
                 }
-                
+                /* TODO
                 if (ModListLocation.TargetPath.FileName == Consts.NativeSettingsJson)
                 {
                     var settings = ModListLocation.TargetPath.FromJson<NativeCompilerSettings>();
@@ -258,6 +264,8 @@ namespace Wabbajack
                     var success = await ActiveCompilation.Begin();
                     return GetResponse<ModList>.Create(success, ActiveCompilation.ModList);
                 }
+                */
+                return GetResponse<ModList>.Create(true, ActiveCompilation.ModList);
             }
             finally
             {

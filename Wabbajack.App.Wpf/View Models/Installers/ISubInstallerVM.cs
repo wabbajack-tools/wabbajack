@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ReactiveUI;
 using Wabbajack.Common;
+using Wabbajack.Installer;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Interventions;
 
@@ -13,7 +14,7 @@ namespace Wabbajack
     public interface ISubInstallerVM
     {
         InstallerVM Parent { get; }
-        AInstaller ActiveInstallation { get; }
+        IInstaller ActiveInstallation { get; }
         void Unload();
         bool SupportsAfterInstallNavigation { get; }
         void AfterInstallNavigation();

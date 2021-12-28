@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using ReactiveUI;
-using Wabbajack.Common;
-using Wabbajack.Lib;
+using Wabbajack.Compiler;
+using Wabbajack.DTOs;
 
 namespace Wabbajack
 {
