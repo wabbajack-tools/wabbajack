@@ -61,7 +61,7 @@ namespace Wabbajack
         public ICommand ClearFiltersCommand { get; }
 
         public ModListGalleryVM(ILogger<ModListGalleryVM> logger, MainWindowVM mainWindowVM, Client wjClient,
-            GameLocator locator, ServiceProvider provider)
+            GameLocator locator, IServiceProvider provider)
             : base(logger, mainWindowVM)
         {
             MWVM = mainWindowVM;

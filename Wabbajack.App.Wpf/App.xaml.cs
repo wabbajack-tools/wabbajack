@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Services.OSIntegrated;
+using Wabbajack.Util;
 
 namespace Wabbajack
 {
@@ -12,21 +15,35 @@ namespace Wabbajack
     /// </summary>
     public partial class App
     {
-        private readonly ServiceProvider _serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
         public App()
         {
             var services = new ServiceCollection();
-            ConfigureServices(services);
-            _serviceProvider = services.BuildServiceProvider();
+            
+            var host = Host.CreateDefaultBuilder(Array.Empty<string>())
+                //.ConfigureLogging(c => { c.ClearProviders(); })
+                .ConfigureServices((host, services) => { ConfigureServices(services); }).Build();
+            
+            _serviceProvider = host.Services;
         }
-        private void ConfigureServices(ServiceCollection services)
+        private IServiceCollection ConfigureServices(IServiceCollection services)
         {
             services.AddOSIntegrated();
-            services.AddSingleton<MainWindow>();
+            services.AddTransient<MainWindow>();
+            services.AddTransient<MainWindowVM>();
+            services.AddSingleton<SystemParametersConstructor>();
+            services.AddSingleton<LauncherUpdater>();
+
+            services.AddSingleton<MainSettings>();
+            services.AddTransient<CompilerVM>();
+            services.AddTransient<InstallerVM>();
+            
+            
+            return services;
         }
         private void OnStartup(object sender, StartupEventArgs e)
         {
-            var mainWindow = _serviceProvider.GetService<MainWindow>();
+            var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
             mainWindow!.Show();
         }
     }

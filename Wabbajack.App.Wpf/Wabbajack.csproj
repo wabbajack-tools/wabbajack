@@ -76,6 +76,7 @@
     <PackageReference Include="MahApps.Metro" Version="2.4.7" />
     <PackageReference Include="MahApps.Metro.IconPacks" Version="4.8.0" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
     <PackageReference Include="PInvoke.User32" Version="0.7.104" />
     <PackageReference Include="ReactiveUI" Version="14.1.1" />
     <PackageReference Include="ReactiveUI.Fody" Version="14.1.1" />

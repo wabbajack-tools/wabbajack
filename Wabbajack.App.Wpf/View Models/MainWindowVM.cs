@@ -55,7 +55,7 @@ namespace Wabbajack
         public bool UpdateAvailable { get; private set; }
 
         public MainWindowVM(ILogger<MainWindowVM> logger, MainSettings settings, Client wjClient,
-            ServiceProvider serviceProvider)
+            IServiceProvider serviceProvider)
         {
             _logger = logger;
             _wjClient = wjClient;

@@ -38,7 +38,7 @@ namespace Wabbajack.View_Models
 
         public const int PreloadAmount = 4;
 
-        public SlideShow(InstallerVM appState, ServiceProvider provider)
+        public SlideShow(InstallerVM appState, IServiceProvider provider)
         {
             Installer = appState;
 

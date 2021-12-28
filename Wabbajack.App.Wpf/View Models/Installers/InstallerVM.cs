@@ -98,7 +98,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     public ReactiveCommand<Unit, Unit> GoToInstallCommand { get; }
     public ReactiveCommand<Unit, Unit> BeginCommand { get; }
 
-    public InstallerVM(ILogger<InstallerVM> logger, MainWindowVM mainWindowVM, ServiceProvider serviceProvider) : base(logger, mainWindowVM)
+    public InstallerVM(ILogger<InstallerVM> logger, MainWindowVM mainWindowVM, IServiceProvider serviceProvider) : base(logger, mainWindowVM)
     {
         _logger = logger;
 
