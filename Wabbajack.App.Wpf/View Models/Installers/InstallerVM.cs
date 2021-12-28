@@ -25,7 +25,7 @@ using Consts = Wabbajack.Lib.Consts;
 
 namespace Wabbajack;
 
-enum ModManager
+public enum ModManager
 {
     Standard
 }
