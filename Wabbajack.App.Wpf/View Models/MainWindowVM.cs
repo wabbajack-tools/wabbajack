@@ -8,8 +8,10 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
+using Wabbajack.Downloaders.GameFile;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Interventions;
 using Wabbajack.Networking.WabbajackClientApi;
@@ -52,22 +54,25 @@ namespace Wabbajack
         [Reactive]
         public bool UpdateAvailable { get; private set; }
 
-        public MainWindowVM(ILogger<MainWindowVM> logger, MainWindow mainWindow, MainSettings settings, Client wjClient)
+        public MainWindowVM(ILogger<MainWindowVM> logger, MainWindow mainWindow, MainSettings settings, Client wjClient,
+            ServiceProvider serviceProvider)
         {
             _logger = logger;
             _wjClient = wjClient;
             ConverterRegistration.Register();
             MainWindow = mainWindow;
             Settings = settings;
-            Installer = new Lazy<InstallerVM>(() => new InstallerVM(this));
+            Installer = new Lazy<InstallerVM>(() => new InstallerVM(serviceProvider.GetService<ILogger<InstallerVM>>(), this, serviceProvider));
             Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
-            SettingsPane = new Lazy<SettingsVM>(() => new SettingsVM(this));
-            Gallery = new Lazy<ModListGalleryVM>(() => new ModListGalleryVM(this));
+            SettingsPane = new Lazy<SettingsVM>(() => new SettingsVM(serviceProvider.GetService<ILogger<SettingsVM>>(), this, serviceProvider));
+            Gallery = new Lazy<ModListGalleryVM>(() => new ModListGalleryVM(serviceProvider.GetService<ILogger<ModListGalleryVM>>(), this, 
+                serviceProvider.GetService<Client>(), serviceProvider.GetService<GameLocator>(), serviceProvider));
             ModeSelectionVM = new ModeSelectionVM(this);
-            ModListContentsVM = new Lazy<ModListContentsVM>(() => new ModListContentsVM(this));
-            UserInterventionHandlers = new UserInterventionHandlers(this);
+            ModListContentsVM = new Lazy<ModListContentsVM>(() => new ModListContentsVM(serviceProvider.GetService<ILogger<ModListContentsVM>>(), this));
+            UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetService<ILogger<UserInterventionHandlers>>(), this);
 
             // Set up logging
+            /* TODO
             Utils.LogMessages
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .ToObservableChangeSet()
@@ -107,6 +112,7 @@ namespace Wabbajack
                 })
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
+                */
 
             if (IsStartingFromModlist(out var path))
             {
@@ -147,6 +153,7 @@ namespace Wabbajack
 
         private static bool IsStartingFromModlist(out AbsolutePath modlistPath)
         {
+            /* TODO
             if (CLIArguments.InstallPath == null)
             {
                 modlistPath = default;
@@ -155,6 +162,8 @@ namespace Wabbajack
 
             modlistPath = (AbsolutePath)CLIArguments.InstallPath;
             return true;
+            */
+            return false;
         }
 
         public void OpenInstaller(AbsolutePath path)

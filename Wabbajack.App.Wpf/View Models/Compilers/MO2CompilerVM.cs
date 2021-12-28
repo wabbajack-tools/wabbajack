@@ -2,9 +2,6 @@
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -14,13 +11,9 @@ using Wabbajack.Compiler;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.GitHub;
 using Wabbajack.Lib;
-using Wabbajack.Lib.AuthorApi;
 using Wabbajack.Lib.Extensions;
-using Wabbajack.Lib.FileUploader;
-using Wabbajack.Lib.GitHub;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using WebSocketSharp;
 using Consts = Wabbajack.Lib.Consts;
 
 namespace Wabbajack

@@ -10,9 +10,11 @@ using System.Windows.Media;
 using DynamicData;
 using DynamicData.Binding;
 using System.Reactive;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Shell;
+using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;
 using Wabbajack.Lib.Extensions;
 using Wabbajack.Lib.Interventions;
@@ -98,7 +100,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     public ReactiveCommand<Unit, Unit> GoToInstallCommand { get; }
     public ReactiveCommand<Unit, Unit> BeginCommand { get; }
 
-    public InstallerVM(ILogger<InstallerVM> logger, MainWindowVM mainWindowVM) : base(logger, mainWindowVM)
+    public InstallerVM(ILogger<InstallerVM> logger, MainWindowVM mainWindowVM, ServiceProvider serviceProvider) : base(logger, mainWindowVM)
     {
         _logger = logger;
         var downloadsPath = KnownFolders.Downloads.Path;
@@ -181,6 +183,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             .Replay(1)
             .RefCount();
 
+        
         _modList = activePath
             .ObserveOn(RxApp.TaskpoolScheduler)
             // Convert from active path to modlist VM
@@ -188,7 +191,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             {
                 if (modListPath == default) return default;
                 if (!modListPath.FileExists()) return default;
-                return new ModListVM(modListPath);
+                return new ModListVM(serviceProvider.GetService<ILogger<ModListVM>>()!, modListPath, serviceProvider.GetService<DTOSerializer>());
             })
             .DisposeOld()
             .ObserveOnGuiThread()
@@ -214,9 +217,12 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         _installing = this.WhenAny(x => x.Installer.ActiveInstallation)
             .Select(i => i != null)
             .ToGuiProperty(this, nameof(Installing));
+        
+        /*TODO
         _TargetManager = this.WhenAny(x => x.ModList)
             .Select(modList => ModManager.Standard)
             .ToGuiProperty(this, nameof(TargetManager));
+            */
 
         // Add additional error check on ModList
         ModListLocation.AdditionalError = this.WhenAny(x => x.ModList)
@@ -243,6 +249,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                     resultSelector: (i, b) => i && b)
                 .ObserveOnGuiThread());
 
+        /* TODO
         _percentCompleted = this.WhenAny(x => x.Installer.ActiveInstallation)
             .StartWith(default(IInstaller))
             .CombineLatest(
@@ -258,8 +265,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             .Switch()
             .Debounce(TimeSpan.FromMilliseconds(25), RxApp.MainThreadScheduler)
             .ToGuiProperty(this, nameof(PercentCompleted));
+            */
 
-        Slideshow = new SlideShow(this);
+        
+        Slideshow = new SlideShow( this, serviceProvider);
 
         // Set display items to ModList if configuring or complete,
         // or to the current slideshow data if installing
@@ -308,6 +317,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                 this.WhenAny(x => x.Installing),
                 resultSelector: (modList, mod, installing) => installing ? mod : modList)
             .ToGuiProperty(this, nameof(Description));
+        
+        /* TODO
         _modListName = Observable.CombineLatest(
                 this.WhenAny(x => x.ModList.Error)
                     .Select(x => x != null),
@@ -322,6 +333,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                 .Where(c => c != null)
                 .SelectMany(c => c.TextStatus))
             .ToGuiProperty(this, nameof(ModListName));
+            */
 
         ShowManifestCommand = ReactiveCommand.Create(() =>
         {
@@ -336,8 +348,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                 .Select(modList => !string.IsNullOrEmpty(modList?.Readme))
                 .ObserveOnGuiThread());
             
+        /*TODO
         OpenLogsCommand = ReactiveCommand.Create(
             execute: () => UIUtils.OpenFolder(Consts.LogsFolder));
+            */
         VisitModListWebsiteCommand = ReactiveCommand.Create(
             execute: () =>
             {
@@ -370,12 +384,13 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                 })
             .ToGuiProperty(this, nameof(ProgressTitle));
 
+        /*
         UIUtils.BindCpuStatus(
                 this.WhenAny(x => x.Installer.ActiveInstallation)
                     .SelectMany(c => c?.QueueStatus ?? Observable.Empty<CPUStatus>()),
                 StatusList)
             .DisposeWith(CompositeDisposable);
-
+*/
         BeginCommand = ReactiveCommand.CreateFromTask(
             canExecute: this.WhenAny(x => x.Installer.CanInstall)
                 .Select(err => err.Succeeded),
@@ -383,7 +398,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             {
                 try
                 {
-                    UIUtils.Log($"Starting to install {ModList.Name}");
+                    _logger.LogInformation("Starting to install {Name}", ModList.Name);
                     IsBackEnabledSubject.OnNext(false);
                     var success = await this.Installer.Install();
                     Completed = ErrorResponse.Create(success);
@@ -393,12 +408,12 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                     }
                     catch (Exception ex)
                     {
-                        UIUtils.Error(ex);
+                        _logger.LogError(ex, "During installation");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Utils.Error(ex, $"Encountered error, can't continue");
+                    _logger.LogError(ex, $"Encountered error, can't continue");
                     while (ex.InnerException != null) ex = ex.InnerException;
                     Completed = ErrorResponse.Fail(ex);
                 }
@@ -416,6 +431,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             })
             .DisposeWith(CompositeDisposable);
 
+        /*
         // Listen for user interventions, and compile a dynamic list of all unhandled ones
         var activeInterventions = this.WhenAny(x => x.Installer.ActiveInstallation)
             .WithLatestFrom(
@@ -438,6 +454,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             .Filter(x => x.CpuID == WorkQueue.UnassignedCpuId)
             .QueryWhenChanged(query => query.FirstOrDefault())
             .ToGuiProperty(this, nameof(ActiveGlobalUserIntervention));
+            */
 
         CloseWhenCompleteCommand = ReactiveCommand.CreateFromTask(
             canExecute: this.WhenAny(x => x.Completed)
@@ -458,8 +475,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                 Installer.AfterInstallNavigation();
             });
 
+        /*
         _CurrentCpuCount = this.WhenAny(x => x.Installer.ActiveInstallation.Queue.CurrentCpuCount)
             .Switch()
             .ToGuiProperty(this, nameof(CurrentCpuCount));
+            */
     }
 }
