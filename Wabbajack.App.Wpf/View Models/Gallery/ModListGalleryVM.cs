@@ -138,8 +138,8 @@ namespace Wabbajack
             // Convert to VM and bind to resulting list
             sourceList
                 .ObserveOnGuiThread()
-                .Transform(m => new ModListMetadataVM(provider.GetService<ILogger<ModListMetadataVM>>(),this, m,
-                    provider.GetService<ModListDownloadMaintainer>(), provider.GetService<Client>()))
+                .Transform(m => new ModListMetadataVM(provider.GetRequiredService<ILogger<ModListMetadataVM>>(),this, m,
+                    provider.GetRequiredService<ModListDownloadMaintainer>(), provider.GetRequiredService<Client>()))
                 .DisposeMany()
                 // Filter only installed
                 .Filter(this.WhenAny(x => x.OnlyInstalled)

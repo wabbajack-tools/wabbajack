@@ -61,14 +61,14 @@ namespace Wabbajack
             _wjClient = wjClient;
             ConverterRegistration.Register();
             Settings = settings;
-            Installer = new Lazy<InstallerVM>(() => new InstallerVM(serviceProvider.GetService<ILogger<InstallerVM>>(), this, serviceProvider));
-            Compiler = new Lazy<CompilerVM>(() => new CompilerVM(serviceProvider.GetService<ILogger<CompilerVM>>(), this));
-            SettingsPane = new Lazy<SettingsVM>(() => new SettingsVM(serviceProvider.GetService<ILogger<SettingsVM>>(), this, serviceProvider));
-            Gallery = new Lazy<ModListGalleryVM>(() => new ModListGalleryVM(serviceProvider.GetService<ILogger<ModListGalleryVM>>(), this, 
-                serviceProvider.GetService<Client>(), serviceProvider.GetService<GameLocator>(), serviceProvider));
+            Installer = new Lazy<InstallerVM>(() => new InstallerVM(serviceProvider.GetRequiredService<ILogger<InstallerVM>>(), this, serviceProvider));
+            Compiler = new Lazy<CompilerVM>(() => new CompilerVM(serviceProvider.GetRequiredService<ILogger<CompilerVM>>(), this));
+            SettingsPane = new Lazy<SettingsVM>(() => new SettingsVM(serviceProvider.GetRequiredService<ILogger<SettingsVM>>(), this, serviceProvider));
+            Gallery = new Lazy<ModListGalleryVM>(() => new ModListGalleryVM(serviceProvider.GetRequiredService<ILogger<ModListGalleryVM>>(), this, 
+                serviceProvider.GetRequiredService<Client>(), serviceProvider.GetRequiredService<GameLocator>(), serviceProvider));
             ModeSelectionVM = new ModeSelectionVM(this);
-            ModListContentsVM = new Lazy<ModListContentsVM>(() => new ModListContentsVM(serviceProvider.GetService<ILogger<ModListContentsVM>>(), this));
-            UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetService<ILogger<UserInterventionHandlers>>(), this);
+            ModListContentsVM = new Lazy<ModListContentsVM>(() => new ModListContentsVM(serviceProvider.GetRequiredService<ILogger<ModListContentsVM>>(), this));
+            UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetRequiredService<ILogger<UserInterventionHandlers>>(), this);
 
             // Set up logging
             /* TODO

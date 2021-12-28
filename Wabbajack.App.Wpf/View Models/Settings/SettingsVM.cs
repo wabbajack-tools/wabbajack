@@ -31,10 +31,10 @@ namespace Wabbajack
             : base(logger, mainWindowVM)
         {
             MWVM = mainWindowVM;
-            Login = new LoginManagerVM(provider.GetService<ILogger<LoginManagerVM>>(), this);
+            Login = new LoginManagerVM(provider.GetRequiredService<ILogger<LoginManagerVM>>(), this);
             Performance = mainWindowVM.Settings.Performance;
-            AuthorFile = new AuthorFilesVM(provider.GetService<ILogger<AuthorFilesVM>>()!, 
-                provider.GetService<WabbajackApiTokenProvider>()!, provider.GetService<Client>()!, this);
+            AuthorFile = new AuthorFilesVM(provider.GetRequiredService<ILogger<AuthorFilesVM>>()!, 
+                provider.GetRequiredService<WabbajackApiTokenProvider>()!, provider.GetRequiredService<Client>()!, this);
             Filters = mainWindowVM.Settings.Filters;
             OpenTerminalCommand = ReactiveCommand.CreateFromTask(OpenTerminal);
         }

@@ -24,6 +24,7 @@ namespace Wabbajack
 
         public MainWindow(ILogger<MainWindow> logger, SystemParametersConstructor systemParams, LauncherUpdater updater, MainWindowVM vm)
         {
+            InitializeComponent();
             _mwvm = vm;
             DataContext = _mwvm;
             
@@ -55,7 +56,7 @@ namespace Wabbajack
                 else if (p.SystemPageSize < 2e+10)
                     _logger.LogInformation("Pagefile below recommended! Consider increasing to 20000MB. A suboptimal pagefile can cause crashes and poor in-game performance");
 
-                Warmup();
+                //Warmup();
                 
                 var _ = updater.Run();
 

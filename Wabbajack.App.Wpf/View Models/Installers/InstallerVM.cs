@@ -190,7 +190,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             {
                 if (modListPath == default) return default;
                 if (!modListPath.FileExists()) return default;
-                return new ModListVM(serviceProvider.GetService<ILogger<ModListVM>>()!, modListPath, serviceProvider.GetService<DTOSerializer>());
+                return new ModListVM(serviceProvider.GetRequiredService<ILogger<ModListVM>>()!, modListPath, serviceProvider.GetRequiredService<DTOSerializer>());
             })
             .DisposeOld()
             .ObserveOnGuiThread()

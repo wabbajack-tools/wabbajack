@@ -97,7 +97,7 @@ namespace Wabbajack.View_Models
                 })
                 // Switch to the new list after every ModList change
                 .Switch()
-                .Transform(mod => new ModVM(provider.GetService<ILogger<ModVM>>(), mod))
+                .Transform(mod => new ModVM(provider.GetRequiredService<ILogger<ModVM>>(), mod))
                 .DisposeMany()
                 // Filter out any NSFW slides if we don't want them
                 .AutoRefreshOnObservable(slide => this.WhenAny(x => x.ShowNSFW))
