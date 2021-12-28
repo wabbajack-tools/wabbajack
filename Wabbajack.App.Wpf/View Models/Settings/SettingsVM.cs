@@ -31,7 +31,7 @@ namespace Wabbajack
             : base(logger, mainWindowVM)
         {
             MWVM = mainWindowVM;
-            Login = new LoginManagerVM(this);
+            Login = new LoginManagerVM(provider.GetService<ILogger<LoginManagerVM>>(), this);
             Performance = mainWindowVM.Settings.Performance;
             AuthorFile = new AuthorFilesVM(provider.GetService<ILogger<AuthorFilesVM>>()!, 
                 provider.GetService<WabbajackApiTokenProvider>()!, provider.GetService<Client>()!, this);

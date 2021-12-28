@@ -17,7 +17,6 @@ namespace Wabbajack
     public class MainSettings
     {
         public byte Version { get; set; } = Consts.SettingsVersion;
-
         public double PosX { get; set; }
         public double PosY { get; set; }
         public double Height { get; set; }
@@ -33,6 +32,7 @@ namespace Wabbajack
 
         public static async ValueTask<(MainSettings settings, bool loaded)> TryLoadTypicalSettings()
         {
+            /*
             if (!Consts.SettingsFile.Exists)
             {
                 return default;
@@ -55,7 +55,7 @@ namespace Wabbajack
             
             await Consts.SettingsFile.CopyToAsync(backup);
             await Consts.SettingsFile.DeleteAsync();
-
+*/
             return default;
         }
 
@@ -68,7 +68,7 @@ namespace Wabbajack
             //settings._saveSignal.OnCompleted();
             //await settings._saveSignal;
 
-            await settings.ToJsonAsync(Consts.SettingsFile);
+            //await settings.ToJsonAsync(Consts.SettingsFile);
         }
     }
 

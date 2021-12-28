@@ -162,6 +162,7 @@ namespace Wabbajack
             modlistPath = (AbsolutePath)CLIArguments.InstallPath;
             return true;
             */
+            modlistPath = default;
             return false;
         }
 

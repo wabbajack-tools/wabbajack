@@ -17,13 +17,13 @@ namespace Wabbajack
 
         public bool Handled => ((IUserIntervention)Source).Handled;
 
-        public int CpuID => ((IUserIntervention)Source).CpuID;
+        public int CpuID => 0;
 
-        public DateTime Timestamp => ((IUserIntervention)Source).Timestamp;
+        public DateTime Timestamp => DateTime.Now;
 
-        public string ShortDescription => ((IUserIntervention)Source).ShortDescription;
+        public string ShortDescription => "Short Desc";
 
-        public string ExtendedDescription => ((IUserIntervention)Source).ExtendedDescription;
+        public string ExtendedDescription => "Extended Desc";
 
         public ConfirmUpdateOfExistingInstallVM(MO2InstallerVM installer, ConfirmUpdateOfExistingInstall confirm)
         {

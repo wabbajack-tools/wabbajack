@@ -29,8 +29,10 @@ namespace Wabbajack
                     .DisposeWith(disposable);
                 this.OneWayBind(ViewModel, x => x.MFAVisible, x => x.MFAText.Visibility)
                     .DisposeWith(disposable);
+                /* TODO
                 this.OneWayBind(ViewModel, x => x.ReturnMessage.Message, x => x.Message.Text)
                     .DisposeWith(disposable);
+                    */
             });
         }
 
