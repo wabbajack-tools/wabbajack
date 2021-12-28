@@ -1,8 +1,6 @@
 ﻿using System.Reactive.Disposables;
 using System.Windows;
-using MahApps.Metro.Controls;
 using ReactiveUI;
-using Wabbajack.Lib.Downloaders;
 
 namespace Wabbajack
 {
@@ -38,7 +36,7 @@ namespace Wabbajack
 
         private async void LoginButton_OnClick(object sender, RoutedEventArgs e)
         {
-            ViewModel.Login(Password.SecurePassword).FireAndForget();
+            //ViewModel.Login(Password.SecurePassword).FireAndForget();
         }
     }
 }

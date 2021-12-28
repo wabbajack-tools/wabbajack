@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
-using System.Windows;
 using MahApps.Metro.Controls;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
-using Wabbajack.Common.StoreHandlers;
 using Wabbajack.Lib;
 using Wabbajack.Lib.LibCefHelpers;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.Util;
-using Application = System.Windows.Application;
-using Utils = Wabbajack.Common.Utils;
 
 namespace Wabbajack
 {
@@ -22,47 +19,46 @@ namespace Wabbajack
     {
         private MainWindowVM _mwvm;
         private MainSettings _settings;
+        private readonly ILogger<MainWindow> _logger;
+        private readonly SystemParametersConstructor _systemParams;
 
-        public MainWindow()
+        public MainWindow(ILogger<MainWindow> logger, SystemParametersConstructor systemParams, LauncherUpdater updater)
         {
+            _logger = logger;
+            _systemParams = systemParams;
             try
             {
                 // Wire any unhandled crashing exceptions to log before exiting
                 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
                 {
                     // Don't do any special logging side effects
-                    Utils.LogStraightToFile("Error.");
-                    Utils.LogStraightToFile(((Exception)e.ExceptionObject).ToString());
+                    _logger.LogError((Exception)e.ExceptionObject, "Uncaught error");
                     Environment.Exit(-1);
                 };
 
-                Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
-                Utils.Log($"Running in {AbsolutePath.EntryPoint}");
+                _logger.LogInformation("Wabbajack Build - {Sha}",ThisAssembly.Git.Sha);
+                _logger.LogInformation("Running in {EntryPoint}", KnownFolders.EntryPoint);
 
-                var p = SystemParametersConstructor.Create();
+                var p = _systemParams.Create();
 
-                Utils.Log($"Detected Windows Version: {p.WindowsVersion}");
+                _logger.LogInformation("Detected Windows Version: {Version}", Environment.OSVersion.VersionString);
                 
-                
-
-                if (!(p.WindowsVersion > Consts.MaximumUnsupportedWindowsVersion))
-                    Utils.Log(
-                        $"You are not running a recent version of Windows ({p.WindowsVersion}), Wabbajack is only supported on Windows versions greater than {Consts.MaximumUnsupportedWindowsVersion}.");
-
-                Utils.Log(
-                    $"System settings - ({p.SystemMemorySize.ToFileSizeString()} RAM) ({p.SystemPageSize.ToFileSizeString()} Page), Display: {p.ScreenWidth} x {p.ScreenHeight} ({p.VideoMemorySize.ToFileSizeString()} VRAM - VideoMemorySizeMb={p.EnbLEVRAMSize})");
+                _logger.LogInformation(
+                    "System settings - ({MemorySize} RAM) ({PageSize} Page), Display: {ScreenWidth} x {ScreenHeight} ({Vram} VRAM - VideoMemorySizeMb={ENBVRam})",
+                    p.SystemMemorySize.ToFileSizeString(), p.SystemPageSize.ToFileSizeString(), p.ScreenWidth, p.ScreenHeight, p.VideoMemorySize.ToFileSizeString(), p.EnbLEVRAMSize);
 
                 if (p.SystemPageSize == 0)
-                    Utils.Log("Pagefile is disabled! Consider increasing to 20000MB. A disabled pagefile can cause crashes and poor in-game performance.");
+                    _logger.LogInformation("Pagefile is disabled! Consider increasing to 20000MB. A disabled pagefile can cause crashes and poor in-game performance");
                 else if (p.SystemPageSize < 2e+10)
-                    Utils.Log("Pagefile below recommended! Consider increasing to 20000MB. A suboptimal pagefile can cause crashes and poor in-game performance.");
+                    _logger.LogInformation("Pagefile below recommended! Consider increasing to 20000MB. A suboptimal pagefile can cause crashes and poor in-game performance");
 
                 Warmup();
                 
-                var _ = LauncherUpdater.Run();
+                var _ = updater.Run();
 
                 var (settings, loadedSettings) = MainSettings.TryLoadTypicalSettings().AsTask().Result;
                 // Load settings
+                /*
                 if (CLIArguments.NoSettings || !loadedSettings)
                 {
                     _settings = new MainSettings {Version = Consts.SettingsVersion};
@@ -72,7 +68,7 @@ namespace Wabbajack
                 {
                     _settings = settings;
                     RunWhenLoaded(LoadSettings);
-                }
+                }*/
 
                 // Set datacontext
                 _mwvm = new MainWindowVM(this, _settings);
@@ -92,8 +88,7 @@ namespace Wabbajack
             }
             catch (Exception ex)
             {
-                Utils.LogStraightToFile("Error");
-                Utils.LogStraightToFile(ex.ToString());
+                _logger.LogError(ex, "During Main Window Startup");
                 Environment.Exit(-1);
             }
         }
@@ -110,13 +105,6 @@ namespace Wabbajack
         /// </summary>
         private void Warmup()
         {
-            TempFolder.Warmup();
-            // ToDo
-            // Currently this is a blocking call.  Perhaps upgrade to be run in a background task.
-            // Would first need to ensure users of CEF properly await the background initialization before use
-            Helpers.Init();
-            StoreHandler.Warmup();
-
             Task.Run(AssociateListsWithWabbajack).FireAndForget();
         }
 
@@ -125,6 +113,7 @@ namespace Wabbajack
         /// </summary>
         private void AssociateListsWithWabbajack()
         {
+            /* TODO
             var appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             try
             {
@@ -136,7 +125,7 @@ namespace Wabbajack
             catch (Exception e)
             {
                 Utils.Log($"ExtensionManager had an exception:\n{e}");
-            }
+            }*/
         }
 
         private void RunWhenLoaded(Action a)

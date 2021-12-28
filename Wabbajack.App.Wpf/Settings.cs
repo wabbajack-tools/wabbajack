@@ -159,6 +159,7 @@ namespace Wabbajack
 
 
 
+        /*
         public void SetProcessorSettings(ABatchProcessor processor)
         {
             processor.DownloadThreads = DownloadThreads;
@@ -168,7 +169,7 @@ namespace Wabbajack
 
             if (processor is MO2Compiler mo2c)
                 mo2c.DisableTextureResizing = DisableTextureResizing;
-        }
+        }*/
     }
 
     [JsonName("CompilationModlistSettings")]

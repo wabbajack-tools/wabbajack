@@ -1,9 +1,10 @@
-﻿using Wabbajack.Lib.Downloaders;
+﻿
 
 namespace Wabbajack
 {
     public partial class LoginWindowView
     {
+        /*
         public INeedsLoginCredentials Downloader { get; set; }
 
         public LoginWindowView(INeedsLoginCredentials downloader)
@@ -16,5 +17,6 @@ namespace Wabbajack
 
             Grid.Children.Add(loginView);
         }
+        */
     }
 }

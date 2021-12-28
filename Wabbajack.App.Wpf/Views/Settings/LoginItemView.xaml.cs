@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using ReactiveUI;
 
 namespace Wabbajack
@@ -20,7 +19,7 @@ namespace Wabbajack
                 this.OneWayBindStrict(ViewModel, x => x.Login.SiteName, x => x.SiteNameText.Text)
                     .DisposeWith(disposable);
 
-                if (!ViewModel.UsesCredentials)
+                if (!ViewModel!.UsesCredentials)
                 {
                     this.OneWayBindStrict(ViewModel, x => x.Login.TriggerLogin, x => x.LoginButton.Command)
                         .DisposeWith(disposable);
@@ -36,6 +35,7 @@ namespace Wabbajack
                 this.OneWayBindStrict(ViewModel, x => x.MetaInfo, x => x.MetaText.Text)
                     .DisposeWith(disposable);
 
+                /* TODO
                 // Modify label state
                 this.WhenAny(x => x.ViewModel.Login.TriggerLogin.CanExecute)
                     .Switch()
@@ -50,6 +50,7 @@ namespace Wabbajack
                     {
                         LogoutButton.Content = x ? "Logout" : "Logged Out";
                     });
+                    */
             });
         }
     }

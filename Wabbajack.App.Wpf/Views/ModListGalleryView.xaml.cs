@@ -1,12 +1,7 @@
-﻿using System;
-using System.Diagnostics;
-using System.Reactive.Disposables;
+﻿using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows;
-using System.Windows.Controls;
-using MahApps.Metro.Controls;
 using ReactiveUI;
-using Wabbajack.Lib.ModListRegistry;
 
 namespace Wabbajack
 {

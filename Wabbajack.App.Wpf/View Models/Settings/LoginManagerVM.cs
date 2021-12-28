@@ -3,21 +3,14 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
-using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
-using Wabbajack.Common;
 using Wabbajack.Lib;
-using Wabbajack.Lib.Downloaders;
 
 namespace Wabbajack
 {
@@ -26,8 +19,8 @@ namespace Wabbajack
     {
         public List<LoginTargetVM> Downloaders { get; }
 
-        public LoginManagerVM(SettingsVM settingsVM)
-            : base(settingsVM.MWVM)
+        public LoginManagerVM(ILogger<LoginManagerVM> logger, SettingsVM settingsVM)
+            : base(logger, settingsVM.MWVM)
         {
             /*
             Downloaders = DownloadDispatcher.Downloaders
@@ -148,5 +141,5 @@ namespace Wabbajack
             });
         }
     }
-    */
+    
 }

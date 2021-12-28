@@ -5,9 +5,8 @@ using System.Security;
 using System.Threading.Tasks;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using Wabbajack.Common;
+using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.Lib;
-using Wabbajack.Lib.Downloaders;
 
 namespace Wabbajack
 {
@@ -19,8 +18,9 @@ namespace Wabbajack
         [Reactive]
         public string MFAKey { get; set; }
 
+        
         [Reactive]
-        public LoginReturnMessage ReturnMessage { get; set; }
+        public object ReturnMessage { get; set; }
 
         [Reactive]
         public bool LoggingIn { get; private set; }
@@ -31,7 +31,7 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<bool> _mfaVisible;
         public bool MFAVisible => _mfaVisible.Value;
 
-        private readonly INeedsLoginCredentials _downloader;
+        private readonly object _downloader;
 
         public CredentialsLoginVM(INeedsLoginCredentials downloader)
         {
@@ -48,13 +48,16 @@ namespace Wabbajack
                 .ToGuiProperty(this,
                     nameof(LoginEnabled));
 
+            /*
             _mfaVisible = this.WhenAny(x => x.ReturnMessage)
                 .Select(x => x.ReturnCode == LoginReturnCode.NeedsMFA)
                 .ToGuiProperty(this, nameof(MFAVisible));
+                */
         }
 
         public async Task Login(SecureString password)
         {
+            /*
             try
             {
                 LoggingIn = true;
@@ -77,6 +80,7 @@ namespace Wabbajack
             {
                 LoggingIn = false;
             }
+            */
         }
 
         private static bool IsValidAddress(string s)
