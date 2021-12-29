@@ -86,8 +86,55 @@ namespace Wabbajack
             {
                 var _ = LoadModLists();
                 
+                var searchTextPredicates = this.ObservableForProperty(vm => vm.Search)
+                    .Select(change => change.Value)
+                    .StartWith("")
+                    .Select<string, Func<ModListMetadataVM, bool>>(txt =>
+                    {
+                        if (string.IsNullOrWhiteSpace(txt)) return _ => true;
+                        return item => item.Metadata.Title.ContainsCaseInsensitive(txt) ||
+                                       item.Metadata.Description.ContainsCaseInsensitive(txt);
+                    });
+                
+                var onlyInstalledGamesFilter = this.ObservableForProperty(vm => vm.OnlyInstalled)
+                    .Select(v => v.Value)
+                    .Select<bool, Func<ModListMetadataVM, bool>>(onlyInstalled =>
+                    {
+                        if (onlyInstalled == false) return _ => true;
+                        return item => _locator.IsInstalled(item.Metadata.Game);
+                    })
+                    .StartWith(_ => true);
+                
+                var onlyUtilityListsFilter = this.ObservableForProperty(vm => vm.ShowUtilityLists)
+                    .Select(v => v.Value)
+                    .Select<bool, Func<ModListMetadataVM, bool>>(utility =>
+                    {
+                        if (utility == false) return item => item.Metadata.UtilityList == false;
+                        return item => item.Metadata.UtilityList;
+                    })
+                    .StartWith(item => item.Metadata.UtilityList == false);
+                
+                var showNSFWFilter = this.ObservableForProperty(vm => vm.ShowNSFW)
+                    .Select(v => v.Value)
+                    .Select<bool, Func<ModListMetadataVM, bool>>(showNsfw => { return item => item.Metadata.NSFW == showNsfw; })
+                    .StartWith(item => item.Metadata.NSFW == false);
+                
+                var gameFilter = this.ObservableForProperty(vm => vm.GameType)
+                    .Select(v => v.Value)
+                    .Select<string, Func<ModListMetadataVM, bool>>(selected =>
+                    {
+                        if (selected is null or ALL_GAME_TYPE) return _ => true;
+                        return item => item.Metadata.Game.MetaData().HumanFriendlyGameName == selected;
+                    })
+                    .StartWith(_ => true);
+                
                 _modLists.Connect()
                     .ObserveOn(RxApp.MainThreadScheduler)
+                    .Filter(searchTextPredicates)
+                    .Filter(onlyInstalledGamesFilter)
+                    .Filter(onlyUtilityListsFilter)
+                    .Filter(showNSFWFilter)
+                    .Filter(gameFilter)
                     .Bind(out _filteredModLists)
                     .Subscribe()
                     .DisposeWith(disposables);
