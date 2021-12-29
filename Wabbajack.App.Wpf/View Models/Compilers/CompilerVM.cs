@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.Compiler;
 using Wabbajack.Lib.Extensions;
 using Wabbajack.Lib.Interventions;
+using Wabbajack.Messages;
 using Wabbajack.RateLimiter;
 
 namespace Wabbajack
@@ -64,7 +65,7 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<(int CurrentCPUs, int DesiredCPUs)> _CurrentCpuCount;
         public (int CurrentCPUs, int DesiredCPUs) CurrentCpuCount => _CurrentCpuCount.Value;
         
-        public CompilerVM(ILogger<CompilerVM> logger, MainWindowVM mainWindowVM) : base(logger, mainWindowVM)
+        public CompilerVM(ILogger<CompilerVM> logger, MainWindowVM mainWindowVM) : base(logger)
         {
             MWVM = mainWindowVM;
             
@@ -133,7 +134,7 @@ namespace Wabbajack
             BackCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
-                    mainWindowVM.NavigateTo(mainWindowVM.ModeSelectionVM);
+                    NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModeSelectionView);
                     StartedCompilation = false;
                     Completed = null;
                 },

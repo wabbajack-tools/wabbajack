@@ -16,6 +16,7 @@ using Wabbajack.DTOs;
 using Wabbajack.DTOs.ServerResponses;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Extensions;
+using Wabbajack.Messages;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -126,7 +127,7 @@ namespace Wabbajack
                         ArchiveStatus = a.Status,
                         IsFailing = a.Status != ArchiveStatus.InValid
                     }));
-                    _parent.MWVM.NavigateTo(_parent.MWVM.ModListContentsVM.Value);
+                    NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModListContents);
                 }
                 finally
                 {

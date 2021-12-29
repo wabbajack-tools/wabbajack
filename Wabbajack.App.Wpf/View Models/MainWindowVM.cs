@@ -3,6 +3,7 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.Diagnostics;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using Wabbajack.Common;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Interventions;
+using Wabbajack.Messages;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.View_Models;
@@ -38,7 +40,7 @@ namespace Wabbajack
         public readonly Lazy<CompilerVM> Compiler;
         public readonly Lazy<InstallerVM> Installer;
         public readonly Lazy<SettingsVM> SettingsPane;
-        public readonly Lazy<ModListGalleryVM> Gallery;
+        public readonly ModListGalleryVM Gallery;
         public readonly ModeSelectionVM ModeSelectionVM;
         public readonly Lazy<ModListContentsVM> ModListContentsVM;
         public readonly UserInterventionHandlers UserInterventionHandlers;
@@ -55,7 +57,7 @@ namespace Wabbajack
         public bool UpdateAvailable { get; private set; }
 
         public MainWindowVM(ILogger<MainWindowVM> logger, MainSettings settings, Client wjClient,
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider, ModeSelectionVM modeSelectionVM, ModListGalleryVM modListGalleryVM)
         {
             _logger = logger;
             _wjClient = wjClient;
@@ -64,12 +66,15 @@ namespace Wabbajack
             Installer = new Lazy<InstallerVM>(() => new InstallerVM(serviceProvider.GetRequiredService<ILogger<InstallerVM>>(), this, serviceProvider));
             Compiler = new Lazy<CompilerVM>(() => new CompilerVM(serviceProvider.GetRequiredService<ILogger<CompilerVM>>(), this));
             SettingsPane = new Lazy<SettingsVM>(() => new SettingsVM(serviceProvider.GetRequiredService<ILogger<SettingsVM>>(), this, serviceProvider));
-            Gallery = new Lazy<ModListGalleryVM>(() => new ModListGalleryVM(serviceProvider.GetRequiredService<ILogger<ModListGalleryVM>>(), this, 
-                serviceProvider.GetRequiredService<Client>(), serviceProvider.GetRequiredService<GameLocator>(), serviceProvider));
-            ModeSelectionVM = new ModeSelectionVM(this);
+            Gallery = modListGalleryVM;
+            ModeSelectionVM = modeSelectionVM;
             ModListContentsVM = new Lazy<ModListContentsVM>(() => new ModListContentsVM(serviceProvider.GetRequiredService<ILogger<ModListContentsVM>>(), this));
             UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetRequiredService<ILogger<UserInterventionHandlers>>(), this);
 
+            MessageBus.Current.Listen<NavigateToGlobal>()
+                .Subscribe(m => HandleNavigateTo(m.Screen))
+                .DisposeWith(CompositeDisposable);
+            
             // Set up logging
             /* TODO
             Utils.LogMessages
@@ -116,12 +121,12 @@ namespace Wabbajack
             if (IsStartingFromModlist(out var path))
             {
                 Installer.Value.ModListLocation.TargetPath = path;
-                NavigateTo(Installer.Value);
+                NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Installer);
             }
             else
             {
                 // Start on mode selection
-                NavigateTo(ModeSelectionVM);
+                NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModeSelectionView);
             }
 
             try
@@ -147,7 +152,19 @@ namespace Wabbajack
             OpenSettingsCommand = ReactiveCommand.Create(
                 canExecute: this.WhenAny(x => x.ActivePane)
                     .Select(active => !SettingsPane.IsValueCreated || !object.ReferenceEquals(active, SettingsPane.Value)),
-                execute: () => NavigateTo(SettingsPane.Value));
+                execute: () => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Settings));
+        }
+
+        private void HandleNavigateTo(NavigateToGlobal.ScreenType s)
+        {
+            ActivePane = s switch
+            {
+                NavigateToGlobal.ScreenType.ModeSelectionView => ModeSelectionVM,
+                NavigateToGlobal.ScreenType.ModListGallery => Gallery,
+                NavigateToGlobal.ScreenType.Installer => Installer.Value,
+                NavigateToGlobal.ScreenType.Settings => SettingsPane.Value,
+                _ => ActivePane
+            };
         }
 
         private static bool IsStartingFromModlist(out AbsolutePath modlistPath)
@@ -171,21 +188,23 @@ namespace Wabbajack
             if (path == default) return;
             var installer = Installer.Value;
             Settings.Installer.LastInstalledListLocation = path;
-            NavigateTo(installer);
+            NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Installer);
             installer.ModListLocation.TargetPath = path;
         }
 
+        /*
         public void NavigateTo(ViewModel vm)
         {
             ActivePane = vm;
-        }
+        }*/
 
+        /*
         public void NavigateTo<T>(T vm)
             where T : ViewModel, IBackNavigatingVM
         {
             vm.NavigateBackTarget = ActivePane;
             ActivePane = vm;
-        }
+        }*/
 
         public async Task ShutdownApplication()
         {

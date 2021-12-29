@@ -37,6 +37,8 @@ namespace Wabbajack
             services.AddSingleton<MainSettings>();
             services.AddTransient<CompilerVM>();
             services.AddTransient<InstallerVM>();
+            services.AddTransient<ModeSelectionVM>();
+            services.AddTransient<ModListGalleryVM>();
             
             
             return services;

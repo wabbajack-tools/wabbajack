@@ -4,14 +4,17 @@ using System;
 using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
+using Wabbajack.Models;
 
 namespace Wabbajack.Lib
 {
-    public class ViewModel : ReactiveObject, IDisposable
+    public class ViewModel : ReactiveObject, IDisposable, IActivatableViewModel
     {
-        private readonly Lazy<CompositeDisposable> _compositeDisposable = new Lazy<CompositeDisposable>();
+        private readonly Lazy<CompositeDisposable> _compositeDisposable = new();
         [JsonIgnore]
         public CompositeDisposable CompositeDisposable => _compositeDisposable.Value;
+
+        [JsonIgnore] public LoadingLock LoadingLock { get; } = new();
 
         public virtual void Dispose()
         {
@@ -30,5 +33,7 @@ namespace Wabbajack.Lib
             item = newItem;
             this.RaisePropertyChanged(propertyName);
         }
+
+        public ViewModelActivator Activator { get; } = new();
     }
 }

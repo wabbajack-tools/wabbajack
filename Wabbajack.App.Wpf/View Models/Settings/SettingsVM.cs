@@ -28,7 +28,7 @@ namespace Wabbajack
         public ICommand OpenTerminalCommand { get; }
 
         public SettingsVM(ILogger<SettingsVM> logger, MainWindowVM mainWindowVM, IServiceProvider provider)
-            : base(logger, mainWindowVM)
+            : base(logger)
         {
             MWVM = mainWindowVM;
             Login = new LoginManagerVM(provider.GetRequiredService<ILogger<LoginManagerVM>>(), this);

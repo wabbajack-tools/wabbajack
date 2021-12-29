@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Microsoft.Extensions.Logging;
@@ -7,6 +8,7 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.Messages;
 
 namespace Wabbajack
 {
@@ -24,27 +26,30 @@ namespace Wabbajack
         [Reactive]
         public ViewModel NavigateBackTarget { get; set; }
         public ReactiveCommand<Unit, Unit> BackCommand { get; protected set; }
-
-        protected ObservableAsPropertyHelper<bool> _IsActive;
-        public bool IsActive => _IsActive.Value;
+        
+        [Reactive]
+        public bool IsActive { get; set; }
         
         public Subject<bool> IsBackEnabledSubject { get; } = new Subject<bool>();
         public IObservable<bool> IsBackEnabled { get; }
 
-        public BackNavigatingVM(ILogger logger, MainWindowVM mainWindowVM)
+        public BackNavigatingVM(ILogger logger)
         {
             IsBackEnabled = IsBackEnabledSubject.StartWith(true);
             BackCommand = ReactiveCommand.Create(
                 execute: () => logger.CatchAndLog(() =>
                 {
-                    mainWindowVM.NavigateTo(NavigateBackTarget);
+                    NavigateBack.Send();
                     Unload();
                 }),
                 canExecute: this.ConstructCanNavigateBack()
                     .ObserveOnGuiThread());
-
-            _IsActive = this.ConstructIsActive(mainWindowVM)
-                .ToGuiProperty(this, nameof(IsActive));
+            
+            this.WhenActivated(disposables =>
+            {
+                IsActive = true;
+                Disposable.Create(() => IsActive = false).DisposeWith(disposables);
+            });
         }
 
         public virtual void Unload()
@@ -60,7 +65,7 @@ namespace Wabbajack
                 .CombineLatest(vm.IsBackEnabled)
                 .Select(x => x.First != null && x.Second);
         }
-
+        
         public static IObservable<bool> ConstructIsActive(this IBackNavigatingVM vm, MainWindowVM mwvm)
         {
             return mwvm.WhenAny(x => x.ActivePane)

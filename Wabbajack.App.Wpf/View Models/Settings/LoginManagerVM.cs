@@ -20,7 +20,7 @@ namespace Wabbajack
         public List<LoginTargetVM> Downloaders { get; }
 
         public LoginManagerVM(ILogger<LoginManagerVM> logger, SettingsVM settingsVM)
-            : base(logger, settingsVM.MWVM)
+            : base(logger)
         {
             /*
             Downloaders = DownloadDispatcher.Downloaders

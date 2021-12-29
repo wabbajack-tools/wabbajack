@@ -34,7 +34,7 @@ namespace Wabbajack.View_Models.Settings
         private readonly Client _wjClient;
         private IObservable<bool> IsUploading { get; }
 
-        public AuthorFilesVM(ILogger<AuthorFilesVM> logger, WabbajackApiTokenProvider token, Client wjClient, SettingsVM vm) : base(logger, vm.MWVM)
+        public AuthorFilesVM(ILogger<AuthorFilesVM> logger, WabbajackApiTokenProvider token, Client wjClient, SettingsVM vm) : base(logger)
         {
             _token = token;
             _wjClient = wjClient;

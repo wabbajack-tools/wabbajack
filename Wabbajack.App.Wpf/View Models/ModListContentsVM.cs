@@ -31,7 +31,7 @@ namespace Wabbajack.View_Models
         private static readonly Regex NameMatcher = new(@"(?<=\.)[^\.]+(?=\+State)", RegexOptions.Compiled);
         private readonly ILogger<ModListContentsVM> _logger;
 
-        public ModListContentsVM(ILogger<ModListContentsVM> logger, MainWindowVM mwvm) : base(logger, mwvm)
+        public ModListContentsVM(ILogger<ModListContentsVM> logger, MainWindowVM mwvm) : base(logger)
         {
             _logger = logger;
             _mwvm = mwvm;

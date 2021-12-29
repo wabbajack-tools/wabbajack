@@ -15,6 +15,7 @@ using Microsoft.WindowsAPICodePack.Shell;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Lib.Extensions;
 using Wabbajack.Lib.Interventions;
+using Wabbajack.Messages;
 using Wabbajack.RateLimiter;
 using Wabbajack.View_Models;
 using Wabbajack.Paths.IO;
@@ -98,7 +99,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     public ReactiveCommand<Unit, Unit> GoToInstallCommand { get; }
     public ReactiveCommand<Unit, Unit> BeginCommand { get; }
 
-    public InstallerVM(ILogger<InstallerVM> logger, MainWindowVM mainWindowVM, IServiceProvider serviceProvider) : base(logger, mainWindowVM)
+    public InstallerVM(ILogger<InstallerVM> logger, MainWindowVM mainWindowVM, IServiceProvider serviceProvider) : base(logger)
     {
         _logger = logger;
 
@@ -162,10 +163,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                 MWVM.Settings.Installer.LastInstalledListLocation = ModListLocation.TargetPath;
             })
             .DisposeWith(CompositeDisposable);
-
-        _IsActive = this.ConstructIsActive(MWVM)
-            .ToGuiProperty(this, nameof(IsActive));
-
+        
         // Active path represents the path to currently have loaded
         // If we're not actively showing, then "unload" the active path
         var activePath = Observable.CombineLatest(
@@ -239,7 +237,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             {
                 StartedInstallation = false;
                 Completed = null;
-                mainWindowVM.NavigateTo(mainWindowVM.ModeSelectionVM);
+                NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModeSelectionView);
             },
             canExecute: Observable.CombineLatest(
                     this.WhenAny(x => x.Installing)

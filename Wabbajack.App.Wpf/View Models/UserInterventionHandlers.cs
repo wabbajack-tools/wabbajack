@@ -7,6 +7,7 @@ using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Interventions;
+using Wabbajack.Messages;
 
 namespace Wabbajack
 {
@@ -28,11 +29,11 @@ namespace Wabbajack
             var cancel = new CancellationTokenSource();
             var oldPane = MainWindow.ActivePane;
             using var vm = await WebBrowserVM.GetNew(_logger);
-            MainWindow.NavigateTo(vm);
+            NavigateTo.Send(vm);
             vm.BackCommand = ReactiveCommand.Create(() =>
             {
                 cancel.Cancel();
-                MainWindow.NavigateTo(oldPane);
+                NavigateTo.Send(oldPane);
                 intervention.Cancel();
             });
 
@@ -54,7 +55,7 @@ namespace Wabbajack
                 wait.Dispose();
             }
 
-            MainWindow.NavigateTo(oldPane);
+            NavigateTo.Send(oldPane);
         }
 
         public async Task Handle(IStatusMessage msg)

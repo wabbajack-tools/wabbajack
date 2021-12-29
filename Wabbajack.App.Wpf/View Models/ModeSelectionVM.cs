@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.Messages;
 using Wabbajack.Paths.IO;
 
 namespace Wabbajack
@@ -20,23 +21,23 @@ namespace Wabbajack
         public ICommand CompileCommand { get; }
         public ReactiveCommand<Unit, Unit> UpdateCommand { get; }
 
-        public ModeSelectionVM(MainWindowVM mainVM)
+        public ModeSelectionVM()
         {
-            _mainVM = mainVM;
-
             InstallCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
+                    /* TODO 
                     var path = mainVM.Settings.Installer.LastInstalledListLocation;
                     if (path == default || !path.FileExists())
                     {
                         path = UIUtils.OpenFileDialog($"*{Ext.Wabbajack}|*{Ext.Wabbajack}");
                     }
                     _mainVM.OpenInstaller(path);
+                    */
                 });
 
-            CompileCommand = ReactiveCommand.Create(() => mainVM.NavigateTo(mainVM.Compiler.Value));
-            BrowseCommand = ReactiveCommand.Create(() => mainVM.NavigateTo(mainVM.Gallery.Value));
+            CompileCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Compiler));
+            BrowseCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModListGallery));
         }
     }
 }
