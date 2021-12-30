@@ -1,8 +1,14 @@
 ﻿using System;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Windows;
+using System.Windows.Threading;
+using CefSharp.DevTools.Debugger;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ReactiveUI;
+using Splat;
 using Wabbajack.Common;
 using Wabbajack;
 using Wabbajack.Services.OSIntegrated;
@@ -16,18 +22,27 @@ namespace Wabbajack
     public partial class App
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly IHost _host;
+
         public App()
         {
-            var services = new ServiceCollection();
+            _host = Host.CreateDefaultBuilder(Array.Empty<string>())
+                .ConfigureLogging(c =>
+                {
+                    c.ClearProviders();
+                })
+                .ConfigureServices((host, services) =>
+                {
+                    ConfigureServices(services);
+                })
+                .Build();
             
-            var host = Host.CreateDefaultBuilder(Array.Empty<string>())
-                //.ConfigureLogging(c => { c.ClearProviders(); })
-                .ConfigureServices((host, services) => { ConfigureServices(services); }).Build();
-            
-            _serviceProvider = host.Services;
+            _serviceProvider = _host.Services;
         }
         private IServiceCollection ConfigureServices(IServiceCollection services)
         {
+            RxApp.MainThreadScheduler = new DispatcherScheduler(Dispatcher.CurrentDispatcher);
+            
             services.AddOSIntegrated();
             services.AddTransient<MainWindow>();
             services.AddTransient<MainWindowVM>();
@@ -40,13 +55,25 @@ namespace Wabbajack
             services.AddTransient<ModeSelectionVM>();
             services.AddTransient<ModListGalleryVM>();
             
-            
             return services;
         }
         private void OnStartup(object sender, StartupEventArgs e)
         {
-            var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-            mainWindow!.Show();
+            RxApp.MainThreadScheduler.Schedule(0, (_, _) =>
+            {
+                var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+                mainWindow!.Show();
+                return Disposable.Empty;
+            });
+        }
+
+        private void OnExit(object sender, ExitEventArgs e)
+        {
+            using (_host)
+            {
+                _host.StopAsync();
+            }
+            base.OnExit(e);
         }
     }
 }

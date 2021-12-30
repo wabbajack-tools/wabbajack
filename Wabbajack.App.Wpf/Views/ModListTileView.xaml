@@ -356,51 +356,13 @@
                     Height="40"
                     Margin="5,0"
                     VerticalAlignment="Center">
-                    <Button.Style>
-                        <Style BasedOn="{StaticResource IconBareButtonStyle}" TargetType="Button">
-                            <Setter Property="Content">
-                                <Setter.Value>
-                                    <iconPacks:Material
-                                        Width="20"
-                                        Height="20"
-                                        Kind="Download" />
-                                </Setter.Value>
-                            </Setter>
-                            <Setter Property="ToolTip" Value="Download modlist" />
-                            <Style.Triggers>
-                                <MultiDataTrigger>
-                                    <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding Exists}" Value="True" />
-                                        <Condition Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="True" />
-                                    </MultiDataTrigger.Conditions>
-                                    <MultiDataTrigger.Setters>
-                                        <Setter Property="Content">
-                                            <Setter.Value>
-                                                <iconPacks:Material
-                                                    Width="20"
-                                                    Height="20"
-                                                    Kind="Play" />
-                                            </Setter.Value>
-                                        </Setter>
-                                        <Setter Property="ToolTip" Value="Install modlist" />
-                                        <Setter Property="Padding" Value="3,0,0,0" />
-                                    </MultiDataTrigger.Setters>
-                                </MultiDataTrigger>
-                                <DataTrigger Binding="{Binding Error.Succeeded}" Value="False">
-                                    <Setter Property="Content">
-                                        <Setter.Value>
-                                            <iconPacks:Material
-                                                Width="20"
-                                                Height="20"
-                                                Kind="AlertCircle" />
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Setter Property="ToolTip" Value="Error downloading modlist.  Check logs and/or restart Wabbajack to try again." />
-                                    <Setter Property="Foreground" Value="{StaticResource ErrorBrush}" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
+                    <StackPanel x:Name="IconContainer">
+                        <iconPacks:Material
+                            x:Name="ErrorIcon"
+                            Width="20"
+                            Height="20"
+                            Kind="Exclamation" />
+                    </StackPanel>
                 </Button>
 
             </Grid>

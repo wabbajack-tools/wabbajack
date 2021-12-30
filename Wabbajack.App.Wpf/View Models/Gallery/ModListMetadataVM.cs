@@ -64,6 +64,9 @@ namespace Wabbajack
         public bool IsBroken { get; private set; }
         
         [Reactive]
+        public ModListStatus Status { get; set; }
+        
+        [Reactive]
         public bool IsDownloading { get; private set; }
 
         [Reactive]
@@ -99,6 +102,8 @@ namespace Wabbajack
             _wjClient = wjClient;
             Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.Links.MachineURL).WithExtension(Ext.Wabbajack);
             ModListTagList = new List<ModListTag>();
+            
+            UpdateStatus().FireAndForget();
 
             Metadata.Tags.ForEach(tag =>
             {
@@ -224,6 +229,9 @@ namespace Wabbajack
 
         private async Task Download()
         {
+            Status = ModListStatus.Downloading;
+            
+            using var ll = LoadingLock.WithLoading();
             var (progress, task) = _maintainer.DownloadModlist(Metadata);
             var dispose = progress
                 .BindToStrict(this, vm => vm.ProgressPercent);
@@ -231,7 +239,25 @@ namespace Wabbajack
             await task;
 
             await _wjClient.SendMetric("downloading", Metadata.Title);
+            await UpdateStatus();
             dispose.Dispose();
+        }
+
+        private async Task UpdateStatus()
+        {
+            if (await _maintainer.HaveModList(Metadata))
+                Status = ModListStatus.Downloaded;
+            else if (LoadingLock.IsLoading)
+                Status = ModListStatus.Downloading;
+            else
+                Status = ModListStatus.NotDownloaded;
+        }
+
+        public enum ModListStatus
+        {
+            NotDownloaded,
+            Downloading,
+            Downloaded
         }
     }
 }

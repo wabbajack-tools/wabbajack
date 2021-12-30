@@ -1,6 +1,9 @@
-﻿using System.Reactive.Disposables;
+﻿using System;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows;
+using System.Windows.Media.Media3D;
+using MahApps.Metro.IconPacks;
 using ReactiveUI;
 
 namespace Wabbajack
@@ -63,6 +66,26 @@ namespace Wabbajack
                     .ObserveOnDispatcher()
                     .Select(p => p.Value)
                     .BindTo(this, x => x.DownloadProgressBar.Value)
+                    .DisposeWith(disposables);
+
+                ViewModel.WhenAnyValue(x => x.Status)
+                    .ObserveOnGuiThread()
+                    .Subscribe(x =>
+                    {
+                        IconContainer.Children.Clear();
+                        IconContainer.Children.Add(new PackIconMaterial
+                        {
+                            Width = 20,
+                            Height = 20,
+                            Kind = x switch
+                            {
+                                ModListMetadataVM.ModListStatus.Downloaded => PackIconMaterialKind.Play,
+                                ModListMetadataVM.ModListStatus.Downloading => PackIconMaterialKind.Network,
+                                ModListMetadataVM.ModListStatus.NotDownloaded => PackIconMaterialKind.Download,
+                                _ => throw new ArgumentOutOfRangeException(nameof(x), x, null)
+                            }
+                        });
+                    })
                     .DisposeWith(disposables);
 
                 /*
