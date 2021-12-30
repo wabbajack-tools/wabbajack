@@ -416,6 +416,22 @@ public static class GameRegistry
                 },
                 MainExecutable = @"bin\x64\Cyberpunk2077.exe".ToRelativePath()
             }
+        },
+        {
+           Game.Sims4, new GameMetaData
+           {
+                Game = Game.Sims4,
+                SteamIDs = new[] {1222670},
+                MO2Name = "The Sims 4",
+                NexusName = "thesims4",
+                NexusGameId = 641,
+                IsGenericMO2Plugin = true,
+                RequiredFiles = new[]
+                {
+                    @"Game\Bin\TS4_x64.exe".ToRelativePath()
+                },
+                MainExecutable = @"Game\Bin\TS4_x64.exe".ToRelativePath()
+            }
         }
     };
 
