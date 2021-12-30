@@ -8,14 +8,19 @@ using System.Windows.Media;
 using DynamicData;
 using DynamicData.Binding;
 using System.Reactive;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Shell;
+using Wabbajack.Common;
+using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Extensions;
+using Wabbajack.Installer;
 using Wabbajack.Interventions;
 using Wabbajack.Messages;
+using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
 using Wabbajack.View_Models;
 using Wabbajack.Paths.IO;
@@ -29,66 +34,49 @@ public enum ModManager
     Standard
 }
 
-public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
+public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
 {
-    public SlideShow Slideshow { get; }
-
-    public MainWindowVM MWVM { get; }
-
-    private readonly ObservableAsPropertyHelper<ModListVM> _modList;
-    public ModListVM ModList => _modList.Value;
-
-    public FilePickerVM ModListLocation { get; }
-
-    private readonly ObservableAsPropertyHelper<ISubInstallerVM> _installer;
-    public ISubInstallerVM Installer => _installer.Value;
-
-    private readonly ObservableAsPropertyHelper<bool> _installing;
-    public bool Installing => _installing.Value;
-
     [Reactive]
-    public bool StartedInstallation { get; set; }
-
+    public ModList ModList { get; set; }
+    
     [Reactive]
     public ErrorResponse? Completed { get; set; }
 
-    private readonly ObservableAsPropertyHelper<ImageSource> _image;
-    public ImageSource Image => _image.Value;
+    [Reactive]
+    public FilePickerVM ModListLocation { get; set; }
+    
+    [Reactive]
+    public MO2InstallerVM Installer { get; set; }
+    
+    [Reactive]
+    public BitmapFrame ModListImage { get; set; }
+    
+    [Reactive]
+    
+    public BitmapFrame SlideShowImage { get; set; }
+    
+    
+    /// <summary>
+    ///  Slideshow Data
+    /// </summary>
+    [Reactive]
+    public string SlideShowTitle { get; set; }
+    
+    [Reactive]
+    public string SlideShowAuthor { get; set; }
+    
+    [Reactive]
+    public string SlideShowDescription { get; set; }
 
-    private readonly ObservableAsPropertyHelper<string> _titleText;
-    public string TitleText => _titleText.Value;
 
-    private readonly ObservableAsPropertyHelper<string> _authorText;
-    public string AuthorText => _authorText.Value;
-
-    private readonly ObservableAsPropertyHelper<string> _description;
-    public string Description => _description.Value;
-
-    private readonly ObservableAsPropertyHelper<string> _progressTitle;
-    public string ProgressTitle => _progressTitle.Value;
-
-    private readonly ObservableAsPropertyHelper<string> _modListName;
-    public string ModListName => _modListName.Value;
-
-    private readonly ObservableAsPropertyHelper<Percent> _percentCompleted;
-    public Percent PercentCompleted => _percentCompleted.Value;
-
-    public ObservableCollectionExtended<CPUDisplayVM> StatusList { get; } = new ObservableCollectionExtended<CPUDisplayVM>();
-    public ObservableCollectionExtended<IStatusMessage> Log => MWVM.Log;
-
-    private readonly ObservableAsPropertyHelper<ModManager?> _TargetManager;
-    public ModManager? TargetManager => _TargetManager.Value;
-
-    private readonly ObservableAsPropertyHelper<IUserIntervention> _ActiveGlobalUserIntervention;
-    public IUserIntervention ActiveGlobalUserIntervention => _ActiveGlobalUserIntervention.Value;
-
-    private readonly ObservableAsPropertyHelper<(int CurrentCPUs, int DesiredCPUs)> _CurrentCpuCount;
-    public (int CurrentCPUs, int DesiredCPUs) CurrentCpuCount => _CurrentCpuCount.Value;
-
-    private readonly ObservableAsPropertyHelper<bool> _LoadingModlist;
+    private readonly ObservableAsPropertyHelper<bool> _installing;
+    private readonly DTOSerializer _dtos;
     private readonly ILogger<InstallerVM> _logger;
-    public bool LoadingModlist => _LoadingModlist.Value;
-
+    
+    [Reactive]
+    public bool Installing { get; set; }
+    
+    
     // Command properties
     public ReactiveCommand<Unit, Unit> ShowManifestCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenReadmeCommand { get; }
@@ -98,33 +86,27 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     public ReactiveCommand<Unit, Unit> OpenLogsCommand { get; }
     public ReactiveCommand<Unit, Unit> GoToInstallCommand { get; }
     public ReactiveCommand<Unit, Unit> BeginCommand { get; }
+    
+    public ReactiveCommand<Unit, Unit> BackCommand { get; }
 
-    public InstallerVM(ILogger<InstallerVM> logger, MainWindowVM mainWindowVM, IServiceProvider serviceProvider) : base(logger)
+    public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos) : base(logger)
     {
         _logger = logger;
-
-        /* TODO
-        var downloadsPath = KnownFolders.Downloads.Path;
-        var skyDrivePath = KnownFolders.SkyDrive.Path;
-
-        if (downloadsPath != null && AbsolutePath.EntryPoint.IsChildOf(new AbsolutePath(downloadsPath)))
+        _dtos = dtos;
+        Installer = new MO2InstallerVM(this);
+        
+        BackCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModeSelectionView));
+        
+        OpenReadmeCommand = ReactiveCommand.Create(() =>
         {
-            logger.LogError(Error(new CriticalFailureIntervention(
-                "Wabbajack is running inside your Downloads folder. This folder is often highly monitored by antivirus software and these can often " +
-                "conflict with the operations Wabbajack needs to perform. Please move Wabbajack outside of your Downloads folder and then restart the app.",
-                "Cannot run inside Downloads", true));
-        }
-
-        if (skyDrivePath != null && AbsolutePath.EntryPoint.IsChildOf(new AbsolutePath(skyDrivePath)))
+            UIUtils.OpenWebsite(new Uri(ModList!.Readme));
+        }, LoadingLock.IsNotLoadingObservable);
+        
+        VisitModListWebsiteCommand = ReactiveCommand.Create(() =>
         {
-            Utils.Error(new CriticalFailureIntervention(
-                $"Wabbajack is running inside a OneDrive folder \"{skyDrivePath}\". This folder is known to cause issues with Wabbajack. " +
-                "Please move Wabbajack outside of your OneDrive folder and then restart the app.",
-                "Cannot run inside OneDrive", true));
-        }*/
-
-        MWVM = mainWindowVM;
-
+            UIUtils.OpenWebsite(ModList!.Website);
+        }, LoadingLock.IsNotLoadingObservable);
+        
         ModListLocation = new FilePickerVM
         {
             ExistCheckOption = FilePickerVM.CheckOptions.On,
@@ -132,350 +114,47 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             PromptTitle = "Select a ModList to install"
         };
         ModListLocation.Filters.Add(new CommonFileDialogFilter("Wabbajack Modlist", "*.wabbajack"));
-
-        // Swap to proper sub VM based on selected type
-        _installer = this.WhenAny(x => x.TargetManager)
-            // Delay so the initial VM swap comes in immediately, subVM comes right after
-            .DelayInitial(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
-            .Select<ModManager?, ISubInstallerVM>(type =>
-            {
-                switch (type)
-                {
-                    case ModManager.Standard:
-                        return new MO2InstallerVM(this);
-                    default:
-                        return null;
-                }
-            })
-            // Unload old VM
-            .Pairwise()
-            .Do(pair =>
-            {
-                pair.Previous?.Unload();
-            })
-            .Select(p => p.Current)
-            .ToGuiProperty(this, nameof(Installer));
-
-        // Load settings
-        MWVM.Settings.SaveSignal
-            .Subscribe(_ =>
-            {
-                MWVM.Settings.Installer.LastInstalledListLocation = ModListLocation.TargetPath;
-            })
+        
+        MessageBus.Current.Listen<LoadModlistForInstalling>()
+            .Subscribe(msg => LoadModlist(msg.Path).FireAndForget())
             .DisposeWith(CompositeDisposable);
-        
-        // Active path represents the path to currently have loaded
-        // If we're not actively showing, then "unload" the active path
-        var activePath = Observable.CombineLatest(
-                this.WhenAny(x => x.ModListLocation.TargetPath),
-                this.WhenAny(x => x.IsActive),
-                resultSelector: (path, active) => (path, active))
-            .Select(x =>
-            {
-                if (!x.active) return default;
-                return x.path;
-            })
-            // Throttle slightly so changes happen more atomically
-            .Throttle(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
-            .Replay(1)
-            .RefCount();
 
-        
-        _modList = activePath
-            .ObserveOn(RxApp.TaskpoolScheduler)
-            // Convert from active path to modlist VM
-            .Select(modListPath =>
-            {
-                if (modListPath == default) return default;
-                if (!modListPath.FileExists()) return default;
-                return new ModListVM(serviceProvider.GetRequiredService<ILogger<ModListVM>>()!, modListPath, serviceProvider.GetRequiredService<DTOSerializer>());
-            })
-            .DisposeOld()
-            .ObserveOnGuiThread()
-            .StartWith(default(ModListVM))
-            .ToGuiProperty(this, nameof(ModList));
-
-        // Force GC collect when modlist changes, just to make sure we clean up any loose large items immediately
-        this.WhenAny(x => x.ModList)
-            .Delay(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
-            .Subscribe(x =>
-            {
-                GC.Collect();
-            });
-
-        _LoadingModlist = Observable.Merge(
-                // When active path changes, mark as loading
-                activePath
-                    .Select(_ => true),
-                // When the resulting modlist comes in, mark it as done
-                this.WhenAny(x => x.ModList)
-                    .Select(_ => false))
-            .ToGuiProperty(this, nameof(LoadingModlist));
-        _installing = this.WhenAny(x => x.Installer.ActiveInstallation)
-            .Select(i => i != null)
-            .ToGuiProperty(this, nameof(Installing));
-        
-        /*TODO
-        _TargetManager = this.WhenAny(x => x.ModList)
-            .Select(modList => ModManager.Standard)
-            .ToGuiProperty(this, nameof(TargetManager));
-            */
-
-        // Add additional error check on ModList
-        ModListLocation.AdditionalError = this.WhenAny(x => x.ModList)
-            .Select<ModListVM, IErrorResponse>(modList =>
-            {
-                if (modList == null) return ErrorResponse.Fail("Modlist path resulted in a null object.");
-                if (modList.Error != null) return ErrorResponse.Fail("Modlist is corrupt", modList.Error);
-                if (modList.WabbajackVersion != null && modList.WabbajackVersion > Consts.CurrentMinimumWabbajackVersion)
-                    return ErrorResponse.Fail("The Modlist you are trying to install was made using a newer Version of Wabbajack. Please update Wabbajack before installing!");
-                return ErrorResponse.Success;
-            });
-
-        BackCommand = ReactiveCommand.Create(
-            execute: () =>
-            {
-                StartedInstallation = false;
-                Completed = null;
-                NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModeSelectionView);
-            },
-            canExecute: Observable.CombineLatest(
-                    this.WhenAny(x => x.Installing)
-                        .Select(x => !x),
-                    this.ConstructCanNavigateBack(),
-                    resultSelector: (i, b) => i && b)
-                .ObserveOnGuiThread());
-
-        /* TODO
-        _percentCompleted = this.WhenAny(x => x.Installer.ActiveInstallation)
-            .StartWith(default(IInstaller))
-            .CombineLatest(
-                this.WhenAny(x => x.Completed),
-                (installer, completed) =>
-                {
-                    if (installer == null)
-                    {
-                        return Observable.Return<Percent>(completed != null ? Percent.One : Percent.Zero);
-                    }
-                    return installer.PercentCompleted.StartWith(Percent.Zero);
-                })
-            .Switch()
-            .Debounce(TimeSpan.FromMilliseconds(25), RxApp.MainThreadScheduler)
-            .ToGuiProperty(this, nameof(PercentCompleted));
-            */
-
-        
-        Slideshow = new SlideShow( this, serviceProvider);
-
-        // Set display items to ModList if configuring or complete,
-        // or to the current slideshow data if installing
-        _image = Observable.CombineLatest(
-                this.WhenAny(x => x.ModList.Error),
-                this.WhenAny(x => x.ModList)
-                    .Select(x => x?.ImageObservable ?? Observable.Return(default(BitmapImage)))
-                    .Switch()
-                    .StartWith(default(BitmapImage)),
-                this.WhenAny(x => x.Slideshow.Image)
-                    .StartWith(default(BitmapImage)),
-                this.WhenAny(x => x.Installing),
-                this.WhenAny(x => x.LoadingModlist),
-                resultSelector: (err, modList, slideshow, installing, loading) =>
-                {
-                    if (err != null)
-                    {
-                        return ResourceLinks.WabbajackErrLogo.Value;
-                    }
-                    if (loading) return default;
-                    return installing ? slideshow : modList;
-                })
-            .Select<BitmapImage, ImageSource>(x => x)
-            .ToGuiProperty(this, nameof(Image));
-        _titleText = Observable.CombineLatest(
-                this.WhenAny(x => x.ModList)
-                    .Select(modList => modList?.Name ?? string.Empty),
-                this.WhenAny(x => x.Slideshow.TargetMod.State.Name)
-                    .StartWith(default(string)),
-                this.WhenAny(x => x.Installing),
-                resultSelector: (modList, mod, installing) => installing ? mod : modList)
-            .ToGuiProperty(this, nameof(TitleText));
-        _authorText = Observable.CombineLatest(
-                this.WhenAny(x => x.ModList)
-                    .Select(modList => modList?.Author ?? string.Empty),
-                this.WhenAny(x => x.Slideshow.TargetMod.State.Author)
-                    .StartWith(default(string)),
-                this.WhenAny(x => x.Installing),
-                resultSelector: (modList, mod, installing) => installing ? mod : modList)
-            .ToGuiProperty(this, nameof(AuthorText));
-        _description = Observable.CombineLatest(
-                this.WhenAny(x => x.ModList)
-                    .Select(modList => modList?.Description ?? string.Empty),
-                this.WhenAny(x => x.Slideshow.TargetMod.State.Description)
-                    .StartWith(default(string)),
-                this.WhenAny(x => x.Installing),
-                resultSelector: (modList, mod, installing) => installing ? mod : modList)
-            .ToGuiProperty(this, nameof(Description));
-        
-        /* TODO
-        _modListName = Observable.CombineLatest(
-                this.WhenAny(x => x.ModList.Error)
-                    .Select(x => x != null),
-                this.WhenAny(x => x.ModList)
-                    .Select(x => x?.Name),
-                resultSelector: (err, name) =>
-                {
-                    if (err) return "Corrupted Modlist";
-                    return name;
-                })
-            .Merge(this.WhenAny(x => x.Installer.ActiveInstallation)
-                .Where(c => c != null)
-                .SelectMany(c => c.TextStatus))
-            .ToGuiProperty(this, nameof(ModListName));
-            */
-
-        ShowManifestCommand = ReactiveCommand.Create(() =>
+        this.WhenActivated(disposables =>
         {
-            UIUtils.OpenWebsite(new Uri("https://www.wabbajack.org/#/modlists/manifest"));
-        }, this.WhenAny(x => x.ModList)
-            .Select(x => x?.SourceModList != null)
-            .ObserveOnGuiThread());
-            
-        OpenReadmeCommand = ReactiveCommand.Create(
-            execute: () => this.ModList?.OpenReadme(),
-            canExecute: this.WhenAny(x => x.ModList)
-                .Select(modList => !string.IsNullOrEmpty(modList?.Readme))
-                .ObserveOnGuiThread());
-            
-        /*TODO
-        OpenLogsCommand = ReactiveCommand.Create(
-            execute: () => UIUtils.OpenFolder(Consts.LogsFolder));
-            */
-        VisitModListWebsiteCommand = ReactiveCommand.Create(
-            execute: () =>
-            {
-                UIUtils.OpenWebsite(ModList.Website);
-                return Unit.Default;
-            },
-            canExecute: this.WhenAny(x => x.ModList.Website)
-                .Select(x => x != null)
-                .ObserveOnGuiThread());
+            ModListLocation.WhenAnyValue(l => l.TargetPath)
+                .Subscribe(p => LoadModlist(p).FireAndForget())
+                .DisposeWith(disposables);
 
-        _progressTitle = this.WhenAnyValue(
-                x => x.Installing,
-                x => x.StartedInstallation,
-                x => x.Completed,
-                selector: (installing, started, completed) =>
-                {
-                    if (installing)
-                    {
-                        return "Installing";
-                    }
-                    else if (started)
-                    {
-                        if (completed == null) return "Installing";
-                        return completed.Value.Succeeded ? "Installed" : "Failed";
-                    }
-                    else
-                    {
-                        return "Awaiting Input";
-                    }
-                })
-            .ToGuiProperty(this, nameof(ProgressTitle));
+        });
 
-        /*
-        UIUtils.BindCpuStatus(
-                this.WhenAny(x => x.Installer.ActiveInstallation)
-                    .SelectMany(c => c?.QueueStatus ?? Observable.Empty<CPUStatus>()),
-                StatusList)
-            .DisposeWith(CompositeDisposable);
-*/
-        BeginCommand = ReactiveCommand.CreateFromTask(
-            canExecute: this.WhenAny(x => x.Installer.CanInstall)
-                .Select(err => err.Succeeded),
-            execute: async () =>
-            {
-                try
-                {
-                    _logger.LogInformation("Starting to install {Name}", ModList.Name);
-                    IsBackEnabledSubject.OnNext(false);
-                    var success = await this.Installer.Install();
-                    Completed = ErrorResponse.Create(success);
-                    try
-                    {
-                        this.ModList?.OpenReadme();
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "During installation");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, $"Encountered error, can't continue");
-                    while (ex.InnerException != null) ex = ex.InnerException;
-                    Completed = ErrorResponse.Fail(ex);
-                }
-                finally
-                {
-                    IsBackEnabledSubject.OnNext(true);
-                }
-            });
-
-        // When sub installer begins an install, mark state variable
-        BeginCommand.StartingExecution()
-            .Subscribe(_ =>
-            {
-                StartedInstallation = true;
-            })
-            .DisposeWith(CompositeDisposable);
-
-        /*
-        // Listen for user interventions, and compile a dynamic list of all unhandled ones
-        var activeInterventions = this.WhenAny(x => x.Installer.ActiveInstallation)
-            .WithLatestFrom(
-                this.WhenAny(x => x.Installer),
-                (activeInstall, installer) =>
-                {
-                    if (activeInstall == null) return Observable.Empty<IChangeSet<IUserIntervention>>();
-                    return activeInstall.LogMessages
-                        .WhereCastable<IStatusMessage, IUserIntervention>()
-                        .ToObservableChangeSet()
-                        .AutoRefresh(i => i.Handled)
-                        .Filter(i => !i.Handled)
-                        .Transform(x => installer.InterventionConverter(x));
-                })
-            .Switch()
-            .AsObservableList();
-
-        // Find the top intervention /w no CPU ID to be marked as "global"
-        _ActiveGlobalUserIntervention = activeInterventions.Connect()
-            .Filter(x => x.CpuID == WorkQueue.UnassignedCpuId)
-            .QueryWhenChanged(query => query.FirstOrDefault())
-            .ToGuiProperty(this, nameof(ActiveGlobalUserIntervention));
-            */
-
-        CloseWhenCompleteCommand = ReactiveCommand.CreateFromTask(
-            canExecute: this.WhenAny(x => x.Completed)
-                .Select(x => x != null),
-            execute: async () =>
-            {
-                await MWVM.ShutdownApplication();
-            });
-
-        GoToInstallCommand = ReactiveCommand.Create(
-            canExecute: Observable.CombineLatest(
-                this.WhenAny(x => x.Completed)
-                    .Select(x => x != null),
-                this.WhenAny(x => x.Installer.SupportsAfterInstallNavigation),
-                resultSelector: (complete, supports) => complete && supports),
-            execute: () =>
-            {
-                Installer.AfterInstallNavigation();
-            });
-
-        /*
-        _CurrentCpuCount = this.WhenAny(x => x.Installer.ActiveInstallation.Queue.CurrentCpuCount)
-            .Switch()
-            .ToGuiProperty(this, nameof(CurrentCpuCount));
-            */
     }
+
+    private async Task LoadModlist(AbsolutePath path)
+    {
+        using var ll = LoadingLock.WithLoading();
+        ModListLocation.TargetPath = path;
+        try
+        {
+            ModList = await StandardInstaller.LoadFromFile(_dtos, path);
+            ModListImage = BitmapFrame.Create(await StandardInstaller.ModListImageStream(path));
+            PopulateSlideShow(ModList);
+            
+            ll.Succeed();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "While loading modlist");
+            ll.Fail();
+        }
+    }
+
+
+    private void PopulateSlideShow(ModList modList)
+    {
+        SlideShowTitle = modList.Name;
+        SlideShowAuthor = modList.Author;
+        SlideShowDescription = modList.Description;
+        SlideShowImage = ModListImage;
+    }
+
 }

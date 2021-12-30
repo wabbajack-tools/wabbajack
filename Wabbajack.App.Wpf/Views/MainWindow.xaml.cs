@@ -1,8 +1,11 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using MahApps.Metro.Controls;
 using Microsoft.Extensions.Logging;
+using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack;
 using Wabbajack.LibCefHelpers;
@@ -92,6 +95,15 @@ namespace Wabbajack
                 _logger.LogError(ex, "During Main Window Startup");
                 Environment.Exit(-1);
             }
+            
+                        
+            vm.WhenAnyValue(vm => vm.ResourceStatus)
+                .BindToStrict(this, view => view.ResourceUsage.Text);
+
+            vm.WhenAnyValue(vm => vm.ResourceStatus)
+                .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)
+                .BindToStrict(this, view => view.ResourceUsage.Visibility);
+
         }
 
         public void Init(MainWindowVM vm, MainSettings settings)

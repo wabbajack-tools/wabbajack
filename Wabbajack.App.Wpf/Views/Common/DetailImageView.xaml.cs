@@ -119,6 +119,7 @@ namespace Wabbajack
                     .BindToStrict(this, x => x.BadgeImage.Source)
                     .DisposeWith(dispose);
                 this.WhenAny(x => x.Image)
+                    .Select(f => f)
                     .BindToStrict(this, x => x.ModlistImage.Source)
                     .DisposeWith(dispose);
                 this.WhenAny(x => x.Image)

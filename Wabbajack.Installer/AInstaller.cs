@@ -165,6 +165,16 @@ public abstract class AInstaller<T>
         }
     }
 
+    public static async Task<Stream> ModListImageStream(AbsolutePath path)
+    {
+        await using var fs = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+        using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
+        var entry = ar.GetEntry("modlist-image.png");
+        if (entry == null)
+            throw new InvalidDataException("No modlist image found");
+        return new MemoryStream(await entry.Open().ReadAllAsync());
+    }
+
     /// <summary>
     ///     We don't want to make the installer index all the archives, that's just a waste of time, so instead
     ///     we'll pass just enough information to VFS to let it know about the files we have.

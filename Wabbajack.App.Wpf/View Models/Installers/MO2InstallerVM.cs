@@ -12,6 +12,7 @@ using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Installer;
 using Wabbajack;
+using Wabbajack.DTOs;
 using Wabbajack.Interventions;
 using Wabbajack.Util;
 
@@ -20,15 +21,15 @@ namespace Wabbajack
     public class MO2InstallerVM : ViewModel, ISubInstallerVM
     {
         public InstallerVM Parent { get; }
-
-        private readonly ObservableAsPropertyHelper<ErrorResponse> _CanInstall;
-        public ErrorResponse CanInstall => _CanInstall.Value;
+        
+        [Reactive]
+        public ErrorResponse CanInstall { get; set; }
 
         [Reactive]
         public IInstaller ActiveInstallation { get; private set; }
 
-        private readonly ObservableAsPropertyHelper<Mo2ModlistInstallationSettings> _CurrentSettings;
-        public Mo2ModlistInstallationSettings CurrentSettings => _CurrentSettings.Value;
+
+        [Reactive] public Mo2ModlistInstallationSettings CurrentSettings { get; set; }
 
         public FilePickerVM Location { get; }
 
@@ -150,7 +151,7 @@ namespace Wabbajack
 
         private void SaveSettings(Mo2ModlistInstallationSettings settings)
         {
-            Parent.MWVM.Settings.Installer.LastInstalledListLocation = Parent.ModListLocation.TargetPath;
+            //Parent.MWVM.Settings.Installer.LastInstalledListLocation = Parent.ModListLocation.TargetPath;
             if (settings == null) return;
             settings.InstallationLocation = Location.TargetPath;
             settings.DownloadLocation = DownloadLocation.TargetPath;

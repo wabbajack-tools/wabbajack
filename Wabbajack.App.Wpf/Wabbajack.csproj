@@ -111,8 +111,4 @@
     <SplashScreen Include="Resources\Wabba_Mouth_Small.png" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Models" />
-  </ItemGroup>
-
 </Project>

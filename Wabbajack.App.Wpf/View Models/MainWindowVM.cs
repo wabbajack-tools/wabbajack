@@ -3,6 +3,7 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reflection;
@@ -16,6 +17,7 @@ using Wabbajack.Downloaders.GameFile;
 using Wabbajack;
 using Wabbajack.Interventions;
 using Wabbajack.Messages;
+using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.View_Models;
@@ -38,7 +40,7 @@ namespace Wabbajack
         public ObservableCollectionExtended<IStatusMessage> Log { get; } = new ObservableCollectionExtended<IStatusMessage>();
 
         public readonly Lazy<CompilerVM> Compiler;
-        public readonly Lazy<InstallerVM> Installer;
+        public readonly InstallerVM Installer;
         public readonly Lazy<SettingsVM> SettingsPane;
         public readonly ModListGalleryVM Gallery;
         public readonly ModeSelectionVM ModeSelectionVM;
@@ -46,24 +48,30 @@ namespace Wabbajack
         public readonly UserInterventionHandlers UserInterventionHandlers;
         private readonly Client _wjClient;
         private readonly ILogger<MainWindowVM> _logger;
+        private readonly ResourceMonitor _resourceMonitor;
 
         public ICommand CopyVersionCommand { get; }
         public ICommand ShowLoginManagerVM { get; }
         public ICommand OpenSettingsCommand { get; }
 
         public string VersionDisplay { get; }
+        
+        [Reactive]
+        public string ResourceStatus { get; set; }
 
         [Reactive]
         public bool UpdateAvailable { get; private set; }
 
         public MainWindowVM(ILogger<MainWindowVM> logger, MainSettings settings, Client wjClient,
-            IServiceProvider serviceProvider, ModeSelectionVM modeSelectionVM, ModListGalleryVM modListGalleryVM)
+            IServiceProvider serviceProvider, ModeSelectionVM modeSelectionVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
+            InstallerVM installer)
         {
             _logger = logger;
             _wjClient = wjClient;
+            _resourceMonitor = resourceMonitor;
             ConverterRegistration.Register();
             Settings = settings;
-            Installer = new Lazy<InstallerVM>(() => new InstallerVM(serviceProvider.GetRequiredService<ILogger<InstallerVM>>(), this, serviceProvider));
+            Installer = installer;
             Compiler = new Lazy<CompilerVM>(() => new CompilerVM(serviceProvider.GetRequiredService<ILogger<CompilerVM>>(), this));
             SettingsPane = new Lazy<SettingsVM>(() => new SettingsVM(serviceProvider.GetRequiredService<ILogger<SettingsVM>>(), this, serviceProvider));
             Gallery = modListGalleryVM;
@@ -74,6 +82,12 @@ namespace Wabbajack
             MessageBus.Current.Listen<NavigateToGlobal>()
                 .Subscribe(m => HandleNavigateTo(m.Screen))
                 .DisposeWith(CompositeDisposable);
+
+            _resourceMonitor.Updates
+                .Select(r => string.Join(", ", r.Where(r => r.Throughput > 0)
+                    .Select(s => $"{s.Name} - {s.Throughput.ToFileSizeString()}/sec")))
+                .BindToStrict(this, view => view.ResourceStatus);
+
             
             // Set up logging
             /* TODO
@@ -120,7 +134,7 @@ namespace Wabbajack
 
             if (IsStartingFromModlist(out var path))
             {
-                Installer.Value.ModListLocation.TargetPath = path;
+                LoadModlistForInstalling.Send(path);
                 NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Installer);
             }
             else
@@ -161,7 +175,7 @@ namespace Wabbajack
             {
                 NavigateToGlobal.ScreenType.ModeSelectionView => ModeSelectionVM,
                 NavigateToGlobal.ScreenType.ModListGallery => Gallery,
-                NavigateToGlobal.ScreenType.Installer => Installer.Value,
+                NavigateToGlobal.ScreenType.Installer => Installer,
                 NavigateToGlobal.ScreenType.Settings => SettingsPane.Value,
                 _ => ActivePane
             };
@@ -181,15 +195,6 @@ namespace Wabbajack
             */
             modlistPath = default;
             return false;
-        }
-
-        public void OpenInstaller(AbsolutePath path)
-        {
-            if (path == default) return;
-            var installer = Installer.Value;
-            Settings.Installer.LastInstalledListLocation = path;
-            NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Installer);
-            installer.ModListLocation.TargetPath = path;
         }
 
         /*

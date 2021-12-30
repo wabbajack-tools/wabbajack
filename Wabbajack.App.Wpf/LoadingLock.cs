@@ -18,11 +18,20 @@ public class LoadingLock : ReactiveObject, IDisposable
         this.WhenAnyValue(vm => vm.LoadLevel)
             .Subscribe(v => IsLoading = v > 0)
             .DisposeWith(_disposable);
+        
+        this.WhenAnyValue(vm => vm.LoadLevel)
+            .Subscribe(v => IsNotLoading = v == 0)
+            .DisposeWith(_disposable);
     }
 
     [Reactive] public int LoadLevel { get; private set; }
 
     [Reactive] public bool IsLoading { get; private set; }
+    
+    [Reactive] public bool IsNotLoading { get; private set; }
+
+    public IObservable<bool> IsLoadingObservable => this.WhenAnyValue(ll => ll.IsLoading);
+    public IObservable<bool> IsNotLoadingObservable => this.WhenAnyValue(ll => ll.IsNotLoading);
 
     public void Dispose()
     {

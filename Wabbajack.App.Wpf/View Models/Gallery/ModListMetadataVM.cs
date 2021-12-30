@@ -142,59 +142,19 @@ namespace Wabbajack
                     IsLoadingIdle.OnNext(true);
                 }
             }, IsLoadingIdle.StartWith(true));
-            ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, Unit>(
-                canExecute: this.WhenAny(x => x.IsBroken).Select(x => !x),
-                execute: (unit) =>
-                Observable.Return(unit)
-                .WithLatestFrom(
-                    this.WhenAny(x => x.Exists),
-                    (_, e) => e)
-                // Do any download work on background thread
-                .ObserveOn(RxApp.TaskpoolScheduler)
-                .SelectTask(async (exists) =>
+            
+            ExecuteCommand = ReactiveCommand.CreateFromTask(async () =>
+            {
+                if (await _maintainer.HaveModList(Metadata))
                 {
-                    if (!exists)
-                    {
-                        try
-                        {
-                            await Download();
-                        }
-                        catch (Exception ex)
-                        {
-                            Error = ErrorResponse.Fail(ex);
-                            return false;
-                        }
-                        // Return an updated check on exists
-                        return Location.FileExists();
-                    }
-                    return exists;
-                })
-                .Where(exists => exists)
-                // Do any install page swap over on GUI thread
-                .ObserveOnGuiThread()
-                .Select(_ =>
+                    LoadModlistForInstalling.Send(_maintainer.ModListPath(Metadata));
+                    NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Installer);
+                }
+                else
                 {
-                    // TODO
-                    //_parent.MWVM.OpenInstaller(Location);
-
-                    // Wait for modlist member to be filled, then open its readme
-                    return _parent.MWVM.Installer.Value.WhenAny(x => x.ModList)
-                        .NotNull()
-                        .Take(1)
-                        .Do(modList =>
-                        {
-                            try
-                            {
-                                modList.OpenReadme();
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, "While opening modlist README");
-                            }
-                        });
-                })
-                .Switch()
-                .Unit());
+                    await Download();
+                }
+            }, LoadingLock.WhenAnyValue(ll => ll.IsLoading).Select(v => !v));
 
             _Exists = Observable.Interval(TimeSpan.FromSeconds(0.5))
                 .Unit()

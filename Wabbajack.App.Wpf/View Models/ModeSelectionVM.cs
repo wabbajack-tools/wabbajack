@@ -23,19 +23,7 @@ namespace Wabbajack
 
         public ModeSelectionVM()
         {
-            InstallCommand = ReactiveCommand.Create(
-                execute: () =>
-                {
-                    /* TODO 
-                    var path = mainVM.Settings.Installer.LastInstalledListLocation;
-                    if (path == default || !path.FileExists())
-                    {
-                        path = UIUtils.OpenFileDialog($"*{Ext.Wabbajack}|*{Ext.Wabbajack}");
-                    }
-                    _mainVM.OpenInstaller(path);
-                    */
-                });
-
+            InstallCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Installer));
             CompileCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Compiler));
             BrowseCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModListGallery));
         }

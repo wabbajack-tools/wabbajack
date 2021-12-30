@@ -21,7 +21,12 @@
     UseLayoutRounding="True"
     WindowTitleBrush="{StaticResource MahApps.Brushes.Accent}"
     mc:Ignorable="d">
-    <ContentPresenter Content="{Binding ActivePane}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        <ContentPresenter Grid.Row="0" Content="{Binding ActivePane}">
         <ContentPresenter.Resources>
             <DataTemplate DataType="{x:Type local:CompilerVM}">
                 <local:CompilerView ViewModel="{Binding}" />
@@ -46,12 +51,15 @@
             </DataTemplate>
         </ContentPresenter.Resources>
     </ContentPresenter>
+        <TextBlock Grid.Row="1" Margin="5, 0" Name="ResourceUsage" HorizontalAlignment="Right"></TextBlock>
+    </Grid>
 
     <mahapps:MetroWindow.RightWindowCommands>
         <mahapps:WindowCommands>
             <mahapps:WindowCommands.Resources>
                 <Style BasedOn="{StaticResource IconBareButtonStyle}" TargetType="Button" />
             </mahapps:WindowCommands.Resources>
+
             <Button
                 Margin="5,0"
                 Command="{Binding CopyVersionCommand}"

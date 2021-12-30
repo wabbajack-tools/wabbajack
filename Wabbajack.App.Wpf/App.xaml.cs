@@ -11,6 +11,7 @@ using ReactiveUI;
 using Splat;
 using Wabbajack.Common;
 using Wabbajack;
+using Wabbajack.Models;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Util;
 
@@ -48,12 +49,14 @@ namespace Wabbajack
             services.AddTransient<MainWindowVM>();
             services.AddSingleton<SystemParametersConstructor>();
             services.AddSingleton<LauncherUpdater>();
+            services.AddSingleton<ResourceMonitor>();
 
             services.AddSingleton<MainSettings>();
             services.AddTransient<CompilerVM>();
             services.AddTransient<InstallerVM>();
             services.AddTransient<ModeSelectionVM>();
             services.AddTransient<ModListGalleryVM>();
+            services.AddTransient<InstallerVM>();
             
             return services;
         }
