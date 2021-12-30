@@ -19,7 +19,7 @@ using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 
-namespace Wabbajack.Lib
+namespace Wabbajack
 {
     public class LauncherUpdater
     {

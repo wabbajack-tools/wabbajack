@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Wabbajack.Compiler;
 using Wabbajack.DTOs.JsonConverters;
-using Wabbajack.Lib;
+using Wabbajack;
 using Wabbajack.Paths;
-using Consts = Wabbajack.Lib.Consts;
+using Consts = Wabbajack.Consts;
 
 namespace Wabbajack
 {

@@ -3,14 +3,11 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
-using Wabbajack.Common;
-using Wabbajack.Lib;
-using Wabbajack.Lib.Extensions;
+using Wabbajack;
+using Wabbajack.Extensions;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 

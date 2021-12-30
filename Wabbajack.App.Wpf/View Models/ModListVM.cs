@@ -12,10 +12,10 @@ using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;
-using Wabbajack.Lib;
+using Wabbajack;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Consts = Wabbajack.Lib.Consts;
+using Consts = Wabbajack.Consts;
 
 namespace Wabbajack
 {

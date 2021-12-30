@@ -1,5 +1,5 @@
 using ReactiveUI;
-using Wabbajack.Lib;
+using Wabbajack;
 
 namespace Wabbajack.Messages;
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Wabbajack.Lib.Interventions
+namespace Wabbajack.Interventions
 {
     public abstract class AErrorMessage : Exception, IException
     {

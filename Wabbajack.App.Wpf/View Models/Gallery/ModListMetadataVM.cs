@@ -14,9 +14,10 @@ using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.ServerResponses;
-using Wabbajack.Lib;
-using Wabbajack.Lib.Extensions;
+using Wabbajack;
+using Wabbajack.Extensions;
 using Wabbajack.Messages;
+using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -50,6 +51,8 @@ namespace Wabbajack
         public bool Exists => _Exists.Value;
 
         public AbsolutePath Location { get; }
+
+        public LoadingLock LoadingImageLock { get; } = new();
 
         [Reactive]
         public List<ModListTag> ModListTagList { get; private set; }
@@ -97,7 +100,7 @@ namespace Wabbajack
             Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.Links.MachineURL).WithExtension(Ext.Wabbajack);
             ModListTagList = new List<ModListTag>();
 
-            Metadata.tags.ForEach(tag =>
+            Metadata.Tags.ForEach(tag =>
             {
                 ModListTagList.Add(new ModListTag(tag));
             });
@@ -166,7 +169,8 @@ namespace Wabbajack
                 .ObserveOnGuiThread()
                 .Select(_ =>
                 {
-                    _parent.MWVM.OpenInstaller(Location);
+                    // TODO
+                    //_parent.MWVM.OpenInstaller(Location);
 
                     // Wait for modlist member to be filled, then open its readme
                     return _parent.MWVM.Installer.Value.WhenAny(x => x.ModList)
@@ -195,7 +199,7 @@ namespace Wabbajack
                 {
                     try
                     {
-                        return !IsDownloading && !(await maintainer.HaveModList(metadata));
+                        return !IsDownloading && await maintainer.HaveModList(metadata);
                     }
                     catch (Exception)
                     {
@@ -205,7 +209,7 @@ namespace Wabbajack
                 .ToGuiProperty(this, nameof(Exists));
 
             var imageObs = Observable.Return(Metadata.Links.ImageUri)
-                .DownloadBitmapImage((ex) => _logger.LogError("Error downloading modlist image {Title}", Metadata.Title));
+                .DownloadBitmapImage((ex) => _logger.LogError("Error downloading modlist image {Title}", Metadata.Title), LoadingImageLock);
 
             _Image = imageObs
                 .ToGuiProperty(this, nameof(Image));
@@ -221,7 +225,8 @@ namespace Wabbajack
         private async Task Download()
         {
             var (progress, task) = _maintainer.DownloadModlist(Metadata);
-            var dispose = progress.Subscribe(p => ProgressPercent = p);
+            var dispose = progress
+                .BindToStrict(this, vm => vm.ProgressPercent);
 
             await task;
 

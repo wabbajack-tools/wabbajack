@@ -4,22 +4,18 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
-using DynamicData.Binding;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
-using Wabbajack.Hashing.xxHash64;
-using Wabbajack.Lib.Extensions;
+using Wabbajack.Messages;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.Services;
@@ -55,11 +51,9 @@ namespace Wabbajack
         private readonly ILogger<ModListGalleryVM> _logger;
         private readonly GameLocator _locator;
         private readonly ModListDownloadMaintainer _maintainer;
+        private readonly SettingsManager _settingsManager;
 
         private FiltersSettings settings { get; set; } = new();
-
-        public bool Loaded => _Loaded.Value;
-
         public ICommand ClearFiltersCommand { get; set; }
 
         public ModListGalleryVM(ILogger<ModListGalleryVM> logger, Client wjClient,
@@ -70,6 +64,7 @@ namespace Wabbajack
             _logger = logger;
             _locator = locator;
             _maintainer = maintainer;
+            _settingsManager = settingsManager;
             
             ClearFiltersCommand = ReactiveCommand.Create(
                 () =>
@@ -80,11 +75,21 @@ namespace Wabbajack
                     Search = string.Empty;
                     GameType = ALL_GAME_TYPE;
                 });
+            
+            BackCommand = ReactiveCommand.Create(
+                () =>
+                {
+                    NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModeSelectionView);
+                });
 
 
             this.WhenActivated(disposables =>
-            {
-                var _ = LoadModLists();
+            { 
+                LoadModLists().FireAndForget();
+                LoadSettings().FireAndForget();
+
+                Disposable.Create(() => SaveSettings().FireAndForget())
+                    .DisposeWith(disposables);
                 
                 var searchTextPredicates = this.ObservableForProperty(vm => vm.Search)
                     .Select(change => change.Value)
@@ -141,9 +146,45 @@ namespace Wabbajack
             });
         }
 
+        private class FilterSettings
+        {
+            public string GameType { get; set; }
+            public bool ShowNSFW { get; set; }
+            public bool ShowUtilityLists { get; set; }
+            public bool OnlyInstalled { get; set; }
+            public string Search { get; set; }
+        }
+
         public override void Unload()
         {
             Error = null;
+        }
+
+        private async Task SaveSettings()
+        {
+            await _settingsManager.Save("modlist_gallery", new FilterSettings
+            {
+                GameType = GameType,
+                ShowNSFW = ShowNSFW,
+                ShowUtilityLists = ShowUtilityLists,
+                Search = Search,
+                OnlyInstalled = OnlyInstalled,
+            });
+        }
+
+        private async Task LoadSettings()
+        {
+            using var ll = LoadingLock.WithLoading();
+            RxApp.MainThreadScheduler.Schedule(await _settingsManager.Load<FilterSettings>("modlist_gallery"), 
+                (_, s) =>
+            {
+                GameType = s.GameType;
+                ShowNSFW = s.ShowNSFW;
+                ShowUtilityLists = s.ShowUtilityLists;
+                Search = s.Search;
+                OnlyInstalled = s.OnlyInstalled;
+                return Disposable.Empty;
+            });
         }
 
         private async Task LoadModLists()
@@ -175,13 +216,5 @@ namespace Wabbajack
             return gameEntries;
         }
 
-        private void UpdateFiltersSettings()
-        {
-            settings.Game = GameType;
-            settings.Search = Search;
-            settings.ShowNSFW = ShowNSFW;
-            settings.ShowUtilityLists = ShowUtilityLists;
-            settings.OnlyInstalled = OnlyInstalled;
-        }
     }
 }

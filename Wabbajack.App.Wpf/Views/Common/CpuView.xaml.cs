@@ -15,7 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using Wabbajack.Lib;
+using Wabbajack;
 using System.Windows.Controls.Primitives;
 using System.Reactive.Linq;
 using Wabbajack.Common;

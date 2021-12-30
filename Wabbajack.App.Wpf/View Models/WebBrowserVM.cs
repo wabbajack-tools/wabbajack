@@ -11,9 +11,9 @@ using CefSharp.Wpf;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using Wabbajack.Lib;
-using Wabbajack.Lib.LibCefHelpers;
-using Wabbajack.Lib.WebAutomation;
+using Wabbajack;
+using Wabbajack.LibCefHelpers;
+using Wabbajack.WebAutomation;
 
 namespace Wabbajack
 {

@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
-using Wabbajack.Lib;
+using Wabbajack;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Util;
 

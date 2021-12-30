@@ -37,6 +37,9 @@
         <Reference Update="CefSharp.Wpf">
             <Private>true</Private>
         </Reference>
+        <Reference Include="MahApps.Metro.IconPacks.Octicons, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a">
+          <HintPath>..\..\..\Users\tbald\.nuget\packages\mahapps.metro.iconpacks\4.8.0\lib\netcoreapp3.1\MahApps.Metro.IconPacks.Octicons.dll</HintPath>
+        </Reference>
     </ItemGroup>
 
   <ItemGroup>
@@ -82,11 +85,15 @@
     <PackageReference Include="ReactiveUI.Fody" Version="16.2.6" />
     <PackageReference Include="ReactiveUI.WPF" Version="16.2.6" />
     <PackageReference Include="Silk.NET.DXGI" Version="2.6.0" />
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
+    <PackageReference Include="CefSharp.OffScreen">
+      <Version>91.1.230</Version>
+      <NoWarn>NU1701</NoWarn>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
     <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
   </ItemGroup>
 

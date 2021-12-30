@@ -20,6 +20,7 @@ public class ModListDownloadMaintainer
     private readonly DownloadDispatcher _dispatcher;
     private readonly FileHashCache _hashCache;
     private readonly IResource<DownloadDispatcher> _rateLimiter;
+    private int _downloadingCount;
 
     public ModListDownloadMaintainer(ILogger<ModListDownloadMaintainer> logger, Configuration configuration,
         DownloadDispatcher dispatcher, FileHashCache hashCache, IResource<DownloadDispatcher> rateLimiter)
@@ -29,6 +30,7 @@ public class ModListDownloadMaintainer
         _dispatcher = dispatcher;
         _hashCache = hashCache;
         _rateLimiter = rateLimiter;
+        _downloadingCount = 0;
     }
 
     public AbsolutePath ModListPath(ModlistMetadata metadata)
@@ -41,6 +43,9 @@ public class ModListDownloadMaintainer
         token ??= CancellationToken.None;
         var path = ModListPath(metadata);
         if (!path.FileExists()) return false;
+
+        if (_hashCache.TryGetHashCache(path, out var hash) && hash == metadata.DownloadMetadata!.Hash) return true;
+        if (_downloadingCount > 0) return false;
 
         return await _hashCache.FileHashCachedAsync(path, token.Value) == metadata.DownloadMetadata!.Hash;
     }
@@ -58,6 +63,7 @@ public class ModListDownloadMaintainer
         {
             try
             {
+                Interlocked.Increment(ref _downloadingCount);
                 var job = await _rateLimiter.Begin($"Downloading {metadata.Title}", metadata.DownloadMetadata!.Size,
                     token.Value);
 
@@ -75,6 +81,7 @@ public class ModListDownloadMaintainer
             finally
             {
                 progress.OnCompleted();
+                Interlocked.Decrement(ref _downloadingCount);
             }
         });
 

@@ -10,7 +10,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
 using Wabbajack.Common;
 using Wabbajack.Installer;
-using Wabbajack.Lib;
+using Wabbajack;
 using static PInvoke.User32;
 using UnmanagedType = System.Runtime.InteropServices.UnmanagedType;
 

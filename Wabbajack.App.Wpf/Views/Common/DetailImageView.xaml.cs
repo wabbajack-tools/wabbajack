@@ -7,7 +7,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Media;
-using Wabbajack.Lib;
+using Wabbajack;
 
 namespace Wabbajack
 {

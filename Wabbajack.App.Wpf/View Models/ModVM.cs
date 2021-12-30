@@ -4,7 +4,7 @@ using System.Reactive.Linq;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs.DownloadStates;
-using Wabbajack.Lib;
+using Wabbajack;
 
 namespace Wabbajack
 {
@@ -25,7 +25,7 @@ namespace Wabbajack
 
             ImageObservable = Observable.Return(State.ImageURL?.ToString())
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .DownloadBitmapImage(ex => _logger.LogError(ex, "Skipping slide for mod {Name}", State.Name))
+                .DownloadBitmapImage(ex => _logger.LogError(ex, "Skipping slide for mod {Name}", State.Name), LoadingLock)
                 .Replay(1)
                 .RefCount(TimeSpan.FromMilliseconds(5000));
         }

@@ -10,7 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using Wabbajack.Lib;
+using Wabbajack;
 
 namespace Wabbajack
 {

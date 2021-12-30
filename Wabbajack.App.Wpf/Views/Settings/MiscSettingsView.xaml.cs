@@ -16,7 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ReactiveUI;
 using Wabbajack.Common;
-using Wabbajack.Lib.WebAutomation;
+using Wabbajack.WebAutomation;
 
 namespace Wabbajack
 {

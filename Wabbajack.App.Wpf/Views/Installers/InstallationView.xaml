@@ -5,11 +5,12 @@
     xmlns:common="clr-namespace:Wabbajack.Common;assembly=Wabbajack.Common"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
-    xmlns:lib="clr-namespace:Wabbajack.Lib;assembly=Wabbajack.Lib"
+    xmlns:lib="clr-namespace:Wabbajack;assembly=Wabbajack"
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
+    xmlns:lib1="clr-namespace:Wabbajack"
     d:DataContext="{d:DesignInstance local:InstallerVM}"
     d:DesignHeight="500"
     d:DesignWidth="800"
@@ -304,7 +305,7 @@
                 x:Name="UserInterventionsControl"
                 Content="{Binding ActiveGlobalUserIntervention}">
                 <local:AttentionBorder.Resources>
-                    <DataTemplate DataType="{x:Type lib:ConfirmationIntervention}">
+                    <DataTemplate DataType="{x:Type lib1:ConfirmationIntervention}">
                         <local:ConfirmationInterventionView ViewModel="{Binding}" />
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type local:ConfirmUpdateOfExistingInstallVM}">

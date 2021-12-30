@@ -15,7 +15,8 @@ using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Hashing.xxHash64;
-using Wabbajack.Lib.Extensions;
+using Wabbajack.Extensions;
+using Wabbajack.Models;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
@@ -83,16 +84,18 @@ namespace Wabbajack
             return default;
         }
 
-        public static IObservable<BitmapImage> DownloadBitmapImage(this IObservable<string> obs, Action<Exception> exceptionHandler)
+        public static IObservable<BitmapImage> DownloadBitmapImage(this IObservable<string> obs, Action<Exception> exceptionHandler,
+            LoadingLock loadingLock)
         {
             return obs
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .SelectTask(async url =>
                 {
+                    var ll = loadingLock.WithLoading();
                     try
                     {
                         var (found, mstream) = await FindCachedImage(url);
-                        if (found) return mstream;
+                        if (found) return (ll, mstream);
                         
                         var ret = new MemoryStream();
                         using (var client = new HttpClient())
@@ -104,16 +107,17 @@ namespace Wabbajack
                         ret.Seek(0, SeekOrigin.Begin);
 
                         await WriteCachedImage(url, ret.ToArray());
-                        return ret;
+                        return (ll, ret);
                     }
                     catch (Exception ex)
                     {
                         exceptionHandler(ex);
-                        return default;
+                        return (ll, default);
                     }
                 })
-                .Select(memStream =>
+                .Select(x =>
                 {
+                    var (ll, memStream) = x;
                     if (memStream == null) return default;
                     try
                     {
@@ -126,6 +130,7 @@ namespace Wabbajack
                     }
                     finally
                     {
+                        ll.Dispose();
                         memStream.Dispose();
                     }
                 })

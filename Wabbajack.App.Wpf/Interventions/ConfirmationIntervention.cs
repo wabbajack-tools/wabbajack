@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 
-namespace Wabbajack.Lib
+namespace Wabbajack
 {
     public abstract class ConfirmationIntervention : AUserIntervention
     {

@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Wabbajack.DTOs.DownloadStates;
 
-namespace Wabbajack.Lib
+namespace Wabbajack
 {
     public class ManuallyDownloadFile : AUserIntervention
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 using ReactiveUI.Fody.Helpers;
-using Wabbajack.Lib;
+using Wabbajack;
 using Wabbajack.RateLimiter;
 
 namespace Wabbajack

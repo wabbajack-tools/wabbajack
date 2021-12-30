@@ -5,7 +5,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
-namespace Wabbajack.Lib.Extensions
+namespace Wabbajack.Extensions
 {
     public static class RxExt
     {

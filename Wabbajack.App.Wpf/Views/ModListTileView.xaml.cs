@@ -1,21 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Disposables;
+﻿using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using ReactiveUI;
-using Wabbajack.Common;
 
 namespace Wabbajack
 {
@@ -27,8 +13,59 @@ namespace Wabbajack
         public ModListTileView()
         {
             InitializeComponent();
-            this.WhenActivated(dispose =>
+            this.WhenActivated(disposables =>
             {
+                ViewModel.WhenAnyValue(vm => vm.Image)
+                    .BindToStrict(this, view => view.ModListImage.Source)
+                    .DisposeWith(disposables);
+
+                var textXformed = ViewModel.WhenAnyValue(vm => vm.Metadata.Title)
+                    .CombineLatest(ViewModel.WhenAnyValue(vm => vm.Metadata.ImageContainsTitle),
+                                ViewModel.WhenAnyValue(vm => vm.IsBroken))
+                    .Select(x => x.Second && !x.Third ? "" : x.First);
+
+                textXformed
+                    .BindToStrict(this, view => view.ModListTitle.Text)
+                    .DisposeWith(disposables);
+
+                textXformed
+                    .BindToStrict(this, view => view.ModListTitleShadow.Text)
+                    .DisposeWith(disposables);
+                
+                ViewModel.WhenAnyValue(x => x.Metadata.Description)
+                    .BindToStrict(this, x => x.MetadataDescription.Text)
+                    .DisposeWith(disposables);
+
+                ViewModel.WhenAnyValue(x => x.ModListTagList)
+                    .BindToStrict(this, x => x.TagsList.ItemsSource)
+                    .DisposeWith(disposables);
+                
+                ViewModel.WhenAnyValue(x => x.LoadingImageLock.IsLoading)
+                    .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
+                    .BindToStrict(this, x => x.LoadingProgress.Visibility)
+                    .DisposeWith(disposables);
+
+                ViewModel.WhenAnyValue(x => x.IsBroken)
+                    .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
+                    .BindToStrict(this, view => view.Overlay.Visibility)
+                    .DisposeWith(disposables);
+                
+                ViewModel.WhenAnyValue(x => x.OpenWebsiteCommand)
+                    .BindToStrict(this, x => x.OpenWebsiteButton.Command)
+                    .DisposeWith(disposables);
+                
+                ViewModel.WhenAnyValue(x => x.ExecuteCommand)
+                    .BindToStrict(this, x => x.ExecuteButton.Command)
+                    .DisposeWith(disposables);
+
+                
+                ViewModel.WhenAnyValue(x => x.ProgressPercent)
+                    .ObserveOnDispatcher()
+                    .Select(p => p.Value)
+                    .BindTo(this, x => x.DownloadProgressBar.Value)
+                    .DisposeWith(disposables);
+
+                /*
                 this.MarkAsNeeded<ModListTileView, ModListMetadataVM, bool>(this.ViewModel, x => x.IsBroken);
                 this.MarkAsNeeded<ModListTileView, ModListMetadataVM, bool>(this.ViewModel, x => x.Exists);
                 this.MarkAsNeeded<ModListTileView, ModListMetadataVM, string>(this.ViewModel, x => x.Metadata.Links.ImageUri);
@@ -36,35 +73,12 @@ namespace Wabbajack
                     .Select(p => p.Value)
                     .BindToStrict(this, x => x.DownloadProgressBar.Value)
                     .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.Metadata)
-                    .CombineLatest(this.WhenAny(x => x.ViewModel.IsBroken))
-                    .Where(x => !x.First.ImageContainsTitle || x.Second)
-                    .Select(x => x.First.Title)
-                    .BindToStrict(this, x => x.DescriptionTextShadow.Text)
-                    .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.Metadata)
-                    .CombineLatest(this.WhenAny(x => x.ViewModel.IsBroken))
-                    .Where(x => !x.First.ImageContainsTitle || x.Second)
-                    .Select(x => x.First.Title)
-                    .BindToStrict(this, x => x.ModListTitleShadow.Text)
-                    .DisposeWith(dispose);
 
-                this.WhenAny(x => x.ViewModel.IsBroken)
-                    .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
-                    .BindToStrict(this, x => x.Overlay.Visibility)
-                    .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.Metadata.Description)
-                    .BindToStrict(this, x => x.MetadataDescription.Text)
-                    .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.OpenWebsiteCommand)
-                    .BindToStrict(this, x => x.OpenWebsiteButton.Command)
-                    .DisposeWith(dispose);
+
                 this.WhenAny(x => x.ViewModel.ModListContentsCommend)
                     .BindToStrict(this, x => x.ModListContentsButton.Command)
                     .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.ExecuteCommand)
-                    .BindToStrict(this, x => x.ExecuteButton.Command)
-                    .DisposeWith(dispose);
+
                 this.WhenAny(x => x.ViewModel.Image)
                     .BindToStrict(this, x => x.ModListImage.Source)
                     .DisposeWith(dispose);
@@ -72,6 +86,7 @@ namespace Wabbajack
                     .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
                     .BindToStrict(this, x => x.LoadingProgress.Visibility)
                     .DisposeWith(dispose);
+                    */
             });
         }
     }

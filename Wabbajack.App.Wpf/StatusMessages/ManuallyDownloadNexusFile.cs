@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Wabbajack.DTOs.DownloadStates;
 
-namespace Wabbajack.Lib
+namespace Wabbajack
 {
     public class ManuallyDownloadNexusFile : AUserIntervention
     {

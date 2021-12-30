@@ -13,13 +13,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Shell;
 using Wabbajack.DTOs.JsonConverters;
-using Wabbajack.Lib.Extensions;
-using Wabbajack.Lib.Interventions;
+using Wabbajack.Extensions;
+using Wabbajack.Interventions;
 using Wabbajack.Messages;
 using Wabbajack.RateLimiter;
 using Wabbajack.View_Models;
 using Wabbajack.Paths.IO;
-using Consts = Wabbajack.Lib.Consts;
+using Consts = Wabbajack.Consts;
 using KnownFolders = Wabbajack.Paths.IO.KnownFolders;
 
 namespace Wabbajack;

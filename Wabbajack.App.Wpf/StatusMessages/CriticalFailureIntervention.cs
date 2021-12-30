@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Wabbajack.Common;
-using Wabbajack.Lib.Interventions;
+using Wabbajack.Interventions;
 
-namespace Wabbajack.Lib
+namespace Wabbajack
 {
     /// <summary>
     /// This should probably be replaced with an error, but this is just to get messageboxes out of the .Lib library

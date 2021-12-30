@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using CefSharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic.CompilerServices;
-using Wabbajack.Lib.LibCefHelpers;
+using Wabbajack.LibCefHelpers;
 using Wabbajack.Networking.Http;
 using Wabbajack.Paths;
 
-namespace Wabbajack.Lib.WebAutomation
+namespace Wabbajack.WebAutomation
 {
     public class CefSharpWrapper : IWebDriver
     {

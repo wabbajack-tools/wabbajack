@@ -11,8 +11,8 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Installer;
-using Wabbajack.Lib;
-using Wabbajack.Lib.Interventions;
+using Wabbajack;
+using Wabbajack.Interventions;
 using Wabbajack.Util;
 
 namespace Wabbajack

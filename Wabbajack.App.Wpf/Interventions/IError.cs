@@ -1,4 +1,4 @@
-﻿namespace Wabbajack.Lib.Interventions
+﻿namespace Wabbajack.Interventions
 {
     public interface IError : IStatusMessage
     {

@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using ReactiveUI;
 using System;
 using ReactiveUI.Fody.Helpers;
-using Wabbajack.Lib;
+using Wabbajack;
 using System.Reactive.Disposables;
 
 namespace Wabbajack

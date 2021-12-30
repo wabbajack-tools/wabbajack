@@ -7,7 +7,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using Wabbajack.Common;
-using Wabbajack.Lib;
+using Wabbajack;
 using Wabbajack.Messages;
 using Wabbajack.Paths.IO;
 

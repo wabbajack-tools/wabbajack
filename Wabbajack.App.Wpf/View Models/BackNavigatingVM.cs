@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
-using Wabbajack.Lib;
+using Wabbajack;
 using Wabbajack.Messages;
 
 namespace Wabbajack

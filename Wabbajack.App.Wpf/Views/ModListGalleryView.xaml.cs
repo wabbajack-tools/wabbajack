@@ -31,15 +31,10 @@ namespace Wabbajack
                     .StartWith(Visibility.Collapsed)
                     .BindToStrict(this, x => x.ErrorIcon.Visibility)
                     .DisposeWith(dispose);
-
-                Observable.CombineLatest(
-                        this.WhenAny(x => x.ViewModel.ModLists.Count)
-                            .Select(x => x > 0),
-                        this.WhenAny(x => x.ViewModel.Loaded),
-                        resultSelector: (hasContent, loaded) =>
-                        {
-                            return !hasContent && loaded;
-                        })
+                
+                this.WhenAny(x => x.ViewModel.ModLists.Count)
+                    .CombineLatest(this.WhenAnyValue(x => x.ViewModel.LoadingLock.IsLoading))
+                    .Select(x => x.First == 0 && !x.Second)
                     .DistinctUntilChanged()
                     .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
                     .StartWith(Visibility.Collapsed)

@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Kernel;
 using ReactiveUI;
-using Wabbajack.Lib;
-using Wabbajack.Lib.Extensions;
+using Wabbajack;
+using Wabbajack.Extensions;
 
 namespace Wabbajack
 {

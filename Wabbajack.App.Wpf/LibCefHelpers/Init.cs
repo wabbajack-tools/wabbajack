@@ -12,7 +12,7 @@ using Wabbajack.Common;
 using Wabbajack.DTOs.JsonConverters;
 using Cookie = CefSharp.Cookie;
 
-namespace Wabbajack.Lib.LibCefHelpers
+namespace Wabbajack.LibCefHelpers
 {
     public static class Helpers
     {

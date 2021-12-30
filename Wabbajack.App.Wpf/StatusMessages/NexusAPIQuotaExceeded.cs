@@ -1,6 +1,6 @@
-﻿using Wabbajack.Lib.Interventions;
+﻿using Wabbajack.Interventions;
 
-namespace Wabbajack.Lib
+namespace Wabbajack
 {
     public class NexusAPIQuotaExceeded : AErrorMessage
     {

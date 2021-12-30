@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Installer;
-using Wabbajack.Lib;
-using Wabbajack.Lib.Interventions;
+using Wabbajack;
+using Wabbajack.Interventions;
 
 namespace Wabbajack
 {

@@ -90,7 +90,7 @@
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Stretch="UniformToFill">
-                        <Image x:Name="ModListImage" Source="{Binding Metadata.Links.ImageUriFast}">
+                        <Image x:Name="ModListImage">
                             <Image.Style>
                                 <Style TargetType="Image">
                                     <Style.Triggers>
@@ -255,7 +255,7 @@
                 x:Name="Overlay"
                 Visibility="Collapsed" />
             <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                x:Name="DescriptionTextShadow"
+                x:Name="ModListTitleShadow"
                 Margin="5"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
@@ -269,7 +269,7 @@
                 </TextBlock.Effect>
             </TextBlock>
             <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                x:Name="ModListTitleShadow"
+                x:Name="ModListTitle"
                 Margin="5"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
@@ -297,7 +297,7 @@
                        FontSize="14"
                        TextWrapping="Wrap" />
             </ScrollViewer>
-            <ItemsControl Grid.Row="2" ItemsSource="{Binding ModListTagList}">
+            <ItemsControl Grid.Row="2" Name="TagsList">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel/>

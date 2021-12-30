@@ -1,7 +1,7 @@
 using System;
 using Wabbajack.Paths;
 
-namespace Wabbajack.Lib;
+namespace Wabbajack;
 
 public static class Consts
 {

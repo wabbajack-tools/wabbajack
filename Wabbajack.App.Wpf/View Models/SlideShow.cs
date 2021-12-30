@@ -10,8 +10,8 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.DTOs.DownloadStates;
-using Wabbajack.Lib;
-using Wabbajack.Lib.Extensions;
+using Wabbajack;
+using Wabbajack.Extensions;
 
 namespace Wabbajack.View_Models
 {

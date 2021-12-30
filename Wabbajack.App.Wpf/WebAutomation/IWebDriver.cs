@@ -5,9 +5,9 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Wabbajack.Lib.LibCefHelpers;
+using Wabbajack.LibCefHelpers;
 
-namespace Wabbajack.Lib.WebAutomation
+namespace Wabbajack.WebAutomation
 {
     public interface IWebDriver
     {

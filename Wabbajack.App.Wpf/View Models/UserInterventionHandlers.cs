@@ -5,8 +5,8 @@ using System.Windows;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.Common;
-using Wabbajack.Lib;
-using Wabbajack.Lib.Interventions;
+using Wabbajack;
+using Wabbajack.Interventions;
 using Wabbajack.Messages;
 
 namespace Wabbajack

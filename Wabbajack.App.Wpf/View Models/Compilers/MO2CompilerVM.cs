@@ -10,11 +10,11 @@ using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.GitHub;
-using Wabbajack.Lib;
-using Wabbajack.Lib.Extensions;
+using Wabbajack;
+using Wabbajack.Extensions;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Consts = Wabbajack.Lib.Consts;
+using Consts = Wabbajack.Consts;
 
 namespace Wabbajack
 {

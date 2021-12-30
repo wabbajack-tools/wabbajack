@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using Wabbajack.Lib;
+using Wabbajack;
 namespace Wabbajack
 {
     /// <summary>

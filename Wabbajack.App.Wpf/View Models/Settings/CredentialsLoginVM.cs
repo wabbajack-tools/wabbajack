@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Downloaders.Interfaces;
-using Wabbajack.Lib;
+using Wabbajack;
 
 namespace Wabbajack
 {

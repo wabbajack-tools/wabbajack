@@ -6,7 +6,7 @@ using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
 using Wabbajack.Models;
 
-namespace Wabbajack.Lib
+namespace Wabbajack
 {
     public class ViewModel : ReactiveObject, IDisposable, IActivatableViewModel
     {

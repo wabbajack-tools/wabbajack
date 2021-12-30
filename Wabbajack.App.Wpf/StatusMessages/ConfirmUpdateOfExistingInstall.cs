@@ -1,6 +1,6 @@
 ﻿using Wabbajack.Paths;
 
-namespace Wabbajack.Lib
+namespace Wabbajack
 {
     public class ConfirmUpdateOfExistingInstall : ConfirmationIntervention
     {

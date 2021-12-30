@@ -1,6 +1,6 @@
 ﻿using ReactiveUI;
 
-namespace Wabbajack.Lib.Interventions
+namespace Wabbajack.Interventions
 {
     /// <summary>
     /// Defines a message that requires user interaction. The user must perform some action

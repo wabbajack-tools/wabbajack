@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using Wabbajack.Common;
-using Wabbajack.Lib.Interventions;
+using Wabbajack.Interventions;
 
-namespace Wabbajack.Lib
+namespace Wabbajack
 {
     public abstract class AUserIntervention : ReactiveObject, IUserIntervention
     {

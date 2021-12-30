@@ -8,11 +8,11 @@ using CefSharp.OffScreen;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
-using Wabbajack.Lib.LibCefHelpers;
+using Wabbajack.LibCefHelpers;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
-namespace Wabbajack.Lib.WebAutomation
+namespace Wabbajack.WebAutomation
 {
     public class Driver : IDisposable
     {
