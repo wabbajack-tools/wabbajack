@@ -147,7 +147,7 @@ namespace Wabbajack
             {
                 if (await _maintainer.HaveModList(Metadata))
                 {
-                    LoadModlistForInstalling.Send(_maintainer.ModListPath(Metadata));
+                    LoadModlistForInstalling.Send(_maintainer.ModListPath(Metadata), Metadata);
                     NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Installer);
                 }
                 else

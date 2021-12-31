@@ -134,7 +134,7 @@ namespace Wabbajack
 
             if (IsStartingFromModlist(out var path))
             {
-                LoadModlistForInstalling.Send(path);
+                LoadModlistForInstalling.Send(path, null);
                 NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Installer);
             }
             else

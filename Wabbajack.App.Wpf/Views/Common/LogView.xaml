@@ -14,11 +14,11 @@
             local:AutoScrollBehavior.ScrollOnNewItem="True"
             BorderBrush="Transparent"
             BorderThickness="1"
-            ItemsSource="{Binding Log}"
+            ItemsSource="{Binding LoggerProvider.MessageLog}"
             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding ShortDescription}" TextWrapping="WrapWithOverflow" />
+                    <TextBlock Text="{Binding ShortMessage}" TextWrapping="WrapWithOverflow" />
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>

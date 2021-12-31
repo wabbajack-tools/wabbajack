@@ -5,7 +5,7 @@ namespace Wabbajack
     public struct ErrorResponse : IErrorResponse
     {
         public static readonly ErrorResponse Success = Succeed();
-        public static readonly ErrorResponse Failure = new ErrorResponse();
+        public static readonly ErrorResponse Failure = new();
 
         public bool Succeeded { get; }
         public Exception? Exception { get; }

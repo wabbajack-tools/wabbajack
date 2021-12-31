@@ -11,6 +11,7 @@ using ReactiveUI;
 using Splat;
 using Wabbajack.Common;
 using Wabbajack;
+using Wabbajack.DTOs;
 using Wabbajack.Models;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Util;
@@ -40,7 +41,7 @@ namespace Wabbajack
             
             _serviceProvider = _host.Services;
         }
-        private IServiceCollection ConfigureServices(IServiceCollection services)
+        private static IServiceCollection ConfigureServices(IServiceCollection services)
         {
             RxApp.MainThreadScheduler = new DispatcherScheduler(Dispatcher.CurrentDispatcher);
             
@@ -50,6 +51,7 @@ namespace Wabbajack
             services.AddSingleton<SystemParametersConstructor>();
             services.AddSingleton<LauncherUpdater>();
             services.AddSingleton<ResourceMonitor>();
+            services.AddAllSingleton<ILoggerProvider, LoggerProvider>();
 
             services.AddSingleton<MainSettings>();
             services.AddTransient<CompilerVM>();

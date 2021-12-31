@@ -9,12 +9,14 @@ using DynamicData;
 using DynamicData.Binding;
 using System.Reactive;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Shell;
 using Wabbajack.Common;
+using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Extensions;
@@ -22,11 +24,13 @@ using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer;
 using Wabbajack.Interventions;
 using Wabbajack.Messages;
+using Wabbajack.Models;
 using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
 using Wabbajack.View_Models;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
+using Wabbajack.Util;
 using Consts = Wabbajack.Consts;
 using KnownFolders = Wabbajack.Paths.IO.KnownFolders;
 
@@ -37,6 +41,14 @@ public enum ModManager
     Standard
 }
 
+public enum InstallState
+{
+    Configuration,
+    Installing,
+    Success,
+    Failure
+}
+
 public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
 {
     private const string LastLoadedModlist = "last-loaded-modlist";
@@ -44,6 +56,9 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
     
     [Reactive]
     public ModList ModList { get; set; }
+    
+    [Reactive]
+    public ModlistMetadata ModlistMetadata { get; set; }
     
     [Reactive]
     public ErrorResponse? Completed { get; set; }
@@ -60,7 +75,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
     [Reactive]
     
     public BitmapFrame SlideShowImage { get; set; }
-    
+
+
+    [Reactive]
+    public InstallState InstallState { get; set; }
     
     /// <summary>
     ///  Slideshow Data
@@ -79,9 +97,16 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
     private readonly DTOSerializer _dtos;
     private readonly ILogger<InstallerVM> _logger;
     private readonly SettingsManager _settingsManager;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly SystemParametersConstructor _parametersConstructor;
+    private readonly IGameLocator _gameLocator;
+    private readonly LoggerProvider _loggerProvider;
 
     [Reactive]
     public bool Installing { get; set; }
+    
+    [Reactive]
+    public LoggerProvider LoggerProvider { get; set; }
     
     
     // Command properties
@@ -96,11 +121,17 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
     
     public ReactiveCommand<Unit, Unit> BackCommand { get; }
 
-    public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos, SettingsManager settingsManager) : base(logger)
+    public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
+        SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LoggerProvider loggerProvider) : base(logger)
     {
         _logger = logger;
+        LoggerProvider = loggerProvider;
         _settingsManager = settingsManager;
         _dtos = dtos;
+        _serviceProvider = serviceProvider;
+        _parametersConstructor = parametersConstructor;
+        _gameLocator = gameLocator;
+
         Installer = new MO2InstallerVM(this);
         
         BackCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModeSelectionView));
@@ -126,7 +157,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
         ModListLocation.Filters.Add(new CommonFileDialogFilter("Wabbajack Modlist", "*.wabbajack"));
         
         MessageBus.Current.Listen<LoadModlistForInstalling>()
-            .Subscribe(msg => LoadModlist(msg.Path).FireAndForget())
+            .Subscribe(msg => LoadModlist(msg.Path, msg.Metadata).FireAndForget())
             .DisposeWith(CompositeDisposable);
 
         MessageBus.Current.Listen<LoadLastLoadedModlist>()
@@ -137,8 +168,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
 
         this.WhenActivated(disposables =>
         {
+
+            
             ModListLocation.WhenAnyValue(l => l.TargetPath)
-                .Subscribe(p => LoadModlist(p).FireAndForget())
+                .Subscribe(p => LoadModlist(p, null).FireAndForget())
                 .DisposeWith(disposables);
 
         });
@@ -149,12 +182,13 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
     {
         var lst = await _settingsManager.Load<AbsolutePath>(LastLoadedModlist);
         if (lst.FileExists())
-            await LoadModlist(lst);
+            await LoadModlist(lst, null);
     }
 
-    private async Task LoadModlist(AbsolutePath path)
+    private async Task LoadModlist(AbsolutePath path, ModlistMetadata? metadata)
     {
         using var ll = LoadingLock.WithLoading();
+        InstallState = InstallState.Configuration;
         ModListLocation.TargetPath = path;
         try
         {
@@ -169,6 +203,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
                 ModListLocation.TargetPath = prevSettings.ModListLocation;
                 Installer.Location.TargetPath = prevSettings.InstallLocation;
                 Installer.DownloadLocation.TargetPath = prevSettings.DownloadLoadction;
+                ModlistMetadata = metadata ?? prevSettings.Metadata;
             }
             
             PopulateSlideShow(ModList);
@@ -183,15 +218,39 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
         }
     }
 
-    public async Task BeginInstall()
+    private async Task BeginInstall()
     {
+        InstallState = InstallState.Installing;
         var postfix = (await ModListLocation.TargetPath.ToString().Hash()).ToHex();
         await _settingsManager.Save(InstallSettingsPrefix + postfix, new SavedInstallSettings
         {
             ModListLocation = ModListLocation.TargetPath,
             InstallLocation = Installer.Location.TargetPath,
-            DownloadLoadction = Installer.DownloadLocation.TargetPath
+            DownloadLoadction = Installer.DownloadLocation.TargetPath,
+            Metadata = ModlistMetadata
         });
+
+        try
+        {
+            var installer = StandardInstaller.Create(_serviceProvider, new InstallerConfiguration
+            {
+                Game = ModList.GameType,
+                Downloads = Installer.DownloadLocation.TargetPath,
+                Install = Installer.Location.TargetPath,
+                ModList = ModList,
+                ModlistArchive = ModListLocation.TargetPath,
+                SystemParameters = _parametersConstructor.Create(),
+                GameFolder = _gameLocator.GameLocation(ModList.GameType)
+            });
+
+            await installer.Begin(CancellationToken.None);
+
+            InstallState = InstallState.Success;
+        }
+        catch (Exception ex)
+        {
+            InstallState = InstallState.Failure;
+        }
 
     }
 
@@ -200,6 +259,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
         public AbsolutePath ModListLocation { get; set; }
         public AbsolutePath InstallLocation { get; set; }
         public AbsolutePath DownloadLoadction { get; set; }
+        
+        public ModlistMetadata Metadata { get; set; }
     }
 
     private void PopulateSlideShow(ModList modList)

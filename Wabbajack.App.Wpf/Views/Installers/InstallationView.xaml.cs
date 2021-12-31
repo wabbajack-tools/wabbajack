@@ -16,9 +16,24 @@ namespace Wabbajack
             InitializeComponent();
             this.WhenActivated(disposables =>
             {
-                MidInstallDisplayGrid.Visibility = Visibility.Collapsed;
-                LogView.Visibility = Visibility.Collapsed;
-                CpuView.Visibility = Visibility.Collapsed;
+                //MidInstallDisplayGrid.Visibility = Visibility.Collapsed;
+                //LogView.Visibility = Visibility.Collapsed;
+                //CpuView.Visibility = Visibility.Collapsed;
+
+                ViewModel.WhenAnyValue(vm => vm.InstallState)
+                    .Select(v => v != InstallState.Configuration ? Visibility.Visible : Visibility.Collapsed)
+                    .BindToStrict(this, view => view.MidInstallDisplayGrid.Visibility)
+                    .DisposeWith(disposables);
+                
+                ViewModel.WhenAnyValue(vm => vm.InstallState)
+                    .Select(v => v == InstallState.Configuration ? Visibility.Visible : Visibility.Collapsed)
+                    .BindToStrict(this, view => view.BottomButtonInputGrid.Visibility)
+                    .DisposeWith(disposables);
+
+                ViewModel.WhenAnyValue(vm => vm.InstallState)
+                    .Select(es => es == InstallState.Success ? Visibility.Visible : Visibility.Collapsed)
+                    .BindToStrict(this, view => view.InstallComplete.Visibility)
+                    .DisposeWith(disposables);
 
                 //ViewModel.WhenAnyValue(vm => vm.ModList.Name)
                 //    .BindToStrict(this, view => view.Name)

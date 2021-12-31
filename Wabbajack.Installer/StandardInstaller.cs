@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using IniParser;
 using IniParser.Model.Configuration;
 using IniParser.Parser;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Compression.BSA;
@@ -39,6 +40,20 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             parallelOptions, wjClient)
     {
         MaxSteps = 14;
+    }
+
+    public static StandardInstaller Create(IServiceProvider provider, InstallerConfiguration configuration)
+    {
+        return new StandardInstaller(provider.GetRequiredService<ILogger<StandardInstaller>>(),
+            configuration,
+            provider.GetRequiredService<IGameLocator>(),
+            provider.GetRequiredService<FileExtractor.FileExtractor>(),
+            provider.GetRequiredService<DTOSerializer>(),
+            provider.GetRequiredService<Context>(),
+            provider.GetRequiredService<FileHashCache>(),
+            provider.GetRequiredService<DownloadDispatcher>(),
+            provider.GetRequiredService<ParallelOptions>(),
+            provider.GetRequiredService<Client>());
     }
 
     public override async Task<bool> Begin(CancellationToken token)

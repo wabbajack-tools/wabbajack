@@ -1,5 +1,6 @@
 using System;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 
@@ -9,6 +10,7 @@ public class LoadingLock : ReactiveObject, IDisposable
 {
     private readonly CompositeDisposable _disposable;
     
+    [Reactive]
     public ErrorResponse? ErrorState { get; set; }
 
     public LoadingLock()
@@ -16,10 +18,12 @@ public class LoadingLock : ReactiveObject, IDisposable
         _disposable = new CompositeDisposable();
 
         this.WhenAnyValue(vm => vm.LoadLevel)
+            .StartWith(0)
             .Subscribe(v => IsLoading = v > 0)
             .DisposeWith(_disposable);
         
         this.WhenAnyValue(vm => vm.LoadLevel)
+            .StartWith(0)
             .Subscribe(v => IsNotLoading = v == 0)
             .DisposeWith(_disposable);
     }
