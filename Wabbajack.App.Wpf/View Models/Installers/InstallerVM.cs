@@ -24,6 +24,7 @@ using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
 using Wabbajack.View_Models;
 using Wabbajack.Paths.IO;
+using Wabbajack.Services.OSIntegrated;
 using Consts = Wabbajack.Consts;
 using KnownFolders = Wabbajack.Paths.IO.KnownFolders;
 
@@ -36,6 +37,8 @@ public enum ModManager
 
 public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
 {
+    private const string LastLoadedModlist = "last-loaded-modlist";
+    
     [Reactive]
     public ModList ModList { get; set; }
     
@@ -72,7 +75,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
     private readonly ObservableAsPropertyHelper<bool> _installing;
     private readonly DTOSerializer _dtos;
     private readonly ILogger<InstallerVM> _logger;
-    
+    private readonly SettingsManager _settingsManager;
+
     [Reactive]
     public bool Installing { get; set; }
     
@@ -89,9 +93,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
     
     public ReactiveCommand<Unit, Unit> BackCommand { get; }
 
-    public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos) : base(logger)
+    public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos, SettingsManager settingsManager) : base(logger)
     {
         _logger = logger;
+        _settingsManager = settingsManager;
         _dtos = dtos;
         Installer = new MO2InstallerVM(this);
         
@@ -119,6 +124,12 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
             .Subscribe(msg => LoadModlist(msg.Path).FireAndForget())
             .DisposeWith(CompositeDisposable);
 
+        MessageBus.Current.Listen<LoadLastLoadedModlist>()
+            .Subscribe(msg =>
+            {
+                LoadLastModlist().FireAndForget();
+            });
+
         this.WhenActivated(disposables =>
         {
             ModListLocation.WhenAnyValue(l => l.TargetPath)
@@ -127,6 +138,13 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
 
         });
 
+    }
+
+    private async Task LoadLastModlist()
+    {
+        var lst = await _settingsManager.Load<AbsolutePath>(LastLoadedModlist);
+        if (lst.FileExists())
+            await LoadModlist(lst);
     }
 
     private async Task LoadModlist(AbsolutePath path)
@@ -140,6 +158,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
             PopulateSlideShow(ModList);
             
             ll.Succeed();
+            await _settingsManager.Save(LastLoadedModlist, path);
         }
         catch (Exception ex)
         {
@@ -147,7 +166,6 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
             ll.Fail();
         }
     }
-
 
     private void PopulateSlideShow(ModList modList)
     {

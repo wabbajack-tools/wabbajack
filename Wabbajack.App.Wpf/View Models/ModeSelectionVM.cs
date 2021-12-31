@@ -19,11 +19,16 @@ namespace Wabbajack
         public ICommand BrowseCommand { get; }
         public ICommand InstallCommand { get; }
         public ICommand CompileCommand { get; }
+        
         public ReactiveCommand<Unit, Unit> UpdateCommand { get; }
 
         public ModeSelectionVM()
         {
-            InstallCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Installer));
+            InstallCommand = ReactiveCommand.Create(() =>
+            {
+                LoadLastLoadedModlist.Send();
+                NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Installer);
+            });
             CompileCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Compiler));
             BrowseCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModListGallery));
         }
