@@ -40,6 +40,10 @@ namespace Wabbajack
                     .BindToStrict(this, view => view.ModlistLoadingRing.Visibility)
                     .DisposeWith(disposables);
                 
+                ViewModel.WhenAnyValue(vm => vm.BeginCommand)
+                    .BindToStrict(this, view => view.InstallationConfigurationView.BeginButton.Command)
+                    .DisposeWith(disposables);
+
                 // Slideshow
                 ViewModel.WhenAnyValue(vm => vm.SlideShowTitle)
                     .Select(f => f)

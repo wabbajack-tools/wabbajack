@@ -8,6 +8,7 @@ using System.Windows.Media;
 using DynamicData;
 using DynamicData.Binding;
 using System.Reactive;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,7 @@ using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Extensions;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer;
 using Wabbajack.Interventions;
 using Wabbajack.Messages;
@@ -38,6 +40,7 @@ public enum ModManager
 public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
 {
     private const string LastLoadedModlist = "last-loaded-modlist";
+    private const string InstallSettingsPrefix = "install-settings-";
     
     [Reactive]
     public ModList ModList { get; set; }
@@ -101,6 +104,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
         Installer = new MO2InstallerVM(this);
         
         BackCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModeSelectionView));
+
+        BeginCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget());
         
         OpenReadmeCommand = ReactiveCommand.Create(() =>
         {
@@ -155,6 +160,17 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
         {
             ModList = await StandardInstaller.LoadFromFile(_dtos, path);
             ModListImage = BitmapFrame.Create(await StandardInstaller.ModListImageStream(path));
+            
+            var hex = (await ModListLocation.TargetPath.ToString().Hash()).ToHex();
+            var prevSettings = await _settingsManager.Load<SavedInstallSettings>(InstallSettingsPrefix + hex);
+
+            if (prevSettings.ModListLocation == path)
+            {
+                ModListLocation.TargetPath = prevSettings.ModListLocation;
+                Installer.Location.TargetPath = prevSettings.InstallLocation;
+                Installer.DownloadLocation.TargetPath = prevSettings.DownloadLoadction;
+            }
+            
             PopulateSlideShow(ModList);
             
             ll.Succeed();
@@ -165,6 +181,25 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
             _logger.LogError(ex, "While loading modlist");
             ll.Fail();
         }
+    }
+
+    public async Task BeginInstall()
+    {
+        var postfix = (await ModListLocation.TargetPath.ToString().Hash()).ToHex();
+        await _settingsManager.Save(InstallSettingsPrefix + postfix, new SavedInstallSettings
+        {
+            ModListLocation = ModListLocation.TargetPath,
+            InstallLocation = Installer.Location.TargetPath,
+            DownloadLoadction = Installer.DownloadLocation.TargetPath
+        });
+
+    }
+
+    class SavedInstallSettings
+    {
+        public AbsolutePath ModListLocation { get; set; }
+        public AbsolutePath InstallLocation { get; set; }
+        public AbsolutePath DownloadLoadction { get; set; }
     }
 
     private void PopulateSlideShow(ModList modList)
