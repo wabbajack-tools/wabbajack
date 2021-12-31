@@ -54,6 +54,13 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
     private const string LastLoadedModlist = "last-loaded-modlist";
     private const string InstallSettingsPrefix = "install-settings-";
     
+    
+    [Reactive]
+    public Percent StatusProgress { get; set; }
+
+    [Reactive]
+    public string StatusText { get; set; }
+    
     [Reactive]
     public ModList ModList { get; set; }
     
@@ -195,6 +202,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
             ModList = await StandardInstaller.LoadFromFile(_dtos, path);
             ModListImage = BitmapFrame.Create(await StandardInstaller.ModListImageStream(path));
             
+            StatusText = $"Install configuration for {ModList.Name}";
+            
             var hex = (await ModListLocation.TargetPath.ToString().Hash()).ToHex();
             var prevSettings = await _settingsManager.Load<SavedInstallSettings>(InstallSettingsPrefix + hex);
 
@@ -243,6 +252,13 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
                 GameFolder = _gameLocator.GameLocation(ModList.GameType)
             });
 
+
+            installer.OnStatusUpdate = update =>
+            {
+                StatusText = update.StatusText;
+                StatusProgress = update.StepsProgress;
+
+            };
             await installer.Begin(CancellationToken.None);
 
             InstallState = InstallState.Success;
@@ -253,6 +269,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
         }
 
     }
+
 
     class SavedInstallSettings
     {

@@ -58,6 +58,16 @@ namespace Wabbajack
                 ViewModel.WhenAnyValue(vm => vm.BeginCommand)
                     .BindToStrict(this, view => view.InstallationConfigurationView.BeginButton.Command)
                     .DisposeWith(disposables);
+                
+                // Status
+                ViewModel.WhenAnyValue(vm => vm.StatusText)
+                    .BindToStrict(this, view => view.TopProgressBar.Title)
+                    .DisposeWith(disposables);
+
+                ViewModel.WhenAnyValue(vm => vm.StatusProgress)
+                    .Select(p => p.Value)
+                    .BindToStrict(this, view => view.TopProgressBar.ProgressPercent)
+                    .DisposeWith(disposables);
 
                 // Slideshow
                 ViewModel.WhenAnyValue(vm => vm.SlideShowTitle)
