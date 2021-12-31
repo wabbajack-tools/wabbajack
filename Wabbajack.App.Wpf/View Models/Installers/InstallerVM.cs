@@ -11,6 +11,7 @@ using System.Reactive;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Shell;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -203,6 +204,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
             ModListImage = BitmapFrame.Create(await StandardInstaller.ModListImageStream(path));
             
             StatusText = $"Install configuration for {ModList.Name}";
+            TaskBarUpdate.Send($"Loaded {ModList.Name}", TaskbarItemProgressState.Normal);
             
             var hex = (await ModListLocation.TargetPath.ToString().Hash()).ToHex();
             var prevSettings = await _settingsManager.Load<SavedInstallSettings>(InstallSettingsPrefix + hex);
@@ -258,13 +260,17 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
                 StatusText = update.StatusText;
                 StatusProgress = update.StepsProgress;
 
+                TaskBarUpdate.Send(update.StatusText, TaskbarItemProgressState.Indeterminate, update.StepsProgress.Value);
             };
             await installer.Begin(CancellationToken.None);
+            
+            TaskBarUpdate.Send($"Finished install of {ModList.Name}", TaskbarItemProgressState.Normal);
 
             InstallState = InstallState.Success;
         }
         catch (Exception ex)
         {
+            TaskBarUpdate.Send($"Error during install of {ModList.Name}", TaskbarItemProgressState.Error);
             InstallState = InstallState.Failure;
         }
 

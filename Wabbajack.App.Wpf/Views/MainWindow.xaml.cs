@@ -9,6 +9,7 @@ using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack;
 using Wabbajack.LibCefHelpers;
+using Wabbajack.Messages;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Util;
@@ -42,6 +43,14 @@ namespace Wabbajack
                     _logger.LogError((Exception)e.ExceptionObject, "Uncaught error");
                     Environment.Exit(-1);
                 };
+
+                MessageBus.Current.Listen<TaskBarUpdate>()
+                    .Subscribe(u =>
+                    {
+                        TaskbarItemInfo.Description = u.Description;
+                        TaskbarItemInfo.ProgressValue = u.ProgressValue;
+                        TaskbarItemInfo.ProgressState = u.State;
+                    });
 
                 _logger.LogInformation("Wabbajack Build - {Sha}",ThisAssembly.Git.Sha);
                 _logger.LogInformation("Running in {EntryPoint}", KnownFolders.EntryPoint);

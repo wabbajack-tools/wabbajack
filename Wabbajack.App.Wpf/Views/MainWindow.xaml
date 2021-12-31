@@ -78,4 +78,7 @@
             </Button>
         </mahapps:WindowCommands>
     </mahapps:MetroWindow.RightWindowCommands>
+    <Window.TaskbarItemInfo>
+        <TaskbarItemInfo x:Name="TaskbarItemInfo"></TaskbarItemInfo>
+    </Window.TaskbarItemInfo>
 </mahapps:MetroWindow>
