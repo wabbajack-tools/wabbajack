@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -32,6 +33,7 @@ using Wabbajack.View_Models;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Util;
+using Configuration = Wabbajack.Networking.WabbajackClientApi.Configuration;
 using Consts = Wabbajack.Consts;
 using KnownFolders = Wabbajack.Paths.IO.KnownFolders;
 
@@ -50,7 +52,7 @@ public enum InstallState
     Failure
 }
 
-public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
+public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
 {
     private const string LastLoadedModlist = "last-loaded-modlist";
     private const string InstallSettingsPrefix = "install-settings-";
@@ -109,6 +111,9 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
     private readonly SystemParametersConstructor _parametersConstructor;
     private readonly IGameLocator _gameLocator;
     private readonly LoggerProvider _loggerProvider;
+    private readonly ResourceMonitor _resourceMonitor;
+    private readonly Services.OSIntegrated.Configuration _configuration;
+    public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
 
     [Reactive]
     public bool Installing { get; set; }
@@ -130,16 +135,19 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
     public ReactiveCommand<Unit, Unit> BackCommand { get; }
 
     public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
-        SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LoggerProvider loggerProvider) : base(logger)
+        SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LoggerProvider loggerProvider, ResourceMonitor resourceMonitor,
+        Wabbajack.Services.OSIntegrated.Configuration configuration) : base(logger)
     {
         _logger = logger;
+        _configuration = configuration;
         LoggerProvider = loggerProvider;
         _settingsManager = settingsManager;
         _dtos = dtos;
         _serviceProvider = serviceProvider;
         _parametersConstructor = parametersConstructor;
         _gameLocator = gameLocator;
-
+        _resourceMonitor = resourceMonitor;
+        
         Installer = new MO2InstallerVM(this);
         
         BackCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModeSelectionView));
@@ -163,6 +171,16 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM
             PromptTitle = "Select a ModList to install"
         };
         ModListLocation.Filters.Add(new CommonFileDialogFilter("Wabbajack Modlist", "*.wabbajack"));
+        
+        OpenLogsCommand = ReactiveCommand.Create(() =>
+        {
+            UIUtils.OpenFolder(_configuration.LogLocation);
+        });
+        
+        GoToInstallCommand = ReactiveCommand.Create(() =>
+        {
+            UIUtils.OpenFolder(Installer.Location.TargetPath);
+        });
         
         MessageBus.Current.Listen<LoadModlistForInstalling>()
             .Subscribe(msg => LoadModlist(msg.Path, msg.Metadata).FireAndForget())

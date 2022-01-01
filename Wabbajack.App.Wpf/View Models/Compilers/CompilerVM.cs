@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.Logging;
@@ -36,7 +37,7 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<Percent> _percentCompleted;
         public Percent PercentCompleted => _percentCompleted.Value;
 
-        public ObservableCollectionExtended<CPUDisplayVM> StatusList { get; } = new ObservableCollectionExtended<CPUDisplayVM>();
+        public ReadOnlyObservableCollection<CPUDisplayVM> StatusList { get; }
 
         public ObservableCollectionExtended<IStatusMessage> Log => MWVM.Log;
 

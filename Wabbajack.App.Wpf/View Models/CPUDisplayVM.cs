@@ -8,7 +8,7 @@ namespace Wabbajack
     public class CPUDisplayVM : ViewModel
     {
         [Reactive]
-        public int ID { get; set; }
+        public ulong ID { get; set; }
         [Reactive]
         public DateTime StartTime { get; set; }
         [Reactive]
@@ -20,27 +20,6 @@ namespace Wabbajack
 
         public CPUDisplayVM()
         {
-        }
-
-        public CPUDisplayVM(IJob cpu)
-        {
-            AbsorbStatus(cpu);
-        }
-
-        public void AbsorbStatus(IJob cpu)
-        {
-            /* TODO
-            bool starting = cpu.IsWorking && !IsWorking;
-            if (starting)
-            {
-                StartTime = DateTime.Now;
-            }
-
-            ID = cpu.;
-            Msg = cpu.Msg;
-            ProgressPercent = cpu.ProgressPercent;
-            IsWorking = cpu.IsWorking;
-            */
         }
     }
 }

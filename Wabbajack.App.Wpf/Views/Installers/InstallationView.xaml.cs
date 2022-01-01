@@ -35,9 +35,6 @@ namespace Wabbajack
                     .BindToStrict(this, view => view.InstallComplete.Visibility)
                     .DisposeWith(disposables);
 
-                //ViewModel.WhenAnyValue(vm => vm.ModList.Name)
-                //    .BindToStrict(this, view => view.Name)
-
                 ViewModel.WhenAnyValue(vm => vm.BackCommand)
                     .BindToStrict(this, view => view.BackButton.Command)
                     .DisposeWith(disposables);

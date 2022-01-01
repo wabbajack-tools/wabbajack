@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,8 +11,6 @@ namespace Wabbajack
 {
     public interface ICpuStatusVM : IReactiveObject
     {
-        ObservableCollectionExtended<CPUDisplayVM> StatusList { get; }
-        MainWindowVM MWVM { get; }
-        (int CurrentCPUs, int DesiredCPUs) CurrentCpuCount { get; }
+        ReadOnlyObservableCollection<CPUDisplayVM> StatusList { get; }
     }
 }
