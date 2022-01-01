@@ -34,7 +34,7 @@ public class ResourceMonitor : IDisposable
         _compositeDisposable = new CompositeDisposable();
         _resources = resources.ToArray();
         _timer = new Timer();
-        _timer.Interval = 1000;
+        _timer.Interval = 250;
         _timer.Elapsed += Elapsed;
         _timer.Enabled = true;
         

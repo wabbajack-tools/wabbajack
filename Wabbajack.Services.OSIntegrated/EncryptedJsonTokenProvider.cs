@@ -31,7 +31,7 @@ public class EncryptedJsonTokenProvider<T> : ITokenProvider<T>
         await token.AsEncryptedJsonFile(KeyPath);
     }
 
-    public async ValueTask<bool> TryDelete(T val)
+    public async ValueTask<bool> Delete()
     {
         if (!KeyPath.FileExists()) return false;
         KeyPath.Delete();

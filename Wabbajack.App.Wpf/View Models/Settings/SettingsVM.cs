@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack;
+using Wabbajack.LoginManagers;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 using Wabbajack.View_Models.Settings;
@@ -31,7 +32,8 @@ namespace Wabbajack
             : base(logger)
         {
             MWVM = mainWindowVM;
-            Login = new LoginManagerVM(provider.GetRequiredService<ILogger<LoginManagerVM>>(), this);
+            Login = new LoginManagerVM(provider.GetRequiredService<ILogger<LoginManagerVM>>(), this, 
+                provider.GetRequiredService<IEnumerable<INeedsLogin>>());
             Performance = mainWindowVM.Settings.Performance;
             AuthorFile = new AuthorFilesVM(provider.GetRequiredService<ILogger<AuthorFilesVM>>()!, 
                 provider.GetRequiredService<WabbajackApiTokenProvider>()!, provider.GetRequiredService<Client>()!, this);

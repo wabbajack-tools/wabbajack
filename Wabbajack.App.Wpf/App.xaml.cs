@@ -12,6 +12,7 @@ using Splat;
 using Wabbajack.Common;
 using Wabbajack;
 using Wabbajack.DTOs;
+using Wabbajack.LoginManagers;
 using Wabbajack.Models;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Util;
@@ -59,6 +60,9 @@ namespace Wabbajack
             services.AddTransient<ModeSelectionVM>();
             services.AddTransient<ModListGalleryVM>();
             services.AddTransient<InstallerVM>();
+            
+            // Login Managers
+            services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
             
             return services;
         }

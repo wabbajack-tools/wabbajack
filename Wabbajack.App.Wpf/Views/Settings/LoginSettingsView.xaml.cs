@@ -27,7 +27,7 @@ namespace Wabbajack
             InitializeComponent();
             this.WhenActivated(disposable =>
             {
-                this.OneWayBindStrict(this.ViewModel, x => x.Downloaders, x => x.DownloadersList.ItemsSource)
+                this.OneWayBindStrict(this.ViewModel, x => x.Logins, x => x.DownloadersList.ItemsSource)
                     .DisposeWith(disposable);
             });
         }

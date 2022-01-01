@@ -43,7 +43,7 @@ public class WabbajackApiTokenProvider : ITokenProvider<WabbajackApiState>
         throw new NotImplementedException();
     }
 
-    public ValueTask<bool> TryDelete(WabbajackApiState val)
+    public ValueTask<bool> Delete()
     {
         throw new NotImplementedException();
     }

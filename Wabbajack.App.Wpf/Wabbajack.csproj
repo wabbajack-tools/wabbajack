@@ -111,4 +111,9 @@
     <SplashScreen Include="Resources\Wabba_Mouth_Small.png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="LoginManagers\Icons\nexus.png" />
+    <EmbeddedResource Include="LoginManagers\Icons\nexus.png" />
+  </ItemGroup>
+
 </Project>
