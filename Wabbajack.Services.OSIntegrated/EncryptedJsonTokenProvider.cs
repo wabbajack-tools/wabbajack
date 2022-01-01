@@ -50,7 +50,7 @@ public class EncryptedJsonTokenProvider<T> : ITokenProvider<T>
         if (value == default)
         {
             _logger.LogCritical("No login data for {key}", _key);
-            throw new Exception("No login data for {_key}");
+            throw new Exception($"No login data for {_key}");
         }
 
         return _dtos.Deserialize<T>(EnvValue!);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive.Disposables;
+using System.Windows.Forms;
 using ReactiveUI;
 
 namespace Wabbajack
@@ -11,18 +12,22 @@ namespace Wabbajack
             InitializeComponent();
             this.WhenActivated(disposable =>
             {
-                this.WhenAny(x => x.ViewModel.Login.Icon)
+                ViewModel.WhenAny(x => x.Login.Icon)
                     .BindToStrict(this, view => view.Favicon.Source)
                     .DisposeWith(disposable);
-                
-                this.OneWayBindStrict(ViewModel, x => x.Login.SiteName, x => x.SiteNameText.Text)
-                    .DisposeWith(disposable);
-                
-                this.OneWayBindStrict(ViewModel, x => x.Login.TriggerLogin, x => x.LoginButton.Command)
+
+                ViewModel.WhenAnyValue(vm => vm.Login.SiteName)
+                    .BindToStrict(this, view => view.SiteNameText.Text)
                     .DisposeWith(disposable);
 
-                this.OneWayBindStrict(ViewModel, x => x.Login.ClearLogin, x => x.LogoutButton.Command)
+                ViewModel.WhenAnyValue(vm => vm.Login.TriggerLogin)
+                    .BindToStrict(this, view => view.LoginButton.Command)
                     .DisposeWith(disposable);
+                
+                ViewModel.WhenAnyValue(vm => vm.Login.ClearLogin)
+                    .BindToStrict(this, view => view.LogoutButton.Command)
+                    .DisposeWith(disposable);
+
             });
         }
     }

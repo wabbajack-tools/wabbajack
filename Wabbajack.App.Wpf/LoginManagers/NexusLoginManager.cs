@@ -1,12 +1,16 @@
 using System;
 using System.Drawing;
+using System.Reactive.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
+using Wabbajack.Common;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Messages;
@@ -14,7 +18,7 @@ using Wabbajack.Networking.Http.Interfaces;
 
 namespace Wabbajack.LoginManagers;
 
-public class NexusLoginManager : INeedsLogin
+public class NexusLoginManager : ViewModel, INeedsLogin
 {
     private readonly ILogger<NexusLoginManager> _logger;
     private readonly ITokenProvider<NexusApiState> _token;
@@ -26,23 +30,35 @@ public class NexusLoginManager : INeedsLogin
     
     public ImageSource Icon { get; set; }
     
+    [Reactive]
+    public bool HaveLogin { get; set; }
+    
     public NexusLoginManager(ILogger<NexusLoginManager> logger, ITokenProvider<NexusApiState> token)
     {
         _logger = logger;
         _token = token;
-
-        ClearLogin = ReactiveCommand.Create(() =>
+        RefreshTokenState();
+        
+        ClearLogin = ReactiveCommand.CreateFromTask(async () =>
         {
             _logger.LogInformation("Deleting Login information for {SiteName}", SiteName);
-            _token.Delete();
-        });
+            await _token.Delete();
+            RefreshTokenState();
+        }, this.WhenAnyValue(v => v.HaveLogin));
 
         Icon = BitmapFrame.Create(
             typeof(NexusLoginManager).Assembly.GetManifestResourceStream("Wabbajack.LoginManagers.Icons.nexus.png")!);
-        TriggerLogin = ReactiveCommand.Create(() =>
+        
+        TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
         {
             _logger.LogInformation("Logging into {SiteName}", SiteName);
-            NexusLogin.Send();
-        });
+            await NexusLogin.Send();
+            RefreshTokenState();
+        }, this.WhenAnyValue(v => v.HaveLogin).Select(v => !v));
+    }
+
+    private void RefreshTokenState()
+    {
+        HaveLogin = _token.HaveToken();
     }
 }

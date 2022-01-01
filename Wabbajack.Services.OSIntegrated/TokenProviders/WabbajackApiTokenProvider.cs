@@ -48,6 +48,11 @@ public class WabbajackApiTokenProvider : ITokenProvider<WabbajackApiState>
         throw new NotImplementedException();
     }
 
+    public bool HaveToken()
+    {
+        return true;
+    }
+
     private async Task CreateMetricsKey()
     {
         var key = MakeRandomKey();
