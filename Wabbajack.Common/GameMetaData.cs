@@ -670,7 +670,7 @@ namespace Wabbajack.Common
                {
                     Game = Game.Cyberpunk2077,
                     SteamIDs = new List<int> {1091500},
-                    GOGIDs = new List<int> {2093619782},
+                    GOGIDs = new List<int> {1423049311},
                     MO2Name = "Cyberpunk 2077",
                     NexusName = "cyberpunk2077",
                     NexusGameId = 3333,
