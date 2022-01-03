@@ -5,7 +5,7 @@ using ReactiveUI;
 
 namespace Wabbajack
 {
-    public partial class LoginItemView
+    public partial class LoginItemView : IViewFor<LoginTargetVM>
     {
         public LoginItemView()
         {
@@ -20,12 +20,10 @@ namespace Wabbajack
                     .BindToStrict(this, view => view.SiteNameText.Text)
                     .DisposeWith(disposable);
 
-                ViewModel.WhenAnyValue(vm => vm.Login.TriggerLogin)
-                    .BindToStrict(this, view => view.LoginButton.Command)
+                this.BindCommand(ViewModel, vm => vm.Login.TriggerLogin, view => view.LoginButton)
                     .DisposeWith(disposable);
                 
-                ViewModel.WhenAnyValue(vm => vm.Login.ClearLogin)
-                    .BindToStrict(this, view => view.LogoutButton.Command)
+                this.BindCommand(ViewModel, vm => vm.Login.ClearLogin, view => view.LogoutButton)
                     .DisposeWith(disposable);
 
             });
