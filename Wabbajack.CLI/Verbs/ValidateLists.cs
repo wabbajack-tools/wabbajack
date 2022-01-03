@@ -16,6 +16,7 @@ using Wabbajack.Compiler.PatchCache;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.Configs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.GitHub;
 using Wabbajack.DTOs.JsonConverters;
@@ -99,9 +100,12 @@ public class ValidateLists : IVerb
         var patchFiles = await _wjClient.GetAllPatches(token);
         _logger.LogInformation("Found {Count} patches", patchFiles.Length);
 
+        var forcedRemovals = (await _wjClient.GetForcedRemovals(token)).ToLookup(f => f.Hash);
+        _logger.LogInformation("Found {Count} forced removals", forcedRemovals.Count);
+
         var validationCache = new LazyCache<string, Archive, (ArchiveStatus Status, Archive archive)>
         (x => x.State.PrimaryKeyString + x.Hash,
-            archive => DownloadAndValidate(archive, token));
+            archive => DownloadAndValidate(archive, forcedRemovals, token));
         
         var stopWatch = Stopwatch.StartNew();
         var listData = await lists.SelectAsync(async l => await _gitHubClient.GetData(l))
@@ -375,8 +379,12 @@ public class ValidateLists : IVerb
         }
     }
 
-    private async Task<(ArchiveStatus, Archive)> DownloadAndValidate(Archive archive, CancellationToken token)
+    private async Task<(ArchiveStatus, Archive)> DownloadAndValidate(Archive archive,
+        ILookup<Hash, ForcedRemoval> forcedRemovals, CancellationToken token)
     {
+        if (forcedRemovals.Contains(archive.Hash))
+            return (ArchiveStatus.InValid, archive);
+        
         switch (archive.State)
         {
             case GameFileSource:
