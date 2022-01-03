@@ -333,7 +333,7 @@ public class Client
 
     public async Task<ForcedRemoval[]> GetForcedRemovals(CancellationToken token)
     {
-        return (await _client.GetFromJsonAsync<ForcedRemoval[]>("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/configs/forced_remova..json", _dtos.Options, token))!;
+        return (await _client.GetFromJsonAsync<ForcedRemoval[]>("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/configs/forced_removal.json", _dtos.Options, token))!;
         
     }
 }
