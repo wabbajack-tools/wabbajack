@@ -15,6 +15,7 @@ using Wabbajack.DTOs;
 using Wabbajack.LoginManagers;
 using Wabbajack.Models;
 using Wabbajack.Services.OSIntegrated;
+using Wabbajack.UserIntervention;
 using Wabbajack.Util;
 
 namespace Wabbajack
@@ -47,6 +48,9 @@ namespace Wabbajack
             RxApp.MainThreadScheduler = new DispatcherScheduler(Dispatcher.CurrentDispatcher);
             
             services.AddOSIntegrated();
+
+            services.AddSingleton<CefService>();
+            
             services.AddTransient<MainWindow>();
             services.AddTransient<MainWindowVM>();
             services.AddSingleton<SystemParametersConstructor>();
@@ -60,6 +64,10 @@ namespace Wabbajack
             services.AddTransient<ModeSelectionVM>();
             services.AddTransient<ModListGalleryVM>();
             services.AddTransient<InstallerVM>();
+
+            services.AddTransient<WebBrowserVM>();
+
+            services.AddTransient<NexusLoginHandler>();
             
             // Login Managers
             services.AddAllSingleton<INeedsLogin, NexusLoginManager>();

@@ -35,6 +35,7 @@ namespace Wabbajack.WebAutomation
                 _browser.LoadingStateChanged -= handler;
                 tcs.SetResult(true);
             };
+            
             _browser.LoadingStateChanged += handler;
             _browser.Load(uri.ToString());
             token?.Register(() => tcs.TrySetCanceled());

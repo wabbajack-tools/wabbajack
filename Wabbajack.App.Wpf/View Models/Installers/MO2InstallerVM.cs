@@ -13,6 +13,7 @@ using Wabbajack.Common;
 using Wabbajack.Installer;
 using Wabbajack;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.Interventions;
 using Wabbajack.Interventions;
 using Wabbajack.Util;
 
@@ -194,7 +195,7 @@ namespace Wabbajack
             */
             return true;
         }
-
+        
         public IUserIntervention InterventionConverter(IUserIntervention intervention)
         {
             switch (intervention)

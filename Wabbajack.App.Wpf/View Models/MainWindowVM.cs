@@ -2,6 +2,7 @@
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -16,10 +17,12 @@ using Wabbajack.Common;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack;
 using Wabbajack.Interventions;
+using Wabbajack.LoginManagers;
 using Wabbajack.Messages;
 using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
+using Wabbajack.UserIntervention;
 using Wabbajack.View_Models;
 
 namespace Wabbajack
@@ -44,11 +47,15 @@ namespace Wabbajack
         public readonly Lazy<SettingsVM> SettingsPane;
         public readonly ModListGalleryVM Gallery;
         public readonly ModeSelectionVM ModeSelectionVM;
+        public readonly WebBrowserVM WebBrowserVM;
         public readonly Lazy<ModListContentsVM> ModListContentsVM;
         public readonly UserInterventionHandlers UserInterventionHandlers;
         private readonly Client _wjClient;
         private readonly ILogger<MainWindowVM> _logger;
         private readonly ResourceMonitor _resourceMonitor;
+
+        private List<ViewModel> PreviousPanes = new();
+        private readonly IServiceProvider _serviceProvider;
 
         public ICommand CopyVersionCommand { get; }
         public ICommand ShowLoginManagerVM { get; }
@@ -64,11 +71,12 @@ namespace Wabbajack
 
         public MainWindowVM(ILogger<MainWindowVM> logger, MainSettings settings, Client wjClient,
             IServiceProvider serviceProvider, ModeSelectionVM modeSelectionVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-            InstallerVM installer)
+            InstallerVM installer, WebBrowserVM webBrowserVM)
         {
             _logger = logger;
             _wjClient = wjClient;
             _resourceMonitor = resourceMonitor;
+            _serviceProvider = serviceProvider;
             ConverterRegistration.Register();
             Settings = settings;
             Installer = installer;
@@ -76,11 +84,24 @@ namespace Wabbajack
             SettingsPane = new Lazy<SettingsVM>(() => new SettingsVM(serviceProvider.GetRequiredService<ILogger<SettingsVM>>(), this, serviceProvider));
             Gallery = modListGalleryVM;
             ModeSelectionVM = modeSelectionVM;
+            WebBrowserVM = webBrowserVM;
             ModListContentsVM = new Lazy<ModListContentsVM>(() => new ModListContentsVM(serviceProvider.GetRequiredService<ILogger<ModListContentsVM>>(), this));
             UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetRequiredService<ILogger<UserInterventionHandlers>>(), this);
 
             MessageBus.Current.Listen<NavigateToGlobal>()
                 .Subscribe(m => HandleNavigateTo(m.Screen))
+                .DisposeWith(CompositeDisposable);
+            
+            MessageBus.Current.Listen<NavigateTo>()
+                .Subscribe(m => HandleNavigateTo(m.ViewModel))
+                .DisposeWith(CompositeDisposable);
+
+            MessageBus.Current.Listen<NavigateBack>()
+                .Subscribe(HandleNavigateBack)
+                .DisposeWith(CompositeDisposable);
+
+            MessageBus.Current.Listen<NexusLogin>()
+                .Subscribe(m => HandleNexusLogin(m))
                 .DisposeWith(CompositeDisposable);
 
             _resourceMonitor.Updates
@@ -169,6 +190,24 @@ namespace Wabbajack
                 execute: () => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Settings));
         }
 
+        private void HandleNavigateTo(ViewModel objViewModel)
+        {
+            ActivePane = objViewModel;
+        }
+
+        private void HandleNexusLogin(NexusLogin nexusLogin)
+        {
+            var handler = _serviceProvider.GetRequiredService<NexusLoginHandler>();
+            handler.Configure(ActivePane, nexusLogin);
+            handler.Begin().FireAndForget();
+        }
+
+        private void HandleNavigateBack(NavigateBack navigateBack)
+        {
+            ActivePane = PreviousPanes.Last();
+            PreviousPanes.RemoveAt(PreviousPanes.Count - 1);
+        }
+
         private void HandleNavigateTo(NavigateToGlobal.ScreenType s)
         {
             ActivePane = s switch
@@ -180,6 +219,7 @@ namespace Wabbajack
                 _ => ActivePane
             };
         }
+
 
         private static bool IsStartingFromModlist(out AbsolutePath modlistPath)
         {

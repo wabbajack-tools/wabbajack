@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack;
+using Wabbajack.DTOs.Interventions;
 using Wabbajack.Interventions;
 using Wabbajack.Messages;
 
@@ -23,12 +24,13 @@ namespace Wabbajack
             MainWindow = mvm;
         }
 
-        private async Task WrapBrowserJob(IUserIntervention intervention, Func<WebBrowserVM, CancellationTokenSource, Task> toDo)
+        private async Task WrapBrowserJob(IUserIntervention intervention, WebBrowserVM vm, Func<WebBrowserVM, CancellationTokenSource, Task> toDo)
         {
             var wait = await _browserLock.WaitAsync();
             var cancel = new CancellationTokenSource();
             var oldPane = MainWindow.ActivePane;
-            using var vm = await WebBrowserVM.GetNew(_logger);
+            
+            // TODO: FIX using var vm = await WebBrowserVM.GetNew(_logger);
             NavigateTo.Send(vm);
             vm.BackCommand = ReactiveCommand.Create(() =>
             {

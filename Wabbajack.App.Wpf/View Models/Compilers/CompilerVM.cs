@@ -12,6 +12,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData.Binding;
 using ReactiveUI.Fody.Helpers;
+using Wabbajack.DTOs.Interventions;
 
 namespace Wabbajack
 {

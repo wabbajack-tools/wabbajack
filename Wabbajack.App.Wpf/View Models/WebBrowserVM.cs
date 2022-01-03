@@ -13,19 +13,22 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack;
 using Wabbajack.LibCefHelpers;
+using Wabbajack.Messages;
+using Wabbajack.Models;
 using Wabbajack.WebAutomation;
 
 namespace Wabbajack
 {
     public class WebBrowserVM : ViewModel, IBackNavigatingVM, IDisposable
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<WebBrowserVM> _logger;
+        private readonly CefService _cefService;
 
         [Reactive]
         public string Instructions { get; set; }
 
-        public IWebBrowser Browser { get; } = new ChromiumWebBrowser();
-        public CefSharpWrapper Driver => new(_logger, Browser);
+        public IWebBrowser Browser { get; }
+        public CefSharpWrapper Driver { get; set; }
 
         [Reactive]
         public ViewModel NavigateBackTarget { get; set; }
@@ -36,17 +39,17 @@ namespace Wabbajack
         public Subject<bool> IsBackEnabledSubject { get; } = new Subject<bool>();
         public IObservable<bool> IsBackEnabled { get; }
 
-        private WebBrowserVM(ILogger logger, string url = "http://www.wabbajack.org")
+        public WebBrowserVM(ILogger<WebBrowserVM> logger, CefService cefService)
         {
+            // CefService is required so that Cef is initalized
             _logger = logger;
-            IsBackEnabled = IsBackEnabledSubject.StartWith(true);
+            _cefService = cefService;
             Instructions = "Wabbajack Web Browser";
-        }
+            
+            BackCommand = ReactiveCommand.Create(NavigateBack.Send);
+            Browser = cefService.CreateBrowser();
+            Driver = new CefSharpWrapper(_logger, Browser);
 
-        public static async Task<WebBrowserVM> GetNew(ILogger logger, string url = "http://www.wabbajack.org")
-        {
-            // Make sure libraries are extracted first
-            return new WebBrowserVM(logger, url);
         }
 
         public override void Dispose()

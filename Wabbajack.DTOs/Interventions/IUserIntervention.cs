@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+
 namespace Wabbajack.DTOs.Interventions;
 
 /// <summary>
@@ -15,4 +18,11 @@ public interface IUserIntervention
     /// Whether the interaction has been handled and no longer needs attention
     /// </summary>
     bool Handled { get; }
+    
+    /// <summary>
+    /// Token that can be used to trigger cancellation when Cancel() is called.
+    /// </summary>
+    public CancellationToken Token { get; }
+
+    void SetException(Exception exception);
 }

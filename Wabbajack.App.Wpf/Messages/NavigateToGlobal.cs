@@ -11,7 +11,8 @@ public class NavigateToGlobal
         Installer,
         Settings,
         Compiler,
-        ModListContents
+        ModListContents,
+        WebBrowser
     }
 
     public ScreenType Screen { get; }

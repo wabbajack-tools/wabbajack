@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack;
+using Wabbajack.DTOs.Interventions;
 using Wabbajack.Interventions;
 
 namespace Wabbajack
@@ -16,6 +18,11 @@ namespace Wabbajack
         public MO2InstallerVM Installer { get; }
 
         public bool Handled => ((IUserIntervention)Source).Handled;
+        public CancellationToken Token { get; }
+        public void SetException(Exception exception)
+        {
+            throw new NotImplementedException();
+        }
 
         public int CpuID => 0;
 

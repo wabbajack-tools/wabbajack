@@ -103,7 +103,7 @@ public class LoggerProvider : ILoggerProvider
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
             Func<TState, Exception?, string> formatter)
         {
-            Debug.WriteLine(formatter(state, exception));
+            Debug.WriteLine($"{logLevel} - {formatter(state, exception)}");
             _provider._messages.OnNext(new LogMessage<TState>(DateTime.UtcNow, _provider.NextMessageId(), logLevel,
                 eventId, state, exception, formatter));
         }

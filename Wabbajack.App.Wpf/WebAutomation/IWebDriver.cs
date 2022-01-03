@@ -14,6 +14,7 @@ namespace Wabbajack.WebAutomation
         Task NavigateTo(Uri uri, CancellationToken? token = null);
         Task<string> EvaluateJavaScript(string text);
         Task<Helpers.Cookie[]> GetCookies(string domainPrefix);
-        public Action<Uri>? DownloadHandler { get; set; } 
+        public Action<Uri>? DownloadHandler { get; set; }
+        public Task WaitForInitialized();
     }
 }

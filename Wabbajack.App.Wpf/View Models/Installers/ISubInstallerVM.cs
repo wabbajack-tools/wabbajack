@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ReactiveUI;
-using Wabbajack.Common;
+﻿using System.Threading.Tasks;
 using Wabbajack.Installer;
-using Wabbajack;
-using Wabbajack.Interventions;
+using Wabbajack.DTOs.Interventions;
 
 namespace Wabbajack
 {
