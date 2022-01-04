@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack;
 using Wabbajack.LoginManagers;
+using Wabbajack.Messages;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 using Wabbajack.View_Models.Settings;
@@ -39,6 +40,7 @@ namespace Wabbajack
                 provider.GetRequiredService<WabbajackApiTokenProvider>()!, provider.GetRequiredService<Client>()!, this);
             Filters = mainWindowVM.Settings.Filters;
             OpenTerminalCommand = ReactiveCommand.CreateFromTask(OpenTerminal);
+            BackCommand = ReactiveCommand.Create(NavigateBack.Send);
         }
 
         private async Task OpenTerminal()

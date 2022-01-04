@@ -48,7 +48,7 @@ namespace Wabbajack
             
             BackCommand = ReactiveCommand.Create(NavigateBack.Send);
             Browser = cefService.CreateBrowser();
-            Driver = new CefSharpWrapper(_logger, Browser);
+            Driver = new CefSharpWrapper(_logger, Browser, cefService);
 
         }
 

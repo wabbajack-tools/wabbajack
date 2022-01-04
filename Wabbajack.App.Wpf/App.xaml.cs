@@ -66,11 +66,16 @@ namespace Wabbajack
             services.AddTransient<InstallerVM>();
 
             services.AddTransient<WebBrowserVM>();
-
+            
+            // Login Handlers
+            services.AddTransient<VectorPlexusLoginHandler>();
             services.AddTransient<NexusLoginHandler>();
+            services.AddTransient<LoversLabLoginHandler>();
             
             // Login Managers
+            services.AddAllSingleton<INeedsLogin, LoversLabLoginManager>();
             services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
+            services.AddAllSingleton<INeedsLogin, VectorPlexusLoginManager>();
             
             return services;
         }

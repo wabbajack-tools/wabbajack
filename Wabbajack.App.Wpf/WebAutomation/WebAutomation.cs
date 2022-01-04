@@ -9,6 +9,7 @@ using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.LibCefHelpers;
+using Wabbajack.Models;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
@@ -19,19 +20,12 @@ namespace Wabbajack.WebAutomation
         private readonly IWebBrowser _browser;
         private readonly CefSharpWrapper _driver;
 
-        public Driver(ILogger logger)
+        public Driver(ILogger logger, CefService service)
         {
 
             _browser = new ChromiumWebBrowser();
-            _driver = new CefSharpWrapper(logger, _browser);
+            _driver = new CefSharpWrapper(logger, _browser, service);
         }
-        public static async Task<Driver> Create(ILogger logger)
-        {
-            var driver = new Driver(logger);
-            await driver._driver.WaitForInitialized();
-            return driver;
-        }
-
         public async Task<Uri?> NavigateTo(Uri uri, CancellationToken? token = null)
         {
             try
@@ -118,7 +112,7 @@ namespace Wabbajack.WebAutomation
             Helpers.ClearCookies();
         }
 
-        public async Task DeleteCookiesWhere(Func<Helpers.Cookie, bool> filter)
+        public async Task DeleteCookiesWhere(Func<DTOs.Logins.Cookie, bool> filter)
         {
             await Helpers.DeleteCookiesWhere(filter);
         }

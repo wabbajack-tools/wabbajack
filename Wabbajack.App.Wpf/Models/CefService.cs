@@ -1,5 +1,5 @@
 using System;
-using System.Threading.Tasks;
+using System.Reactive.Subjects;
 using CefSharp;
 using CefSharp.Wpf;
 using Microsoft.Extensions.Logging;
@@ -10,7 +10,9 @@ public class CefService
 {
     private readonly ILogger<CefService> _logger;
     private bool Inited { get;  set; } = false;
-    
+
+    private readonly Subject<string> _schemeStream = new();
+    public IObservable<string> SchemeStream => _schemeStream;
     public Func<IBrowser, IFrame, string, IRequest, IResourceHandler>? SchemeHandler { get; set; }
 
     public CefService(ILogger<CefService> logger)
@@ -31,7 +33,7 @@ public class CefService
         var settings = new CefSettings
         {
             CachePath = Consts.CefCacheLocation.ToString(),
-            JavascriptFlags = "--noexpose_wasm"
+            UserAgent = "Wabbajack In-App Browser"
         };
         settings.RegisterScheme(new CefCustomScheme()
         {
@@ -60,9 +62,9 @@ public class CefService
         public IResourceHandler Create(IBrowser browser, IFrame frame, string schemeName, IRequest request)
         {
             _logger.LogInformation("Scheme handler Got: {Scheme} : {Url}", schemeName, request.Url);
-            if (_service.SchemeHandler != null && schemeName == "wabbajack")
+            if (schemeName == "wabbajack")
             {
-                return _service.SchemeHandler!(browser, frame, schemeName, request);
+                _service._schemeStream.OnNext(request.Url);
             }
             return new ResourceHandler();
         }

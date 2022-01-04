@@ -101,57 +101,22 @@ namespace Wabbajack
                 .DisposeWith(CompositeDisposable);
 
             MessageBus.Current.Listen<NexusLogin>()
-                .Subscribe(m => HandleNexusLogin(m))
+                .Subscribe(HandleLogin)
+                .DisposeWith(CompositeDisposable);
+            
+            MessageBus.Current.Listen<LoversLabLogin>()
+                .Subscribe(HandleLogin)
+                .DisposeWith(CompositeDisposable);
+            
+            MessageBus.Current.Listen<VectorPlexusLogin>()
+                .Subscribe(HandleLogin)
                 .DisposeWith(CompositeDisposable);
 
             _resourceMonitor.Updates
                 .Select(r => string.Join(", ", r.Where(r => r.Throughput > 0)
                     .Select(s => $"{s.Name} - {s.Throughput.ToFileSizeString()}/sec")))
                 .BindToStrict(this, view => view.ResourceStatus);
-
             
-            // Set up logging
-            /* TODO
-            Utils.LogMessages
-                .ObserveOn(RxApp.TaskpoolScheduler)
-                .ToObservableChangeSet()
-                .Buffer(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
-                .Where(l => l.Count > 0)
-                .FlattenBufferResult()
-                .ObserveOnGuiThread()
-                .Bind(Log)
-                .Subscribe()
-                .DisposeWith(CompositeDisposable);
-
-            Utils.LogMessages
-                .Where(a => a is IUserIntervention or CriticalFailureIntervention)
-                .ObserveOnGuiThread()
-                .SelectTask(async msg =>
-                {
-                    try
-                    {
-                        await UserInterventionHandlers.Handle(msg);
-                    }
-                    catch (Exception ex)
-                        when (ex.GetType() != typeof(TaskCanceledException))
-                    {
-                        _logger.LogError(ex, "Error while handling user intervention of type {Type}",msg?.GetType());
-                        try
-                        {
-                            if (msg is IUserIntervention {Handled: false} intervention)
-                            {
-                                intervention.Cancel();
-                            }
-                        }
-                        catch (Exception cancelEx)
-                        {
-                            _logger.LogError(cancelEx, "Error while cancelling user intervention of type {Type}",msg?.GetType());
-                        }
-                    }
-                })
-                .Subscribe()
-                .DisposeWith(CompositeDisposable);
-                */
 
             if (IsStartingFromModlist(out var path))
             {
@@ -192,13 +157,28 @@ namespace Wabbajack
 
         private void HandleNavigateTo(ViewModel objViewModel)
         {
+
             ActivePane = objViewModel;
         }
 
-        private void HandleNexusLogin(NexusLogin nexusLogin)
+        private void HandleLogin(NexusLogin nexusLogin)
         {
             var handler = _serviceProvider.GetRequiredService<NexusLoginHandler>();
             handler.Configure(ActivePane, nexusLogin);
+            handler.Begin().FireAndForget();
+        }
+        
+        private void HandleLogin(LoversLabLogin loversLabLogin)
+        {
+            var handler = _serviceProvider.GetRequiredService<LoversLabLoginHandler>();
+            handler.Configure(ActivePane, loversLabLogin);
+            handler.Begin().FireAndForget();
+        }
+        
+        private void HandleLogin(VectorPlexusLogin vectorPlexusLogin)
+        {
+            var handler = _serviceProvider.GetRequiredService<VectorPlexusLoginHandler>();
+            handler.Configure(ActivePane, vectorPlexusLogin);
             handler.Begin().FireAndForget();
         }
 
@@ -210,6 +190,9 @@ namespace Wabbajack
 
         private void HandleNavigateTo(NavigateToGlobal.ScreenType s)
         {
+            if (s is NavigateToGlobal.ScreenType.Settings)
+                PreviousPanes.Add(ActivePane);
+            
             ActivePane = s switch
             {
                 NavigateToGlobal.ScreenType.ModeSelectionView => ModeSelectionVM,

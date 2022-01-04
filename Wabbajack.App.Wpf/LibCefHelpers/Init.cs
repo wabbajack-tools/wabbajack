@@ -37,12 +37,12 @@ namespace Wabbajack.LibCefHelpers
             return container;
         }
 
-        public static async Task<Cookie[]> GetCookies(string domainEnding = "")
+        public static async Task<DTOs.Logins.Cookie[]> GetCookies(string domainEnding = "")
         {
             var manager = Cef.GetGlobalCookieManager();
             var visitor = new CookieVisitor();
             if (!manager.VisitAllCookies(visitor))
-                return new Cookie[0];
+                return Array.Empty<DTOs.Logins.Cookie>();
             var cc = await visitor.Task;
 
             return (await visitor.Task).Where(c => c.Domain.EndsWith(domainEnding)).ToArray();
@@ -50,10 +50,10 @@ namespace Wabbajack.LibCefHelpers
 
         private class CookieVisitor : ICookieVisitor
         {
-            TaskCompletionSource<List<Cookie>> _source = new TaskCompletionSource<List<Cookie>>();
-            public Task<List<Cookie>> Task => _source.Task;
+            TaskCompletionSource<List<DTOs.Logins.Cookie>> _source = new();
+            public Task<List<DTOs.Logins.Cookie>> Task => _source.Task;
 
-            public List<Cookie> Cookies { get; } = new List<Cookie>();
+            public List<DTOs.Logins.Cookie> Cookies { get; } = new ();
             public void Dispose()
             {
                 _source.SetResult(Cookies);
@@ -61,7 +61,7 @@ namespace Wabbajack.LibCefHelpers
 
             public bool Visit(CefSharp.Cookie cookie, int count, int total, ref bool deleteCookie)
             {
-                Cookies.Add(new Cookie
+                Cookies.Add(new DTOs.Logins.Cookie
                 {
                     Name = cookie.Name,
                     Value = cookie.Value,
@@ -74,16 +74,6 @@ namespace Wabbajack.LibCefHelpers
                 return true;
             }
         }
-
-        [JsonName("HttpCookie")]
-        public class Cookie
-        {
-            public string Name { get; set; } = string.Empty;
-            public string Value { get; set; } = string.Empty;
-            public string Domain { get; set; } = string.Empty;
-            public string Path { get; set; } = string.Empty;
-        }
-
         public static void ClearCookies()
         {
             var manager = Cef.GetGlobalCookieManager();
@@ -91,7 +81,7 @@ namespace Wabbajack.LibCefHelpers
             manager.VisitAllCookies(visitor);
         }
 
-        public static async Task DeleteCookiesWhere(Func<Cookie,bool> filter)
+        public static async Task DeleteCookiesWhere(Func<DTOs.Logins.Cookie,bool> filter)
         {
             var manager = Cef.GetGlobalCookieManager();
             var visitor = new CookieDeleter(filter);
@@ -101,9 +91,9 @@ namespace Wabbajack.LibCefHelpers
 
     class CookieDeleter : ICookieVisitor
     {
-        private Func<Helpers.Cookie, bool>? _filter;
+        private Func<DTOs.Logins.Cookie, bool>? _filter;
 
-        public CookieDeleter(Func<Helpers.Cookie, bool>? filter = null)
+        public CookieDeleter(Func<DTOs.Logins.Cookie, bool>? filter = null)
         {
             _filter = filter;
         }
@@ -119,7 +109,7 @@ namespace Wabbajack.LibCefHelpers
             }
             else
             {
-                var conv = new Helpers.Cookie
+                var conv = new DTOs.Logins.Cookie
                 {
                     Name = cookie.Name, Domain = cookie.Domain, Value = cookie.Value, Path = cookie.Path
                 };

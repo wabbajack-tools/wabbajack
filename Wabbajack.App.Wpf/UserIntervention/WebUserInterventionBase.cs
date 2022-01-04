@@ -4,26 +4,28 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.Interventions;
+using Wabbajack.Models;
 using Wabbajack.WebAutomation;
 
 namespace Wabbajack.UserIntervention;
 
-public class WebUserInterventionBase
+public abstract class WebUserInterventionBase<T>
+where T : IUserIntervention
 {
     protected readonly WebBrowserVM Browser;
     protected readonly ILogger Logger;
-    protected IUserIntervention Message;
+    protected T Message;
     protected ViewModel PrevPane;
     protected IWebDriver Driver;
 
-    public WebUserInterventionBase(ILogger logger, WebBrowserVM browser)
+    protected WebUserInterventionBase(ILogger logger, WebBrowserVM browser, CefService service)
     {
         Logger = logger;
         Browser = browser;
-        Driver = new CefSharpWrapper(logger, browser.Browser);
+        Driver = new CefSharpWrapper(logger, browser.Browser, service);
     }
     
-    public void Configure(ViewModel prevPane, IUserIntervention message)
+    public void Configure(ViewModel prevPane, T message)
     {
         Message = message;
         PrevPane = prevPane;
@@ -38,5 +40,7 @@ public class WebUserInterventionBase
     {
         await Driver.NavigateTo(uri, Message.Token);
     }
+
+    public abstract Task Begin();
 
 }

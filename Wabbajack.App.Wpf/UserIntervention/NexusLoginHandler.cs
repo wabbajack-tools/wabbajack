@@ -6,20 +6,22 @@ using ReactiveUI;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.LibCefHelpers;
 using Wabbajack.Messages;
+using Wabbajack.Models;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 
 namespace Wabbajack.UserIntervention;
 
-public class NexusLoginHandler : WebUserInterventionBase
+public class NexusLoginHandler : WebUserInterventionBase<NexusLogin>
 {
     private readonly ITokenProvider<NexusApiState> _provider;
 
-    public NexusLoginHandler(ILogger<NexusLoginHandler> logger, WebBrowserVM browserVM, ITokenProvider<NexusApiState> provider) : base(logger, browserVM)
+    public NexusLoginHandler(ILogger<NexusLoginHandler> logger, WebBrowserVM browserVM, ITokenProvider<NexusApiState> provider, CefService service) 
+        : base(logger, browserVM, service)
     {
         _provider = provider;
     }
-    public async Task Begin()
+    public override async Task Begin()
     {
         try
         {
@@ -29,7 +31,7 @@ public class NexusLoginHandler : WebUserInterventionBase
             
             await NavigateTo(new Uri("https://users.nexusmods.com/auth/continue?client_id=nexus&redirect_uri=https://www.nexusmods.com/oauth/callback&response_type=code&referrer=//www.nexusmods.com"));
 
-            Helpers.Cookie[] cookies = {};
+            Cookie[] cookies = {};
             while (true)
             {
                 cookies = await Driver.GetCookies("nexusmods.com");
@@ -89,13 +91,7 @@ public class NexusLoginHandler : WebUserInterventionBase
             await _provider.SetToken(new NexusApiState()
             {
                 ApiKey = key,
-                Cookies = cookies.Select(c => new Cookie()
-                {
-                    Domain = c.Domain,
-                    Name = c.Name,
-                    Path = c.Path,
-                    Value = c.Value
-                }).ToArray()
+                Cookies = cookies
             });
 
             ((NexusLogin)Message).CompletionSource.SetResult();

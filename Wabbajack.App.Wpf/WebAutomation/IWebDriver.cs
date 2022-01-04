@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Wabbajack.LibCefHelpers;
+using Wabbajack.DTOs.Logins;
 
 namespace Wabbajack.WebAutomation
 {
@@ -13,8 +9,14 @@ namespace Wabbajack.WebAutomation
     {
         Task NavigateTo(Uri uri, CancellationToken? token = null);
         Task<string> EvaluateJavaScript(string text);
-        Task<Helpers.Cookie[]> GetCookies(string domainPrefix);
+        Task<Cookie[]> GetCookies(string domainPrefix);
         public Action<Uri>? DownloadHandler { get; set; }
         public Task WaitForInitialized();
+        ISchemeHandler WithSchemeHandler(Predicate<Uri> wabbajack);
+    }
+
+    public interface ISchemeHandler : IDisposable
+    {
+        public Task<Uri> Task { get; }
     }
 }

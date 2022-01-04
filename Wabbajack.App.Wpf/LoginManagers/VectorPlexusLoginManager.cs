@@ -1,10 +1,16 @@
+using System;
+using System.Drawing;
 using System.Reactive.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Wabbajack.Common;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Messages;
@@ -12,13 +18,13 @@ using Wabbajack.Networking.Http.Interfaces;
 
 namespace Wabbajack.LoginManagers;
 
-public class NexusLoginManager : ViewModel, INeedsLogin
+public class VectorPlexusLoginManager : ViewModel, INeedsLogin
 {
-    private readonly ILogger<NexusLoginManager> _logger;
-    private readonly ITokenProvider<NexusApiState> _token;
+    private readonly ILogger<VectorPlexusLoginManager> _logger;
+    private readonly ITokenProvider<VectorPlexusLoginState> _token;
     private readonly IUserInterventionHandler _handler;
 
-    public string SiteName { get; } = "Nexus Mods";
+    public string SiteName { get; } = "Vector Plexus";
     public ICommand TriggerLogin { get; set; }
     public ICommand ClearLogin { get; set; }
     
@@ -27,7 +33,7 @@ public class NexusLoginManager : ViewModel, INeedsLogin
     [Reactive]
     public bool HaveLogin { get; set; }
     
-    public NexusLoginManager(ILogger<NexusLoginManager> logger, ITokenProvider<NexusApiState> token)
+    public VectorPlexusLoginManager(ILogger<VectorPlexusLoginManager> logger, ITokenProvider<VectorPlexusLoginState> token)
     {
         _logger = logger;
         _token = token;
@@ -46,7 +52,7 @@ public class NexusLoginManager : ViewModel, INeedsLogin
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
         {
             _logger.LogInformation("Logging into {SiteName}", SiteName);
-            await NexusLogin.Send();
+            await VectorPlexusLogin.Send();
             RefreshTokenState();
         }, this.WhenAnyValue(v => v.HaveLogin).Select(v => !v));
     }

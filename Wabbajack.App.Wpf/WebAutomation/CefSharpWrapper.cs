@@ -3,21 +3,27 @@ using System.Threading;
 using System.Threading.Tasks;
 using CefSharp;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic.CompilerServices;
 using Wabbajack.LibCefHelpers;
+using Wabbajack.Models;
 using Wabbajack.Networking.Http;
 using Wabbajack.Paths;
+using Cookie = Wabbajack.DTOs.Logins.Cookie;
 
 namespace Wabbajack.WebAutomation
 {
     public class CefSharpWrapper : IWebDriver
     {
         private readonly IWebBrowser _browser;
+                
+        private static readonly Random RetryRandom = new Random();
+        private readonly ILogger _logger;
+        private readonly CefService _service;
         public Action<Uri>? DownloadHandler { get; set; }
-        public CefSharpWrapper(ILogger logger, IWebBrowser browser)
+        public CefSharpWrapper(ILogger logger, IWebBrowser browser, CefService service)
         {
             _logger = logger;
             _browser = browser;
+            _service = service;
 
             _browser.DownloadHandler = new DownloadHandler(this);
             _browser.LifeSpanHandler = new PopupBlocker(this);
@@ -56,8 +62,7 @@ namespace Wabbajack.WebAutomation
             ("<h1>400 Bad Request</h1>", 400),
             ("We could not locate the item you are trying to view.", 404),
         };
-        private static readonly Random RetryRandom = new Random();
-        private readonly ILogger _logger;
+
 
         public async Task<long> NavigateToAndDownload(Uri uri, AbsolutePath dest, bool quickMode = false, CancellationToken? token = null)
         {
@@ -115,7 +120,7 @@ namespace Wabbajack.WebAutomation
             return (string)result.Result;
         }
 
-        public Task<Helpers.Cookie[]> GetCookies(string domainPrefix)
+        public Task<Cookie[]> GetCookies(string domainPrefix)
         {
             return Helpers.GetCookies(domainPrefix);
         }
@@ -126,6 +131,45 @@ namespace Wabbajack.WebAutomation
         {
             while (!_browser.IsBrowserInitialized)
                 await Task.Delay(100);
+        }
+        
+
+        public ISchemeHandler WithSchemeHandler(Predicate<Uri> predicate)
+        {
+            return new SchemeHandler(predicate, _service);
+        }
+        
+        private class SchemeHandler : ISchemeHandler
+        {
+            private readonly TaskCompletionSource<Uri> _tcs;
+            private readonly IDisposable _disposable;
+
+            public SchemeHandler(Predicate<Uri> predicate, CefService service)
+            {
+                _tcs = new TaskCompletionSource<Uri>();
+                _disposable = service.SchemeStream.Subscribe(s =>
+                {
+                    if (Uri.TryCreate(s, UriKind.Absolute, out var result) && predicate(result))
+                    {
+                        _tcs.TrySetResult(result);
+                    }
+                });
+            }
+
+            public void Dispose()
+            {
+                
+                _tcs.TrySetCanceled();
+                _disposable.Dispose();
+            }
+
+            public Task<Uri> Task => _tcs.Task;
+        }
+        
+
+        public async Task RegisterSchemeCallback()
+        {
+            var frame = _browser.GetFocusedFrame();
         }
 
         public string Location => _browser.Address;
