@@ -640,7 +640,7 @@ namespace Wabbajack.Common
                     NexusGameId = 728,
                     MO2Name = "Dragon Age: Inquisition", // Probably wrong
                     SteamIDs = new List<int>{1222690},
-                    OriginIDs = new List<string>{"OFB-EAST:51937", "OFB-EAST:1000032"},
+                    OriginIDs = new List<string>{"OFB-EAST:51937", "OFB-EAST:1000032", "Origin.OFR.50.0001131", "OFB-EAST:1000026"},
                     RequiredFiles = new List<string>
                     {
                         @"DragonAgeInquisition.exe"
