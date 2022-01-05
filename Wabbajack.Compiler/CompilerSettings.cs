@@ -36,4 +36,8 @@ public class CompilerSettings
     ///     These files are inlined into the modlist
     /// </summary>
     public RelativePath[] Include { get; set; } = Array.Empty<RelativePath>();
+
+    public string Profile { get; set; } = "";
+    public RelativePath[] AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
+    public string[] OtherProfiles { get; set; }
 }

@@ -87,14 +87,6 @@ namespace Wabbajack
         public bool AutomaticallyOverrideExistingInstall { get; set; }
     }
 
-    [JsonName("CompilerSettings")]
-    public class CompilerSettings
-    {
-        public ModManager LastCompiledModManager { get; set; }
-        public AbsolutePath OutputLocation { get; set; }
-        public MO2CompilationSettings MO2Compilation { get; } = new MO2CompilationSettings();
-    }
-    
     [JsonName("FiltersSettings")]
     [JsonObject(MemberSerialization.OptOut)]
     public class FiltersSettings : ViewModel
