@@ -57,7 +57,9 @@ namespace Wabbajack.Common
         [Description("Enderal Special Edition")]
         EnderalSpecialEdition,
         [Description("Cyberpunk 2077")] 
-        Cyberpunk2077
+        Cyberpunk2077,
+        [Description("The Sims 4")]
+        Sims4
     }
 
     public static class GameExtensions
@@ -680,6 +682,22 @@ namespace Wabbajack.Common
                         @"bin\x64\Cyberpunk2077.exe"
                     },
                     MainExecutable = @"bin\x64\Cyberpunk2077.exe"
+                }
+            },
+            {
+                Game.Sims4, new GameMetaData
+                {
+                    Game = Game.Sims4,
+                    SteamIDs = new List<int> {1222670 },
+                    MO2Name = "The Sims 4",
+                    NexusName = "thesims4",
+                    NexusGameId = 641,
+                    IsGenericMO2Plugin = true,
+                    RequiredFiles = new List<string>
+                    {
+                        @"Game\Bin\TS4_x64.exe"
+                    },
+                    MainExecutable = @"Game\Bin\TS4_x64.exe"
                 }
             }
         };
