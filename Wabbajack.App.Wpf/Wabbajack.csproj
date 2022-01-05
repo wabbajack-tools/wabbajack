@@ -104,6 +104,10 @@
     <Resource Include="Resources\Wabba_Ded.png" />
     <Resource Include="Resources\Wabba_Mouth.png" />
     <Resource Include="Resources\Wabba_Mouth_No_Text.png" />
+    <None Remove="LoginManagers\Icons\lovers_lab.png" />
+    <EmbeddedResource Include="LoginManagers\Icons\lovers_lab.png" />
+    <None Remove="LoginManagers\Icons\vector_plexus.png" />
+    <EmbeddedResource Include="LoginManagers\Icons\vector_plexus.png" />
       
   </ItemGroup>
 
