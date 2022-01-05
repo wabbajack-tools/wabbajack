@@ -42,9 +42,9 @@ namespace Wabbajack
 
         public ObservableCollectionExtended<IStatusMessage> Log { get; } = new ObservableCollectionExtended<IStatusMessage>();
 
-        public readonly Lazy<CompilerVM> Compiler;
+        public readonly CompilerVM Compiler;
         public readonly InstallerVM Installer;
-        public readonly Lazy<SettingsVM> SettingsPane;
+        public readonly SettingsVM SettingsPane;
         public readonly ModListGalleryVM Gallery;
         public readonly ModeSelectionVM ModeSelectionVM;
         public readonly WebBrowserVM WebBrowserVM;
@@ -71,7 +71,7 @@ namespace Wabbajack
 
         public MainWindowVM(ILogger<MainWindowVM> logger, MainSettings settings, Client wjClient,
             IServiceProvider serviceProvider, ModeSelectionVM modeSelectionVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-            InstallerVM installer, WebBrowserVM webBrowserVM)
+            InstallerVM installer, CompilerVM compilerVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM)
         {
             _logger = logger;
             _wjClient = wjClient;
@@ -80,8 +80,8 @@ namespace Wabbajack
             ConverterRegistration.Register();
             Settings = settings;
             Installer = installer;
-            Compiler = new Lazy<CompilerVM>(() => new CompilerVM(serviceProvider.GetRequiredService<ILogger<CompilerVM>>(), this));
-            SettingsPane = new Lazy<SettingsVM>(() => new SettingsVM(serviceProvider.GetRequiredService<ILogger<SettingsVM>>(), this, serviceProvider));
+            Compiler = compilerVM;
+            SettingsPane = settingsVM;
             Gallery = modListGalleryVM;
             ModeSelectionVM = modeSelectionVM;
             WebBrowserVM = webBrowserVM;
@@ -151,7 +151,7 @@ namespace Wabbajack
             });
             OpenSettingsCommand = ReactiveCommand.Create(
                 canExecute: this.WhenAny(x => x.ActivePane)
-                    .Select(active => !SettingsPane.IsValueCreated || !object.ReferenceEquals(active, SettingsPane.Value)),
+                    .Select(active => !object.ReferenceEquals(active, SettingsPane)),
                 execute: () => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Settings));
         }
 
@@ -198,7 +198,8 @@ namespace Wabbajack
                 NavigateToGlobal.ScreenType.ModeSelectionView => ModeSelectionVM,
                 NavigateToGlobal.ScreenType.ModListGallery => Gallery,
                 NavigateToGlobal.ScreenType.Installer => Installer,
-                NavigateToGlobal.ScreenType.Settings => SettingsPane.Value,
+                NavigateToGlobal.ScreenType.Compiler => Compiler,
+                NavigateToGlobal.ScreenType.Settings => SettingsPane,
                 _ => ActivePane
             };
         }

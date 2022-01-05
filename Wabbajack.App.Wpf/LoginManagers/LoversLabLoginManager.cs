@@ -47,7 +47,7 @@ public class LoversLabLoginManager : ViewModel, INeedsLogin
         }, this.WhenAnyValue(v => v.HaveLogin));
 
         Icon = BitmapFrame.Create(
-            typeof(LoversLabLoginManager).Assembly.GetManifestResourceStream("Wabbajack.LoginManagers.Icons.lovers_lab.png")!);
+            typeof(LoversLabLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.lovers_lab.png")!);
         
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
         {

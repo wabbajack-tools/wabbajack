@@ -21,7 +21,6 @@ namespace Wabbajack
 {
     public class SettingsVM : BackNavigatingVM
     {
-        public MainWindowVM MWVM { get; }
         public LoginManagerVM Login { get; }
         public PerformanceSettings Performance { get; }
         public FiltersSettings Filters { get; }
@@ -29,16 +28,13 @@ namespace Wabbajack
 
         public ICommand OpenTerminalCommand { get; }
 
-        public SettingsVM(ILogger<SettingsVM> logger, MainWindowVM mainWindowVM, IServiceProvider provider)
+        public SettingsVM(ILogger<SettingsVM> logger, IServiceProvider provider)
             : base(logger)
         {
-            MWVM = mainWindowVM;
             Login = new LoginManagerVM(provider.GetRequiredService<ILogger<LoginManagerVM>>(), this, 
                 provider.GetRequiredService<IEnumerable<INeedsLogin>>());
-            Performance = mainWindowVM.Settings.Performance;
             AuthorFile = new AuthorFilesVM(provider.GetRequiredService<ILogger<AuthorFilesVM>>()!, 
                 provider.GetRequiredService<WabbajackApiTokenProvider>()!, provider.GetRequiredService<Client>()!, this);
-            Filters = mainWindowVM.Settings.Filters;
             OpenTerminalCommand = ReactiveCommand.CreateFromTask(OpenTerminal);
             BackCommand = ReactiveCommand.Create(NavigateBack.Send);
         }
@@ -51,7 +47,6 @@ namespace Wabbajack
                 WorkingDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location)!
             };
             Process.Start(process);
-            await MWVM.ShutdownApplication();
         }
     }
 }

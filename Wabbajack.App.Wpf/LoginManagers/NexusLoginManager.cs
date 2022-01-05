@@ -41,7 +41,7 @@ public class NexusLoginManager : ViewModel, INeedsLogin
         }, this.WhenAnyValue(v => v.HaveLogin));
 
         Icon = BitmapFrame.Create(
-            typeof(NexusLoginManager).Assembly.GetManifestResourceStream("Wabbajack.LoginManagers.Icons.nexus.png")!);
+            typeof(NexusLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.nexus.png")!);
         
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
         {

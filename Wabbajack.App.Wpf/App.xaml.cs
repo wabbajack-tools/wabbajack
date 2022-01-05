@@ -63,8 +63,9 @@ namespace Wabbajack
             services.AddTransient<InstallerVM>();
             services.AddTransient<ModeSelectionVM>();
             services.AddTransient<ModListGalleryVM>();
+            services.AddTransient<CompilerVM>();
             services.AddTransient<InstallerVM>();
-
+            services.AddTransient<SettingsVM>();
             services.AddTransient<WebBrowserVM>();
             
             // Login Handlers
