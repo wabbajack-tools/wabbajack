@@ -30,6 +30,11 @@ public record StatusUpdate(string StatusText, Percent StepsProgress, Percent Ste
 {
 }
 
+public interface IInstaller
+{
+    Task<bool> Begin(CancellationToken token);
+}
+
 public abstract class AInstaller<T>
     where T : AInstaller<T>
 {
@@ -158,6 +163,16 @@ public abstract class AInstaller<T>
         {
             return (await serializer.DeserializeAsync<ModList>(e))!;
         }
+    }
+
+    public static async Task<Stream> ModListImageStream(AbsolutePath path)
+    {
+        await using var fs = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+        using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
+        var entry = ar.GetEntry("modlist-image.png");
+        if (entry == null)
+            throw new InvalidDataException("No modlist image found");
+        return new MemoryStream(await entry.Open().ReadAllAsync());
     }
 
     /// <summary>

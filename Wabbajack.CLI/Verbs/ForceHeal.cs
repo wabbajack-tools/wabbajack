@@ -102,6 +102,11 @@ public class ForceHeal : IVerb
         
         var ini = meta.LoadIniFile();
         var state = await _downloadDispatcher.ResolveArchive(ini["General"].ToDictionary(d => d.KeyName, d => d.Value));
+        if (state == null)
+        {
+            _logger.LogError("Cannot resolve state from meta for {File}", file);
+            throw new Exception($"Cannot resolve state from meta for {file}");
+        }
 
         _logger.LogInformation("Hashing {File}", file.FileName);
         var hash = await _fileHashCache.FileHashCachedAsync(file, CancellationToken.None);

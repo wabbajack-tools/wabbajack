@@ -19,6 +19,7 @@ using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
+using Wabbajack.Services.OSIntegrated.Services;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 using Wabbajack.VFS;
 
@@ -98,6 +99,8 @@ public static class ServiceExtensions
 
         service.AddScoped<Context>();
         service.AddSingleton<FileExtractor.FileExtractor>();
+
+        service.AddSingleton<ModListDownloadMaintainer>();
 
         // Networking
         service.AddSingleton<HttpClient>();

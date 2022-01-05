@@ -21,7 +21,7 @@ public class ModlistMetadata
 
     [JsonPropertyName("official")] public bool Official { get; set; }
 
-    [JsonPropertyName("tags")] public List<string> tags { get; set; } = new();
+    [JsonPropertyName("tags")] public List<string> Tags { get; set; } = new();
 
     [JsonPropertyName("nsfw")] public bool NSFW { get; set; }
 

@@ -31,7 +31,7 @@ public class EncryptedJsonTokenProvider<T> : ITokenProvider<T>
         await token.AsEncryptedJsonFile(KeyPath);
     }
 
-    public async ValueTask<bool> TryDelete(T val)
+    public async ValueTask<bool> Delete()
     {
         if (!KeyPath.FileExists()) return false;
         KeyPath.Delete();
@@ -50,7 +50,7 @@ public class EncryptedJsonTokenProvider<T> : ITokenProvider<T>
         if (value == default)
         {
             _logger.LogCritical("No login data for {key}", _key);
-            throw new Exception("No login data for {_key}");
+            throw new Exception($"No login data for {_key}");
         }
 
         return _dtos.Deserialize<T>(EnvValue!);

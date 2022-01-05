@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Versioning;
@@ -13,10 +14,10 @@ public class Resource<T> : IResource<T>
 {
     private Channel<PendingReport> _channel;
     private SemaphoreSlim _semaphore;
-    private ConcurrentDictionary<ulong, Job<T>> _tasks;
+    private readonly ConcurrentDictionary<ulong, Job<T>> _tasks;
     private ulong _nextId;
     private long _totalUsed;
-
+    public IEnumerable<IJob> Jobs => _tasks.Values;
 
     public Resource(string? humanName = null, int? maxTasks = null, long maxThroughput = long.MaxValue)
     {

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,6 +10,7 @@ public interface IResource
     string Name { get; }
     int MaxTasks { get; set; }
     long MaxThroughput { get; set; }
+    IEnumerable<IJob> Jobs { get; }
 }
 
 public interface IResource<T> : IResource

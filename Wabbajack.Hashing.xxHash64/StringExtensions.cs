@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Wabbajack.Hashing.xxHash64;
 
@@ -29,5 +30,10 @@ public static class StringExtensions
     public static byte[] FromBase64(this string data)
     {
         return Convert.FromBase64String(data);
+    }
+
+    public static async ValueTask<Hash> Hash(this string s)
+    {
+        return await Encoding.UTF8.GetBytes(s).Hash();
     }
 }

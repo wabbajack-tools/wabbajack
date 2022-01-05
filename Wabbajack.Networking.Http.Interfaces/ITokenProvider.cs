@@ -11,5 +11,7 @@ public interface ITokenProvider<T>
     public ValueTask<T?> Get();
 
     public ValueTask SetToken(T val);
-    public ValueTask<bool> TryDelete(T val);
+    public ValueTask<bool> Delete();
+
+    public bool HaveToken();
 }

@@ -26,6 +26,7 @@ public class Nexus : ADownloadState, IMetaState
     public bool IsNSFW { get; set; }
 
     public string? Description { get; set; }
+    public Uri? LinkUrl => new($"https://www.nexusmods.com/{Game.MetaData().NexusName}/mods/{ModID}");
 
     public async Task<bool> LoadMetaData()
     {

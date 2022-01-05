@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
@@ -68,7 +67,7 @@ public class BrowseItemViewModel : ViewModelBase, IActivatableViewModel
         _dtos = dtos;
 
         var haveGame = gameLocator.IsInstalled(_metadata.Game);
-        Tags = metadata.tags
+        Tags = metadata.Tags
             .Select(t => new TagViewModel(t, "ModList"))
             .Prepend(new TagViewModel(_metadata.Game.MetaData().HumanFriendlyGameName,
                 haveGame ? "Game" : "GameNotInstalled"))

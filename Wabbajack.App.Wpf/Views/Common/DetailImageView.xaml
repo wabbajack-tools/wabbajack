@@ -1,0 +1,161 @@
+<local:UserControlRx
+    x:Class="Wabbajack.DetailImageView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:TypeArguments="local:ViewModel"
+    ClipToBounds="True"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <Color x:Key="TextBackgroundFill">#92000000</Color>
+        <SolidColorBrush x:Key="TextBackgroundFillBrush" Color="{StaticResource TextBackgroundFill}" />
+        <Color x:Key="TextBackgroundHoverFill">#DF000000</Color>
+        <Style x:Key="BackgroundBlurStyle" TargetType="TextBlock">
+            <Setter Property="Background" Value="{StaticResource TextBackgroundFillBrush}" />
+            <Setter Property="Foreground" Value="Transparent" />
+            <Setter Property="Visibility" Value="Visible" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, ElementName=TextHoverTrigger}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation
+                                    Storyboard.TargetProperty="(TextBlock.Background).(SolidColorBrush.Color)"
+                                    To="{StaticResource TextBackgroundHoverFill}"
+                                    Duration="0:0:0.06" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation
+                                    Storyboard.TargetProperty="(TextBlock.Background).(SolidColorBrush.Color)"
+                                    To="{StaticResource TextBackgroundFill}"
+                                    Duration="0:0:0.06" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="5*" />
+            <ColumnDefinition Width="3*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Rectangle Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="2"
+            Fill="{StaticResource WindowBackgroundBrush}" />
+        <Viewbox Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="2"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Stretch="UniformToFill">
+            <Image x:Name="ModlistImage" />
+        </Viewbox>
+        <Image Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="2"
+            x:Name="BadgeImage"
+            Width="60"
+            Height="60"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top" />
+        <TextBlock Grid.Row="2" Grid.Column="0"
+            x:Name="TitleTextShadow"
+            Margin="-20,5,-20,-20"
+            Padding="40,20"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Bottom"
+            FontFamily="Lucida Sans"
+            FontSize="65"
+            FontWeight="Bold"
+            Style="{StaticResource BackgroundBlurStyle}"
+            TextWrapping="WrapWithOverflow">
+            <TextBlock.Effect>
+                <BlurEffect Radius="85" />
+            </TextBlock.Effect>
+        </TextBlock>
+        <TextBlock Grid.Row="3" Grid.Column="0"
+            x:Name="AuthorTextShadow"
+            Margin="35,-10,-10,10"
+            Padding="30,10"
+            HorizontalAlignment="Left"
+            FontFamily="Lucida Sans"
+            FontSize="30"
+            FontWeight="Bold"
+            Style="{StaticResource BackgroundBlurStyle}"
+            TextWrapping="WrapWithOverflow">
+            <TextBlock.Effect>
+                <BlurEffect Radius="55" />
+            </TextBlock.Effect>
+            <Run FontSize="15" Text="by" />
+            <Run x:Name="AuthorShadowTextRun" />
+        </TextBlock>
+        <TextBlock Grid.Row="2" Grid.Column="0"
+            x:Name="TitleTextBlock"
+            Margin="20,25,20,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Bottom"
+            FontFamily="Lucida Sans"
+            FontSize="65"
+            FontWeight="Bold"
+            TextWrapping="WrapWithOverflow">
+            <TextBlock.Effect>
+                <DropShadowEffect />
+            </TextBlock.Effect>
+        </TextBlock>
+        <TextBlock Grid.Row="3" Grid.Column="0"
+            x:Name="AuthorTextBlock"
+            Margin="55,0,20,20"
+            FontFamily="Lucida Sans"
+            FontSize="30"
+            FontWeight="Bold"
+            TextWrapping="Wrap">
+            <TextBlock.Effect>
+                <DropShadowEffect />
+            </TextBlock.Effect>
+            <Run FontSize="15" Text="by" />
+            <Run x:Name="AuthorTextRun" />
+        </TextBlock>
+        <TextBlock Grid.Row="2" Grid.RowSpan="2" Grid.Column="1"
+            x:Name="DescriptionTextShadow"
+            Margin="-10,15,-5,15"
+            Padding="30,10"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            FontFamily="Lucida Sans"
+            FontSize="16"
+            Style="{StaticResource BackgroundBlurStyle}"
+            TextAlignment="Right"
+            TextWrapping="Wrap">
+            <TextBlock.Effect>
+                <BlurEffect Radius="55" />
+            </TextBlock.Effect>
+        </TextBlock>
+        <TextBlock Grid.Row="2" Grid.RowSpan="2" Grid.Column="1"
+            x:Name="DescriptionTextBlock"
+            Margin="20,25,25,25"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            FontFamily="Lucida Sans"
+            FontSize="16"
+            TextAlignment="Right"
+            TextWrapping="Wrap">
+            <TextBlock.Effect>
+                <DropShadowEffect />
+            </TextBlock.Effect>
+        </TextBlock>
+        <Rectangle Grid.Row="2" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
+            x:Name="TextHoverTrigger"
+            Fill="Transparent" />
+    </Grid>
+</local:UserControlRx>

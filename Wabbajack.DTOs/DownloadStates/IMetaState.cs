@@ -10,4 +10,6 @@ public interface IMetaState
     Uri? ImageURL { get; set; }
     bool IsNSFW { get; set; }
     string? Description { get; set; }
+    
+    Uri? LinkUrl { get; }
 }
