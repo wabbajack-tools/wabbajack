@@ -209,7 +209,7 @@
                 ViewModel="{Binding}" />
             <local:AttentionBorder x:Name="UserInterventionsControl" Grid.Column="2">
                 <Grid>
-                    <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type lib:ConfirmationIntervention}}" />
+                    <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type local:ConfirmationIntervention}}" />
                 </Grid>
             </local:AttentionBorder>
             <local:CompilationCompleteView Grid.Column="2"
