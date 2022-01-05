@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.CDN;
+using Wabbajack.DTOs.Configs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.DTOs.ModListValidation;
@@ -330,8 +331,13 @@ public class Client
             throw new HttpException(result);
     }
 
+
     public (IObservable<(Percent PercentDone, string Message)> Progress, Task<Uri> Task) UploadAuthorFile(AbsolutePath pickerTargetPath)
     {
         throw new NotImplementedException();
+    }
+    public async Task<ForcedRemoval[]> GetForcedRemovals(CancellationToken token)
+    {
+        return (await _client.GetFromJsonAsync<ForcedRemoval[]>("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/configs/forced_removal.json", _dtos.Options, token))!;
     }
 }
