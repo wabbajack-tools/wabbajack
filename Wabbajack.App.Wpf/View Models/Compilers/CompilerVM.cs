@@ -29,6 +29,7 @@ using Wabbajack.DTOs;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;
+using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -46,12 +47,14 @@ namespace Wabbajack
         Completed,
         Errored
     }
-    public class CompilerVM : BackNavigatingVM
+    public class CompilerVM : BackNavigatingVM, ICpuStatusVM
     {
         private const string LastSavedCompilerSettings = "last-saved-compiler-settings";
         private readonly DTOSerializer _dtos;
         private readonly SettingsManager _settingsManager;
-        private readonly ServiceProvider _serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<CompilerVM> _logger;
+        private readonly ResourceMonitor _resourceMonitor;
 
         [Reactive]
         public CompilerState State { get; set; }
@@ -91,13 +94,19 @@ namespace Wabbajack
         
         
         public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
+
+        public LoggerProvider LoggerProvider { get; }
+        public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
         
         public CompilerVM(ILogger<CompilerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
-            ServiceProvider serviceProvider) : base(logger)
+            IServiceProvider serviceProvider, LoggerProvider loggerProvider, ResourceMonitor resourceMonitor) : base(logger)
         {
+            _logger = logger;
             _dtos = dtos;
             _settingsManager = settingsManager;
             _serviceProvider = serviceProvider;
+            LoggerProvider = loggerProvider;
+            _resourceMonitor = resourceMonitor;
 
             BackCommand =
                 ReactiveCommand.CreateFromTask(async () =>
@@ -216,46 +225,52 @@ namespace Wabbajack
 
         private async Task StartCompilation()
         {
-            try
+            var tsk = Task.Run(async () =>
             {
-                State = CompilerState.Compiling;
-                var mo2Settings = new MO2CompilerSettings
+                try
                 {
-                    ModListName = ModListName,
-                    ModListAuthor = Author,
-                    ModlistReadme = Readme,
-                    Source = Source,
-                    Downloads = DownloadLocation.TargetPath,
-                    OutputFile = OutputLocation.TargetPath,
-                    Profile = SelectedProfile,
-                    OtherProfiles = OtherProfiles,
-                    AlwaysEnabled = AlwaysEnabled
-                };
+                    State = CompilerState.Compiling;
 
-                var compiler = new MO2Compiler(_serviceProvider.GetRequiredService<ILogger<MO2Compiler>>(),
-                    _serviceProvider.GetRequiredService<FileExtractor.FileExtractor>(),
-                    _serviceProvider.GetRequiredService<FileHashCache>(),
-                    _serviceProvider.GetRequiredService<Context>(),
-                    _serviceProvider.GetRequiredService<TemporaryFileManager>(),
-                    mo2Settings,
-                    _serviceProvider.GetRequiredService<ParallelOptions>(),
-                    _serviceProvider.GetRequiredService<DownloadDispatcher>(),
-                    _serviceProvider.GetRequiredService<Client>(),
-                    _serviceProvider.GetRequiredService<IGameLocator>(),
-                    _serviceProvider.GetRequiredService<DTOSerializer>(),
-                    _serviceProvider.GetRequiredService<IResource<ACompiler>>(),
-                    _serviceProvider.GetRequiredService<IBinaryPatchCache>());
-                
-                await compiler.Begin(CancellationToken.None);
+                    var mo2Settings = new MO2CompilerSettings
+                    {
+                        Game = BaseGame,
+                        ModListName = ModListName,
+                        ModListAuthor = Author,
+                        ModlistReadme = Readme,
+                        Source = Source,
+                        Downloads = DownloadLocation.TargetPath,
+                        OutputFile = OutputLocation.TargetPath,
+                        Profile = SelectedProfile,
+                        OtherProfiles = OtherProfiles,
+                        AlwaysEnabled = AlwaysEnabled
+                    };
 
-                State = CompilerState.Completed;
-            }
-            catch (Exception ex)
-            {
-                State = CompilerState.Errored;
-            }
+                    var compiler = new MO2Compiler(_serviceProvider.GetRequiredService<ILogger<MO2Compiler>>(),
+                        _serviceProvider.GetRequiredService<FileExtractor.FileExtractor>(),
+                        _serviceProvider.GetRequiredService<FileHashCache>(),
+                        _serviceProvider.GetRequiredService<Context>(),
+                        _serviceProvider.GetRequiredService<TemporaryFileManager>(),
+                        mo2Settings,
+                        _serviceProvider.GetRequiredService<ParallelOptions>(),
+                        _serviceProvider.GetRequiredService<DownloadDispatcher>(),
+                        _serviceProvider.GetRequiredService<Client>(),
+                        _serviceProvider.GetRequiredService<IGameLocator>(),
+                        _serviceProvider.GetRequiredService<DTOSerializer>(),
+                        _serviceProvider.GetRequiredService<IResource<ACompiler>>(),
+                        _serviceProvider.GetRequiredService<IBinaryPatchCache>());
 
+                    await compiler.Begin(CancellationToken.None);
 
+                    State = CompilerState.Completed;
+                }
+                catch (Exception ex)
+                {
+                    State = CompilerState.Errored;
+                    _logger.LogInformation(ex, "Failed Compilation : {Message}", ex.Message);
+                }
+            });
+
+            await tsk;
         }
         
         private async Task SaveSettingsFile()

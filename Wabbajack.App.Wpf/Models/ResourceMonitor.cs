@@ -7,12 +7,15 @@ using System.Reactive.Subjects;
 using System.Timers;
 using DynamicData;
 using DynamicData.Kernel;
+using ReactiveUI;
 using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Models;
 
 public class ResourceMonitor : IDisposable
 {
+    private readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(1000);
+    
     private readonly IResource[] _resources;
     private readonly Timer _timer;
     
@@ -33,30 +36,26 @@ public class ResourceMonitor : IDisposable
     {
         _compositeDisposable = new CompositeDisposable();
         _resources = resources.ToArray();
-        _timer = new Timer();
-        _timer.Interval = 250;
-        _timer.Elapsed += Elapsed;
-        _timer.Enabled = true;
-        
-        _timer.DisposeWith(_compositeDisposable);
-        
         _prev = _resources.Select(x => (x.Name, (long)0)).ToArray();
-
+        
+        RxApp.MainThreadScheduler.ScheduleRecurringAction(PollInterval, Elapsed)
+            .DisposeWith(_compositeDisposable);
+        
         _tasks.Connect()
             .Bind(out _tasksFiltered)
             .Subscribe()
             .DisposeWith(_compositeDisposable);
     }
 
-    private void Elapsed(object? sender, ElapsedEventArgs e)
+    private void Elapsed()
     {
         var current = _resources.Select(x => (x.Name, x.StatusReport.Transferred)).ToArray();
         var diff = _prev.Zip(current)
-            .Select(t => (t.First.Name, (long)((t.Second.Transferred - t.First.Throughput) / (_timer.Interval / 1000.0))))
+            .Select(t => (t.First.Name, (long)((t.Second.Transferred - t.First.Throughput) / PollInterval.TotalSeconds)))
             .ToArray();
         _prev = current;
         _updates.OnNext(diff);
-        
+
         _tasks.Edit(l =>
         {
             var used = new HashSet<ulong>();
@@ -71,7 +70,7 @@ public class ResourceMonitor : IDisposable
                     {
                         var t = tsk.Value;
                         t.Msg = job.Description;
-                        t.ProgressPercent = Percent.FactoryPutInRange(job.Current, (long)job.Size);
+                        t.ProgressPercent = job.Size == 0 ? Percent.Zero : Percent.FactoryPutInRange(job.Current, (long)job.Size);
                     }
 
                     // Create
@@ -82,7 +81,7 @@ public class ResourceMonitor : IDisposable
                             ID = job.ID,
                             StartTime = DateTime.Now,
                             Msg = job.Description,
-                            ProgressPercent = Percent.FactoryPutInRange(job.Current, (long) job.Size)
+                            ProgressPercent = job.Size == 0 ? Percent.Zero : Percent.FactoryPutInRange(job.Current, (long) job.Size)
                         };
                         l.AddOrUpdate(vm);
                     }

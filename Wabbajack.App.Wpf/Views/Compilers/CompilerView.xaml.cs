@@ -22,7 +22,8 @@ namespace Wabbajack
             {
 
                 
-                this.BindCommand(ViewModel, vm => vm.ExecuteCommand, view => view.BeginButton)
+                ViewModel.WhenAnyValue(vm => vm.ExecuteCommand)
+                    .BindToStrict(this, view => view.BeginButton.Command)
                     .DisposeWith(disposables);
                 
                 ViewModel.WhenAnyValue(vm => vm.BackCommand)

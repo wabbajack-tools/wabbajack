@@ -2,40 +2,28 @@
 using System.Collections.ObjectModel;
 using ReactiveUI;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Windows.Media.Imaging;
 using ReactiveUI.Fody.Helpers;
-using System.Windows.Media;
 using DynamicData;
-using DynamicData.Binding;
 using System.Reactive;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Shell;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using Microsoft.WindowsAPICodePack.Shell;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
-using Wabbajack.Extensions;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer;
-using Wabbajack.Interventions;
 using Wabbajack.Messages;
 using Wabbajack.Models;
 using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
-using Wabbajack.View_Models;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Util;
-using Configuration = Wabbajack.Networking.WabbajackClientApi.Configuration;
-using Consts = Wabbajack.Consts;
-using KnownFolders = Wabbajack.Paths.IO.KnownFolders;
 
 namespace Wabbajack;
 
@@ -118,8 +106,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     [Reactive]
     public bool Installing { get; set; }
     
-    [Reactive]
-    public LoggerProvider LoggerProvider { get; set; }
+    public LoggerProvider LoggerProvider { get; }
     
     
     // Command properties
