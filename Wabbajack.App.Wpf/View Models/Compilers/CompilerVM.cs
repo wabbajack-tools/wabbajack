@@ -13,21 +13,32 @@ using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
+using DynamicData;
 using DynamicData.Binding;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
+using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;
+using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.Services.OSIntegrated;
+using Wabbajack.VFS;
 
 namespace Wabbajack
 {
+    
+    
     public enum CompilerState
     {
         Configuration,
@@ -37,7 +48,10 @@ namespace Wabbajack
     }
     public class CompilerVM : BackNavigatingVM
     {
+        private const string LastSavedCompilerSettings = "last-saved-compiler-settings";
         private readonly DTOSerializer _dtos;
+        private readonly SettingsManager _settingsManager;
+        private readonly ServiceProvider _serviceProvider;
 
         [Reactive]
         public CompilerState State { get; set; }
@@ -46,9 +60,9 @@ namespace Wabbajack
         public ISubCompilerVM SubCompilerVM { get; set; }
         
         // Paths 
-        public FilePickerVM ModlistLocation { get; } = new();
-        public FilePickerVM DownloadLocation { get; } = new();
-        public FilePickerVM OutputLocation { get; } = new();
+        public FilePickerVM ModlistLocation { get; }
+        public FilePickerVM DownloadLocation { get; }
+        public FilePickerVM OutputLocation { get; }
         
         // Modlist Settings
         
@@ -67,19 +81,62 @@ namespace Wabbajack
         [Reactive] public string SelectedProfile { get; set; }
         [Reactive] public AbsolutePath GamePath { get; set; }
         [Reactive] public bool IsMO2Compilation { get; set; }
-        
-        [Reactive] public RelativePath[] AlwaysEnabled { get; set; }
-        [Reactive] public string[] OtherProfiles { get; set; }
+
+        [Reactive] public RelativePath[] AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
+        [Reactive] public string[] OtherProfiles { get; set; } = Array.Empty<string>();
         
         [Reactive] public AbsolutePath Source { get; set; }
         
-        public AbsolutePath SettingsOutputLocation => ModlistLocation.TargetPath.Combine(ModListName)
-            .WithExtension(IsMO2Compilation ? Ext.MO2CompilerSettings : Ext.CompilerSettings);
+        public AbsolutePath SettingsOutputLocation => Source.Combine(ModListName).WithExtension(Ext.CompilerSettings);
         
-        public CompilerVM(ILogger<CompilerVM> logger, DTOSerializer dtos) : base(logger)
+        
+        public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
+        
+        public CompilerVM(ILogger<CompilerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
+            ServiceProvider serviceProvider) : base(logger)
         {
             _dtos = dtos;
+            _settingsManager = settingsManager;
+            _serviceProvider = serviceProvider;
+
+            BackCommand =
+                ReactiveCommand.CreateFromTask(async () =>
+                {
+                    await SaveSettingsFile();
+                    NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModeSelectionView);
+                });
+            
             SubCompilerVM = new MO2CompilerVM(this);
+
+            ExecuteCommand = ReactiveCommand.CreateFromTask(async () => await StartCompilation());
+
+            ModlistLocation = new FilePickerVM()
+            {
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
+                PathType = FilePickerVM.PathTypeOptions.File,
+                PromptTitle = "Select a config file or a modlist.txt file"
+            };
+
+            DownloadLocation = new FilePickerVM()
+            {
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
+                PathType = FilePickerVM.PathTypeOptions.Folder,
+                PromptTitle = "Location where the downloads for this list are stored"
+            };
+            
+            OutputLocation = new FilePickerVM()
+            {
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
+                PathType = FilePickerVM.PathTypeOptions.Folder,
+                PromptTitle = "Location where the compiled modlist will be stored"
+            };
+            
+            ModlistLocation.Filters.AddRange(new []
+            {
+                new CommonFileDialogFilter("MO2 Modlist", "*" + Ext.Txt),
+                new CommonFileDialogFilter("Compiler Settings File", "*" + Ext.CompilerSettings)
+            });
+
             
             this.WhenActivated(disposables =>
             {
@@ -89,11 +146,15 @@ namespace Wabbajack
                 ModlistLocation.WhenAnyValue(vm => vm.TargetPath)
                     .Subscribe(p => InferModListFromLocation(p).FireAndForget())
                     .DisposeWith(disposables);
+                
+                LoadLastSavedSettings().FireAndForget();
             });
         }
 
         private async Task InferModListFromLocation(AbsolutePath settingsFile)
         {
+            if (settingsFile == default) return;
+            
             using var ll = LoadingLock.WithLoading();
             if (settingsFile.FileName == "modlist.txt".ToRelativePath() && settingsFile.Depth > 3)
             {
@@ -113,7 +174,12 @@ namespace Wabbajack
                     ModListName = SelectedProfile;
 
                     var settings = iniData["Settings"];
-                    DownloadLocation.TargetPath = settings["download_directory"].FromMO2Ini().ToAbsolutePath();
+                    var downloadLocation = settings["download_directory"].FromMO2Ini().ToAbsolutePath();
+                    
+                    if (downloadLocation == default)
+                        downloadLocation = Source.Combine("downloads");
+                    
+                    DownloadLocation.TargetPath = downloadLocation;
                     IsMO2Compilation = true;
 
 
@@ -147,14 +213,65 @@ namespace Wabbajack
             }
 
         }
+
+        private async Task StartCompilation()
+        {
+            try
+            {
+                State = CompilerState.Compiling;
+                var mo2Settings = new MO2CompilerSettings
+                {
+                    ModListName = ModListName,
+                    ModListAuthor = Author,
+                    ModlistReadme = Readme,
+                    Source = Source,
+                    Downloads = DownloadLocation.TargetPath,
+                    OutputFile = OutputLocation.TargetPath,
+                    Profile = SelectedProfile,
+                    OtherProfiles = OtherProfiles,
+                    AlwaysEnabled = AlwaysEnabled
+                };
+
+                var compiler = new MO2Compiler(_serviceProvider.GetRequiredService<ILogger<MO2Compiler>>(),
+                    _serviceProvider.GetRequiredService<FileExtractor.FileExtractor>(),
+                    _serviceProvider.GetRequiredService<FileHashCache>(),
+                    _serviceProvider.GetRequiredService<Context>(),
+                    _serviceProvider.GetRequiredService<TemporaryFileManager>(),
+                    mo2Settings,
+                    _serviceProvider.GetRequiredService<ParallelOptions>(),
+                    _serviceProvider.GetRequiredService<DownloadDispatcher>(),
+                    _serviceProvider.GetRequiredService<Client>(),
+                    _serviceProvider.GetRequiredService<IGameLocator>(),
+                    _serviceProvider.GetRequiredService<DTOSerializer>(),
+                    _serviceProvider.GetRequiredService<IResource<ACompiler>>(),
+                    _serviceProvider.GetRequiredService<IBinaryPatchCache>());
+                
+                await compiler.Begin(CancellationToken.None);
+
+                State = CompilerState.Completed;
+            }
+            catch (Exception ex)
+            {
+                State = CompilerState.Errored;
+            }
+
+
+        }
         
         private async Task SaveSettingsFile()
         {
+            if (Source == default) return;
             await using var st = SettingsOutputLocation.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-            if (IsMO2Compilation)
-                await JsonSerializer.SerializeAsync(st, (MO2CompilerSettings) GetSettings(), _dtos.Options);
-            else
-                await JsonSerializer.SerializeAsync(st, GetSettings(), _dtos.Options);
+            await JsonSerializer.SerializeAsync(st, GetSettings(), _dtos.Options);
+
+            await _settingsManager.Save(LastSavedCompilerSettings, Source);
+        }
+
+        private async Task LoadLastSavedSettings()
+        {
+            var lastPath = await _settingsManager.Load<AbsolutePath>(LastSavedCompilerSettings);
+            if (Source == default) return;
+            Source = lastPath;
         }
 
                     
