@@ -184,6 +184,8 @@ public class AuthoredFiles : ControllerBase
         Response.Headers.ContentDisposition =
             new StringValues($"attachment; filename={definition.OriginalFileName}");
         Response.Headers.ContentType = new StringValues("application/octet-stream");
+        Response.Headers.ContentLength = definition.Size;
+        Response.Headers.ETag = definition.MungedName + "_direct";
         foreach (var part in definition.Parts)
         {
             await using var partStream = await _authoredFiles.StreamForPart(mungedName, (int)part.Index);
