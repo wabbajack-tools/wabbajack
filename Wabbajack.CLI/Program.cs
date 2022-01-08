@@ -65,6 +65,7 @@ internal class Program
                 services.AddSingleton<IVerb, ForceHeal>();
                 services.AddSingleton<IVerb, MirrorFile>();
                 services.AddSingleton<IVerb, SteamLogin>();
+                services.AddSingleton<IVerb, SteamAppDumpInfo>();
 
                 services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
             }).Build();

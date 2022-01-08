@@ -107,7 +107,7 @@ public static class ServiceExtensions
         service.AddSingleton<HttpClient>();
         service.AddAllSingleton<IHttpDownloader, SingleThreadedDownloader>();
 
-        service.AddSingleton<Wabbajack.Networking.Steam.Client>();
+        service.AddSteam();
             
         service.AddSingleton<Client>();
         service.AddSingleton<WriteOnlyClient>();

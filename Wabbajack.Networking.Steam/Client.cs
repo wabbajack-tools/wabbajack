@@ -1,6 +1,8 @@
+using System.Collections.Concurrent;
 using System.Security;
 using Microsoft.Extensions.Logging;
 using SteamKit2;
+using SteamKit2.Internal;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.Steam.UserInterventions;
@@ -26,6 +28,16 @@ public class Client : IDisposable
     private bool _isLoggedIn;
     private bool _haveSigFile;
 
+    public TaskCompletionSource _licenseRequest = new();
+    private readonly SteamApps _steamApps;
+
+    public SteamApps.LicenseListCallback.License[] Licenses { get; private set; }
+
+    public ConcurrentDictionary<uint, ulong> PackageTokens { get; } = new();
+
+    public ConcurrentDictionary<uint, SteamApps.PICSProductInfoCallback.PICSProductInfo?> PackageInfos { get; } = new();
+
+
     public Client(ILogger<Client> logger, HttpClient client, ITokenProvider<SteamLoginState> token,
         IUserInterventionHandler interventionHandler)
     {
@@ -47,12 +59,15 @@ public class Client : IDisposable
         _manager = new CallbackManager(_client);
 
         _steamUser = _client.GetHandler<SteamUser>()!;
+        _steamApps = _client.GetHandler<SteamApps>()!;
         
         _manager.Subscribe<SteamClient.ConnectedCallback>( OnConnected );
         _manager.Subscribe<SteamClient.DisconnectedCallback>( OnDisconnected );
 
         _manager.Subscribe<SteamUser.LoggedOnCallback>( OnLoggedOn );
         _manager.Subscribe<SteamUser.LoggedOffCallback>( OnLoggedOff );
+
+        _manager.Subscribe<SteamApps.LicenseListCallback>(OnLicenseList);
         
         _manager.Subscribe<SteamUser.UpdateMachineAuthCallback>( OnUpdateMachineAuthCallback );
 
@@ -72,6 +87,17 @@ public class Client : IDisposable
             IsBackground = true
         }
         .Start();
+    }
+
+    private void OnLicenseList(SteamApps.LicenseListCallback obj)
+    {       
+        if (obj.Result != EResult.OK)
+        {
+            _licenseRequest.TrySetException(new SteamException("While getting licenses", obj.Result, EResult.Invalid));
+        }
+        _logger.LogInformation("Got {LicenseCount} licenses from Steam", obj.LicenseList.Count);
+        Licenses = obj.LicenseList.ToArray();
+        _licenseRequest.TrySetResult();
     }
 
     private void OnUpdateMachineAuthCallback(SteamUser.UpdateMachineAuthCallback callback)
@@ -192,13 +218,14 @@ public class Client : IDisposable
 
             _isConnected = true;
             
-            _steamUser.LogOn(new SteamUser.LogOnDetails()
+            _steamUser.LogOn(new SteamUser.LogOnDetails
             {
                 Username = state.User,
                 Password = state.Password,
                 AuthCode = _authCode,
                 TwoFactorCode = _twoFactorCode,
-                SentryFileHash = sentryHash
+                SentryFileHash = sentryHash,
+                RequestSteam2Ticket = true
             });
         });
     }
@@ -218,12 +245,57 @@ public class Client : IDisposable
         _cancellationSource.Dispose();
     }
 
-    public Task Login(TaskCompletionSource? tcs = null)
+    public async Task Login(TaskCompletionSource? tcs = null)
     {
         _loginTask = tcs ?? new TaskCompletionSource();
         _logger.LogInformation("Attempting login");
         _client.Connect();
 
-        return _loginTask.Task;
+        await _loginTask.Task; 
+        await _licenseRequest.Task;
+    }
+
+    public async Task<Dictionary<uint, SteamApps.PICSProductInfoCallback.PICSProductInfo?>> GetPackageInfos(IEnumerable<uint> packageIds)
+    {
+        var packages = packageIds.Where(id => !PackageInfos.ContainsKey(id)).ToList();
+
+        if (packages.Count > 0)
+        {
+            var packageRequests = new List<SteamApps.PICSRequest>();
+
+            foreach (var package in packages)
+            {
+                var request = new SteamApps.PICSRequest(package);
+                if (PackageTokens.TryGetValue(package, out var token))
+                {
+                    request.AccessToken = token;
+                }
+
+                packageRequests.Add(request);
+            }
+
+            _logger.LogInformation("Requesting {Count} package infos", packageRequests.Count);
+
+            var results = await _steamApps.PICSGetProductInfo(new List<SteamApps.PICSRequest>(), packageRequests);
+
+            if (results.Failed)
+                throw new SteamException("Exception getting product info", EResult.Invalid, EResult.Invalid);
+
+            foreach (var packageInfo in results.Results!)
+            {
+                foreach (var package in packageInfo.Packages.Select(v => v.Value))
+                {
+                    PackageInfos[package.ID] = package;
+                }
+
+                foreach (var package in packageInfo.UnknownPackages)
+                {
+                    PackageInfos[package] = null;
+                }
+            }
+        }
+
+        return packages.Distinct().ToDictionary(p => p, p => PackageInfos[p]);
+
     }
 }
