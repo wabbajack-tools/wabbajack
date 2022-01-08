@@ -11,6 +11,7 @@ using Octokit;
 using Wabbajack.CLI.TypeConverters;
 using Wabbajack.CLI.Verbs;
 using Wabbajack.DTOs.GitHub;
+using Wabbajack.DTOs.Interventions;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.WabbajackClientApi;
@@ -63,6 +64,9 @@ internal class Program
                 services.AddSingleton<IVerb, GenerateMetricsReports>();
                 services.AddSingleton<IVerb, ForceHeal>();
                 services.AddSingleton<IVerb, MirrorFile>();
+                services.AddSingleton<IVerb, SteamLogin>();
+
+                services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
             }).Build();
 
         var service = host.Services.GetService<CommandLineBuilder>();
