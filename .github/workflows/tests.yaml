@@ -71,11 +71,12 @@ jobs:
           - Wabbajack.Downloaders.Interfaces
           - Wabbajack.Downloaders.Dispatcher
           - Wabbajack.Compression.BSA
+          - Wabbajack.Downloaders.GoogleDrive
+          - Wabbajack.Downloaders.GameFile
           - Wabbajack.Downloaders.IPS4OAuth2Downloader
           - Wabbajack.Downloaders.MediaFire
           - Wabbajack.Downloaders.Mega
           - Wabbajack.Downloaders.ModDB
-          - Wabbajack.Downloaders.GoogleDrive
           - Wabbajack.Downloaders.Http
           - Wabbajack.Downloaders.Nexus
           - Wabbajack.Downloaders.WabbajackCDN
