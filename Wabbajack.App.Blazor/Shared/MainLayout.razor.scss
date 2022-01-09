@@ -1,0 +1,13 @@
+﻿@use "Globals";
+
+.main {
+  position: relative;
+  display: flex;
+  background-color: Globals.$primary-background-color;
+  min-height: 100vh;
+}
+
+.content {
+  padding: 0.5rem;
+  flex: 1 1 0;
+}

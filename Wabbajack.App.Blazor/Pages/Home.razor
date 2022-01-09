@@ -1,0 +1,30 @@
+﻿@using Wabbajack.Paths.IO
+@using Wabbajack.Paths
+@using System;
+@using System.Collections.Generic;
+@using System.Text.Json;
+@using Wabbajack.Common
+@using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq
+
+@page "/"
+@layout Shared.MainLayout
+<News/>
+<div id="content"></div>
+
+@code {
+    // List<string> InstalledLists = new();
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     AbsolutePath installedModlists = KnownFolders.WabbajackAppLocal.Combine("installed_modlists.json");
+    //     string toJson = await installedModlists.ReadAllTextAsync();
+    //     JObject installedJson = JObject.Parse(toJson);
+    //     foreach ((string? key, JToken? value) in installedJson)
+    //     {
+    //         foreach (JObject obj in value)
+    //         {
+    //             Console.WriteLine(obj.Properties());
+    //         }
+    //     }
+    // }
+}

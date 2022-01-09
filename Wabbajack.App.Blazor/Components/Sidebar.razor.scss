@@ -1,0 +1,7 @@
+﻿@use "../Shared/Globals";
+
+.sidebar {
+  background-color: Globals.$secondary-background-color;
+  color: white;
+  width: 18rem;
+}

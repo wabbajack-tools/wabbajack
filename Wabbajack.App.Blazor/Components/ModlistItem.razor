@@ -1,0 +1,16 @@
+﻿<div class="item" style="background-image: url(@ImageURL);">
+    <div class="info">
+        <div class="title">@Title</div>
+        <div class="description">@Description</div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string ImageURL { get; set; }
+    [Parameter]
+    public string Title { get; set; }
+    [Parameter]
+    public string Description { get; set; }
+    
+}

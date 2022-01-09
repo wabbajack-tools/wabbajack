@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net6.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <UseWPF>true</UseWPF>
+        <PublishSingleFile>True</PublishSingleFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <SupportedPlatform Include="browser" />
+    </ItemGroup>
+
+    <ItemGroup>
+<!--        <PackageReference Include="LibSassBuilder" Version="2.0.1" />-->
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.101-preview.11.2349" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.1" />
+        <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.5.3">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Remove="Pages\*.scss" />
+        <Content Include="Pages\*.scss" Watch="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
+      <ProjectReference Include="..\Wabbajack.Compiler\Wabbajack.Compiler.csproj" />
+      <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj" />
+      <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
+      <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
+    </ItemGroup>
+
+</Project>

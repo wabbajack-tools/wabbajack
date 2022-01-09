@@ -1,0 +1,20 @@
+﻿@use "../Shared/Globals";
+
+nav {
+  font-weight: 100;
+  font-size: 1.5em;
+  line-height: 2rem;
+  padding-top: 1rem;
+}
+
+a {
+  color: white;
+  display: block;
+  padding: 0.5rem 2rem;
+  text-decoration: none;
+  transition: background-color .25s ease-in-out;
+
+  &:hover {
+    background-color: Globals.$accent-color;
+  }
+}

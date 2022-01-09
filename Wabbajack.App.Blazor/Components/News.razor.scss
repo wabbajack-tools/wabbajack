@@ -1,0 +1,29 @@
+﻿.container {
+  background-image: linear-gradient(30deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 30%, rgba(255, 255, 255, 0) 100%), url(images/Banner.png);
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  max-width: 56rem;
+  height: 9rem;
+  margin-left: auto;
+  margin-right: auto;
+
+  .info {
+    align-self: flex-end;
+
+    .title {
+      color: white;
+      font-weight: 100;
+      font-size: 2.25rem;
+      line-height: 2.5rem;
+      margin: 0;
+    }
+
+    .description {
+      color: grey;
+    }
+  }
+}
