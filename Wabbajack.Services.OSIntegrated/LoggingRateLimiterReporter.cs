@@ -41,13 +41,21 @@ public class LoggingRateLimiterReporter : IDisposable
         var report = NextReport();
         var sb = new StringBuilder();
         sb.Append($"[#{_reportNumber}] ");
+        
+        var found = false;
         foreach (var (prev, next, limiter) in _prevReport.Zip(report, _limiters))
         {
             var throughput = next.Transferred - prev.Transferred;
-            sb.Append($"{limiter.Name}: [{next.Running}/{next.Pending}] {throughput.ToFileSizeString()}/sec ");
+            if (throughput > 0)
+            {
+                found = true;
+                sb.Append($"{limiter.Name}: [{next.Running}/{next.Pending}] {throughput.ToFileSizeString()}/sec ");
+            }
         }
 
-        _logger.LogInformation(sb.ToString());
+        if (found) 
+            _logger.LogInformation(sb.ToString());
+        
         _prevReport = report;
     }
 }
