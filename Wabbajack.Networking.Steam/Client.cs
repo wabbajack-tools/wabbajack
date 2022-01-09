@@ -1,10 +1,14 @@
 using System.Collections.Concurrent;
+using System.IO.Compression;
 using System.Security;
 using Microsoft.Extensions.Logging;
 using SteamKit2;
+using SteamKit2.CDN;
 using SteamKit2.Internal;
 using Wabbajack.DTOs.Interventions;
+using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.Networking.Steam.DTOs;
 using Wabbajack.Networking.Steam.UserInterventions;
 
 namespace Wabbajack.Networking.Steam;
@@ -30,6 +34,8 @@ public class Client : IDisposable
 
     public TaskCompletionSource _licenseRequest = new();
     private readonly SteamApps _steamApps;
+    private readonly DTOSerializer _dtos;
+    private IReadOnlyCollection<Server> _cdnServers = Array.Empty<Server>();
 
     public SteamApps.LicenseListCallback.License[] Licenses { get; private set; }
 
@@ -37,16 +43,24 @@ public class Client : IDisposable
 
     public ConcurrentDictionary<uint, SteamApps.PICSProductInfoCallback.PICSProductInfo?> PackageInfos { get; } = new();
 
+    public ConcurrentDictionary<uint, (SteamApps.PICSProductInfoCallback.PICSProductInfo ProductInfo, AppInfo AppInfo)> AppInfo { get; } =
+        new();
+
+    public ConcurrentDictionary<uint, ulong> AppTokens { get; } = new();
+    
+    
+    public ConcurrentDictionary<uint, byte[]> DepotKeys { get; } = new();
+
 
     public Client(ILogger<Client> logger, HttpClient client, ITokenProvider<SteamLoginState> token,
-        IUserInterventionHandler interventionHandler)
+        IUserInterventionHandler interventionHandler, DTOSerializer dtos)
     {
         _logger = logger;
         _httpClient = client;
+        _dtos = dtos;
         _interventionHandler = interventionHandler;
         _client = new SteamClient(SteamConfiguration.Create(c =>
         {
-            c.WithHttpClientFactory(() => client);
             c.WithProtocolTypes(ProtocolTypes.WebSocket);
             c.WithUniverse(EUniverse.Public);
         }));
@@ -87,6 +101,7 @@ public class Client : IDisposable
             IsBackground = true
         }
         .Start();
+
     }
 
     private void OnLicenseList(SteamApps.LicenseListCallback obj)
@@ -298,4 +313,95 @@ public class Client : IDisposable
         return packages.Distinct().ToDictionary(p => p, p => PackageInfos[p]);
 
     }
+
+    public async Task<AppInfo> GetAppInfo(uint appId)
+    {
+        if (AppInfo.TryGetValue(appId, out var info))
+            return info.AppInfo;
+
+        var result = await _steamApps.PICSGetAccessTokens(new List<uint> {appId}, new List<uint>());
+        
+        if (result.AppTokensDenied.Contains(appId))
+            throw new SteamException($"Cannot get app token for {appId}", EResult.Invalid, EResult.Invalid);
+
+        foreach (var token in result.AppTokens)
+        {
+            AppTokens[token.Key] = token.Value;
+        }
+
+        var request = new SteamApps.PICSRequest(appId);
+        if (AppTokens.ContainsKey(appId))
+        {
+            request.AccessToken = AppTokens[appId];
+        }
+
+        var appResult = await _steamApps.PICSGetProductInfo(new List<SteamApps.PICSRequest> {request},
+            new List<SteamApps.PICSRequest>());
+
+        if (appResult.Failed)
+            throw new SteamException($"Error getting app info for {appId}", EResult.Invalid, EResult.Invalid);
+
+        foreach (var (_, value) in appResult.Results!.SelectMany(v => v.Apps))
+        {
+            var translated = KeyValueTranslator.Translate<AppInfo>(value.KeyValues, _dtos);
+            AppInfo[value.ID] = (value, translated);
+        }
+
+        return AppInfo[appId].AppInfo;
+    }
+
+    public async Task<IReadOnlyCollection<Server>> LoadCDNServers()
+    {
+        if (_cdnServers.Count > 0) return _cdnServers;
+        _logger.LogInformation("Loading CDN servers");
+        _cdnServers = await ContentServerDirectoryService.LoadAsync(_client.Configuration);
+        _logger.LogInformation("{Count} servers found", _cdnServers.Count);
+        
+        return _cdnServers;
+    }
+
+    public async Task<DepotManifest> GetAppManifest(uint appId, uint depotId, ulong manifestId)
+    {
+        await LoadCDNServers();
+        var client = _cdnServers.First();
+
+        var uri = new UriBuilder()
+        {
+            Host = client.Host,
+            Port = client.Port,
+            Scheme = client.Protocol.ToString(),
+            Path = $"depot/{depotId}/manifest/{manifestId}/5"
+        }.Uri;
+
+        var rawData = await _httpClient.GetByteArrayAsync(uri);
+
+        using var zip = new ZipArchive(new MemoryStream(rawData));
+        var firstEntry = zip.Entries.First();
+        var data = new MemoryStream();
+        await using var entryStream = firstEntry.Open();
+        await entryStream.CopyToAsync(data);
+        var manifest = DepotManifest.Deserialize(data.ToArray());
+
+        if (manifest.FilenamesEncrypted)
+            manifest.DecryptFilenames(await GetDepotKey(depotId, appId));
+
+        return manifest;
+    }
+    
+    
+    public async ValueTask<byte[]> GetDepotKey(uint depotId, uint appId)
+    {
+        if (DepotKeys.ContainsKey(depotId))
+            return DepotKeys[depotId];
+        
+        _logger.LogInformation("Requesting Depot Key for {DepotId}", depotId);
+
+        var result = await _steamApps.GetDepotDecryptionKey(depotId, appId);
+        if (result.Result != EResult.OK)
+            throw new SteamException($"Error gettding Depot Key for {depotId} {appId}", result.Result, EResult.Invalid);
+
+        DepotKeys[depotId] = result.DepotKey;
+        return result.DepotKey;
+    }
+
 }

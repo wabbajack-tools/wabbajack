@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Logging;
+using SteamKit2;
+using Wabbajack.Networking.Steam.DTOs;
 
 namespace Wabbajack.Networking.Steam;
 
@@ -28,5 +30,10 @@ public class DepotDownloader
 
         }
         return false;
+    }
+
+    public async Task<AppInfo> GetAppInfo(uint appId)
+    {
+        return await _steamClient.GetAppInfo(appId);
     }
 }
