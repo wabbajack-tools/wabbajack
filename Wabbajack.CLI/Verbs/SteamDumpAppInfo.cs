@@ -63,13 +63,7 @@ public class SteamAppDumpInfo : IVerb
         Console.WriteLine("App Depots: ");
         
         Console.WriteLine(_dtos.Serialize(appData, true));
-        
-        Console.WriteLine("Loading Manifests");
-        var servers = await _client.LoadCDNServers();
-        //var manifest = await _client.GetAppManifest();
 
-        var data = await _client.GetAppManifest(appId, 489831, 7089166303853251347);
-        
         return 0;
     }
 

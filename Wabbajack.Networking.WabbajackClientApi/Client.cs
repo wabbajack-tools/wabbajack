@@ -340,4 +340,10 @@ public class Client
     {
         return (await _client.GetFromJsonAsync<ForcedRemoval[]>("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/configs/forced_removal.json", _dtos.Options, token))!;
     }
+
+    public async Task<SteamManifest[]> GetSteamManifests(Game game, string version)
+    {
+        var url = $"https://raw.githubusercontent.com/wabbajack-tools/indexed-game-files/master/{game}/{version}_steam_manifests.json";
+        return await _client.GetFromJsonAsync<SteamManifest[]>(url, _dtos.Options) ?? Array.Empty<SteamManifest>();
+    }
 }

@@ -2,14 +2,18 @@ using System.Collections.Concurrent;
 using System.IO.Compression;
 using System.Security;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic.CompilerServices;
 using SteamKit2;
 using SteamKit2.CDN;
 using SteamKit2.Internal;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.Steam.DTOs;
 using Wabbajack.Networking.Steam.UserInterventions;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack.Networking.Steam;
 
@@ -398,10 +402,41 @@ public class Client : IDisposable
 
         var result = await _steamApps.GetDepotDecryptionKey(depotId, appId);
         if (result.Result != EResult.OK)
-            throw new SteamException($"Error gettding Depot Key for {depotId} {appId}", result.Result, EResult.Invalid);
+            throw new SteamException($"Error getting Depot Key for {depotId} {appId}", result.Result, EResult.Invalid);
 
         DepotKeys[depotId] = result.DepotKey;
         return result.DepotKey;
     }
 
+    public async Task Download(uint appId, uint depotId, ulong manifest, DepotManifest.FileData fileData, AbsolutePath output)
+    {
+        await LoadCDNServers();
+        var client = _cdnServers.First();
+        var depotKey = await GetDepotKey(depotId, appId);
+
+        await using var os = output.Open(FileMode.Create, FileAccess.Write, FileShare.Read);
+        
+        foreach (var chunk in fileData.Chunks.OrderBy(c => c.Offset))
+        {
+
+            var chunkId = chunk.ChunkID!.ToHex();
+
+
+            var uri = new UriBuilder()
+            {
+                Host = client.Host,
+                Port = client.Port,
+                Scheme = client.Protocol.ToString(),
+                Path = $"depot/{depotId}/chunk/{chunkId}"
+            }.Uri;
+
+            var data = await _httpClient.GetByteArrayAsync(uri);
+            var chunkData = new DepotChunk(chunk, data);
+            chunkData.Process(depotKey);
+
+            await os.WriteAsync(chunkData.Data);
+
+        }
+        
+    }
 }

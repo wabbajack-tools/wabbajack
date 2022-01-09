@@ -66,6 +66,7 @@ internal class Program
                 services.AddSingleton<IVerb, MirrorFile>();
                 services.AddSingleton<IVerb, SteamLogin>();
                 services.AddSingleton<IVerb, SteamAppDumpInfo>();
+                services.AddSingleton<IVerb, SteamDownloadFile>();
 
                 services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
             }).Build();
