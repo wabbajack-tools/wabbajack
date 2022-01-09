@@ -3,16 +3,11 @@ using System.Threading;
 
 namespace Wabbajack.DTOs.Interventions;
 
-
-public interface IUserIntervention
-{
-    
-}
 /// <summary>
 /// Defines a message that requires user interaction. The user must perform some action
 /// or make a choice. 
 /// </summary>
-public interface IUserIntervention<TRet> : IUserIntervention
+public interface IUserIntervention
 {
     /// <summary>
     /// The user didn't make a choice, so this action should be aborted
