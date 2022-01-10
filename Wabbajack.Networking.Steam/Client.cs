@@ -116,9 +116,9 @@ public class Client : IDisposable
     {       
         if (obj.Result != EResult.OK)
         {
-            _licenseRequest.TrySetException(new SteamException("While getting licenses", obj.Result, EResult.Invalid));
+            _licenseRequest.TrySetException(new SteamException("While getting game information", obj.Result, EResult.Invalid));
         }
-        _logger.LogInformation("Got {LicenseCount} licenses from Steam", obj.LicenseList.Count);
+        _logger.LogInformation("Steam has provided game information");
         Licenses = obj.LicenseList.ToArray();
         _licenseRequest.TrySetResult();
     }
@@ -222,7 +222,7 @@ public class Client : IDisposable
         Task.Run(async () =>
         {
             var state = (await _token.Get())!;
-            _logger.LogInformation("Connected to Steam, logging in as {User}", state.User);
+            _logger.LogInformation("Connected to Steam, logging in");
 
             byte[]? sentryHash = null;
             
