@@ -11,7 +11,7 @@ public static class CircuitBreaker
     public static int DEFAULT_DELAY_MULTIPLIER = 2;
     public static int DEFAULT_RETRIES = 5;
 
-    public static async ValueTask<TR> WithAutoRetryAsync<TR, TE>(ILogger logger, Func<ValueTask<TR>> f,
+    public static async ValueTask<TR> WithAutoRetryAsync<TR, TE>(ILogger logger, Func<Task<TR>> f,
         TimeSpan? delay = null, int? multipler = null, int? maxRetries = null) where TE : Exception
     {
         var retries = 0;
@@ -37,7 +37,7 @@ public static class CircuitBreaker
         }
     }
 
-    public static async ValueTask WithAutoRetryAsync<TE>(ILogger logger, Func<ValueTask> f, TimeSpan? delay = null,
+    public static async ValueTask WithAutoRetryAsync<TE>(ILogger logger, Func<Task> f, TimeSpan? delay = null,
         int? multipler = null, int? maxRetries = null) where TE : Exception
     {
         var retries = 0;

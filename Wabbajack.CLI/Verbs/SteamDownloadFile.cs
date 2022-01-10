@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentFTP.Helpers;
 using Microsoft.Extensions.Logging;
@@ -81,9 +82,9 @@ public class SteamDownloadFile : IVerb
             return 1;
         }
         
-        _logger.LogInformation("File has is {Size} and {ChunkCount} chunks", fileData.TotalSize.FileSizeToString(), fileData.Chunks.Count);
+        _logger.LogInformation("File is {Size} and {ChunkCount} chunks", fileData.TotalSize.FileSizeToString(), fileData.Chunks.Count);
 
-        await _client.Download(appId, depotManifest!.DepotID, steamManifest!.Manifest,  fileData, output);
+        await _client.Download(appId, depotManifest!.DepotID, steamManifest!.Manifest,  fileData, output, CancellationToken.None);
 
         _logger.LogInformation("File downloaded");
 
