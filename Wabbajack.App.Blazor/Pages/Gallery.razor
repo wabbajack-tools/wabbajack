@@ -8,35 +8,24 @@
 @inject Client _client
 
 <div id="content">
-    @foreach (ModListItem item in listItems)
+    @if (_listItems.Count > 0)
     {
-        <ModlistItem ImageURL=@item.ImageURL Title=@item.Title Description=@item.Description></ModlistItem>
+        foreach (ModlistMetadata item in _listItems)
+        {
+            <ModlistItem Metadata=@item></ModlistItem>
+        }
     }
 </div>
 
 @code {
-    List<ModListItem> listItems = new();
-
-    private class ModListItem
-    {
-        public readonly string Title;
-        public readonly string Description;
-        public readonly string ImageURL;
-
-        public ModListItem(string title, string description, string imageUrl)
-        {
-            Description = description;
-            ImageURL = imageUrl;
-            Title = title;
-        }
-    }
+    List<ModlistMetadata> _listItems = new();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             ModlistMetadata[] modLists = await _client.LoadLists();
-            listItems = modLists.Select(x => new ModListItem(x.Title, x.Description, x.Links.ImageUri)).ToList();
+            _listItems = modLists.ToList();
             StateHasChanged();
         }
         catch (Exception ex)

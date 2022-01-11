@@ -1,13 +1,20 @@
-﻿@use "Globals";
+﻿@import "./Globals.scss";
 
-.main {
-  position: relative;
-  display: flex;
-  background-color: Globals.$primary-background-color;
-  min-height: 100vh;
+#background {
+  position: fixed;
+  height: 100vh;
+  width: 100%;
+  background: linear-gradient(320deg, #151022, #1f0d2a, #100214);
+  z-index: -1;
 }
 
-.page {
-  padding: 0.5rem;
-  flex: 1 1 0;
+#wrapper {
+  width: calc(100% - #{$sidebar-width});
+  float: right;
+  height: 100%;
+}
+
+#page {
+  margin-top: $header-height;
+  height: calc(100% - #{$sidebar-width});
 }

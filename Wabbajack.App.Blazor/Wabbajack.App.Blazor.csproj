@@ -26,14 +26,17 @@
     <ItemGroup>
         <Content Remove="Pages\*.scss" />
         <Content Include="Pages\*.scss" Watch="false" />
+        <Content Update="wwwroot\*">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
-      <ProjectReference Include="..\Wabbajack.Compiler\Wabbajack.Compiler.csproj" />
-      <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj" />
-      <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
-      <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
+        <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
+        <ProjectReference Include="..\Wabbajack.Compiler\Wabbajack.Compiler.csproj" />
+        <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj" />
+        <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
+        <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
     </ItemGroup>
 
 </Project>

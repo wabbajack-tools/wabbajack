@@ -1,17 +1,21 @@
-﻿<div class="item">
-    <img src="@ImageURL" alt="@Title Image">
-    <div class="info">
-        <div class="title">@Title</div>
-        <div class="description">@Description</div>
-    </div>
-</div>
+﻿@namespace Wabbajack.App.Blazor.Components
 
-@code {
-    [Parameter]
-    public string ImageURL { get; set; }
-    [Parameter]
-    public string Title { get; set; }
-    [Parameter]
-    public string Description { get; set; }
-    
-}
+<div class="item">
+    <div class="display">
+        <img src="@Metadata.Links.ImageUri" class="image" alt="@Metadata.Title Image">
+        <div class="interaction">
+            <img src="images/icons/install.svg" class="install" alt="Install" @onclick="Download">
+            <img src="images/icons/info.svg" class="more" alt="Information">
+        </div>
+    </div>
+    @if (Status == DownloadStatus.Downloading)
+    {
+        <Progress Percentage=PercentDownloaded></Progress>
+    }
+    <div class="info">
+        <div class="title">@Metadata.Title</div>
+        <div class="author">@Metadata.Author</div>
+        <div class="description">@Metadata.Description</div>
+    </div>
+    <div class="tags"></div>
+</div>
