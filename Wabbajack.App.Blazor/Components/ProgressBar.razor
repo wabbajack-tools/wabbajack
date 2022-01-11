@@ -1,7 +1,8 @@
-﻿<progress value="@Percentage" max="100"> </progress>
+﻿@using Wabbajack.RateLimiter
+<progress value="@Percentage.Value"> </progress>
 
 @code {
 
     [Parameter]
-    public double Percentage { get; set; }
+    public Percent Percentage { get; set; }
 }

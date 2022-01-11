@@ -49,7 +49,7 @@ $hover-icon-size: 75px;
         margin: 0;
         transition: all 150ms ease-in-out;
 
-        .hidden {
+        &.hidden {
           opacity: 0.25;
         }
         

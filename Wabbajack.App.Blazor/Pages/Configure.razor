@@ -1,7 +1,7 @@
-﻿@page "/configure/{path}"
+﻿@page "/configure/{machineURL}"
 @layout Shared.MainLayout
 @using System.Diagnostics
-@using Wabbajack.Paths
+@using Wabbajack.Common
 @using Wabbajack.Paths.IO
 @inherits Fluxor.Blazor.Web.Components.FluxorComponent
 
@@ -32,15 +32,16 @@
 @code {
 
     [Parameter]
-    public string path { get; set; }
+    public string machineURL { get; set; }
 
     protected override void OnInitialized()
     {
-        var file = path.ToAbsolutePath();
-        if (file.FileExists())
+        var Location = KnownFolders.EntryPoint.Combine("downloaded_mod_lists", machineURL).WithExtension(Ext.Wabbajack);
+        if (Location.FileExists())
         {
             Debug.Print("IT EXISTS I GUESS");
         }
+        base.OnInitialized();
     }
 
 }

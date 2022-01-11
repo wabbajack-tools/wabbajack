@@ -1,12 +1,13 @@
 ﻿@namespace Wabbajack.App.Blazor.Components
 @using Wabbajack.App.Blazor.Store
+@using Wabbajack.RateLimiter
 @inherits Fluxor.Blazor.Web.Components.FluxorComponent
 
 <div class="item">
     <div class="display">
         <img src="@Metadata.Links.ImageUri" class="image" alt="@Metadata.Title Image">
         <div class="interaction">
-            @if (_installState.Value.CurrentInstallState != InstallState.InstallStateEnum.Configuration)
+            @if (_downloadState.Value.CurrentDownloadState == DownloadState.DownloadStateEnum.Downloading)
             {
                 <img src="images/icons/install.svg" class="install hidden" alt="Install">
             }
@@ -17,9 +18,9 @@
             <img src="images/icons/info.svg" class="more" alt="Information">
         </div>
     </div>
-    @if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Downloading && _installState.Value.CurrentModlistMetadata == Metadata)
+    @if (DownloadProgress != Percent.Zero)
     {
-        <Progress Percentage=PercentDownloaded></Progress>
+        <ProgressBar Percentage=@DownloadProgress></ProgressBar>
     }
     <div class="info">
         <div class="title">@Metadata.Title</div>
