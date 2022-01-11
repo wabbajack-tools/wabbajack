@@ -130,6 +130,8 @@ public class Client : IDisposable
             int fileSize;
             byte[] sentryHash;
             
+            _logger.LogInformation("Got Steam machine auth info");
+            
             var token = await _token.Get();
 
             var ms = new MemoryStream();
@@ -238,7 +240,6 @@ public class Client : IDisposable
                 _haveSigFile = false;
             }
             
-
             _isConnected = true;
             
             _steamUser.LogOn(new SteamUser.LogOnDetails
@@ -250,6 +251,10 @@ public class Client : IDisposable
                 SentryFileHash = sentryHash,
                 RequestSteam2Ticket = true
             });
+            
+            // Reset the codes so we don't use them again
+            _authCode = null;
+            _twoFactorCode = null;
         });
     }
     
