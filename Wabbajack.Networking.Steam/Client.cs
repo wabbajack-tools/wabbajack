@@ -376,24 +376,29 @@ public class Client : IDisposable
     public async Task<DepotManifest> GetAppManifest(uint appId, uint depotId, ulong manifestId)
     {
         await LoadCDNServers();
-        var client = _cdnServers.First();
-
-        var uri = new UriBuilder()
+        
+        var manifest = await CircuitBreaker.WithAutoRetryAsync<DepotManifest, HttpRequestException>(_logger, async () =>
         {
-            Host = client.Host,
-            Port = client.Port,
-            Scheme = client.Protocol.ToString(),
-            Path = $"depot/{depotId}/manifest/{manifestId}/5"
-        }.Uri;
+            
+            var client = _cdnServers.First();
+            var uri = new UriBuilder
+            {
+                Host = client.Host,
+                Port = client.Port,
+                Scheme = client.Protocol.ToString(),
+                Path = $"depot/{depotId}/manifest/{manifestId}/5"
+            }.Uri;
+            
+            var rawData = await _httpClient.GetByteArrayAsync(uri);
 
-        var rawData = await _httpClient.GetByteArrayAsync(uri);
+            using var zip = new ZipArchive(new MemoryStream(rawData));
+            var firstEntry = zip.Entries.First();
+            var data = new MemoryStream();
+            await using var entryStream = firstEntry.Open();
+            await entryStream.CopyToAsync(data);
+            return DepotManifest.Deserialize(data.ToArray());
+        });
 
-        using var zip = new ZipArchive(new MemoryStream(rawData));
-        var firstEntry = zip.Entries.First();
-        var data = new MemoryStream();
-        await using var entryStream = firstEntry.Open();
-        await entryStream.CopyToAsync(data);
-        var manifest = DepotManifest.Deserialize(data.ToArray());
 
         if (manifest.FilenamesEncrypted)
             manifest.DecryptFilenames(await GetDepotKey(depotId, appId));
