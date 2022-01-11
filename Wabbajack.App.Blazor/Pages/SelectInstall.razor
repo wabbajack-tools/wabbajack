@@ -1,0 +1,35 @@
+﻿@page "/SelectInstall"
+@layout Shared.MainLayout
+@inject NavigationManager NavigationManager
+
+<div id="content">
+    <div class="select">
+        <div class="browse">
+            <img src="images/icons/cloud-download.svg" alt="Browse Gallery">
+            <span>Browse the Gallery</span>
+        </div>
+        <div class="disk" @onclick="Navigate">
+            <img src="images/icons/disk.svg" alt="Install from File">
+            <span>Install from File</span>
+        </div>
+    </div>
+    <div class="recent">
+        <div class="title">Recently downloaded</div>
+        <div class="modlist">
+            <img src="" alt="">
+            <div class="info">
+                <div class="title">Living Skyrim</div>
+                <div class="description">ForgottenGlory</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    public void Navigate()
+    {
+        NavigationManager.NavigateTo("configure");
+    }
+
+}

@@ -1,14 +1,23 @@
 ﻿@namespace Wabbajack.App.Blazor.Components
+@using Wabbajack.App.Blazor.Store
+@inherits Fluxor.Blazor.Web.Components.FluxorComponent
 
 <div class="item">
     <div class="display">
         <img src="@Metadata.Links.ImageUri" class="image" alt="@Metadata.Title Image">
         <div class="interaction">
-            <img src="images/icons/install.svg" class="install" alt="Install" @onclick="Download">
+            @if (_installState.Value.CurrentInstallState != InstallState.InstallStateEnum.Configuration)
+            {
+                <img src="images/icons/install.svg" class="install hidden" alt="Install">
+            }
+            else
+            {
+                <img src="images/icons/install.svg" class="install" alt="Install" @onclick="Download">
+            }
             <img src="images/icons/info.svg" class="more" alt="Information">
         </div>
     </div>
-    @if (Status == DownloadStatus.Downloading)
+    @if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Downloading && _installState.Value.CurrentModlistMetadata == Metadata)
     {
         <Progress Percentage=PercentDownloaded></Progress>
     }

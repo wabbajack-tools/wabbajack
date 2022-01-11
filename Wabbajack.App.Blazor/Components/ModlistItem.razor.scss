@@ -5,12 +5,11 @@ $hover-icon-size: 75px;
 
 .item {
   width: 400px;
-  height: 400px;
+  height: 450px;
   overflow: hidden;
   margin: 0.5rem;
-  padding: 0.5rem;
+  padding: 1rem;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(7px);
   -webkit-backdrop-filter: blur(7px);
@@ -49,6 +48,10 @@ $hover-icon-size: 75px;
         height: $hover-icon-size;
         margin: 0;
         transition: all 150ms ease-in-out;
+
+        .hidden {
+          opacity: 0.25;
+        }
         
         &:hover {
           margin-left: 10px;
@@ -61,8 +64,8 @@ $hover-icon-size: 75px;
 
   .info {
     padding-bottom: 1rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
 
     .title {
       color: white;

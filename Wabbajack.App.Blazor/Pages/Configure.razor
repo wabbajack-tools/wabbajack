@@ -1,5 +1,9 @@
-﻿@page "/install"
+﻿@page "/configure/{path}"
 @layout Shared.MainLayout
+@using System.Diagnostics
+@using Wabbajack.Paths
+@using Wabbajack.Paths.IO
+@inherits Fluxor.Blazor.Web.Components.FluxorComponent
 
 <div id="content">
     <div class="image"></div>
@@ -24,3 +28,19 @@
         <div class="mod-info">Manbeast is a complete overhaul of Skyrim’s Werewolf system designed to balance existing Werewolf mechanics and add powerful new lycanthropic abilities to the game.</div>
     </div>
 </div>
+
+@code {
+
+    [Parameter]
+    public string path { get; set; }
+
+    protected override void OnInitialized()
+    {
+        var file = path.ToAbsolutePath();
+        if (file.FileExists())
+        {
+            Debug.Print("IT EXISTS I GUESS");
+        }
+    }
+
+}

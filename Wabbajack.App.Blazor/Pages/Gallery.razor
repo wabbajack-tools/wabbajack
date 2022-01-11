@@ -1,36 +1,15 @@
 ﻿@page "/gallery"
 @layout Shared.MainLayout
+@inherits Fluxor.Blazor.Web.Components.FluxorComponent
 
 @using Wabbajack.Networking.WabbajackClientApi;
-@using System.Linq;
 @using Wabbajack.DTOs
 
 @inject Client _client
 
 <div id="content">
-    @if (_listItems.Count > 0)
+    @foreach (ModlistMetadata item in _listItems)
     {
-        foreach (ModlistMetadata item in _listItems)
-        {
-            <ModlistItem Metadata=@item></ModlistItem>
-        }
+        <ModlistItem Metadata=@item></ModlistItem>
     }
 </div>
-
-@code {
-    List<ModlistMetadata> _listItems = new();
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            ModlistMetadata[] modLists = await _client.LoadLists();
-            _listItems = modLists.ToList();
-            StateHasChanged();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-        }
-    }
-}

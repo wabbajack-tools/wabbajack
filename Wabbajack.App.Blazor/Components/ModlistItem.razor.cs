@@ -3,9 +3,11 @@ using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxor;
 using Microsoft.AspNetCore.Components;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
+using Wabbajack.App.Blazor.Store;
 using Wabbajack.DTOs;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.RateLimiter;
@@ -15,35 +17,29 @@ namespace Wabbajack.App.Blazor.Components
 {
     public partial class ModlistItem
     {
-        //[Inject] private ILogger                   _logger     { get; set; }
-        [Inject] private ModListDownloadMaintainer _maintainer { get; set; }
-        //[Inject] private Client                    _wjClient   { get; set; }
+        [Inject] private ModListDownloadMaintainer _maintainer    { get; set; }
+        [Inject] private IState<DownloadState>     _downloadState { get; set; }
+        [Inject] private IDispatcher               _dispatcher    { get; set; }
 
         [Parameter] public ModlistMetadata Metadata { get; set; }
-
-        public  DownloadStatus      Status            { get; set; }
-        public  double             PercentDownloaded { get; set; }
-        private CompositeDisposable _disposables      { get; set; }
+        
+        public double         PercentDownloaded { get; set; }
 
         private async Task Download()
         {
             await using Timer timer = new(_ => InvokeAsync(StateHasChanged));
-            timer.Change(TimeSpan.FromMilliseconds(500), TimeSpan.FromMilliseconds(500));
+            timer.Change(TimeSpan.FromMilliseconds(250), TimeSpan.FromMilliseconds(250));
             try
             {
-                _disposables = new CompositeDisposable();
-                Status       = DownloadStatus.Downloading;
+                UpdateInstallState(InstallState.InstallStateEnum.Downloading, Metadata);
 
                 (IObservable<Percent> progress, Task task) = _maintainer.DownloadModlist(Metadata);
-                IDisposable dispose = progress.Subscribe(p =>
-                {
-                    PercentDownloaded = p.Value * 100;
-                });
+                IDisposable dispose = progress.Subscribe(p => { PercentDownloaded = p.Value * 100; });
 
                 await task;
                 //await _wjClient.SendMetric("downloading", Metadata.Title);
-                //await UpdateStatus();
                 Debug.Print("##### WE DOWNLOADED THE THING!");
+                UpdateInstallState(InstallState.InstallStateEnum.Configuration);
                 dispose.Dispose();
             }
             catch (Exception e)
@@ -53,12 +49,7 @@ namespace Wabbajack.App.Blazor.Components
 
             await timer.DisposeAsync();
         }
-        
-        public enum DownloadStatus
-        {
-            NotDownloaded,
-            Downloading,
-            Downloaded
-        }
+
+        private void UpdateInstallState(InstallState.InstallStateEnum state, ModlistMetadata? metadata = null) => _dispatcher.Dispatch(new UpdateInstallState(state, metadata));
     }
 }

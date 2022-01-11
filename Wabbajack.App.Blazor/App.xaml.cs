@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using Fluxor;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -24,8 +25,9 @@ namespace Wabbajack.App.Blazor
 
         private static IServiceCollection ConfigureServices(IServiceCollection services)
         {
-            services.AddBlazorWebView();
             services.AddOSIntegrated();
+            services.AddFluxor(o => o.ScanAssemblies(typeof(App).Assembly));
+            services.AddBlazorWebView();
             services.AddTransient<MainWindow>();
             return services;
         }

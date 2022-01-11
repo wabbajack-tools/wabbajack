@@ -7,6 +7,9 @@
   background-color: transparent;
   backdrop-filter: blur(5px) grayscale(10%);
   z-index: 2;
+  
+  font-family: $raleway-font;
+  text-transform: uppercase;
 
   display: flex;
   align-items: flex-start;
@@ -15,7 +18,7 @@
 
   nav {
     font-weight: 100;
-    font-size: 1.1em;
+    font-size: 1em;
     line-height: 2rem;
   }
   
@@ -26,7 +29,7 @@
       a {
         color: white;
         display: block;
-        padding: 0.5rem 2rem;
+        padding: 0.5rem 1rem;
         text-decoration: none;
         transition: background-color .25s ease-in-out;
 
