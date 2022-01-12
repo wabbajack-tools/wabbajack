@@ -12,8 +12,15 @@
         <SupportedPlatform Include="browser" />
     </ItemGroup>
 
+    <PropertyGroup>
+        <LibSassOutputStyle>compressed</LibSassOutputStyle>
+        <LibSassOutputStyle Condition="'$(Configuration)' == 'Debug'">expanded</LibSassOutputStyle>
+        <LibSassOutputLevel>verbose</LibSassOutputLevel>
+        <LibSassMessageLevel>High</LibSassMessageLevel>
+    </PropertyGroup>
+
     <ItemGroup>
-<!--        <PackageReference Include="LibSassBuilder" Version="2.0.1" />-->
+        <PackageReference Include="LibSassBuilder" Version="2.0.1" />
         <PackageReference Include="Fluxor" Version="4.2.2-Alpha" />
         <PackageReference Include="Fluxor.Blazor.Web" Version="4.2.2-Alpha" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.101-preview.11.2349" />
@@ -26,11 +33,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Remove="Pages\*.scss" />
-        <Content Include="Pages\*.scss" Watch="false" />
-        <Content Update="wwwroot\*">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </Content>
+<!--        <Content Include="**\*.scss" />-->
+<!--        <Content Include="**\*.scss" Watch="false" />-->
+<!--        <Content Update="wwwroot\index.html">-->
+<!--          <CopyToOutputDirectory>Always</CopyToOutputDirectory>-->
+<!--        </Content>-->
+        <EmbeddedResource Include="wwwroot\index.html" />
     </ItemGroup>
 
     <ItemGroup>
@@ -41,8 +49,8 @@
         <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="wwwroot\fonts" />
-    </ItemGroup>
+<!--    <ItemGroup>-->
+<!--      <Folder Include="wwwroot" />-->
+<!--    </ItemGroup>-->
 
 </Project>
