@@ -5,7 +5,7 @@
 
 <div class="item">
     <div class="display">
-        <img src="@Metadata.Links.ImageUri" class="image" alt="@Metadata.Title Image">
+        <img src="@Metadata.Links.ImageUri" loading="lazy" class="image" alt="@Metadata.Title Image">
         <div class="interaction">
             @if (_downloadState.Value.CurrentDownloadState == DownloadState.DownloadStateEnum.Downloading)
             {

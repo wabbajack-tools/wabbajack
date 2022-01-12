@@ -12,13 +12,6 @@
         <SupportedPlatform Include="browser" />
     </ItemGroup>
 
-    <PropertyGroup>
-        <LibSassOutputStyle>compressed</LibSassOutputStyle>
-        <LibSassOutputStyle Condition="'$(Configuration)' == 'Debug'">expanded</LibSassOutputStyle>
-        <LibSassOutputLevel>verbose</LibSassOutputLevel>
-        <LibSassMessageLevel>High</LibSassMessageLevel>
-    </PropertyGroup>
-
     <ItemGroup>
         <PackageReference Include="LibSassBuilder" Version="2.0.1" />
         <PackageReference Include="Fluxor" Version="4.2.2-Alpha" />
@@ -26,19 +19,15 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.101-preview.11.2349" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.1" />
-        <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.5.3">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
-<!--        <Content Include="**\*.scss" />-->
-<!--        <Content Include="**\*.scss" Watch="false" />-->
-<!--        <Content Update="wwwroot\index.html">-->
-<!--          <CopyToOutputDirectory>Always</CopyToOutputDirectory>-->
-<!--        </Content>-->
-        <EmbeddedResource Include="wwwroot\index.html" />
+<!-- Required so updating the .scss files doesn't trigger a reload when using dotnet watch run. -->
+        <Content Remove="**\*.scss" />
+        <Content Include="**\*.scss" Watch="false" />
+        <Content Update="wwwroot\index.html">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
@@ -49,8 +38,13 @@
         <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
     </ItemGroup>
 
-<!--    <ItemGroup>-->
-<!--      <Folder Include="wwwroot" />-->
-<!--    </ItemGroup>-->
-
+<!--    <Target Name="DeleteGeneratedCSSFiles" AfterTargets="Build">-->
+<!--        <ItemGroup>-->
+<!--            <FilesToDelete Include="$(ProjectDir)Components\**\*.css"/>-->
+<!--            <FilesToDelete Include="$(ProjectDir)Pages\**\*.css"/>-->
+<!--            <FilesToDelete Include="$(ProjectDir)Shared\**\*.css"/>-->
+<!--        </ItemGroup>-->
+<!--        <Message Text="@(FilesToDelete, ', ')" Importance="High"/>-->
+<!--        <Delete Files="@(FilesToDelete)"/>-->
+<!--    </Target>-->
 </Project>
