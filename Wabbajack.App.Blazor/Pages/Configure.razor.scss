@@ -1,5 +1,19 @@
 ﻿@import "../Shared/Globals.scss";
 
+$checkbox-background: white;
+$checkbox-background-hover: grey;
+$checkbox-background-checked: purple;
+
+@mixin path-span {
+  display: block;
+  height: 2rem;
+  width: 100%;
+  border: solid 1px red;
+  padding: 0.25rem;
+  margin: 0.25rem;
+  white-space: pre;
+}
+
 #content {
   display: flex;
   height: 100%;
@@ -7,10 +21,10 @@
   justify-content: space-around;
   align-items: center;
   color: white;
-  
+  flex-direction: column;
+
   .image {
     position: absolute;
-    background-image: url("images/modlist-image.png");
     width: calc(100% - #{$sidebar-width});
     height: calc(100% - #{$header-height});
     background-repeat: no-repeat;
@@ -19,59 +33,138 @@
     filter: blur(25px) brightness(50%);
     z-index: -1;
   }
-  .info {
-    width: fit-content;
-    height: fit-content;
-    
-    .step {
-      margin-left: -20px;
-      font-size: 5rem;
-      font-weight: 100;
+
+  .list {
+    display: flex;
+    flex: 1;
+    width: 100%;
+    align-items: center;
+
+    .info {
+      width: 50%;
+      height: fit-content;
+      margin: 1rem;
+
+      .name {
+        font-size: 5rem;
+        font-weight: 100;
+      }
+
+      .author {
+        margin-left: 10px;
+        font-size: 2rem;
+        font-weight: 100;
+      }
+
+      .version {
+        margin-left: 20px;
+        color: rgba(255, 255, 255, 0.75);
+      }
+
+      .description {
+        margin-left: 20px;
+        margin-top: 20px;
+        color: rgba(255, 255, 255, 0.5);
+      }
     }
-    
-    .description {
-      margin-left: -10px;
-      font-size: 2rem;
-      font-weight: 100;
-    }
-    
-    .number {
-      color: rgba(255, 255, 255, 0.75);
-    }
-    .log {
-      margin-top: 20px;
-      color: rgba(255, 255, 255, 0.5);
+
+    .modlist-image {
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position: center;
+      width: 50%;
+      height: 100%;
+      margin: 2rem;
     }
   }
-  .preview {
-    width: 800px;
-    height: 450px;
-    margin-top: -150px;
-    .mod-feature {
-      margin-left: -10px;
-      font-size: 2rem;
-      font-weight: 100;
+
+  .settings {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+
+    .locations {
+      display: flex;
+      flex-direction: row;
+      flex: 1;
+
+      .labels {
+        span {
+          @include path-span;
+        }
+      }
+
+      .paths {
+        flex: 1;
+        margin-left: 1rem;
+
+        span {
+          @include path-span;
+        }
+      }
     }
-    .mod-image {
-      background-image: url("https://staticdelivery.nexusmods.com/mods/1704/images/44746/44746-1611463256-105629958.png");
-      background-repeat: no-repeat;
-      background-size: cover;
-      background-position: center;
-      width: 100%;
-      height: 100%;
-    }
-    .mod-name {
-      font-size: 2rem;
-      font-weight: 100;
-    } 
-    .mod-author {
-      font-size: 1.1rem;
-      font-weight: 100;
-    }
-    .mod-info {
-      margin-top: 20px;
-      margin-left: 10px;
-      color: rgba(255, 255, 255, 0.75);
+
+    .options {
+      display: flex;
+      flex-flow: row wrap;
+      flex-direction: column;
+      border: solid 1px red;
+      margin-left: 2rem;
+
+      .option {
+        position: relative;
+        display: block;
+        margin: 0.25rem;
+        padding-left: 2rem;
+        cursor: pointer;
+        user-select: none;
+
+        &:hover input ~ .checkmark {
+          background-color: $checkbox-background-hover;
+        }
+
+        input {
+          position: absolute;
+          opacity: 0;
+          cursor: pointer;
+          height: 0;
+          width: 0;
+
+          &:checked ~ .checkmark {
+            background-color: $checkbox-background-checked;
+
+            &:after {
+              display: block;
+              left: 0.5rem;
+              top: 0.25rem;
+              width: 0.25rem;
+              height: 0.65rem;
+              border: solid white;
+              border-width: 0 3px 3px 0;
+              transform: rotate(45deg);
+            }
+          }
+        }
+
+        .checkmark {
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: 1.5rem;
+          width: 1.5rem;
+          background-color: $checkbox-background;
+
+          &:after {
+            content: "";
+            position: absolute;
+            display: none;
+          }
+        }
+      }
     }
   }
 }

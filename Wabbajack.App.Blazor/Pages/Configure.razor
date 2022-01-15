@@ -1,47 +1,55 @@
-﻿@page "/configure/{machineURL}"
-@layout Shared.MainLayout
-@using System.Diagnostics
-@using Wabbajack.Common
-@using Wabbajack.Paths.IO
-@inherits Fluxor.Blazor.Web.Components.FluxorComponent
+﻿@page "/configure"
+@namespace Wabbajack.App.Blazor.Pages
 
 <div id="content">
-    <div class="image"></div>
-    <div class="info">
-        <div class="step">Downloading</div>
-        <div class="description">Downloading missing archives...</div>
-        <div class="number">16 of 228 archives downloaded</div>
-        <div class="number">128.27 GB remaining</div>
-        <div class="number">5.6 MB/s</div>
-        <div class="log">
-            <p>Downloaded A Cool Mod</p>
-            <p>Downloaded Some Mod With a Long Name</p>
-            <p>Downloaded An Even Longer Name Why Do They Do This</p>
-            <p>Downloaded An Archive From MEGA Wow It's a Miracle</p>
-            <p>Downloaded Archive Mod Something Long</p>
+    <div class="image" style="background-image: url('@Image');"></div>
+    <div class="list">
+        <div class="info">
+            <div class="name">@Name</div>
+            <div class="author">@Author</div>
+            <div class="version">@Version</div>
+            <div class="description">@Description</div>
+        </div>
+        <div class="modlist-image" style="background-image: url('@Image');"></div>
+    </div>
+    <div class="settings">
+        <div class="locations">
+            <div class="labels">
+                <span>Target Modlist</span>
+                <span>Installation Location</span>
+                <span>Download Location</span>
+            </div>
+            <div class="paths">
+                <span class="modlist-file">D:\Programs\Wabbajack\downloaded_mod_lists\magnum_opus.wabbajack</span>
+                <span class="install-location"></span>
+                <span class="download-location"></span>
+
+            </div>
+        </div>
+        <div class="options">
+            <label class="option">
+                Overwrite Existing Installation
+                <input type="checkbox" checked="checked">
+                <span class="checkmark"></span>
+            </label>
+
+            <label class="option">
+                <input type="checkbox">
+                <span class="checkmark"></span>
+                Enable NTFS Compression
+            </label>
+
+            <label class="option">
+                <input type="checkbox">
+                <span class="checkmark"></span>
+                Do a sweet trick once the modlist has finished installing
+            </label>
+
+            <label class="option">
+                <input type="checkbox">
+                <span class="checkmark"></span>
+                Something else
+            </label>
         </div>
     </div>
-    <div class="preview">
-        <div class="mod-image"></div>
-        <div class="mod-name">Manbeast - A Werewolf Overhaul</div>
-        <div class="mod-author">Simon Magus and colinswrath</div>
-        <div class="mod-info">Manbeast is a complete overhaul of Skyrim’s Werewolf system designed to balance existing Werewolf mechanics and add powerful new lycanthropic abilities to the game.</div>
-    </div>
 </div>
-
-@code {
-
-    [Parameter]
-    public string machineURL { get; set; }
-
-    protected override void OnInitialized()
-    {
-        var Location = KnownFolders.EntryPoint.Combine("downloaded_mod_lists", machineURL).WithExtension(Ext.Wabbajack);
-        if (Location.FileExists())
-        {
-            Debug.Print("IT EXISTS I GUESS");
-        }
-        base.OnInitialized();
-    }
-
-}

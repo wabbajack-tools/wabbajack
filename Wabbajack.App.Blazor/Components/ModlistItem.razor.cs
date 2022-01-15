@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Components;
 using Wabbajack.App.Blazor.Store;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Installer;
+using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated.Services;
@@ -17,6 +20,7 @@ namespace Wabbajack.App.Blazor.Components
     public partial class ModlistItem
     {
         [Inject] private IState<DownloadState>     _downloadState    { get; set; }
+        [Inject] private IState<InstallState>      _installState     { get; set; }
         [Inject] private ModListDownloadMaintainer _maintainer       { get; set; }
         [Inject] private IDispatcher               _dispatcher       { get; set; }
         [Inject] private NavigationManager         NavigationManager { get; set; }
@@ -39,7 +43,10 @@ namespace Wabbajack.App.Blazor.Components
                 //await _wjClient.SendMetric("downloading", Metadata.Title);
                 UpdateDownloadState(DownloadState.DownloadStateEnum.Downloaded, Metadata);
                 dispose.Dispose();
-                NavigationManager.NavigateTo($"configure/{Metadata.Links.MachineURL}");
+                
+                AbsolutePath path = KnownFolders.EntryPoint.Combine("downloaded_mod_lists", Metadata.Links.MachineURL).WithExtension(Ext.Wabbajack);
+                _dispatcher.Dispatch(new UpdateInstallState(InstallState.InstallStateEnum.Configuration, null, path));
+                NavigationManager.NavigateTo("/configure");
 
             }
             catch (Exception e)

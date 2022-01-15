@@ -1,6 +1,5 @@
 ﻿@page "/SelectInstall"
-@layout Shared.MainLayout
-@inject NavigationManager NavigationManager
+@namespace Wabbajack.App.Blazor.Pages
 
 <div id="content">
     <div class="select">
@@ -8,15 +7,15 @@
             <img src="images/icons/cloud-download.svg" alt="Browse Gallery">
             <span>Browse the Gallery</span>
         </div>
-        <div class="disk" @onclick="Navigate">
-            <img src="images/icons/disk.svg" alt="Install from File">
+        <div class="disk">
+            <img src="images/icons/disk.svg" @onclick="SelectFile" alt="Install from File">
             <span>Install from File</span>
         </div>
     </div>
     <div class="recent">
-        <div class="title">Recently downloaded</div>
+        <div class="title">[TBI] Recently downloaded</div>
         <div class="modlist">
-            <img src="" alt="">
+            <img src="https://i.imgur.com/9jnSPcX.png" alt="">
             <div class="info">
                 <div class="title">Living Skyrim</div>
                 <div class="description">ForgottenGlory</div>
@@ -24,12 +23,3 @@
         </div>
     </div>
 </div>
-
-@code {
-
-    public void Navigate()
-    {
-        NavigationManager.NavigateTo("configure");
-    }
-
-}

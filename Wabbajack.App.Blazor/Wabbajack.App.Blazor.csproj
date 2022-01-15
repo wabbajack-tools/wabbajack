@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="LibSassBuilder" Version="2.0.1" />
+<!--        <PackageReference Include="LibSassBuilder" Version="2.0.1" />-->
         <PackageReference Include="Fluxor" Version="4.2.2-Alpha" />
         <PackageReference Include="Fluxor.Blazor.Web" Version="4.2.2-Alpha" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.101-preview.11.2349" />
