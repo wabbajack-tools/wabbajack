@@ -45,7 +45,7 @@ namespace Wabbajack.App.Blazor.Components
                 dispose.Dispose();
                 
                 AbsolutePath path = KnownFolders.EntryPoint.Combine("downloaded_mod_lists", Metadata.Links.MachineURL).WithExtension(Ext.Wabbajack);
-                _dispatcher.Dispatch(new UpdateInstallState(InstallState.InstallStateEnum.Configuration, null, path));
+                _dispatcher.Dispatch(new UpdateInstallState(InstallState.InstallStateEnum.Configuration, null, path, null, null));
                 NavigationManager.NavigateTo("/configure");
 
             }

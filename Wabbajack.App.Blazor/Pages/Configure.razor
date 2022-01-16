@@ -4,12 +4,10 @@
 <div id="content">
     <div class="image" style="background-image: url('@Image');"></div>
     <div class="list">
-        <div class="info">
-            <div class="name">@Name</div>
-            <div class="author">@Author</div>
-            <div class="version">@Version</div>
-            <div class="description">@Description</div>
-        </div>
+        @if (Name != string.Empty)
+        {
+            <InfoBlock Title="@Name" Subtitle="@Author" Comment="@Version.ToString()" Description="@Description"/>
+        }
         <div class="modlist-image" style="background-image: url('@Image');"></div>
     </div>
     <div class="settings">
@@ -20,9 +18,9 @@
                 <span>Download Location</span>
             </div>
             <div class="paths">
-                <span class="modlist-file">D:\Programs\Wabbajack\downloaded_mod_lists\magnum_opus.wabbajack</span>
-                <span class="install-location"></span>
-                <span class="download-location"></span>
+                <span class="modlist-file">@ModListPath</span>
+                <span class="install-location" @onclick="SelectInstallFolder">@InstallPath</span>
+                <span class="download-location" @onclick="SelectDownloadFolder">@DownloadPath</span>
 
             </div>
         </div>
@@ -52,4 +50,5 @@
             </label>
         </div>
     </div>
+    <div class="install" @onclick="NavigateInstall">Install</div>
 </div>

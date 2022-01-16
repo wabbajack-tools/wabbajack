@@ -1,0 +1,22 @@
+﻿<div id="info-block">
+    <div class="title">@Title</div>
+    <div class="subtitle">@Subtitle</div>
+    <div class="comment">@Comment</div>
+    <div class="description">@Description</div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string Subtitle { get; set; }
+
+    [Parameter]
+    public string Comment { get; set; }
+
+    [Parameter]
+    public string Description { get; set; }
+
+}

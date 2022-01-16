@@ -12,6 +12,7 @@ $checkbox-background-checked: purple;
   padding: 0.25rem;
   margin: 0.25rem;
   white-space: pre;
+  cursor: pointer;
 }
 
 #content {
@@ -40,34 +41,6 @@ $checkbox-background-checked: purple;
     width: 100%;
     align-items: center;
 
-    .info {
-      width: 50%;
-      height: fit-content;
-      margin: 1rem;
-
-      .name {
-        font-size: 5rem;
-        font-weight: 100;
-      }
-
-      .author {
-        margin-left: 10px;
-        font-size: 2rem;
-        font-weight: 100;
-      }
-
-      .version {
-        margin-left: 20px;
-        color: rgba(255, 255, 255, 0.75);
-      }
-
-      .description {
-        margin-left: 20px;
-        margin-top: 20px;
-        color: rgba(255, 255, 255, 0.5);
-      }
-    }
-
     .modlist-image {
       background-repeat: no-repeat;
       background-size: contain;
@@ -79,6 +52,7 @@ $checkbox-background-checked: purple;
   }
 
   .settings {
+    font-size: 0.9rem;
     display: flex;
     align-items: center;
     width: 100%;
@@ -166,5 +140,12 @@ $checkbox-background-checked: purple;
         }
       }
     }
+  }
+
+  .install {
+    width: 300px;
+    height: 50px;
+    background-color: green;
+    cursor: pointer;
   }
 }

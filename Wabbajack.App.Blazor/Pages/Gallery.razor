@@ -2,6 +2,9 @@
 @namespace Wabbajack.App.Blazor.Pages
 @using Wabbajack.Networking.WabbajackClientApi;
 @using Wabbajack.DTOs
+@using System.Diagnostics
+@using Microsoft.Extensions.Logging
+@using Wabbajack.App.Blazor.Models
 
 @inject Client _client
 
@@ -14,24 +17,31 @@
 
 @code {
 
-    List<ModlistMetadata> _listItems = new();
+    [Inject]
+    private ILogger<Gallery> _logger { get; set; }
+    // [Inject]
+    // private LoggerProvider _loggerProvider { get; set; }
+    [Inject]
+    private Services.OSIntegrated.Configuration _configuration { get; set; }
 
-    protected override async Task<Task> OnAfterRenderAsync(bool firstRender)
+    private List<ModlistMetadata> _listItems { get; set; } = new() { };
+
+    protected override async Task OnInitializedAsync()
     {
-        if (!firstRender) return base.OnAfterRenderAsync(firstRender);
-
         try
         {
+            _logger.LogInformation("Getting modlists...");
             ModlistMetadata[] modLists = await _client.LoadLists();
-            _listItems = modLists.ToList();
+            _listItems.AddRange(modLists.ToList());
             StateHasChanged();
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            //TODO: Figure out why an exception is thrown on first navigation.
+            Debug.Print(ex.Message);
+            _logger.LogError(ex, "Error while loading lists");
         }
 
-        return base.OnAfterRenderAsync(firstRender);
+        await base.OnInitializedAsync();
     }
-
 }

@@ -4,6 +4,9 @@ using Fluxor;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Wabbajack.App.Blazor.Models;
+using Wabbajack.App.Blazor.Utility;
+using Wabbajack.DTOs;
 using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.App.Blazor
@@ -12,7 +15,7 @@ namespace Wabbajack.App.Blazor
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IHost            _host;
-
+        
         public App()
         {
             _host = Host.CreateDefaultBuilder(Array.Empty<string>())
@@ -28,10 +31,12 @@ namespace Wabbajack.App.Blazor
             services.AddOSIntegrated();
             services.AddFluxor(o => o.ScanAssemblies(typeof(App).Assembly));
             services.AddBlazorWebView();
+            services.AddAllSingleton<ILoggerProvider, LoggerProvider>();
             services.AddTransient<MainWindow>();
+            services.AddSingleton<SystemParametersConstructor>();
             return services;
         }
-
+        
         private void OnStartup(object sender, StartupEventArgs e)
         {
             MainWindow mainWindow = _serviceProvider.GetRequiredService<MainWindow>();

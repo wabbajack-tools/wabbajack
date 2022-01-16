@@ -1,0 +1,27 @@
+﻿#info-block {
+  width: 50%;
+  height: fit-content;
+  margin: 1rem;
+
+  .title {
+    font-size: 5rem;
+    font-weight: 100;
+  }
+
+  .subtitle {
+    margin-left: 10px;
+    font-size: 2rem;
+    font-weight: 100;
+  }
+
+  .comment {
+    margin-left: 20px;
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .description {
+    margin-left: 20px;
+    margin-top: 20px;
+    color: rgba(255, 255, 255, 0.5);
+  }
+}

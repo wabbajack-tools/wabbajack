@@ -1,14 +1,11 @@
 ﻿@page "/installing"
 @namespace Wabbajack.App.Blazor.Pages
-@using System.Diagnostics
-@using Wabbajack.Common
-@using Wabbajack.Paths.IO
 @inherits Fluxor.Blazor.Web.Components.FluxorComponent
 
 <div id="content">
     <div class="image"></div>
     <div class="info">
-        <div class="step">Downloading</div>
+        <div class="step">@StatusText</div>
         <div class="description">Downloading missing archives...</div>
         <div class="number">16 of 228 archives downloaded</div>
         <div class="number">128.27 GB remaining</div>
@@ -28,20 +25,3 @@
         <div class="mod-info">Manbeast is a complete overhaul of Skyrim’s Werewolf system designed to balance existing Werewolf mechanics and add powerful new lycanthropic abilities to the game.</div>
     </div>
 </div>
-
-@code {
-
-    [Parameter]
-    public string machineURL { get; set; }
-
-    protected override void OnInitialized()
-    {
-        var Location = KnownFolders.EntryPoint.Combine("downloaded_mod_lists", machineURL).WithExtension(Ext.Wabbajack);
-        if (Location.FileExists())
-        {
-            Debug.Print("IT EXISTS I GUESS");
-        }
-        base.OnInitialized();
-    }
-
-}
