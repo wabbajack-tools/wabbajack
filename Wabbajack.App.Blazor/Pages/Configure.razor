@@ -16,7 +16,7 @@
             }
             else if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Installing)
             {
-                <InfoBlock Supertitle="Installing..." Title="@ModList.Name" Subtitle="@StatusText" Description="@ModList.Description"/>
+                <InfoBlock Supertitle="Installing..." Title="@ModList.Name" Subtitle="@StatusText" Description="There will be a log here but I need to figure out logging and non-blocking UI stuff first."/>
             }
         }
         @* <div class="modlist-image" style="background-image: url('@Image');"></div> *@
@@ -25,53 +25,57 @@
             if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Configuration)
             {
                 <InfoImage Image="@Image"/>
-            } else if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Installing)
+            }
+            else if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Installing)
             {
                 <InfoImage Image="@Image" Title="Some Mod Title" Subtitle="Author and others" Description="This mod adds something cool but I'm not going to tell you anything."/>
             }
         }
     </div>
-    <div class="settings">
-        <div class="locations">
-            <div class="labels">
-                <span>Target Modlist</span>
-                <span>Install Location</span>
-                <span>Download Location</span>
+    @if (_installState.Value.CurrentInstallState != InstallState.InstallStateEnum.Installing)
+    {
+        <div class="settings">
+            <div class="locations">
+                <div class="labels">
+                    <span>Target Modlist</span>
+                    <span>Install Location</span>
+                    <span>Download Location</span>
+                </div>
+                <div class="paths">
+                    <span class="modlist-file">@ModListPath</span>
+                    <span class="install-location" @onclick="SelectInstallFolder">@InstallPath</span>
+                    <span class="download-location" @onclick="SelectDownloadFolder">@DownloadPath</span>
+
+                </div>
             </div>
-            <div class="paths">
-                <span class="modlist-file">@ModListPath</span>
-                <span class="install-location" @onclick="SelectInstallFolder">@InstallPath</span>
-                <span class="download-location" @onclick="SelectDownloadFolder">@DownloadPath</span>
+            <div class="options">
+                <label class="option">
+                    Overwrite Installation
+                    <input type="checkbox" checked="checked">
+                    <span class="checkmark"></span>
+                </label>
 
+                <label class="option">
+                    <input type="checkbox">
+                    <span class="checkmark"></span>
+                    NTFS Compression
+                </label>
+
+                <label class="option">
+                    <input type="checkbox">
+                    <span class="checkmark"></span>
+                    Do a sweet trick
+                </label>
+
+                <label class="option">
+                    <input type="checkbox">
+                    <span class="checkmark"></span>
+                    Something else
+                </label>
+            </div>
+            <div class="install">
+                <img src="images/icons/play.svg" @onclick="Install" alt="Browse Gallery">
             </div>
         </div>
-        <div class="options">
-            <label class="option">
-                Overwrite Installation
-                <input type="checkbox" checked="checked">
-                <span class="checkmark"></span>
-            </label>
-
-            <label class="option">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                NTFS Compression
-            </label>
-
-            <label class="option">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Do a sweet trick
-            </label>
-
-            <label class="option">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Something else
-            </label>
-        </div>
-        <div class="install">
-            <img src="images/icons/play.svg" @onclick="Install" alt="Browse Gallery">
-        </div>
-    </div>
+    }
 </div>
