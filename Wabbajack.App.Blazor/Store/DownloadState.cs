@@ -6,16 +6,16 @@ namespace Wabbajack.App.Blazor.Store;
 [FeatureState]
 public class DownloadState
 {
-    public DownloadStateEnum CurrentDownloadState    { get; }
-    public ModlistMetadata   CurrentModlistMetadata  { get; }
+    public DownloadStateEnum CurrentDownloadState   { get; }
+    public ModlistMetadata   CurrentModlistMetadata { get; }
 
     // Required for initial state.
     private DownloadState() { }
 
     public DownloadState(DownloadStateEnum newState, ModlistMetadata newModlist)
     {
-        CurrentDownloadState    = newState;
-        CurrentModlistMetadata  = newModlist;
+        CurrentDownloadState   = newState;
+        CurrentModlistMetadata = newModlist;
     }
 
     public enum DownloadStateEnum
@@ -29,13 +29,13 @@ public class DownloadState
 
 public class UpdateDownloadState
 {
-    public DownloadState.DownloadStateEnum State            { get; }
-    public ModlistMetadata                 Modlist          { get; }
+    public DownloadState.DownloadStateEnum State   { get; }
+    public ModlistMetadata                 Modlist { get; }
 
     public UpdateDownloadState(DownloadState.DownloadStateEnum state, ModlistMetadata modlist)
     {
-        State            = state;
-        Modlist          = modlist;
+        State   = state;
+        Modlist = modlist;
     }
 }
 

@@ -6,7 +6,6 @@
     <div class="image">
         <img src="@Image" alt="">
     </div>
-    @* <div class="image" style="background-image: url('@Image');"></div> *@
     <div class="list">
         @if (!string.IsNullOrEmpty(ModList.Name))
         {
@@ -19,7 +18,6 @@
                 <InfoBlock Supertitle="Installing..." Title="@ModList.Name" Subtitle="@StatusText" Description="There will be a log here but I need to figure out logging and non-blocking UI stuff first."/>
             }
         }
-        @* <div class="modlist-image" style="background-image: url('@Image');"></div> *@
         @if (!string.IsNullOrEmpty(Image))
         {
             if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Configuration)

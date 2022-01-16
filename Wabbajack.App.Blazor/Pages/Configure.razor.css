@@ -1,0 +1,137 @@
+@font-face {
+  font-family: "Raleway";
+  src: url("fonts/Raleway-Variable.ttf");
+}
+@font-face {
+  font-family: "YanoneKaffeesatz";
+  src: url("fonts/YanoneKaffeesatz-Variable.ttf");
+}
+#content {
+  display: flex;
+  height: 100%;
+  align-content: center;
+  justify-content: space-around;
+  align-items: center;
+  color: white;
+  flex-direction: column;
+}
+#content .image {
+  position: absolute;
+  width: calc(100% - 75px);
+  height: calc(100% - 65px);
+  filter: blur(25px) brightness(50%);
+  z-index: -1;
+}
+#content .image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+#content .list {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+#content .settings {
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 1rem;
+  backdrop-filter: brightness(0.5);
+}
+#content .settings .locations {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  overflow: hidden;
+}
+#content .settings .locations .labels span {
+  display: block;
+  height: 2rem;
+  padding: 0.25rem;
+  margin: 0.25rem;
+  white-space: pre;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+#content .settings .locations .paths {
+  flex: 1;
+  margin-left: 1rem;
+  overflow: hidden;
+}
+#content .settings .locations .paths span {
+  display: block;
+  height: 2rem;
+  padding: 0.25rem;
+  margin: 0.25rem;
+  white-space: pre;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  border: solid 1px rgba(255, 255, 255, 0.3);
+}
+#content .settings .options {
+  display: flex;
+  flex-flow: row wrap;
+  flex-direction: column;
+  margin-left: 2rem;
+}
+#content .settings .options .option {
+  position: relative;
+  display: block;
+  margin: 0.25rem;
+  padding-left: 2rem;
+  cursor: pointer;
+  user-select: none;
+}
+#content .settings .options .option:hover input ~ .checkmark {
+  background-color: darkgrey;
+}
+#content .settings .options .option input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+#content .settings .options .option input:checked ~ .checkmark {
+  background-color: #5E437F;
+}
+#content .settings .options .option input:checked ~ .checkmark:after {
+  display: block;
+  left: calc(0.5 * 0.75rem);
+  top: calc(0.25 * 0.75rem);
+  width: calc(0.25 * 0.75rem);
+  height: calc(0.65 * 0.75rem);
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+#content .settings .options .option .checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: calc(1.5 * 0.75rem);
+  width: calc(1.5 * 0.75rem);
+  background-color: rgba(255, 255, 255, 0.2);
+}
+#content .settings .options .option .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+#content .settings .install {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0.5rem;
+  cursor: pointer;
+}
+#content .settings .install img {
+  width: 5rem;
+  height: 5rem;
+}
+
+/*# sourceMappingURL=Configure.razor.css.map */

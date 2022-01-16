@@ -1,0 +1,84 @@
+@font-face {
+  font-family: "Raleway";
+  src: url("fonts/Raleway-Variable.ttf");
+}
+@font-face {
+  font-family: "YanoneKaffeesatz";
+  src: url("fonts/YanoneKaffeesatz-Variable.ttf");
+}
+.item {
+  width: 400px;
+  height: 450px;
+  overflow: hidden;
+  margin: 0.5rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  border: 1px solid rgba(255, 255, 255, 0.31);
+}
+.item:hover .display .image {
+  filter: blur(2px) brightness(70%);
+}
+.item:hover .display .interaction {
+  opacity: 1;
+}
+.item .display {
+  position: relative;
+  height: 225px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.item .display .image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: all 250ms ease-in-out;
+}
+.item .display .interaction {
+  position: absolute;
+  opacity: 0;
+  transition: all 250ms ease-in-out;
+}
+.item .display .interaction img {
+  width: 75px;
+  height: 75px;
+  margin: 0;
+  transition: all 150ms ease-in-out;
+}
+.item .display .interaction img.hidden {
+  opacity: 0.25;
+}
+.item .display .interaction img:hover {
+  margin-left: 10px;
+  margin-right: 10px;
+  transform: scale(1.25);
+}
+.item .info {
+  padding-bottom: 1rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.item .info .title {
+  color: white;
+  font-weight: 100;
+  font-size: 2rem;
+  line-height: 2.5rem;
+  margin: 0;
+}
+.item .info .author {
+  color: lightgray;
+  font-size: 1rem;
+}
+.item .info .description {
+  color: grey;
+  font-size: 0.9rem;
+}
+.item .tags {
+  border-radius: 0.5rem;
+}
+
+/*# sourceMappingURL=ModlistItem.razor.css.map */
