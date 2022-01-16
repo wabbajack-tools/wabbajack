@@ -1,27 +1,39 @@
 ﻿#info-block {
-  width: 50%;
-  height: fit-content;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-content: center;
   margin: 1rem;
-
-  .title {
-    font-size: 5rem;
+  
+  .supertitle {
+    margin-left: 0.5rem;
+    font-size: 1.5rem;
     font-weight: 100;
   }
 
+  .title {
+    font-size: 4rem;
+    font-weight: 100;
+    margin-top: -1rem;
+    margin-bottom: -0.5rem;
+  }
+
   .subtitle {
-    margin-left: 10px;
+    margin-left: 0.5rem;
     font-size: 2rem;
     font-weight: 100;
   }
 
   .comment {
-    margin-left: 20px;
+    margin-left: 1rem;
     color: rgba(255, 255, 255, 0.75);
   }
 
   .description {
-    margin-left: 20px;
-    margin-top: 20px;
+    margin-left: 1.5rem;
+    margin-top: 0.5rem;
     color: rgba(255, 255, 255, 0.5);
   }
 }

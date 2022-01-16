@@ -1,20 +1,41 @@
 ﻿@page "/configure"
+@using Wabbajack.App.Blazor.Store
 @namespace Wabbajack.App.Blazor.Pages
 
 <div id="content">
-    <div class="image" style="background-image: url('@Image');"></div>
+    <div class="image">
+        <img src="@Image" alt="">
+    </div>
+    @* <div class="image" style="background-image: url('@Image');"></div> *@
     <div class="list">
-        @if (Name != string.Empty)
+        @if (!string.IsNullOrEmpty(ModList.Name))
         {
-            <InfoBlock Title="@Name" Subtitle="@Author" Comment="@Version.ToString()" Description="@Description"/>
+            if (_installState.Value.CurrentInstallState != InstallState.InstallStateEnum.Installing)
+            {
+                <InfoBlock Title="@ModList.Name" Subtitle="@ModList.Author" Comment="@ModList.Version.ToString()" Description="@ModList.Description"/>
+            }
+            else if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Installing)
+            {
+                <InfoBlock Supertitle="Installing..." Title="@ModList.Name" Subtitle="@StatusText" Description="@ModList.Description"/>
+            }
         }
-        <div class="modlist-image" style="background-image: url('@Image');"></div>
+        @* <div class="modlist-image" style="background-image: url('@Image');"></div> *@
+        @if (!string.IsNullOrEmpty(Image))
+        {
+            if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Configuration)
+            {
+                <InfoImage Image="@Image"/>
+            } else if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Installing)
+            {
+                <InfoImage Image="@Image" Title="Some Mod Title" Subtitle="Author and others" Description="This mod adds something cool but I'm not going to tell you anything."/>
+            }
+        }
     </div>
     <div class="settings">
         <div class="locations">
             <div class="labels">
                 <span>Target Modlist</span>
-                <span>Installation Location</span>
+                <span>Install Location</span>
                 <span>Download Location</span>
             </div>
             <div class="paths">
@@ -26,7 +47,7 @@
         </div>
         <div class="options">
             <label class="option">
-                Overwrite Existing Installation
+                Overwrite Installation
                 <input type="checkbox" checked="checked">
                 <span class="checkmark"></span>
             </label>
@@ -34,13 +55,13 @@
             <label class="option">
                 <input type="checkbox">
                 <span class="checkmark"></span>
-                Enable NTFS Compression
+                NTFS Compression
             </label>
 
             <label class="option">
                 <input type="checkbox">
                 <span class="checkmark"></span>
-                Do a sweet trick once the modlist has finished installing
+                Do a sweet trick
             </label>
 
             <label class="option">
@@ -49,6 +70,8 @@
                 Something else
             </label>
         </div>
+        <div class="install">
+            <img src="images/icons/play.svg" @onclick="Install" alt="Browse Gallery">
+        </div>
     </div>
-    <div class="install" @onclick="NavigateInstall">Install</div>
 </div>

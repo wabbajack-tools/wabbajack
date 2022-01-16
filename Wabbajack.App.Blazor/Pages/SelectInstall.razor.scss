@@ -1,4 +1,4 @@
-﻿$install-icon-size: 200px;
+﻿$install-icon-size: 15rem;
 
 #content {
   display: flex;
@@ -35,8 +35,8 @@
 
     .modlist {
       img {
-        height: 75px;
-        width: 125px;
+        height: 4rem;
+        width: auto;
         border: solid 1px red;
       }
 
