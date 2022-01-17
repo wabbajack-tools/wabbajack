@@ -3,37 +3,52 @@
 @namespace Wabbajack.App.Blazor.Pages
 
 <div id="content">
-    <div class="image">
+    <div class="install-background">
         <img src="@Image" alt="">
     </div>
     <div class="list">
-        @if (!string.IsNullOrEmpty(ModList.Name))
-        {
-            if (_installState.Value.CurrentInstallState != InstallState.InstallStateEnum.Installing)
+        @* TODO: [High] Find a cleaner way to show/hide components based on state. *@
+        @* TODO: [Low] Split each "side" into their own components? *@
+        <div class="left-side">
+            @if (!string.IsNullOrEmpty(ModList.Name))
             {
-                <InfoBlock Title="@ModList.Name" Subtitle="@ModList.Author" Comment="@ModList.Version.ToString()" Description="@ModList.Description"/>
+                if (_installState.Value.CurrentInstallState != InstallState.InstallStateEnum.Installing)
+                {
+                    <InfoBlock Title="@ModList.Name" Subtitle="@ModList.Author" Comment="@ModList.Version.ToString()" Description="@ModList.Description"/>
+                }
+                else if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Installing)
+                {
+                    <InfoBlock Supertitle="Installing..." Title="@ModList.Name" Subtitle="@StatusText"/>
+                    // TODO: [Low] Step logging.
+                }
             }
-            else if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Installing)
+        </div>
+        <div class="right-side">
+            @if (!string.IsNullOrEmpty(Image))
             {
-                <InfoBlock Supertitle="Installing..." Title="@ModList.Name" Subtitle="@StatusText" Description="There will be a log here but I need to figure out logging and non-blocking UI stuff first."/>
+                if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Configuration)
+                {
+                    <InfoImage Image="@Image"/>
+                }
+                else if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Installing)
+                {
+                    // TODO: [Low] Implement featured mod slideshow.
+                    <InfoImage Image="@Image" Title="Some Mod Title" Subtitle="Author and others" Description="This mod adds something cool but I'm not going to tell you anything."/>
+                }
             }
-        }
-        @if (!string.IsNullOrEmpty(Image))
-        {
-            if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Configuration)
-            {
-                <InfoImage Image="@Image"/>
-            }
-            else if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Installing)
-            {
-                <InfoImage Image="@Image" Title="Some Mod Title" Subtitle="Author and others" Description="This mod adds something cool but I'm not going to tell you anything."/>
-            }
-        }
+        </div>
     </div>
+    @if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Installing)
+    {
+        <div class="logger-container">
+            <VirtualLogger Messages="_loggerProvider.Messages"/>
+        </div>
+    }
     @if (_installState.Value.CurrentInstallState != InstallState.InstallStateEnum.Installing)
     {
         <div class="settings">
             <div class="locations">
+                @* TODO: [High] Turn path selectors into components. *@
                 <div class="labels">
                     <span>Target Modlist</span>
                     <span>Install Location</span>
@@ -47,29 +62,10 @@
                 </div>
             </div>
             <div class="options">
-                <label class="option">
-                    Overwrite Installation
-                    <input type="checkbox" checked="checked">
-                    <span class="checkmark"></span>
-                </label>
-
-                <label class="option">
-                    <input type="checkbox">
-                    <span class="checkmark"></span>
-                    NTFS Compression
-                </label>
-
-                <label class="option">
-                    <input type="checkbox">
-                    <span class="checkmark"></span>
-                    Do a sweet trick
-                </label>
-
-                <label class="option">
-                    <input type="checkbox">
-                    <span class="checkmark"></span>
-                    Something else
-                </label>
+                <OptionCheckbox Label="Overwrite Installation"/>
+                <OptionCheckbox Label="NTFS Compression"/>
+                <OptionCheckbox Label="Do a sweet trick"/>
+                <OptionCheckbox Label="Something else"/>
             </div>
             <div class="install">
                 <img src="images/icons/play.svg" @onclick="Install" alt="Browse Gallery">

@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
 using Fluxor;
 using Microsoft.AspNetCore.Components;
 using Wabbajack.App.Blazor.Store;
@@ -14,6 +13,9 @@ using Wabbajack.App.Blazor.Utility;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Services.OSIntegrated;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Wabbajack.App.Blazor.Models;
 
 namespace Wabbajack.App.Blazor.Pages
 {
@@ -27,6 +29,7 @@ namespace Wabbajack.App.Blazor.Pages
         [Inject] private SystemParametersConstructor _parametersConstructor { get; set; }
         [Inject] private IGameLocator                _gameLocator           { get; set; }
         [Inject] private SettingsManager             _settingsManager       { get; set; }
+        [Inject] private LoggerProvider              _loggerProvider        { get; set; }
 
         private string       Image        { get; set; }
         private ModList      ModList      { get; set; } = new(); // Init a new modlist so we can listen for changes in Blazor components.
@@ -34,7 +37,8 @@ namespace Wabbajack.App.Blazor.Pages
         private AbsolutePath InstallPath  { get; set; }
         private AbsolutePath DownloadPath { get; set; }
 
-        private string StatusText { get; set; }
+        private string                     StatusText { get; set; }
+        private LoggerProvider.ILogMessage CurrentLog { get; set; }
 
         private const string InstallSettingsPrefix = "install-settings-";
 
@@ -97,11 +101,11 @@ namespace Wabbajack.App.Blazor.Pages
                 Debug.Print(ex.Message);
             }
         }
-        
+
         private async Task Install()
         {
             _dispatcher.Dispatch(new UpdateInstallState(InstallState.InstallStateEnum.Installing, ModList, ModListPath, InstallPath, DownloadPath));
-            Task.Run(BeginInstall);
+            await Task.Run(BeginInstall);
         }
 
         private async Task BeginInstall()
@@ -136,6 +140,7 @@ namespace Wabbajack.App.Blazor.Pages
                         InvokeAsync(StateHasChanged);
                     }
                 };
+
                 await installer.Begin(CancellationToken.None);
             }
             catch (Exception ex)

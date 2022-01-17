@@ -1,0 +1,22 @@
+root = true
+
+# All files
+[*]
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+
+# C# and Razor files 
+[*.{cs,razor}]
+
+# CS8602: Dereference of a possibly null reference.
+# CS8618: Non-nullable member is uninitialized.
+# Reason: The compiler/IDE doesn't quite understand Dependency Injection yet.
+dotnet_diagnostic.CS8602.severity = none
+dotnet_diagnostic.CS8618.severity = none
+
+# RZ10012: Markup element with unexpected name.
+# Reason: The component namespace is added to the global _Imports.razor file.
+dotnet_diagnostic.RZ10012.severity = none
+
+dotnet_sort_system_directives_first = true

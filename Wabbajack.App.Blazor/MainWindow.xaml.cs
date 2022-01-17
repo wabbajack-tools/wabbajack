@@ -29,7 +29,7 @@ namespace Wabbajack.App.Blazor
 
             try
             {
-                // TODO: Not sure how to set this up.
+                // TODO: [Low] Not sure how to set this up.
                 //_logger.LogInformation("Wabbajack Build - {Sha}", ThisAssembly.Git.Sha);
                 _logger.LogInformation("Running in {EntryPoint}", KnownFolders.EntryPoint);
 

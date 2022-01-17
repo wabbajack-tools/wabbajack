@@ -8,6 +8,10 @@ namespace Wabbajack.App.Blazor.Utility;
 
 public static class Dialog
 {
+    /*
+     * TODO: [Critical] CommonOpenFileDialog.ShowDialog() causes UI freeze and crash.
+     * This method seems to alleviate it, but it still occasionally happens.
+     */
     public static async Task<AbsolutePath?> ShowDialogNonBlocking(bool isFolderPicker = false)
     {
         return await Task.Factory.StartNew(() =>

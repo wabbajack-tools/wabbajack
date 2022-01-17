@@ -37,7 +37,7 @@
         }
         catch (Exception ex)
         {
-            //TODO: Figure out why an exception is thrown on first navigation.
+            //TODO: [Critical] Figure out why an exception is thrown on first navigation.
             Debug.Print(ex.Message);
             _logger.LogError(ex, "Error while loading lists");
         }

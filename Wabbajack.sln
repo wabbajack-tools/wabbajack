@@ -119,11 +119,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Launcher", "Wabba
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.App.Wpf", "Wabbajack.App.Wpf\Wabbajack.App.Wpf.csproj", "{372B2DD2-EAA3-4E18-98A7-B9838C7B41F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Networking.Steam", "Wabbajack.Networking.Steam\Wabbajack.Networking.Steam.csproj", "{AB9A5C22-10CC-4EE0-A808-FB1DC9E24247}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Networking.Steam", "Wabbajack.Networking.Steam\Wabbajack.Networking.Steam.csproj", "{AB9A5C22-10CC-4EE0-A808-FB1DC9E24247}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Networking.Steam.Test", "Wabbajack.Networking.Steam.Test\Wabbajack.Networking.Steam.Test.csproj", "{D6351587-CAF6-4CB6-A2BD-5368E69F297C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Networking.Steam.Test", "Wabbajack.Networking.Steam.Test\Wabbajack.Networking.Steam.Test.csproj", "{D6351587-CAF6-4CB6-A2BD-5368E69F297C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.App.Blazor", "Wabbajack.App.Blazor\Wabbajack.App.Blazor.csproj", "{C6E9B15D-510F-4074-AB1C-069F36BA4622}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.App.Blazor", "Wabbajack.App.Blazor\Wabbajack.App.Blazor.csproj", "{C6E9B15D-510F-4074-AB1C-069F36BA4622}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{18E36813-CB53-4172-8FF3-EFE3B9B30A5F}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

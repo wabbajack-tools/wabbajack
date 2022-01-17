@@ -14,7 +14,7 @@ using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated.Services;
 
-
+// TODO: [High] Move logic to Gallery page.
 namespace Wabbajack.App.Blazor.Components
 {
     public partial class ModlistItem

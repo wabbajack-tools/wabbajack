@@ -25,7 +25,7 @@ $checkbox-size: 0.75rem;
   color: white;
   flex-direction: column;
 
-  .image {
+  .install-background {
     position: absolute;
     width: calc(100% - #{$sidebar-width});
     height: calc(100% - #{$header-height});
@@ -43,7 +43,19 @@ $checkbox-size: 0.75rem;
     display: flex;
     flex: 1;
     overflow: hidden;
+      align-items: center;
+      .left-side, .right-side {
+          flex: 1;
+      }
   }
+    .logger-container {
+        height: 200px;
+        width: 100%;
+        padding: 0.5rem;
+        background: rgb(0 0 0 / 20%);
+        color: lightgrey;
+        border: solid 1px black;
+    }
 
   .settings {
     font-size: 0.85rem;
