@@ -90,50 +90,6 @@
   flex-direction: column;
   margin-left: 2rem;
 }
-#content .settings .options .option {
-  position: relative;
-  display: block;
-  margin: 0.25rem;
-  padding-left: 2rem;
-  cursor: pointer;
-  user-select: none;
-}
-#content .settings .options .option:hover input ~ .checkmark {
-  background-color: darkgrey;
-}
-#content .settings .options .option input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
-}
-#content .settings .options .option input:checked ~ .checkmark {
-  background-color: #5E437F;
-}
-#content .settings .options .option input:checked ~ .checkmark:after {
-  display: block;
-  left: calc(0.5 * 0.75rem);
-  top: calc(0.25 * 0.75rem);
-  width: calc(0.25 * 0.75rem);
-  height: calc(0.65 * 0.75rem);
-  border: solid white;
-  border-width: 0 3px 3px 0;
-  transform: rotate(45deg);
-}
-#content .settings .options .option .checkmark {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: calc(1.5 * 0.75rem);
-  width: calc(1.5 * 0.75rem);
-  background-color: rgba(255, 255, 255, 0.2);
-}
-#content .settings .options .option .checkmark:after {
-  content: "";
-  position: absolute;
-  display: none;
-}
 #content .settings .install {
   display: flex;
   flex-direction: column;

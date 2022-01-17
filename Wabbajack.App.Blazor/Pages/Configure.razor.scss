@@ -6,48 +6,50 @@ $checkbox-background-checked: $accent-color;
 $checkbox-size: 0.75rem;
 
 @mixin path-span {
-  display: block;
-  height: 2rem;
-  padding: 0.25rem;
-  margin: 0.25rem;
-  white-space: pre;
-  cursor: pointer;
-  text-overflow: ellipsis;
-  overflow: hidden;
+    display: block;
+    height: 2rem;
+    padding: 0.25rem;
+    margin: 0.25rem;
+    white-space: pre;
+    cursor: pointer;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 #content {
-  display: flex;
-  height: 100%;
-  align-content: center;
-  justify-content: space-around;
-  align-items: center;
-  color: white;
-  flex-direction: column;
-
-  .install-background {
-    position: absolute;
-    width: calc(100% - #{$sidebar-width});
-    height: calc(100% - #{$header-height});
-    filter: blur(25px) brightness(50%);
-    z-index: -1;
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-  }
-
-  .list {
     display: flex;
-    flex: 1;
-    overflow: hidden;
-      align-items: center;
-      .left-side, .right-side {
-          flex: 1;
-      }
-  }
+    height: 100%;
+    align-content: center;
+    justify-content: space-around;
+    align-items: center;
+    color: white;
+    flex-direction: column;
+
+    .install-background {
+        position: absolute;
+        width: calc(100% - #{$sidebar-width});
+        height: calc(100% - #{$header-height});
+        filter: blur(25px) brightness(50%);
+        z-index: -1;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    .list {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+        align-items: center;
+
+        .left-side, .right-side {
+            flex: 1;
+        }
+    }
+
     .logger-container {
         height: 200px;
         width: 100%;
@@ -57,107 +59,56 @@ $checkbox-size: 0.75rem;
         border: solid 1px black;
     }
 
-  .settings {
-    font-size: 0.85rem;
-    display: flex;
-    align-items: center;
-    width: 100%;
-    padding: 1rem;
-    backdrop-filter: brightness(0.5);
+    .settings {
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 1rem;
+        backdrop-filter: brightness(0.5);
 
-    .locations {
-      display: flex;
-      flex-direction: row;
-      flex: 1;
-      overflow: hidden;
+        .locations {
+            display: flex;
+            flex-direction: row;
+            flex: 1;
+            overflow: hidden;
 
-      .labels {
-        span {
-          @include path-span;
-        }
-      }
-
-      .paths {
-        flex: 1;
-        margin-left: 1rem;
-        overflow: hidden;
-
-        span {
-          @include path-span;
-          border: solid 1px rgba(255, 255, 255, 0.3);
-        }
-      }
-    }
-
-    .options {
-      display: flex;
-      flex-flow: row wrap;
-      flex-direction: column;
-      margin-left: 2rem;
-
-      .option {
-        position: relative;
-        display: block;
-        margin: 0.25rem;
-        padding-left: 2rem;
-        cursor: pointer;
-        user-select: none;
-
-        &:hover input ~ .checkmark {
-          background-color: $checkbox-background-hover;
-        }
-
-        input {
-          position: absolute;
-          opacity: 0;
-          cursor: pointer;
-          height: 0;
-          width: 0;
-
-          &:checked ~ .checkmark {
-            background-color: $checkbox-background-checked;
-
-            &:after {
-              display: block;
-              left: calc(0.5 * #{$checkbox-size});
-              top: calc(0.25 * #{$checkbox-size});
-              width: calc(0.25 * #{$checkbox-size});
-              height: calc(0.65 * #{$checkbox-size});
-              border: solid white;
-              border-width: 0 3px 3px 0;
-              transform: rotate(45deg);
+            .labels {
+                span {
+                    @include path-span;
+                }
             }
-          }
+
+            .paths {
+                flex: 1;
+                margin-left: 1rem;
+                overflow: hidden;
+
+                span {
+                    @include path-span;
+                    border: solid 1px rgba(255, 255, 255, 0.3);
+                }
+            }
         }
 
-        .checkmark {
-          position: absolute;
-          top: 0;
-          left: 0;
-          height: calc(1.5 * #{$checkbox-size});
-          width: calc(1.5 * #{$checkbox-size});
-          background-color: $checkbox-background;
-
-          &:after {
-            content: "";
-            position: absolute;
-            display: none;
-          }
+        .options {
+            display: flex;
+            flex-flow: row wrap;
+            flex-direction: column;
+            margin-left: 2rem;
         }
-      }
-    }
 
-    .install {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 0.5rem;
-      cursor: pointer;
+        .install {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0.5rem;
+            cursor: pointer;
 
-      img {
-        width: 5rem;
-        height: 5rem;
-      }
+            img {
+                width: 5rem;
+                height: 5rem;
+            }
+        }
     }
-  }
 }
