@@ -1,0 +1,14 @@
+#virtual-logger {
+  height: 100%;
+  overflow-y: scroll;
+  width: 100%;
+}
+#virtual-logger span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+/*# sourceMappingURL=VirtualLogger.razor.css.map */

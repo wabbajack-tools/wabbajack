@@ -15,14 +15,14 @@
   color: white;
   flex-direction: column;
 }
-#content .image {
+#content .install-background {
   position: absolute;
   width: calc(100% - 75px);
   height: calc(100% - 65px);
   filter: blur(25px) brightness(50%);
   z-index: -1;
 }
-#content .image img {
+#content .install-background img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -31,6 +31,18 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+  align-items: center;
+}
+#content .list .left-side, #content .list .right-side {
+  flex: 1;
+}
+#content .logger-container {
+  height: 200px;
+  width: 100%;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  color: lightgrey;
+  border: solid 1px black;
 }
 #content .settings {
   font-size: 0.85rem;
