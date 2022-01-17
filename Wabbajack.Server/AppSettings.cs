@@ -22,6 +22,7 @@ public class AppSettings
     
     public string PatchesFilesFolder { get; set; }
     public string MirrorFilesFolder { get; set; }
+    public string NexusCacheFolder { get; set; }
     public string MetricsFolder { get; set; } = "";
     public string TarLogPath { get; set; }
     public string GitHubKey { get; set; } = "";
