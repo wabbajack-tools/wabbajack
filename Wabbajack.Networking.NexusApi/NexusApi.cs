@@ -1,16 +1,22 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi.DTOs;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.Server.DTOs;
 
@@ -164,5 +170,144 @@ public class NexusApi
     {
         var msg = await GenerateMessage(HttpMethod.Get, Endpoints.Updates, game.MetaData().NexusName, "1m");
         return await Send<UpdateEntry[]>(msg, token);
+    }
+
+    public async Task<ChunkStatus> ChunkStatus(UploadDefinition definition, Chunk chunk)
+    {
+        var msg = new HttpRequestMessage();
+        msg.Method = HttpMethod.Get;
+
+        var query =
+            $"resumableChunkNumber={chunk.Index + 1}&resumableCurrentChunkSize={chunk.Size}&resumableTotalSize={definition.FileSize}"
+            + $"&resumableType=&resumableIdentifier={definition.ResumableIdentifier}&resumableFilename={definition.ResumableRelativePath}"
+            + $"&resumableRelativePath={definition.ResumableRelativePath}&resumableTotalChunks={definition.Chunks().Count()}";
+
+        msg.RequestUri = new Uri($"https://upload.nexusmods.com/uploads/chunk?{query}");
+
+        using var result = await _client.SendAsync(msg);
+        if (!result.IsSuccessStatusCode)
+            throw new HttpException(result);
+        if (result.StatusCode == HttpStatusCode.NoContent)
+            return DTOs.ChunkStatus.NoContent;
+
+        var status = await result.Content.ReadFromJsonAsync<ChunkStatusResult>();
+        return status?.Status ?? false ? DTOs.ChunkStatus.Done : DTOs.ChunkStatus.Waiting;
+    }
+
+    public async Task<ChunkStatusResult> UploadChunk(UploadDefinition d, Chunk chunk)
+    {
+        var form = new MultipartFormDataContent();
+        form.Add(new StringContent((chunk.Index+1).ToString()), "resumableChunkNumber");
+        form.Add(new StringContent(UploadDefinition.ChunkSize.ToString()), "resumableChunkSize");
+        form.Add(new StringContent(chunk.Size.ToString()), "resumableCurrentChunkSize");
+        form.Add(new StringContent(d.FileSize.ToString()), "resumableTotalSize");
+        form.Add(new StringContent(""), "resumableType");
+        form.Add(new StringContent(d.ResumableIdentifier), "resumableIdentifier");
+        form.Add(new StringContent(d.ResumableRelativePath), "resumableFilename");
+        form.Add(new StringContent(d.ResumableRelativePath), "resumableRelativePath");
+        form.Add(new StringContent(d.Chunks().Count().ToString()), "resumableTotalChunks");
+
+        await using var ms = new MemoryStream();
+        await using var fs = d.Path.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+        fs.Position = chunk.Offset;
+        await fs.CopyToLimitAsync(ms, (int)chunk.Size, CancellationToken.None);
+        ms.Position = 0;
+        
+        form.Add(new StreamContent(ms), "file", "blob");
+
+        var msg = new HttpRequestMessage(HttpMethod.Post,  "https://upload.nexusmods.com/uploads/chunk");
+        msg.Content = form;
+
+        var result = await _client.SendAsync(msg);
+        if (result.StatusCode != HttpStatusCode.OK)
+            throw new HttpException(result);
+
+        var response = await result.Content.ReadFromJsonAsync<ChunkStatusResult>(_jsonOptions);
+        return response;
+    }
+    public async Task UploadFile(UploadDefinition d)
+    {
+        _logger.LogInformation("Checking Access");
+        await CheckAccess();
+        
+        _logger.LogInformation("Checking chunk status");
+        
+        var numberOfChunks = d.Chunks().Count();
+        var chunkStatus = new ChunkStatusResult();
+        foreach (var chunk in d.Chunks())
+        {
+            var status = await ChunkStatus(d, chunk);
+            _logger.LogInformation("({Index}/{MaxChunks}) Chunk status: {Status}", chunk.Index, numberOfChunks, status);
+            if (status == DTOs.ChunkStatus.NoContent)
+            {
+                _logger.LogInformation("({Index}/{MaxChunks}) Uploading", chunk.Index, numberOfChunks);
+                chunkStatus = await UploadChunk(d, chunk);
+            }
+        }
+
+        await WaitForFileStatus(chunkStatus);
+
+        await AddFile(d, chunkStatus);
+
+    }
+
+    private async Task CheckAccess()
+    {
+        var msg = new HttpRequestMessage(HttpMethod.Get, "https://www.nexusmods.com/users/myaccount");
+        msg.AddCookies((await ApiKey.Get())!.Cookies);
+        using var response = await _client.SendAsync(msg);
+        var body = await response.Content.ReadAsStringAsync();
+
+        if (body.Contains("You are not allowed to access this area!"))
+            throw new HttpException(403, "Nexus Cookies are incorrect");
+    }
+
+    private async Task AddFile(UploadDefinition d, ChunkStatusResult status)
+    {
+        _logger.LogInformation("Saving file update {Name} to {Game}:{ModId}", d.Path.FileName, d.Game, d.ModId);
+        
+        var msg = new HttpRequestMessage(HttpMethod.Post,
+            "https://www.nexusmods.com/Core/Libs/Common/Managers/Mods?AddFile");
+        msg.Headers.Referrer =
+            new Uri(
+                $"https://www.nexusmods.com/{d.Game.MetaData().NexusName}/mods/edit/?id={d.ModId}&game_id={d.GameId}&step=files");
+        
+        msg.AddCookies((await ApiKey.Get())!.Cookies);
+        var form = new MultipartFormDataContent();
+        form.Add(new StringContent(d.GameId.ToString()), "game_id");
+        form.Add(new StringContent(d.Name), "name");
+        form.Add(new StringContent(d.Version), "file-version");
+        form.Add(new StringContent((d.RemoveOldVersion ? 1 : 0).ToString()), "update-version");
+        form.Add(new StringContent(((int)Enum.Parse<Category>(d.Category, true)).ToString()), "category");
+        form.Add(new StringContent((d.NewExisting ? 1 : 0).ToString()), "new-existing");
+        form.Add(new StringContent(d.OldFileId.ToString()), "old_file_id");
+        form.Add(new StringContent((d.RemoveOldVersion ? 1 : 0).ToString()), "remove-old-version");
+        form.Add(new StringContent(d.BriefOverview), "brief-overview");
+        form.Add(new StringContent((d.SetAsMain ? 1 : 0).ToString()), "set_as_main_nmm");
+        form.Add(new StringContent(status.UUID), "file_uuid");
+        form.Add(new StringContent(d.FileSize.ToString()), "file_size");
+        form.Add(new StringContent(d.ModId.ToString()), "mod_id");
+        form.Add(new StringContent(d.ModId.ToString()), "id");
+        form.Add(new StringContent("save"), "action");
+        form.Add(new StringContent(status.Filename), "uploaded_file");
+        form.Add(new StringContent(d.Path.FileName.ToString()), "original_file");
+        msg.Content = form;
+        
+        using var result = await _client.SendAsync(msg);
+        if (!result.IsSuccessStatusCode)
+            throw new HttpException(result);
+    }
+
+    private async Task<FileStatusResult> WaitForFileStatus(ChunkStatusResult chunkStatus)
+    {
+        while (true)
+        {
+            _logger.LogInformation("Checking file status of {Uuid}", chunkStatus.UUID);
+            var data = await _client.GetFromJsonAsync<FileStatusResult>(
+                $"https://upload.nexusmods.com/uploads/check_status?id={chunkStatus.UUID}");
+            if (data.FileChunksAssembled)
+                return data;
+            await Task.Delay(TimeSpan.FromSeconds(5));
+        }
     }
 }
