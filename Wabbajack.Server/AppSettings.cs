@@ -17,6 +17,8 @@ public class AppSettings
     public AbsolutePath TempPath => (AbsolutePath) TempFolder;
     public string SpamWebHook { get; set; } = null;
     public string HamWebHook { get; set; } = null;
+
+    public string DiscordKey { get; set; }
     
     public string AuthoredFilesFolder { get; set; }
     
