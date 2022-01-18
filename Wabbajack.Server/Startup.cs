@@ -68,7 +68,6 @@ public class Startup
         services.AddSingleton<QuickSync>();
         services.AddSingleton<GlobalInformation>();
         services.AddSingleton<DiscordWebHook>();
-        services.AddSingleton<Watchdog>();
         services.AddSingleton<Metrics>();
         services.AddSingleton<HttpClient>();
         services.AddSingleton<AuthorFiles>();
@@ -142,7 +141,6 @@ public class Startup
         app.UseResponseCompression();
 
         app.UseService<DiscordWebHook>();
-        app.UseService<Watchdog>();
 
         app.UseResponseCaching();
 
