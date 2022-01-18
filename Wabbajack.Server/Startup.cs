@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -16,11 +17,18 @@ using Nettle.Compiler;
 using Newtonsoft.Json;
 using Octokit;
 using Wabbajack.BuildServer;
+using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.DTOs.Logins;
 using Wabbajack.Networking.GitHub;
+using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.Networking.NexusApi;
+using Wabbajack.Paths;
+using Wabbajack.RateLimiter;
 using Wabbajack.Server.DataModels;
 using Wabbajack.Server.Extensions;
 using Wabbajack.Server.Services;
+using Wabbajack.Services.OSIntegrated.TokenProviders;
 
 namespace Wabbajack.Server;
 
@@ -66,6 +74,27 @@ public class Startup
         services.AddSingleton<AuthorFiles>();
         services.AddSingleton<AuthorKeys>();
         services.AddSingleton<Client>();
+        services.AddSingleton<NexusCacheManager>();
+        services.AddSingleton<NexusApi>();
+        services.AddAllSingleton<ITokenProvider<NexusApiState>, NexusApiTokenProvider>();
+        services.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", 12));
+        // Application Info
+        
+        var version =
+            $"{ThisAssembly.Git.SemVer.Major}.{ThisAssembly.Git.SemVer.Major}.{ThisAssembly.Git.SemVer.Patch}{ThisAssembly.Git.SemVer.DashLabel}";
+        services.AddSingleton(s => new ApplicationInfo
+        {
+            ApplicationSlug = "Wabbajack",
+            ApplicationName = Environment.ProcessPath?.ToAbsolutePath().FileName.ToString() ?? "Wabbajack",
+            ApplicationSha = ThisAssembly.Git.Sha,
+            Platform = RuntimeInformation.ProcessArchitecture.ToString(),
+            OperatingSystemDescription = RuntimeInformation.OSDescription,
+            RuntimeIdentifier = RuntimeInformation.RuntimeIdentifier,
+            OSVersion = Environment.OSVersion.VersionString,
+            Version = version
+        });
+
+        
         services.AddResponseCaching();
         services.AddSingleton(s =>
         {
@@ -147,5 +176,8 @@ public class Startup
         });
 
         app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+
+        // Trigger the internal update code
+        var _ = app.ApplicationServices.GetRequiredService<NexusCacheManager>();
     }
 }

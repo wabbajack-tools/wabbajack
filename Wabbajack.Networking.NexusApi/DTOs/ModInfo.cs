@@ -16,7 +16,7 @@ public class Endorsement
 {
     [JsonPropertyName("endorse_status")] public string EndorseStatus { get; set; } = "";
 
-    [JsonPropertyName("timestamp")] public int Timestamp { get; set; }
+    [JsonPropertyName("timestamp")] public string? Timestamp { get; set; }
 
     [JsonPropertyName("version")] public string Version { get; set; } = "";
 }
