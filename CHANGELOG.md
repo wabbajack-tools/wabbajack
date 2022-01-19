@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.5.3.4 - 1/19/2022
+* Fixed support for Cyberpunk 2077 on GoG
+* Added support for Sims 4
+
 #### Version - 2.5.3.3 - 12/4/2021
 * Added support for Cyberpunk 2077 on GoG
 
