@@ -1,0 +1,28 @@
+﻿@using Wabbajack.App.Blazor.Models
+
+@namespace Wabbajack.App.Blazor.Components
+
+<div id="virtual-logger">
+    <Virtualize Items="@_consoleLog" Context="logItem" OverscanCount="3">
+        <span @key="logItem.MessageId">@logItem.LongMessage</span>
+    </Virtualize>
+</div>
+
+@code {
+
+    // TODO: [Low] More parameters to customise the logger. E.g. Reverse order.
+    // TODO: [High] Find a way to auto-scroll. (JS interop?) 
+
+    [Parameter]
+    public IObservable<LoggerProvider.ILogMessage> Messages { get; set; }
+
+    private List<LoggerProvider.ILogMessage> _consoleLog = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Messages.Subscribe(_consoleLog.Add);
+
+        await base.OnInitializedAsync();
+    }
+
+}

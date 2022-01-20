@@ -27,11 +27,12 @@
             Text="Modlist Location"
             TextAlignment="Center"
             ToolTip="The MO2 modlist.txt file you want to use as your source" />
-        <local:FilePicker Grid.Row="0" Grid.Column="2"
+        <local:FilePicker 
+            x:Name="ModListLocation"
+            Grid.Row="0" Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
             FontSize="14"
-            PickerVM="{Binding ModListLocation}"
             ToolTip="The MO2 modlist.txt file you want to use as your source" />
         <TextBlock Grid.Row="1" Grid.Column="0"
             HorizontalAlignment="Right"
@@ -41,10 +42,10 @@
             TextAlignment="Center"
             ToolTip="The folder where MO2 downloads your mods." />
         <local:FilePicker Grid.Row="1" Grid.Column="2"
+            x:Name="DownloadsLocation"              
             Height="30"
             VerticalAlignment="Center"
             FontSize="14"
-            PickerVM="{Binding DownloadLocation}"
             ToolTip="The folder where MO2 downloads your mods." />
         <TextBlock Grid.Row="2" Grid.Column="0"
             HorizontalAlignment="Right"
@@ -54,10 +55,10 @@
             TextAlignment="Center"
             ToolTip="The folder to place the resulting modlist.wabbajack file" />
         <local:FilePicker Grid.Row="2" Grid.Column="2"
+            x:Name="OutputLocation"             
             Height="30"
             VerticalAlignment="Center"
             FontSize="14"
-            PickerVM="{Binding Parent.OutputLocation}"
             ToolTip="The folder to place the resulting modlist.wabbajack file" />
     </Grid>
 </UserControl>

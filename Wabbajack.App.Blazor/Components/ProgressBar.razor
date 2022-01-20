@@ -1,0 +1,18 @@
+﻿@using Wabbajack.RateLimiter
+
+@namespace Wabbajack.App.Blazor.Components
+
+<div id="progress-bar">
+    <progress value="@Percentage.Value"></progress>
+    <span class="text">@Text</span>
+</div>
+
+@code {
+
+    [Parameter]
+    public Percent Percentage { get; set; }
+
+    [Parameter]
+    public string Text { get; set; }
+
+}

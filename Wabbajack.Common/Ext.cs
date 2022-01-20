@@ -24,4 +24,5 @@ public static class Ext
     public static Extension MO2CompilerSettings = new(".mo2_compiler_settings");
     public static Extension Temp = new(".temp");
     public static Extension ModlistMetadataExtension = new(".modlist_metadata");
+    public static Extension Txt = new(".txt");
 }

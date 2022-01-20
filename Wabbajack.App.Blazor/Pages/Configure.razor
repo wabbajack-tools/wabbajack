@@ -1,0 +1,77 @@
+﻿@page "/Configure"
+
+@using Wabbajack.App.Blazor.State
+
+@namespace Wabbajack.App.Blazor.Pages
+
+<div id="content">
+    <div class="install-background">
+        <img src="@Image" alt="">
+    </div>
+    <div class="list">
+        @* TODO: [High] Find a cleaner way to show/hide components based on state. *@
+        @* TODO: [Low] Split each "side" into their own components? *@
+        <div class="left-side">
+            @if (!string.IsNullOrEmpty(ModList.Name))
+            {
+                if (InstallState != GlobalState.InstallStateEnum.Installing)
+                {
+                    <InfoBlock Title="@ModList.Name" Subtitle="@ModList.Author" Comment="@ModList.Version.ToString()" Description="@ModList.Description"/>
+                }
+                else if (InstallState == GlobalState.InstallStateEnum.Installing)
+                {
+                    <InfoBlock Supertitle="Installing..." Title="@ModList.Name" Subtitle="@StatusText"/>
+                    // TODO: [Low] Step logging.
+                }
+            }
+        </div>
+        <div class="right-side">
+            @if (!string.IsNullOrEmpty(Image))
+            {
+                if (InstallState != GlobalState.InstallStateEnum.Installing)
+                {
+                    <InfoImage Image="@Image"/>
+                }
+                else if (InstallState == GlobalState.InstallStateEnum.Installing)
+                {
+                    // TODO: [Low] Implement featured mod slideshow.
+                    <InfoImage Image="@Image" Title="Some Mod Title" Subtitle="Author and others" Description="This mod adds something cool but I'm not going to tell you anything."/>
+                }
+            }
+        </div>
+    </div>
+    @if (InstallState == GlobalState.InstallStateEnum.Installing)
+    {
+        <div class="logger-container">
+            <VirtualLogger Messages="_loggerProvider.Messages"/>
+        </div>
+    }
+    @if (InstallState != GlobalState.InstallStateEnum.Installing)
+    {
+        <div class="settings">
+            <div class="locations">
+                @* TODO: [High] Turn path selectors into components. *@
+                <div class="labels">
+                    <span>Target Modlist</span>
+                    <span>Install Location</span>
+                    <span>Download Location</span>
+                </div>
+                <div class="paths">
+                    <span class="modlist-file">@ModListPath</span>
+                    <span class="install-location" @onclick="SelectInstallFolder">@InstallPath</span>
+                    <span class="download-location" @onclick="SelectDownloadFolder">@DownloadPath</span>
+
+                </div>
+            </div>
+            <div class="options">
+                <OptionCheckbox Label="Overwrite Installation"/>
+                <OptionCheckbox Label="NTFS Compression"/>
+                <OptionCheckbox Label="Do a sweet trick"/>
+                <OptionCheckbox Label="Something else"/>
+            </div>
+            <div class="install">
+                <img src="images/icons/play.svg" @onclick="Install" alt="Browse Gallery">
+            </div>
+        </div>
+    }
+</div>

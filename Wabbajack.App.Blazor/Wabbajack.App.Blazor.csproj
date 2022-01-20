@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net6.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <UseWPF>true</UseWPF>
+        <PublishSingleFile>True</PublishSingleFile>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <SupportedPlatform Include="browser" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="DynamicData" Version="7.4.9" />
+        <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.101-preview.11.2349" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.1" />
+        <PackageReference Include="PInvoke.User32" Version="0.7.104" />
+        <PackageReference Include="Silk.NET.DXGI" Version="2.12.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Update="wwwroot\index.html">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
+        <ProjectReference Include="..\Wabbajack.Compiler\Wabbajack.Compiler.csproj" />
+        <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj" />
+        <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
+        <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
+    </ItemGroup>
+
+    <!-- dotnet tool install Excubo.WebCompiler -g   -->
+    <Target Name="TestWebCompiler" BeforeTargets="PreBuildEvent">
+        <Exec Command="webcompiler -h" ContinueOnError="true" StandardOutputImportance="low" StandardErrorImportance="low" LogStandardErrorAsError="false" IgnoreExitCode="true">
+            <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
+        </Exec>
+    </Target>
+
+    <Target Name="CompileStaticAssets" AfterTargets="TestWebCompiler" Condition="'$(ErrorCode)' == '0'">
+        <Exec Command="webcompiler -r .\ -c webcompilerconfiguration.json" StandardOutputImportance="high" StandardErrorImportance="high" />
+    </Target>
+</Project>

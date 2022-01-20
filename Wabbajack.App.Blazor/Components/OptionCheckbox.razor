@@ -1,0 +1,27 @@
+﻿@namespace Wabbajack.App.Blazor.Components
+
+<label class="option">
+    @Label
+    <input type="checkbox" checked="@IsChecked" @onchange="CheckBoxChanged">
+    <span class="checkmark"></span>
+</label>
+
+@code {
+    // TODO: [Low] Implement parameters to customize style.
+    // TODO: [High] Implement a way to set a passed bool without using callback function.
+
+    [Parameter]
+    public string Label { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnChecked { get; set; }
+
+    private bool IsChecked { get; set; }
+
+    private async Task CheckBoxChanged(ChangeEventArgs e)
+    {
+        IsChecked = (bool)(e.Value ?? false);
+        await OnChecked.InvokeAsync(IsChecked);
+    }
+
+}

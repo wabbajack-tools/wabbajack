@@ -118,7 +118,7 @@ public class FileHashCache
     {
         if (TryGetHashCache(file, out var foundHash)) return foundHash;
 
-        using var job = await _limiter.Begin($"Hasing {file.FileName}", file.Size(), token);
+        using var job = await _limiter.Begin($"Hashing {file.FileName}", file.Size(), token);
         await using var fs = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
 
         var hash = await fs.HashingCopy(Stream.Null, token, job);

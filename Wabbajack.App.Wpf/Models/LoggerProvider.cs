@@ -38,7 +38,9 @@ public class LoggerProvider : ILoggerProvider
 
         _disposables = new CompositeDisposable();
 
-        Messages.Subscribe(m => _messageLog.AddOrUpdate(m))
+        Messages
+            .ObserveOnGuiThread()
+            .Subscribe(m => _messageLog.AddOrUpdate(m))
             .DisposeWith(_disposables);
 
         Messages.Subscribe(m => LogToFile(m))

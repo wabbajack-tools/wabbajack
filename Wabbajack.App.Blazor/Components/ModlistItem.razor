@@ -1,0 +1,28 @@
+﻿@using Wabbajack.DTOs
+
+@namespace Wabbajack.App.Blazor.Components
+
+<div class="item">
+    <div class="display">
+        <img src="@Metadata.Links.ImageUri" loading="lazy" class="image" alt="@Metadata.Title">
+        <div class="interaction">
+            @ChildContent
+        </div>
+    </div>
+    <div class="info">
+        <div class="title">@Metadata.Title</div>
+        <div class="author">@Metadata.Author</div>
+        <div class="description">@Metadata.Description</div>
+    </div>
+    <div class="tags"></div>
+</div>
+
+@code {
+
+    [Parameter]
+    public ModlistMetadata Metadata { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+}

@@ -166,31 +166,7 @@
                     <ColumnDefinition Width="20" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Grid Grid.Row="0" Grid.RowSpan="5" Grid.Column="0"
-                    Margin="15"
-                    VerticalAlignment="Center">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <local:ImageRadioButtonView Grid.Row="0"
-                        x:Name="MO2CompilerButton"
-                        Height="35"
-                        Margin="4"
-                        IsChecked="{Binding SelectedCompilerType, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter={x:Static local:ModManager.Standard}}">
-                        <local:ImageRadioButtonView.Image>
-                            <BitmapImage UriSource="../../Resources/MO2Button.png" />
-                        </local:ImageRadioButtonView.Image>
-                    </local:ImageRadioButtonView>
-                </Grid>
-                <ContentPresenter Grid.Row="1" Grid.Column="1"
-                    x:Name="CustomCompilerSettingsPresenter">
-                    <ContentPresenter.Resources>
-                        <DataTemplate DataType="{x:Type local:MO2CompilerVM}">
-                            <local:MO2CompilerConfigView />
-                        </DataTemplate>
-                    </ContentPresenter.Resources>
-                </ContentPresenter>
+                <local:MO2CompilerConfigView x:Name="CompilerConfigView" Grid.Row="1" Grid.Column="1" />
                 <local:BeginButton Grid.Row="0" Grid.RowSpan="3" Grid.Column="5"
                     x:Name="BeginButton" />
             </Grid>
