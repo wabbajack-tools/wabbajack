@@ -74,5 +74,5 @@ public class ModInfo
 
     [JsonPropertyName("user")] public User User { get; set; } = new();
 
-    [JsonPropertyName("endorsement")] public Endorsement Endorsement { get; set; } = new();
+    //[JsonPropertyName("endorsement")] public Endorsement Endorsement { get; set; } = new();
 }
