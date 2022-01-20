@@ -14,6 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="Delegate.SassBuilder" Version="1.4.0" />
         <PackageReference Include="DynamicData" Version="7.4.9" />
         <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.101-preview.11.2349" />
@@ -36,6 +37,16 @@
         <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
         <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
     </ItemGroup>
+
+    <PropertyGroup>
+        <!-- outputstyle option -->
+        <LibSassOutputStyle>compressed</LibSassOutputStyle>
+        <LibSassOutputStyle Condition="'$(Configuration)' == 'Debug'">expanded</LibSassOutputStyle>
+        <!-- level option -->
+        <LibSassOutputLevel>verbose</LibSassOutputLevel>
+        <!-- msbuild output level -->
+        <LibSassMessageLevel>High</LibSassMessageLevel>
+    </PropertyGroup>
 
     <!-- dotnet tool install Excubo.WebCompiler -g   -->
     <Target Name="TestWebCompiler" BeforeTargets="PreBuildEvent">
