@@ -89,7 +89,7 @@
     <PackageReference Include="System.Reactive" Version="5.0.0" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
     <PackageReference Include="CefSharp.OffScreen">
-      <Version>91.1.230</Version>
+      <Version>97.1.12</Version>
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
   </ItemGroup>
