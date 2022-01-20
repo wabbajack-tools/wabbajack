@@ -17,7 +17,7 @@ public class ModFile
 
     [JsonPropertyName("category_id")] public int CategoryId { get; set; }
 
-    [JsonPropertyName("category_name")] public string? CategoryName { get; set; } = "";
+    [JsonPropertyName("category_name")] public string? CategoryName { get; set; } = null;
 
     [JsonPropertyName("is_primary")] public bool IsPrimary { get; set; }
 
