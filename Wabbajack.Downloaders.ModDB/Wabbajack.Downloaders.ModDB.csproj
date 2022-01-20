@@ -11,9 +11,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="HtmlAgilityPack" Version="1.11.38" />
-        <PackageReference Include="MegaApiClient" Version="1.10.0" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
+        <PackageReference Include="HtmlAgilityPack" Version="1.11.40" />
+        <PackageReference Include="MegaApiClient" Version="1.10.2" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.2-mauipre.1.22054.8" />
     </ItemGroup>
 
 </Project>
