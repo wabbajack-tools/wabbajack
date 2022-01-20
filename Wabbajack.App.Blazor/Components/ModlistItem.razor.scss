@@ -43,21 +43,11 @@ $hover-icon-size: 75px;
       opacity: 0;
       transition: all 250ms ease-in-out;
 
-      img {
+      ::deep img {
         width: $hover-icon-size;
         height: $hover-icon-size;
         margin: 0;
         transition: all 150ms ease-in-out;
-
-        &.hidden {
-          opacity: 0.25;
-        }
-        
-        &:hover {
-          margin-left: 10px;
-          margin-right: 10px;
-          transform: scale(1.25);
-        }
       }
     }
   }

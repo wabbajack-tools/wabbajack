@@ -1,47 +1,15 @@
-﻿@page "/gallery"
-@namespace Wabbajack.App.Blazor.Pages
-@using Wabbajack.Networking.WabbajackClientApi;
-@using Wabbajack.DTOs
-@using System.Diagnostics
-@using Microsoft.Extensions.Logging
-@using Wabbajack.App.Blazor.Models
+﻿@page "/Gallery"
 
-@inject Client _client
+@using Wabbajack.DTOs
+
+@namespace Wabbajack.App.Blazor.Pages
 
 <div id="content">
-    @foreach (ModlistMetadata item in _listItems)
+    @foreach (ModlistMetadata modlist in _listItems)
     {
-        <ModlistItem Metadata=@item></ModlistItem>
+        <ModlistItem Metadata=@modlist>
+            <InteractionIcon Icon="images/icons/install.svg" Label="Install" Size="75px" OnClick="@(() => OnClickDownload(modlist))"/>
+            <InteractionIcon Icon="images/icons/info.svg" Label="Information" Size="75px" OnClick="@(() => OnClickInformation(modlist))"/>
+        </ModlistItem>
     }
 </div>
-
-@code {
-
-    [Inject]
-    private ILogger<Gallery> _logger { get; set; }
-    // [Inject]
-    // private LoggerProvider _loggerProvider { get; set; }
-    [Inject]
-    private Services.OSIntegrated.Configuration _configuration { get; set; }
-
-    private List<ModlistMetadata> _listItems { get; set; } = new() { };
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            _logger.LogInformation("Getting modlists...");
-            ModlistMetadata[] modLists = await _client.LoadLists();
-            _listItems.AddRange(modLists.ToList());
-            StateHasChanged();
-        }
-        catch (Exception ex)
-        {
-            //TODO: [Critical] Figure out why an exception is thrown on first navigation.
-            Debug.Print(ex.Message);
-            _logger.LogError(ex, "Error while loading lists");
-        }
-
-        await base.OnInitializedAsync();
-    }
-}

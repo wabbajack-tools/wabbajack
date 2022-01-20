@@ -14,10 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-<!--        <PackageReference Include="LibSassBuilder" Version="2.0.1" />-->
         <PackageReference Include="DynamicData" Version="7.4.9" />
-        <PackageReference Include="Fluxor" Version="4.2.2-Alpha" />
-        <PackageReference Include="Fluxor.Blazor.Web" Version="4.2.2-Alpha" />
         <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.101-preview.11.2349" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.0" />
@@ -27,9 +24,6 @@
     </ItemGroup>
 
     <ItemGroup>
-<!-- Required so updating the .scss files doesn't trigger a reload when using dotnet watch run. -->
-        <Content Remove="**\*.scss" />
-        <Content Include="**\*.scss" Watch="false" />
         <Content Update="wwwroot\index.html">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
@@ -43,13 +37,14 @@
         <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
     </ItemGroup>
 
-<!--    <Target Name="DeleteGeneratedCSSFiles" AfterTargets="Build">-->
-<!--        <ItemGroup>-->
-<!--            <FilesToDelete Include="$(ProjectDir)Components\**\*.css"/>-->
-<!--            <FilesToDelete Include="$(ProjectDir)Pages\**\*.css"/>-->
-<!--            <FilesToDelete Include="$(ProjectDir)Shared\**\*.css"/>-->
-<!--        </ItemGroup>-->
-<!--        <Message Text="@(FilesToDelete, ', ')" Importance="High"/>-->
-<!--        <Delete Files="@(FilesToDelete)"/>-->
-<!--    </Target>-->
+    <!-- dotnet tool install Excubo.WebCompiler -g   -->
+    <Target Name="TestWebCompiler" BeforeTargets="PreBuildEvent">
+        <Exec Command="webcompiler -h" ContinueOnError="true" StandardOutputImportance="low" StandardErrorImportance="low" LogStandardErrorAsError="false" IgnoreExitCode="true">
+            <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
+        </Exec>
+    </Target>
+
+    <Target Name="CompileStaticAssets" AfterTargets="TestWebCompiler" Condition="'$(ErrorCode)' == '0'">
+        <Exec Command="webcompiler -r .\ -c webcompilerconfiguration.json" StandardOutputImportance="high" StandardErrorImportance="high" />
+    </Target>
 </Project>

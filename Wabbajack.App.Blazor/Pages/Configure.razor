@@ -1,5 +1,7 @@
-﻿@page "/configure"
-@using Wabbajack.App.Blazor.Store
+﻿@page "/Configure"
+
+@using Wabbajack.App.Blazor.State
+
 @namespace Wabbajack.App.Blazor.Pages
 
 <div id="content">
@@ -12,11 +14,11 @@
         <div class="left-side">
             @if (!string.IsNullOrEmpty(ModList.Name))
             {
-                if (_installState.Value.CurrentInstallState != InstallState.InstallStateEnum.Installing)
+                if (InstallState != GlobalState.InstallStateEnum.Installing)
                 {
                     <InfoBlock Title="@ModList.Name" Subtitle="@ModList.Author" Comment="@ModList.Version.ToString()" Description="@ModList.Description"/>
                 }
-                else if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Installing)
+                else if (InstallState == GlobalState.InstallStateEnum.Installing)
                 {
                     <InfoBlock Supertitle="Installing..." Title="@ModList.Name" Subtitle="@StatusText"/>
                     // TODO: [Low] Step logging.
@@ -26,11 +28,11 @@
         <div class="right-side">
             @if (!string.IsNullOrEmpty(Image))
             {
-                if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Configuration)
+                if (InstallState != GlobalState.InstallStateEnum.Installing)
                 {
                     <InfoImage Image="@Image"/>
                 }
-                else if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Installing)
+                else if (InstallState == GlobalState.InstallStateEnum.Installing)
                 {
                     // TODO: [Low] Implement featured mod slideshow.
                     <InfoImage Image="@Image" Title="Some Mod Title" Subtitle="Author and others" Description="This mod adds something cool but I'm not going to tell you anything."/>
@@ -38,13 +40,13 @@
             }
         </div>
     </div>
-    @if (_installState.Value.CurrentInstallState == InstallState.InstallStateEnum.Installing)
+    @if (InstallState == GlobalState.InstallStateEnum.Installing)
     {
         <div class="logger-container">
             <VirtualLogger Messages="_loggerProvider.Messages"/>
         </div>
     }
-    @if (_installState.Value.CurrentInstallState != InstallState.InstallStateEnum.Installing)
+    @if (InstallState != GlobalState.InstallStateEnum.Installing)
     {
         <div class="settings">
             <div class="locations">

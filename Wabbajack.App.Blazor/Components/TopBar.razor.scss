@@ -7,7 +7,7 @@
   background-color: transparent;
   backdrop-filter: blur(5px) grayscale(10%);
   z-index: 2;
-  
+
   font-family: $raleway-font;
   text-transform: uppercase;
 
@@ -20,23 +20,47 @@
     font-weight: 100;
     font-size: 1em;
     line-height: 2rem;
-  }
-  
-  ul {
-    li {
-      display: inline-block;
-      margin-right: 10px;
-      a {
-        color: white;
-        display: block;
-        padding: 0.5rem 1rem;
-        text-decoration: none;
-        transition: background-color .25s ease-in-out;
 
-        &:hover {
-          border-bottom: 2px solid $accent-color;
+    &.disallow {
+      background-color: red;
+    }
+
+    ul {
+      li {
+        display: inline-block;
+        margin-right: 10px;
+
+        .item {
+          color: #dddddd;
+          display: block;
+          padding: 0.5rem 1rem;
+          text-decoration: none;
+          transition: border 100ms ease-in-out, color 100ms ease-in-out;
+          cursor: pointer;
+          border-bottom: 2px solid transparent;
+
+          &.active {
+            color: white;
+            border-bottom: 2px solid #824dc3;
+          }
+
+          &:not(.active):hover {
+            border-bottom: 2px solid $accent-color;
+          }
         }
       }
+    }
+  }
+
+  .settings {
+    height: 60%;
+    margin: auto 1rem;
+    cursor: pointer;
+    filter: brightness(80%);
+    transition: filter 100ms ease-in-out;
+
+    &:hover {
+      filter: brightness(100%);
     }
   }
 }

@@ -1,27 +1,14 @@
-﻿@namespace Wabbajack.App.Blazor.Components
-@using Wabbajack.App.Blazor.Store
-@using Wabbajack.RateLimiter
-@inherits Fluxor.Blazor.Web.Components.FluxorComponent
+﻿@using Wabbajack.DTOs
+
+@namespace Wabbajack.App.Blazor.Components
 
 <div class="item">
     <div class="display">
-        <img src="@Metadata.Links.ImageUri" loading="lazy" class="image" alt="@Metadata.Title Image">
+        <img src="@Metadata.Links.ImageUri" loading="lazy" class="image" alt="@Metadata.Title">
         <div class="interaction">
-            @if (_downloadState.Value.CurrentDownloadState == DownloadState.DownloadStateEnum.Downloading)
-            {
-                <img src="images/icons/install.svg" class="install hidden" alt="Install">
-            }
-            else
-            {
-                <img src="images/icons/install.svg" class="install" alt="Install" @onclick="Download">
-            }
-            <img src="images/icons/info.svg" class="more" alt="Information">
+            @ChildContent
         </div>
     </div>
-    @if (DownloadProgress != Percent.Zero)
-    {
-        <ProgressBar Percentage=@DownloadProgress></ProgressBar>
-    }
     <div class="info">
         <div class="title">@Metadata.Title</div>
         <div class="author">@Metadata.Author</div>
@@ -29,3 +16,13 @@
     </div>
     <div class="tags"></div>
 </div>
+
+@code {
+
+    [Parameter]
+    public ModlistMetadata Metadata { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+}

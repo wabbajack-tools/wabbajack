@@ -1,23 +1,23 @@
 ﻿// TODO: [Low] Logging levels?
 #virtual-logger {
-    height: 100%;
-    overflow-y: scroll;
-    width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  width: 100%;
 
-    .info {
-    }
+  .info {
+  }
 
-    .warn {
-    }
+  .warn {
+  }
 
-    .error {
-    }
+  .error {
+  }
 
-    span {
-        display: block;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        font-size: 0.85rem;
-    }
+  span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.85rem;
+  }
 }

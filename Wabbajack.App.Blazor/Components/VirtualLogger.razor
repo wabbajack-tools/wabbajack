@@ -1,5 +1,7 @@
 ﻿@using Wabbajack.App.Blazor.Models
 
+@namespace Wabbajack.App.Blazor.Components
+
 <div id="virtual-logger">
     <Virtualize Items="@_consoleLog" Context="logItem" OverscanCount="3">
         <span @key="logItem.MessageId">@logItem.LongMessage</span>

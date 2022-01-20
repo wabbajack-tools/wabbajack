@@ -1,13 +1,22 @@
 ﻿@inherits LayoutComponentBase
+@namespace Wabbajack.App.Blazor.Shared
 
-@* This is required because layout components can't access scoped CSS. *@
-@* <link rel="stylesheet" href="MainLayout.Razor.css"> *@
-
-<div id="background"></div>
-<SideBar/>
-<div id="wrapper">
-    <TopBar/>
-    <div id="page">
-        @Body
+<CascadingValue Value="@(this)">
+    <div id="background"></div>
+    <SideBar/>
+    <div id="wrapper">
+        <TopBar/>
+        <div id="page">
+            @Body
+        </div>
+        @if (ShowFooter)
+        {
+            <BottomBar/>
+        }
     </div>
-</div>
+</CascadingValue>
+
+@code
+{
+    public bool ShowFooter { get; set; } = false;
+}

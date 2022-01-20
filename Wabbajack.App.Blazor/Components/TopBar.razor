@@ -1,22 +1,58 @@
-﻿@* TODO: [Low] Indicate current page. *@
+﻿@using Wabbajack.App.Blazor.Pages
+@using Wabbajack.App.Blazor.Shared
+@using Wabbajack.App.Blazor.State
+
+@namespace Wabbajack.App.Blazor.Components
+
+@* TODO: [Low] Clean this up a bit. *@
 <header id="top-bar">
-    <nav>
+    <nav class="@(GlobalState.NavigationAllowed ? "" : "disallow")">
         <ul>
             <li>
-                <a href="/">Home</a>
+                <div class='item @CurrentPage("")' @onclick='() => Navigate("")'>Play</div>
             </li>
             <li>
-                <a href="/gallery">Gallery</a>
+                <div class='item @CurrentPage("Gallery")' @onclick='() => Navigate("Gallery")'>Gallery</div>
             </li>
             <li>
-                <a href="/SelectInstall">Install</a>
+                <div class='item @CurrentPage("Install")' @onclick='() => Navigate("Install")'>Install</div>
             </li>
             <li>
-                <a href="/">Compile</a>
-            </li>
-            <li>
-                <a href="/">Settings</a>
+                <div class='item @CurrentPage("Create")' @onclick='() => Navigate("Create")'>Create</div>
             </li>
         </ul>
     </nav>
+    <div class="settings">
+        <InteractionIcon Icon="images/icons/adjust.svg" Label="Settings" Size="100%" OnClick="@(() => Navigate("Settings"))"/>
+    </div>
 </header>
+
+@code {
+
+    [Inject]
+    NavigationManager _navigationManager { get; set; }
+
+    [Inject]
+    GlobalState GlobalState { get; set; }
+
+    [CascadingParameter]
+    protected MainLayout _mainLayout { get; set; }
+
+    private void Navigate(string page)
+    {
+        _navigationManager.NavigateTo(page);
+    }
+
+    protected override void OnInitialized()
+    {
+        _navigationManager.LocationChanged += (o, args) => StateHasChanged();
+        GlobalState.OnNavigationStateChange += StateHasChanged;
+    }
+
+    private string CurrentPage(string page)
+    {
+        string relativePath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri).ToLower();
+        return page.ToLower() == relativePath ? "active" : "";
+    }
+
+}
