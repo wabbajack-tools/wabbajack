@@ -1,8 +1,12 @@
 ### Changelog
 
-#### Version - 2.5.3.4 - 1/19/2022
+#### Version - 2.5.3.5 - 1/19/2022
 * Fixed support for Cyberpunk 2077 on GoG
 * Added support for Sims 4
+
+#### Version - 2.5.3.4 - 12/18/2021
+* Made WJ tolerant of bad BSA files created in Skyrim AE
+* Reworked list healing to be less noisy and based on the 3.0 code
 
 #### Version - 2.5.3.3 - 12/4/2021
 * Added support for Cyberpunk 2077 on GoG
