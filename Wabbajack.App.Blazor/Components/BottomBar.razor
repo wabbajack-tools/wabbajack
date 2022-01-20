@@ -2,17 +2,29 @@
 
 <footer id="bottom-bar">
     <div class="image">
-        <img src="https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/total-skyrim-overhaul/2020.01.21-01.26.png" alt="">
+        <img src="@Image" alt="">
     </div>
     <div class="info">
-        <div class="subtitle">[Subtitle]</div>
-        <div class="title">[Title]</div>
+        <div class="subtitle">@Subtitle</div>
+        <div class="title">@Title</div>
     </div>
-    <div class="progress">
-        <ProgressBar/>
+    <div class="inside-content">
+        @ChildContent
     </div>
 </footer>
 
 @code {
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string Subtitle { get; set; }
+
+    [Parameter]
+    public string Image { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
 
 }

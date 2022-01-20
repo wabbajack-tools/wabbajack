@@ -25,7 +25,8 @@ public partial class Gallery
     [Inject] private Client                    _client           { get; set; }
     [Inject] private ModListDownloadMaintainer _maintainer       { get; set; }
 
-    public Percent DownloadProgress { get; set; }
+    public Percent         DownloadProgress    { get; set; } = Percent.Zero;
+    public ModlistMetadata DownloadingMetaData { get; set; } = new ModlistMetadata();
 
     private List<ModlistMetadata> _listItems { get; set; } = new();
 
@@ -61,6 +62,7 @@ public partial class Gallery
     private async Task Download(ModlistMetadata metadata)
     {
         GlobalState.NavigationAllowed = false;
+        DownloadingMetaData           = metadata;
         await using Timer timer = new(_ => InvokeAsync(StateHasChanged));
         timer.Change(TimeSpan.FromMilliseconds(250), TimeSpan.FromMilliseconds(250));
         try
@@ -73,6 +75,7 @@ public partial class Gallery
             dispose.Dispose();
 
             AbsolutePath path = KnownFolders.EntryPoint.Combine("downloaded_mod_lists", metadata.Links.MachineURL).WithExtension(Ext.Wabbajack);
+            GlobalState.ModListPath = path;
             NavigationManager.NavigateTo("/Configure");
         }
         catch (Exception e)
