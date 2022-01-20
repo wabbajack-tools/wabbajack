@@ -88,6 +88,7 @@ public class NexusCache : ControllerBase
             Response.StatusCode = 200;
             Response.ContentType = "application/json";
             await JsonSerializer.SerializeAsync(Response.Body, returned, _dtos.Options, cancellationToken: token);
+            return;
         }
 
         await JsonSerializer.SerializeAsync(Response.Body, cached, _dtos.Options, cancellationToken: token);
