@@ -22,15 +22,7 @@ public class CommandLineBuilder
         var root = new RootCommand();
         foreach (var verb in _verbs)
             root.Add(verb.MakeCommand());
-
-        /*
-        foreach (var verb in _verbs) 
-            root.AddCommand(verb.MakeCommand());
-        var builder = new System.CommandLine.Builder.CommandLineBuilder(root);
-        var built = builder.Build();
-        var parsed = built.Parse(args);
-        return await parsed.InvokeAsync(_console);*/
-
+        
         return await root.InvokeAsync(args);
     }
 }

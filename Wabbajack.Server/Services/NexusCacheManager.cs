@@ -145,4 +145,25 @@ public class NexusCacheManager
             _lockObject.Release();
         }
     }
+
+    public async Task<int> Purge(string mod)
+    {
+        if (Uri.TryCreate(mod, UriKind.Absolute, out var url))
+        {
+            mod = Enumerable.Last(url.AbsolutePath.Split("/", StringSplitOptions.RemoveEmptyEntries));
+        }
+
+        var count = 0;
+        if (!int.TryParse(mod, out var mod_id)) return count;
+        
+        foreach (var file in _cacheFolder.EnumerateFiles())
+        {
+            if (!file.FileName.ToString().Contains($"_{mod_id}")) continue;
+            
+            await PurgeCacheEntry(file);
+            count++;
+        }
+
+        return count;
+    }
 }

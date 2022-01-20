@@ -68,7 +68,6 @@ public class Startup
         services.AddSingleton<QuickSync>();
         services.AddSingleton<GlobalInformation>();
         services.AddSingleton<DiscordWebHook>();
-        services.AddSingleton<Watchdog>();
         services.AddSingleton<Metrics>();
         services.AddSingleton<HttpClient>();
         services.AddSingleton<AuthorFiles>();
@@ -76,6 +75,7 @@ public class Startup
         services.AddSingleton<Client>();
         services.AddSingleton<NexusCacheManager>();
         services.AddSingleton<NexusApi>();
+        services.AddSingleton<DiscordBackend>();
         services.AddAllSingleton<ITokenProvider<NexusApiState>, NexusApiTokenProvider>();
         services.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", 12));
         // Application Info
@@ -142,7 +142,6 @@ public class Startup
         app.UseResponseCompression();
 
         app.UseService<DiscordWebHook>();
-        app.UseService<Watchdog>();
 
         app.UseResponseCaching();
 
@@ -178,6 +177,7 @@ public class Startup
         app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
         // Trigger the internal update code
-        var _ = app.ApplicationServices.GetRequiredService<NexusCacheManager>();
+        app.ApplicationServices.GetRequiredService<NexusCacheManager>();
+        app.ApplicationServices.GetRequiredService<DiscordBackend>();
     }
 }

@@ -34,12 +34,16 @@ public class DiscordWebHook : AbstractService<DiscordWebHook, int>
         _client = client;
         _dtos = dtos;
 
-        var message = new DiscordMessage
+        Task.Run(async () =>
         {
-            Content = $"\"{GetQuote()}\" - Sheogorath (as he brings the server online)"
-        };
-        var a = Send(Channel.Ham, message);
-        var b = Send(Channel.Spam, message);
+
+            var message = new DiscordMessage
+            {
+                Content = $"\"{await GetQuote()}\" - Sheogorath (as he brings the server online)"
+            };
+            await Send(Channel.Ham, message);
+            await Send(Channel.Spam, message);
+        });
     }
 
     public async Task Send(Channel channel, DiscordMessage message)
