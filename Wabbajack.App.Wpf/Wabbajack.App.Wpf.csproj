@@ -60,7 +60,7 @@
 
   <ItemGroup>
     <PackageReference Include="cef.redist.x64" Version="91.1.23" />
-      <PackageReference Include="CefSharp.Common" Version="91.1.230" />
+      <PackageReference Include="CefSharp.Common" Version="97.1.12" />
       <PackageReference Include="CefSharp.Wpf" Version="91.1.230">
         <NoWarn>NU1701</NoWarn>
       </PackageReference>
