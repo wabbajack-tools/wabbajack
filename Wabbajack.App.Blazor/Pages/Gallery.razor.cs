@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Shell;
@@ -20,33 +21,35 @@ namespace Wabbajack.App.Blazor.Pages;
 
 public partial class Gallery
 {
-    [Inject] private GlobalState               GlobalState       { get; set; }
-    [Inject] private NavigationManager         NavigationManager { get; set; }
-    [Inject] private ILogger<Gallery>          _logger           { get; set; }
-    [Inject] private Client                    _client           { get; set; }
-    [Inject] private ModListDownloadMaintainer _maintainer       { get; set; }
+    [Inject] private ILogger<Gallery> Logger { get; set; } = default!;
+    [Inject] private IStateContainer StateContainer { get; set; } = default!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] private ModListDownloadMaintainer Maintainer { get; set; } = default!;
 
-    public Percent         DownloadProgress    { get; set; } = Percent.Zero;
-    public ModlistMetadata DownloadingMetaData { get; set; } = new ModlistMetadata();
+    private Percent _downloadProgress = Percent.Zero;
+    private ModlistMetadata? _downloadingMetaData;
 
-    private List<ModlistMetadata> _listItems { get; set; } = new();
+    private IEnumerable<ModlistMetadata> Modlists => StateContainer.Modlists;
+
+    private bool _errorLoadingModlists;
+    
+    private bool _shouldRender;
+    protected override bool ShouldRender() => _shouldRender;
 
     protected override async Task OnInitializedAsync()
     {
-        try
+        if (!StateContainer.Modlists.Any())
         {
-            _logger.LogInformation("Getting modlists...");
-            ModlistMetadata[] modLists = await _client.LoadLists();
-            _listItems.AddRange(modLists.ToList());
-            StateHasChanged();
+            var res = await StateContainer.LoadModlistMetadata();
+            if (!res)
+            {
+                _errorLoadingModlists = true;
+                _shouldRender = true;
+                return;
+            }
         }
-        catch (Exception ex)
-        {
-            //TODO: [Critical] Figure out why an exception is thrown on first navigation.
-            _logger.LogError(ex, "Error while loading lists");
-        }
-
-        await base.OnInitializedAsync();
+        
+        _shouldRender = true;
     }
 
     private async void OnClickDownload(ModlistMetadata metadata)
@@ -62,38 +65,42 @@ public partial class Gallery
 
     private async Task Download(ModlistMetadata metadata)
     {
-        GlobalState.NavigationAllowed = false;
-        DownloadingMetaData           = metadata;
-        await using Timer timer = new(_ => InvokeAsync(StateHasChanged));
-        timer.Change(TimeSpan.FromMilliseconds(250), TimeSpan.FromMilliseconds(250));
+        StateContainer.NavigationAllowed = false;
+        _downloadingMetaData = metadata;
+
         try
         {
-            (IObservable<Percent> progress, Task task) = _maintainer.DownloadModlist(metadata);
+            var (progress, task) = Maintainer.DownloadModlist(metadata);
             
-            GlobalState.SetTaskBarState(TaskbarItemProgressState.Indeterminate,$"Downloading {metadata.Title}");
-
-            var dispose = progress.Subscribe(p =>
+            var dispose = progress
+                .DistinctUntilChanged(p => p.Value)
+                .Throttle(TimeSpan.FromMilliseconds(100))
+                .Subscribe(p =>
             {
-                DownloadProgress = p;
-                GlobalState.SetTaskBarState(TaskbarItemProgressState.Indeterminate,$"Downloading {metadata.Title}",  p.Value);
-            });
+                _downloadProgress = p;
+                StateContainer.TaskBarState = new TaskBarState
+                {
+                    Description = $"Downloading {metadata.Title}",
+                    State = TaskbarItemProgressState.Indeterminate,
+                    ProgressValue = p.Value
+                };
+            }, () => { StateContainer.TaskBarState = new TaskBarState(); });
 
             await task;
-            //await _wjClient.SendMetric("downloading", Metadata.Title);
             dispose.Dispose();
-            GlobalState.SetTaskBarState();
-
-
-            AbsolutePath path = KnownFolders.EntryPoint.Combine("downloaded_mod_lists", metadata.Links.MachineURL).WithExtension(Ext.Wabbajack);
-            GlobalState.ModListPath = path;
-            NavigationManager.NavigateTo("/Configure");
+            
+            var path = KnownFolders.EntryPoint.Combine("downloaded_mod_lists", metadata.Links.MachineURL).WithExtension(Ext.Wabbajack);
+            StateContainer.ModlistPath = path;
+            NavigationManager.NavigateTo(Configure.Route);
         }
         catch (Exception e)
         {
-            Debug.Print(e.Message);
+            Logger.LogError(e, "Exception downloading Modlist {Name}", metadata.Title);
         }
-
-        await timer.DisposeAsync();
-        GlobalState.NavigationAllowed = true;
+        finally
+        {
+            StateContainer.TaskBarState = new TaskBarState();
+            StateContainer.NavigationAllowed = true;
+        }
     }
 }

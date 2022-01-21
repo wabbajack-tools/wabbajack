@@ -71,7 +71,7 @@ public class LoggerProvider : ILoggerProvider
 
     private void LogToFile(ILogMessage logMessage)
     {
-        string? line = $"[{logMessage.TimeStamp - _startupTime}] {logMessage.LongMessage}";
+        var line = $"[{logMessage.TimeStamp - _startupTime}] {logMessage.LongMessage}";
         lock (_logStream)
         {
             _logStream.Write(line);

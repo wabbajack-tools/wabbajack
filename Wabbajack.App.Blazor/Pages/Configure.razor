@@ -1,52 +1,50 @@
-﻿@page "/Configure"
-
+﻿@page "/configure"
 @using Wabbajack.App.Blazor.State
 
 @namespace Wabbajack.App.Blazor.Pages
 
 <div id="content">
     <div class="install-background">
-        <img src="@Image" alt="">
+        <img id="background-image" src="" alt=""/>
     </div>
     <div class="list">
-        @* TODO: [High] Find a cleaner way to show/hide components based on state. *@
-        @* TODO: [Low] Split each "side" into their own components? *@
-        <div class="left-side">
-            @if (!string.IsNullOrEmpty(ModList.Name))
-            {
-                if (InstallState != GlobalState.InstallStateEnum.Installing)
+        @if (Modlist is not null)
+        {
+            <div class="left-side">
+                @if (InstallState != InstallState.Installing)
                 {
-                    <InfoBlock Title="@ModList.Name" Subtitle="@ModList.Author" Comment="@ModList.Version.ToString()" Description="@ModList.Description"/>
+                    <InfoBlock Title="@Modlist.Name" Subtitle="@Modlist.Author" Comment="@Modlist.Version.ToString()" Description="@Modlist.Description"/>
                 }
-                else if (InstallState == GlobalState.InstallStateEnum.Installing)
+                else
                 {
-                    <InfoBlock Supertitle="Installing..." Title="@ModList.Name" Subtitle="@StatusText"/>
-                    // TODO: [Low] Step logging.
+                    <InfoBlock Supertitle="Installing..." Title="@Modlist.Name" Subtitle="@StatusText"/>
+                    // TODO: [Low] Step logging
                 }
-            }
-        </div>
-        <div class="right-side">
-            @if (!string.IsNullOrEmpty(Image))
-            {
-                if (InstallState != GlobalState.InstallStateEnum.Installing)
-                {
-                    <InfoImage Image="@Image"/>
-                }
-                else if (InstallState == GlobalState.InstallStateEnum.Installing)
-                {
-                    // TODO: [Low] Implement featured mod slideshow.
-                    <InfoImage Image="@Image" Title="Some Mod Title" Subtitle="Author and others" Description="This mod adds something cool but I'm not going to tell you anything."/>
-                }
-            }
-        </div>
+            </div>
+            <div class="right-side">
+                @* TODO: whatever this is *@
+                @* @if (!string.IsNullOrEmpty(Image)) *@
+                @* { *@
+                @*     if (InstallState != GlobalState.InstallStateEnum.Installing) *@
+                @*     { *@
+                @*         <InfoImage Image="@Image"/> *@
+                @*     } *@
+                @*     else if (InstallState == GlobalState.InstallStateEnum.Installing) *@
+                @*     { *@
+                @*         // TODO: [Low] Implement featured mod slideshow. *@
+                @*         <InfoImage Image="@Image" Title="Some Mod Title" Subtitle="Author and others" Description="This mod adds something cool but I'm not going to tell you anything."/> *@
+                @*     } *@
+                @* } *@
+            </div>
+        }
     </div>
-    @if (InstallState == GlobalState.InstallStateEnum.Installing)
+    @if (InstallState == InstallState.Installing)
     {
         <div class="logger-container">
-            <VirtualLogger Messages="_loggerProvider.Messages"/>
+            <VirtualLogger Messages="LoggerProvider.Messages"/>
         </div>
     }
-    @if (InstallState != GlobalState.InstallStateEnum.Installing)
+    else
     {
         <div class="settings">
             <div class="locations">
@@ -57,9 +55,9 @@
                     <span>Download Location</span>
                 </div>
                 <div class="paths">
-                    <span class="modlist-file">@ModListPath</span>
-                    <span class="install-location" @onclick="SelectInstallFolder">@InstallPath</span>
-                    <span class="download-location" @onclick="SelectDownloadFolder">@DownloadPath</span>
+                    <span class="modlist-file">@ModlistPath.ToString()</span>
+                    <span class="install-location" @onclick="SelectInstallFolder">@InstallPath.ToString()</span>
+                    <span class="download-location" @onclick="SelectDownloadFolder">@DownloadPath.ToString()</span>
 
                 </div>
             </div>
@@ -75,3 +73,7 @@
         </div>
     }
 </div>
+
+@code {
+    public const string Route = "/configure";
+}

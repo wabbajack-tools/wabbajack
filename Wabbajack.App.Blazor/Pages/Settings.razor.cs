@@ -13,7 +13,7 @@ public partial class Settings
     {
         try
         {
-            ResourceSettingsManager.ResourceSetting resource = await _resourceSettingsManager.GetSettings("Downloads");
+            var resource = await _resourceSettingsManager.GetSettings("Downloads");
             StateHasChanged();
         }
         catch (Exception ex) { }

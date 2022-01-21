@@ -14,16 +14,17 @@ namespace Wabbajack.App.Blazor;
 public partial class App
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly IHost            _host;
 
     public App()
     {
-        _host = Host.CreateDefaultBuilder(Array.Empty<string>())
-            .ConfigureLogging(c => { c.ClearProviders(); })
-            .ConfigureServices((host, services) => { ConfigureServices(services); })
-            .Build();
-
-        _serviceProvider = _host.Services;
+        _serviceProvider = Host.CreateDefaultBuilder(Array.Empty<string>())
+            .ConfigureLogging(loggingBuilder =>
+            {
+                loggingBuilder.ClearProviders();
+            })
+            .ConfigureServices(services => ConfigureServices(services))
+            .Build()
+            .Services;
     }
 
     private static IServiceCollection ConfigureServices(IServiceCollection services)
@@ -33,24 +34,18 @@ public partial class App
         services.AddAllSingleton<ILoggerProvider, LoggerProvider>();
         services.AddTransient<MainWindow>();
         services.AddSingleton<SystemParametersConstructor>();
-        services.AddSingleton<GlobalState>();
+        services.AddSingleton(typeof(IStateContainer), typeof(StateContainer));
         return services;
     }
 
     private void OnStartup(object sender, StartupEventArgs e)
     {
         var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-        mainWindow!.Show();
+        mainWindow.Show();
     }
 
     private void OnExit(object sender, ExitEventArgs e)
     {
         Current.Shutdown();
-        // using (_host)
-        // {
-        //     _host.StopAsync();
-        // }
-        //
-        // base.OnExit(e);
     }
 }

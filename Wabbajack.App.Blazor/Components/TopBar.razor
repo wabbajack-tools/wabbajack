@@ -1,42 +1,36 @@
 ﻿@using Wabbajack.App.Blazor.Pages
 @using Wabbajack.App.Blazor.Shared
 @using Wabbajack.App.Blazor.State
+@inject NavigationManager _navigationManager
+@inject IStateContainer _stateContainer
 
 @namespace Wabbajack.App.Blazor.Components
 
-@* TODO: [Low] Clean this up a bit. *@
 <header id="top-bar">
-    <nav class="@(GlobalState.NavigationAllowed ? "" : "disallow")">
+    <nav class="@(_stateContainer.NavigationAllowed ? "" : "disallow")">
         <ul>
-            <li>
-                <div class='item @CurrentPage("")' @onclick='() => Navigate("")'>Play</div>
-            </li>
-            <li>
-                <div class='item @CurrentPage("Gallery")' @onclick='() => Navigate("Gallery")'>Gallery</div>
-            </li>
-            <li>
-                <div class='item @CurrentPage("Install")' @onclick='() => Navigate("Install")'>Install</div>
-            </li>
-            <li>
-                <div class='item @CurrentPage("Create")' @onclick='() => Navigate("Create")'>Create</div>
-            </li>
+            @foreach (var (name, route) in Pages)
+            {
+                <li>
+                    <div class="item @CurrentPage(route)" @onclick="@(() => Navigate(route))">@name</div>
+                </li>
+            }
         </ul>
     </nav>
     <div class="settings">
-        <InteractionIcon Icon="images/icons/adjust.svg" Label="Settings" Size="100%" OnClick="@(() => Navigate("Settings"))"/>
+        <InteractionIcon Icon="images/icons/adjust.svg" Label="Settings" Size="100%" OnClick="@(() => Navigate(Settings.Route))"/>
     </div>
 </header>
 
 @code {
 
-    [Inject]
-    NavigationManager _navigationManager { get; set; }
-
-    [Inject]
-    GlobalState GlobalState { get; set; }
-
-    [CascadingParameter]
-    protected MainLayout _mainLayout { get; set; }
+    private static readonly Dictionary<string, string> Pages = new()
+    {
+        {"Play", Play.Route},
+        {"Gallery", Gallery.Route},
+        {"Install", Install.Route},
+        {"Create", Create.Route}
+    };
 
     private void Navigate(string page)
     {
@@ -45,14 +39,14 @@
 
     protected override void OnInitialized()
     {
-        _navigationManager.LocationChanged += (o, args) => StateHasChanged();
-        GlobalState.OnNavigationStateChange += StateHasChanged;
+        // TODO(erri120): update this
+        // _navigationManager.LocationChanged += (_, _) => StateHasChanged();
+        // _globalState.OnNavigationStateChange += StateHasChanged;
     }
 
     private string CurrentPage(string page)
     {
-        string relativePath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri).ToLower();
-        return page.ToLower() == relativePath ? "active" : "";
+        var relativePath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+        return page.Equals(relativePath, StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty;
     }
-
 }

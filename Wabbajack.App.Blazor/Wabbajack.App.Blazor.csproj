@@ -22,6 +22,7 @@
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.1" />
         <PackageReference Include="PInvoke.User32" Version="0.7.104" />
         <PackageReference Include="Silk.NET.DXGI" Version="2.12.0" />
+        <PackageReference Include="System.Reactive" Version="5.0.0" />
     </ItemGroup>
     
     <PropertyGroup>

@@ -40,14 +40,14 @@ public class SystemParametersConstructor
         SetProcessDPIAware();
         unsafe
         {
-            List<(int Width, int Height, bool IsPrimary)>? col = new List<(int Width, int Height, bool IsPrimary)>();
+            var col = new List<(int Width, int Height, bool IsPrimary)>();
 
             EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero,
                 delegate(IntPtr hMonitor, IntPtr hdcMonitor, RECT* lprcMonitor, void* dwData)
                 {
                     var mi = new MONITORINFOEX();
                     mi.cbSize = Marshal.SizeOf(mi);
-                    bool success = GetMonitorInfo(hMonitor, (MONITORINFO*)&mi);
+                    var success = GetMonitorInfo(hMonitor, (MONITORINFO*)&mi);
                     if (success)
                         col.Add((mi.Monitor.right - mi.Monitor.left, mi.Monitor.bottom - mi.Monitor.top,
                             mi.Flags == MONITORINFO_Flags.MONITORINFOF_PRIMARY));
@@ -60,17 +60,17 @@ public class SystemParametersConstructor
 
     public SystemParameters Create()
     {
-        (int width, int height, _) = GetDisplays().First(d => d.IsPrimary);
+        (var width, var height, _) = GetDisplays().First(d => d.IsPrimary);
 
         /*using var f = new SharpDX.DXGI.Factory1();
         var video_memory = f.Adapters1.Select(a =>
             Math.Max(a.Description.DedicatedSystemMemory, (long)a.Description.DedicatedVideoMemory)).Max();*/
 
-        ulong dxgiMemory = 0UL;
+        var dxgiMemory = 0UL;
 
         unsafe
         {
-            using DXGI? api = DXGI.GetApi();
+            using var api = DXGI.GetApi();
 
             IDXGIFactory1* factory1 = default;
 
@@ -79,15 +79,15 @@ public class SystemParametersConstructor
                 //https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-createdxgifactory1
                 SilkMarshal.ThrowHResult(api.CreateDXGIFactory1(SilkMarshal.GuidPtrOf<IDXGIFactory1>(), (void**)&factory1));
 
-                uint i = 0u;
+                var i = 0u;
                 while (true)
                 {
                     IDXGIAdapter1* adapter1 = default;
 
                     //https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgifactory1-enumadapters1
-                    int res = factory1->EnumAdapters1(i, &adapter1);
+                    var res = factory1->EnumAdapters1(i, &adapter1);
 
-                    Exception? exception = Marshal.GetExceptionForHR(res);
+                    var exception = Marshal.GetExceptionForHR(res);
                     if (exception != null) break;
 
                     AdapterDesc1 adapterDesc = default;
@@ -95,10 +95,10 @@ public class SystemParametersConstructor
                     //https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiadapter1-getdesc1
                     SilkMarshal.ThrowHResult(adapter1->GetDesc1(&adapterDesc));
 
-                    ulong systemMemory = (ulong)adapterDesc.DedicatedSystemMemory;
-                    ulong videoMemory = (ulong)adapterDesc.DedicatedVideoMemory;
+                    var systemMemory = (ulong)adapterDesc.DedicatedSystemMemory;
+                    var videoMemory = (ulong)adapterDesc.DedicatedVideoMemory;
 
-                    ulong maxMemory = Math.Max(systemMemory, videoMemory);
+                    var maxMemory = Math.Max(systemMemory, videoMemory);
                     if (maxMemory > dxgiMemory)
                         dxgiMemory = maxMemory;
 
@@ -117,7 +117,7 @@ public class SystemParametersConstructor
             }
         }
 
-        MEMORYSTATUSEX? memory = GetMemoryStatus();
+        var memory = GetMemoryStatus();
         var p = new SystemParameters
         {
             ScreenWidth      = width,
