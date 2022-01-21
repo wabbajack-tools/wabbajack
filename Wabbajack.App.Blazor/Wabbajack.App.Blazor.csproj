@@ -15,6 +15,7 @@
 
     <ItemGroup>
         <PackageReference Include="DynamicData" Version="7.4.9" />
+        <PackageReference Include="GitInfo" Version="2.2.0" />
         <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.101-preview.11.2349" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.0" />

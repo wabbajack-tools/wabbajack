@@ -20,36 +20,9 @@ public partial class MainWindow
         _logger         = logger;
         _loggerProvider = loggerProvider;
         _systemParams   = systemParams;
+        
         InitializeComponent();
         BlazorWebView.Services = serviceProvider;
-
-        try
-        {
-            // TODO: [Low] Not sure how to set this up.
-            //_logger.LogInformation("Wabbajack Build - {Sha}", ThisAssembly.Git.Sha);
-            _logger.LogInformation("Running in {EntryPoint}", KnownFolders.EntryPoint);
-
-            SystemParameters p = _systemParams.Create();
-
-            _logger.LogInformation("Detected Windows Version: {Version}", Environment.OSVersion.VersionString);
-
-            _logger.LogInformation(
-                "System settings - ({MemorySize} RAM) ({PageSize} Page), Display: {ScreenWidth} x {ScreenHeight} ({Vram} VRAM - VideoMemorySizeMb={ENBVRam})",
-                p.SystemMemorySize.ToFileSizeString(), p.SystemPageSize.ToFileSizeString(), p.ScreenWidth, p.ScreenHeight,
-                p.VideoMemorySize.ToFileSizeString(), p.EnbLEVRAMSize);
-
-            if (p.SystemPageSize == 0)
-                _logger.LogInformation(
-                    "Page file is disabled! Consider increasing to 20000MB. A disabled page file can cause crashes and poor in-game performance");
-            else if (p.SystemPageSize < 2e+10)
-                _logger.LogInformation(
-                    "Page file below recommended! Consider increasing to 20000MB. A suboptimal page file can cause crashes and poor in-game performance");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during Main Window startup.");
-            Environment.Exit(-1);
-        }
     }
 }
 

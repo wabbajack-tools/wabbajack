@@ -11,6 +11,7 @@ using Silk.NET.DXGI;
 using Wabbajack.Common;
 using Wabbajack.Installer;
 using Wabbajack;
+using Wabbajack.Paths.IO;
 using static PInvoke.User32;
 using UnmanagedType = System.Runtime.InteropServices.UnmanagedType;
 
@@ -25,6 +26,12 @@ public class SystemParametersConstructor
     public SystemParametersConstructor(ILogger<SystemParametersConstructor> logger)
     {
         _logger = logger;
+        
+        _logger.LogInformation("Wabbajack Build - {Sha}", ThisAssembly.Git.Sha);
+        _logger.LogInformation("Running in {EntryPoint}", KnownFolders.EntryPoint);
+        
+        _logger.LogInformation("Detected Windows Version: {Version}", Environment.OSVersion.VersionString);
+
     }
 
     private IEnumerable<(int Width, int Height, bool IsPrimary)> GetDisplays()
@@ -111,7 +118,7 @@ public class SystemParametersConstructor
         }
 
         MEMORYSTATUSEX? memory = GetMemoryStatus();
-        return new SystemParameters
+        var p = new SystemParameters
         {
             ScreenWidth      = width,
             ScreenHeight     = height,
@@ -119,6 +126,20 @@ public class SystemParametersConstructor
             SystemMemorySize = (long)memory.ullTotalPhys,
             SystemPageSize   = (long)memory.ullTotalPageFile - (long)memory.ullTotalPhys
         };
+
+        _logger.LogInformation(
+            "System settings - ({MemorySize} RAM) ({PageSize} Page), Display: {ScreenWidth} x {ScreenHeight} ({Vram} VRAM - VideoMemorySizeMb={ENBVRam})",
+            p.SystemMemorySize.ToFileSizeString(), p.SystemPageSize.ToFileSizeString(), p.ScreenWidth, p.ScreenHeight,
+            p.VideoMemorySize.ToFileSizeString(), p.EnbLEVRAMSize);
+
+        if (p.SystemPageSize == 0)
+            _logger.LogInformation(
+                "Page file is disabled! Consider increasing to 20000MB. A disabled page file can cause crashes and poor in-game performance");
+        else if (p.SystemPageSize < 2e+10)
+            _logger.LogInformation(
+                "Page file below recommended! Consider increasing to 20000MB. A suboptimal page file can cause crashes and poor in-game performance");
+        
+        return p;
     }
 
     [return: MarshalAs(UnmanagedType.Bool)]
