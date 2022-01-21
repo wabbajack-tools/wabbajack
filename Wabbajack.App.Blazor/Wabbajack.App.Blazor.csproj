@@ -22,6 +22,10 @@
         <PackageReference Include="PInvoke.User32" Version="0.7.104" />
         <PackageReference Include="Silk.NET.DXGI" Version="2.12.0" />
     </ItemGroup>
+    
+    <PropertyGroup>
+        <ApplicationIcon>Resources\Icons\wabbajack.ico</ApplicationIcon>
+    </PropertyGroup>
 
     <ItemGroup>
         <Content Update="wwwroot\index.html">
