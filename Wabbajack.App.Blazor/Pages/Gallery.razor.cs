@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Shell;
 using Microsoft.AspNetCore.Components;
@@ -11,8 +9,6 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.App.Blazor.State;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
-using Wabbajack.Networking.WabbajackClientApi;
-using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated.Services;
@@ -26,8 +22,8 @@ public partial class Gallery
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private ModListDownloadMaintainer Maintainer { get; set; } = default!;
 
-    private Percent _downloadProgress = Percent.Zero;
-    private ModlistMetadata? _downloadingMetaData;
+    private Percent DownloadProgress { get; set; } = Percent.Zero;
+    private ModlistMetadata? DownloadingMetaData { get; set; }
 
     private IEnumerable<ModlistMetadata> Modlists => StateContainer.Modlists;
 
@@ -52,13 +48,13 @@ public partial class Gallery
         _shouldRender = true;
     }
 
-    private async void OnClickDownload(ModlistMetadata metadata)
+    private async Task OnClickDownload(ModlistMetadata metadata)
     {
         // GlobalState.NavigationAllowed = !GlobalState.NavigationAllowed;
         await Download(metadata);
     }
 
-    private async void OnClickInformation(ModlistMetadata metadata)
+    private async Task OnClickInformation(ModlistMetadata metadata)
     {
         // TODO: [High] Implement information modal.
     }
@@ -66,8 +62,10 @@ public partial class Gallery
     private async Task Download(ModlistMetadata metadata)
     {
         StateContainer.NavigationAllowed = false;
-        _downloadingMetaData = metadata;
+        DownloadingMetaData = metadata;
 
+        // TODO: download progress should be in ProgressBar component so it can refresh independently
+        
         try
         {
             var (progress, task) = Maintainer.DownloadModlist(metadata);
@@ -77,13 +75,16 @@ public partial class Gallery
                 .Throttle(TimeSpan.FromMilliseconds(100))
                 .Subscribe(p =>
             {
-                _downloadProgress = p;
+                DownloadProgress = p;
                 StateContainer.TaskBarState = new TaskBarState
                 {
                     Description = $"Downloading {metadata.Title}",
                     State = TaskbarItemProgressState.Indeterminate,
                     ProgressValue = p.Value
                 };
+
+                InvokeAsync(StateHasChanged);
+                // Dispatcher.CreateDefault().InvokeAsync(StateHasChanged);
             }, () => { StateContainer.TaskBarState = new TaskBarState(); });
 
             await task;

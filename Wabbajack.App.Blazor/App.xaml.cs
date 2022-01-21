@@ -35,8 +35,12 @@ public partial class App
         var consoleTarget = new ConsoleTarget("console");
         var uiTarget = new MemoryTarget("ui");
         var blackholeTarget = new NullTarget("blackhole");
+
+        if (!string.Equals("TRUE", Environment.GetEnvironmentVariable("DEBUG_BLAZOR", EnvironmentVariableTarget.Process), StringComparison.OrdinalIgnoreCase))
+        {
+            config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Debug, blackholeTarget, "Microsoft.AspNetCore.Components.*", true);
+        }
         
-        config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Debug, blackholeTarget, "Microsoft.AspNetCore.Components.*", true);
         config.AddRuleForAllLevels(fileTarget);
         config.AddRuleForAllLevels(consoleTarget);
         config.AddRuleForAllLevels(uiTarget);
