@@ -14,4 +14,7 @@
             </blazor:BlazorWebView.RootComponents>
         </blazor:BlazorWebView>
     </Grid>
+    <Window.TaskbarItemInfo>
+        <TaskbarItemInfo x:Name="TaskBarItem"/>
+    </Window.TaskbarItemInfo>
 </Window>

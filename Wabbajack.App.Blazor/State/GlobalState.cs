@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Shell;
 using Wabbajack.DTOs;
 using Wabbajack.Paths;
 
@@ -33,6 +34,18 @@ public class GlobalState
     public event Action OnModListPathChange;
     public event Action OnModListChange;
     public event Action OnInstallStateChange;
+
+    public event Action<TaskBarState> OnTaskBarStateChange;
+
+    public void SetTaskBarState(TaskbarItemProgressState state = TaskbarItemProgressState.None, string description="",  double progress = 0)
+    {
+        OnTaskBarStateChange?.Invoke(new TaskBarState
+        {
+            State = state,
+            ProgressValue = progress,
+            Description = description
+        });
+    }
 
     public AbsolutePath ModListPath
     {

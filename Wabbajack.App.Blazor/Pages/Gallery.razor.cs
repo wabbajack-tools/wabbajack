@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Shell;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Wabbajack.App.Blazor.State;
@@ -68,11 +69,20 @@ public partial class Gallery
         try
         {
             (IObservable<Percent> progress, Task task) = _maintainer.DownloadModlist(metadata);
-            IDisposable dispose = progress.Subscribe(p => DownloadProgress = p);
+            
+            GlobalState.SetTaskBarState(TaskbarItemProgressState.Indeterminate,$"Downloading {metadata.Title}");
+
+            var dispose = progress.Subscribe(p =>
+            {
+                DownloadProgress = p;
+                GlobalState.SetTaskBarState(TaskbarItemProgressState.Indeterminate,$"Downloading {metadata.Title}",  p.Value);
+            });
 
             await task;
             //await _wjClient.SendMetric("downloading", Metadata.Title);
             dispose.Dispose();
+            GlobalState.SetTaskBarState();
+
 
             AbsolutePath path = KnownFolders.EntryPoint.Combine("downloaded_mod_lists", metadata.Links.MachineURL).WithExtension(Ext.Wabbajack);
             GlobalState.ModListPath = path;

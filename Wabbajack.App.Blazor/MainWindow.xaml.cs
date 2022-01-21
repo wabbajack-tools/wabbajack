@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
 using Wabbajack.App.Blazor.Models;
+using Wabbajack.App.Blazor.State;
 using Wabbajack.App.Blazor.Utility;
 using Wabbajack.Common;
 using Wabbajack.Installer;
@@ -13,13 +14,25 @@ public partial class MainWindow
     private readonly ILogger<MainWindow>         _logger;
     private readonly LoggerProvider              _loggerProvider;
     private readonly SystemParametersConstructor _systemParams;
+    private readonly GlobalState _globalState;
 
     public MainWindow(ILogger<MainWindow> logger, IServiceProvider serviceProvider, LoggerProvider loggerProvider,
-                      SystemParametersConstructor systemParams)
+                      SystemParametersConstructor systemParams, GlobalState globalState)
     {
         _logger         = logger;
         _loggerProvider = loggerProvider;
         _systemParams   = systemParams;
+        _globalState = globalState;
+
+        _globalState.OnTaskBarStateChange += state =>
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                TaskBarItem.Description = state.Description;
+                TaskBarItem.ProgressState = state.State;
+                TaskBarItem.ProgressValue = state.ProgressValue;
+            });
+        };
         
         InitializeComponent();
         BlazorWebView.Services = serviceProvider;
