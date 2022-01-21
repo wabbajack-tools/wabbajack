@@ -64,7 +64,7 @@
       <PackageReference Include="CefSharp.Wpf" Version="91.1.230">
         <NoWarn>NU1701</NoWarn>
       </PackageReference>
-    <PackageReference Include="DynamicData" Version="7.3.1" />
+    <PackageReference Include="DynamicData" Version="7.4.9" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.1.0">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
