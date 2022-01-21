@@ -3,13 +3,11 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using NLog;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using Wabbajack.App.Blazor.State;
 using Wabbajack.App.Blazor.Utility;
 using Wabbajack.Services.OSIntegrated;
-using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Wabbajack.App.Blazor;
 
@@ -34,12 +32,11 @@ public partial class App
         {
             FileName = "log.log"
         };
-
         var consoleTarget = new ConsoleTarget("console");
-
         var uiTarget = new MemoryTarget("ui");
-
-        config.AddRuleForAllLevels(new NullTarget("blackhole"), "Microsoft.AspNetCore.Components.*", true);
+        var blackholeTarget = new NullTarget("blackhole");
+        
+        config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Debug, blackholeTarget, "Microsoft.AspNetCore.Components.*", true);
         config.AddRuleForAllLevels(fileTarget);
         config.AddRuleForAllLevels(consoleTarget);
         config.AddRuleForAllLevels(uiTarget);

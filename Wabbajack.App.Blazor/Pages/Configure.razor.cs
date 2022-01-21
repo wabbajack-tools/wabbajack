@@ -25,7 +25,7 @@ public partial class Configure
     [Inject] private SystemParametersConstructor ParametersConstructor { get; set; } = default!;
     [Inject] private IGameLocator GameLocator { get; set; } = default!;
     [Inject] private SettingsManager SettingsManager { get; set; } = default!;
-    [Inject] private JSRuntime JSRuntime { get; set; } = default!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     
     private ModList? Modlist => StateContainer.Modlist;
 
@@ -35,7 +35,6 @@ public partial class Configure
 
     private string StatusText { get; set; } = string.Empty;
     private InstallState InstallState => StateContainer.InstallState;
-    // private LoggerProvider.ILogMessage CurrentLog { get; set; }
 
     private const string InstallSettingsPrefix = "install-settings-";
 
