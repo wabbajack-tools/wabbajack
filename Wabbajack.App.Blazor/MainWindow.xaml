@@ -8,8 +8,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="750" Width="1200" MinHeight="750" MinWidth="1200">
     <Grid Background="#121212">
-        <blazor:BlazorWebView HostPage="wwwroot\index.html" Services="{StaticResource services}"
-                              x:Name="blazorWebView1">
+        <blazor:BlazorWebView HostPage="wwwroot\index.html" x:Name="BlazorWebView">
             <blazor:BlazorWebView.RootComponents>
                 <blazor:RootComponent Selector="#app" ComponentType="{x:Type local:Main}" />
             </blazor:BlazorWebView.RootComponents>

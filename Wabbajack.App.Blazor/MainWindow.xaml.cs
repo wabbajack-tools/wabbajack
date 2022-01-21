@@ -20,8 +20,8 @@ public partial class MainWindow
         _logger         = logger;
         _loggerProvider = loggerProvider;
         _systemParams   = systemParams;
-        Resources.Add("services", serviceProvider);
         InitializeComponent();
+        BlazorWebView.Services = serviceProvider;
 
         try
         {
