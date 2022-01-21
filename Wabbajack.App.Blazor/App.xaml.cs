@@ -39,6 +39,7 @@ public partial class App
 
         var uiTarget = new MemoryTarget("ui");
 
+        config.AddRuleForAllLevels(new NullTarget("blackhole"), "Microsoft.AspNetCore.Components.*", true);
         config.AddRuleForAllLevels(fileTarget);
         config.AddRuleForAllLevels(consoleTarget);
         config.AddRuleForAllLevels(uiTarget);
