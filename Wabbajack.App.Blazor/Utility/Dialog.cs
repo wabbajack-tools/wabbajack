@@ -20,7 +20,7 @@ public static class Dialog
                 var dialog = new CommonOpenFileDialog();
                 dialog.IsFolderPicker = isFolderPicker;
                 dialog.Multiselect    = false;
-                CommonFileDialogResult result = dialog.ShowDialog(newWindow);
+                var result = dialog.ShowDialog(newWindow);
                 return result == CommonFileDialogResult.Ok ? dialog.FileName : null;
             }, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.FromCurrentSynchronizationContext())
             .ContinueWith(result => result.Result?.ToAbsolutePath())

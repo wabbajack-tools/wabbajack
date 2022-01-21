@@ -32,6 +32,12 @@
 <div id="app"></div>
 
 <script src="_framework/blazor.webview.js"></script>
-<script src="_content/Fluxor.Blazor.Web/scripts/index.js"></script>
+<script>
+    async function setImageUsingStreaming(imageElementId, imageStream) {
+        const arrayBuffer = await imageStream.arrayBuffer();
+        const blob = new Blob([arrayBuffer]);
+        document.getElementById(imageElementId).src = URL.createObjectURL(blob);
+    }
+</script>
 </body>
 </html>
