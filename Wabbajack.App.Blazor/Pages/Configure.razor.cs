@@ -12,7 +12,6 @@ using Wabbajack.Services.OSIntegrated;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
-using Wabbajack.App.Blazor.Models;
 using Wabbajack.App.Blazor.State;
 
 namespace Wabbajack.App.Blazor.Pages;
@@ -26,7 +25,6 @@ public partial class Configure
     [Inject] private SystemParametersConstructor ParametersConstructor { get; set; } = default!;
     [Inject] private IGameLocator GameLocator { get; set; } = default!;
     [Inject] private SettingsManager SettingsManager { get; set; } = default!;
-    [Inject] private LoggerProvider LoggerProvider { get; set; } = default!;
     [Inject] private JSRuntime JSRuntime { get; set; } = default!;
     
     private ModList? Modlist => StateContainer.Modlist;

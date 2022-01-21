@@ -3,11 +3,13 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Wabbajack.App.Blazor.Models;
+using NLog;
+using NLog.Extensions.Logging;
+using NLog.Targets;
 using Wabbajack.App.Blazor.State;
 using Wabbajack.App.Blazor.Utility;
-using Wabbajack.DTOs;
 using Wabbajack.Services.OSIntegrated;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Wabbajack.App.Blazor;
 
@@ -18,23 +20,41 @@ public partial class App
     public App()
     {
         _serviceProvider = Host.CreateDefaultBuilder(Array.Empty<string>())
-            .ConfigureLogging(loggingBuilder =>
-            {
-                loggingBuilder.ClearProviders();
-            })
+            .ConfigureLogging(SetupLogging)
             .ConfigureServices(services => ConfigureServices(services))
             .Build()
             .Services;
     }
 
+    private static void SetupLogging(ILoggingBuilder loggingBuilder)
+    {
+        var config = new NLog.Config.LoggingConfiguration();
+
+        var fileTarget = new FileTarget("file")
+        {
+            FileName = "log.log"
+        };
+
+        var consoleTarget = new ConsoleTarget("console");
+
+        var uiTarget = new MemoryTarget("ui");
+
+        config.AddRuleForAllLevels(fileTarget);
+        config.AddRuleForAllLevels(consoleTarget);
+        config.AddRuleForAllLevels(uiTarget);
+        
+        loggingBuilder.ClearProviders();
+        loggingBuilder.SetMinimumLevel(LogLevel.Trace);
+        loggingBuilder.AddNLog(config);
+    }
+    
     private static IServiceCollection ConfigureServices(IServiceCollection services)
     {
         services.AddOSIntegrated();
         services.AddBlazorWebView();
-        services.AddAllSingleton<ILoggerProvider, LoggerProvider>();
         services.AddTransient<MainWindow>();
         services.AddSingleton<SystemParametersConstructor>();
-        services.AddSingleton(typeof(IStateContainer), typeof(StateContainer));
+        services.AddSingleton<IStateContainer, StateContainer>();
         return services;
     }
 
