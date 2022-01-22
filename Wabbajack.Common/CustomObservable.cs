@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reactive;
+using System.Reactive.Subjects;
 
 namespace Wabbajack.Common;
 
-public class CustomObservable<T> : ObservableBase<T>
+public class CustomObservable<T> : IObservable<T>
 {
-    private readonly List<IObserver<T>> _observers = new();
+    private readonly Subject<T> _subject = new();
+    private readonly IEqualityComparer<T> _equalityComparer;
 
     private T _value;
     public T Value
@@ -14,46 +15,17 @@ public class CustomObservable<T> : ObservableBase<T>
         get => _value;
         set
         {
-            if (EqualityComparer<T>.Default.Equals(value, _value)) return;
+            if (_equalityComparer.Equals(value, _value)) return;
             _value = value;
-
-            foreach (var observer in _observers)
-            {
-                observer.OnNext(value);
-            }
+            _subject.OnNext(value);
         } 
     }
 
-    public CustomObservable(T value)
+    public CustomObservable(T value, IEqualityComparer<T>? equalityComparer = null)
     {
         _value = value;
+        _equalityComparer = equalityComparer ?? EqualityComparer<T>.Default;
     }
 
-    protected override IDisposable SubscribeCore(IObserver<T> observer)
-    {
-        if (!_observers.Contains(observer))
-        {
-            _observers.Add(observer);
-            observer.OnNext(Value);
-        }
-
-        return new Unsubscriber<T>(_observers, observer);
-    }
-}
-
-internal sealed class Unsubscriber<T> : IDisposable
-{
-    private readonly List<IObserver<T>> _observers;
-    private readonly IObserver<T> _observer;
-
-    public Unsubscriber(List<IObserver<T>> observers, IObserver<T> observer)
-    {
-        _observers = observers;
-        _observer = observer;
-    }
-
-    public void Dispose()
-    {
-        if (_observers.Contains(_observer)) _observers.Remove(_observer);
-    }
+    public IDisposable Subscribe(IObserver<T> observer) => _subject.Subscribe(observer);
 }
