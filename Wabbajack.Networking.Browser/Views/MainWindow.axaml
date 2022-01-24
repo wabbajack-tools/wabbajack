@@ -1,0 +1,30 @@
+<reactiveUi:ReactiveWindow x:TypeArguments="vm:MainWindowViewModel"
+                           xmlns="https://github.com/avaloniaui"
+                           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                           xmlns:vm="using:Wabbajack.Networking.Browser.ViewModels"
+                           xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                           xmlns:avalonia="clr-namespace:CefNet.Avalonia;assembly=CefNet.Avalonia"
+                           xmlns:reactiveUi="http://reactiveui.net"
+                           mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+                           x:Class="Wabbajack.Networking.Browser.Views.MainWindow"
+                           Icon="/Assets/avalonia-logo.ico"
+                           Title="Wabbajack.Networking.Browser"
+                           Width="800"
+                           Height="600"
+        
+                           TransparencyLevelHint="AcrylicBlur"
+                           Background="Transparent"
+
+                           ExtendClientAreaToDecorationsHint="True">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto, *"
+          ColumnDefinitions="Auto, *">
+        <TextBlock Grid.Row="0" Grid.Column="0" Margin="8" x:Name="Instructions" VerticalAlignment="Center" HorizontalAlignment="Left"></TextBlock>
+        <avalonia:WebView Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" x:FieldModifier="public" x:Name="Browser" Margin="4" InitialUrl="https://www.google.com"></avalonia:WebView>
+    </Grid>
+</reactiveUi:ReactiveWindow>
