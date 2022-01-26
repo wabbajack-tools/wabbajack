@@ -1,4 +1,5 @@
-﻿using Wabbajack.DTOs.BSA.ArchiveStates;
+﻿using Wabbajack.DTOs.BrowserMessages;
+using Wabbajack.DTOs.BSA.ArchiveStates;
 using Wabbajack.DTOs.BSA.FileStates;
 using Wabbajack.DTOs.DownloadStates;
 
@@ -13,6 +14,7 @@ internal class Program
         new PolymorphicGenerator<IArchive>().GenerateAll(cfile);
         new PolymorphicGenerator<Directive>().GenerateAll(cfile);
         new PolymorphicGenerator<AFile>().GenerateAll(cfile);
+        new PolymorphicGenerator<IMessage>().GenerateAll(cfile);
 
 
         cfile.Write(@"..\Wabbajack.DTOs\JsonConverters\Generated.cs");

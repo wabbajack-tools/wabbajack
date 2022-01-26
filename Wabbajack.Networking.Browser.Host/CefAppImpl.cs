@@ -53,6 +53,7 @@ delete newProto.webdriver;
 navigator.__proto__ = newProto;
 }", frame.Url, 0);
     }
+    
 
     protected override void OnCefProcessMessageReceived(CefProcessMessageReceivedEventArgs e)
     {

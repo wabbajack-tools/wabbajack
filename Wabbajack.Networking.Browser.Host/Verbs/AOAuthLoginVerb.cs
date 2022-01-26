@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -36,8 +37,9 @@ where TLoginType : OAuth2LoginState, new()
 
     public override Command MakeCommand()
     {
+        var textInfo = new CultureInfo("en-US", false).TextInfo;
         var command = new Command($"{_namePrefix}-login");
-        command.Description = "Prompt the user to log into the nexus";
+        command.Description = $"Prompt the user to log into {textInfo.ToTitleCase(_namePrefix.Replace("-", " "))}";
         command.Handler = CommandHandler.Create(Run);
         return command;
     }

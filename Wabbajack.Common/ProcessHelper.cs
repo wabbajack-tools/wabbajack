@@ -18,6 +18,8 @@ public class ProcessHelper
 
     public readonly Subject<(StreamType Type, string Line)> Output = new Subject<(StreamType Type, string)>();
 
+    private readonly Subject<string> _input = new();
+    public IObserver<string> Input => _input;
 
     public AbsolutePath Path { get; set; }
     public IEnumerable<object> Arguments { get; set; } = Enumerable.Empty<object>();
@@ -71,6 +73,14 @@ public class ProcessHelper
         };
         p.ErrorDataReceived += ErrorEventHandler;
 
+        var din = _input.Subscribe(s =>
+        {
+            lock (p)
+            {
+                p.StandardInput.Write(s);
+            }
+        });
+
 
         p.Start();
         p.BeginErrorReadLine();
@@ -91,6 +101,7 @@ public class ProcessHelper
         var result = await finished.Task;
         // Do this to make sure everything flushes
         p.WaitForExit();
+        din.Dispose();
         p.CancelErrorRead();
         p.CancelOutputRead();
         p.OutputDataReceived -= OutputDataReceived;

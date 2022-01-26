@@ -1,13 +1,16 @@
 using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CefNet;
 using Microsoft.Extensions.DependencyInjection;
+using Wabbajack.CLI.TypeConverters;
 using Wabbajack.CLI.Verbs;
 using Wabbajack.Networking.Browser.Verbs;
 using Wabbajack.Networking.Browser.ViewModels;
 using Wabbajack.Networking.Browser.Views;
+using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 
@@ -24,6 +27,9 @@ public static class ServiceExtensions
     public static IServiceCollection AddAppServices(this IServiceCollection services)
     {
         
+        TypeDescriptor.AddAttributes(typeof(AbsolutePath),
+            new TypeConverterAttribute(typeof(AbsolutePathTypeConverter)));
+        
         var resources = KnownFolders.EntryPoint;
         services.AddSingleton<MainWindow>();
         services.AddSingleton<MainWindowViewModel>();
@@ -31,6 +37,7 @@ public static class ServiceExtensions
         services.AddSingleton<IVerb, NexusLogin>();
         services.AddSingleton<IVerb, LoverLabLogin>();
         services.AddSingleton<IVerb, VectorPlexusLogin>();
+        services.AddSingleton<IVerb, ManualDownload>();
         services.AddOSIntegrated();
         
         services.AddSingleton(s => new CefSettings

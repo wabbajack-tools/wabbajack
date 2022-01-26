@@ -6,10 +6,11 @@
                            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                            xmlns:avalonia="clr-namespace:CefNet.Avalonia;assembly=CefNet.Avalonia"
                            xmlns:reactiveUi="http://reactiveui.net"
+                           xmlns:browser="clr-namespace:Wabbajack.Networking.Browser"
                            mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
                            x:Class="Wabbajack.Networking.Browser.Views.MainWindow"
                            Icon="/Assets/avalonia-logo.ico"
-                           Title="Wabbajack.Networking.Browser"
+                           Title="Wabbajack.Networking.Browser.Host"
                            Width="800"
                            Height="600"
         
@@ -25,6 +26,6 @@
     <Grid RowDefinitions="Auto, *"
           ColumnDefinitions="Auto, *">
         <TextBlock Grid.Row="0" Grid.Column="0" Margin="8" x:Name="Instructions" VerticalAlignment="Center" HorizontalAlignment="Left"></TextBlock>
-        <avalonia:WebView Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" x:FieldModifier="public" x:Name="Browser" Margin="4" InitialUrl="https://www.google.com"></avalonia:WebView>
+        <browser:CustomWebView Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" x:FieldModifier="public" x:Name="Browser" Margin="4" InitialUrl="https://www.google.com"></browser:CustomWebView>
     </Grid>
 </reactiveUi:ReactiveWindow>
