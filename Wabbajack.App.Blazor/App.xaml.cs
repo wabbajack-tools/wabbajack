@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,6 +22,7 @@ public partial class App
             .ConfigureServices(services => ConfigureServices(services))
             .Build()
             .Services;
+        _serviceProvider.GetRequiredService<SystemParametersConstructor>();
     }
 
     private static void SetupLogging(ILoggingBuilder loggingBuilder)
