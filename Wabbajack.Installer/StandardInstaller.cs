@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using IniParser;
@@ -301,6 +302,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             _logger.LogWarning("No SystemParameters set, ignoring ini settings for system parameters");
 
         var config = new IniParserConfiguration {AllowDuplicateKeys = true, AllowDuplicateSections = true};
+        config.CommentRegex = new Regex(@"^(#|;)(.*)");
         var oblivionPath = (RelativePath) "Oblivion.ini";
         foreach (var file in _configuration.Install.Combine("profiles").EnumerateFiles()
             .Where(f => ((string) f.FileName).EndsWith("refs.ini") || f.FileName == oblivionPath))
@@ -327,8 +329,9 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                         modified = true;
                     }
 
-                if (modified)
-                    parser.WriteFile(file.ToString(), data);
+                if (!modified) continue;
+                parser.WriteFile(file.ToString(), data);
+                _logger.LogTrace("Remapped screen size in {file}", file);
             }
             catch (Exception ex)
             {
