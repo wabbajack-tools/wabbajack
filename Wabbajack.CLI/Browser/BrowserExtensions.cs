@@ -7,7 +7,7 @@ using CefNet.Avalonia;
 using HtmlAgilityPack;
 using Wabbajack.DTOs.Logins;
 
-namespace Wabbajack.Networking.Browser;
+namespace Wabbajack.CLI.Browser;
 
 public static class BrowserExtensions
 {

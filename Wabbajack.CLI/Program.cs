@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Octokit;
+using Wabbajack.CLI.Browser;
 using Wabbajack.CLI.TypeConverters;
 using Wabbajack.CLI.Verbs;
 using Wabbajack.DTOs.GitHub;
@@ -25,6 +26,7 @@ namespace Wabbajack.CLI;
 
 internal class Program
 {
+    [STAThread]
     private static async Task<int> Main(string[] args)
     {
         TypeDescriptor.AddAttributes(typeof(AbsolutePath),
@@ -52,6 +54,10 @@ internal class Program
                 services.AddOSIntegrated();
                 services.AddServerLib();
 
+                services.AddSingleton<MainWindow>();
+                services.AddSingleton<MainWindowViewModel>();
+
+                services.AddSingleton<BrowserHost>();
 
                 services.AddTransient<Context>();
                 
@@ -62,6 +68,7 @@ internal class Program
                 services.AddSingleton<DownloadUrl>();
                 services.AddSingleton<ForceHeal>();
                 services.AddSingleton<MirrorFile>();
+                services.AddSingleton<NexusLogin>();
                 services.AddSingleton<SteamDownloadFile>();
                 services.AddSingleton<SteamLogin>();
                 services.AddSingleton<UploadToNexus>();
@@ -88,6 +95,7 @@ internal class Program
         reg.Register<UploadToNexus>(UploadToNexus.MakeCommand);
         reg.Register<ValidateLists>(ValidateLists.MakeCommand);
         reg.Register<VfsIndexFolder>(VfsIndexFolder.MakeCommand);
+        reg.Register<NexusLogin>(NexusLogin.MakeCommand);
         
         return await service!.Run(args);
     }

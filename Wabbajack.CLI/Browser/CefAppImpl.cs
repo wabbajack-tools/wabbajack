@@ -2,9 +2,9 @@ using System;
 using System.Runtime.InteropServices;
 using CefNet;
 
-namespace Wabbajack.Networking.Browser;
+namespace Wabbajack.CLI.Browser;
 
-internal class CefAppImpl : CefNetApplication
+public class CefAppImpl : CefNetApplication
 {
     public Action<long> ScheduleMessagePumpWorkCallback { get; set; }
 

@@ -1,6 +1,6 @@
 ﻿using ReactiveUI.Fody.Helpers;
 
-namespace Wabbajack.Networking.Browser.ViewModels
+namespace Wabbajack.CLI.Browser
 {
     public class MainWindowViewModel : ViewModelBase
     {

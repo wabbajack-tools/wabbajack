@@ -10,6 +10,7 @@
         <AssemblyName>wabbajack-cli</AssemblyName>
         <PublishTrimmed>true</PublishTrimmed>
         <TimeMode>linked</TimeMode>
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,6 +20,7 @@
         <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.2-mauipre.1.22054.8" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.2-mauipre.1.22054.8" />
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21561.1" />
+        <PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" />
     </ItemGroup>
 
     <ItemGroup>
@@ -31,6 +33,22 @@
         <ProjectReference Include="..\Wabbajack.Server.Lib\Wabbajack.Server.Lib.csproj" />
         <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
         <ProjectReference Include="..\Wabbajack.VFS\Wabbajack.VFS.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Browser\App.axaml.cs">
+        <DependentUpon>App.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Browser\MainWindow.axaml.cs">
+        <DependentUpon>MainWindow.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Assets\wabbajack.ico" />
+      <AvaloniaResource Include="Assets\wabbajack.ico" />
     </ItemGroup>
 
 </Project>

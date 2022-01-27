@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ReactiveUI;
+﻿using ReactiveUI;
 
-namespace Wabbajack.Networking.Browser.ViewModels
+namespace Wabbajack.CLI.Browser
 {
     public class ViewModelBase : ReactiveObject, IActivatableViewModel
     {

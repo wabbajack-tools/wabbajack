@@ -1,11 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="using:Wabbajack.Networking.Browser"
-             x:Class="Wabbajack.Networking.Browser.App">
-    <Application.DataTemplates>
-        <local:ViewLocator/>
-    </Application.DataTemplates>
-
+             x:Class="Wabbajack.CLI.Browser.BrowserApp">
     <Application.Styles>
         <FluentTheme Mode="Dark"/>
     </Application.Styles>

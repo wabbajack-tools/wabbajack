@@ -3,9 +3,8 @@ using Avalonia;
 using Avalonia.Controls.Mixins;
 using Avalonia.ReactiveUI;
 using ReactiveUI;
-using Wabbajack.Networking.Browser.ViewModels;
 
-namespace Wabbajack.Networking.Browser.Views
+namespace Wabbajack.CLI.Browser
 {
     public partial class MainWindow
         : ReactiveWindow<MainWindowViewModel>

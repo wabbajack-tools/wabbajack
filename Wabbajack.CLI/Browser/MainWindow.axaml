@@ -1,15 +1,15 @@
 <reactiveUi:ReactiveWindow x:TypeArguments="vm:MainWindowViewModel"
                            xmlns="https://github.com/avaloniaui"
                            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                           xmlns:vm="using:Wabbajack.Networking.Browser.ViewModels"
+                           xmlns:vm="using:Wabbajack.CLI.Browser"
                            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                            xmlns:avalonia="clr-namespace:CefNet.Avalonia;assembly=CefNet.Avalonia"
                            xmlns:reactiveUi="http://reactiveui.net"
-                           xmlns:browser="clr-namespace:Wabbajack.Networking.Browser"
+                           xmlns:browser="clr-namespace:Wabbajack.CLI.Browser"
                            mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
-                           x:Class="Wabbajack.Networking.Browser.Views.MainWindow"
-                           Icon="/Assets/avalonia-logo.ico"
+                           x:Class="Wabbajack.CLI.Browser.MainWindow"
+                           Icon="/Assets/wabbajack.ico"
                            Title="Wabbajack.Networking.Browser.Host"
                            Width="800"
                            Height="600"
@@ -18,10 +18,6 @@
                            Background="Transparent"
 
                            ExtendClientAreaToDecorationsHint="True">
-
-    <Design.DataContext>
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
 
     <Grid RowDefinitions="Auto, *"
           ColumnDefinitions="Auto, *">

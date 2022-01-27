@@ -4,24 +4,20 @@ using CefNet.Avalonia;
 using CefNet.Internal;
 using Wabbajack.Paths;
 
-namespace Wabbajack.Networking.Browser;
+namespace Wabbajack.CLI.Browser;
 
 public class CustomWebView : WebView
 {
-    private CustomGlue Glue { get; }
-
-    public CustomWebView() : base()
-    {
-        Glue = new CustomGlue(this);
-    }
+    public CustomGlue Glue { get; private set; }
 
     protected override WebViewGlue CreateWebViewGlue()
     {
+        Glue = new CustomGlue(this);
         return Glue;
     }
 }
 
-class CustomGlue : AvaloniaWebViewGlue
+public class CustomGlue : AvaloniaWebViewGlue
 {
     private readonly CustomWebView _view;
     public Func<Uri, AbsolutePath>? RedirectDownloadsFn { get; set; }
