@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 
 <head>
@@ -40,6 +40,12 @@
         const arrayBuffer = await imageStream.arrayBuffer();
         const blob = new Blob([arrayBuffer]);
         document.getElementById(imageElementId).src = URL.createObjectURL(blob);
+    }
+
+    async function getBlobUrlFromStream(imageStream) {
+        const arrayBuffer = await imageStream.arrayBuffer();
+        const blob = new Blob([arrayBuffer]);
+        return URL.createObjectURL(blob);
     }
 </script>
 </body>

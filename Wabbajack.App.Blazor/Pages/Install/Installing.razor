@@ -1,0 +1,34 @@
+﻿@page "/install/installing"
+
+@namespace Wabbajack.App.Blazor.Pages
+
+<div id="content">
+    <div class="install-background">
+        <img id="background-image" src="@ModlistImage" alt=""/>
+    </div>
+    <div class="list">
+        @if (Modlist is not null)
+        {
+            <div class="left-side">
+                <CascadingValue Value=this>
+                    <InfoBlock Supertitle="@StatusCategory" Title="@Modlist.Name"/>
+                    <StepLogger ShownSteps="3" Reverse="false" Steps="@StatusStep"/>
+                </CascadingValue>
+            </div>
+            <div class="right-side">
+                <InfoImage Image="@ModlistImage" Title="Some Mod Title" Subtitle="Author and others" Description="This mod adds something cool but I'm not going to tell you anything."/>
+                <div id="progressthing1"></div>
+                <div id="progressthing2"></div>
+                <div id="progressthing3"></div>
+                <div id="progressthing4"></div>
+            </div>
+        }
+    </div>
+    <div class="logger-container">
+        <VirtualLogger/>
+    </div>
+</div>
+
+@code {
+        public const string Route = "/install/installing";
+}
