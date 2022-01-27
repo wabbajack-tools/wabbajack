@@ -24,7 +24,7 @@ using Wabbajack.VFS;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class ForceHeal : IVerb
+public class ForceHeal : AVerb
 {
     private readonly ILogger<ForceHeal> _logger;
     private readonly Client _client;
@@ -42,13 +42,12 @@ public class ForceHeal : IVerb
         _httpClient = httpClient;
     }
 
-    public Command MakeCommand()
+    public static Command MakeCommand()
     {
         var command = new Command("force-heal");
         command.Add(new Option<AbsolutePath>(new[] {"-n", "-new-file"}, "New File"));
         command.Add(new Option<string>(new[] {"-o", "-old-file"}, "Old File"));
         command.Description = "Creates a patch from New file to Old File and uploads it";
-        command.Handler = CommandHandler.Create(Run);
         return command;
     }
 
@@ -118,5 +117,10 @@ public class ForceHeal : IVerb
             Size = file.Size(),
             State = state!
         };
+    }
+
+    protected override ICommandHandler GetHandler()
+    {
+        return CommandHandler.Create(Run);
     }
 }

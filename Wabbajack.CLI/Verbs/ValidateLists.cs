@@ -35,7 +35,7 @@ using Wabbajack.Server.Lib.TokenProviders;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class ValidateLists : IVerb
+public class ValidateLists : AVerb
 {
     private static readonly Uri MirrorPrefix = new("https://mirror.wabbajack.org");
     private readonly WriteOnlyClient _discord;
@@ -70,7 +70,7 @@ public class ValidateLists : IVerb
         _random = new Random();
     }
 
-    public Command MakeCommand()
+    public static Command MakeCommand()
     {
         var command = new Command("validate-lists");
         command.Add(new Option<List[]>(new[] {"-l", "-lists"}, "Lists of lists to validate") {IsRequired = true});
@@ -84,7 +84,6 @@ public class ValidateLists : IVerb
             {IsRequired = false});
 
         command.Description = "Gets a list of modlists, validates them and exports a result list";
-        command.Handler = CommandHandler.Create(Run);
         return command;
     }
 
@@ -513,5 +512,10 @@ public class ValidateLists : IVerb
         var client = await (await _ftpSiteCredentials.Get())![StorageSpace.Patches].GetClient(_logger);
         await client.ConnectAsync(token);
         return client;
+    }
+
+    protected override ICommandHandler GetHandler()
+    {
+        return CommandHandler.Create(Run);
     }
 }

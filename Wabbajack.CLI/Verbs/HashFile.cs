@@ -10,7 +10,7 @@ using Wabbajack.Paths.IO;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class HashFile : IVerb
+public class HashFile : AVerb
 {
     private readonly ILogger<HashFile> _logger;
 
@@ -18,22 +18,25 @@ public class HashFile : IVerb
     {
         _logger = logger;
     }
-
-    public Command MakeCommand()
+    
+    public static Command MakeCommand()
     {
         var command = new Command("hash-file");
         command.Add(new Option<AbsolutePath>(new[] {"-i", "-input"}, "Path to the file to hash"));
         command.Description = "Hashes a file with Wabbajack's xxHash64 implementation";
-        command.Handler = CommandHandler.Create(Run);
         return command;
     }
-
-
+    
+    protected override ICommandHandler GetHandler()
+    {
+        return CommandHandler.Create(Run);
+    }
+    
     public async Task<int> Run(AbsolutePath input)
     {
         await using var istream = input.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
         var hash = await istream.HashingCopy(Stream.Null, CancellationToken.None);
-        _logger.LogInformation($"{input} hash: {hash} {hash.ToHex()} {(long) hash}");
+        _logger.LogInformation("{Input} hash: {Hash} {HashAsHex} {HashAsLong}", input, hash, hash.ToHex(), (long)hash);
         return 0;
     }
 }

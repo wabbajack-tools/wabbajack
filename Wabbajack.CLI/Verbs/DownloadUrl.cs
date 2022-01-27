@@ -10,7 +10,7 @@ using Wabbajack.Paths;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class DownloadUrl : IVerb
+public class DownloadUrl : AVerb
 {
     private readonly DownloadDispatcher _dispatcher;
     private readonly ILogger<DownloadUrl> _logger;
@@ -21,13 +21,12 @@ public class DownloadUrl : IVerb
         _dispatcher = dispatcher;
     }
 
-    public Command MakeCommand()
+    public static Command MakeCommand()
     {
         var command = new Command("download-url");
         command.Add(new Option<Uri>(new[] {"-u", "-url"}, "Url to parse"));
         command.Add(new Option<AbsolutePath>(new[] {"-o", "-output"}, "Output file"));
         command.Description = "Downloads a file to a given output";
-        command.Handler = CommandHandler.Create(Run);
         return command;
     }
 
@@ -44,5 +43,10 @@ public class DownloadUrl : IVerb
         var archive = new Archive() {State = parsed, Name = output.FileName.ToString()};
         await _dispatcher.Download(archive, output, CancellationToken.None);
         return 0;
+    }
+
+    protected override ICommandHandler GetHandler()
+    {
+        return CommandHandler.Create(Run);
     }
 }

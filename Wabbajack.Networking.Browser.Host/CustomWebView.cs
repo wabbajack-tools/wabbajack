@@ -46,7 +46,6 @@ class CustomGlue : AvaloniaWebViewGlue
 
     protected override void OnDownloadUpdated(CefBrowser browser, CefDownloadItem downloadItem, CefDownloadItemCallback callback)
     {
-        downloadItem.
         base.OnDownloadUpdated(browser, downloadItem, callback);
     }
 }

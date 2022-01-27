@@ -14,7 +14,7 @@ using Wabbajack.Paths;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class SteamDownloadFile : IVerb
+public class SteamDownloadFile : AVerb
 {
     private readonly ILogger<SteamDownloadFile> _logger;
     private readonly Client _client;
@@ -33,7 +33,7 @@ public class SteamDownloadFile : IVerb
         _dtos = dtos;
         _wjClient = wjClient;
     }
-    public Command MakeCommand()
+    public static Command MakeCommand()
     {
         var command = new Command("steam-download-file");
         command.Description = "Dumps information to the console about the given app";
@@ -43,7 +43,6 @@ public class SteamDownloadFile : IVerb
         command.Add(new Option<string>(new[] {"-v", "-version"}, "Version of the game to download for"));
         command.Add(new Option<string>(new[] {"-f", "-file"}, "File to download (relative path)"));
         command.Add(new Option<string>(new[] {"-o", "-output"}, "Output location"));
-        command.Handler = CommandHandler.Create(Run);
         return command;
     }
 
@@ -92,5 +91,10 @@ public class SteamDownloadFile : IVerb
 
 
 
+    }
+
+    protected override ICommandHandler GetHandler()
+    {
+        return CommandHandler.Create(Run);
     }
 }

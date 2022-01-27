@@ -10,4 +10,5 @@ public interface IJob
     public long Current { get; }
     public string Description { get; }
     public ValueTask Report(int processedSize, CancellationToken token);
+    public void ReportNoWait(int processedSize);
 }

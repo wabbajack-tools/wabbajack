@@ -8,7 +8,7 @@ using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class Decrypt : IVerb
+public class Decrypt : AVerb
 {
     private readonly ILogger<Decrypt> _logger;
 
@@ -17,13 +17,12 @@ public class Decrypt : IVerb
         _logger = logger;
     }
 
-    public Command MakeCommand()
+    public static Command MakeCommand()
     {
         var command = new Command("decrypt");
         command.Add(new Option<AbsolutePath>(new[] {"-o", "-output"}, "Output file path"));
         command.Add(new Option<string>(new[] {"-n", "-name"}, "Name of the key to load data from"));
         command.Description = "Decrypts a file from the Wabbajack encrypted storage";
-        command.Handler = CommandHandler.Create(Run);
         return command;
     }
 
@@ -36,5 +35,10 @@ public class Decrypt : IVerb
         await output.WriteAllBytesAsync(data);
 
         return 0;
+    }
+
+    protected override ICommandHandler GetHandler()
+    {
+        return CommandHandler.Create(Run);
     }
 }

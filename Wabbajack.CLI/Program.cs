@@ -14,7 +14,6 @@ using Wabbajack.DTOs.GitHub;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
-using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Server.Lib;
@@ -32,7 +31,7 @@ internal class Program
             new TypeConverterAttribute(typeof(AbsolutePathTypeConverter)));
         TypeDescriptor.AddAttributes(typeof(List),
             new TypeConverterAttribute(typeof(ModListCategoryConverter)));
-
+        
         var host = Host.CreateDefaultBuilder(Array.Empty<string>())
             .ConfigureServices((host, services) =>
             {
@@ -48,31 +47,48 @@ internal class Program
                 services.AddSingleton<Client>();
                 services.AddSingleton<Networking.WabbajackClientApi.Client>();
                 services.AddSingleton(s => new GitHubClient(new ProductHeaderValue("wabbajack")));
+                services.AddSingleton<VerbRegistrar>();
 
                 services.AddOSIntegrated();
                 services.AddServerLib();
 
 
                 services.AddTransient<Context>();
-                services.AddSingleton<IVerb, HashFile>();
-                services.AddSingleton<IVerb, VFSIndexFolder>();
-                services.AddSingleton<IVerb, Encrypt>();
-                services.AddSingleton<IVerb, Decrypt>();
-                services.AddSingleton<IVerb, ValidateLists>();
-                services.AddSingleton<IVerb, DownloadCef>();
-                services.AddSingleton<IVerb, DownloadUrl>();
-                services.AddSingleton<IVerb, GenerateMetricsReports>();
-                services.AddSingleton<IVerb, ForceHeal>();
-                services.AddSingleton<IVerb, MirrorFile>();
-                services.AddSingleton<IVerb, SteamLogin>();
-                services.AddSingleton<IVerb, SteamAppDumpInfo>();
-                services.AddSingleton<IVerb, SteamDownloadFile>();
-                services.AddSingleton<IVerb, UploadToNexus>();
+                
+                services.AddSingleton<Encrypt>();
+                services.AddSingleton<HashFile>();
+                services.AddSingleton<DownloadCef>();
+                services.AddSingleton<Decrypt>();
+                services.AddSingleton<DownloadUrl>();
+                services.AddSingleton<ForceHeal>();
+                services.AddSingleton<MirrorFile>();
+                services.AddSingleton<SteamDownloadFile>();
+                services.AddSingleton<SteamLogin>();
+                services.AddSingleton<UploadToNexus>();
+                services.AddSingleton<ValidateLists>();
+                services.AddSingleton<VfsIndexFolder>();
 
                 services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
             }).Build();
 
-        var service = host.Services.GetService<CommandLineBuilder>();
+        var service = host.Services.GetRequiredService<CommandLineBuilder>();
+        
+        var reg = host.Services.GetRequiredService<VerbRegistrar>();
+        
+        reg.Register<Decrypt>(Decrypt.MakeCommand);
+        reg.Register<DownloadCef>(DownloadCef.MakeCommand);
+        
+        reg.Register<DownloadUrl>(DownloadUrl.MakeCommand);
+        reg.Register<Encrypt>(Encrypt.MakeCommand);
+        reg.Register<HashFile>(HashFile.MakeCommand);
+        reg.Register<ForceHeal>(ForceHeal.MakeCommand);
+        reg.Register<MirrorFile>(MirrorFile.MakeCommand);
+        reg.Register<SteamDownloadFile>(SteamDownloadFile.MakeCommand);
+        reg.Register<SteamLogin>(SteamLogin.MakeCommand);
+        reg.Register<UploadToNexus>(UploadToNexus.MakeCommand);
+        reg.Register<ValidateLists>(ValidateLists.MakeCommand);
+        reg.Register<VfsIndexFolder>(VfsIndexFolder.MakeCommand);
+        
         return await service!.Run(args);
     }
 }

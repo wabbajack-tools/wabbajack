@@ -8,4 +8,5 @@ public class DownloadProgress : IMessage
     public bool IsDone { get; set; }
     public long BytesPerSecond { get; set; }
     public long BytesCompleted { get; set; }
+    public long? ExpectedSize { get; set; }
 }

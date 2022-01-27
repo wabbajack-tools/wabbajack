@@ -8,7 +8,7 @@ using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class Encrypt : IVerb
+public class Encrypt : AVerb
 {
     private readonly ILogger<Encrypt> _logger;
 
@@ -17,16 +17,15 @@ public class Encrypt : IVerb
         _logger = logger;
     }
 
-    public Command MakeCommand()
+    public static Command MakeCommand()
     {
         var command = new Command("encrypt");
         command.Add(new Option<AbsolutePath>(new[] {"-i", "-input"}, "Path to the file to enrypt"));
         command.Add(new Option<string>(new[] {"-n", "-name"}, "Name of the key to store the data into"));
         command.Description = "Encrypts a file and stores it in the Wabbajack encrypted storage";
-        command.Handler = CommandHandler.Create(Run);
         return command;
     }
-
+    
     public async Task<int> Run(AbsolutePath input, string name)
     {
         var data = await input.ReadAllBytesAsync();
@@ -34,5 +33,10 @@ public class Encrypt : IVerb
         await data.AsEncryptedDataFile(name.ToRelativePath()
             .RelativeTo(KnownFolders.WabbajackAppLocal.Combine("encrypted")));
         return 0;
+    }
+
+    protected override ICommandHandler GetHandler()
+    {
+        return CommandHandler.Create(Run);
     }
 }

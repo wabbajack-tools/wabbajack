@@ -13,7 +13,7 @@ using Wabbajack.Paths.IO;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class UploadToNexus : IVerb
+public class UploadToNexus : AVerb
 {
     private readonly ILogger<UploadToNexus> _logger;
     private readonly NexusApi _client;
@@ -25,12 +25,11 @@ public class UploadToNexus : IVerb
         _client = wjClient;
         _dtos = dtos;
     }
-    public Command MakeCommand()
+    public static Command MakeCommand()
     {
         var command = new Command("upload-to-nexus");
         command.Add(new Option<AbsolutePath>(new[] {"-d", "-definition"}, "Definition JSON file"));
         command.Description = "Uploads a file to the Nexus defined by the given .json definition file";
-        command.Handler = CommandHandler.Create(Run);
         return command;
     }
 
@@ -43,5 +42,9 @@ public class UploadToNexus : IVerb
 
         return 0;
     }
-    
+
+    protected override ICommandHandler GetHandler()
+    {
+        return CommandHandler.Create(Run);
+    }
 }

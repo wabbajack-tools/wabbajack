@@ -7,7 +7,7 @@ using Wabbajack.Paths;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class MirrorFile : IVerb
+public class MirrorFile : AVerb
 {
     private readonly ILogger<MirrorFile> _logger;
     private readonly Client _client;
@@ -17,12 +17,11 @@ public class MirrorFile : IVerb
         _logger = logger;
         _client = wjClient;
     }
-    public Command MakeCommand()
+    public static Command MakeCommand()
     {
         var command = new Command("mirror-file");
         command.Add(new Option<AbsolutePath>(new[] {"-i", "-input"}, "File to Mirror"));
         command.Description = "Mirrors a file to the Wabbajack CDN";
-        command.Handler = CommandHandler.Create(Run);
         return command;
     }
 
@@ -34,5 +33,9 @@ public class MirrorFile : IVerb
 
         return 0;
     }
-    
+
+    protected override ICommandHandler GetHandler()
+    {
+        return CommandHandler.Create(Run);
+    }
 }

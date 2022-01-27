@@ -6,8 +6,6 @@ using Avalonia.Threading;
 using CefNet;
 using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.CLI.TypeConverters;
-using Wabbajack.CLI.Verbs;
-using Wabbajack.Networking.Browser.Verbs;
 using Wabbajack.Networking.Browser.ViewModels;
 using Wabbajack.Networking.Browser.Views;
 using Wabbajack.Paths;
@@ -33,11 +31,7 @@ public static class ServiceExtensions
         var resources = KnownFolders.EntryPoint;
         services.AddSingleton<MainWindow>();
         services.AddSingleton<MainWindowViewModel>();
-
-        services.AddSingleton<IVerb, NexusLogin>();
-        services.AddSingleton<IVerb, LoverLabLogin>();
-        services.AddSingleton<IVerb, VectorPlexusLogin>();
-        services.AddSingleton<IVerb, ManualDownload>();
+        
         services.AddOSIntegrated();
         
         services.AddSingleton(s => new CefSettings

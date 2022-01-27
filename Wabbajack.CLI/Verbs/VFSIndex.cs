@@ -7,22 +7,20 @@ using Wabbajack.VFS;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class VFSIndexFolder : IVerb
+public class VfsIndexFolder : AVerb
 {
     private readonly Context _context;
 
-    public VFSIndexFolder(Context context)
+    public VfsIndexFolder(Context context)
     {
         _context = context;
     }
 
-    public Command MakeCommand()
+    public static Command MakeCommand()
     {
         var command = new Command("vfs-index");
         command.Add(new Option<AbsolutePath>(new[] {"-f", "--folder"}, "Folder to index"));
         command.Description = "Index and cache the contents of a folder";
-
-        command.Handler = CommandHandler.Create(Run);
         return command;
     }
 
@@ -30,5 +28,10 @@ public class VFSIndexFolder : IVerb
     {
         await _context.AddRoot(folder, CancellationToken.None);
         return 0;
+    }
+
+    protected override ICommandHandler GetHandler()
+    {
+        return CommandHandler.Create(Run);
     }
 }

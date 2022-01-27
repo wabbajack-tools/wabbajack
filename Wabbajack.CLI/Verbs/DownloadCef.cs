@@ -20,7 +20,7 @@ using Version = System.Version;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class DownloadCef : IVerb
+public class DownloadCef : AVerb
 {
     private readonly DownloadDispatcher _dispatcher;
     private readonly FileExtractor.FileExtractor _fileExtractor;
@@ -36,13 +36,12 @@ public class DownloadCef : IVerb
         _httpClient = httpClient;
     }
 
-    public Command MakeCommand()
+    public static Command MakeCommand()
     {
         var command = new Command("download-cef");
         command.Add(new Option<AbsolutePath>(new[] {"-f", "-folder"}, "Path to Wabbajack"));
         command.Add(new Option<bool>(new[] {"--force"}, "Force the download even if the output already exists"));
         command.Description = "Downloads CEF into this folder";
-        command.Handler = CommandHandler.Create(Run);
         return command;
     }
 
@@ -110,5 +109,10 @@ public class DownloadCef : IVerb
         tempFile.Delete();
 
         return 0;
+    }
+
+    protected override ICommandHandler GetHandler()
+    {
+        return CommandHandler.Create(Run);
     }
 }

@@ -1,7 +1,7 @@
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
-namespace Wabbajack.Networking.Browser.Client;
+namespace Wabbajack.Networking.Browser;
 
 public class Configuration
 {

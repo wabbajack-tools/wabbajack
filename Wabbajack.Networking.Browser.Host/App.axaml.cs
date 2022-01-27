@@ -1,5 +1,7 @@
 using System;
+using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -10,6 +12,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Splat;
+using Wabbajack.DTOs.BrowserMessages;
+using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Networking.Browser.ViewModels;
 using Wabbajack.Networking.Browser.Views;
 
@@ -52,6 +56,22 @@ namespace Wabbajack.Networking.Browser
             }
 
             base.OnFrameworkInitializationCompleted();
+
+
+            var dtos = Services.GetRequiredService<DTOSerializer>();
+            var msgProcessor = Task.Run(async () =>
+            {
+                await using var input = Console.OpenStandardInput();
+                while (true)
+                {
+                    var msg = await JsonSerializer.DeserializeAsync<IMessage>(input);
+                    switch (msg)
+                    {
+                        
+                    }
+                }
+
+            });
         }
 
         private void Startup(object sender, ControlledApplicationLifetimeStartupEventArgs e)

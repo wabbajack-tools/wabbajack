@@ -1,16 +1,8 @@
-using System.Collections.Generic;
-using System.CommandLine;
 using System.Reactive.Linq;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.Mixins;
-using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
-using Avalonia.Threading;
-using CefNet.Avalonia;
 using ReactiveUI;
-using Wabbajack.CLI.Verbs;
-using Wabbajack.Common;
 using Wabbajack.Networking.Browser.ViewModels;
 
 namespace Wabbajack.Networking.Browser.Views

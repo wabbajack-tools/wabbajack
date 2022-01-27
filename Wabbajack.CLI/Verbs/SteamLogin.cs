@@ -9,7 +9,7 @@ using Wabbajack.Paths;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class SteamLogin : IVerb
+public class SteamLogin : AVerb
 {
     private readonly ILogger<SteamLogin> _logger;
     private readonly Client _client;
@@ -21,13 +21,12 @@ public class SteamLogin : IVerb
         _client = steamClient;
         _token = token;
     }
-    public Command MakeCommand()
+    public static Command MakeCommand()
     {
         var command = new Command("steam-login");
         command.Description = "Logs into Steam via interactive prompts";
         
         command.Add(new Option<string>(new[] {"-u", "-user"}, "Username for login"));
-        command.Handler = CommandHandler.Create(Run);
         return command;
     }
 
@@ -54,5 +53,9 @@ public class SteamLogin : IVerb
 
         return 0;
     }
-    
+
+    protected override ICommandHandler GetHandler()
+    {
+        return CommandHandler.Create(Run);
+    }
 }

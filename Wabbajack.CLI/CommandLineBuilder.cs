@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.Threading.Tasks;
@@ -9,20 +10,26 @@ namespace Wabbajack.CLI;
 public class CommandLineBuilder
 {
     private readonly IConsole _console;
-    private readonly IEnumerable<IVerb> _verbs;
+    private readonly VerbRegistrar _verbs;
+    private readonly IServiceProvider _serviceProvider;
 
-    public CommandLineBuilder(IEnumerable<IVerb> verbs, IConsole console, LoggingRateLimiterReporter _)
+    public CommandLineBuilder(VerbRegistrar verbs, IConsole console, LoggingRateLimiterReporter _, IServiceProvider serviceProvider)
     {
         _console = console;
         _verbs = verbs;
+        _serviceProvider = serviceProvider;
     }
 
     public async Task<int> Run(string[] args)
     {
         var root = new RootCommand();
-        foreach (var verb in _verbs)
-            root.Add(verb.MakeCommand());
-        
+        foreach (var verb in _verbs.Definitions)
+        {
+            var command = verb.MakeCommand();
+            command.Handler = AVerb.WrapHandler(verb.VerbType, _serviceProvider);
+            root.Add(command);
+        }
+
         return await root.InvokeAsync(args);
     }
 }
