@@ -55,12 +55,36 @@ public class StateContainer : IStateContainer
         set => _modlistPathObservable.Value = value;
     }
     
+    private readonly CustomObservable<AbsolutePath> _installPathObservable = new(AbsolutePath.Empty);
+    public IObservable<AbsolutePath> InstallPathObservable => _installPathObservable;
+    public AbsolutePath InstallPath
+    {
+        get => _installPathObservable.Value;
+        set => _installPathObservable.Value = value;
+    }
+    
+    private readonly CustomObservable<AbsolutePath> _downloadPathObservable = new(AbsolutePath.Empty);
+    public IObservable<AbsolutePath> DownloadPathObservable => _downloadPathObservable;
+    public AbsolutePath DownloadPath
+    {
+        get => _downloadPathObservable.Value;
+        set => _downloadPathObservable.Value = value;
+    }
+    
     private readonly CustomObservable<ModList?> _modlistObservable = new(null);
     public IObservable<ModList?> ModlistObservable => _modlistObservable;
     public ModList? Modlist
     {
         get => _modlistObservable.Value;
         set => _modlistObservable.Value = value;
+    }
+    
+    private readonly CustomObservable<string> _modlistImageObservable = new(string.Empty);
+    public IObservable<string> ModlistImageObservable => _modlistImageObservable;
+    public string ModlistImage
+    {
+        get => _modlistImageObservable.Value;
+        set => _modlistImageObservable.Value = value;
     }
 
     private readonly CustomObservable<InstallState> _installStateObservable = new(InstallState.Waiting);

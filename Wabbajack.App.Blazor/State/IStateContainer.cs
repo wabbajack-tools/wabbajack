@@ -17,8 +17,17 @@ public interface IStateContainer
     IObservable<AbsolutePath> ModlistPathObservable { get; }
     AbsolutePath ModlistPath { get; set; }
     
+    IObservable<AbsolutePath> InstallPathObservable { get; }
+    AbsolutePath InstallPath { get; set; }
+    
+    IObservable<AbsolutePath> DownloadPathObservable { get; }
+    AbsolutePath DownloadPath { get; set; }
+    
     IObservable<ModList?> ModlistObservable { get; }
     ModList? Modlist { get; set; }
+    
+    IObservable<string> ModlistImageObservable { get; }
+    string ModlistImage { get; set; }
     
     IObservable<InstallState> InstallStateObservable { get; }
     InstallState InstallState { get; set; }
