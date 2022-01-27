@@ -1,0 +1,20 @@
+﻿@using Wabbajack.App.Blazor.Pages
+
+@namespace Wabbajack.App.Blazor.Components
+
+<div id="step-logger">
+    @foreach (var step in value.StatusStep.Take(ShownSteps))
+    {
+        <div class="step">@step</div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int ShownSteps { get; set; }
+    [Parameter]
+    public bool Reverse { get; set; }
+
+    [CascadingParameter]
+    public Installing value { get; set; }
+}

@@ -1,0 +1,33 @@
+﻿#step-logger {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-content: center;
+
+  .step {
+    &:nth-child(1) {
+      margin-left: 0.5rem;
+      font-size: 2rem;
+      font-weight: 100;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    &:nth-child(2) {
+      margin-left: 0.75rem;
+      font-size: 1.85rem;
+      font-weight: 100;
+      color: rgba(255, 255, 255, 0.6);
+      filter: blur(1px);
+    }
+
+    &:nth-child(3) {
+      margin-left: 1rem;
+      font-size: 1.7rem;
+      font-weight: 100;
+      color: rgba(255, 255, 255, 0.4);
+      filter: blur(1.5px);
+    }
+  }
+}
