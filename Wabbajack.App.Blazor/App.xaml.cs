@@ -31,26 +31,37 @@ public partial class App
 
         var fileTarget = new FileTarget("file")
         {
-            FileName = "log.log"
+            FileName = "logs/Wabbajack.current.log",
+            ArchiveFileName = "logs/Wabbajack.{##}.log",
+            ArchiveOldFileOnStartup = true,
+            MaxArchiveFiles = 10,
+            Layout = "${processtime} [${level:uppercase=true}] (${logger}) ${message:withexception=true}",
+            Header = "############ Wabbajack log file - ${longdate} ############"
         };
         var consoleTarget = new ConsoleTarget("console");
-        var uiTarget = new MemoryTarget("ui");
+        var uiTarget = new MemoryTarget
+        {
+            Name = "ui",
+            Layout = "${message}",
+            
+        };
+        
         var blackholeTarget = new NullTarget("blackhole");
 
         if (!string.Equals("TRUE", Environment.GetEnvironmentVariable("DEBUG_BLAZOR", EnvironmentVariableTarget.Process), StringComparison.OrdinalIgnoreCase))
         {
             config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Debug, blackholeTarget, "Microsoft.AspNetCore.Components.*", true);
         }
-        
+
         config.AddRuleForAllLevels(fileTarget);
         config.AddRuleForAllLevels(consoleTarget);
         config.AddRuleForAllLevels(uiTarget);
-        
+
         loggingBuilder.ClearProviders();
         loggingBuilder.SetMinimumLevel(LogLevel.Trace);
         loggingBuilder.AddNLog(config);
     }
-    
+
     private static IServiceCollection ConfigureServices(IServiceCollection services)
     {
         services.AddOSIntegrated();
