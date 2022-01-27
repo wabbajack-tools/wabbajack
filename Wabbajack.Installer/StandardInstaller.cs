@@ -61,7 +61,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     {
         if (token.IsCancellationRequested) return false;
         await _wjClient.SendMetric(MetricNames.BeginInstall, ModList.Name);
-        NextStep("Configuring Installer", 0);
+        NextStep("Preparing", "Configuring Installer", 0);
         _logger.LogInformation("Configuring Processor");
 
         if (_configuration.GameFolder == default)
@@ -145,7 +145,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         await ExtractedModlistFolder!.DisposeAsync();
         await _wjClient.SendMetric(MetricNames.FinishInstall, ModList.Name);
 
-        NextStep("Finished", 1);
+        NextStep("Finished", "Finished", 1);
         _logger.LogInformation("Finished Installation");
         return true;
     }
@@ -275,7 +275,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     private async Task InstallIncludedFiles(CancellationToken token)
     {
         _logger.LogInformation("Writing inline files");
-        NextStep("Installing Included Files", ModList.Directives.OfType<InlineFile>().Count());
+        NextStep("Installing", "Installing Included Files", ModList.Directives.OfType<InlineFile>().Count());
         await ModList.Directives
             .OfType<InlineFile>()
             .PDoAll(async directive =>
