@@ -4,12 +4,13 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Shell;
+using Blazored.Modal;
+using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
+using Wabbajack.App.Blazor.Components;
 using Wabbajack.App.Blazor.State;
-using Wabbajack.Common;
 using Wabbajack.DTOs;
-using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated.Services;
 
@@ -22,13 +23,14 @@ public partial class Gallery
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private ModListDownloadMaintainer Maintainer { get; set; } = default!;
 
-    private Percent DownloadProgress { get; set; } = Percent.Zero;
+    [CascadingParameter] public IModalService Modal { get; set; }
+    private IObservable<Percent> DownloadProgress { get; set; }
     private ModlistMetadata? DownloadingMetaData { get; set; }
 
     private IEnumerable<ModlistMetadata> Modlists => StateContainer.Modlists;
 
     private bool _errorLoadingModlists;
-    
+
     private bool _shouldRender;
     protected override bool ShouldRender() => _shouldRender;
 
@@ -44,19 +46,24 @@ public partial class Gallery
                 return;
             }
         }
-        
+
         _shouldRender = true;
     }
 
     private async Task OnClickDownload(ModlistMetadata metadata)
     {
-        // GlobalState.NavigationAllowed = !GlobalState.NavigationAllowed;
-        await Download(metadata);
+        if (!await Maintainer.HaveModList(metadata)) await Download(metadata);
+        StateContainer.ModlistPath = Maintainer.ModListPath(metadata);
+        StateContainer.Modlist = null;
+        NavigationManager.NavigateTo(Configure.Route);
     }
 
     private async Task OnClickInformation(ModlistMetadata metadata)
     {
         // TODO: [High] Implement information modal.
+        var parameters = new ModalParameters();
+        parameters.Add(nameof(InfoModal.Content), metadata.Description);
+        Modal.Show<InfoModal>("Information", parameters);
     }
 
     private async Task Download(ModlistMetadata metadata)
@@ -64,35 +71,25 @@ public partial class Gallery
         StateContainer.NavigationAllowed = false;
         DownloadingMetaData = metadata;
 
-        // TODO: download progress should be in ProgressBar component so it can refresh independently
-        
         try
         {
             var (progress, task) = Maintainer.DownloadModlist(metadata);
-            
-            var dispose = progress
-                .DistinctUntilChanged(p => p.Value)
-                .Throttle(TimeSpan.FromMilliseconds(100))
-                .Subscribe(p =>
-            {
-                DownloadProgress = p;
-                StateContainer.TaskBarState = new TaskBarState
-                {
-                    Description = $"Downloading {metadata.Title}",
-                    State = TaskbarItemProgressState.Indeterminate,
-                    ProgressValue = p.Value
-                };
 
-                InvokeAsync(StateHasChanged);
-                // Dispatcher.CreateDefault().InvokeAsync(StateHasChanged);
-            }, () => { StateContainer.TaskBarState = new TaskBarState(); });
+            DownloadProgress = progress;
+
+            var dispose = progress
+                .Sample(TimeSpan.FromMilliseconds(250))
+                .Subscribe(p => {
+                    StateContainer.TaskBarState = new TaskBarState
+                    {
+                        Description = $"Downloading {metadata.Title}",
+                        State = TaskbarItemProgressState.Normal,
+                        ProgressValue = p.Value
+                    };
+                }, () => { StateContainer.TaskBarState = new TaskBarState(); });
 
             await task;
             dispose.Dispose();
-            
-            var path = KnownFolders.EntryPoint.Combine("downloaded_mod_lists", metadata.Links.MachineURL).WithExtension(Ext.Wabbajack);
-            StateContainer.ModlistPath = path;
-            NavigationManager.NavigateTo(Configure.Route);
         }
         catch (Exception e)
         {

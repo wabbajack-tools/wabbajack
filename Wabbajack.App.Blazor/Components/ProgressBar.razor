@@ -1,18 +1,34 @@
 ﻿@using Wabbajack.RateLimiter
+@using System
+@using System.Reactive.Linq
 
 @namespace Wabbajack.App.Blazor.Components
 
 <div id="progress-bar">
-    <progress value="@Percentage.Value"></progress>
+    <progress value="@CurrentProgress"></progress>
     <span class="text">@Text</span>
 </div>
 
 @code {
 
-    [Parameter]
-    public Percent Percentage { get; set; }
+    private double CurrentProgress { get; set; }
 
-    [Parameter]
-    public string Text { get; set; }
+    [Parameter] public IObservable<Percent> ProgressObserver { get; set; }
 
+    [Parameter] public string Text { get; set; }
+
+    protected override Task OnInitializedAsync()
+    {
+        var textPercentage = string.IsNullOrEmpty(Text);
+        ProgressObserver
+            .Sample(TimeSpan.FromMilliseconds(250))
+            .DistinctUntilChanged()
+            .Subscribe(p => {
+                CurrentProgress = p.Value;
+                if (textPercentage) Text = p.ToString();
+                InvokeAsync(StateHasChanged);
+            });
+    
+        return base.OnInitializedAsync();
+    }
 }
