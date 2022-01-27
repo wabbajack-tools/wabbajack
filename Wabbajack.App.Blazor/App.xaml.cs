@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -8,6 +8,8 @@ using NLog.Targets;
 using Wabbajack.App.Blazor.State;
 using Wabbajack.App.Blazor.Utility;
 using Wabbajack.Services.OSIntegrated;
+using Blazored.Modal;
+using Blazored.Toast;
 
 namespace Wabbajack.App.Blazor;
 
@@ -66,6 +68,8 @@ public partial class App
     {
         services.AddOSIntegrated();
         services.AddBlazorWebView();
+        services.AddBlazoredModal();
+        services.AddBlazoredToast();
         services.AddTransient<MainWindow>();
         services.AddSingleton<SystemParametersConstructor>();
         services.AddSingleton<IStateContainer, StateContainer>();

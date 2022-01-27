@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
@@ -14,6 +14,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="Blazored.Modal" Version="6.0.1" />
+        <PackageReference Include="Blazored.Toast" Version="3.2.2" />
         <PackageReference Include="DynamicData" Version="7.4.9" />
         <PackageReference Include="GitInfo" Version="2.2.0" />
         <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />

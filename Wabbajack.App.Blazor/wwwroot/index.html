@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -7,6 +7,8 @@
     <title>Wabbajack</title>
     <base href="/"/>
     <link href="Wabbajack.App.Blazor.styles.css" rel="stylesheet" />
+    <link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
+    <link href="_content/Blazored.Toast/blazored-toast.css" rel="stylesheet" />
 </head>
 
 <style>
@@ -32,6 +34,7 @@
 <div id="app"></div>
 
 <script src="_framework/blazor.webview.js"></script>
+<script src="_content/Blazored.Modal/blazored.modal.js"></script>
 <script>
     async function setImageUsingStreaming(imageElementId, imageStream) {
         const arrayBuffer = await imageStream.arrayBuffer();
