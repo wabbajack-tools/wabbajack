@@ -1,7 +1,7 @@
 ﻿@namespace Wabbajack.App.Blazor.Components
 
 <div id="info-block">
-    @if (Supertitle != string.Empty)
+    @if (Supertitle is not null)
     {
         <span class="supertitle">@Supertitle</span>
     }
@@ -14,18 +14,18 @@
 @code {
 
     [Parameter]
-    public string Supertitle { get; set; } = string.Empty;
+    public string? Supertitle { get; set; }
 
     [Parameter]
-    public string Title { get; set; }
+    public string? Title { get; set; }
 
     [Parameter]
-    public string Subtitle { get; set; }
+    public string? Subtitle { get; set; }
 
     [Parameter]
-    public string Comment { get; set; }
+    public string? Comment { get; set; }
 
     [Parameter]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
 }

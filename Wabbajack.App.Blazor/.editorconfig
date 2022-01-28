@@ -4,11 +4,5 @@ indent_style = space
 indent_size = 4
 insert_final_newline = true
 
-# C# and Razor files 
-[*.{cs,razor}]
-# RZ10012: Markup element with unexpected name.
-# Reason: The component namespace is added to the global _Imports.razor file.
-dotnet_diagnostic.RZ10012.severity = none
-
 [*.scss]
 indent_size = 2

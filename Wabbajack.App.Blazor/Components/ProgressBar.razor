@@ -1,32 +1,38 @@
 ﻿@using Wabbajack.RateLimiter
 @using System
 @using System.Reactive.Linq
+@implements IDisposable
 
 @namespace Wabbajack.App.Blazor.Components
 
 <div id="progress-bar">
-    <progress value="@CurrentProgress"></progress>
+    <progress max="1" value="@CurrentProgress.ToString("F")"></progress>
     <span class="text">@Text</span>
 </div>
 
 @code {
+    [Parameter] public IObservable<Percent>? ProgressObserver { get; set; }
 
     private double CurrentProgress { get; set; }
+    private string Text { get; set; } = string.Empty;
 
-    [Parameter] public IObservable<Percent> ProgressObserver { get; set; }
-
-    [Parameter] public string? Text { get; set; }
-
+    private IDisposable? _disposable;
+    
     protected override void OnInitialized()
     {
-        var textPercentage = string.IsNullOrEmpty(Text);
-        ProgressObserver
+        if (ProgressObserver is null) return;
+
+        _disposable = ProgressObserver
             .Sample(TimeSpan.FromMilliseconds(250))
             .DistinctUntilChanged(p => p.Value)
-            .Subscribe(p => {
+            .Subscribe(p =>
+            {
                 CurrentProgress = p.Value;
-                if (textPercentage) Text = p.ToString();
+                Text = p.ToString();
                 InvokeAsync(StateHasChanged);
             });
     }
+
+    public void Dispose() => _disposable?.Dispose();
+
 }

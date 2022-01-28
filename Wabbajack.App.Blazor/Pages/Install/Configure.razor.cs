@@ -24,17 +24,18 @@ public partial class Configure
     [Inject] private SettingsManager SettingsManager { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-    [Inject] private IToastService toastService { get; set; }
+    [Inject] private IToastService ToastService { get; set; } = default!;
 
     private ModList? Modlist => StateContainer.Modlist;
     private string? ModlistImage => StateContainer.ModlistImage;
     private AbsolutePath ModlistPath => StateContainer.ModlistPath;
     private AbsolutePath InstallPath => StateContainer.InstallPath;
     private AbsolutePath DownloadPath => StateContainer.DownloadPath;
-
-    private InstallState InstallState => StateContainer.InstallState;
-
+    
     private const string InstallSettingsPrefix = "install-settings-";
+
+    private bool OverwriteInstallation { get; set; }    
+    private bool UseCompression { get; set; }
 
     private bool _shouldRender;
     protected override bool ShouldRender() => _shouldRender;
@@ -55,8 +56,8 @@ public partial class Configure
         }
         catch (Exception e)
         {
-            toastService.ShowError("Could not load modlist!");
-            Logger.LogError(e, "Exception loading Modlist file {Name}", ModlistPath);
+            ToastService.ShowError("Could not load modlist!");
+            Logger.LogError(e, "Exception loading Modlist file {Name}", ModlistPath.ToString());
             NavigationManager.NavigateTo(Select.Route);
             return;
         }
@@ -74,19 +75,19 @@ public partial class Configure
         }
         catch (Exception e)
         {
-            Logger.LogWarning(e, "Exception loading previous settings for {Name}", ModlistPath);
+            Logger.LogWarning(e, "Exception loading previous settings for {Name}", ModlistPath.ToString());
         }
 
         try
         {
             var imageStream = await StandardInstaller.ModListImageStream(ModlistPath);
             var dotnetImageStream = new DotNetStreamReference(imageStream);
-            StateContainer.ModlistImage = await JSRuntime.InvokeAsync<string>("getBlobUrlFromStream", dotnetImageStream);
+            StateContainer.ModlistImage = await JSRuntime.InvokeAsync<string>(JsInterop.GetBlobUrlFromStream, dotnetImageStream);
         }
         catch (Exception e)
         {
-            toastService.ShowWarning("Could not load modlist image.");
-            Logger.LogWarning(e, "Exception loading modlist image for {Name}", ModlistPath);
+            ToastService.ShowWarning("Could not load modlist image.");
+            Logger.LogWarning(e, "Exception loading modlist image for {Name}", ModlistPath.ToString());
         }
     }
 

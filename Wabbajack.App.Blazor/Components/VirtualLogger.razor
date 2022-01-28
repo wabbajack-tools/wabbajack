@@ -3,12 +3,12 @@
 @using Wabbajack.App.Blazor.Utility
 @using System.Reactive.Linq
 @namespace Wabbajack.App.Blazor.Components
+@implements IDisposable
 
 <div id="virtual-logger">
-    @foreach (var logItem in _logs)
-    {
-        <span>@logItem</span>
-    }
+    <Virtualize Items="_logs" Context="logItem" OverscanCount="5" ItemSize="24">
+        <span style="height: 24px">@logItem</span>
+    </Virtualize>
 </div>
 
 @code {
@@ -16,17 +16,26 @@
     // TODO: [High] Find a way to auto-scroll. (JS interop?) 
 
     private UiLoggerTarget? _loggerTarget;
-    private ICollection<string> _logs = Array.Empty<string>();
+    private ICollection<string> _logs = new List<string>();
 
-    protected override void OnInitialized()
+    private bool _shouldRender = false;
+    protected override bool ShouldRender() => _shouldRender;
+
+    private IDisposable? _disposable;
+    
+    protected override Task OnInitializedAsync()
     {
         _loggerTarget = LogManager.Configuration.FindTargetByName<UiLoggerTarget>("ui");
 
-        // TODO: can do different things here, buffering is just the simples operation 
-        _loggerTarget.Logs.Buffer(TimeSpan.FromSeconds(1)).Subscribe(next =>
+        _disposable = _loggerTarget.Logs.Sample(TimeSpan.FromMilliseconds(250)).Subscribe(next =>
         {
-            _logs = next;
+            _logs.Add(next);
             InvokeAsync(StateHasChanged);
         });
+
+        _shouldRender = true;
+        return Task.CompletedTask;
     }
+
+    public void Dispose() => _disposable?.Dispose();
 }

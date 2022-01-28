@@ -5,15 +5,14 @@
 @code {
 
     [Parameter]
-    public string Icon { get; set; }
+    public string? Icon { get; set; }
 
     [Parameter]
-    public string Label { get; set; }
+    public string? Label { get; set; }
 
     [Parameter]
-    public string Size { get; set; }
+    public string? Size { get; set; }
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnClick { get; set; }
-
 }
