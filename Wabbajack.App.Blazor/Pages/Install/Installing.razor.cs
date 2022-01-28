@@ -53,7 +53,7 @@ public partial class Installing
         _shouldRender = true;
     }
 
-    private async void Install()
+    private async Task Install()
     {
         if (Modlist is null) return;
 

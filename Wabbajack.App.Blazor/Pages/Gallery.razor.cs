@@ -23,7 +23,7 @@ public partial class Gallery
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private ModListDownloadMaintainer Maintainer { get; set; } = default!;
 
-    [CascadingParameter] public IModalService Modal { get; set; }
+    [Inject] private IModalService Modal { get; set; } = default!;
     private IObservable<Percent> DownloadProgress { get; set; }
     private ModlistMetadata? DownloadingMetaData { get; set; }
 
@@ -79,6 +79,7 @@ public partial class Gallery
 
             var dispose = progress
                 .Sample(TimeSpan.FromMilliseconds(250))
+                .DistinctUntilChanged(p => p.Value)
                 .Subscribe(p => {
                     StateContainer.TaskBarState = new TaskBarState
                     {

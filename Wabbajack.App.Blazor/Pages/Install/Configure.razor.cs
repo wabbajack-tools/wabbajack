@@ -90,7 +90,7 @@ public partial class Configure
         }
     }
 
-    private async void SelectInstallFolder()
+    private async Task SelectInstallFolder()
     {
         try
         {
@@ -103,7 +103,7 @@ public partial class Configure
         }
     }
 
-    private async void SelectDownloadFolder()
+    private async Task SelectDownloadFolder()
     {
         try
         {

@@ -36,12 +36,6 @@
 <script src="_framework/blazor.webview.js"></script>
 <script src="_content/Blazored.Modal/blazored.modal.js"></script>
 <script>
-    async function setImageUsingStreaming(imageElementId, imageStream) {
-        const arrayBuffer = await imageStream.arrayBuffer();
-        const blob = new Blob([arrayBuffer]);
-        document.getElementById(imageElementId).src = URL.createObjectURL(blob);
-    }
-
     async function getBlobUrlFromStream(imageStream) {
         const arrayBuffer = await imageStream.arrayBuffer();
         const blob = new Blob([arrayBuffer]);
