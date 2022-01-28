@@ -2,7 +2,7 @@ using Wabbajack.Paths;
 
 namespace Wabbajack.Installer;
 
-public class Consts
+public static class Consts
 {
     public static string GAME_PATH_MAGIC_BACK = "{--||GAME_PATH_MAGIC_BACK||--}";
     public static string GAME_PATH_MAGIC_DOUBLE_BACK = "{--||GAME_PATH_MAGIC_DOUBLE_BACK||--}";
@@ -20,4 +20,10 @@ public class Consts
 
     public static RelativePath MO2ModFolderName = "mods".ToRelativePath();
     public static RelativePath MO2ProfilesFolderName = "profiles".ToRelativePath();
+
+    public const string StepPreparing = "Preparing";
+    public const string StepInstalling = "Installing";
+    public const string StepDownloading = "Downloading";
+    public const string StepHashing = "Hashing";
+    public const string StepFinished = "Finished";
 }
