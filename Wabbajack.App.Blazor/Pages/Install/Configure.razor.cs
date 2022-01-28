@@ -27,7 +27,7 @@ public partial class Configure
     [Inject] private IToastService toastService { get; set; }
 
     private ModList? Modlist => StateContainer.Modlist;
-    private string ModlistImage => StateContainer.ModlistImage;
+    private string? ModlistImage => StateContainer.ModlistImage;
     private AbsolutePath ModlistPath => StateContainer.ModlistPath;
     private AbsolutePath InstallPath => StateContainer.InstallPath;
     private AbsolutePath DownloadPath => StateContainer.DownloadPath;
@@ -81,7 +81,7 @@ public partial class Configure
         {
             var imageStream = await StandardInstaller.ModListImageStream(ModlistPath);
             var dotnetImageStream = new DotNetStreamReference(imageStream);
-            StateContainer.ModlistImage = new string(await JSRuntime.InvokeAsync<string>("getBlobUrlFromStream", dotnetImageStream));
+            StateContainer.ModlistImage = await JSRuntime.InvokeAsync<string>("getBlobUrlFromStream", dotnetImageStream);
         }
         catch (Exception e)
         {

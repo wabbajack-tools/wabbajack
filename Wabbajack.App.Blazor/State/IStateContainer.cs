@@ -26,8 +26,8 @@ public interface IStateContainer
     IObservable<ModList?> ModlistObservable { get; }
     ModList? Modlist { get; set; }
     
-    IObservable<string> ModlistImageObservable { get; }
-    string ModlistImage { get; set; }
+    IObservable<string?> ModlistImageObservable { get; }
+    string? ModlistImage { get; set; }
     
     IObservable<InstallState> InstallStateObservable { get; }
     InstallState InstallState { get; set; }

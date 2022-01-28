@@ -79,9 +79,9 @@ public class StateContainer : IStateContainer
         set => _modlistObservable.Value = value;
     }
     
-    private readonly CustomObservable<string> _modlistImageObservable = new(string.Empty);
-    public IObservable<string> ModlistImageObservable => _modlistImageObservable;
-    public string ModlistImage
+    private readonly CustomObservable<string?> _modlistImageObservable = new(string.Empty);
+    public IObservable<string?> ModlistImageObservable => _modlistImageObservable;
+    public string? ModlistImage
     {
         get => _modlistImageObservable.Value;
         set => _modlistImageObservable.Value = value;

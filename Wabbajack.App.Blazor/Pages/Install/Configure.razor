@@ -4,7 +4,10 @@
 
 <div id="content">
     <div class="install-background">
-        <img id="background-image" src="@ModlistImage" alt=""/>
+        @if (ModlistImage is not null)
+        {
+            <img id="background-image" src="@ModlistImage" alt=""/>
+        }
     </div>
     <div class="list">
         @if (Modlist is not null)
@@ -13,7 +16,10 @@
                 <InfoBlock Title="@Modlist.Name" Subtitle="@Modlist.Author" Comment="@Modlist.Version.ToString()" Description="@Modlist.Description"/>
             </div>
             <div class="right-side">
-                <InfoImage Image="@ModlistImage"/>
+                @if (ModlistImage is not null)
+                {
+                    <InfoImage Image="@ModlistImage"/>
+                }
             </div>
         }
     </div>
