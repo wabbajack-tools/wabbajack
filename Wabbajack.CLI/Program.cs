@@ -97,6 +97,6 @@ internal class Program
         reg.Register<VfsIndexFolder>(VfsIndexFolder.MakeCommand);
         reg.Register<NexusLogin>(NexusLogin.MakeCommand);
         
-        return await service!.Run(args);
+        return await service.Run(args);
     }
 }
