@@ -51,6 +51,7 @@ public abstract class ACompiler
 
     public ConcurrentDictionary<Directive, RawSourceFile> _sourceFileLinks;
     private string _statusText;
+    private string _statusCategory;
     public List<IndexedArchive> IndexedArchives = new();
 
     public Dictionary<Hash, IEnumerable<VirtualFile>> IndexedFiles = new();
@@ -106,16 +107,17 @@ public abstract class ACompiler
 
     public event EventHandler<StatusUpdate> OnStatusUpdate;
 
-    public void NextStep(string statusText, long maxStepProgress = 1)
+    public void NextStep(string statusCategory, string statusText, long maxStepProgress = 1)
     {
         _updateStopWatch.Restart();
         _maxStepProgress = maxStepProgress;
         _currentStep += 1;
         _statusText = statusText;
+        _statusCategory = statusCategory;
         _logger.LogInformation("Compiler Step: {Step}", statusText);
 
         if (OnStatusUpdate != null)
-            OnStatusUpdate(this, new StatusUpdate($"[{_currentStep}/{MaxSteps}] " + statusText,
+            OnStatusUpdate(this, new StatusUpdate(statusCategory, $"[{_currentStep}/{MaxSteps}] " + statusText,
                 Percent.FactoryPutInRange(_currentStep, MaxSteps),
                 Percent.Zero));
     }
@@ -131,7 +133,7 @@ public abstract class ACompiler
         }
 
         if (OnStatusUpdate != null)
-            OnStatusUpdate(this, new StatusUpdate(_statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
+            OnStatusUpdate(this, new StatusUpdate(_statusCategory, _statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
                 Percent.FactoryPutInRange(_currentStepProgress, _maxStepProgress)));
     }
 
@@ -195,7 +197,7 @@ public abstract class ACompiler
     public async Task<bool> GatherMetaData()
     {
         _logger.LogInformation("Getting meta data for {count} archives", SelectedArchives.Count);
-        NextStep("Gathering Metadata", SelectedArchives.Count);
+        NextStep("Building", "Gathering Metadata", SelectedArchives.Count);
         await SelectedArchives.PDoAll(CompilerLimiter, async a =>
         {
             UpdateProgress(1);
@@ -208,7 +210,7 @@ public abstract class ACompiler
 
     protected async Task IndexGameFileHashes()
     {
-        NextStep("Indexing Game Files");
+        NextStep("Compiling", "Indexing Game Files");
         if (_settings.UseGamePaths)
         {
             //taking the games in Settings.IncludedGames + currently compiling game so you can eg
@@ -258,7 +260,7 @@ public abstract class ACompiler
 
     protected async Task CleanInvalidArchivesAndFillState()
     {
-        NextStep("Cleaning Invalid Archives");
+        NextStep("Compiling", "Cleaning Invalid Archives");
         var remove = await IndexedArchives.PMapAll(CompilerLimiter, async a =>
         {
             try
@@ -313,7 +315,7 @@ public abstract class ACompiler
             .Where(f => f.FileExists())
             .ToList();
 
-        NextStep("InferMetas", toFind.Count);
+        NextStep("Initializing", "InferMetas", toFind.Count);
         if (toFind.Count == 0) return;
 
         _logger.LogInformation("Attempting to infer {count} metas from the server.", toFind.Count);
@@ -353,7 +355,7 @@ public abstract class ACompiler
 
     protected async Task ExportModList(CancellationToken token)
     {
-        NextStep("Exporting Modlist");
+        NextStep("Finalizing", "Exporting Modlist");
         _logger.LogInformation("Exporting ModList to {location}", _settings.OutputFile);
 
         // Modify readme and ModList image to relative paths if they exist
@@ -431,7 +433,7 @@ public abstract class ACompiler
             }))
             .ToArray();
 
-        NextStep("Generating Patches", toBuild.Length);
+        NextStep("Compiling","Generating Patches", toBuild.Length);
         if (toBuild.Length == 0) return;
 
         // Extract all the source files
@@ -512,7 +514,7 @@ public abstract class ACompiler
 
     public async Task GenerateManifest()
     {
-        NextStep("Generating Manifest");
+        NextStep("Finalizing", "Generating Manifest");
         var manifest = new Manifest(ModList);
         await using var of = _settings.OutputFile.Open(FileMode.Create, FileAccess.Write);
         await _dtos.Serialize(manifest, of);
@@ -520,7 +522,7 @@ public abstract class ACompiler
 
     public async Task GatherArchives()
     {
-        NextStep("Gathering Archives");
+        NextStep("Building", "Gathering Archives");
         _logger.LogInformation("Building a list of archives based on the files required");
 
         var hashes = InstallDirectives.OfType<FromArchive>()
@@ -621,7 +623,7 @@ public abstract class ACompiler
             .GroupBy(f => _sourceFileLinks[f].File)
             .ToDictionary(k => k.Key);
 
-        NextStep("Inlining Files");
+        NextStep("Building", "Inlining Files");
         if (grouped.Count == 0) return;
         await _vfs.Extract(grouped.Keys.ToHashSet(), async (vf, sfn) =>
         {

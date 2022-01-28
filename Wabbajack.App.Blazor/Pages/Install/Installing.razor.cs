@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.AspNetCore.Components;
 using Wabbajack.DTOs;
@@ -16,7 +17,7 @@ using Wabbajack.App.Blazor.State;
 
 namespace Wabbajack.App.Blazor.Pages;
 
-public partial class Configure
+public partial class Installing
 {
     [Inject] private ILogger<Configure> Logger { get; set; } = default!;
     [Inject] private IStateContainer StateContainer { get; set; } = default!;
@@ -26,14 +27,19 @@ public partial class Configure
     [Inject] private IGameLocator GameLocator { get; set; } = default!;
     [Inject] private SettingsManager SettingsManager { get; set; } = default!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-    
+
     private ModList? Modlist => StateContainer.Modlist;
-
+    private string ModlistImage => StateContainer.ModlistImage;
     private AbsolutePath ModlistPath => StateContainer.ModlistPath;
-    private AbsolutePath InstallPath { get; set; }
-    private AbsolutePath DownloadPath { get; set; }
+    private AbsolutePath InstallPath => StateContainer.InstallPath;
+    private AbsolutePath DownloadPath => StateContainer.DownloadPath;
 
-    private string StatusText { get; set; } = string.Empty;
+    public string StatusCategory { get; set; }
+
+    private string LastStatus { get; set; }
+
+    public List<string> StatusStep { get; set; } = new();
+
     private InstallState InstallState => StateContainer.InstallState;
 
     private const string InstallSettingsPrefix = "install-settings-";
@@ -41,69 +47,16 @@ public partial class Configure
     private bool _shouldRender;
     protected override bool ShouldRender() => _shouldRender;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        // var Location = KnownFolders.EntryPoint.Combine("downloaded_mod_lists", machineURL).WithExtension(Ext.Wabbajack);
-        
-        await CheckValidInstallPath();
+        Install();
         _shouldRender = true;
-    }
-
-    private async Task CheckValidInstallPath()
-    {
-        if (ModlistPath == AbsolutePath.Empty) return;
-        
-        var modlist = await StandardInstaller.LoadFromFile(DTOs, ModlistPath);
-        StateContainer.Modlist = modlist;
-
-        var hex = (await ModlistPath.ToString().Hash()).ToHex();
-        var prevSettings = await SettingsManager.Load<SavedInstallSettings>(InstallSettingsPrefix + hex);
-
-        if (prevSettings.ModlistLocation == ModlistPath)
-        {
-            StateContainer.ModlistPath = prevSettings.ModlistLocation;
-            InstallPath  = prevSettings.InstallLocation;
-            DownloadPath = prevSettings.DownloadLocation;
-            //ModlistMetadata = metadata ?? prevSettings.Metadata;
-        }
-
-        // see https://docs.microsoft.com/en-us/aspnet/core/blazor/images?view=aspnetcore-6.0#streaming-examples
-        var imageStream = await StandardInstaller.ModListImageStream(ModlistPath);
-        var dotnetImageStream = new DotNetStreamReference(imageStream);
-        // setImageUsingStreaming accepts the img id and the data stream
-        await JSRuntime.InvokeVoidAsync("setImageUsingStreaming", "background-image", dotnetImageStream);
-    }
-
-    private async void SelectInstallFolder()
-    {
-        try
-        {
-            var installPath = await Dialog.ShowDialogNonBlocking(true);
-            if (installPath is not null) InstallPath = (AbsolutePath)installPath;
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "Exception selecting install folder");
-        }
-    }
-
-    private async void SelectDownloadFolder()
-    {
-        try
-        {
-            var downloadPath = await Dialog.ShowDialogNonBlocking(true);
-            if (downloadPath is not null) DownloadPath = (AbsolutePath)downloadPath;
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "Exception selecting download folder");
-        }
     }
 
     private async Task Install()
     {
         if (Modlist is null) return;
-        
+
         StateContainer.InstallState = InstallState.Installing;
         await Task.Run(() => BeginInstall(Modlist));
     }
@@ -130,12 +83,14 @@ public partial class Configure
                 SystemParameters = ParametersConstructor.Create(),
                 GameFolder = GameLocator.GameLocation(modlist.GameType)
             });
-            
+
             installer.OnStatusUpdate = update =>
             {
-                var (statusText, _, _) = update;
-                if (StatusText == statusText) return;
-                StatusText = statusText;
+                if (LastStatus == update.StatusText) return;
+                StatusStep.Insert(0, update.StatusText);
+                StatusCategory = update.StatusCategory;
+                LastStatus = update.StatusText;
+                InvokeAsync(StateHasChanged);
             };
 
             await installer.Begin(CancellationToken.None);
@@ -147,12 +102,4 @@ public partial class Configure
             StateContainer.InstallState = InstallState.Failure;
         }
     }
-}
-
-internal class SavedInstallSettings
-{
-    public AbsolutePath ModlistLocation { get; set; } = AbsolutePath.Empty;
-    public AbsolutePath InstallLocation { get; set; } = AbsolutePath.Empty;
-    public AbsolutePath DownloadLocation { get; set; } = AbsolutePath.Empty;
-    // public ModlistMetadata Metadata { get; set; }
 }

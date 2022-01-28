@@ -26,7 +26,7 @@ using Wabbajack.VFS;
 
 namespace Wabbajack.Installer;
 
-public record StatusUpdate(string StatusText, Percent StepsProgress, Percent StepProgress)
+public record StatusUpdate(string StatusCategory, string StatusText, Percent StepsProgress, Percent StepProgress)
 {
 }
 
@@ -57,6 +57,7 @@ public abstract class AInstaller<T>
 
 
     protected long MaxStepProgress { get; set; }
+    private string _statusCategory;
     private string _statusText;
     private readonly Stopwatch _updateStopWatch = new();
 
@@ -92,15 +93,16 @@ public abstract class AInstaller<T>
 
     public ModList ModList => _configuration.ModList;
 
-    public void NextStep(string statusText, long maxStepProgress)
+    public void NextStep(string statusCategory, string statusText, long maxStepProgress)
     {
         _updateStopWatch.Restart();
         MaxStepProgress = maxStepProgress;
         _currentStep += 1;
         _statusText = statusText;
+        _statusCategory = statusCategory;
         _logger.LogInformation("Next Step: {Step}", statusText);
 
-        OnStatusUpdate?.Invoke(new StatusUpdate($"[{_currentStep}/{MaxSteps}] " + statusText,
+        OnStatusUpdate?.Invoke(new StatusUpdate(statusCategory, statusText,
             Percent.FactoryPutInRange(_currentStep, MaxSteps), Percent.Zero));
     }
 
@@ -108,8 +110,7 @@ public abstract class AInstaller<T>
     {
         Interlocked.Add(ref _currentStepProgress, stepProgress);
 
-        OnStatusUpdate?.Invoke(new StatusUpdate($"[{_currentStep}/{MaxSteps}] " + _statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
-            Percent.FactoryPutInRange(_currentStepProgress, MaxStepProgress)));
+        OnStatusUpdate?.Invoke(new StatusUpdate(_statusCategory, _statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps), Percent.FactoryPutInRange(_currentStepProgress, MaxStepProgress)));
     }
 
     public abstract Task<bool> Begin(CancellationToken token);
@@ -119,7 +120,7 @@ public abstract class AInstaller<T>
         ExtractedModlistFolder = _manager.CreateFolder();
         await using var stream = _configuration.ModlistArchive.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
         using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
-        NextStep("Extracting Modlist", archive.Entries.Count);
+        NextStep("Preparing","Extracting Modlist", archive.Entries.Count);
         foreach (var entry in archive.Entries)
         {
             var path = entry.FullName.ToRelativePath().RelativeTo(ExtractedModlistFolder);
@@ -181,7 +182,7 @@ public abstract class AInstaller<T>
     /// </summary>
     protected async Task PrimeVFS()
     {
-        NextStep("Priming VFS", 0);
+        NextStep("Preparing","Priming VFS", 0);
         _vfs.AddKnown(_configuration.ModList.Directives.OfType<FromArchive>().Select(d => d.ArchiveHashPath),
             HashedArchives);
         await _vfs.BackfillMissing();
@@ -189,7 +190,7 @@ public abstract class AInstaller<T>
 
     public async Task BuildFolderStructure()
     { 
-        NextStep("Building Folder Structure", 0);
+        NextStep("Preparing", "Building Folder Structure", 0);
         _logger.LogInformation("Building Folder Structure");
         ModList.Directives
             .Where(d => d.To.Depth > 1)
@@ -200,7 +201,7 @@ public abstract class AInstaller<T>
 
     public async Task InstallArchives(CancellationToken token)
     {
-        NextStep("Installing files", ModList.Directives.Sum(d => d.Size));
+        NextStep("Installing", "Installing files", ModList.Directives.Sum(d => d.Size));
         var grouped = ModList.Directives
             .OfType<FromArchive>()
             .Select(a => new {VF = _vfs.Index.FileForArchiveHashPath(a.ArchiveHashPath), Directive = a})
@@ -302,7 +303,7 @@ public abstract class AInstaller<T>
         }
 
         _logger.LogInformation("Downloading {count} archives", missing.Count);
-        NextStep("Downloading files", missing.Count);
+        NextStep("Downloading", "Downloading files", missing.Count);
 
         await missing
             .OrderBy(a => a.Size)
@@ -363,7 +364,7 @@ public abstract class AInstaller<T>
 
     public async Task HashArchives(CancellationToken token)
     {
-        NextStep("Hashing Archives", 0);
+        NextStep("Hashing", "Hashing Archives", 0);
         _logger.LogInformation("Looking for files to hash");
 
         var allFiles = _configuration.Downloads.EnumerateFiles()
@@ -414,7 +415,7 @@ public abstract class AInstaller<T>
         var savePath = (RelativePath) "saves";
 
         var existingFiles = _configuration.Install.EnumerateFiles().ToList();
-        NextStep("Optimizing Modlist: Looking for files to delete", existingFiles.Count);
+        NextStep("Preparing", "Looking for files to delete", existingFiles.Count);
         await existingFiles
             .PDoAll(async f =>
             {
@@ -428,12 +429,12 @@ public abstract class AInstaller<T>
                 if (NoDeleteRegex.IsMatch(f.ToString()))
                     return;
 
-                _logger.LogInformation("Deleting {relativeTo} it's not part of this ModList", relativeTo);
+                _logger.LogTrace("Deleting {relativeTo} it's not part of this ModList", relativeTo);
                 f.Delete();
             });
 
         _logger.LogInformation("Cleaning empty folders");
-        NextStep("Optimizing Modlist: Cleaning empty folders", indexed.Keys.Count);
+        NextStep("Preparing", "Cleaning empty folders", indexed.Keys.Count);
         var expectedFolders = (indexed.Keys
                 .Select(f => f.RelativeTo(_configuration.Install))
                 // We ignore the last part of the path, so we need a dummy file name
@@ -468,7 +469,7 @@ public abstract class AInstaller<T>
 
         var existingfiles = _configuration.Install.EnumerateFiles().ToHashSet();
 
-        NextStep("Optimizing Modlist: Removing redundant directives", indexed.Count);
+        NextStep("Preparing", "Removing redundant directives", indexed.Count);
         await indexed.Values.PMapAll<Directive, Directive?>(async d =>
             {
                 // Bit backwards, but we want to return null for 
@@ -487,7 +488,7 @@ public abstract class AInstaller<T>
 
         _logger.LogInformation("Optimized {optimized} directives to {indexed} required", ModList.Directives.Length,
             indexed.Count);
-        NextStep("Finalizing modlist optimization", 0);
+        NextStep("Preparing", "Finalizing modlist optimization", 0);
         var requiredArchives = indexed.Values.OfType<FromArchive>()
             .GroupBy(d => d.ArchiveHashPath.Hash)
             .Select(d => d.Key)

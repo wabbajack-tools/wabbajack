@@ -6,7 +6,7 @@ using Wabbajack.Paths;
 
 namespace Wabbajack.App.Blazor.Pages;
 
-public partial class Install
+public partial class Select
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IStateContainer StateContainer { get; set; } = default!;
@@ -23,6 +23,4 @@ public partial class Install
 
         NavigationManager.NavigateTo(Configure.Route);
     }
-
-    private void VerifyFile(AbsolutePath path) { }
 }

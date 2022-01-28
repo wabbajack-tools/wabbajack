@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using IniParser;
@@ -60,7 +61,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     {
         if (token.IsCancellationRequested) return false;
         await _wjClient.SendMetric(MetricNames.BeginInstall, ModList.Name);
-        NextStep("Configuring Installer", 0);
+        NextStep("Preparing", "Configuring Installer", 0);
         _logger.LogInformation("Configuring Processor");
 
         if (_configuration.GameFolder == default)
@@ -144,7 +145,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         await ExtractedModlistFolder!.DisposeAsync();
         await _wjClient.SendMetric(MetricNames.FinishInstall, ModList.Name);
 
-        NextStep("Finished", 1);
+        NextStep("Finished", "Finished", 1);
         _logger.LogInformation("Finished Installation");
         return true;
     }
@@ -274,7 +275,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     private async Task InstallIncludedFiles(CancellationToken token)
     {
         _logger.LogInformation("Writing inline files");
-        NextStep("Installing Included Files", ModList.Directives.OfType<InlineFile>().Count());
+        NextStep("Installing", "Installing Included Files", ModList.Directives.OfType<InlineFile>().Count());
         await ModList.Directives
             .OfType<InlineFile>()
             .PDoAll(async directive =>
@@ -301,6 +302,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             _logger.LogWarning("No SystemParameters set, ignoring ini settings for system parameters");
 
         var config = new IniParserConfiguration {AllowDuplicateKeys = true, AllowDuplicateSections = true};
+        config.CommentRegex = new Regex(@"^(#|;)(.*)");
         var oblivionPath = (RelativePath) "Oblivion.ini";
         foreach (var file in _configuration.Install.Combine("profiles").EnumerateFiles()
             .Where(f => ((string) f.FileName).EndsWith("refs.ini") || f.FileName == oblivionPath))
@@ -327,8 +329,9 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                         modified = true;
                     }
 
-                if (modified)
-                    parser.WriteFile(file.ToString(), data);
+                if (!modified) continue;
+                parser.WriteFile(file.ToString(), data);
+                _logger.LogTrace("Remapped screen size in {file}", file);
             }
             catch (Exception ex)
             {

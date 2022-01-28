@@ -7,6 +7,8 @@
     <title>Wabbajack</title>
     <base href="/"/>
     <link href="Wabbajack.App.Blazor.styles.css" rel="stylesheet" />
+    <link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
+    <link href="_content/Blazored.Toast/blazored-toast.css" rel="stylesheet" />
 </head>
 
 <style>
@@ -32,11 +34,12 @@
 <div id="app"></div>
 
 <script src="_framework/blazor.webview.js"></script>
+<script src="_content/Blazored.Modal/blazored.modal.js"></script>
 <script>
-    async function setImageUsingStreaming(imageElementId, imageStream) {
+    async function getBlobUrlFromStream(imageStream) {
         const arrayBuffer = await imageStream.arrayBuffer();
         const blob = new Blob([arrayBuffer]);
-        document.getElementById(imageElementId).src = URL.createObjectURL(blob);
+        return URL.createObjectURL(blob);
     }
 </script>
 </body>
