@@ -1,23 +1,32 @@
 ﻿@using NLog
 @using NLog.Targets
+@using Wabbajack.App.Blazor.Utility
+@using System.Reactive.Linq
 @namespace Wabbajack.App.Blazor.Components
 
 <div id="virtual-logger">
-    <Virtualize Items="@Logs" Context="logItem" OverscanCount="3">
-        <span @key="logItem">@logItem</span>
-    </Virtualize>
+    @foreach (var logItem in _logs)
+    {
+        <span>@logItem</span>
+    }
 </div>
 
 @code {
-
     // TODO: [Low] More parameters to customise the logger. E.g. Reverse order.
     // TODO: [High] Find a way to auto-scroll. (JS interop?) 
 
-    private MemoryTarget? _memoryTarget;
-    private ICollection<string> Logs => _memoryTarget?.Logs ?? Array.Empty<string>();
+    private UiLoggerTarget? _loggerTarget;
+    private ICollection<string> _logs = Array.Empty<string>();
 
     protected override void OnInitialized()
-    {        
-        _memoryTarget = LogManager.Configuration.FindTargetByName<MemoryTarget>("ui");
+    {
+        _loggerTarget = LogManager.Configuration.FindTargetByName<UiLoggerTarget>("ui");
+
+        // TODO: can do different things here, buffering is just the simples operation 
+        _loggerTarget.Logs.Buffer(TimeSpan.FromSeconds(1)).Subscribe(next =>
+        {
+            _logs = next;
+            InvokeAsync(StateHasChanged);
+        });
     }
 }
