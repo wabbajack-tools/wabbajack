@@ -29,36 +29,31 @@ public partial class Installing
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
     private ModList? Modlist => StateContainer.Modlist;
-    private string ModlistImage => StateContainer.ModlistImage;
+    private string? ModlistImage => StateContainer.ModlistImage;
     private AbsolutePath ModlistPath => StateContainer.ModlistPath;
     private AbsolutePath InstallPath => StateContainer.InstallPath;
     private AbsolutePath DownloadPath => StateContainer.DownloadPath;
 
-    public string StatusCategory { get; set; }
-
-    private string LastStatus { get; set; }
-
-    public List<string> StatusStep { get; set; } = new();
-
-    private InstallState InstallState => StateContainer.InstallState;
-
+    private string? StatusCategory { get; set; }
+    private string? LastStatus { get; set; }
+    private List<string> StatusStep { get; set; } = new();
+    
     private const string InstallSettingsPrefix = "install-settings-";
 
     private bool _shouldRender;
     protected override bool ShouldRender() => _shouldRender;
-
-    protected override void OnInitialized()
+    
+    protected override async Task OnInitializedAsync()
     {
-        Install();
         _shouldRender = true;
+        await Task.Run(Install);
     }
 
     private async Task Install()
     {
         if (Modlist is null) return;
-
         StateContainer.InstallState = InstallState.Installing;
-        await Task.Run(() => BeginInstall(Modlist));
+        await BeginInstall(Modlist);
     }
 
     private async Task BeginInstall(ModList modlist)

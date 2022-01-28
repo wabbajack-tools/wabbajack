@@ -1,16 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Media.Imaging;
-using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
-namespace Wabbajack
+namespace Wabbajack.App.Blazor.Utility
 {
     public static class UIUtils
     {
@@ -31,11 +25,11 @@ namespace Wabbajack
         }
 
 
-        public static AbsolutePath OpenFileDialog(string filter, string initialDirectory = null)
+        public static AbsolutePath OpenFileDialog(string filter, string? initialDirectory = null)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
+            var ofd = new OpenFileDialog();
             ofd.Filter = filter;
-            ofd.InitialDirectory = initialDirectory;
+            ofd.InitialDirectory = initialDirectory ?? string.Empty;
             if (ofd.ShowDialog() == DialogResult.OK)
                 return (AbsolutePath)ofd.FileName;
             return default;

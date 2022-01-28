@@ -22,9 +22,9 @@ public partial class Gallery
     [Inject] private IStateContainer StateContainer { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private ModListDownloadMaintainer Maintainer { get; set; } = default!;
-
     [Inject] private IModalService Modal { get; set; } = default!;
-    private IObservable<Percent> DownloadProgress { get; set; }
+    
+    private IObservable<Percent>? DownloadProgress { get; set; }
     private ModlistMetadata? DownloadingMetaData { get; set; }
 
     private IEnumerable<ModlistMetadata> Modlists => StateContainer.Modlists;
@@ -58,7 +58,7 @@ public partial class Gallery
         NavigationManager.NavigateTo(Configure.Route);
     }
 
-    private async Task OnClickInformation(ModlistMetadata metadata)
+    private void OnClickInformation(ModlistMetadata metadata)
     {
         // TODO: [High] Implement information modal.
         var parameters = new ModalParameters();

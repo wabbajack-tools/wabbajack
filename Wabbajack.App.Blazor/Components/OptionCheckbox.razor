@@ -2,26 +2,28 @@
 
 <label class="option">
     @Label
-    <input type="checkbox" checked="@IsChecked" @onchange="CheckBoxChanged">
+    <input type="checkbox" value="@IsChecked" @onchange="CheckBoxChanged">
     <span class="checkmark"></span>
 </label>
 
 @code {
     // TODO: [Low] Implement parameters to customize style.
-    // TODO: [High] Implement a way to set a passed bool without using callback function.
-
+    
     [Parameter]
-    public string Label { get; set; }
-
+    public string? Label { get; set; }
+    
     [Parameter]
-    public EventCallback<bool> OnChecked { get; set; }
-
-    private bool IsChecked { get; set; }
+    public bool IsChecked { get; set; }
+    
+    [Parameter]
+    public EventCallback<bool> IsCheckedChanged { get; set; }
 
     private async Task CheckBoxChanged(ChangeEventArgs e)
     {
-        IsChecked = (bool)(e.Value ?? false);
-        await OnChecked.InvokeAsync(IsChecked);
+        if (e.Value is not bool newValue) return;
+        if (IsChecked == newValue) return;
+        
+        IsChecked = newValue;
+        await IsCheckedChanged.InvokeAsync(IsChecked);
     }
-
 }

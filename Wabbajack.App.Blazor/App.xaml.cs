@@ -40,12 +40,13 @@ public partial class App
             Layout = "${processtime} [${level:uppercase=true}] (${logger}) ${message:withexception=true}",
             Header = "############ Wabbajack log file - ${longdate} ############"
         };
+        
         var consoleTarget = new ConsoleTarget("console");
-        var uiTarget = new MemoryTarget
+        
+        var uiTarget = new UiLoggerTarget
         {
             Name = "ui",
             Layout = "${message}",
-            
         };
         
         var blackholeTarget = new NullTarget("blackhole");

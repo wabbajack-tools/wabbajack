@@ -4,7 +4,10 @@
 
 <div id="content">
     <div class="install-background">
-        <img id="background-image" src="@ModlistImage" alt=""/>
+        @if (ModlistImage is not null)
+        {
+            <img id="background-image" src="@ModlistImage" alt=""/>
+        }
     </div>
     <div class="list">
         @if (Modlist is not null)

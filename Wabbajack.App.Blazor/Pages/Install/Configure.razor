@@ -38,8 +38,8 @@
             </div>
         </div>
         <div class="options">
-            <OptionCheckbox Label="Overwrite Installation"/>
-            <OptionCheckbox Label="NTFS Compression"/>
+            <OptionCheckbox Label="Overwrite Installation" @bind-IsChecked="OverwriteInstallation"/>
+            <OptionCheckbox Label="NTFS Compression" @bind-IsChecked="UseCompression"/>
             <OptionCheckbox Label="Do a sweet trick"/>
             <OptionCheckbox Label="Something else"/>
         </div>
