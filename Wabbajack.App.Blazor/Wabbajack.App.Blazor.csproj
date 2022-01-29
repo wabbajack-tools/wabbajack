@@ -18,6 +18,7 @@
         <PackageReference Include="Blazored.Toast" Version="3.2.2" />
         <PackageReference Include="DynamicData" Version="7.4.9" />
         <PackageReference Include="GitInfo" Version="2.2.0" />
+        <PackageReference Include="MahApps.Metro" Version="2.4.9" />
         <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.101-preview.11.2349" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.0" />
@@ -45,6 +46,10 @@
         <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj" />
         <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
         <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Browser\BrowserWindow.xaml.cs" />
     </ItemGroup>
 
     <!-- dotnet tool install Excubo.WebCompiler -g   -->
