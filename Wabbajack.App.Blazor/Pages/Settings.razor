@@ -1,12 +1,21 @@
 ﻿@page "/settings"
+@using ReactiveUI
+@using Wabbajack.App.Blazor.Browser.ViewModels
+@using Wabbajack.App.Blazor.Messages
 @namespace Wabbajack.App.Blazor.Pages
 
 <div id="content">
     <div class="resources">
 
+        <button onclick="@LoginToNexus">Login To Nexus</button>
     </div>
 </div>
 
 @code {
     public const string Route = "/settings";
+
+    public void LoginToNexus()
+    {
+        MessageBus.Current.SendMessage(new OpenBrowserTab(new NexusLogin()));
+    }
 }

@@ -26,6 +26,9 @@
         <PackageReference Include="NLog" Version="4.7.13" />
         <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
         <PackageReference Include="PInvoke.User32" Version="0.7.104" />
+        <PackageReference Include="ReactiveUI" Version="17.1.17" />
+        <PackageReference Include="ReactiveUI.Fody" Version="17.1.17" />
+        <PackageReference Include="ReactiveUI.WPF" Version="17.1.17" />
         <PackageReference Include="Silk.NET.DXGI" Version="2.12.0" />
         <PackageReference Include="System.Reactive" Version="5.0.0" />
     </ItemGroup>

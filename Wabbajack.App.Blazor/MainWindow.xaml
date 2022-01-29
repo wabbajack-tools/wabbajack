@@ -10,7 +10,7 @@
         ShowTitleBar="False"
         Title="WABBAJACK" Height="750" Width="1200" MinHeight="750" MinWidth="1200">
     <Grid Background="#121212" MouseDown="UIElement_OnMouseDown">
-        <TabControl>
+        <TabControl x:Name="Tabs">
             <TabItem>
                 <TabItem.Header>
                     <TextBlock FontSize="16" Margin="0, 0, 8, 0">WABBAJACK 3.0.0</TextBlock>
