@@ -10,6 +10,7 @@ using Wabbajack.App.Blazor.Utility;
 using Wabbajack.Services.OSIntegrated;
 using Blazored.Modal;
 using Blazored.Toast;
+using Wabbajack.App.Blazor.Browser.ViewModels;
 
 namespace Wabbajack.App.Blazor;
 
@@ -72,6 +73,7 @@ public partial class App
         services.AddBlazoredModal();
         services.AddBlazoredToast();
         services.AddTransient<MainWindow>();
+        services.AddTransient<NexusLogin>();
         services.AddSingleton<SystemParametersConstructor>();
         services.AddSingleton<IStateContainer, StateContainer>();
         return services;
