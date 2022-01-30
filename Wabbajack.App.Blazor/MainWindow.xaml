@@ -21,11 +21,6 @@
                 </blazor:BlazorWebView.RootComponents>
                 </blazor:BlazorWebView>
             </TabItem>
-            <TabItem>
-                <TabItem.Header>
-                    <TextBlock FontSize="16">Manual Download</TextBlock>
-                </TabItem.Header>
-            </TabItem>
         </TabControl>
     </Grid>
     <Window.TaskbarItemInfo>

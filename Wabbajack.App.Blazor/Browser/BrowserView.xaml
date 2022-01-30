@@ -7,10 +7,28 @@
                                 xmlns:local="clr-namespace:Wabbajack.App.Blazor.Browser"
                                 xmlns:wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
                                 xmlns:reactiveUi="http://reactiveui.net"
+                                xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
                                 mc:Ignorable="d"
                                 d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
-        <wpf:WebView2 x:Name="Browser"></wpf:WebView2>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="30"></ColumnDefinition>
+            <ColumnDefinition Width="30"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        
+        <Button Grid.Row="0" Grid.Column="0">
+            <iconPacks:PackIconModern Kind="NavigatePrevious"></iconPacks:PackIconModern>
+        </Button>
+        <Button  Grid.Row="0" Grid.Column="1">
+            <iconPacks:PackIconModern Kind="Home"></iconPacks:PackIconModern>
+        </Button>
+        <TextBox  Grid.Row="0" Grid.Column="3" VerticalContentAlignment="Center"></TextBox>
+        <wpf:WebView2  Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" x:Name="Browser"></wpf:WebView2>
     </Grid>
 </reactiveUi:ReactiveUserControl>
 

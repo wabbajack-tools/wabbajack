@@ -113,7 +113,7 @@ public static class ServiceExtensions
         service.AddSingleton<WriteOnlyClient>();
 
         // Token Providers
-        service.AddAllSingleton<ITokenProvider<NexusApiState>, NexusApiTokenProvider>();
+        service.AddAllSingleton<ITokenProvider<NexusApiState>, EncryptedJsonTokenProvider<NexusApiState>, NexusApiTokenProvider>();
         service
             .AddAllSingleton<ITokenProvider<LoversLabLoginState>, EncryptedJsonTokenProvider<LoversLabLoginState>,
                 LoversLabTokenProvider>();

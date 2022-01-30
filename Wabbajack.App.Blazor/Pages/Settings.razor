@@ -2,7 +2,10 @@
 @using ReactiveUI
 @using Wabbajack.App.Blazor.Browser.ViewModels
 @using Wabbajack.App.Blazor.Messages
+@using Microsoft.Extensions.DependencyInjection
 @namespace Wabbajack.App.Blazor.Pages
+
+@inject IServiceProvider _serviceProvider;
 
 <div id="content">
     <div class="resources">
@@ -16,6 +19,6 @@
 
     public void LoginToNexus()
     {
-        MessageBus.Current.SendMessage(new OpenBrowserTab(new NexusLogin()));
+        MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<NexusLogin>()));
     }
 }
