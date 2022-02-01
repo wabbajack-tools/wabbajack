@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,16 @@ namespace Wabbajack.Lib.WebAutomation
 
             _browser.DownloadHandler = new DownloadHandler(this);
             _browser.LifeSpanHandler = new PopupBlocker(this);
+        }
+
+        public IDisposable SetDownloadHandler(IDownloadHandler handler)
+        {
+            var oldVal = _browser.DownloadHandler;
+            _browser.DownloadHandler = handler;
+            return Disposable.Create(oldVal, ov =>
+            {
+                _browser.DownloadHandler = ov;
+            });
         }
 
         public Task NavigateTo(Uri uri, CancellationToken? token = null)

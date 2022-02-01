@@ -460,6 +460,7 @@ namespace Wabbajack.Lib
                 new IncludeRegex(this, "^[^\\\\]*\\.bat$"),
                 new IncludeModIniData(this),
                 new DirectMatch(this),
+                new PatchStockGameFiles(this),
                 new IncludeTaggedMods(this, Consts.WABBAJACK_INCLUDE),
                 new IncludeTaggedFolders(this, Consts.WABBAJACK_INCLUDE),
                 new IgnoreEndsWith(this, ".pyc"),

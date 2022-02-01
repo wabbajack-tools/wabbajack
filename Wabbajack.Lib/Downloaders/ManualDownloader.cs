@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -54,9 +55,17 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
-                var (uri, client) = await Utils.Log(await ManuallyDownloadFile.Create(this)).Task;
-                var state = new HTTPDownloader.State(uri.ToString()) { Client = client };
-                return await state.Download(a, destination);
+                if ((new Uri(Url)).Host == "mega.nz")
+                {
+                    await Utils.Log(await ManuallyDownloadMegaFile.Create(this, destination)).Task;
+                    return true;
+                }
+                else
+                {
+                    var (uri, client) = await Utils.Log(await ManuallyDownloadFile.Create(this)).Task;
+                    var state = new HTTPDownloader.State(uri.ToString()) {Client = client};
+                    return await state.Download(a, destination);
+                }
             }
 
             public override async Task<bool> Verify(Archive a, CancellationToken? token)

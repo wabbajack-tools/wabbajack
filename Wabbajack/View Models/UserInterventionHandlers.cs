@@ -84,6 +84,9 @@ namespace Wabbajack
                 case ManuallyDownloadFile c:
                     await WrapBrowserJob(c, (vm, cancel) => HandleManualDownload(vm, cancel, c));
                     break;
+                case ManuallyDownloadMegaFile c:
+                    await WrapBrowserJob(c, (vm, cancel) => HandleManualMegaDownload(vm, cancel, c));
+                    break;
                 case AbstractNeedsLoginDownloader.RequestSiteLogin c:
                     await WrapBrowserJob(c, async (vm, cancel) =>
                     {
@@ -186,6 +189,53 @@ namespace Wabbajack
                 await Task.Delay(100);
             }
 
+        }
+        
+        private async Task HandleManualMegaDownload(WebBrowserVM vm, CancellationTokenSource cancel, ManuallyDownloadMegaFile manuallyDownloadFile)
+        {
+            var browser = new CefSharpWrapper(vm.Browser);
+            vm.Instructions = $"Please locate and download {manuallyDownloadFile.State.Url}";
+
+            await vm.Driver.WaitForInitialized();
+            var tcs = new TaskCompletionSource();
+            
+            using var _ = browser.SetDownloadHandler(new BlobDownloadHandler(manuallyDownloadFile, tcs));
+            
+            await browser.NavigateTo(new Uri(manuallyDownloadFile.State.Url));
+
+            while (!cancel.IsCancellationRequested && !tcs.Task.IsCompleted)
+            {
+                await Task.Delay(100);
+            }
+            manuallyDownloadFile.Resume();
+
+        }
+        
+        private class BlobDownloadHandler : IDownloadHandler
+        {
+            private readonly ManuallyDownloadMegaFile _manualFile;
+            private readonly TaskCompletionSource _tcs;
+
+            public BlobDownloadHandler(ManuallyDownloadMegaFile f, TaskCompletionSource tcs)
+            {
+                _manualFile = f;
+                _tcs = tcs;
+            }
+            public void OnBeforeDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
+                IBeforeDownloadCallback callback)
+            {
+                callback.Continue(_manualFile.ToString(), false);
+            }
+
+            public void OnDownloadUpdated(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
+                IDownloadItemCallback callback)
+            {
+                if (downloadItem.IsComplete)
+                {
+                    _tcs.TrySetResult();
+                }
+                callback.Resume();
+            }
         }
 
         private async Task HandleManualNexusDownload(WebBrowserVM vm, CancellationTokenSource cancel, ManuallyDownloadNexusFile manuallyDownloadNexusFile)
