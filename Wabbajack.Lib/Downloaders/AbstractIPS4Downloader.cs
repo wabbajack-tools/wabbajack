@@ -453,6 +453,9 @@ namespace Wabbajack.Lib.Downloaders
                 if (!Downloader.IsCloudFlareProtected)
                     return await Downloader.AuthedClient.GetAsync(uri);
 
+                throw new NotImplementedException();
+
+                /*
                 using var driver = await Downloader.GetAuthedDriver();
                 TaskCompletionSource<Uri?> promise = new();
                 driver.DownloadHandler = uri1 =>
@@ -465,6 +468,7 @@ namespace Wabbajack.Lib.Downloaders
                 if (url == null) throw new Exception("No Url to download");
                 var location = await driver.GetLocation();
                 return await Helpers.GetClient(await Helpers.GetCookies(), location!.ToString()).GetAsync(uri);
+                */
             }
 
             public override string[] GetMetaIni()

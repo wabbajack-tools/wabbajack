@@ -48,6 +48,8 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
+                throw new NotImplementedException();
+                /*
                 using var driver = await WebAutomation.Driver.Create();
                 var tcs = new TaskCompletionSource<Uri?>();
                 driver.DownloadHandler = uri => tcs.SetResult(uri);
@@ -55,6 +57,7 @@ namespace Wabbajack.Lib.Downloaders
                 await driver.EvalJavascript("document.getElementsByClassName(\"download-button\")[0].click();");
                 var uri = await tcs.Task;
                 return await new HTTPDownloader.State(uri!.ToString()).Download(destination);
+                */
             }
 
             public override async Task<bool> Verify(Archive archive, CancellationToken? token)

@@ -6,8 +6,8 @@
     <UseWPF>true</UseWPF>
     <Platforms>x64</Platforms>
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-      <AssemblyVersion>2.5.3.5</AssemblyVersion>
-      <FileVersion>2.5.3.5</FileVersion>
+      <AssemblyVersion>2.5.3.6</AssemblyVersion>
+      <FileVersion>2.5.3.6</FileVersion>
     <Copyright>Copyright © 2019-2021</Copyright>
     <Description>An automated ModList installer</Description>
     <PublishReadyToRun>true</PublishReadyToRun>

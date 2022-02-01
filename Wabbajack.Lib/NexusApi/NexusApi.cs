@@ -22,7 +22,7 @@ namespace Wabbajack.Lib.NexusApi
         /// <summary>
         /// Forces the client to do manual downloading via CEF (for testing)
         /// </summary>
-        private static bool ManualTestingMode = false;
+        private static bool ManualTestingMode = true;
        
         public Http.Client HttpClient { get; } = new();
 

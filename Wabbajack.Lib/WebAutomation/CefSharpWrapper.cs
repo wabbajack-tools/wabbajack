@@ -18,12 +18,10 @@ namespace Wabbajack.Lib.WebAutomation
     public class CefSharpWrapper : IWebDriver
     {
         private readonly IWebBrowser _browser;
-        public Action<Uri>? DownloadHandler { get; set; }
         public CefSharpWrapper(IWebBrowser browser)
         {
             _browser = browser;
 
-            _browser.DownloadHandler = new DownloadHandler(this);
             _browser.LifeSpanHandler = new PopupBlocker(this);
         }
 
@@ -215,28 +213,6 @@ namespace Wabbajack.Lib.WebAutomation
             if (downloadItem.IsComplete)
                 _tcs.TrySetResult(downloadItem.TotalBytes);
             callback.Resume();
-        }
-    }
-
-    public class DownloadHandler : IDownloadHandler
-    {
-        private CefSharpWrapper _wrapper;
-
-        public DownloadHandler(CefSharpWrapper wrapper)
-        {
-            _wrapper = wrapper;
-        }
-
-        public void OnBeforeDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
-            IBeforeDownloadCallback callback)
-        {
-            _wrapper.DownloadHandler?.Invoke(new Uri(downloadItem.Url));
-        }
-
-        public void OnDownloadUpdated(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
-            IDownloadItemCallback callback)
-        {
-            callback.Cancel();
         }
     }
 }

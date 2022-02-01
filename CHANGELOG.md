@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.5.3.6 - 2/1/2022
+* Implemented new (more reliable) code for back porting to Skyrim SE 
+* Mega links that use `manualURL=` now work properly with the manual downloader
+
 #### Version - 2.5.3.5 - 1/19/2022
 * Fixed support for Cyberpunk 2077 on GoG
 * Added support for Sims 4

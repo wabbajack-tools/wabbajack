@@ -93,10 +93,6 @@ namespace Wabbajack.Lib.WebAutomation
             return doc;
         }
 
-        public Action<Uri?> DownloadHandler { 
-            set => _driver.DownloadHandler = value;
-        }
-
         public Task<string> GetAttr(string selector, string attr)
         {
             return _driver.EvaluateJavaScript($"document.querySelector(\"{selector}\").{attr}");

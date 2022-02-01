@@ -33,7 +33,7 @@ namespace Wabbajack
 
         private async Task WrapBrowserJob(IUserIntervention intervention, Func<WebBrowserVM, CancellationTokenSource, Task> toDo)
         {
-            var wait = await _browserLock.WaitAsync();
+            using var wait = await _browserLock.WaitAsync();
             var cancel = new CancellationTokenSource();
             var oldPane = MainWindow.ActivePane;
             using var vm = await WebBrowserVM.GetNew();
@@ -57,10 +57,6 @@ namespace Wabbajack
             {
                 Utils.Error(ex);
                 intervention.Cancel();
-            }
-            finally
-            {
-                wait.Dispose();
             }
 
             MainWindow.NavigateTo(oldPane);
@@ -166,13 +162,9 @@ namespace Wabbajack
 
             var result = new TaskCompletionSource<Uri>();
 
-            browser.DownloadHandler = uri =>
-            {
-                //var client = Helpers.GetClient(browser.GetCookies("").Result, browser.Location);
-                result.SetResult(uri);
-            };
-            
+
             await vm.Driver.WaitForInitialized();
+            using var _ = browser.SetDownloadHandler(new ManualDownloadHandler(result));
 
             await browser.NavigateTo(new Uri(manuallyDownloadFile.State.Url));
 
@@ -190,7 +182,30 @@ namespace Wabbajack
             }
 
         }
-        
+
+        private class ManualDownloadHandler : IDownloadHandler
+        {
+            private readonly TaskCompletionSource<Uri> _tcs;
+
+            public ManualDownloadHandler(TaskCompletionSource<Uri> tcs)
+            {
+                _tcs = tcs;
+            }
+
+            public void OnBeforeDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
+                IBeforeDownloadCallback callback)
+            {
+                _tcs.TrySetResult(new Uri(downloadItem.Url));
+            }
+
+            public void OnDownloadUpdated(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
+                IDownloadItemCallback callback)
+            {
+                callback.Cancel();
+            }
+        }
+
+
         private async Task HandleManualMegaDownload(WebBrowserVM vm, CancellationTokenSource cancel, ManuallyDownloadMegaFile manuallyDownloadFile)
         {
             var browser = new CefSharpWrapper(vm.Browser);
@@ -224,7 +239,7 @@ namespace Wabbajack
             public void OnBeforeDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
                 IBeforeDownloadCallback callback)
             {
-                callback.Continue(_manualFile.ToString(), false);
+                callback.Continue(_manualFile.Destination.ToString(), false);
             }
 
             public void OnDownloadUpdated(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
@@ -235,7 +250,7 @@ namespace Wabbajack
                     _tcs.TrySetResult();
                 }
                 callback.Resume();
-            }
+   }
         }
 
         private async Task HandleManualNexusDownload(WebBrowserVM vm, CancellationTokenSource cancel, ManuallyDownloadNexusFile manuallyDownloadNexusFile)
@@ -243,18 +258,26 @@ namespace Wabbajack
             var state = manuallyDownloadNexusFile.State;
             var game = state.Game.MetaData();
             await vm.Driver.WaitForInitialized();
-            IWebDriver browser = new CefSharpWrapper(vm.Browser);
             vm.Instructions = $"Click the download button to continue (get a NexusMods.com Premium account to automate this)";
-            browser.DownloadHandler = uri =>
-            {
-                manuallyDownloadNexusFile.Resume(uri);
-                browser.DownloadHandler = null;
-            };
+            var browser = new CefSharpWrapper(vm.Browser);
+            var tcs = new TaskCompletionSource<Uri>();
+            using var _ = browser.SetDownloadHandler(new ManualDownloadHandler(tcs));
+
             var url = new Uri(@$"https://www.nexusmods.com/{game.NexusName}/mods/{state.ModID}?tab=files&file_id={state.FileID}");
             await browser.NavigateTo(url);
             
-            while (!cancel.IsCancellationRequested && !manuallyDownloadNexusFile.Task.IsCompleted) {
+            while (!cancel.IsCancellationRequested && !tcs.Task.IsCompleted) {
                 await Task.Delay(250);
+            }
+
+            if (tcs.Task.IsFaulted)
+            {
+                manuallyDownloadNexusFile.Cancel();
+            }
+            else
+            {
+                var uri = await tcs.Task;
+                manuallyDownloadNexusFile.Resume(uri);
             }
         }
     }
