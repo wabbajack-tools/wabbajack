@@ -3,3 +3,4 @@ obj
 .idea
 .vs
 *.user
+.\packages\*

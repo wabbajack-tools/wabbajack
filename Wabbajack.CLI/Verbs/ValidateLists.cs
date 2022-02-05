@@ -12,7 +12,6 @@ using FluentFTP;
 using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Services;
 using Wabbajack.Common;
-using Wabbajack.Compiler.PatchCache;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
@@ -22,7 +21,6 @@ using Wabbajack.DTOs.GitHub;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.ModListValidation;
 using Wabbajack.DTOs.ServerResponses;
-using Wabbajack.DTOs.Validation;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer;
 using Wabbajack.Networking.Discord;
@@ -75,9 +73,6 @@ public class ValidateLists : IVerb
         var command = new Command("validate-lists");
         command.Add(new Option<List[]>(new[] {"-l", "-lists"}, "Lists of lists to validate") {IsRequired = true});
         command.Add(new Option<AbsolutePath>(new[] {"-r", "--reports"}, "Location to store validation report outputs"));
-        command.Add(new Option<AbsolutePath>(new[] {"-a", "--archives"},
-                "Location to store archives (files are named as the hex version of their hashes)")
-            {IsRequired = true});
 
         command.Add(new Option<AbsolutePath>(new[] {"--other-archives"},
                 "Look for files here before downloading (stored by hex hash name)")
@@ -88,10 +83,9 @@ public class ValidateLists : IVerb
         return command;
     }
 
-    public async Task<int> Run(List[] lists, AbsolutePath archives, AbsolutePath reports, AbsolutePath otherArchives)
+    public async Task<int> Run(List[] lists, AbsolutePath reports, AbsolutePath otherArchives)
     {
         reports.CreateDirectory();
-        var archiveManager = new ArchiveManager(_logger, archives);
         var token = CancellationToken.None;
 
         _logger.LogInformation("Scanning for existing patches/mirrors");
@@ -131,15 +125,14 @@ public class ValidateLists : IVerb
 
             using var scope = _logger.BeginScope("MachineURL: {MachineUrl}", modList.Links.MachineURL);
             _logger.LogInformation("Verifying {MachineUrl} - {Title}", modList.Links.MachineURL, modList.Title);
-            await DownloadModList(modList, archiveManager, CancellationToken.None);
+            //await DownloadModList(modList, archiveManager, CancellationToken.None);
 
             ModList modListData;
             try
             {
                 _logger.LogInformation("Loading Modlist");
                 modListData =
-                    await StandardInstaller.LoadFromFile(_dtos,
-                        archiveManager.GetPath(modList.DownloadMetadata!.Hash));
+                    await StandardInstaller.Load(_dtos, _dispatcher, modList, token);
             }
             catch (JsonException ex)
             {

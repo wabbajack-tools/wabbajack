@@ -19,7 +19,7 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Downloaders;
 
-public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader
+public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader, IChunkedSeekableStreamDownloader
 {
     public static Dictionary<string, string> DomainRemaps = new()
     {
@@ -135,4 +135,27 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader
     {
         return new[] {$"directURL={state.Url}"};
     }
+
+    public async ValueTask<Stream> GetChunkedSeekableStream(Archive archive, CancellationToken token)
+    {
+        var state = archive.State as WabbajackCDN;
+        var definition = await GetDefinition(state!, token);
+        return new ChunkedSeekableDownloader(state!, definition!, this);
+    }
+
+    public async Task<byte[]> GetPart(WabbajackCDN state, PartDefinition part, CancellationToken token)
+    {
+        var msg = MakeMessage(new Uri(state.Url + $"/parts/{part.Index}"));
+        using var response = await _client.SendAsync(msg, HttpCompletionOption.ResponseHeadersRead, token);
+        if (!response.IsSuccessStatusCode)
+            throw new InvalidDataException($"Bad response for part request for part {part.Index}");
+
+        var length = response.Content.Headers.ContentLength;
+        if (length != part.Size)
+            throw new InvalidDataException(
+                $"Bad part size, expected {part.Size} got {length} for part {part.Index}");
+
+        return await response.Content.ReadAsByteArrayAsync(token);
+    }
+
 }

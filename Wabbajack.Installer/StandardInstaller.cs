@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Compression.BSA;
+using Wabbajack.Compression.Zip;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
@@ -407,5 +409,23 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                     .Open(FileMode.Create, FileAccess.Write, FileShare.None);
                 await BinaryPatching.ApplyPatch(new MemoryStream(srcData), new MemoryStream(patchData), fs);
             });
+    }
+
+    public static async Task<ModList> Load(DTOSerializer dtos, DownloadDispatcher dispatcher, ModlistMetadata metadata, CancellationToken token)
+    {
+        var archive = new Archive
+        {
+            State = dispatcher.Parse(new Uri(metadata.Links.Download))!,
+            Size = metadata.DownloadMetadata!.Size,
+            Hash = metadata.DownloadMetadata.Hash
+        };
+
+        var stream = await dispatcher.ChunkedSeekableStream(archive, token);
+        await using var reader = new ZipReader(stream);
+        var entry = (await reader.GetFiles()).First(e => e.FileName == "modlist");
+        var ms = new MemoryStream();
+        await reader.Extract(entry, ms, token);
+        ms.Position = 0;
+        return JsonSerializer.Deserialize<ModList>(ms, dtos.Options)!;
     }
 }

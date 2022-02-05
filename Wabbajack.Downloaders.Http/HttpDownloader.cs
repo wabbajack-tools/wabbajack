@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -11,6 +13,7 @@ using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.Validation;
 using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -18,7 +21,7 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Downloaders.Http;
 
-public class HttpDownloader : ADownloader<DTOs.DownloadStates.Http>, IUrlDownloader, IUpgradingDownloader
+public class HttpDownloader : ADownloader<DTOs.DownloadStates.Http>, IUrlDownloader, IUpgradingDownloader, IChunkedSeekableStreamDownloader
 {
     private readonly HttpClient _client;
     private readonly IHttpDownloader _downloader;
@@ -100,7 +103,7 @@ public class HttpDownloader : ADownloader<DTOs.DownloadStates.Http>, IUrlDownloa
         return await _client.SendAsync(msg, token);
     }
 
-    private static HttpRequestMessage MakeMessage(DTOs.DownloadStates.Http state)
+    internal static HttpRequestMessage MakeMessage(DTOs.DownloadStates.Http state)
     {
         var msg = new HttpRequestMessage(HttpMethod.Get, state.Url);
         foreach (var header in state.Headers)
@@ -150,5 +153,36 @@ public class HttpDownloader : ADownloader<DTOs.DownloadStates.Http>, IUrlDownloa
                 $"directURLHeaders={string.Join("|", state.Headers)}"
             };
         return new[] {$"directURL={state.Url}"};
+    }
+
+    public async ValueTask<Stream> GetChunkedSeekableStream(Archive archive, CancellationToken token)
+    {
+        var state = archive.State as DTOs.DownloadStates.Http;
+        return new ChunkedSeekableDownloader(this, archive, state!);
+    }
+    
+    public class ChunkedSeekableDownloader : AChunkedBufferingStream
+    {
+        private readonly DTOs.DownloadStates.Http _state;
+        private readonly Archive _archive;
+        private readonly HttpDownloader _downloader;
+
+        public ChunkedSeekableDownloader(HttpDownloader downloader, Archive archive, DTOs.DownloadStates.Http state) : base(21, archive.Size, 8)
+        {
+            _downloader = downloader;
+            _archive = archive;
+            _state = state;
+        }
+
+        public override async Task<byte[]> LoadChunk(long offset, int size)
+        {
+            var msg = HttpDownloader.MakeMessage(_state);
+            msg.Headers.Range = new RangeHeaderValue(offset, offset + size);
+            using var response = await _downloader._client.SendAsync(msg);
+            if (!response.IsSuccessStatusCode)
+                throw new HttpException(response);
+
+            return await response.Content.ReadAsByteArrayAsync();
+        }
     }
 }
