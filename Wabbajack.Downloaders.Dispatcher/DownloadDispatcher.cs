@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -254,5 +255,23 @@ public class DownloadDispatcher
         if (downloader is not IUrlDownloader ud) return false;
         var url = ud.UnParse(archive.State).ToString();
         return mirrorAllowList.AllowedPrefixes.Any(p => url.StartsWith(p));
+    }
+
+    public async ValueTask<Stream> ChunkedSeekableStream(Archive archive, CancellationToken token)
+    {
+        if (!TryGetDownloader(archive, out var downloader))
+        {
+            throw new NotImplementedException($"Now downloader ot handle {archive.State}");
+        }
+        
+        
+        if (downloader is IChunkedSeekableStreamDownloader cs)
+        {
+            return await cs.GetChunkedSeekableStream(archive, token);
+        }
+        else
+        {
+            throw new NotImplementedException($"Downloader {archive.State} does not support chunked seekable streams");
+        }
     }
 }
