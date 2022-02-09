@@ -74,6 +74,8 @@ public partial class App
         services.AddBlazoredToast();
         services.AddTransient<MainWindow>();
         services.AddTransient<NexusLogin>();
+        services.AddTransient<VectorPlexus>();
+        services.AddTransient<LoversLab>();
         services.AddSingleton<SystemParametersConstructor>();
         services.AddSingleton<IStateContainer, StateContainer>();
         return services;
