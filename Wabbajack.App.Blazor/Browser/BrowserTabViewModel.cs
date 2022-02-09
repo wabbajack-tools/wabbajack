@@ -31,6 +31,14 @@ public abstract class BrowserTabViewModel : ViewModel
     
     protected abstract Task Run(CancellationToken token);
 
+    protected async Task WaitForReady()
+    {
+        while (Browser?.Browser.CoreWebView2 == null)
+        {
+            await Task.Delay(250);
+        }
+    }
+
     public async Task NavigateTo(Uri uri)
     {
         var tcs = new TaskCompletionSource();

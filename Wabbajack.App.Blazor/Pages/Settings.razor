@@ -11,6 +11,9 @@
     <div class="resources">
 
         <button onclick="@LoginToNexus">Login To Nexus</button>
+        <button onclick="@LoginToVectorPlexus">Login To Vector Plexus</button>
+        <button onclick="@LoginToLoversLab">Login To Lovers Lab</button>
+        
     </div>
 </div>
 
@@ -20,5 +23,13 @@
     public void LoginToNexus()
     {
         MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<NexusLogin>()));
+    }
+    public void LoginToLoversLab()
+    {
+        MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<LoversLab>()));
+    }
+    public void LoginToVectorPlexus()
+    {
+        MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<VectorPlexus>()));
     }
 }
