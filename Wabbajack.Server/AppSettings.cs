@@ -11,6 +11,8 @@ public class AppSettings
     }
     public bool TestMode { get; set; }
     public string AuthorAPIKeyFile { get; set; }
+    
+    public string TarKeyFile { get; set; }
     public string WabbajackBuildServerUri { get; set; } = "https://build.wabbajack.org/";
     public string MetricsKeyHeader { get; set; } = "x-metrics-key";
     public string TempFolder { get; set; }

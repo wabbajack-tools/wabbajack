@@ -9,7 +9,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.Server.DataModels;
+using Wabbajack.Server.DTOs;
 
 namespace Wabbajack.BuildServer;
 
@@ -27,6 +30,9 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
     private readonly DTOSerializer _dtos;
     private readonly AppSettings _settings;
     private readonly AuthorKeys _authorKeys;
+    private readonly Task<HashSet<string>> _tarKeys;
+    private readonly Metrics _metricsStore;
+    private readonly TarLog _tarLog;
 
     public ApiKeyAuthenticationHandler(
         IOptionsMonitor<ApiKeyAuthenticationOptions> options,
@@ -35,8 +41,13 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         UrlEncoder encoder,
         ISystemClock clock,
         DTOSerializer dtos,
+        Metrics metricsStore,
+        TarLog tarlog,
         AppSettings settings) : base(options, logger, encoder, clock)
     {
+
+        _tarLog = tarlog;
+        _metricsStore = metricsStore;
         _dtos = dtos;
         _authorKeys = authorKeys;
         _settings = settings;
@@ -49,20 +60,18 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         //await LogRequest(metricsKey);
         if (metricsKey != default)
         {
-            /*
-            if (await _sql.IsTarKey(metricsKey))
+            if (await _tarLog.Contains(metricsKey))
             {
-                await _sql.IngestMetric(new Metric
+                await _metricsStore.Ingest(new Metric()
                 {
-                    Action = "TarKey",
-                    Subject = "Auth",
+                    Subject = metricsKey,
+                    Action = "tarlog",
                     MetricsKey = metricsKey,
-                    Timestamp = DateTime.UtcNow
+                    UserAgent = Request.Headers.UserAgent
                 });
                 await Task.Delay(TimeSpan.FromSeconds(60));
-                throw new Exception("Error, lipsum timeout of the cross distant cloud.");
+                return AuthenticateResult.Fail("Error, lipsum timeout of the cross distant cloud.");
             }
-            */
         }
 
         var authorKey = Request.Headers[ApiKeyHeaderName].FirstOrDefault();

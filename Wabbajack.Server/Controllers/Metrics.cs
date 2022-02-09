@@ -90,7 +90,7 @@ public class MetricsController : ControllerBase
     
     [HttpGet]
     [Route("dump")]
-    public async Task GetMetrics([FromQuery] string action, [FromQuery] string from, [FromQuery] string? to)
+    public async Task GetMetrics([FromQuery] string action, [FromQuery] string from, [FromQuery] string? to, [FromQuery] string? subject)
     {
         var parser = new Parser();
         
@@ -100,15 +100,18 @@ public class MetricsController : ControllerBase
         var fromDate = parser.Parse(from).Start;
 
         var records = _metricsStore.GetRecords(fromDate!.Value, toDate!.Value, action);
+
         Response.Headers.ContentType = "application/json";
         await foreach (var record in records)
         {
+            if (!string.IsNullOrWhiteSpace(subject) && !record.Subject.Contains(subject))
+                continue;
             
             await JsonSerializer.SerializeAsync(Response.Body, record);
             await Response.Body.WriteAsync(EOL);
         }
     }
-    
+
     [HttpGet]
     [Route("report")]
     [ResponseCache(Duration = 60 * 60 * 4, VaryByQueryKeys = new [] {"action", "from", "to"})]
