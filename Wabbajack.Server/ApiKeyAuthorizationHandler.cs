@@ -69,7 +69,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
                     MetricsKey = metricsKey,
                     UserAgent = Request.Headers.UserAgent
                 });
-                await Task.Delay(TimeSpan.FromSeconds(60));
+                await Task.Delay(TimeSpan.FromSeconds(20));
                 throw new Exception("Error, lipsum timeout of the cross distant cloud.");
             }
         }
