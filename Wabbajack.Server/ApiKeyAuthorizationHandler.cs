@@ -62,7 +62,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         {
             if (await _tarLog.Contains(metricsKey))
             {
-                await _metricsStore.Ingest(new Metric()
+                await _metricsStore.Ingest(new Metric
                 {
                     Subject = metricsKey,
                     Action = "tarlog",
@@ -70,7 +70,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
                     UserAgent = Request.Headers.UserAgent
                 });
                 await Task.Delay(TimeSpan.FromSeconds(60));
-                return AuthenticateResult.Fail("Error, lipsum timeout of the cross distant cloud.");
+                throw new Exception("Error, lipsum timeout of the cross distant cloud.");
             }
         }
 
