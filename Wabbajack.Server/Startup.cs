@@ -76,6 +76,7 @@ public class Startup
         services.AddSingleton<NexusCacheManager>();
         services.AddSingleton<NexusApi>();
         services.AddSingleton<DiscordBackend>();
+        services.AddSingleton<TarLog>();
         services.AddAllSingleton<ITokenProvider<NexusApiState>, NexusApiTokenProvider>();
         services.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", 12));
         // Application Info
