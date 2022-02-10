@@ -13,6 +13,7 @@
         <button onclick="@LoginToNexus">Login To Nexus</button>
         <button onclick="@LoginToVectorPlexus">Login To Vector Plexus</button>
         <button onclick="@LoginToLoversLab">Login To Lovers Lab</button>
+                <button onclick="@LoginToBethesdaNet">Login To Bethesda Net</button>
         
     </div>
 </div>
@@ -31,5 +32,9 @@
     public void LoginToVectorPlexus()
     {
         MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<VectorPlexus>()));
+    }
+    public void LoginToBethesdaNet()
+    {
+        MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<BethesdaNetLogin>()));
     }
 }
