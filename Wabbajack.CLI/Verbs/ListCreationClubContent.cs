@@ -7,7 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
+using Wabbajack.Downloaders.Bethesda;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.DTOs.Logins.BethesdaNet;
 using Wabbajack.Networking.BethesdaNet;
 using Wabbajack.Paths;
 
@@ -17,11 +20,13 @@ public class ListCreationClubContent : IVerb
 {
     private readonly ILogger<ListCreationClubContent> _logger;
     private readonly Client _client;
+    private readonly BethesdaDownloader _downloader;
 
-    public ListCreationClubContent(ILogger<ListCreationClubContent> logger, Client wjClient)
+    public ListCreationClubContent(ILogger<ListCreationClubContent> logger, Client wjClient, Wabbajack.Downloaders.Bethesda.BethesdaDownloader downloader)
     {
         _logger = logger;
         _client = wjClient;
+        _downloader = downloader;
     }
     public Command MakeCommand()
     {
@@ -39,12 +44,12 @@ public class ListCreationClubContent : IVerb
         var falloutContent = (await _client.ListContent(Game.Fallout4, token))
             .Select(f => (Game.Fallout4, f));
 
-        foreach (var (game, content) in skyrimContent.Concat(falloutContent).OrderBy(f => f.f.Name))
+        foreach (var (game, content) in skyrimContent.Concat(falloutContent).OrderBy(f => f.f.Content.Name))
         {
             Console.WriteLine($"Game: {game}");
-            Console.WriteLine($"Name: {content.Name}");
-            Console.WriteLine($"Download Size: {content.DepotSize.ToFileSizeString()}");
-            Console.WriteLine($"Uri: bethesda://{game}/cc/{content.ContentId}");
+            Console.WriteLine($"Name: {content.Content.Name}");
+            Console.WriteLine($"Download Size: {content.Content.DepotSize.ToFileSizeString()}");
+            Console.WriteLine($"Uri: {_downloader.UnParse(content.State)}");
             Console.WriteLine("-----------------------------------");
         }
 

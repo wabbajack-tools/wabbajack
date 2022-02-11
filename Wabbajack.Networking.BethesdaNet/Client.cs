@@ -2,8 +2,10 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.DTOs.Logins.BethesdaNet;
 using Wabbajack.Networking.BethesdaNet.DTOs;
@@ -37,7 +39,8 @@ public class Client
         _httpClient = client;
         _jsonOptions = new JsonSerializerOptions
         {
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
         };
         SetFingerprint();
     }
@@ -106,7 +109,7 @@ public class Client
         FingerprintKey = string.Concat(Array.ConvertAll(keyBytes, x => x.ToString("X2")));
     }
 
-    public async Task<IEnumerable<Content>> ListContent(Game game, CancellationToken token)
+    public async Task<IEnumerable<(Content Content, Bethesda State)>> ListContent(Game game, CancellationToken token)
     {
         var gameKey = game switch
         {
@@ -125,12 +128,45 @@ public class Client
         if (!request.IsSuccessStatusCode)
             throw new HttpException(request);
         var response = await request.Content.ReadFromJsonAsync<ListSubscribeResponse>(_jsonOptions, token);
-        return response!.Platform.Response.Content;
+        return response!.Platform.Response.Content
+            .Select(c => (c, new Bethesda
+            {
+                Game = game,
+                ContentId = c.ContentId,
+                IsCCMod = c.CcMod,
+                ProductId = c.CdpProductId,
+                BranchID = c.CdpBranchId
+            }));
     }
 
     private async Task EnsureAuthed(CancellationToken token)
     {
         if (_entitlementData == null)
             await CDPAuth(token);
+    }
+
+    private int ProductId(Game game)
+    {
+        if (game == Game.SkyrimSpecialEdition) return 4;
+        return 0;
+    }
+
+    public async Task<Depot?> GetDepots(Bethesda state, CancellationToken token)
+    {
+        await EnsureAuthed(token);
+        var msg = MakeMessage(HttpMethod.Get, new Uri($"https://api.bethesda.net/cdp-user/projects/{state.ProductId}/branches/{state.BranchID}/depots/.json"));
+        msg.Headers.Add("x-src-fp", FingerprintKey);
+        msg.Headers.Add("x-cdp-app", "UGC SDK");
+        msg.Headers.Add("x-cdp-app-ver", "0.9.11314/debug");
+        msg.Headers.Add("x-cdp-lib-ver", "0.9.11314/debug");
+        msg.Headers.Add("x-cdp-platform", "Win/32");
+        msg.Headers.Add("Authorization", $"Token {_entitlementData!.Token}");
+
+        using var request = await _httpClient.SendAsync(msg, token);
+        if (!request.IsSuccessStatusCode)
+            throw new HttpException(request);
+
+        var response = await request.Content.ReadFromJsonAsync<Dictionary<string, Depot>>(_jsonOptions, token);
+        return response!.Values.First();
     }
 }

@@ -68,7 +68,7 @@ public class Content
     public int RatingCount { get; set; }
 
     [JsonPropertyName("cdp_branch_id")]
-    public int CdpBranchId { get; set; }
+    public long CdpBranchId { get; set; }
 
     [JsonPropertyName("type")]
     public string Type { get; set; }
@@ -107,7 +107,7 @@ public class Content
     public string ContentId { get; set; }
 
     [JsonPropertyName("cdp_product_id")]
-    public int CdpProductId { get; set; }
+    public long CdpProductId { get; set; }
 }
 
 public class Response
