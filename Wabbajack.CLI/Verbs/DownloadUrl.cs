@@ -4,9 +4,11 @@ using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack.CLI.Verbs;
 
@@ -42,7 +44,8 @@ public class DownloadUrl : IVerb
         }
 
         var archive = new Archive() {State = parsed, Name = output.FileName.ToString()};
-        await _dispatcher.Download(archive, output, CancellationToken.None);
+        var hash = await _dispatcher.Download(archive, output, CancellationToken.None); ;
+        Console.WriteLine($"Download complete: {output.Size().ToFileSizeString()} {hash} {hash.ToHex()} {(long)hash}");
         return 0;
     }
 }

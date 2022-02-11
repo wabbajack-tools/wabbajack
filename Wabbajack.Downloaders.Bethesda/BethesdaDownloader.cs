@@ -1,3 +1,7 @@
+using System.IO.Compression;
+using System.Security.Cryptography;
+using CS_AES_CTR;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.Interfaces;
@@ -38,28 +42,56 @@ public class BethesdaDownloader : ADownloader<DTOs.DownloadStates.Bethesda>, IUr
 
         var chunks = tree!.DepotList.First().FileList.First().ChunkList;
 
+        using var os = destination.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
+        
+        var hasher = new xxHashAlgorithm(0);
+        Hash finalHash = default;
+
+        var aesKey = depot.ExInfoA.ToArray();
+        var aesIV = depot.ExInfoB.Take(16).ToArray();
+
         await chunks.PMapAll(async chunk =>
         {
-            var data = await GetChunk(state, chunk, token);
+            var data = await GetChunk(state, chunk, depot.PropertiesId, token);
             var reported = job.Report(data.Length, token);
             
-// Decrypt and Decompress
+            var aesCtr = new AES_CTR(aesKey, aesIV, false);
+            data = aesCtr.DecryptBytes(data);
 
+            if (chunk.UncompressedSize != chunk.ChunkSize)
+            {
+                var inflater = new InflaterInputStream(new MemoryStream(data));
+                data = await inflater.ReadAllAsync();
+            }
+            
             await reported;
             return data;
+        })
+        .Do(async data =>
+        {
+            if (data.Length < tree.DepotList.First().BytesPerChunk)
+            {
+                hasher.HashBytes(data);
+            }
+            else
+            {
+                finalHash = Hash.FromULong(hasher.FinalizeHashValueInternal(data));
+            }
+            
+            await os.WriteAsync(data, token);
         });
         
-        return default;
+        return finalHash;
     }
 
-    private async Task<byte[]> GetChunk(DTOs.DownloadStates.Bethesda state, Chunk chunk,
+    private async Task<byte[]> GetChunk(DTOs.DownloadStates.Bethesda state, Chunk chunk, long propertiesId,
         CancellationToken token)
     {
-        var uri = new Uri($"https://content.cdp.bethesda.net/{state.ProductId}/{state.BranchID}/{chunk.Sha}");
+        var uri = new Uri($"https://content.cdp.bethesda.net/{state.ProductId}/{propertiesId}/{chunk.Sha}");
         var msg = new HttpRequestMessage(HttpMethod.Get, uri);
         msg.Headers.Add("User-Agent", "bnet");
         using var job = await _limiter.Begin("Getting chunk", chunk.ChunkSize, token);
-        using var response = await _httpClient.GetAsync(uri, token);
+        using var response = await _httpClient.SendAsync(msg, token);
         if (!response.IsSuccessStatusCode)
             throw new HttpException(response);
         await job.Report(chunk.ChunkSize, token);
@@ -128,7 +160,7 @@ public class BethesdaDownloader : ADownloader<DTOs.DownloadStates.Bethesda>, IUr
             Game = game.Game,
             IsCCMod = isCCMod,
             ProductId = productId,
-            BranchID = branchId,
+            BranchId = branchId,
             ContentId = path[3]
         };
     }
@@ -136,7 +168,7 @@ public class BethesdaDownloader : ADownloader<DTOs.DownloadStates.Bethesda>, IUr
     public Uri UnParse(IDownloadState state)
     {
         var cstate = (DTOs.DownloadStates.Bethesda) state;
-        return new Uri($"bethesda://{cstate.Game}/{(cstate.IsCCMod ? "cc" : "mod")}/{cstate.ProductId}/{cstate.BranchID}/{cstate.ContentId}");
+        return new Uri($"bethesda://{cstate.Game}/{(cstate.IsCCMod ? "cc" : "mod")}/{cstate.ProductId}/{cstate.BranchId}/{cstate.ContentId}");
     }
 
     public ValueTask<Stream> GetChunkedSeekableStream(Archive archive, CancellationToken token)

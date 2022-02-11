@@ -135,7 +135,7 @@ public class Client
                 ContentId = c.ContentId,
                 IsCCMod = c.CcMod,
                 ProductId = c.CdpProductId,
-                BranchID = c.CdpBranchId
+                BranchId = c.CdpBranchId
             }));
     }
 
@@ -165,7 +165,7 @@ public class Client
     {
         await EnsureAuthed(token);
         var msg = MakeMessage(HttpMethod.Get,
-            new Uri($"https://api.bethesda.net/cdp-user/projects/{state.ProductId}/branches/{state.BranchID}/{type}/.json"));
+            new Uri($"https://api.bethesda.net/cdp-user/projects/{state.ProductId}/branches/{state.BranchId}/{type}/.json"));
         msg.Headers.Add("x-src-fp", FingerprintKey);
         msg.Headers.Add("x-cdp-app", "UGC SDK");
         msg.Headers.Add("x-cdp-app-ver", "0.9.11314/debug");
