@@ -44,7 +44,7 @@ public class ListCreationClubContent : IVerb
             Console.WriteLine($"Game: {game}");
             Console.WriteLine($"Name: {content.Name}");
             Console.WriteLine($"Download Size: {content.DepotSize.ToFileSizeString()}");
-            Console.WriteLine($"Uri: bethesda://{game}/{content.ContentId}");
+            Console.WriteLine($"Uri: bethesda://{game}/cc/{content.ContentId}");
             Console.WriteLine("-----------------------------------");
         }
 
