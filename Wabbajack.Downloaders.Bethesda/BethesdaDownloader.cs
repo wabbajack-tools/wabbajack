@@ -1,10 +1,13 @@
 using Microsoft.Extensions.Logging;
+using Wabbajack.Common;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.Validation;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Networking.BethesdaNet;
+using Wabbajack.Networking.BethesdaNet.DTOs;
+using Wabbajack.Networking.Http;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
@@ -31,8 +34,36 @@ public class BethesdaDownloader : ADownloader<DTOs.DownloadStates.Bethesda>, IUr
     {
 
         var depot = await _client.GetDepots(state, token);
+        var tree = await _client.GetTree(state, token);
 
+        var chunks = tree!.DepotList.First().FileList.First().ChunkList;
+
+        await chunks.PMapAll(async chunk =>
+        {
+            var data = await GetChunk(state, chunk, token);
+            var reported = job.Report(data.Length, token);
+            
+// Decrypt and Decompress
+
+            await reported;
+            return data;
+        });
+        
         return default;
+    }
+
+    private async Task<byte[]> GetChunk(DTOs.DownloadStates.Bethesda state, Chunk chunk,
+        CancellationToken token)
+    {
+        var uri = new Uri($"https://content.cdp.bethesda.net/{state.ProductId}/{state.BranchID}/{chunk.Sha}");
+        var msg = new HttpRequestMessage(HttpMethod.Get, uri);
+        msg.Headers.Add("User-Agent", "bnet");
+        using var job = await _limiter.Begin("Getting chunk", chunk.ChunkSize, token);
+        using var response = await _httpClient.GetAsync(uri, token);
+        if (!response.IsSuccessStatusCode)
+            throw new HttpException(response);
+        await job.Report(chunk.ChunkSize, token);
+        return await response.Content.ReadAsByteArrayAsync(token);
     }
 
     public override async Task<bool> Prepare()
@@ -59,8 +90,8 @@ public class BethesdaDownloader : ADownloader<DTOs.DownloadStates.Bethesda>, IUr
 
     public override async Task<bool> Verify(Archive archive, DTOs.DownloadStates.Bethesda state, IJob job, CancellationToken token)
     {
-        await _client.GetDepots(state, token);
-        throw new NotImplementedException();
+        var depot = await _client.GetDepots(state, token);
+        return depot != null;
     }
 
     public override IEnumerable<string> MetaIni(Archive a, DTOs.DownloadStates.Bethesda state)

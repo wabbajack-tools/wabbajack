@@ -153,8 +153,19 @@ public class Client
 
     public async Task<Depot?> GetDepots(Bethesda state, CancellationToken token)
     {
+        return (await MakeCdpRequest<Dictionary<string, Depot>>(state, "depots", token))?.Values.First();
+    }
+
+    public async Task<Tree?> GetTree(Bethesda state, CancellationToken token)
+    {
+        return await MakeCdpRequest<Tree>(state, "tree", token);
+    }
+
+    private async Task<T?> MakeCdpRequest<T>(Bethesda state, string type, CancellationToken token)
+    {
         await EnsureAuthed(token);
-        var msg = MakeMessage(HttpMethod.Get, new Uri($"https://api.bethesda.net/cdp-user/projects/{state.ProductId}/branches/{state.BranchID}/depots/.json"));
+        var msg = MakeMessage(HttpMethod.Get,
+            new Uri($"https://api.bethesda.net/cdp-user/projects/{state.ProductId}/branches/{state.BranchID}/{type}/.json"));
         msg.Headers.Add("x-src-fp", FingerprintKey);
         msg.Headers.Add("x-cdp-app", "UGC SDK");
         msg.Headers.Add("x-cdp-app-ver", "0.9.11314/debug");
@@ -165,8 +176,8 @@ public class Client
         using var request = await _httpClient.SendAsync(msg, token);
         if (!request.IsSuccessStatusCode)
             throw new HttpException(request);
-
-        var response = await request.Content.ReadFromJsonAsync<Dictionary<string, Depot>>(_jsonOptions, token);
-        return response!.Values.First();
+        
+        var response = await request.Content.ReadFromJsonAsync<T>(_jsonOptions, token);
+        return response;
     }
 }
