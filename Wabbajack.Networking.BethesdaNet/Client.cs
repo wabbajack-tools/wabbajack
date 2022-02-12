@@ -16,6 +16,9 @@ namespace Wabbajack.Networking.BethesdaNet;
 
 
 
+/// <summary>
+/// This code is heavily based on code researched and prototyped by Nukem9 https://github.com/Nukem9/bethnet_cli
+/// </summary>
 public class Client
 {
     private readonly ITokenProvider<BethesdaNetLoginState> _tokenProvider;
