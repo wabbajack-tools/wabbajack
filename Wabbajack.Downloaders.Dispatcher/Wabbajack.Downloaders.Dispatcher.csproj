@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Wabbajack.Downloaders.Bethesda\Wabbajack.Downloaders.Bethesda.csproj" />
         <ProjectReference Include="..\Wabbajack.Downloaders.GameFile\Wabbajack.Downloaders.GameFile.csproj" />
         <ProjectReference Include="..\Wabbajack.Downloaders.GoogleDrive\Wabbajack.Downloaders.GoogleDrive.csproj" />
         <ProjectReference Include="..\Wabbajack.Downloaders.Http\Wabbajack.Downloaders.Http.csproj" />

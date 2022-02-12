@@ -180,6 +180,34 @@ public class DownloaderTests
                             "https://authored-files.wabbajack.org/Tonal%20Architect_WJ_TEST_FILES.zip_9cb97a01-3354-4077-9e4a-7e808d47794fFFOOO")
                     }
                 }
+            },
+            // Bethesda
+            new object[]
+            {
+                new Archive
+                {
+                    Hash = default,
+                    State = new DTOs.DownloadStates.Bethesda
+                    {
+                        Game = Game.SkyrimSpecialEdition,
+                        IsCCMod = true,
+                        ProductId = 4,
+                        BranchID = 90898,
+                        ContentId = "4059054"
+                    }
+                },
+                new Archive
+                {
+                    Hash = default,
+                    State = new DTOs.DownloadStates.Bethesda
+                    {
+                        Game = Game.SkyrimSpecialEdition,
+                        IsCCMod = true,
+                        ProductId = 6,
+                        BranchID = 9898,
+                        ContentId = "059054"
+                    }
+                },
             }
         };
 

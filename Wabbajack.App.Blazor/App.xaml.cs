@@ -76,6 +76,7 @@ public partial class App
         services.AddTransient<NexusLogin>();
         services.AddTransient<VectorPlexus>();
         services.AddTransient<LoversLab>();
+        services.AddTransient<BethesdaNetLogin>();
         services.AddSingleton<SystemParametersConstructor>();
         services.AddSingleton<IStateContainer, StateContainer>();
         return services;

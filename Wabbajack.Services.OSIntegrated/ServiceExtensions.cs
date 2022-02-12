@@ -11,6 +11,7 @@ using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Installer;
+using Wabbajack.Networking.BethesdaNet;
 using Wabbajack.Networking.Discord;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
@@ -111,9 +112,11 @@ public static class ServiceExtensions
             
         service.AddSingleton<Client>();
         service.AddSingleton<WriteOnlyClient>();
+        service.AddBethesdaNet();
 
         // Token Providers
         service.AddAllSingleton<ITokenProvider<NexusApiState>, EncryptedJsonTokenProvider<NexusApiState>, NexusApiTokenProvider>();
+        service.AddAllSingleton<ITokenProvider<BethesdaNetLoginState>, EncryptedJsonTokenProvider<BethesdaNetLoginState>, BethesdaNetTokenProvider>();
         service
             .AddAllSingleton<ITokenProvider<LoversLabLoginState>, EncryptedJsonTokenProvider<LoversLabLoginState>,
                 LoversLabTokenProvider>();

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Wabbajack.Downloaders.Bethesda;
 using Wabbajack.Downloaders.Http;
 using Wabbajack.Downloaders.IPS4OAuth2Downloader;
 using Wabbajack.Downloaders.MediaFire;
@@ -24,6 +25,7 @@ public static class ServiceExtensions
             .AddIPS4OAuth2Downloaders()
             .AddWabbajackCDNDownloader()
             .AddGameFileDownloader()
+            .AddBethesdaDownloader()
             .AddWabbajackClient()
             .AddSingleton<DownloadDispatcher>();
     }
