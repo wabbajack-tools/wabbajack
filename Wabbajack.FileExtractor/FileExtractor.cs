@@ -1,9 +1,11 @@
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -11,8 +13,10 @@ using OMODFramework;
 using Wabbajack.Common;
 using Wabbajack.Common.FileSignatures;
 using Wabbajack.Compression.BSA;
+using Wabbajack.Compression.BSA.FO4Archive;
 using Wabbajack.DTOs.Streams;
 using Wabbajack.FileExtractor.ExtractedFiles;
+using Wabbajack.IO.Async;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
@@ -24,6 +28,7 @@ public class FileExtractor
     public static readonly SignatureChecker ArchiveSigs = new(FileType.TES3,
         FileType.BSA,
         FileType.BA2,
+        FileType.BTAR,
         FileType.ZIP,
         //FileType.EXE,
         FileType.RAR_OLD,
@@ -43,6 +48,7 @@ public class FileExtractor
         new Extension(".7zip"),
         new Extension(".rar"),
         new Extension(".zip"),
+        new Extension(".btar"),
         OMODExtension,
         FOMODExtension
     };
@@ -98,6 +104,9 @@ public class FileExtractor
 
                 break;
             }
+            case FileType.BTAR:
+                results = await GatheringExtractWithBTAR(sFn, shouldExtract, mapfn, token);
+                break;
 
             case FileType.BSA:
             case FileType.BA2:
@@ -118,6 +127,75 @@ public class FileExtractor
             throw new Exception(
                 $"Sanity check error extracting {sFn.Name} - {results.Count} results, expected {onlyFiles.Count}");
         return results;
+    }
+
+    private async Task<IDictionary<RelativePath,T>> GatheringExtractWithBTAR<T>
+        (IStreamFactory sFn, Predicate<RelativePath> shouldExtract, Func<RelativePath,IExtractedFile,ValueTask<T>> mapfn, CancellationToken token)
+    {
+        await using var strm = await sFn.GetStream();
+        var astrm = new AsyncBinaryReader(strm);
+        var magic = BinaryPrimitives.ReadUInt32BigEndian(await astrm.ReadBytes(4));
+        // BTAR Magic
+        if (magic != 0x42544152) throw new Exception("Not a valid BTAR file");
+        if (await astrm.ReadUInt16() != 1) throw new Exception("Invalid BTAR major version, should be 1");
+        var minorVersion = await astrm.ReadUInt16();
+        if (minorVersion is < 2 or > 4) throw new Exception("Invalid BTAR minor version");
+
+        var results = new Dictionary<RelativePath, T>();
+
+        while (astrm.Position < astrm.Length)
+        {
+            var nameLength = await astrm.ReadUInt16();
+            var name = Encoding.UTF8.GetString(await astrm.ReadBytes(nameLength)).ToRelativePath();
+            var dataLength = await astrm.ReadUInt64();
+            var newPos = astrm.Position + (long)dataLength;
+            if (!shouldExtract(name))
+            {
+                astrm.Position += (long)dataLength;
+                continue;
+            }
+
+            var result = await mapfn(name, new BTARExtractedFile(sFn, name, astrm, astrm.Position, (long) dataLength));
+            results.Add(name, result);
+            astrm.Position = newPos;
+        }
+
+        return results;
+    }
+
+    private class BTARExtractedFile : IExtractedFile
+    {
+        private readonly IStreamFactory _parent;
+        private readonly AsyncBinaryReader _rdr;
+        private readonly long _start;
+        private readonly long _length;
+        private readonly RelativePath _name;
+
+        public BTARExtractedFile(IStreamFactory parent, RelativePath name, AsyncBinaryReader rdr, long startingPosition, long length)
+        {
+            _name = name;
+            _parent = parent;
+            _rdr = rdr;
+            _start = startingPosition;
+            _length = length;
+        }
+
+        public DateTime LastModifiedUtc => _parent.LastModifiedUtc;
+        public IPath Name => _name;
+        public async ValueTask<Stream> GetStream()
+        {
+            _rdr.Position = _start;
+            var data = await _rdr.ReadBytes((int) _length);
+            return new MemoryStream(data);
+        }
+
+        public bool CanMove { get; set; } = true;
+        public async ValueTask Move(AbsolutePath newPath, CancellationToken token)
+        {
+            await using var output = newPath.Open(FileMode.Create, FileAccess.Read, FileShare.Read);
+            _rdr.Position = _start;
+            await _rdr.BaseStream.CopyToLimitAsync(output, (int)_length, token);
+        }
     }
 
     private async Task<Dictionary<RelativePath, T>> GatheringExtractWithOMOD<T>
