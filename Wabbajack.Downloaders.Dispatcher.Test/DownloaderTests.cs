@@ -192,7 +192,7 @@ public class DownloaderTests
                         Game = Game.SkyrimSpecialEdition,
                         IsCCMod = true,
                         ProductId = 4,
-                        BranchID = 90898,
+                        BranchId = 90898,
                         ContentId = "4059054"
                     }
                 },
@@ -204,7 +204,7 @@ public class DownloaderTests
                         Game = Game.SkyrimSpecialEdition,
                         IsCCMod = true,
                         ProductId = 6,
-                        BranchID = 9898,
+                        BranchId = 9898,
                         ContentId = "059054"
                     }
                 },
