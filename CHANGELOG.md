@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.3.8 - 2/23/2022
+* Allow users of the manual downloader to set a custom prompt text
+
 #### Version - 2.5.3.7 - 2/1/2022
 * HOTFIX: disable debug mode on the Nexus downloader
 
