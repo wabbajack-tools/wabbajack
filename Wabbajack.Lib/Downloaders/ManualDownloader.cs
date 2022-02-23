@@ -28,7 +28,8 @@ namespace Wabbajack.Lib.Downloaders
         public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = archiveINI?.General?.manualURL;
-            return url != null ? new State(url) : null;
+            var prompt = archiveINI?.General?.prompt;
+            return url != null ? new State(url, prompt ?? "") : null;
         }
 
         public async Task Prepare()
@@ -39,13 +40,15 @@ namespace Wabbajack.Lib.Downloaders
         public class State : AbstractDownloadState
         {
             public string Url { get; }
+            public string Prompt { get; }
 
             [JsonIgnore]
             public override object[] PrimaryKey => new object[] { Url };
 
-            public State(string url)
+            public State(string url, string prompt)
             {
                 Url = url;
+                Prompt = prompt;
             }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
@@ -89,6 +92,7 @@ namespace Wabbajack.Lib.Downloaders
                 {
                     "[General]",
                     $"manualURL={Url}",
+                    $"prompt={Prompt}"
                 };
             }
         }

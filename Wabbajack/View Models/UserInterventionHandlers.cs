@@ -158,7 +158,13 @@ namespace Wabbajack
         private async Task HandleManualDownload(WebBrowserVM vm, CancellationTokenSource cancel, ManuallyDownloadFile manuallyDownloadFile)
         {
             var browser = new CefSharpWrapper(vm.Browser);
-            vm.Instructions = $"Please locate and download {manuallyDownloadFile.State.Url}";
+            var prompt = manuallyDownloadFile.State.Prompt;
+            if (string.IsNullOrWhiteSpace(prompt))
+            {
+                prompt = $"Please locate and download {manuallyDownloadFile.State.Url}";
+            }
+
+            vm.Instructions = prompt;
 
             var result = new TaskCompletionSource<Uri>();
 
@@ -209,7 +215,13 @@ namespace Wabbajack
         private async Task HandleManualMegaDownload(WebBrowserVM vm, CancellationTokenSource cancel, ManuallyDownloadMegaFile manuallyDownloadFile)
         {
             var browser = new CefSharpWrapper(vm.Browser);
-            vm.Instructions = $"Please locate and download {manuallyDownloadFile.State.Url}";
+            var prompt = manuallyDownloadFile.State.Prompt;
+            if (string.IsNullOrWhiteSpace(prompt))
+            {
+                prompt = $"Please locate and download {manuallyDownloadFile.State.Url}";
+            }
+
+            vm.Instructions = prompt;
 
             await vm.Driver.WaitForInitialized();
             var tcs = new TaskCompletionSource();
