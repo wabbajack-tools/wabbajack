@@ -83,6 +83,9 @@ namespace Wabbajack
                 case ManuallyDownloadMegaFile c:
                     await WrapBrowserJob(c, (vm, cancel) => HandleManualMegaDownload(vm, cancel, c));
                     break;
+                case ManuallyDownloadLoversLabFile c:
+                    await WrapBrowserJob(c, (vm, cancel) => HandleManualLoversLabDownload(vm, cancel, c));
+                    break;
                 case AbstractNeedsLoginDownloader.RequestSiteLogin c:
                     await WrapBrowserJob(c, async (vm, cancel) =>
                     {
@@ -140,7 +143,7 @@ namespace Wabbajack
                 if (parsed.Contains("code"))
                 {
                     Helpers.SchemeHandler = oldHandler;
-                    oa.Resume(parsed.Get("code"));
+                    oa.Resume(parsed.Get("code")!).FireAndForget();
                 }
                 else
                 {
@@ -226,7 +229,38 @@ namespace Wabbajack
             await vm.Driver.WaitForInitialized();
             var tcs = new TaskCompletionSource();
             
-            using var _ = browser.SetDownloadHandler(new BlobDownloadHandler(manuallyDownloadFile, tcs));
+            using var _ = browser.SetDownloadHandler(new BlobDownloadHandler(manuallyDownloadFile.Destination, tcs));
+            
+            await browser.NavigateTo(new Uri(manuallyDownloadFile.State.Url));
+
+            while (!cancel.IsCancellationRequested && !tcs.Task.IsCompleted)
+            {
+                await Task.Delay(100);
+            }
+            manuallyDownloadFile.Resume();
+
+        }
+        
+        private async Task HandleManualLoversLabDownload(WebBrowserVM vm, CancellationTokenSource cancel, ManuallyDownloadLoversLabFile manuallyDownloadFile)
+        {
+            var browser = new CefSharpWrapper(vm.Browser);
+            var prompt = manuallyDownloadFile.State.Prompt;
+            if (string.IsNullOrWhiteSpace(prompt))
+            {
+                prompt = $"Please locate and download {manuallyDownloadFile.State.Url}";
+            }
+
+            vm.Instructions = prompt;
+
+            await vm.Driver.WaitForInitialized();
+            var tcs = new TaskCompletionSource();
+
+            using var _ = browser.SetDownloadHandler(new BlobDownloadHandler(manuallyDownloadFile.Destination, tcs, 
+                p =>
+            {
+                vm.Instructions = $"Downloading: {p}";
+            }));
+
             
             await browser.NavigateTo(new Uri(manuallyDownloadFile.State.Url));
 
@@ -240,23 +274,27 @@ namespace Wabbajack
         
         private class BlobDownloadHandler : IDownloadHandler
         {
-            private readonly ManuallyDownloadMegaFile _manualFile;
+            private readonly AbsolutePath _destination;
             private readonly TaskCompletionSource _tcs;
+            private readonly Action<Percent> _progress;
 
-            public BlobDownloadHandler(ManuallyDownloadMegaFile f, TaskCompletionSource tcs)
+            public BlobDownloadHandler(AbsolutePath f, TaskCompletionSource tcs, Action<Percent> progress = null)
             {
-                _manualFile = f;
+                _progress = progress;
+                _destination = f;
                 _tcs = tcs;
             }
             public void OnBeforeDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
                 IBeforeDownloadCallback callback)
             {
-                callback.Continue(_manualFile.Destination.ToString(), false);
+                callback.Continue(_destination.ToString(), false);
             }
 
             public void OnDownloadUpdated(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
                 IDownloadItemCallback callback)
             {
+                _progress?.Invoke(Percent.FactoryPutInRange(downloadItem.PercentComplete, 100));
+                
                 if (downloadItem.IsComplete)
                 {
                     _tcs.TrySetResult();
