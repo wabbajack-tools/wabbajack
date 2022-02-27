@@ -137,6 +137,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Networking.Bethes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Downloaders.Bethesda", "Wabbajack.Downloaders.Bethesda\Wabbajack.Downloaders.Bethesda.csproj", "{B10BB6D6-B3FC-4A76-8A07-6A0A0ADDE198}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Downloaders.Manual", "Wabbajack.Downloaders.Manual\Wabbajack.Downloaders.Manual.csproj", "{7FC4F129-F0FA-46B7-B7C4-532E371A6326}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -375,6 +377,10 @@ Global
 		{B10BB6D6-B3FC-4A76-8A07-6A0A0ADDE198}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B10BB6D6-B3FC-4A76-8A07-6A0A0ADDE198}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B10BB6D6-B3FC-4A76-8A07-6A0A0ADDE198}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FC4F129-F0FA-46B7-B7C4-532E371A6326}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FC4F129-F0FA-46B7-B7C4-532E371A6326}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FC4F129-F0FA-46B7-B7C4-532E371A6326}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FC4F129-F0FA-46B7-B7C4-532E371A6326}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -422,6 +428,7 @@ Global
 		{6D7EA87E-6ABE-4BA3-B93A-BE5E71A4DE7C} = {F677890D-5109-43BC-97C7-C4CD47C8EE0C}
 		{A3813D73-9A8E-4CE7-861A-C59043DFFC14} = {F01F8595-5FD7-4506-8469-F4A5522DACC1}
 		{B10BB6D6-B3FC-4A76-8A07-6A0A0ADDE198} = {98B731EE-4FC0-4482-A069-BCBA25497871}
+		{7FC4F129-F0FA-46B7-B7C4-532E371A6326} = {98B731EE-4FC0-4482-A069-BCBA25497871}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0AA30275-0F38-4A7D-B645-F5505178DDE8}

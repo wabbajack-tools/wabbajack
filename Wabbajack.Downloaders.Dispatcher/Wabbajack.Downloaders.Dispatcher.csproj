@@ -14,6 +14,7 @@
         <ProjectReference Include="..\Wabbajack.Downloaders.Http\Wabbajack.Downloaders.Http.csproj" />
         <ProjectReference Include="..\Wabbajack.Downloaders.Interfaces\Wabbajack.Downloaders.Interfaces.csproj" />
         <ProjectReference Include="..\Wabbajack.Downloaders.IPS4OAuth2Downloader\Wabbajack.Downloaders.IPS4OAuth2Downloader.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders.Manual\Wabbajack.Downloaders.Manual.csproj" />
         <ProjectReference Include="..\Wabbajack.Downloaders.MediaFire\Wabbajack.Downloaders.MediaFire.csproj" />
         <ProjectReference Include="..\Wabbajack.Downloaders.Mega\Wabbajack.Downloaders.Mega.csproj" />
         <ProjectReference Include="..\Wabbajack.Downloaders.ModDB\Wabbajack.Downloaders.ModDB.csproj" />
