@@ -259,13 +259,15 @@ namespace Wabbajack
                 p =>
             {
                 vm.Instructions = $"Downloading: {p}";
-            }));
+            }, manuallyDownloadFile.Archive));
 
             
             await browser.NavigateTo(new Uri(manuallyDownloadFile.State.Url));
 
             while (!cancel.IsCancellationRequested && !tcs.Task.IsCompleted)
             {
+                await browser.EvaluateJavaScript(
+                    "Array.from(document.getElementsByClassName('ll_adblock')).forEach(c => c.remove())");
                 await Task.Delay(100);
             }
             manuallyDownloadFile.Resume();
@@ -277,12 +279,14 @@ namespace Wabbajack
             private readonly AbsolutePath _destination;
             private readonly TaskCompletionSource _tcs;
             private readonly Action<Percent> _progress;
+            private Archive _archive;
 
-            public BlobDownloadHandler(AbsolutePath f, TaskCompletionSource tcs, Action<Percent> progress = null)
+            public BlobDownloadHandler(AbsolutePath f, TaskCompletionSource tcs, Action<Percent> progress = null, Archive archive = null)
             {
                 _progress = progress;
                 _destination = f;
                 _tcs = tcs;
+                _archive = archive;
             }
             public void OnBeforeDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
                 IBeforeDownloadCallback callback)
@@ -293,6 +297,14 @@ namespace Wabbajack
             public void OnDownloadUpdated(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
                 IDownloadItemCallback callback)
             {
+                if (_archive?.Size != 0 && downloadItem.TotalBytes != _archive?.Size)
+                {
+                    _tcs.SetCanceled();
+                    Utils.Error(
+                        $"Download of {_archive!.Name} (from {downloadItem.OriginalUrl}) aborted, selected file was {downloadItem.TotalBytes.ToFileSizeString()} expected size was {_archive!.Size.ToFileSizeString()}");
+                    return;
+                }
+                
                 _progress?.Invoke(Percent.FactoryPutInRange(downloadItem.PercentComplete, 100));
                 
                 if (downloadItem.IsComplete)

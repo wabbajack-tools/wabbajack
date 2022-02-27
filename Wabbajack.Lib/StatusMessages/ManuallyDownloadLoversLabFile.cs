@@ -15,16 +15,18 @@ namespace Wabbajack.Lib
         
         
         public AbsolutePath Destination { get; }
+        public Archive Archive { get; }
 
-        private ManuallyDownloadLoversLabFile(ManualDownloader.State state, AbsolutePath destination)
+        private ManuallyDownloadLoversLabFile(ManualDownloader.State state, AbsolutePath destination, Archive archive)
         {
             State = state;
             Destination = destination;
+            Archive = archive;
         }
         
-        public static async Task<ManuallyDownloadLoversLabFile> Create(ManualDownloader.State state, AbsolutePath destination)
+        public static async Task<ManuallyDownloadLoversLabFile> Create(ManualDownloader.State state, AbsolutePath destination, Archive archive)
         {
-            var result = new ManuallyDownloadLoversLabFile(state, destination);
+            var result = new ManuallyDownloadLoversLabFile(state, destination, archive);
             return result;
         }
         public override void Cancel()

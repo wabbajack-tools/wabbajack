@@ -63,10 +63,9 @@ namespace Wabbajack.Lib.Downloaders
                     await Utils.Log(await ManuallyDownloadMegaFile.Create(this, destination)).Task;
                     return true;
                 }
-
-                if ((new Uri(Url)).Host.EndsWith("loverslab.com"))
+                else if ((new Uri(Url)).Host.EndsWith("loverslab.com"))
                 {
-                    await Utils.Log(await ManuallyDownloadLoversLabFile.Create(this, destination)).Task;
+                    await Utils.Log(await ManuallyDownloadLoversLabFile.Create(this, destination, a)).Task;
                     return true;
                 }
                 else
