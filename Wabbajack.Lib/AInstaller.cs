@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.ImageHashing;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.Downloaders.DTOs.ModListValidation;
 using Wabbajack.Lib.Validation;
 using Wabbajack.VirtualFileSystem;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -230,15 +231,21 @@ namespace Wabbajack.Lib
 
         public async Task DownloadMissingArchives(List<Archive> missing, bool download = true)
         {
+            var client = new Http.Client();
+            Utils.Log("Getting upgrades list");
+            var upgrades =  (await client.GetJsonAsync<ValidatedArchive[]>(Consts.UpgradedFilesURL));
+            
             if (download)
             {
                 var result = SendDownloadMetrics(missing);
                 foreach (var a in missing.Where(a => a.State.GetType() == typeof(ManualDownloader.State)))
                 {
                     var outputPath = DownloadFolder.Combine(a.Name);
-                    await a.State.Download(a, outputPath);
+                    await DownloadArchive(a, download, upgrades, outputPath);
                 }
             }
+            
+
 
             await missing.Where(a => a.State.GetType() != typeof(ManualDownloader.State))
                 .PMap(Queue, UpdateTracker, async archive =>
@@ -258,7 +265,7 @@ namespace Wabbajack.Lib
                         }
                     }
 
-                    return await DownloadArchive(archive, download, outputPath);
+                    return await DownloadArchive(archive, download, upgrades, outputPath);
                 });
         }
 
@@ -271,13 +278,13 @@ namespace Wabbajack.Lib
             }
         }
 
-        public async Task<bool> DownloadArchive(Archive archive, bool download, AbsolutePath? destination = null)
+        public async Task<bool> DownloadArchive(Archive archive, bool download, ValidatedArchive[] validatedArchives, AbsolutePath? destination = null)
         {
             try
             {
                 destination ??= DownloadFolder.Combine(archive.Name);
                 
-                var result = await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, destination.Value);
+                var result = await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, destination.Value, validatedArchives);
                 if (result == DownloadDispatcher.DownloadResult.Update)
                 {
                     await destination.Value.MoveToAsync(destination.Value.Parent.Combine(archive.Hash.ToHex()));

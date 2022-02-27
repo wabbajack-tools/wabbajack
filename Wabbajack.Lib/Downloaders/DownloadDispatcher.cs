@@ -103,19 +103,30 @@ namespace Wabbajack.Lib.Downloaders
             Success
         }
 
-        public static async Task<DownloadResult> DownloadWithPossibleUpgrade(Archive archive, AbsolutePath destination)
+        public static async Task<DownloadResult> DownloadWithPossibleUpgrade(Archive archive, AbsolutePath destination, ValidatedArchive[]? upgrades = null)
         {
-            if (await Download(archive, destination))
+            bool ShouldTry(Archive archive)
+            {
+                return upgrades == null || upgrades.All(a => a.Original.Hash != archive.Hash);
+            }
+            
+            
+            if (ShouldTry(archive) && await Download(archive, destination))
             {
                 var downloadedHash = await destination.FileHashCachedAsync();
                 if (downloadedHash == archive.Hash || archive.Hash == default) 
                     return DownloadResult.Success;
             }
             
-            var client = new Http.Client();
+
             Utils.Log($"Loading for alternative to {archive.Hash}");
-            var replacementMeta = (await client.GetJsonAsync<ValidatedArchive[]>(Consts.UpgradedFilesURL))
-                .FirstOrDefault(a => a.Original.Hash == archive.Hash);
+            if (upgrades == null)
+            {
+                var client = new Http.Client();
+                upgrades = (await client.GetJsonAsync<ValidatedArchive[]>(Consts.UpgradedFilesURL));
+            }
+            
+            var replacementMeta = upgrades.FirstOrDefault(a => a.Original.Hash == archive.Hash);
 
             if (replacementMeta == null)
             {
@@ -144,6 +155,7 @@ namespace Wabbajack.Lib.Downloaders
             await Download(replacementMeta.PatchedFrom!, newFile.Path);
             
             {
+                var client = new Http.Client();
                 using var response = await client.GetAsync(replacementMeta.PatchUrl!);
                 await using var strm = await response.Content.ReadAsStreamAsync();
                 await tempFile.Path.WriteAllAsync(await response.Content.ReadAsStreamAsync());
