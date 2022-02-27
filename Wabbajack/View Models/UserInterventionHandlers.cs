@@ -297,11 +297,12 @@ namespace Wabbajack
             public void OnDownloadUpdated(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
                 IDownloadItemCallback callback)
             {
-                if (_archive?.Size != 0 && downloadItem.TotalBytes != _archive?.Size)
+                if (_archive?.Size != null && _archive?.Size != 0 && downloadItem.TotalBytes != _archive?.Size)
                 {
-                    _tcs.SetCanceled();
+                    _tcs.TrySetCanceled();
                     Utils.Error(
                         $"Download of {_archive!.Name} (from {downloadItem.OriginalUrl}) aborted, selected file was {downloadItem.TotalBytes.ToFileSizeString()} expected size was {_archive!.Size.ToFileSizeString()}");
+                    callback.Cancel();
                     return;
                 }
                 
