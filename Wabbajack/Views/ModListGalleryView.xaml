@@ -114,7 +114,7 @@
                 x:Name="ShowNSFW"
                 Margin="10,0,10,0"
                 VerticalAlignment="Center"
-                Content="Show NSFW"
+                Content="Only NSFW Lists"
                 Foreground="{StaticResource ForegroundBrush}" />
 
             <CheckBox

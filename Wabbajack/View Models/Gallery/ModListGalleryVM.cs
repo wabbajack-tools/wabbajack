@@ -148,11 +148,7 @@ namespace Wabbajack
                         return vm.Metadata.Title.ContainsCaseInsensitive(search) || vm.Metadata.tags.Any(t => t.ContainsCaseInsensitive(search));
                     }))
                 .Filter(this.WhenAny(x => x.ShowNSFW)
-                    .Select<bool, Func<ModListMetadataVM, bool>>(showNSFW => vm =>
-                    {
-                        if (!vm.Metadata.NSFW) return true;
-                        return vm.Metadata.NSFW && showNSFW;
-                    }))
+                    .Select<bool, Func<ModListMetadataVM, bool>>(showNSFW => vm => showNSFW ? vm.Metadata.NSFW : !vm.Metadata.NSFW))
                 .Filter(this.WhenAny(x => x.ShowUtilityLists)
                     .Select<bool, Func<ModListMetadataVM, bool>>(showUtilityLists => vm => showUtilityLists ? vm.Metadata.UtilityList : !vm.Metadata.UtilityList))
                 // Filter by Game
