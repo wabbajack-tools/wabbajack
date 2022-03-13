@@ -59,11 +59,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="cef.redist.x64" Version="91.1.23" />
-      <PackageReference Include="CefSharp.Common" Version="91.1.230" />
-      <PackageReference Include="CefSharp.Wpf" Version="91.1.230">
-        <NoWarn>NU1701</NoWarn>
-      </PackageReference>
     <PackageReference Include="DynamicData" Version="7.3.1" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.1.0">
       <NoWarn>NU1701</NoWarn>
@@ -81,6 +76,7 @@
     <PackageReference Include="MahApps.Metro.IconPacks" Version="4.8.0" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1189-prerelease" />
     <PackageReference Include="PInvoke.User32" Version="0.7.104" />
     <PackageReference Include="ReactiveUI" Version="16.2.6" />
     <PackageReference Include="ReactiveUI.Fody" Version="16.2.6" />
@@ -88,10 +84,6 @@
     <PackageReference Include="Silk.NET.DXGI" Version="2.6.0" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
-    <PackageReference Include="CefSharp.OffScreen">
-      <Version>91.1.230</Version>
-      <NoWarn>NU1701</NoWarn>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
