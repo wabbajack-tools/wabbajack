@@ -3,14 +3,12 @@ using System.ComponentModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using MahApps.Metro.Controls;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.Common;
-using Wabbajack;
-using Wabbajack.LibCefHelpers;
 using Wabbajack.Messages;
-using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Util;
 
@@ -184,6 +182,11 @@ namespace Wabbajack
         private void Window_Closing(object sender, CancelEventArgs e)
         {
             _mwvm.ShutdownApplication().Wait();
+        }
+
+        private void UIElement_OnMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            this.DragMove();
         }
     }
 }

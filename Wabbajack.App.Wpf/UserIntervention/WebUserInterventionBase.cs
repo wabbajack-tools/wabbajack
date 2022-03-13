@@ -22,7 +22,7 @@ where T : IUserIntervention
     {
         Logger = logger;
         Browser = browser;
-        Driver = new CefSharpWrapper(logger, browser.Browser, service);
+        //Driver = new CefSharpWrapper(logger, browser.Browser, service);
     }
     
     public void Configure(ViewModel prevPane, T message)

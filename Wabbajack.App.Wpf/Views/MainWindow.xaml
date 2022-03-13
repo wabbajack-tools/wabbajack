@@ -21,37 +21,46 @@
     UseLayoutRounding="True"
     WindowTitleBrush="{StaticResource MahApps.Brushes.Accent}"
     mc:Ignorable="d">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
-        </Grid.RowDefinitions>
-        <ContentPresenter Grid.Row="0" Content="{Binding ActivePane}">
-        <ContentPresenter.Resources>
-            <DataTemplate DataType="{x:Type local:CompilerVM}">
-                <local:CompilerView ViewModel="{Binding}" />
-            </DataTemplate>
-            <DataTemplate DataType="{x:Type local:InstallerVM}">
-                <local:InstallationView ViewModel="{Binding}" />
-            </DataTemplate>
-            <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
-                <local:ModeSelectionView ViewModel="{Binding}" />
-            </DataTemplate>
-            <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
-                <local:ModListGalleryView ViewModel="{Binding}" />
-            </DataTemplate>
-            <DataTemplate DataType="{x:Type local:WebBrowserVM}">
-                <local:WebBrowserView />
-            </DataTemplate>
-            <DataTemplate DataType="{x:Type local:SettingsVM}">
-                <local:SettingsView ViewModel="{Binding}" />
-            </DataTemplate>
-            <DataTemplate DataType="{x:Type viewModels:ModListContentsVM}">
-                <local:ModListContentsView ViewModel="{Binding}" />
-            </DataTemplate>
-        </ContentPresenter.Resources>
-    </ContentPresenter>
-        <TextBlock Grid.Row="1" Margin="5, 0" Name="ResourceUsage" HorizontalAlignment="Right"></TextBlock>
+    <Grid  Background="#121212" MouseDown="UIElement_OnMouseDown">
+        <TabControl x:Name="Tabs">
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock FontSize="16" Margin="0, 0, 8, 0">WABBAJACK 3.0.0</TextBlock>
+                </TabItem.Header>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"></RowDefinition>
+                        <RowDefinition Height="Auto"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <ContentPresenter Grid.Row="0" Content="{Binding ActivePane}">
+                        <ContentPresenter.Resources>
+                            <DataTemplate DataType="{x:Type local:CompilerVM}">
+                                <local:CompilerView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:InstallerVM}">
+                                <local:InstallationView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
+                                <local:ModeSelectionView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
+                                <local:ModListGalleryView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:WebBrowserVM}">
+                                <local:WebBrowserView />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:SettingsVM}">
+                                <local:SettingsView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type viewModels:ModListContentsVM}">
+                                <local:ModListContentsView ViewModel="{Binding}" />
+                            </DataTemplate>
+                        </ContentPresenter.Resources>
+                    </ContentPresenter>
+                    <TextBlock Grid.Row="1" Margin="5, 0" Name="ResourceUsage" HorizontalAlignment="Right"></TextBlock>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 
     <mahapps:MetroWindow.RightWindowCommands>
