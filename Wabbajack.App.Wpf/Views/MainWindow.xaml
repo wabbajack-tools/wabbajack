@@ -8,7 +8,8 @@
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModels="clr-namespace:Wabbajack.View_Models"
-    Title="Wabbajack"
+    ShowTitleBar="False"
+    Title="WABBAJACK"
     Width="1280"
     Height="960"
     MinWidth="850"
@@ -21,12 +22,24 @@
     UseLayoutRounding="True"
     WindowTitleBrush="{StaticResource MahApps.Brushes.Accent}"
     mc:Ignorable="d">
-    <Grid  Background="#121212" MouseDown="UIElement_OnMouseDown">
-        <TabControl x:Name="Tabs">
+    <Grid Background="#121212" MouseDown="UIElement_OnMouseDown">
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <Rectangle Grid.Row="0">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Offset="0" Color="#16BB86FC" />
+                    <GradientStop Offset="0.4" Color="#00000000" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <TabControl Grid.Row="0" x:Name="Tabs">
             <TabItem>
                 <TabItem.Header>
                     <TextBlock FontSize="16" Margin="0, 0, 8, 0">WABBAJACK 3.0.0</TextBlock>
                 </TabItem.Header>
+                
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"></RowDefinition>
