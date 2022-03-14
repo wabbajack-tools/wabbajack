@@ -11,6 +11,7 @@ using Wabbajack.Common;
 using Wabbajack.Messages;
 using Wabbajack.Paths.IO;
 using Wabbajack.Util;
+using Wabbajack.Views;
 
 namespace Wabbajack
 {
@@ -187,6 +188,13 @@ namespace Wabbajack
         private void UIElement_OnMouseDown(object sender, MouseButtonEventArgs e)
         {
             this.DragMove();
+        }
+        
+        private void OnOpenBrowserTab(OpenBrowserTab msg)
+        {
+            var tab = new BrowserTabView(msg.ViewModel);
+            Tabs.Items.Add(tab);
+            Tabs.SelectedItem = tab;
         }
     }
 }
