@@ -433,13 +433,21 @@ namespace Wabbajack.Lib
                         await VFS.Extract(iqueue, new[] {destFile}.ToHashSet(),
                             async (destvf, destsfn) =>
                             {
-                                Info($"Patching {match.To}");
-                                Status($"Patching {match.To}");
                                 await using var srcStream = await sf.GetStream();
                                 await using var destStream = await destsfn.GetStream();
-                                var patchSize =
-                                    await Utils.CreatePatchCached(srcStream, vf.Hash, destStream, destvf.Hash);
-                                Info($"Patch size {patchSize} for {match.To}");
+                                Info($"Patching {match.To} ({srcStream.Length.ToFileSizeString()}");
+                                Status($"Patching {match.To} ({srcStream.Length.ToFileSizeString()}");
+                                try
+                                {
+                                    var patchSize =
+                                        await Utils.CreatePatchCached(srcStream, vf.Hash, destStream, destvf.Hash);
+                                    Info($"Patch size {patchSize} for {match.To}");
+                                }
+                                catch (Exception ex)
+                                {
+                                    Error($"Error while building patch for {match.To} ({srcStream.Length.ToFileSizeString()} {ex}");
+                                    throw;
+                                }
                             });
                     }
                 });

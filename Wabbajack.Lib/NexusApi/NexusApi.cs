@@ -85,11 +85,12 @@ namespace Wabbajack.Lib.NexusApi
             return result;
         }
 
-        public static async Task<string> SetupNexusLogin(IWebDriver browser, Action<string> updateStatus, CancellationToken cancel)
+        public static async Task<string> SetupNexusLogin(Action syncFn, IWebDriver browser, Action<string> updateStatus, CancellationToken cancel)
         {
             updateStatus("Please log into the Nexus");
             await browser.NavigateTo(new Uri("https://users.nexusmods.com/auth/continue?client_id=nexus&redirect_uri=https://www.nexusmods.com/oauth/callback&response_type=code&referrer=//www.nexusmods.com"));
-
+            syncFn();
+            
             Helpers.Cookie[] cookies = {};
             while (true)
             {
@@ -102,6 +103,7 @@ namespace Wabbajack.Lib.NexusApi
 
 
             await browser.NavigateTo(new Uri("https://www.nexusmods.com/users/myaccount?tab=api"));
+            syncFn();
 
             updateStatus("Saving login info");
 

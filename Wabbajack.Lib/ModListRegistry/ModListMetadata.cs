@@ -73,6 +73,9 @@ namespace Wabbajack.Lib.ModListRegistry
 
             [JsonProperty("machineURL")]
             public string MachineURL { get; set; } = string.Empty;
+
+            [JsonProperty("discordURL")] 
+            public string DiscordURL { get; set; } = string.Empty;
         }
 
         public static async Task<List<ModlistMetadata>> LoadFromGithub()

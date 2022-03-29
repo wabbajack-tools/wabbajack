@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.5.3.10 - 3/26/2022
+* Report file sizes before generating patches
+* When displaying a browser, we now show the navigated to Url (and a copy to clipboard button)
+
 #### Version - 2.5.3.9 - 2/27/2022
 * Manual downloader is now more tolerant of LoversLab's inane server instability
 

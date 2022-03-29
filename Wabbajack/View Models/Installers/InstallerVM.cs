@@ -87,6 +87,7 @@ namespace Wabbajack
 
         // Command properties
         public ReactiveCommand<Unit, Unit> ShowManifestCommand { get; }
+        public ReactiveCommand<Unit, Unit> OpenDiscordCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenReadmeCommand { get; }
         public ReactiveCommand<Unit, Unit> VisitModListWebsiteCommand { get; }
         
@@ -322,7 +323,14 @@ namespace Wabbajack
             {
                 Utils.OpenWebsite(new Uri("https://www.wabbajack.org/#/modlists/manifest"));
             }, this.WhenAny(x => x.ModList)
-                    .Select(x => x?.SourceModList != null)
+                .Select(x => x?.SourceModList != null)
+                .ObserveOnGuiThread());
+            
+            OpenDiscordCommand = ReactiveCommand.Create(() =>
+            {
+                Utils.OpenWebsite(new Uri(ModList.SourceModListMetadata.Links.DiscordURL));
+            }, this.WhenAny(x => x.ModList)
+                .Select(x => Uri.TryCreate(x?.SourceModListMetadata?.Links?.DiscordURL ?? "", UriKind.Absolute, out _))
                 .ObserveOnGuiThread());
             
             OpenReadmeCommand = ReactiveCommand.Create(

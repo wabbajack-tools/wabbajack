@@ -106,6 +106,9 @@ namespace Wabbajack
                 this.WhenAny(x => x.ViewModel.ShowManifestCommand)
                     .BindToStrict(this, x => x.ShowManifestPreInstallButton.Command)
                     .DisposeWith(dispose);
+                this.WhenAny(x => x.ViewModel.OpenDiscordCommand)
+                    .BindToStrict(this, x => x.OpenDiscordButton.Command)
+                    .DisposeWith(dispose);
                 this.WhenAny(x => x.ViewModel.StartedInstallation)
                     .Select(started => started ? Visibility.Collapsed : Visibility.Visible)
                     .BindToStrict(this, x => x.InstallationConfigurationView.Visibility)

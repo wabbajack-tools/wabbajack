@@ -43,9 +43,10 @@
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
-    <Grid Background="White">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="47" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <wabbajack:TopProgressView Grid.Row="0" Grid.RowSpan="1"
@@ -64,7 +65,20 @@
             ToolTip="Back to main menu">
             <iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
         </Button>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="30"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Margin="4" Click="CopyClick">
+                <iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ContentCopy" />
+            </Button>
+            <TextBox Grid.Column="1" Margin="4" IsEnabled="False" Text="{Binding UrlText}"/>
+        </Grid>
+        
         <!--  Do it this way so we can access the browser directly from the VM  -->
-        <ContentControl Grid.Row="1" Content="{Binding Browser}" />
+        <Grid Grid.Row="2" Background="White">
+            <ContentControl Content="{Binding Browser}" />
+        </Grid>
     </Grid>
 </UserControl>

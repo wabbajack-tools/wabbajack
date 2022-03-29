@@ -24,5 +24,10 @@ namespace Wabbajack
         {
             InitializeComponent();
         }
+
+        private void CopyClick(object sender, RoutedEventArgs e)
+        {
+            Clipboard.SetText(((WebBrowserVM)DataContext).UrlText);
+        }
     }
 }

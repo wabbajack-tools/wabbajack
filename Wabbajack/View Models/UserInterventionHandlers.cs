@@ -70,7 +70,8 @@ namespace Wabbajack
                     await WrapBrowserJob(c, async (vm, cancel) =>
                     {
                         await vm.Driver.WaitForInitialized();
-                        var key = await NexusApiClient.SetupNexusLogin(new CefSharpWrapper(vm.Browser), m => vm.Instructions = m, cancel.Token);
+                        var cef = new CefSharpWrapper(vm.Browser);
+                        var key = await NexusApiClient.SetupNexusLogin(() => vm.SyncTo(cef), cef, m => vm.Instructions = m, cancel.Token);
                         c.Resume(key);
                     });
                     break;
@@ -90,7 +91,8 @@ namespace Wabbajack
                     await WrapBrowserJob(c, async (vm, cancel) =>
                     {
                         await vm.Driver.WaitForInitialized();
-                        var data = await c.Downloader.GetAndCacheCookies(new CefSharpWrapper(vm.Browser), m => vm.Instructions = m, cancel.Token);
+                        var cef = new CefSharpWrapper(vm.Browser);
+                        var data = await c.Downloader.GetAndCacheCookies(url => vm.SyncTo(cef), cef, m => vm.Instructions = m, cancel.Token);
                         c.Resume(data);
                     });
                     break;
@@ -153,6 +155,7 @@ namespace Wabbajack
             };
             
             await wrapper.NavigateTo(new Uri(oa.AuthorizationEndpoint + $"?response_type=code&client_id={oa.ClientID}&state={state}&scope={scopes}"));
+            vm.SyncTo(wrapper);
 
             while (!oa.Task.IsCanceled && !oa.Task.IsCompleted && !cancel.IsCancellationRequested)
                 await Task.Delay(250);
@@ -176,6 +179,7 @@ namespace Wabbajack
             using var _ = browser.SetDownloadHandler(new ManualDownloadHandler(result));
 
             await browser.NavigateTo(new Uri(manuallyDownloadFile.State.Url));
+            vm.SyncTo(browser);
 
             while (!cancel.IsCancellationRequested)
             {
@@ -232,6 +236,7 @@ namespace Wabbajack
             using var _ = browser.SetDownloadHandler(new BlobDownloadHandler(manuallyDownloadFile.Destination, tcs));
             
             await browser.NavigateTo(new Uri(manuallyDownloadFile.State.Url));
+            vm.SyncTo(browser);
 
             while (!cancel.IsCancellationRequested && !tcs.Task.IsCompleted)
             {
@@ -263,6 +268,7 @@ namespace Wabbajack
 
             
             await browser.NavigateTo(new Uri(manuallyDownloadFile.State.Url));
+            vm.SyncTo(browser);
 
             while (!cancel.IsCancellationRequested && !tcs.Task.IsCompleted)
             {
@@ -328,6 +334,7 @@ namespace Wabbajack
 
             var url = new Uri(@$"https://www.nexusmods.com/{game.NexusName}/mods/{state.ModID}?tab=files&file_id={state.FileID}");
             await browser.NavigateTo(url);
+            vm.SyncTo(browser);
             
             while (!cancel.IsCancellationRequested && !tcs.Task.IsCompleted) {
                 await Task.Delay(250);

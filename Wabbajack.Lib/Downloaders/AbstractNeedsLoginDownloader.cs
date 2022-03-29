@@ -69,10 +69,11 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
         
-        public async Task<Helpers.Cookie[]> GetAndCacheCookies(IWebDriver browser, Action<string> updateStatus, CancellationToken cancel)
+        public async Task<Helpers.Cookie[]> GetAndCacheCookies(Action<Uri> syncFn, IWebDriver browser, Action<string> updateStatus, CancellationToken cancel)
         {
             updateStatus($"Please Log Into {SiteName}");
             await browser.NavigateTo(_loginUri);
+            syncFn(_loginUri);
             var cookies = new Helpers.Cookie[0];
             while (true)
             {

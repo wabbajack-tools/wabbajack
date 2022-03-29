@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 using CefSharp;
 using CefSharp.Wpf;
 using ReactiveUI;
@@ -20,6 +21,9 @@ namespace Wabbajack
     {
         [Reactive]
         public string Instructions { get; set; }
+        
+        [Reactive]
+        public string UrlText { get; set; }
 
         public IWebBrowser Browser { get; } = new ChromiumWebBrowser();
         public CefSharpWrapper Driver => new CefSharpWrapper(Browser);
@@ -49,6 +53,14 @@ namespace Wabbajack
         {
             Browser.Dispose();
             base.Dispose();
+        }
+
+        public void SyncTo(CefSharpWrapper browser)
+        {
+            Dispatcher.CurrentDispatcher.Invoke(() =>
+            {
+                UrlText = browser.Location;
+            });
         }
     }
 }

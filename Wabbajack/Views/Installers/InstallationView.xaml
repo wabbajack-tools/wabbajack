@@ -211,8 +211,9 @@
                 <ColumnDefinition Width="4" />
                 <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
-            <Grid Grid.Column="0" Margin="10">
+            <Grid Grid.Column="0" Margin="0">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
@@ -281,6 +282,28 @@
                             Margin="10,0,0,0"
                             VerticalAlignment="Center"
                             Text="Manifest" />
+                    </Grid>
+                </Button>
+                <Button Grid.Row="4"
+                        x:Name="OpenDiscordButton"
+                        Margin="30,5"
+                        FontSize="20"
+                        Style="{StaticResource LargeButtonStyle}"
+                        ToolTip="Open a link to the official discord for this modlist">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30" />
+                            <ColumnDefinition Width="82" />
+                        </Grid.ColumnDefinitions>
+                        <icon:PackIconMaterial Grid.Column="0"
+                                               Width="30"
+                                               Height="30"
+                                               VerticalAlignment="Center"
+                                               Kind="Discord" />
+                        <TextBlock Grid.Column="1"
+                                   Margin="10,0,0,0"
+                                   VerticalAlignment="Center"
+                                   Text="Discord" />
                     </Grid>
                 </Button>
             </Grid>
