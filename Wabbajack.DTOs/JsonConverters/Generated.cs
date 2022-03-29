@@ -17,6 +17,7 @@ public class Wabbajack_DTOs_DownloadStates_IDownloadStateConverter : JsonConvert
 {
     public static void ConfigureServices(IServiceCollection services)
     {
+        services.AddSingleton<JsonConverter, Wabbajack_DTOs_DownloadStates_BethesdaConverter>();
         services.AddSingleton<JsonConverter, Wabbajack_DTOs_DownloadStates_DeprecatedLoversLabConverter>();
         services.AddSingleton<JsonConverter, Wabbajack_DTOs_DownloadStates_GameFileSourceConverter>();
         services.AddSingleton<JsonConverter, Wabbajack_DTOs_DownloadStates_GoogleDriveConverter>();
@@ -45,6 +46,8 @@ public class Wabbajack_DTOs_DownloadStates_IDownloadStateConverter : JsonConvert
         var type = cReader.GetString();
         switch (type)
         {
+            case "Bethesda":
+                return JsonSerializer.Deserialize<Bethesda>(ref reader, options)!;
             case "LoversLabDownloader, Wabbajack.Lib":
                 return JsonSerializer.Deserialize<DeprecatedLoversLab>(ref reader, options)!;
             case "GameFileSourceDownloader, Wabbajack.Lib":
@@ -65,9 +68,9 @@ public class Wabbajack_DTOs_DownloadStates_IDownloadStateConverter : JsonConvert
                 return JsonSerializer.Deserialize<LoversLab>(ref reader, options)!;
             case "LoversLab":
                 return JsonSerializer.Deserialize<LoversLab>(ref reader, options)!;
-            case "Manual":
-                return JsonSerializer.Deserialize<Manual>(ref reader, options)!;
             case "ManualDownloader, Wabbajack.Lib":
+                return JsonSerializer.Deserialize<Manual>(ref reader, options)!;
+            case "Manual":
                 return JsonSerializer.Deserialize<Manual>(ref reader, options)!;
             case "MediaFireDownloader+State, Wabbajack.Lib":
                 return JsonSerializer.Deserialize<MediaFire>(ref reader, options)!;
@@ -116,40 +119,123 @@ public class Wabbajack_DTOs_DownloadStates_IDownloadStateConverter : JsonConvert
             case VectorPlexus v1:
                 JsonSerializer.Serialize(writer, v1, options);
                 return;
-            case DeprecatedLoversLab v2:
+            case Bethesda v2:
                 JsonSerializer.Serialize(writer, v2, options);
                 return;
-            case GameFileSource v3:
+            case DeprecatedLoversLab v3:
                 JsonSerializer.Serialize(writer, v3, options);
                 return;
-            case GoogleDrive v4:
+            case GameFileSource v4:
                 JsonSerializer.Serialize(writer, v4, options);
                 return;
-            case Http v5:
+            case GoogleDrive v5:
                 JsonSerializer.Serialize(writer, v5, options);
                 return;
-            case Manual v6:
+            case Http v6:
                 JsonSerializer.Serialize(writer, v6, options);
                 return;
-            case MediaFire v7:
+            case Manual v7:
                 JsonSerializer.Serialize(writer, v7, options);
                 return;
-            case Mega v8:
+            case MediaFire v8:
                 JsonSerializer.Serialize(writer, v8, options);
                 return;
-            case ModDB v9:
+            case Mega v9:
                 JsonSerializer.Serialize(writer, v9, options);
                 return;
-            case Nexus v10:
+            case ModDB v10:
                 JsonSerializer.Serialize(writer, v10, options);
                 return;
-            case TESAlliance v11:
+            case Nexus v11:
                 JsonSerializer.Serialize(writer, v11, options);
                 return;
-            case WabbajackCDN v12:
+            case TESAlliance v12:
                 JsonSerializer.Serialize(writer, v12, options);
                 return;
+            case WabbajackCDN v13:
+                JsonSerializer.Serialize(writer, v13, options);
+                return;
         }
+    }
+}
+
+public class Wabbajack_DTOs_DownloadStates_BethesdaConverter : JsonConverter<Bethesda>
+{
+    public override Bethesda Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.StartObject)
+            throw new JsonException();
+        long branchidProp = default;
+        string contentidProp = default;
+        Game gameProp = default;
+        bool isccmodProp = default;
+        string nameProp = default;
+        long productidProp = default;
+        while (true)
+        {
+            reader.Read();
+            if (reader.TokenType == JsonTokenType.EndObject)
+            {
+                reader.Read();
+                break;
+            }
+
+            var prop = reader.GetString();
+            reader.Read();
+            switch (prop)
+            {
+                case "BranchId":
+                    branchidProp = JsonSerializer.Deserialize<long>(ref reader, options);
+                    break;
+                case "ContentId":
+                    contentidProp = JsonSerializer.Deserialize<string>(ref reader, options);
+                    break;
+                case "Game":
+                    gameProp = JsonSerializer.Deserialize<Game>(ref reader, options);
+                    break;
+                case "IsCCMod":
+                    isccmodProp = JsonSerializer.Deserialize<bool>(ref reader, options);
+                    break;
+                case "Name":
+                    nameProp = JsonSerializer.Deserialize<string>(ref reader, options);
+                    break;
+                case "ProductId":
+                    productidProp = JsonSerializer.Deserialize<long>(ref reader, options);
+                    break;
+                default:
+                    reader.Skip();
+                    break;
+            }
+        }
+
+        return new Bethesda
+        {
+            BranchId = branchidProp,
+            ContentId = contentidProp,
+            Game = gameProp,
+            IsCCMod = isccmodProp,
+            Name = nameProp,
+            ProductId = productidProp
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, Bethesda value, JsonSerializerOptions options)
+    {
+        writer.WriteStartObject();
+        writer.WriteString("$type", "Bethesda");
+        writer.WritePropertyName("BranchId");
+        JsonSerializer.Serialize(writer, value.BranchId, options);
+        writer.WritePropertyName("ContentId");
+        JsonSerializer.Serialize(writer, value.ContentId, options);
+        writer.WritePropertyName("Game");
+        JsonSerializer.Serialize(writer, value.Game, options);
+        writer.WritePropertyName("IsCCMod");
+        JsonSerializer.Serialize(writer, value.IsCCMod, options);
+        writer.WritePropertyName("Name");
+        JsonSerializer.Serialize(writer, value.Name, options);
+        writer.WritePropertyName("ProductId");
+        JsonSerializer.Serialize(writer, value.ProductId, options);
+        writer.WriteEndObject();
     }
 }
 
@@ -467,6 +553,7 @@ public class Wabbajack_DTOs_DownloadStates_ManualConverter : JsonConverter<Manua
     {
         if (reader.TokenType != JsonTokenType.StartObject)
             throw new JsonException();
+        string promptProp = default;
         Uri urlProp = default;
         while (true)
         {
@@ -481,6 +568,9 @@ public class Wabbajack_DTOs_DownloadStates_ManualConverter : JsonConverter<Manua
             reader.Read();
             switch (prop)
             {
+                case "Prompt":
+                    promptProp = JsonSerializer.Deserialize<string>(ref reader, options);
+                    break;
                 case "Url":
                     urlProp = JsonSerializer.Deserialize<Uri>(ref reader, options);
                     break;
@@ -492,6 +582,7 @@ public class Wabbajack_DTOs_DownloadStates_ManualConverter : JsonConverter<Manua
 
         return new Manual
         {
+            Prompt = promptProp,
             Url = urlProp
         };
     }
@@ -499,7 +590,9 @@ public class Wabbajack_DTOs_DownloadStates_ManualConverter : JsonConverter<Manua
     public override void Write(Utf8JsonWriter writer, Manual value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
-        writer.WriteString("$type", "Manual");
+        writer.WriteString("$type", "ManualDownloader, Wabbajack.Lib");
+        writer.WritePropertyName("Prompt");
+        JsonSerializer.Serialize(writer, value.Prompt, options);
         writer.WritePropertyName("Url");
         JsonSerializer.Serialize(writer, value.Url, options);
         writer.WriteEndObject();

@@ -1,0 +1,110 @@
+﻿<UserControl
+    x:Class="Wabbajack.BethesdaNetLoginView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:wabbajack="clr-namespace:Wabbajack"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <Color x:Key="TextBackgroundFill">#92000000</Color>
+        <SolidColorBrush x:Key="TextBackgroundFillBrush" Color="{StaticResource TextBackgroundFill}" />
+        <Color x:Key="TextBackgroundHoverFill">#DF000000</Color>
+        <Style x:Key="BackgroundBlurStyle" TargetType="TextBlock">
+            <Setter Property="Background" Value="{StaticResource TextBackgroundFillBrush}" />
+            <Setter Property="Foreground" Value="Transparent" />
+            <Setter Property="Visibility" Value="Visible" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation
+                                    Storyboard.TargetProperty="(TextBlock.Background).(SolidColorBrush.Color)"
+                                    To="{StaticResource TextBackgroundHoverFill}"
+                                    Duration="0:0:0.06" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation
+                                    Storyboard.TargetProperty="(TextBlock.Background).(SolidColorBrush.Color)"
+                                    To="{StaticResource TextBackgroundFill}"
+                                    Duration="0:0:0.06" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="47" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <wabbajack:TopProgressView Grid.Row="0" Grid.RowSpan="2"
+            Title="{Binding Instructions}"
+            ShadowMargin="False" />
+        <Button Grid.Row="0"
+            x:Name="BackButton"
+            Width="30"
+            Height="30"
+            Margin="7,5,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Command="{Binding BackCommand}"
+            Style="{StaticResource IconCircleButtonStyle}"
+            ToolTip="Back to main menu">
+            <iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
+        </Button>
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="100" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Row="0" Grid.ColumnSpan="2"
+                Margin="10"
+                FontSize="20"
+                Text="Login with your game of choice. Clicking the button will launch the game. Once at the main menu, load the `Mods` menu. The game will close once you've logged into Bethesda.NET"
+                TextWrapping="Wrap" />
+            <Button Grid.Row="1" Grid.Column="0"
+                Command="{Binding LoginViaSkyrimSE}">
+                <Image Source="../../Resources/GameGridIcons/SkyrimSpecialEdition.png">
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Style.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.5" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+            </Button>
+            <Button Grid.Row="1" Grid.Column="1"
+                Command="{Binding LoginViaFallout4}">
+                <Image Source="../../Resources/GameGridIcons/Fallout4.png">
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Style.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.5" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+            </Button>
+        </Grid>
+    </Grid>
+</UserControl>
