@@ -112,7 +112,7 @@ public class ValidateLists : IVerb
             {
                 Name = modList.Title,
                 ModListHash = modList.DownloadMetadata?.Hash ?? default,
-                MachineURL = modList.Links.MachineURL,
+                MachineURL = modList.NamespacedName,
                 Version = modList.Version
             };
 
@@ -123,8 +123,8 @@ public class ValidateLists : IVerb
                 return validatedList;
             }
 
-            using var scope = _logger.BeginScope("MachineURL: {MachineUrl}", modList.Links.MachineURL);
-            _logger.LogInformation("Verifying {MachineUrl} - {Title}", modList.Links.MachineURL, modList.Title);
+            using var scope = _logger.BeginScope("MachineURL: {MachineUrl}", modList.NamespacedName);
+            _logger.LogInformation("Verifying {MachineUrl} - {Title}", modList.NamespacedName, modList.Title);
             //await DownloadModList(modList, archiveManager, CancellationToken.None);
 
             ModList modListData;
@@ -426,14 +426,14 @@ public class ValidateLists : IVerb
     {
         if (archiveManager.HaveArchive(modList.DownloadMetadata!.Hash))
         {
-            _logger.LogInformation("Previously downloaded {hash} not re-downloading", modList.Links.MachineURL);
+            _logger.LogInformation("Previously downloaded {hash} not re-downloading", modList.NamespacedName);
             return modList.DownloadMetadata!.Hash;
         }
         else
         {
-            _logger.LogInformation("Downloading {hash}", modList.Links.MachineURL);
+            _logger.LogInformation("Downloading {hash}", modList.NamespacedName);
             await _discord.SendAsync(Channel.Ham,
-                $"Downloading and ingesting {modList.Title} ({modList.Links.MachineURL}) v{modList.Version}", token);
+                $"Downloading and ingesting {modList.Title} ({modList.NamespacedName}) v{modList.Version}", token);
             return await DownloadWabbajackFile(modList, archiveManager, token);
         }
     }

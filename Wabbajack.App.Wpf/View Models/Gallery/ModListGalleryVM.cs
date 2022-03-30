@@ -26,7 +26,7 @@ namespace Wabbajack
     {
         public MainWindowVM MWVM { get; }
         
-        private readonly SourceCache<ModListMetadataVM, string> _modLists = new(x => x.Metadata.Links.MachineURL);
+        private readonly SourceCache<ModListMetadataVM, string> _modLists = new(x => x.Metadata.NamespacedName);
         public ReadOnlyObservableCollection<ModListMetadataVM> _filteredModLists;
         public ReadOnlyObservableCollection<ModListMetadataVM> ModLists => _filteredModLists;
 

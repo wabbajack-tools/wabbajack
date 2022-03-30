@@ -51,7 +51,7 @@ public class Client
         {
             var data = await GetData(file);
             var found = data.Lists.FirstOrDefault(l =>
-                l.Links.MachineURL == newData.MachineUrl && l.Maintainers.Contains(maintainer));
+                l.NamespacedName == newData.MachineUrl && l.Maintainers.Contains(maintainer));
             if (found == null) continue;
 
             found.DownloadMetadata = newData.DownloadMetadata;

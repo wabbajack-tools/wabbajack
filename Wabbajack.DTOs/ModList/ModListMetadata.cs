@@ -44,4 +44,7 @@ public class ModlistMetadata
     [JsonPropertyName("dateCreated")] public DateTime DateCreated { get; set; } = DateTime.UnixEpoch;
 
     [JsonPropertyName("dateUpdated")] public DateTime DateUpdated { get; set; }
+
+    [JsonPropertyName("repositoryName")] public string RepositoryName { get; set; } = string.Empty;
+    [JsonIgnore] public string NamespacedName => $"{RepositoryName}/{Links.MachineURL}";
 }
