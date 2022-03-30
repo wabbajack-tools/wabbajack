@@ -107,7 +107,7 @@ namespace Wabbajack
         
         private bool _useCompression = false;
         public bool UseCompression { get => _useCompression; set => RaiseAndSetIfChanged(ref _useCompression, value); }
-        public bool ShowUtilityLists { get; set; }
+        public bool ShowUnofficial { get; set; }
     }
 
     [JsonName("PerformanceSettings")]

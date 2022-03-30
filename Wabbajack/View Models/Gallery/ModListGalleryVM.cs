@@ -40,7 +40,7 @@ namespace Wabbajack
         public bool ShowNSFW { get; set; }
 
         [Reactive]
-        public bool ShowUtilityLists { get; set; }
+        public bool ShowUnofficial { get; set; }
 
         [Reactive]
         public string GameType { get; set; }
@@ -65,7 +65,7 @@ namespace Wabbajack
             {
                 GameType = !string.IsNullOrEmpty(settings.Game) ? settings.Game : ALL_GAME_TYPE;
                 ShowNSFW = settings.ShowNSFW;
-                ShowUtilityLists = settings.ShowUtilityLists;
+                ShowUnofficial = settings.ShowUnofficial;
                 OnlyInstalled = settings.OnlyInstalled;
                 Search = settings.Search;
             }
@@ -82,7 +82,7 @@ namespace Wabbajack
                 {
                     OnlyInstalled = false;
                     ShowNSFW = false;
-                    ShowUtilityLists = false;
+                    ShowUnofficial = false;
                     Search = string.Empty;
                     GameType = ALL_GAME_TYPE;
                 });
@@ -153,8 +153,8 @@ namespace Wabbajack
                         if (!vm.Metadata.NSFW) return true;
                         return vm.Metadata.NSFW && showNSFW;
                     }))
-                .Filter(this.WhenAny(x => x.ShowUtilityLists)
-                    .Select<bool, Func<ModListMetadataVM, bool>>(showUtilityLists => vm => showUtilityLists ? vm.Metadata.UtilityList : !vm.Metadata.UtilityList))
+                .Filter(this.WhenAny(x => x.ShowUnofficial)
+                    .Select<bool, Func<ModListMetadataVM, bool>>(ShowUnofficial => vm => vm.Metadata.RepositoryName == "wj-featured" || ShowUnofficial))
                 // Filter by Game
                 .Filter(this.WhenAny(x => x.GameType)
                     .Debounce(TimeSpan.FromMilliseconds(150), RxApp.MainThreadScheduler)
@@ -202,7 +202,7 @@ namespace Wabbajack
             settings.Game = GameType;
             settings.Search = Search;
             settings.ShowNSFW = ShowNSFW;
-            settings.ShowUtilityLists = ShowUtilityLists;
+            settings.ShowUnofficial = ShowUnofficial;
             settings.OnlyInstalled = OnlyInstalled;
         }
     }
