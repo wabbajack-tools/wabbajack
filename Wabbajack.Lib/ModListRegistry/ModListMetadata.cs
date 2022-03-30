@@ -58,6 +58,8 @@ namespace Wabbajack.Lib.ModListRegistry
 
         [JsonIgnore]
         public ModListSummary ValidationSummary { get; set; } = new ModListSummary();
+        [JsonName("repositoryName")] public string RepositoryName { get; set; } = string.Empty;
+        [JsonIgnore] public string NamespacedName => $"{RepositoryName}/{Links.MachineURL}";
 
         [JsonName("Links")]
         public class LinksObject
@@ -72,7 +74,7 @@ namespace Wabbajack.Lib.ModListRegistry
             public string Download { get; set; } = string.Empty;
 
             [JsonProperty("machineURL")]
-            public string MachineURL { get; set; } = string.Empty;
+            internal string MachineURL { get; set; } = string.Empty;
 
             [JsonProperty("discordURL")] 
             public string DiscordURL { get; set; } = string.Empty;
@@ -82,18 +84,18 @@ namespace Wabbajack.Lib.ModListRegistry
         {
             var client = new Http.Client();
             Utils.Log("Loading ModLists from GitHub");
-            var metadataResult = client.GetStringAsync(Consts.ModlistMetadataURL);
-            var utilityResult = client.GetStringAsync(Consts.UtilityModlistMetadataURL);
+
             var summaryResult = client.GetStringAsync(Consts.ModlistSummaryURL);
 
-            var metadata = (await metadataResult).FromJsonString<List<ModlistMetadata>>();
-            metadata = metadata.Concat((await utilityResult).FromJsonString<List<ModlistMetadata>>()).ToList();
+            var metadata = await LoadModlists();
+            
+            
             try
             {
                 var summaries = (await summaryResult).FromJsonString<List<ModListSummary>>().ToDictionary(d => d.MachineURL);
 
                 foreach (var data in metadata)
-                    if (summaries.TryGetValue(data.Links.MachineURL, out var summary))
+                    if (summaries.TryGetValue(data.NamespacedName, out var summary))
                         data.ValidationSummary = summary;
             }
             catch (Exception)
@@ -108,6 +110,34 @@ namespace Wabbajack.Lib.ModListRegistry
                 // Put broken lists at bottom
                 .OrderBy(m => (m.ValidationSummary?.HasFailures ?? false ? 1 : 0))
                 .ToList();
+        }
+        
+        public static async Task<Dictionary<string, Uri>> LoadRepositories()
+        {
+            var client = new Http.Client();
+            var repositories = (await client.GetStringAsync("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/repositories.json"))
+                .FromJsonString<Dictionary<string, Uri>>();
+            return repositories!;
+        }
+
+        public static async Task<ModlistMetadata[]> LoadModlists()
+        {
+            var repos = await LoadRepositories();
+            List<ModlistMetadata> metadatas = new();
+            var client = new Http.Client();
+            foreach (var repo in repos)
+            {
+                var newData = (await client.GetStringAsync(repo.Value))
+                    .FromJsonString<ModlistMetadata[]>()
+                    .Select(meta =>
+                    {
+                        meta.RepositoryName = repo.Key;
+                        return meta;
+                    });
+                metadatas.AddRange(newData);
+            }
+
+            return metadatas.ToArray();
         }
 
         public static async Task<List<ModlistMetadata>> LoadUnlistedFromGithub()

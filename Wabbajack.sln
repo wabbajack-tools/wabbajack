@@ -40,10 +40,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Common.Test", "Wa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.App.Test", "Wabbajack.App.Test\Wabbajack.App.Test.csproj", "{44E30B97-D4A8-40A6-81D5-5CAB1F3D45CB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Server", "Wabbajack.Server\Wabbajack.Server.csproj", "{3E11B700-8405-433D-BF47-6C356087A7C2}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Server.Test", "Wabbajack.Server.Test\Wabbajack.Server.Test.csproj", "{9DEC8DC8-B6E0-469B-9571-C4BAC0776D07}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.ImageHashing", "Wabbajack.ImageHashing\Wabbajack.ImageHashing.csproj", "{0C893E5F-1FD8-463E-AC3F-D020213ACD3B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.ImageHashing.Test", "Wabbajack.ImageHashing.Test\Wabbajack.ImageHashing.Test.csproj", "{96892D68-7400-4297-864C-39D0673775DE}"
@@ -150,22 +146,6 @@ Global
 		{44E30B97-D4A8-40A6-81D5-5CAB1F3D45CB}.Debug|x64.Build.0 = Debug|x64
 		{44E30B97-D4A8-40A6-81D5-5CAB1F3D45CB}.Release|Any CPU.ActiveCfg = Release|x64
 		{44E30B97-D4A8-40A6-81D5-5CAB1F3D45CB}.Release|x64.ActiveCfg = Release|x64
-		{3E11B700-8405-433D-BF47-6C356087A7C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3E11B700-8405-433D-BF47-6C356087A7C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3E11B700-8405-433D-BF47-6C356087A7C2}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{3E11B700-8405-433D-BF47-6C356087A7C2}.Debug|x64.Build.0 = Debug|Any CPU
-		{3E11B700-8405-433D-BF47-6C356087A7C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3E11B700-8405-433D-BF47-6C356087A7C2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3E11B700-8405-433D-BF47-6C356087A7C2}.Release|x64.ActiveCfg = Release|Any CPU
-		{3E11B700-8405-433D-BF47-6C356087A7C2}.Release|x64.Build.0 = Release|Any CPU
-		{9DEC8DC8-B6E0-469B-9571-C4BAC0776D07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9DEC8DC8-B6E0-469B-9571-C4BAC0776D07}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9DEC8DC8-B6E0-469B-9571-C4BAC0776D07}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{9DEC8DC8-B6E0-469B-9571-C4BAC0776D07}.Debug|x64.Build.0 = Debug|Any CPU
-		{9DEC8DC8-B6E0-469B-9571-C4BAC0776D07}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9DEC8DC8-B6E0-469B-9571-C4BAC0776D07}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9DEC8DC8-B6E0-469B-9571-C4BAC0776D07}.Release|x64.ActiveCfg = Release|Any CPU
-		{9DEC8DC8-B6E0-469B-9571-C4BAC0776D07}.Release|x64.Build.0 = Release|Any CPU
 		{0C893E5F-1FD8-463E-AC3F-D020213ACD3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0C893E5F-1FD8-463E-AC3F-D020213ACD3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C893E5F-1FD8-463E-AC3F-D020213ACD3B}.Debug|x64.ActiveCfg = Debug|Any CPU

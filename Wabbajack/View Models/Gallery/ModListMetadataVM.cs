@@ -84,7 +84,7 @@ namespace Wabbajack
         {
             _parent = parent;
             Metadata = metadata;
-            Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.Links.MachineURL + (string)Consts.ModListExtension);
+            Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.NamespacedName.Replace("/", "_@@_") + (string)Consts.ModListExtension);
             ModListTagList = new List<ModListTag>();
 
             Metadata.tags.ForEach(tag =>
@@ -98,7 +98,7 @@ namespace Wabbajack
             VersionText = "Modlist version : " + Metadata.Version;
             IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;
             //https://www.wabbajack.org/#/modlists/info?machineURL=eldersouls
-            OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite(new Uri($"https://www.wabbajack.org/#/modlists/info?machineURL={Metadata.Links.MachineURL}")));
+            OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite(new Uri($"https://www.wabbajack.org/#/modlists/info?machineURL={Metadata.NamespacedName}")));
 
             IsLoadingIdle = new Subject<bool>();
             
@@ -108,7 +108,7 @@ namespace Wabbajack
                 IsLoadingIdle.OnNext(false);
                 try
                 {
-                    var status = await ClientAPIEx.GetDetailedStatus(metadata.Links.MachineURL);
+                    var status = await ClientAPIEx.GetDetailedStatus(metadata.NamespacedName);
                     var coll = _parent.MWVM.ModListContentsVM.Value.Status;
                     coll.Clear();
                     coll.AddRange(status.Archives);
@@ -222,18 +222,18 @@ namespace Wabbajack
                     try
                     {
                         IsDownloading = true;
-                        Utils.Log($"Starting Download of {Metadata.Links.MachineURL}");
+                        Utils.Log($"Starting Download of {Metadata.NamespacedName}");
                         var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
                         var result = await downloader.Download(
                             new Archive(state: null!)
                             {
                                 Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0
                             }, Location);
-                        Utils.Log($"Done downloading {Metadata.Links.MachineURL}");
+                        Utils.Log($"Done downloading {Metadata.NamespacedName}");
 
                         // Want to rehash to current file, even if failed?
                         await Location.FileHashCachedAsync();
-                        Utils.Log($"Done hashing {Metadata.Links.MachineURL}");
+                        Utils.Log($"Done hashing {Metadata.NamespacedName}");
 
                         await Metadata.ToJsonAsync(Location.WithExtension(Consts.ModlistMetadataExtension));
                         
@@ -241,7 +241,7 @@ namespace Wabbajack
                     }
                     catch (Exception ex)
                     {
-                        Utils.Error(ex, $"Error Downloading of {Metadata.Links.MachineURL}");
+                        Utils.Error(ex, $"Error Downloading of {Metadata.NamespacedName}");
                         tcs.SetException(ex);
                     }
                     finally

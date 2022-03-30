@@ -36,7 +36,7 @@ namespace Wabbajack.Test
             await client.UpdateList("ci_tester", update);
 
             var updated = await client.GetData(Client.List.CI);
-            var lst = updated.Lists.FirstOrDefault(l => l.Links.MachineURL == "ci_test");
+            var lst = updated.Lists.FirstOrDefault(l => l.NamespacedName == "ci_test");
             var newMeta = lst!.DownloadMetadata!;
             Assert.Equal(meta.Hash, newMeta.Hash);
             Assert.Equal(meta.Size, newMeta.Size);
