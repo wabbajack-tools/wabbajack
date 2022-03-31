@@ -58,6 +58,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         var metricsKey = Request.Headers[_settings.MetricsKeyHeader].FirstOrDefault();
         // Never needed this, disabled for now
         //await LogRequest(metricsKey);
+        var ip = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "";
         if (metricsKey != default)
         {
             if (await _tarLog.Contains(metricsKey))
@@ -67,7 +68,8 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
                     Subject = metricsKey,
                     Action = "tarlog",
                     MetricsKey = metricsKey,
-                    UserAgent = Request.Headers.UserAgent
+                    UserAgent = Request.Headers.UserAgent,
+                    Ip = ip
                 });
                 await Task.Delay(TimeSpan.FromSeconds(20));
                 throw new Exception("Error, lipsum timeout of the cross distant cloud.");
