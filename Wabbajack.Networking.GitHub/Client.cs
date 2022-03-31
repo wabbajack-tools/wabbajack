@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.GitHub;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Networking.GitHub.DTOs;
 
 namespace Wabbajack.Networking.GitHub;
 
@@ -16,9 +19,11 @@ public class Client
     private readonly DTOSerializer _dtos;
     private readonly ILogger<Client> _logger;
     private readonly GithubAuthTokenProvider _token;
+    private readonly HttpClient _httpClient;
 
-    public Client(ILogger<Client> logger, DTOSerializer dtos, GitHubClient client)
+    public Client(ILogger<Client> logger, DTOSerializer dtos, GitHubClient client, HttpClient httpClient)
     {
+        _httpClient = httpClient;
         _logger = logger;
         _client = client;
         _dtos = dtos;
@@ -69,6 +74,16 @@ public class Client
     {
         var result = (await _client.Repository.Content.GetAllContents(owner, repo, path))[0];
         return (result.Sha, result.Content);
+    }
+
+    public async Task<UserInfo?> GetUserInfoFromPAT(string pat)
+    {
+        var msg = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/user");
+        msg.Headers.Add("User-Agent", "wabbajack");
+        msg.Headers.Add("Authorization", "Token " + pat);
+        var result = await _httpClient.SendAsync(msg);
+        if (!result.IsSuccessStatusCode) return null;
+        return await result.Content.ReadFromJsonAsync<UserInfo>();
     }
 
     public async Task PutData(string owner, string repo, string path, string message, string content, string oldSha)

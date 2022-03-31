@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Text.Encodings.Web;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Wabbajack.DTOs.JsonConverters;
-using Wabbajack.Paths;
-using Wabbajack.Paths.IO;
+using Wabbajack.Networking.GitHub;
+using Wabbajack.Networking.GitHub.DTOs;
 using Wabbajack.Server.DataModels;
 using Wabbajack.Server.DTOs;
 
@@ -33,10 +30,13 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
     private readonly Task<HashSet<string>> _tarKeys;
     private readonly Metrics _metricsStore;
     private readonly TarLog _tarLog;
+    private readonly Client _githubClient;
+    private readonly MemoryCache _githubCache;
 
     public ApiKeyAuthenticationHandler(
         IOptionsMonitor<ApiKeyAuthenticationOptions> options,
         AuthorKeys authorKeys,
+        Client githubClient,
         ILoggerFactory logger,
         UrlEncoder encoder,
         ISystemClock clock,
@@ -51,6 +51,8 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         _dtos = dtos;
         _authorKeys = authorKeys;
         _settings = settings;
+        _githubClient = githubClient;
+        _githubCache = new MemoryCache(new MemoryCacheOptions());
     }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -58,7 +60,6 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         var metricsKey = Request.Headers[_settings.MetricsKeyHeader].FirstOrDefault();
         // Never needed this, disabled for now
         //await LogRequest(metricsKey);
-        var ip = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "";
         if (metricsKey != default)
         {
             if (await _tarLog.Contains(metricsKey))
@@ -69,7 +70,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
                     Action = "tarlog",
                     MetricsKey = metricsKey,
                     UserAgent = Request.Headers.UserAgent,
-                    Ip = ip
+                    Ip = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? ""
                 });
                 await Task.Delay(TimeSpan.FromSeconds(20));
                 throw new Exception("Error, lipsum timeout of the cross distant cloud.");
@@ -88,7 +89,14 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         {
             var owner = await _authorKeys.AuthorForKey(authorKey);
             if (owner == null)
-                return AuthenticateResult.Fail("Invalid author key");
+            {
+                var ghUser = await GetGithubUserInfo(authorKey);
+                
+                if (ghUser == null) 
+                    return AuthenticateResult.Fail("Invalid author key");
+
+                owner = "github/" + ghUser.Login;
+            }
 
             var claims = new List<Claim> {new(ClaimTypes.Name, owner)};
 
@@ -118,6 +126,18 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         }
 
         return AuthenticateResult.NoResult();
+    }
+
+    protected async Task<UserInfo?> GetGithubUserInfo(string authToken)
+    {
+        if (_githubCache.TryGetValue<UserInfo>(authToken, out var value)) return value;
+
+        var info = await _githubClient.GetUserInfoFromPAT(authToken);
+        if (info != null)
+            _githubCache.Set(authToken, info,
+                new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(6)));
+
+        return info;
     }
 
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)

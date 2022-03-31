@@ -79,7 +79,7 @@ public class MetricsController : ControllerBase
             Subject = value, 
             MetricsKey = metricsKey,
             UserAgent = Request.Headers.UserAgent.FirstOrDefault() ?? "<unknown>",
-            Ip = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? ""
+            Ip = Request.Headers["cf-connecting-ip"].FirstOrDefault() ?? (Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "")
         });
         return new Result {Timestamp = date};
     }
