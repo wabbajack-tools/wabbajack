@@ -29,6 +29,8 @@ using Wabbajack.Server.DataModels;
 using Wabbajack.Server.Extensions;
 using Wabbajack.Server.Services;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
+using Wabbajack.Networking.WabbajackClientApi;
+using Client = Wabbajack.Networking.GitHub.Client;
 
 namespace Wabbajack.Server;
 

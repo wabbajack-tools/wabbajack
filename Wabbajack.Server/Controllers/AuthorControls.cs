@@ -11,10 +11,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
 using Wabbajack.Common;
+using Wabbajack.DTOs;
 using Wabbajack.DTOs.GitHub;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Networking.GitHub;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 using Wabbajack.Server.DataModels;
 using Wabbajack.Server.Extensions;
 using Wabbajack.Server.Services;
@@ -32,10 +34,11 @@ public class AuthorControls : ControllerBase
     private readonly AppSettings _settings;
     private readonly ILogger<AuthorControls> _logger;
     private readonly AuthorFiles _authorFiles;
+    private readonly IResource<HttpClient> _limiter;
 
     public AuthorControls(ILogger<AuthorControls> logger, QuickSync quickSync, HttpClient client,
         AppSettings settings, DTOSerializer dtos, AuthorFiles authorFiles,
-        Client gitHubClient)
+        Client gitHubClient, IResource<HttpClient> limiter)
     {
         _logger = logger;
         _quickSync = quickSync;
@@ -44,6 +47,7 @@ public class AuthorControls : ControllerBase
         _dtos = dtos;
         _gitHubClient = gitHubClient;
         _authorFiles = authorFiles;
+        _limiter = limiter;
     }
 
     [Route("login/{authorKey}")]
@@ -59,13 +63,37 @@ public class AuthorControls : ControllerBase
     public async Task<IActionResult> AuthorLists()
     {
         var user = User.FindFirstValue(ClaimTypes.Name);
-        List<string> lists = new();
-        foreach (var file in Enum.GetValues<List>())
-            lists.AddRange((await _gitHubClient.GetData(file)).Lists.Where(l => l.Maintainers.Contains(user))
-                .Select(lst => lst.NamespacedName));
+        var lists = (await LoadLists())
+            .Where(l => l.Maintainers.Contains(user))
+            .Select(l => l.NamespacedName)
+            .ToArray();
 
         return Ok(lists);
     }
+    
+    public async Task<ModlistMetadata[]> LoadLists()
+    {
+        var repos = await LoadRepositories();
+
+        return await repos.PMapAll(async url =>
+                (await _client.GetFromJsonAsync<ModlistMetadata[]>(_limiter, new HttpRequestMessage(HttpMethod.Get, url.Value),
+                    _dtos.Options))!.Select(meta =>
+                {
+                    meta.RepositoryName = url.Key;
+                    return meta;
+                }))
+            .SelectMany(x => x)
+            .ToArray();
+    }
+
+    public async Task<Dictionary<string, Uri>> LoadRepositories()
+    {
+        var repositories = await _client.GetFromJsonAsync<Dictionary<string, Uri>>(_limiter,
+            new HttpRequestMessage(HttpMethod.Get,
+                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/repositories.json"), _dtos.Options);
+        return repositories!;
+    }
+
 
     [Route("lists/download_metadata")]
     [HttpPost]
