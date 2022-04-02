@@ -94,6 +94,14 @@ public class AuthorControls : ControllerBase
         return repositories!;
     }
 
+    [Route("whoami")]
+    [HttpGet]
+    public async Task<IActionResult> GetWhoAmI()
+    {
+        var user = User.FindFirstValue(ClaimTypes.Name);
+        return Ok(user!);
+    }
+
 
     [Route("lists/download_metadata")]
     [HttpPost]
