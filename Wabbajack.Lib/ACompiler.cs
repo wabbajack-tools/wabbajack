@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Octokit;
 using Org.BouncyCastle.Asn1.Cms;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
@@ -181,6 +182,11 @@ namespace Wabbajack.Lib
         {
             Utils.Log($"Running preflight checks");
             if (PublishData == null) return;
+            
+            if (!PublishData.MachineUrl.Contains("/"))
+                Utils.ErrorThrow(new CriticalFailureIntervention(
+                    $"Modlist name {PublishData.MachineUrl} is not namespaced",
+                    "Cannot publish"));
 
             var ourLists = await (await AuthorApi.Client.Create()).GetMyModlists();
             if (ourLists.All(l => l != PublishData.MachineUrl))
@@ -194,6 +200,20 @@ namespace Wabbajack.Lib
         public async Task PublishModlist()
         {
             if (PublishData == null) return;
+
+            var pair = PublishData.MachineUrl.Split("/");
+            var wjRepoName = pair[0];
+            var machineUrl = pair[1];
+            
+            var repoUrl = (await ModlistMetadata.LoadRepositories())[wjRepoName];
+
+            var decomposed = repoUrl.LocalPath.Split("/");
+            var owner = decomposed[1];
+            var repoName = decomposed[2];
+            var path = string.Join("/", decomposed[4..]);
+            
+            
+            
             var api = await AuthorApi.Client.Create();
             Utils.Log($"Uploading modlist {PublishData!.MachineUrl}");
 
@@ -202,8 +222,30 @@ namespace Wabbajack.Lib
             PublishData.DownloadUrl = uri;
             PublishData.DownloadMetadata = metadata;
             
+            
             Utils.Log($"Publishing modlist {PublishData!.MachineUrl}");
-            await api.UpdateModListInformation(PublishData);
+            
+            var creds = new Credentials(await AuthorAPI.GetAPIKey());
+            var ghClient = new GitHubClient(new ProductHeaderValue("wabbajack")) {Credentials = creds};
+            
+            var oldData = 
+                (await ghClient.Repository.Content.GetAllContents(owner, repoName, path))
+                .First();
+            var oldContent = oldData.Content.FromJsonString<ModlistMetadata[]>();
+            var list = oldContent.First(c => c.Links.MachineURL == machineUrl);
+            list.Version = PublishData.Version;
+            list.DownloadMetadata = PublishData.DownloadMetadata;
+            list.Links.Download = PublishData.DownloadUrl.ToString();
+
+
+            var newContent = oldContent.ToJson(prettyPrint: true);
+            // the website requires all names be in lowercase;
+            newContent = GameRegistry.Games.Keys.Aggregate(newContent,
+                (current, g) => current.Replace($"\"game\": \"{g}\",", $"\"game\": \"{g.ToString().ToLower()}\","));
+
+            var updateRequest = new UpdateFileRequest($"New release of {PublishData.MachineUrl}", newContent, oldData.Sha);
+            await ghClient.Repository.Content.UpdateFile(owner, repoName, path, updateRequest);
+            return;
         }
 
         protected async Task IndexGameFileHashes()
