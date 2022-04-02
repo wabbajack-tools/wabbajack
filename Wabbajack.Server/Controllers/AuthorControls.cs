@@ -62,7 +62,7 @@ public class AuthorControls : ControllerBase
         List<string> lists = new();
         foreach (var file in Enum.GetValues<List>())
             lists.AddRange((await _gitHubClient.GetData(file)).Lists.Where(l => l.Maintainers.Contains(user))
-                .Select(lst => lst.Links.MachineURL));
+                .Select(lst => lst.NamespacedName));
 
         return Ok(lists);
     }

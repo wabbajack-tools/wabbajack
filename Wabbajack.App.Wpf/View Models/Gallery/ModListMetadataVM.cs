@@ -100,7 +100,7 @@ namespace Wabbajack
             _maintainer = maintainer;
             Metadata = metadata;
             _wjClient = wjClient;
-            Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.Links.MachineURL).WithExtension(Ext.Wabbajack);
+            Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.NamespacedName).WithExtension(Ext.Wabbajack);
             ModListTagList = new List<ModListTag>();
             
             UpdateStatus().FireAndForget();
@@ -116,7 +116,7 @@ namespace Wabbajack
             VersionText = "Modlist version : " + Metadata.Version;
             IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;
             //https://www.wabbajack.org/#/modlists/info?machineURL=eldersouls
-            OpenWebsiteCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/#/modlists/info?machineURL={Metadata.Links.MachineURL}")));
+            OpenWebsiteCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/#/modlists/info?machineURL={Metadata.NamespacedName}")));
 
             IsLoadingIdle = new Subject<bool>();
             
@@ -126,7 +126,7 @@ namespace Wabbajack
                 IsLoadingIdle.OnNext(false);
                 try
                 {
-                    var status = await wjClient.GetDetailedStatus(metadata.Links.MachineURL);
+                    var status = await wjClient.GetDetailedStatus(metadata.NamespacedName);
                     var coll = _parent.MWVM.ModListContentsVM.Value.Status;
                     coll.Clear();
                     coll.AddRange(status.Archives.Select(a => new DetailedStatusItem

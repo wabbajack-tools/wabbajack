@@ -35,7 +35,7 @@ public class ModListDownloadMaintainer
 
     public AbsolutePath ModListPath(ModlistMetadata metadata)
     {
-        return _configuration.ModListsDownloadLocation.Combine(metadata.Links.MachineURL).WithExtension(Ext.Wabbajack);
+        return _configuration.ModListsDownloadLocation.Combine(metadata.NamespacedName.Replace("/", "_@@_")).WithExtension(Ext.Wabbajack);
     }
 
     public async Task<bool> HaveModList(ModlistMetadata metadata, CancellationToken? token = null)

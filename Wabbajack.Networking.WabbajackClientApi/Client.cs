@@ -187,21 +187,27 @@ public class Client
         return definition;
     }
 
-    public async Task<ModlistMetadata[]> LoadLists(bool includeUnlisted = false)
+    public async Task<ModlistMetadata[]> LoadLists()
     {
-        var lists = new[]
-            {
-                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json",
-                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/utility_modlists.json",
-                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/unlisted_modlists.json"
-            }
-            .Take(includeUnlisted ? 3 : 2);
+        var repos = await LoadRepositories();
 
-        return await lists.PMapAll(async url =>
-                await _client.GetFromJsonAsync<ModlistMetadata[]>(_limiter, new HttpRequestMessage(HttpMethod.Get, url),
-                    _dtos.Options)!)
+        return await repos.PMapAll(async url =>
+                 (await _client.GetFromJsonAsync<ModlistMetadata[]>(_limiter, new HttpRequestMessage(HttpMethod.Get, url.Value),
+                    _dtos.Options))!.Select(meta =>
+                 {
+                     meta.RepositoryName = url.Key;
+                     return meta;
+                 }))
             .SelectMany(x => x)
             .ToArray();
+    }
+
+    public async Task<Dictionary<string, Uri>> LoadRepositories()
+    {
+        var repositories = await _client.GetFromJsonAsync<Dictionary<string, Uri>>(_limiter,
+            new HttpRequestMessage(HttpMethod.Get,
+                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/repositories.json"), _dtos.Options);
+        return repositories!;
     }
 
     public Uri GetPatchUrl(Hash upgradeHash, Hash archiveHash)
