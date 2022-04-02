@@ -12,7 +12,7 @@ public class LinksObject
 
     [JsonPropertyName("download")] public string Download { get; set; } = string.Empty;
 
-    [JsonPropertyName("machineURL")] internal string MachineURL { get; set; } = string.Empty;
+    [JsonPropertyName("machineURL")] public string MachineURL { get; set; } = string.Empty;
     
     [JsonPropertyName("discordURL")] public string DiscordURL { get; set; } = string.Empty;
 }

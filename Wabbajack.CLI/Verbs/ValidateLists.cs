@@ -71,7 +71,6 @@ public class ValidateLists : IVerb
     public Command MakeCommand()
     {
         var command = new Command("validate-lists");
-        command.Add(new Option<List[]>(new[] {"-l", "-lists"}, "Lists of lists to validate") {IsRequired = true});
         command.Add(new Option<AbsolutePath>(new[] {"-r", "--reports"}, "Location to store validation report outputs"));
 
         command.Add(new Option<AbsolutePath>(new[] {"--other-archives"},
@@ -83,7 +82,7 @@ public class ValidateLists : IVerb
         return command;
     }
 
-    public async Task<int> Run(List[] lists, AbsolutePath reports, AbsolutePath otherArchives)
+    public async Task<int> Run(AbsolutePath reports, AbsolutePath otherArchives)
     {
         reports.CreateDirectory();
         var token = CancellationToken.None;
@@ -102,9 +101,7 @@ public class ValidateLists : IVerb
             archive => DownloadAndValidate(archive, forcedRemovals, token));
         
         var stopWatch = Stopwatch.StartNew();
-        var listData = await lists.SelectAsync(async l => await _gitHubClient.GetData(l))
-            .SelectMany(l => l.Lists)
-            .ToArray();
+        var listData = await _wjClient.LoadLists();
 
         var validatedLists = await listData.PMapAll(async modList =>
         {
