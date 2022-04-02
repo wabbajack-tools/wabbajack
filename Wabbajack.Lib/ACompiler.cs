@@ -183,7 +183,7 @@ namespace Wabbajack.Lib
             if (PublishData == null) return;
 
             var ourLists = await (await AuthorApi.Client.Create()).GetMyModlists();
-            if (ourLists.All(l => l.MachineURL != PublishData.MachineUrl))
+            if (ourLists.All(l => l != PublishData.MachineUrl))
             {
                 Utils.ErrorThrow(new CriticalFailureIntervention(
                     $"Cannot publish to {PublishData.MachineUrl}, you are not listed as a maintainer",

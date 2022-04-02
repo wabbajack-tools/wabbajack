@@ -88,22 +88,10 @@ namespace Wabbajack.Lib.AuthorApi
             });
         }
 
-        public async Task<IReadOnlyList<(string MachineURL, Version Version)>> GetMyModlists()
+        public async Task<IReadOnlyList<string>> GetMyModlists()
         {
             var myLists = await _client.GetJsonAsync<string[]>($"{Consts.WabbajackBuildServerUri}author_controls/lists");
-            List<(string MachineURL, Version Version)> lists = new();
-            var client = await GitHub.Client.Get();
-            foreach (var file in Enum.GetValues<GitHub.Client.List>())
-            {
-                foreach (var lst in (await client.GetData(file)).Lists)
-                {
-                    if (myLists.Contains(lst.Links.MachineURL))
-                    {
-                        lists.Add((lst.Links.MachineURL, lst.Version ?? new Version()));
-                    }
-                }
-            }
-            return lists;
+            return myLists;
         }
 
         public async Task<Uri> UploadFile(WorkQueue queue, AbsolutePath path, Action<string, Percent> progressFn)
