@@ -60,6 +60,8 @@ namespace Wabbajack.Lib.ModListRegistry
         public ModListSummary ValidationSummary { get; set; } = new ModListSummary();
         [JsonName("repositoryName")] public string RepositoryName { get; set; } = string.Empty;
         [JsonIgnore] public string NamespacedName => $"{RepositoryName}/{Links.MachineURL}";
+        
+        [JsonIgnore] public bool IsFeatured { get; set; }
 
         [JsonName("Links")]
         public class LinksObject
@@ -120,39 +122,41 @@ namespace Wabbajack.Lib.ModListRegistry
             return repositories!;
         }
 
+        public static async Task<HashSet<string>> LoadFeatured()
+        {
+            var client = new Http.Client();
+            var repositories = (await client.GetStringAsync("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/featured_lists.json"))
+                .FromJsonString<string[]>();
+            return repositories!.ToHashSet();
+        }
+
         public static async Task<ModlistMetadata[]> LoadModlists()
         {
             var repos = await LoadRepositories();
+            var featured = await LoadFeatured();
             List<ModlistMetadata> metadatas = new();
             var client = new Http.Client();
             foreach (var repo in repos)
             {
-                var newData = (await client.GetStringAsync(repo.Value))
-                    .FromJsonString<ModlistMetadata[]>()
-                    .Select(meta =>
-                    {
-                        meta.RepositoryName = repo.Key;
-                        return meta;
-                    });
-                metadatas.AddRange(newData);
+                try
+                {
+                    var newData = (await client.GetStringAsync(repo.Value))
+                        .FromJsonString<ModlistMetadata[]>()
+                        .Select(meta =>
+                        {
+                            meta.RepositoryName = repo.Key;
+                            meta.IsFeatured = meta.RepositoryName == "wj-featured" || featured.Contains(meta.NamespacedName);
+                            return meta;
+                        });
+                    metadatas.AddRange(newData);
+                }
+                catch (JsonException je)
+                {
+                    Utils.Log($"Parsing {repo.Key} got a json parse exception {je}");
+                }
             }
 
             return metadatas.ToArray();
-        }
-
-        public static async Task<List<ModlistMetadata>> LoadUnlistedFromGithub()
-        {
-            try
-            {
-                var client = new Http.Client();
-                return (await client.GetStringAsync(Consts.UnlistedModlistMetadataURL)).FromJsonString<List<ModlistMetadata>>();
-            }
-            catch (Exception)
-            {
-                Utils.LogStatus("Error loading unlisted modlists");
-                return new List<ModlistMetadata>();
-            }
-
         }
 
         public async ValueTask<bool> NeedsDownload(AbsolutePath modlistPath)

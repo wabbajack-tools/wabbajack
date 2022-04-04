@@ -1,5 +1,13 @@
 ### Changelog
 
+#### Version - 2.5.3.12 - 4/4/2022
+* Allow featured modlists to exist in other repositories
+* Continue to load the gallery even if a parse failure happens while loading a repository
+
+#### Version - 2.5.3.11 - 4/2/2022
+* New entry in `Links` named `discordURL` allows authors to add a discord link to their install page
+* Reworks for decentralization
+
 #### Version - 2.5.3.10 - 3/26/2022
 * Report file sizes before generating patches
 * When displaying a browser, we now show the navigated to Url (and a copy to clipboard button)
