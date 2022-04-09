@@ -154,7 +154,7 @@ namespace Wabbajack
                         return vm.Metadata.NSFW && showNSFW;
                     }))
                 .Filter(this.WhenAny(x => x.ShowUnofficial)
-                    .Select<bool, Func<ModListMetadataVM, bool>>(ShowUnofficial => vm => vm.Metadata.RepositoryName == "wj-featured" || ShowUnofficial))
+                    .Select<bool, Func<ModListMetadataVM, bool>>(ShowUnofficial => vm => vm.Metadata.IsFeatured || ShowUnofficial))
                 // Filter by Game
                 .Filter(this.WhenAny(x => x.GameType)
                     .Debounce(TimeSpan.FromMilliseconds(150), RxApp.MainThreadScheduler)

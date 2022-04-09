@@ -98,7 +98,9 @@ namespace Wabbajack
             VersionText = "Modlist version : " + Metadata.Version;
             IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;
             //https://www.wabbajack.org/#/modlists/info?machineURL=eldersouls
-            OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite(new Uri($"https://www.wabbajack.org/#/modlists/info?machineURL={Metadata.NamespacedName}")));
+            
+            
+            OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite(InterpretUrl(Metadata.Links.Readme)));
 
             IsLoadingIdle = new Subject<bool>();
             
@@ -206,6 +208,30 @@ namespace Wabbajack
                 .ToGuiProperty(this, nameof(LoadingImage));
         }
 
+        private Uri InterpretUrl(string url)
+        {
+            if (Uri.TryCreate(url, UriKind.Absolute, out var parsed))
+            {
+                if (parsed.Host == "raw.githubusercontent.com")
+                {
+                    var path = parsed.AbsolutePath.Split("/", StringSplitOptions.RemoveEmptyEntries);
+                    var user = path[0];
+                    var repo = path[1];
+                    var rest = path[2..];
+
+                    var newPath = new List<string>() {user, repo, "blob"};
+                    newPath.AddRange(rest);
+                    var b = new UriBuilder(url);
+                    b.Host = "github.com";
+                    b.Path = string.Join("/", newPath);
+                    return b.Uri;
+                }
+
+                return parsed;
+            }
+
+            return new Uri("http://unknown");
+        }
 
 
         private async Task<bool> Download()

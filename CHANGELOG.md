@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.5.3.13 - 4/9/2022
+* Fix how the gallery displays featured lists from 3rd party repositories
+* Readmes viewed from the gallery no longer route through the Wabbajack website
+
 #### Version - 2.5.3.12 - 4/4/2022
 * Allow featured modlists to exist in other repositories
 * Continue to load the gallery even if a parse failure happens while loading a repository

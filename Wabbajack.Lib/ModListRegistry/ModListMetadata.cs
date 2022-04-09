@@ -127,7 +127,7 @@ namespace Wabbajack.Lib.ModListRegistry
             var client = new Http.Client();
             var repositories = (await client.GetStringAsync("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/featured_lists.json"))
                 .FromJsonString<string[]>();
-            return repositories!.ToHashSet();
+            return repositories!.ToHashSet(StringComparer.CurrentCultureIgnoreCase);
         }
 
         public static async Task<ModlistMetadata[]> LoadModlists()
