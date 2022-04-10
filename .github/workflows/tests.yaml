@@ -108,6 +108,8 @@ jobs:
           dotnet-version: '6.0.x'
           include-prerelease: true      
 
+      - name: Restore
+        run: dotnet restore ${{ matrix.project }}/${{ matrix.project }}.csproj
       - name: Build
         run: dotnet build ${{ matrix.project }}/${{ matrix.project }}.csproj --no-restore --configuration Release
       - name: Pack
