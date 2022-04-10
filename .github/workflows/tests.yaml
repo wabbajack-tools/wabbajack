@@ -108,10 +108,10 @@ jobs:
           dotnet-version: '6.0.x'
           include-prerelease: true      
 
-      - name: Publish ${{ matrix.project}} NuGet
-        uses: brandedoutcast/publish-nuget@v2.5.5
-        with:
-          PROJECT_FILE_PATH: ${{ matrix.project }}/${{ matrix.project }}.csproj
-          VERSION_STATIC: ${{ env.VERSION }}
-          NUGET_KEY: ${{secrets.NUGET_KEY}}
+      - name: Build
+        run: dotnet build ${{ matrix.project }}/${{ matrix.project }}.csproj --no-restore --configuration Release
+      - name: Pack
+        run: dotnet pack ${{ matrix.project }}/${{ matrix.project }}.csproj --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg -o .
+      - name: Publish
+        run: dotnet nuget push *.nupkg --api-key ${{secrets.NUGET_KEY}} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
     
