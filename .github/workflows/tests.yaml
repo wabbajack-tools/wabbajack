@@ -68,17 +68,19 @@ jobs:
         project:
           - Wabbajack.Common
           - Wabbajack.Compiler
-          - Wabbajack.Downloaders.Interfaces
-          - Wabbajack.Downloaders.Dispatcher
           - Wabbajack.Compression.BSA
           - Wabbajack.Compression.Zip
-          - Wabbajack.Downloaders.GoogleDrive
+          - Wabbajack.Downloaders.Bethesda
+          - Wabbajack.Downloaders.Dispatcher
           - Wabbajack.Downloaders.GameFile
+          - Wabbajack.Downloaders.GoogleDrive
+          - Wabbajack.Downloaders.Http
+          - Wabbajack.Downloaders.Interfaces
           - Wabbajack.Downloaders.IPS4OAuth2Downloader
+          - Wabbajack.Downloaders.Manual
           - Wabbajack.Downloaders.MediaFire
           - Wabbajack.Downloaders.Mega
           - Wabbajack.Downloaders.ModDB
-          - Wabbajack.Downloaders.Http
           - Wabbajack.Downloaders.Nexus
           - Wabbajack.Downloaders.WabbajackCDN
           - Wabbajack.DTOs
@@ -86,6 +88,8 @@ jobs:
           - Wabbajack.Hashing.PHash
           - Wabbajack.Hashing.xxHash64
           - Wabbajack.Installer
+          - Wabbajack.IO.Async
+          - Wabbajack.Networking.BethesdaNet
           - Wabbajack.Networking.Discord
           - Wabbajack.Networking.GitHub
           - Wabbajack.Networking.Http
@@ -96,8 +100,8 @@ jobs:
           - Wabbajack.Paths
           - Wabbajack.Paths.IO
           - Wabbajack.RateLimiter
-          - Wabbajack.VFS
           - Wabbajack.Services.OSIntegrated
+          - Wabbajack.VFS
           
     needs: build
     steps:
