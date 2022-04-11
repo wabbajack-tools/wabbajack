@@ -71,6 +71,7 @@ jobs:
           - Wabbajack.Downloaders.Interfaces
           - Wabbajack.Downloaders.Dispatcher
           - Wabbajack.Compression.BSA
+          - Wabbajack.Compression.Zip
           - Wabbajack.Downloaders.GoogleDrive
           - Wabbajack.Downloaders.GameFile
           - Wabbajack.Downloaders.IPS4OAuth2Downloader
