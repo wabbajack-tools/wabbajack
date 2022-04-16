@@ -5,6 +5,7 @@ using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,12 +13,13 @@ using FluentFTP;
 using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Services;
 using Wabbajack.Common;
+using Wabbajack.Compression.Zip;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Configs;
+using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.DownloadStates;
-using Wabbajack.DTOs.GitHub;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.ModListValidation;
 using Wabbajack.DTOs.ServerResponses;
@@ -48,12 +50,14 @@ public class ValidateLists : IVerb
     private readonly Random _random;
     private readonly TemporaryFileManager _temporaryFileManager;
     private readonly Networking.WabbajackClientApi.Client _wjClient;
+    private readonly HttpClient _httpClient;
+    private readonly IResource<HttpClient> _httpLimiter;
 
     public ValidateLists(ILogger<ValidateLists> logger, Networking.WabbajackClientApi.Client wjClient,
         Client gitHubClient, TemporaryFileManager temporaryFileManager,
         DownloadDispatcher dispatcher, DTOSerializer dtos, ParallelOptions parallelOptions,
         IFtpSiteCredentials ftpSiteCredentials, IResource<IFtpSiteCredentials> ftpRateLimiter,
-        WriteOnlyClient discordClient)
+        WriteOnlyClient discordClient, HttpClient httpClient, IResource<HttpClient> httpLimiter)
     {
         _logger = logger;
         _wjClient = wjClient;
@@ -66,6 +70,8 @@ public class ValidateLists : IVerb
         _ftpRateLimiter = ftpRateLimiter;
         _discord = discordClient;
         _random = new Random();
+        _httpClient = httpClient;
+        _httpLimiter = httpLimiter;
     }
 
     public Command MakeCommand()
@@ -232,6 +238,143 @@ public class ValidateLists : IVerb
         return 0;
     }
 
+    private async Task SendDefinitionToLoadOrderLibrary(ModlistMetadata metadata, ModList modListData, CancellationToken token)
+    {
+        var lolGame = modListData.GameType switch
+        {
+            Game.Morrowind => 1,
+            Game.Oblivion => 2,
+            Game.Skyrim => 3,
+            Game.SkyrimSpecialEdition => 4,
+            Game.SkyrimVR => 5,
+            Game.Fallout3 => 6,
+            Game.FalloutNewVegas => 7,
+            Game.Fallout4 => 8,
+            Game.Fallout4VR => 9,
+            _ => 0
+        };
+
+        if (lolGame == 0) return;
+        
+        var files = (await GetFiles(modListData, metadata, token))
+            .Where(f => f.Key.Depth == 3)
+            .Where(f => f.Key.Parent.Parent == "profiles".ToRelativePath())
+            .GroupBy(f => f.Key.Parent.FileName.ToString())
+            .ToArray();
+
+
+
+
+        foreach (var profile in files)
+        {
+            var formData = new MultipartFormDataContent();
+            if (files.Length > 1)
+            {
+                formData.Add(new StringContent(modListData.Name + $"({metadata.NamespacedName})"), "name");
+            }
+            else
+            {
+                formData.Add(new StringContent(modListData.Name + $" - Profile: {profile.Key} ({metadata.NamespacedName})"), "name");
+            }
+
+            formData.Add(new StringContent(lolGame.ToString()), "game_id");
+            formData.Add(new StringContent(metadata.Description), "description");
+            formData.Add(new StringContent((metadata.Version ?? Version.Parse("0.0.0.0")).ToString()), "version");
+            formData.Add(new StringContent("0"), "is_private");
+            formData.Add(new StringContent("1hr"), "expires_at");
+            if (modListData.Website != null)
+            {
+                formData.Add(new StringContent(modListData.Website!.ToString()), "website");
+            }
+
+            if (metadata.Links.DiscordURL != null)
+            {
+                formData.Add(new StringContent(metadata.Links.DiscordURL), "discord");
+            }
+            
+            if (metadata.Links.Readme != null)
+            {
+                formData.Add(new StringContent(metadata.Links.Readme), "readme");
+            }
+
+            foreach (var file in profile)
+            {
+                formData.Add(new ByteArrayContent(file.Value), "files[]", file.Key.FileName.ToString());
+            }
+
+            using var job = await _httpLimiter.Begin("Posting to load order library", 0, token);
+            var msg = new HttpRequestMessage(HttpMethod.Post, "https://api.loadorderlibrary.com/v1/lists");
+            msg.Content = formData;
+            using var result = await _httpClient.SendAsync(msg, token);
+
+            if (result.IsSuccessStatusCode)
+                return;
+
+            //var data = await result.Content.ReadFromJsonAsync<string>(token);
+        }
+
+    }
+
+    private static HashSet<RelativePath> LoadOrderFiles = new HashSet<string>()
+    {
+        "enblocal.ini",
+        "enbseries.ini",
+        "fallout.ini",
+        "falloutprefs.ini",
+        "fallout4.ini",
+        "fallout4custom.ini",
+        "fallout4prefs.ini",
+        "falloutcustom.ini",
+        "geckcustom.ini",
+        "geckprefs.ini",
+        "loadorder.txt",
+        "mge.ini",
+        "modlist.txt",
+        "morrowind.ini",
+        "mwse-version.ini",
+        "oblivion.ini",
+        "oblivionprefs.ini",
+        "plugins.txt",
+        "settings.ini",
+        "skyrim.ini",
+        "skyrimcustom.ini",
+        "skyrimprefs.ini",
+        "skyrimvr.ini",
+    }.Select(f => f.ToRelativePath()).ToHashSet();
+
+    private async Task<Dictionary<RelativePath, byte[]>> GetFiles(ModList modlist, ModlistMetadata metadata, CancellationToken token)
+    {
+        var archive = new Archive
+        {
+            State = _dispatcher.Parse(new Uri(metadata.Links.Download))!,
+            Size = metadata.DownloadMetadata!.Size,
+            Hash = metadata.DownloadMetadata.Hash
+        };
+
+        var stream = await _dispatcher.ChunkedSeekableStream(archive, token);
+        await using var reader = new ZipReader(stream);
+        var files = await reader.GetFiles();
+
+
+        var indexed = files.ToDictionary(f => f.FileName.ToRelativePath());
+
+        var entriesToGet = modlist.Directives.OfType<InlineFile>()
+            .Where(f => LoadOrderFiles.Contains(f.To.FileName))
+            .Select(f => (f, indexed[f.SourceDataID]))
+            .ToArray();
+        
+
+        var fileData = new Dictionary<RelativePath, byte[]>();
+        foreach (var entry in entriesToGet)
+        {
+            var ms = new MemoryStream();
+            await reader.Extract(entry.Item2, ms, token);
+            fileData.Add(entry.f.To, ms.ToArray());
+        }
+
+        return fileData;
+    }
+
 
     private async Task ExportReports(AbsolutePath reports, ValidatedModList[] validatedLists, CancellationToken token)
     {
@@ -283,6 +426,15 @@ public class ValidateLists : IVerb
 
                 if (oldSummary.ModListHash != validatedList.ModListHash)
                 {
+                    try
+                    {
+                        await SendDefinitionToLoadOrderLibrary(validatedList, token);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError("While uploading to load order library", ex);
+                    }
+                    
                     await _discord.SendAsync(Channel.Ham,
                         $"Finished processing {validatedList.Name} ({validatedList.MachineURL}) v{validatedList.Version} ({oldSummary.ModListHash} -> {validatedList.ModListHash})",
                         token);
@@ -358,6 +510,15 @@ public class ValidateLists : IVerb
             .Open(FileMode.Create, FileAccess.Write, FileShare.None);
         await _dtos.Serialize(upgradedMetas, upgradedMetasFile, true);
 
+
+    }
+
+    private async Task SendDefinitionToLoadOrderLibrary(ValidatedModList validatedModList, CancellationToken token)
+    {
+        var modlistMetadata = (await _wjClient.LoadLists())
+            .First(l => l.NamespacedName == validatedModList.MachineURL);
+        var modList = await StandardInstaller.Load(_dtos, _dispatcher, modlistMetadata, token);
+        await SendDefinitionToLoadOrderLibrary(modlistMetadata, modList, token);
 
     }
 
