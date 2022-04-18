@@ -281,7 +281,7 @@ public class ValidateLists : IVerb
             formData.Add(new StringContent(metadata.Description), "description");
             formData.Add(new StringContent((metadata.Version ?? Version.Parse("0.0.0.0")).ToString()), "version");
             formData.Add(new StringContent("0"), "is_private");
-            formData.Add(new StringContent("1hr"), "expires_at");
+            formData.Add(new StringContent("perm"), "expires_at");
             if (modListData.Website != null)
             {
                 formData.Add(new StringContent(modListData.Website!.ToString()), "website");
