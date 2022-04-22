@@ -176,13 +176,16 @@ public class HttpDownloader : ADownloader<DTOs.DownloadStates.Http>, IUrlDownloa
 
         public override async Task<byte[]> LoadChunk(long offset, int size)
         {
-            var msg = HttpDownloader.MakeMessage(_state);
-            msg.Headers.Range = new RangeHeaderValue(offset, offset + size);
-            using var response = await _downloader._client.SendAsync(msg);
-            if (!response.IsSuccessStatusCode)
-                throw new HttpException(response);
+            return await CircuitBreaker.WithAutoRetryAllAsync(_downloader._logger, async () =>
+            {
+                var msg = HttpDownloader.MakeMessage(_state);
+                msg.Headers.Range = new RangeHeaderValue(offset, offset + size);
+                using var response = await _downloader._client.SendAsync(msg);
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpException(response);
 
-            return await response.Content.ReadAsByteArrayAsync();
+                return await response.Content.ReadAsByteArrayAsync();
+            });
         }
     }
 }
