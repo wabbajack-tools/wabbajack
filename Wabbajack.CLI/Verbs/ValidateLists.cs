@@ -137,8 +137,9 @@ public class ValidateLists : IVerb
                 modListData =
                     await StandardInstaller.Load(_dtos, _dispatcher, modList, token);
             }
-            catch (JsonException ex)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Forcing down {Modlist} due to error while loading: ", modList.NamespacedName);
                 validatedList.Status = ListStatus.ForcedDown;
                 return validatedList;
             }
