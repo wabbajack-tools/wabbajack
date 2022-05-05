@@ -60,6 +60,8 @@ namespace Wabbajack.Common
         Cyberpunk2077,
         [Description("The Sims 4")]
         Sims4
+        [Description("Dragons Dogma Dark Arisen")]
+        DragonsDogma
     }
 
     public static class GameExtensions
@@ -698,6 +700,22 @@ namespace Wabbajack.Common
                         @"Game\Bin\TS4_x64.exe"
                     },
                     MainExecutable = @"Game\Bin\TS4_x64.exe"
+                }
+            },
+            {
+                Game.DragonsDogma, new GameMetaData
+                {
+                    Game = Game.DragonsDogma,
+                    SteamIDs = new List<int> {367500 },
+                    MO2Name = "Dragon's Dogma: Dark Arisen",
+                    NexusName = "dragonsdogma",
+                    NexusGameId = 1249,
+                    IsGenericMO2Plugin = true,
+                    RequiredFiles = new List<string>
+                    {
+                        "DDDA.exe"
+                    },
+                    MainExecutable = "DDDA.exe"
                 }
             }
         };
