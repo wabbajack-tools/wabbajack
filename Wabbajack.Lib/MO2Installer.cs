@@ -345,6 +345,8 @@ namespace Wabbajack.Lib
                 streams.Do(s => s.Dispose());
 
                 await sourceDir.DeleteDirectory();
+                // Write the expected hash so we ignore compression changes
+                OutputFolder.Combine(bsa.To).FileHashWriteCache(bsa.Hash);
 
                 if (UseCompression)
                     await OutputFolder.Combine(bsa.To).Compact(FileCompaction.Algorithm.XPRESS16K);

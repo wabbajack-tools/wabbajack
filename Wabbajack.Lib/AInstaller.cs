@@ -372,6 +372,40 @@ namespace Wabbajack.Lib
             
             var indexed = ModList.Directives.ToDictionary(d => d.To);
 
+            var bsasToBuild = await ModList.Directives
+                .OfType<CreateBSA>()
+                .PMap(Queue, UpdateTracker, async b =>
+                {
+                    var file = OutputFolder.Combine(b.To);
+                    if (!file.Exists)
+                        return (true, b);
+                    return (b.Hash != await file.FileHashCachedAsync(), b);
+                });
+
+            var bsaIDsToRemove = bsasToBuild
+                .Where(b => b.Item1 == false).Select(t => t.b.TempID).ToHashSet();
+
+            var bsaPathsToNotBuild = bsasToBuild
+                .Where(b => b.Item1 == false).Select(t => t.b.To.RelativeTo(OutputFolder))
+                .ToHashSet();
+
+            indexed = indexed.Values
+                .Where(d =>
+                {
+                    switch (d)
+                    {
+                        case CreateBSA bsa:
+                            return !bsaIDsToRemove.Contains(bsa.TempID);
+                        case FromArchive a when a.To.StartsWith($"{Consts.BSACreationDir}"):
+                        {
+                            return !bsaIDsToRemove.Any(b =>
+                                a.To.RelativeTo(OutputFolder).InFolder(OutputFolder.Combine(Consts.BSACreationDir, b)));
+                        }
+                        default:
+                            return true;
+                    }
+                }).ToDictionary(d => d.To);
+
 
             var profileFolder = OutputFolder.Combine("profiles");
             var savePath = (RelativePath)"saves";
@@ -387,6 +421,9 @@ namespace Wabbajack.Lib
                     if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return;
                     
                     if (NoDeleteRegex.IsMatch(f.ToString()))
+                        return;
+
+                    if (bsaPathsToNotBuild.Contains(f))
                         return;
                         
                     Utils.Log($"Deleting {relativeTo} it's not part of this ModList");
