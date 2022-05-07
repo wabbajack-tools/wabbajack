@@ -2,6 +2,7 @@
 
 #### Version - 2.5.3.14 - 5/6/2022
 * Don't rebuild BSAs that haven't changed (requires one more BSA build to cache the data)
+* Added initial support for Dragons Dogma
 
 #### Version - 2.5.3.13 - 4/9/2022
 * Fix how the gallery displays featured lists from 3rd party repositories
