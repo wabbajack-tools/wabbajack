@@ -71,6 +71,7 @@ internal class Program
                 services.AddSingleton<IVerb, ListCreationClubContent>();
                 services.AddSingleton<IVerb, ListModlists>();
                 services.AddSingleton<IVerb, Extract>();
+                services.AddSingleton<IVerb, DumpZipInfo>();
 
                 services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
             }).Build();
