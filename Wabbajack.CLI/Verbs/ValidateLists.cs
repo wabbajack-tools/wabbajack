@@ -11,6 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentFTP;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 using Wabbajack.CLI.Services;
 using Wabbajack.Common;
 using Wabbajack.Compression.Zip;
@@ -90,6 +92,10 @@ public class ValidateLists : IVerb
 
     public async Task<int> Run(AbsolutePath reports, AbsolutePath otherArchives)
     {
+        _logger.LogInformation("Cleaning {Reports}", reports);
+        if (reports.DirectoryExists())
+            reports.DeleteDirectory();
+        
         reports.CreateDirectory();
         var token = CancellationToken.None;
 
@@ -210,6 +216,10 @@ public class ValidateLists : IVerb
             validatedList.Status = archives.Any(a => a.Status == ArchiveStatus.InValid)
                 ? ListStatus.Failed
                 : ListStatus.Available;
+            
+            var image = await ProcessModlistImage(reports, modList, token);
+            validatedList.Image = new Uri($"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{image.ToString().Replace("\\", "/")}");
+
             return validatedList;
         }).ToArray();
 
@@ -237,6 +247,28 @@ public class ValidateLists : IVerb
         await DeleteOldMirrors(mirroredFiles, usedMirroredFiles);
 
         return 0;
+    }
+
+    private async Task<RelativePath> ProcessModlistImage(AbsolutePath reports, ModlistMetadata validatedList,
+        CancellationToken token)
+    {
+        _logger.LogInformation("Processing Modlist Image");
+        var baseFolder = reports.Combine(validatedList.NamespacedName);
+        baseFolder.CreateDirectory();
+        
+        var standardWidth = 466;
+        await using var imageStream = await _httpClient.GetStreamAsync(validatedList.Links.ImageUri, token);
+        var ms = new MemoryStream();
+        var hash = await imageStream.HashingCopy(ms, token);
+        ms.Position = 0;
+        using var image = await Image.LoadAsync(ms, token);
+        var height = standardWidth * image.Height / image.Width;
+        image.Mutate(x => x
+            .Resize(standardWidth, height));
+        var path = validatedList.RepositoryName.ToRelativePath().Combine(hash.ToHex()).WithExtension(Ext.Webp);
+        await image.SaveAsync(path.RelativeTo(reports).ToString(), cancellationToken: token);
+
+        return path;
     }
 
     private async Task SendDefinitionToLoadOrderLibrary(ModlistMetadata metadata, ModList modListData, CancellationToken token)
@@ -513,7 +545,7 @@ public class ValidateLists : IVerb
 
 
     }
-
+    
     private async Task SendDefinitionToLoadOrderLibrary(ValidatedModList validatedModList, CancellationToken token)
     {
         var modlistMetadata = (await _wjClient.LoadLists())

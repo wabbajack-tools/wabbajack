@@ -16,4 +16,5 @@ public class ValidatedModList
     public ListStatus Status { get; set; }
 
     public long Failures => Archives.Count(a => a.Status == ArchiveStatus.InValid);
+    public Uri Image { get; set; }
 }
