@@ -187,10 +187,9 @@ public class ZipReader : IAsyncDisposable
         _stream.Position = entry.FileOffset;
         _stream.Position += 6;
         var flags = await _rdr.ReadUInt16();
-        bool isZip64 = ((flags & (0x1 << 3)) != 0);
-
-        
-        _stream.Position += (isZip64 ? 18 : 18);
+        if (flags != 0)
+            throw new Exception("Flags not yet implemented");
+        _stream.Position += 18;
         var fnLength = await _rdr.ReadUInt16();
         var efLength = await _rdr.ReadUInt16();
         _stream.Position += fnLength + efLength;
