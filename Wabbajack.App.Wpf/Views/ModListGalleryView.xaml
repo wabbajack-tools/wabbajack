@@ -118,10 +118,10 @@
                 Foreground="{StaticResource ForegroundBrush}" />
 
             <CheckBox
-                x:Name="ShowUtilityLists"
+                x:Name="ShowUnofficialLists"
                 Margin="10,0,10,0"
                 VerticalAlignment="Center"
-                Content="Only Utility Lists"
+                Content="Show Unofficial Lists"
                 Foreground="{StaticResource ForegroundBrush}" />
 
             <CheckBox

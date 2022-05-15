@@ -432,6 +432,23 @@ public static class GameRegistry
                 },
                 MainExecutable = @"Game\Bin\TS4_x64.exe".ToRelativePath()
             }
+        },
+        {
+            Game.DragonsDogma, new GameMetaData
+            {
+                Game = Game.DragonsDogma,
+                SteamIDs = new[] {367500 },
+                MO2Name = "Dragon's Dogma: Dark Arisen",
+                NexusName = "dragonsdogma",
+                NexusGameId = 1249,
+                IsGenericMO2Plugin = true,
+                RequiredFiles = new []
+                {
+                    @"DDDA.exe".ToRelativePath()
+                },
+                MainExecutable = @"DDDA.exe".ToRelativePath()
+                
+            }
         }
     };
 

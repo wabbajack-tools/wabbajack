@@ -49,7 +49,7 @@ namespace Wabbajack
                     .DisposeWith(dispose);
                 this.BindStrict(ViewModel, vm => vm.ShowNSFW, x => x.ShowNSFW.IsChecked)
                     .DisposeWith(dispose);
-                this.BindStrict(ViewModel, vm => vm.ShowUtilityLists, x => x.ShowUtilityLists.IsChecked)
+                this.BindStrict(ViewModel, vm => vm.ShowUnofficialLists, x => x.ShowUnofficialLists.IsChecked)
                     .DisposeWith(dispose);
 
                 this.WhenAny(x => x.ViewModel.ClearFiltersCommand)

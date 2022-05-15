@@ -40,7 +40,7 @@ namespace Wabbajack
 
         [Reactive] public bool ShowNSFW { get; set; }
 
-        [Reactive] public bool ShowUtilityLists { get; set; }
+        [Reactive] public bool ShowUnofficialLists { get; set; }
 
         [Reactive] public string GameType { get; set; }
 
@@ -71,7 +71,7 @@ namespace Wabbajack
                 {
                     OnlyInstalled = false;
                     ShowNSFW = false;
-                    ShowUtilityLists = false;
+                    ShowUnofficialLists = false;
                     Search = string.Empty;
                     GameType = ALL_GAME_TYPE;
                 });
@@ -110,14 +110,14 @@ namespace Wabbajack
                     })
                     .StartWith(_ => true);
                 
-                var onlyUtilityListsFilter = this.ObservableForProperty(vm => vm.ShowUtilityLists)
+                var showUnofficial = this.ObservableForProperty(vm => vm.ShowUnofficialLists)
                     .Select(v => v.Value)
-                    .Select<bool, Func<ModListMetadataVM, bool>>(utility =>
+                    .StartWith(false)
+                    .Select<bool, Func<ModListMetadataVM, bool>>(unoffical =>
                     {
-                        if (utility == false) return item => item.Metadata.UtilityList == false;
-                        return item => item.Metadata.UtilityList;
-                    })
-                    .StartWith(item => item.Metadata.UtilityList == false);
+                        if (unoffical) return x => true;
+                        return x => x.Metadata.Official;
+                    });
                 
                 var showNSFWFilter = this.ObservableForProperty(vm => vm.ShowNSFW)
                     .Select(v => v.Value)
@@ -137,7 +137,7 @@ namespace Wabbajack
                     .ObserveOn(RxApp.MainThreadScheduler)
                     .Filter(searchTextPredicates)
                     .Filter(onlyInstalledGamesFilter)
-                    .Filter(onlyUtilityListsFilter)
+                    .Filter(showUnofficial)
                     .Filter(showNSFWFilter)
                     .Filter(gameFilter)
                     .Bind(out _filteredModLists)
@@ -150,7 +150,7 @@ namespace Wabbajack
         {
             public string GameType { get; set; }
             public bool ShowNSFW { get; set; }
-            public bool ShowUtilityLists { get; set; }
+            public bool ShowUnofficialLists { get; set; }
             public bool OnlyInstalled { get; set; }
             public string Search { get; set; }
         }
@@ -166,7 +166,7 @@ namespace Wabbajack
             {
                 GameType = GameType,
                 ShowNSFW = ShowNSFW,
-                ShowUtilityLists = ShowUtilityLists,
+                ShowUnofficialLists = ShowUnofficialLists,
                 Search = Search,
                 OnlyInstalled = OnlyInstalled,
             });
@@ -180,7 +180,7 @@ namespace Wabbajack
             {
                 GameType = s.GameType;
                 ShowNSFW = s.ShowNSFW;
-                ShowUtilityLists = s.ShowUtilityLists;
+                ShowUnofficialLists = s.ShowUnofficialLists;
                 Search = s.Search;
                 OnlyInstalled = s.OnlyInstalled;
                 return Disposable.Empty;
