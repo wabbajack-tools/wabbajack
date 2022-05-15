@@ -260,11 +260,9 @@ public class ValidateLists : IVerb
         await using var imageStream = await _httpClient.GetStreamAsync(validatedList.Links.ImageUri, token);
         var ms = new MemoryStream();
         var hash = await imageStream.HashingCopy(ms, token);
-        ms.Position = 0;
-
-
 
         RelativePath smallImage, largeImage;
+        ms.Position = 0;
         // Large Image
         {
             var standardWidth = 1152;
@@ -275,7 +273,8 @@ public class ValidateLists : IVerb
             largeImage = validatedList.RepositoryName.ToRelativePath().Combine(hash.ToHex()+"_large").WithExtension(Ext.Webp);
             await image.SaveAsync(largeImage.RelativeTo(reports).ToString(), cancellationToken: token);
         }
-        
+
+        ms.Position = 0;
         // Small Image
         {
             var standardWidth = 466;
