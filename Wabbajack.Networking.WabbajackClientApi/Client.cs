@@ -189,17 +189,27 @@ public class Client
 
     public async Task<ModlistMetadata[]> LoadLists()
     {
-        var repos = await LoadRepositories();
+        var repos = LoadRepositories();
+        var featured = await LoadFeaturedLists();
 
-        return await repos.PMapAll(async url =>
+        return await (await repos).PMapAll(async url =>
                  (await _client.GetFromJsonAsync<ModlistMetadata[]>(_limiter, new HttpRequestMessage(HttpMethod.Get, url.Value),
                     _dtos.Options))!.Select(meta =>
                  {
                      meta.RepositoryName = url.Key;
+                     meta.Official = (meta.RepositoryName == "wj-featured" || featured.Contains(meta.NamespacedName));
                      return meta;
                  }))
             .SelectMany(x => x)
             .ToArray();
+    }
+
+    private async Task<HashSet<string>> LoadFeaturedLists()
+    {
+        var data = await _client.GetFromJsonAsync<string[]>(_limiter,
+            new HttpRequestMessage(HttpMethod.Get,
+                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/featured_lists.json"), _dtos.Options);
+        return data!.ToHashSet(StringComparer.CurrentCultureIgnoreCase);
     }
 
     public async Task<Dictionary<string, Uri>> LoadRepositories()
