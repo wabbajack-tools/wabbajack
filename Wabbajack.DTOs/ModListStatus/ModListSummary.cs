@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Serialization;
 
 namespace Wabbajack.DTOs;
@@ -23,4 +24,6 @@ public class ModListSummary
     [JsonPropertyName("modlist_missing")] public bool ModListIsMissing { get; set; }
 
     [JsonPropertyName("has_failures")] public bool HasFailures => Failed > 0 || ModListIsMissing;
+    
+    [JsonPropertyName("image")] public Uri Image { get; set; }
 }

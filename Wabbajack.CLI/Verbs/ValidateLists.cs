@@ -525,7 +525,8 @@ public class ValidateLists : IVerb
             Passed = l.Archives.Count(f => f.Status == ArchiveStatus.Valid),
             MachineURL = l.MachineURL,
             Name = l.Name,
-            Updating = 0
+            Updating = 0,
+            Image = l.Image
         }).ToArray();
 
 
