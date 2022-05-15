@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using FluentFTP;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
 using Wabbajack.CLI.Services;
 using Wabbajack.Common;
@@ -271,7 +272,7 @@ public class ValidateLists : IVerb
             image.Mutate(x => x
                 .Resize(standardWidth, height));
             largeImage = validatedList.RepositoryName.ToRelativePath().Combine(hash.ToHex()+"_large").WithExtension(Ext.Webp);
-            await image.SaveAsync(largeImage.RelativeTo(reports).ToString(), cancellationToken: token);
+            await image.SaveAsync(largeImage.RelativeTo(reports).ToString(), new WebpEncoder {Quality = 85}, cancellationToken: token);
         }
 
         ms.Position = 0;
@@ -283,7 +284,7 @@ public class ValidateLists : IVerb
             image.Mutate(x => x
                 .Resize(standardWidth, height));
             smallImage = validatedList.RepositoryName.ToRelativePath().Combine(hash.ToHex()+"_small").WithExtension(Ext.Webp);
-            await image.SaveAsync(smallImage.RelativeTo(reports).ToString(), cancellationToken: token);
+            await image.SaveAsync(smallImage.RelativeTo(reports).ToString(), new WebpEncoder {Quality = 75}, cancellationToken: token);
         }
 
         return (smallImage, largeImage);
