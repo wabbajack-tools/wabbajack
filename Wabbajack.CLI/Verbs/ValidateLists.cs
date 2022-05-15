@@ -217,8 +217,9 @@ public class ValidateLists : IVerb
                 ? ListStatus.Failed
                 : ListStatus.Available;
             
-            var image = await ProcessModlistImage(reports, modList, token);
-            validatedList.Image = new Uri($"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{image.ToString().Replace("\\", "/")}");
+            var (smallImage, largeImage) = await ProcessModlistImage(reports, modList, token);
+            validatedList.SmallImage = new Uri($"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{smallImage.ToString().Replace("\\", "/")}");
+            validatedList.LargeImage = new Uri($"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{largeImage.ToString().Replace("\\", "/")}");
 
             return validatedList;
         }).ToArray();
@@ -249,26 +250,44 @@ public class ValidateLists : IVerb
         return 0;
     }
 
-    private async Task<RelativePath> ProcessModlistImage(AbsolutePath reports, ModlistMetadata validatedList,
+    private async Task<(RelativePath SmallImage, RelativePath LargeImage)> ProcessModlistImage(AbsolutePath reports, ModlistMetadata validatedList,
         CancellationToken token)
     {
         _logger.LogInformation("Processing Modlist Image");
         var baseFolder = reports.Combine(validatedList.NamespacedName);
         baseFolder.CreateDirectory();
         
-        var standardWidth = 466;
         await using var imageStream = await _httpClient.GetStreamAsync(validatedList.Links.ImageUri, token);
         var ms = new MemoryStream();
         var hash = await imageStream.HashingCopy(ms, token);
         ms.Position = 0;
-        using var image = await Image.LoadAsync(ms, token);
-        var height = standardWidth * image.Height / image.Width;
-        image.Mutate(x => x
-            .Resize(standardWidth, height));
-        var path = validatedList.RepositoryName.ToRelativePath().Combine(hash.ToHex()).WithExtension(Ext.Webp);
-        await image.SaveAsync(path.RelativeTo(reports).ToString(), cancellationToken: token);
 
-        return path;
+
+
+        RelativePath smallImage, largeImage;
+        // Large Image
+        {
+            var standardWidth = 1152;
+            using var image = await Image.LoadAsync(ms, token);
+            var height = standardWidth * image.Height / image.Width;
+            image.Mutate(x => x
+                .Resize(standardWidth, height));
+            largeImage = validatedList.RepositoryName.ToRelativePath().Combine(hash.ToHex()+"_large").WithExtension(Ext.Webp);
+            await image.SaveAsync(largeImage.RelativeTo(reports).ToString(), cancellationToken: token);
+        }
+        
+        // Small Image
+        {
+            var standardWidth = 466;
+            using var image = await Image.LoadAsync(ms, token);
+            var height = standardWidth * image.Height / image.Width;
+            image.Mutate(x => x
+                .Resize(standardWidth, height));
+            smallImage = validatedList.RepositoryName.ToRelativePath().Combine(hash.ToHex()+"_small").WithExtension(Ext.Webp);
+            await image.SaveAsync(smallImage.RelativeTo(reports).ToString(), cancellationToken: token);
+        }
+
+        return (smallImage, largeImage);
     }
 
     private async Task SendDefinitionToLoadOrderLibrary(ModlistMetadata metadata, ModList modListData, CancellationToken token)
@@ -526,7 +545,8 @@ public class ValidateLists : IVerb
             MachineURL = l.MachineURL,
             Name = l.Name,
             Updating = 0,
-            Image = l.Image
+            SmallImage = l.SmallImage,
+            LargeImage = l.LargeImage
         }).ToArray();
 
 

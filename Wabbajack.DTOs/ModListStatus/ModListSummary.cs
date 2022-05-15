@@ -25,5 +25,6 @@ public class ModListSummary
 
     [JsonPropertyName("has_failures")] public bool HasFailures => Failed > 0 || ModListIsMissing;
     
-    [JsonPropertyName("image")] public Uri Image { get; set; }
+    [JsonPropertyName("small_image")] public Uri SmallImage { get; set; }
+    [JsonPropertyName("large_image")] public Uri LargeImage { get; set; }
 }
