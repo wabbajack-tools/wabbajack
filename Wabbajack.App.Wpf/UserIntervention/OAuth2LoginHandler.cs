@@ -22,45 +22,57 @@ public abstract class OAuth2LoginHandler<TIntervention, TLoginType> : WebUserInt
     where TLoginType : OAuth2LoginState, new()
 {
     private readonly HttpClient _httpClient;
-    private readonly ITokenProvider<TLoginType> _tokenProvider;
+    private readonly EncryptedJsonTokenProvider<TLoginType> _tokenProvider;
+    private readonly ILogger _logger;
 
     public OAuth2LoginHandler(ILogger logger, HttpClient httpClient,
-        ITokenProvider<TLoginType> tokenProvider, WebBrowserVM browserVM, CefService service) : base(logger, browserVM, service)
+        EncryptedJsonTokenProvider<TLoginType> tokenProvider)
     {
+        var tlogin = new TLoginType();
+        HeaderText = $"{tlogin.SiteName} Login";
+        _logger = logger;
         _httpClient = httpClient;
         _tokenProvider = tokenProvider;
     }
 
-    public override async Task Begin()
+    protected override async Task Run(CancellationToken token)
     {
-        Messages.NavigateTo.Send(Browser);
         var tlogin = new TLoginType();
 
-        await Driver.WaitForInitialized();
-
-        using var handler = Driver.WithSchemeHandler(uri => uri.Scheme == "wabbajack");
-
-        UpdateStatus($"Please log in and allow Wabbajack to access your {tlogin.SiteName} account");
+        var tcs = new TaskCompletionSource<Uri>();
+        await WaitForReady();
+        Browser!.Browser.CoreWebView2.Settings.UserAgent = "Wabbajack";
+        Browser!.Browser.NavigationStarting += (sender, args) =>
+        {
+            var uri = new Uri(args.Uri);
+            if (uri.Scheme == "wabbajack")
+            {
+                tcs.TrySetResult(uri);
+            }
+        };
+        
+        Instructions = $"Please log in and allow Wabbajack to access your {tlogin.SiteName} account";
 
         var scopes = string.Join(" ", tlogin.Scopes);
         var state = Guid.NewGuid().ToString();
 
-        await NavigateTo(new Uri(tlogin.AuthorizationEndpoint + $"?response_type=code&client_id={tlogin.ClientID}&state={state}&scope={scopes}"));
+        await NavigateTo(new Uri(tlogin.AuthorizationEndpoint +
+                                         $"?response_type=code&client_id={tlogin.ClientID}&state={state}&scope={scopes}"));
 
-        var uri = await handler.Task.WaitAsync(Message.Token);
+        var uri = await tcs.Task.WaitAsync(token);
 
-        var cookies = await Driver.GetCookies(tlogin.AuthorizationEndpoint.Host);
+        var cookies = await GetCookies(tlogin.AuthorizationEndpoint.Host, token);
 
         var parsed = HttpUtility.ParseQueryString(uri.Query);
         if (parsed.Get("state") != state)
         {
-            Logger.LogCritical("Bad OAuth state, this shouldn't happen");
+            _logger.LogCritical("Bad OAuth state, this shouldn't happen");
             throw new Exception("Bad OAuth State");
         }
 
         if (parsed.Get("code") == null)
         {
-            Logger.LogCritical("Bad code result from OAuth");
+            _logger.LogCritical("Bad code result from OAuth");
             throw new Exception("Bad code result from OAuth");
         }
 
@@ -81,8 +93,8 @@ public abstract class OAuth2LoginHandler<TIntervention, TLoginType> : WebUserInt
         msg.Headers.Add("Cookie", string.Join(";", cookies.Select(c => $"{c.Name}={c.Value}")));
         msg.Content = new FormUrlEncodedContent(formData.ToList());
 
-        using var response = await _httpClient.SendAsync(msg, Message.Token);
-        var data = await response.Content.ReadFromJsonAsync<OAuthResultState>(cancellationToken: Message.Token);
+        using var response = await _httpClient.SendAsync(msg, token);
+        var data = await response.Content.ReadFromJsonAsync<OAuthResultState>(cancellationToken: token);
 
         await _tokenProvider.SetToken(new TLoginType
         {
@@ -90,6 +102,5 @@ public abstract class OAuth2LoginHandler<TIntervention, TLoginType> : WebUserInt
             ResultState = data!
         });
         
-        Messages.NavigateTo.Send(PrevPane);
     }
 }

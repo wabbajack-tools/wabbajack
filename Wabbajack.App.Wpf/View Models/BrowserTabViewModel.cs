@@ -7,8 +7,10 @@ using System.Web;
 using HtmlAgilityPack;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.DTOs.Logins;
+using Wabbajack.Messages;
 using Wabbajack.Views;
 
 namespace Wabbajack;
@@ -26,6 +28,7 @@ public abstract class BrowserTabViewModel : ViewModel
     public async Task RunWrapper(CancellationToken token)
     {
         await Run(token);
+        MessageBus.Current.SendMessage(new CloseBrowserTab(this));
     }
 
     protected abstract Task Run(CancellationToken token);

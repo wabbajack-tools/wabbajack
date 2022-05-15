@@ -37,7 +37,10 @@
         <TabControl Grid.Row="0" x:Name="Tabs">
             <TabItem>
                 <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
                     <TextBlock FontSize="16" Margin="0, 0, 8, 0">WABBAJACK 3.0.0</TextBlock>
+                    <Button Name="SettingsButton"><icon:Material Kind="Cog"></icon:Material></Button>
+                    </StackPanel>
                 </TabItem.Header>
                 
                 <Grid>

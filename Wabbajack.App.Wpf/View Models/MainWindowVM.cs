@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -164,22 +165,20 @@ namespace Wabbajack
         private void HandleLogin(NexusLogin nexusLogin)
         {
             var handler = _serviceProvider.GetRequiredService<NexusLoginHandler>();
-            handler.Configure(ActivePane, nexusLogin);
-            handler.Begin().FireAndForget();
+            handler.RunWrapper(CancellationToken.None).FireAndForget();
         }
         
         private void HandleLogin(LoversLabLogin loversLabLogin)
         {
             var handler = _serviceProvider.GetRequiredService<LoversLabLoginHandler>();
-            handler.Configure(ActivePane, loversLabLogin);
-            handler.Begin().FireAndForget();
+            handler.RunWrapper(CancellationToken.None).FireAndForget();
         }
         
         private void HandleLogin(VectorPlexusLogin vectorPlexusLogin)
         {
             var handler = _serviceProvider.GetRequiredService<VectorPlexusLoginHandler>();
-            handler.Configure(ActivePane, vectorPlexusLogin);
-            handler.Begin().FireAndForget();
+            handler.RunWrapper(CancellationToken.None).FireAndForget();
+
         }
 
         private void HandleNavigateBack(NavigateBack navigateBack)

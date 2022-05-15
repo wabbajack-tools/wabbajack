@@ -1,104 +1,98 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Fizzler.Systems.HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Messages;
 using Wabbajack.Models;
 using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.UserIntervention;
 
-public class NexusLoginHandler : WebUserInterventionBase<NexusLogin>
+public class NexusLoginHandler : BrowserTabViewModel
 {
-    private readonly ITokenProvider<NexusApiState> _provider;
+    private readonly EncryptedJsonTokenProvider<NexusApiState> _tokenProvider;
 
-    public NexusLoginHandler(ILogger<NexusLoginHandler> logger, WebBrowserVM browserVM, ITokenProvider<NexusApiState> provider, CefService service) 
-        : base(logger, browserVM, service)
+    public NexusLoginHandler(EncryptedJsonTokenProvider<NexusApiState> tokenProvider)
     {
-        _provider = provider;
+        HeaderText = "Nexus Login";
+        _tokenProvider = tokenProvider;
     }
-    public override async Task Begin()
+
+    protected override async Task Run(CancellationToken token)
     {
-        try
-        {
-            Messages.NavigateTo.Send(Browser);
-            UpdateStatus("Please log into the Nexus");
-            await Driver.WaitForInitialized();
-            
-            await NavigateTo(new Uri("https://users.nexusmods.com/auth/continue?client_id=nexus&redirect_uri=https://www.nexusmods.com/oauth/callback&response_type=code&referrer=//www.nexusmods.com"));
+        token.ThrowIfCancellationRequested();
 
-            Cookie[] cookies = {};
-            while (true)
+        Instructions = "Please log into the Nexus";
+
+        await NavigateTo(new Uri(
+            "https://users.nexusmods.com/auth/continue?client_id=nexus&redirect_uri=https://www.nexusmods.com/oauth/callback&response_type=code&referrer=//www.nexusmods.com"));
+
+
+        Cookie[] cookies = { };
+        while (true)
+        {
+            cookies = await GetCookies("nexusmods.com", token);
+            if (cookies.Any(c => c.Name == "member_id"))
+                break;
+
+            token.ThrowIfCancellationRequested();
+            await Task.Delay(500, token);
+        }
+
+        Instructions = "Getting API Key...";
+
+        await NavigateTo(new Uri("https://www.nexusmods.com/users/myaccount?tab=api"));
+
+        var key = "";
+
+        while (true)
+        {
+            try
             {
-                cookies = await Driver.GetCookies("nexusmods.com");
-                if (cookies.Any(c => c.Name == "member_id"))
-                    break;
-                Message.Token.ThrowIfCancellationRequested();
-                await Task.Delay(500, Message.Token);
+                key = (await GetDom(token))
+                    .DocumentNode
+                    .QuerySelectorAll("input[value=wabbajack]")
+                    .SelectMany(p => p.ParentNode.ParentNode.QuerySelectorAll("textarea.application-key"))
+                    .Select(node => node.InnerHtml)
+                    .FirstOrDefault() ?? "";
+            }
+            catch (Exception)
+            {
+                // ignored
             }
 
+            if (!string.IsNullOrEmpty(key))
+                break;
 
-            await NavigateTo(new Uri("https://www.nexusmods.com/users/myaccount?tab=api"));
-
-            UpdateStatus("Looking for API Key");
-
-            var key = "";
-
-            while (true)
+            try
             {
-                try
-                {
-                    key = await Driver.EvaluateJavaScript(
-                        "document.querySelector(\"input[value=wabbajack]\").parentElement.parentElement.querySelector(\"textarea.application-key\").innerHTML");
-                }
-                catch (Exception)
-                {
-                    // ignored
-                }
-
-                if (!string.IsNullOrEmpty(key))
-                {
-                    break;
-                }
-
-                try
-                {
-                    await Driver.EvaluateJavaScript(
-                        "var found = document.querySelector(\"input[value=wabbajack]\").parentElement.parentElement.querySelector(\"form button[type=submit]\");" +
-                        "found.onclick= function() {return true;};" +
-                        "found.class = \" \"; " +
-                        "found.click();" +
-                        "found.remove(); found = undefined;"
-                    );
-                    UpdateStatus("Generating API Key, Please Wait...");
-
-
-                }
-                catch (Exception)
-                {
-                    // ignored
-                }
-
-                Message.Token.ThrowIfCancellationRequested();
-                await Task.Delay(500, Message.Token);
+                await EvaluateJavaScript(
+                    "var found = document.querySelector(\"input[value=wabbajack]\").parentElement.parentElement.querySelector(\"form button[type=submit]\");" +
+                    "found.onclick= function() {return true;};" +
+                    "found.class = \" \"; " +
+                    "found.click();" +
+                    "found.remove(); found = undefined;"
+                );
+                Instructions = "Generating API Key, Please Wait...";
+            }
+            catch (Exception)
+            {
+                // ignored
             }
 
-
-            await _provider.SetToken(new NexusApiState()
-            {
-                ApiKey = key,
-                Cookies = cookies
-            });
-
-            ((NexusLogin)Message).CompletionSource.SetResult();
-            Messages.NavigateTo.Send(PrevPane);
+            token.ThrowIfCancellationRequested();
+            await Task.Delay(500, token);
         }
-        catch (Exception ex)
+
+        Instructions = "Success, saving information...";
+        await _tokenProvider.SetToken(new NexusApiState
         {
-            Logger.LogError(ex, "While logging into Nexus Mods");
-            Message.SetException(ex);
-            Messages.NavigateTo.Send(PrevPane);
-        }
+            Cookies = cookies,
+            ApiKey = key
+        });
     }
 }

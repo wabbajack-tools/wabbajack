@@ -1,7 +1,10 @@
+using System;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -9,6 +12,7 @@ using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Messages;
 using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.UserIntervention;
 
 namespace Wabbajack.LoginManagers;
 
@@ -17,6 +21,7 @@ public class NexusLoginManager : ViewModel, INeedsLogin
     private readonly ILogger<NexusLoginManager> _logger;
     private readonly ITokenProvider<NexusApiState> _token;
     private readonly IUserInterventionHandler _handler;
+    private readonly IServiceProvider _serviceProvider;
 
     public string SiteName { get; } = "Nexus Mods";
     public ICommand TriggerLogin { get; set; }
@@ -27,10 +32,11 @@ public class NexusLoginManager : ViewModel, INeedsLogin
     [Reactive]
     public bool HaveLogin { get; set; }
     
-    public NexusLoginManager(ILogger<NexusLoginManager> logger, ITokenProvider<NexusApiState> token)
+    public NexusLoginManager(ILogger<NexusLoginManager> logger, ITokenProvider<NexusApiState> token, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _token = token;
+        _serviceProvider = serviceProvider;
         RefreshTokenState();
         
         ClearLogin = ReactiveCommand.CreateFromTask(async () =>
@@ -45,10 +51,13 @@ public class NexusLoginManager : ViewModel, INeedsLogin
         
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
         {
-            _logger.LogInformation("Logging into {SiteName}", SiteName);
-            await NexusLogin.Send();
-            RefreshTokenState();
+            _logger.LogInformation("Logging into {SiteName}", SiteName); 
+            MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<NexusLoginHandler>()));
         }, this.WhenAnyValue(v => v.HaveLogin).Select(v => !v));
+
+        MessageBus.Current.Listen<CloseBrowserTab>()
+            .Subscribe(x => RefreshTokenState())
+            .DisposeWith(CompositeDisposable);
     }
 
     private void RefreshTokenState()

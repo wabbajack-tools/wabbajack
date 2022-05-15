@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -51,6 +52,12 @@ namespace Wabbajack
                         TaskbarItemInfo.ProgressState = u.State;
                     });
 
+                MessageBus.Current.Listen<OpenBrowserTab>()
+                    .Subscribe(OnOpenBrowserTab);
+                
+                MessageBus.Current.Listen<CloseBrowserTab>()
+                    .Subscribe(OnCloseBrowserTab);
+
                 _logger.LogInformation("Wabbajack Build - {Sha}",ThisAssembly.Git.Sha);
                 _logger.LogInformation("Running in {EntryPoint}", KnownFolders.EntryPoint);
 
@@ -97,6 +104,9 @@ namespace Wabbajack
                 {
                     this.Topmost = false;
                 };
+
+                ((MainWindowVM) DataContext).WhenAnyValue(vm => vm.OpenSettingsCommand)
+                    .BindTo(this, view => view.SettingsButton.Command);
             }
             catch (Exception ex)
             {
@@ -195,6 +205,16 @@ namespace Wabbajack
             var tab = new BrowserTabView(msg.ViewModel);
             Tabs.Items.Add(tab);
             Tabs.SelectedItem = tab;
+        }
+        
+        private void OnCloseBrowserTab(CloseBrowserTab msg)
+        {
+            foreach (var tab in Tabs.Items.OfType<BrowserTabView>())
+            {
+                if (tab.DataContext != msg.ViewModel) continue;
+                Tabs.Items.Remove(tab);
+                break;
+            }
         }
     }
 }
