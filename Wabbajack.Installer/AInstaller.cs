@@ -298,7 +298,7 @@ public abstract class AInstaller<T>
             foreach (var a in missing.Where(a => a.State is Manual))
             {
                 var outputPath = _configuration.Downloads.Combine(a.Name);
-                await _downloadDispatcher.Download(a, outputPath, token);
+                await DownloadArchive(a, true, token, outputPath);
             }
         }
 
@@ -323,7 +323,7 @@ public abstract class AInstaller<T>
                         outputPath.Delete();
                     }
 
-                await DownloadArchive(archive, download, token, outputPath);
+                var hash = await DownloadArchive(archive, download, token, outputPath);
                 UpdateProgress(1);
             });
     }
@@ -346,6 +346,17 @@ public abstract class AInstaller<T>
             var (result, hash) =
                 await _downloadDispatcher.DownloadWithPossibleUpgrade(archive, destination.Value, token);
 
+            if (hash != archive.Hash)
+            {
+                _logger.LogError("Downloaded hash {Downloaded} does not match expected hash: {Expected}", hash, archive.Hash);
+                if (destination!.Value.FileExists())
+                {
+                    destination!.Value.Delete();
+                }
+
+                return false;
+            }
+                
             if (hash != default)
                 _fileHashCache.FileHashWriteCache(destination.Value, hash);
 
