@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -9,6 +10,7 @@ using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Messages;
 using Wabbajack.Views;
@@ -83,11 +85,38 @@ public abstract class BrowserTabViewModel : ViewModel
 
     public async Task<HtmlDocument> GetDom(CancellationToken token)
     {
-        var v = HttpUtility.UrlDecode("\u003D");
         var source = await EvaluateJavaScript("document.body.outerHTML");
         var decoded = JsonSerializer.Deserialize<string>(source);
         var doc = new HtmlDocument();
         doc.LoadHtml(decoded);
         return doc;
+    }
+
+    public async Task<ManualDownload.BrowserDownloadState> WaitForDownloadUri(CancellationToken token)
+    {
+        var source = new TaskCompletionSource<Uri>();
+        var referer = _browser.Source;
+        _browser.CoreWebView2.DownloadStarting += (sender, args) =>
+        {
+            try
+            {
+                
+                source.SetResult(new Uri(args.DownloadOperation.Uri));
+            }
+            catch (Exception ex)
+            {
+                source.SetCanceled();
+            }
+
+            args.Handled = true;
+            args.Cancel = true;
+        };
+
+        var uri = await source.Task.WaitAsync(token);
+        var cookies = await GetCookies(uri.Host, token);
+        return new ManualDownload.BrowserDownloadState(uri, cookies, new[]
+        {
+            ("Referer", referer.ToString())
+        });
     }
 }

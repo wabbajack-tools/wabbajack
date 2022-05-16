@@ -17,7 +17,7 @@ using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.UserIntervention;
 
-public abstract class OAuth2LoginHandler<TIntervention, TLoginType> : WebUserInterventionBase<TIntervention>
+public abstract class OAuth2LoginHandler<TIntervention, TLoginType> : BrowserTabViewModel
     where TIntervention : IUserIntervention
     where TLoginType : OAuth2LoginState, new()
 {

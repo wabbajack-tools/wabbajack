@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack;
+using Wabbajack.DTOs.Interventions;
 using Wabbajack.Interventions;
 using Wabbajack.LoginManagers;
 using Wabbajack.Messages;
@@ -112,6 +113,10 @@ namespace Wabbajack
             MessageBus.Current.Listen<VectorPlexusLogin>()
                 .Subscribe(HandleLogin)
                 .DisposeWith(CompositeDisposable);
+            
+            MessageBus.Current.Listen<ManualDownload>()
+                .Subscribe(HandleManualDownload)
+                .DisposeWith(CompositeDisposable);
 
             _resourceMonitor.Updates
                 .Select(r => string.Join(", ", r.Where(r => r.Throughput > 0)
@@ -178,13 +183,19 @@ namespace Wabbajack
         {
             var handler = _serviceProvider.GetRequiredService<VectorPlexusLoginHandler>();
             handler.RunWrapper(CancellationToken.None).FireAndForget();
-
         }
 
         private void HandleNavigateBack(NavigateBack navigateBack)
         {
             ActivePane = PreviousPanes.Last();
             PreviousPanes.RemoveAt(PreviousPanes.Count - 1);
+        }
+        
+        private void HandleManualDownload(ManualDownload manualDownload)
+        {
+            var handler = _serviceProvider.GetRequiredService<ManualDownloadHandler>();
+            handler.Intervention = manualDownload;
+            MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
         }
 
         private void HandleNavigateTo(NavigateToGlobal.ScreenType s)
