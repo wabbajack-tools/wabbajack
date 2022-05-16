@@ -164,6 +164,11 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             UIUtils.OpenFolder(_configuration.LogLocation);
         });
         
+        CloseWhenCompleteCommand = ReactiveCommand.Create(() =>
+        {
+            Environment.Exit(0);
+        });
+        
         GoToInstallCommand = ReactiveCommand.Create(() =>
         {
             UIUtils.OpenFolder(Installer.Location.TargetPath);
@@ -267,16 +272,25 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
 
                 TaskBarUpdate.Send(update.StatusText, TaskbarItemProgressState.Indeterminate, update.StepsProgress.Value);
             };
-            await installer.Begin(CancellationToken.None);
-            
-            TaskBarUpdate.Send($"Finished install of {ModList.Name}", TaskbarItemProgressState.Normal);
-
-            InstallState = InstallState.Success;
+            if (!await installer.Begin(CancellationToken.None))
+            {
+                TaskBarUpdate.Send($"Error during install of {ModList.Name}", TaskbarItemProgressState.Error);
+                InstallState = InstallState.Failure;
+                StatusText = $"Error during install of {ModList.Name}";
+                StatusProgress = Percent.Zero;
+            }
+            else
+            {
+                TaskBarUpdate.Send($"Finished install of {ModList.Name}", TaskbarItemProgressState.Normal);
+                InstallState = InstallState.Success;
+            }
         }
         catch (Exception ex)
         {
             TaskBarUpdate.Send($"Error during install of {ModList.Name}", TaskbarItemProgressState.Error);
             InstallState = InstallState.Failure;
+            StatusText = $"Error during install of {ModList.Name}";
+            StatusProgress = Percent.Zero;
         }
 
     }
