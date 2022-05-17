@@ -39,12 +39,13 @@ public abstract class AInstaller<T>
     where T : AInstaller<T>
 {
     private const int _limitMS = 100;
+    public static RelativePath BSACreationDir = "TEMP_BSA_FILES".ToRelativePath();
     private static readonly Regex NoDeleteRegex = new(@"(?i)[\\\/]\[NoDelete\]", RegexOptions.Compiled);
 
     protected readonly InstallerConfiguration _configuration;
     protected readonly DownloadDispatcher _downloadDispatcher;
     private readonly FileExtractor.FileExtractor _extractor;
-    private readonly FileHashCache _fileHashCache;
+    protected readonly FileHashCache FileHashCache;
     protected readonly IGameLocator _gameLocator;
     private readonly DTOSerializer _jsonSerializer;
     protected readonly ILogger<T> _logger;
@@ -81,7 +82,7 @@ public abstract class AInstaller<T>
         _extractor = extractor;
         _jsonSerializer = jsonSerializer;
         _vfs = vfs;
-        _fileHashCache = fileHashCache;
+        FileHashCache = fileHashCache;
         _downloadDispatcher = downloadDispatcher;
         _parallelOptions = parallelOptions;
         _gameLocator = gameLocator;
@@ -114,7 +115,9 @@ public abstract class AInstaller<T>
     {
         Interlocked.Add(ref _currentStepProgress, stepProgress);
 
-        OnStatusUpdate?.Invoke(new StatusUpdate(_statusCategory, _statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps), Percent.FactoryPutInRange(_currentStepProgress, MaxStepProgress)));
+        OnStatusUpdate?.Invoke(new StatusUpdate(_statusCategory, _statusText,
+            Percent.FactoryPutInRange(_currentStep, MaxSteps),
+            Percent.FactoryPutInRange(_currentStepProgress, MaxStepProgress)));
     }
 
     public abstract Task<bool> Begin(CancellationToken token);
@@ -124,7 +127,7 @@ public abstract class AInstaller<T>
         ExtractedModlistFolder = _manager.CreateFolder();
         await using var stream = _configuration.ModlistArchive.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
         using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
-        NextStep(Consts.StepPreparing,"Extracting Modlist", archive.Entries.Count);
+        NextStep(Consts.StepPreparing, "Extracting Modlist", archive.Entries.Count);
         foreach (var entry in archive.Entries)
         {
             var path = entry.FullName.ToRelativePath().RelativeTo(ExtractedModlistFolder);
@@ -186,14 +189,14 @@ public abstract class AInstaller<T>
     /// </summary>
     protected async Task PrimeVFS()
     {
-        NextStep(Consts.StepPreparing,"Priming VFS", 0);
+        NextStep(Consts.StepPreparing, "Priming VFS", 0);
         _vfs.AddKnown(_configuration.ModList.Directives.OfType<FromArchive>().Select(d => d.ArchiveHashPath),
             HashedArchives);
         await _vfs.BackfillMissing();
     }
 
     public async Task BuildFolderStructure()
-    { 
+    {
         NextStep(Consts.StepPreparing, "Building Folder Structure", 0);
         _logger.LogInformation("Building Folder Structure");
         ModList.Directives
@@ -214,11 +217,12 @@ public abstract class AInstaller<T>
 
         if (grouped.Count == 0) return;
 
-        
+
         await _vfs.Extract(grouped.Keys.ToHashSet(), async (vf, sf) =>
         {
             var directives = grouped[vf];
-            using var job = await _limiter.Begin($"Installing files from {vf.Name}", directives.Sum(f => f.VF.Size), token);
+            using var job = await _limiter.Begin($"Installing files from {vf.Name}", directives.Sum(f => f.VF.Size),
+                token);
             foreach (var directive in directives)
             {
                 var file = directive.Directive;
@@ -267,8 +271,8 @@ public abstract class AInstaller<T>
                     default:
                         throw new Exception($"No handler for {directive}");
                 }
-                
-                await job.Report((int)directive.VF.Size, token);
+
+                await job.Report((int) directive.VF.Size, token);
             }
         }, token);
     }
@@ -289,7 +293,7 @@ public abstract class AInstaller<T>
 
         _logger.LogInformation("Validating Archives");
         foreach (var archive in missing.Where(archive =>
-            !_downloadDispatcher.Downloader(archive).IsAllowed(validationData, archive.State)))
+                     !_downloadDispatcher.Downloader(archive).IsAllowed(validationData, archive.State)))
         {
             _logger.LogCritical("File {primaryKeyString} failed validation", archive.State.PrimaryKeyString);
             return;
@@ -357,7 +361,8 @@ public abstract class AInstaller<T>
 
             if (hash != archive.Hash)
             {
-                _logger.LogError("Downloaded hash {Downloaded} does not match expected hash: {Expected}", hash, archive.Hash);
+                _logger.LogError("Downloaded hash {Downloaded} does not match expected hash: {Expected}", hash,
+                    archive.Hash);
                 if (destination!.Value.FileExists())
                 {
                     destination!.Value.Delete();
@@ -365,9 +370,9 @@ public abstract class AInstaller<T>
 
                 return false;
             }
-                
+
             if (hash != default)
-                _fileHashCache.FileHashWriteCache(destination.Value, hash);
+                FileHashCache.FileHashWriteCache(destination.Value, hash);
 
             if (result == DownloadResult.Update)
                 await destination.Value.MoveToAsync(destination.Value.Parent.Combine(archive.Hash.ToHex()), true,
@@ -390,7 +395,7 @@ public abstract class AInstaller<T>
         var allFiles = _configuration.Downloads.EnumerateFiles()
             .Concat(_gameLocator.GameLocation(_configuration.Game).EnumerateFiles())
             .ToList();
-        
+
         var hashDict = allFiles.GroupBy(f => f.Size()).ToDictionary(g => g.Key);
 
         var toHash = ModList.Archives.Where(a => hashDict.ContainsKey(a.Size))
@@ -406,7 +411,7 @@ public abstract class AInstaller<T>
                 .PMapAll(async e =>
                 {
                     UpdateProgress(1);
-                    return (await _fileHashCache.FileHashCachedAsync(e, token), e);
+                    return (await FileHashCache.FileHashCachedAsync(e, token), e);
                 })
                 .ToList();
 
@@ -426,20 +431,47 @@ public abstract class AInstaller<T>
     protected async Task OptimizeModlist(CancellationToken token)
     {
         _logger.LogInformation("Optimizing ModList directives");
-
-
+        
         var indexed = ModList.Directives.ToDictionary(d => d.To);
+
+        var bsasToBuild = await ModList.Directives
+            .OfType<CreateBSA>()
+            .PMapAll(async b =>
+            {
+                var file = _configuration.Install.Combine(b.To);
+                if (!file.FileExists())
+                    return (true, b);
+                return (b.Hash != await FileHashCache.FileHashCachedAsync(file, token), b);
+            })
+            .ToArray();
+
+        var bsasToNotBuild = bsasToBuild
+            .Where(b => b.Item1 == false).Select(t => t.b.TempID).ToHashSet();
+
+        var bsaPathsToNotBuild = bsasToBuild
+            .Where(b => b.Item1 == false).Select(t => t.b.To.RelativeTo(_configuration.Install))
+            .ToHashSet();
+
+        indexed = indexed.Values
+            .Where(d =>
+            {
+                return d switch
+                {
+                    CreateBSA bsa => !bsasToNotBuild.Contains(bsa.TempID),
+                    FromArchive a when a.To.StartsWith($"{BSACreationDir}") => !bsasToNotBuild.Any(b =>
+                        a.To.RelativeTo(_configuration.Install).InFolder(_configuration.Install.Combine(BSACreationDir, b))),
+                    _ => true
+                };
+            }).ToDictionary(d => d.To);
 
 
         var profileFolder = _configuration.Install.Combine("profiles");
         var savePath = (RelativePath) "saves";
 
-        var existingFiles = _configuration.Install.EnumerateFiles().ToList();
-        NextStep(Consts.StepPreparing, "Looking for files to delete", existingFiles.Count);
-        await existingFiles
+        NextStep(Consts.StepPreparing, "Looking for files to delete", 0);
+        await _configuration.Install.EnumerateFiles()
             .PDoAll(async f =>
             {
-                UpdateProgress(1);
                 var relativeTo = f.RelativeTo(_configuration.Install);
                 if (indexed.ContainsKey(relativeTo) || f.InFolder(_configuration.Downloads))
                     return;
@@ -449,47 +481,50 @@ public abstract class AInstaller<T>
                 if (NoDeleteRegex.IsMatch(f.ToString()))
                     return;
 
-                _logger.LogTrace("Deleting {relativeTo} it's not part of this ModList", relativeTo);
+                if (bsaPathsToNotBuild.Contains(f))
+                    return;
+
+                _logger.LogInformation("Deleting {RelativePath} it's not part of this ModList", relativeTo);
                 f.Delete();
             });
 
         _logger.LogInformation("Cleaning empty folders");
-        NextStep(Consts.StepPreparing, "Cleaning empty folders", indexed.Keys.Count);
-        var expectedFolders = (indexed.Keys
-                .Select(f => f.RelativeTo(_configuration.Install))
-                // We ignore the last part of the path, so we need a dummy file name
-                .Append(_configuration.Downloads.Combine("_"))
-                .OnEach(_ => UpdateProgress(1))
-                .Where(f => f.InFolder(_configuration.Install))
-                .SelectMany(path =>
-                {
-                    // Get all the folders and all the folder parents
-                    // so for foo\bar\baz\qux.txt this emits ["foo", "foo\\bar", "foo\\bar\\baz"]
-                    var split = ((string) path.RelativeTo(_configuration.Install)).Split('\\');
-                    return Enumerable.Range(1, split.Length - 1).Select(t => string.Join("\\", split.Take(t)));
-                })
-                .ToList())
+        var expectedFolders = indexed.Keys
+            .Select(f => f.RelativeTo(_configuration.Install))
+            // We ignore the last part of the path, so we need a dummy file name
+            .Append(_configuration.Downloads.Combine("_"))
+            .Where(f => f.InFolder(_configuration.Install))
+            .SelectMany(path =>
+            {
+                // Get all the folders and all the folder parents
+                // so for foo\bar\baz\qux.txt this emits ["foo", "foo\\bar", "foo\\bar\\baz"]
+                var split = ((string) path.RelativeTo(_configuration.Install)).Split('\\');
+                return Enumerable.Range(1, split.Length - 1).Select(t => string.Join("\\", split.Take(t)));
+            })
             .Distinct()
             .Select(p => _configuration.Install.Combine(p))
             .ToHashSet();
 
         try
         {
-            var toDelete = _configuration.Install.EnumerateDirectories()
+            var toDelete = _configuration.Install.EnumerateDirectories(true)
                 .Where(p => !expectedFolders.Contains(p))
                 .OrderByDescending(p => p.ToString().Length)
                 .ToList();
-            foreach (var dir in toDelete) dir.DeleteDirectory(true);
+            foreach (var dir in toDelete)
+            {
+                dir.DeleteDirectory(dontDeleteIfNotEmpty: true);
+            }
         }
         catch (Exception)
         {
             // ignored because it's not worth throwing a fit over
-            _logger.LogWarning("Error when trying to clean empty folders. This doesn't really matter.");
+            _logger.LogInformation("Error when trying to clean empty folders. This doesn't really matter.");
         }
 
         var existingfiles = _configuration.Install.EnumerateFiles().ToHashSet();
 
-        NextStep(Consts.StepPreparing, "Removing redundant directives", indexed.Count);
+        NextStep(Consts.StepPreparing, "Looking for unmodified files", 0);
         await indexed.Values.PMapAll<Directive, Directive?>(async d =>
             {
                 // Bit backwards, but we want to return null for 
@@ -498,17 +533,18 @@ public abstract class AInstaller<T>
                 var path = _configuration.Install.Combine(d.To);
                 if (!existingfiles.Contains(path)) return null;
 
-                return await _fileHashCache.FileHashCachedAsync(path, token) == d.Hash ? d : null;
+                return await FileHashCache.FileHashCachedAsync(path, token) == d.Hash ? d : null;
             })
             .Do(d =>
             {
-                UpdateProgress(1);
-                if (d != null) indexed.Remove(d.To);
+                if (d != null)
+                {
+                    indexed.Remove(d.To);
+                }
             });
 
-        _logger.LogInformation("Optimized {optimized} directives to {indexed} required", ModList.Directives.Length,
-            indexed.Count);
-        NextStep(Consts.StepPreparing, "Finalizing modlist optimization", 0);
+        NextStep(Consts.StepPreparing, "Updating ModList", 0);
+        _logger.LogInformation("Optimized {From} directives to {To} required", ModList.Directives.Length, indexed.Count);
         var requiredArchives = indexed.Values.OfType<FromArchive>()
             .GroupBy(d => d.ArchiveHashPath.Hash)
             .Select(d => d.Key)

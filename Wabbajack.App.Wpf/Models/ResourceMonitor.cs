@@ -65,7 +65,6 @@ public class ResourceMonitor : IDisposable
             var used = new HashSet<ulong>();
             foreach (var resource in _resources)
             {
-                _logger.LogInformation("Resource {Name}: {Jobs}", resource.Name, resource.Jobs.Count());
                 foreach (var job in resource.Jobs)
                 {
                     used.Add(job.ID);

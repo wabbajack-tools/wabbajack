@@ -33,7 +33,6 @@ namespace Wabbajack.Installer;
 
 public class StandardInstaller : AInstaller<StandardInstaller>
 {
-    public static RelativePath BSACreationDir = "TEMP_BSA_FILES".ToRelativePath();
 
     public StandardInstaller(ILogger<StandardInstaller> logger,
         InstallerConfiguration config,
@@ -260,10 +259,13 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             }).ToList();
 
             _logger.LogInformation("Writing {bsaTo}", bsa.To);
-            await using var outStream = _configuration.Install.Combine(bsa.To)
-                .Open(FileMode.Create, FileAccess.Write, FileShare.None);
+            var outPath = _configuration.Install.Combine(bsa.To);
+            await using var outStream = outPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
             await a.Build(outStream, token);
             streams.Do(s => s.Dispose());
+            
+            FileHashCache.FileHashWriteCache(outPath, bsa.Hash);
+            
 
             sourceDir.DeleteDirectory();
         }
