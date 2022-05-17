@@ -122,25 +122,7 @@ namespace Wabbajack
             
             ModListContentsCommend = ReactiveCommand.Create(async () =>
             {
-                _parent.MWVM.ModListContentsVM.Value.Name = metadata.Title;
-                IsLoadingIdle.OnNext(false);
-                try
-                {
-                    var status = await wjClient.GetDetailedStatus(metadata.NamespacedName);
-                    var coll = _parent.MWVM.ModListContentsVM.Value.Status;
-                    coll.Clear();
-                    coll.AddRange(status.Archives.Select(a => new DetailedStatusItem
-                    {
-                        Archive = a.Original,
-                        ArchiveStatus = a.Status,
-                        IsFailing = a.Status != ArchiveStatus.InValid
-                    }));
-                    NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModListContents);
-                }
-                finally
-                {
-                    IsLoadingIdle.OnNext(true);
-                }
+                UIUtils.OpenWebsite(new Uri("https://www.wabbajack.org/search/" + Metadata.NamespacedName));
             }, IsLoadingIdle.StartWith(true));
             
             ExecuteCommand = ReactiveCommand.CreateFromTask(async () =>

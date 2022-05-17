@@ -1,11 +1,13 @@
 using System;
 using System.Reactive.Subjects;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
@@ -21,9 +23,10 @@ public class ModListDownloadMaintainer
     private readonly FileHashCache _hashCache;
     private readonly IResource<DownloadDispatcher> _rateLimiter;
     private int _downloadingCount;
+    private readonly DTOSerializer _dtos;
 
     public ModListDownloadMaintainer(ILogger<ModListDownloadMaintainer> logger, Configuration configuration,
-        DownloadDispatcher dispatcher, FileHashCache hashCache, IResource<DownloadDispatcher> rateLimiter)
+        DownloadDispatcher dispatcher, FileHashCache hashCache, DTOSerializer dtos,  IResource<DownloadDispatcher> rateLimiter)
     {
         _logger = logger;
         _configuration = configuration;
@@ -31,6 +34,7 @@ public class ModListDownloadMaintainer
         _hashCache = hashCache;
         _rateLimiter = rateLimiter;
         _downloadingCount = 0;
+        _dtos = dtos;
     }
 
     public AbsolutePath ModListPath(ModlistMetadata metadata)
@@ -77,6 +81,7 @@ public class ModListDownloadMaintainer
                 }, path, job, token.Value);
 
                 _hashCache.FileHashWriteCache(path, hash);
+                await path.WithExtension(Ext.MetaData).WriteAllTextAsync(JsonSerializer.Serialize(metadata));
             }
             finally
             {

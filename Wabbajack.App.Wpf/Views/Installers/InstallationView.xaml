@@ -212,37 +212,60 @@
                 <ColumnDefinition Width="4" />
                 <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
-            <Grid Grid.Column="0" Margin="10">
+            <Grid Grid.Column="0" Margin="0">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Button Grid.Row="0"
-                    x:Name="OpenReadmePreInstallButton"
-                    Margin="30,5"
-                    FontSize="20"
-                    Style="{StaticResource LargeButtonStyle}"
-                    ToolTip="Open the readme for the modlist">
+                        x:Name="OpenDiscordPreInstallButton"
+                        Margin="30,2"
+                        FontSize="20"
+                        Style="{StaticResource LargeButtonStyle}"
+                        ToolTip="Open the Discord for this Modlist">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="30" />
                             <ColumnDefinition Width="82" />
                         </Grid.ColumnDefinitions>
                         <icon:PackIconFontAwesome Grid.Column="0"
-                            Width="30"
-                            Height="30"
-                            VerticalAlignment="Center"
-                            Kind="ReadmeBrands" />
+                                                  Width="30"
+                                                  Height="30"
+                                                  VerticalAlignment="Center"
+                                                  Kind="DiscordBrands" />
                         <TextBlock Grid.Column="1"
-                            Margin="10,0,0,0"
-                            VerticalAlignment="Center"
-                            Text="Readme" />
+                                   Margin="10,0,0,0"
+                                   VerticalAlignment="Center"
+                                   Text="Discord" />
                     </Grid>
                 </Button>
                 <Button Grid.Row="1"
+                        x:Name="OpenReadmePreInstallButton"
+                        Margin="30,2"
+                        FontSize="20"
+                        Style="{StaticResource LargeButtonStyle}"
+                        ToolTip="Open the readme for the modlist">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30" />
+                            <ColumnDefinition Width="82" />
+                        </Grid.ColumnDefinitions>
+                        <icon:PackIconFontAwesome Grid.Column="0"
+                                                  Width="30"
+                                                  Height="30"
+                                                  VerticalAlignment="Center"
+                                                  Kind="ReadmeBrands" />
+                        <TextBlock Grid.Column="1"
+                                   Margin="10,0,0,0"
+                                   VerticalAlignment="Center"
+                                   Text="Readme" />
+                    </Grid>
+                </Button>
+                <Button Grid.Row="2"
                     x:Name="VisitWebsitePreInstallButton"
-                    Margin="30,5"
+                    Margin="30,2"
                     FontSize="20"
                     Style="{StaticResource LargeButtonStyle}"
                     ToolTip="Open the webpage for the modlist">
@@ -262,9 +285,9 @@
                             Text="Website" />
                     </Grid>
                 </Button>
-                <Button Grid.Row="2"
+                <Button Grid.Row="3"
                     x:Name="ShowManifestPreInstallButton"
-                    Margin="30,5"
+                    Margin="30,2"
                     FontSize="20"
                     Style="{StaticResource LargeButtonStyle}"
                     ToolTip="Open an explicit listing of all actions this modlist will take">

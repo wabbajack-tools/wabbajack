@@ -6,6 +6,8 @@ using System.Windows.Media.Imaging;
 using ReactiveUI.Fody.Helpers;
 using DynamicData;
 using System.Reactive;
+using System.Reactive.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Shell;
@@ -112,6 +114,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     // Command properties
     public ReactiveCommand<Unit, Unit> ShowManifestCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenReadmeCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenDiscordButton { get; }
     public ReactiveCommand<Unit, Unit> VisitModListWebsiteCommand { get; }
         
     public ReactiveCommand<Unit, Unit> CloseWhenCompleteCommand { get; }
@@ -163,7 +166,21 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         {
             UIUtils.OpenFolder(_configuration.LogLocation);
         });
+
+        OpenDiscordButton = ReactiveCommand.Create(() =>
+        {
+            UIUtils.OpenWebsite(new Uri(ModlistMetadata.Links.DiscordURL));
+        }, this.WhenAnyValue(x => x.ModlistMetadata)
+            .WhereNotNull()
+            .Select(md => !string.IsNullOrWhiteSpace(md.Links.DiscordURL)));
         
+        ShowManifestCommand = ReactiveCommand.Create(() =>
+        {
+            UIUtils.OpenWebsite(new Uri("https://www.wabbajack.org/search/" + ModlistMetadata.NamespacedName));
+        }, this.WhenAnyValue(x => x.ModlistMetadata)
+            .WhereNotNull()
+            .Select(md => !string.IsNullOrWhiteSpace(md.Links.MachineURL)));
+
         CloseWhenCompleteCommand = ReactiveCommand.Create(() =>
         {
             Environment.Exit(0);
@@ -218,6 +235,20 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             
             var hex = (await ModListLocation.TargetPath.ToString().Hash()).ToHex();
             var prevSettings = await _settingsManager.Load<SavedInstallSettings>(InstallSettingsPrefix + hex);
+
+            if (path.WithExtension(Ext.MetaData).FileExists())
+            {
+                try
+                {
+                    metadata = JsonSerializer.Deserialize<ModlistMetadata>(await path.WithExtension(Ext.MetaData)
+                        .ReadAllTextAsync());
+                    ModlistMetadata = metadata;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInformation(ex, "Can't load metadata cached next to file");
+                }
+            }
 
             if (prevSettings.ModListLocation == path)
             {
