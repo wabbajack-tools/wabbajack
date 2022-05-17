@@ -321,7 +321,7 @@ public class FileExtractor
                 process.Arguments = new object[] {"x", "-bsp1", "-y", $"-o\"{dest}\"", source, "-mmt=off"};
             }
 
-            _logger.LogInformation("{prog} {args}", process.Path, process.Arguments);
+            _logger.LogTrace("{prog} {args}", process.Path, process.Arguments);
 
             var totalSize = source.Size();
             var lastPercent = 0;
