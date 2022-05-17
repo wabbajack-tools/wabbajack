@@ -62,14 +62,18 @@ public abstract class AInstaller<T>
     private readonly Stopwatch _updateStopWatch = new();
 
     public Action<StatusUpdate>? OnStatusUpdate;
+    private readonly IResource<IInstaller> _limiter;
 
 
     public AInstaller(ILogger<T> logger, InstallerConfiguration config, IGameLocator gameLocator,
         FileExtractor.FileExtractor extractor,
         DTOSerializer jsonSerializer, Context vfs, FileHashCache fileHashCache,
         DownloadDispatcher downloadDispatcher,
-        ParallelOptions parallelOptions, Client wjClient)
+        ParallelOptions parallelOptions,
+        IResource<IInstaller> limiter,
+        Client wjClient)
     {
+        _limiter = limiter;
         _manager = new TemporaryFileManager(config.Install.Combine("__temp__"));
         ExtractedModlistFolder = _manager.CreateFolder();
         _configuration = config;
@@ -210,9 +214,12 @@ public abstract class AInstaller<T>
 
         if (grouped.Count == 0) return;
 
+        
         await _vfs.Extract(grouped.Keys.ToHashSet(), async (vf, sf) =>
         {
-            foreach (var directive in grouped[vf])
+            var directives = grouped[vf];
+            using var job = await _limiter.Begin($"Installing files from {vf.Name}", directives.Sum(f => f.VF.Size), token);
+            foreach (var directive in directives)
             {
                 var file = directive.Directive;
                 UpdateProgress(file.Size);
@@ -260,6 +267,8 @@ public abstract class AInstaller<T>
                     default:
                         throw new Exception($"No handler for {directive}");
                 }
+                
+                await job.Report((int)directive.VF.Size, token);
             }
         }, token);
     }

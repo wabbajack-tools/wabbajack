@@ -26,6 +26,7 @@ using Wabbajack.Installer.Utilities;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 using Wabbajack.VFS;
 
 namespace Wabbajack.Installer;
@@ -38,9 +39,9 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         InstallerConfiguration config,
         IGameLocator gameLocator, FileExtractor.FileExtractor extractor,
         DTOSerializer jsonSerializer, Context vfs, FileHashCache fileHashCache,
-        DownloadDispatcher downloadDispatcher, ParallelOptions parallelOptions, Client wjClient) :
+        DownloadDispatcher downloadDispatcher, ParallelOptions parallelOptions, IResource<IInstaller> limiter, Client wjClient) :
         base(logger, config, gameLocator, extractor, jsonSerializer, vfs, fileHashCache, downloadDispatcher,
-            parallelOptions, wjClient)
+            parallelOptions, limiter, wjClient)
     {
         MaxSteps = 14;
     }
@@ -56,6 +57,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             provider.GetRequiredService<FileHashCache>(),
             provider.GetRequiredService<DownloadDispatcher>(),
             provider.GetRequiredService<ParallelOptions>(),
+            provider.GetRequiredService<IResource<IInstaller>>(),
             provider.GetRequiredService<Client>());
     }
 

@@ -96,6 +96,9 @@ public static class ServiceExtensions
 
         service.AddAllSingleton<IResource, IResource<ACompiler>>(s =>
             new Resource<ACompiler>("Compiler", GetSettings(s, "Compiler")));
+        
+        service.AddAllSingleton<IResource, IResource<IInstaller>>(s =>
+            new Resource<IInstaller>("Installer", GetSettings(s, "Installer")));
 
         service.AddSingleton<LoggingRateLimiterReporter>();
 

@@ -47,9 +47,12 @@ namespace Wabbajack
                 MessageBus.Current.Listen<TaskBarUpdate>()
                     .Subscribe(u =>
                     {
-                        TaskbarItemInfo.Description = u.Description;
-                        TaskbarItemInfo.ProgressValue = u.ProgressValue;
-                        TaskbarItemInfo.ProgressState = u.State;
+                        Dispatcher.Invoke(() =>
+                        {
+                            TaskbarItemInfo.Description = u.Description;
+                            TaskbarItemInfo.ProgressValue = u.ProgressValue;
+                            TaskbarItemInfo.ProgressState = u.State;
+                        });
                     });
 
                 MessageBus.Current.Listen<OpenBrowserTab>()
