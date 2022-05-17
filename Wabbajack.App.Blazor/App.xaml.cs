@@ -41,15 +41,15 @@ public partial class App
             Layout = "${processtime} [${level:uppercase=true}] (${logger}) ${message:withexception=true}",
             Header = "############ Wabbajack log file - ${longdate} ############"
         };
-        
+
         var consoleTarget = new ConsoleTarget("console");
-        
+
         var uiTarget = new UiLoggerTarget
         {
             Name = "ui",
             Layout = "${message}",
         };
-        
+
         var blackholeTarget = new NullTarget("blackhole");
 
         if (!string.Equals("TRUE", Environment.GetEnvironmentVariable("DEBUG_BLAZOR", EnvironmentVariableTarget.Process), StringComparison.OrdinalIgnoreCase))
@@ -79,6 +79,7 @@ public partial class App
         services.AddTransient<BethesdaNetLogin>();
         services.AddSingleton<SystemParametersConstructor>();
         services.AddSingleton<IStateContainer, StateContainer>();
+
         return services;
     }
 

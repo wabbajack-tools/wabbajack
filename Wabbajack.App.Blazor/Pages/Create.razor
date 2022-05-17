@@ -2,12 +2,26 @@
 @namespace Wabbajack.App.Blazor.Pages
 
 <div id="content">
-    <div class="resources">
+    <div class="details">
+        <div class="text-input">
+            <label for="modlist-title">Modlist Name</label>
+            <input type="text" id="modlist-title" placeholder="My Modlist">
+        </div>
+        <div class="text-input">
+            <label for="modlist-version">Modlist Version</label>
+            <input type="text" id="modlist-version" pattern="^([0-9]+)\.([0-9]+)\.([0-9]+)$" placeholder="1.0.0">
+        </div>
+        <div class="text-input">
+            <label for="modlist-authors">Author(s)</label>
+            <input type="text" id="modlist-authors" pattern="^([0-9]+)\.([0-9]+)\.([0-9]+)$" placeholder="1.0.0">
+        </div>
+    </div>
+    <div class="preview">
 
     </div>
 </div>
 
 @code
-{ 
-    public const string Route = "/create";
+{
+        public const string Route = "/create";
 }

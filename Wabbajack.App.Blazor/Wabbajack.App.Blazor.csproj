@@ -5,36 +5,38 @@
         <TargetFramework>net6.0-windows</TargetFramework>
         <Nullable>enable</Nullable>
         <UseWPF>true</UseWPF>
-        <PublishSingleFile>True</PublishSingleFile>
+        <PublishSingleFile>true</PublishSingleFile>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
-        <SupportedPlatform Include="browser" />
+        <SupportedPlatform Include="browser"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Blazored.Modal" Version="6.0.1" />
-        <PackageReference Include="Blazored.Toast" Version="3.2.2" />
-        <PackageReference Include="DynamicData" Version="7.4.11" />
-        <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
-        <PackageReference Include="GitInfo" Version="2.2.0" />
-        <PackageReference Include="MahApps.Metro" Version="2.4.9" />
-        <PackageReference Include="MahApps.Metro.IconPacks" Version="4.11.0" />
-        <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.200-preview.12.2441" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.2" />
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.2" />
-        <PackageReference Include="NLog" Version="5.0.0-rc2" />
-        <PackageReference Include="NLog.Extensions.Logging" Version="5.0.0-rc2" />
-        <PackageReference Include="PInvoke.User32" Version="0.7.104" />
-        <PackageReference Include="ReactiveUI" Version="17.1.17" />
-        <PackageReference Include="ReactiveUI.Fody" Version="17.1.17" />
-        <PackageReference Include="ReactiveUI.WPF" Version="17.1.17" />
-        <PackageReference Include="Silk.NET.DXGI" Version="2.13.0" />
-        <PackageReference Include="System.Reactive" Version="5.0.0" />
+        <PackageReference Include="LibSassBuilder" Version="2.0.1"/>
+        <PackageReference Include="Blazored.Modal" Version="6.0.1"/>
+        <PackageReference Include="Blazored.Toast" Version="3.2.2"/>
+        <PackageReference Include="DynamicData" Version="7.6.5"/>
+        <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1"/>
+        <PackageReference Include="GitInfo" Version="2.2.0"/>
+        <PackageReference Include="MahApps.Metro" Version="2.4.9"/>
+        <PackageReference Include="MahApps.Metro.IconPacks" Version="4.11.0"/>
+        <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.200-preview.14.5099"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.3"/>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.3"/>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.2-mauipre.1.22102.15"/>
+        <PackageReference Include="NLog" Version="5.0.0-rc2"/>
+        <PackageReference Include="NLog.Extensions.Logging" Version="5.0.0-rc2"/>
+        <PackageReference Include="PInvoke.User32" Version="0.7.104"/>
+        <PackageReference Include="ReactiveUI" Version="17.1.50"/>
+        <PackageReference Include="ReactiveUI.Fody" Version="17.1.50"/>
+        <PackageReference Include="ReactiveUI.WPF" Version="17.1.50"/>
+        <PackageReference Include="Silk.NET.DXGI" Version="2.14.0"/>
+        <PackageReference Include="System.Reactive" Version="5.0.0"/>
     </ItemGroup>
-    
+
     <PropertyGroup>
         <ApplicationIcon>Resources\Icons\wabbajack.ico</ApplicationIcon>
     </PropertyGroup>
@@ -46,25 +48,38 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
-        <ProjectReference Include="..\Wabbajack.Compiler\Wabbajack.Compiler.csproj" />
-        <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj" />
-        <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
-        <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
+        <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj"/>
+        <ProjectReference Include="..\Wabbajack.Compiler\Wabbajack.Compiler.csproj"/>
+        <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj"/>
+        <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj"/>
+        <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Remove="Browser\BrowserWindow.xaml.cs" />
+        <Compile Remove="Browser\BrowserWindow.xaml.cs"/>
     </ItemGroup>
 
-    <!-- dotnet tool install Excubo.WebCompiler -g   -->
-    <Target Name="TestWebCompiler" BeforeTargets="PreBuildEvent">
-        <Exec Command="webcompiler -h" ContinueOnError="true" StandardOutputImportance="low" StandardErrorImportance="low" LogStandardErrorAsError="false" IgnoreExitCode="true">
-            <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
-        </Exec>
-    </Target>
+    <ItemGroup>
+        <Folder Include="wwwroot\images\icons\downloaders"/>
+        <Folder Include="wwwroot\images\icons\games"/>
+        <Folder Include="wwwroot\images\icons\socials"/>
+    </ItemGroup>
 
-    <Target Name="CompileStaticAssets" AfterTargets="TestWebCompiler" Condition="'$(ErrorCode)' == '0'">
-        <Exec Command="webcompiler -r .\ -c webcompilerconfiguration.json" StandardOutputImportance="high" StandardErrorImportance="high" />
-    </Target>
+    <PropertyGroup>
+        <EnableDefaultSassItems>false</EnableDefaultSassItems>
+        <LibSassOutputStyle>expanded</LibSassOutputStyle>
+        <LibSassOutputLevel>verbose</LibSassOutputLevel>
+        <LibSassMessageLevel>High</LibSassMessageLevel>
+    </PropertyGroup>
+
+    <!--    <ItemGroup>-->
+    <!--        <SassFile Include="Components/**/*.scss" Watch="false"/>-->
+    <!--        <SassFile Include="Pages/**/*.scss" Watch="false"/>-->
+    <!--        <SassFile Include="Shared/**/*.scss" Exclude="Shared/Globals.scss" Watch="false"/>-->
+    <!--    </ItemGroup>-->
+
+    <ItemGroup>
+        <Content Remove="**/*.scss"/>
+        <Content Include="**/*.scss" Watch="false"/>
+    </ItemGroup>
 </Project>

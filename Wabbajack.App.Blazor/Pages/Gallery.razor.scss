@@ -1,89 +1,236 @@
 ﻿@import "../Shared/Globals.scss";
 
+$display-height: 208px; // Closest I can get to 16:9 at this scale.
+$hover-icon-size: 75px;
+$description-lines: 6;
+
 #content {
-  width: 100%;
   display: flex;
-  flex-flow: row wrap;
-  justify-content: space-evenly;
 }
 
-$display-height: 225px;
-$hover-icon-size: 75px;
+::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
 
-.item {
-  width: 400px;
-  height: 450px;
-  overflow: hidden;
-  margin: 0.5rem;
+::-webkit-scrollbar-thumb {
+  border-radius: 1rem;
+  background-color: #5e437f;
+}
+
+::-webkit-scrollbar-track {
+  margin: 0 1rem;
+  border-radius: 1rem;
+  background: #13121a;
+}
+
+#filters {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  width: 16rem;
+  height: 100vh;
+  margin-bottom: 1rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(7px);
-  -webkit-backdrop-filter: blur(7px);
-  border: 1px solid rgba(255, 255, 255, 0.31);
 
-  &:hover .display .image {
-    filter: blur(2px) brightness(70%);
+  .modlist-search {
+    width: 100%;
+    height: 3rem;
+    padding: 0.25rem;
+    border: 0;
+    border-radius: 0.25rem;
+    background-color: #242432;
+    color: white;
   }
 
-  &:hover .display .interaction {
-    opacity: 1;
-  }
-
-  .display {
-    position: relative;
-    height: $display-height;
+  .filters-group {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
+    width: 100%;
+    height: 3rem;
+    margin-top: 1rem;
+    color: white;
 
-    .image {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      transition: all 250ms ease-in-out;
+    &.show {
+      flex: 1;
+
+      .filter-group-items {
+        height: 100%;
+      }
     }
 
-    .interaction {
-      position: absolute;
-      opacity: 0;
-      transition: all 250ms ease-in-out;
+    .filter-group-title {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      height: 3rem;
+      padding: 0.25rem;
+      border: 0;
+      border-radius: 0.25rem;
+      background-color: #242432;
+    }
 
-      ::deep img {
-        width: $hover-icon-size;
-        height: $hover-icon-size;
-        margin: 0;
-        transition: all 150ms ease-in-out;
+    .filter-group-items {
+      display: flex;
+      flex-direction: column;
+      overflow-y: scroll;
+      height: 0;
+      transition: height 0.25s ease-in-out;
+
+      .filter-group-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: fit-content;
+        padding: 1rem 0.5rem;
+
+        &.True .checkmark {
+          background: #824dc3;
+        }
+
+        &:hover {
+          background: #242432;
+
+          .checkmark {
+            border: 1px solid #373748;
+          }
+        }
+
+        .checkmark {
+          width: 1rem;
+          height: 1rem;
+          border-radius: 1rem;
+          background: #242432;
+        }
+      }
+    }
+  }
+}
+
+#modlist-gallery {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: scroll;
+  height: 100vh;
+  padding: 1rem 0;
+  will-change: scroll-position;
+  width: 100%;
+
+  .source-info {
+    display: flex;
+    margin-bottom: 2rem;
+    border-radius: 0.5rem;
+    background: #242432;
+    color: white;
+
+    .info {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      max-width: 48rem;
+      padding: 1rem;
+      border-radius: 0.5rem;
+
+      .title {
+        font-weight: 100;
+        font-size: 2rem;
+      }
+
+      .maintainers {
+        margin-bottom: 0.5rem;
+        color: lightgrey;
+      }
+
+      .description {
+        flex: 1;
+      }
+
+      .bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+
+        .modlist-authors {
+          margin-right: 1rem;
+          color: #aaaab3;
+          font-size: 0.9rem;
+        }
+
+        .links {
+          display: flex;
+
+          img {
+            width: 2rem;
+            height: auto;
+            margin-left: 0.25rem;
+            opacity: 0.7;
+          }
+        }
+      }
+    }
+
+    .image {
+      width: 28rem;
+      height: 15.75rem;
+      padding: 0.5rem;
+
+      img {
+        top: 0;
+        left: 0;
+        object-fit: cover;
+        width: 100%;
+        height: 100%;
+        border-radius: 0.5rem;
       }
     }
   }
 
-  .info {
-    padding-bottom: 1rem;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+  .shelf {
+    width: 100%;
 
-    .title {
+    .shelf-info {
+      display: flex;
+      align-items: center;
       color: white;
-      font-weight: 100;
-      font-size: 2rem;
-      line-height: 2.5rem;
-      margin: 0;
+      width: 100%;
+
+      .featured {
+        width: 2rem;
+        height: 2rem;
+        margin-left: 1rem;
+      }
+
+      h1 {
+        margin-left: 1rem;
+        font-weight: 100;
+        text-transform: uppercase;
+      }
+
+      h3 {
+        font-weight: 100;
+        text-transform: uppercase;
+      }
+
+      hr {
+        width: 2rem;
+        height: 1px;
+        margin-right: 1rem;
+        margin-left: 1rem;
+        border: none;
+        background-color: #5e437f;
+      }
     }
 
-    .author {
-      color: lightgray;
-      font-size: 1rem;
+    .shelf-gallery {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
     }
-
-    .description {
-      color: grey;
-      font-size: 0.9rem;
-    }
-  }
-
-  .tags {
-    border-radius: 0.5rem;
   }
 }

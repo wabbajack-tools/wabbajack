@@ -1,0 +1,67 @@
+﻿#modal {
+  .navigation {
+    position: fixed;
+    height: 100%;
+    width: 200px;
+    border-right: 1px solid #404040;
+    background-color: rgb(28, 28, 40);
+
+    .logo {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      vertical-align: middle;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .menu {
+      width: 100%;
+
+      ul {
+        list-style-type: none;
+        margin-left: 1rem;
+
+        li {
+          height: 3rem;
+          font-size: 1.5rem;
+          font-weight: 100;
+          margin-top: 0.5rem;
+        }
+      }
+    }
+  }
+
+  .content {
+    width: calc(100% - 200px);
+    float: right;
+
+    .mod {
+      border-bottom: solid 1px #8080802b;
+      padding: 0.5rem;
+      border-bottom: solid 1px #8080802b;
+      background-size: 200% 100%;
+      background-image: linear-gradient(to right, rgba(255, 255, 255, 0) 50%, rgb(28, 28, 40));
+      transition: background-position 0.5s;
+
+      &:hover {
+        background-position: -100% 0;
+      }
+
+      .name {
+        font-size: 1.25rem;
+        font-weight: 100;
+
+        span {
+          font-size: 1.1rem;
+          color: #bfbfbf;
+        }
+      }
+
+      .description {
+        color: #bfbfbf;
+        margin-left: 0.5rem;
+      }
+    }
+  }
+}

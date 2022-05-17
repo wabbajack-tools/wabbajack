@@ -1,0 +1,13 @@
+{
+    "TaskBuildEnvironment": "Development",
+    "SourceFolder": "Styles",
+    "TargetFolder": "wwwroot/css",
+    "Arguments": "--error-css --style=expanded --no-source-map",
+    "GenerateScopedCss": true,
+    "ScopedCssFolders": [
+        "Views",
+        "Pages",
+        "Shared",
+        "Components"
+    ]
+}

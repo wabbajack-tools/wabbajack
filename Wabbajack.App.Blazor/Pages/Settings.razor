@@ -8,33 +8,22 @@
 @inject IServiceProvider _serviceProvider;
 
 <div id="content">
+    <div class="logins">
+        <div class="section-title">Accounts</div>
+        <SiteLogin Status="NexusMods" />
+        <SiteLogin Status="LoversLab" />
+    </div>
     <div class="resources">
 
         <button onclick="@LoginToNexus">Login To Nexus</button>
-        <button onclick="@LoginToVectorPlexus">Login To Vector Plexus</button>
-        <button onclick="@LoginToLoversLab">Login To Lovers Lab</button>
-                <button onclick="@LoginToBethesdaNet">Login To Bethesda Net</button>
-        
     </div>
 </div>
 
 @code {
-    public const string Route = "/settings";
+        public const string Route = "/settings";
 
     public void LoginToNexus()
     {
         MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<NexusLogin>()));
-    }
-    public void LoginToLoversLab()
-    {
-        MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<LoversLab>()));
-    }
-    public void LoginToVectorPlexus()
-    {
-        MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<VectorPlexus>()));
-    }
-    public void LoginToBethesdaNet()
-    {
-        MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<BethesdaNetLogin>()));
     }
 }

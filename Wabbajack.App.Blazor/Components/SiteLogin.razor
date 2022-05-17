@@ -1,0 +1,49 @@
+﻿@using Wabbajack.App.Blazor.Pages
+<div class="login-site @Status.SiteName status-@Status.Status">
+    <div class="site-icon">
+        <img src="images/icons/downloaders/@(IconName).png" alt="">
+    </div>
+    <div class="site-info">
+        <div class="site-name">@Status.SiteName</div>
+        @if (Status.Status == SiteStatus.LoggedIn)
+        {
+            <div class="site-status">
+                @LoggedInText
+            </div>
+        }
+        else if (Status.Status == SiteStatus.LoggedOut)
+        {
+            <div class="site-status">Logged out</div>
+        }
+        else
+        {
+            <div class="site-status">Validating</div>
+        }
+    </div>
+    <div class="user-actions">
+        <div class="user-profile">
+            <img src="images/icons/user.svg" alt="">
+        </div>
+        <div class="user-logout">
+            <img src="images/icons/logout.svg" alt="">
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter] public Settings.SiteLoginStatus Status { get; set; } = default!;
+
+    private string IconName => Status.SiteName.Replace(" ", "");
+    private string LoggedInText => Status.UserName != null ? $"Logged in as {Status.UserName}" : "Logged In";
+
+
+    public enum SiteStatus
+    {
+        Loading,
+        Unknown,
+        LoggedOut,
+        LoggedIn
+    }
+
+}

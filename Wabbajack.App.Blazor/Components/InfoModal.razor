@@ -1,9 +1,45 @@
-﻿@namespace Wabbajack.App.Blazor.Components
+﻿@using Wabbajack.DTOs.ModListValidation
+@using Wabbajack.DTOs.DownloadStates
+@namespace Wabbajack.App.Blazor.Components
 
-<h3>[TBI] Model Component</h3>
-<p>@Content</p>
+<div id="modal">
+    <div class="navigation">
+        <img class="logo" src="https://staticdelivery.nexusmods.com/mods/1704/images/53186/53186-1639838346-1697175645.png" alt="Wabbajack Logo">
+        <div class="menu">
+            <ul>
+                <li>Description</li>
+                <li>Getting Started</li>
+                <li>Screenshots</li>
+                <li>Mods</li>
+            </ul>
+        </div>
+    </div>
+    <div class="content">
+        @* <p>@Content</p> *@
+        @foreach (var a in archives)
+        {
+            <div class="mod">
+                <div class="name">
+                    @a.Name <span>@a.Author</span>
+                </div>
+                <div class="description">@a.Description</div>
+            </div>
+        }
+    </div>
+</div>
 
 @code {
-    [Parameter]
-    public string? Content { get; set; }
+    private IEnumerable<Nexus> archives { get; set; }
+
+    [Parameter] public string? Content { get; set; }
+    [Parameter] public ValidatedModList? ValidatedModList { get; set; }
+
+    protected override void OnInitialized()
+    {
+        archives = ValidatedModList.Archives.ToList()
+            .Where(a => a.Original.State.TypeName == "NexusDownloader+State")
+            .Select(a => (Nexus) a.Original.State)
+            .GroupBy(a => a.Name)
+            .Select(a => a.First());
+    }
 }

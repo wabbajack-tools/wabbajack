@@ -3,46 +3,93 @@
 @namespace Wabbajack.App.Blazor.Pages
 
 <div id="content">
-    @if (_errorLoadingModlists)
-    {
-        @* TODO: error *@
-    }
-    else if (!Modlists.Any())
-    {
-        @* TODO: loading *@
-    }
-    else
-    {
-        @foreach (var modlist in Modlists)
+    <div id="filters">
+        <input type="text" class="modlist-search" placeholder="Search">
+        <div class="filters-group @(ShowingGameFilter ? "show" : "")">
+            <div class="filter-group-title" @onclick="ToggleGameFilter">
+                <span>GAMES</span>
+            </div>
+            <div class="filter-group-items">
+                @foreach (var game in Games)
+                {
+                    var gameName = game.Game.ToString();
+                    UpdateGameFilter(gameName);
+                    <div class="filter-group-item @(GameFilter[gameName])" @onclick="@(() => UpdateGameFilter(gameName, true))">
+                        <span>@game.HumanFriendlyGameName</span>
+                        <div class="checkmark"></div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="filters-group @(ShowingSourceFilter ? "show" : "")">
+            <div class="filter-group-title" @onclick="ToggleSourceFilter">
+                <span>SOURCES</span>
+            </div>
+            <div class="filter-group-items">
+                @foreach (string repo in Repositories)
+                {
+                    <div class="filter-group-item @(RepoFilter == repo)" @onclick="@(() => RepoFilter = RepoFilter == repo ? string.Empty : repo)">
+                        <span>@repo</span>
+                        <div class="checkmark"></div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div id="modlist-gallery">
+        @if (RepoFilter != string.Empty)
         {
-            <div @key="modlist.Title" class="item">
-                <div class="display">
-                    <img src="@modlist.Links.ImageUri" loading="lazy" class="image" alt="@modlist.Title">
-                    <div class="interaction">
-                        <InteractionIcon Icon="images/icons/install.svg" Label="Install" Size="75px" OnClick="@(() => OnClickDownload(modlist))"/>
-                        <InteractionIcon Icon="images/icons/info.svg" Label="Information" Size="75px" OnClick="@(() => OnClickInformation(modlist))"/>
+            // TODO: Hardcoded for an example, we need a way to get this information. (If we end up using this)
+            var repoName = RepoFilter == "wj-featured" ? "Wabbajack" : RepoFilter;
+            var repoMaintainers = RepoFilter == "wj-featured" ? "The Wabbajack Team" : "[No Maintainers]";
+            var repoDescription = RepoFilter == "wj-featured" ? "Modlists curated by the Wabbajack team, bringing you the best experiences from a bunch of people who spend way too long working on modlists." : "[No Description]";
+            var imageURL = RepoFilter == "wj-featured" ? "https://raw.githubusercontent.com/wabbajack-tools/wabbajack/main/Branding/PNGs/Banner_Dark.png" : FilteredModlists.First().Links.ImageUri;
+            <div class="source-info">
+                <div class="info">
+                    <div class="title">@repoName</div>
+                    <div class="maintainers">@repoMaintainers</div>
+                    <div class="description">@repoDescription</div>
+                    <div class="bottom">
+                        <div class="modlist-authors">
+                            <span>Authors</span>
+                            <div class="authors">
+                                @foreach (var author in FilteredModlists.Select(x => x.Author).Distinct())
+                                {
+                                    <span>@author, </span>
+                                }
+                            </div>
+                        </div>
+                        <div class="links">
+                            <img src="images/icons/socials/patreon.svg" alt="">
+                            <img src="images/icons/socials/github.svg" alt="">
+                            <img src="images/icons/socials/discord.svg" alt="">
+                        </div>
                     </div>
                 </div>
-                <div class="info">
-                    <div class="title">@modlist.Title</div>
-                    <div class="author">@modlist.Author</div>
-                    <div class="description">@modlist.Description</div>
+                <div class="image">
+                    <img src="@imageURL" alt="">
                 </div>
-                <div class="tags"></div>
             </div>
         }
-    }
-    
-    @if (DownloadingMetaData is not null)
-    {
-        <BottomBar Image="@DownloadingMetaData.Links.ImageUri" Title="Downloading..." Subtitle="@DownloadingMetaData.Title">
-            <div style="height:1.5rem;">
-                <ProgressBar ProgressObserver="@DownloadProgress"/>
+        <div class="shelf">
+            @* <div class="shelf-info"> *@
+            @*     <img src="images/icons/star_hollow.svg" class="featured"> *@
+            @*     <h1 class="title">Wabbajack</h1> *@
+            @*     <hr/> *@
+            @*     <h3 class="description">Curated by Wabbajack</h3> *@
+            @*     <hr style="flex: 1;"/> *@
+            @* </div> *@
+            <div class="shelf-gallery">
+                @foreach (var modlist in FilteredModlists)
+                {
+                    @ModlistTileFragment.ModlistTile(modlist)
+                }
             </div>
-        </BottomBar>
-    }
+        </div>
+    </div>
 </div>
 
 @code {
-    public const string Route = "/gallery";
+
+        public const string Route = "/gallery";
 }
