@@ -1,16 +1,24 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using DynamicData;
+using DynamicData.Binding;
 using MahApps.Metro.Controls;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.DTOs.Interventions;
 using Wabbajack.Messages;
 using Wabbajack.Paths.IO;
+using Wabbajack.UserIntervention;
 using Wabbajack.Util;
 using Wabbajack.Views;
 
@@ -26,11 +34,17 @@ namespace Wabbajack
         private readonly ILogger<MainWindow> _logger;
         private readonly SystemParametersConstructor _systemParams;
 
+        private ObservableCollection<ViewModel> TabVMs = new ObservableCollectionExtended<ViewModel>();
+
         public MainWindow(ILogger<MainWindow> logger, SystemParametersConstructor systemParams, LauncherUpdater updater, MainWindowVM vm)
         {
             InitializeComponent();
             _mwvm = vm;
-            DataContext = _mwvm;
+            Tabs.ItemsSource = TabVMs;
+            TabVMs.Add(vm);
+            
+            TabVMs.Add(new ManualDownloadHandler() {Intervention = new ManualDownload(new Archive() {State = new Manual(){Url = new Uri("https://www.wabbajack.org")}})});
+            Tabs.SelectedItem = TabVMs.Last();
             
             _logger = logger;
             _systemParams = systemParams;
@@ -206,9 +220,9 @@ namespace Wabbajack
         
         private void OnOpenBrowserTab(OpenBrowserTab msg)
         {
-            var tab = new BrowserTabView(msg.ViewModel);
-            Tabs.Items.Add(tab);
-            Tabs.SelectedItem = tab;
+            //var tab = new BrowserTabView(msg.ViewModel);
+            //Tabs.Items.Add(tab);
+            //Tabs.SelectedItem = tab;
         }
         
         private void OnCloseBrowserTab(CloseBrowserTab msg)

@@ -9,6 +9,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModels="clr-namespace:Wabbajack.View_Models"
     xmlns:behaviors="clr-namespace:IKriv.Windows.Controls.Behaviors"
+    xmlns:views="clr-namespace:Wabbajack.Views"
     ShowTitleBar="False"
     Title="WABBAJACK"
     Width="1280"
@@ -23,6 +24,33 @@
     UseLayoutRounding="True"
     WindowTitleBrush="{StaticResource MahApps.Brushes.Accent}"
     mc:Ignorable="d">
+
+    <Window.Resources>
+        <DataTemplate x:Key="HeaderTemplate">
+            <ContentPresenter Grid.Row="0" Content="{Binding}">
+                <ContentPresenter.Resources>
+                    <DataTemplate DataType="{x:Type local:MainWindowVM}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontSize="16" Margin="0, 0, 8, 0">WABBAJACK 3.0.0</TextBlock>
+                            <Button Name="SettingsButton">
+                                <icon:Material Kind="Cog"></icon:Material>
+                            </Button>
+                        </StackPanel>
+                    </DataTemplate>
+
+                    <DataTemplate DataType="{x:Type local:BrowserTabViewModel}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontSize="16" Margin="0, 0, 8, 0" Text="{Binding HeaderText}"></TextBlock>
+                            <Button Name="SettingsButton">
+                                <icon:Material Kind="Close"></icon:Material>
+                            </Button>
+                        </StackPanel>
+                    </DataTemplate>
+                </ContentPresenter.Resources>
+            </ContentPresenter>
+        </DataTemplate>
+    </Window.Resources>
+
     <Grid Background="#121212" MouseDown="UIElement_OnMouseDown">
         <Grid.RowDefinitions>
             <RowDefinition></RowDefinition>
@@ -35,53 +63,23 @@
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
-        <TabControl Grid.Row="0" x:Name="Tabs" behaviors:TabContent.IsCached="True">
+        <TabControl Grid.Row="0" x:Name="Tabs" behaviors:TabContent.IsCached="True"
+                    ItemTemplate="{DynamicResource HeaderTemplate}">
             <behaviors:TabContent.Template>
                 <DataTemplate>
-                    <Button>Sup></Button>
-                </DataTemplate>
-            </behaviors:TabContent.Template>
-            <!--
-            <TabItem>
-                <TabItem.Header>
-                    <StackPanel Orientation="Horizontal">
-                    <TextBlock FontSize="16" Margin="0, 0, 8, 0">WABBAJACK 3.0.0</TextBlock>
-                    <Button Name="SettingsButton"><icon:Material Kind="Cog"></icon:Material></Button>
-                    </StackPanel>
-                </TabItem.Header>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"></RowDefinition>
-                        <RowDefinition Height="Auto"></RowDefinition>
-                    </Grid.RowDefinitions>
-                    <ContentPresenter Grid.Row="0" Content="{Binding ActivePane}">
+                    <ContentPresenter Content="{Binding}">
                         <ContentPresenter.Resources>
-                            <DataTemplate DataType="{x:Type local:CompilerVM}">
-                                <local:CompilerView ViewModel="{Binding}" />
+                            <DataTemplate DataType="{x:Type local:MainWindowVM}">
+                                <local:MainWindowContent></local:MainWindowContent>
                             </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:InstallerVM}">
-                                <local:InstallationView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
-                                <local:ModeSelectionView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
-                                <local:ModListGalleryView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:WebBrowserVM}">
-                                <local:WebBrowserView />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:SettingsVM}">
-                                <local:SettingsView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type viewModels:ModListContentsVM}">
-                                <local:ModListContentsView ViewModel="{Binding}" />
+
+                            <DataTemplate DataType="{x:Type local:BrowserTabViewModel}">
+                                <views:BrowserTabView></views:BrowserTabView>
                             </DataTemplate>
                         </ContentPresenter.Resources>
                     </ContentPresenter>
-                    <TextBlock Grid.Row="1" Margin="5, 0" Name="ResourceUsage" HorizontalAlignment="Right"></TextBlock>
-                </Grid>
-            </TabItem> -->
+                </DataTemplate>
+            </behaviors:TabContent.Template>
         </TabControl>
     </Grid>
 
@@ -96,12 +94,12 @@
                 Command="{Binding CopyVersionCommand}"
                 Content="{Binding VersionDisplay}">
                 <Button.ToolTip>
-                    <ToolTip Content="Wabbajack Version&#x0a;Click to copy to clipboard"/>
+                    <ToolTip Content="Wabbajack Version&#x0a;Click to copy to clipboard" />
                 </Button.ToolTip>
             </Button>
             <Button Grid.Column="1"
-                Margin="5,0"
-                Command="{Binding OpenSettingsCommand}">
+                    Margin="5,0"
+                    Command="{Binding OpenSettingsCommand}">
                 <icon:PackIconMaterial
                     Width="17"
                     Height="17"

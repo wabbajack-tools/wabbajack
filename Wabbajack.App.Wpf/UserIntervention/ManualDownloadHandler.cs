@@ -19,7 +19,7 @@ public class ManualDownloadHandler : BrowserTabViewModel
         var md = Intervention.Archive.State as Manual;
         
         HeaderText = $"Manual download ({md.Url.Host})";
-
+        
         Instructions = string.IsNullOrWhiteSpace(md.Prompt) ? $"Please download {archive.Name}" : md.Prompt;
         await NavigateTo(md.Url);
 

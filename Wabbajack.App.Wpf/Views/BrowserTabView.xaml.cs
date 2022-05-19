@@ -13,19 +13,21 @@ public partial class BrowserTabView : IDisposable
 {
     private readonly CompositeDisposable _compositeDisposable;
 
-    public BrowserTabView(BrowserTabViewModel vm)
+    public BrowserTabView()
     {
         _compositeDisposable = new CompositeDisposable();
         InitializeComponent();
         Browser.Browser.Source = new Uri("http://www.google.com");
+        
+        /*
         vm.Browser = Browser;
-        DataContext = vm;
 
         vm.WhenAnyValue(vm => vm.HeaderText)
             .BindTo(this, view => view.HeaderText.Text)
             .DisposeWith(_compositeDisposable);
+            */
 
-        Start().FireAndForget();
+        //Start().FireAndForget();
     }
 
     private async Task Start()

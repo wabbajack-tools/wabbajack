@@ -1,12 +1,51 @@
-<UserControl x:Class="Wabbajack.App.Wpf.Views.MainWindowContent"
+<UserControl x:Class="Wabbajack.MainWindowContent"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:Wabbajack.App.Wpf.Views"
+             xmlns:local="clr-namespace:Wabbajack"
+             xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:viewModels="clr-namespace:Wabbajack.View_Models"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
-    <Grid>
-        
-    </Grid>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"></RowDefinition>
+                        <RowDefinition Height="Auto"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <ContentPresenter Grid.Row="0" Content="{Binding ActivePane}">
+                        <ContentPresenter.Resources>
+                            <DataTemplate DataType="{x:Type local:CompilerVM}">
+                                <local:CompilerView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:InstallerVM}">
+                                <local:InstallationView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
+                                <local:ModeSelectionView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
+                                <local:ModListGalleryView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:WebBrowserVM}">
+                                <local:WebBrowserView />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:SettingsVM}">
+                                <local:SettingsView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type viewModels:ModListContentsVM}">
+                                <local:ModListContentsView ViewModel="{Binding}" />
+                            </DataTemplate>
+                        </ContentPresenter.Resources>
+                    </ContentPresenter>
+                    <TextBlock Grid.Row="1" Margin="5, 0" Name="ResourceUsage" HorizontalAlignment="Right"></TextBlock>
+                </Grid>
+    
+    <!--
+            <TabItem>
+                <TabItem.Header>
+
+                </TabItem.Header>
+
+            </TabItem>-->
 </UserControl>

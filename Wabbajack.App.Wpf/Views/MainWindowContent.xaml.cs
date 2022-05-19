@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 
-namespace Wabbajack.App.Wpf.Views;
+namespace Wabbajack;
 
 public partial class MainWindowContent : UserControl
 {
