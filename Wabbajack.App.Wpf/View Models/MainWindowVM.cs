@@ -118,6 +118,11 @@ namespace Wabbajack
                 .Subscribe(HandleManualDownload)
                 .DisposeWith(CompositeDisposable);
 
+            
+            MessageBus.Current.Listen<ManualBlobDownload>()
+                .Subscribe(HandleManualBlobDownload)
+                .DisposeWith(CompositeDisposable);
+
             _resourceMonitor.Updates
                 .Select(r => string.Join(", ", r.Where(r => r.Throughput > 0)
                     .Select(s => $"{s.Name} - {s.Throughput.ToFileSizeString()}/sec")))
@@ -194,6 +199,13 @@ namespace Wabbajack
         private void HandleManualDownload(ManualDownload manualDownload)
         {
             var handler = _serviceProvider.GetRequiredService<ManualDownloadHandler>();
+            handler.Intervention = manualDownload;
+            MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
+        }
+        
+        private void HandleManualBlobDownload(ManualBlobDownload manualDownload)
+        {
+            var handler = _serviceProvider.GetRequiredService<ManualBlobDownloadHandler>();
             handler.Intervention = manualDownload;
             MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
         }

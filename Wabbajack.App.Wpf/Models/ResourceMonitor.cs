@@ -45,7 +45,6 @@ public class ResourceMonitor : IDisposable
             .DisposeWith(_compositeDisposable);
         
         _tasks.Connect()
-            .Filter(t => t.IsWorking)
             .Bind(out _tasksFiltered)
             .Subscribe()
             .DisposeWith(_compositeDisposable);

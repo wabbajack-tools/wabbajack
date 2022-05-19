@@ -8,6 +8,7 @@
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModels="clr-namespace:Wabbajack.View_Models"
+    xmlns:behaviors="clr-namespace:IKriv.Windows.Controls.Behaviors"
     ShowTitleBar="False"
     Title="WABBAJACK"
     Width="1280"
@@ -34,7 +35,13 @@
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
-        <TabControl Grid.Row="0" x:Name="Tabs">
+        <TabControl Grid.Row="0" x:Name="Tabs" behaviors:TabContent.IsCached="True">
+            <behaviors:TabContent.Template>
+                <DataTemplate>
+                    <Button>Sup></Button>
+                </DataTemplate>
+            </behaviors:TabContent.Template>
+            <!--
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">
@@ -42,7 +49,6 @@
                     <Button Name="SettingsButton"><icon:Material Kind="Cog"></icon:Material></Button>
                     </StackPanel>
                 </TabItem.Header>
-                
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"></RowDefinition>
@@ -75,7 +81,7 @@
                     </ContentPresenter>
                     <TextBlock Grid.Row="1" Margin="5, 0" Name="ResourceUsage" HorizontalAlignment="Right"></TextBlock>
                 </Grid>
-            </TabItem>
+            </TabItem> -->
         </TabControl>
     </Grid>
 

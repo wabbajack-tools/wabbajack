@@ -30,6 +30,8 @@ public class NexusApi
     private readonly IResource<HttpClient> _limiter;
     private readonly ILogger<NexusApi> _logger;
     protected readonly ITokenProvider<NexusApiState> ApiKey;
+    private DateTime _lastValidated;
+    private (ValidateInfo info, ResponseMetadata header) _lastValidatedInfo; 
 
     public NexusApi(ITokenProvider<NexusApiState> apiKey, ILogger<NexusApi> logger, HttpClient client,
         IResource<HttpClient> limiter,
@@ -41,6 +43,8 @@ public class NexusApi
         _appInfo = appInfo;
         _jsonOptions = jsonOptions;
         _limiter = limiter;
+        _lastValidated = DateTime.MinValue;
+        _lastValidatedInfo = default;
     }
 
     public virtual async Task<(ValidateInfo info, ResponseMetadata header)> Validate(
@@ -48,6 +52,19 @@ public class NexusApi
     {
         var msg = await GenerateMessage(HttpMethod.Get, Endpoints.Validate);
         return await Send<ValidateInfo>(msg, token);
+    }
+    
+    public async Task<(ValidateInfo info, ResponseMetadata header)> ValidateCached(
+        CancellationToken token = default)
+    {
+        if (DateTime.Now - _lastValidated < TimeSpan.FromMinutes(10))
+        {
+            return _lastValidatedInfo;
+        }
+
+        var msg = await GenerateMessage(HttpMethod.Get, Endpoints.Validate);
+        _lastValidatedInfo = await Send<ValidateInfo>(msg, token);
+        return _lastValidatedInfo;
     }
 
     public virtual async Task<(ModInfo info, ResponseMetadata header)> ModInfo(string nexusGameName, long modId,
@@ -309,5 +326,11 @@ public class NexusApi
                 return data;
             await Task.Delay(TimeSpan.FromSeconds(5));
         }
+    }
+
+    public async Task<bool> IsPremium(CancellationToken token)
+    {
+        var validated = await ValidateCached(token);
+        return validated.info.IsPremium;
     }
 }

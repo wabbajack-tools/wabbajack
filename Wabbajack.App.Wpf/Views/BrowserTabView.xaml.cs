@@ -44,8 +44,12 @@ public partial class BrowserTabView : IDisposable
     private void ClickClose(object sender, RoutedEventArgs e)
     {
         var tc = (TabControl) this.Parent;
-        if (tc.Items.Contains(this)) 
-            tc.Items.Remove(this);
+        if (tc != null)
+        {
+            if (tc.Items.Contains(this))
+                tc.Items.Remove(this);
+        }
+
         this.Dispose();
     }
 }

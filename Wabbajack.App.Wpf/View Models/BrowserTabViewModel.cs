@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using HtmlAgilityPack;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
@@ -12,7 +11,9 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Messages;
+using Wabbajack.Paths;
 using Wabbajack.Views;
 
 namespace Wabbajack;
@@ -118,5 +119,32 @@ public abstract class BrowserTabViewModel : ViewModel
         {
             ("Referer", referer.ToString())
         });
+    }
+    
+    public async Task<Hash> WaitForDownload(AbsolutePath path, CancellationToken token)
+    {
+        var source = new TaskCompletionSource();
+        var referer = _browser.Source;
+        _browser.CoreWebView2.DownloadStarting += (sender, args) =>
+        {
+            try
+            {
+                args.ResultFilePath = path.ToString();
+                args.Handled = true;
+                args.DownloadOperation.StateChanged += (o, o1) =>
+                {
+                    var operation = (CoreWebView2DownloadOperation) o;
+                    if (operation.State == CoreWebView2DownloadState.Completed)
+                        source.TrySetResult();
+                };
+            }
+            catch (Exception ex)
+            {
+                source.SetCanceled();
+            }
+        };
+
+        await source.Task;
+        return default;
     }
 }

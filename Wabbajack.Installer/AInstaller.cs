@@ -115,7 +115,7 @@ public abstract class AInstaller<T>
     {
         Interlocked.Add(ref _currentStepProgress, stepProgress);
 
-        OnStatusUpdate?.Invoke(new StatusUpdate(_statusCategory, _statusText,
+        OnStatusUpdate?.Invoke(new StatusUpdate(_statusCategory, $"[{_currentStep}/{MaxSteps}] {_statusText} ({_currentStepProgress}/{MaxStepProgress})",
             Percent.FactoryPutInRange(_currentStep, MaxSteps),
             Percent.FactoryPutInRange(_currentStepProgress, MaxStepProgress)));
     }
@@ -305,6 +305,9 @@ public abstract class AInstaller<T>
 
     public async Task DownloadMissingArchives(List<Archive> missing, CancellationToken token, bool download = true)
     {
+        _logger.LogInformation("Downloading {Count} archives", missing.Count.ToString());
+        NextStep(Consts.StepDownloading, "Downloading files", missing.Count);
+
         if (download)
         {
             var result = SendDownloadMetrics(missing);
@@ -312,12 +315,10 @@ public abstract class AInstaller<T>
             {
                 var outputPath = _configuration.Downloads.Combine(a.Name);
                 await DownloadArchive(a, true, token, outputPath);
+                UpdateProgress(1);
             }
         }
-
-        _logger.LogInformation("Downloading {Count} archives", missing.Count.ToString());
-        NextStep(Consts.StepDownloading, "Downloading files", missing.Count);
-
+        
         await missing
             .OrderBy(a => a.Size)
             .Where(a => a.State is not Manual)

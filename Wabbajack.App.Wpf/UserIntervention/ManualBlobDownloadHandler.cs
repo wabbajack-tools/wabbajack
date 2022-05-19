@@ -1,16 +1,13 @@
-using System.Security.Policy;
 using System.Threading;
 using System.Threading.Tasks;
-using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.Interventions;
-using Wabbajack.Paths;
 
 namespace Wabbajack.UserIntervention;
 
-public class ManualDownloadHandler : BrowserTabViewModel
+public class ManualBlobDownloadHandler : BrowserTabViewModel
 {
-    public ManualDownload Intervention { get; set; }
+    public ManualBlobDownload Intervention { get; set; }
 
     protected override async Task Run(CancellationToken token)
     {
@@ -21,10 +18,10 @@ public class ManualDownloadHandler : BrowserTabViewModel
         HeaderText = $"Manual download ({md.Url.Host})";
 
         Instructions = string.IsNullOrWhiteSpace(md.Prompt) ? $"Please download {archive.Name}" : md.Prompt;
+        var tsk = WaitForDownload(Intervention.Destination, token);
         await NavigateTo(md.Url);
-
-        var uri = await WaitForDownloadUri(token);
+        var hash = await tsk;
         
-        Intervention.Finish(uri);
+        Intervention.Finish(hash);
     }
 }

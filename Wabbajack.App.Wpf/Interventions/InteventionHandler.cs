@@ -14,8 +14,18 @@ public class InteventionHandler : IUserInterventionHandler
     }
     public void Raise(IUserIntervention intervention)
     {
-        // Recast these or they won't be properly handled by the message bus
-        if (intervention is ManualDownload md)
-            MessageBus.Current.SendMessage(md);
+        switch (intervention)
+        {
+            // Recast these or they won't be properly handled by the message bus
+            case ManualDownload md:
+                MessageBus.Current.SendMessage(md);
+                break;
+            case ManualBlobDownload bd:
+                MessageBus.Current.SendMessage(bd);
+                break;
+            default:
+                _logger.LogError("No handler for user intervention: {Type}", intervention);
+                break;
+        }
     }
 }

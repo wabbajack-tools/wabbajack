@@ -77,6 +77,7 @@ namespace Wabbajack
             services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
             services.AddAllSingleton<INeedsLogin, VectorPlexusLoginManager>();
             services.AddSingleton<ManualDownloadHandler>();
+            services.AddSingleton<ManualBlobDownloadHandler>();
             
             return services;
         }

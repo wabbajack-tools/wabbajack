@@ -9,6 +9,7 @@ using Wabbajack.Compiler;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Installer;
 using Wabbajack.Networking.BethesdaNet;
@@ -99,6 +100,9 @@ public static class ServiceExtensions
         
         service.AddAllSingleton<IResource, IResource<IInstaller>>(s =>
             new Resource<IInstaller>("Installer", GetSettings(s, "Installer")));
+        
+        service.AddAllSingleton<IResource, IResource<IUserInterventionHandler>>(s =>
+            new Resource<IUserInterventionHandler>("User Intervention", 3));
 
         service.AddSingleton<LoggingRateLimiterReporter>();
 

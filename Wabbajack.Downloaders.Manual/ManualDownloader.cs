@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Wabbajack.Common;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
@@ -28,28 +29,33 @@ public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>
     public override async Task<Hash> Download(Archive archive, DTOs.DownloadStates.Manual state, AbsolutePath destination, IJob job, CancellationToken token)
     {
         _logger.LogInformation("Starting manual download of {Url}", state.Url);
-        var intervention = new ManualDownload(archive, destination);
-        _interventionHandler.Raise(intervention);
-        var browserState = await intervention.Task;
 
-        var msg = new HttpRequestMessage(HttpMethod.Get, browserState.Uri);
-        msg.Headers.Add("User-Agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36");
-        msg.Headers.Add("Cookie", string.Join(";", browserState.Cookies.Select(c => $"{c.Name}={c.Value}")));
-        
-
-        foreach (var header in browserState.Headers)
+        if (state.Url.Host == "mega.nz")
         {
-            msg.Headers.Add(header.Key, header.Value);
+            var intervention = new ManualBlobDownload(archive, destination);
+            _interventionHandler.Raise(intervention);
+            await intervention.Task;
+            if (!destination.FileExists())
+                throw new Exception("File does not exist after download");
+            _logger.LogInformation("Hashing manually downloaded Mega file {File}", destination.FileName);
+            return await destination.Hash(token);
         }
+        else
+        {
+            var intervention = new ManualDownload(archive);
+            _interventionHandler.Raise(intervention);
+            var browserState = await intervention.Task;
 
-        using var response = await _client.SendAsync(msg, token);
-        if (!response.IsSuccessStatusCode)
-            throw new HttpRequestException(response.ReasonPhrase, null, statusCode:response.StatusCode);
+            var msg = browserState.ToHttpRequestMessage();
 
-        await using var strm = await response.Content.ReadAsStreamAsync(token);
-        await using var os = destination.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-        return await strm.HashingCopy(os, token, job);
+            using var response = await _client.SendAsync(msg, token);
+            if (!response.IsSuccessStatusCode)
+                throw new HttpRequestException(response.ReasonPhrase, null, statusCode: response.StatusCode);
+
+            await using var strm = await response.Content.ReadAsStreamAsync(token);
+            await using var os = destination.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+            return await strm.HashingCopy(os, token, job);
+        }
     }
 
 

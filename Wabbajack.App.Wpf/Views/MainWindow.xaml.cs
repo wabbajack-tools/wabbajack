@@ -45,20 +45,20 @@ namespace Wabbajack
                 };
 
                 MessageBus.Current.Listen<TaskBarUpdate>()
+                    .ObserveOnGuiThread()
                     .Subscribe(u =>
                     {
-                        Dispatcher.Invoke(() =>
-                        {
-                            TaskbarItemInfo.Description = u.Description;
-                            TaskbarItemInfo.ProgressValue = u.ProgressValue;
-                            TaskbarItemInfo.ProgressState = u.State;
-                        });
+                        TaskbarItemInfo.Description = u.Description;
+                        TaskbarItemInfo.ProgressValue = u.ProgressValue;
+                        TaskbarItemInfo.ProgressState = u.State;
                     });
 
                 MessageBus.Current.Listen<OpenBrowserTab>()
+                    .ObserveOnGuiThread()
                     .Subscribe(OnOpenBrowserTab);
                 
                 MessageBus.Current.Listen<CloseBrowserTab>()
+                    .ObserveOnGuiThread()
                     .Subscribe(OnCloseBrowserTab);
 
                 _logger.LogInformation("Wabbajack Build - {Sha}",ThisAssembly.Git.Sha);
@@ -107,9 +107,10 @@ namespace Wabbajack
                 {
                     this.Topmost = false;
                 };
-
+/*
                 ((MainWindowVM) DataContext).WhenAnyValue(vm => vm.OpenSettingsCommand)
                     .BindTo(this, view => view.SettingsButton.Command);
+                    */
             }
             catch (Exception ex)
             {
@@ -117,13 +118,13 @@ namespace Wabbajack
                 Environment.Exit(-1);
             }
             
-                        
+                        /*
             vm.WhenAnyValue(vm => vm.ResourceStatus)
                 .BindToStrict(this, view => view.ResourceUsage.Text);
 
             vm.WhenAnyValue(vm => vm.ResourceStatus)
                 .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)
-                .BindToStrict(this, view => view.ResourceUsage.Visibility);
+                .BindToStrict(this, view => view.ResourceUsage.Visibility);*/
 
         }
 
