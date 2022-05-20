@@ -33,7 +33,7 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
     private readonly IUserInterventionHandler _userInterventionHandler;
     private readonly IResource<IUserInterventionHandler> _interventionLimiter;
 
-    private const bool IsManualDebugMode = true;
+    private const bool IsManualDebugMode = false;
 
     public NexusDownloader(ILogger<NexusDownloader> logger, HttpClient client, IHttpDownloader downloader,
         NexusApi api, IUserInterventionHandler userInterventionHandler, IResource<IUserInterventionHandler> interventionLimiter)
@@ -115,7 +115,7 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
     public override async Task<Hash> Download(Archive archive, Nexus state, AbsolutePath destination,
         IJob job, CancellationToken token)
     {
-        if (IsManualDebugMode || await _api.IsPremium(token))
+        if (IsManualDebugMode || !(await _api.IsPremium(token)))
         {
             return await DownloadManually(archive, state, destination, job, token);
         }

@@ -37,8 +37,8 @@ public class DownloadDispatcher
 
     public async Task<Hash> Download(Archive a, AbsolutePath dest, CancellationToken token)
     {
-        using var downloadScope = _logger.BeginScope("Downloading {primaryKeyString}", a.State.PrimaryKeyString);
-        using var job = await _limiter.Begin(a.State.PrimaryKeyString, a.Size, token);
+        using var downloadScope = _logger.BeginScope("Downloading {Name}", a.Name);
+        using var job = await _limiter.Begin("Downloading " + a.Name, a.Size, token);
         return await Download(a, dest, job, token);
     }
 
