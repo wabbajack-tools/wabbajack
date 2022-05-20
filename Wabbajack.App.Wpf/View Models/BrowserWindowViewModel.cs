@@ -56,7 +56,14 @@ public abstract class BrowserWindowViewModel : ViewModel
             }
             else
             {
-                tcs.TrySetException(new Exception($"Navigation error to {uri}"));
+                if (a.WebErrorStatus == CoreWebView2WebErrorStatus.ConnectionAborted)
+                {
+                    tcs.TrySetResult();
+                }
+                else
+                {
+                    tcs.TrySetException(new Exception($"Navigation error to {uri} - {a.WebErrorStatus}"));
+                }
             }
         }
 

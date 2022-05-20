@@ -20,7 +20,7 @@
                  TitleBarHeight="25"
                  UseLayoutRounding="True"
                  WindowTitleBrush="{StaticResource MahApps.Brushes.Accent}"
-                 Activated="BrowserWindow_OnActivated"
+                 ContentRendered="BrowserWindow_OnActivated"
                  mc:Ignorable="d">
     <Grid  Background="#121212" MouseDown="UIElement_OnMouseDown">
         <Grid.RowDefinitions>
@@ -43,7 +43,7 @@
         </Button>
         <TextBox  Grid.Row="1" Grid.Column="3" VerticalContentAlignment="Center"></TextBox>
         
-        <wpf:WebView2 Grid.Row="2" Grid.ColumnSpan="3" Name="Browser" Source="https://www.wabbajack.org"></wpf:WebView2>
+        <wpf:WebView2 Grid.Row="2" Grid.ColumnSpan="3" Name="Browser"></wpf:WebView2>
         
     </Grid>
 </mahapps:MetroWindow>

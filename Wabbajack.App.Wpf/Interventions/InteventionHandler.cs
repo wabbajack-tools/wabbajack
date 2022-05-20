@@ -1,8 +1,11 @@
 using System;
+using System.Reactive.Disposables;
+using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.DTOs.Interventions;
+using Wabbajack.Messages;
 using Wabbajack.UserIntervention;
 
 namespace Wabbajack.Interventions;
@@ -23,18 +26,24 @@ public class UserInteventionHandler : IUserInterventionHandler
         {
             // Recast these or they won't be properly handled by the message bus
             case ManualDownload md:
-                var view = new BrowserWindow();
+            {
                 var provider = _serviceProvider.GetRequiredService<ManualDownloadHandler>();
-                view.DataContext = provider;
                 provider.Intervention = md;
-                view.Show();
+                MessageBus.Current.SendMessage(new SpawnBrowserWindow(provider));
                 break;
+            }
             case ManualBlobDownload bd:
-                MessageBus.Current.SendMessage(bd);
+            {
+                var provider = _serviceProvider.GetRequiredService<ManualBlobDownloadHandler>();
+                provider.Intervention = bd;
+                MessageBus.Current.SendMessage(new SpawnBrowserWindow(provider));
                 break;
+            }
             default:
                 _logger.LogError("No handler for user intervention: {Type}", intervention);
                 break;
+
         }
+
     }
 }

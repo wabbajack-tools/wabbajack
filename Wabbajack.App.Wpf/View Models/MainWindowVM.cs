@@ -102,13 +102,9 @@ namespace Wabbajack
                 .Subscribe(HandleNavigateBack)
                 .DisposeWith(CompositeDisposable);
             
-            MessageBus.Current.Listen<ManualDownload>()
-                .Subscribe(HandleManualDownload)
-                .DisposeWith(CompositeDisposable);
-
-            
-            MessageBus.Current.Listen<ManualBlobDownload>()
-                .Subscribe(HandleManualBlobDownload)
+            MessageBus.Current.Listen<SpawnBrowserWindow>()
+                .ObserveOnGuiThread()
+                .Subscribe(HandleSpawnBrowserWindow)
                 .DisposeWith(CompositeDisposable);
 
             _resourceMonitor.Updates
@@ -178,6 +174,13 @@ namespace Wabbajack
             var handler = _serviceProvider.GetRequiredService<ManualBlobDownloadHandler>();
             handler.Intervention = manualDownload;
             //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
+        }
+        
+        private void HandleSpawnBrowserWindow(SpawnBrowserWindow msg)
+        {
+            var window = _serviceProvider.GetRequiredService<BrowserWindow>();
+            window.DataContext = msg.Vm;
+            window.Show();
         }
 
         private void HandleNavigateTo(NavigateToGlobal.ScreenType s)

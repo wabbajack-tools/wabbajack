@@ -117,7 +117,6 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
     {
         if (IsManualDebugMode || await _api.IsPremium(token))
         {
-            using var _ = await _interventionLimiter.Begin("Downloading file manually", 1, token);
             return await DownloadManually(archive, state, destination, job, token);
         }
         else
@@ -156,8 +155,14 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
                 Url = new Uri($"https://www.nexusmods.com/{state.Game.MetaData().NexusName}/mods/{state.ModID}?tab=files&file_id={state.FileID}")
             }
         });
-        _userInterventionHandler.Raise(md);
-        var browserState = await md.Task;
+
+        ManualDownload.BrowserDownloadState browserState;
+        using (var _ = await _interventionLimiter.Begin("Downloading file manually", 1, token))
+        {
+            _userInterventionHandler.Raise(md);
+            browserState = await md.Task;
+        }
+
         
         var msg = browserState.ToHttpRequestMessage();
         

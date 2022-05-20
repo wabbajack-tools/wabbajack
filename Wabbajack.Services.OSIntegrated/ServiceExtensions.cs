@@ -102,7 +102,7 @@ public static class ServiceExtensions
             new Resource<IInstaller>("Installer", GetSettings(s, "Installer")));
         
         service.AddAllSingleton<IResource, IResource<IUserInterventionHandler>>(s =>
-            new Resource<IUserInterventionHandler>("User Intervention", 3));
+            new Resource<IUserInterventionHandler>("User Intervention", 1));
 
         service.AddSingleton<LoggingRateLimiterReporter>();
 
