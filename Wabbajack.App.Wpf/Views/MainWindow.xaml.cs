@@ -62,13 +62,6 @@ namespace Wabbajack
                         TaskbarItemInfo.ProgressState = u.State;
                     });
 
-                MessageBus.Current.Listen<OpenBrowserTab>()
-                    .ObserveOnGuiThread()
-                    .Subscribe(OnOpenBrowserTab);
-                
-                MessageBus.Current.Listen<CloseBrowserTab>()
-                    .ObserveOnGuiThread()
-                    .Subscribe(OnCloseBrowserTab);
 
                 _logger.LogInformation("Wabbajack Build - {Sha}",ThisAssembly.Git.Sha);
                 _logger.LogInformation("Running in {EntryPoint}", KnownFolders.EntryPoint);
@@ -212,23 +205,6 @@ namespace Wabbajack
         {
             this.DragMove();
         }
-        
-        private void OnOpenBrowserTab(OpenBrowserTab msg)
-        {
-            //var tab = new BrowserTabView(msg.ViewModel);
-            //Tabs.Items.Add(tab);
-            //Tabs.SelectedItem = tab;
-        }
-        
-        private void OnCloseBrowserTab(CloseBrowserTab msg)
-        {
-            /*
-            foreach (var tab in Tabs.Items.OfType<BrowserTabView>())
-            {
-                if (tab.DataContext != msg.ViewModel) continue;
-                Tabs.Items.Remove(tab);
-                break;
-            }*/
-        }
+
     }
 }

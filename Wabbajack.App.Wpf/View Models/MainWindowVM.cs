@@ -101,18 +101,6 @@ namespace Wabbajack
             MessageBus.Current.Listen<NavigateBack>()
                 .Subscribe(HandleNavigateBack)
                 .DisposeWith(CompositeDisposable);
-
-            MessageBus.Current.Listen<NexusLogin>()
-                .Subscribe(HandleLogin)
-                .DisposeWith(CompositeDisposable);
-            
-            MessageBus.Current.Listen<LoversLabLogin>()
-                .Subscribe(HandleLogin)
-                .DisposeWith(CompositeDisposable);
-            
-            MessageBus.Current.Listen<VectorPlexusLogin>()
-                .Subscribe(HandleLogin)
-                .DisposeWith(CompositeDisposable);
             
             MessageBus.Current.Listen<ManualDownload>()
                 .Subscribe(HandleManualDownload)
@@ -171,25 +159,7 @@ namespace Wabbajack
 
             ActivePane = objViewModel;
         }
-
-        private void HandleLogin(NexusLogin nexusLogin)
-        {
-            var handler = _serviceProvider.GetRequiredService<NexusLoginHandler>();
-            handler.RunWrapper(CancellationToken.None).FireAndForget();
-        }
         
-        private void HandleLogin(LoversLabLogin loversLabLogin)
-        {
-            var handler = _serviceProvider.GetRequiredService<LoversLabLoginHandler>();
-            //handler.RunWrapper(CancellationToken.None).FireAndForget();
-        }
-        
-        private void HandleLogin(VectorPlexusLogin vectorPlexusLogin)
-        {
-            var handler = _serviceProvider.GetRequiredService<VectorPlexusLoginHandler>();
-            //handler.RunWrapper(CancellationToken.None).FireAndForget();
-        }
-
         private void HandleNavigateBack(NavigateBack navigateBack)
         {
             ActivePane = PreviousPanes.Last();

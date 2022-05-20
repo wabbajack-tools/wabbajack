@@ -7,7 +7,7 @@ using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.UserIntervention;
 
-public class VectorPlexusLoginHandler : OAuth2LoginHandler<Messages.VectorPlexusLogin, DTOs.Logins.VectorPlexusLoginState>
+public class VectorPlexusLoginHandler : OAuth2LoginHandler<DTOs.Logins.VectorPlexusLoginState>
 {
     public VectorPlexusLoginHandler(ILogger<VectorPlexusLoginHandler> logger, HttpClient httpClient, EncryptedJsonTokenProvider<VectorPlexusLoginState> tokenProvider) 
         : base(logger, httpClient, tokenProvider)

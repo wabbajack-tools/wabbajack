@@ -55,10 +55,6 @@ public class NexusLoginManager : ViewModel, INeedsLogin
             //MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<NexusLoginHandler>()));
             StartLogin();
         }, this.WhenAnyValue(v => v.HaveLogin).Select(v => !v));
-
-        MessageBus.Current.Listen<CloseBrowserTab>()
-            .Subscribe(x => RefreshTokenState())
-            .DisposeWith(CompositeDisposable);
     }
 
     private void StartLogin()
