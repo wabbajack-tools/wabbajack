@@ -1,34 +1,27 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Mark Stale
 
-# Controls when the workflow will run
+permissions:
+  issues: write
+  pull-requests: write
+
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   schedule:
     - cron: "0 0 * * *"
-  
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - name: Close Stale Issues
-      uses: actions/stale@v4.0.0
-      with:
-        stale-issue-message: "Marked as stale due to inactivity"
-        stale-pr-message: "Marked as stale due to inactivity"
-        close-issue-message: "Closed due to inactivity"
-        close-pr-message: "Closed due ot inactivity"
-        days-before-stale: 180
-        debug-only: false
-        operations-per-run: 100
-        
+      - name: Close Stale Issues
+        uses: actions/stale@v5.0.0
+        with:
+          stale-issue-message: "Marked as stale due to inactivity. If the issue still exists, please comment as so."
+          stale-pr-message: "Marked as stale due to inactivity."
+          close-issue-message: "Closed due to inactivity. Please create a new issue if this problem still exists."
+          close-pr-message: "Closed due to inactivity."
+          days-before-stale: 30
+          operations-per-run: 100
+          exempt-all-assignees: true
