@@ -31,12 +31,19 @@
                         <RowDefinition Height="*"></RowDefinition>
                         <RowDefinition Height="Auto"></RowDefinition>
                     </Grid.RowDefinitions>
-                   <StackPanel Grid.Row="0" Orientation="Horizontal">
-                       <TextBlock FontSize="16" Margin="0, 0, 8, 0">WABBAJACK 3.0.0</TextBlock>
-                       <Button Name="SettingsButton">
+                   <Grid Grid.Row="0" Margin="5">
+                       <Grid.ColumnDefinitions>
+                           <ColumnDefinition Width="Auto"></ColumnDefinition>
+                           <ColumnDefinition Width="*"></ColumnDefinition>
+                           <ColumnDefinition Width="Auto"></ColumnDefinition>
+                           <ColumnDefinition Width="140"></ColumnDefinition>
+                       </Grid.ColumnDefinitions>
+                       <TextBlock Grid.Column="0" FontSize="16" Margin="0, 0, 8, 0" Name="AppName"></TextBlock>
+                       <TextBlock Grid.Column="1" Margin="5, 0" Name="ResourceUsage" HorizontalAlignment="Right"></TextBlock>
+                       <Button Grid.Column="2" Name="SettingsButton">
                            <icon:Material Kind="Cog"></icon:Material>
                        </Button>
-                   </StackPanel>
+                   </Grid>
                     <ContentPresenter Grid.Row="1" Content="{Binding ActivePane}">
                         <ContentPresenter.Resources>
                             <DataTemplate DataType="{x:Type local:CompilerVM}">
@@ -62,7 +69,7 @@
                             </DataTemplate>
                         </ContentPresenter.Resources>
                     </ContentPresenter>
-                    <TextBlock Grid.Row="1" Margin="5, 0" Name="ResourceUsage" HorizontalAlignment="Right"></TextBlock>
+
                 </Grid>
 
     <mahapps:MetroWindow.RightWindowCommands>

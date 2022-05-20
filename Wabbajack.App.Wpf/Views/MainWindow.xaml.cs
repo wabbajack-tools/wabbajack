@@ -119,15 +119,12 @@ namespace Wabbajack
                 _logger.LogError(ex, "During Main Window Startup");
                 Environment.Exit(-1);
             }
-            
-                        /*
+
             vm.WhenAnyValue(vm => vm.ResourceStatus)
                 .BindToStrict(this, view => view.ResourceUsage.Text);
-
-            vm.WhenAnyValue(vm => vm.ResourceStatus)
-                .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)
-                .BindToStrict(this, view => view.ResourceUsage.Visibility);*/
-
+            vm.WhenAnyValue(vm => vm.AppName)
+                .BindToStrict(this, view => view.AppName.Text);
+            
         }
 
         public void Init(MainWindowVM vm, MainSettings settings)

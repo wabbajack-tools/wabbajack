@@ -67,6 +67,9 @@ namespace Wabbajack
         
         [Reactive]
         public string ResourceStatus { get; set; }
+        
+        [Reactive]
+        public string AppName { get; set; }
 
         [Reactive]
         public bool UpdateAvailable { get; private set; }
@@ -130,6 +133,7 @@ namespace Wabbajack
                 var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
                 Consts.CurrentMinimumWabbajackVersion = Version.Parse(fvi.FileVersion);
                 VersionDisplay = $"v{fvi.FileVersion}";
+                AppName = "WABBAJACK " + VersionDisplay;
                 _logger.LogInformation("Wabbajack Version: {FileVersion}", fvi.FileVersion);
                 
                 Task.Run(() => _wjClient.SendMetric("started_wabbajack", fvi.FileVersion)).FireAndForget();
