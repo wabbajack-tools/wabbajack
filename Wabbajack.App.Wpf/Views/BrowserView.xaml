@@ -1,4 +1,4 @@
-<reactiveUi:ReactiveUserControl x:TypeArguments="wabbajack:BrowserTabViewModel"
+<reactiveUi:ReactiveUserControl x:TypeArguments="wabbajack:BrowserWindowViewModel"
                                 x:Class="Wabbajack.Views.BrowserView"
                                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

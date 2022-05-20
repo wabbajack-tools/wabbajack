@@ -7,6 +7,7 @@ using System.Reactive.Subjects;
 using System.Timers;
 using DynamicData;
 using DynamicData.Kernel;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.RateLimiter;
 
@@ -14,7 +15,7 @@ namespace Wabbajack.Models;
 
 public class ResourceMonitor : IDisposable
 {
-    private readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(1000);
+    private readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(250);
     
     private readonly IResource[] _resources;
     private readonly Timer _timer;
@@ -27,13 +28,15 @@ public class ResourceMonitor : IDisposable
     private readonly SourceCache<CPUDisplayVM, ulong> _tasks = new(x => x.ID);
     public readonly ReadOnlyObservableCollection<CPUDisplayVM> _tasksFiltered;
     private readonly CompositeDisposable _compositeDisposable;
+    private readonly ILogger<ResourceMonitor> _logger;
     public ReadOnlyObservableCollection<CPUDisplayVM> Tasks => _tasksFiltered;
     
     
 
 
-    public ResourceMonitor(IEnumerable<IResource> resources)
+    public ResourceMonitor(ILogger<ResourceMonitor> logger, IEnumerable<IResource> resources)
     {
+        _logger = logger;
         _compositeDisposable = new CompositeDisposable();
         _resources = resources.ToArray();
         _prev = _resources.Select(x => (x.Name, (long)0)).ToArray();
@@ -71,6 +74,7 @@ public class ResourceMonitor : IDisposable
                         var t = tsk.Value;
                         t.Msg = job.Description;
                         t.ProgressPercent = job.Size == 0 ? Percent.Zero : Percent.FactoryPutInRange(job.Current, (long)job.Size);
+                        t.IsWorking = job.Current > 0;
                     }
 
                     // Create
@@ -81,7 +85,8 @@ public class ResourceMonitor : IDisposable
                             ID = job.ID,
                             StartTime = DateTime.Now,
                             Msg = job.Description,
-                            ProgressPercent = job.Size == 0 ? Percent.Zero : Percent.FactoryPutInRange(job.Current, (long) job.Size)
+                            ProgressPercent = job.Size == 0 ? Percent.Zero : Percent.FactoryPutInRange(job.Current, (long) job.Size),
+                            IsWorking = job.Current > 0,
                         };
                         l.AddOrUpdate(vm);
                     }

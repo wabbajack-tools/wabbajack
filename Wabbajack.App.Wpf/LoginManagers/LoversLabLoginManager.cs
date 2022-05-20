@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -15,6 +16,7 @@ using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Messages;
 using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.UserIntervention;
 
 namespace Wabbajack.LoginManagers;
 
@@ -23,6 +25,7 @@ public class LoversLabLoginManager : ViewModel, INeedsLogin
     private readonly ILogger<LoversLabLoginManager> _logger;
     private readonly ITokenProvider<LoversLabLoginState> _token;
     private readonly IUserInterventionHandler _handler;
+    private readonly IServiceProvider _serviceProvider;
 
     public string SiteName { get; } = "Lovers Lab";
     public ICommand TriggerLogin { get; set; }
@@ -33,10 +36,11 @@ public class LoversLabLoginManager : ViewModel, INeedsLogin
     [Reactive]
     public bool HaveLogin { get; set; }
     
-    public LoversLabLoginManager(ILogger<LoversLabLoginManager> logger, ITokenProvider<LoversLabLoginState> token)
+    public LoversLabLoginManager(ILogger<LoversLabLoginManager> logger, ITokenProvider<LoversLabLoginState> token, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _token = token;
+        _serviceProvider = serviceProvider;
         RefreshTokenState();
         
         ClearLogin = ReactiveCommand.CreateFromTask(async () =>
@@ -52,9 +56,17 @@ public class LoversLabLoginManager : ViewModel, INeedsLogin
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
         {
             _logger.LogInformation("Logging into {SiteName}", SiteName);
-            await LoversLabLogin.Send();
-            RefreshTokenState();
+            StartLogin();
         }, this.WhenAnyValue(v => v.HaveLogin).Select(v => !v));
+    }
+    
+    private void StartLogin()
+    {
+        var view = new BrowserWindow();
+        view.Closed += (sender, args) => { RefreshTokenState(); };
+        var provider = _serviceProvider.GetRequiredService<LoversLabLoginHandler>();
+        view.DataContext = provider;
+        view.Show();
     }
 
     private void RefreshTokenState()

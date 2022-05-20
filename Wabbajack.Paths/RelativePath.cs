@@ -178,4 +178,9 @@ public readonly struct RelativePath : IPath, IEquatable<RelativePath>, IComparab
     {
         return Parts[^1].StartsWith(mrkinn);
     }
+
+    public bool StartsWith(string s)
+    {
+        return ToString().StartsWith(s);
+    }
 }

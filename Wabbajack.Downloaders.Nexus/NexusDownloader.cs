@@ -1,20 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
+using Wabbajack.Common;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Validation;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Downloaders;
@@ -25,14 +30,20 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
     private readonly HttpClient _client;
     private readonly IHttpDownloader _downloader;
     private readonly ILogger<NexusDownloader> _logger;
+    private readonly IUserInterventionHandler _userInterventionHandler;
+    private readonly IResource<IUserInterventionHandler> _interventionLimiter;
+
+    private const bool IsManualDebugMode = true;
 
     public NexusDownloader(ILogger<NexusDownloader> logger, HttpClient client, IHttpDownloader downloader,
-        NexusApi api)
+        NexusApi api, IUserInterventionHandler userInterventionHandler, IResource<IUserInterventionHandler> interventionLimiter)
     {
         _logger = logger;
         _client = client;
         _downloader = downloader;
         _api = api;
+        _userInterventionHandler = userInterventionHandler;
+        _interventionLimiter = interventionLimiter;
     }
 
     public override async Task<bool> Prepare()
@@ -104,11 +115,64 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
     public override async Task<Hash> Download(Archive archive, Nexus state, AbsolutePath destination,
         IJob job, CancellationToken token)
     {
-        var urls = await _api.DownloadLink(state.Game.MetaData().NexusName!, state.ModID, state.FileID, token);
-        _logger.LogInformation("Downloading Nexus File: {game}|{modid}|{fileid}", state.Game, state.ModID,
-            state.FileID);
-        var message = new HttpRequestMessage(HttpMethod.Get, urls.info.First().URI);
-        return await _downloader.Download(message, destination, job, token);
+        if (IsManualDebugMode || await _api.IsPremium(token))
+        {
+            return await DownloadManually(archive, state, destination, job, token);
+        }
+        else
+        {
+            try
+            {
+                var urls = await _api.DownloadLink(state.Game.MetaData().NexusName!, state.ModID, state.FileID, token);
+                _logger.LogInformation("Downloading Nexus File: {game}|{modid}|{fileid}", state.Game, state.ModID,
+                    state.FileID);
+                var message = new HttpRequestMessage(HttpMethod.Get, urls.info.First().URI);
+                return await _downloader.Download(message, destination, job, token);
+            }
+            catch (HttpRequestException ex)
+            {
+                if (ex.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    return await DownloadManually(archive, state, destination, job, token);
+                }
+
+                throw;
+            }
+        }
+    }
+
+    private async Task<Hash> DownloadManually(Archive archive, Nexus state, AbsolutePath destination, IJob job, CancellationToken token)
+    {
+        var md = new ManualDownload(new Archive
+        {
+            Name = archive.Name,
+            Hash = archive.Hash,
+            Meta = archive.Meta,
+            Size = archive.Size,
+            State = new Manual
+            {
+                Prompt = "Click Download - Buy Nexus Premium to automate this process",
+                Url = new Uri($"https://www.nexusmods.com/{state.Game.MetaData().NexusName}/mods/{state.ModID}?tab=files&file_id={state.FileID}")
+            }
+        });
+
+        ManualDownload.BrowserDownloadState browserState;
+        using (var _ = await _interventionLimiter.Begin("Downloading file manually", 1, token))
+        {
+            _userInterventionHandler.Raise(md);
+            browserState = await md.Task;
+        }
+
+        
+        var msg = browserState.ToHttpRequestMessage();
+        
+        using var response = await _client.SendAsync(msg, HttpCompletionOption.ResponseHeadersRead, token);
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException(response.ReasonPhrase, null, statusCode:response.StatusCode);
+
+        await using var strm = await response.Content.ReadAsStreamAsync(token);
+        await using var os = destination.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+        return await strm.HashingCopy(os, token, job);
     }
 
     public override async Task<bool> Verify(Archive archive, Nexus state, IJob job, CancellationToken token)

@@ -26,7 +26,7 @@ public class AUserIntervention<T> : IUserIntervention
 
     public void Finish(T value)
     {
-        _tcs.SetResult(value);
+        _tcs.TrySetResult(value);
         _ct.Cancel();
     }
     

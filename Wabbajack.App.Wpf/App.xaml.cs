@@ -8,6 +8,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.Interventions;
+using Wabbajack.Interventions;
 using Wabbajack.LoginManagers;
 using Wabbajack.Models;
 using Wabbajack.Services.OSIntegrated;
@@ -46,9 +48,11 @@ namespace Wabbajack
             services.AddOSIntegrated();
 
             services.AddSingleton<CefService>();
+            services.AddSingleton<IUserInterventionHandler, UserInteventionHandler>();
             
             services.AddTransient<MainWindow>();
             services.AddTransient<MainWindowVM>();
+            services.AddTransient<BrowserWindow>();
             services.AddSingleton<SystemParametersConstructor>();
             services.AddSingleton<LauncherUpdater>();
             services.AddSingleton<ResourceMonitor>();
@@ -73,6 +77,8 @@ namespace Wabbajack
             services.AddAllSingleton<INeedsLogin, LoversLabLoginManager>();
             services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
             services.AddAllSingleton<INeedsLogin, VectorPlexusLoginManager>();
+            services.AddSingleton<ManualDownloadHandler>();
+            services.AddSingleton<ManualBlobDownloadHandler>();
             
             return services;
         }

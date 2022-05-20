@@ -6,6 +6,8 @@ using System.Windows.Media.Imaging;
 using ReactiveUI.Fody.Helpers;
 using DynamicData;
 using System.Reactive;
+using System.Reactive.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Shell;
@@ -112,6 +114,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     // Command properties
     public ReactiveCommand<Unit, Unit> ShowManifestCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenReadmeCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenDiscordButton { get; }
     public ReactiveCommand<Unit, Unit> VisitModListWebsiteCommand { get; }
         
     public ReactiveCommand<Unit, Unit> CloseWhenCompleteCommand { get; }
@@ -162,6 +165,25 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         OpenLogsCommand = ReactiveCommand.Create(() =>
         {
             UIUtils.OpenFolder(_configuration.LogLocation);
+        });
+
+        OpenDiscordButton = ReactiveCommand.Create(() =>
+        {
+            UIUtils.OpenWebsite(new Uri(ModlistMetadata.Links.DiscordURL));
+        }, this.WhenAnyValue(x => x.ModlistMetadata)
+            .WhereNotNull()
+            .Select(md => !string.IsNullOrWhiteSpace(md.Links.DiscordURL)));
+        
+        ShowManifestCommand = ReactiveCommand.Create(() =>
+        {
+            UIUtils.OpenWebsite(new Uri("https://www.wabbajack.org/search/" + ModlistMetadata.NamespacedName));
+        }, this.WhenAnyValue(x => x.ModlistMetadata)
+            .WhereNotNull()
+            .Select(md => !string.IsNullOrWhiteSpace(md.Links.MachineURL)));
+
+        CloseWhenCompleteCommand = ReactiveCommand.Create(() =>
+        {
+            Environment.Exit(0);
         });
         
         GoToInstallCommand = ReactiveCommand.Create(() =>
@@ -214,6 +236,20 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             var hex = (await ModListLocation.TargetPath.ToString().Hash()).ToHex();
             var prevSettings = await _settingsManager.Load<SavedInstallSettings>(InstallSettingsPrefix + hex);
 
+            if (path.WithExtension(Ext.MetaData).FileExists())
+            {
+                try
+                {
+                    metadata = JsonSerializer.Deserialize<ModlistMetadata>(await path.WithExtension(Ext.MetaData)
+                        .ReadAllTextAsync());
+                    ModlistMetadata = metadata;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInformation(ex, "Can't load metadata cached next to file");
+                }
+            }
+
             if (prevSettings.ModListLocation == path)
             {
                 ModListLocation.TargetPath = prevSettings.ModListLocation;
@@ -236,48 +272,61 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
 
     private async Task BeginInstall()
     {
-        InstallState = InstallState.Installing;
-        var postfix = (await ModListLocation.TargetPath.ToString().Hash()).ToHex();
-        await _settingsManager.Save(InstallSettingsPrefix + postfix, new SavedInstallSettings
+        await Task.Run(async () =>
         {
-            ModListLocation = ModListLocation.TargetPath,
-            InstallLocation = Installer.Location.TargetPath,
-            DownloadLoadction = Installer.DownloadLocation.TargetPath,
-            Metadata = ModlistMetadata
-        });
-
-        try
-        {
-            var installer = StandardInstaller.Create(_serviceProvider, new InstallerConfiguration
+            InstallState = InstallState.Installing;
+            var postfix = (await ModListLocation.TargetPath.ToString().Hash()).ToHex();
+            await _settingsManager.Save(InstallSettingsPrefix + postfix, new SavedInstallSettings
             {
-                Game = ModList.GameType,
-                Downloads = Installer.DownloadLocation.TargetPath,
-                Install = Installer.Location.TargetPath,
-                ModList = ModList,
-                ModlistArchive = ModListLocation.TargetPath,
-                SystemParameters = _parametersConstructor.Create(),
-                GameFolder = _gameLocator.GameLocation(ModList.GameType)
+                ModListLocation = ModListLocation.TargetPath,
+                InstallLocation = Installer.Location.TargetPath,
+                DownloadLoadction = Installer.DownloadLocation.TargetPath,
+                Metadata = ModlistMetadata
             });
 
-
-            installer.OnStatusUpdate = update =>
+            try
             {
-                StatusText = update.StatusText;
-                StatusProgress = update.StepsProgress;
+                var installer = StandardInstaller.Create(_serviceProvider, new InstallerConfiguration
+                {
+                    Game = ModList.GameType,
+                    Downloads = Installer.DownloadLocation.TargetPath,
+                    Install = Installer.Location.TargetPath,
+                    ModList = ModList,
+                    ModlistArchive = ModListLocation.TargetPath,
+                    SystemParameters = _parametersConstructor.Create(),
+                    GameFolder = _gameLocator.GameLocation(ModList.GameType)
+                });
 
-                TaskBarUpdate.Send(update.StatusText, TaskbarItemProgressState.Indeterminate, update.StepsProgress.Value);
-            };
-            await installer.Begin(CancellationToken.None);
-            
-            TaskBarUpdate.Send($"Finished install of {ModList.Name}", TaskbarItemProgressState.Normal);
 
-            InstallState = InstallState.Success;
-        }
-        catch (Exception ex)
-        {
-            TaskBarUpdate.Send($"Error during install of {ModList.Name}", TaskbarItemProgressState.Error);
-            InstallState = InstallState.Failure;
-        }
+                installer.OnStatusUpdate = update =>
+                {
+                    StatusText = update.StatusText;
+                    StatusProgress = update.StepsProgress;
+
+                    TaskBarUpdate.Send(update.StatusText, TaskbarItemProgressState.Indeterminate,
+                        update.StepsProgress.Value);
+                };
+                if (!await installer.Begin(CancellationToken.None))
+                {
+                    TaskBarUpdate.Send($"Error during install of {ModList.Name}", TaskbarItemProgressState.Error);
+                    InstallState = InstallState.Failure;
+                    StatusText = $"Error during install of {ModList.Name}";
+                    StatusProgress = Percent.Zero;
+                }
+                else
+                {
+                    TaskBarUpdate.Send($"Finished install of {ModList.Name}", TaskbarItemProgressState.Normal);
+                    InstallState = InstallState.Success;
+                }
+            }
+            catch (Exception ex)
+            {
+                TaskBarUpdate.Send($"Error during install of {ModList.Name}", TaskbarItemProgressState.Error);
+                InstallState = InstallState.Failure;
+                StatusText = $"Error during install of {ModList.Name}";
+                StatusProgress = Percent.Zero;
+            }
+        });
 
     }
 

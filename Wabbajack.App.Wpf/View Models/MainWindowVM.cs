@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack;
+using Wabbajack.DTOs.Interventions;
 using Wabbajack.Interventions;
 using Wabbajack.LoginManagers;
 using Wabbajack.Messages;
@@ -66,6 +67,9 @@ namespace Wabbajack
         
         [Reactive]
         public string ResourceStatus { get; set; }
+        
+        [Reactive]
+        public string AppName { get; set; }
 
         [Reactive]
         public bool UpdateAvailable { get; private set; }
@@ -100,17 +104,10 @@ namespace Wabbajack
             MessageBus.Current.Listen<NavigateBack>()
                 .Subscribe(HandleNavigateBack)
                 .DisposeWith(CompositeDisposable);
-
-            MessageBus.Current.Listen<NexusLogin>()
-                .Subscribe(HandleLogin)
-                .DisposeWith(CompositeDisposable);
             
-            MessageBus.Current.Listen<LoversLabLogin>()
-                .Subscribe(HandleLogin)
-                .DisposeWith(CompositeDisposable);
-            
-            MessageBus.Current.Listen<VectorPlexusLogin>()
-                .Subscribe(HandleLogin)
+            MessageBus.Current.Listen<SpawnBrowserWindow>()
+                .ObserveOnGuiThread()
+                .Subscribe(HandleSpawnBrowserWindow)
                 .DisposeWith(CompositeDisposable);
 
             _resourceMonitor.Updates
@@ -136,6 +133,7 @@ namespace Wabbajack
                 var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
                 Consts.CurrentMinimumWabbajackVersion = Version.Parse(fvi.FileVersion);
                 VersionDisplay = $"v{fvi.FileVersion}";
+                AppName = "WABBAJACK " + VersionDisplay;
                 _logger.LogInformation("Wabbajack Version: {FileVersion}", fvi.FileVersion);
                 
                 Task.Run(() => _wjClient.SendMetric("started_wabbajack", fvi.FileVersion)).FireAndForget();
@@ -161,30 +159,32 @@ namespace Wabbajack
 
             ActivePane = objViewModel;
         }
-
-        private void HandleLogin(NexusLogin nexusLogin)
-        {
-            var handler = _serviceProvider.GetRequiredService<NexusLoginHandler>();
-            handler.RunWrapper(CancellationToken.None).FireAndForget();
-        }
         
-        private void HandleLogin(LoversLabLogin loversLabLogin)
-        {
-            var handler = _serviceProvider.GetRequiredService<LoversLabLoginHandler>();
-            handler.RunWrapper(CancellationToken.None).FireAndForget();
-        }
-        
-        private void HandleLogin(VectorPlexusLogin vectorPlexusLogin)
-        {
-            var handler = _serviceProvider.GetRequiredService<VectorPlexusLoginHandler>();
-            handler.RunWrapper(CancellationToken.None).FireAndForget();
-
-        }
-
         private void HandleNavigateBack(NavigateBack navigateBack)
         {
             ActivePane = PreviousPanes.Last();
             PreviousPanes.RemoveAt(PreviousPanes.Count - 1);
+        }
+        
+        private void HandleManualDownload(ManualDownload manualDownload)
+        {
+            var handler = _serviceProvider.GetRequiredService<ManualDownloadHandler>();
+            handler.Intervention = manualDownload;
+            //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
+        }
+        
+        private void HandleManualBlobDownload(ManualBlobDownload manualDownload)
+        {
+            var handler = _serviceProvider.GetRequiredService<ManualBlobDownloadHandler>();
+            handler.Intervention = manualDownload;
+            //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
+        }
+        
+        private void HandleSpawnBrowserWindow(SpawnBrowserWindow msg)
+        {
+            var window = _serviceProvider.GetRequiredService<BrowserWindow>();
+            window.DataContext = msg.Vm;
+            window.Show();
         }
 
         private void HandleNavigateTo(NavigateToGlobal.ScreenType s)

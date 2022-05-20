@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.Common;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.CDN;
@@ -33,12 +34,14 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader,
     private readonly DTOSerializer _dtos;
     private readonly ILogger<WabbajackCDNDownloader> _logger;
     private readonly ParallelOptions _parallelOptions;
+    private readonly IResource<HttpClient> _limiter;
 
-    public WabbajackCDNDownloader(ILogger<WabbajackCDNDownloader> logger, HttpClient client, DTOSerializer dtos)
+    public WabbajackCDNDownloader(ILogger<WabbajackCDNDownloader> logger, HttpClient client, IResource<HttpClient> limiter,  DTOSerializer dtos)
     {
         _client = client;
         _logger = logger;
         _dtos = dtos;
+        _limiter = limiter;
     }
 
     public override Task<bool> Prepare()
@@ -78,8 +81,11 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader,
         var definition = (await GetDefinition(state, token))!;
         await using var fs = destination.Open(FileMode.Create, FileAccess.Write, FileShare.None);
 
-        foreach (var part in definition.Parts)
+        await definition.Parts.PMapAll(async part =>
         {
+            using var partJob = await _limiter.Begin(
+                $"Downloading {definition.MungedName} ({part.Index}/{definition.Size})",
+                part.Size, token);
             var msg = MakeMessage(new Uri(state.Url + $"/parts/{part.Index}"));
             using var response = await _client.SendAsync(msg, HttpCompletionOption.ResponseHeadersRead, token);
             if (!response.IsSuccessStatusCode)
@@ -92,12 +98,26 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader,
 
             await using var data = await response.Content.ReadAsStreamAsync(token);
 
-            fs.Position = part.Offset;
-            var hash = await data.HashingCopy(fs, token, job);
+            var ms = new MemoryStream();
+            var hash = await data.HashingCopy(ms, token, partJob);
+            ms.Position = 0;
             if (hash != part.Hash)
-                throw new InvalidDataException($"Bad part hash, got {hash} expected {part.Hash} for part {part.Index}");
+            {
+                throw new Exception(
+                    $"Invalid part hash {part.Index} got {hash} instead of {part.Hash} for {definition.MungedName}");
+            }
+
+            return (ms, part);
+
+
+        }).Do(async rec =>
+        {
+            var (ms, part) = rec;
+            fs.Position = part.Offset;
+            await job.Report((int)part.Size, token);
+            await ms.CopyToAsync(fs, token);
             await fs.FlushAsync(token);
-        }
+        });
 
         return definition.Hash;
     }

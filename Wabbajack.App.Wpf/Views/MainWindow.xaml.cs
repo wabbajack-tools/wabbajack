@@ -1,16 +1,24 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using DynamicData;
+using DynamicData.Binding;
 using MahApps.Metro.Controls;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.DTOs.Interventions;
 using Wabbajack.Messages;
 using Wabbajack.Paths.IO;
+using Wabbajack.UserIntervention;
 using Wabbajack.Util;
 using Wabbajack.Views;
 
@@ -26,12 +34,13 @@ namespace Wabbajack
         private readonly ILogger<MainWindow> _logger;
         private readonly SystemParametersConstructor _systemParams;
 
+        private ObservableCollection<ViewModel> TabVMs = new ObservableCollectionExtended<ViewModel>();
+
         public MainWindow(ILogger<MainWindow> logger, SystemParametersConstructor systemParams, LauncherUpdater updater, MainWindowVM vm)
         {
             InitializeComponent();
             _mwvm = vm;
-            DataContext = _mwvm;
-            
+            DataContext = vm;
             _logger = logger;
             _systemParams = systemParams;
             try
@@ -45,6 +54,7 @@ namespace Wabbajack
                 };
 
                 MessageBus.Current.Listen<TaskBarUpdate>()
+                    .ObserveOnGuiThread()
                     .Subscribe(u =>
                     {
                         TaskbarItemInfo.Description = u.Description;
@@ -52,11 +62,6 @@ namespace Wabbajack
                         TaskbarItemInfo.ProgressState = u.State;
                     });
 
-                MessageBus.Current.Listen<OpenBrowserTab>()
-                    .Subscribe(OnOpenBrowserTab);
-                
-                MessageBus.Current.Listen<CloseBrowserTab>()
-                    .Subscribe(OnCloseBrowserTab);
 
                 _logger.LogInformation("Wabbajack Build - {Sha}",ThisAssembly.Git.Sha);
                 _logger.LogInformation("Running in {EntryPoint}", KnownFolders.EntryPoint);
@@ -107,21 +112,19 @@ namespace Wabbajack
 
                 ((MainWindowVM) DataContext).WhenAnyValue(vm => vm.OpenSettingsCommand)
                     .BindTo(this, view => view.SettingsButton.Command);
+                    
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "During Main Window Startup");
                 Environment.Exit(-1);
             }
-            
-                        
+
             vm.WhenAnyValue(vm => vm.ResourceStatus)
                 .BindToStrict(this, view => view.ResourceUsage.Text);
-
-            vm.WhenAnyValue(vm => vm.ResourceStatus)
-                .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)
-                .BindToStrict(this, view => view.ResourceUsage.Visibility);
-
+            vm.WhenAnyValue(vm => vm.AppName)
+                .BindToStrict(this, view => view.AppName.Text);
+            
         }
 
         public void Init(MainWindowVM vm, MainSettings settings)
@@ -199,22 +202,6 @@ namespace Wabbajack
         {
             this.DragMove();
         }
-        
-        private void OnOpenBrowserTab(OpenBrowserTab msg)
-        {
-            var tab = new BrowserTabView(msg.ViewModel);
-            Tabs.Items.Add(tab);
-            Tabs.SelectedItem = tab;
-        }
-        
-        private void OnCloseBrowserTab(CloseBrowserTab msg)
-        {
-            foreach (var tab in Tabs.Items.OfType<BrowserTabView>())
-            {
-                if (tab.DataContext != msg.ViewModel) continue;
-                Tabs.Items.Remove(tab);
-                break;
-            }
-        }
+
     }
 }

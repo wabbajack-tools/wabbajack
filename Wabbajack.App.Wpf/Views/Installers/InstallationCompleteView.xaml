@@ -24,7 +24,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4"
+            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5"
                 x:Name="TitleText"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"

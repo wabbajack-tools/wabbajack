@@ -15,6 +15,7 @@ using Wabbajack;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.Interventions;
+using Wabbajack.Paths;
 using Wabbajack.Util;
 
 namespace Wabbajack
@@ -53,6 +54,15 @@ namespace Wabbajack
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Installation Directory",
             };
+            Location.WhenAnyValue(t => t.TargetPath)
+                .Subscribe(newPath =>
+                {
+                    if (newPath != default && DownloadLocation!.TargetPath == AbsolutePath.Empty)
+                    {
+                        DownloadLocation.TargetPath = newPath.Combine("downloads");
+                    }
+                }).DisposeWith(CompositeDisposable);
+                
             DownloadLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.Off,

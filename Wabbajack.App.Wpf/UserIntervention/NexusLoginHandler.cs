@@ -12,7 +12,7 @@ using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.UserIntervention;
 
-public class NexusLoginHandler : BrowserTabViewModel
+public class NexusLoginHandler : BrowserWindowViewModel
 {
     private readonly EncryptedJsonTokenProvider<NexusApiState> _tokenProvider;
 

@@ -31,7 +31,7 @@ namespace Wabbajack
                     .DisposeWith(disposables);
 
                 ViewModel.WhenAnyValue(vm => vm.InstallState)
-                    .Select(es => es == InstallState.Success ? Visibility.Visible : Visibility.Collapsed)
+                    .Select(es => es is InstallState.Success or InstallState.Failure ? Visibility.Visible : Visibility.Collapsed)
                     .BindToStrict(this, view => view.InstallComplete.Visibility)
                     .DisposeWith(disposables);
 
@@ -42,9 +42,21 @@ namespace Wabbajack
                 ViewModel.WhenAnyValue(vm => vm.OpenReadmeCommand)
                     .BindToStrict(this, view => view.OpenReadmePreInstallButton.Command)
                     .DisposeWith(disposables);
+                
+                ViewModel.WhenAnyValue(vm => vm.OpenDiscordButton)
+                    .BindToStrict(this, view => view.OpenDiscordPreInstallButton.Command)
+                    .DisposeWith(disposables);
 
                 ViewModel.WhenAnyValue(vm => vm.VisitModListWebsiteCommand)
                     .BindToStrict(this, view => view.OpenWebsite.Command)
+                    .DisposeWith(disposables);
+                
+                ViewModel.WhenAnyValue(vm => vm.VisitModListWebsiteCommand)
+                    .BindToStrict(this, view => view.VisitWebsitePreInstallButton.Command)
+                    .DisposeWith(disposables);
+                
+                ViewModel.WhenAnyValue(vm => vm.ShowManifestCommand)
+                    .BindToStrict(this, view => view.ShowManifestPreInstallButton.Command)
                     .DisposeWith(disposables);
 
                 ViewModel.WhenAnyValue(vm => vm.LoadingLock.IsLoading)
