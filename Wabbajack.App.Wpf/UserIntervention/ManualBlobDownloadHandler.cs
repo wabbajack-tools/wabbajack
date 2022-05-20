@@ -5,7 +5,7 @@ using Wabbajack.DTOs.Interventions;
 
 namespace Wabbajack.UserIntervention;
 
-public class ManualBlobDownloadHandler : BrowserTabViewModel
+public class ManualBlobDownloadHandler : BrowserWindowViewModel
 {
     public ManualBlobDownload Intervention { get; set; }
 

@@ -8,7 +8,7 @@ using Wabbajack.Paths;
 
 namespace Wabbajack.UserIntervention;
 
-public class ManualDownloadHandler : BrowserTabViewModel
+public class ManualDownloadHandler : BrowserWindowViewModel
 {
     public ManualDownload Intervention { get; set; }
 

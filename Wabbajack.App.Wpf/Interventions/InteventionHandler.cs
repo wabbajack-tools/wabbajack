@@ -1,16 +1,21 @@
+using System;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.DTOs.Interventions;
+using Wabbajack.UserIntervention;
 
 namespace Wabbajack.Interventions;
 
-public class InteventionHandler : IUserInterventionHandler
+public class UserInteventionHandler : IUserInterventionHandler
 {
-    private readonly ILogger<InteventionHandler> _logger;
+    private readonly ILogger<UserInteventionHandler> _logger;
+    private readonly IServiceProvider _serviceProvider;
 
-    public InteventionHandler(ILogger<InteventionHandler> logger)
+    public UserInteventionHandler(ILogger<UserInteventionHandler> logger, IServiceProvider serviceProvider)
     {
         _logger = logger;
+        _serviceProvider = serviceProvider;
     }
     public void Raise(IUserIntervention intervention)
     {
@@ -18,7 +23,11 @@ public class InteventionHandler : IUserInterventionHandler
         {
             // Recast these or they won't be properly handled by the message bus
             case ManualDownload md:
-                MessageBus.Current.SendMessage(md);
+                var view = new BrowserWindow();
+                var provider = _serviceProvider.GetRequiredService<ManualDownloadHandler>();
+                view.DataContext = provider;
+                provider.Intervention = md;
+                view.Show();
                 break;
             case ManualBlobDownload bd:
                 MessageBus.Current.SendMessage(bd);

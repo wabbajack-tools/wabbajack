@@ -52,12 +52,22 @@ public class NexusLoginManager : ViewModel, INeedsLogin
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
         {
             _logger.LogInformation("Logging into {SiteName}", SiteName); 
-            MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<NexusLoginHandler>()));
+            //MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<NexusLoginHandler>()));
+            StartLogin();
         }, this.WhenAnyValue(v => v.HaveLogin).Select(v => !v));
 
         MessageBus.Current.Listen<CloseBrowserTab>()
             .Subscribe(x => RefreshTokenState())
             .DisposeWith(CompositeDisposable);
+    }
+
+    private void StartLogin()
+    {
+        var view = new BrowserWindow();
+        view.Closed += (sender, args) => { RefreshTokenState(); };
+        var provider = _serviceProvider.GetRequiredService<NexusLoginHandler>();
+        view.DataContext = provider;
+        view.Show();
     }
 
     private void RefreshTokenState()

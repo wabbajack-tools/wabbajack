@@ -8,38 +8,7 @@
              xmlns:viewModels="clr-namespace:Wabbajack.View_Models"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"></RowDefinition>
-                        <RowDefinition Height="Auto"></RowDefinition>
-                    </Grid.RowDefinitions>
-                    <ContentPresenter Grid.Row="0" Content="{Binding ActivePane}">
-                        <ContentPresenter.Resources>
-                            <DataTemplate DataType="{x:Type local:CompilerVM}">
-                                <local:CompilerView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:InstallerVM}">
-                                <local:InstallationView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
-                                <local:ModeSelectionView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
-                                <local:ModListGalleryView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:WebBrowserVM}">
-                                <local:WebBrowserView />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:SettingsVM}">
-                                <local:SettingsView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type viewModels:ModListContentsVM}">
-                                <local:ModListContentsView ViewModel="{Binding}" />
-                            </DataTemplate>
-                        </ContentPresenter.Resources>
-                    </ContentPresenter>
-                    <TextBlock Grid.Row="1" Margin="5, 0" Name="ResourceUsage" HorizontalAlignment="Right"></TextBlock>
-                </Grid>
+ 
     
     <!--
             <TabItem>

@@ -40,12 +40,7 @@ namespace Wabbajack
         {
             InitializeComponent();
             _mwvm = vm;
-            Tabs.ItemsSource = TabVMs;
-            TabVMs.Add(vm);
-            
-            TabVMs.Add(new ManualDownloadHandler() {Intervention = new ManualDownload(new Archive() {State = new Manual(){Url = new Uri("https://www.wabbajack.org")}})});
-            Tabs.SelectedItem = TabVMs.Last();
-            
+            DataContext = vm;
             _logger = logger;
             _systemParams = systemParams;
             try
@@ -121,10 +116,10 @@ namespace Wabbajack
                 {
                     this.Topmost = false;
                 };
-/*
+
                 ((MainWindowVM) DataContext).WhenAnyValue(vm => vm.OpenSettingsCommand)
                     .BindTo(this, view => view.SettingsButton.Command);
-                    */
+                    
             }
             catch (Exception ex)
             {
@@ -227,12 +222,13 @@ namespace Wabbajack
         
         private void OnCloseBrowserTab(CloseBrowserTab msg)
         {
+            /*
             foreach (var tab in Tabs.Items.OfType<BrowserTabView>())
             {
                 if (tab.DataContext != msg.ViewModel) continue;
                 Tabs.Items.Remove(tab);
                 break;
-            }
+            }*/
         }
     }
 }

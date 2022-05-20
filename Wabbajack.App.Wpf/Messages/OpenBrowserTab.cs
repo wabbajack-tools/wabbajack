@@ -2,9 +2,9 @@ namespace Wabbajack.Messages;
 
 public class OpenBrowserTab
 {
-    public BrowserTabViewModel ViewModel { get; set; }
+    public BrowserWindowViewModel ViewModel { get; set; }
 
-    public OpenBrowserTab(BrowserTabViewModel viewModel)
+    public OpenBrowserTab(BrowserWindowViewModel viewModel)
     {
         ViewModel = viewModel;
     }

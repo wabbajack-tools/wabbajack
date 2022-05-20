@@ -56,9 +56,17 @@ public class LoversLabLoginManager : ViewModel, INeedsLogin
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
         {
             _logger.LogInformation("Logging into {SiteName}", SiteName);
-            
-            MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<LoversLabLoginHandler>()));
+            StartLogin();
         }, this.WhenAnyValue(v => v.HaveLogin).Select(v => !v));
+    }
+    
+    private void StartLogin()
+    {
+        var view = new BrowserWindow();
+        view.Closed += (sender, args) => { RefreshTokenState(); };
+        var provider = _serviceProvider.GetRequiredService<LoversLabLoginHandler>();
+        view.DataContext = provider;
+        view.Show();
     }
 
     private void RefreshTokenState()

@@ -181,13 +181,13 @@ namespace Wabbajack
         private void HandleLogin(LoversLabLogin loversLabLogin)
         {
             var handler = _serviceProvider.GetRequiredService<LoversLabLoginHandler>();
-            handler.RunWrapper(CancellationToken.None).FireAndForget();
+            //handler.RunWrapper(CancellationToken.None).FireAndForget();
         }
         
         private void HandleLogin(VectorPlexusLogin vectorPlexusLogin)
         {
             var handler = _serviceProvider.GetRequiredService<VectorPlexusLoginHandler>();
-            handler.RunWrapper(CancellationToken.None).FireAndForget();
+            //handler.RunWrapper(CancellationToken.None).FireAndForget();
         }
 
         private void HandleNavigateBack(NavigateBack navigateBack)
@@ -200,14 +200,14 @@ namespace Wabbajack
         {
             var handler = _serviceProvider.GetRequiredService<ManualDownloadHandler>();
             handler.Intervention = manualDownload;
-            MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
+            //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
         }
         
         private void HandleManualBlobDownload(ManualBlobDownload manualDownload)
         {
             var handler = _serviceProvider.GetRequiredService<ManualBlobDownloadHandler>();
             handler.Intervention = manualDownload;
-            MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
+            //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
         }
 
         private void HandleNavigateTo(NavigateToGlobal.ScreenType s)

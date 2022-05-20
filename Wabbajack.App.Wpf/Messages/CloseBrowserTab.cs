@@ -2,9 +2,9 @@ namespace Wabbajack.Messages;
 
 public class CloseBrowserTab
 {
-    public BrowserTabViewModel ViewModel { get; init; }
+    public BrowserWindowViewModel ViewModel { get; init; }
 
-    public CloseBrowserTab(BrowserTabViewModel viewModel)
+    public CloseBrowserTab(BrowserWindowViewModel viewModel)
     {
         ViewModel = viewModel;
     }

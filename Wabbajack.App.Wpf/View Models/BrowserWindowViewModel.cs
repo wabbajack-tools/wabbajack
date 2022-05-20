@@ -18,20 +18,20 @@ using Wabbajack.Views;
 
 namespace Wabbajack;
 
-public abstract class BrowserTabViewModel : ViewModel
+public abstract class BrowserWindowViewModel : ViewModel
 {
     [Reactive] public string HeaderText { get; set; }
 
     [Reactive] public string Instructions { get; set; }
 
-    public BrowserView? Browser { get; set; }
+    public BrowserWindow? Browser { get; set; }
 
     private WebView2 _browser => Browser!.Browser;
 
     public async Task RunWrapper(CancellationToken token)
     {
         await Run(token);
-        MessageBus.Current.SendMessage(new CloseBrowserTab(this));
+        //MessageBus.Current.SendMessage(new CloseBrowserTab(this));
     }
 
     protected abstract Task Run(CancellationToken token);
