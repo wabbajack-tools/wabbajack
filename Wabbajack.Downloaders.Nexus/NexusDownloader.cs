@@ -166,7 +166,7 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
         
         var msg = browserState.ToHttpRequestMessage();
         
-        using var response = await _client.SendAsync(msg, token);
+        using var response = await _client.SendAsync(msg, HttpCompletionOption.ResponseHeadersRead, token);
         if (!response.IsSuccessStatusCode)
             throw new HttpRequestException(response.ReasonPhrase, null, statusCode:response.StatusCode);
 

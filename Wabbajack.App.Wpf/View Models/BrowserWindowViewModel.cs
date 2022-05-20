@@ -115,9 +115,9 @@ public abstract class BrowserWindowViewModel : ViewModel
             {
                 source.SetCanceled();
             }
-
-            args.Handled = true;
+            
             args.Cancel = true;
+            args.Handled = true;
         };
 
         var uri = await source.Task.WaitAsync(token);
