@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="LibSassBuilder" Version="2.0.1"/>
+        <PackageReference Include="AspNetCore.SassCompiler" Version="1.52.1"/>
         <PackageReference Include="Blazored.Modal" Version="6.0.1"/>
         <PackageReference Include="Blazored.Toast" Version="3.2.2"/>
         <PackageReference Include="DynamicData" Version="7.6.5"/>
@@ -65,21 +65,4 @@
         <Folder Include="wwwroot\images\icons\socials"/>
     </ItemGroup>
 
-    <PropertyGroup>
-        <EnableDefaultSassItems>false</EnableDefaultSassItems>
-        <LibSassOutputStyle>expanded</LibSassOutputStyle>
-        <LibSassOutputLevel>verbose</LibSassOutputLevel>
-        <LibSassMessageLevel>High</LibSassMessageLevel>
-    </PropertyGroup>
-
-    <!--    <ItemGroup>-->
-    <!--        <SassFile Include="Components/**/*.scss" Watch="false"/>-->
-    <!--        <SassFile Include="Pages/**/*.scss" Watch="false"/>-->
-    <!--        <SassFile Include="Shared/**/*.scss" Exclude="Shared/Globals.scss" Watch="false"/>-->
-    <!--    </ItemGroup>-->
-
-    <ItemGroup>
-        <Content Remove="**/*.scss"/>
-        <Content Include="**/*.scss" Watch="false"/>
-    </ItemGroup>
 </Project>
