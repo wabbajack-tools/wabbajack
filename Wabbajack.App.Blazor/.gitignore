@@ -1,3 +1,7 @@
-﻿.sonarqube
+﻿# Generated CSS files.
 **/*.css
 **/*.css.map
+
+# Node related files. (Used in dev for sass watcher and stylelint.) these are NOT required.
+node_modules
+package-lock.json

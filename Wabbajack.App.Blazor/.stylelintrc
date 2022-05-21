@@ -1,0 +1,21 @@
+{
+    "extends": ["stylelint-config-hudochenkov/full", "stylelint-config-standard-scss"],
+    "overrides": [
+        {
+            "files": ["*.scss", "**/*.scss"],
+            "customSyntax": "postcss-scss"
+        }
+    ],
+    "rules": {
+        "indentation": 2,
+        "linebreaks": "windows",
+        "selector-max-id": 1,
+        "selector-max-type": 2,
+        "at-rule-no-unknown": [true, {
+            "ignoreAtRules": ["function", "if", "each", "include", "mixin"]
+        }],
+        "selector-no-qualifying-type": [true, {
+            "ignore": ["attribute"]
+        }]
+    }
+}
