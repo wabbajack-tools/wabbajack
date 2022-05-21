@@ -48,6 +48,11 @@ public partial class BrowserWindow : MetroWindow
             Clipboard.SetText(vm.Address.ToString());
         });
         
+        this.BackButton.Command = ReactiveCommand.Create(() =>
+        {
+            Browser.GoBack();
+        });
+        
         vm.RunWrapper(CancellationToken.None)
             .ContinueWith(_ => Dispatcher.Invoke(Close));
     }
