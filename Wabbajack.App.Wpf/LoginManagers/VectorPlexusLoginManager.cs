@@ -65,7 +65,7 @@ public class VectorPlexusLoginManager : ViewModel, INeedsLogin
     {
         var view = new BrowserWindow();
         view.Closed += (sender, args) => { RefreshTokenState(); };
-        var provider = _serviceProvider.GetRequiredService<VectorPlexusLoginManager>();
+        var provider = _serviceProvider.GetRequiredService<VectorPlexusLoginHandler>();
         view.DataContext = provider;
         view.Show();
     }

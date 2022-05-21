@@ -23,6 +23,8 @@ public abstract class BrowserWindowViewModel : ViewModel
     [Reactive] public string HeaderText { get; set; }
 
     [Reactive] public string Instructions { get; set; }
+    
+    [Reactive] public string Address { get; set; }
 
     public BrowserWindow? Browser { get; set; }
 
@@ -47,6 +49,7 @@ public abstract class BrowserWindowViewModel : ViewModel
     public async Task NavigateTo(Uri uri)
     {
         var tcs = new TaskCompletionSource();
+        Address = uri.ToString();
 
         void Completed(object? o, CoreWebView2NavigationCompletedEventArgs a)
         {
@@ -56,7 +59,7 @@ public abstract class BrowserWindowViewModel : ViewModel
             }
             else
             {
-                if (a.WebErrorStatus == CoreWebView2WebErrorStatus.ConnectionAborted)
+                if (a.WebErrorStatus is CoreWebView2WebErrorStatus.ConnectionAborted or CoreWebView2WebErrorStatus.Unknown )
                 {
                     tcs.TrySetResult();
                 }

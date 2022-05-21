@@ -39,7 +39,7 @@
                            <ColumnDefinition Width="140"></ColumnDefinition>
                        </Grid.ColumnDefinitions>
                        <TextBlock Grid.Column="0" FontSize="16" Margin="0, 0, 8, 0" Name="AppName"></TextBlock>
-                       <TextBlock Grid.Column="1" Margin="5, 0" Name="ResourceUsage" HorizontalAlignment="Right"></TextBlock>
+                       <TextBlock Grid.Column="1" FontSize="16" Margin="5, 0" Name="ResourceUsage" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
                        <Button Grid.Column="2" Name="SettingsButton">
                            <icon:Material Kind="Cog"></icon:Material>
                        </Button>

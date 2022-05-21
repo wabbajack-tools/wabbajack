@@ -39,7 +39,8 @@ public abstract class OAuth2LoginHandler<TLoginType> : BrowserWindowViewModel
         var tlogin = new TLoginType();
 
         var tcs = new TaskCompletionSource<Uri>();
-        await WaitForReady();
+        await NavigateTo(tlogin.AuthorizationEndpoint);
+        
         Browser!.Browser.CoreWebView2.Settings.UserAgent = "Wabbajack";
         Browser!.Browser.NavigationStarting += (sender, args) =>
         {
@@ -56,7 +57,7 @@ public abstract class OAuth2LoginHandler<TLoginType> : BrowserWindowViewModel
         var state = Guid.NewGuid().ToString();
 
         await NavigateTo(new Uri(tlogin.AuthorizationEndpoint +
-                                         $"?response_type=code&client_id={tlogin.ClientID}&state={state}&scope={scopes}"));
+                                 $"?response_type=code&client_id={tlogin.ClientID}&state={state}&scope={scopes}"));
 
         var uri = await tcs.Task.WaitAsync(token);
 
