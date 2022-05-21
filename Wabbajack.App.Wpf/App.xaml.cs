@@ -48,7 +48,7 @@ namespace Wabbajack
             services.AddOSIntegrated();
 
             services.AddSingleton<CefService>();
-            services.AddSingleton<IUserInterventionHandler, UserInteventionHandler>();
+            services.AddSingleton<IUserInterventionHandler, UserIntreventionHandler>();
             
             services.AddTransient<MainWindow>();
             services.AddTransient<MainWindowVM>();

@@ -10,12 +10,12 @@ using Wabbajack.UserIntervention;
 
 namespace Wabbajack.Interventions;
 
-public class UserInteventionHandler : IUserInterventionHandler
+public class UserIntreventionHandler : IUserInterventionHandler
 {
-    private readonly ILogger<UserInteventionHandler> _logger;
+    private readonly ILogger<UserIntreventionHandler> _logger;
     private readonly IServiceProvider _serviceProvider;
 
-    public UserInteventionHandler(ILogger<UserInteventionHandler> logger, IServiceProvider serviceProvider)
+    public UserIntreventionHandler(ILogger<UserIntreventionHandler> logger, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
