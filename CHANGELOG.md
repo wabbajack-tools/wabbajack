@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.3.16 - 5/22/2022
+* Update to the latest Game Finder library
+
 #### Version - 2.5.3.15 - 5/6/2022
 * Don't rebuild BSAs that haven't changed (requires one more BSA build to cache the data)
 * Added initial support for Dragons Dogma
