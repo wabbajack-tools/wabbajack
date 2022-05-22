@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
 using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Windows.Media.Imaging;
@@ -16,6 +19,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer;
@@ -46,6 +50,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
 {
     private const string LastLoadedModlist = "last-loaded-modlist";
     private const string InstallSettingsPrefix = "install-settings-";
+    private Random _random = new();
     
     
     [Reactive]
@@ -100,15 +105,19 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     private readonly IServiceProvider _serviceProvider;
     private readonly SystemParametersConstructor _parametersConstructor;
     private readonly IGameLocator _gameLocator;
-    private readonly LoggerProvider _loggerProvider;
+    private readonly LogStream _loggerProvider;
     private readonly ResourceMonitor _resourceMonitor;
     private readonly Services.OSIntegrated.Configuration _configuration;
+    private readonly HttpClient _client;
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
 
     [Reactive]
     public bool Installing { get; set; }
     
-    public LoggerProvider LoggerProvider { get; }
+    [Reactive]
+    public bool ShowNSFWSlides { get; set; }
+    
+    public LogStream LoggerProvider { get; }
     
     
     // Command properties
@@ -121,12 +130,12 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     public ReactiveCommand<Unit, Unit> OpenLogsCommand { get; }
     public ReactiveCommand<Unit, Unit> GoToInstallCommand { get; }
     public ReactiveCommand<Unit, Unit> BeginCommand { get; }
-    
     public ReactiveCommand<Unit, Unit> BackCommand { get; }
+    
 
     public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
-        SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LoggerProvider loggerProvider, ResourceMonitor resourceMonitor,
-        Wabbajack.Services.OSIntegrated.Configuration configuration) : base(logger)
+        SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
+        Wabbajack.Services.OSIntegrated.Configuration configuration, HttpClient client) : base(logger)
     {
         _logger = logger;
         _configuration = configuration;
@@ -137,6 +146,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         _parametersConstructor = parametersConstructor;
         _gameLocator = gameLocator;
         _resourceMonitor = resourceMonitor;
+        _client = client;
         
         Installer = new MO2InstallerVM(this);
         
@@ -203,14 +213,28 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
 
         this.WhenActivated(disposables =>
         {
-
-            
             ModListLocation.WhenAnyValue(l => l.TargetPath)
                 .Subscribe(p => LoadModlist(p, null).FireAndForget())
                 .DisposeWith(disposables);
 
+            var token = new CancellationTokenSource();
+            BeginSlideShow(token.Token).FireAndForget();
+            Disposable.Create(() => token.Cancel())
+                .DisposeWith(disposables);
         });
 
+    }
+
+    private async Task BeginSlideShow(CancellationToken token)
+    {
+        while (!token.IsCancellationRequested)
+        {
+            await Task.Delay(5000, token);
+            if (InstallState == InstallState.Installing)
+            {
+                await PopulateNextModSlide(ModList);
+            }
+        }
     }
 
     private async Task LoadLastModlist()
@@ -306,6 +330,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                     TaskBarUpdate.Send(update.StatusText, TaskbarItemProgressState.Indeterminate,
                         update.StepsProgress.Value);
                 };
+                
                 if (!await installer.Begin(CancellationToken.None))
                 {
                     TaskBarUpdate.Send($"Error during install of {ModList.Name}", TaskbarItemProgressState.Error);
@@ -346,6 +371,30 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         SlideShowAuthor = modList.Author;
         SlideShowDescription = modList.Description;
         SlideShowImage = ModListImage;
+    }
+
+
+    private async Task PopulateNextModSlide(ModList modList)
+    {
+        try
+        {
+            var mods = modList.Archives.Select(a => a.State)
+                .OfType<IMetaState>()
+                .Where(t => ShowNSFWSlides || !t.IsNSFW)
+                .Where(t => t.ImageURL != null)
+                .ToArray();
+            var thisMod = mods[_random.Next(0, mods.Length)];
+            var data = await _client.GetByteArrayAsync(thisMod.ImageURL!);
+            var image = BitmapFrame.Create(new MemoryStream(data));
+            SlideShowTitle = thisMod.Name;
+            SlideShowAuthor = thisMod.Author;
+            SlideShowDescription = thisMod.Description;
+            SlideShowImage = image;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "While loading slide");
+        }
     }
 
 }

@@ -64,6 +64,7 @@ public abstract class AInstaller<T>
 
     public Action<StatusUpdate>? OnStatusUpdate;
     private readonly IResource<IInstaller> _limiter;
+    private Func<long, string> _statusFormatter = x => x.ToString();
 
 
     public AInstaller(ILogger<T> logger, InstallerConfiguration config, IGameLocator gameLocator,
@@ -98,13 +99,14 @@ public abstract class AInstaller<T>
 
     public ModList ModList => _configuration.ModList;
 
-    public void NextStep(string statusCategory, string statusText, long maxStepProgress)
+    public void NextStep(string statusCategory, string statusText, long maxStepProgress, Func<long, string>? formatter = null)
     {
         _updateStopWatch.Restart();
         MaxStepProgress = maxStepProgress;
         _currentStep += 1;
         _statusText = statusText;
         _statusCategory = statusCategory;
+        _statusFormatter = formatter ?? (x => x.ToString());
         _logger.LogInformation("Next Step: {Step}", statusText);
 
         OnStatusUpdate?.Invoke(new StatusUpdate(statusCategory, statusText,
@@ -115,7 +117,7 @@ public abstract class AInstaller<T>
     {
         Interlocked.Add(ref _currentStepProgress, stepProgress);
 
-        OnStatusUpdate?.Invoke(new StatusUpdate(_statusCategory, $"[{_currentStep}/{MaxSteps}] {_statusText} ({_currentStepProgress}/{MaxStepProgress})",
+        OnStatusUpdate?.Invoke(new StatusUpdate(_statusCategory, $"[{_currentStep}/{MaxSteps}] {_statusText} ({_statusFormatter(_currentStepProgress)}/{_statusFormatter(MaxStepProgress)})",
             Percent.FactoryPutInRange(_currentStep, MaxSteps),
             Percent.FactoryPutInRange(_currentStepProgress, MaxStepProgress)));
     }
@@ -208,7 +210,7 @@ public abstract class AInstaller<T>
 
     public async Task InstallArchives(CancellationToken token)
     {
-        NextStep(Consts.StepInstalling, "Installing files", ModList.Directives.Sum(d => d.Size));
+        NextStep(Consts.StepInstalling, "Installing files", ModList.Directives.Sum(d => d.Size), x => x.ToFileSizeString());
         var grouped = ModList.Directives
             .OfType<FromArchive>()
             .Select(a => new {VF = _vfs.Index.FileForArchiveHashPath(a.ArchiveHashPath), Directive = a})

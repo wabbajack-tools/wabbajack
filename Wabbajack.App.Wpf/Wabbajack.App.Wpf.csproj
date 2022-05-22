@@ -78,6 +78,7 @@
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1248-prerelease" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="5.0.0-rc2" />
     <PackageReference Include="PInvoke.User32" Version="0.7.104" />
     <PackageReference Include="ReactiveUI" Version="16.2.6" />
     <PackageReference Include="ReactiveUI.Fody" Version="16.2.6" />

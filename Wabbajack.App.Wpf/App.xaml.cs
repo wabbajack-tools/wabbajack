@@ -6,6 +6,8 @@ using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
+using NLog.Targets;
 using ReactiveUI;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Interventions;
@@ -29,10 +31,7 @@ namespace Wabbajack
         public App()
         {
             _host = Host.CreateDefaultBuilder(Array.Empty<string>())
-                .ConfigureLogging(c =>
-                {
-                    c.ClearProviders();
-                })
+                .ConfigureLogging(AddLogging)
                 .ConfigureServices((host, services) =>
                 {
                     ConfigureServices(services);
@@ -41,6 +40,40 @@ namespace Wabbajack
             
             _serviceProvider = _host.Services;
         }
+
+        private void AddLogging(ILoggingBuilder loggingBuilder)
+        {
+            var config = new NLog.Config.LoggingConfiguration();
+
+            var fileTarget = new FileTarget("file")
+            {
+                FileName = "logs/Wabbajack.current.log",
+                ArchiveFileName = "logs/Wabbajack.{##}.log",
+                ArchiveOldFileOnStartup = true,
+                MaxArchiveFiles = 10,
+                Layout = "${processtime} [${level:uppercase=true}] (${logger}) ${message:withexception=true}",
+                Header = "############ Wabbajack log file - ${longdate} ############"
+            };
+            
+            var consoleTarget = new ConsoleTarget("console");
+        
+            var uiTarget = new LogStream()
+            {
+                Name = "ui",
+                Layout = "${message}",
+            };
+            
+            loggingBuilder.Services.AddSingleton(uiTarget);
+
+            config.AddRuleForAllLevels(fileTarget);
+            config.AddRuleForAllLevels(consoleTarget);
+            config.AddRuleForAllLevels(uiTarget);
+
+            loggingBuilder.ClearProviders();
+            loggingBuilder.SetMinimumLevel(LogLevel.Trace);
+            loggingBuilder.AddNLog(config);
+        }
+
         private static IServiceCollection ConfigureServices(IServiceCollection services)
         {
             RxApp.MainThreadScheduler = new DispatcherScheduler(Dispatcher.CurrentDispatcher);
@@ -56,7 +89,6 @@ namespace Wabbajack
             services.AddSingleton<SystemParametersConstructor>();
             services.AddSingleton<LauncherUpdater>();
             services.AddSingleton<ResourceMonitor>();
-            services.AddAllSingleton<ILoggerProvider, LoggerProvider>();
 
             services.AddSingleton<MainSettings>();
             services.AddTransient<CompilerVM>();

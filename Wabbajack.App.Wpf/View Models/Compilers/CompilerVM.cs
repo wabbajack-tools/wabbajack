@@ -95,11 +95,11 @@ namespace Wabbajack
         
         public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
 
-        public LoggerProvider LoggerProvider { get; }
+        public LogStream LoggerProvider { get; }
         public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
         
         public CompilerVM(ILogger<CompilerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
-            IServiceProvider serviceProvider, LoggerProvider loggerProvider, ResourceMonitor resourceMonitor) : base(logger)
+            IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor) : base(logger)
         {
             _logger = logger;
             _dtos = dtos;
