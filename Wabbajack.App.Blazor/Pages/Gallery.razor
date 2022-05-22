@@ -5,30 +5,30 @@
 <div id="content">
     <div id="filters">
         <input type="text" class="modlist-search" placeholder="Search">
-        <div class="filters-group @(ShowingGameFilter ? "show" : "")">
-            <div class="filter-group-title" @onclick="ToggleGameFilter">
+        <div class="filter-group @(ShowingGameFilter ? "show" : "")">
+            <div class="filter-title" @onclick="ToggleGameFilter">
                 <span>GAMES</span>
             </div>
-            <div class="filter-group-items">
+            <div class="filter-item-container">
                 @foreach (var game in Games)
                 {
                     var gameName = game.Game.ToString();
                     UpdateGameFilter(gameName);
-                    <div class="filter-group-item @(GameFilter[gameName])" @onclick="@(() => UpdateGameFilter(gameName, true))">
+                    <div class="filter-item @(GameFilter[gameName].ToString().ToLower())" @onclick="@(() => UpdateGameFilter(gameName, true))">
                         <span>@game.HumanFriendlyGameName</span>
                         <div class="checkmark"></div>
                     </div>
                 }
             </div>
         </div>
-        <div class="filters-group @(ShowingSourceFilter ? "show" : "")">
-            <div class="filter-group-title" @onclick="ToggleSourceFilter">
+        <div class="filter-group @(ShowingSourceFilter ? "show" : "")">
+            <div class="filter-title" @onclick="ToggleSourceFilter">
                 <span>SOURCES</span>
             </div>
-            <div class="filter-group-items">
+            <div class="filter-item-container">
                 @foreach (string repo in Repositories)
                 {
-                    <div class="filter-group-item @(RepoFilter == repo)" @onclick="@(() => RepoFilter = RepoFilter == repo ? string.Empty : repo)">
+                    <div class="filter-item @((RepoFilter == repo).ToString().ToLower())" @onclick="@(() => RepoFilter = RepoFilter == repo ? string.Empty : repo)">
                         <span>@repo</span>
                         <div class="checkmark"></div>
                     </div>
@@ -66,25 +66,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="image">
-                    <img src="@imageURL" alt="">
-                </div>
+                <img class="modlist-image" src="@imageURL" alt="">
             </div>
         }
-        <div class="shelf">
-            @* <div class="shelf-info"> *@
-            @*     <img src="images/icons/star_hollow.svg" class="featured"> *@
-            @*     <h1 class="title">Wabbajack</h1> *@
-            @*     <hr/> *@
-            @*     <h3 class="description">Curated by Wabbajack</h3> *@
-            @*     <hr style="flex: 1;"/> *@
-            @* </div> *@
-            <div class="shelf-gallery">
-                @foreach (var modlist in FilteredModlists)
-                {
-                    @ModlistTileFragment.ModlistTile(modlist)
-                }
-            </div>
+        <div class="gallery">
+            @foreach (var modlist in FilteredModlists)
+            {
+                @ModlistTileFragment.ModlistTile(modlist)
+            }
         </div>
     </div>
 </div>

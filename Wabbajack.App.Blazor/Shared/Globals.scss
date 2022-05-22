@@ -1,21 +1,18 @@
-﻿@font-face {
-  font-family: "Raleway";
+@font-face {
+  font-family: Raleway;
   src: url("fonts/Raleway-Variable.ttf");
 }
 
 @font-face {
-  font-family: "YanoneKaffeesatz";
+  font-family: YanoneKaffeesatz;
   src: url("fonts/YanoneKaffeesatz-Variable.ttf");
 }
 
 $primary-background-color: #121212;
-$secondary-background-color: #0A0A0A;
-$accent-color: #5E437F;
-
+$secondary-background-color: #0a0a0a;
+$accent-color: #5e437f;
 $header-height: 65px;
 $sidebar-width: 180px;
-
-$fallback-font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-
-$raleway-font: 'Raleway', $fallback-font;
-$yanone-font: 'YanoneKaffeesatz', $fallback-font;
+$fallback-font: "Segoe UI", "Tahoma", "Geneva", "Verdana", sans-serif;
+$raleway-font: "Raleway", $fallback-font;
+$yanone-font: "YanoneKaffeesatz", $fallback-font;

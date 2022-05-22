@@ -1,47 +1,46 @@
-﻿#modal {
+#modal {
   .navigation {
     position: fixed;
-    height: 100%;
     width: 200px;
+    height: 100%;
     border-right: 1px solid #404040;
-    background-color: rgb(28, 28, 40);
+    background-color: rgb(28 28 40);
 
     .logo {
       display: block;
-      margin-left: auto;
-      margin-right: auto;
       vertical-align: middle;
       max-width: 100%;
       height: auto;
+      margin-right: auto;
+      margin-left: auto;
     }
 
     .menu {
       width: 100%;
 
       ul {
-        list-style-type: none;
         margin-left: 1rem;
+        list-style-type: none;
 
         li {
           height: 3rem;
-          font-size: 1.5rem;
-          font-weight: 100;
           margin-top: 0.5rem;
+          font-weight: 100;
+          font-size: 1.5rem;
         }
       }
     }
   }
 
   .content {
-    width: calc(100% - 200px);
     float: right;
+    width: calc(100% - 200px);
 
     .mod {
-      border-bottom: solid 1px #8080802b;
       padding: 0.5rem;
       border-bottom: solid 1px #8080802b;
+      background-image: linear-gradient(to right, rgb(255 255 255 / 0%) 50%, rgb(28 28 40));
       background-size: 200% 100%;
-      background-image: linear-gradient(to right, rgba(255, 255, 255, 0) 50%, rgb(28, 28, 40));
       transition: background-position 0.5s;
 
       &:hover {
@@ -49,18 +48,18 @@
       }
 
       .name {
-        font-size: 1.25rem;
         font-weight: 100;
+        font-size: 1.25rem;
 
         span {
-          font-size: 1.1rem;
           color: #bfbfbf;
+          font-size: 1.1rem;
         }
       }
 
       .description {
-        color: #bfbfbf;
         margin-left: 0.5rem;
+        color: #bfbfbf;
       }
     }
   }

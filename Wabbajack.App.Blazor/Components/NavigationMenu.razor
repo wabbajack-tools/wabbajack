@@ -8,29 +8,23 @@
 @namespace Wabbajack.App.Blazor.Components
 
 <div id="menu">
-    <div class="brand">
-        <img class="logo" src="images/Logo_Dark_Transparent.png" alt="Wabbajack Logo">
+    <div class="logo">
+        <img class="icon" src="images/Logo_Dark_Transparent.png" alt="Wabbajack Logo">
         <img class="letters" src="images/Letters_Dark_Transparent.png" alt="Wabbajack Text">
     </div>
     <div class="pages">
         @foreach (var (name, route) in Pages)
         {
-            <div class="item @CurrentPage(route)" @onclick="@(() => Navigate(route))">
+            <div class="item @name.ToLower() @CurrentPage(route)" @onclick="@(() => Navigate(route))">
                 <img src="images/icons/@(name).svg" alt="">
-                <span>@name</span>
+                @name
             </div>
         }
     </div>
-    <div class="settings">
-        <div class="item @CurrentPage(Settings.Route)" @onclick="@(() => Navigate(Settings.Route))">
-            <img src="images/icons/settings.svg" alt="">
-            <span>Settings</span>
-        </div>
-    </div>
-    <div class="socials">
-        <img src="images/icons/socials/patreon.svg" alt="" onclick="@OpenPatreonPage">
-        <img src="images/icons/socials/github.svg" alt="" onclick="@OpenGithubPage">
-        <img src="images/icons/socials/discord.svg" alt="" onclick="@OpenDiscord">
+    <div class="social-links">
+        <img class="social" src="images/icons/socials/github.svg" alt="" onclick="@OpenGithubPage">
+        <img class="social" src="images/icons/socials/patreon.svg" alt="" onclick="@OpenPatreonPage">
+        <img class="social" src="images/icons/socials/discord.svg" alt="" onclick="@OpenDiscord">
     </div>
 </div>
 
@@ -49,6 +43,9 @@
         },
         {
             "Create", Create.Route
+        },
+        {
+            "Settings", Settings.Route
         }
     };
 

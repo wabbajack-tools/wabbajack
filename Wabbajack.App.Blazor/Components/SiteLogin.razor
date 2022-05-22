@@ -1,5 +1,5 @@
 ﻿@using Wabbajack.App.Blazor.Pages
-<div class="login-site @Status.SiteName status-@Status.Status">
+<div class="login-site @Status.SiteName status-@Status.Status.ToString().ToLower()">
     <div class="site-icon">
         <img src="images/icons/downloaders/@(IconName).png" alt="">
     </div>

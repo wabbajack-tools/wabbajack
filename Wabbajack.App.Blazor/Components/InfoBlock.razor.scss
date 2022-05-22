@@ -1,38 +1,38 @@
-﻿#info-block {
+#info-block {
   display: flex;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
-  flex-direction: column;
-  justify-content: center;
-  align-content: center;
 
   .supertitle {
     margin-left: 0.5rem;
-    font-size: 1.5rem;
     font-weight: 100;
+    font-size: 1.5rem;
   }
 
   .title {
-    font-size: 4rem;
-    font-weight: 100;
     margin-top: -1rem;
     margin-bottom: -0.5rem;
+    font-weight: 100;
+    font-size: 4rem;
   }
 
   .subtitle {
     margin-left: 0.5rem;
-    font-size: 2rem;
     font-weight: 100;
+    font-size: 2rem;
   }
 
   .comment {
     margin-left: 1rem;
-    color: rgba(255, 255, 255, 0.75);
+    color: rgb(255 255 255 / 75%);
   }
 
   .description {
-    margin-left: 1.5rem;
     margin-top: 0.5rem;
-    color: rgba(255, 255, 255, 0.5);
+    margin-left: 1.5rem;
+    color: rgb(255 255 255 / 50%);
   }
 }

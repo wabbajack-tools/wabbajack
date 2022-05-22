@@ -66,13 +66,11 @@ public partial class Gallery
         return filtered;
     }
 
-    private bool UpdateGameFilter(string game, bool toggle = false)
+    private void UpdateGameFilter(string game, bool toggle = false)
     {
         if (!GameFilter.ContainsKey(game)) GameFilter[game] = false;
 
         if (toggle) GameFilter[game] = !GameFilter[game];
-
-        return GameFilter[game];
     }
 
     private void ToggleGameFilter() => ShowingGameFilter = !ShowingGameFilter;

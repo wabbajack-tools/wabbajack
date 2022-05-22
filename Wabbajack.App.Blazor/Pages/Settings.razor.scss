@@ -1,33 +1,32 @@
-﻿#content {
+#content {
   display: flex;
   flex: 1;
-  overflow: hidden;
   align-items: center;
+  overflow: hidden;
   height: 100%;
 
   .section-title {
-    font-weight: 100;
-    font-size: 2rem;
-    color: white;
     align-self: flex-start;
     margin-bottom: 2rem;
+    font-weight: 100;
+    font-size: 2rem;
   }
 
   .logins {
-    height: 100%;
-    flex: 3;
     display: flex;
+    flex: 3;
     flex-direction: column;
     align-items: center;
-    border-right: solid 1px rgba(255, 255, 255, 0.1);
+    height: 100%;
     margin-left: 3rem;
+    border-right: solid 1px rgb(255 255 255 / 10%);
 
     hr {
-      width: calc(100% - 3.5rem);
       align-self: flex-end;
-      border: none;
+      width: calc(100% - 3.5rem);
       height: 1px;
-      background-color: rgba(255, 255, 255, 0.1);
+      border: none;
+      background-color: rgb(255 255 255 / 10%);
     }
   }
 

@@ -1,83 +1,83 @@
-﻿@import "../../Shared/Globals.scss";
+@import "../../Shared/Globals";
 
-$checkbox-background: rgba(255, 255, 255, 0.2);
+$checkbox-background: rgb(255 255 255 / 20%);
 $checkbox-background-hover: darkgrey;
 $checkbox-background-checked: $accent-color;
 $checkbox-size: 0.75rem;
 
 @mixin path-span {
   display: block;
+  overflow: hidden;
   height: 2rem;
-  padding: 0.25rem;
   margin: 0.25rem;
+  padding: 0.25rem;
+  text-overflow: ellipsis;
   white-space: pre;
   cursor: pointer;
-  text-overflow: ellipsis;
-  overflow: hidden;
 }
 
 #content {
   display: flex;
-  height: 100%;
+  flex-direction: column;
   align-content: center;
   justify-content: space-around;
   align-items: center;
-  color: white;
-  flex-direction: column;
+  height: 100%;
 
   .install-background {
     position: absolute;
+    z-index: -1;
     width: calc(100% - #{$sidebar-width});
     height: calc(100% - #{$header-height});
     filter: blur(25px) brightness(50%);
-    z-index: -1;
 
     img {
+      object-fit: cover;
       width: 100%;
       height: 100%;
-      object-fit: cover;
     }
   }
 
   .list {
     display: flex;
     flex: 1;
-    overflow: hidden;
     align-items: center;
+    overflow: hidden;
 
-    .left-side, .right-side {
+    .left-side,
+    .right-side {
       flex: 1;
       margin: 1rem;
 
       .step-logger {
         display: flex;
+        flex-direction: column;
+        align-content: center;
+        justify-content: center;
         width: 100%;
         height: 100%;
-        flex-direction: column;
-        justify-content: center;
-        align-content: center;
 
         .step {
           &:nth-child(1) {
             margin-left: 0.5rem;
-            font-size: 2rem;
+            color: rgb(255 255 255 / 90%);
             font-weight: 100;
-            color: rgba(255, 255, 255, 0.9);
+            font-size: 2rem;
           }
 
           &:nth-child(2) {
             margin-left: 0.75rem;
-            font-size: 1.85rem;
+            color: rgb(255 255 255 / 60%);
             font-weight: 100;
-            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.85rem;
             filter: blur(1px);
           }
 
           &:nth-child(3) {
             margin-left: 1rem;
-            font-size: 1.7rem;
+            color: rgb(255 255 255 / 40%);
             font-weight: 100;
-            color: rgba(255, 255, 255, 0.4);
+            font-size: 1.7rem;
             filter: blur(1.5px);
           }
         }
@@ -86,26 +86,26 @@ $checkbox-size: 0.75rem;
   }
 
   .logger-container {
-    height: 200px;
     width: 100%;
+    height: 200px;
     padding: 0.5rem;
-    background: rgba(0, 0, 0, 0.2);
-    color: lightgrey;
     border: solid 1px black;
+    background: rgb(0 0 0 / 20%);
+    color: lightgrey;
   }
 
   .settings {
-    font-size: 0.85rem;
     display: flex;
     align-items: center;
     width: 100%;
     padding: 1rem;
+    font-size: 0.85rem;
     backdrop-filter: brightness(0.5);
 
     .locations {
       display: flex;
-      flex-direction: row;
       flex: 1;
+      flex-direction: row;
       overflow: hidden;
 
       .labels {
@@ -116,12 +116,13 @@ $checkbox-size: 0.75rem;
 
       .paths {
         flex: 1;
-        margin-left: 1rem;
         overflow: hidden;
+        margin-left: 1rem;
 
         span {
           @include path-span;
-          border: solid 1px rgba(255, 255, 255, 0.3);
+
+          border: solid 1px rgb(255 255 255 / 30%);
         }
       }
     }
@@ -129,7 +130,6 @@ $checkbox-size: 0.75rem;
     .options {
       display: flex;
       flex-flow: row wrap;
-      flex-direction: column;
       margin-left: 2rem;
     }
 

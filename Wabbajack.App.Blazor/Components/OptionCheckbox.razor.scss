@@ -1,6 +1,6 @@
-﻿@import "../Shared/Globals.scss";
+@import "../Shared/Globals";
 
-$checkbox-background: rgba(255, 255, 255, 0.2);
+$checkbox-background: rgb(255 255 255 / 20%);
 $checkbox-background-hover: darkgrey;
 $checkbox-background-checked: $accent-color;
 $checkbox-size: 0.75rem;
@@ -13,45 +13,45 @@ $checkbox-size: 0.75rem;
   cursor: pointer;
   user-select: none;
 
+  .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(1.5 * #{$checkbox-size});
+    height: calc(1.5 * #{$checkbox-size});
+    background-color: $checkbox-background;
+
+    &::after {
+      content: "";
+      position: absolute;
+      display: none;
+    }
+  }
+
   &:hover input ~ .checkmark {
     background-color: $checkbox-background-hover;
   }
 
   input {
     position: absolute;
+    width: 0;
+    height: 0;
     opacity: 0;
     cursor: pointer;
-    height: 0;
-    width: 0;
 
     &:checked ~ .checkmark {
       background-color: $checkbox-background-checked;
 
-      &:after {
-        display: block;
-        left: calc(0.5 * #{$checkbox-size});
+      &::after {
         top: calc(0.25 * #{$checkbox-size});
+        left: calc(0.5 * #{$checkbox-size});
+        display: block;
         width: calc(0.25 * #{$checkbox-size});
         height: calc(0.65 * #{$checkbox-size});
         border: solid white;
         border-width: 0 3px 3px 0;
         transform: rotate(45deg);
       }
-    }
-  }
-
-  .checkmark {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: calc(1.5 * #{$checkbox-size});
-    width: calc(1.5 * #{$checkbox-size});
-    background-color: $checkbox-background;
-
-    &:after {
-      content: "";
-      position: absolute;
-      display: none;
     }
   }
 }

@@ -1,27 +1,28 @@
-﻿.container {
-  background-image: linear-gradient(30deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 30%, rgba(255, 255, 255, 0) 100%), url(images/Banner_Dark_Transparent.png);
-  background-size: cover;
-  background-position: center;
+.container {
   display: flex;
   align-items: center;
-  padding: 1rem 1.5rem;
   max-width: 56rem;
   height: 9rem;
-  margin-left: auto;
   margin-right: auto;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  margin-left: auto;
+  padding: 1rem 1.5rem;
+  border: 1px solid rgb(255 255 255 / 30%);
+  background-image:
+    linear-gradient(30deg, rgb(0 0 0 / 100%) 0%, rgb(0 0 0 / 80%) 30%, rgb(255 255 255 / 0%) 100%),
+    url("images/Banner_Dark_Transparent.png");
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 4px 30px rgb(0 0 0 / 10%);
   backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
 
   .info {
     align-self: flex-end;
 
     .title {
-      color: white;
+      margin: 0;
       font-weight: 100;
       font-size: 2.25rem;
       line-height: 2.5rem;
-      margin: 0;
     }
 
     .description {

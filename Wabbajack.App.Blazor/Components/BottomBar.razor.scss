@@ -1,21 +1,17 @@
-﻿@import "../Shared/Globals.scss";
+@import "../Shared/Globals";
 
 #bottom-bar {
   position: fixed;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
   width: calc(100% - #{$sidebar-width});
   height: $header-height;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(2px) saturate(0.25);
-  z-index: 2;
-
-  //font-family: $raleway-font;
+  background-color: rgb(0 0 0 / 50%);
   text-transform: uppercase;
-
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  color: white;
+  backdrop-filter: blur(2px) saturate(0.25);
 
   .image {
     width: auto;
@@ -31,8 +27,8 @@
 
   .info {
     .title {
-      font-size: 1.5em;
       font-weight: 100;
+      font-size: 1.5em;
     }
   }
 

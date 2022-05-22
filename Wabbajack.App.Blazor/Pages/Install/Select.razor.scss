@@ -1,24 +1,24 @@
-﻿$install-icon-size: 15rem;
+$install-icon-size: 15rem;
 
 #content {
   display: flex;
-  height: 100%;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  color: white;
+  align-items: center;
+  height: 100%;
 
   .select {
     display: flex;
-    width: 100%;
     flex-direction: row;
     justify-content: space-evenly;
+    width: 100%;
 
-    div {
+    .browse,
+    .disk {
       display: flex;
-      border: solid 1px red;
       flex-direction: column;
       align-items: center;
+      border: solid 1px red;
 
       img {
         width: $install-icon-size;
@@ -29,14 +29,14 @@
 
   .recent {
     .title {
-      font-size: 1.5rem;
       font-weight: 100;
+      font-size: 1.5rem;
     }
 
     .modlist {
       img {
-        height: 4rem;
         width: auto;
+        height: 4rem;
         border: solid 1px red;
       }
 

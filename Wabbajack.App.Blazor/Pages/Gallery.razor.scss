@@ -1,9 +1,3 @@
-﻿@import "../Shared/Globals.scss";
-
-$display-height: 208px; // Closest I can get to 16:9 at this scale.
-$hover-icon-size: 75px;
-$description-lines: 6;
-
 #content {
   display: flex;
 }
@@ -25,69 +19,54 @@ $description-lines: 6;
 }
 
 #filters {
-  position: sticky;
-  top: 0;
-  z-index: 1;
   display: flex;
-  flex-shrink: 0;
+  flex: 0 0 16rem;
   flex-direction: column;
-  width: 16rem;
   height: 100vh;
-  margin-bottom: 1rem;
   padding: 1rem;
 
   .modlist-search {
-    width: 100%;
     height: 3rem;
     padding: 0.25rem;
     border: 0;
     border-radius: 0.25rem;
     background-color: #242432;
-    color: white;
   }
 
-  .filters-group {
+  .filter-group {
     display: flex;
     flex-direction: column;
-    width: 100%;
     height: 3rem;
     margin-top: 1rem;
-    color: white;
 
-    &.show {
-      flex: 1;
-
-      .filter-group-items {
-        height: 100%;
-      }
-    }
-
-    .filter-group-title {
+    .filter-title {
       display: flex;
-      flex-shrink: 0;
+      flex: 0 0 3rem;
       align-items: center;
-      height: 3rem;
-      padding: 0.25rem;
-      border: 0;
+      padding: 0 1rem;
       border-radius: 0.25rem;
       background-color: #242432;
     }
 
-    .filter-group-items {
-      display: flex;
-      flex-direction: column;
+    .filter-item-container {
       overflow-y: scroll;
       height: 0;
       transition: height 0.25s ease-in-out;
 
-      .filter-group-item {
+      .filter-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        height: fit-content;
         padding: 1rem 0.5rem;
 
-        &.True .checkmark {
+        .checkmark {
+          width: 1rem;
+          height: 1rem;
+          border-radius: 1rem;
+          background: #242432;
+        }
+
+        &.true .checkmark {
           background: #824dc3;
         }
 
@@ -98,13 +77,14 @@ $description-lines: 6;
             border: 1px solid #373748;
           }
         }
+      }
+    }
 
-        .checkmark {
-          width: 1rem;
-          height: 1rem;
-          border-radius: 1rem;
-          background: #242432;
-        }
+    &.show {
+      flex: 1;
+
+      .filter-item-container {
+        height: 100%;
       }
     }
   }
@@ -115,25 +95,24 @@ $description-lines: 6;
   flex-direction: column;
   align-items: center;
   overflow-y: scroll;
+  width: 100%;
   height: 100vh;
   padding: 1rem 0;
   will-change: scroll-position;
-  width: 100%;
 
   .source-info {
     display: flex;
+    height: 15.75rem;
     margin-bottom: 2rem;
     border-radius: 0.5rem;
     background: #242432;
-    color: white;
 
     .info {
       display: flex;
-      flex: 1;
       flex-direction: column;
+      overflow: hidden;
       max-width: 48rem;
       padding: 1rem;
-      border-radius: 0.5rem;
 
       .title {
         font-weight: 100;
@@ -165,7 +144,6 @@ $description-lines: 6;
 
           img {
             width: 2rem;
-            height: auto;
             margin-left: 0.25rem;
             opacity: 0.7;
           }
@@ -173,64 +151,17 @@ $description-lines: 6;
       }
     }
 
-    .image {
+    .modlist-image {
+      object-fit: cover;
       width: 28rem;
-      height: 15.75rem;
       padding: 0.5rem;
-
-      img {
-        top: 0;
-        left: 0;
-        object-fit: cover;
-        width: 100%;
-        height: 100%;
-        border-radius: 0.5rem;
-      }
+      border-radius: 1rem;
     }
   }
 
-  .shelf {
-    width: 100%;
-
-    .shelf-info {
-      display: flex;
-      align-items: center;
-      color: white;
-      width: 100%;
-
-      .featured {
-        width: 2rem;
-        height: 2rem;
-        margin-left: 1rem;
-      }
-
-      h1 {
-        margin-left: 1rem;
-        font-weight: 100;
-        text-transform: uppercase;
-      }
-
-      h3 {
-        font-weight: 100;
-        text-transform: uppercase;
-      }
-
-      hr {
-        width: 2rem;
-        height: 1px;
-        margin-right: 1rem;
-        margin-left: 1rem;
-        border: none;
-        background-color: #5e437f;
-      }
-    }
-
-    .shelf-gallery {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      justify-content: center;
-      width: 100%;
-    }
+  .gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }

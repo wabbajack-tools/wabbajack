@@ -1,61 +1,16 @@
-﻿@import "../Shared/Globals.scss";
-
-@mixin menu-item {
-  width: 100%;
-  height: 4rem;
-  display: flex;
-  justify-content: flex-start;
-  border-left: 3px solid transparent;
-  transition: border 100ms ease-in-out, background 100ms ease-in-out;
-  flex-direction: row;
-  align-items: center;
-
-  &:not(.active) {
-    opacity: 0.5;
-  }
-
-  &:hover {
-    border-left: 3px solid #5E437F;
-    background-color: #1c1c28;
-  }
-
-  &.active {
-    color: white;
-    border-left: 3px solid #824dc3;
-    background: #1c1c28;
-  }
-
-  img {
-    width: 15%;
-    height: auto;
-    opacity: 0.8;
-    margin-left: 1rem;
-    margin-right: 1.25rem;
-  }
-
-  span {
-    font-size: 1.5rem;
-    color: white;
-    font-weight: 100;
-  }
-}
+﻿@import "../Shared/Globals";
 
 #menu {
-  position: fixed;
-  height: 100%;
-  width: $sidebar-width;
   display: flex;
+  flex: 0 0 180px;
   flex-direction: column;
-  align-items: center;
   background-color: #13121a;
 
-  .brand {
+  .logo {
     padding: 0.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    text-align: center;
 
-    .logo {
+    .icon {
       width: 70%;
       margin-bottom: 1rem;
     }
@@ -66,33 +21,55 @@
   }
 
   .pages {
-    width: 100%;
+    display: flex;
     flex: 1;
+    flex-direction: column;
     margin-top: 1rem;
 
     .item {
-      @include menu-item;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      height: 4rem;
+      border-left: 3px solid transparent;
+      font-weight: 100;
+      font-size: 1.5rem;
+      transition: border 100ms ease-in-out, background 100ms ease-in-out;
+
+      &:not(.active) {
+        opacity: 0.5;
+      }
+
+      &:hover {
+        border-left: 3px solid #5e437f;
+        background-color: #1c1c28;
+      }
+
+      &.active {
+        border-left: 3px solid #824dc3;
+        background: #1c1c28;
+      }
+
+      img {
+        width: 2rem;
+        margin-right: 1.25rem;
+        margin-left: 1rem;
+      }
+
+      &.settings {
+        margin-top: auto;
+      }
     }
   }
 
-  .settings {
-    width: 100%;
-    border-bottom: 1px solid #404040;
-
-    .item {
-      @include menu-item;
-    }
-  }
-
-  .socials {
-    padding: 1rem;
+  .social-links {
     display: flex;
-    width: 100%;
     justify-content: space-evenly;
+    padding: 1rem;
+    border-top: 1px solid #404040;
 
-    img {
+    .social {
       width: 2rem;
-      height: auto;
       opacity: 0.7;
     }
   }

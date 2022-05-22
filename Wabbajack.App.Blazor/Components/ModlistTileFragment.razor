@@ -2,27 +2,20 @@
 
 @code {
 
-    public static RenderFragment<ModlistMetadata> ModlistTile = modlist => __builder => {
+    public static RenderFragment<ModlistMetadata> ModlistTile = modlist => __builder =>
+    {
         <div @key="modlist.Links.MachineURL" class="modlist-tile">
-            <div class="image">
-                <img src="@modlist.Links.ImageUri" loading="lazy" class="modlist-image" alt="@modlist.Title">
-            </div>
-            <div class="body">
-                <div class="info">
-                    <div class="meta">
-                        <div class="title">@modlist.Title</div>
-                        <div class="author">@modlist.Author</div>
+            <img src="@modlist.Links.ImageUri" loading="lazy" class="modlist-image" alt="@modlist.Title">
+            <div class="title">@modlist.Title</div>
+            <div class="author">@modlist.Author</div>
+            <div class="tags">
+                @foreach (string tag in modlist.Tags)
+                {
+                    // TODO: Don't hardcode this.
+                    <div class="tag @(tag == "NSFW" ? "nsfw" : "")">
+                        <span class="tag-content">@tag</span>
                     </div>
-                </div>
-                <div class="tags">
-                    @foreach (string tag in modlist.Tags)
-                    {
-                        // TODO: Don't hardcode this.
-                        <div class="tag @(tag == "NSFW" ? "nsfw" : "")">
-                            <span class="tag-content">@tag</span>
-                        </div>
-                    }
-                </div>
+                }
             </div>
         </div>
     };

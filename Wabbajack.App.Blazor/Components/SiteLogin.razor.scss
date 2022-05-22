@@ -1,30 +1,16 @@
-﻿.login-site {
-  width: 100%;
-  margin: 0.5rem;
+.login-site {
   display: flex;
   flex-direction: row;
+  width: 100%;
+  margin: 0.5rem;
   padding: 0.5rem;
   transition: all 0.5s ease-in-out;
-
-  &.status-Loading {
-    filter: grayscale(0.5) opacity(0.5);
-  }
-
-  &.status-LoggedOut {
-    .site-icon {
-      filter: grayscale(0.8);
-    }
-
-    .site-info {
-      filter: opacity(0.5);
-    }
-  }
 
   .site-icon {
     height: 2.25rem;
     padding: 0.25rem;
-    background-color: #312e4c;
     border-radius: 0.5rem;
+    background-color: #312e4c;
 
     img {
       height: 100%;
@@ -36,13 +22,26 @@
     margin-left: 1rem;
 
     .site-name {
-      font-size: 1.5rem;
-      color: white;
       font-weight: 100;
+      font-size: 1.5rem;
     }
 
     .site-status {
       color: #bdbdbd;
+    }
+  }
+
+  &.status-loading {
+    filter: grayscale(0.5) opacity(0.5);
+  }
+
+  &.status-loggedout {
+    .site-icon {
+      filter: grayscale(0.8);
+    }
+
+    .site-info {
+      filter: opacity(0.5);
     }
   }
 

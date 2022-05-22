@@ -1,5 +1,4 @@
-﻿#content {
-  color: white;
+#content {
   display: flex;
   flex-direction: column;
   padding: 1rem;
@@ -15,26 +14,25 @@
       margin-bottom: 1rem;
 
       label {
-        font-size: 1.1rem;
         margin-left: 0.5rem;
+        font-size: 1.1rem;
       }
 
-      input[type=text] {
+      input[type="text"] {
         height: 1.75rem;
         padding: 0.25rem;
+        border: 1px solid #13121a;
         border-radius: 0.25rem;
         background-color: #242432;
-        color: white;
-        border: 1px solid #13121a;
       }
 
-      input[type=text]:active,
-      input[type=text]:focus,
-      input[type=text]:focus-visible {
+      input[type="text"]:active,
+      input[type="text"]:focus,
+      input[type="text"]:focus-visible {
         outline: 2px solid #824dc3;
       }
 
-      input[type=text]:invalid {
+      input[type="text"]:invalid {
         border-color: red;
       }
     }
@@ -42,7 +40,7 @@
 
   .preview {
     display: flex;
-    flex-direction: column;
     flex: 1;
+    flex-direction: column;
   }
 }
