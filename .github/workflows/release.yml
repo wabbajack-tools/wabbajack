@@ -1,10 +1,6 @@
 name: Create Release (Windows)
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release Version'
-        required: true
 
 jobs:
   build:
