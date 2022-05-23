@@ -14,7 +14,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.2-mauipre.1.22054.8" />
-        <PackageReference Include="Octokit" Version="0.50.0" />
+        <PackageReference Include="Octokit" Version="0.51.0" />
     </ItemGroup>
 
 </Project>
