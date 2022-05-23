@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
@@ -6,7 +7,15 @@ namespace Wabbajack.Paths.IO;
 
 public static class KnownFolders
 {
-    public static AbsolutePath EntryPoint => Assembly.GetExecutingAssembly().Location.ToAbsolutePath().Parent;
+    public static AbsolutePath EntryPoint
+    {
+        get
+        {
+            //var v = Process.GetCurrentProcess().ProcessName;
+            //return Assembly.GetExecutingAssembly().Location.ToAbsolutePath().Parent;
+            return Process.GetCurrentProcess().MainModule!.FileName!.ToAbsolutePath().Parent;
+        }
+    }
 
     public static AbsolutePath AppDataLocal =>
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData).ToAbsolutePath();

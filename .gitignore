@@ -4,3 +4,4 @@ obj
 .vs
 *.user
 .\packages\*
+/VERSION.txt

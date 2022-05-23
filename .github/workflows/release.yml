@@ -15,8 +15,8 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.x
-    - name: Restore dependencies
+    - name: Restore dependencies ${{ env.VERSION }}
       run: dotnet restore
-    - name: Build ${{ env.VERSION}}
+    - name: Build ${{ env.VERSION }}
       run: dotnet build
 

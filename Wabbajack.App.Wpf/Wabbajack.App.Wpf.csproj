@@ -15,6 +15,7 @@
     <StartupObject></StartupObject>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IncludeSymbolsInSingleFile>true</IncludeSymbolsInSingleFile>
+    <AssemblyName>Wabbajack</AssemblyName>
   </PropertyGroup>
 
     <PropertyGroup>

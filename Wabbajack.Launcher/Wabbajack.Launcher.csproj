@@ -4,7 +4,7 @@
         <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net6.0-windows</TargetFramework>
         <TargetFramework Condition=" '$(OS)' != 'Windows_NT'">net6.0</TargetFramework>
         <Nullable>enable</Nullable>
-        <TargetName>Wabbajack.exe</TargetName>
+        <AssemblyName>Wabbajack</AssemblyName>
     </PropertyGroup>
     <ItemGroup>
         <Folder Include="Models\" />
