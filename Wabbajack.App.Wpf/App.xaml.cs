@@ -30,6 +30,7 @@ namespace Wabbajack
 
         public App()
         {
+            RxApp.MainThreadScheduler = new DispatcherScheduler(Dispatcher.CurrentDispatcher);
             _host = Host.CreateDefaultBuilder(Array.Empty<string>())
                 .ConfigureLogging(AddLogging)
                 .ConfigureServices((host, services) =>
@@ -57,10 +58,10 @@ namespace Wabbajack
             
             var consoleTarget = new ConsoleTarget("console");
         
-            var uiTarget = new LogStream()
+            var uiTarget = new LogStream
             {
                 Name = "ui",
-                Layout = "${message}",
+                Layout = "${message:withexception=false}",
             };
             
             loggingBuilder.Services.AddSingleton(uiTarget);
@@ -76,8 +77,6 @@ namespace Wabbajack
 
         private static IServiceCollection ConfigureServices(IServiceCollection services)
         {
-            RxApp.MainThreadScheduler = new DispatcherScheduler(Dispatcher.CurrentDispatcher);
-            
             services.AddOSIntegrated();
 
             services.AddSingleton<CefService>();
