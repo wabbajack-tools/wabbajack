@@ -1,4 +1,4 @@
-name: Create Release
+name: Create Release (Windows)
 on:
   workflow_dispatch:
     inputs:
@@ -12,39 +12,15 @@ jobs:
     runs-on: self-hosted
 
     steps:
+    - name: Extract Version
+      run: echo "VERSION=$(python scripts/version_extract.py)" >> $GITHUB_ENV
     - uses: actions/checkout@v2
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.101
+        dotnet-version: 6.0.x
     - name: Restore dependencies
       run: dotnet restore
-      
-    - name: Remove Previous App
-      uses: JesseTG/rm@v1.0.0
-      with:
-        path: z:\tmp\PublishApp    
-    - name: Remove Previous Launcher
-      uses: JesseTG/rm@v1.0.0
-      with:
-        path: z:\tmp\PublishLauncher    
-
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Publish App
-      run: dotnet publish Wabbajack\Wabbajack.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o z:\tmp\PublishApp --self-contained
-    - name: Publish Launcher
-      run: dotnet publish Wabbajack.Launcher\Wabbajack.Launcher.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o z:\tmp\PublishLauncher --self-contained
-    - name: Sign App
-      run: C:\"Program Files (x86)"\"Windows Kits"\10\bin\10.0.17763.0\x86\signtool.exe sign /sm z:\tmp\PublishApp\Wabbajack.exe
-      shell: cmd
-    - name: Sign Launcher
-      run: C:\"Program Files (x86)"\"Windows Kits"\10\bin\10.0.17763.0\x86\signtool.exe sign /sm z:\tmp\PublishLauncher\Wabbajack.exe
-      shell: cmd
-    - name: Create Release Folder
-      run: mkdir z:\wabbajack_releases\${{ github.event.inputs.version }}
-    - name: Copy Launcher
-      run: copy z:\tmp\PublishLauncher\Wabbajack.exe z:\wabbajack_releases\${{ github.event.inputs.version }}\Wabbajack.exe
-    - name: Zip Release
-      run: Compress-Archive -Path z:\tmp\PublishApp\* -DestinationPath z:\wabbajack_releases\${{ github.event.inputs.version }}\${{ github.event.inputs.version }}.zip
+    - name: Build ${{ env.VERSION}}
+      run: dotnet build
 
