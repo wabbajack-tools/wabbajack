@@ -8,9 +8,9 @@ jobs:
     runs-on: windows-latest
 
     steps:
+    - uses: actions/checkout@v2
     - name: Extract Version
       run: echo "VERSION=$(python scripts/version_extract.py)" >> $GITHUB_ENV
-    - uses: actions/checkout@v2
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
