@@ -22,7 +22,7 @@
         <PackageReference Include="MahApps.Metro" Version="2.4.9" />
         <PackageReference Include="MahApps.Metro.IconPacks" Version="4.11.0" />
         <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.200-preview.12.2441" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.312+12-sha.c121ea3a0-azdo.6176901" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.5" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.5" />
         <PackageReference Include="NLog" Version="5.0.0" />
