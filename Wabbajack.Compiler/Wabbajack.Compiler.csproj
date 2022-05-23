@@ -8,14 +8,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj"/>
-        <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj"/>
-        <ProjectReference Include="..\Wabbajack.VFS\Wabbajack.VFS.csproj"/>
+        <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj" />
+        <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj" />
+        <ProjectReference Include="..\Wabbajack.VFS\Wabbajack.VFS.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="F23.StringSimilarity" Version="4.1.0"/>
-        <PackageReference Include="ini-parser-netstandard" Version="2.5.2"/>
+        <PackageReference Include="F23.StringSimilarity" Version="5.0.0" />
+        <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
     </ItemGroup>
 
 </Project>
