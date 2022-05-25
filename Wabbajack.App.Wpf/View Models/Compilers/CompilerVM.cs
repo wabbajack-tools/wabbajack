@@ -203,7 +203,8 @@ namespace Wabbajack
                         OutputFile = OutputLocation.TargetPath,
                         Profile = SelectedProfile,
                         OtherProfiles = OtherProfiles,
-                        AlwaysEnabled = AlwaysEnabled
+                        AlwaysEnabled = AlwaysEnabled,
+                        UseGamePaths = true
                     };
 
                     var compiler = new MO2Compiler(_serviceProvider.GetRequiredService<ILogger<MO2Compiler>>(),
