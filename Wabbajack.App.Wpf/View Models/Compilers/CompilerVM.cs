@@ -55,6 +55,7 @@ namespace Wabbajack
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<CompilerVM> _logger;
         private readonly ResourceMonitor _resourceMonitor;
+        private readonly CompilerSettingsInferencer _inferencer;
 
         [Reactive]
         public CompilerState State { get; set; }
@@ -86,6 +87,7 @@ namespace Wabbajack
         [Reactive] public bool IsMO2Compilation { get; set; }
 
         [Reactive] public RelativePath[] AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
+        
         [Reactive] public string[] OtherProfiles { get; set; } = Array.Empty<string>();
         
         [Reactive] public AbsolutePath Source { get; set; }
@@ -99,7 +101,8 @@ namespace Wabbajack
         public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
         
         public CompilerVM(ILogger<CompilerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
-            IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor) : base(logger)
+            IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
+            CompilerSettingsInferencer inferencer) : base(logger)
         {
             _logger = logger;
             _dtos = dtos;
@@ -107,6 +110,7 @@ namespace Wabbajack
             _serviceProvider = serviceProvider;
             LoggerProvider = loggerProvider;
             _resourceMonitor = resourceMonitor;
+            _inferencer = inferencer;
 
             BackCommand =
                 ReactiveCommand.CreateFromTask(async () =>
@@ -160,68 +164,25 @@ namespace Wabbajack
             });
         }
 
-        private async Task InferModListFromLocation(AbsolutePath settingsFile)
+        private async Task InferModListFromLocation(AbsolutePath path)
         {
-            if (settingsFile == default) return;
+            using var _ = LoadingLock.WithLoading();
+            if (path == default || path.FileName != "modlist.txt".ToRelativePath())
+                return;
             
-            using var ll = LoadingLock.WithLoading();
-            if (settingsFile.FileName == "modlist.txt".ToRelativePath() && settingsFile.Depth > 3)
-            {
-                var mo2Folder = settingsFile.Parent.Parent.Parent;
-                var mo2Ini = mo2Folder.Combine(Consts.MO2IniName);
-                if (mo2Ini.FileExists())
-                {
-                    var iniData = mo2Ini.LoadIniFile();
+            var settings = await _inferencer.InferModListFromLocation(path);
+            if (settings == null) return;
 
-                    var general = iniData["General"];
-
-                    BaseGame = GameRegistry.GetByFuzzyName(general["gameName"].FromMO2Ini()).Game;
-                    Source = mo2Folder;
-
-                    SelectedProfile = general["selected_profile"].FromMO2Ini();
-                    GamePath = general["gamePath"].FromMO2Ini().ToAbsolutePath();
-                    ModListName = SelectedProfile;
-
-                    var settings = iniData["Settings"];
-                    var downloadLocation = settings["download_directory"].FromMO2Ini().ToAbsolutePath();
-                    
-                    if (downloadLocation == default)
-                        downloadLocation = Source.Combine("downloads");
-                    
-                    DownloadLocation.TargetPath = downloadLocation;
-                    IsMO2Compilation = true;
-
-
-                    
-                    AlwaysEnabled = Array.Empty<RelativePath>();
-                    // Find Always Enabled mods
-                    foreach (var modFolder in mo2Folder.Combine("mods").EnumerateDirectories())
-                    {
-                        var iniFile = modFolder.Combine("meta.ini");
-                        if (!iniFile.FileExists()) continue;
-
-                        var data = iniFile.LoadIniFile();
-                        var generalModData = data["General"];
-                        if ((generalModData["notes"]?.Contains("WABBAJACK_ALWAYS_ENABLE") ?? false) ||
-                            (generalModData["comments"]?.Contains("WABBAJACK_ALWAYS_ENABLE") ?? false))
-                            AlwaysEnabled = AlwaysEnabled.Append(modFolder.RelativeTo(mo2Folder)).ToArray();
-                    }
-
-                    var otherProfilesFile = settingsFile.Parent.Combine("otherprofiles.txt");
-                    if (otherProfilesFile.FileExists())
-                    {
-                        OtherProfiles = await otherProfilesFile.ReadAllLinesAsync().ToArray();
-                    }
-
-                    if (mo2Folder.Depth > 1)
-                        OutputLocation.TargetPath = mo2Folder.Parent;
-
-                    await SaveSettingsFile();
-                    ModlistLocation.TargetPath = SettingsOutputLocation;
-                }
-            }
-
+            BaseGame = settings.Game;
+            ModListName = settings.ModListName;
+            Source = settings.Source;
+            DownloadLocation.TargetPath = settings.Downloads;
+            OutputLocation.TargetPath = settings.OutputFile;
+            SelectedProfile = settings.Profile;
+            OtherProfiles = settings.OtherProfiles;
+            AlwaysEnabled = settings.AlwaysEnabled;
         }
+
 
         private async Task StartCompilation()
         {
@@ -306,5 +267,29 @@ namespace Wabbajack
                 OtherProfiles = OtherProfiles.ToArray()
             };
         }
+
+        #region ListOps
+
+        public void AddOtherProfile(string profile)
+        {
+            OtherProfiles = (OtherProfiles ?? Array.Empty<string>()).Append(profile).Distinct().ToArray();
+        }
+
+        public void RemoveProfile(string profile)
+        {
+            OtherProfiles = OtherProfiles.Where(p => p != profile).ToArray();
+        }
+        
+        public void AddAlwaysEnabled(RelativePath path)
+        {
+            AlwaysEnabled = (AlwaysEnabled ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
+        }
+
+        public void RemoveAlwaysEnabled(RelativePath path)
+        {
+            AlwaysEnabled = AlwaysEnabled.Where(p => p != path).ToArray();
+        }
+
+        #endregion
     }
 }
