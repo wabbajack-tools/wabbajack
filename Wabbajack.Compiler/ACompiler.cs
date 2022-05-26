@@ -95,6 +95,7 @@ public abstract class ACompiler
 
     public Dictionary<Game, HashSet<Hash>> GameHashes { get; set; } = new();
     public Dictionary<Hash, Game[]> GamesWithHashes { get; set; } = new();
+    public ILookup<Hash,Archive> GameFiles { get; private set; }
 
 
     public bool IgnoreMissingFiles { get; set; }
@@ -211,6 +212,7 @@ public abstract class ACompiler
     protected async Task IndexGameFileHashes()
     {
         NextStep("Compiling", "Indexing Game Files");
+        var gameFiles = new List<Archive>();
         if (_settings.UseGamePaths)
         {
             //taking the games in Settings.IncludedGames + currently compiling game so you can eg
@@ -232,6 +234,7 @@ public abstract class ACompiler
                     var versionInfo = FileVersionInfo.GetVersionInfo(mainFile.ToString());
 
                     var files = await _wjClient.GetGameArchives(ag, versionInfo.FileVersion ?? "0.0.0.0");
+                    gameFiles.AddRange(files);
 
                     _logger.LogInformation($"Including {files.Length} stock game files from {ag} as download sources");
                     GameHashes[ag] = files.Select(f => f.Hash).ToHashSet();
@@ -256,7 +259,10 @@ public abstract class ACompiler
                 .GroupBy(gh => gh.h)
                 .ToDictionary(gh => gh.Key, gh => gh.Select(p => p.g.Key).ToArray());
         }
+
+        GameFiles = gameFiles.ToLookup(f => f.Hash);
     }
+
 
     protected async Task CleanInvalidArchivesAndFillState()
     {

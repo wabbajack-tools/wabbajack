@@ -257,6 +257,7 @@ public class MO2Compiler : ACompiler
             // new IncludeTaggedFolders(this, Consts.WABBAJACK_INCLUDE),
             new IgnoreExtension(this, Ext.Pyc),
             new IgnoreExtension(this, Ext.Log),
+            new PatchStockGameFiles(this, _wjClient),
             new DeconstructBSAs(
                 this), // Deconstruct BSAs before building patches so we don't generate massive patch files
 
