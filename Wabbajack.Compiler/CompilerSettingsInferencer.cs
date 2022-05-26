@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -52,6 +53,13 @@ public class CompilerSettingsInferencer
 
                 if (cs.Downloads == default)
                     cs.Downloads = cs.Source.Combine("downloads");
+
+                cs.NoMatchInclude = Array.Empty<RelativePath>();
+                foreach (var file in mo2Folder.EnumerateFiles())
+                {
+                    if (file.FileName == Consts.WABBAJACK_NOMATCH_INCLUDE_FILES)
+                        cs.NoMatchInclude = cs.NoMatchInclude.Add(file.Parent.RelativeTo(mo2Folder));
+                }
 
                 _logger.LogInformation("Finding Always Enabled mods");
                 cs.AlwaysEnabled = Array.Empty<RelativePath>();

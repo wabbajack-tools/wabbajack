@@ -144,6 +144,19 @@
                     ToolTip="If this box has a value the modlist will be published to this MachineUrl after compilation" />
                 <TextBox x:Name="MachineUrl" Style="{StaticResource ValueStyle}" />
                 
+                <StackPanel Orientation="Horizontal">
+                    <Button Name="AddNoMatchInclude">
+                        <icon:Material Kind="Plus"></icon:Material>
+                    </Button>
+                    <Label>No Match Include</Label>
+                </StackPanel>
+                <ListBox x:Name="NoMatchInclude">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <controls1:RemovableItemView ViewModel="{Binding}" ></controls1:RemovableItemView>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
                                 
                 <StackPanel Orientation="Horizontal">
                     <Button Name="AddOtherProfile">

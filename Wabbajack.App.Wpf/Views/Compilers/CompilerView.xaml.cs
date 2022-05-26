@@ -113,6 +113,7 @@ namespace Wabbajack
 
                 AddAlwaysEnabled.Command = ReactiveCommand.CreateFromTask(async () => await AddAlwaysEnabledCommand());
                 
+                
                 ViewModel.WhenAnyValue(vm => vm.OtherProfiles)
                     .WhereNotNull()
                     .Select(itms => itms.Select(itm => new RemovableItemViewModel(itm.ToString(), () => ViewModel.RemoveProfile(itm))).ToArray())
@@ -120,6 +121,14 @@ namespace Wabbajack
                     .DisposeWith(disposables);
 
                 AddOtherProfile.Command = ReactiveCommand.CreateFromTask(async () => await AddOtherProfileCommand());
+                
+                ViewModel.WhenAnyValue(vm => vm.NoMatchInclude)
+                    .WhereNotNull()
+                    .Select(itms => itms.Select(itm => new RemovableItemViewModel(itm.ToString(), () => ViewModel.RemoveNoMatchInclude(itm))).ToArray())
+                    .BindToStrict(this, view => view.NoMatchInclude.ItemsSource)
+                    .DisposeWith(disposables);
+
+                AddNoMatchInclude.Command = ReactiveCommand.CreateFromTask(async () => await AddNoMatchIncludeCommand());
 
 
             });
@@ -198,6 +207,32 @@ namespace Wabbajack
             if (!selectedPath.InFolder(ViewModel.Source.Combine("profiles"))) return;
             
             ViewModel.AddOtherProfile(selectedPath.FileName.ToString());
+        }
+        
+        public async Task AddNoMatchIncludeCommand()
+        {
+            var dlg = new CommonOpenFileDialog
+            {
+                Title = "Please select a profile folder",
+                IsFolderPicker = true,
+                InitialDirectory = ViewModel!.Source.ToString(),
+                AddToMostRecentlyUsedList = false,
+                AllowNonFileSystemItems = false,
+                DefaultDirectory = ViewModel!.Source.ToString(),
+                EnsureFileExists = true,
+                EnsurePathExists = true,
+                EnsureReadOnly = false,
+                EnsureValidNames = true,
+                Multiselect = false,
+                ShowPlacesList = true,
+            };
+
+            if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
+            var selectedPath = dlg.FileNames.First().ToAbsolutePath();
+
+            if (!selectedPath.InFolder(ViewModel.Source)) return;
+            
+            ViewModel.AddNoMatchInclude(selectedPath.RelativeTo(ViewModel!.Source));
         }
     }
 }

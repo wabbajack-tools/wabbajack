@@ -87,6 +87,7 @@ namespace Wabbajack
         [Reactive] public bool IsMO2Compilation { get; set; }
 
         [Reactive] public RelativePath[] AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
+        [Reactive] public RelativePath[] NoMatchInclude { get; set; } = Array.Empty<RelativePath>();
         
         [Reactive] public string[] OtherProfiles { get; set; } = Array.Empty<string>();
         
@@ -181,6 +182,7 @@ namespace Wabbajack
             SelectedProfile = settings.Profile;
             OtherProfiles = settings.OtherProfiles;
             AlwaysEnabled = settings.AlwaysEnabled;
+            NoMatchInclude = settings.NoMatchInclude;
         }
 
 
@@ -204,6 +206,7 @@ namespace Wabbajack
                         Profile = SelectedProfile,
                         OtherProfiles = OtherProfiles,
                         AlwaysEnabled = AlwaysEnabled,
+                        NoMatchInclude = NoMatchInclude,
                         UseGamePaths = true
                     };
 
@@ -264,8 +267,9 @@ namespace Wabbajack
                 Profile = SelectedProfile,
                 UseGamePaths = true,
                 OutputFile = OutputLocation.TargetPath.Combine(SelectedProfile).WithExtension(Ext.Wabbajack),
-                AlwaysEnabled = AlwaysEnabled.ToArray(),
-                OtherProfiles = OtherProfiles.ToArray()
+                AlwaysEnabled = AlwaysEnabled,
+                OtherProfiles = OtherProfiles,
+                NoMatchInclude = NoMatchInclude,
             };
         }
 
@@ -289,6 +293,16 @@ namespace Wabbajack
         public void RemoveAlwaysEnabled(RelativePath path)
         {
             AlwaysEnabled = AlwaysEnabled.Where(p => p != path).ToArray();
+        }
+        
+        public void AddNoMatchInclude(RelativePath path)
+        {
+            NoMatchInclude = (NoMatchInclude ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
+        }
+
+        public void RemoveNoMatchInclude(RelativePath path)
+        {
+            NoMatchInclude = NoMatchInclude.Where(p => p != path).ToArray();
         }
 
         #endregion
