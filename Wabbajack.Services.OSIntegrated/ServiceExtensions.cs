@@ -152,7 +152,7 @@ public static class ServiceExtensions
         // Installer/Compiler Configuration
         service.AddScoped<InstallerConfiguration>();
         service.AddScoped<StandardInstaller>();
-        service.AddScoped<MO2CompilerSettings>();
+        service.AddScoped<CompilerSettings>();
         service.AddScoped<MO2Compiler>();
         service.AddSingleton<CompilerSettingsInferencer>();
 

@@ -6,6 +6,7 @@ using Wabbajack.Compiler.PatchCache;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Compiler;
 
@@ -38,7 +39,7 @@ public class BinaryPatchCache : IBinaryPatchCache
         cmd.ExecuteNonQuery();
     }
 
-    public async Task<CacheEntry> CreatePatch(Stream srcStream, Hash srcHash, Stream destStream, Hash destHash)
+    public async Task<CacheEntry> CreatePatch(Stream srcStream, Hash srcHash, Stream destStream, Hash destHash, IJob? job)
     {
         await using var rcmd = new SQLiteCommand(_conn);
         rcmd.CommandText = "SELECT PatchSize FROM PatchCache WHERE FromHash = @fromHash AND ToHash = @toHash";
@@ -57,7 +58,7 @@ public class BinaryPatchCache : IBinaryPatchCache
 
         await using var sigStream = new MemoryStream();
         await using var patchStream = new MemoryStream();
-        OctoDiff.Create(srcStream, destStream, sigStream, patchStream);
+        OctoDiff.Create(srcStream, destStream, sigStream, patchStream, job);
 
         cmd.Parameters.AddWithValue("@patchSize", patchStream.Length);
         cmd.Parameters.AddWithValue("@patch", patchStream.ToArray());

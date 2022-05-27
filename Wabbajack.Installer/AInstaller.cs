@@ -399,8 +399,12 @@ public abstract class AInstaller<T>
             .Concat(_gameLocator.GameLocation(_configuration.Game).EnumerateFiles())
             .ToList();
 
-        var hashDict = allFiles.GroupBy(f => f.Size()).ToDictionary(g => g.Key);
+        _logger.LogInformation("Getting archive sizes");
+        var hashDict = (await allFiles.PMapAll(_limiter, async x => (x, x.Size())).ToList())
+            .GroupBy(f => f.Item2)
+            .ToDictionary(g => g.Key, g => g.Select(v => v.x));
 
+        _logger.LogInformation("Linking archives to downloads");
         var toHash = ModList.Archives.Where(a => hashDict.ContainsKey(a.Size))
             .SelectMany(a => hashDict[a.Size]).ToList();
 

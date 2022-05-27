@@ -73,6 +73,7 @@ internal class Program
                 services.AddSingleton<IVerb, Extract>();
                 services.AddSingleton<IVerb, DumpZipInfo>();
                 services.AddSingleton<IVerb, Install>();
+                services.AddSingleton<IVerb, InstallCompileInstallVerify>();
 
                 services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
             }).Build();

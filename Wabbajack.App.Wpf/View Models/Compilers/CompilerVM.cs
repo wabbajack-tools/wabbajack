@@ -194,7 +194,7 @@ namespace Wabbajack
                 {
                     State = CompilerState.Compiling;
 
-                    var mo2Settings = new MO2CompilerSettings
+                    var mo2Settings = new CompilerSettings
                     {
                         Game = BaseGame,
                         ModListName = ModListName,
@@ -210,19 +210,7 @@ namespace Wabbajack
                         UseGamePaths = true
                     };
 
-                    var compiler = new MO2Compiler(_serviceProvider.GetRequiredService<ILogger<MO2Compiler>>(),
-                        _serviceProvider.GetRequiredService<FileExtractor.FileExtractor>(),
-                        _serviceProvider.GetRequiredService<FileHashCache>(),
-                        _serviceProvider.GetRequiredService<Context>(),
-                        _serviceProvider.GetRequiredService<TemporaryFileManager>(),
-                        mo2Settings,
-                        _serviceProvider.GetRequiredService<ParallelOptions>(),
-                        _serviceProvider.GetRequiredService<DownloadDispatcher>(),
-                        _serviceProvider.GetRequiredService<Client>(),
-                        _serviceProvider.GetRequiredService<IGameLocator>(),
-                        _serviceProvider.GetRequiredService<DTOSerializer>(),
-                        _serviceProvider.GetRequiredService<IResource<ACompiler>>(),
-                        _serviceProvider.GetRequiredService<IBinaryPatchCache>());
+                    var compiler = MO2Compiler.Create(_serviceProvider, mo2Settings);
 
                     await compiler.Begin(CancellationToken.None);
 

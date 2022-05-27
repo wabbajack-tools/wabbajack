@@ -1,6 +1,8 @@
 using System.IO;
+using System.Threading;
 using Octodiff.Core;
 using Octodiff.Diagnostics;
+using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Compiler.PatchCache;
 
@@ -33,11 +35,29 @@ public class OctoDiff
         sigStream.Position = 0;
     }
 
-    public static void Create(Stream oldData, Stream newData, Stream signature, Stream output)
+    public static void Create(Stream oldData, Stream newData, Stream signature, Stream output, IJob? job)
     {
         CreateSignature(oldData, signature);
-        var db = new DeltaBuilder {ProgressReporter = new NullProgressReporter()};
-        db.BuildDelta(newData, new SignatureReader(signature, new NullProgressReporter()),
+        var db = new DeltaBuilder {ProgressReporter = new JobProgressReporter(job, 0)};
+        db.BuildDelta(newData, new SignatureReader(signature, new JobProgressReporter(job, 100)),
             new AggregateCopyOperationsDecorator(new BinaryDeltaWriter(output)));
+    }
+
+    private class JobProgressReporter : IProgressReporter
+    {
+        private readonly IJob _job;
+        private readonly int _offset;
+
+        public JobProgressReporter(IJob job, int offset)
+        {
+            _offset = offset;
+            _job = job;
+        }
+        public void ReportProgress(string operation, long currentPosition, long total)
+        {
+            var percent = Percent.FactoryPutInRange(currentPosition, total);
+            var toReport = (long) (percent.Value * 100) - (_job.Current - _offset);
+            _job.ReportNoWait((int) toReport);
+        }
     }
 }

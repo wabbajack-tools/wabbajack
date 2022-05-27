@@ -23,6 +23,14 @@ public class CompilerSettingsInferencer
         _logger = logger;
 
     }
+
+    public async Task<CompilerSettings?> InferFromRootPath(AbsolutePath rootPath)
+    {
+        var mo2File = rootPath.Combine(Consts.MO2IniName).LoadIniFile();
+        var profile = mo2File["General"]["selected_profile"];
+
+        return await InferModListFromLocation(rootPath.Combine(Consts.MO2Profiles, profile, Consts.ModListTxt));
+    }
     
     public async Task<CompilerSettings?> InferModListFromLocation(AbsolutePath settingsFile)
     {

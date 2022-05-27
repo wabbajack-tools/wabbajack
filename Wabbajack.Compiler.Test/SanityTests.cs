@@ -56,7 +56,7 @@ public class CompilerSanityTests : IAsyncLifetime
     {
     }
 
-    private async Task CompileAndValidate(int expectedDirectives, Action<MO2CompilerSettings>? configureSettings = null)
+    private async Task CompileAndValidate(int expectedDirectives, Action<CompilerSettings>? configureSettings = null)
     {
         _modlist = await _harness.Compile(configureSettings);
         Assert.NotNull(_modlist);

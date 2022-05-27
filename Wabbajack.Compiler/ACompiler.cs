@@ -275,14 +275,14 @@ public abstract class ACompiler
                 if (resolved == null) return null;
 
                 a.State = resolved.State;
-                return null;
+                return a;
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex.ToString(), "While resolving archive {archive}", a.Name);
-                return a;
+                _logger.LogWarning(ex, "While resolving archive {Archive}", a.Name);
+                return null;
             }
-        }).ToHashSet(f => f != null);
+        }).ToHashSet(f => f == null);
 
         if (remove.Count == 0) return;
 
@@ -461,6 +461,7 @@ public abstract class ACompiler
                             _logger.LogInformation("Patching {from} {to}", destFile, match.To);
                             await using var srcStream = await sf.GetStream();
                             await using var destStream = await destsfn.GetStream();
+                            using var _ = await CompilerLimiter.Begin($"Patching {match.To}", 100, token);
                             var patchSize =
                                 await _patchCache.CreatePatch(srcStream, vf.Hash, destStream, destvf.Hash);
                             _logger.LogInformation("Patch size {patchSize} for {to}", patchSize, match.To);

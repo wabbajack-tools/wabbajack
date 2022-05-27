@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IniParser.Model;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Compiler.CompilationSteps;
@@ -25,7 +27,7 @@ public class MO2Compiler : ACompiler
 {
     public MO2Compiler(ILogger<MO2Compiler> logger, FileExtractor.FileExtractor extractor, FileHashCache hashCache,
         Context vfs,
-        TemporaryFileManager manager, MO2CompilerSettings settings, ParallelOptions parallelOptions,
+        TemporaryFileManager manager, CompilerSettings settings, ParallelOptions parallelOptions,
         DownloadDispatcher dispatcher,
         Client wjClient, IGameLocator locator, DTOSerializer dtos, IResource<ACompiler> compilerLimiter,
         IBinaryPatchCache patchCache) :
@@ -35,7 +37,24 @@ public class MO2Compiler : ACompiler
         MaxSteps = 14;
     }
 
-    public MO2CompilerSettings Mo2Settings => (MO2CompilerSettings) Settings;
+    public static MO2Compiler Create(IServiceProvider provider, CompilerSettings mo2Settings)
+    {
+        return new MO2Compiler(provider.GetRequiredService<ILogger<MO2Compiler>>(),
+            provider.GetRequiredService<FileExtractor.FileExtractor>(),
+            provider.GetRequiredService<FileHashCache>(),
+            provider.GetRequiredService<Context>(),
+            provider.GetRequiredService<TemporaryFileManager>(),
+            mo2Settings,
+            provider.GetRequiredService<ParallelOptions>(),
+            provider.GetRequiredService<DownloadDispatcher>(),
+            provider.GetRequiredService<Client>(),
+            provider.GetRequiredService<IGameLocator>(),
+            provider.GetRequiredService<DTOSerializer>(),
+            provider.GetRequiredService<IResource<ACompiler>>(),
+            provider.GetRequiredService<IBinaryPatchCache>());
+    }
+
+    public CompilerSettings Mo2Settings => (CompilerSettings) Settings;
 
     public AbsolutePath MO2ModsFolder => Settings.Source.Combine(Consts.MO2ModFolderName);
 

@@ -66,7 +66,7 @@ public class ModListHarness
         return mod;
     }
 
-    public async Task<ModList?> CompileAndInstall(Action<MO2CompilerSettings>? configureSettings = null)
+    public async Task<ModList?> CompileAndInstall(Action<CompilerSettings>? configureSettings = null)
     {
         var modlist = await Compile(configureSettings);
         await Install();
@@ -74,13 +74,13 @@ public class ModListHarness
         return modlist;
     }
 
-    public async Task<ModList?> Compile(Action<MO2CompilerSettings>? configureSettings = null)
+    public async Task<ModList?> Compile(Action<CompilerSettings>? configureSettings = null)
     {
         configureSettings ??= x => { };
 
         _source.Combine(Consts.MO2Profiles, _profileName).CreateDirectory();
         using var scope = _serviceProvider.CreateScope();
-        var settings = scope.ServiceProvider.GetService<MO2CompilerSettings>()!;
+        var settings = scope.ServiceProvider.GetService<CompilerSettings>()!;
         settings.Downloads = _downloadPath;
         settings.Game = Game.SkyrimSpecialEdition;
         settings.Source = _source;
