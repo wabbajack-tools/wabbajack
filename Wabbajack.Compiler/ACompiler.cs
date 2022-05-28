@@ -310,7 +310,7 @@ public abstract class ACompiler
             catch (Exception e)
             {
                 _logger.LogCritical(e, $"Exception while checking meta {filename}");
-                return false;
+                return true;
             }
         }
 

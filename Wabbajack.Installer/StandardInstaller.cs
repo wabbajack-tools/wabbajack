@@ -222,7 +222,8 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                 if (HashedArchives.TryGetValue(archive.Hash, out var paths))
                 {
                     var metaPath = paths.WithExtension(Ext.Meta);
-                    if (!metaPath.FileExists() && archive.State is not GameFileSource)
+                    if (archive.State is GameFileSource) return;
+                    if (!metaPath.FileExists())
                     {
                         var meta = AddInstalled(_downloadDispatcher.MetaIni(archive));
                         await metaPath.WriteAllLinesAsync(meta, token);
@@ -233,10 +234,12 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
     private IEnumerable<string> AddInstalled(IEnumerable<string> getMetaIni)
     {
+        yield return "[General]";
+        yield return "installed=true";
+        
         foreach (var f in getMetaIni)
         {
             yield return f;
-            if (f == "[General]") yield return "installed=true";
         }
     }
 

@@ -3,9 +3,11 @@ using System.Linq;
 
 namespace Wabbajack.Paths;
 
-public readonly struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<RelativePath>
+public struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<RelativePath>
 {
     internal readonly string[] Parts;
+
+    private int _hashCode = 0;
 
     internal RelativePath(string[] parts)
     {
@@ -79,8 +81,11 @@ public readonly struct RelativePath : IPath, IEquatable<RelativePath>, IComparab
 
     public override int GetHashCode()
     {
-        return Parts.Aggregate(0,
+        if (_hashCode != 0) return _hashCode;
+        
+        _hashCode = Parts.Aggregate(0,
             (current, part) => current ^ part.GetHashCode(StringComparison.CurrentCultureIgnoreCase));
+        return _hashCode;
     }
 
     public bool Equals(RelativePath other)

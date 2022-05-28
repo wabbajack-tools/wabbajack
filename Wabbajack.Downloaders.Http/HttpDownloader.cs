@@ -100,7 +100,7 @@ public class HttpDownloader : ADownloader<DTOs.DownloadStates.Http>, IUrlDownloa
     {
         var msg = MakeMessage(state);
 
-        return await _client.SendAsync(msg, token);
+        return await _client.SendAsync(msg, HttpCompletionOption.ResponseHeadersRead,  token);
     }
 
     internal static HttpRequestMessage MakeMessage(DTOs.DownloadStates.Http state)

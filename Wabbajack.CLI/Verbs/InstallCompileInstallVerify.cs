@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
@@ -61,7 +62,7 @@ public class InstallCompileInstallVerify : IVerb
         foreach (var machineUrl in machineUrls)
         {
             _logger.LogInformation("Installing {MachineUrl}", machineUrl);
-            var wabbajackPath = downloads.Combine(machineUrl.Replace("/", "_@@_"));
+            var wabbajackPath = downloads.Combine(machineUrl.Replace("/", "_@@_")).WithExtension(Ext.Wabbajack);
             if (!await DownloadMachineUrl(machineUrl, wabbajackPath, token))
                 throw new Exception("Can't download modlist");
 
@@ -85,6 +86,7 @@ public class InstallCompileInstallVerify : IVerb
                 _logger.LogInformation("Error installing {MachineUrl}", machineUrl);
                 return 1;
             }
+
 
             _logger.LogInformation("Inferring settings");
             var inferedSettings = await _inferencer.InferFromRootPath(installPath);

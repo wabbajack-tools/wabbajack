@@ -10,12 +10,13 @@ public enum PathFormat : byte
     Unix
 }
 
-public readonly struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<AbsolutePath>
+public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<AbsolutePath>
 {
     public static readonly AbsolutePath Empty = "".ToAbsolutePath();
     public PathFormat PathFormat { get; }
 
-
+    private int _hashCode = 0;
+    
     internal readonly string[] Parts;
 
     public Extension Extension => Extension.FromPath(Parts[^1]);
@@ -93,8 +94,10 @@ public readonly struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatab
 
     public override int GetHashCode()
     {
-        return Parts.Aggregate(0,
+        if (_hashCode != 0) return _hashCode;
+        _hashCode = Parts.Aggregate(0,
             (current, part) => current ^ part.GetHashCode(StringComparison.CurrentCultureIgnoreCase));
+        return _hashCode;
     }
 
     public override bool Equals(object? obj)
