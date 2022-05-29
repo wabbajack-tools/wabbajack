@@ -90,6 +90,8 @@ public class CompilerSettingsInferencer
                 {
                     cs.OtherProfiles = await otherProfilesFile.ReadAllLinesAsync().ToArray();
                 }
+
+                cs.OutputFile = cs.Source.Parent.Combine(cs.Profile).WithExtension(Ext.Wabbajack);
             }
 
             return cs;

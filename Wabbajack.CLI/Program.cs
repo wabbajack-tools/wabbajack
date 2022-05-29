@@ -7,6 +7,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
+using NLog.Targets;
 using Octokit;
 using Wabbajack.CLI.TypeConverters;
 using Wabbajack.CLI.Verbs;
@@ -34,6 +37,7 @@ internal class Program
             new TypeConverterAttribute(typeof(ModListCategoryConverter)));
 
         var host = Host.CreateDefaultBuilder(Array.Empty<string>())
+            .ConfigureLogging(AddLogging)
             .ConfigureServices((host, services) =>
             {
                 services.AddSingleton(new JsonSerializerOptions());
@@ -80,5 +84,33 @@ internal class Program
 
         var service = host.Services.GetService<CommandLineBuilder>();
         return await service!.Run(args);
+    }
+    
+    private static void AddLogging(ILoggingBuilder loggingBuilder)
+    {
+        var config = new NLog.Config.LoggingConfiguration();
+
+        var fileTarget = new FileTarget("file")
+        {
+            FileName = "logs/wabbajack-cli.current.log",
+            ArchiveFileName = "logs/wabbajack-cli.{##}.log",
+            ArchiveOldFileOnStartup = true,
+            MaxArchiveFiles = 10,
+            Layout = "${processtime} [${level:uppercase=true}] (${logger}) ${message:withexception=true}",
+            Header = "############ Wabbajack log file - ${longdate} ############"
+        };
+
+        var consoleTarget = new ConsoleTarget("console")
+        {
+            Layout = "${processtime} [${level:uppercase=true}] ${message:withexception=true}",
+        };
+        
+
+        config.AddRuleForAllLevels(fileTarget);
+        config.AddRuleForAllLevels(consoleTarget);
+
+        loggingBuilder.ClearProviders();
+        loggingBuilder.SetMinimumLevel(LogLevel.Trace);
+        loggingBuilder.AddNLog(config);
     }
 }

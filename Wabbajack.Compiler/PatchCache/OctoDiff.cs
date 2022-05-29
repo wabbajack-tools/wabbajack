@@ -45,16 +45,17 @@ public class OctoDiff
 
     private class JobProgressReporter : IProgressReporter
     {
-        private readonly IJob _job;
+        private readonly IJob? _job;
         private readonly int _offset;
 
-        public JobProgressReporter(IJob job, int offset)
+        public JobProgressReporter(IJob? job, int offset)
         {
             _offset = offset;
             _job = job;
         }
         public void ReportProgress(string operation, long currentPosition, long total)
         {
+            if (_job == default) return;
             var percent = Percent.FactoryPutInRange(currentPosition, total);
             var toReport = (long) (percent.Value * 100) - (_job.Current - _offset);
             _job.ReportNoWait((int) toReport);

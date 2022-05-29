@@ -29,6 +29,20 @@ public static class AsyncParallelExtensions
         var tasks = coll.Select(mapFn).ToList();
         foreach (var itm in tasks) yield return await itm;
     }
+    
+    // Like PMapAll but don't keep defaults
+    public static async IAsyncEnumerable<TOut> PKeepAll<TIn, TOut>(this IEnumerable<TIn> coll,
+        Func<TIn, Task<TOut>> mapFn)
+    where TOut : class
+    {
+        var tasks = coll.Select(mapFn).ToList();
+        foreach (var itm in tasks)
+        {
+            var val = await itm;
+            if (itm != default) 
+                yield return await itm;
+        }
+    }
 
     public static async IAsyncEnumerable<TOut> PMapAll<TIn, TJob, TOut>(this IEnumerable<TIn> coll,
         IResource<TJob> limiter, Func<TIn, Task<TOut>> mapFn)
@@ -38,6 +52,22 @@ public static class AsyncParallelExtensions
         {
             using var job = await limiter.Begin("", 0, CancellationToken.None);
             yield return await itm;
+        }
+    }
+    
+    public static async IAsyncEnumerable<TOut> PKeepAll<TIn, TJob, TOut>(this IEnumerable<TIn> coll,
+        IResource<TJob> limiter, Func<TIn, Task<TOut>> mapFn)
+    where TOut : class
+    {
+        var tasks = coll.Select(mapFn).ToList();
+        foreach (var itm in tasks)
+        {
+            using var job = await limiter.Begin("", 0, CancellationToken.None);
+            var itmA = await itm;
+            if (itmA != default)
+            {
+                yield return await itm;
+            }
         }
     }
 

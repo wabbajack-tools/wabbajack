@@ -267,22 +267,22 @@ public abstract class ACompiler
     protected async Task CleanInvalidArchivesAndFillState()
     {
         NextStep("Compiling", "Cleaning Invalid Archives");
-        var remove = await IndexedArchives.PMapAll(CompilerLimiter, async a =>
+        var remove = await IndexedArchives.PKeepAll(CompilerLimiter, async a =>
         {
             try
             {
                 var resolved = await ResolveArchive(a);
-                if (resolved == null) return null;
+                if (resolved == null) return a;
 
                 a.State = resolved.State;
-                return a;
+                return default;
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "While resolving archive {Archive}", a.Name);
-                return null;
+                return a;
             }
-        }).ToHashSet(f => f == null);
+        }).ToHashSet();
 
         if (remove.Count == 0) return;
 
