@@ -72,7 +72,8 @@ public class CompilerSettingsInferencer
 
                 _logger.LogInformation("Finding Always Enabled mods");
                 cs.AlwaysEnabled = Array.Empty<RelativePath>();
-                // Find Always Enabled mods
+                
+                // Find mod tags
                 foreach (var modFolder in mo2Folder.Combine("mods").EnumerateDirectories())
                 {
                     var iniFile = modFolder.Combine("meta.ini");
@@ -80,9 +81,13 @@ public class CompilerSettingsInferencer
 
                     var data = iniFile.LoadIniFile();
                     var generalModData = data["General"];
-                    if ((generalModData["notes"]?.Contains("WABBAJACK_ALWAYS_ENABLE") ?? false) ||
-                        (generalModData["comments"]?.Contains("WABBAJACK_ALWAYS_ENABLE") ?? false))
+                    if ((generalModData["notes"]?.Contains(Consts.WABBAJACK_ALWAYS_ENABLE) ?? false) ||
+                        (generalModData["comments"]?.Contains(Consts.WABBAJACK_ALWAYS_ENABLE) ?? false))
                         cs.AlwaysEnabled = cs.AlwaysEnabled.Append(modFolder.RelativeTo(mo2Folder)).ToArray();
+                    
+                    if ((generalModData["notes"]?.Contains(Consts.WABBAJACK_NOMATCH_INCLUDE) ?? false) ||
+                        (generalModData["comments"]?.Contains(Consts.WABBAJACK_NOMATCH_INCLUDE) ?? false))
+                        cs.NoMatchInclude = cs.NoMatchInclude.Append(modFolder.RelativeTo(mo2Folder)).ToArray();
                 }
 
                 _logger.LogInformation("Finding other profiles");

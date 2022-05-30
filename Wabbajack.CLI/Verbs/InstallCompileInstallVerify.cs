@@ -89,17 +89,17 @@ public class InstallCompileInstallVerify : IVerb
 
 
             _logger.LogInformation("Inferring settings");
-            var inferedSettings = await _inferencer.InferFromRootPath(installPath);
-            if (inferedSettings == null)
+            var inferredSettings = await _inferencer.InferFromRootPath(installPath);
+            if (inferredSettings == null)
             {
                 _logger.LogInformation("Error inferencing settings for {MachineUrl}", machineUrl);
                 return 2;
             }
 
-            inferedSettings.UseGamePaths = true;
+            inferredSettings.UseGamePaths = true;
             
 
-            var compiler = MO2Compiler.Create(_serviceProvider, inferedSettings);
+            var compiler = MO2Compiler.Create(_serviceProvider, inferredSettings);
             result = await compiler.Begin(token);
             if (!result)
                 return result ? 0 : 3;
@@ -109,7 +109,7 @@ public class InstallCompileInstallVerify : IVerb
 
             var comparison = await StandardInstaller.LoadFromFile(_dtos, wabbajackPath);
             
-            var modlist2 = await StandardInstaller.LoadFromFile(_dtos, inferedSettings.OutputFile);
+            var modlist2 = await StandardInstaller.LoadFromFile(_dtos, inferredSettings.OutputFile);
             if (CompareModlists(comparison, modlist2))
                 return 3;
 
@@ -119,7 +119,7 @@ public class InstallCompileInstallVerify : IVerb
                 Install = installPath2,
                 ModList = modlist2,
                 Game = modlist2.GameType,
-                ModlistArchive = inferedSettings.OutputFile,
+                ModlistArchive = inferredSettings.OutputFile,
                 GameFolder = _gameLocator.GameLocation(modlist2.GameType)
             });
 
@@ -143,6 +143,8 @@ public class InstallCompileInstallVerify : IVerb
         var found = false;
         foreach (var missing in aDirectives.Where(ad => !bDirectives.ContainsKey(ad.Key)))
         {
+            if (missing.Key.Extension == Ext.Meta)
+                continue;
             _logger.LogWarning("File {To} is missing in recompiled list", missing.Key);
             found = true;
         }
