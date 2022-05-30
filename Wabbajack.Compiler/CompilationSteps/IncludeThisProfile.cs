@@ -18,7 +18,7 @@ public class IncludeThisProfile : ACompilationStep
     public IncludeThisProfile(ACompiler compiler) : base(compiler)
     {
         _mo2Compiler = (MO2Compiler) compiler;
-        _correctProfiles = _mo2Compiler._settings.SelectedProfiles
+        _correctProfiles = _mo2Compiler._settings.AllProfiles
             .Select(p => _mo2Compiler.MO2ProfileDir.Parent.Combine(p)).ToList();
     }
 
@@ -38,16 +38,18 @@ public class IncludeThisProfile : ACompilationStep
 
     private async Task<byte[]> ReadAndCleanModlist(AbsolutePath absolutePath)
     {
-        var alwaysEnabled = _mo2Compiler.ModInis
-            .Where(f => IgnoreDisabledMods.HasFlagInNotes(f.Value, Consts.WABBAJACK_ALWAYS_ENABLE))
-            .Select(f => f.Key)
-            .Select(f => f.FileName.ToString())
-            .Distinct();
+        var alwaysEnabledMods = _compiler._settings.AlwaysEnabled
+            .Where(f => f.InFolder(Consts.MO2ModFolderName))
+            .Where(f => f.Level > 1)
+            .Select(f => f.GetPart(1))
+            .ToHashSet();
+        
         var lines = await absolutePath.ReadAllLinesAsync()
             .Where(l =>
             {
+                var modName = l[1..].Trim();
                 return l.StartsWith("+")
-                       || alwaysEnabled.Any(x => x.Equals(l.Substring(1)))
+                       || alwaysEnabledMods.Contains(modName)
                        || l.EndsWith("_separator");
             }).ToList();
         return Encoding.UTF8.GetBytes(string.Join(Consts.LineSeparator, lines));

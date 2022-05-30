@@ -173,6 +173,7 @@ public struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<Relati
 
     public RelativePath TopParent => new(Parts[..1]);
     public RelativePath FileNameWithoutExtension => Parts[^1][..Extension.ToString().Length].ToRelativePath();
+    public int Level => Parts.Length;
 
     public bool EndsWith(string postfix)
     {
@@ -187,5 +188,10 @@ public struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<Relati
     public bool StartsWith(string s)
     {
         return ToString().StartsWith(s);
+    }
+
+    public string GetPart(int i)
+    {
+        return Parts[i];
     }
 }

@@ -85,7 +85,6 @@ public class ModListHarness
         settings.Game = Game.SkyrimSpecialEdition;
         settings.Source = _source;
         settings.ModListName = _profileName;
-        settings.SelectedProfiles = new[] {_profileName};
         settings.Profile = _profileName;
         settings.OutputFile = _outputFile;
         configureSettings(settings);

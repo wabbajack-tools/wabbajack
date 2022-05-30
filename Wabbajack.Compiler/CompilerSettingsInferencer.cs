@@ -53,8 +53,9 @@ public class CompilerSettingsInferencer
                 var selectedProfile = general["selected_profile"].FromMO2Ini();
                 //cs.GamePath = general["gamePath"].FromMO2Ini().ToAbsolutePath();
                 cs.ModListName = selectedProfile;
-                
-                cs.OutputFile = cs.Source.Parent;
+                cs.Profile = selectedProfile;
+
+                cs.OutputFile = cs.Source.Parent.Combine(selectedProfile).WithExtension(Ext.Wabbajack);
                 
                 var settings = iniData["Settings"];
                 cs.Downloads = settings["download_directory"].FromMO2Ini().ToAbsolutePath();
@@ -88,7 +89,7 @@ public class CompilerSettingsInferencer
                 var otherProfilesFile = settingsFile.Parent.Combine("otherprofiles.txt");
                 if (otherProfilesFile.FileExists())
                 {
-                    cs.OtherProfiles = await otherProfilesFile.ReadAllLinesAsync().ToArray();
+                    cs.AdditionalProfiles = await otherProfilesFile.ReadAllLinesAsync().ToArray();
                 }
 
                 cs.OutputFile = cs.Source.Parent.Combine(cs.Profile).WithExtension(Ext.Wabbajack);

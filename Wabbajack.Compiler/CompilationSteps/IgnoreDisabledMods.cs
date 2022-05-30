@@ -21,7 +21,7 @@ public class IgnoreDisabledMods : ACompilationStep
         //var alwaysDisabled = _mo2Compiler.ModInis
         //   .Where(f => HasFlagInNotes(f.Value, Consts.WABBAJACK_ALWAYS_DISABLE)).Select(f => f.Key).Distinct();
 
-        _allEnabledMods = _mo2Compiler._settings.SelectedProfiles
+        _allEnabledMods = _mo2Compiler._settings.AllProfiles
             .SelectMany(p => _mo2Compiler._settings.Source.Combine("profiles", p, "modlist.txt").ReadAllLines())
             .Where(line => line.StartsWith("+") || line.EndsWith("_separator"))
             .Select(line => line[1..].ToRelativePath().RelativeTo(_mo2Compiler.MO2ModsFolder))

@@ -21,7 +21,7 @@ public class IgnoreSaveFiles : MO2CompilationStep
         _includeSaves = _compiler._settings.Source.EnumerateFiles(_tag).FirstOrDefault() != default;
 
         _profilePaths =
-            MO2Compiler._settings.SelectedProfiles
+            MO2Compiler._settings.AllProfiles
                 .Select(p => _compiler._settings.Source.Combine(Consts.MO2Profiles, p, Consts.MO2Saves)).ToArray();
     }
 

@@ -180,7 +180,7 @@ namespace Wabbajack
             DownloadLocation.TargetPath = settings.Downloads;
             OutputLocation.TargetPath = settings.OutputFile;
             SelectedProfile = settings.Profile;
-            OtherProfiles = settings.OtherProfiles;
+            OtherProfiles = settings.AdditionalProfiles;
             AlwaysEnabled = settings.AlwaysEnabled;
             NoMatchInclude = settings.NoMatchInclude;
         }
@@ -204,7 +204,7 @@ namespace Wabbajack
                         Downloads = DownloadLocation.TargetPath,
                         OutputFile = OutputLocation.TargetPath,
                         Profile = SelectedProfile,
-                        OtherProfiles = OtherProfiles,
+                        AdditionalProfiles = OtherProfiles,
                         AlwaysEnabled = AlwaysEnabled,
                         NoMatchInclude = NoMatchInclude,
                         UseGamePaths = true
@@ -256,7 +256,7 @@ namespace Wabbajack
                 UseGamePaths = true,
                 OutputFile = OutputLocation.TargetPath.Combine(SelectedProfile).WithExtension(Ext.Wabbajack),
                 AlwaysEnabled = AlwaysEnabled,
-                OtherProfiles = OtherProfiles,
+                AdditionalProfiles = OtherProfiles,
                 NoMatchInclude = NoMatchInclude,
             };
         }

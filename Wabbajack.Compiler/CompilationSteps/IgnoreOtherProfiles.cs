@@ -18,7 +18,7 @@ public class IgnoreOtherProfiles : ACompilationStep
         _mo2Compiler = (MO2Compiler) compiler;
         _modProfilesFolder = _mo2Compiler._settings.Source.Combine("profiles");
 
-        _profiles = _mo2Compiler._settings.SelectedProfiles
+        _profiles = _mo2Compiler._settings.AllProfiles
             .Select(p => _modProfilesFolder.Combine(p))
             .ToList();
     }

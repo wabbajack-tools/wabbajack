@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json.Serialization;
 using Wabbajack.DTOs;
 using Wabbajack.Paths;
 
@@ -23,7 +26,24 @@ public class CompilerSettings
     public string ModlistReadme { get; set; } = "";
     public Uri? ModListWebsite { get; set; }
     public Version ModlistVersion { get; set; } = Version.Parse("0.0.1.0");
-    public string[] SelectedProfiles { get; set; } = Array.Empty<string>();
+    
+    /// <summary>
+    /// The main (default) profile
+    /// </summary>
+    public string Profile { get; set; } = "";
+
+    /// <summary>
+    /// Secondary profiles to include in the modlist
+    /// </summary>
+    public string[] AdditionalProfiles { get; set; } = Array.Empty<string>();
+    
+    
+    /// <summary>
+    /// All profiles to be added to the compiled modlist
+    /// </summary>
+    [JsonIgnore]
+    public IEnumerable<string> AllProfiles => AdditionalProfiles.Append(Profile);
+
 
 
     /// <summary>
@@ -37,7 +57,6 @@ public class CompilerSettings
     /// </summary>
     public RelativePath[] Include { get; set; } = Array.Empty<RelativePath>();
 
-    public string Profile { get; set; } = "";
     public RelativePath[] AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
-    public string[] OtherProfiles { get; set; }
+
 }

@@ -101,14 +101,61 @@ public class InstallCompileInstallVerify : IVerb
 
             var compiler = MO2Compiler.Create(_serviceProvider, inferedSettings);
             result = await compiler.Begin(token);
+            if (!result)
+                return result ? 0 : 3;
+            
+            
+            var installPath2 = outputs.Combine("verify_list");
 
-            return result ? 0 : 3;
+            var comparison = await StandardInstaller.LoadFromFile(_dtos, wabbajackPath);
+            
+            var modlist2 = await StandardInstaller.LoadFromFile(_dtos, inferedSettings.OutputFile);
+            if (CompareModlists(comparison, modlist2))
+                return 3;
+
+            var installer2 = StandardInstaller.Create(_serviceProvider, new InstallerConfiguration
+            {
+                Downloads = downloads,
+                Install = installPath2,
+                ModList = modlist2,
+                Game = modlist2.GameType,
+                ModlistArchive = inferedSettings.OutputFile,
+                GameFolder = _gameLocator.GameLocation(modlist2.GameType)
+            });
+
+            result = await installer2.Begin(token);
+            if (!result)
+            {
+                _logger.LogInformation("Error installing recompiled {MachineUrl}", machineUrl);
+                return 1;
+            }
 
         }
 
         return 0;
     }
-    
+
+    private bool CompareModlists(ModList a, ModList b)
+    {
+        var aDirectives = a.Directives.ToDictionary(d => d.To);
+        var bDirectives = b.Directives.ToDictionary(d => d.To);
+
+        var found = false;
+        foreach (var missing in aDirectives.Where(ad => !bDirectives.ContainsKey(ad.Key)))
+        {
+            _logger.LogWarning("File {To} is missing in recompiled list", missing.Key);
+            found = true;
+        }
+        
+        foreach (var missing in bDirectives.Where(bd => !aDirectives.ContainsKey(bd.Key)))
+        {
+            _logger.LogWarning("File {To} is missing in original list", missing.Key);
+            found = true;
+        }
+
+        return found;
+    }
+
     private async Task<bool> DownloadMachineUrl(string machineUrl, AbsolutePath wabbajack, CancellationToken token)
     {
         _logger.LogInformation("Downloading {MachineUrl}", machineUrl);
