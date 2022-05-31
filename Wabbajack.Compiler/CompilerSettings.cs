@@ -17,6 +17,8 @@ public class CompilerSettings
 
     public AbsolutePath ModListImage { get; set; }
     public bool UseGamePaths { get; set; }
+
+    public bool UseTextureRecompression { get; set; } = false;
     public Game[] OtherGames { get; set; } = Array.Empty<Game>();
 
     public TimeSpan MaxVerificationTime { get; set; } = TimeSpan.FromMinutes(1);

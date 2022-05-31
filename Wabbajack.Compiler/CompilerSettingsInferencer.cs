@@ -27,7 +27,7 @@ public class CompilerSettingsInferencer
     public async Task<CompilerSettings?> InferFromRootPath(AbsolutePath rootPath)
     {
         var mo2File = rootPath.Combine(Consts.MO2IniName).LoadIniFile();
-        var profile = mo2File["General"]["selected_profile"];
+        var profile = mo2File["General"]["selected_profile"].FromMO2Ini();
 
         return await InferModListFromLocation(rootPath.Combine(Consts.MO2Profiles, profile, Consts.ModListTxt));
     }
@@ -88,6 +88,10 @@ public class CompilerSettingsInferencer
                     if ((generalModData["notes"]?.Contains(Consts.WABBAJACK_NOMATCH_INCLUDE) ?? false) ||
                         (generalModData["comments"]?.Contains(Consts.WABBAJACK_NOMATCH_INCLUDE) ?? false))
                         cs.NoMatchInclude = cs.NoMatchInclude.Append(modFolder.RelativeTo(mo2Folder)).ToArray();
+                    
+                    if ((generalModData["notes"]?.Contains(Consts.WABBAJACK_INCLUDE) ?? false) ||
+                        (generalModData["comments"]?.Contains(Consts.WABBAJACK_INCLUDE) ?? false))
+                        cs.Include = cs.Include.Append(modFolder.RelativeTo(mo2Folder)).ToArray();
                 }
 
                 _logger.LogInformation("Finding other profiles");

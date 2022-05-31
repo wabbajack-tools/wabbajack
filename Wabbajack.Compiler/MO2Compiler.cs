@@ -313,8 +313,8 @@ public class MO2Compiler : ACompiler
             new DropAll(this)
         };
 
-        //if (DisableTextureResizing)
-        //    steps = steps.Where(s => !(s is MatchSimilarTextures)).ToList();
+        if (!_settings.UseTextureRecompression)
+            steps = steps.Where(s => s is not MatchSimilarTextures).ToList();
 
         return steps;
     }

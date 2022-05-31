@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,9 +23,27 @@ public static class AbsolutePathExtensions
     {
         var path = file.ToNativePath();
         if (File.Exists(path))
-            File.Delete(path);
+        {
+            try
+            {
+                File.Delete(path);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                var fi = new FileInfo(path);
+                if (fi.IsReadOnly)
+                {
+                    fi.IsReadOnly = false;
+                    File.Delete(path);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
         if (Directory.Exists(path))
-            Directory.Delete(path, true);
+            file.DeleteDirectory();
     }
 
     public static long Size(this AbsolutePath file)
@@ -188,17 +207,19 @@ public static class AbsolutePathExtensions
         if (!path.DirectoryExists()) return;
         if (dontDeleteIfNotEmpty && (path.EnumerateFiles().Any() || path.EnumerateDirectories().Any())) return;
       
-        foreach (string directory in Directory.GetDirectories(path.ToString()))
+        foreach (var directory in Directory.GetDirectories(path.ToString()))
         {
             DeleteDirectory(directory.ToAbsolutePath(), dontDeleteIfNotEmpty);
         }
-
         try
         {
             Directory.Delete(path.ToString(), true);
         }
-        catch (IOException) 
+        catch (IOException)
         {
+            var di = new DirectoryInfo(path.ToString());
+            if (di.Attributes.HasFlag(FileAttributes.ReadOnly))
+                di.Attributes &= ~FileAttributes.ReadOnly;
             Directory.Delete(path.ToString(), true);
         }
         catch (UnauthorizedAccessException)
