@@ -7,8 +7,14 @@ using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using ReactiveUI.Fody.Helpers;
+using Wabbajack.Compression.Zip;
+using Wabbajack.Downloaders.Http;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
@@ -19,12 +25,16 @@ public class MainWindowViewModel : ViewModelBase
     private readonly WebClient _client = new();
     private readonly List<string> _errors = new();
 
-    private Release _version;
+    private (Version Version, long Size, Func<Task<Uri>> Uri) _version;
     public Uri GITHUB_REPO = new("https://api.github.com/repos/wabbajack-tools/wabbajack/releases");
+    private readonly NexusApi _nexusApi;
+    private readonly HttpDownloader _downloader;
 
-    public MainWindowViewModel()
+    public MainWindowViewModel(NexusApi nexusApi, HttpDownloader downloader)
     {
+        _nexusApi = nexusApi;
         Status = "Checking for new versions";
+        _downloader = downloader;
         var tsk = CheckForUpdates();
     }
 
@@ -37,13 +47,15 @@ public class MainWindowViewModel : ViewModelBase
 
         try
         {
-            var releases = await GetReleases();
-            _version = releases.OrderByDescending(r =>
+            var nexusRelease = await GetNexusReleases(CancellationToken.None);
+            if (nexusRelease != default)
+                _version = nexusRelease;
+            else
             {
-                if (r.Tag.Split(".").Length == 4 && Version.TryParse(r.Tag, out var v))
-                    return v;
-                return new Version(0, 0, 0, 0);
-            }).FirstOrDefault();
+                _version = await GetGithubRelease(CancellationToken.None);
+            }
+
+
         }
         catch (Exception ex)
         {
@@ -51,32 +63,28 @@ public class MainWindowViewModel : ViewModelBase
             await FinishAndExit();
         }
 
-        if (_version == null)
+        if (_version == default)
         {
-            _errors.Add("Unable to parse Github releases");
+            _errors.Add("Unable to find releases");
             await FinishAndExit();
         }
 
         Status = "Looking for Updates";
 
-        var base_folder = Path.Combine(Directory.GetCurrentDirectory(), _version.Tag);
+        var baseFolder = KnownFolders.CurrentDirectory.Combine(_version.Version.ToString());
 
-        if (File.Exists(Path.Combine(base_folder, "Wabbajack.exe"))) await FinishAndExit();
+        if (baseFolder.Combine("Wabbajack.exe").FileExists()) await FinishAndExit();
 
-        var asset = _version.Assets.FirstOrDefault(a => a.Name == _version.Tag + ".zip");
-        if (asset == null)
-        {
-            _errors.Add("No zip file for release " + _version.Tag);
-            await FinishAndExit();
-        }
+        Status = $"Getting download Uri for {_version.Version}";
+        var uri = await _version.Uri();
 
         var wc = new WebClient();
         wc.DownloadProgressChanged += UpdateProgress;
-        Status = $"Downloading {_version.Tag} ...";
+        Status = $"Downloading {_version.Version} ...";
         byte[] data;
         try
         {
-            data = await wc.DownloadDataTaskAsync(asset.BrowserDownloadUrl);
+            data = await wc.DownloadDataTaskAsync(uri);
         }
         catch (Exception ex)
         {
@@ -84,7 +92,7 @@ public class MainWindowViewModel : ViewModelBase
             // Something went wrong so fallback to original URL
             try
             {
-                data = await wc.DownloadDataTaskAsync(asset.BrowserDownloadUrl);
+                data = await wc.DownloadDataTaskAsync(uri);
             }
             catch (Exception ex2)
             {
@@ -96,21 +104,19 @@ public class MainWindowViewModel : ViewModelBase
 
         try
         {
-            using (var zip = new ZipArchive(new MemoryStream(data), ZipArchiveMode.Read))
+            using var zip = new ZipArchive(new MemoryStream(data), ZipArchiveMode.Read);
+            foreach (var entry in zip.Entries)
             {
-                foreach (var entry in zip.Entries)
-                {
-                    Status = $"Extracting: {entry.Name}";
-                    var outPath = Path.Combine(base_folder, entry.FullName);
-                    if (!Directory.Exists(Path.GetDirectoryName(outPath)))
-                        Directory.CreateDirectory(Path.GetDirectoryName(outPath));
+                Status = $"Extracting: {entry.Name}";
+                var outPath = baseFolder.Combine(entry.FullName.ToRelativePath());
+                if (!outPath.Parent.DirectoryExists())
+                    outPath.Parent.CreateDirectory();
 
-                    if (entry.FullName.EndsWith("/") || entry.FullName.EndsWith("\\"))
-                        continue;
-                    await using var o = entry.Open();
-                    await using var of = File.Create(outPath);
-                    await o.CopyToAsync(of);
-                }
+                if (entry.FullName.EndsWith("/") || entry.FullName.EndsWith("\\"))
+                    continue;
+                await using var o = entry.Open();
+                await using var of = outPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+                await o.CopyToAsync(of);
             }
         }
         catch (Exception ex)
@@ -175,15 +181,63 @@ public class MainWindowViewModel : ViewModelBase
 
     private void UpdateProgress(object sender, DownloadProgressChangedEventArgs e)
     {
-        Status = $"Downloading {_version.Tag} ({e.ProgressPercentage}%)...";
+        Status = $"Downloading {_version.Version} ({e.ProgressPercentage}%)...";
     }
 
-    private async Task<Release[]> GetReleases()
+    private async Task<(Version Version, long Size, Func<Task<Uri>> Uri)> GetGithubRelease(CancellationToken token)
+    {
+        var releases = await GetGithubReleases();
+        
+        
+        var version = releases.Select(r =>
+        {
+            if (r.Tag.Split(".").Length == 4 && Version.TryParse(r.Tag, out var v))
+                return (v, r);
+            return (new Version(0, 0, 0, 0), r);
+        })
+            .OrderByDescending(r => r.Item1)
+            .FirstOrDefault();
+        
+        var asset = version.r.Assets.FirstOrDefault(a => a.Name == version.Item1 + ".zip");
+        if (asset == null)
+        {
+            Status = $"Error, no asset found for Github Release {version.r}";
+            return default;
+        }
+
+        return (version.Item1, asset.Size, async () => asset!.BrowserDownloadUrl);
+    }
+    
+    private async Task<Release[]> GetGithubReleases()
     {
         Status = "Checking GitHub Repository";
         var data = await _client.DownloadStringTaskAsync(GITHUB_REPO);
         Status = "Parsing Response";
         return JsonSerializer.Deserialize<Release[]>(data)!;
+    }
+    
+    private async Task<(Version Version, long Size, Func<Task<Uri>> uri)> GetNexusReleases(CancellationToken token)
+    {
+        Status = "Checking Nexus for updates";
+        if (!await _nexusApi.IsPremium(token))
+            return default;
+        
+        var data = await _nexusApi.ModFiles("site", 403, token);
+        Status = "Parsing Response";
+        //return JsonSerializer.Deserialize<Release[]>(data)!;
+
+        var found = data.info.Files.Where(f => f.CategoryId == 5)
+            .Where(f => f.Name.EndsWith(".zip"))
+            .Select(f => Version.TryParse(f.Name[..^4], out var version) ? (version, f.SizeInBytes ?? f.Size,  f.FileId) : default)
+            .FirstOrDefault(f => f != default);
+        if (found == default) return default;
+
+        return (found.version, found.Item2, async () =>
+        {
+            var link = await _nexusApi.DownloadLink("site", 403, found.FileId, token);
+
+            return link.info.First().URI;
+        });
     }
 
 
@@ -200,5 +254,8 @@ public class MainWindowViewModel : ViewModelBase
         public Uri BrowserDownloadUrl { get; set; }
 
         [JsonPropertyName("name")] public string Name { get; set; }
+
+        
+        [JsonPropertyName("size")] public long Size { get; set; }
     }
 }
