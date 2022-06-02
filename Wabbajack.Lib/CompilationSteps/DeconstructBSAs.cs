@@ -100,7 +100,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 To = source.Path,
                 TempID = (RelativePath)id,
             };
-
+            
             if (_cleanup != null)
                 await _cleanup();
             return directive;

@@ -595,6 +595,7 @@ namespace Wabbajack.Common
             throw new Exception(msg);
         }*/
 
+        /*
         public static Stream GetEmbeddedResourceStream(string name)
         {
             return (from assembly in AppDomain.CurrentDomain.GetAssemblies()
@@ -602,7 +603,7 @@ namespace Wabbajack.Common
                     from rname in assembly.GetManifestResourceNames()
                     where rname == name
                     select assembly.GetManifestResourceStream(name)).First();
-        }
+        }*/
 
         public static T FromYaml<T>(this Stream s)
         {

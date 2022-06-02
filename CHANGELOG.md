@@ -1,5 +1,12 @@
 ### Changelog
 
+#### Version - 2.5.3.18 - 6/1/2022
+* Downgrade to a working copy of Game Finder
+
+#### Version - 2.5.3.17 - 6/1/2022
+* Switch the launcher to 3.0 code
+* Download new releases from the Nexus when possible
+
 #### Version - 2.5.3.16 - 5/22/2022
 * Update to the latest Game Finder library
 
