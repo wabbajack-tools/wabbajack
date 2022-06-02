@@ -14,6 +14,8 @@ using Wabbajack.Compression.Zip;
 using Wabbajack.Downloaders.Http;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.DTOs.Logins;
+using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -29,12 +31,14 @@ public class MainWindowViewModel : ViewModelBase
     public Uri GITHUB_REPO = new("https://api.github.com/repos/wabbajack-tools/wabbajack/releases");
     private readonly NexusApi _nexusApi;
     private readonly HttpDownloader _downloader;
+    private readonly ITokenProvider<NexusApiState> _tokenProvider;
 
-    public MainWindowViewModel(NexusApi nexusApi, HttpDownloader downloader)
+    public MainWindowViewModel(NexusApi nexusApi, HttpDownloader downloader, ITokenProvider<NexusApiState> tokenProvider)
     {
         _nexusApi = nexusApi;
         Status = "Checking for new versions";
         _downloader = downloader;
+        _tokenProvider = tokenProvider;
         var tsk = CheckForUpdates();
     }
 
@@ -47,10 +51,13 @@ public class MainWindowViewModel : ViewModelBase
 
         try
         {
-            var nexusRelease = await GetNexusReleases(CancellationToken.None);
-            if (nexusRelease != default)
-                _version = nexusRelease;
-            else
+
+            if (_tokenProvider.HaveToken())
+            {
+                _version = await GetNexusReleases(CancellationToken.None);
+            }
+
+            if (_version == default)
             {
                 _version = await GetGithubRelease(CancellationToken.None);
             }

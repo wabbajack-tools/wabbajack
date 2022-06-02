@@ -1,9 +1,11 @@
 ### Changelog
 
-#### Version - 3.0.0.4 - 5/23/2022
-* Alpha (testing) release
-* Complete rewrite of the app for .NET 6
-* Most code has been rewritten to be cross platform
+#### Version - 2.5.3.18 - 6/1/2022
+* Switch to a working version of Game Finder
+
+#### Version - 2.5.3.17 - 6/1/2022
+* Switch the launcher to 3.0 code
+* Download new releases from the Nexus when possible
 
 #### Version - 2.5.3.16 - 5/22/2022
 * Update to the latest Game Finder library

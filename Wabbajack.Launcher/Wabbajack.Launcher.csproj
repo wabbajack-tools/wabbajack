@@ -9,6 +9,9 @@
     <ItemGroup>
         <AvaloniaResource Include="Assets\**" />
     </ItemGroup>
+    <PropertyGroup>
+        <ApplicationIcon>Resources\Icons\wabbajack.ico</ApplicationIcon>
+    </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="GitInfo" Version="2.2.0">
             <PrivateAssets>all</PrivateAssets>
