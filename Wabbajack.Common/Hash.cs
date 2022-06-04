@@ -276,7 +276,11 @@ namespace Wabbajack.Common
 
         public static async Task<Hash?> FileHashCachedAsync(this AbsolutePath file)
         {
-            if (TryGetHashCache(file, out var foundHash)) return foundHash;
+            if (TryGetHashCache(file, out var foundHash))
+            {
+                if (foundHash != default) 
+                    return foundHash;
+            }
 
             var hash = await file.FileHashAsync();
             if (hash != null && hash != Hash.Empty)
