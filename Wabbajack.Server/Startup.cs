@@ -85,9 +85,12 @@ public class Startup
         services.AddSingleton<TarLog>();
         services.AddAllSingleton<IHttpDownloader, SingleThreadedDownloader>();
         services.AddDownloadDispatcher(useLoginDownloaders:false, useProxyCache:false);
-        var tempBase = KnownFolders.EntryPoint.Combine("temp");
         services.AddTransient(s =>
-            new TemporaryFileManager(tempBase.Combine(Environment.ProcessId + "_" + Guid.NewGuid())));
+        {
+            var settings = s.GetRequiredService<AppSettings>();
+            return new TemporaryFileManager(settings.TempPath.Combine(Environment.ProcessId + "_" + Guid.NewGuid()));
+        });
+            
         services.AddAllSingleton<ITokenProvider<WabbajackApiState>, WabbajackApiTokenProvider>();
         services.AddAllSingleton<IResource, IResource<DownloadDispatcher>>(s => new Resource<DownloadDispatcher>("Downloads", 12));
         services.AddAllSingleton<IResource, IResource<FileHashCache>>(s => new Resource<FileHashCache>("File Hashing", 12));
