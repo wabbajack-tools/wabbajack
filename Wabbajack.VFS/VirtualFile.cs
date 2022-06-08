@@ -14,6 +14,7 @@ using Wabbajack.Hashing.PHash;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 
 namespace Wabbajack.VFS;
 
@@ -159,7 +160,7 @@ public class VirtualFile
 
     public static async Task<VirtualFile> Analyze(Context context, VirtualFile? parent,
         IStreamFactory extractedFile,
-        IPath relPath, CancellationToken token, int depth = 0)
+        IPath relPath, CancellationToken token, int depth = 0, IJob? job = null)
     {
         Hash hash;
         if (extractedFile is NativeFileStreamFactory)
@@ -169,9 +170,9 @@ public class VirtualFile
         }
         else
         {
-            using var job = await context.HashLimiter.Begin("Hashing memory stream", 0, token);
             await using var hstream = await extractedFile.GetStream();
-            job.Size = hstream.Length;
+            if (job != null) 
+                job.Size += hstream.Length;
             hash = await hstream.HashingCopy(Stream.Null, token, job);
         }
 
@@ -198,9 +199,13 @@ public class VirtualFile
         if (TextureExtensions.Contains(relPath.FileName.Extension) && await DDSSig.MatchesAsync(stream) != null)
             try
             {
-                using var job = await context.HashLimiter.Begin("Hashing image", 0, token);
                 self.ImageState = await ImageLoader.Load(stream);
-                await job.Report((int) self.Size, token);
+                if (job != null)
+                {
+                    job.Size += self.Size;
+                    await job.Report((int) self.Size, token);
+                }
+
                 stream.Position = 0;
             }
             catch (Exception)
@@ -222,7 +227,7 @@ public class VirtualFile
         {
             var list = await context.Extractor.GatheringExtract(extractedFile,
                 _ => true,
-                async (path, sfactory) => await Analyze(context, self, sfactory, path, token, depth + 1),
+                async (path, sfactory) => await Analyze(context, self, sfactory, path, token, depth + 1, job),
                 token);
 
             self.Children = list.Values.ToImmutableList();

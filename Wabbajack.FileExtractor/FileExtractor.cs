@@ -204,7 +204,7 @@ public class FileExtractor
     {
         var tmpFile = _manager.CreateFile();
         await tmpFile.Path.WriteAllAsync(archive, CancellationToken.None);
-        var dest = _manager.CreateFolder();
+        await using var dest = _manager.CreateFolder();
 
         using var omod = new OMOD(tmpFile.Path.ToString());
 
@@ -364,7 +364,7 @@ public class FileExtractor
             
             job.Dispose();
             var results = await dest.Path.EnumerateFiles()
-                .PMapAll(async f =>
+                .SelectAsync(async f =>
                 {
                     var path = f.RelativeTo(dest.Path);
                     if (!shouldExtract(path)) return ((RelativePath, T)) default;
@@ -375,6 +375,7 @@ public class FileExtractor
                 })
                 .Where(d => d.Item1 != default)
                 .ToDictionary(d => d.Item1, d => d.Item2);
+            
 
             return results;
         }

@@ -16,6 +16,9 @@ public class AppSettings
     public string WabbajackBuildServerUri { get; set; } = "https://build.wabbajack.org/";
     public string MetricsKeyHeader { get; set; } = "x-metrics-key";
     public string TempFolder { get; set; }
+    
+    public string ProxyFolder { get; set; }
+    public AbsolutePath ProxyPath => (AbsolutePath) ProxyFolder;
     public AbsolutePath TempPath => (AbsolutePath) TempFolder;
     public string SpamWebHook { get; set; } = null;
     public string HamWebHook { get; set; } = null;

@@ -63,7 +63,7 @@ public abstract class AInstaller<T>
     private readonly Stopwatch _updateStopWatch = new();
 
     public Action<StatusUpdate>? OnStatusUpdate;
-    private readonly IResource<IInstaller> _limiter;
+    protected readonly IResource<IInstaller> _limiter;
     private Func<long, string> _statusFormatter = x => x.ToString();
 
 
@@ -98,6 +98,8 @@ public abstract class AInstaller<T>
     public TemporaryPath ExtractedModlistFolder { get; set; }
 
     public ModList ModList => _configuration.ModList;
+    public Directive[] UnoptimizedDirectives { get; set; }
+    public Archive[] UnoptimizedArchives { get; set; }
 
     public void NextStep(string statusCategory, string statusText, long maxStepProgress, Func<long, string>? formatter = null)
     {
@@ -558,7 +560,11 @@ public abstract class AInstaller<T>
             .Select(d => d.Key)
             .ToHashSet();
 
+        UnoptimizedArchives = ModList.Archives;
+        UnoptimizedDirectives = ModList.Directives;
         ModList.Archives = ModList.Archives.Where(a => requiredArchives.Contains(a.Hash)).ToArray();
         ModList.Directives = indexed.Values.ToArray();
     }
+
+
 }

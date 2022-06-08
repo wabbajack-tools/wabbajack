@@ -454,11 +454,12 @@ public abstract class ACompiler
                 foreach (var match in matches)
                 {
                     var destFile = FindDestFile(match.To);
+                    _logger.LogInformation("Patching {from} {to}", destFile, match.To);
                     // Build the patch
                     await _vfs.Extract(new[] {destFile}.ToHashSet(),
                         async (destvf, destsfn) =>
                         {
-                            _logger.LogInformation("Patching {from} {to}", destFile, match.To);
+
                             await using var srcStream = await sf.GetStream();
                             await using var destStream = await destsfn.GetStream();
                             using var _ = await CompilerLimiter.Begin($"Patching {match.To}", 100, token);

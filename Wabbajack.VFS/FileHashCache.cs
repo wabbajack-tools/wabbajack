@@ -90,7 +90,7 @@ public class FileHashCache
         if (!file.FileExists()) return false;
 
         var result = Get(file);
-        if (result == default)
+        if (result == default || result.Hash == default)
             return false;
 
         if (result.LastModified == file.LastModifiedUtc().ToFileTimeUtc())

@@ -362,4 +362,9 @@ public class Client
         var url = $"https://raw.githubusercontent.com/wabbajack-tools/indexed-game-files/master/{game}/{version}_steam_manifests.json";
         return await _client.GetFromJsonAsync<SteamManifest[]>(url, _dtos.Options) ?? Array.Empty<SteamManifest>();
     }
+
+    public Uri MakeProxyUrl(Archive archive, Uri uri)
+    {
+        return new Uri($"{_configuration.BuildServerUrl}proxy?name={archive.Name}&hash={archive.Hash.ToHex()}&uri={uri}");
+    }
 }

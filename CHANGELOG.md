@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.3.19 - 6/4/2022
+* Fix a potential long standing problem with hash caching
+
 #### Version - 2.5.3.18 - 6/1/2022
 * Switch to a working version of Game Finder
 

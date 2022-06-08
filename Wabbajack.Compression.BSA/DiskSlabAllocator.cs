@@ -26,7 +26,8 @@ public class DiskSlabAllocator
         foreach (var s in _streams)
             await s.DisposeAsync();
 
-        foreach (var file in _files) file.Dispose();
+        foreach (var file in _files) 
+            await file.DisposeAsync();
     }
 
     public Stream Allocate(long rLength)

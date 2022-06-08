@@ -17,7 +17,7 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Downloaders.ModDB;
 
-public class MegaDownloader : ADownloader<Mega>, IUrlDownloader
+public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
 {
     private const string MegaPrefix = "https://mega.nz/#!";
     private const string MegaFilePrefix = "https://mega.nz/file/";

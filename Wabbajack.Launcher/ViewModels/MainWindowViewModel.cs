@@ -85,6 +85,30 @@ public class MainWindowViewModel : ViewModelBase
         Status = $"Getting download Uri for {_version.Version}";
         var uri = await _version.Uri();
 
+        var archive = new Archive()
+        {
+            Name = $"{_version.Version}.zip",
+            Size = _version.Size,
+            State = new Http {Url = uri}
+        };
+
+        await using var stream = await _downloader.GetChunkedSeekableStream(archive, CancellationToken.None);
+        var rdr = new ZipReader(stream, true);
+        var entries = (await rdr.GetFiles()).OrderBy(d => d.FileOffset).ToArray();
+        foreach (var file in  entries)
+        {
+            if (file.FileName.EndsWith("/") || file.FileName.EndsWith("\\")) continue;
+            var relPath = file.FileName.ToRelativePath();
+            Status = $"Extracting: {relPath.FileName}";
+            var outPath = baseFolder.Combine(relPath);
+            if (!outPath.Parent.DirectoryExists())
+                outPath.Parent.CreateDirectory();
+            
+            await using var of = outPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+            await rdr.Extract(file, of, CancellationToken.None);
+        }
+
+        
         var wc = new WebClient();
         wc.DownloadProgressChanged += UpdateProgress;
         Status = $"Downloading {_version.Version} ...";

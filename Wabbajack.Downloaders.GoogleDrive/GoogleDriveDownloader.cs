@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
+using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
@@ -18,7 +21,7 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Downloaders.GoogleDrive;
 
-public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive>, IUrlDownloader
+public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive>, IUrlDownloader, IProxyable
 {
     private static readonly Regex GDriveRegex = new("((?<=id=)[a-zA-Z0-9_-]*)|(?<=\\/file\\/d\\/)[a-zA-Z0-9_-]*",
         RegexOptions.Compiled);
@@ -98,8 +101,29 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
             using var response = await _client.GetAsync(initialUrl, token);
             var cookies = response.GetSetCookies();
             var warning = cookies.FirstOrDefault(c => c.Key.StartsWith("download_warning_"));
+
+            if (warning == default && response.Content.Headers.ContentType?.MediaType == "text/html")
+            {
+                var doc = new HtmlDocument();
+                var txt = await response.Content.ReadAsStringAsync(token);
+                
+                doc.LoadHtml(txt);
+
+                var action = doc.DocumentNode.DescendantsAndSelf()
+                    .Where(d => d.Name == "form" && d.Id == "downloadForm" &&
+                                d.GetAttributeValue("method", "") == "post")
+                    .Select(d => d.GetAttributeValue("action", ""))
+                    .FirstOrDefault();
+
+                if (action != null) 
+                    warning = ("download_warning_", "t");
+
+            }
             response.Dispose();
-            if (warning == default) return new HttpRequestMessage(HttpMethod.Get, initialUrl);
+            if (warning == default)
+            {
+                return new HttpRequestMessage(HttpMethod.Get, initialUrl);
+            }
 
             var url = $"https://drive.google.com/uc?export=download&confirm={warning.Value}&id={state.Id}";
             var httpState = new HttpRequestMessage(HttpMethod.Get, url);

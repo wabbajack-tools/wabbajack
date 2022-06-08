@@ -17,7 +17,7 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Downloaders.MediaFire;
 
-public class MediaFireDownloader : ADownloader<DTOs.DownloadStates.MediaFire>, IUrlDownloader
+public class MediaFireDownloader : ADownloader<DTOs.DownloadStates.MediaFire>, IUrlDownloader, IProxyable
 {
     private readonly IHttpDownloader _downloader;
     private readonly HttpClient _httpClient;

@@ -117,9 +117,7 @@ public class CompilerSanityTests : IAsyncLifetime
     [Fact]
     public async Task CanRecreateBSAs()
     {
-        var bsa = _mod.FullPath.EnumerateFiles(Ext.Bsa)
-            .OrderBy(d => d.Size())
-            .First();
+        var bsa = _mod.FullPath.EnumerateFiles(Ext.Bsa).MinBy(d => d.Size());
         await _fileExtractor.ExtractAll(bsa, _mod.FullPath, CancellationToken.None);
 
         var reader = await BSADispatch.Open(bsa);
@@ -127,7 +125,7 @@ public class CompilerSanityTests : IAsyncLifetime
         var fileStates = reader.Files.Select(f => f.State).ToArray();
         bsa.Delete();
 
-        var creator = BSADispatch.CreateBuilder(bsaState, _manager);
+        await using var creator = BSADispatch.CreateBuilder(bsaState, _manager);
         await fileStates.Take(2).PDoAll(new Resource<CompilerSanityTests>(),
             async f => await creator.AddFile(f, f.Path.RelativeTo(_mod.FullPath).Open(FileMode.Open),
                 CancellationToken.None));

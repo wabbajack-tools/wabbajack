@@ -58,11 +58,12 @@ public class Context
         var allFiles = await filesToIndex
             .PMapAll(async f =>
             {
+                using var job = await Limiter.Begin($"Analyzing {f}", 0, token);
                 if (byPath.TryGetValue(f, out var found))
                     if (found.LastModified == f.LastModifiedUtc().AsUnixTime() && found.Size == f.Size())
                         return found;
 
-                return await VirtualFile.Analyze(this, null, new NativeFileStreamFactory(f), f, token);
+                return await VirtualFile.Analyze(this, null, new NativeFileStreamFactory(f), f, token, job: job);
             }).ToList();
 
         var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
@@ -143,7 +144,7 @@ public class Context
                         token,
                         fileNames.Keys.ToHashSet());
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     await using var stream = await sfn.GetStream();
                     var hash = await stream.HashingCopy(Stream.Null, token);

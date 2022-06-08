@@ -68,7 +68,7 @@ public class CompressionTests
 
         var oldState = reader.State;
 
-        var build = BSADispatch.CreateBuilder(oldState, _tempManager);
+        await using var build = BSADispatch.CreateBuilder(oldState, _tempManager);
 
         await dataStates.PDoAll(
             async itm => { await build.AddFile(itm.State, itm.Stream, CancellationToken.None); });

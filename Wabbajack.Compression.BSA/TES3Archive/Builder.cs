@@ -69,4 +69,9 @@ public class Builder : IBuilder
             await data.DisposeAsync();
         }
     }
+
+    public async ValueTask DisposeAsync()
+    {
+        return;
+    }
 }

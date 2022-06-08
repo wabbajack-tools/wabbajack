@@ -17,10 +17,12 @@ using Nettle.Compiler;
 using Newtonsoft.Json;
 using Octokit;
 using Wabbajack.BuildServer;
+using Wabbajack.Downloaders;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Networking.GitHub;
+using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths;
@@ -30,6 +32,8 @@ using Wabbajack.Server.Extensions;
 using Wabbajack.Server.Services;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 using Wabbajack.Networking.WabbajackClientApi;
+using Wabbajack.Paths.IO;
+using Wabbajack.VFS;
 using Client = Wabbajack.Networking.GitHub.Client;
 
 namespace Wabbajack.Server;
@@ -79,6 +83,18 @@ public class Startup
         services.AddSingleton<NexusApi>();
         services.AddSingleton<DiscordBackend>();
         services.AddSingleton<TarLog>();
+        services.AddAllSingleton<IHttpDownloader, SingleThreadedDownloader>();
+        services.AddDownloadDispatcher(useLoginDownloaders:false, useProxyCache:false);
+        var tempBase = KnownFolders.EntryPoint.Combine("temp");
+        services.AddTransient(s =>
+            new TemporaryFileManager(tempBase.Combine(Environment.ProcessId + "_" + Guid.NewGuid())));
+        services.AddAllSingleton<ITokenProvider<WabbajackApiState>, WabbajackApiTokenProvider>();
+        services.AddAllSingleton<IResource, IResource<DownloadDispatcher>>(s => new Resource<DownloadDispatcher>("Downloads", 12));
+        services.AddAllSingleton<IResource, IResource<FileHashCache>>(s => new Resource<FileHashCache>("File Hashing", 12));
+        services.AddSingleton(s => 
+            new FileHashCache(KnownFolders.AppDataLocal.Combine("Wabbajack", "GlobalHashCache.sqlite"),
+                s.GetService<IResource<FileHashCache>>()!));
+        
         services.AddAllSingleton<ITokenProvider<NexusApiState>, NexusApiTokenProvider>();
         services.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", 12));
         // Application Info

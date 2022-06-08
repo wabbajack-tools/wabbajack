@@ -216,19 +216,38 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
     private async Task InstallIncludedDownloadMetas(CancellationToken token)
     {
-        await ModList.Archives
-            .PDoAll(async archive =>
+        _logger.LogInformation("Looking for downloads by size");
+        var bySize = UnoptimizedArchives.ToLookup(x => x.Size);
+
+        _logger.LogInformation("Writing Metas");
+        await _configuration.Downloads.EnumerateFiles()
+            .PDoAll(async download =>
             {
-                if (HashedArchives.TryGetValue(archive.Hash, out var paths))
+                var found = bySize[download.Size()];
+                var hash = await FileHashCache.FileHashCachedAsync(download, token);
+                var archive = found.FirstOrDefault(f => f.Hash == hash);
+                if (archive == default) return;
+
+                var metaFile = download.WithExtension(Ext.Meta);
+                if (metaFile.FileExists())
                 {
-                    var metaPath = paths.WithExtension(Ext.Meta);
-                    if (archive.State is GameFileSource) return;
-                    if (!metaPath.FileExists())
+                    try
                     {
-                        var meta = AddInstalled(_downloadDispatcher.MetaIni(archive));
-                        await metaPath.WriteAllLinesAsync(meta, token);
+                        var parsed = metaFile.LoadIniFile();
+                        if (parsed["General"] != null && parsed["General"]["unknownArchive"] == null)
+                        {
+                            return;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Ignore
                     }
                 }
+                
+                _logger.LogInformation("Writing {FileName}", metaFile.FileName);
+                var meta = AddInstalled(_downloadDispatcher.MetaIni(archive));
+                await metaFile.WriteAllLinesAsync(meta, token);
             });
     }
 
@@ -253,11 +272,15 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             _logger.LogInformation("Building {bsaTo}", bsa.To.FileName);
             var sourceDir = _configuration.Install.Combine(BSACreationDir, bsa.TempID);
 
-            var a = BSADispatch.CreateBuilder(bsa.State, _manager);
+            await using var a = BSADispatch.CreateBuilder(bsa.State, _manager);
             var streams = await bsa.FileStates.PMapAll(async state =>
             {
+                using var job = await _limiter.Begin($"Adding {state.Path.FileName}", 0, token);
                 var fs = sourceDir.Combine(state.Path).Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                var size = fs.Length;
+                job.Size = size;
                 await a.AddFile(state, fs, token);
+                await job.Report((int)size, token);
                 return fs;
             }).ToList();
 

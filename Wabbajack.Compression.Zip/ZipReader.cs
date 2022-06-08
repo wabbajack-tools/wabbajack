@@ -166,6 +166,10 @@ public class ZipReader : IAsyncDisposable
                     
                 }
             }
+            else
+            {
+                _rdr.Position += extraFieldLength;
+            }
 
             entries[i] = new ExtractedEntry
             {

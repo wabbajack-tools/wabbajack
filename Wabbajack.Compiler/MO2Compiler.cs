@@ -81,7 +81,7 @@ public class MO2Compiler : ACompiler
         NextStep("Initializing", "Add Roots");
         await _vfs.AddRoots(roots, token); // Step 1
 
-        await InferMetas(token); // Step 2
+        //await InferMetas(token); // Step 2
 
         NextStep("Initializing", "Add Download Roots");
         await _vfs.AddRoot(Settings.Downloads, token); // Step 3

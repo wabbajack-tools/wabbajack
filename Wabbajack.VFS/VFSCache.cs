@@ -41,6 +41,9 @@ public class VFSCache
     public bool TryGetFromCache(Context context, VirtualFile parent, IPath path, IStreamFactory extractedFile,
         Hash hash, out VirtualFile found)
     {
+        if (hash == default)
+            throw new ArgumentException("Cannot cache default hashes");
+        
         using var cmd = new SQLiteCommand(_conn);
         cmd.CommandText = @"SELECT Contents FROM VFSCache WHERE Hash = @hash";
         cmd.Parameters.AddWithValue("@hash", (long) hash);

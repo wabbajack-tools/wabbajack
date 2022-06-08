@@ -60,6 +60,11 @@ public static class AbsolutePathExtensions
     {
         return new FileInfo(file.ToNativePath()).LastWriteTime;
     }
+    
+    public static void Touch(this AbsolutePath file)
+    {
+        new FileInfo(file.ToNativePath()).LastWriteTime = DateTime.Now;
+    }
 
     public static byte[] ReadAllBytes(this AbsolutePath file)
     {
@@ -220,7 +225,7 @@ public static class AbsolutePathExtensions
             var di = new DirectoryInfo(path.ToString());
             if (di.Attributes.HasFlag(FileAttributes.ReadOnly))
                 di.Attributes &= ~FileAttributes.ReadOnly;
-            Directory.Delete(path.ToString(), true);
+            di.Delete(true);
         }
         catch (UnauthorizedAccessException)
         {

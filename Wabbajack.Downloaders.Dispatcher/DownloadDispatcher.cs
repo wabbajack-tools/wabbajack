@@ -25,14 +25,16 @@ public class DownloadDispatcher
     private readonly IResource<DownloadDispatcher> _limiter;
     private readonly ILogger<DownloadDispatcher> _logger;
     private readonly Client _wjClient;
+    private readonly bool _useProxyCache;
 
     public DownloadDispatcher(ILogger<DownloadDispatcher> logger, IEnumerable<IDownloader> downloaders,
-        IResource<DownloadDispatcher> limiter, Client wjClient)
+        IResource<DownloadDispatcher> limiter, Client wjClient, bool useProxyCache = true)
     {
         _downloaders = downloaders.OrderBy(d => d.Priority).ToArray();
         _logger = logger;
         _wjClient = wjClient;
         _limiter = limiter;
+        _useProxyCache = useProxyCache;
     }
 
     public async Task<Hash> Download(Archive a, AbsolutePath dest, CancellationToken token)
@@ -47,7 +49,26 @@ public class DownloadDispatcher
         if (!dest.Parent.DirectoryExists())
             dest.Parent.CreateDirectory();
 
-        var hash = await Downloader(a).Download(a, dest, job, token);
+        var downloader = Downloader(a);
+        if (_useProxyCache && downloader is IProxyable p)
+        {
+            var uri = p.UnParse(a.State);
+            var newUri = _wjClient.MakeProxyUrl(a, uri);
+            a = new Archive
+            {
+                Name = a.Name,
+                Size = a.Size,
+                Hash = a.Hash,
+                State = new DTOs.DownloadStates.Http()
+                {
+                    Url = newUri
+                }
+            };
+            downloader = Downloader(a);
+            _logger.LogInformation("Downloading Proxy ({Hash}) {Uri}", (await uri.ToString().Hash()).ToHex(), uri);
+        }
+
+        var hash = await downloader.Download(a, dest, job, token);
         return hash;
     }
 

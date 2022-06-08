@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -41,8 +43,11 @@ public static class ServiceExtensions
         var options = new OSIntegratedOptions();
         cfn?.Invoke(options);
 
+        var tempBase = KnownFolders.EntryPoint.Combine("temp");
         service.AddTransient(s =>
-            new TemporaryFileManager(KnownFolders.EntryPoint.Combine("temp", Guid.NewGuid().ToString())));
+            new TemporaryFileManager(tempBase.Combine(Environment.ProcessId + "_" + Guid.NewGuid())));
+
+        Task.Run(() => CleanAllTempData(tempBase));
 
         service.AddSingleton(s => options.UseLocalCache
             ? new FileHashCache(s.GetService<TemporaryFileManager>()!.CreateFile().Path,
@@ -174,6 +179,31 @@ public static class ServiceExtensions
 
         
         return service;
+    }
+
+    private static void CleanAllTempData(AbsolutePath path)
+    {
+        // Get directories first and cache them, this freezes the directories were looking at
+        // so any new ones don't show up in the middle of our deletes.
+        
+        var dirs = path.EnumerateDirectories().ToList();
+        var processIds = Process.GetProcesses().Select(p => p.Id).ToHashSet();
+        foreach (var dir in dirs)
+        {
+            var name = dir.FileName.ToString().Split("_");
+            if (!int.TryParse(name[0], out var processId)) continue;
+            if (processIds.Contains(processId)) continue;
+            
+            try
+            {
+                dir.DeleteDirectory();
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+        
     }
 
     public class OSIntegratedOptions
