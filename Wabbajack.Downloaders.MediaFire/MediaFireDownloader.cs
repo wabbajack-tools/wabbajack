@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -71,6 +72,16 @@ public class MediaFireDownloader : ADownloader<DTOs.DownloadStates.MediaFire>, I
         return ((DTOs.DownloadStates.MediaFire) state).Url;
     }
 
+    public async Task<T> DownloadStream<T>(Archive archive, Func<Stream, Task<T>> fn, CancellationToken token)
+    {
+        var state = archive.State as DTOs.DownloadStates.MediaFire;
+        var url = await Resolve(state!);
+        var msg = new HttpRequestMessage(HttpMethod.Get, url!);
+        using var result = await _httpClient.SendAsync(msg, token);
+        await using var stream = await result.Content.ReadAsStreamAsync(token);
+        return await fn(stream);
+    }
+
     public override async Task<Hash> Download(Archive archive, DTOs.DownloadStates.MediaFire state,
         AbsolutePath destination, IJob job, CancellationToken token)
     {
@@ -85,7 +96,7 @@ public class MediaFireDownloader : ADownloader<DTOs.DownloadStates.MediaFire>, I
         return await Resolve(archiveState, job, token) != null;
     }
 
-    private async Task<Uri?> Resolve(DTOs.DownloadStates.MediaFire state, IJob job, CancellationToken? token = null)
+    private async Task<Uri?> Resolve(DTOs.DownloadStates.MediaFire state, IJob? job = null, CancellationToken? token = null)
     {
         token ??= CancellationToken.None;
         using var result = await _httpClient.GetAsync(state.Url, HttpCompletionOption.ResponseHeadersRead,
@@ -93,7 +104,8 @@ public class MediaFireDownloader : ADownloader<DTOs.DownloadStates.MediaFire>, I
         if (!result.IsSuccessStatusCode)
             return null;
 
-        job.Size = result.Content.Headers.ContentLength ?? 0;
+        if (job != null) 
+            job.Size = result.Content.Headers.ContentLength ?? 0;
 
         if (result.Content.Headers.ContentType!.MediaType!.StartsWith("text/html",
             StringComparison.OrdinalIgnoreCase))

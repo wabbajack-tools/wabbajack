@@ -20,4 +20,10 @@ public class HttpException : Exception
 
     public string Reason { get; set; }
     public int Code { get; set; }
+
+    public static void ThrowOnFailure(HttpResponseMessage result)
+    {
+        if (result.IsSuccessStatusCode) return;
+        throw new HttpException(result);
+    }
 }

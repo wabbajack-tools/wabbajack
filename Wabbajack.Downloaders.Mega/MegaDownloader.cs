@@ -60,6 +60,16 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
         return ((Mega) state).Url;
     }
 
+    public async Task<T> DownloadStream<T>(Archive archive, Func<Stream, Task<T>> fn, CancellationToken token)
+    {
+        var state = archive.State as Mega;
+        if (!_apiClient.IsLoggedIn)
+            await _apiClient.LoginAsync();
+        
+        await using var ins = await _apiClient.DownloadAsync(state.Url, cancellationToken: token);
+        return await fn(ins);
+    }
+
     public override async Task<Hash> Download(Archive archive, Mega state, AbsolutePath destination, IJob job,
         CancellationToken token)
     {

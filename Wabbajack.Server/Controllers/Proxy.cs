@@ -3,6 +3,7 @@ using FluentFTP.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
 using Wabbajack.BuildServer;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.Interfaces;
@@ -107,18 +108,39 @@ public class Proxy : ControllerBase
         
         var tempFile = _tempFileManager.CreateFile(deleteOnDispose:false);
 
-        var result = await _dispatcher.Download(archive, tempFile.Path, token);
-        if (hash != default && result != shouldMatch)
+        var proxyDownloader = _dispatcher.Downloader(archive) as IProxyable;
+        await using (var of = tempFile.Path.Open(FileMode.Create, FileAccess.Write, FileShare.None))
         {
-            if (tempFile.Path.FileExists())
-                tempFile.Path.Delete();
+            Response.StatusCode = 200;
+            if (name != null)
+            {
+                Response.Headers.Add(HeaderNames.ContentDisposition, $"attachment; filename=\"{name}\"");
+            }
 
-            return BadRequest(new {Type = "Unmatching Hashes", Expected = shouldMatch.ToHex(), Found = result.ToHex()});
+            Response.Headers.Add( HeaderNames.ContentType, "application/octet-stream"  );
+            
+            var result = await proxyDownloader.DownloadStream(archive, async s => { 
+                    return await s.HashingCopy(async m =>
+                {
+                    var strmA = of.WriteAsync(m, token);
+                    await Response.Body.WriteAsync(m, token);
+                    await Response.Body.FlushAsync(token);
+                    await strmA;
+                }, token); },
+                token);
+            
+            
+            if (hash != default && result != shouldMatch)
+            {
+                if (tempFile.Path.FileExists())
+                    tempFile.Path.Delete();
+            }
         }
+
 
         await tempFile.Path.MoveToAsync(cacheFile, true, token);
 
         _logger.LogInformation("Returning proxy request for {Uri} {Size}", uri, cacheFile.Size().FileSizeToString());
-        return new PhysicalFileResult(cacheFile.ToString(), "application/binary");
+        return new EmptyResult();
     }
 }

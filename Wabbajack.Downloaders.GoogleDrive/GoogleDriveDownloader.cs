@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Encodings.Web;
@@ -63,7 +64,7 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
         return new Uri(
             $"https://drive.google.com/uc?id={(state as DTOs.DownloadStates.GoogleDrive)?.Id}&export=download");
     }
-
+    
     public override IDownloadState? Resolve(IReadOnlyDictionary<string, string> iniData)
     {
         if (iniData.ContainsKey("directURL") && Uri.TryCreate(iniData["directURL"], UriKind.Absolute, out var uri))
@@ -72,6 +73,17 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
     }
 
     public override Priority Priority => Priority.Normal;
+    
+    
+    public async Task<T> DownloadStream<T>(Archive archive, Func<Stream, Task<T>> fn, CancellationToken token)
+    {
+        var state = archive.State as DTOs.DownloadStates.GoogleDrive;
+        var msg = await ToMessage(state, true, token);
+        using var result = await _client.SendAsync(msg, token);
+        HttpException.ThrowOnFailure(result);
+        await using var stream = await result.Content.ReadAsStreamAsync(token);
+        return await fn(stream);
+    }
 
     public override async Task<Hash> Download(Archive archive, DTOs.DownloadStates.GoogleDrive state,
         AbsolutePath destination, IJob job, CancellationToken token)
@@ -98,7 +110,10 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
         if (download)
         {
             var initialUrl = $"https://drive.google.com/uc?id={state.Id}&export=download";
-            using var response = await _client.GetAsync(initialUrl, token);
+            var msg = new HttpRequestMessage(HttpMethod.Get, initialUrl);
+            msg.UseChromeUserAgent();
+            
+            using var response = await _client.SendAsync(msg, token);
             var cookies = response.GetSetCookies();
             var warning = cookies.FirstOrDefault(c => c.Key.StartsWith("download_warning_"));
 
@@ -106,6 +121,8 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
             {
                 var doc = new HtmlDocument();
                 var txt = await response.Content.ReadAsStringAsync(token);
+                if (txt.Contains("<title>Google Drive - Quota exceeded</title>"))
+                    throw new Exception("Google Drive - Quota Exceeded");
                 
                 doc.LoadHtml(txt);
 
@@ -127,13 +144,19 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
 
             var url = $"https://drive.google.com/uc?export=download&confirm={warning.Value}&id={state.Id}";
             var httpState = new HttpRequestMessage(HttpMethod.Get, url);
+            httpState.UseChromeUserAgent();
             return httpState;
         }
         else
         {
             var url = $"https://drive.google.com/file/d/{state.Id}/edit";
-            using var response = await _client.GetAsync(url, token);
-            return !response.IsSuccessStatusCode ? null : new HttpRequestMessage(HttpMethod.Get, url);
+            var msg = new HttpRequestMessage(HttpMethod.Get, url);
+            msg.UseChromeUserAgent();
+            
+            using var response = await _client.SendAsync(msg, token);
+            msg = new HttpRequestMessage(HttpMethod.Get, url);
+            msg.UseChromeUserAgent();
+            return !response.IsSuccessStatusCode ? null : msg;
         }
     }
 }
