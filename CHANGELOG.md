@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.3.20 - 6/8/2022
+* Improve reliability of MediaFire, Mega and GDrive downloaders
+
 #### Version - 2.5.3.19 - 6/4/2022
 * Fix a potential long standing problem with hash caching
 

@@ -78,6 +78,7 @@ internal class Program
                 services.AddSingleton<IVerb, DumpZipInfo>();
                 services.AddSingleton<IVerb, Install>();
                 services.AddSingleton<IVerb, InstallCompileInstallVerify>();
+                services.AddSingleton<IVerb, HashUrlString>();
 
                 services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
             }).Build();

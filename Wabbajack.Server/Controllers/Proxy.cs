@@ -73,7 +73,8 @@ public class Proxy : ControllerBase
             }
             catch (Exception ex)
             {
-                _logger.LogInformation("When trying to verify cached file");
+                _logger.LogInformation(ex, "When trying to verify cached file ({Hash}) {Url}", cacheFile.FileName, uri);
+                cacheFile.Touch();
             }
         }
         
