@@ -8,6 +8,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.Downloaders.Interfaces\Wabbajack.Downloaders.Interfaces.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.Http.Interfaces\Wabbajack.Networking.Http.Interfaces.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.Http\Wabbajack.Networking.Http.csproj" />
     </ItemGroup>
 
     <ItemGroup>

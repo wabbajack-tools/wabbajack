@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version - 2.5.3.21 - 6/9/2022
+* Fix a bug in the streaming MediaFire downloader
+* Improve the reliability of MediaFire, and Manual downloaders
+* Improve logging around the Wabbajack CDN
+
 #### Version - 2.5.3.20 - 6/8/2022
 * Improve reliability of MediaFire, Mega and GDrive downloaders
 

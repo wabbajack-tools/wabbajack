@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -11,13 +12,14 @@ using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.Validation;
 using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Downloaders.ModDB;
 
-public class ModDBDownloader : ADownloader<DTOs.DownloadStates.ModDB>, IUrlDownloader
+public class ModDBDownloader : ADownloader<DTOs.DownloadStates.ModDB>, IUrlDownloader, IProxyable
 {
     private readonly IHttpDownloader _downloader;
     private readonly HttpClient _httpClient;
@@ -68,6 +70,29 @@ public class ModDBDownloader : ADownloader<DTOs.DownloadStates.ModDB>, IUrlDownl
     public Uri UnParse(IDownloadState state)
     {
         return ((DTOs.DownloadStates.ModDB) state).Url;
+    }
+
+    public async Task<T> DownloadStream<T>(Archive archive, Func<Stream, Task<T>> fn, CancellationToken token)
+    {
+        var state = archive.State as DTOs.DownloadStates.ModDB;
+        var url = (await GetDownloadUrls(state!)).First();
+        try
+        {
+            var msg = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(url)
+            };
+            using var response = await _httpClient.SendAsync(msg, token);
+            HttpException.ThrowOnFailure(response);
+            await using var stream = await response.Content.ReadAsStreamAsync(token);
+            return await fn(stream);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "While downloading from ModDB");
+            throw;
+        }
     }
 
     public override async Task<Hash> Download(Archive archive, DTOs.DownloadStates.ModDB state,
