@@ -78,7 +78,7 @@ namespace Wabbajack.Test
             Assert.True(converted.IsWhitelisted(new ServerWhitelist {AllowedPrefixes = new List<string>{"https://mega.nz/#!CsMSFaaJ!-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k" } }));
             Assert.False(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>{ "blerg" }}));
 
-            await converted.Download(new Archive(state: null!) {Name = "MEGA Test.txt"}, filename.Path);
+            await DownloadDispatcher.DownloadWithPossibleUpgrade(new Archive(state: converted) {Name = "MEGA Test.txt"}, filename.Path);
 
             Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
 
@@ -141,7 +141,7 @@ namespace Wabbajack.Test
             Assert.True(converted.IsWhitelisted(new ServerWhitelist { GoogleIDs = new List<string> { "1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_" } }));
             Assert.False(converted.IsWhitelisted(new ServerWhitelist { GoogleIDs = new List<string>()}));
 
-            await converted.Download(new Archive(state: null!) { Name = "MEGA Test.txt" }, filename.Path);
+            await DownloadDispatcher.DownloadWithPossibleUpgrade(new Archive(converted) { Name = "MEGA Test.txt" }, filename.Path);
 
             Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
 
@@ -225,7 +225,7 @@ namespace Wabbajack.Test
                 {AllowedPrefixes = new List<string> {"http://www.mediafire.com/file/agiqzm1xwebczpx/"}}));
             Assert.False(converted.IsWhitelisted(new ServerWhitelist {AllowedPrefixes = new List<string>()}));
 
-            await converted.Download(new Archive(state: null!) { Name = "Media Fire Test.zip" }, filename.Path);
+            await DownloadDispatcher.DownloadWithPossibleUpgrade(new Archive(state: converted) { Name = "Media Fire Test.zip" }, filename.Path);
 
             Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
 

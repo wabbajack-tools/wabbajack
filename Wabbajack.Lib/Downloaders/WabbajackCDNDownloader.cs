@@ -89,25 +89,35 @@ namespace Wabbajack.Lib.Downloaders
                 using var queue = new WorkQueue();
                 await definition.Parts.PMap(queue, async part =>
                 {
-                    Utils.Status($"Downloading {a.Name}", Percent.FactoryPutInRange(definition.Parts.Length - part.Index, definition.Parts.Length));
-                    await using var ostream = mmfile.CreateViewStream(part.Offset, part.Size);
-
-                    if (DomainRemaps.TryGetValue(Url.Host, out var remap))
+                    try
                     {
-                        var builder = new UriBuilder(Url) {Host = remap};
-                        using var response = await GetWithCDNRetry(client, $"{builder}/parts/{part.Index}");
-                        if (!response.IsSuccessStatusCode)
-                            throw new HttpException((int)response.StatusCode, response.ReasonPhrase ?? "Unknown");
-                        await response.Content.CopyToAsync(ostream);
-                        
+                        Utils.Status($"Downloading {a.Name}",
+                            Percent.FactoryPutInRange(definition.Parts.Length - part.Index, definition.Parts.Length));
+                        await using var ostream = mmfile.CreateViewStream(part.Offset, part.Size);
+
+                        if (DomainRemaps.TryGetValue(Url.Host, out var remap))
+                        {
+                            var builder = new UriBuilder(Url) {Host = remap};
+                            using var response = await GetWithCDNRetry(client, $"{builder}/parts/{part.Index}");
+                            if (!response.IsSuccessStatusCode)
+                                throw new HttpException((int)response.StatusCode, response.ReasonPhrase ?? "Unknown");
+                            await response.Content.CopyToAsync(ostream);
+
+                        }
+                        else
+                        {
+                            using var response = await GetWithRetry(client, $"{Url}/parts/{part.Index}");
+                            if (!response.IsSuccessStatusCode)
+                                throw new HttpException((int)response.StatusCode, response.ReasonPhrase ?? "Unknown");
+                            await response.Content.CopyToAsync(ostream);
+
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        using var response = await GetWithRetry(client, $"{Url}/parts/{part.Index}");
-                        if (!response.IsSuccessStatusCode)
-                            throw new HttpException((int)response.StatusCode, response.ReasonPhrase ?? "Unknown");
-                        await response.Content.CopyToAsync(ostream);
-
+                        Utils.LogStraightToFile("CDN ERROR");
+                        Utils.LogStraightToFile(ex.ToString());
+                        throw;
                     }
 
                 });

@@ -4,8 +4,8 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net5.0-windows</TargetFramework>
         <UseWPF>true</UseWPF>
-        <AssemblyVersion>2.5.3.18</AssemblyVersion>
-        <FileVersion>2.5.3.18</FileVersion>
+        <AssemblyVersion>2.5.3.21</AssemblyVersion>
+        <FileVersion>2.5.3.21</FileVersion>
         <Copyright>Copyright © 2019-2022</Copyright>
         <Description>Wabbajack Application Launcher</Description>
         <PublishReadyToRun>true</PublishReadyToRun>

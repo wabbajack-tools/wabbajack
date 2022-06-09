@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders.DTOs.ModListValidation;
@@ -105,6 +107,8 @@ namespace Wabbajack.Lib.Downloaders
 
         public static async Task<DownloadResult> DownloadWithPossibleUpgrade(Archive archive, AbsolutePath destination, ValidatedArchive[]? upgrades = null)
         {
+            archive = MaybeProxy(archive);
+            
             bool ShouldTry(Archive archive)
             {
                 return upgrades == null || upgrades.All(a => a.Original.Hash != archive.Hash);
@@ -177,7 +181,46 @@ namespace Wabbajack.Lib.Downloaders
 
             return DownloadResult.Update;
         }
-        
+
+        public static Archive MaybeProxy(Archive archive)
+        {
+            if (archive.State is (not GoogleDriveDownloader.State 
+                and not MegaDownloader.State 
+                and not MediaFireDownloader.State 
+                and not ModDBDownloader.State
+                and not ManualDownloader.State))
+                return archive;
+
+            var uri = archive.State.GetManifestURL(archive);
+            var hash = archive.Hash != default ? $"&hash={archive.Hash.ToHex()}" : "";
+            Utils.Log($"Downloading via proxy ({Encoding.UTF8.GetBytes(uri!).xxHash().ToHex()}) {uri}");
+            var newUri = $"https://build.wabbajack.org/proxy?name={archive.Name}{hash}&uri={HttpUtility.UrlEncode(uri)}";
+
+            return new Archive(new HTTPDownloader.State(newUri))
+            {
+                Name = archive.Name,
+                Size = archive.Size,
+                Hash = archive.Hash,
+            };
+
+        }
+
+        public static async Task<bool> ProxyHas(Uri uri)
+        {
+            var newUri = $"https://build.wabbajack.org/proxy?uri={HttpUtility.UrlEncode(uri.ToString())}";
+            var msg = new HttpRequestMessage(HttpMethod.Head, newUri);
+            var client = new Http.Client();
+            try
+            {
+                var result = await client.SendAsync(msg);
+                return result.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
         public static async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>>? downloadResolver = null)
         {
             downloadResolver ??= async a => default;
