@@ -33,7 +33,28 @@ public class Proxy : ControllerBase
         _appSettings = appSettings;
         _hashCache = hashCache;
     }
-    
+
+    [HttpHead]
+    public async Task<IActionResult> ProxyHead(CancellationToken token, [FromQuery] Uri uri, [FromQuery] string? name,
+        [FromQuery] string? hash)
+    {
+        var shouldMatch = hash != null ? Hash.FromHex(hash) : default;
+        _logger.LogInformation("Got proxy head request for {Uri}", uri);
+        var state = _dispatcher.Parse(uri);
+        var cacheName = (await Encoding.UTF8.GetBytes(uri.ToString()).Hash()).ToHex();
+        var cacheFile = _appSettings.ProxyPath.Combine(cacheName);
+
+        if (!cacheFile.FileExists())
+            return NotFound();
+        
+        if (shouldMatch != default)
+            if (await _hashCache.FileHashCachedAsync(cacheFile, token) != shouldMatch)
+                return NotFound();
+
+        return Ok();
+
+    }
+
     [HttpGet]
     public async Task<IActionResult> ProxyGet(CancellationToken token, [FromQuery] Uri uri, [FromQuery] string? name, [FromQuery] string? hash)
     {
