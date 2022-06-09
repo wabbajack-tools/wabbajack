@@ -75,24 +75,30 @@ public class ModDBDownloader : ADownloader<DTOs.DownloadStates.ModDB>, IUrlDownl
     public async Task<T> DownloadStream<T>(Archive archive, Func<Stream, Task<T>> fn, CancellationToken token)
     {
         var state = archive.State as DTOs.DownloadStates.ModDB;
-        var url = (await GetDownloadUrls(state!)).First();
-        try
+        foreach (var url in await GetDownloadUrls(state!))
         {
-            var msg = new HttpRequestMessage
+            try
             {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri(url)
-            };
-            using var response = await _httpClient.SendAsync(msg, token);
-            HttpException.ThrowOnFailure(response);
-            await using var stream = await response.Content.ReadAsStreamAsync(token);
-            return await fn(stream);
+                var msg = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri(url)
+                };
+                using var response = await _httpClient.SendAsync(msg, HttpCompletionOption.ResponseHeadersRead, token);
+                if (!response.IsSuccessStatusCode)
+                    continue;
+                HttpException.ThrowOnFailure(response);
+                await using var stream = await response.Content.ReadAsStreamAsync(token);
+                return await fn(stream);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "While downloading from ModDB");
+                throw;
+            }
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "While downloading from ModDB");
-            throw;
-        }
+        _logger.LogError("All servers were invalid downloading from ModDB {Uri}", state.Url);
+        return default;
     }
 
     public override async Task<Hash> Download(Archive archive, DTOs.DownloadStates.ModDB state,
