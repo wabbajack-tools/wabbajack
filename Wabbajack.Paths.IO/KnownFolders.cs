@@ -11,9 +11,13 @@ public static class KnownFolders
     {
         get
         {
-            //var v = Process.GetCurrentProcess().ProcessName;
-            //return Assembly.GetExecutingAssembly().Location.ToAbsolutePath().Parent;
-            return Process.GetCurrentProcess().MainModule!.FileName!.ToAbsolutePath().Parent;
+            var result = Process.GetCurrentProcess().MainModule!.FileName!.ToAbsolutePath().Parent;
+            if (result.FileName == "dotnet".ToRelativePath())
+            {
+                return Assembly.GetExecutingAssembly().Location.ToAbsolutePath().Parent;
+            }
+
+            return result;
         }
     }
 
