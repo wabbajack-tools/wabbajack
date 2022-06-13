@@ -107,7 +107,7 @@ namespace Wabbajack.Lib.Downloaders
 
         public static async Task<DownloadResult> DownloadWithPossibleUpgrade(Archive archive, AbsolutePath destination, ValidatedArchive[]? upgrades = null)
         {
-            archive = MaybeProxy(archive);
+            archive = await MaybeProxy(archive);
             
             bool ShouldTry(Archive archive)
             {
@@ -182,13 +182,16 @@ namespace Wabbajack.Lib.Downloaders
             return DownloadResult.Update;
         }
 
-        public static Archive MaybeProxy(Archive archive)
+        public static async ValueTask<Archive> MaybeProxy(Archive archive)
         {
             if (archive.State is (not GoogleDriveDownloader.State 
                 and not MegaDownloader.State 
                 and not MediaFireDownloader.State 
                 and not ModDBDownloader.State
                 and not ManualDownloader.State))
+                return archive;
+
+            if (archive.State is ManualDownloader.State ms && !await ProxyHas(new Uri(ms.Url)))
                 return archive;
 
             var uri = archive.State.GetManifestURL(archive);

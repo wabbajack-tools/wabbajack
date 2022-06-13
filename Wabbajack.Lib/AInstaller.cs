@@ -236,17 +236,8 @@ namespace Wabbajack.Lib
             var upgrades =  (await client.GetJsonAsync<ValidatedArchive[]>(Consts.UpgradedFilesURL));
 
             var tmp = new List<Archive>();
-            foreach (var miss in missing)
-            {
-                if (miss.State is ManualDownloader.State ms && await DownloadDispatcher.ProxyHas(new Uri(ms.Url)))
-                {
-                    tmp.Add(DownloadDispatcher.MaybeProxy(miss));
-                }
-                else
-                {
-                    tmp.Add(DownloadDispatcher.MaybeProxy(miss));
-                }
-            }
+            foreach (var miss in missing) 
+                tmp.Add(await DownloadDispatcher.MaybeProxy(miss));
             missing = tmp;
             
             if (download)
