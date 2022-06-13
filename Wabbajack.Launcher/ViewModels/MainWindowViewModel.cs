@@ -54,7 +54,14 @@ public class MainWindowViewModel : ViewModelBase
 
             if (_tokenProvider.HaveToken())
             {
-                _version = await GetNexusReleases(CancellationToken.None);
+                try
+                {
+                    _version = await GetNexusReleases(CancellationToken.None);
+                }
+                catch (Exception)
+                {
+                    _errors.Add("Nexus error");
+                }
             }
 
             if (_version == default)
@@ -85,13 +92,14 @@ public class MainWindowViewModel : ViewModelBase
         Status = $"Getting download Uri for {_version.Version}";
         var uri = await _version.Uri();
 
+        /*
         var archive = new Archive()
         {
             Name = $"{_version.Version}.zip",
             Size = _version.Size,
             State = new Http {Url = uri}
         };
-
+        
         await using var stream = await _downloader.GetChunkedSeekableStream(archive, CancellationToken.None);
         var rdr = new ZipReader(stream, true);
         var entries = (await rdr.GetFiles()).OrderBy(d => d.FileOffset).ToArray();
@@ -106,7 +114,7 @@ public class MainWindowViewModel : ViewModelBase
             
             await using var of = outPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
             await rdr.Extract(file, of, CancellationToken.None);
-        }
+        }*/
 
         
         var wc = new WebClient();

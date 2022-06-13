@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version - 2.5.3.22 - 6/13/2022
+* Stop WJ from attempting to proxy all manual files
+* Stop downloading the app twice when upgrading via the launcher
+* Fall back to Github when we get an error from the Nexus in the launcher
+
 #### Version - 2.5.3.21 - 6/9/2022
 * Fix a bug in the streaming MediaFire downloader
 * Improve the reliability of MediaFire, and Manual downloaders
