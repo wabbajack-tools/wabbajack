@@ -44,16 +44,14 @@ public class DownloadDispatcher
         return await Download(a, dest, job, token);
     }
 
-    public async Task<Hash> Download(Archive a, AbsolutePath dest, Job<DownloadDispatcher> job, CancellationToken token)
+    public async Task<Archive> MaybeProxy(Archive a, CancellationToken token)
     {
-        if (!dest.Parent.DirectoryExists())
-            dest.Parent.CreateDirectory();
-
-        var downloader = Downloader(a);
-        if (_useProxyCache && downloader is IProxyable p)
+        if (a.State is not IProxyable p) return a;
+        
+        var uri = p.UnParse(a.State);
+        var newUri = await _wjClient.MakeProxyUrl(a, uri);
+        if (newUri != null)
         {
-            var uri = p.UnParse(a.State);
-            var newUri = _wjClient.MakeProxyUrl(a, uri);
             a = new Archive
             {
                 Name = a.Name,
@@ -64,8 +62,36 @@ public class DownloadDispatcher
                     Url = newUri
                 }
             };
-            downloader = Downloader(a);
-            _logger.LogInformation("Downloading Proxy ({Hash}) {Uri}", (await uri.ToString().Hash()).ToHex(), uri);
+        }
+
+        return a;
+    }
+
+    public async Task<Hash> Download(Archive a, AbsolutePath dest, Job<DownloadDispatcher> job, CancellationToken token)
+    {
+        if (!dest.Parent.DirectoryExists())
+            dest.Parent.CreateDirectory();
+
+        var downloader = Downloader(a);
+        if (_useProxyCache && downloader is IProxyable p)
+        {
+            var uri = p.UnParse(a.State);
+            var newUri = await _wjClient.MakeProxyUrl(a, uri);
+            if (newUri != null)
+            {
+                a = new Archive
+                {
+                    Name = a.Name,
+                    Size = a.Size,
+                    Hash = a.Hash,
+                    State = new DTOs.DownloadStates.Http()
+                    {
+                        Url = newUri
+                    }
+                };
+                downloader = Downloader(a);
+                _logger.LogInformation("Downloading Proxy ({Hash}) {Uri}", (await uri.ToString().Hash()).ToHex(), uri);
+            }
         }
 
         var hash = await downloader.Download(a, dest, job, token);
@@ -160,7 +186,7 @@ public class DownloadDispatcher
         return DownloadResult.Update;
         */
     }
-
+    
     private async Task<Hash> DownloadFromMirror(Archive archive, AbsolutePath destination, CancellationToken token)
     {
         try

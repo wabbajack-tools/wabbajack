@@ -106,6 +106,7 @@ public abstract class AInstaller<T>
         _updateStopWatch.Restart();
         MaxStepProgress = maxStepProgress;
         _currentStep += 1;
+        _currentStepProgress = 0;
         _statusText = statusText;
         _statusCategory = statusCategory;
         _statusFormatter = formatter ?? (x => x.ToString());
@@ -313,6 +314,10 @@ public abstract class AInstaller<T>
         _logger.LogInformation("Downloading {Count} archives", missing.Count.ToString());
         NextStep(Consts.StepDownloading, "Downloading files", missing.Count);
 
+        missing = await missing
+            .SelectAsync(async m => await _downloadDispatcher.MaybeProxy(m, token))
+            .ToList();
+
         if (download)
         {
             var result = SendDownloadMetrics(missing);
@@ -479,25 +484,24 @@ public abstract class AInstaller<T>
         var savePath = (RelativePath) "saves";
 
         NextStep(Consts.StepPreparing, "Looking for files to delete", 0);
-        await _configuration.Install.EnumerateFiles()
-            .PDoAll(async f =>
-            {
-                var relativeTo = f.RelativeTo(_configuration.Install);
-                if (indexed.ContainsKey(relativeTo) || f.InFolder(_configuration.Downloads))
-                    return;
+        foreach (var f in _configuration.Install.EnumerateFiles())
+        {
+            var relativeTo = f.RelativeTo(_configuration.Install);
+            if (indexed.ContainsKey(relativeTo) || f.InFolder(_configuration.Downloads))
+                return;
 
-                if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return;
+            if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return;
 
-                if (NoDeleteRegex.IsMatch(f.ToString()))
-                    return;
+            if (NoDeleteRegex.IsMatch(f.ToString()))
+                return;
 
-                if (bsaPathsToNotBuild.Contains(f))
-                    return;
+            if (bsaPathsToNotBuild.Contains(f))
+                return;
 
-                _logger.LogInformation("Deleting {RelativePath} it's not part of this ModList", relativeTo);
-                f.Delete();
-            });
-
+            _logger.LogInformation("Deleting {RelativePath} it's not part of this ModList", relativeTo);
+            f.Delete();
+        }
+        
         _logger.LogInformation("Cleaning empty folders");
         var expectedFolders = indexed.Keys
             .Select(f => f.RelativeTo(_configuration.Install))
@@ -540,6 +544,7 @@ public abstract class AInstaller<T>
                 // Bit backwards, but we want to return null for 
                 // all files we *want* installed. We return the files
                 // to remove from the install list.
+                using var job = await _limiter.Begin($"Hashing File {d.To}", 0, token);
                 var path = _configuration.Install.Combine(d.To);
                 if (!existingfiles.Contains(path)) return null;
 

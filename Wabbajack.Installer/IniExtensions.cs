@@ -28,7 +28,7 @@ public static class IniExtensions
     /// </summary>
     /// <param name="file"></param>
     /// <returns></returns>
-    public static IniData LoadIniFile(this AbsolutePath file)
+    public static IniData  LoadIniFile(this AbsolutePath file)
     {
         return new FileIniDataParser(IniParser()).ReadFile(file.ToString());
     }
