@@ -107,6 +107,7 @@ public class DownloadDispatcher
     {
         try
         {
+            a = await MaybeProxy(a, token);
             var downloader = Downloader(a);
             using var job = await _limiter.Begin($"Verifying {a.State.PrimaryKeyString}", -1, token);
             return await downloader.Verify(a, job, token);

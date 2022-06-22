@@ -446,6 +446,8 @@ public abstract class AInstaller<T>
     protected async Task OptimizeModlist(CancellationToken token)
     {
         _logger.LogInformation("Optimizing ModList directives");
+        UnoptimizedArchives = ModList.Archives;
+        UnoptimizedDirectives = ModList.Directives;
         
         var indexed = ModList.Directives.ToDictionary(d => d.To);
 
@@ -564,9 +566,7 @@ public abstract class AInstaller<T>
             .GroupBy(d => d.ArchiveHashPath.Hash)
             .Select(d => d.Key)
             .ToHashSet();
-
-        UnoptimizedArchives = ModList.Archives;
-        UnoptimizedDirectives = ModList.Directives;
+        
         ModList.Archives = ModList.Archives.Where(a => requiredArchives.Contains(a.Hash)).ToArray();
         ModList.Directives = indexed.Values.ToArray();
     }

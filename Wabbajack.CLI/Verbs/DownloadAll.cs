@@ -62,12 +62,15 @@ public class DownloadAll : IVerb
             })
             .ToHashSet();
 
-        var archives = (await (await _wjClient.LoadLists())
+        var lists = await _wjClient.LoadLists();
+        
+        var archives = (await (await _wjClient.GetListStatuses())
+                .Where(l => !l.HasFailures)
                 .PMapAll(_limiter, async m =>
                 {
                     try
                     {
-                        return await StandardInstaller.Load(_dtos, _dispatcher, m, token);
+                        return await StandardInstaller.Load(_dtos, _dispatcher, lists.First(l => l.NamespacedName == m.MachineURL), token);
                     }
                     catch (Exception ex)
                     {
@@ -94,8 +97,7 @@ public class DownloadAll : IVerb
                 var outputFile = output.Combine(file.Name);
             if (outputFile.FileExists())
             {
-                outputFile = output.Combine(outputFile.FileName.WithoutExtension() + "_" + file.Hash.ToHex() +
-                 outputFile.WithExtension(outputFile.Extension));
+                outputFile = output.Combine((outputFile.FileName.WithoutExtension() + "_" + file.Hash.ToHex()).ToRelativePath().WithExtension(outputFile.Extension));
             }
             
             _logger.LogInformation("Downloading {File}", file.Name);

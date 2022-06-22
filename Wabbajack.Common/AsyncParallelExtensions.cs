@@ -18,8 +18,11 @@ public static class AsyncParallelExtensions
     public static async Task PDoAll<TIn, TJob>(this IEnumerable<TIn> coll, IResource<TJob> limiter,
         Func<TIn, Task> mapFn)
     {
-        using var job = await limiter.Begin("", 0, CancellationToken.None);
-        var tasks = coll.Select(mapFn).ToList();
+        var tasks = coll.Select(async x =>
+        {
+            using var job = await limiter.Begin("", 0, CancellationToken.None);
+            await mapFn(x);
+        }).ToList();
         await Task.WhenAll(tasks);
     }
 

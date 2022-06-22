@@ -160,6 +160,9 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader,
     {
         var state = archive.State as WabbajackCDN;
         var definition = await GetDefinition(state!, token);
+        if (definition == null)
+            throw new Exception("Could not get CDN definition");
+        
         return new ChunkedSeekableDownloader(state!, definition!, this);
     }
 

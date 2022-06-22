@@ -217,10 +217,21 @@ public class ValidateLists : IVerb
             validatedList.Status = archives.Any(a => a.Status == ArchiveStatus.InValid)
                 ? ListStatus.Failed
                 : ListStatus.Available;
-            
-            var (smallImage, largeImage) = await ProcessModlistImage(reports, modList, token);
-            validatedList.SmallImage = new Uri($"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{smallImage.ToString().Replace("\\", "/")}");
-            validatedList.LargeImage = new Uri($"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{largeImage.ToString().Replace("\\", "/")}");
+
+            try
+            {
+                var (smallImage, largeImage) = await ProcessModlistImage(reports, modList, token);
+                validatedList.SmallImage =
+                    new Uri(
+                        $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{smallImage.ToString().Replace("\\", "/")}");
+                validatedList.LargeImage =
+                    new Uri(
+                        $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{largeImage.ToString().Replace("\\", "/")}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "While processing modlist images for {MachineURL}", modList.NamespacedName);
+            }
 
             return validatedList;
         }).ToArray();
@@ -603,7 +614,7 @@ public class ValidateLists : IVerb
             case Nexus:
                 return (ArchiveStatus.Valid, archive);
             case VectorPlexus:
-                return (ArchiveStatus.Valid, archive);
+                return (ArchiveStatus.InValid, archive);
         }
 
         if (archive.State is Http http && http.Url.Host.EndsWith("github.com"))
