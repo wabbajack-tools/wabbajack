@@ -19,13 +19,13 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.DTOs.ModListValidation;
 using Wabbajack.DTOs.Validation;
+using Wabbajack.DTOs.Vfs;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
-using Wabbajack.VFS;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -38,7 +38,7 @@ public class Client
     private readonly HttpClient _client;
     private readonly Configuration _configuration;
     private readonly DTOSerializer _dtos;
-    private readonly IResource<FileHashCache> _hashLimiter;
+    private readonly IResource<Client> _hashLimiter;
     private readonly IResource<HttpClient> _limiter;
     private readonly ILogger<Client> _logger;
     private readonly ParallelOptions _parallelOptions;
@@ -48,7 +48,7 @@ public class Client
 
     public Client(ILogger<Client> logger, HttpClient client, ITokenProvider<WabbajackApiState> token,
         DTOSerializer dtos,
-        IResource<HttpClient> limiter, IResource<FileHashCache> hashLimiter, Configuration configuration)
+        IResource<HttpClient> limiter, IResource<Client> hashLimiter, Configuration configuration)
     {
         _configuration = configuration;
         _token = token;
@@ -386,5 +386,13 @@ public class Client
             return null;
         
         return new Uri($"{_configuration.BuildServerUrl}proxy?name={archive.Name}&hash={archive.Hash.ToHex()}&uri={HttpUtility.UrlEncode(uri.ToString())}");
+    }
+
+    public async Task<IndexedVirtualFile?> GetCesiVfsEntry(Hash hash, CancellationToken token)
+    {
+        var msg = await MakeMessage(HttpMethod.Get, new Uri($"{_configuration.BuildServerUrl}cesi/vfs/{hash.ToHex()}"));
+        using var response = await _client.SendAsync(msg, token);
+        HttpException.ThrowOnFailure(response);
+        return await _dtos.DeserializeAsync<IndexedVirtualFile>(await response.Content.ReadAsStreamAsync(token), token);
     }
 }

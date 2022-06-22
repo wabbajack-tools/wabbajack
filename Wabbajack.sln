@@ -141,6 +141,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Downloaders.Manua
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.App.Wpf", "Wabbajack.App.Wpf\Wabbajack.App.Wpf.csproj", "{1196560A-9FFD-4290-9418-470508E984C9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.VFS.Interfaces", "Wabbajack.VFS.Interfaces\Wabbajack.VFS.Interfaces.csproj", "{E4BDB22D-11A4-452F-8D10-D9CA9777EA22}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -387,6 +389,10 @@ Global
 		{1196560A-9FFD-4290-9418-470508E984C9}.Debug|Any CPU.Build.0 = Debug|x64
 		{1196560A-9FFD-4290-9418-470508E984C9}.Release|Any CPU.ActiveCfg = Release|x64
 		{1196560A-9FFD-4290-9418-470508E984C9}.Release|Any CPU.Build.0 = Release|x64
+		{E4BDB22D-11A4-452F-8D10-D9CA9777EA22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4BDB22D-11A4-452F-8D10-D9CA9777EA22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4BDB22D-11A4-452F-8D10-D9CA9777EA22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4BDB22D-11A4-452F-8D10-D9CA9777EA22}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -435,6 +441,7 @@ Global
 		{A3813D73-9A8E-4CE7-861A-C59043DFFC14} = {F01F8595-5FD7-4506-8469-F4A5522DACC1}
 		{B10BB6D6-B3FC-4A76-8A07-6A0A0ADDE198} = {98B731EE-4FC0-4482-A069-BCBA25497871}
 		{7FC4F129-F0FA-46B7-B7C4-532E371A6326} = {98B731EE-4FC0-4482-A069-BCBA25497871}
+		{E4BDB22D-11A4-452F-8D10-D9CA9777EA22} = {F677890D-5109-43BC-97C7-C4CD47C8EE0C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0AA30275-0F38-4A7D-B645-F5505178DDE8}

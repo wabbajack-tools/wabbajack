@@ -10,6 +10,7 @@ using Wabbajack.Common;
 using Wabbajack.Common.FileSignatures;
 using Wabbajack.DTOs.Streams;
 using Wabbajack.DTOs.Texture;
+using Wabbajack.DTOs.Vfs;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
@@ -176,9 +177,13 @@ public class VirtualFile
             hash = await hstream.HashingCopy(Stream.Null, token, job);
         }
 
-        if (context.VfsCache.TryGetFromCache(context, parent, relPath, extractedFile, hash, out var vself))
-            return vself;
-
+        var found = await context.VfsCache.Get(hash, token);
+        if (found != null)
+        {
+            var file = ConvertFromIndexedFile(context, found!, relPath, parent!, extractedFile);
+            file.Name = relPath;
+            return file;
+        }
 
         await using var stream = await extractedFile.GetStream();
         var sig = await FileExtractor.FileExtractor.ArchiveSigs.MatchesAsync(stream);
@@ -219,7 +224,7 @@ public class VirtualFile
         if (!sig.HasValue ||
             !FileExtractor.FileExtractor.ExtractableExtensions.Contains(relPath.FileName.Extension))
         {
-            await context.VfsCache.WriteToCache(self);
+            await context.VfsCache.Put(self.ToIndexedVirtualFile(), token);
             return self;
         }
         
@@ -242,7 +247,7 @@ public class VirtualFile
             throw;
         }
 
-        await context.VfsCache.WriteToCache(self);
+        await context.VfsCache.Put(self.ToIndexedVirtualFile(), token);
         return self;
     }
 

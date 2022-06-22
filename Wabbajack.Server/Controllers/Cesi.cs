@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Texture;
+using Wabbajack.DTOs.Vfs;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.VFS;

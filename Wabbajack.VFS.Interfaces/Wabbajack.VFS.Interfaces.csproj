@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
+      <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj" />
+      <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -38,6 +38,7 @@ using Wabbajack.Server.Services;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths.IO;
+using Wabbajack.Server.DTOs;
 using Wabbajack.VFS;
 using YamlDotNet.Serialization.NamingConventions;
 using Client = Wabbajack.Networking.GitHub.Client;
@@ -153,6 +154,18 @@ public class Startup
                 b.SetJsonNullValueHandling(NullValueHandling.Ignore);
             });
             return client.GetDatabase<Analyzed>("cesi");
+        });
+        
+        services.AddSingleton(s =>
+        {
+            var settings = s.GetRequiredService<AppSettings>();
+            var client = new CouchClient(settings.CesiDB.Endpoint, b =>
+            {
+                b.UseBasicAuthentication("wabbajack", "password");
+                b.SetPropertyCase(PropertyCaseType.None);
+                b.SetJsonNullValueHandling(NullValueHandling.Ignore);
+            });
+            return client.GetDatabase<Metric>("cesi");
         });
 
         services.AddMvc();

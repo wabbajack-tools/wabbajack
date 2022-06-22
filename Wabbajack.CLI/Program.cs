@@ -47,7 +47,6 @@ internal class Program
                 services.AddSingleton<CommandLineBuilder, CommandLineBuilder>();
                 services.AddSingleton<TemporaryFileManager>();
                 services.AddSingleton<FileExtractor.FileExtractor>();
-                services.AddSingleton(new VFSCache(KnownFolders.EntryPoint.Combine("vfscache.sqlite")));
                 services.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount});
                 services.AddSingleton<Client>();
                 services.AddSingleton<Networking.WabbajackClientApi.Client>();
