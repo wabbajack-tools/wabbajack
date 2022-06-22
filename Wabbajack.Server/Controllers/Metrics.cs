@@ -75,15 +75,17 @@ public class MetricsController : ControllerBase
         if (value is "Default" or "untitled" || subject == "failed_download" || Guid.TryParse(value, out _))
             return new Result {Timestamp = date};
 
-        await _metricsStore.Ingest(new Metric
+        await _db.AddAsync(new Metric
         {
-            Timestamp = DateTime.UtcNow, 
-            Action = subject, 
-            Subject = value, 
+            Timestamp = date,
+            Action = subject,
+            Subject = value,
             MetricsKey = metricsKey,
             UserAgent = Request.Headers.UserAgent.FirstOrDefault() ?? "<unknown>",
-            Ip = Request.Headers["cf-connecting-ip"].FirstOrDefault() ?? (Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "")
+            Ip = Request.Headers["cf-connecting-ip"].FirstOrDefault() ??
+                 (Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "")
         });
+
         return new Result {Timestamp = date};
     }
 

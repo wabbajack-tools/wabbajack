@@ -101,10 +101,13 @@ public class Startup
         services.AddAllSingleton<ITokenProvider<WabbajackApiState>, WabbajackApiTokenProvider>();
         services.AddAllSingleton<IResource, IResource<DownloadDispatcher>>(s => new Resource<DownloadDispatcher>("Downloads", 12));
         services.AddAllSingleton<IResource, IResource<FileHashCache>>(s => new Resource<FileHashCache>("File Hashing", 12));
+        services.AddAllSingleton<IResource, IResource<Wabbajack.Networking.WabbajackClientApi.Client>>(s => 
+            new Resource<Wabbajack.Networking.WabbajackClientApi.Client>("Wabbajack Client", 4));
+
         services.AddSingleton(s => 
             new FileHashCache(KnownFolders.AppDataLocal.Combine("Wabbajack", "GlobalHashCache.sqlite"),
                 s.GetService<IResource<FileHashCache>>()!));
-        
+
         services.AddAllSingleton<ITokenProvider<NexusApiState>, NexusApiTokenProvider>();
         services.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", 12));
         // Application Info
@@ -146,26 +149,26 @@ public class Startup
         // CouchDB
         services.AddSingleton(s =>
         {
-            var settings = s.GetRequiredService<AppSettings>();
-            var client = new CouchClient(settings.CesiDB.Endpoint, b =>
+            var settings = s.GetRequiredService<AppSettings>().CesiDB;
+            var client = new CouchClient(settings.Endpoint, b =>
             {
-                b.UseBasicAuthentication("cesi", "password");
+                b.UseBasicAuthentication(settings.Username, settings.Password);
                 b.SetPropertyCase(PropertyCaseType.None);
                 b.SetJsonNullValueHandling(NullValueHandling.Ignore);
             });
-            return client.GetDatabase<Analyzed>("cesi");
+            return client.GetDatabase<Analyzed>(settings.Database);
         });
         
         services.AddSingleton(s =>
         {
-            var settings = s.GetRequiredService<AppSettings>();
-            var client = new CouchClient(settings.CesiDB.Endpoint, b =>
+            var settings = s.GetRequiredService<AppSettings>().MetricsDB;
+            var client = new CouchClient(settings.Endpoint, b =>
             {
-                b.UseBasicAuthentication("wabbajack", "password");
+                b.UseBasicAuthentication(settings.Username, settings.Password);
                 b.SetPropertyCase(PropertyCaseType.None);
                 b.SetJsonNullValueHandling(NullValueHandling.Ignore);
             });
-            return client.GetDatabase<Metric>("cesi");
+            return client.GetDatabase<Metric>(settings.Database);
         });
 
         services.AddMvc();

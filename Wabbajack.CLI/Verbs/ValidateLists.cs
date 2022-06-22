@@ -265,7 +265,7 @@ public class ValidateLists : IVerb
     private async Task<(RelativePath SmallImage, RelativePath LargeImage)> ProcessModlistImage(AbsolutePath reports, ModlistMetadata validatedList,
         CancellationToken token)
     {
-        _logger.LogInformation("Processing Modlist Image");
+        _logger.LogInformation("Processing Modlist Image for {MachineUrl}", validatedList.NamespacedName);
         var baseFolder = reports.Combine(validatedList.NamespacedName);
         baseFolder.CreateDirectory();
         

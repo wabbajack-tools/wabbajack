@@ -46,7 +46,8 @@ public class DownloadDispatcher
 
     public async Task<Archive> MaybeProxy(Archive a, CancellationToken token)
     {
-        if (a.State is not IProxyable p) return a;
+        var downloader = Downloader(a);
+        if (downloader is not IProxyable p) return a;
         
         var uri = p.UnParse(a.State);
         var newUri = await _wjClient.MakeProxyUrl(a, uri);
@@ -107,6 +108,10 @@ public class DownloadDispatcher
     {
         try
         {
+            if (a.Name.Contains("HorseReplacer"))
+            {
+                
+            }
             a = await MaybeProxy(a, token);
             var downloader = Downloader(a);
             using var job = await _limiter.Begin($"Verifying {a.State.PrimaryKeyString}", -1, token);
