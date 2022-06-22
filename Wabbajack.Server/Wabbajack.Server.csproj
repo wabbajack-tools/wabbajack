@@ -11,7 +11,7 @@
         <PackageReference Include="cesi.DTOs" Version="1.0.0" />
         <PackageReference Include="Chronic.Core" Version="0.4.0" />
         <PackageReference Include="Dapper" Version="2.0.123" />
-        <PackageReference Include="Discord.Net.WebSocket" Version="3.6.1" />
+        <PackageReference Include="Discord.Net.WebSocket" Version="3.7.2" />
         <PackageReference Include="FluentFTP" Version="37.0.2" />
         <PackageReference Include="GitInfo" Version="2.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0" />
