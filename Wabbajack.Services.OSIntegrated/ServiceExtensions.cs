@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Wabbajack.App.Models;
 using Wabbajack.Compiler;
 using Wabbajack.Downloaders;
@@ -20,6 +21,7 @@ using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi;
 using Wabbajack.Networking.Steam;
+using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
@@ -56,9 +58,15 @@ public static class ServiceExtensions
             : new FileHashCache(KnownFolders.AppDataLocal.Combine("Wabbajack", "GlobalHashCache.sqlite"),
                 s.GetService<IResource<FileHashCache>>()!));
 
-        service.AddAllSingleton<IVfsCache, VFSDiskCache>(s => options.UseLocalCache
-            ? new VFSDiskCache(s.GetService<TemporaryFileManager>()!.CreateFile().Path)
-            : new VFSDiskCache(KnownFolders.EntryPoint.Combine("GlobalVFSCache3.sqlite")));
+        service.AddSingleton<IVfsCache>(s =>
+        {
+            var diskCache = options.UseLocalCache
+                ? new VFSDiskCache(s.GetService<TemporaryFileManager>()!.CreateFile().Path)
+                : new VFSDiskCache(KnownFolders.EntryPoint.Combine("GlobalVFSCache3.sqlite"));
+            var cesiCache = new CesiVFSCache(s.GetRequiredService<ILogger<CesiVFSCache>>(),
+                s.GetRequiredService<Client>());
+            return new FallthroughVFSCache(new IVfsCache[] {diskCache, cesiCache});
+        });
 
         service.AddSingleton<IBinaryPatchCache>(s => options.UseLocalCache
             ? new BinaryPatchCache(s.GetService<TemporaryFileManager>()!.CreateFile().Path)
