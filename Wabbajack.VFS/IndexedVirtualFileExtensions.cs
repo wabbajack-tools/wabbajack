@@ -3,42 +3,36 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using Wabbajack.DTOs.Texture;
+using Wabbajack.DTOs.Vfs;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 
 namespace Wabbajack.VFS;
 
-public class IndexedVirtualFile
+public static class IndexedVirtualFileExtensions
 {
-    public IPath Name { get; set; }
-    public Hash Hash { get; set; }
-
-    public ImageState? ImageState { get; set; }
-    public long Size { get; set; }
-    public List<IndexedVirtualFile> Children { get; set; } = new();
-
-    private void Write(BinaryWriter bw)
+    public static void Write(this IndexedVirtualFile ivf, BinaryWriter bw)
     {
-        bw.Write(Name.ToString()!);
-        bw.Write((ulong) Hash);
+        bw.Write(ivf.Name.ToString()!);
+        bw.Write((ulong) ivf.Hash);
 
-        if (ImageState == null)
+        if (ivf.ImageState == null)
         {
             bw.Write(false);
         }
         else
         {
             bw.Write(true);
-            WriteImageState(bw, ImageState);
+            WriteImageState(bw, ivf.ImageState);
         }
 
-        bw.Write(Size);
-        bw.Write(Children.Count);
-        foreach (var file in Children)
+        bw.Write(ivf.Size);
+        bw.Write(ivf.Children.Count);
+        foreach (var file in ivf.Children)
             file.Write(bw);
     }
 
-    private void WriteImageState(BinaryWriter bw, ImageState state)
+    private static void WriteImageState(BinaryWriter bw, ImageState state)
     {
         bw.Write((ushort) state.Width);
         bw.Write((ushort) state.Height);
@@ -46,7 +40,7 @@ public class IndexedVirtualFile
         state.PerceptualHash.Write(bw);
     }
 
-    public static ImageState ReadImageState(BinaryReader br)
+    static ImageState ReadImageState(BinaryReader br)
     {
         return new ImageState
         {
@@ -58,14 +52,14 @@ public class IndexedVirtualFile
     }
 
 
-    public void Write(Stream s)
+    public static void Write(this IndexedVirtualFile ivf, Stream s)
     {
         using var cs = new GZipStream(s, CompressionLevel.Optimal, true);
         using var bw = new BinaryWriter(cs, Encoding.UTF8, true);
-        Write(bw);
+        ivf.Write(bw);
     }
 
-    private static IndexedVirtualFile Read(BinaryReader br)
+    public static IndexedVirtualFile Read(BinaryReader br)
     {
         var ivf = new IndexedVirtualFile
         {

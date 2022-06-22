@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Text.Json;
 using Chronic.Core;
+using CouchDB.Driver;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
@@ -35,13 +36,15 @@ public class MetricsController : ControllerBase
     private readonly AppSettings _settings;
     private ILogger<MetricsController> _logger;
     private readonly Metrics _metricsStore;
+    private readonly ICouchDatabase<Metric> _db;
 
     public MetricsController(ILogger<MetricsController> logger, Metrics metricsStore,
-        AppSettings settings)
+        AppSettings settings, ICouchDatabase<Metric> db)
     {
         _logger = logger;
         _settings = settings;
         _metricsStore = metricsStore;
+        _db = db;
     }
 
 
@@ -88,7 +91,7 @@ public class MetricsController : ControllerBase
     private static byte[] LBRACKET = {(byte)'['};
     private static byte[] RBRACKET = {(byte)']'};
     private static byte[] COMMA = {(byte) ','};
-    
+
     [HttpGet]
     [Route("dump")]
     public async Task GetMetrics([FromQuery] string action, [FromQuery] string from, [FromQuery] string? to, [FromQuery] string? subject)

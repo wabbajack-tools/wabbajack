@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
+using Wabbajack.VFS.Interfaces;
 using Xunit.DependencyInjection;
 using Xunit.DependencyInjection.Logging;
 
@@ -32,7 +33,7 @@ public class Startup
         service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = 2});
         service.AddSingleton(new FileHashCache(KnownFolders.EntryPoint.Combine("hashcache.sqlite"),
             new Resource<FileHashCache>("File Hashing", 10)));
-        service.AddSingleton(new VFSCache(KnownFolders.EntryPoint.Combine("vfscache.sqlite")));
+        service.AddAllSingleton<IVfsCache, VFSDiskCache>(x => new VFSDiskCache(KnownFolders.EntryPoint.Combine("vfscache.sqlite")));
         service.AddTransient<Context>();
         service.AddSingleton<FileExtractor.FileExtractor>();
     }

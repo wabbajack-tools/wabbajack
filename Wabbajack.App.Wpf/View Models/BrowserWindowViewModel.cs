@@ -135,6 +135,9 @@ public abstract class BrowserWindowViewModel : ViewModel
     {
         var source = new TaskCompletionSource();
         var referer = _browser.Source;
+        while (_browser.CoreWebView2 == null)
+            await Task.Delay(10, token);
+
         _browser.CoreWebView2.DownloadStarting += (sender, args) =>
         {
             try

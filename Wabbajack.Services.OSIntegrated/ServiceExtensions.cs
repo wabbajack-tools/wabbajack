@@ -26,6 +26,7 @@ using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated.Services;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 using Wabbajack.VFS;
+using Wabbajack.VFS.Interfaces;
 using Client = Wabbajack.Networking.WabbajackClientApi.Client;
 
 namespace Wabbajack.Services.OSIntegrated;
@@ -55,9 +56,9 @@ public static class ServiceExtensions
             : new FileHashCache(KnownFolders.AppDataLocal.Combine("Wabbajack", "GlobalHashCache.sqlite"),
                 s.GetService<IResource<FileHashCache>>()!));
 
-        service.AddSingleton(s => options.UseLocalCache
-            ? new VFSCache(s.GetService<TemporaryFileManager>()!.CreateFile().Path)
-            : new VFSCache(KnownFolders.EntryPoint.Combine("GlobalVFSCache3.sqlite")));
+        service.AddAllSingleton<IVfsCache, VFSDiskCache>(s => options.UseLocalCache
+            ? new VFSDiskCache(s.GetService<TemporaryFileManager>()!.CreateFile().Path)
+            : new VFSDiskCache(KnownFolders.EntryPoint.Combine("GlobalVFSCache3.sqlite")));
 
         service.AddSingleton<IBinaryPatchCache>(s => options.UseLocalCache
             ? new BinaryPatchCache(s.GetService<TemporaryFileManager>()!.CreateFile().Path)
@@ -97,6 +98,8 @@ public static class ServiceExtensions
         service.AddAllSingleton<IResource, IResource<Context>>(s => new Resource<Context>("VFS", GetSettings(s, "VFS")));
         service.AddAllSingleton<IResource, IResource<FileHashCache>>(s =>
             new Resource<FileHashCache>("File Hashing", GetSettings(s, "File Hashing")));
+        service.AddAllSingleton<IResource, IResource<Client>>(s =>
+            new Resource<Client>("Wabbajack Client", GetSettings(s, "Wabbajack Client")));
         service.AddAllSingleton<IResource, IResource<FileExtractor.FileExtractor>>(s =>
             new Resource<FileExtractor.FileExtractor>("File Extractor", GetSettings(s, "File Extractor")));
 

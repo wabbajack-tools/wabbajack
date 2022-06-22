@@ -8,22 +8,24 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.CDN;
 using Wabbajack.DTOs.Configs;
+using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.DTOs.ModListValidation;
 using Wabbajack.DTOs.Validation;
+using Wabbajack.DTOs.Vfs;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
-using Wabbajack.VFS;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -36,7 +38,7 @@ public class Client
     private readonly HttpClient _client;
     private readonly Configuration _configuration;
     private readonly DTOSerializer _dtos;
-    private readonly IResource<FileHashCache> _hashLimiter;
+    private readonly IResource<Client> _hashLimiter;
     private readonly IResource<HttpClient> _limiter;
     private readonly ILogger<Client> _logger;
     private readonly ParallelOptions _parallelOptions;
@@ -46,7 +48,7 @@ public class Client
 
     public Client(ILogger<Client> logger, HttpClient client, ITokenProvider<WabbajackApiState> token,
         DTOSerializer dtos,
-        IResource<HttpClient> limiter, IResource<FileHashCache> hashLimiter, Configuration configuration)
+        IResource<HttpClient> limiter, IResource<Client> hashLimiter, Configuration configuration)
     {
         _configuration = configuration;
         _token = token;
@@ -362,9 +364,35 @@ public class Client
         var url = $"https://raw.githubusercontent.com/wabbajack-tools/indexed-game-files/master/{game}/{version}_steam_manifests.json";
         return await _client.GetFromJsonAsync<SteamManifest[]>(url, _dtos.Options) ?? Array.Empty<SteamManifest>();
     }
-
-    public Uri MakeProxyUrl(Archive archive, Uri uri)
+    
+    public async Task<bool> ProxyHas(Uri uri)
     {
-        return new Uri($"{_configuration.BuildServerUrl}proxy?name={archive.Name}&hash={archive.Hash.ToHex()}&uri={uri}");
+        var newUri = new Uri($"{_configuration.BuildServerUrl}proxy?uri={HttpUtility.UrlEncode(uri.ToString())}");
+        var msg = new HttpRequestMessage(HttpMethod.Head, newUri);
+        try
+        {
+            var result = await _client.SendAsync(msg);
+            return result.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+    public async ValueTask<Uri?> MakeProxyUrl(Archive archive, Uri uri)
+    {
+        if (archive.State is Manual && !await ProxyHas(uri))
+            return null;
+        
+        return new Uri($"{_configuration.BuildServerUrl}proxy?name={archive.Name}&hash={archive.Hash.ToHex()}&uri={HttpUtility.UrlEncode(uri.ToString())}");
+    }
+
+    public async Task<IndexedVirtualFile?> GetCesiVfsEntry(Hash hash, CancellationToken token)
+    {
+        var msg = await MakeMessage(HttpMethod.Get, new Uri($"{_configuration.BuildServerUrl}cesi/vfs/{hash.ToHex()}"));
+        using var response = await _client.SendAsync(msg, token);
+        HttpException.ThrowOnFailure(response);
+        return await _dtos.DeserializeAsync<IndexedVirtualFile>(await response.Content.ReadAsStreamAsync(token), token);
     }
 }

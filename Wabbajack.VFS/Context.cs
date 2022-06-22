@@ -11,6 +11,7 @@ using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
+using Wabbajack.VFS.Interfaces;
 
 namespace Wabbajack.VFS;
 
@@ -27,10 +28,10 @@ public class Context
     public readonly IResource<Context> Limiter;
     public readonly IResource<FileHashCache> HashLimiter;
     public readonly ILogger<Context> Logger;
-    public readonly VFSCache VfsCache;
+    public readonly IVfsCache VfsCache;
 
     public Context(ILogger<Context> logger, ParallelOptions parallelOptions, TemporaryFileManager manager,
-        VFSCache vfsCache,
+        IVfsCache vfsCache,
         FileHashCache hashCache, IResource<Context> limiter, IResource<FileHashCache> hashLimiter, FileExtractor.FileExtractor extractor)
     {
         Limiter = limiter;

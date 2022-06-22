@@ -4,22 +4,25 @@ using System.Data;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.DTOs.Streams;
+using Wabbajack.DTOs.Vfs;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.VFS.Interfaces;
 
 namespace Wabbajack.VFS;
 
-public class VFSCache
+public class VFSDiskCache : IVfsCache
 {
     private readonly SQLiteConnection _conn;
     private readonly string _connectionString;
     private readonly AbsolutePath _path;
 
-    public VFSCache(AbsolutePath path)
+    public VFSDiskCache(AbsolutePath path)
     {
         _path = path;
 
@@ -38,63 +41,34 @@ public class VFSCache
         cmd.ExecuteNonQuery();
     }
 
-    public bool TryGetFromCache(Context context, VirtualFile parent, IPath path, IStreamFactory extractedFile,
-        Hash hash, out VirtualFile found)
+    public async Task<IndexedVirtualFile?> Get(Hash hash, CancellationToken token)
     {
         if (hash == default)
             throw new ArgumentException("Cannot cache default hashes");
-        
-        using var cmd = new SQLiteCommand(_conn);
+
+        await using var cmd = new SQLiteCommand(_conn);
         cmd.CommandText = @"SELECT Contents FROM VFSCache WHERE Hash = @hash";
         cmd.Parameters.AddWithValue("@hash", (long) hash);
 
-        using var rdr = cmd.ExecuteReader();
+        await using var rdr = cmd.ExecuteReader();
         while (rdr.Read())
         {
-            var data = IndexedVirtualFile.Read(rdr.GetStream(0));
-            found = ConvertFromIndexedFile(context, data, path, parent, extractedFile);
-            found.Name = path;
-            found.Hash = hash;
-            return true;
+            var data = IndexedVirtualFileExtensions.Read(rdr.GetStream(0));
+            return data;
         }
 
-        found = default;
-        return false;
+        return null;
     }
-
-    private static VirtualFile ConvertFromIndexedFile(Context context, IndexedVirtualFile file, IPath path,
-        VirtualFile vparent, IStreamFactory extractedFile)
-    {
-        var vself = new VirtualFile
-        {
-            Context = context,
-            Name = path,
-            Parent = vparent,
-            Size = file.Size,
-            LastModified = extractedFile.LastModifiedUtc.AsUnixTime(),
-            LastAnalyzed = DateTime.Now.AsUnixTime(),
-            Hash = file.Hash,
-            ImageState = file.ImageState
-        };
-
-        vself.FillFullPath();
-
-        vself.Children = file.Children.Select(f => ConvertFromIndexedFile(context, f, f.Name, vself, extractedFile))
-            .ToImmutableList();
-
-        return vself;
-    }
-
-    public async Task WriteToCache(VirtualFile self)
+    
+    public async Task Put(IndexedVirtualFile ivf, CancellationToken token)
     {
         await using var ms = new MemoryStream();
-        var ivf = self.ToIndexedVirtualFile();
         // Top level path gets renamed when read, we don't want the absolute path
         // here else the reader will blow up when it tries to convert the value
         ivf.Name = (RelativePath) "not/applicable";
         ivf.Write(ms);
         ms.Position = 0;
-        await InsertIntoVFSCache(self.Hash, ms);
+        await InsertIntoVFSCache(ivf.Hash, ms);
     }
 
     private async Task InsertIntoVFSCache(Hash hash, MemoryStream data)

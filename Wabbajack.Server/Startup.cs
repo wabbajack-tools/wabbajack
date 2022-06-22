@@ -2,7 +2,12 @@
 using System.IO;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using cesi.DTOs;
+using CouchDB.Driver;
+using CouchDB.Driver.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Features;
@@ -33,7 +38,9 @@ using Wabbajack.Server.Services;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths.IO;
+using Wabbajack.Server.DTOs;
 using Wabbajack.VFS;
+using YamlDotNet.Serialization.NamingConventions;
 using Client = Wabbajack.Networking.GitHub.Client;
 
 namespace Wabbajack.Server;
@@ -135,10 +142,40 @@ public class Startup
             options.Providers.Add<GzipCompressionProvider>();
             options.MimeTypes = new[] {"application/json"};
         });
+        
+        // CouchDB
+        services.AddSingleton(s =>
+        {
+            var settings = s.GetRequiredService<AppSettings>();
+            var client = new CouchClient(settings.CesiDB.Endpoint, b =>
+            {
+                b.UseBasicAuthentication("cesi", "password");
+                b.SetPropertyCase(PropertyCaseType.None);
+                b.SetJsonNullValueHandling(NullValueHandling.Ignore);
+            });
+            return client.GetDatabase<Analyzed>("cesi");
+        });
+        
+        services.AddSingleton(s =>
+        {
+            var settings = s.GetRequiredService<AppSettings>();
+            var client = new CouchClient(settings.CesiDB.Endpoint, b =>
+            {
+                b.UseBasicAuthentication("wabbajack", "password");
+                b.SetPropertyCase(PropertyCaseType.None);
+                b.SetJsonNullValueHandling(NullValueHandling.Ignore);
+            });
+            return client.GetDatabase<Metric>("cesi");
+        });
 
         services.AddMvc();
-        services.AddControllers()
-            .AddNewtonsoftJson(o => { o.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore; });
+        services
+            .AddControllers()
+            .AddJsonOptions(j =>
+            {
+                j.JsonSerializerOptions.PropertyNamingPolicy = null;
+                j.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
+            });
 
         NettleEngine.GetCompiler().RegisterWJFunctions();
     }

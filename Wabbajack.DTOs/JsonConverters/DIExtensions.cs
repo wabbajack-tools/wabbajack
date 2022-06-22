@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
+using Wabbajack.Paths;
 
 namespace Wabbajack.DTOs.JsonConverters;
 
@@ -18,6 +19,7 @@ public static class DIExtensions
         services.AddSingleton<JsonConverter, RelativePathConverter>();
         services.AddSingleton<JsonConverter, AbsolutePathConverter>();
         services.AddSingleton<JsonConverter, VersionConverter>();
+        services.AddSingleton<JsonConverter, IPathConverter>();
         return services;
     }
 

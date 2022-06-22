@@ -1,9 +1,10 @@
 ﻿using System;
+using CouchDB.Driver.Types;
 using Microsoft.Extensions.Primitives;
 
 namespace Wabbajack.Server.DTOs;
 
-public class Metric
+public class Metric : CouchDocument
 {
     public DateTime Timestamp { get; set; }
     public string Action { get; set; }

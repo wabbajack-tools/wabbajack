@@ -11,7 +11,7 @@ public class ManualBlobDownloadHandler : BrowserWindowViewModel
 
     protected override async Task Run(CancellationToken token)
     {
-        await WaitForReady();
+        //await WaitForReady();
         var archive = Intervention.Archive;
         var md = Intervention.Archive.State as Manual;
         

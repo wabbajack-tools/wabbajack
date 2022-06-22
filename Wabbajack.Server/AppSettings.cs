@@ -33,4 +33,15 @@ public class AppSettings
     public string MetricsFolder { get; set; } = "";
     public string TarLogPath { get; set; }
     public string GitHubKey { get; set; } = "";
+    
+    public CouchDBSetting CesiDB { get; set; }
+    public CouchDBSetting MetricsDB { get; set; }
+}
+
+public class CouchDBSetting
+{
+    public Uri Endpoint { get; set; }
+    public string Database { get; set; }
+    public string Username { get; set; }
+    public string Password { get; set; }
 }

@@ -19,6 +19,7 @@
         <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj" />
         <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
         <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj" />
+        <ProjectReference Include="..\Wabbajack.VFS.Interfaces\Wabbajack.VFS.Interfaces.csproj" />
     </ItemGroup>
 
 </Project>

@@ -12,7 +12,7 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Downloaders.Manual;
 
-public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>
+public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>, IProxyable
 {
     private readonly ILogger<ManualDownloader> _logger;
     private readonly IUserInterventionHandler _interventionHandler;
@@ -97,5 +97,20 @@ public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>
     {
 
         return new[] {$"manualURL={state.Url}", $"prompt={state.Prompt}"};
+    }
+
+    public IDownloadState? Parse(Uri uri)
+    {
+        return new DTOs.DownloadStates.Manual() {Url = uri};
+    }
+
+    public Uri UnParse(IDownloadState state)
+    {
+        return (state as DTOs.DownloadStates.Manual)!.Url;
+    }
+
+    public Task<T> DownloadStream<T>(Archive archive, Func<Stream, Task<T>> fn, CancellationToken token)
+    {
+        throw new NotImplementedException();
     }
 }

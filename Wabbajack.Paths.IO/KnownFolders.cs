@@ -12,7 +12,7 @@ public static class KnownFolders
         get
         {
             var result = Process.GetCurrentProcess().MainModule!.FileName!.ToAbsolutePath().Parent;
-            if (result.FileName == "dotnet".ToRelativePath())
+            if (result.FileName == "dotnet".ToRelativePath() || Assembly.GetEntryAssembly() != null)
             {
                 return Assembly.GetExecutingAssembly().Location.ToAbsolutePath().Parent;
             }
