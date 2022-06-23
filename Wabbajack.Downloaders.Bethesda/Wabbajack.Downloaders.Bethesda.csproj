@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="LibAES-CTR" Version="0.9.6" />
+      <PackageReference Include="LibAES-CTR" Version="1.0.0" />
       <PackageReference Include="SharpZipLib" Version="1.3.3" />
     </ItemGroup>
 

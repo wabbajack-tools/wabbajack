@@ -46,6 +46,8 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task CheckForUpdates()
     {
+        await VerifyCurrentLocation();
+        
         _client.Headers.Add("user-agent", "Wabbajack Launcher");
         Status = "Selecting Release";
 
@@ -165,6 +167,21 @@ public class MainWindowViewModel : ViewModelBase
         finally
         {
             await FinishAndExit();
+        }
+    }
+
+    private async Task VerifyCurrentLocation()
+    {
+        var entryPoint = KnownFolders.EntryPoint;
+        if (entryPoint.FileName == "Desktop".ToRelativePath()
+            || entryPoint.Depth <= 1
+            || entryPoint.FileName == "Downloads".ToRelativePath())
+        {
+            var msg = MessageBox.Avalonia.MessageBoxManager
+                .GetMessageBoxStandardWindow("Bad Download Path",
+                    "Cannot start in the root, Downloads or Desktop folders.");
+            var result = await msg.Show();
+            Environment.Exit(1);
         }
     }
 
