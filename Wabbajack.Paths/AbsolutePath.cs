@@ -20,7 +20,7 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
     internal readonly string[] Parts;
 
     public Extension Extension => Extension.FromPath(Parts[^1]);
-    public RelativePath FileName => (RelativePath) Parts[^1];
+    public RelativePath FileName => new(Parts[^1..]);
 
     internal AbsolutePath(string[] parts, PathFormat format)
     {

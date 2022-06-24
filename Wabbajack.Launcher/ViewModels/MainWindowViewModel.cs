@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using MessageBox.Avalonia.DTO;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Compression.Zip;
 using Wabbajack.Downloaders.Http;
@@ -172,14 +173,38 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task VerifyCurrentLocation()
     {
-        var entryPoint = KnownFolders.EntryPoint;
-        if (entryPoint.FileName == "Desktop".ToRelativePath()
-            || entryPoint.Depth <= 1
-            || entryPoint.FileName == "Downloads".ToRelativePath())
+        try
         {
+            var entryPoint = KnownFolders.EntryPoint;
+            if (entryPoint.FileName == "Desktop".ToRelativePath()
+                || entryPoint.Depth <= 1
+                || entryPoint.FileName == "Downloads".ToRelativePath())
+            {
+
+                var msg = MessageBox.Avalonia.MessageBoxManager
+                    .GetMessageBoxStandardWindow(new MessageBoxStandardParams()
+                    {
+                        Topmost = true,
+                        ShowInCenter = true,
+                        ContentTitle = "Wabbajack Launcher: Bad startup path",
+                        ContentMessage =
+                            "Cannot start in the root, Downloads or Desktop folders.\nPlease move Wabbajack to another folder."
+                    });
+                var result = await msg.Show();
+                Environment.Exit(1);
+            }
+        }
+        catch (Exception ex)
+        {
+            Status = ex.Message;
             var msg = MessageBox.Avalonia.MessageBoxManager
-                .GetMessageBoxStandardWindow("Bad Download Path",
-                    "Cannot start in the root, Downloads or Desktop folders.");
+                .GetMessageBoxStandardWindow(new MessageBoxStandardParams()
+                {
+                    Topmost = true,
+                    ShowInCenter = true,
+                    ContentTitle = "Wabbajack Launcher: Error",
+                    ContentMessage = ex.ToString()
+                });
             var result = await msg.Show();
             Environment.Exit(1);
         }
