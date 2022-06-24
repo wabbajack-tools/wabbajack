@@ -194,6 +194,7 @@ public static class ServiceExtensions
 
     private static void CleanAllTempData(AbsolutePath path)
     {
+        if (!path.DirectoryExists()) return;
         // Get directories first and cache them, this freezes the directories were looking at
         // so any new ones don't show up in the middle of our deletes.
         
