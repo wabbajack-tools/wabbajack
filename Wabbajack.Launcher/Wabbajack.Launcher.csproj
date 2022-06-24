@@ -17,12 +17,13 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Avalonia" Version="0.10.14" />
-        <PackageReference Include="Avalonia.Desktop" Version="0.10.14" />
-        <PackageReference Include="Avalonia.Diagnostics" Version="0.10.14" />
-        <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.14" />
+        <PackageReference Include="Avalonia" Version="0.10.15" />
+        <PackageReference Include="Avalonia.Desktop" Version="0.10.15" />
+        <PackageReference Include="Avalonia.Diagnostics" Version="0.10.15" />
+        <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.15" />
+        <PackageReference Include="MessageBox.Avalonia" Version="2.0.1" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
-        <PackageReference Include="ReactiveUI.Fody" Version="18.0.10" />
+        <PackageReference Include="ReactiveUI.Fody" Version="18.1.8" />
         <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="6.0.0" />
     </ItemGroup>
     <ItemGroup>

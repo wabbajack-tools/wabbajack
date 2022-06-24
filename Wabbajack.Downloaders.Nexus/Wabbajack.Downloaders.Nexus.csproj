@@ -17,9 +17,4 @@
         <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Xunit.DependencyInjection" Version="8.5.0" />
-        <PackageReference Include="Xunit.DependencyInjection.Logging" Version="8.0.1" />
-    </ItemGroup>
-
 </Project>
