@@ -393,6 +393,28 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             {
                 _logger.LogCritical(ex, "Skipping screen size remap for {file} due to parse error.", file);
             }
+        
+        // The Witcher 3
+        if (_configuration.Game == Game.Witcher3)
+        {
+            var name = (RelativePath)"user.settings";
+            foreach (var file in _configuration.Install.Combine("profiles").EnumerateFiles()
+                         .Where(f => f.FileName == name))
+            {
+                try
+                {
+                    var parser = new FileIniDataParser(new IniDataParser(config));
+                    var data = parser.ReadFile(file.ToString());
+                    data["Viewport"]["Resolution"] =
+                        $"{_configuration.SystemParameters!.ScreenWidth}x{_configuration.SystemParameters!.ScreenHeight}";
+                    parser.WriteFile(file.ToString(), data);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInformation(ex, "While remapping user.settings");
+                }
+            }
+        }
     }
 
     private async Task WriteRemappedFile(RemappedInlineFile directive)
