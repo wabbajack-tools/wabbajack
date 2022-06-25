@@ -122,7 +122,7 @@ public class MetricsController : ControllerBase
 
     [HttpGet]
     [Route("report")]
-    [ResponseCache(Duration = 60 * 60 * 4, VaryByQueryKeys = new [] {"action", "from", "to"})]
+    [ResponseCache(Duration = 60 * 10, VaryByQueryKeys = new [] {"action", "from", "to"})]
     public async Task GetReport([FromQuery] string action, [FromQuery] string from, [FromQuery] string? to)
     {
         var parser = new Parser();
