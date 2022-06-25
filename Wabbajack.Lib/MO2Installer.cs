@@ -487,6 +487,29 @@ namespace Wabbajack.Lib
                     Utils.Log($"Skipping screen size remap for {file} due to parse error.");
                 }
             }
+            
+            // The Witcher 3
+            if (this.Game.Game == Common.Game.Witcher3)
+            {
+                var name = (RelativePath)"user.settings";
+                foreach (var file in OutputFolder.Combine("profiles").EnumerateFiles()
+                             .Where(f => f.FileName == name))
+                {
+                    try
+                    {
+                        var parser = new FileIniDataParser(new IniDataParser(config));
+                        var data = parser.ReadFile((string)file);
+                        data["Viewport"]["Resolution"] =
+                            $"{SystemParameters.ScreenWidth}x{SystemParameters.ScreenHeight}";
+                        parser.WriteFile((string)file, data);
+                    }
+                    catch (Exception ex)
+                    {
+                        Utils.Log($"While remapping user.settings, {ex}");
+                    }
+                }
+            }
+
         }
 
         private async Task WriteRemappedFile(RemappedInlineFile directive)
