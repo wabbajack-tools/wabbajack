@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.5.3.23 - 6/24/2022
+* Automatically set the screen resolution on Witcher 3 installs
+* Fix the launcher's error messages when run in bad folders
+
 #### Version - 2.5.3.22 - 6/13/2022
 * Stop WJ from attempting to proxy all manual files
 * Stop downloading the app twice when upgrading via the launcher
