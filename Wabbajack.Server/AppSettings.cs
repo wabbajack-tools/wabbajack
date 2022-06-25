@@ -10,6 +10,7 @@ public class AppSettings
         config.Bind("WabbajackSettings", this);
     }
     public bool TestMode { get; set; }
+    public bool RunBackendNexusRoutines { get; set; } = true;
     public string AuthorAPIKeyFile { get; set; }
     
     public string TarKeyFile { get; set; }

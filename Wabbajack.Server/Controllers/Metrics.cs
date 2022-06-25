@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Chronic.Core;
 using CouchDB.Driver;
+using CouchDB.Driver.Views;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
@@ -98,6 +99,7 @@ public class MetricsController : ControllerBase
     [Route("dump")]
     public async Task GetMetrics([FromQuery] string action, [FromQuery] string from, [FromQuery] string? to, [FromQuery] string? subject)
     {
+        throw new NotImplementedException();
         var parser = new Parser();
         
         to ??= "now";
@@ -121,7 +123,7 @@ public class MetricsController : ControllerBase
     [HttpGet]
     [Route("report")]
     [ResponseCache(Duration = 60 * 60 * 4, VaryByQueryKeys = new [] {"action", "from", "to"})]
-    public void GetReport([FromQuery] string action, [FromQuery] string from, [FromQuery] string? to)
+    public async Task GetReport([FromQuery] string action, [FromQuery] string from, [FromQuery] string? to)
     {
         var parser = new Parser();
         
@@ -132,21 +134,15 @@ public class MetricsController : ControllerBase
         var groupFilterStart = parser.Parse("three days ago").Start!.Value.TruncateToDate();
         toDate = new DateTime(toDate.Year, toDate.Month, toDate.Day);
 
-        var prefetch = _metricsStore.GetRecordsParallel(groupFilterStart, toDate, action)
-            .Where(d => d.Action != d.Subject)
-            .Select(d => d.GroupingSubject)
-            .ToHashSet();;
-        
+        var prefetch = (await GetByAction(action, groupFilterStart, toDate))
+            .Select(d => d.Subject)
+            .ToHashSet();
+
         var fromDate = parser.Parse(from).Start!.Value.TruncateToDate();
 
-        var counts = _metricsStore.GetRecordsParallel(fromDate, toDate, action)
-            .Where(r => r.Subject != r.Action)
-            .Where(r => prefetch.Contains(r.GroupingSubject))
-            .Select(r => (r.Timestamp.TruncateToDate(), r.GroupingSubject))
-            .ToLookup(r => r, v => 1)
-            .AsParallel()
-            .Select(entry => KeyValuePair.Create(entry.Key, entry.Count()))
-            .ToDictionary(kv => kv.Key, kv => kv.Value);
+        var counts = (await GetByAction(action, fromDate, toDate))
+            .Where(r => prefetch.Contains(r.Subject))
+            .ToDictionary(kv => (kv.Date, kv.Subject), kv => kv.Count);
         
         Response.Headers.ContentType = "application/json";
         var row = new Dictionary<string, object>();
@@ -162,7 +158,7 @@ public class MetricsController : ControllerBase
                 else
                     row[group] = 0;
             }
-            JsonSerializer.Serialize(Response.Body, row);
+            await JsonSerializer.SerializeAsync(Response.Body, row);
             Response.Body.Write(EOL);
             if (d != toDate)
                 Response.Body.Write(COMMA);
@@ -172,6 +168,25 @@ public class MetricsController : ControllerBase
 
     }
     
+    
+    private async Task<IReadOnlyList<(DateTime Date, string Subject, long Count)>> GetByAction(string action, DateTime from, DateTime to)
+    {
+        var records = await _db.GetViewAsync<object?[], long>("Indexes", "ActionDaySubject",
+            new CouchViewOptions<object?[]>
+            {
+                StartKey = new object?[]{action, from.Year, from.Month, from.Day, null},
+                EndKey = new object?[]{action, to.Year, to.Month, to.Day, new()},
+                Reduce = true,
+                GroupLevel = 10,
+                Group = true
+            });
+        
+        var results = records
+            .Where(r => r.Key.Length >= 4 && r.Key[4] != null)
+            .Select(r => 
+            (new DateTime((int)(long)r.Key[1]!, (int)(long)r.Key[2]!, (int)(long)r.Key[3]!), (string)r.Key[4]!, r.Value));
+        return results.ToList();
+    }
     
 
     public class Result

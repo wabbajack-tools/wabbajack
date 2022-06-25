@@ -34,9 +34,11 @@ public class NexusCacheManager
         _nexusAPI = nexusApi;
         _discord = discord;
 
-
-        _timer = new Timer(_ => UpdateNexusCacheAPI().FireAndForget(), null, TimeSpan.FromSeconds(2),
-            TimeSpan.FromHours(4));
+        if (configuration.RunBackendNexusRoutines)
+        {
+            _timer = new Timer(_ => UpdateNexusCacheAPI().FireAndForget(), null, TimeSpan.FromSeconds(2),
+                TimeSpan.FromHours(4));
+        }
     }
     
     
