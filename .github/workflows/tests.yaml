@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  VERSION: 3.0.0.4
+  VERSION: 3.0.0.5
 
 jobs:
   build:
@@ -102,6 +102,7 @@ jobs:
           - Wabbajack.RateLimiter
           - Wabbajack.Services.OSIntegrated
           - Wabbajack.VFS
+          - Wabbajack.VFS.Interfaces
           
     needs: build
     steps:
