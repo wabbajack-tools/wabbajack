@@ -19,11 +19,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="GameFinder.StoreHandlers.BethNet" Version="1.7.3" />
-        <PackageReference Include="GameFinder.StoreHandlers.EGS" Version="1.7.3" />
-        <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="1.7.3" />
-        <PackageReference Include="GameFinder.StoreHandlers.Origin" Version="1.7.3" />
-        <PackageReference Include="GameFinder.StoreHandlers.Steam" Version="1.7.3" />
+        <PackageReference Include="GameFinder.StoreHandlers.BethNet" Version="1.6.3" />
+        <PackageReference Include="GameFinder.StoreHandlers.EGS" Version="1.6.3" />
+        <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="1.6.3" />
+        <PackageReference Include="GameFinder.StoreHandlers.Origin" Version="1.6.3" />
+        <PackageReference Include="GameFinder.StoreHandlers.Steam" Version="1.6.3" />
         <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
         <PackageReference Include="Octodiff" Version="1.2.36" />
     </ItemGroup>
