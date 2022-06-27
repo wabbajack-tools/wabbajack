@@ -21,13 +21,15 @@ public class CesiVFSCache : IVfsCache
     
     public async Task<IndexedVirtualFile?> Get(Hash hash, CancellationToken token)
     {
-        _logger.LogInformation("Requesting CESI Information for: {Hash}", hash.ToHex());
         try
         {
-            return await _client.GetCesiVfsEntry(hash, token);
+            var result = await _client.GetCesiVfsEntry(hash, token);
+            _logger.LogInformation("Requesting CESI Information for: {Hash} - Found", hash.ToHex());
+            return result;
         }
         catch (HttpException exception)
         {
+            _logger.LogInformation("Requesting CESI Information for: {Hash} - Not Found", hash.ToHex());
             return null;
         }
     }
