@@ -82,7 +82,7 @@ public abstract class AInstaller<T>
         _logger = logger;
         _extractor = extractor;
         _jsonSerializer = jsonSerializer;
-        _vfs = vfs;
+        _vfs = vfs.WithTemporaryFileManager(_manager);
         FileHashCache = fileHashCache;
         _downloadDispatcher = downloadDispatcher;
         _parallelOptions = parallelOptions;

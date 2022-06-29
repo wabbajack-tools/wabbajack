@@ -17,14 +17,16 @@ public class FallthroughVFSCache : IVfsCache
 
     public async Task<IndexedVirtualFile?> Get(Hash hash, CancellationToken token)
     {
+        IndexedVirtualFile? result = null;
         foreach (var cache in _caches)
         {
-            var result = await cache.Get(hash, token);
-            if (result == null) continue;
-            return result;
+            if (result == null)
+                result = await cache.Get(hash, token);
+            else
+                await cache.Put(result, token);
         }
 
-        return default;
+        return result;
     }
 
     public async Task Put(IndexedVirtualFile file, CancellationToken token)

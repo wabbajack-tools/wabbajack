@@ -68,6 +68,11 @@ public class FileExtractor
         _limiter = limiter;
     }
 
+    public FileExtractor WithTemporaryFileManager(TemporaryFileManager manager)
+    {
+        return new FileExtractor(_logger, _parallelOptions, manager, _limiter);
+    }
+
     public async Task<IDictionary<RelativePath, T>> GatheringExtract<T>(
         IStreamFactory sFn,
         Predicate<RelativePath> shouldExtract,

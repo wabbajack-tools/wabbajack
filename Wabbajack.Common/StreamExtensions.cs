@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
@@ -12,14 +13,15 @@ public static class StreamExtensions
 {
     public static async Task CopyToLimitAsync(this Stream frm, Stream tw, int limit, CancellationToken token)
     {
-        var buff = new byte[1024 * 128];
+        using var buff = MemoryPool<byte>.Shared.Rent(1024 * 128);
+        var buffMemory = buff.Memory;
         while (limit > 0 && !token.IsCancellationRequested)
         {
-            var toRead = Math.Min(buff.Length, limit);
-            var read = await frm.ReadAsync(buff.AsMemory(0, toRead), token);
+            var toRead = Math.Min(buffMemory.Length, limit);
+            var read = await frm.ReadAsync(buffMemory[..toRead], token);
             if (read == 0)
                 throw new Exception("End of stream before end of limit");
-            await tw.WriteAsync(buff.AsMemory(0, read), token);
+            await tw.WriteAsync(buffMemory[..read], token);
             limit -= read;
         }
 

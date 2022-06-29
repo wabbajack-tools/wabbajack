@@ -44,6 +44,12 @@ public class Context
         _parallelOptions = parallelOptions;
     }
 
+    public Context WithTemporaryFileManager(TemporaryFileManager manager)
+    {
+        return new Context(Logger, _parallelOptions, manager, VfsCache, HashCache, Limiter, HashLimiter,
+            Extractor.WithTemporaryFileManager(manager));
+    }
+
 
     public IndexRoot Index { get; private set; } = IndexRoot.Empty;
 

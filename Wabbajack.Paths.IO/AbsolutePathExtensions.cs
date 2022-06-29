@@ -172,7 +172,28 @@ public static class AbsolutePathExtensions
         CancellationToken token)
     {
         // TODO: Make this async
-        File.Move(src.ToString(), dest.ToString(), overwrite);
+        var srcStr = src.ToString();
+        var destStr = dest.ToString();
+        var fi = new FileInfo(srcStr);
+        if (fi.IsReadOnly)
+            fi.IsReadOnly = false;
+
+        var fid = new FileInfo(destStr);
+        if (dest.FileExists() && fid.IsReadOnly)
+        {
+            fid.IsReadOnly = false;
+        }
+        
+        
+        
+        try
+        {
+            File.Move(srcStr, destStr, overwrite);
+        }
+        catch (Exception)
+        {
+            
+        }
     }
 
     public static async ValueTask CopyToAsync(this AbsolutePath src, AbsolutePath dest, bool overwrite,
@@ -218,14 +239,10 @@ public static class AbsolutePathExtensions
         }
         try
         {
-            Directory.Delete(path.ToString(), true);
-        }
-        catch (IOException)
-        {
             var di = new DirectoryInfo(path.ToString());
             if (di.Attributes.HasFlag(FileAttributes.ReadOnly))
                 di.Attributes &= ~FileAttributes.ReadOnly;
-            di.Delete(true);
+            Directory.Delete(path.ToString(), true);
         }
         catch (UnauthorizedAccessException)
         {
