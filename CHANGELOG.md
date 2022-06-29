@@ -1,7 +1,6 @@
 ### Changelog
 
-#### Version - 2.5.3.25 - 6/24/2022
-* Correctly modify Witcher 3 settings to the game accepts the values
+9
 
 #### Version - 2.5.3.23 - 6/24/2022
 * Automatically set the screen resolution on Witcher 3 installs
