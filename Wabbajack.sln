@@ -34,8 +34,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Test", "Wabbajack
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.CLI", "Wabbajack.CLI\Wabbajack.CLI.csproj", "{685D8BB1-D178-4D2C-85C7-C54A36FB7454}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Launcher", "Wabbajack.Launcher\Wabbajack.Launcher.csproj", "{D6856DBF-C959-4867-A8A8-343DA2D2715E}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Common.Test", "Wabbajack.Common.Test\Wabbajack.Common.Test.csproj", "{BA8A3E49-60D2-4BA2-B285-CB09FFDB6D32}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.App.Test", "Wabbajack.App.Test\Wabbajack.App.Test.csproj", "{44E30B97-D4A8-40A6-81D5-5CAB1F3D45CB}"
@@ -126,14 +124,6 @@ Global
 		{685D8BB1-D178-4D2C-85C7-C54A36FB7454}.Release|Any CPU.Build.0 = Release|x64
 		{685D8BB1-D178-4D2C-85C7-C54A36FB7454}.Release|x64.ActiveCfg = Release|x64
 		{685D8BB1-D178-4D2C-85C7-C54A36FB7454}.Release|x64.Build.0 = Release|x64
-		{D6856DBF-C959-4867-A8A8-343DA2D2715E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D6856DBF-C959-4867-A8A8-343DA2D2715E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D6856DBF-C959-4867-A8A8-343DA2D2715E}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{D6856DBF-C959-4867-A8A8-343DA2D2715E}.Debug|x64.Build.0 = Debug|Any CPU
-		{D6856DBF-C959-4867-A8A8-343DA2D2715E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D6856DBF-C959-4867-A8A8-343DA2D2715E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D6856DBF-C959-4867-A8A8-343DA2D2715E}.Release|x64.ActiveCfg = Release|Any CPU
-		{D6856DBF-C959-4867-A8A8-343DA2D2715E}.Release|x64.Build.0 = Release|Any CPU
 		{BA8A3E49-60D2-4BA2-B285-CB09FFDB6D32}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{BA8A3E49-60D2-4BA2-B285-CB09FFDB6D32}.Debug|Any CPU.Build.0 = Debug|x64
 		{BA8A3E49-60D2-4BA2-B285-CB09FFDB6D32}.Debug|x64.ActiveCfg = Debug|x64

@@ -500,7 +500,7 @@ namespace Wabbajack.Lib
                         var parser = new FileIniDataParser(new IniDataParser(config));
                         var data = parser.ReadFile((string)file);
                         data["Viewport"]["Resolution"] =
-                            $"{SystemParameters.ScreenWidth}x{SystemParameters.ScreenHeight}";
+                            $"\"{SystemParameters.ScreenWidth}x{SystemParameters.ScreenHeight}\"";
                         parser.WriteFile((string)file, data);
                     }
                     catch (Exception ex)
