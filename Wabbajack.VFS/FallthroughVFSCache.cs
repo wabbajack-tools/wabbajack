@@ -21,9 +21,17 @@ public class FallthroughVFSCache : IVfsCache
         foreach (var cache in _caches)
         {
             if (result == null)
+            {
                 result = await cache.Get(hash, token);
-            else
-                await cache.Put(result, token);
+                if (result == null) continue;
+                foreach (var upperCache in _caches)
+                {
+
+                    if (upperCache != cache)
+                        await upperCache.Put(result, token);
+                }
+                return result;
+            }
         }
 
         return result;

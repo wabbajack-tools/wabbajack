@@ -62,7 +62,7 @@ public static class ServiceExtensions
         {
             var diskCache = options.UseLocalCache
                 ? new VFSDiskCache(s.GetService<TemporaryFileManager>()!.CreateFile().Path)
-                : new VFSDiskCache(KnownFolders.EntryPoint.Combine("GlobalVFSCache3.sqlite"));
+                : new VFSDiskCache(KnownFolders.WabbajackAppLocal.Combine("GlobalVFSCache3.sqlite"));
             var cesiCache = new CesiVFSCache(s.GetRequiredService<ILogger<CesiVFSCache>>(),
                 s.GetRequiredService<Client>());
             return new FallthroughVFSCache(new IVfsCache[] {diskCache, cesiCache});

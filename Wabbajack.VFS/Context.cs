@@ -70,7 +70,15 @@ public class Context
                     if (found.LastModified == f.LastModifiedUtc().AsUnixTime() && found.Size == f.Size())
                         return found;
 
-                return await VirtualFile.Analyze(this, null, new NativeFileStreamFactory(f), f, token, job: job);
+                try
+                {
+                    return await VirtualFile.Analyze(this, null, new NativeFileStreamFactory(f), f, token, job: job);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "While analyzing {File}", f);
+                    throw;
+                }
             }).ToList();
 
         var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());

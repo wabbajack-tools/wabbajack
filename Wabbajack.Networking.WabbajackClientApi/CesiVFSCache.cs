@@ -1,3 +1,5 @@
+using System;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -27,7 +29,7 @@ public class CesiVFSCache : IVfsCache
             _logger.LogInformation("Requesting CESI Information for: {Hash} - Found", hash.ToHex());
             return result;
         }
-        catch (HttpException exception)
+        catch (Exception exception)
         {
             _logger.LogInformation("Requesting CESI Information for: {Hash} - Not Found", hash.ToHex());
             return null;
