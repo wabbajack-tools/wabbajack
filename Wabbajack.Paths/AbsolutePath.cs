@@ -67,7 +67,7 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
         }
     }
 
-    public int Depth => Parts.Length;
+    public int Depth => Parts?.Length ?? 0;
 
     public AbsolutePath ReplaceExtension(Extension newExtension)
     {

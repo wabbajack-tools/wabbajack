@@ -6,8 +6,8 @@ public static class ArrayExtensions
 {
     public static bool AreEqual<T>(T[] a, int startA, T[] b, int startB, int length)
     {
-        if (startA + length > a.Length) return false;
-        if (startB + length > b.Length) return false;
+        if (startA + length > (a?.Length ?? 0)) return false;
+        if (startB + length > (b?.Length ?? 0)) return false;
 
         for (var i = 0; i < length; i++)
             if (!a[startA + i]!.Equals(b[startB + i]))

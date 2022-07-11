@@ -281,6 +281,7 @@ public static class AbsolutePathExtensions
 
     public static IEnumerable<AbsolutePath> EnumerateDirectories(this AbsolutePath path, bool recursive = true)
     {
+        if (!path.DirectoryExists()) return Array.Empty<AbsolutePath>();
         return Directory.EnumerateDirectories(path.ToString(), "*",
                 recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
             .Select(p => (AbsolutePath) p);

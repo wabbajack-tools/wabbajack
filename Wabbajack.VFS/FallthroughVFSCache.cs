@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Wabbajack.DTOs.Streams;
 using Wabbajack.DTOs.Vfs;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.VFS.Interfaces;
@@ -15,14 +16,14 @@ public class FallthroughVFSCache : IVfsCache
         _caches = caches;
     }
 
-    public async Task<IndexedVirtualFile?> Get(Hash hash, CancellationToken token)
+    public async Task<IndexedVirtualFile?> Get(Hash hash, IStreamFactory sf, CancellationToken token)
     {
         IndexedVirtualFile? result = null;
         foreach (var cache in _caches)
         {
             if (result == null)
             {
-                result = await cache.Get(hash, token);
+                result = await cache.Get(hash, sf, token);
                 if (result == null) continue;
                 foreach (var upperCache in _caches)
                 {

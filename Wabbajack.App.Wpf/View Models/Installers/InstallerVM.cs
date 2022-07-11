@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -85,6 +86,12 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     [Reactive]
     public InstallState InstallState { get; set; }
     
+    [Reactive]
+    protected ErrorResponse[] Errors { get; private set; }
+    
+    [Reactive]
+    public ErrorResponse Error { get; private set; }
+
     /// <summary>
     ///  Slideshow Data
     /// </summary>
@@ -113,6 +120,9 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
 
     [Reactive]
     public bool Installing { get; set; }
+    
+    [Reactive]
+    public ErrorResponse ErrorState { get; set; }
     
     [Reactive]
     public bool ShowNSFWSlides { get; set; }
@@ -221,10 +231,45 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             BeginSlideShow(token.Token).FireAndForget();
             Disposable.Create(() => token.Cancel())
                 .DisposeWith(disposables);
+            
+            this.WhenAny(vm => vm.ModListLocation.ErrorState)
+                .CombineLatest(this.WhenAny(vm => vm.Installer.DownloadLocation.ErrorState),
+                    this.WhenAny(vm => vm.Installer.Location.ErrorState),
+                    this.WhenAny(vm => vm.ModListLocation.TargetPath),
+                    this.WhenAny(vm => vm.Installer.Location.TargetPath),
+                    this.WhenAny(vm => vm.Installer.DownloadLocation.TargetPath))
+                .Select(t =>
+                {
+                    var errors = new[] {t.First, t.Second, t.Third}
+                        .Where(t => t.Failed)
+                        .Concat(Validate())
+                        .ToArray();
+                    if (!errors.Any()) return ErrorResponse.Success;
+                    return ErrorResponse.Fail(string.Join("\n", errors.Select(e => e.Reason)));
+                })
+                .BindTo(this, vm => vm.ErrorState)
+                .DisposeWith(disposables);
         });
 
     }
 
+    private IEnumerable<ErrorResponse> Validate()
+    {
+        if (!ModListLocation.TargetPath.FileExists())
+            yield return ErrorResponse.Fail("Mod list source does not exist");
+
+        var downloadPath = Installer.DownloadLocation.TargetPath;
+        if (downloadPath.Depth <= 1)
+            yield return ErrorResponse.Fail("Download path isn't set to a folder");
+        
+        var installPath = Installer.Location.TargetPath;
+        if (installPath.Depth <= 1)
+            yield return ErrorResponse.Fail("Install path isn't set to a folder");
+        if (installPath.InFolder(KnownFolders.Windows))
+            yield return ErrorResponse.Fail("Don't install modlists into your Windows folder");
+    }
+
+    
     private async Task BeginSlideShow(CancellationToken token)
     {
         while (!token.IsCancellationRequested)
