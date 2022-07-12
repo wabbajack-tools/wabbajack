@@ -71,6 +71,30 @@ namespace Wabbajack
                 
                 UserInterventionsControl.Visibility = Visibility.Collapsed;
                 
+                // Errors
+                this.WhenAnyValue(view => view.ViewModel.ErrorState)
+                    .Select(x => !x.Failed)
+                    .BindToStrict(this, view => view.BeginButton.IsEnabled)
+                    .DisposeWith(disposables);
+                
+                this.WhenAnyValue(view => view.ViewModel.ErrorState)
+                    .Select(x => x.Failed ? Visibility.Visible : Visibility.Hidden)
+                    .BindToStrict(this, view => view.ErrorSummaryIcon.Visibility)
+                    .DisposeWith(disposables);
+                
+                this.WhenAnyValue(view => view.ViewModel.ErrorState)
+                    .Select(x => x.Failed ? Visibility.Visible : Visibility.Hidden)
+                    .BindToStrict(this, view => view.ErrorSummaryIconGlow.Visibility)
+                    .DisposeWith(disposables);
+                
+                this.WhenAnyValue(view => view.ViewModel.ErrorState)
+                    .Select(x => x.Reason)
+                    .BindToStrict(this, view => view.ErrorSummaryIcon.ToolTip)
+                    .DisposeWith(disposables);
+
+                
+                
+                
                 
                 // Settings 
                 

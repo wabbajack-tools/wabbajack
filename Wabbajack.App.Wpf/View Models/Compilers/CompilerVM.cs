@@ -1,14 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
-using System.Windows.Media.Imaging;
 using Microsoft.Extensions.Logging;
-using Wabbajack.Extensions;
-using Wabbajack.Interventions;
 using Wabbajack.Messages;
-using Wabbajack.RateLimiter;
 using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -17,24 +14,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using DynamicData;
-using DynamicData.Binding;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
-using Wabbajack.Downloaders;
-using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
-using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.JsonConverters;
-using Wabbajack.Installer;
 using Wabbajack.Models;
-using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
-using Wabbajack.VFS;
 
 namespace Wabbajack
 {
@@ -101,6 +90,9 @@ namespace Wabbajack
         public LogStream LoggerProvider { get; }
         public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
         
+        [Reactive]
+        public ErrorResponse ErrorState { get; private set; }
+        
         public CompilerVM(ILogger<CompilerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
             IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
             CompilerSettingsInferencer inferencer) : base(logger)
@@ -124,26 +116,27 @@ namespace Wabbajack
 
             ExecuteCommand = ReactiveCommand.CreateFromTask(async () => await StartCompilation());
 
-            ModlistLocation = new FilePickerVM()
+            ModlistLocation = new FilePickerVM
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.File,
                 PromptTitle = "Select a config file or a modlist.txt file"
             };
 
-            DownloadLocation = new FilePickerVM()
+            DownloadLocation = new FilePickerVM
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Location where the downloads for this list are stored"
             };
             
-            OutputLocation = new FilePickerVM()
+            OutputLocation = new FilePickerVM
             {
-                ExistCheckOption = FilePickerVM.CheckOptions.On,
-                PathType = FilePickerVM.PathTypeOptions.Folder,
+                ExistCheckOption = FilePickerVM.CheckOptions.Off,
+                PathType = FilePickerVM.PathTypeOptions.File,
                 PromptTitle = "Location where the compiled modlist will be stored"
             };
+            OutputLocation.Filters.Add(new CommonFileDialogFilter(".wabbajack", "*.wabbajack"));
             
             ModlistLocation.Filters.AddRange(new []
             {
@@ -160,9 +153,31 @@ namespace Wabbajack
                 ModlistLocation.WhenAnyValue(vm => vm.TargetPath)
                     .Subscribe(p => InferModListFromLocation(p).FireAndForget())
                     .DisposeWith(disposables);
+
+
+                this.WhenAnyValue(x => x.DownloadLocation.TargetPath)
+                    .CombineLatest(this.WhenAnyValue(x => x.ModlistLocation.TargetPath),
+                        this.WhenAnyValue(x => x.OutputLocation.TargetPath),
+                        this.WhenAnyValue(x => x.DownloadLocation.ErrorState),
+                        this.WhenAnyValue(x => x.ModlistLocation.ErrorState),
+                        this.WhenAnyValue(x => x.OutputLocation.ErrorState),
+                        this.WhenAnyValue(x => x.ModListName),
+                        this.WhenAnyValue(x => x.Version))
+                    .Select(_ => Validate())
+                    .BindToStrict(this, vm => vm.ErrorState)
+                    .DisposeWith(disposables);
                 
                 LoadLastSavedSettings().FireAndForget();
             });
+        }
+
+        private ErrorResponse Validate()
+        {
+            var errors = new List<ErrorResponse>();
+            errors.Add(DownloadLocation.ErrorState);
+            errors.Add(ModlistLocation.ErrorState);
+            errors.Add(OutputLocation.ErrorState);
+            return ErrorResponse.Combine(errors);
         }
 
         private async Task InferModListFromLocation(AbsolutePath path)
