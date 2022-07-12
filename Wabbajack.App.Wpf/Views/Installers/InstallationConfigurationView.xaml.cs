@@ -39,19 +39,27 @@ namespace Wabbajack
                 this.WhenAny(x => x.ViewModel.BeginCommand)
                     .BindToStrict(this, x => x.BeginButton.Command)
                     .DisposeWith(dispose);
-
-                // Error icon display
-                var vis = this.WhenAny(x => x.ViewModel.Installer.CanInstall)
-                    .Select(err => err.Failed ? Visibility.Visible : Visibility.Hidden)
-                    .Replay(1)
-                    .RefCount();
-                vis.BindToStrict(this, x => x.ErrorSummaryIconGlow.Visibility)
+                
+                // Error handling
+                
+                this.WhenAnyValue(x => x.ViewModel.ErrorState)
+                    .Select(v => !v.Failed)
+                    .BindToStrict(this, view => view.BeginButton.IsEnabled)
                     .DisposeWith(dispose);
-                vis.BindToStrict(this, x => x.ErrorSummaryIcon.Visibility)
+                
+                this.WhenAnyValue(x => x.ViewModel.ErrorState)
+                    .Select(v => v.Failed ? Visibility.Visible : Visibility.Hidden)
+                    .BindToStrict(this, view => view.ErrorSummaryIcon.Visibility)
                     .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.Installer.CanInstall)
-                    .Select(x => x.Reason)
-                    .BindToStrict(this, x => x.ErrorSummaryIcon.ToolTip)
+                
+                this.WhenAnyValue(x => x.ViewModel.ErrorState)
+                    .Select(v => v.Failed ? Visibility.Visible : Visibility.Hidden)
+                    .BindToStrict(this, view => view.ErrorSummaryIconGlow.Visibility)
+                    .DisposeWith(dispose);
+                
+                this.WhenAnyValue(x => x.ViewModel.ErrorState)
+                    .Select(v => v.Reason)
+                    .BindToStrict(this, view => view.ErrorSummaryIcon.ToolTip)
                     .DisposeWith(dispose);
             });
         }

@@ -78,6 +78,7 @@ namespace Wabbajack
                     .BindToStrict(this, view => view.TopProgressBar.ProgressPercent)
                     .DisposeWith(disposables);
 
+
                 // Slideshow
                 ViewModel.WhenAnyValue(vm => vm.SlideShowTitle)
                     .Select(f => f)

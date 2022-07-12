@@ -41,7 +41,7 @@ public class VFSDiskCache : IVfsCache
         cmd.ExecuteNonQuery();
     }
 
-    public async Task<IndexedVirtualFile?> Get(Hash hash, CancellationToken token)
+    public async Task<IndexedVirtualFile?> Get(Hash hash, IStreamFactory sfn, CancellationToken token)
     {
         if (hash == default)
             throw new ArgumentException("Cannot cache default hashes");

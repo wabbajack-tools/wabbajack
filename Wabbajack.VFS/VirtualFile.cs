@@ -177,7 +177,7 @@ public class VirtualFile
             hash = await hstream.HashingCopy(Stream.Null, token, job);
         }
 
-        var found = await context.VfsCache.Get(hash, token);
+        var found = await context.VfsCache.Get(hash, extractedFile, token);
         if (found != null)
         {
             var file = ConvertFromIndexedFile(context, found!, relPath, parent!, extractedFile);

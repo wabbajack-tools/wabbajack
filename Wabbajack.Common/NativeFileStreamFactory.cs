@@ -40,4 +40,6 @@ public class NativeFileStreamFactory : IStreamFactory
     }
 
     public IPath Name { get; }
+
+    public AbsolutePath FullPath => (AbsolutePath) Name;
 }
