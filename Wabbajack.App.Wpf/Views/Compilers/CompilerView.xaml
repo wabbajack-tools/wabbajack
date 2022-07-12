@@ -213,6 +213,23 @@
                 <local:MO2CompilerConfigView x:Name="CompilerConfigView" Grid.Row="1" Grid.Column="1" />
                 <local:BeginButton Grid.Row="0" Grid.RowSpan="3" Grid.Column="5"
                     x:Name="BeginButton" />
+                <icon:PackIconFontAwesome Grid.Row="2"
+                                          Grid.Column="5"
+                                          x:Name="ErrorSummaryIconGlow"
+                                          HorizontalAlignment="Center"
+                                          Foreground="{StaticResource WarningBrush}"
+                                          Kind="ExclamationTriangleSolid"
+                                          Opacity="0.6">
+                    <icon:PackIconFontAwesome.Effect>
+                        <BlurEffect Radius="15" />
+                    </icon:PackIconFontAwesome.Effect>
+                </icon:PackIconFontAwesome>
+                <icon:PackIconFontAwesome Grid.Row="2"
+                                          Grid.Column="5"
+                                          x:Name="ErrorSummaryIcon"
+                                          HorizontalAlignment="Center"
+                                          Foreground="{StaticResource WarningBrush}"
+                                          Kind="ExclamationTriangleSolid" />
             </Grid>
         </Grid>
         <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5"
