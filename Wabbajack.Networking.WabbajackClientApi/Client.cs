@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Reactive.Subjects;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,6 +29,7 @@ using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using YamlDotNet.Serialization.TypeInspectors;
 
 namespace Wabbajack.Networking.WabbajackClientApi;
 
@@ -350,9 +352,68 @@ public class Client
     }
 
 
-    public (IObservable<(Percent PercentDone, string Message)> Progress, Task<Uri> Task) UploadAuthorFile(AbsolutePath pickerTargetPath)
+    public async Task<(IObservable<(Percent PercentDone, string Message)> Progress, Task<Uri> Task)> UploadAuthorFile(
+        AbsolutePath path)
     {
-        throw new NotImplementedException();
+        var apiKey = (await _token.Get())!.AuthorKey;
+        var report = new Subject<(Percent PercentDone, string Message)>();
+
+        var tsk = Task.Run<Uri>(async () =>
+        {
+            report.OnNext((Percent.Zero, "Generating File Definition"));
+            var definition = await GenerateFileDefinition(path);
+
+            report.OnNext((Percent.Zero, "Creating file upload"));
+            await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
+            {
+                var msg = await MakeMessage(HttpMethod.Put, new Uri($"{_configuration.BuildServerUrl}authored_files/create"));
+                msg.Content = new StringContent(_dtos.Serialize(definition));
+                using var result = await _client.SendAsync(msg);
+                HttpException.ThrowOnFailure(result);
+                definition.ServerAssignedUniqueId = await result.Content.ReadAsStringAsync();
+            });
+
+            report.OnNext((Percent.Zero, "Starting part uploads"));
+            await definition.Parts.PDoAll(_limiter, async part =>
+            {
+                report.OnNext((Percent.FactoryPutInRange(part.Index, definition.Parts.Length),
+                    $"Uploading Part ({part.Index}/{definition.Parts.Length})"));
+                var buffer = new byte[part.Size];
+                await using (var fs = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    fs.Position = part.Offset;
+                    await fs.ReadAsync(buffer);
+                }
+
+                await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
+                {
+                    var msg = await MakeMessage(HttpMethod.Put,
+                        new Uri(
+                            $"{_configuration.BuildServerUrl}authored_files/{definition.ServerAssignedUniqueId}/part/{part.Index}"));
+                    msg.Content = new ByteArrayContent(buffer);
+                    using var putResult = await _client.SendAsync(msg);
+                    HttpException.ThrowOnFailure(putResult);
+                    var hash = Hash.FromBase64(await putResult.Content.ReadAsStringAsync());
+                    if (hash != part.Hash)
+                        throw new InvalidDataException("Hashes don't match");
+                    return hash;
+                });
+
+            });
+
+            report.OnNext((Percent.Zero, "Finalizing upload"));
+            return await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
+            {
+                var msg = await MakeMessage(HttpMethod.Put,
+                    new Uri($"{_configuration.BuildServerUrl}authored_files/{definition.ServerAssignedUniqueId}/finish"));
+                msg.Content = new StringContent(_dtos.Serialize(definition));
+                using var result = await _client.SendAsync(msg);
+                HttpException.ThrowOnFailure(result);
+                report.OnNext((Percent.One, "Finished"));
+                return new Uri($"https://authored-files.wabbajack.org/{definition.MungedName}");
+            });
+        });
+        return (report, tsk);
     }
     public async Task<ForcedRemoval[]> GetForcedRemovals(CancellationToken token)
     {
