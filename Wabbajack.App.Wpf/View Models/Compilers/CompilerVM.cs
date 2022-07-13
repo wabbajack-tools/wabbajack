@@ -239,6 +239,15 @@ namespace Wabbajack
 
                     await compiler.Begin(token);
 
+                    if (PublishUpdate)
+                    {
+                        _logger.LogInformation("Publishing List");
+                        var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
+                            await mo2Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
+                        await _wjClient.PublishModlist(MachineUrl, System.Version.Parse(Version), mo2Settings.OutputFile, downloadMetadata);
+                    }
+                    _logger.LogInformation("Compiler Finished");
+
                     State = CompilerState.Completed;
                 }
                 catch (Exception ex)
@@ -259,6 +268,13 @@ namespace Wabbajack
                 _logger.LogError("Preflight Check failed, list {MachineUrl} not found in any repository", MachineUrl);
                 return false;
             }
+
+            if (!System.Version.TryParse(Version, out var v))
+            {
+                _logger.LogError("Bad Version Number {Version}", Version);
+                return false;
+            }
+
             return true;
         }
 
