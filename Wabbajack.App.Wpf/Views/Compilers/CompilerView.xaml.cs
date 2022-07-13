@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.Eventing.Reader;
+﻿using System;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -27,6 +28,30 @@ namespace Wabbajack
 
             this.WhenActivated(disposables =>
             {
+                ViewModel.WhenAny(vm => vm.State)
+                    .Select(x => x == CompilerState.Errored)
+                    .BindToStrict(this, x => x.CompilationComplete.AttentionBorder.Failure)
+                    .DisposeWith(disposables);
+                
+                ViewModel.WhenAny(vm => vm.State)
+                    .Select(x => x == CompilerState.Errored)
+                    .Select(failed => $"Installation {(failed ? "Failed" : "Complete")}")
+                    .BindToStrict(this, x => x.CompilationComplete.TitleText.Text)
+                    .DisposeWith(disposables);
+                
+                CompilationComplete.GoToModlistButton.Command = ReactiveCommand.Create(() =>
+                {
+                    UIUtils.OpenFolder(ViewModel.OutputLocation.TargetPath.Parent);
+                }).DisposeWith(disposables);
+
+                ViewModel.WhenAnyValue(vm => vm.BackCommand)
+                    .BindToStrict(this, view => view.CompilationComplete.BackButton.Command)
+                    .DisposeWith(disposables);
+
+                CompilationComplete.CloseWhenCompletedButton.Command = ReactiveCommand.Create(() =>
+                {
+                    Environment.Exit(0);
+                }).DisposeWith(disposables);
 
                 
                 ViewModel.WhenAnyValue(vm => vm.ExecuteCommand)
@@ -56,7 +81,7 @@ namespace Wabbajack
                     .Select(v => v == CompilerState.Completed ? Visibility.Visible : Visibility.Collapsed)
                     .BindToStrict(this, view => view.CompilationComplete.Visibility)
                     .DisposeWith(disposables);
-                
+
                 ViewModel.WhenAnyValue(vm => vm.ModlistLocation)
                     .BindToStrict(this, view => view.CompilerConfigView.ModListLocation.PickerVM)
                     .DisposeWith(disposables);

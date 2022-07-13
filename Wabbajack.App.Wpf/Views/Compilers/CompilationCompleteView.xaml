@@ -75,7 +75,8 @@
                 <TextBlock Grid.Row="1"
                     x:Name="ActionText"
                     Margin="0,10,0,0"
-                    HorizontalAlignment="Center" />
+                    HorizontalAlignment="Center"
+                    Text="Output Folder"/>
             </Grid>
             <Grid Grid.Row="1" Grid.Column="2"
                 VerticalAlignment="Center"
