@@ -21,6 +21,7 @@ using Wabbajack.Compiler;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Models;
+using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
@@ -45,6 +46,7 @@ namespace Wabbajack
         private readonly ILogger<CompilerVM> _logger;
         private readonly ResourceMonitor _resourceMonitor;
         private readonly CompilerSettingsInferencer _inferencer;
+        private readonly Client _wjClient;
 
         [Reactive]
         public CompilerState State { get; set; }
@@ -95,7 +97,7 @@ namespace Wabbajack
         
         public CompilerVM(ILogger<CompilerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
             IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
-            CompilerSettingsInferencer inferencer) : base(logger)
+            CompilerSettingsInferencer inferencer, Client wjClient) : base(logger)
         {
             _logger = logger;
             _dtos = dtos;
@@ -104,6 +106,7 @@ namespace Wabbajack
             LoggerProvider = loggerProvider;
             _resourceMonitor = resourceMonitor;
             _inferencer = inferencer;
+            _wjClient = wjClient;
 
             BackCommand =
                 ReactiveCommand.CreateFromTask(async () =>
@@ -207,6 +210,7 @@ namespace Wabbajack
             {
                 try
                 {
+                    var token = CancellationToken.None;
                     State = CompilerState.Compiling;
 
                     var mo2Settings = new CompilerSettings
@@ -225,9 +229,15 @@ namespace Wabbajack
                         UseGamePaths = true
                     };
 
+                    if (PublishUpdate && !await RunPreflightChecks(token))
+                    {
+                        State = CompilerState.Errored;
+                        return;
+                    }
+
                     var compiler = MO2Compiler.Create(_serviceProvider, mo2Settings);
 
-                    await compiler.Begin(CancellationToken.None);
+                    await compiler.Begin(token);
 
                     State = CompilerState.Completed;
                 }
@@ -240,7 +250,18 @@ namespace Wabbajack
 
             await tsk;
         }
-        
+
+        private async Task<bool> RunPreflightChecks(CancellationToken token)
+        {
+            var lists = await _wjClient.GetMyModlists(token);
+            if (!lists.Any(x => x.Equals(MachineUrl, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                _logger.LogError("Preflight Check failed, list {MachineUrl} not found in any repository", MachineUrl);
+                return false;
+            }
+            return true;
+        }
+
         private async Task SaveSettingsFile()
         {
             if (Source == default) return;

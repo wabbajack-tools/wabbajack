@@ -456,4 +456,12 @@ public class Client
         HttpException.ThrowOnFailure(response);
         return await _dtos.DeserializeAsync<IndexedVirtualFile>(await response.Content.ReadAsStreamAsync(token), token);
     }
+
+    public async Task<IReadOnlyList<string>> GetMyModlists(CancellationToken token)
+    {
+        var msg = await MakeMessage(HttpMethod.Get, new Uri($"{_configuration.BuildServerUrl}author_controls/lists"));
+        using var response = await _client.SendAsync(msg, token);
+        HttpException.ThrowOnFailure(response);
+        return (await _dtos.DeserializeAsync<string[]>(await response.Content.ReadAsStreamAsync(token), token))!;
+    }
 }

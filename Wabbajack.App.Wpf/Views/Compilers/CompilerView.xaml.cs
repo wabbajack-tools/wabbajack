@@ -34,8 +34,8 @@ namespace Wabbajack
                     .DisposeWith(disposables);
                 
                 ViewModel.WhenAny(vm => vm.State)
-                    .Select(x => x == CompilerState.Errored)
-                    .Select(failed => $"Installation {(failed ? "Failed" : "Complete")}")
+                    .Select(x => x is CompilerState.Errored or CompilerState.Completed)
+                    .Select(failed => $"Compilation {(failed ? "Failed" : "Complete")}")
                     .BindToStrict(this, x => x.CompilationComplete.TitleText.Text)
                     .DisposeWith(disposables);
                 
@@ -78,7 +78,7 @@ namespace Wabbajack
                     .DisposeWith(disposables);
                 
                 ViewModel.WhenAnyValue(vm => vm.State)
-                    .Select(v => v == CompilerState.Completed ? Visibility.Visible : Visibility.Collapsed)
+                    .Select(v => v is CompilerState.Completed or CompilerState.Errored ? Visibility.Visible : Visibility.Collapsed)
                     .BindToStrict(this, view => view.CompilationComplete.Visibility)
                     .DisposeWith(disposables);
 
