@@ -186,11 +186,23 @@ namespace Wabbajack
         private async Task InferModListFromLocation(AbsolutePath path)
         {
             using var _ = LoadingLock.WithLoading();
-            if (path == default || path.FileName != "modlist.txt".ToRelativePath())
+
+            CompilerSettings settings;
+            if (path == default) return;
+            if (path.FileName.Extension == Ext.CompilerSettings)
+            {
+                await using var fs = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                settings = (await _dtos.DeserializeAsync<CompilerSettings>(fs))!;
+            }
+            else if (path.FileName == "modlist.txt".ToRelativePath())
+            {
+                settings = await _inferencer.InferModListFromLocation(path);
+                if (settings == null) return;
+            }
+            else
+            {
                 return;
-            
-            var settings = await _inferencer.InferModListFromLocation(path);
-            if (settings == null) return;
+            }
 
             BaseGame = settings.Game;
             ModListName = settings.ModListName;
@@ -198,6 +210,8 @@ namespace Wabbajack
             DownloadLocation.TargetPath = settings.Downloads;
             OutputLocation.TargetPath = settings.OutputFile;
             SelectedProfile = settings.Profile;
+            PublishUpdate = settings.PublishUpdate;
+            MachineUrl = settings.MachineUrl;
             OtherProfiles = settings.AdditionalProfiles;
             AlwaysEnabled = settings.AlwaysEnabled;
             NoMatchInclude = settings.NoMatchInclude;
@@ -210,24 +224,12 @@ namespace Wabbajack
             {
                 try
                 {
+                    await SaveSettingsFile();
                     var token = CancellationToken.None;
                     State = CompilerState.Compiling;
 
-                    var mo2Settings = new CompilerSettings
-                    {
-                        Game = BaseGame,
-                        ModListName = ModListName,
-                        ModListAuthor = Author,
-                        ModlistReadme = Readme,
-                        Source = Source,
-                        Downloads = DownloadLocation.TargetPath,
-                        OutputFile = OutputLocation.TargetPath,
-                        Profile = SelectedProfile,
-                        AdditionalProfiles = OtherProfiles,
-                        AlwaysEnabled = AlwaysEnabled,
-                        NoMatchInclude = NoMatchInclude,
-                        UseGamePaths = true
-                    };
+                    var mo2Settings = GetSettings();
+                    mo2Settings.UseGamePaths = true;
 
                     if (PublishUpdate && !await RunPreflightChecks(token))
                     {
@@ -284,14 +286,14 @@ namespace Wabbajack
             await using var st = SettingsOutputLocation.Open(FileMode.Create, FileAccess.Write, FileShare.None);
             await JsonSerializer.SerializeAsync(st, GetSettings(), _dtos.Options);
 
-            await _settingsManager.Save(LastSavedCompilerSettings, Source);
+            await _settingsManager.Save(LastSavedCompilerSettings, SettingsOutputLocation);
         }
 
         private async Task LoadLastSavedSettings()
         {
             var lastPath = await _settingsManager.Load<AbsolutePath>(LastSavedCompilerSettings);
-            if (Source == default) return;
-            Source = lastPath;
+            if (lastPath == default || !lastPath.FileExists() || lastPath.FileName.Extension != Ext.CompilerSettings) return;
+            ModlistLocation.TargetPath = lastPath;
         }
 
                     
@@ -302,11 +304,13 @@ namespace Wabbajack
                 ModListName = ModListName,
                 ModListAuthor = Author,
                 Downloads = DownloadLocation.TargetPath,
-                Source = ModlistLocation.TargetPath,
+                Source = Source,
                 Game = BaseGame,
+                PublishUpdate = PublishUpdate,
+                MachineUrl = MachineUrl,
                 Profile = SelectedProfile,
                 UseGamePaths = true,
-                OutputFile = OutputLocation.TargetPath.Combine(SelectedProfile).WithExtension(Ext.Wabbajack),
+                OutputFile = OutputLocation.TargetPath,
                 AlwaysEnabled = AlwaysEnabled,
                 AdditionalProfiles = OtherProfiles,
                 NoMatchInclude = NoMatchInclude,
