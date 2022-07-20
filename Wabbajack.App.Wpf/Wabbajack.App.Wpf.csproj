@@ -81,7 +81,7 @@
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1248-prerelease" />
     <PackageReference Include="NLog.Extensions.Logging" Version="5.0.1" />
     <PackageReference Include="PInvoke.User32" Version="0.7.104" />
-    <PackageReference Include="ReactiveUI" Version="18.1.8" />
+    <PackageReference Include="ReactiveUI" Version="18.3.1" />
     <PackageReference Include="ReactiveUI.Fody" Version="18.1.8" />
     <PackageReference Include="ReactiveUI.WPF" Version="18.1.8" />
     <PackageReference Include="Silk.NET.DXGI" Version="2.15.0" />
