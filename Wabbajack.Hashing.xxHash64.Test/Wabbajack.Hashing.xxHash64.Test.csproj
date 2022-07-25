@@ -23,6 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Wabbajack.Hashing.xxHash64.GPU\Wabbajack.Hashing.xxHash64.GPU.csproj" />
         <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj" />
     </ItemGroup>
 

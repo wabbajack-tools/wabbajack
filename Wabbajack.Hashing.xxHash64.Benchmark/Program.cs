@@ -2,6 +2,11 @@
 using System.Data.HashFunction.xxHash;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
+using ILGPU;
+using ILGPU.Runtime;
+using ILGPU.Runtime.Cuda;
+using ILGPU.Runtime.OpenCL;
+using Wabbajack.Hashing.xxHash64.GPU;
 
 namespace Wabbajack.Hashing.xxHash64.Benchmark;
 
@@ -9,7 +14,7 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        BenchmarkRunner.Run<Base64EncoderBenchmark>();
+        BenchmarkRunner.Run<xxHashBenchmark>();
     }
 }
 
@@ -18,10 +23,17 @@ internal class Program
 public class xxHashBenchmark
 {
     private readonly byte[] _data;
+    private readonly Context _context;
+    private readonly Accelerator _gpu;
+    private readonly Accelerator _cpu;
 
     public xxHashBenchmark()
     {
-        _data = new byte[1024 * 1024];
+        _data = new byte[1024 * 1024 * 1024];
+
+        _context = Context.CreateDefault();
+        _gpu = _context.GetPreferredDevice(false).CreateAccelerator(_context);
+        _cpu = _context.GetPreferredDevice(true).CreateAccelerator(_context);
     }
 
     [Benchmark]
@@ -36,6 +48,18 @@ public class xxHashBenchmark
     {
         var config = new xxHashConfig {HashSizeInBits = 64};
         BitConverter.ToUInt64(xxHashFactory.Instance.Create(config).ComputeHash(_data).Hash);
+    }
+
+    [Benchmark]
+    public void GPUCode()
+    {
+        Algorithm.HashBytes(_gpu, _data);
+    }
+    
+    [Benchmark]
+    public void CPUCode()
+    {
+        Algorithm.HashBytes(_cpu, _data);
     }
 }
 
