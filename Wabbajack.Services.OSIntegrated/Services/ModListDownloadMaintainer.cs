@@ -68,7 +68,7 @@ public class ModListDownloadMaintainer
             try
             {
                 Interlocked.Increment(ref _downloadingCount);
-                var job = await _rateLimiter.Begin($"Downloading {metadata.Title}", metadata.DownloadMetadata!.Size,
+                using var job = await _rateLimiter.Begin($"Downloading {metadata.Title}", metadata.DownloadMetadata!.Size,
                     token.Value);
 
                 job.OnUpdate += (_, pr) => { progress.OnNext(pr.Progress); };

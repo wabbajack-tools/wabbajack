@@ -281,7 +281,7 @@ public class DownloadDispatcher
             var downloader = Downloader(archive);
             if (downloader is not IUpgradingDownloader ud) return null;
 
-            var job = await _limiter.Begin($"Finding upgrade for {archive.Name} - {archive.State.PrimaryKeyString}", 0,
+            using var job = await _limiter.Begin($"Finding upgrade for {archive.Name} - {archive.State.PrimaryKeyString}", 0,
                 token);
             return await ud.TryGetUpgrade(archive, job, fileManager, token);
         }
