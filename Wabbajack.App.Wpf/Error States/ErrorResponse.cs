@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Wabbajack
 {
@@ -94,6 +96,13 @@ namespace Wabbajack
                 if (resp.Failed) return resp;
             }
             return ErrorResponse.Success;
+        }
+
+        public static ErrorResponse Combine(List<ErrorResponse> errors)
+        {
+            if (errors.All(e => e.Succeeded) || !errors.Any())
+                return Success;
+            return Fail(string.Join("\n", errors.Where(e => e.Failed).Select(e => e.Reason)));
         }
     }
 

@@ -28,6 +28,8 @@ public class CompilerSettings
     public string ModlistReadme { get; set; } = "";
     public Uri? ModListWebsite { get; set; }
     public Version ModlistVersion { get; set; } = Version.Parse("0.0.1.0");
+    public bool PublishUpdate { get; set; } = false;
+    public string MachineUrl { get; set; } = "";
     
     /// <summary>
     /// The main (default) profile

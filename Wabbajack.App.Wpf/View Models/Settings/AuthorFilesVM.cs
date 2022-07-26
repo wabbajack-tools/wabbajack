@@ -46,7 +46,7 @@ namespace Wabbajack.View_Models.Settings
 
             Task.Run(async () =>
             {
-                var isAuthor = string.IsNullOrWhiteSpace((await _token.Get())?.AuthorKey);
+                var isAuthor = !string.IsNullOrWhiteSpace((await _token.Get())?.AuthorKey);
                 IsVisible = isAuthor ? Visibility.Visible : Visibility.Collapsed;
             });
 
@@ -65,7 +65,7 @@ namespace Wabbajack.View_Models.Settings
                 _isUploading.OnNext(true);
                 try
                 {
-                    var (progress, task) = _wjClient.UploadAuthorFile(Picker.TargetPath);
+                    var (progress, task) = await _wjClient.UploadAuthorFile(Picker.TargetPath);
 
                     var disposable = progress.Subscribe(m =>
                     {

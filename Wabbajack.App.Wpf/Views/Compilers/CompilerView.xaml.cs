@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.Eventing.Reader;
+﻿using System;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -27,6 +28,30 @@ namespace Wabbajack
 
             this.WhenActivated(disposables =>
             {
+                ViewModel.WhenAny(vm => vm.State)
+                    .Select(x => x == CompilerState.Errored)
+                    .BindToStrict(this, x => x.CompilationComplete.AttentionBorder.Failure)
+                    .DisposeWith(disposables);
+                
+                ViewModel.WhenAny(vm => vm.State)
+                    .Select(x => x == CompilerState.Errored)
+                    .Select(failed => $"Compilation {(failed ? "Failed" : "Complete")}")
+                    .BindToStrict(this, x => x.CompilationComplete.TitleText.Text)
+                    .DisposeWith(disposables);
+                
+                CompilationComplete.GoToModlistButton.Command = ReactiveCommand.Create(() =>
+                {
+                    UIUtils.OpenFolder(ViewModel.OutputLocation.TargetPath.Parent);
+                }).DisposeWith(disposables);
+
+                ViewModel.WhenAnyValue(vm => vm.BackCommand)
+                    .BindToStrict(this, view => view.CompilationComplete.BackButton.Command)
+                    .DisposeWith(disposables);
+
+                CompilationComplete.CloseWhenCompletedButton.Command = ReactiveCommand.Create(() =>
+                {
+                    Environment.Exit(0);
+                }).DisposeWith(disposables);
 
                 
                 ViewModel.WhenAnyValue(vm => vm.ExecuteCommand)
@@ -53,10 +78,10 @@ namespace Wabbajack
                     .DisposeWith(disposables);
                 
                 ViewModel.WhenAnyValue(vm => vm.State)
-                    .Select(v => v == CompilerState.Completed ? Visibility.Visible : Visibility.Collapsed)
+                    .Select(v => v is CompilerState.Completed or CompilerState.Errored ? Visibility.Visible : Visibility.Collapsed)
                     .BindToStrict(this, view => view.CompilationComplete.Visibility)
                     .DisposeWith(disposables);
-                
+
                 ViewModel.WhenAnyValue(vm => vm.ModlistLocation)
                     .BindToStrict(this, view => view.CompilerConfigView.ModListLocation.PickerVM)
                     .DisposeWith(disposables);
@@ -70,6 +95,30 @@ namespace Wabbajack
                     .DisposeWith(disposables);
                 
                 UserInterventionsControl.Visibility = Visibility.Collapsed;
+                
+                // Errors
+                this.WhenAnyValue(view => view.ViewModel.ErrorState)
+                    .Select(x => !x.Failed)
+                    .BindToStrict(this, view => view.BeginButton.IsEnabled)
+                    .DisposeWith(disposables);
+                
+                this.WhenAnyValue(view => view.ViewModel.ErrorState)
+                    .Select(x => x.Failed ? Visibility.Visible : Visibility.Hidden)
+                    .BindToStrict(this, view => view.ErrorSummaryIcon.Visibility)
+                    .DisposeWith(disposables);
+                
+                this.WhenAnyValue(view => view.ViewModel.ErrorState)
+                    .Select(x => x.Failed ? Visibility.Visible : Visibility.Hidden)
+                    .BindToStrict(this, view => view.ErrorSummaryIconGlow.Visibility)
+                    .DisposeWith(disposables);
+                
+                this.WhenAnyValue(view => view.ViewModel.ErrorState)
+                    .Select(x => x.Reason)
+                    .BindToStrict(this, view => view.ErrorSummaryIcon.ToolTip)
+                    .DisposeWith(disposables);
+
+                
+                
                 
                 
                 // Settings 

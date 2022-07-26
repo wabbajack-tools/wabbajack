@@ -12,6 +12,8 @@ public static class Consts
     public static Version CurrentMinimumWabbajackVersion { get; set; } = Version.Parse("2.3.0.0");
     public static bool UseNetworkWorkaroundMode { get; set; } = false;
     public static AbsolutePath CefCacheLocation { get; } = KnownFolders.WabbajackAppLocal.Combine("Cef");
+    public static RelativePath ModListTxt { get; } = "modlist.txt".ToRelativePath();
+    public static RelativePath CompilerSettings { get; } = "compiler_settings.json".ToRelativePath();
 
     public static byte SettingsVersion = 0;
 

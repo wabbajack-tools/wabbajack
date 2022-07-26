@@ -5,11 +5,13 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Reactive.Subjects;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
+using Octokit;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.CDN;
@@ -28,6 +30,7 @@ using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using FileMode = System.IO.FileMode;
 
 namespace Wabbajack.Networking.WabbajackClientApi;
 
@@ -149,7 +152,7 @@ public class Client
             $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{machineURL}/status.json",
             _dtos.Options))!;
     }
-    
+
     IEnumerable<PartDefinition> Blocks(long size)
     {
         for (long block = 0; block * UploadedFileBlockSize < size; block++)
@@ -195,13 +198,14 @@ public class Client
         var featured = await LoadFeaturedLists();
 
         return await (await repos).PMapAll(async url =>
-                 (await _client.GetFromJsonAsync<ModlistMetadata[]>(_limiter, new HttpRequestMessage(HttpMethod.Get, url.Value),
+                (await _client.GetFromJsonAsync<ModlistMetadata[]>(_limiter,
+                    new HttpRequestMessage(HttpMethod.Get, url.Value),
                     _dtos.Options))!.Select(meta =>
-                 {
-                     meta.RepositoryName = url.Key;
-                     meta.Official = (meta.RepositoryName == "wj-featured" || featured.Contains(meta.NamespacedName));
-                     return meta;
-                 }))
+                {
+                    meta.RepositoryName = url.Key;
+                    meta.Official = (meta.RepositoryName == "wj-featured" || featured.Contains(meta.NamespacedName));
+                    return meta;
+                }))
             .SelectMany(x => x)
             .ToArray();
     }
@@ -210,7 +214,8 @@ public class Client
     {
         var data = await _client.GetFromJsonAsync<string[]>(_limiter,
             new HttpRequestMessage(HttpMethod.Get,
-                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/featured_lists.json"), _dtos.Options);
+                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/featured_lists.json"),
+            _dtos.Options);
         return data!.ToHashSet(StringComparer.CurrentCultureIgnoreCase);
     }
 
@@ -231,7 +236,7 @@ public class Client
     {
         _logger.LogInformation("Uploading Patch {From} {To}", validated.Original.Hash, validated.PatchedFrom!.Hash);
         var name = $"{validated.Original.Hash.ToHex()}_{validated.PatchedFrom.Hash.ToHex()}";
-        
+
         var blocks = Blocks(data.Length).ToArray();
         foreach (var block in blocks)
         {
@@ -259,7 +264,8 @@ public class Client
 
     public async Task AddForceHealedPatch(ValidatedArchive validated)
     {
-        var oldData = await GetGithubFile<ValidatedArchive[]>("wabbajack-tools", "mod-lists", "configs/forced_healing.json");
+        var oldData =
+            await GetGithubFile<ValidatedArchive[]>("wabbajack-tools", "mod-lists", "configs/forced_healing.json");
         var content = oldData.Content.Append(validated).ToArray();
         await UpdateGitHubFile("wabbajack-tools", "mod-lists", "configs/forced_healing.json", content, oldData.Sha);
     }
@@ -276,10 +282,11 @@ public class Client
             throw new HttpException(result);
     }
 
-    private async Task<(string Sha, T Content)> GetGithubFile<T>(string owner, string repo, string path, CancellationToken? token = null)
+    private async Task<(string Sha, T Content)> GetGithubFile<T>(string owner, string repo, string path,
+        CancellationToken? token = null)
     {
         token ??= CancellationToken.None;
-        
+
         var msg = await MakeMessage(HttpMethod.Get,
             new Uri($"{_configuration.BuildServerUrl}github/?owner={owner}&repo={repo}&path={path}"));
         using var oldData = await _client.SendAsync(msg, token.Value);
@@ -295,13 +302,13 @@ public class Client
     {
         var hashAsHex = definition.Hash.ToHex();
         _logger.LogInformation("Starting upload of {Name} ({Hash})", file.FileName, hashAsHex);
-        
+
         using var result = await _client.SendAsync(await MakeMessage(HttpMethod.Put,
             new Uri($"{_configuration.BuildServerUrl}mirrored_files/create/{hashAsHex}"),
             new StringContent(_dtos.Serialize(definition), Encoding.UTF8, "application/json")));
         if (!result.IsSuccessStatusCode)
             throw new HttpException(result);
-        
+
         _logger.LogInformation("Uploading Parts");
 
         await using var dataIn = file.Open(FileMode.Open);
@@ -317,14 +324,14 @@ public class Client
             using var partResult = await _client.SendAsync(await MakeMessage(HttpMethod.Put,
                 new Uri($"{_configuration.BuildServerUrl}mirrored_files/{hashAsHex}/part/{idx}"),
                 new ByteArrayContent(data)));
-            
+
             if (!partResult.IsSuccessStatusCode)
                 throw new HttpException(result);
         }
 
         using var finalResult = await _client.SendAsync(await MakeMessage(HttpMethod.Put,
             new Uri($"{_configuration.BuildServerUrl}mirrored_files/{hashAsHex}/finish")));
-        
+
         if (!finalResult.IsSuccessStatusCode)
             throw new HttpException(result);
     }
@@ -337,34 +344,102 @@ public class Client
 
     public async Task<ValidatedArchive[]> GetAllPatches(CancellationToken token)
     {
-        return (await _client.GetFromJsonAsync<ValidatedArchive[]>("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/configs/forced_healing.json", _dtos.Options, token))!;
+        return (await _client.GetFromJsonAsync<ValidatedArchive[]>(
+            "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/configs/forced_healing.json",
+            _dtos.Options, token))!;
     }
 
     public async Task DeleteMirror(Hash hash)
     {
         _logger.LogInformation("Deleting mirror of {Hash}", hash);
-        var msg = await MakeMessage(HttpMethod.Delete, new Uri($"{_configuration.BuildServerUrl}mirrored_files/{hash.ToHex()}"));
+        var msg = await MakeMessage(HttpMethod.Delete,
+            new Uri($"{_configuration.BuildServerUrl}mirrored_files/{hash.ToHex()}"));
         var result = await _client.SendAsync(msg);
         if (!result.IsSuccessStatusCode)
             throw new HttpException(result);
     }
 
 
-    public (IObservable<(Percent PercentDone, string Message)> Progress, Task<Uri> Task) UploadAuthorFile(AbsolutePath pickerTargetPath)
+    public async Task<(IObservable<(Percent PercentDone, string Message)> Progress, Task<Uri> Task)> UploadAuthorFile(
+        AbsolutePath path)
     {
-        throw new NotImplementedException();
+        var apiKey = (await _token.Get())!.AuthorKey;
+        var report = new Subject<(Percent PercentDone, string Message)>();
+
+        var tsk = Task.Run<Uri>(async () =>
+        {
+            report.OnNext((Percent.Zero, "Generating File Definition"));
+            var definition = await GenerateFileDefinition(path);
+
+            report.OnNext((Percent.Zero, "Creating file upload"));
+            await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
+            {
+                var msg = await MakeMessage(HttpMethod.Put,
+                    new Uri($"{_configuration.BuildServerUrl}authored_files/create"));
+                msg.Content = new StringContent(_dtos.Serialize(definition));
+                using var result = await _client.SendAsync(msg);
+                HttpException.ThrowOnFailure(result);
+                definition.ServerAssignedUniqueId = await result.Content.ReadAsStringAsync();
+            });
+
+            report.OnNext((Percent.Zero, "Starting part uploads"));
+            await definition.Parts.PDoAll(_limiter, async part =>
+            {
+                report.OnNext((Percent.FactoryPutInRange(part.Index, definition.Parts.Length),
+                    $"Uploading Part ({part.Index}/{definition.Parts.Length})"));
+                var buffer = new byte[part.Size];
+                await using (var fs = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    fs.Position = part.Offset;
+                    await fs.ReadAsync(buffer);
+                }
+
+                await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
+                {
+                    var msg = await MakeMessage(HttpMethod.Put,
+                        new Uri(
+                            $"{_configuration.BuildServerUrl}authored_files/{definition.ServerAssignedUniqueId}/part/{part.Index}"));
+                    msg.Content = new ByteArrayContent(buffer);
+                    using var putResult = await _client.SendAsync(msg);
+                    HttpException.ThrowOnFailure(putResult);
+                    var hash = Hash.FromBase64(await putResult.Content.ReadAsStringAsync());
+                    if (hash != part.Hash)
+                        throw new InvalidDataException("Hashes don't match");
+                    return hash;
+                });
+
+            });
+
+            report.OnNext((Percent.Zero, "Finalizing upload"));
+            return await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
+            {
+                var msg = await MakeMessage(HttpMethod.Put,
+                    new Uri(
+                        $"{_configuration.BuildServerUrl}authored_files/{definition.ServerAssignedUniqueId}/finish"));
+                msg.Content = new StringContent(_dtos.Serialize(definition));
+                using var result = await _client.SendAsync(msg);
+                HttpException.ThrowOnFailure(result);
+                report.OnNext((Percent.One, "Finished"));
+                return new Uri($"https://authored-files.wabbajack.org/{definition.MungedName}");
+            });
+        });
+        return (report, tsk);
     }
+
     public async Task<ForcedRemoval[]> GetForcedRemovals(CancellationToken token)
     {
-        return (await _client.GetFromJsonAsync<ForcedRemoval[]>("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/configs/forced_removal.json", _dtos.Options, token))!;
+        return (await _client.GetFromJsonAsync<ForcedRemoval[]>(
+            "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/configs/forced_removal.json",
+            _dtos.Options, token))!;
     }
 
     public async Task<SteamManifest[]> GetSteamManifests(Game game, string version)
     {
-        var url = $"https://raw.githubusercontent.com/wabbajack-tools/indexed-game-files/master/{game}/{version}_steam_manifests.json";
+        var url =
+            $"https://raw.githubusercontent.com/wabbajack-tools/indexed-game-files/master/{game}/{version}_steam_manifests.json";
         return await _client.GetFromJsonAsync<SteamManifest[]>(url, _dtos.Options) ?? Array.Empty<SteamManifest>();
     }
-    
+
     public async Task<bool> ProxyHas(Uri uri)
     {
         var newUri = new Uri($"{_configuration.BuildServerUrl}proxy?uri={HttpUtility.UrlEncode(uri.ToString())}");
@@ -384,8 +459,9 @@ public class Client
     {
         if (archive.State is Manual && !await ProxyHas(uri))
             return null;
-        
-        return new Uri($"{_configuration.BuildServerUrl}proxy?name={archive.Name}&hash={archive.Hash.ToHex()}&uri={HttpUtility.UrlEncode(uri.ToString())}");
+
+        return new Uri(
+            $"{_configuration.BuildServerUrl}proxy?name={archive.Name}&hash={archive.Hash.ToHex()}&uri={HttpUtility.UrlEncode(uri.ToString())}");
     }
 
     public async Task<IndexedVirtualFile?> GetCesiVfsEntry(Hash hash, CancellationToken token)
@@ -394,5 +470,57 @@ public class Client
         using var response = await _client.SendAsync(msg, token);
         HttpException.ThrowOnFailure(response);
         return await _dtos.DeserializeAsync<IndexedVirtualFile>(await response.Content.ReadAsStreamAsync(token), token);
+    }
+
+    public async Task<IReadOnlyList<string>> GetMyModlists(CancellationToken token)
+    {
+        var msg = await MakeMessage(HttpMethod.Get, new Uri($"{_configuration.BuildServerUrl}author_controls/lists"));
+        using var response = await _client.SendAsync(msg, token);
+        HttpException.ThrowOnFailure(response);
+        return (await _dtos.DeserializeAsync<string[]>(await response.Content.ReadAsStreamAsync(token), token))!;
+    }
+
+    public async Task PublishModlist(string namespacedName, Version version,  AbsolutePath modList, DownloadMetadata metadata)
+    {
+        var pair = namespacedName.Split("/");
+        var wjRepoName = pair[0];
+        var machineUrl = pair[1];
+
+        var repoUrl = (await LoadRepositories())[wjRepoName];
+
+        var decomposed = repoUrl.LocalPath.Split("/");
+        var owner = decomposed[1];
+        var repoName = decomposed[2];
+        var path = string.Join("/", decomposed[4..]);
+        
+        _logger.LogInformation("Uploading modlist {MachineUrl}", namespacedName);
+        
+        var (progress, uploadTask) = await UploadAuthorFile(modList);
+        progress.Subscribe(x => _logger.LogInformation(x.Message));
+        var downloadUrl = await uploadTask;
+        
+        _logger.LogInformation("Publishing modlist {MachineUrl}", namespacedName);
+
+        var creds = new Credentials((await _token.Get())!.AuthorKey);
+        var ghClient = new GitHubClient(new ProductHeaderValue("wabbajack")) {Credentials = creds};
+
+        var oldData =
+            (await ghClient.Repository.Content.GetAllContents(owner, repoName, path))
+            .First();
+        var oldContent = _dtos.Deserialize<ModlistMetadata[]>(oldData.Content);
+        var list = oldContent.First(c => c.Links.MachineURL == machineUrl);
+        list.Version = version;
+        list.DownloadMetadata = metadata;
+        list.Links.Download = downloadUrl.ToString();
+        list.DateUpdated = DateTime.UtcNow;
+
+
+        var newContent = _dtos.Serialize(oldContent, true);
+        // the website requires all names be in lowercase;
+        newContent = GameRegistry.Games.Keys.Aggregate(newContent,
+            (current, g) => current.Replace($"\"game\": \"{g}\",", $"\"game\": \"{g.ToString().ToLower()}\","));
+
+        var updateRequest = new UpdateFileRequest($"New release of {machineUrl}", newContent, oldData.Sha);
+        await ghClient.Repository.Content.UpdateFile(owner, repoName, path, updateRequest);
     }
 }
