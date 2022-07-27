@@ -272,8 +272,6 @@ public class MO2Compiler : ACompiler
             new IncludeModIniData(this),
             new DirectMatch(this),
             new IncludeTaggedFiles(this, Settings.Include),
-            // TODO: rework tagged files
-            // new IncludeTaggedFolders(this, Consts.WABBAJACK_INCLUDE),
             new IgnoreExtension(this, Ext.Pyc),
             new IgnoreExtension(this, Ext.Log),
             new PatchStockGameFiles(this, _wjClient),

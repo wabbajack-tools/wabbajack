@@ -77,7 +77,7 @@ public class DeconstructBSAs : ACompilationStep
 
         var stack = defaultInclude ? _microstackWithInclude(source.File) : _microstack(source.File);
 
-        var id = Guid.NewGuid().ToString();
+        var id = Guid.NewGuid().ToString().ToRelativePath();
 
 
         Func<Task>? _cleanup = null;
@@ -88,14 +88,14 @@ public class DeconstructBSAs : ACompilationStep
 
         var matches = await sourceFiles.PMapAll(_compiler.CompilerLimiter,
                 e => _mo2Compiler.RunStack(stack,
-                    new RawSourceFile(e, Consts.BSACreationDir.Combine((RelativePath) id, (RelativePath) e.Name))))
+                    new RawSourceFile(e, Consts.BSACreationDir.Combine(id, (RelativePath) e.Name))))
             .ToList();
 
 
         foreach (var match in matches)
         {
-            if (match is IgnoredDirectly)
-                throw new CompilerException($"File required for BSA {source.Path} creation doesn't exist: {match.To}");
+            if (match is IgnoredDirectly ignored)
+                throw new CompilerException($"File required for BSA {source.Path} creation doesn't exist: {match.To} reason {ignored.Reason}");
 
             _mo2Compiler.ExtraFiles.Add(match);
         }

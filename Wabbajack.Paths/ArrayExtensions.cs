@@ -15,6 +15,18 @@ public static class ArrayExtensions
         return true;
     }
 
+    
+    public static bool AreEqualIgnoreCase(string[] a, int startA, string[] b, int startB, int length)
+    {
+        if (startA + length > (a?.Length ?? 0)) return false;
+        if (startB + length > (b?.Length ?? 0)) return false;
+
+        for (var i = 0; i < length; i++)
+            if (!a[startA + i]!.Equals(b[startB + i], StringComparison.InvariantCultureIgnoreCase))
+                return false;
+        return true;
+    }
+
     public static int Compare<T>(T[] a, T[] b)
         where T : IComparable<T>
     {

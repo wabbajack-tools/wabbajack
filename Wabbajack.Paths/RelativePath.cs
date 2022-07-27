@@ -70,7 +70,7 @@ public struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<Relati
 
     public bool InFolder(RelativePath parent)
     {
-        return ArrayExtensions.AreEqual(parent.Parts, 0, Parts, 0, parent.Parts.Length);
+        return ArrayExtensions.AreEqualIgnoreCase(parent.Parts, 0, Parts, 0, parent.Parts.Length);
     }
 
     public override string ToString()

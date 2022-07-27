@@ -178,6 +178,14 @@ namespace Wabbajack
                     .DisposeWith(disposables);
 
                 AddNoMatchInclude.Command = ReactiveCommand.CreateFromTask(async () => await AddNoMatchIncludeCommand());
+                
+                ViewModel.WhenAnyValue(vm => vm.Include)
+                    .WhereNotNull()
+                    .Select(itms => itms.Select(itm => new RemovableItemViewModel(itm.ToString(), () => ViewModel.RemoveInclude(itm))).ToArray())
+                    .BindToStrict(this, view => view.Include.ItemsSource)
+                    .DisposeWith(disposables);
+
+                AddInclude.Command = ReactiveCommand.CreateFromTask(async () => await AddIncludeCommand());
 
 
             });
@@ -262,7 +270,7 @@ namespace Wabbajack
         {
             var dlg = new CommonOpenFileDialog
             {
-                Title = "Please select a profile folder",
+                Title = "Please select a folder",
                 IsFolderPicker = true,
                 InitialDirectory = ViewModel!.Source.ToString(),
                 AddToMostRecentlyUsedList = false,
@@ -282,6 +290,32 @@ namespace Wabbajack
             if (!selectedPath.InFolder(ViewModel.Source)) return;
             
             ViewModel.AddNoMatchInclude(selectedPath.RelativeTo(ViewModel!.Source));
+        }
+        
+        public async Task AddIncludeCommand()
+        {
+            var dlg = new CommonOpenFileDialog
+            {
+                Title = "Please select a",
+                IsFolderPicker = true,
+                InitialDirectory = ViewModel!.Source.ToString(),
+                AddToMostRecentlyUsedList = false,
+                AllowNonFileSystemItems = false,
+                DefaultDirectory = ViewModel!.Source.ToString(),
+                EnsureFileExists = true,
+                EnsurePathExists = true,
+                EnsureReadOnly = false,
+                EnsureValidNames = true,
+                Multiselect = false,
+                ShowPlacesList = true,
+            };
+
+            if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
+            var selectedPath = dlg.FileNames.First().ToAbsolutePath();
+
+            if (!selectedPath.InFolder(ViewModel.Source)) return;
+            
+            ViewModel.AddInclude(selectedPath.RelativeTo(ViewModel!.Source));
         }
     }
 }

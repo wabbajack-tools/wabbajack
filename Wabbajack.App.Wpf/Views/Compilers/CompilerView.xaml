@@ -157,6 +157,20 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
+                
+                <StackPanel Orientation="Horizontal">
+                    <Button Name="AddInclude">
+                        <icon:Material Kind="Plus"></icon:Material>
+                    </Button>
+                    <Label>Include</Label>
+                </StackPanel>
+                <ListBox x:Name="Include">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <controls1:RemovableItemView ViewModel="{Binding}" ></controls1:RemovableItemView>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
                                 
                 <StackPanel Orientation="Horizontal">
                     <Button Name="AddOtherProfile">

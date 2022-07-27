@@ -79,6 +79,7 @@ namespace Wabbajack
 
         [Reactive] public RelativePath[] AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
         [Reactive] public RelativePath[] NoMatchInclude { get; set; } = Array.Empty<RelativePath>();
+        [Reactive] public RelativePath[] Include { get; set; } = Array.Empty<RelativePath>();
         
         [Reactive] public string[] OtherProfiles { get; set; } = Array.Empty<string>();
         
@@ -215,6 +216,7 @@ namespace Wabbajack
             OtherProfiles = settings.AdditionalProfiles;
             AlwaysEnabled = settings.AlwaysEnabled;
             NoMatchInclude = settings.NoMatchInclude;
+            Include = settings.Include;
         }
 
 
@@ -314,6 +316,7 @@ namespace Wabbajack
                 AlwaysEnabled = AlwaysEnabled,
                 AdditionalProfiles = OtherProfiles,
                 NoMatchInclude = NoMatchInclude,
+                Include = Include
             };
         }
 
@@ -347,6 +350,16 @@ namespace Wabbajack
         public void RemoveNoMatchInclude(RelativePath path)
         {
             NoMatchInclude = NoMatchInclude.Where(p => p != path).ToArray();
+        }
+        
+        public void AddInclude(RelativePath path)
+        {
+            Include = (Include ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
+        }
+
+        public void RemoveInclude(RelativePath path)
+        {
+            Include = Include.Where(p => p != path).ToArray();
         }
 
         #endregion
