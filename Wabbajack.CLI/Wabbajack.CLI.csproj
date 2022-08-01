@@ -21,7 +21,7 @@
         <PackageReference Include="NLog" Version="5.0.1" />
         <PackageReference Include="NLog.Extensions.Logging" Version="5.0.1" />
         <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
-        <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21561.1" />
+        <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22380.1" />
     </ItemGroup>
 
     <ItemGroup>
