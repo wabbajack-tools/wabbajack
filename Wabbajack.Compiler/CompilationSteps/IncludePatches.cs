@@ -63,7 +63,9 @@ public class IncludePatches : ACompilationStep
             else if (_bsa != null)
             {
                 var bsaPath = _bsa.FullPath.Base;
-                ((MO2Compiler) _compiler).ModInis.TryGetValue(ModForFile(bsaPath), out modIni);
+                var modPath = ModForFile(bsaPath);
+                if (modPath != default) 
+                    ((MO2Compiler) _compiler).ModInis.TryGetValue(modPath, out modIni);
             }
         }
 
@@ -148,6 +150,8 @@ public class IncludePatches : ACompilationStep
 
     private AbsolutePath ModForFile(AbsolutePath file)
     {
+        if (!file.InFolder(((MO2Compiler) _compiler).MO2ModsFolder))
+            return default;
         return file.RelativeTo(((MO2Compiler) _compiler).MO2ModsFolder).TopParent
             .RelativeTo(((MO2Compiler) _compiler).MO2ModsFolder);
     }
