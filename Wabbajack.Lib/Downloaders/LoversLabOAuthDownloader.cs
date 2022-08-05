@@ -19,8 +19,8 @@ namespace Wabbajack.Lib.Downloaders
         #endregion
 
         public LoversLabOAuthDownloader() : base("0b543a010bf1a8f0f4c5dae154fce7c3", 
-            new Uri("https://loverslab.com/oauth/authorize/"), 
-            new Uri("https://loverslab.com/oauth/token/"), 
+            new Uri("https://api.loverslab.com/oauth/authorize/"), 
+            new Uri("https://api.loverslab.com/oauth/token/"), 
             new []{"downloads"},
             "lovers-lab-oauth2")
         {

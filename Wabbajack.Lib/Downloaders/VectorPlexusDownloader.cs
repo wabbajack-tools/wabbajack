@@ -19,8 +19,8 @@ namespace Wabbajack.Lib.Downloaders
         #endregion
 
         public VectorPlexusOAuthDownloader() : base("45c6d3c9867903a7daa6ded0a38cedf8", 
-            new Uri("https://vectorplexus.com/oauth/authorize/"), 
-            new Uri("https://vectorplexus.com/oauth/token/"), 
+            new Uri("https://vectorplexis.com/oauth/authorize/"), 
+            new Uri("https://vectorplexis.com/oauth/token/"), 
             new []{"profile", "get_downloads"},
             "vector-plexus-oauth2")
         {

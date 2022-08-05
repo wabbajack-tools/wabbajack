@@ -1,6 +1,11 @@
 ### Changelog
 
-9
+#### Version - 2.5.3.26 - 8/4/2022
+* Use the new VectorPlexis domain
+* Use the new LoversLab API domain
+
+#### Version - 2.5.3.25 - 6/24/2022
+* Correctly modify Witcher 3 settings to the game accepts the values
 
 #### Version - 2.5.3.23 - 6/24/2022
 * Automatically set the screen resolution on Witcher 3 installs
