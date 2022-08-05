@@ -13,7 +13,7 @@ public class LoversLabDownloader : AIPS4OAuth2Downloader<LoversLabDownloader, Lo
     public LoversLabDownloader(ILogger<LoversLabDownloader> logger, ITokenProvider<LoversLabLoginState> loginInfo,
         HttpClient client,
         IHttpDownloader downloader, ApplicationInfo appInfo) : base(logger, loginInfo, client, downloader, appInfo,
-        new Uri("https://loverslab.com"), "Lovers Lab")
+        new Uri("https://api.loverslab.com"), "Lovers Lab")
     {
     }
 }

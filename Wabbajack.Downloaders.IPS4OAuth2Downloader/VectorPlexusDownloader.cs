@@ -14,7 +14,7 @@ public class
     public VectorPlexusDownloader(ILogger<VectorPlexusDownloader> logger,
         ITokenProvider<VectorPlexusLoginState> loginInfo, HttpClient client,
         IHttpDownloader downloader, ApplicationInfo appInfo)
-        : base(logger, loginInfo, client, downloader, appInfo, new Uri("https://vectorplexus.com"), "Vector Plexus")
+        : base(logger, loginInfo, client, downloader, appInfo, new Uri("https://vectorplexis.com"), "Vector Plexus")
     {
     }
 }

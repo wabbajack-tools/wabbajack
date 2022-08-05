@@ -13,6 +13,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
+using System.Windows.Threading;
 using DynamicData;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI.Fody.Helpers;
@@ -24,6 +25,7 @@ using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack
@@ -47,6 +49,9 @@ namespace Wabbajack
         private readonly ResourceMonitor _resourceMonitor;
         private readonly CompilerSettingsInferencer _inferencer;
         private readonly Client _wjClient;
+        
+        [Reactive] public string StatusText { get; set; }
+        [Reactive] public Percent StatusProgress { get; set; }
 
         [Reactive]
         public CompilerState State { get; set; }
@@ -108,6 +113,9 @@ namespace Wabbajack
             _resourceMonitor = resourceMonitor;
             _inferencer = inferencer;
             _wjClient = wjClient;
+
+            StatusText = "Compiler Settings";
+            StatusProgress = Percent.Zero;
 
             BackCommand =
                 ReactiveCommand.CreateFromTask(async () =>
@@ -241,6 +249,16 @@ namespace Wabbajack
 
                     var compiler = MO2Compiler.Create(_serviceProvider, mo2Settings);
 
+                    compiler.OnStatusUpdate += (sender, update) =>
+                    {
+                        RxApp.MainThreadScheduler.Schedule(update, (scheduler, update) =>
+                        {
+                            StatusText = update.StatusText;
+                            StatusProgress = update.StepsProgress;
+                            return Disposable.Empty;
+                        });
+                    };
+
                     await compiler.Begin(token);
 
                     if (PublishUpdate)
@@ -256,6 +274,10 @@ namespace Wabbajack
                 }
                 catch (Exception ex)
                 {
+                    StatusText = "Compilation Failed";
+                    StatusProgress = Percent.Zero;
+
+                    
                     State = CompilerState.Errored;
                     _logger.LogInformation(ex, "Failed Compilation : {Message}", ex.Message);
                 }

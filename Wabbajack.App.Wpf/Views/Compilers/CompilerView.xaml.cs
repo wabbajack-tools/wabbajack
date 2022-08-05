@@ -154,6 +154,18 @@ namespace Wabbajack
                 this.Bind(ViewModel, vm => vm.MachineUrl, view => view.MachineUrl.Text)
                     .DisposeWith(disposables);
 
+                this.Bind(ViewModel, vm => vm.StatusText, view => view.TopProgressBar.Title)
+                    .DisposeWith(disposables);
+
+                ViewModel.WhenAnyValue(vm => vm.StatusText)
+                    .BindToStrict(this, view => view.TopProgressBar.Title)
+                    .DisposeWith(disposables);
+
+                ViewModel.WhenAnyValue(vm => vm.StatusProgress)
+                    .Select(d => d.Value)
+                    .BindToStrict(this, view => view.TopProgressBar.ProgressPercent)
+                    .DisposeWith(disposables);
+
                 ViewModel.WhenAnyValue(vm => vm.AlwaysEnabled)
                     .WhereNotNull()
                     .Select(itms => itms.Select(itm => new RemovableItemViewModel(itm.ToString(), () => ViewModel.RemoveAlwaysEnabled(itm))).ToArray())
