@@ -255,7 +255,7 @@ namespace Wabbajack
                         {
                             StatusText = update.StatusText;
                             StatusProgress = update.StepsProgress;
-                            return Disposable.Empty;
+                            return Disposable.Empty; 
                         });
                     };
 
@@ -269,7 +269,10 @@ namespace Wabbajack
                         await _wjClient.PublishModlist(MachineUrl, System.Version.Parse(Version), mo2Settings.OutputFile, downloadMetadata);
                     }
                     _logger.LogInformation("Compiler Finished");
-
+                    
+                    StatusText = "Compilation Completed";
+                    StatusProgress = Percent.Zero;
+                    
                     State = CompilerState.Completed;
                 }
                 catch (Exception ex)
