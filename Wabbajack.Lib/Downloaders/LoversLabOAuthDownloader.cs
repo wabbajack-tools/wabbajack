@@ -14,8 +14,8 @@ namespace Wabbajack.Lib.Downloaders
     {
         #region INeedsDownload
         public override string SiteName => "Lovers Lab";
-        public override Uri SiteURL => new("https://loverslab.com");
-        public override Uri IconUri => new("https://www.loverslab.com/favicon.ico");
+        public override Uri SiteURL => new("https://api.loverslab.com");
+        public override Uri IconUri => new("https://api.loverslab.com/favicon.ico");
         #endregion
 
         public LoversLabOAuthDownloader() : base("0b543a010bf1a8f0f4c5dae154fce7c3", 

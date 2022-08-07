@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.3.27 - 8/7/2022
+* A few fixes for VectorPlexis and LL, you may need to log out and back in from these sites
+
 #### Version - 2.5.3.26 - 8/4/2022
 * Use the new VectorPlexis domain
 * Use the new LoversLab API domain
