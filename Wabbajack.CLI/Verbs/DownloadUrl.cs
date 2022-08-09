@@ -28,12 +28,13 @@ public class DownloadUrl : IVerb
         var command = new Command("download-url");
         command.Add(new Option<Uri>(new[] {"-u", "-url"}, "Url to parse"));
         command.Add(new Option<AbsolutePath>(new[] {"-o", "-output"}, "Output file"));
+        command.Add(new Option<bool>(new [] {"-p", "--proxy"}, "Use the Wabbajack Proxy (default: true)"));
         command.Description = "Downloads a file to a given output";
         command.Handler = CommandHandler.Create(Run);
         return command;
     }
 
-    private async Task<int> Run(Uri url, AbsolutePath output)
+    private async Task<int> Run(Uri url, AbsolutePath output, bool proxy = true)
     {
         var parsed = _dispatcher.Parse(url);
         if (parsed == null)
@@ -44,7 +45,8 @@ public class DownloadUrl : IVerb
         }
 
         var archive = new Archive() {State = parsed, Name = output.FileName.ToString()};
-        var hash = await _dispatcher.Download(archive, output, CancellationToken.None); ;
+        
+        var hash = await _dispatcher.Download(archive, output, CancellationToken.None, proxy); ;
         Console.WriteLine($"Download complete: {output.Size().ToFileSizeString()} {hash} {hash.ToHex()} {(long)hash}");
         return 0;
     }

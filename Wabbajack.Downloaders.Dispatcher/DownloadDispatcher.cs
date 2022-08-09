@@ -37,11 +37,11 @@ public class DownloadDispatcher
         _useProxyCache = useProxyCache;
     }
 
-    public async Task<Hash> Download(Archive a, AbsolutePath dest, CancellationToken token)
+    public async Task<Hash> Download(Archive a, AbsolutePath dest, CancellationToken token, bool? proxy = null)
     {
         using var downloadScope = _logger.BeginScope("Downloading {Name}", a.Name);
         using var job = await _limiter.Begin("Downloading " + a.Name, a.Size, token);
-        return await Download(a, dest, job, token);
+        return await Download(a, dest, job, token, proxy);
     }
 
     public async Task<Archive> MaybeProxy(Archive a, CancellationToken token)
@@ -68,13 +68,13 @@ public class DownloadDispatcher
         return a;
     }
 
-    public async Task<Hash> Download(Archive a, AbsolutePath dest, Job<DownloadDispatcher> job, CancellationToken token)
+    public async Task<Hash> Download(Archive a, AbsolutePath dest, Job<DownloadDispatcher> job, CancellationToken token, bool? useProxy = null)
     {
         if (!dest.Parent.DirectoryExists())
             dest.Parent.CreateDirectory();
 
         var downloader = Downloader(a);
-        if (_useProxyCache && downloader is IProxyable p)
+        if ((useProxy ?? _useProxyCache) && downloader is IProxyable p)
         {
             var uri = p.UnParse(a.State);
             var newUri = await _wjClient.MakeProxyUrl(a, uri);
