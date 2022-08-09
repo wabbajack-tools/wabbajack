@@ -270,10 +270,15 @@ namespace Wabbajack
                     }
                     _logger.LogInformation("Compiler Finished");
                     
-                    StatusText = "Compilation Completed";
-                    StatusProgress = Percent.Zero;
+                    RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+                    {
+                        StatusText = "Compilation Completed";
+                        StatusProgress = Percent.Zero;
+                        State = CompilerState.Completed;
+                        return Disposable.Empty; 
+                    });
                     
-                    State = CompilerState.Completed;
+
                 }
                 catch (Exception ex)
                 {

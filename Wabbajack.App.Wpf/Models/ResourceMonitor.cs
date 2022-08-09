@@ -45,6 +45,7 @@ public class ResourceMonitor : IDisposable
             .DisposeWith(_compositeDisposable);
         
         _tasks.Connect()
+            .Filter(x => x.IsWorking)
             .Bind(out _tasksFiltered)
             .Subscribe()
             .DisposeWith(_compositeDisposable);
@@ -64,7 +65,7 @@ public class ResourceMonitor : IDisposable
             var used = new HashSet<ulong>();
             foreach (var resource in _resources)
             {
-                foreach (var job in resource.Jobs)
+                foreach (var job in resource.Jobs.Where(j => j.Current > 0))
                 {
                     used.Add(job.ID);
                     var tsk = l.Lookup(job.ID);

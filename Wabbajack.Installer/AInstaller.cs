@@ -486,24 +486,25 @@ public abstract class AInstaller<T>
         var savePath = (RelativePath) "saves";
 
         NextStep(Consts.StepPreparing, "Looking for files to delete", 0);
-        foreach (var f in _configuration.Install.EnumerateFiles())
-        {
-            var relativeTo = f.RelativeTo(_configuration.Install);
-            if (indexed.ContainsKey(relativeTo) || f.InFolder(_configuration.Downloads))
-                return;
+        await _configuration.Install.EnumerateFiles()
+            .PDoAll(_limiter, async f =>
+            {
+                var relativeTo = f.RelativeTo(_configuration.Install);
+                if (indexed.ContainsKey(relativeTo) || f.InFolder(_configuration.Downloads))
+                    return ;
 
-            if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return;
+                if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return;
 
-            if (NoDeleteRegex.IsMatch(f.ToString()))
-                return;
+                if (NoDeleteRegex.IsMatch(f.ToString()))
+                    return ;
 
-            if (bsaPathsToNotBuild.Contains(f))
-                return;
+                if (bsaPathsToNotBuild.Contains(f))
+                    return ;
 
-            _logger.LogInformation("Deleting {RelativePath} it's not part of this ModList", relativeTo);
-            f.Delete();
-        }
-        
+                _logger.LogInformation("Deleting {RelativePath} it's not part of this ModList", relativeTo);
+                f.Delete();
+            });
+
         _logger.LogInformation("Cleaning empty folders");
         var expectedFolders = indexed.Keys
             .Select(f => f.RelativeTo(_configuration.Install))

@@ -105,6 +105,7 @@ public class ImageLoader
             DXGI_FORMAT.BC4_UNORM => CompressionFormat.Bc4,
             DXGI_FORMAT.BC5_UNORM => CompressionFormat.Bc5,
             DXGI_FORMAT.BC7_UNORM => CompressionFormat.Bc7,
+            DXGI_FORMAT.B8G8R8A8_UNORM => CompressionFormat.Bgra,
             _ => throw new Exception($"Cannot re-encode texture with {dx} format, encoding not supported")
         };
     }

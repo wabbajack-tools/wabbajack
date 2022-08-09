@@ -64,10 +64,14 @@ public class CompilerSettingsInferencer
                     cs.Downloads = cs.Source.Combine("downloads");
 
                 cs.NoMatchInclude = Array.Empty<RelativePath>();
+                cs.Include = Array.Empty<RelativePath>();
                 foreach (var file in mo2Folder.EnumerateFiles())
                 {
                     if (file.FileName == Consts.WABBAJACK_NOMATCH_INCLUDE_FILES)
                         cs.NoMatchInclude = cs.NoMatchInclude.Add(file.Parent.RelativeTo(mo2Folder));
+
+                    if (file.FileName.WithoutExtension().ToString() == Consts.WABBAJACK_INCLUDE)
+                        cs.Include = cs.Include.Add(file.Parent.RelativeTo(mo2Folder));
                 }
 
                 _logger.LogInformation("Finding Always Enabled mods");
