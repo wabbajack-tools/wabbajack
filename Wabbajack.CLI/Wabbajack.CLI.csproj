@@ -29,4 +29,10 @@
       <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Update="Verbs\MyFiles.cs">
+        <DependentUpon>InlinedFileReport.cs</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
 </Project>

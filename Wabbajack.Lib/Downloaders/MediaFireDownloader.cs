@@ -59,10 +59,28 @@ namespace Wabbajack.Lib.Downloaders
                 if (result.Content.Headers.ContentType!.MediaType!.StartsWith("text/html",
                     StringComparison.OrdinalIgnoreCase))
                 {
+                    var startText = "window.location.href = '";
+                    
                     var body = await client.GetHtmlAsync(Url);
-                    var node = body.DocumentNode.DescendantsAndSelf().First(d => d.HasClass("input") && d.HasClass("popsok") &&
+                    var node = body.DocumentNode.DescendantsAndSelf().FirstOrDefault(d => d.HasClass("input") && d.HasClass("popsok") &&
                                                                                  d.GetAttributeValue("aria-label", "") == "Download file");
-                    return new HTTPDownloader.State(node.GetAttributeValue("href", "not-found"));
+                    if (node != null)
+                    {
+                        return new HTTPDownloader.State(node.GetAttributeValue("href", "not-found"));
+                    }
+                    else
+                    {
+
+                        var start = body.DocumentNode.InnerHtml.IndexOf(startText, StringComparison.CurrentCultureIgnoreCase);
+                        if (start != -1)
+                        {
+                            var end = body.DocumentNode.InnerHtml.IndexOf("\'", start + startText.Length,
+                                StringComparison.CurrentCultureIgnoreCase);
+                            var data = body.DocumentNode.InnerHtml[(start + startText.Length)..end];
+                            return new HTTPDownloader.State(data);
+                        }
+                    }
+
                 }
 
                 return new HTTPDownloader.State(Url);
