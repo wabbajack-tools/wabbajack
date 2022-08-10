@@ -115,10 +115,22 @@ public class MediaFireDownloader : ADownloader<DTOs.DownloadStates.MediaFire>, I
                 await job.Report((int) job.Size, (CancellationToken) token);
             var body = new HtmlDocument();
             body.LoadHtml(bodyData);
-            var node = body.DocumentNode.DescendantsAndSelf().First(d => d.HasClass("input") && d.HasClass("popsok") &&
+            var node = body.DocumentNode.DescendantsAndSelf().FirstOrDefault(d => d.HasClass("input") && d.HasClass("popsok") &&
                                                                          d.GetAttributeValue("aria-label", "") ==
                                                                          "Download file");
-            return new Uri(node.GetAttributeValue("href", "not-found"));
+            if (node != null) 
+                return new Uri(node.GetAttributeValue("href", "not-found"));
+            
+            var startText = "window.location.href = '";
+            var start = body.DocumentNode.InnerHtml.IndexOf(startText, StringComparison.CurrentCultureIgnoreCase);
+            
+            if (start != -1)
+            {
+                var end = body.DocumentNode.InnerHtml.IndexOf("\'", start + startText.Length,
+                    StringComparison.CurrentCultureIgnoreCase);
+                var data = body.DocumentNode.InnerHtml[(start + startText.Length)..end];
+                return new Uri(data);
+            }
         }
 
         return state.Url;
