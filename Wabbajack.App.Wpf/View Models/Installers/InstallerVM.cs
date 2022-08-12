@@ -392,6 +392,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             catch (Exception ex)
             {
                 TaskBarUpdate.Send($"Error during install of {ModList.Name}", TaskbarItemProgressState.Error);
+                _logger.LogError(ex, ex.Message);
                 InstallState = InstallState.Failure;
                 StatusText = $"Error during install of {ModList.Name}";
                 StatusProgress = Percent.Zero;

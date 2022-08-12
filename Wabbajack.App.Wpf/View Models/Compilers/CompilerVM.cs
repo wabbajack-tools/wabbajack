@@ -21,6 +21,7 @@ using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Installer;
 using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
@@ -249,17 +250,25 @@ namespace Wabbajack
 
                     var compiler = MO2Compiler.Create(_serviceProvider, mo2Settings);
 
-                    compiler.OnStatusUpdate += (sender, update) =>
-                    {
-                        RxApp.MainThreadScheduler.Schedule(update, (scheduler, update) =>
+                    var events = Observable.FromEventPattern<StatusUpdate>(h => compiler.OnStatusUpdate += h,
+                            h => compiler.OnStatusUpdate -= h)
+                        .Throttle(TimeSpan.FromSeconds(0.5))
+                        .ObserveOnGuiThread()
+                        .Subscribe(update =>
                         {
-                            StatusText = update.StatusText;
-                            StatusProgress = update.StepsProgress;
-                            return Disposable.Empty; 
+                            StatusText = update.EventArgs.StatusText;
+                            StatusProgress = update.EventArgs.StepsProgress;
                         });
-                    };
 
-                    await compiler.Begin(token);
+
+                    try
+                    {
+                        await compiler.Begin(token);
+                    }
+                    finally
+                    {
+                        events.Dispose();
+                    }
 
                     if (PublishUpdate)
                     {
