@@ -5,7 +5,7 @@ on:
 jobs:
   build:
 
-    runs-on: windows-latest
+    runs-on: release-builder
 
     steps:
       - uses: actions/checkout@v2
