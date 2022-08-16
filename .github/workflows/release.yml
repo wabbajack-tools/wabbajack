@@ -8,15 +8,18 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Extract Version
-      run: echo "VERSION=$(python scripts/version_extract.py)" >> $GITHUB_ENV
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 6.0.x
-    - name: Restore dependencies ${{ env.VERSION }}
-      run: dotnet restore
-    - name: Build ${{ env.VERSION }}
-      run: dotnet build
-
+      - uses: actions/checkout@v2
+      - name: Extract Version
+        run: echo "VERSION=$(python scripts/version_extract.py)" >> $GITHUB_ENV
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+      - name: Restore dependencies ${{ env.VERSION }}
+        run: dotnet restore
+      - name: Build App ${{ env.VERSION }}
+        run: dotnet publish Wabbajack.App.Wpf\Wabbajack.App.Wpf.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o ~/app --self-contained
+      - name: Build CLI ${{ env.VERSION }}
+        run: dotnet publish Wabbajack.CLI\Wabbajack.CLI.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o ~/cli --self-contained
+      - name: Build Launcher ${{ env.VERSION }}
+        run: dotnet publish Wabbajack.Launcher\Wabbajack.Launcher.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o ~/launcher /p:PublishedTrimmed=true /p:PublishReadyToRun=true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true --self-contained    
