@@ -41,76 +41,9 @@
                 FontSize="20"
                 FontWeight="Bold"
                 Text="Performance" />
-            <TextBlock Grid.Row="3" Grid.Column="0"
-                       x:Name="DownloadThreadsLabel"
-                       VerticalAlignment="Center"
-                       Text="Download Threads" />
-            <xwpf:DoubleUpDown Grid.Row="3" Grid.Column="2"
-                               x:Name="DownloadThreads"
-                               MinWidth="75"
-                               HorizontalAlignment="Right"
-                               VerticalAlignment="Center"
-                               Foreground="White"
-                               FormatString="F0"
-                               Increment="2"
-                               Maximum="128"
-                               Minimum="1" />
-            <TextBlock Grid.Row="4" Grid.Column="0"
-                       x:Name="DiskThreadsLabel"
-                       VerticalAlignment="Center"
-                       Text="Disk Threads" />
-            <xwpf:DoubleUpDown Grid.Row="4" Grid.Column="2"
-                               x:Name="DiskThreads"
-                               MinWidth="75"
-                               HorizontalAlignment="Right"
-                               VerticalAlignment="Center"
-                               Foreground="White"
-                               FormatString="F0"
-                               Increment="2"
-                               Maximum="128"
-                               Minimum="1" />
-            <TextBlock Grid.Row="5" Grid.Column="0"
-                       x:Name="ReduceHDDThreadsLabel"
-                       VerticalAlignment="Center"
-                       Text="Reduce HDD threads (Recommended)" />
-            <CheckBox Grid.Row="5" Grid.Column="2"
-                      x:Name="ReduceHDDThreads"
-                      HorizontalAlignment="Right"
-                      VerticalAlignment="Center"
-                      Foreground="White"
-                ></CheckBox>
-            <TextBlock Grid.Row="6" Grid.Column="0"
-                       x:Name="FavorPerfOverRamLabel"
-                       VerticalAlignment="Center"
-                       Text="Favor performance over RAM Usage" />
-            <CheckBox Grid.Row="6" Grid.Column="2"
-                      x:Name="FavorPerfOverRam"
-                      HorizontalAlignment="Right"
-                      VerticalAlignment="Center"
-                      Foreground="White"
-            ></CheckBox>
-            
-            <TextBlock Grid.Row="7" Grid.Column="0"
-                       x:Name="UseNetworkWorkaroundLabel"
-                       VerticalAlignment="Center"
-                       Text="Use Network Workaround (slow)" />
-            <CheckBox Grid.Row="7" Grid.Column="2"
-                      x:Name="UseNetworkWorkAround"
-                      HorizontalAlignment="Right"
-                      VerticalAlignment="Center"
-                      Foreground="White"
-            ></CheckBox>
-            
-            <TextBlock Grid.Row="8" Grid.Column="0"
-                       x:Name="DisableTextureResizingLabel"
-                       VerticalAlignment="Center"
-                       Text="Disable Texture Resizing (during compilation)" />
-            <CheckBox Grid.Row="8" Grid.Column="2"
-                      x:Name="DisableTextureResizing"
-                      HorizontalAlignment="Right"
-                      VerticalAlignment="Center"
-                      Foreground="White"
-            ></CheckBox>
+            <Button Grid.Row="2" x:Name="EditResourceSettings">
+                <TextBlock FontSize="14" FontWeight="Bold">Edit Resource Usage Settings and Close Wabbajack</TextBlock>
+            </Button>
         </Grid>
     </Border>
 </rxui:ReactiveUserControl>
