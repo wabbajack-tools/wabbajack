@@ -172,5 +172,13 @@ namespace Wabbajack
 
             return String.Format("{0:0.##} {1}", dblSByte, Suffix[i]);
         }
+
+        public static void OpenFile(AbsolutePath file)
+        {
+            Process.Start(new ProcessStartInfo("cmd.exe", $"/c start \"\" \"{file}\"")
+            {
+                CreateNoWindow = true,
+            });
+        }
     }
 }
