@@ -352,6 +352,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                 DownloadLoadction = Installer.DownloadLocation.TargetPath,
                 Metadata = ModlistMetadata
             });
+            await _settingsManager.Save(LastLoadedModlist, ModListLocation.TargetPath);
 
             try
             {

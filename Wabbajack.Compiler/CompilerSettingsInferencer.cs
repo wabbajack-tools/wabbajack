@@ -72,6 +72,9 @@ public class CompilerSettingsInferencer
 
                     if (file.FileName.WithoutExtension().ToString() == Consts.WABBAJACK_INCLUDE)
                         cs.Include = cs.Include.Add(file.Parent.RelativeTo(mo2Folder));
+                    
+                    if (file.FileName.WithoutExtension().ToString() == Consts.WABBAJACK_NOMATCH_INCLUDE)
+                        cs.NoMatchInclude = cs.NoMatchInclude.Add(file.Parent.RelativeTo(mo2Folder));
                 }
 
                 _logger.LogInformation("Finding Always Enabled mods");

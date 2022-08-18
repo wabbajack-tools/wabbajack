@@ -256,7 +256,7 @@ namespace Wabbajack
                         .ObserveOnGuiThread()
                         .Subscribe(update =>
                         {
-                            StatusText = update.EventArgs.StatusText;
+                            StatusText = $"{update.EventArgs.StatusText} - {update.EventArgs.StepProgress}";
                             StatusProgress = update.EventArgs.StepsProgress;
                         });
 

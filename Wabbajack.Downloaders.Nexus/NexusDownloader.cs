@@ -180,12 +180,32 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
         try
         {
             var fileInfo = await _api.FileInfo(state.Game.MetaData().NexusName!, state.ModID, state.FileID, token);
+            var (modInfo, _) = await _api.ModInfo(state.Game.MetaData().NexusName!, state.ModID, token);
+
+            state.Description = FixupSummary(modInfo.Summary);
+            state.Version = modInfo.Version;
+            state.Author = modInfo.Author;
+            state.ImageURL = new Uri(modInfo.PictureUrl);
+            state.Name = modInfo.Name;
+            state.IsNSFW = modInfo.ContainsAdultContent;
+            
+            
             return fileInfo.info.FileId == state.FileID;
         }
         catch (HttpException)
         {
             return false;
         }
+    }
+    
+    public static string FixupSummary(string? argSummary)
+    {
+        if (argSummary == null)
+            return "";
+        return argSummary.Replace("&#39;", "'")
+            .Replace("<br/>", "\n\n")
+            .Replace("<br />", "\n\n")
+            .Replace("&#33;", "!");
     }
 
     public override IEnumerable<string> MetaIni(Archive a, Nexus state)
