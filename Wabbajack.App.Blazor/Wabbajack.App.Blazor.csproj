@@ -24,9 +24,9 @@
         <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.486" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.8" />
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.7" />
-        <PackageReference Include="NLog" Version="5.0.1" />
-        <PackageReference Include="NLog.Extensions.Logging" Version="5.0.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.8" />
+        <PackageReference Include="NLog" Version="5.0.2" />
+        <PackageReference Include="NLog.Extensions.Logging" Version="5.0.2" />
         <PackageReference Include="PInvoke.User32" Version="0.7.124" />
         <PackageReference Include="ReactiveUI" Version="18.3.1" />
         <PackageReference Include="ReactiveUI.Fody" Version="18.3.1" />
