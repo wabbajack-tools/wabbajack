@@ -53,6 +53,11 @@ namespace Wabbajack
                     Environment.Exit(-1);
                 };
 
+                Closed += (s, e) =>
+                {
+                    Environment.Exit(0);
+                };
+
                 MessageBus.Current.Listen<TaskBarUpdate>()
                     .ObserveOnGuiThread()
                     .Subscribe(u =>

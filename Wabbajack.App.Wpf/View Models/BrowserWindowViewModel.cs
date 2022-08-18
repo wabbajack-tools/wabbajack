@@ -76,6 +76,11 @@ public abstract class BrowserWindowViewModel : ViewModel
         _browser.NavigationCompleted -= Completed;
     }
 
+    public async Task RunJavaScript(string script)
+    {
+        await _browser.ExecuteScriptAsync(script);
+    }
+
     public async Task<Cookie[]> GetCookies(string domainEnding, CancellationToken token)
     {
         var cookies = (await _browser.CoreWebView2.CookieManager.GetCookiesAsync(""))
@@ -103,7 +108,7 @@ public abstract class BrowserWindowViewModel : ViewModel
         return doc;
     }
 
-    public async Task<ManualDownload.BrowserDownloadState> WaitForDownloadUri(CancellationToken token)
+    public async Task<ManualDownload.BrowserDownloadState> WaitForDownloadUri(CancellationToken token, Func<Task>? whileWaiting)
     {
         var source = new TaskCompletionSource<Uri>();
         var referer = _browser.Source;
@@ -122,8 +127,22 @@ public abstract class BrowserWindowViewModel : ViewModel
             args.Cancel = true;
             args.Handled = true;
         };
+        Uri uri;
 
-        var uri = await source.Task.WaitAsync(token);
+        while (true)
+        {
+            try
+            {
+                uri = await source.Task.WaitAsync(TimeSpan.FromMilliseconds(250), token);
+                break;
+            }
+            catch (TimeoutException)
+            {
+                if (whileWaiting != null)
+                    await whileWaiting();
+            }
+        }
+
         var cookies = await GetCookies(uri.Host, token);
         return new ManualDownload.BrowserDownloadState(uri, cookies, new[]
         {

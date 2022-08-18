@@ -23,7 +23,11 @@ public class ManualDownloadHandler : BrowserWindowViewModel
         Instructions = string.IsNullOrWhiteSpace(md.Prompt) ? $"Please download {archive.Name}" : md.Prompt;
         await NavigateTo(md.Url);
 
-        var uri = await WaitForDownloadUri(token);
+
+        var uri = await WaitForDownloadUri(token, async () =>
+        {
+            await RunJavaScript("Array.from(document.getElementsByTagName(\"iframe\")).forEach(f => f.remove())");
+        });
         
         Intervention.Finish(uri);
     }
