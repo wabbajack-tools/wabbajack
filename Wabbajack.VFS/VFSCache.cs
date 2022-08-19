@@ -71,6 +71,15 @@ public class VFSDiskCache : IVfsCache
         await InsertIntoVFSCache(ivf.Hash, ms);
     }
 
+    public async Task Clean()
+    {
+        await using var cmd = new SQLiteCommand(_conn);
+        cmd.CommandText = @"VACUUM";
+        await cmd.PrepareAsync();
+
+        await cmd.ExecuteNonQueryAsync();
+    }
+
     private async Task InsertIntoVFSCache(Hash hash, MemoryStream data)
     {
         await using var cmd = new SQLiteCommand(_conn);

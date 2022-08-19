@@ -79,7 +79,7 @@ public class MO2Compiler : ACompiler
         roots.AddRange(Settings.OtherGames.Append(Settings.Game).Select(g => _locator.GameLocation(g)));
 
         NextStep("Initializing", "Add Roots");
-        await _vfs.AddRoots(roots, token); // Step 1
+        await _vfs.AddRoots(roots, token, async (cur, max) => UpdateProgressAbsolute(cur, max)); // Step 1
 
         //await InferMetas(token); // Step 2
 
@@ -181,7 +181,7 @@ public class MO2Compiler : ACompiler
             Name = Settings.ModListName,
             Author = Settings.ModListAuthor,
             Description = Settings.ModListDescription,
-            Readme = Settings.ModlistReadme,
+            Readme = Settings.ModListReadme,
             Image = ModListImage != default ? ModListImage.FileName : default,
             Website = Settings.ModListWebsite,
             Version = Settings.ModlistVersion,

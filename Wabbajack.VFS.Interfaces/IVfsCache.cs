@@ -9,4 +9,5 @@ public interface IVfsCache
 {
     public Task<IndexedVirtualFile?> Get(Hash hash, IStreamFactory sf, CancellationToken token);
     public Task Put(IndexedVirtualFile file, CancellationToken token);
+    Task Clean();
 }

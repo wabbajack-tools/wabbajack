@@ -70,10 +70,12 @@ namespace Wabbajack
                 
                 // Status
                 ViewModel.WhenAnyValue(vm => vm.StatusText)
+                    .ObserveOnGuiThread()
                     .BindToStrict(this, view => view.TopProgressBar.Title)
                     .DisposeWith(disposables);
 
                 ViewModel.WhenAnyValue(vm => vm.StatusProgress)
+                    .ObserveOnGuiThread()
                     .Select(p => p.Value)
                     .BindToStrict(this, view => view.TopProgressBar.ProgressPercent)
                     .DisposeWith(disposables);

@@ -25,7 +25,7 @@ public class CompilerSettings
     public string ModListName { get; set; } = "";
     public string ModListAuthor { get; set; } = "";
     public string ModListDescription { get; set; } = "";
-    public string ModlistReadme { get; set; } = "";
+    public string ModListReadme { get; set; } = "";
     public Uri? ModListWebsite { get; set; }
     public Version ModlistVersion { get; set; } = Version.Parse("0.0.1.0");
     public bool PublishUpdate { get; set; } = false;
@@ -62,5 +62,6 @@ public class CompilerSettings
     public RelativePath[] Include { get; set; } = Array.Empty<RelativePath>();
 
     public RelativePath[] AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
-
+    public Version Version { get; set; }
+    public string Description { get; set; }
 }

@@ -1,6 +1,12 @@
 ### Changelog
 
-#### Version - 3.0.0.1 - 8/19/2020
+#### Version - 3.0.0.2 - 8/19/2022
+* Be more tolerant of bad picture Urls while validating Nexus Downloads (thanks ForgottenGlory)
+* Fix loading and saving of several compiler fields
+* Show Author/Image/Title in compiler configuration page
+* Attempt to fix a "Not run on owning thread" issue during compilation
+
+#### Version - 3.0.0.1 - 8/19/2022
 * Fix the utterly broken build pipeline, app actually runs now
 * Trigger login pages for sites if the user doesn't log in before installing
 

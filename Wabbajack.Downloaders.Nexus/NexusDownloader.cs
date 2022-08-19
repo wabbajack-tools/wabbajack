@@ -185,7 +185,8 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
             state.Description = FixupSummary(modInfo.Summary);
             state.Version = modInfo.Version;
             state.Author = modInfo.Author;
-            state.ImageURL = new Uri(modInfo.PictureUrl);
+            if (Uri.TryCreate(modInfo.PictureUrl, UriKind.Absolute, out var uri)) 
+                state.ImageURL = uri;
             state.Name = modInfo.Name;
             state.IsNSFW = modInfo.ContainsAdultContent;
             

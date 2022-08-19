@@ -45,4 +45,12 @@ public class FallthroughVFSCache : IVfsCache
             await cache.Put(file, token);
         }
     }
+
+    public async Task Clean()
+    {
+        foreach (var cache in _caches)
+        {
+            await cache.Clean();
+        }
+    }
 }

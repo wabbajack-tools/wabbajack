@@ -38,7 +38,23 @@ namespace Wabbajack
                     .Select(failed => $"Compilation {(failed ? "Failed" : "Complete")}")
                     .BindToStrict(this, x => x.CompilationComplete.TitleText.Text)
                     .DisposeWith(disposables);
+
+                ViewModel.WhenAny(vm => vm.ModListImagePath.TargetPath)
+                    .Where(i => i.FileExists())
+                    .Select(i => (UIUtils.TryGetBitmapImageFromFile(i, out var img), img))
+                    .Where(i => i.Item1)
+                    .Select(i => i.img)
+                    .BindToStrict(this, view => view.DetailImage.Image);
+
+                ViewModel.WhenAny(vm => vm.ModListName)
+                    .BindToStrict(this, view => view.DetailImage.Title);
                 
+                ViewModel.WhenAny(vm => vm.Author)
+                    .BindToStrict(this, view => view.DetailImage.Author);
+
+                ViewModel.WhenAny(vm => vm.Description)
+                    .BindToStrict(this, view => view.DetailImage.Description);
+
                 CompilationComplete.GoToModlistButton.Command = ReactiveCommand.Create(() =>
                 {
                     UIUtils.OpenFolder(ViewModel.OutputLocation.TargetPath.Parent);

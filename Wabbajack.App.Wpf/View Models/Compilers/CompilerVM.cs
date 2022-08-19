@@ -21,6 +21,7 @@ using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Extensions;
 using Wabbajack.Installer;
 using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
@@ -216,6 +217,14 @@ namespace Wabbajack
 
             BaseGame = settings.Game;
             ModListName = settings.ModListName;
+            Version = settings.Version?.ToString() ?? "";
+            Author = settings.ModListAuthor;
+            Description = settings.Description;
+            ModListImagePath.TargetPath = settings.ModListImage;
+            Website = settings.ModListWebsite?.ToString() ?? "";
+            Readme = settings.ModListReadme?.ToString() ?? "";
+            IsNSFW = settings.ModlistIsNSFW;
+            
             Source = settings.Source;
             DownloadLocation.TargetPath = settings.Downloads;
             OutputLocation.TargetPath = settings.OutputFile;
@@ -253,12 +262,13 @@ namespace Wabbajack
 
                     var events = Observable.FromEventPattern<StatusUpdate>(h => compiler.OnStatusUpdate += h,
                             h => compiler.OnStatusUpdate -= h)
-                        .Throttle(TimeSpan.FromSeconds(0.5))
+                        .Debounce(TimeSpan.FromSeconds(0.5))
                         .ObserveOnGuiThread()
                         .Subscribe(update =>
                         {
-                            StatusText = $"{update.EventArgs.StatusText} - {update.EventArgs.StepProgress}";
-                            StatusProgress = update.EventArgs.StepsProgress;
+                            var s = update.EventArgs;
+                            StatusText = $"[{s.StepsProgress}] {s.StatusText}";
+                            StatusProgress = s.StepProgress;
                         });
 
 
@@ -341,10 +351,20 @@ namespace Wabbajack
                     
         private CompilerSettings GetSettings()
         {
+
+            System.Version.TryParse(Version, out var pversion);
+            Uri.TryCreate(Website, UriKind.Absolute, out var websiteUri);
+            
             return new CompilerSettings
             {
                 ModListName = ModListName,
                 ModListAuthor = Author,
+                Version = pversion ?? new Version(),
+                Description = Description,
+                ModListReadme = Readme,
+                ModListImage = ModListImagePath.TargetPath,
+                ModlistIsNSFW = IsNSFW,
+                ModListWebsite = websiteUri ?? new Uri("http://www.wabbajack.org"),
                 Downloads = DownloadLocation.TargetPath,
                 Source = Source,
                 Game = BaseGame,

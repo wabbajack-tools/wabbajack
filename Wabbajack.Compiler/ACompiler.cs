@@ -118,7 +118,7 @@ public abstract class ACompiler
         _logger.LogInformation("Compiler Step: {Step}", statusText);
 
         if (OnStatusUpdate != null)
-            OnStatusUpdate(this, new StatusUpdate(statusCategory, $"[{_currentStep}/{MaxSteps}] " + statusText,
+            OnStatusUpdate(this, new StatusUpdate(statusCategory, statusText,
                 Percent.FactoryPutInRange(_currentStep, MaxSteps),
                 Percent.Zero));
     }
@@ -126,6 +126,22 @@ public abstract class ACompiler
     public void UpdateProgress(long stepProgress)
     {
         Interlocked.Add(ref _currentStepProgress, stepProgress);
+
+        lock (_updateStopWatch)
+        {
+            if (_updateStopWatch.ElapsedMilliseconds < 100) return;
+            _updateStopWatch.Restart();
+        }
+
+        if (OnStatusUpdate != null)
+            OnStatusUpdate(this, new StatusUpdate(_statusCategory, _statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
+                Percent.FactoryPutInRange(_currentStepProgress, _maxStepProgress)));
+    }
+    
+    public void UpdateProgressAbsolute(long cur, long max)
+    {
+        _currentStepProgress = cur;
+        _maxStepProgress = max;
 
         lock (_updateStopWatch)
         {
@@ -266,9 +282,10 @@ public abstract class ACompiler
 
     protected async Task CleanInvalidArchivesAndFillState()
     {
-        NextStep("Compiling", "Cleaning Invalid Archives");
+        NextStep("Compiling", "Cleaning Invalid Archives", IndexedArchives.Count);
         var remove = await IndexedArchives.PKeepAll(CompilerLimiter, async a =>
         {
+            UpdateProgress(1);
             try
             {
                 var resolved = await ResolveArchive(a);

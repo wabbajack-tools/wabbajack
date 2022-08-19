@@ -49,4 +49,9 @@ public class CesiVFSCache : IVfsCache
     {
         return;
     }
+
+    public async Task Clean()
+    {
+        return;
+    }
 }

@@ -91,7 +91,7 @@ public class Context
         return newIndex;
     }
 
-    public async Task<IndexRoot> AddRoots(List<AbsolutePath> roots, CancellationToken token)
+    public async Task<IndexRoot> AddRoots(List<AbsolutePath> roots, CancellationToken token, Func<long, long, Task>? updateFunction = null)
     {
         var native = Index.AllFiles.Where(file => file.IsNative).ToDictionary(file => file.FullPath.Base);
 
@@ -99,13 +99,17 @@ public class Context
 
         var filesToIndex = roots.SelectMany(root => root.EnumerateFiles()).ToList();
 
+        var idx = 0;
         var allFiles = await filesToIndex
             .PMapAll(async f =>
             {
+                using var job = await Limiter.Begin($"Indexing {f.FileName}", 0, token);
                 if (native.TryGetValue(f, out var found))
                     if (found.LastModified == f.LastModifiedUtc().AsUnixTime() && found.Size == f.Size())
                         return found;
-
+                Interlocked.Increment(ref idx);
+                updateFunction?.Invoke(idx, filesToIndex.Count);
+                
                 return await VirtualFile.Analyze(this, null, new NativeFileStreamFactory(f), f, token);
             }).ToList();
 
@@ -115,6 +119,8 @@ public class Context
         {
             Index = newIndex;
         }
+
+        VfsCache.Clean();
 
         return newIndex;
     }
