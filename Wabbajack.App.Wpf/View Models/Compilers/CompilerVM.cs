@@ -235,6 +235,7 @@ namespace Wabbajack
             {
                 try
                 {
+
                     await SaveSettingsFile();
                     var token = CancellationToken.None;
                     State = CompilerState.Compiling;

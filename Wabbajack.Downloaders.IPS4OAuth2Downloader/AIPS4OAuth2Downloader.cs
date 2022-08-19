@@ -163,9 +163,9 @@ public class AIPS4OAuth2Downloader<TDownloader, TLogin, TState> : ADownloader<TS
         }
     }
 
-    public override Task<bool> Prepare()
+    public override async Task<bool> Prepare()
     {
-        return Task.FromResult(true);
+        return _loginInfo.HaveToken();
     }
 
     public override bool IsAllowed(ServerAllowList allowList, IDownloadState state)

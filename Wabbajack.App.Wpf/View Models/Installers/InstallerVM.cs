@@ -15,15 +15,18 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Shell;
+using System.Windows.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Wabbajack.Common;
+using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer;
+using Wabbajack.LoginManagers;
 using Wabbajack.Messages;
 using Wabbajack.Models;
 using Wabbajack.Paths;
@@ -116,6 +119,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     private readonly ResourceMonitor _resourceMonitor;
     private readonly Services.OSIntegrated.Configuration _configuration;
     private readonly HttpClient _client;
+    private readonly DownloadDispatcher _downloadDispatcher;
+    private readonly IEnumerable<INeedsLogin> _logins;
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
 
     [Reactive]
@@ -145,7 +150,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
 
     public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
-        Wabbajack.Services.OSIntegrated.Configuration configuration, HttpClient client) : base(logger)
+        Wabbajack.Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins) : base(logger)
     {
         _logger = logger;
         _configuration = configuration;
@@ -157,6 +162,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         _gameLocator = gameLocator;
         _resourceMonitor = resourceMonitor;
         _client = client;
+        _downloadDispatcher = dispatcher;
+        _logins = logins;
         
         Installer = new MO2InstallerVM(this);
         
@@ -344,6 +351,38 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         await Task.Run(async () =>
         {
             InstallState = InstallState.Installing;
+
+            foreach (var downloader in await _downloadDispatcher.AllDownloaders(ModList.Archives.Select(a => a.State)))
+            {
+                _logger.LogInformation("Preparing {Name}", downloader.GetType().Name);
+                if (await downloader.Prepare())
+                    continue;
+
+
+                var manager = _logins
+                    .FirstOrDefault(l => l.LoginFor() == downloader.GetType());
+                if (manager == null)
+                {
+                    _logger.LogError("Cannot install, could not prepare {Name} for downloading",
+                        downloader.GetType().Name);
+                    throw new Exception($"No way to prepare {downloader}");
+                }
+
+                RxApp.MainThreadScheduler.Schedule(manager, (_, _) =>
+                {
+                    manager.TriggerLogin.Execute(null);
+                    return Disposable.Empty;
+                });
+
+                while (true)
+                {
+                    if (await downloader.Prepare())
+                        break;
+                    await Task.Delay(1000);
+                }
+            }
+            
+            
             var postfix = (await ModListLocation.TargetPath.ToString().Hash()).ToHex();
             await _settingsManager.Save(InstallSettingsPrefix + postfix, new SavedInstallSettings
             {

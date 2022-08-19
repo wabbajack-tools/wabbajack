@@ -12,9 +12,8 @@
     <Copyright>Copyright © 2019-2022</Copyright>
     <Description>An automated ModList installer</Description>
     <PublishReadyToRun>true</PublishReadyToRun>
-    <StartupObject></StartupObject>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <IncludeSymbolsInSingleFile>true</IncludeSymbolsInSingleFile>
+   <!-- <IncludeSymbolsInSingleFile>true</IncludeSymbolsInSingleFile> -->
     <AssemblyName>Wabbajack</AssemblyName>
   </PropertyGroup>
 

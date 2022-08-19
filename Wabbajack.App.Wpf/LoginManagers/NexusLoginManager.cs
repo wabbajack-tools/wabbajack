@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Wabbajack.Downloaders;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Messages;
@@ -16,7 +17,7 @@ using Wabbajack.UserIntervention;
 
 namespace Wabbajack.LoginManagers;
 
-public class NexusLoginManager : ViewModel, INeedsLogin
+public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
 {
     private readonly ILogger<NexusLoginManager> _logger;
     private readonly ITokenProvider<NexusApiState> _token;
@@ -28,7 +29,11 @@ public class NexusLoginManager : ViewModel, INeedsLogin
     public ICommand ClearLogin { get; set; }
     
     public ImageSource Icon { get; set; }
-    
+    public Type LoginFor()
+    {
+        return typeof(NexusDownloader);
+    }
+
     [Reactive]
     public bool HaveLogin { get; set; }
     

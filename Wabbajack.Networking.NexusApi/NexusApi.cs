@@ -29,7 +29,7 @@ public class NexusApi
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly IResource<HttpClient> _limiter;
     private readonly ILogger<NexusApi> _logger;
-    protected readonly ITokenProvider<NexusApiState> ApiKey;
+    public readonly ITokenProvider<NexusApiState> ApiKey;
     private DateTime _lastValidated;
     private (ValidateInfo info, ResponseMetadata header) _lastValidatedInfo; 
 

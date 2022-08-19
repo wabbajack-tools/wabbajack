@@ -1,5 +1,14 @@
 ### Changelog
 
+#### Version - 3.0.0.1 - 8/19/2020
+* Fix the utterly broken build pipeline, app actually runs now
+* Trigger login pages for sites if the user doesn't log in before installing
+
+#### Version - 3.0.0.0 - 8/18/2022
+* Completely new codebase
+* Based on WebView2, .NET 6
+* Probably lots of new bugs, please test
+
 #### Version - 2.5.3.27 - 8/7/2022
 * A few fixes for VectorPlexis and LL, you may need to log out and back in from these sites
 

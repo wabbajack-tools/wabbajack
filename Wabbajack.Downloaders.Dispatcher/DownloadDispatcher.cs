@@ -292,10 +292,9 @@ public class DownloadDispatcher
         }
     }
 
-    public async Task PrepareAll(IEnumerable<IDownloadState> downloadStates)
+    public async Task<IEnumerable<IDownloader>> AllDownloaders(IEnumerable<IDownloadState> downloadStates)
     {
-        foreach (var d in downloadStates.Select(d => Downloader(new Archive {State = d})).Distinct())
-            await d.Prepare();
+        return downloadStates.Select(d => Downloader(new Archive {State = d})).Distinct();
     }
 
     public bool Matches(Archive archive, ServerAllowList mirrorAllowList)
