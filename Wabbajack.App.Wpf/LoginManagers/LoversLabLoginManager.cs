@@ -7,11 +7,13 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
+using Wabbajack.Downloaders.IPS4OAuth2Downloader;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Messages;
@@ -20,7 +22,7 @@ using Wabbajack.UserIntervention;
 
 namespace Wabbajack.LoginManagers;
 
-public class LoversLabLoginManager : ViewModel, INeedsLogin
+public class LoversLabLoginManager : ViewModel, ILoginFor<LoversLabDownloader>
 {
     private readonly ILogger<LoversLabLoginManager> _logger;
     private readonly ITokenProvider<LoversLabLoginState> _token;
@@ -32,7 +34,11 @@ public class LoversLabLoginManager : ViewModel, INeedsLogin
     public ICommand ClearLogin { get; set; }
     
     public ImageSource Icon { get; set; }
-    
+    public Type LoginFor()
+    {
+        return typeof(LoversLabDownloader);
+    }
+
     [Reactive]
     public bool HaveLogin { get; set; }
     

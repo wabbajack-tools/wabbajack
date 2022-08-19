@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
+using Wabbajack.Downloaders.IPS4OAuth2Downloader;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Messages;
@@ -20,7 +21,7 @@ using Wabbajack.UserIntervention;
 
 namespace Wabbajack.LoginManagers;
 
-public class VectorPlexusLoginManager : ViewModel, INeedsLogin
+public class VectorPlexusLoginManager : ViewModel, ILoginFor<LoversLabDownloader>
 {
     private readonly ILogger<VectorPlexusLoginManager> _logger;
     private readonly ITokenProvider<VectorPlexusLoginState> _token;
@@ -32,7 +33,11 @@ public class VectorPlexusLoginManager : ViewModel, INeedsLogin
     public ICommand ClearLogin { get; set; }
     
     public ImageSource Icon { get; set; }
-    
+    public Type LoginFor()
+    {
+        return typeof(LoversLabDownloader);
+    }
+
     [Reactive]
     public bool HaveLogin { get; set; }
     
