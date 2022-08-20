@@ -162,7 +162,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
         var iniData = iniFile.LoadIniFile();
         var settings = iniData["Settings"];
-        settings["download_directory"] = _configuration.Downloads.ToString();
+        settings["download_directory"] = _configuration.Downloads.ToString().Replace("\\", "/");
         iniData.SaveIniFile(iniFile);
     }
 

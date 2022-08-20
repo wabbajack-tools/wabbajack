@@ -9,6 +9,8 @@ using DynamicData.Binding;
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Targets;
+using ReactiveUI;
+using Wabbajack.Extensions;
 using LogLevel = NLog.LogLevel;
 
 namespace Wabbajack.Models;
@@ -34,8 +36,14 @@ public class LogStream : TargetWithLayout
             .DisposeWith(_disposables);
         
         Messages
-            .ObserveOnGuiThread()
-            .Subscribe(m => _messageLog.AddOrUpdate(m))
+            .Subscribe(m =>
+            {
+                RxApp.MainThreadScheduler.Schedule(m, (_, message) =>
+                {
+                    _messageLog.AddOrUpdate(message);
+                    return Disposable.Empty;
+                });
+            })
             .DisposeWith(_disposables);
 
         _messages.DisposeWith(_disposables);

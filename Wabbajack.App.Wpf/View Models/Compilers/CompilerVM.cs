@@ -147,11 +147,10 @@ namespace Wabbajack
             OutputLocation = new FilePickerVM
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.Off,
-                PathType = FilePickerVM.PathTypeOptions.File,
+                PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Location where the compiled modlist will be stored"
             };
-            OutputLocation.Filters.Add(new CommonFileDialogFilter(".wabbajack", "*.wabbajack"));
-            
+
             ModlistLocation.Filters.AddRange(new []
             {
                 new CommonFileDialogFilter("MO2 Modlist", "*" + Ext.Txt),
@@ -227,6 +226,8 @@ namespace Wabbajack
             
             Source = settings.Source;
             DownloadLocation.TargetPath = settings.Downloads;
+            if (settings.OutputFile.Extension == Ext.Wabbajack)
+                settings.OutputFile = settings.OutputFile.Parent;
             OutputLocation.TargetPath = settings.OutputFile;
             SelectedProfile = settings.Profile;
             PublishUpdate = settings.PublishUpdate;
@@ -251,6 +252,9 @@ namespace Wabbajack
 
                     var mo2Settings = GetSettings();
                     mo2Settings.UseGamePaths = true;
+                    if (mo2Settings.OutputFile.DirectoryExists())
+                        mo2Settings.OutputFile = mo2Settings.OutputFile.Combine(mo2Settings.ModListName.ToRelativePath()
+                            .WithExtension(Ext.Wabbajack));
 
                     if (PublishUpdate && !await RunPreflightChecks(token))
                     {
@@ -262,8 +266,8 @@ namespace Wabbajack
 
                     var events = Observable.FromEventPattern<StatusUpdate>(h => compiler.OnStatusUpdate += h,
                             h => compiler.OnStatusUpdate -= h)
-                        .Debounce(TimeSpan.FromSeconds(0.5))
                         .ObserveOnGuiThread()
+                        .Debounce(TimeSpan.FromSeconds(0.5))
                         .Subscribe(update =>
                         {
                             var s = update.EventArgs;
@@ -302,12 +306,15 @@ namespace Wabbajack
                 }
                 catch (Exception ex)
                 {
-                    StatusText = "Compilation Failed";
-                    StatusProgress = Percent.Zero;
+                    RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+                    {
+                        StatusText = "Compilation Failed";
+                        StatusProgress = Percent.Zero;
 
-                    
-                    State = CompilerState.Errored;
-                    _logger.LogInformation(ex, "Failed Compilation : {Message}", ex.Message);
+                        State = CompilerState.Errored;
+                        _logger.LogInformation(ex, "Failed Compilation : {Message}", ex.Message);
+                        return Disposable.Empty;
+                    });
                 }
             });
 

@@ -57,7 +57,7 @@ namespace Wabbajack
 
                 CompilationComplete.GoToModlistButton.Command = ReactiveCommand.Create(() =>
                 {
-                    UIUtils.OpenFolder(ViewModel.OutputLocation.TargetPath.Parent);
+                    UIUtils.OpenFolder(ViewModel.OutputLocation.TargetPath);
                 }).DisposeWith(disposables);
 
                 ViewModel.WhenAnyValue(vm => vm.BackCommand)
@@ -169,9 +169,7 @@ namespace Wabbajack
 
                 this.Bind(ViewModel, vm => vm.MachineUrl, view => view.MachineUrl.Text)
                     .DisposeWith(disposables);
-
-                this.Bind(ViewModel, vm => vm.StatusText, view => view.TopProgressBar.Title)
-                    .DisposeWith(disposables);
+                
 
                 ViewModel.WhenAnyValue(vm => vm.StatusText)
                     .BindToStrict(this, view => view.TopProgressBar.Title)

@@ -81,6 +81,7 @@ namespace Wabbajack
                     this.WhenAny(x => x.TargetPath)
                         // Dont want to debounce the initial value, because we know it's null
                         .Skip(1)
+                        .ObserveOnGuiThread()
                         .Debounce(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
                         .StartWith(default(AbsolutePath)),
                     resultSelector: (existsOption, type, path) => (ExistsOption: existsOption, Type: type, Path: path))

@@ -1,7 +1,10 @@
 ### Changelog
 
-#### Version - 3.0.0.3 - 
+#### Version - 3.0.0.3 - 8/20/2022
 * Properly detect the program version
+* Fix how the download folder is set in MO2 during installation
+* During compilation, output location is now selected as a folder not a file
+* Fix several CTD issues inside WJ itself
 
 #### Version - 3.0.0.2 - 8/19/2022
 * Be more tolerant of bad picture Urls while validating Nexus Downloads (thanks ForgottenGlory)
