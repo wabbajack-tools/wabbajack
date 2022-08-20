@@ -130,7 +130,12 @@ namespace Wabbajack
             try
             {
                 var assembly = Assembly.GetExecutingAssembly();
-                var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+                var location = assembly.Location;
+                if (string.IsNullOrWhiteSpace(location))
+                    location = Process.GetCurrentProcess().MainModule?.FileName ?? "";
+                
+                _logger.LogInformation("App Location: {Location}", assembly.Location);
+                var fvi = FileVersionInfo.GetVersionInfo(location);
                 Consts.CurrentMinimumWabbajackVersion = Version.Parse(fvi.FileVersion);
                 VersionDisplay = $"v{fvi.FileVersion}";
                 AppName = "WABBAJACK " + VersionDisplay;

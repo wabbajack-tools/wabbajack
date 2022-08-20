@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 3.0.0.3 - 
+* Properly detect the program version
+
 #### Version - 3.0.0.2 - 8/19/2022
 * Be more tolerant of bad picture Urls while validating Nexus Downloads (thanks ForgottenGlory)
 * Fix loading and saving of several compiler fields
