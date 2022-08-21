@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
+using Wabbajack.Common;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
@@ -45,7 +46,7 @@ public class MediaFireDownloader : ADownloader<DTOs.DownloadStates.MediaFire>, I
     public override IDownloadState? Resolve(IReadOnlyDictionary<string, string> iniData)
     {
         if (iniData.ContainsKey("directURL") &&
-            Uri.TryCreate(iniData["directURL"], UriKind.Absolute, out var uri)
+            Uri.TryCreate(iniData["directURL"].CleanIniString(), UriKind.Absolute, out var uri)
             && uri.Host == "www.mediafire.com")
         {
             var state = new DTOs.DownloadStates.MediaFire

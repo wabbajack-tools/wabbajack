@@ -53,7 +53,7 @@ public class HttpDownloader : ADownloader<DTOs.DownloadStates.Http>, IUrlDownloa
 
     public override IDownloadState? Resolve(IReadOnlyDictionary<string, string> iniData)
     {
-        if (iniData.ContainsKey("directURL") && Uri.TryCreate(iniData["directURL"], UriKind.Absolute, out var uri))
+        if (iniData.ContainsKey("directURL") && Uri.TryCreate(iniData["directURL"].CleanIniString(), UriKind.Absolute, out var uri))
         {
             var state = new DTOs.DownloadStates.Http
             {

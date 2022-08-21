@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CG.Web.MegaApiClient;
 using Microsoft.Extensions.Logging;
+using Wabbajack.Common;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
@@ -45,7 +46,7 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
 
     public override IDownloadState? Resolve(IReadOnlyDictionary<string, string> iniData)
     {
-        return iniData.ContainsKey("directURL") ? GetDownloaderState(iniData["directURL"]) : null;
+        return iniData.ContainsKey("directURL") ? GetDownloaderState(iniData["directURL"].CleanIniString()) : null;
     }
 
     public override Priority Priority => Priority.Normal;

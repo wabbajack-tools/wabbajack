@@ -24,4 +24,9 @@ public static class StringExtensions
     {
         return src.Contains(contains, StringComparison.InvariantCultureIgnoreCase);
     }
+
+    public static string CleanIniString(this string src)
+    {
+        return src.TrimStart('\"').TrimEnd('\"');
+    }
 }

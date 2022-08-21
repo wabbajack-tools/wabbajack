@@ -111,7 +111,7 @@ public class BethesdaDownloader : ADownloader<DTOs.DownloadStates.Bethesda>, IUr
 
     public override IDownloadState? Resolve(IReadOnlyDictionary<string, string> iniData)
     {
-        if (iniData.ContainsKey("directURL") && Uri.TryCreate(iniData["directURL"], UriKind.Absolute, out var uri))
+        if (iniData.ContainsKey("directURL") && Uri.TryCreate(iniData["directURL"].CleanIniString(), UriKind.Absolute, out var uri))
         {
             return Parse(uri);
         }

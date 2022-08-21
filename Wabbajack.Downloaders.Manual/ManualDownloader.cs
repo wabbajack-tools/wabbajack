@@ -71,7 +71,7 @@ public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>, IProxya
 
     public override IDownloadState? Resolve(IReadOnlyDictionary<string, string> iniData)
     {
-        if (iniData.ContainsKey("manualURL") && Uri.TryCreate(iniData["manualURL"], UriKind.Absolute, out var uri))
+        if (iniData.ContainsKey("manualURL") && Uri.TryCreate(iniData["manualURL"].CleanIniString(), UriKind.Absolute, out var uri))
         {
             iniData.TryGetValue("prompt", out var prompt);
             

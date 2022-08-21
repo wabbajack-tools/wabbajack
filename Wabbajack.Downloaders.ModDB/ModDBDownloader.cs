@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
+using Wabbajack.Common;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
@@ -45,8 +46,8 @@ public class ModDBDownloader : ADownloader<DTOs.DownloadStates.ModDB>, IUrlDownl
     public override IDownloadState? Resolve(IReadOnlyDictionary<string, string> iniData)
     {
         if (iniData.ContainsKey("directURL") &&
-            iniData["directURL"].StartsWith("https://www.moddb.com/downloads/start") &&
-            Uri.TryCreate(iniData["directURL"], UriKind.Absolute, out var uri))
+            iniData["directURL"].CleanIniString().StartsWith("https://www.moddb.com/downloads/start") &&
+            Uri.TryCreate(iniData["directURL"].CleanIniString().CleanIniString(), UriKind.Absolute, out var uri))
         {
             var state = new DTOs.DownloadStates.ModDB
             {
