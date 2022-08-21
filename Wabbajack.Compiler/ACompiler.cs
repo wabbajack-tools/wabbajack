@@ -255,15 +255,17 @@ public abstract class ACompiler
                     _logger.LogInformation($"Including {files.Length} stock game files from {ag} as download sources");
                     GameHashes[ag] = files.Select(f => f.Hash).ToHashSet();
 
-                    IndexedArchives.AddRange(files.Select(f =>
+                    IndexedArchives.AddRange(files.TryKeep(f =>
                     {
                         var state = (GameFileSource) f.State;
-                        return new IndexedArchive(
-                            _vfs.Index.ByRootPath[path.Combine(state.GameFile)])
-                        {
-                            Name = state.GameFile.ToString().Replace("/", "_").Replace("\\", "_"),
-                            State = state
-                        };
+                        if (_vfs.Index.ByRootPath.TryGetValue(path.Combine(state.GameFile), out var vf)) {
+                            return (true, new IndexedArchive(vf)
+                            {
+                                Name = state.GameFile.ToString().Replace("/", "_").Replace("\\", "_"),
+                                State = state
+                            });
+                        }
+                        return default;
                     }));
                 }
                 catch (Exception e)

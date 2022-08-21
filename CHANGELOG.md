@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 3.0.0.4 - 8/20/2022
+* Fix for: when some optional game files weren't present (like CreationKit.exe), the app would refuse to recognize any files from that game
+
 #### Version - 3.0.0.3 - 8/20/2022
 * Properly detect the program version
 * Fix how the download folder is set in MO2 during installation
