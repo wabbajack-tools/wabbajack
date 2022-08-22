@@ -74,7 +74,7 @@ namespace Wabbajack
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return (AbsolutePath)(value as string);
+            return AbsolutePath.ConvertNoFailure((string) value);
         }
     }
 }

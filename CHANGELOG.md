@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version - 3.0.0.5 - 
+* No longer rehashes files on every compile
+* Editing paths in the install/compile settings won't crash the app
+* Fix for .refcache files not being ignored during compilation
+
 #### Version - 3.0.0.4 - 8/20/2022
 * Fix for: when some optional game files weren't present (like CreationKit.exe), the app would refuse to recognize any files from that game
 
