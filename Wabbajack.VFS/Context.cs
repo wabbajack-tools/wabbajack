@@ -99,11 +99,11 @@ public class Context
     /// <param name="files">Predefined list of files to extract, all others will be skipped</param>
     /// <param name="callback">Func called for each file extracted</param>
     /// <param name="tempFolder">Optional: folder to use for temporary storage</param>
-    /// <param name="updateTracker">Optional: Status update tracker</param>
+    /// <param name="runInParallel">Optional: run `callback`s in parallel</param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
     public async Task Extract(HashSet<VirtualFile> files, Func<VirtualFile, IExtractedFile, ValueTask> callback,
-        CancellationToken token, AbsolutePath? tempFolder = null)
+        CancellationToken token, AbsolutePath? tempFolder = null, bool runInParallel = true)
     {
         var top = new VirtualFile();
         var filesByParent = files.SelectMany(f => f.FilesInFullPath)
@@ -144,8 +144,18 @@ public class Context
             }
         }
 
-        await filesByParent[top].PDoAll(
-            async file => await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName) {CanMove = false}));
+        if (runInParallel)
+        {
+            await filesByParent[top].PDoAll(
+                async file => await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName) {CanMove = false}));
+        }
+        else
+        {
+            foreach (var file in filesByParent[top])
+            {
+                await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName) {CanMove = false});
+            }
+        }
     }
 
     #region KnownFiles

@@ -278,7 +278,9 @@ namespace Wabbajack
 
                     try
                     {
-                        await compiler.Begin(token);
+                        var result = await compiler.Begin(token);
+                        if (!result)
+                            throw new Exception("Compilation Failed");
                     }
                     finally
                     {
