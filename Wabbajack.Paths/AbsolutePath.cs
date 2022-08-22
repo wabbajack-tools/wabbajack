@@ -95,8 +95,10 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
     public override int GetHashCode()
     {
         if (_hashCode != 0) return _hashCode;
-        _hashCode = Parts.Aggregate(0,
-            (current, part) => current ^ part.GetHashCode(StringComparison.CurrentCultureIgnoreCase));
+        var result = 0;
+        foreach (var part in Parts) 
+            result = result ^ part.GetHashCode(StringComparison.CurrentCultureIgnoreCase);
+        _hashCode = result;
         return _hashCode;
     }
 

@@ -175,7 +175,7 @@ public struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<Relati
     public RelativePath FileNameWithoutExtension => Parts[^1][..Extension.ToString().Length].ToRelativePath();
     public int Level => Parts.Length;
 
-    public bool EndsWith(string postfix)
+    public readonly bool EndsWith(string postfix)
     {
         return Parts[^1].EndsWith(postfix);
     }

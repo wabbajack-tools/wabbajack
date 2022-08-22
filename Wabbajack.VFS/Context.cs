@@ -55,43 +55,10 @@ public class Context
 
     public async Task<IndexRoot> AddRoot(AbsolutePath root, CancellationToken token)
     {
-        var filtered = Index.AllFiles.Where(file => file.IsNative && ((AbsolutePath) file.Name).FileExists())
-            .ToList();
-
-        var byPath = filtered.ToDictionary(f => f.Name);
-
-        var filesToIndex = root.EnumerateFiles().Distinct().ToList();
-
-        var allFiles = await filesToIndex
-            .PMapAll(async f =>
-            {
-                using var job = await Limiter.Begin($"Analyzing {f}", 0, token);
-                if (byPath.TryGetValue(f, out var found))
-                    if (found.LastModified == f.LastModifiedUtc().AsUnixTime() && found.Size == f.Size())
-                        return found;
-
-                try
-                {
-                    return await VirtualFile.Analyze(this, null, new NativeFileStreamFactory(f), f, token, job: job);
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex, "While analyzing {File}", f);
-                    throw;
-                }
-            }).ToList();
-
-        var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
-
-        lock (this)
-        {
-            Index = newIndex;
-        }
-
-        return newIndex;
+        return await AddRoots(new[] {root}, token);
     }
 
-    public async Task<IndexRoot> AddRoots(List<AbsolutePath> roots, CancellationToken token, Func<long, long, Task>? updateFunction = null)
+    public async Task<IndexRoot> AddRoots(IEnumerable<AbsolutePath> roots, CancellationToken token, Func<long, long, Task>? updateFunction = null)
     {
         var native = Index.AllFiles.Where(file => file.IsNative).ToDictionary(file => file.FullPath.Base);
 
@@ -120,7 +87,7 @@ public class Context
             Index = newIndex;
         }
 
-        VfsCache.Clean();
+        await VfsCache.Clean();
 
         return newIndex;
     }
