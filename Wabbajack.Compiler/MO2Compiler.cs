@@ -77,15 +77,11 @@ public class MO2Compiler : ACompiler
 
         var roots = new List<AbsolutePath> {Settings.Source, Settings.Downloads};
         roots.AddRange(Settings.OtherGames.Append(Settings.Game).Select(g => _locator.GameLocation(g)));
+        roots.Add(Settings.Downloads);
 
         NextStep("Initializing", "Add Roots");
         await _vfs.AddRoots(roots, token, async (cur, max) => UpdateProgressAbsolute(cur, max)); // Step 1
-
-        //await InferMetas(token); // Step 2
-
-        NextStep("Initializing", "Add Download Roots");
-        await _vfs.AddRoot(Settings.Downloads, token); // Step 3
-
+        
         // Find all Downloads
         IndexedArchives = await Settings.Downloads.EnumerateFiles()
             .Where(f => f.WithExtension(Ext.Meta).FileExists())
@@ -103,7 +99,7 @@ public class MO2Compiler : ACompiler
 
         await CleanInvalidArchivesAndFillState();
 
-
+        NextStep("Initializing", "Indexing Data");
         var mo2Files = Settings.Source.EnumerateFiles()
             .Where(p => p.FileExists())
             .Select(p => new RawSourceFile(_vfs.Index.ByRootPath[p], p.RelativeTo(Settings.Source)));
@@ -164,6 +160,7 @@ public class MO2Compiler : ACompiler
 
         InstallDirectives = results.Where(i => i is not IgnoredDirectly).ToList();
 
+        NextStep("Compiling", "Verifying zEdit Merges (if any)");
         zEditIntegration.VerifyMerges(this);
 
         await BuildPatches(token);
@@ -242,6 +239,7 @@ public class MO2Compiler : ACompiler
     /// <returns></returns>
     public override IEnumerable<ICompilationStep> MakeStack()
     {
+        NextStep("Initialization", "Generating Compilation Stack");
         _logger.LogInformation("Generating compilation stack");
         var steps = new List<ICompilationStep>
         {
