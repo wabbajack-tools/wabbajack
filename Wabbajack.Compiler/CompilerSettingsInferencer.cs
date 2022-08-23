@@ -67,14 +67,14 @@ public class CompilerSettingsInferencer
                 cs.Include = Array.Empty<RelativePath>();
                 foreach (var file in mo2Folder.EnumerateFiles())
                 {
-                    if (file.FileName == Consts.WABBAJACK_NOMATCH_INCLUDE_FILES)
-                        cs.NoMatchInclude = cs.NoMatchInclude.Add(file.Parent.RelativeTo(mo2Folder));
-
                     if (file.FileName.WithoutExtension().ToString() == Consts.WABBAJACK_INCLUDE)
                         cs.Include = cs.Include.Add(file.Parent.RelativeTo(mo2Folder));
                     
                     if (file.FileName.WithoutExtension().ToString() == Consts.WABBAJACK_NOMATCH_INCLUDE)
                         cs.NoMatchInclude = cs.NoMatchInclude.Add(file.Parent.RelativeTo(mo2Folder));
+                    
+                    if (file.FileName.WithoutExtension().ToString() == Consts.WABBAJACK_IGNORE)
+                        cs.Ignore = cs.Ignore.Add(file.Parent.RelativeTo(mo2Folder));
                 }
 
                 _logger.LogInformation("Finding Always Enabled mods");
@@ -99,6 +99,10 @@ public class CompilerSettingsInferencer
                     if ((generalModData["notes"]?.Contains(Consts.WABBAJACK_INCLUDE) ?? false) ||
                         (generalModData["comments"]?.Contains(Consts.WABBAJACK_INCLUDE) ?? false))
                         cs.Include = cs.Include.Append(modFolder.RelativeTo(mo2Folder)).ToArray();
+                    
+                    if ((generalModData["notes"]?.Contains(Consts.WABBAJACK_IGNORE) ?? false) ||
+                        (generalModData["comments"]?.Contains(Consts.WABBAJACK_IGNORE) ?? false))
+                        cs.Ignore = cs.Ignore.Append(modFolder.RelativeTo(mo2Folder)).ToArray();
                 }
 
                 _logger.LogInformation("Finding other profiles");

@@ -246,6 +246,7 @@ public class MO2Compiler : ACompiler
             new IgnoreGameFilesIfGameFolderFilesExist(this),
             //new IncludeSteamWorkshopItems(this),
             new IgnoreSaveFiles(this),
+            new IgnoreTaggedFiles(this, Settings.Ignore),
             new IgnoreInPath(this, "logs".ToRelativePath()),
             new IgnoreInPath(this, "downloads".ToRelativePath()),
             new IgnoreInPath(this, "webcache".ToRelativePath()),

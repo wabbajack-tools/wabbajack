@@ -24,9 +24,9 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
             FontSize="14"
-            Text="Modlist Location"
+            Text="Compiler Settings"
             TextAlignment="Center"
-            ToolTip="The MO2 modlist.txt file you want to use as your source" />
+            ToolTip=".compiler_settings file, or select a modlist.txt to auto-detect the compiler settings" />
         <local:FilePicker 
             x:Name="ModListLocation"
             Grid.Row="0" Grid.Column="2"
