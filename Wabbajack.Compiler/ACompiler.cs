@@ -447,6 +447,8 @@ public abstract class ACompiler
     /// </summary>
     protected async Task BuildPatches(CancellationToken token)
     {
+     
+        NextStep("Compiling","Looking for patches");   
         var toBuild = InstallDirectives.OfType<PatchedFromArchive>()
             .Where(p => _patchOptions.GetValueOrDefault(p, Array.Empty<VirtualFile>()).Length > 0)
             .SelectMany(p => _patchOptions[p].Select(c => new PatchedFromArchive
@@ -487,7 +489,7 @@ public abstract class ACompiler
                             _logger.LogInformation("Patch size {patchSize} for {to}", patchSize, match.To);
                         }, token);
                 }
-            }, token);
+            }, token, runInParallel: false);
 
         // Load in the patches
         await InstallDirectives.OfType<PatchedFromArchive>()

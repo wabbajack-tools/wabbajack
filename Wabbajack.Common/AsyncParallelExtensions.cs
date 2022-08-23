@@ -29,7 +29,10 @@ public static class AsyncParallelExtensions
     public static async IAsyncEnumerable<TOut> PMapAll<TIn, TOut>(this IEnumerable<TIn> coll,
         Func<TIn, Task<TOut>> mapFn)
     {
-        var tasks = coll.Select(mapFn).ToList();
+        var tasks = coll.Select(async x =>
+        {
+            return await Task.Run(() => mapFn(x));
+        }).ToList();
         foreach (var itm in tasks) yield return await itm;
     }
     

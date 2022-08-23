@@ -50,8 +50,8 @@ public class VFSDiskCache : IVfsCache
         cmd.CommandText = @"SELECT Contents FROM VFSCache WHERE Hash = @hash";
         cmd.Parameters.AddWithValue("@hash", (long) hash);
 
-        await using var rdr = cmd.ExecuteReader();
-        while (rdr.Read())
+        await using var rdr = await cmd.ExecuteReaderAsync(token);
+        while (await rdr.ReadAsync(token))
         {
             var data = IndexedVirtualFileExtensions.Read(rdr.GetStream(0));
             return data;

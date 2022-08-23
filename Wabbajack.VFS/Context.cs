@@ -55,43 +55,10 @@ public class Context
 
     public async Task<IndexRoot> AddRoot(AbsolutePath root, CancellationToken token)
     {
-        var filtered = Index.AllFiles.Where(file => file.IsNative && ((AbsolutePath) file.Name).FileExists())
-            .ToList();
-
-        var byPath = filtered.ToDictionary(f => f.Name);
-
-        var filesToIndex = root.EnumerateFiles().Distinct().ToList();
-
-        var allFiles = await filesToIndex
-            .PMapAll(async f =>
-            {
-                using var job = await Limiter.Begin($"Analyzing {f}", 0, token);
-                if (byPath.TryGetValue(f, out var found))
-                    if (found.LastModified == f.LastModifiedUtc().AsUnixTime() && found.Size == f.Size())
-                        return found;
-
-                try
-                {
-                    return await VirtualFile.Analyze(this, null, new NativeFileStreamFactory(f), f, token, job: job);
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex, "While analyzing {File}", f);
-                    throw;
-                }
-            }).ToList();
-
-        var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
-
-        lock (this)
-        {
-            Index = newIndex;
-        }
-
-        return newIndex;
+        return await AddRoots(new[] {root}, token);
     }
 
-    public async Task<IndexRoot> AddRoots(List<AbsolutePath> roots, CancellationToken token, Func<long, long, Task>? updateFunction = null)
+    public async Task<IndexRoot> AddRoots(IEnumerable<AbsolutePath> roots, CancellationToken token, Func<long, long, Task>? updateFunction = null)
     {
         var native = Index.AllFiles.Where(file => file.IsNative).ToDictionary(file => file.FullPath.Base);
 
@@ -120,7 +87,7 @@ public class Context
             Index = newIndex;
         }
 
-        VfsCache.Clean();
+        await VfsCache.Clean();
 
         return newIndex;
     }
@@ -132,11 +99,11 @@ public class Context
     /// <param name="files">Predefined list of files to extract, all others will be skipped</param>
     /// <param name="callback">Func called for each file extracted</param>
     /// <param name="tempFolder">Optional: folder to use for temporary storage</param>
-    /// <param name="updateTracker">Optional: Status update tracker</param>
+    /// <param name="runInParallel">Optional: run `callback`s in parallel</param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
     public async Task Extract(HashSet<VirtualFile> files, Func<VirtualFile, IExtractedFile, ValueTask> callback,
-        CancellationToken token, AbsolutePath? tempFolder = null)
+        CancellationToken token, AbsolutePath? tempFolder = null, bool runInParallel = true)
     {
         var top = new VirtualFile();
         var filesByParent = files.SelectMany(f => f.FilesInFullPath)
@@ -177,8 +144,18 @@ public class Context
             }
         }
 
-        await filesByParent[top].PDoAll(
-            async file => await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName) {CanMove = false}));
+        if (runInParallel)
+        {
+            await filesByParent[top].PDoAll(
+                async file => await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName) {CanMove = false}));
+        }
+        else
+        {
+            foreach (var file in filesByParent[top])
+            {
+                await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName) {CanMove = false});
+            }
+        }
     }
 
     #region KnownFiles

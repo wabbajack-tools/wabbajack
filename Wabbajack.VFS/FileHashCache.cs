@@ -43,7 +43,7 @@ public class FileHashCache
     {
         using var cmd = new SQLiteCommand(_conn);
         cmd.CommandText = "SELECT LastModified, Hash FROM HashCache WHERE Path = @path";
-        cmd.Parameters.AddWithValue("@path", path.ToString());
+        cmd.Parameters.AddWithValue("@path", path.ToString().ToLowerInvariant());
         cmd.PrepareAsync();
 
         using var reader = cmd.ExecuteReader();
@@ -56,7 +56,7 @@ public class FileHashCache
     {
         using var cmd = new SQLiteCommand(_conn);
         cmd.CommandText = "DELETE FROM HashCache WHERE Path = @path";
-        cmd.Parameters.AddWithValue("@path", path.ToString());
+        cmd.Parameters.AddWithValue("@path", path.ToString().ToLowerInvariant());
         cmd.PrepareAsync();
 
         cmd.ExecuteNonQuery();
@@ -67,7 +67,7 @@ public class FileHashCache
         using var cmd = new SQLiteCommand(_conn);
         cmd.CommandText = @"INSERT INTO HashCache (Path, LastModified, Hash) VALUES (@path, @lastModified, @hash)
             ON CONFLICT(Path) DO UPDATE SET LastModified = @lastModified, Hash = @hash";
-        cmd.Parameters.AddWithValue("@path", path.ToString());
+        cmd.Parameters.AddWithValue("@path", path.ToString().ToLowerInvariant());
         cmd.Parameters.AddWithValue("@lastModified", lastModified);
         cmd.Parameters.AddWithValue("@hash", (long) hash);
         cmd.PrepareAsync();
