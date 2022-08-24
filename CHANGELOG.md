@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 3.0.0.6 - 8/22/2022
+#### Version - 3.0.0.6 - 8/23/2022
 * Upgrade several dependency libraries
 * Provide a better error message when someone attempts to compile before logging into the Nexus (or installing a list)
 * Add `Ignore` as another compiler option
