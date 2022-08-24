@@ -1,12 +1,11 @@
 ### Changelog
 
-#### Version - 3.0.0.6 -
+#### Version - 3.0.0.6 - 8/22/2022
 * Upgrade several dependency libraries
 * Provide a better error message when someone attempts to compile before logging into the Nexus (or installing a list)
 * Add `Ignore` as another compiler option
 * Add button to re-infer compiler settings
 * Show `Selected MO2 Profile` in the compiler settings
-
 
 #### Version - 3.0.0.5 - 8/22/2022
 * No longer rehashes files on every compile (faster Add Roots step during compilation)

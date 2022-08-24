@@ -616,7 +616,7 @@ public abstract class ACompiler
         token.CancelAfter(_settings.MaxVerificationTime);
         if (!await _dispatcher.Verify(result, token.Token))
             _logger.LogWarning(
-                "Unable to resolve link for {Archive}. If this is hosted on the Nexus the file may have been removed.",
+                "Unable to resolve link for {Archive}. If this is hosted on the Nexus the file may have been removed",
                 result.State!.PrimaryKeyString);
 
         result.Meta = "[General]\n" + string.Join("\n", _dispatcher.MetaIni(result));
