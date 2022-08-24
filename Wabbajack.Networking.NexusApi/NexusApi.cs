@@ -174,11 +174,16 @@ public class NexusApi
         var userAgent =
             $"{_appInfo.ApplicationSlug}/{_appInfo.Version} ({_appInfo.OSVersion}; {_appInfo.Platform})";
 
+        if (!ApiKey.HaveToken())
+            throw new Exception("Please log into the Nexus before attempting to use Wabbajack");
+        
+        var token = (await ApiKey.Get())!;
+
         msg.RequestUri = new Uri($"https://api.nexusmods.com/{string.Format(uri, parameters)}");
         msg.Headers.Add("User-Agent", userAgent);
         msg.Headers.Add("Application-Name", _appInfo.ApplicationSlug);
         msg.Headers.Add("Application-Version", _appInfo.Version);
-        msg.Headers.Add("apikey", (await ApiKey.Get())!.ApiKey);
+        msg.Headers.Add("apikey", token.ApiKey);
         msg.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         return msg;
     }

@@ -26,8 +26,6 @@ public class Consts
     public static string WABBAJACK_ALWAYS_DISABLE = "WABBAJACK_ALWAYS_DISABLE";
     public static string WABBAJACK_NOMATCH_INCLUDE = "WABBAJACK_NOMATCH_INCLUDE";
     public static string WABBAJACK_IGNORE = "WABBAJACK_IGNORE";
-    public static RelativePath WABBAJACK_NOMATCH_INCLUDE_FILES = "WABBAJACK_NOMATCH_INCLUDE_FILES.txt".ToRelativePath();
-    public static string WABBAJACK_IGNORE_FILES = "WABBAJACK_IGNORE_FILES.txt";
     public static string WABBAJACK_INCLUDE_SAVES = "WABBAJACK_INCLUDE_SAVES";
 
     public static readonly HashSet<Extension> SupportedBSAs = new[] {".bsa", ".ba2"}

@@ -78,6 +78,10 @@ namespace Wabbajack
                     .BindToStrict(this, view => view.BackButton.Command)
                     .DisposeWith(disposables);
                 
+                ViewModel.WhenAnyValue(vm => vm.ReInferSettingsCommand)
+                    .BindToStrict(this, view => view.ReInferSettings.Command)
+                    .DisposeWith(disposables);
+                
                 ViewModel.WhenAnyValue(vm => vm.State)
                     .Select(v => v == CompilerState.Configuration ? Visibility.Visible : Visibility.Collapsed)
                     .BindToStrict(this, view => view.BottomCompilerSettingsGrid.Visibility)
@@ -140,6 +144,9 @@ namespace Wabbajack
                 // Settings 
                 
                 this.Bind(ViewModel, vm => vm.ModListName, view => view.ModListNameSetting.Text)
+                    .DisposeWith(disposables);
+                
+                this.Bind(ViewModel, vm => vm.SelectedProfile, view => view.SelectedProfile.Text)
                     .DisposeWith(disposables);
                 
                 this.Bind(ViewModel, vm => vm.Author, view => view.AuthorNameSetting.Text)
@@ -212,6 +219,14 @@ namespace Wabbajack
                     .DisposeWith(disposables);
 
                 AddInclude.Command = ReactiveCommand.CreateFromTask(async () => await AddIncludeCommand());
+                
+                ViewModel.WhenAnyValue(vm => vm.Ignore)
+                    .WhereNotNull()
+                    .Select(itms => itms.Select(itm => new RemovableItemViewModel(itm.ToString(), () => ViewModel.RemoveIgnore(itm))).ToArray())
+                    .BindToStrict(this, view => view.Ignore.ItemsSource)
+                    .DisposeWith(disposables);
+
+                AddIgnore.Command = ReactiveCommand.CreateFromTask(async () => await AddIgnoreCommand());
 
 
             });
@@ -322,7 +337,7 @@ namespace Wabbajack
         {
             var dlg = new CommonOpenFileDialog
             {
-                Title = "Please select a",
+                Title = "Please select a file to include",
                 IsFolderPicker = true,
                 InitialDirectory = ViewModel!.Source.ToString(),
                 AddToMostRecentlyUsedList = false,
@@ -342,6 +357,32 @@ namespace Wabbajack
             if (!selectedPath.InFolder(ViewModel.Source)) return;
             
             ViewModel.AddInclude(selectedPath.RelativeTo(ViewModel!.Source));
+        }
+        
+        public async Task AddIgnoreCommand()
+        {
+            var dlg = new CommonOpenFileDialog
+            {
+                Title = "Please select a file to ignore",
+                IsFolderPicker = true,
+                InitialDirectory = ViewModel!.Source.ToString(),
+                AddToMostRecentlyUsedList = false,
+                AllowNonFileSystemItems = false,
+                DefaultDirectory = ViewModel!.Source.ToString(),
+                EnsureFileExists = true,
+                EnsurePathExists = true,
+                EnsureReadOnly = false,
+                EnsureValidNames = true,
+                Multiselect = false,
+                ShowPlacesList = true,
+            };
+
+            if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
+            var selectedPath = dlg.FileNames.First().ToAbsolutePath();
+
+            if (!selectedPath.InFolder(ViewModel.Source)) return;
+            
+            ViewModel.AddIgnore(selectedPath.RelativeTo(ViewModel!.Source));
         }
     }
 }

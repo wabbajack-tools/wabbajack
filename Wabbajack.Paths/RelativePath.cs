@@ -68,7 +68,7 @@ public struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<Relati
         return new AbsolutePath(newArray, basePath.PathFormat);
     }
 
-    public bool InFolder(RelativePath parent)
+    public readonly bool InFolder(RelativePath parent)
     {
         return ArrayExtensions.AreEqualIgnoreCase(parent.Parts, 0, Parts, 0, parent.Parts.Length);
     }

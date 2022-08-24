@@ -87,6 +87,7 @@ namespace Wabbajack
         [Reactive] public RelativePath[] AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
         [Reactive] public RelativePath[] NoMatchInclude { get; set; } = Array.Empty<RelativePath>();
         [Reactive] public RelativePath[] Include { get; set; } = Array.Empty<RelativePath>();
+        [Reactive] public RelativePath[] Ignore { get; set; } = Array.Empty<RelativePath>();
         
         [Reactive] public string[] OtherProfiles { get; set; } = Array.Empty<string>();
         
@@ -96,6 +97,7 @@ namespace Wabbajack
         
         
         public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
+        public ReactiveCommand<Unit, Unit> ReInferSettingsCommand { get; set; }
 
         public LogStream LoggerProvider { get; }
         public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
@@ -129,6 +131,14 @@ namespace Wabbajack
             SubCompilerVM = new MO2CompilerVM(this);
 
             ExecuteCommand = ReactiveCommand.CreateFromTask(async () => await StartCompilation());
+            ReInferSettingsCommand = ReactiveCommand.CreateFromTask(async () => await ReInferSettings(),
+                this.WhenAnyValue(vm => vm.Source)
+                    .ObserveOnGuiThread()
+                    .Select(v => v != default)
+                    .CombineLatest(this.WhenAnyValue(vm => vm.ModListName)
+                        .ObserveOnGuiThread()
+                        .Select(p => !string.IsNullOrWhiteSpace(p)))
+                    .Select(v => v.First && v.Second));
 
             ModlistLocation = new FilePickerVM
             {
@@ -184,6 +194,26 @@ namespace Wabbajack
             });
         }
 
+
+
+        private async Task ReInferSettings()
+        {
+            var newSettings = await _inferencer.InferModListFromLocation(
+                Source.Combine("profiles", SelectedProfile, "modlist.txt"));
+
+            if (newSettings == null)
+            {
+                _logger.LogError("Cannot infer settings");
+                return;
+            }
+            
+            Include = newSettings.Include;
+            Ignore = newSettings.Ignore;
+            AlwaysEnabled = newSettings.AlwaysEnabled;
+            NoMatchInclude = newSettings.NoMatchInclude;
+            OtherProfiles = newSettings.AdditionalProfiles;
+        }
+
         private ErrorResponse Validate()
         {
             var errors = new List<ErrorResponse>();
@@ -236,6 +266,7 @@ namespace Wabbajack
             AlwaysEnabled = settings.AlwaysEnabled;
             NoMatchInclude = settings.NoMatchInclude;
             Include = settings.Include;
+            Ignore = settings.Ignore;
         }
 
 
@@ -385,7 +416,8 @@ namespace Wabbajack
                 AlwaysEnabled = AlwaysEnabled,
                 AdditionalProfiles = OtherProfiles,
                 NoMatchInclude = NoMatchInclude,
-                Include = Include
+                Include = Include,
+                Ignore = Ignore
             };
         }
 
@@ -429,6 +461,17 @@ namespace Wabbajack
         public void RemoveInclude(RelativePath path)
         {
             Include = Include.Where(p => p != path).ToArray();
+        }
+
+        
+        public void AddIgnore(RelativePath path)
+        {
+            Ignore = (Ignore ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
+        }
+
+        public void RemoveIgnore(RelativePath path)
+        {
+            Ignore = Ignore.Where(p => p != path).ToArray();
         }
 
         #endregion

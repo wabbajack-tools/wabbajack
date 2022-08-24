@@ -60,6 +60,11 @@ public class CompilerSettings
     ///     These files are inlined into the modlist
     /// </summary>
     public RelativePath[] Include { get; set; } = Array.Empty<RelativePath>();
+    
+    /// <summary>
+    ///     These files are inlined into the modlist
+    /// </summary>
+    public RelativePath[] Ignore { get; set; } = Array.Empty<RelativePath>();
 
     public RelativePath[] AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
     public Version Version { get; set; }
