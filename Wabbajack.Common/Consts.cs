@@ -34,7 +34,7 @@ namespace Wabbajack.Common
         public static readonly HashSet<Extension> SupportedBSAs = new[] {".bsa", ".ba2"}
             .Select(s => new Extension(s)).ToHashSet();
 
-        public static HashSet<Extension> ConfigFileExtensions = new[]{".json", ".ini", ".yml", ".xml"}.Select(s => new Extension(s)).ToHashSet();
+        public static HashSet<Extension> ConfigFileExtensions = new[]{".json", ".ini", ".yml", ".xml", ".compiler_settings"}.Select(s => new Extension(s)).ToHashSet();
         public static HashSet<Extension> ESPFileExtensions = new []{ ".esp", ".esm", ".esl"}.Select(s => new Extension(s)).ToHashSet();
         public static HashSet<Extension> AssetFileExtensions = new[] {".dds", ".tga", ".nif", ".psc", ".pex"}.Select(s => new Extension(s)).ToHashSet();
         

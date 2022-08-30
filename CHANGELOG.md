@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.5.3.28 - 8/30/2022
+* Auto-inline `.compiler_settings` files during compilation
+
 #### Version - 2.5.3.27 - 8/7/2022
 * A few fixes for VectorPlexis and LL, you may need to log out and back in from these sites
 
