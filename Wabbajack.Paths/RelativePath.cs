@@ -5,13 +5,18 @@ namespace Wabbajack.Paths;
 
 public struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<RelativePath>
 {
-    internal readonly string[] Parts;
+    public readonly string[] Parts;
 
     private int _hashCode = 0;
 
     internal RelativePath(string[] parts)
     {
         Parts = parts;
+    }
+
+    public static RelativePath FromParts(string[] parts)
+    {
+        return new RelativePath(parts);
     }
 
     public static explicit operator RelativePath(string i)

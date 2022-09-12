@@ -89,6 +89,7 @@ public struct DDS_HEADER
         return 9 * 4 + PixelFormat.GetSize() + 14 * 4;
     }
 
+
     public void Write(BinaryWriter bw)
     {
         bw.Write(dwSize);

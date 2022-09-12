@@ -36,4 +36,9 @@
         <ProjectReference Include="..\Wabbajack.VFS\Wabbajack.VFS.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Resources\ModlistReport.html" />
+      <EmbeddedResource Include="Resources\ModlistReport.html" />
+    </ItemGroup>
+
 </Project>
