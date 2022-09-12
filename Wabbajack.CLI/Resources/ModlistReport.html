@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Modlist Report for {{$.Name}}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.css">
+    <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap4.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/plug-ins/1.12.1/sorting/file-size.js"></script>
+
+</head>
+<body>
+
+<div class="ml-2" style="width: 90%">
+    <h2>Modlist Report ({{$.WabbajackSize}} compressed)</h2>
+
+    <h3>Inlined Data ({{$.TotalInlinedSize}}) </h3>
+    <table id="inlined-data" class="table table-striped table-bordered" style="width:100%">
+        <thead>
+        <tr>
+            <th>To</th>
+            <th>Id</th>
+            <th>Size</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{each $.InlinedData}}
+        <tr>
+            <td>{{$.To}}</td>
+            <td>{{$.Id}}</td>
+            <td>{{$.Size}}</td>
+        </tr>
+        {{/each}}
+        </tbody>
+    </table>
+
+    <h3>Patch Data ({{$.TotalPatchSize}}) </h3>
+    <table id="patch-data" class="table table-striped table-bordered" style="width:100%">
+        <thead>
+        <tr>
+            <th>From</th>
+            <th>To</th>
+            <th>Id</th>
+            <th>Patch Size</th>
+            <th>Final Size</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{each $.PatchData}}
+        <tr>
+            <td>{{$.From}}</td>
+            <td>{{$.To}}</td>
+            <td>{{$.Id}}</td>
+            <td>{{$.PatchSize}}</td>
+            <td>{{$.FinalSize}}</td>
+        </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(document).ready( function () {
+        $("#inlined-data").DataTable({
+            columnDefs: [
+                { type: 'file-size', targets: 2},
+            ]
+        });
+    } );
+
+    $(document).ready( function () {
+        $("#patch-data").DataTable({
+            columnDefs: [
+                { type: 'file-size', targets: 3},
+                { type: 'file-size', targets: 4},
+            ]
+        });
+    } );
+</script>
+</body>
+</html>

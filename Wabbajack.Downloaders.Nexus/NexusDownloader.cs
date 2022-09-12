@@ -99,7 +99,10 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
     {
         if (iniData.TryGetValue("gameName", out var gameName) &&
             iniData.TryGetValue("modID", out var modId) &&
-            iniData.TryGetValue("fileID", out var fileId))
+            iniData.TryGetValue("fileID", out var fileId) &&
+            !string.IsNullOrWhiteSpace(gameName) &&
+            !string.IsNullOrWhiteSpace(modId) &&
+            !string.IsNullOrWhiteSpace(fileId))
             return new Nexus
             {
                 Game = GameRegistry.GetByMO2ArchiveName(gameName)!.Game,

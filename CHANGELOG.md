@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 3.0.0.7 - 9/12/2022
+* Fix Dragons' Dogma MO2 archive names
+* Add Modlist Report for CLI
+
 #### Version - 3.0.0.6 - 8/23/2022
 * Upgrade several dependency libraries
 * Provide a better error message when someone attempts to compile before logging into the Nexus (or installing a list)
@@ -36,6 +40,9 @@
 * Completely new codebase
 * Based on WebView2, .NET 6
 * Probably lots of new bugs, please test
+
+#### Version - 2.5.3.28 - 8/30/2022
+* Auto-inline `.compiler_settings` files during compilation
 
 #### Version - 2.5.3.27 - 8/7/2022
 * A few fixes for VectorPlexis and LL, you may need to log out and back in from these sites

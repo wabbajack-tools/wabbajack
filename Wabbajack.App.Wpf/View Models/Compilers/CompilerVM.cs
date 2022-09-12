@@ -267,6 +267,11 @@ namespace Wabbajack
             NoMatchInclude = settings.NoMatchInclude;
             Include = settings.Include;
             Ignore = settings.Ignore;
+            if (path.FileName == "modlist.txt".ToRelativePath())
+            {
+                await SaveSettingsFile();
+                await LoadLastSavedSettings();
+            }
         }
 
 
