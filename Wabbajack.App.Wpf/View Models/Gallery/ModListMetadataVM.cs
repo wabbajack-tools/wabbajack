@@ -136,7 +136,9 @@ namespace Wabbajack
                 {
                     await Download();
                 }
-            }, LoadingLock.WhenAnyValue(ll => ll.IsLoading).Select(v => !v));
+            }, LoadingLock.WhenAnyValue(ll => ll.IsLoading)
+                .CombineLatest(this.WhenAnyValue(vm => vm.IsBroken))
+                .Select(v => !v.First && !v.Second));
 
             _Exists = Observable.Interval(TimeSpan.FromSeconds(0.5))
                 .Unit()
