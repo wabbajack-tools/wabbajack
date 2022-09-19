@@ -17,6 +17,7 @@ using Wabbajack.Models;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.UserIntervention;
 using Wabbajack.Util;
+using WebView2.Runtime.AutoInstaller;
 
 namespace Wabbajack
 {
@@ -30,6 +31,8 @@ namespace Wabbajack
 
         public App()
         {
+            WebView2AutoInstaller.CheckAndInstallAsync(false, false).Wait();
+            
             RxApp.MainThreadScheduler = new DispatcherScheduler(Dispatcher.CurrentDispatcher);
             _host = Host.CreateDefaultBuilder(Array.Empty<string>())
                 .ConfigureLogging(AddLogging)

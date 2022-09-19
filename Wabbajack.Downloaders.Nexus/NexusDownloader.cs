@@ -134,6 +134,7 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
             }
             catch (HttpRequestException ex)
             {
+                _logger.LogError(ex, "While downloading from the Nexus {Message}", ex.Message);
                 if (ex.StatusCode == HttpStatusCode.Forbidden)
                 {
                     return await DownloadManually(archive, state, destination, job, token);

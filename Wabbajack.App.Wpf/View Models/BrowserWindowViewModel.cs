@@ -28,7 +28,7 @@ public abstract class BrowserWindowViewModel : ViewModel
 
     public BrowserWindow? Browser { get; set; }
 
-    private WebView2 _browser => Browser!.Browser;
+    private Microsoft.Web.WebView2.Wpf.WebView2 _browser => Browser!.Browser;
 
     public async Task RunWrapper(CancellationToken token)
     {

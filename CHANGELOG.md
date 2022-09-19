@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version - 3.0.1.1 - 9/19/2022
+* Auto install WebView2 if Windows doesn't already have it installed
+* Save settings before exiting the app
+* Add more logging to the launcher
+
 #### Version - 3.0.1.0 - 9/19/2022
 * Official release of the 3.0 codebase
 

@@ -220,6 +220,12 @@ public class MainWindowViewModel : ViewModelBase
                     Version.TryParse(v.FileName.ToString(), out var ver) ? ver : new Version(0, 0, 0, 0))
                 .FirstOrDefault();
 
+            if (wjFolder == default)
+            {
+                _errors.Add("No WJ install found");
+                throw new Exception("No WJ install found");
+            }
+
             var filename = wjFolder.Combine("Wabbajack.exe");
             await CreateBatchFile(filename);
             var info = new ProcessStartInfo
@@ -231,8 +237,9 @@ public class MainWindowViewModel : ViewModelBase
             };
             Process.Start(info);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _errors.Add(ex.Message);
             if (_errors.Count == 0)
             {
                 Status = "Failed: Unknown error";
@@ -253,11 +260,18 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task CreateBatchFile(AbsolutePath filename)
     {
-        filename = filename.Parent.Combine("wabbajack-cli.exe");
-        var data = $"\"{filename}\" %*";
-        var file = Path.Combine(Directory.GetCurrentDirectory(), "wabbajack-cli.bat");
-        if (File.Exists(file) && await File.ReadAllTextAsync(file) == data) return;
-        await File.WriteAllTextAsync(file, data);
+        try
+        {
+            filename = filename.Parent.Combine("wabbajack-cli.exe");
+            var data = $"\"{filename}\" %*";
+            var file = Path.Combine(Directory.GetCurrentDirectory(), "wabbajack-cli.bat");
+            if (File.Exists(file) && await File.ReadAllTextAsync(file) == data) return;
+            await File.WriteAllTextAsync(file, data);
+        }
+        catch (Exception ex)
+        {
+            _errors.Add($"Creating Batch File : {ex}");
+        }
     }
 
     private void UpdateProgress(object sender, DownloadProgressChangedEventArgs e)

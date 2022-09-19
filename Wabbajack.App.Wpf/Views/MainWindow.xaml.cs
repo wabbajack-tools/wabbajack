@@ -55,7 +55,11 @@ namespace Wabbajack
 
                 Closed += (s, e) =>
                 {
-                    Environment.Exit(0);
+                    Task.Run(async () =>
+                    {
+                        await Task.Delay(5000);
+                        Environment.Exit(0);
+                    });
                 };
 
                 MessageBus.Current.Listen<TaskBarUpdate>()
