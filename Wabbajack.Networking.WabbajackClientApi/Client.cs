@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Reactive.Subjects;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -198,14 +199,25 @@ public class Client
         var featured = await LoadFeaturedLists();
 
         return await (await repos).PMapAll(async url =>
-                (await _client.GetFromJsonAsync<ModlistMetadata[]>(_limiter,
-                    new HttpRequestMessage(HttpMethod.Get, url.Value),
-                    _dtos.Options))!.Select(meta =>
+            {
+                try
                 {
-                    meta.RepositoryName = url.Key;
-                    meta.Official = (meta.RepositoryName == "wj-featured" || featured.Contains(meta.NamespacedName));
-                    return meta;
-                }))
+                    return (await _client.GetFromJsonAsync<ModlistMetadata[]>(_limiter,
+                        new HttpRequestMessage(HttpMethod.Get, url.Value),
+                        _dtos.Options))!.Select(meta =>
+                    {
+                        meta.RepositoryName = url.Key;
+                        meta.Official = (meta.RepositoryName == "wj-featured" ||
+                                         featured.Contains(meta.NamespacedName));
+                        return meta;
+                    });
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogError(ex, "While loading {List} from {Url}", url.Key, url.Value);
+                    return Enumerable.Empty<ModlistMetadata>();
+                }
+            })
             .SelectMany(x => x)
             .ToArray();
     }
