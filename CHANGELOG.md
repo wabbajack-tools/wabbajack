@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 3.0.1.0 - 9/19/2022
+* Official release of the 3.0 codebase
+
 #### Version - 3.0.0.7 - 9/12/2022
 * Fix Dragons' Dogma MO2 archive names
 * Add Modlist Report for CLI

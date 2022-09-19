@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
 using FluentFTP.Helpers;
 using Microsoft.AspNetCore.Authorization;
@@ -76,12 +77,23 @@ public class AuthorControls : ControllerBase
         var repos = await LoadRepositories();
 
         return await repos.PMapAll(async url =>
-                (await _client.GetFromJsonAsync<ModlistMetadata[]>(_limiter, new HttpRequestMessage(HttpMethod.Get, url.Value),
-                    _dtos.Options))!.Select(meta =>
+            {
+                try
                 {
-                    meta.RepositoryName = url.Key;
-                    return meta;
-                }))
+                    return (await _client.GetFromJsonAsync<ModlistMetadata[]>(_limiter,
+                        new HttpRequestMessage(HttpMethod.Get, url.Value),
+                        _dtos.Options))!.Select(meta =>
+                    {
+                        meta.RepositoryName = url.Key;
+                        return meta;
+                    });
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogError(ex, "While loading repository {Name} from {Url}", url.Key, url.Value);
+                    return Enumerable.Empty<ModlistMetadata>();
+                }
+            })
             .SelectMany(x => x)
             .ToArray();
     }
