@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Wabbajack.Paths;
 
@@ -68,6 +70,18 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
     }
 
     public int Depth => Parts?.Length ?? 0;
+
+    public IEnumerable<AbsolutePath> ThisAndAllParents() 
+    {
+        var p = this;
+        while (true)
+        {
+            yield return p;
+            if (p.Depth == 1)
+                yield break;
+            p = p.Parent;
+        }
+    }
 
     public AbsolutePath ReplaceExtension(Extension newExtension)
     {

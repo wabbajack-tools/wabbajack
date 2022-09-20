@@ -1,8 +1,12 @@
 ### Changelog
 
-#### Version - 3.0.1.3 - 9/??/2022
+#### Version - 3.0.1.3 - 9/20/2022
 * Auto-include splash.png files when compiling
 * Fix support for `WABBAJACK_NOMATCH_INCLUDE_FILES.txt` and other variants
+* Fix missing MO2ArchiveName for stardewvalley
+* Write the name/version of the modlist to the log before installing
+* Refuse to install inside a Game folder or the a parent of a game folder
+* Refuse to install inside the Wabbajack folder or a parent of the Wabbajack folder
 
 #### Version - 3.0.1.2 - 9/19/2022
 * Fix error with FNV BSAs not building properly when files are in the root folder

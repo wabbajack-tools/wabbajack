@@ -63,6 +63,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     public override async Task<bool> Begin(CancellationToken token)
     {
         if (token.IsCancellationRequested) return false;
+        _logger.LogInformation("Installing: {Name} - {Version}", _configuration.ModList.Name, _configuration.ModList.Version);
         await _wjClient.SendMetric(MetricNames.BeginInstall, ModList.Name);
         NextStep(Consts.StepPreparing, "Configuring Installer", 0);
         _logger.LogInformation("Configuring Processor");
