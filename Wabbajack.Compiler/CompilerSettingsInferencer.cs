@@ -67,13 +67,13 @@ public class CompilerSettingsInferencer
                 cs.Include = Array.Empty<RelativePath>();
                 foreach (var file in mo2Folder.EnumerateFiles())
                 {
-                    if (file.FileName.WithoutExtension().ToString() == Consts.WABBAJACK_INCLUDE)
+                    if (MatchesVariants(file, Consts.WABBAJACK_INCLUDE))
                         cs.Include = cs.Include.Add(file.Parent.RelativeTo(mo2Folder));
                     
-                    if (file.FileName.WithoutExtension().ToString() == Consts.WABBAJACK_NOMATCH_INCLUDE)
+                    if (MatchesVariants(file, Consts.WABBAJACK_NOMATCH_INCLUDE))
                         cs.NoMatchInclude = cs.NoMatchInclude.Add(file.Parent.RelativeTo(mo2Folder));
                     
-                    if (file.FileName.WithoutExtension().ToString() == Consts.WABBAJACK_IGNORE)
+                    if (MatchesVariants(file, Consts.WABBAJACK_IGNORE))
                         cs.Ignore = cs.Ignore.Add(file.Parent.RelativeTo(mo2Folder));
                 }
 
@@ -119,5 +119,13 @@ public class CompilerSettingsInferencer
         }
 
         return null;
+    }
+
+    private static bool MatchesVariants(AbsolutePath file, string baseVariant)
+    {
+        var withoutExt = file.FileName.WithoutExtension().ToString();
+        
+        return withoutExt == baseVariant ||
+               withoutExt == baseVariant + "_FILES";
     }
 }

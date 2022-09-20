@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 3.0.1.3 - 9/??/2022
+* Auto-include splash.png files when compiling
+* Fix support for `WABBAJACK_NOMATCH_INCLUDE_FILES.txt` and other variants
+
 #### Version - 3.0.1.2 - 9/19/2022
 * Fix error with FNV BSAs not building properly when files are in the root folder
 * Fix for UnknownError in the Launcher (will require the Wabbajack.exe launcher to be re-downloaded)
