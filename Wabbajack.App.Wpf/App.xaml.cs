@@ -55,7 +55,7 @@ namespace Wabbajack
                 ArchiveFileName = "logs/Wabbajack.{##}.log",
                 ArchiveOldFileOnStartup = true,
                 MaxArchiveFiles = 10,
-                Layout = "${processtime} [${level:uppercase=true}] (${logger}) ${message:withexception=true}",
+                Layout = "${processtime} [${level:uppercase=true}] (${logger}) ${message} ${exception:format=tostring}",
                 Header = "############ Wabbajack log file - ${longdate} ############"
             };
             
