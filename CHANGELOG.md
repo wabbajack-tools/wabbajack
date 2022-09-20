@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 3.0.1.2 - 9/19/2022
+* Fix error with FNV BSAs not building properly when files are in the root folder
+* Fix for UnknownError in the Launcher (will require the Wabbajack.exe launcher to be re-downloaded)
+
 #### Version - 3.0.1.1 - 9/19/2022
 * Auto install WebView2 if Windows doesn't already have it installed
 * Save settings before exiting the app

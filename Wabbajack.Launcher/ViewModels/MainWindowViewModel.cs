@@ -215,7 +215,7 @@ public class MainWindowViewModel : ViewModelBase
         try
         {
             Status = "Launching...";
-            var wjFolder = KnownFolders.CurrentDirectory.EnumerateDirectories()
+            var wjFolder = KnownFolders.CurrentDirectory.EnumerateDirectories(recursive:false)
                 .OrderByDescending(v =>
                     Version.TryParse(v.FileName.ToString(), out var ver) ? ver : new Version(0, 0, 0, 0))
                 .FirstOrDefault();

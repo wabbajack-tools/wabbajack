@@ -38,7 +38,7 @@ public class Builder : IBuilder
 
     public IEnumerable<RelativePath> FolderNames
     {
-        get { return _files.Select(f => f.Path.Parent).Distinct(); }
+        get { return _files.Select(f => f.Path.Level == 1 ? default : f.Path.Parent).Distinct(); }
     }
 
     public bool HasFolderNames => ArchiveFlags.HasFlag(ArchiveFlags.HasFileNames);
@@ -122,7 +122,7 @@ public class Builder : IBuilder
 
     public void RegenFolderRecords()
     {
-        _folders = _files.GroupBy(f => f.Path.Parent)
+        _folders = _files.GroupBy(f => f.Path.Level == 1 ? default : f.Path.Parent)
             .Select(f => new FolderRecordBuilder(this, f.Key, f.ToList()))
             .OrderBy(f => f._hash)
             .ToList();

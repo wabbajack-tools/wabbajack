@@ -87,6 +87,7 @@ public struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<Relati
     public override int GetHashCode()
     {
         if (_hashCode != 0) return _hashCode;
+        if (Parts == null || Parts.Length == 0) return -1;
         
         _hashCode = Parts.Aggregate(0,
             (current, part) => current ^ part.GetHashCode(StringComparison.CurrentCultureIgnoreCase));
