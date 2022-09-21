@@ -140,7 +140,7 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
 
     public RelativePath RelativeTo(AbsolutePath basePath)
     {
-        if (!ArrayExtensions.AreEqual(basePath.Parts, 0, Parts, 0, basePath.Parts.Length))
+        if (!ArrayExtensions.AreEqualIgnoreCase(basePath.Parts, 0, Parts, 0, basePath.Parts.Length))
             throw new PathException($"{basePath} is not a base path of {this}");
 
         var newParts = new string[Parts.Length - basePath.Parts.Length];
@@ -150,7 +150,7 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
 
     public bool InFolder(AbsolutePath parent)
     {
-        return ArrayExtensions.AreEqual(parent.Parts, 0, Parts, 0, parent.Parts.Length);
+        return ArrayExtensions.AreEqualIgnoreCase(parent.Parts, 0, Parts, 0, parent.Parts.Length);
     }
 
     public AbsolutePath Combine(params object[] paths)

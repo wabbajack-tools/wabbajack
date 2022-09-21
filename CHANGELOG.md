@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 3.0.1.4 - 9/21/2022
+* Fix several of case sensitive path comparisons, that could result in deleting downloads
+
 #### Version - 3.0.1.3 - 9/20/2022
 * Auto-include splash.png files when compiling
 * Fix support for `WABBAJACK_NOMATCH_INCLUDE_FILES.txt` and other variants
