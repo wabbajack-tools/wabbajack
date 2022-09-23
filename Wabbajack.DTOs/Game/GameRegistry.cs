@@ -242,6 +242,7 @@ public static class GameRegistry
                 NexusName = "witcher3",
                 NexusGameId = 952,
                 MO2Name = "The Witcher 3: Wild Hunt",
+                MO2ArchiveName = "witcher3",
                 SteamIDs = new[] {292030, 499450}, // normal and GotY
                 GOGIDs = new[]
                     {1207664643, 1495134320, 1207664663, 1640424747}, // normal, GotY and both in packages
@@ -458,8 +459,7 @@ public static class GameRegistry
 
     public static GameMetaData? GetByMO2ArchiveName(string gameName)
     {
-        gameName = gameName.ToLower();
-        return Games.Values.FirstOrDefault(g => g.MO2ArchiveName?.ToLower() == gameName);
+        return Games.Values.FirstOrDefault(g => (g.MO2ArchiveName ?? g.NexusName)!.Equals(gameName, StringComparison.InvariantCultureIgnoreCase));
     }
 
     public static GameMetaData? GetByNexusName(string gameName)

@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 3.0.1.5 - 9/??/2022
+* Fix MO2ArchiveName resolution
+
 #### Version - 3.0.1.4 - 9/21/2022
 * Fix several of case sensitive path comparisons, that could result in deleting downloads
 
