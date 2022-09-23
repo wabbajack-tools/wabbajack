@@ -292,8 +292,9 @@ public class MO2Compiler : ACompiler
             new IgnoreFilename(this, "portable.txt".ToRelativePath()),
             new IgnoreExtension(this, Ext.Bin),
             new IgnoreFilename(this, ".refcache".ToRelativePath()),
-            //Include custom categories  
-            new IncludeRegex(this, "categories.dat$"),
+            //Include custom categories / splash screens
+            new IncludeRegex(this, @"categories\.dat$"),
+            new IncludeRegex(this, @"splash\.png"),
 
             new IncludeAllConfigs(this),
             // TODO

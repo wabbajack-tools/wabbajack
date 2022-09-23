@@ -258,6 +258,7 @@ public static class GameRegistry
                 Game = Game.StardewValley,
                 NexusName = "stardewvalley",
                 MO2Name = "Stardew Valley",
+                MO2ArchiveName = "stardewvalley",
                 NexusGameId = 1303,
                 SteamIDs = new[] {413150},
                 GOGIDs = new[] {1453375253},
