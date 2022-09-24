@@ -18,8 +18,10 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
     public PathFormat PathFormat { get; }
 
     private int _hashCode = 0;
-    
+
     internal readonly string[] Parts;
+
+    public string[] PathParts => Parts == default ? Array.Empty<string>() : Parts;
 
     public Extension Extension => Extension.FromPath(Parts[^1]);
     public RelativePath FileName => new(Parts[^1..]);
