@@ -19,6 +19,7 @@
                  Style="{StaticResource {x:Type Window}}"
                  TitleBarHeight="25"
                  UseLayoutRounding="True"
+                 SaveWindowPosition="True"
                  WindowTitleBrush="{StaticResource MahApps.Brushes.Accent}"
                  ContentRendered="BrowserWindow_OnActivated"
                  mc:Ignorable="d">
