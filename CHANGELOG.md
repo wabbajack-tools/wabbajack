@@ -2,6 +2,10 @@
 
 #### Version - 3.0.1.5 - 9/??/2022
 * Fix MO2ArchiveName resolution
+* Improve performance of the compiler stack
+* Save the location of the browser window and open the next window in the same location
+* Fix a leak of msedgwebview2.exe instances when doing manual downloads
+
 
 #### Version - 3.0.1.4 - 9/21/2022
 * Fix several of case sensitive path comparisons, that could result in deleting downloads
