@@ -155,7 +155,7 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
         return ArrayExtensions.AreEqualIgnoreCase(parent.Parts, 0, Parts, 0, parent.Parts.Length);
     }
 
-    public AbsolutePath Combine(params object[] paths)
+    public readonly AbsolutePath Combine(params object[] paths)
     {
         var converted = paths.Select(p =>
         {

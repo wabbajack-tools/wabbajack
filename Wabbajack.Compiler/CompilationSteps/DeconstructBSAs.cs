@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Compression.BSA;
 using Wabbajack.DTOs;
@@ -72,6 +73,8 @@ public class DeconstructBSAs : ACompilationStep
                     $"BSA {source.AbsolutePath.FileName} is over 2GB in size, very few programs (Including Wabbajack) can create BSA files this large without causing CTD issues." +
                     "Please re-compress this BSA into a more manageable size.");
         }
+        
+        _compiler._logger.LogInformation("Deconstructing BSA: {Name}", source.File.FullPath.FileName);
 
         var sourceFiles = source.File.Children;
 
@@ -86,8 +89,8 @@ public class DeconstructBSAs : ACompilationStep
             //_cleanup = await source.File.Context.Stage(source.File.Children);
         }
 
-        var matches = await sourceFiles.PMapAll(_compiler.CompilerLimiter,
-                e => _mo2Compiler.RunStack(stack,
+        var matches = await sourceFiles.SelectAsync(
+                async e => await _mo2Compiler.RunStack(stack,
                     new RawSourceFile(e, Consts.BSACreationDir.Combine(id, (RelativePath) e.Name))))
             .ToList();
 

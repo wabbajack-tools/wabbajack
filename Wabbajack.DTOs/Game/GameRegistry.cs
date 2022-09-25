@@ -459,7 +459,7 @@ public static class GameRegistry
 
     public static GameMetaData? GetByMO2ArchiveName(string gameName)
     {
-        return Games.Values.FirstOrDefault(g => (g.MO2ArchiveName ?? g.NexusName)!.Equals(gameName, StringComparison.InvariantCultureIgnoreCase));
+        return Games.Values.FirstOrDefault(g => (g.MO2ArchiveName ?? g.NexusName ?? "")!.Equals(gameName, StringComparison.InvariantCultureIgnoreCase));
     }
 
     public static GameMetaData? GetByNexusName(string gameName)

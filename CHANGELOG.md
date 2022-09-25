@@ -5,6 +5,9 @@
 * Improve performance of the compiler stack
 * Save the location of the browser window and open the next window in the same location
 * Fix a leak of msedgwebview2.exe instances when doing manual downloads
+* Massively improve patch load times
+* Massively improve patch build times
+* Reduce situations where the UI appears to be hung due the above two issues
 
 
 #### Version - 3.0.1.4 - 9/21/2022
