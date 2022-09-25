@@ -8,6 +8,7 @@
 * Massively improve patch load times
 * Massively improve patch build times
 * Reduce situations where the UI appears to be hung due the above two issues
+* Fix file extraction progress bars not displaying properly (and going away)
 
 
 #### Version - 3.0.1.4 - 9/21/2022

@@ -473,13 +473,18 @@ public abstract class ACompiler
 
             NextStep("Compiling", "Generating Patches", toBuild.Length);
 
-            var allFiles = toBuild.SelectMany(f => new[]
+            var allFiles = toBuild.SelectMany(f =>
                 {
-                    _vfs.Index.FileForArchiveHashPath(f.ArchiveHashPath),
-                    FindDestFile(f.To)
+                    UpdateProgress(1);
+                    return new[]
+                    {
+                        _vfs.Index.FileForArchiveHashPath(f.ArchiveHashPath),
+                        FindDestFile(f.To)
+                    };
                 })
                 .DistinctBy(f => f.Hash)
                 .ToHashSet();
+            
             _logger.LogInformation("Extracting {Count} ({Size}) files for building patches", allFiles.Count,
                 allFiles.Sum(f => f.Size).ToFileSizeString());
 
