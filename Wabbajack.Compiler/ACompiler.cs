@@ -121,7 +121,7 @@ public abstract class ACompiler
         if (OnStatusUpdate != null)
             OnStatusUpdate(this, new StatusUpdate(statusCategory, statusText,
                 Percent.FactoryPutInRange(_currentStep, MaxSteps),
-                Percent.Zero));
+                Percent.Zero, _currentStep));
     }
 
     public void UpdateProgress(long stepProgress)
@@ -136,7 +136,7 @@ public abstract class ACompiler
 
         if (OnStatusUpdate != null)
             OnStatusUpdate(this, new StatusUpdate(_statusCategory, _statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
-                Percent.FactoryPutInRange(_currentStepProgress, _maxStepProgress)));
+                Percent.FactoryPutInRange(_currentStepProgress, _maxStepProgress), _currentStep));
     }
     
     public void UpdateProgressAbsolute(long cur, long max)
@@ -152,7 +152,7 @@ public abstract class ACompiler
 
         if (OnStatusUpdate != null)
             OnStatusUpdate(this, new StatusUpdate(_statusCategory, _statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
-                Percent.FactoryPutInRange(_currentStepProgress, _maxStepProgress)));
+                Percent.FactoryPutInRange(_currentStepProgress, _maxStepProgress), _currentStep));
     }
 
     public abstract Task<bool> Begin(CancellationToken token);
@@ -396,12 +396,15 @@ public abstract class ACompiler
 
         _settings.OutputFile.Delete();
 
+        var allFiles = _stagingFolder.EnumerateFiles().ToList();
+        NextStep("Finalizing", "Writing Wabbajack File", allFiles.Count);
         await using (var fs = _settings.OutputFile.Open(FileMode.Create, FileAccess.Write))
         {
             using var za = new ZipArchive(fs, ZipArchiveMode.Create);
 
-            foreach (var f in _stagingFolder.EnumerateFiles())
+            foreach (var f in allFiles)
             {
+                UpdateProgress(1);
                 var ze = za.CreateEntry((string) f.FileName);
                 await using var os = ze.Open();
                 await using var ins = f.Open(FileMode.Open);

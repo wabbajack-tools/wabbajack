@@ -26,7 +26,7 @@ using Wabbajack.VFS;
 
 namespace Wabbajack.Installer;
 
-public record StatusUpdate(string StatusCategory, string StatusText, Percent StepsProgress, Percent StepProgress)
+public record StatusUpdate(string StatusCategory, string StatusText, Percent StepsProgress, Percent StepProgress, int CurrentStep)
 {
 }
 
@@ -113,7 +113,7 @@ public abstract class AInstaller<T>
         _logger.LogInformation("Next Step: {Step}", statusText);
 
         OnStatusUpdate?.Invoke(new StatusUpdate(statusCategory, statusText,
-            Percent.FactoryPutInRange(_currentStep, MaxSteps), Percent.Zero));
+            Percent.FactoryPutInRange(_currentStep, MaxSteps), Percent.Zero, _currentStep));
     }
 
     public void UpdateProgress(long stepProgress)
@@ -122,7 +122,7 @@ public abstract class AInstaller<T>
 
         OnStatusUpdate?.Invoke(new StatusUpdate(_statusCategory, $"[{_currentStep}/{MaxSteps}] {_statusText} ({_statusFormatter(_currentStepProgress)}/{_statusFormatter(MaxStepProgress)})",
             Percent.FactoryPutInRange(_currentStep, MaxSteps),
-            Percent.FactoryPutInRange(_currentStepProgress, MaxStepProgress)));
+            Percent.FactoryPutInRange(_currentStepProgress, MaxStepProgress), _currentStep));
     }
 
     public abstract Task<bool> Begin(CancellationToken token);
