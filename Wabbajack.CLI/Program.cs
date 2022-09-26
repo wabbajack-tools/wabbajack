@@ -81,6 +81,7 @@ internal class Program
                 services.AddSingleton<IVerb, HashUrlString>();
                 services.AddSingleton<IVerb, DownloadAll>();
                 services.AddSingleton<IVerb, ModlistReport>();
+                services.AddSingleton<IVerb, ListGames>();
 
                 services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
             }).Build();
