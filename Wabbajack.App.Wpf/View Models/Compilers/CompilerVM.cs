@@ -307,7 +307,7 @@ namespace Wabbajack
                         .Subscribe(update =>
                         {
                             var s = update.EventArgs;
-                            StatusText = $"[{s.StepsProgress}] {s.StatusText}";
+                            StatusText = $"[Step {s.CurrentStep}] {s.StatusText}";
                             StatusProgress = s.StepProgress;
                         });
 

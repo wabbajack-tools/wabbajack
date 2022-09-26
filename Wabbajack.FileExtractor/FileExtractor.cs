@@ -13,7 +13,6 @@ using OMODFramework;
 using Wabbajack.Common;
 using Wabbajack.Common.FileSignatures;
 using Wabbajack.Compression.BSA;
-using Wabbajack.Compression.BSA.FO4Archive;
 using Wabbajack.DTOs.Streams;
 using Wabbajack.FileExtractor.ExtractedFiles;
 using Wabbajack.IO.Async;
@@ -343,8 +342,8 @@ public class FileExtractor
 
                     if (!int.TryParse(line[..3], out var percentInt)) return;
 
-                    var oldPosition = lastPercent == 0 ? 0 : totalSize / lastPercent;
-                    var newPosition = percentInt == 0 ? 0 : totalSize / percentInt;
+                    var oldPosition = lastPercent == 0 ? 0 : totalSize / 100 * lastPercent;
+                    var newPosition = percentInt == 0 ? 0 : totalSize / 100 * percentInt;
                     var throughput = newPosition - oldPosition;
                     job.ReportNoWait((int) throughput);
                     

@@ -69,8 +69,8 @@ public static class ServiceExtensions
         });
 
         service.AddSingleton<IBinaryPatchCache>(s => options.UseLocalCache
-            ? new BinaryPatchCache(s.GetService<TemporaryFileManager>()!.CreateFile().Path)
-            : new BinaryPatchCache(KnownFolders.WabbajackAppLocal.Combine("patchCache.sqlite")));
+            ? new BinaryPatchCache(s.GetRequiredService<ILogger<BinaryPatchCache>>(), s.GetService<TemporaryFileManager>()!.CreateFolder().Path)
+            : new BinaryPatchCache(s.GetRequiredService<ILogger<BinaryPatchCache>>(),KnownFolders.WabbajackAppLocal.Combine("PatchCache")));
 
         service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount});
 
