@@ -3,6 +3,7 @@
 #### Version - 3.0.1.6 - 9/??/2022
 * Fix Cyberpunk 2077 GoG recognition 
 * Add a CLI command `list-games` to list all games recognized by WJ and their versions/locations
+* Fix Native Game compiler installs
 
 #### Version - 3.0.1.5 - 9/26/2022
 * Fix MO2ArchiveName resolution

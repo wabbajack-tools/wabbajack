@@ -169,7 +169,11 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
     private void CreateOutputMods()
     {
-        _configuration.Install.Combine("profiles")
+        // Non MO2 Installs won't have this
+        var profileDir = _configuration.Install.Combine("profiles");
+        if (!profileDir.DirectoryExists()) return;
+        
+        profileDir.Combine("profiles")
             .EnumerateFiles()
             .Where(f => f.FileName == Consts.SettingsIni)
             .Do(f =>
@@ -331,45 +335,50 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
     private void SetScreenSizeInPrefs()
     {
+        var profilesPath = _configuration.Install.Combine("profiles");
         if (_configuration.SystemParameters == null)
             _logger.LogWarning("No SystemParameters set, ignoring ini settings for system parameters");
 
         var config = new IniParserConfiguration {AllowDuplicateKeys = true, AllowDuplicateSections = true};
         config.CommentRegex = new Regex(@"^(#|;)(.*)");
         var oblivionPath = (RelativePath) "Oblivion.ini";
-        foreach (var file in _configuration.Install.Combine("profiles").EnumerateFiles()
-            .Where(f => ((string) f.FileName).EndsWith("refs.ini") || f.FileName == oblivionPath))
-            try
-            {
-                var parser = new FileIniDataParser(new IniDataParser(config));
-                var data = parser.ReadFile(file.ToString());
-                var modified = false;
-                if (data.Sections["Display"] != null)
-                    if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
-                    {
-                        data.Sections["Display"]["iSize W"] =
-                            _configuration.SystemParameters.ScreenWidth.ToString(CultureInfo.CurrentCulture);
-                        data.Sections["Display"]["iSize H"] =
-                            _configuration.SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture);
-                        modified = true;
-                    }
 
-                if (data.Sections["MEMORY"] != null)
-                    if (data.Sections["MEMORY"]["VideoMemorySizeMb"] != null)
-                    {
-                        data.Sections["MEMORY"]["VideoMemorySizeMb"] =
-                            _configuration.SystemParameters.EnbLEVRAMSize.ToString(CultureInfo.CurrentCulture);
-                        modified = true;
-                    }
+        if (profilesPath.DirectoryExists())
+        {
+            foreach (var file in profilesPath.EnumerateFiles()
+                         .Where(f => ((string) f.FileName).EndsWith("refs.ini") || f.FileName == oblivionPath))
+                try
+                {
+                    var parser = new FileIniDataParser(new IniDataParser(config));
+                    var data = parser.ReadFile(file.ToString());
+                    var modified = false;
+                    if (data.Sections["Display"] != null)
+                        if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
+                        {
+                            data.Sections["Display"]["iSize W"] =
+                                _configuration.SystemParameters.ScreenWidth.ToString(CultureInfo.CurrentCulture);
+                            data.Sections["Display"]["iSize H"] =
+                                _configuration.SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture);
+                            modified = true;
+                        }
 
-                if (!modified) continue;
-                parser.WriteFile(file.ToString(), data);
-                _logger.LogTrace("Remapped screen size in {file}", file);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogCritical(ex, "Skipping screen size remap for {file} due to parse error.", file);
-            }
+                    if (data.Sections["MEMORY"] != null)
+                        if (data.Sections["MEMORY"]["VideoMemorySizeMb"] != null)
+                        {
+                            data.Sections["MEMORY"]["VideoMemorySizeMb"] =
+                                _configuration.SystemParameters.EnbLEVRAMSize.ToString(CultureInfo.CurrentCulture);
+                            modified = true;
+                        }
+
+                    if (!modified) continue;
+                    parser.WriteFile(file.ToString(), data);
+                    _logger.LogTrace("Remapped screen size in {file}", file);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogCritical(ex, "Skipping screen size remap for {file} due to parse error.", file);
+                }
+        }
 
         var tweaksPath = (RelativePath) "SSEDisplayTweaks.ini";
         foreach (var file in _configuration.Install.EnumerateFiles()
