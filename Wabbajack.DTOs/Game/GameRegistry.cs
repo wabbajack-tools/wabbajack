@@ -225,6 +225,7 @@ public static class GameRegistry
                 Game = Game.Dishonored,
                 NexusName = "dishonored",
                 MO2Name = "Dishonored",
+                MO2ArchiveName = "dishonored",
                 NexusGameId = 802,
                 SteamIDs = new[] {205100},
                 GOGIDs = new[] {1701063787},

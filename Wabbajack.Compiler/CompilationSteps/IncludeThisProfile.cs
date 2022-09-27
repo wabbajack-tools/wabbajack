@@ -18,6 +18,11 @@ public class IncludeThisProfile : ACompilationStep
     public IncludeThisProfile(ACompiler compiler) : base(compiler)
     {
         _mo2Compiler = (MO2Compiler) compiler;
+        if (!compiler.Settings.IsMO2Modlist)
+        {
+            Disabled = true;
+            return;
+        }
         _correctProfiles = _mo2Compiler._settings.AllProfiles
             .Select(p => _mo2Compiler.MO2ProfileDir.Parent.Combine(p)).ToList();
     }

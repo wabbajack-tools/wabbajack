@@ -314,6 +314,6 @@ public class MO2Compiler : ACompiler
         if (!_settings.UseTextureRecompression)
             steps = steps.Where(s => s is not MatchSimilarTextures).ToList();
 
-        return steps;
+        return steps.Where(s => !s.Disabled);
     }
 }

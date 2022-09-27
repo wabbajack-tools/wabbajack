@@ -215,9 +215,10 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
 
     public override IEnumerable<string> MetaIni(Archive a, Nexus state)
     {
+        var meta = state.Game.MetaData();
         return new[]
         {
-            $"gameName={state.Game.MetaData().MO2ArchiveName}", $"modID={state.ModID}", $"fileID={state.FileID}"
+            $"gameName={meta.MO2ArchiveName ?? meta.NexusName}", $"modID={state.ModID}", $"fileID={state.FileID}"
         };
     }
 }
