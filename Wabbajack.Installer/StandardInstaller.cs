@@ -173,7 +173,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         var profileDir = _configuration.Install.Combine("profiles");
         if (!profileDir.DirectoryExists()) return;
         
-        profileDir.Combine("profiles")
+        profileDir
             .EnumerateFiles()
             .Where(f => f.FileName == Consts.SettingsIni)
             .Do(f =>

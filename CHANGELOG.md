@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 3.0.1.7 - 9/27/2022
+* HOTFIX: fix "Could not find part of path" bug related to the profiles folder
+
 #### Version - 3.0.1.6 - 9/26/2022
 * Fix Cyberpunk 2077 GoG recognition 
 * Add a CLI command `list-games` to list all games recognized by WJ and their versions/locations
