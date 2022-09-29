@@ -1,10 +1,4 @@
-﻿using System.Net;
-using System.Threading.Tasks;
-using FluentFTP;
-using Microsoft.Extensions.Logging;
-using Wabbajack.Common;
-
-namespace Wabbajack.Server.Lib.DTOs;
+﻿namespace Wabbajack.Server.Lib.DTOs;
 
 public enum StorageSpace
 {
@@ -19,13 +13,4 @@ public class FtpSite
     public string Password { get; set; }
     public string Hostname { get; set; }
 
-    public async Task<FtpClient> GetClient(ILogger logger)
-    {
-        return await CircuitBreaker.WithAutoRetryAllAsync(logger, async () =>
-        {
-            var ftpClient = new FtpClient(Hostname, new NetworkCredential(Username, Password));
-            await ftpClient.ConnectAsync();
-            return ftpClient;
-        });
-    }
 }

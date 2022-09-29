@@ -8,12 +8,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BenchmarkDotNet" Version="0.13.1"/>
-        <PackageReference Include="System.Data.HashFunction.xxHash" Version="2.0.0"/>
+        <PackageReference Include="BenchmarkDotNet" Version="0.13.2" />
+        <PackageReference Include="System.Data.HashFunction.xxHash" Version="2.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj"/>
+        <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj" />
     </ItemGroup>
 
 </Project>

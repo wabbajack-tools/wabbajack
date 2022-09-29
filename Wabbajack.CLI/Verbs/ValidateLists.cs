@@ -1,16 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentFTP;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
@@ -34,7 +31,6 @@ using Wabbajack.Networking.GitHub;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
-using Wabbajack.Server.Lib.DTOs;
 using Wabbajack.Server.Lib.TokenProviders;
 
 namespace Wabbajack.CLI.Verbs;
@@ -690,45 +686,5 @@ public class ValidateLists : IVerb
         _logger.LogInformation("Archiving {hash}", hash);
         await archiveManager.Ingest(tempFile.Path, token);
         return hash;
-    }
-
-    public async ValueTask<HashSet<Hash>> AllMirroredFiles(CancellationToken token)
-    {
-        using var client = await GetMirrorFtpClient(token);
-        using var job = await _ftpRateLimiter.Begin("Getting mirror list", 0, token);
-        var files = await client.GetListingAsync(token);
-        var parsed = files.TryKeep(f => (Hash.TryGetFromHex(f.Name, out var hash), hash)).ToHashSet();
-        return parsed;
-    }
-
-    public async ValueTask<HashSet<(Hash, Hash)>> AllPatchFiles(CancellationToken token)
-    {
-        using var client = await GetPatchesFtpClient(token);
-        using var job = await _ftpRateLimiter.Begin("Getting patches list", 0, token);
-        var files = await client.GetListingAsync(token);
-        var parsed = files.TryKeep(f =>
-            {
-                var parts = f.Name.Split("_");
-                return (parts.Length == 2, parts);
-            })
-            .TryKeep(p => (Hash.TryGetFromHex(p[0], out var fromHash) &
-                           Hash.TryGetFromHex(p[1], out var toHash),
-                (fromHash, toHash)))
-            .ToHashSet();
-        return parsed;
-    }
-
-    private async Task<FtpClient> GetMirrorFtpClient(CancellationToken token)
-    {
-        var client = await (await _ftpSiteCredentials.Get())![StorageSpace.Mirrors].GetClient(_logger);
-        await client.ConnectAsync(token);
-        return client;
-    }
-
-    private async Task<FtpClient> GetPatchesFtpClient(CancellationToken token)
-    {
-        var client = await (await _ftpSiteCredentials.Get())![StorageSpace.Patches].GetClient(_logger);
-        await client.ConnectAsync(token);
-        return client;
     }
 }
