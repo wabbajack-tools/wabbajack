@@ -77,7 +77,7 @@
     <PackageReference Include="MahApps.Metro.IconPacks" Version="4.11.0" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1293.44" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1343.22" />
     <PackageReference Include="NLog.Extensions.Logging" Version="5.0.2" />
     <PackageReference Include="PInvoke.User32" Version="0.7.124" />
     <PackageReference Include="ReactiveUI" Version="18.3.1" />
