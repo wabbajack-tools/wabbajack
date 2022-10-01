@@ -38,7 +38,7 @@ public class Compile : IVerb
         _inferencer = inferencer;
     }
 
-    public Command MakeCommand()
+    public static Command MakeCommand()
     {
         var command = new Command("compile");
         command.Add(new Option<AbsolutePath>(new[] {"-i", "-installPath"}, "Install Path"));
