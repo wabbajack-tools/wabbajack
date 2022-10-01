@@ -10,6 +10,8 @@
 * Errors when downloading modlists no longer cause the app to crash
 * Only parse and edit screen sizes in INI files when installing MO2 lists
 * Update the build to show source code names/numbers in exceptions in the logs
+* Move logs back into the same folder as the launcher
+* Update the launcher to once again load new versions from the Nexus when possible
 
 #### Version - 3.0.1.7 - 9/27/2022
 * HOTFIX: fix "Could not find part of path" bug related to the profiles folder

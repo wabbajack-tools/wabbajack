@@ -17,6 +17,7 @@ using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
+using Wabbajack.Services.OSIntegrated.TokenProviders;
 
 namespace Wabbajack.Launcher;
 
@@ -37,7 +38,7 @@ internal class Program
                 services.AddDTOSerializer();
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddSingleton<HttpClient>();
-                services.AddSingleton<ITokenProvider<NexusApiState>, LegacyNexusApiKey>();
+                services.AddSingleton<ITokenProvider<NexusApiState>, NexusApiTokenProvider>();
                 services.AddSingleton<HttpDownloader>();
                 services.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", 4));
                 services.AddAllSingleton<IHttpDownloader, SingleThreadedDownloader>();

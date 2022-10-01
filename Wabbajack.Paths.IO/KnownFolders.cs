@@ -31,6 +31,18 @@ public static class KnownFolders
         }
     }
 
+    public static AbsolutePath LauncherAwarePath
+    {
+        get
+        {
+            var path = EntryPoint;
+            if (path.Depth <= 2) return path;
+            if (Version.TryParse(path.Parent.FileName.ToString(), out var version) && version > new Version("1.0.0.0"))
+                return path.Parent;
+            return path;
+        }
+    }
+
     public static AbsolutePath AppDataLocal =>
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData).ToAbsolutePath();
 

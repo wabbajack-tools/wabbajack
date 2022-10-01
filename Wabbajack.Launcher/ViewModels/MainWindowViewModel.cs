@@ -321,7 +321,7 @@ public class MainWindowViewModel : ViewModelBase
         Status = "Parsing Response";
         //return JsonSerializer.Deserialize<Release[]>(data)!;
 
-        var found = data.info.Files.Where(f => f.CategoryId == 5)
+        var found = data.info.Files.Where(f => f.CategoryId == 5 || f.CategoryId == 3)
             .Where(f => f.Name.EndsWith(".zip"))
             .Select(f => Version.TryParse(f.Name[..^4], out var version) ? (version, f.SizeInBytes ?? f.Size,  f.FileId) : default)
             .FirstOrDefault(f => f != default);

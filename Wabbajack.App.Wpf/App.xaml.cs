@@ -14,6 +14,7 @@ using Wabbajack.DTOs.Interventions;
 using Wabbajack.Interventions;
 using Wabbajack.LoginManagers;
 using Wabbajack.Models;
+using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.UserIntervention;
 using Wabbajack.Util;
@@ -49,10 +50,11 @@ namespace Wabbajack
         {
             var config = new NLog.Config.LoggingConfiguration();
 
+            var logFolder = KnownFolders.LauncherAwarePath;
             var fileTarget = new FileTarget("file")
             {
-                FileName = "logs/Wabbajack.current.log",
-                ArchiveFileName = "logs/Wabbajack.{##}.log",
+                FileName = logFolder.Combine("Wabbajack.current.log").ToString(),
+                ArchiveFileName = logFolder.Combine("Wabbajack.{##}.log").ToString(),
                 ArchiveOldFileOnStartup = true,
                 MaxArchiveFiles = 10,
                 Layout = "${processtime} [${level:uppercase=true}] (${logger}) ${message:withexception=true}",
