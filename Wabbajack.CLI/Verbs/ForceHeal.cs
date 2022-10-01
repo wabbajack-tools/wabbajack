@@ -43,15 +43,13 @@ public class ForceHeal : IVerb
         _httpClient = httpClient;
     }
 
-    public Command MakeCommand()
-    {
-        var command = new Command("force-heal");
-        command.Add(new Option<AbsolutePath>(new[] {"-n", "-new-file"}, "New File"));
-        command.Add(new Option<string>(new[] {"-o", "-old-file"}, "Old File"));
-        command.Description = "Creates a patch from New file to Old File and uploads it";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
+    public static VerbDefinition Definition = new("force-heal",
+        "Creates a patch from New file to Old file and uploads it",
+        new[]
+        {
+            new OptionDefinition(typeof(AbsolutePath), "n", "new-file", "New file"),
+            new OptionDefinition(typeof(AbsolutePath), "o", "old-file", "Old File")
+        });
 
     public async Task<int> Run(AbsolutePath oldFile, AbsolutePath newFile)
     {

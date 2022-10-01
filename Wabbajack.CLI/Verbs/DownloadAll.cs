@@ -41,16 +41,14 @@ public class DownloadAll : IVerb
         _cache = cache;
     }
 
-    public Command MakeCommand()
-    {
-        var command = new Command("download-all");
-        command.Add(new Option<AbsolutePath>(new[] {"-o", "-output"}, "Output folder"));
-        command.Description = "Downloads all files for all modlists in the gallery";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
-
-    private async Task<int> Run(AbsolutePath output, CancellationToken token)
+    public static VerbDefinition Definition = new VerbDefinition("download-all",
+        "Downloads all files for all modlists in the gallery",
+        new[]
+        {
+            new OptionDefinition(typeof(AbsolutePath), "o", "output", "Output folder")
+        });
+    
+    internal async Task<int> Run(AbsolutePath output, CancellationToken token)
     {
         _logger.LogInformation("Downloading modlists");
 

@@ -74,19 +74,11 @@ public class ValidateLists : IVerb
         _httpLimiter = httpLimiter;
     }
 
-    public Command MakeCommand()
-    {
-        var command = new Command("validate-lists");
-        command.Add(new Option<AbsolutePath>(new[] {"-r", "--reports"}, "Location to store validation report outputs"));
-
-        command.Add(new Option<AbsolutePath>(new[] {"--other-archives"},
-                "Look for files here before downloading (stored by hex hash name)")
-            {IsRequired = false});
-
-        command.Description = "Gets a list of modlists, validates them and exports a result list";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
+    public static VerbDefinition Definition = new VerbDefinition("validate-lists",
+        "Gets a list of modlists, validates them and exports a result list", new[]
+        {
+            new OptionDefinition(typeof(AbsolutePath), "r", "reports", "Location to store validation report outputs")
+        });
 
     public async Task<int> Run(AbsolutePath reports, AbsolutePath otherArchives)
     {

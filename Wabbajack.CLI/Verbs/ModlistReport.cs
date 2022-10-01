@@ -28,14 +28,12 @@ public class ModlistReport : IVerb
         _logger = logger;
         _dtos = dtos;
     }
-    public Command MakeCommand()
-    {
-        var command = new Command("modlist-report");
-        command.Add(new Option<AbsolutePath>(new[] {"-i", "-input"}, "Wabbajack file from which to generate a report"));
-        command.Description = "Generates a usage report for a Modlist file";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
+
+    public static VerbDefinition Definition = new("modlist-report",
+        "Generates a usage report for a Modlist file", new[]
+        {
+            new OptionDefinition(typeof(AbsolutePath), "i", "input", "Wabbajack file from which to generate a report")
+        });
     
     private static async Task<string> ReportTemplate(object o)
     {
