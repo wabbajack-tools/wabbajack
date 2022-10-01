@@ -18,15 +18,12 @@ public class MirrorFile : IVerb
         _logger = logger;
         _client = wjClient;
     }
-    public Command MakeCommand()
-    {
-        var command = new Command("mirror-file");
-        command.Add(new Option<AbsolutePath>(new[] {"-i", "-input"}, "File to Mirror"));
-        command.Description = "Mirrors a file to the Wabbajack CDN";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
 
+    public static VerbDefinition Definition = new("mirror-file", "Mirrors a file to the Wabbajack CDN",
+        new[]
+        {
+            new OptionDefinition(typeof(AbsolutePath), "i", "input", "File to Mirror")
+        });
     public async Task<int> Run(AbsolutePath input)
     {
         _logger.LogInformation("Generating File Definition for {Name}", input.FileName);

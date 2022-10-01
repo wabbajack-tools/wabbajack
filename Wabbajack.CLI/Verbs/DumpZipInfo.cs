@@ -25,17 +25,15 @@ public class DumpZipInfo : IVerb
         _logger = logger;
     }
 
-    public Command MakeCommand()
-    {
-        var command = new Command("dump-zip-info");
-        command.Add(new Option<AbsolutePath>(new[] {"-i", "-input"}, "Zip file ot parse"));
-        command.Add(new Option<bool>(new[] {"-t", "-test"}, "Test extracting each file"));
-        command.Description = "Dumps the contents of a zip file to the console, for use in debugging wabbajack files";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
+    public static VerbDefinition Definition = new("dump-zip-info",
+        "Dumps the contents of a zip file to the console, for use in debugging wabbajack files",
+        new[]
+        {
+            new OptionDefinition(typeof(AbsolutePath), "i", "input", "Zip file to parse"),
+            new OptionDefinition(typeof(bool), "t", "test", "Test extracting each file")
+        });
 
-    private async Task<int> Run(AbsolutePath input, bool test)
+    internal async Task<int> Run(AbsolutePath input, bool test)
     {
         await using var ar = new ZipReader(input.Open(FileMode.Open), false);
         foreach (var value in (await ar.GetFiles()))

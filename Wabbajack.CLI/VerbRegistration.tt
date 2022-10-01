@@ -17,7 +17,7 @@ foreach (var verb in Directory.EnumerateFiles("Verbs"))
     var klass = verb.Split('\\').Last().Split('.').First();
     if (klass == "IVerb") continue;
     #>
-RegisterCommand<<#=klass#>>(<#=klass#>.MakeCommand);
+RegisterCommand<<#=klass#>>(<#=klass#>.Definition, c => ((<#=klass#>)c).Run);
 <#
 }
 

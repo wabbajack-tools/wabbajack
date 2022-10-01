@@ -1,3 +1,4 @@
+using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
@@ -22,15 +23,11 @@ public class ListGames : IVerb
         _logger = logger;
         _locator = locator;
     }
-    public Command MakeCommand()
-    {
-        var command = new Command("list-games");
-        command.Description = "Lists all games Wabbajack recognizes, and their installed versions/locations (if any)";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
+
+    public static VerbDefinition Definition = new VerbDefinition("list-games",
+        "Lists all games Wabbajack recognizes, and their installed versions/locations (if any)", Array.Empty<OptionDefinition>());
     
-    public async Task<int> Run(CancellationToken token)
+    internal async Task<int> Run(CancellationToken token)
     {
         foreach (var game in GameRegistry.Games.OrderBy(g => g.Value.HumanFriendlyGameName))
         {

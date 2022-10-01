@@ -35,18 +35,18 @@ public partial class CommandLineBuilder
         return await root.InvokeAsync(args);
     }
 
-    private static List<(Type, Func<Command>)> _commands { get; set; } = new();
-    public static IEnumerable<Type> Verbs => _commands.Select(c => c.Item1);
-    public static void RegisterCommand<T>(Func<Command> makeCommand)
+    private static List<(Type Type, VerbDefinition Definition, Func<IVerb, Delegate> Handler)> _commands { get; set; } = new();
+    public static IEnumerable<Type> Verbs => _commands.Select(c => c.Type);
+    public static void RegisterCommand<T>(VerbDefinition definition, Func<IVerb, Delegate> handler)
     {
-        _commands.Add((typeof(T), makeCommand));
+        _commands.Add((typeof(T), definition, handler));
         
     }
 }
+public record OptionDefinition(Type type, string ShortOption, string LongOption, string Description);
 
-public record VerbDefinition()
+public record VerbDefinition(string Name, string Description, OptionDefinition[] Options)
 {
-    
 }
 
 public static class CommandLineBuilderExtensions

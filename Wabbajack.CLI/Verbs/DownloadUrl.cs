@@ -24,18 +24,15 @@ public class DownloadUrl : IVerb
         _dispatcher = dispatcher;
     }
 
-    public Command MakeCommand()
-    {
-        var command = new Command("download-url");
-        command.Add(new Option<Uri>(new[] {"-u", "-url"}, "Url to parse"));
-        command.Add(new Option<AbsolutePath>(new[] {"-o", "-output"}, "Output file"));
-        command.Add(new Option<bool>(new [] {"-p", "--proxy"}, "Use the Wabbajack Proxy (default: true)"));
-        command.Description = "Downloads a file to a given output";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
-
-    private async Task<int> Run(Uri url, AbsolutePath output, bool proxy = true)
+    public static VerbDefinition Definition = new VerbDefinition("download-url", "Downloads a file to a given output",
+        new[]
+        {
+            new OptionDefinition(typeof(Uri), "u", "url", "Url to parse"),
+            new OptionDefinition(typeof(AbsolutePath), "o", "output", "Output File"),
+            new OptionDefinition(typeof(bool), "p", "proxy", "Use the Wabbajack Proxy (default true)")
+        });
+    
+    internal async Task<int> Run(Uri url, AbsolutePath output, bool proxy = true)
     {
         var parsed = _dispatcher.Parse(url);
         if (parsed == null)
