@@ -143,7 +143,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         await RemapMO2File();
 
         CreateOutputMods();
-
+        
         SetScreenSizeInPrefs();
 
         await ExtractedModlistFolder!.DisposeAsync();
@@ -338,6 +338,9 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     private void SetScreenSizeInPrefs()
     {
         var profilesPath = _configuration.Install.Combine("profiles");
+        
+        // Don't remap files for Native Game Compiler games
+        if (!profilesPath.DirectoryExists()) return;
         if (_configuration.SystemParameters == null)
             _logger.LogWarning("No SystemParameters set, ignoring ini settings for system parameters");
 
