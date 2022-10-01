@@ -125,6 +125,21 @@ public static class AsyncParallelExtensions
         await foreach (var itm in coll) lst.Add(itm);
         return lst;
     }
+    
+    /// <summary>
+    /// Consumes a IAsyncEnumerable without doing anything with it
+    /// </summary>
+    /// <param name="coll"></param>
+    /// <typeparam name="T"></typeparam>
+    public static async Task Sink<T>(this IAsyncEnumerable<T> coll)
+    {
+        long count = 0;
+        await foreach (var itm in coll)
+        {
+            count++;
+
+        }
+    }
 
     public static async Task<T[]> ToArray<T>(this IAsyncEnumerable<T> coll)
     {

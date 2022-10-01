@@ -111,7 +111,7 @@ public class DownloadAll : IVerb
                     return;
                 }
 
-                _cache.FileHashWriteCache(output, result.Item2);
+                await _cache.FileHashWriteCache(output, result.Item2);
 
                 var metaFile = outputFile.WithExtension(Ext.Meta);
                 await metaFile.WriteAllTextAsync(_dispatcher.MetaIniSection(file), token: token);

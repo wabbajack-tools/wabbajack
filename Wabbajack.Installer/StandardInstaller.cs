@@ -271,9 +271,11 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     {
         var bsas = ModList.Directives.OfType<CreateBSA>().ToList();
         _logger.LogInformation("Building {bsasCount} bsa files", bsas.Count);
+        NextStep("Installing", "Building BSAs", bsas.Count);
 
         foreach (var bsa in bsas)
         {
+            UpdateProgress(1);
             _logger.LogInformation("Building {bsaTo}", bsa.To.FileName);
             var sourceDir = _configuration.Install.Combine(BSACreationDir, bsa.TempID);
 
@@ -295,9 +297,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             await a.Build(outStream, token);
             streams.Do(s => s.Dispose());
             
-            FileHashCache.FileHashWriteCache(outPath, bsa.Hash);
-            
-
+            await FileHashCache.FileHashWriteCache(outPath, bsa.Hash);
             sourceDir.DeleteDirectory();
         }
 
@@ -325,9 +325,11 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                 {
                     case RemappedInlineFile file:
                         await WriteRemappedFile(file);
+                        await FileHashCache.FileHashCachedAsync(outPath, token);
                         break;
                     default:
                         await outPath.WriteAllBytesAsync(await LoadBytesFromPath(directive.SourceDataID), token);
+                        await FileHashCache.FileHashWriteCache(outPath, directive.Hash);
                         break;
                 }
             });
@@ -453,24 +455,29 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
     public async Task GenerateZEditMerges(CancellationToken token)
     {
-        await _configuration.ModList
+        var patches = _configuration.ModList
             .Directives
             .OfType<MergedPatch>()
-            .PDoAll(async m =>
-            {
-                _logger.LogInformation("Generating zEdit merge: {to}", m.To);
+            .ToList();
+        NextStep("Installing", "Generating ZEdit Merges", patches.Count);
 
-                var srcData = (await m.Sources.SelectAsync(async s =>
-                            await _configuration.Install.Combine(s.RelativePath).ReadAllBytesAsync(token))
-                        .ToReadOnlyCollection())
-                    .ConcatArrays();
+        await patches.PMapAllBatched(_limiter, async m =>
+        {
+            UpdateProgress(1);
+            _logger.LogInformation("Generating zEdit merge: {to}", m.To);
 
-                var patchData = await LoadBytesFromPath(m.PatchID);
+            var srcData = (await m.Sources.SelectAsync(async s =>
+                        await _configuration.Install.Combine(s.RelativePath).ReadAllBytesAsync(token))
+                    .ToReadOnlyCollection())
+                .ConcatArrays();
 
-                await using var fs = _configuration.Install.Combine(m.To)
-                    .Open(FileMode.Create, FileAccess.Write, FileShare.None);
-                await BinaryPatching.ApplyPatch(new MemoryStream(srcData), new MemoryStream(patchData), fs);
-            });
+            var patchData = await LoadBytesFromPath(m.PatchID);
+
+            await using var fs = _configuration.Install.Combine(m.To)
+                .Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+            await BinaryPatching.ApplyPatch(new MemoryStream(srcData), new MemoryStream(patchData), fs);
+            return m;
+        }).ToList();
     }
 
     public static async Task<ModList> Load(DTOSerializer dtos, DownloadDispatcher dispatcher, ModlistMetadata metadata, CancellationToken token)
