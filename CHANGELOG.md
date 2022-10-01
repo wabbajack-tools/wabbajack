@@ -7,6 +7,7 @@
 * Fix some status messages during installation
 * Optimize the modlist optimizer so runs a bit faster
 * Rework the file hash cache so it doesn't block the UI thread
+* Errors when downloading modlists no longer cause the app to crash
 
 #### Version - 3.0.1.7 - 9/27/2022
 * HOTFIX: fix "Could not find part of path" bug related to the profiles folder
