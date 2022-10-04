@@ -42,18 +42,17 @@ public class BinaryPatchCache : IBinaryPatchCache
         
         await using var sigStream = new MemoryStream();
         var tempName = _location.Combine(Guid.NewGuid().ToString()).WithExtension(Ext.Temp);
-        await using var patchStream = tempName.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None);
         try
         {
 
-            OctoDiff.Create(srcStream, destStream, sigStream, patchStream, job);
-
-            patchStream.Close();
+            {
+                await using var patchStream = tempName.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+                OctoDiff.Create(srcStream, destStream, sigStream, patchStream, job);
+            }
             await tempName.MoveToAsync(location, true, CancellationToken.None);
         }
         finally
         {
-            await patchStream.DisposeAsync();
             if (tempName.FileExists())
                 tempName.Delete();
         }

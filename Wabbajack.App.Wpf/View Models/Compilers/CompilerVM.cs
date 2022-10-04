@@ -13,7 +13,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
-using System.Windows.Threading;
 using DynamicData;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI.Fody.Helpers;
