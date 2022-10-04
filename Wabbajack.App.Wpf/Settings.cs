@@ -21,12 +21,12 @@ namespace Wabbajack
         public double PosY { get; set; }
         public double Height { get; set; }
         public double Width { get; set; }
-        public InstallerSettings Installer { get; set; } = new InstallerSettings();
-        public FiltersSettings Filters { get; set; } = new FiltersSettings();
-        public CompilerSettings Compiler { get; set; } = new CompilerSettings();
-        public PerformanceSettings Performance { get; set; } = new PerformanceSettings();
+        public InstallerSettings Installer { get; set; } = new();
+        public FiltersSettings Filters { get; set; } = new();
+        public CompilerSettings Compiler { get; set; } = new();
+        public PerformanceSettings Performance { get; set; } = new();
 
-        private Subject<Unit> _saveSignal = new Subject<Unit>();
+        private Subject<Unit> _saveSignal = new();
         [JsonIgnore]
         public IObservable<Unit> SaveSignal => _saveSignal;
 

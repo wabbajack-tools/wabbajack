@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
 using System.Windows.Data;
@@ -31,10 +32,11 @@ public class LogStream : TargetWithLayout
     {
         _disposables = new CompositeDisposable();
         _messageLog.Connect()
+            .LimitSizeTo(200)
             .Bind(out _messagesFiltered)
             .Subscribe()
             .DisposeWith(_disposables);
-        
+
         Messages
             .Subscribe(m =>
             {

@@ -103,6 +103,38 @@ public static class AsyncParallelExtensions
         }
     }
     
+    /// <summary>
+    /// Faster version of PMapAll for when the function invocation will take a very small amount of time
+    /// batches all the inputs into N groups and executes them all on one task, where N is the number of
+    /// threads supported by the limiter
+    /// </summary>
+    /// <param name="coll"></param>
+    /// <param name="limiter"></param>
+    /// <param name="mapFn"></param>
+    /// <typeparam name="TIn"></typeparam>
+    /// <typeparam name="TJob"></typeparam>
+    /// <typeparam name="TOut"></typeparam>
+    /// <returns></returns>
+    public static async Task PDoAllBatched<TIn, TJob, TOut>(this IEnumerable<TIn> coll,
+        IResource<TJob> limiter, Func<TIn, Task> mapFn)
+    {
+        var asList = coll.ToList();
+        
+        var tasks = new List<Task>();
+
+        tasks.AddRange(Enumerable.Range(0, limiter.MaxTasks).Select(i => Task.Run(async () =>
+        {
+            using var job = await limiter.Begin(limiter.Name, asList.Count / limiter.MaxTasks, CancellationToken.None);
+            for (var idx = i; idx < asList.Count; idx += limiter.MaxTasks)
+            {
+                job.ReportNoWait(1);
+                await mapFn(asList[idx]);
+            }
+        })));
+
+        await Task.WhenAll(tasks);
+    }
+    
     public static async IAsyncEnumerable<TOut> PKeepAll<TIn, TJob, TOut>(this IEnumerable<TIn> coll,
         IResource<TJob> limiter, Func<TIn, Task<TOut>> mapFn)
     where TOut : class

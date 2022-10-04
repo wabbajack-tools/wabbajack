@@ -476,7 +476,7 @@ public abstract class ACompiler
 
             NextStep("Compiling", "Generating Patches", toBuild.Length);
 
-            var allFiles = toBuild.SelectMany(f =>
+            var allFiles = (await toBuild.PMapAllBatched(CompilerLimiter, async f =>
                 {
                     UpdateProgress(1);
                     return new[]
@@ -484,7 +484,8 @@ public abstract class ACompiler
                         _vfs.Index.FileForArchiveHashPath(f.ArchiveHashPath),
                         FindDestFile(f.To)
                     };
-                })
+                }).ToList())
+                .SelectMany(x => x)
                 .DistinctBy(f => f.Hash)
                 .ToHashSet();
             

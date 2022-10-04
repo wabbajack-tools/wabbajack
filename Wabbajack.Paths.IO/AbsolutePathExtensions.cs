@@ -183,16 +183,22 @@ public static class AbsolutePathExtensions
         {
             fid.IsReadOnly = false;
         }
-        
-        
-        
-        try
+
+        var retries = 0;
+        while (true)
         {
-            File.Move(srcStr, destStr, overwrite);
-        }
-        catch (Exception)
-        {
-            
+            try
+            {
+                File.Move(srcStr, destStr, overwrite);
+                return;
+            }
+            catch (Exception ex)
+            {
+                if (retries > 10)
+                    throw;
+                retries++;
+                await Task.Delay(TimeSpan.FromSeconds(1), token);
+            }
         }
     }
 
