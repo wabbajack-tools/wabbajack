@@ -4,6 +4,7 @@
 * Lots of compiler improvements for faster compilation
 * Limit the log view to the last 200 messages for better UI performance
 * Optimize BSA Building to give better performance and UI feedback
+* Improve UI performance during "finding files to delete"
 
 #### Version - 3.0.1.8 - 10/1/2022
 * Fix broken ZEditMerge code (this stream is not readable)
