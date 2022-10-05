@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version - 3.0.1.9 - 10/4/2022
+* Lots of compiler improvements for faster compilation
+* Limit the log view to the last 200 messages for better UI performance
+* Optimize BSA Building to give better performance and UI feedback
+
 #### Version - 3.0.1.8 - 10/1/2022
 * Fix broken ZEditMerge code (this stream is not readable)
 * Update out-of-date dependencies

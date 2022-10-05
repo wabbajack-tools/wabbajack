@@ -499,7 +499,7 @@ public abstract class AInstaller<T>
                 if (bsaPathsToNotBuild.Contains(f))
                     return f;
 
-                _logger.LogInformation("Deleting {RelativePath} it's not part of this ModList", relativeTo);
+                //_logger.LogInformation("Deleting {RelativePath} it's not part of this ModList", relativeTo);
                 f.Delete();
                 return f;
             }).Sink();
