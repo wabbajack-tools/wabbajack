@@ -51,8 +51,6 @@ public class ModListTests
 
     [Theory]
     [InlineData("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json")]
-    [InlineData("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/utility_modlists.json")]
-    [InlineData("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/unlisted_modlists.json")]
     public async Task CanLoadModListMetadata(string uri)
     {
         var str = await _client.GetStringAsync(uri);
