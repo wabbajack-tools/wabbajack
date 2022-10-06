@@ -52,6 +52,11 @@ jobs:
         shell: bash
         run: find Wabbajack.*.Test -maxdepth 0 -type d ! -name "Wabbajack.App.Wpf" -exec dotnet test --filter "Category!=FlakeyNetwork" {} \;
         
+      - uses: codecov/codecov-action@v3
+        with:
+          flags: unittests, ${{runner.os}}
+          verbose: true 
+        
       #- name: Upload Test Folder on Failure
       #  if: ${{ failure() }}
       #  uses: actions/upload-artifact@v2
