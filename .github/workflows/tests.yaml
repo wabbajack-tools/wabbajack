@@ -40,7 +40,7 @@ jobs:
 
       - name: Test
         shell: bash
-        run: find Wabbajack.*.Test -maxdepth 0 -type d ! -name "Wabbajack.App.Wpf" -exec dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover --filter "Category!=FlakeyNetwork" {} \;
+        run: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover --filter "Category!=FlakeyNetwork"
         
       - uses: codecov/codecov-action@v3
         with:
