@@ -90,7 +90,7 @@ public static class ServiceExtensions
             EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
             ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
             SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings"),
-            LogLocation = KnownFolders.EntryPoint.Combine("logs"),
+            LogLocation = KnownFolders.LauncherAwarePath.Combine("logs"),
             ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
         });
 

@@ -50,7 +50,10 @@ namespace Wabbajack
         {
             var config = new NLog.Config.LoggingConfiguration();
 
-            var logFolder = KnownFolders.LauncherAwarePath;
+            var logFolder = KnownFolders.LauncherAwarePath.Combine("logs");
+            if (!logFolder.DirectoryExists())
+                logFolder.CreateDirectory();
+            
             var fileTarget = new FileTarget("file")
             {
                 FileName = logFolder.Combine("Wabbajack.current.log").ToString(),
