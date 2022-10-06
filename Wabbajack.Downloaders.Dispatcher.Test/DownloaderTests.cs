@@ -252,7 +252,7 @@ public class DownloaderTests
             Assert.NotNull(parsed);
 
             Assert.Equal(goodArchive.State.GetType(), parsed.GetType());
-            Assert.True(await _dispatcher.Verify(new Archive {State = parsed}, CancellationToken.None));
+            Assert.True(await _dispatcher.Verify(new Archive {State = parsed, Hash = goodArchive.Hash}, CancellationToken.None));
         }
     }
 
