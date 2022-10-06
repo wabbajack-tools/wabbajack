@@ -185,6 +185,7 @@ public class DownloaderTests
                     }
                 }
             },
+            /*
             // Bethesda
             new object[]
             {
@@ -212,7 +213,9 @@ public class DownloaderTests
                         ContentId = "059054"
                     }
                 },
-            }
+                
+            };
+    */
         };
 
     private bool AutoPassTest(Archive archive)
