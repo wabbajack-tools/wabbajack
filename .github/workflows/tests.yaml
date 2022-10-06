@@ -40,7 +40,7 @@ jobs:
 
       - name: Test
         shell: bash
-        run: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover --filter "Category!=FlakeyNetwork"
+        run: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:EnableWindowsTargeting=true --filter "Category!=FlakeyNetwork"
         
       - uses: codecov/codecov-action@v3
         with:
