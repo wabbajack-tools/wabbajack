@@ -39,7 +39,6 @@ jobs:
           include-prerelease: true
 
       - name: Test
-        shell: bash
         run: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:EnableWindowsTargeting=true
         
       - uses: codecov/codecov-action@v3
