@@ -37,7 +37,7 @@ public class IndexRoot
     public IReadOnlyList<VirtualFile> AllFiles { get; }
     public IDictionary<FullPath, VirtualFile> ByFullPath { get; }
     public ILookup<Hash, VirtualFile> ByHash { get; }
-    public ILookup<IPath, VirtualFile> ByName { get; set; }
+    public ILookup<IPath?, VirtualFile> ByName { get; set; }
     public IDictionary<AbsolutePath, VirtualFile> ByRootPath { get; }
 
     public async Task<IndexRoot> Integrate(IEnumerable<VirtualFile> files)
@@ -77,7 +77,7 @@ public class IndexRoot
 
     public static class EmptyLookup<TKey, TElement>
     {
-        public static ILookup<TKey, TElement> Instance { get; } =
+        public static ILookup<TKey?, TElement> Instance { get; } =
             Enumerable.Empty<TElement>().ToLookup(x => default(TKey));
     }
 }

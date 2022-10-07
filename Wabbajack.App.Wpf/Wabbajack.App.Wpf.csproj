@@ -15,9 +15,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
    <!-- <IncludeSymbolsInSingleFile>true</IncludeSymbolsInSingleFile> -->
     <AssemblyName>Wabbajack</AssemblyName>
-    <NoWarn>CS8600</NoWarn>
-    <NoWarn>CS8601</NoWarn>
-    <NoWarn>CS8618</NoWarn>
+  </PropertyGroup>
+
+
+  <PropertyGroup>
+    <NoWarn>CS8600,CS8601,CS8618,CS8604,CS8632</NoWarn>
   </PropertyGroup>
 
     <PropertyGroup>

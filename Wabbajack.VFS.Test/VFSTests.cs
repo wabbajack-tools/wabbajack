@@ -144,8 +144,8 @@ public class VFSTests : IDisposable
         await AddFile(_archiveTestTxt, "This is a test");
         await ZipUpFolder(_archiveTestTxt.Parent, _testZip);
 
-        var inner_dir = @"archive\other\dir".ToRelativePath().RelativeTo(_vfsTestDir);
-        inner_dir.CreateDirectory();
+        var innerDir = @"archive\other\dir".ToRelativePath().RelativeTo(_vfsTestDir);
+        innerDir.CreateDirectory();
         await _testZip.MoveToAsync(@"archive\other\dir\nested.zip".ToRelativePath().RelativeTo(_vfsTestDir), true,
             CancellationToken.None);
         await ZipUpFolder(_archiveTestTxt.Parent, _testZip);
@@ -168,9 +168,10 @@ public class VFSTests : IDisposable
         await filename.WriteAllTextAsync(text);
     }
 
-    private static async Task ZipUpFolder(AbsolutePath folder, AbsolutePath output)
+    private static Task ZipUpFolder(AbsolutePath folder, AbsolutePath output)
     {
         ZipFile.CreateFromDirectory(folder.ToString(), output.ToString());
         folder.DeleteDirectory();
+        return Task.CompletedTask;
     }
 }

@@ -26,7 +26,7 @@ public class VirtualFile
 
     private static readonly SignatureChecker DDSSig = new(FileType.DDS);
 
-    private IEnumerable<VirtualFile> _thisAndAllChildren;
+    private IEnumerable<VirtualFile>? _thisAndAllChildren;
 
     public IPath Name { get; internal set; }
 
@@ -45,7 +45,7 @@ public class VirtualFile
 
     public ulong LastAnalyzed { get; internal set; }
 
-    public VirtualFile Parent { get; internal set; }
+    public VirtualFile? Parent { get; internal set; }
 
     public Context Context { get; set; }
 
@@ -107,7 +107,7 @@ public class VirtualFile
     }
 
 
-    public VirtualFile TopParent => IsNative ? this : Parent.TopParent;
+    public VirtualFile TopParent => IsNative ? this : Parent!.TopParent;
 
 
     public T ThisAndAllChildrenReduced<T>(T acc, Func<T, VirtualFile, T> fn)
@@ -193,7 +193,7 @@ public class VirtualFile
         {
             Context = context,
             Name = relPath,
-            Parent = parent,
+            Parent = parent!,
             Size = stream.Length,
             LastModified = extractedFile.LastModifiedUtc.AsUnixTime(),
             LastAnalyzed = DateTime.Now.AsUnixTime(),
@@ -277,11 +277,11 @@ public class VirtualFile
             var self = this;
             for (var idx = depth; idx != 0; idx -= 1)
             {
-                paths[idx - 1] = self.RelativeName;
+                paths[idx - 1] = self!.RelativeName;
                 self = self.Parent;
             }
 
-            FullPath = new FullPath(self.AbsoluteName, paths);
+            FullPath = new FullPath(self!.AbsoluteName, paths);
         }
     }
 
@@ -304,7 +304,7 @@ public class VirtualFile
         return Read(context, null, br);
     }
 
-    private static VirtualFile Read(Context context, VirtualFile parent, BinaryReader br)
+    private static VirtualFile Read(Context context, VirtualFile? parent, BinaryReader br)
     {
         var vf = new VirtualFile
         {
@@ -371,7 +371,7 @@ public class VirtualFile
         return path;
     }
 
-    public VirtualFile InSameFolder(RelativePath relativePath)
+    public VirtualFile? InSameFolder(RelativePath relativePath)
     {
         var newPath = FullPath.InSameFolder(relativePath);
         return Context.Index.ByFullPath.TryGetValue(newPath, out var found) ? found : null;

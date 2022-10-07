@@ -71,8 +71,8 @@ public class Builder : IBuilder
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return;
+        return ValueTask.CompletedTask;
     }
 }

@@ -36,7 +36,7 @@ public class ProxiedNexusApi : NexusApi
     }
 
     protected override async ValueTask<HttpRequestMessage> GenerateMessage(HttpMethod method, string uri,
-        params object[] parameters)
+        params object?[] parameters)
     {
         var msg = await base.GenerateMessage(method, uri, parameters);
         if (ProxiedEndpoints.Contains(uri))

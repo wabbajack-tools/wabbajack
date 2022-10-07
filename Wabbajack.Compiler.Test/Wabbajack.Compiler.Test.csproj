@@ -25,6 +25,10 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
     </ItemGroup>
+    
+    <PropertyGroup>
+        <NoWarn>CS8600,CS8601,CS8618,CS8604</NoWarn>
+    </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.Compiler\Wabbajack.Compiler.csproj" />
