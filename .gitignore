@@ -5,3 +5,4 @@ obj
 *.user
 .\packages\*
 /VERSION.txt
+*.opencover.xml
