@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using Wabbajack.Common;
 using Wabbajack.Paths;
+#pragma warning disable SYSLIB0001
 
 namespace Wabbajack.Compression.BSA;
 

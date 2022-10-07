@@ -99,9 +99,9 @@ public class DownloadDispatcher
         return hash;
     }
 
-    public async Task<IDownloadState?> ResolveArchive(IReadOnlyDictionary<string, string> ini)
+    public Task<IDownloadState?> ResolveArchive(IReadOnlyDictionary<string, string> ini)
     {
-        return _downloaders.Select(downloader => downloader.Resolve(ini)).FirstOrDefault(result => result != null);
+        return Task.FromResult(_downloaders.Select(downloader => downloader.Resolve(ini)).FirstOrDefault(result => result != null));
     }
 
     public async Task<bool> Verify(Archive a, CancellationToken token)
@@ -265,7 +265,7 @@ public class DownloadDispatcher
         return Downloader(archive).IsAllowed(allowList, archive.State);
     }
 
-    public async Task<bool> IsAllowed(ModUpgradeRequest request, CancellationToken allowList)
+    public Task<bool> IsAllowed(ModUpgradeRequest request, CancellationToken allowList)
     {
         throw new NotImplementedException();
     }
@@ -288,9 +288,9 @@ public class DownloadDispatcher
         }
     }
 
-    public async Task<IEnumerable<IDownloader>> AllDownloaders(IEnumerable<IDownloadState> downloadStates)
+    public Task<IEnumerable<IDownloader>> AllDownloaders(IEnumerable<IDownloadState> downloadStates)
     {
-        return downloadStates.Select(d => Downloader(new Archive {State = d})).Distinct();
+        return Task.FromResult(downloadStates.Select(d => Downloader(new Archive {State = d})).Distinct());
     }
 
     public bool Matches(Archive archive, ServerAllowList mirrorAllowList)

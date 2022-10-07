@@ -110,10 +110,8 @@ public class ZipReader : IAsyncDisposable
     public async Task<ExtractedEntry[]> GetFiles()
     {
         var (sigOffset, totalCentralDirectoryRecords, centralDirectoryOffset) = await ReadZip32EODR(0);
-        var isZip64 = false;
         if (centralDirectoryOffset == uint.MaxValue)
         {
-            isZip64 = true;
             (sigOffset, totalCentralDirectoryRecords, centralDirectoryOffset) = await ReadZip64EODR(sigOffset);
         }
         

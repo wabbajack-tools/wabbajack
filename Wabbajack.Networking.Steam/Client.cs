@@ -34,8 +34,6 @@ public class Client : IDisposable
     private string? _twoFactorCode;
     private string? _authCode;
     private readonly IUserInterventionHandler _interventionHandler;
-    private bool _isConnected;
-    private bool _isLoggedIn;
     private bool _haveSigFile;
 
     public TaskCompletionSource _licenseRequest = new();
@@ -93,8 +91,6 @@ public class Client : IDisposable
         
         _manager.Subscribe<SteamUser.UpdateMachineAuthCallback>( OnUpdateMachineAuthCallback );
 
-        _isConnected = false;
-        _isLoggedIn = false;
         _haveSigFile = false;
 
         new Thread(() =>
@@ -170,7 +166,6 @@ public class Client : IDisposable
 
     private void OnLoggedOff(SteamUser.LoggedOffCallback obj)
     {
-        _isLoggedIn = false;
     }
 
     private void OnLoggedOn(SteamUser.LoggedOnCallback callback)
@@ -206,7 +201,6 @@ public class Client : IDisposable
                 return;
             }
 
-            _isLoggedIn = true;
             _logger.LogInformation("Logged into Steam");
             if (_haveSigFile) 
                 _loginTask.SetResult();
@@ -215,7 +209,6 @@ public class Client : IDisposable
 
     private void OnDisconnected(SteamClient.DisconnectedCallback obj)
     {
-        _isConnected = false;
         _logger.LogInformation("Logged out");
     }
 
@@ -239,9 +232,7 @@ public class Client : IDisposable
             {
                 _haveSigFile = false;
             }
-            
-            _isConnected = true;
-            
+
             _steamUser.LogOn(new SteamUser.LogOnDetails
             {
                 Username = state.User,

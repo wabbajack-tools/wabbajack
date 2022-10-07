@@ -68,9 +68,9 @@ public class HttpDownloader : ADownloader<DTOs.DownloadStates.Http>, IUrlDownloa
         return null;
     }
 
-    public override async Task<bool> Prepare()
+    public override Task<bool> Prepare()
     {
-        return true;
+        return Task.FromResult(true);
     }
 
     public override bool IsAllowed(ServerAllowList allowList, IDownloadState state)
@@ -155,10 +155,10 @@ public class HttpDownloader : ADownloader<DTOs.DownloadStates.Http>, IUrlDownloa
         return new[] {$"directURL={state.Url}"};
     }
 
-    public async ValueTask<Stream> GetChunkedSeekableStream(Archive archive, CancellationToken token)
+    public ValueTask<Stream> GetChunkedSeekableStream(Archive archive, CancellationToken token)
     {
         var state = archive.State as DTOs.DownloadStates.Http;
-        return new ChunkedSeekableDownloader(this, archive, state!);
+        return ValueTask.FromResult<Stream>(new ChunkedSeekableDownloader(this, archive, state!));
     }
     
     public class ChunkedSeekableDownloader : AChunkedBufferingStream

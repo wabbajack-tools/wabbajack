@@ -16,7 +16,6 @@ public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>, IProxya
 {
     private readonly ILogger<ManualDownloader> _logger;
     private readonly IUserInterventionHandler _interventionHandler;
-    private readonly IResource<HttpClient> _limiter;
     private readonly HttpClient _client;
 
     public ManualDownloader(ILogger<ManualDownloader> logger, IUserInterventionHandler interventionHandler, HttpClient client)
@@ -59,9 +58,9 @@ public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>, IProxya
     }
 
 
-    public override async Task<bool> Prepare()
+    public override Task<bool> Prepare()
     {
-        return true;
+        return Task.FromResult(true);
     }
 
     public override bool IsAllowed(ServerAllowList allowList, IDownloadState state)
@@ -88,9 +87,9 @@ public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>, IProxya
     }
 
     public override Priority Priority { get; } = Priority.Lowest;
-    public override async Task<bool> Verify(Archive archive, DTOs.DownloadStates.Manual archiveState, IJob job, CancellationToken token)
+    public override Task<bool> Verify(Archive archive, DTOs.DownloadStates.Manual archiveState, IJob job, CancellationToken token)
     {
-        return true;
+        return Task.FromResult(true);
     }
 
     public override IEnumerable<string> MetaIni(Archive a, DTOs.DownloadStates.Manual state)

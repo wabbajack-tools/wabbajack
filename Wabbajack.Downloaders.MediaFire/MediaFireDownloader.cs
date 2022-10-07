@@ -113,7 +113,7 @@ public class MediaFireDownloader : ADownloader<DTOs.DownloadStates.MediaFire>, I
         {
             var bodyData = await result.Content.ReadAsStringAsync((CancellationToken) token);
             if (job != null) 
-                await job.Report((int) job.Size, (CancellationToken) token);
+                await job.Report((int) (job.Size ?? 0), (CancellationToken) token);
             var body = new HtmlDocument();
             body.LoadHtml(bodyData);
             var node = body.DocumentNode.DescendantsAndSelf().FirstOrDefault(d => d.HasClass("input") && d.HasClass("popsok") &&

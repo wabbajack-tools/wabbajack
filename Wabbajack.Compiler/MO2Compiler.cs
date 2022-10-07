@@ -141,7 +141,7 @@ public class MO2Compiler : ACompiler
         var stack = MakeStack();
 
         NextStep("Compiling", "Running Compilation Stack", AllFiles.Count);
-        var results = await AllFiles.PMapAllBatched(CompilerLimiter, f =>
+        var results = await AllFiles.PMapAllBatchedAsync(CompilerLimiter, f =>
         {
             UpdateProgress(1);
             return RunStack(stack, f);

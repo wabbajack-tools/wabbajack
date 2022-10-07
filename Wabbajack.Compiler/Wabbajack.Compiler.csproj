@@ -5,9 +5,10 @@
         <Nullable>enable</Nullable>
         <Version>$(VERSION)</Version>
         <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
-        <NoWarn>CS8600</NoWarn>
-        <NoWarn>CS8601</NoWarn>
-        <NoWarn>CS8618</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <NoWarn>CS8600,CS8601,CS8618,CS8604</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

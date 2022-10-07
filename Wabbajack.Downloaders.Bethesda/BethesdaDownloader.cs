@@ -47,7 +47,7 @@ public class BethesdaDownloader : ADownloader<DTOs.DownloadStates.Bethesda>, IUr
         var hasher = new xxHashAlgorithm(0);
         Hash finalHash = default;
 
-        var aesKey = depot.ExInfoA.ToArray();
+        var aesKey = depot!.ExInfoA.ToArray();
         var aesIV = depot.ExInfoB.Take(16).ToArray();
 
         await chunks.PMapAll(async chunk =>
@@ -100,7 +100,7 @@ public class BethesdaDownloader : ADownloader<DTOs.DownloadStates.Bethesda>, IUr
 
     public override async Task<bool> Prepare()
     {
-        await _client.CDPAuth(CancellationToken.None);
+        await _client.CdpAuth(CancellationToken.None);
         return true;
     }
 

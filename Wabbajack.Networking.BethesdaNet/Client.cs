@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -25,12 +26,12 @@ public class Client
     private readonly ILogger<Client> _logger;
     private readonly HttpClient _httpClient;
     private readonly JsonSerializerOptions _jsonOptions;
-    private CDPAuthResponse? _entitlementData = null;
-    public const string AgentPlatform = "WINDOWS";
-    public const string AgentProduct = "FALLOUT4";
-    public const string AgentLanguage = "en";
-    private const string ClientAPIKey = "FeBqmQA8wxd94RtqymKwzmtcQcaA5KHOpDkQBSegx4WePeluZTCIm5scoeKTbmGl";
-    private const string ClientId = "95578d65-45bf-4a03-b7f7-a43d29b9467d";
+    private CDPAuthResponse? _entitlementData;
+    private const string AgentPlatform = "WINDOWS";
+    private const string AgentProduct = "FALLOUT4";
+    private const string AgentLanguage = "en";
+    private const string ClientApiKey = "FeBqmQA8wxd94RtqymKwzmtcQcaA5KHOpDkQBSegx4WePeluZTCIm5scoeKTbmGl";
+    //private const string ClientId = "95578d65-45bf-4a03-b7f7-a43d29b9467d";
     private const string AgentVersion = $"{AgentProduct};;BDK;1.0013.99999.1;{AgentPlatform}";
     private string FingerprintKey { get; set; }
 
@@ -50,14 +51,15 @@ public class Client
 
     public async Task Login(CancellationToken token)
     {
+        _logger.LogInformation("Logging into BethesdaNet");
         var loginData = await _tokenProvider.Get();
         var msg = MakeMessage(HttpMethod.Post, new Uri($"https://api.bethesda.net/beam/accounts/login/{loginData!.Username}"));
-        msg.Headers.Add("X-Client-API-key", ClientAPIKey);
+        msg.Headers.Add("X-Client-API-key", ClientApiKey);
         msg.Headers.Add("x-src-fp", FingerprintKey);
         msg.Headers.Add("X-Platform", AgentPlatform);
         msg.Content = new StringContent(JsonSerializer.Serialize(new BeamLogin
         {
-            Password = loginData!.Password,
+            Password = loginData.Password,
             Language = AgentLanguage
         }, _jsonOptions), Encoding.UTF8, "application/json");
 
@@ -71,10 +73,10 @@ public class Client
         await _tokenProvider.SetToken(loginData);
     }
 
-    public async Task CDPAuth(CancellationToken token)
+    public async Task CdpAuth(CancellationToken token)
     {
         var state = await _tokenProvider.Get();
-        if (string.IsNullOrEmpty(state.BeamResponse?.AccessToken))
+        if (string.IsNullOrEmpty(state!.BeamResponse?.AccessToken))
             throw new Exception("Can't get CDPAuth before Bethesda Net login");
         
         var msg = MakeMessage(HttpMethod.Post, new Uri("https://api.bethesda.net/cdp-user/auth"));
@@ -106,7 +108,7 @@ public class Client
     private void SetFingerprint()
     {
         var keyBytes = new byte[20];
-        using (var rng = new System.Security.Cryptography.RNGCryptoServiceProvider())
+        using (var rng = RandomNumberGenerator.Create())
             rng.GetBytes(keyBytes);
 
         FingerprintKey = string.Concat(Array.ConvertAll(keyBytes, x => x.ToString("X2")));
@@ -145,15 +147,9 @@ public class Client
     private async Task EnsureAuthed(CancellationToken token)
     {
         if (_entitlementData == null)
-            await CDPAuth(token);
+            await CdpAuth(token);
     }
-
-    private int ProductId(Game game)
-    {
-        if (game == Game.SkyrimSpecialEdition) return 4;
-        return 0;
-    }
-
+    
     public async Task<Depot?> GetDepots(Bethesda state, CancellationToken token)
     {
         return (await MakeCdpRequest<Dictionary<string, Depot>>(state, "depots", token))?.Values.First();

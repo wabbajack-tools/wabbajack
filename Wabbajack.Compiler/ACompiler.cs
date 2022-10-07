@@ -476,7 +476,7 @@ public abstract class ACompiler
 
             NextStep("Compiling", "Generating Patches", toBuild.Length);
 
-            var allFiles = (await toBuild.PMapAllBatched(CompilerLimiter, async f =>
+            var allFiles = (await toBuild.PMapAllBatchedAsync(CompilerLimiter, async f =>
                 {
                     UpdateProgress(1);
                     return new[]
@@ -504,7 +504,7 @@ public abstract class ACompiler
             if (toBuild.Length == 0) return;
 
             NextStep("Compiling", "Generating Patch Files", toBuild.Length);
-            await toBuild.PMapAllBatched(CompilerLimiter, async patch =>
+            await toBuild.PMapAllBatchedAsync(CompilerLimiter, async patch =>
             {
                 UpdateProgress(1);
                 await using var src = TempPath(patch.FromHash).Open(FileMode.Open, FileAccess.Read, FileShare.Read);
