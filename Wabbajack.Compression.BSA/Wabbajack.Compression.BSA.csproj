@@ -8,6 +8,10 @@
         <Version>$(VERSION)</Version>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <NoWarn>CS8600,CS8601,CS8618,CS8604</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
         <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
