@@ -1,6 +1,7 @@
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Networking.Http.Interfaces;
@@ -21,15 +22,12 @@ public class SteamLogin : IVerb
         _client = steamClient;
         _token = token;
     }
-    public Command MakeCommand()
-    {
-        var command = new Command("steam-login");
-        command.Description = "Logs into Steam via interactive prompts";
-        
-        command.Add(new Option<string>(new[] {"-u", "-user"}, "Username for login"));
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
+
+    public static VerbDefinition Definition = new("steam-login",
+        "Logs into Steam via interactive prompts", new[]
+        {
+            new OptionDefinition(typeof(string), "u", "user", "Username for login")
+        });
 
     public async Task<int> Run(string user)
     {

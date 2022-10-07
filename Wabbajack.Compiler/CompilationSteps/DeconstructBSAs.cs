@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Compression.BSA;
 using Wabbajack.DTOs;
@@ -19,6 +20,11 @@ public class DeconstructBSAs : ACompilationStep
     private readonly Func<VirtualFile, List<ICompilationStep>> _microstack;
     private readonly Func<VirtualFile, List<ICompilationStep>> _microstackWithInclude;
     private readonly MO2Compiler _mo2Compiler;
+    private readonly DirectMatch _directMatch;
+    private readonly MatchSimilarTextures _matchSimilar;
+    private readonly IncludePatches _includePatches;
+    private readonly DropAll _dropAll;
+    private readonly IncludeAll _includeAll;
 
     public DeconstructBSAs(ACompiler compiler) : base(compiler)
     {
@@ -37,20 +43,27 @@ public class DeconstructBSAs : ACompilationStep
             .Select(kv => kv.Key.RelativeTo(_mo2Compiler._settings.Source))
             .ToList();
 
+        // Cache these so their internal caches aren't recreated on every use
+        _directMatch = new DirectMatch(_mo2Compiler);
+        _matchSimilar = new MatchSimilarTextures(_mo2Compiler);
+        _includePatches = new IncludePatches(_mo2Compiler);
+        _dropAll = new DropAll(_mo2Compiler);
+        _includeAll = new IncludeAll(_mo2Compiler);
+
         _microstack = bsa => new List<ICompilationStep>
         {
-            new DirectMatch(_mo2Compiler),
-            new MatchSimilarTextures(_mo2Compiler),
-            new IncludePatches(_mo2Compiler, bsa),
-            new DropAll(_mo2Compiler)
+            _directMatch,
+            _matchSimilar,
+            _includePatches.WithBSA(bsa),
+            _dropAll
         };
 
         _microstackWithInclude = bsa => new List<ICompilationStep>
         {
-            new DirectMatch(_mo2Compiler),
-            new MatchSimilarTextures(_mo2Compiler),
-            new IncludePatches(_mo2Compiler, bsa),
-            new IncludeAll(_mo2Compiler)
+            _directMatch,
+            _matchSimilar,
+            _includePatches.WithBSA(bsa),
+            _includeAll
         };
     }
 
@@ -72,6 +85,8 @@ public class DeconstructBSAs : ACompilationStep
                     $"BSA {source.AbsolutePath.FileName} is over 2GB in size, very few programs (Including Wabbajack) can create BSA files this large without causing CTD issues." +
                     "Please re-compress this BSA into a more manageable size.");
         }
+        
+        _compiler._logger.LogInformation("Deconstructing BSA: {Name}", source.File.FullPath.FileName);
 
         var sourceFiles = source.File.Children;
 
@@ -86,8 +101,8 @@ public class DeconstructBSAs : ACompilationStep
             //_cleanup = await source.File.Context.Stage(source.File.Children);
         }
 
-        var matches = await sourceFiles.PMapAll(_compiler.CompilerLimiter,
-                e => _mo2Compiler.RunStack(stack,
+        var matches = await sourceFiles.SelectAsync(
+                async e => await _mo2Compiler.RunStack(stack,
                     new RawSourceFile(e, Consts.BSACreationDir.Combine(id, (RelativePath) e.Name))))
             .ToList();
 

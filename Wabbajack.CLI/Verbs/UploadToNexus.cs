@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -25,14 +26,13 @@ public class UploadToNexus : IVerb
         _client = wjClient;
         _dtos = dtos;
     }
-    public Command MakeCommand()
-    {
-        var command = new Command("upload-to-nexus");
-        command.Add(new Option<AbsolutePath>(new[] {"-d", "-definition"}, "Definition JSON file"));
-        command.Description = "Uploads a file to the Nexus defined by the given .json definition file";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
+
+    public static VerbDefinition Definition = new("upload-to-nexus",
+        "Uploads a file to the Nexus defined by the given .json definition file", new[]
+        {
+            new OptionDefinition(typeof(AbsolutePath), "d", "definition", "Definition JSON file")
+        });
+
 
     public async Task<int> Run(AbsolutePath definition)
     {

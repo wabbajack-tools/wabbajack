@@ -26,13 +26,15 @@ public class HashCacheTest
 
         Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="),
             await _cache.FileHashCachedAsync(testFile.Path, CancellationToken.None));
-        Assert.True(_cache.TryGetHashCache(testFile.Path, out var hash));
+        Assert.True(await _cache.TryGetHashCache(testFile.Path) != default);
 
         _cache.Purge(testFile.Path);
-        Assert.False(_cache.TryGetHashCache(testFile.Path, out _));
+        var hash = await testFile.Path.Hash(CancellationToken.None);
+        Assert.NotEqual(hash, default);
+        Assert.NotEqual(hash, await _cache.TryGetHashCache(testFile.Path));
         Assert.Equal(hash, await _cache.FileHashCachedAsync(testFile.Path, CancellationToken.None));
 
-        Assert.True(_cache.TryGetHashCache(testFile.Path, out _));
+        Assert.Equal(hash, await _cache.TryGetHashCache(testFile.Path));
 
         _cache.VacuumDatabase();
     }

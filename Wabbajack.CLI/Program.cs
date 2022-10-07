@@ -57,31 +57,7 @@ internal class Program
 
 
                 services.AddTransient<Context>();
-                services.AddSingleton<IVerb, HashFile>();
-                services.AddSingleton<IVerb, VFSIndexFolder>();
-                services.AddSingleton<IVerb, Encrypt>();
-                services.AddSingleton<IVerb, Decrypt>();
-                services.AddSingleton<IVerb, ValidateLists>();
-                services.AddSingleton<IVerb, DownloadCef>();
-                services.AddSingleton<IVerb, DownloadUrl>();
-                services.AddSingleton<IVerb, GenerateMetricsReports>();
-                services.AddSingleton<IVerb, ForceHeal>();
-                services.AddSingleton<IVerb, MirrorFile>();
-                services.AddSingleton<IVerb, SteamLogin>();
-                services.AddSingleton<IVerb, SteamAppDumpInfo>();
-                services.AddSingleton<IVerb, SteamDownloadFile>();
-                services.AddSingleton<IVerb, UploadToNexus>();
-                services.AddSingleton<IVerb, ListCreationClubContent>();
-                services.AddSingleton<IVerb, ListModlists>();
-                services.AddSingleton<IVerb, Extract>();
-                services.AddSingleton<IVerb, DumpZipInfo>();
-                services.AddSingleton<IVerb, Install>();
-                services.AddSingleton<IVerb, Compile>();
-                services.AddSingleton<IVerb, InstallCompileInstallVerify>();
-                services.AddSingleton<IVerb, HashUrlString>();
-                services.AddSingleton<IVerb, DownloadAll>();
-                services.AddSingleton<IVerb, ModlistReport>();
-
+                services.AddCommands();
                 services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
             }).Build();
 

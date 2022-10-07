@@ -87,6 +87,7 @@ public class ModListHarness
         settings.ModListName = _profileName;
         settings.Profile = _profileName;
         settings.OutputFile = _outputFile;
+        settings.UseTextureRecompression = true;
         configureSettings(settings);
 
         var modLines = _mods.Select(

@@ -16,10 +16,12 @@ public class IgnoreDisabledMods : ACompilationStep
     public IgnoreDisabledMods(ACompiler compiler) : base(compiler)
     {
         _mo2Compiler = (MO2Compiler) compiler;
-        //var alwaysEnabled = _mo2Compiler.ModInis.Where(f => HasFlagInNotes(f.Value, Consts.WABBAJACK_ALWAYS_ENABLE)).Select(f => f.Key).Distinct();
-        // TODO: Re-enable this
-        //var alwaysDisabled = _mo2Compiler.ModInis
-        //   .Where(f => HasFlagInNotes(f.Value, Consts.WABBAJACK_ALWAYS_DISABLE)).Select(f => f.Key).Distinct();
+
+        if (!compiler.Settings.IsMO2Modlist)
+        {
+            Disabled = true;
+            return;
+        }
 
         _allEnabledMods = _mo2Compiler._settings.AllProfiles
             .SelectMany(p => _mo2Compiler._settings.Source.Combine("profiles", p, "modlist.txt").ReadAllLines())

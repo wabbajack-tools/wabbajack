@@ -1,6 +1,7 @@
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -14,15 +15,15 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class SteamAppDumpInfo : IVerb
+public class SteamDumpAppInfo : IVerb
 {
-    private readonly ILogger<SteamAppDumpInfo> _logger;
+    private readonly ILogger<SteamDumpAppInfo> _logger;
     private readonly Client _client;
     private readonly ITokenProvider<SteamLoginState> _token;
     private readonly DepotDownloader _downloader;
     private readonly DTOSerializer _dtos;
 
-    public SteamAppDumpInfo(ILogger<SteamAppDumpInfo> logger, Client steamClient, ITokenProvider<SteamLoginState> token, 
+    public SteamDumpAppInfo(ILogger<SteamDumpAppInfo> logger, Client steamClient, ITokenProvider<SteamLoginState> token, 
         DepotDownloader downloader, DTOSerializer dtos)
     {
         _logger = logger;
@@ -31,6 +32,13 @@ public class SteamAppDumpInfo : IVerb
         _downloader = downloader;
         _dtos = dtos;
     }
+
+    public static VerbDefinition Definition = new VerbDefinition("steam-app-dump-info",
+        "Dumps information to the console about the given app", new[]
+        {
+            new OptionDefinition(typeof(string), "g", "game", "Wabbajack game name")
+        });
+
     public Command MakeCommand()
     {
         var command = new Command("steam-app-dump-info");

@@ -6,4 +6,6 @@ namespace Wabbajack.Compiler.CompilationSteps;
 public interface ICompilationStep
 {
     ValueTask<Directive?> Run(RawSourceFile source);
+    
+    bool Disabled { get; }
 }

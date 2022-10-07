@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,18 +46,15 @@ public class InstallCompileInstallVerify : IVerb
         _gameLocator = gameLocator;
         _inferencer = inferencer;
     }
-    
-    public Command MakeCommand()
-    {
-        var command = new Command("install-compile-install-verify");
-        command.Add(new Option<AbsolutePath>(new[] {"-m", "-machineUrls"}, "Machine url(s) to download"));
-        command.Add(new Option<AbsolutePath>(new[] {"-d", "-downloads"}, "Downloads path"));
-        command.Add(new Option<AbsolutePath>(new[] {"-o", "-outputs"}, "Outputs path"));
-        command.Description = "Installs a modlist, compiles it, installs it again, verifies it";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
 
+    public static VerbDefinition Definition = new VerbDefinition("install-compile-install-verify",
+        "Installs a modlist, compiles it, installs it again, verifies it", new[]
+        {
+            new OptionDefinition(typeof(AbsolutePath), "m", "machineUrl", "Machine url(s) to download"),
+            new OptionDefinition(typeof(AbsolutePath), "d", "downloads", "Downloads path"),
+            new OptionDefinition(typeof(AbsolutePath), "o", "outputs", "Output paths")
+        });
+    
     public async Task<int> Run(AbsolutePath outputs, AbsolutePath downloads, IEnumerable<string> machineUrls, CancellationToken token)
     {
         foreach (var machineUrl in machineUrls)

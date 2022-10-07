@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -39,16 +38,12 @@ public class Compile : IVerb
         _inferencer = inferencer;
     }
 
-    public Command MakeCommand()
+    public static VerbDefinition Definition = new("compile", "Compiles a modlist",
+    new[]
     {
-        var command = new Command("compile");
-        command.Add(new Option<AbsolutePath>(new[] {"-i", "-installPath"}, "Install Path"));
-        command.Add(new Option<AbsolutePath>(new[] {"-o", "-output"}, "Output"));
-        command.Description = "Installs a modlist, compiles it, installs it again, verifies it";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
-
+        new OptionDefinition(typeof(AbsolutePath), "i", "installPath", "Install Path"),
+        new OptionDefinition(typeof(AbsolutePath), "o", "outputPath", "OutputPath")
+    });
     public async Task<int> Run(AbsolutePath installPath, AbsolutePath outputPath,
         CancellationToken token)
     {

@@ -69,8 +69,8 @@ public static class ServiceExtensions
         });
 
         service.AddSingleton<IBinaryPatchCache>(s => options.UseLocalCache
-            ? new BinaryPatchCache(s.GetService<TemporaryFileManager>()!.CreateFile().Path)
-            : new BinaryPatchCache(KnownFolders.WabbajackAppLocal.Combine("patchCache.sqlite")));
+            ? new BinaryPatchCache(s.GetRequiredService<ILogger<BinaryPatchCache>>(), s.GetService<TemporaryFileManager>()!.CreateFolder().Path)
+            : new BinaryPatchCache(s.GetRequiredService<ILogger<BinaryPatchCache>>(),KnownFolders.WabbajackAppLocal.Combine("PatchCache")));
 
         service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount});
 
@@ -90,7 +90,7 @@ public static class ServiceExtensions
             EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
             ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
             SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings"),
-            LogLocation = KnownFolders.EntryPoint.Combine("logs"),
+            LogLocation = KnownFolders.LauncherAwarePath.Combine("logs"),
             ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
         });
 

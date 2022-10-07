@@ -1,6 +1,7 @@
 
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Paths;
@@ -18,16 +19,14 @@ public class Decrypt : IVerb
         _logger = logger;
     }
 
-    public Command MakeCommand()
-    {
-        var command = new Command("decrypt");
-        command.Add(new Option<AbsolutePath>(new[] {"-o", "-output"}, "Output file path"));
-        command.Add(new Option<string>(new[] {"-n", "-name"}, "Name of the key to load data from"));
-        command.Description = "Decrypts a file from the Wabbajack encrypted storage";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
-
+    public static VerbDefinition Definition = new VerbDefinition("decrypt",
+        "Decrypts a file from the wabbajack encrypted storage",
+        new[]
+        {
+            new OptionDefinition(typeof(AbsolutePath), "o", "output", "Output file path"),
+            new OptionDefinition(typeof(string), "n", "name", "Name of the key to load data from")
+        });
+    
     public async Task<int> Run(AbsolutePath output, string name)
     {
         var data = await name.ToRelativePath()

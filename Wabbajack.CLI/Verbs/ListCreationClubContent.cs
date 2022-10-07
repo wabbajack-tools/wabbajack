@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,14 +29,10 @@ public class ListCreationClubContent : IVerb
         _client = wjClient;
         _downloader = downloader;
     }
-    public Command MakeCommand()
-    {
-        var command = new Command("list-creation-club-content");
-        command.Description = "Lists all known creation club content";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
 
+    public static VerbDefinition Definition =
+        new("list-creation-club-content", "Lists all known creation club content", Array.Empty<OptionDefinition>());
+    
     public async Task<int> Run(CancellationToken token)
     {
         _logger.LogInformation("Getting list of content");

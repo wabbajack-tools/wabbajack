@@ -62,6 +62,79 @@ public static class AsyncParallelExtensions
         }
     }
     
+    /// <summary>
+    /// Faster version of PMapAll for when the function invocation will take a very small amount of time
+    /// batches all the inputs into N groups and executes them all on one task, where N is the number of
+    /// threads supported by the limiter
+    /// </summary>
+    /// <param name="coll"></param>
+    /// <param name="limiter"></param>
+    /// <param name="mapFn"></param>
+    /// <typeparam name="TIn"></typeparam>
+    /// <typeparam name="TJob"></typeparam>
+    /// <typeparam name="TOut"></typeparam>
+    /// <returns></returns>
+    public static async IAsyncEnumerable<TOut> PMapAllBatched<TIn, TJob, TOut>(this IEnumerable<TIn> coll,
+        IResource<TJob> limiter, Func<TIn, Task<TOut>> mapFn)
+    {
+        var asList = coll.ToList();
+        
+        var tasks = new List<Task<List<TOut>>>();
+
+        tasks.AddRange(Enumerable.Range(0, limiter.MaxTasks).Select(i => Task.Run(async () =>
+        {
+            using var job = await limiter.Begin(limiter.Name, asList.Count / limiter.MaxTasks, CancellationToken.None);
+            var list = new List<TOut>();
+            for (var idx = i; idx < asList.Count; idx += limiter.MaxTasks)
+            {
+                job.ReportNoWait(1);
+                list.Add(await mapFn(asList[idx]));
+            }
+
+            return list;
+        })));
+
+        foreach (var result in tasks)
+        {
+            foreach (var itm in (await result))
+            {
+                yield return itm;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Faster version of PMapAll for when the function invocation will take a very small amount of time
+    /// batches all the inputs into N groups and executes them all on one task, where N is the number of
+    /// threads supported by the limiter
+    /// </summary>
+    /// <param name="coll"></param>
+    /// <param name="limiter"></param>
+    /// <param name="mapFn"></param>
+    /// <typeparam name="TIn"></typeparam>
+    /// <typeparam name="TJob"></typeparam>
+    /// <typeparam name="TOut"></typeparam>
+    /// <returns></returns>
+    public static async Task PDoAllBatched<TIn, TJob, TOut>(this IEnumerable<TIn> coll,
+        IResource<TJob> limiter, Func<TIn, Task> mapFn)
+    {
+        var asList = coll.ToList();
+        
+        var tasks = new List<Task>();
+
+        tasks.AddRange(Enumerable.Range(0, limiter.MaxTasks).Select(i => Task.Run(async () =>
+        {
+            using var job = await limiter.Begin(limiter.Name, asList.Count / limiter.MaxTasks, CancellationToken.None);
+            for (var idx = i; idx < asList.Count; idx += limiter.MaxTasks)
+            {
+                job.ReportNoWait(1);
+                await mapFn(asList[idx]);
+            }
+        })));
+
+        await Task.WhenAll(tasks);
+    }
+    
     public static async IAsyncEnumerable<TOut> PKeepAll<TIn, TJob, TOut>(this IEnumerable<TIn> coll,
         IResource<TJob> limiter, Func<TIn, Task<TOut>> mapFn)
     where TOut : class
@@ -83,6 +156,21 @@ public static class AsyncParallelExtensions
         List<T> lst = new();
         await foreach (var itm in coll) lst.Add(itm);
         return lst;
+    }
+    
+    /// <summary>
+    /// Consumes a IAsyncEnumerable without doing anything with it
+    /// </summary>
+    /// <param name="coll"></param>
+    /// <typeparam name="T"></typeparam>
+    public static async Task Sink<T>(this IAsyncEnumerable<T> coll)
+    {
+        long count = 0;
+        await foreach (var itm in coll)
+        {
+            count++;
+
+        }
     }
 
     public static async Task<T[]> ToArray<T>(this IAsyncEnumerable<T> coll)

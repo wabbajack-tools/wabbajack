@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Paths;
@@ -17,17 +18,15 @@ public class Encrypt : IVerb
         _logger = logger;
     }
 
-    public Command MakeCommand()
-    {
-        var command = new Command("encrypt");
-        command.Add(new Option<AbsolutePath>(new[] {"-i", "-input"}, "Path to the file to enrypt"));
-        command.Add(new Option<string>(new[] {"-n", "-name"}, "Name of the key to store the data into"));
-        command.Description = "Encrypts a file and stores it in the Wabbajack encrypted storage";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
+    public static VerbDefinition Definition = new("encrypt",
+        "Encrypts a file and stores it in the Wabbajack encrypted storage",
+        new[]
+        {
+            new OptionDefinition(typeof(AbsolutePath), "i", "input", "Path to the file to encrypt"),
+            new OptionDefinition(typeof(string), "n", "name", "Name of the key to store the data into")
+        });
 
-    public async Task<int> Run(AbsolutePath input, string name)
+    internal async Task<int> Run(AbsolutePath input, string name)
     {
         var data = await input.ReadAllBytesAsync();
         _logger.LogInformation("Encrypting {bytes} bytes into `{key}`", data.Length, name);

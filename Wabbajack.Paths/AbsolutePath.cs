@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Wabbajack.Paths;
 
@@ -16,8 +18,10 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
     public PathFormat PathFormat { get; }
 
     private int _hashCode = 0;
-    
+
     internal readonly string[] Parts;
+
+    public string[] PathParts => Parts == default ? Array.Empty<string>() : Parts;
 
     public Extension Extension => Extension.FromPath(Parts[^1]);
     public RelativePath FileName => new(Parts[^1..]);
@@ -68,6 +72,18 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
     }
 
     public int Depth => Parts?.Length ?? 0;
+
+    public IEnumerable<AbsolutePath> ThisAndAllParents() 
+    {
+        var p = this;
+        while (true)
+        {
+            yield return p;
+            if (p.Depth == 1)
+                yield break;
+            p = p.Parent;
+        }
+    }
 
     public AbsolutePath ReplaceExtension(Extension newExtension)
     {
@@ -126,7 +142,7 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
 
     public RelativePath RelativeTo(AbsolutePath basePath)
     {
-        if (!ArrayExtensions.AreEqual(basePath.Parts, 0, Parts, 0, basePath.Parts.Length))
+        if (!ArrayExtensions.AreEqualIgnoreCase(basePath.Parts, 0, Parts, 0, basePath.Parts.Length))
             throw new PathException($"{basePath} is not a base path of {this}");
 
         var newParts = new string[Parts.Length - basePath.Parts.Length];
@@ -136,10 +152,10 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
 
     public bool InFolder(AbsolutePath parent)
     {
-        return ArrayExtensions.AreEqual(parent.Parts, 0, Parts, 0, parent.Parts.Length);
+        return ArrayExtensions.AreEqualIgnoreCase(parent.Parts, 0, Parts, 0, parent.Parts.Length);
     }
 
-    public AbsolutePath Combine(params object[] paths)
+    public readonly AbsolutePath Combine(params object[] paths)
     {
         var converted = paths.Select(p =>
         {

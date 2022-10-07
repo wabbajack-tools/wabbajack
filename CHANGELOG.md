@@ -1,5 +1,55 @@
 ### Changelog
 
+#### Version - 3.0.1.9 - 10/4/2022
+* Lots of compiler improvements for faster compilation
+* Limit the log view to the last 200 messages for better UI performance
+* Optimize BSA Building to give better performance and UI feedback
+* Improve UI performance during "finding files to delete"
+
+#### Version - 3.0.1.8 - 10/1/2022
+* Fix broken ZEditMerge code (this stream is not readable)
+* Update out-of-date dependencies
+* Update CLI to perform lazy initialization of command components (faster startup)
+* Fix some status messages during installation
+* Optimize the modlist optimizer so runs a bit faster
+* Rework the file hash cache so it doesn't block the UI thread
+* Errors when downloading modlists no longer cause the app to crash
+* Only parse and edit screen sizes in INI files when installing MO2 lists
+* Update the build to show source code names/numbers in exceptions in the logs
+* Move logs back into the same folder as the launcher
+* Update the launcher to once again load new versions from the Nexus when possible
+
+#### Version - 3.0.1.7 - 9/27/2022
+* HOTFIX: fix "Could not find part of path" bug related to the profiles folder
+
+#### Version - 3.0.1.6 - 9/26/2022
+* Fix Cyberpunk 2077 GoG recognition 
+* Add a CLI command `list-games` to list all games recognized by WJ and their versions/locations
+* Fix Native Game Compiler installs
+* Fix Native Game Compiler compilation
+
+#### Version - 3.0.1.5 - 9/26/2022
+* Fix MO2ArchiveName resolution
+* Improve performance of the compiler stack
+* Save the location of the browser window and open the next window in the same location
+* Fix a leak of msedgwebview2.exe instances when doing manual downloads
+* Massively improve patch load times
+* Massively improve patch build times
+* Reduce situations where the UI appears to be hung due the above two issues
+* Fix file extraction progress bars not displaying properly (and going away)
+* Update status bars to be a bit more accurate
+
+#### Version - 3.0.1.4 - 9/21/2022
+* Fix several of case sensitive path comparisons, that could result in deleting downloads
+
+#### Version - 3.0.1.3 - 9/20/2022
+* Auto-include splash.png files when compiling
+* Fix support for `WABBAJACK_NOMATCH_INCLUDE_FILES.txt` and other variants
+* Fix missing MO2ArchiveName for stardewvalley
+* Write the name/version of the modlist to the log before installing
+* Refuse to install inside a Game folder or the a parent of a game folder
+* Refuse to install inside the Wabbajack folder or a parent of the Wabbajack folder
+
 #### Version - 3.0.1.2 - 9/19/2022
 * Fix error with FNV BSAs not building properly when files are in the root folder
 * Fix for UnknownError in the Launcher (will require the Wabbajack.exe launcher to be re-downloaded)

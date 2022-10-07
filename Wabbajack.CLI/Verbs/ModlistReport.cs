@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -27,14 +28,12 @@ public class ModlistReport : IVerb
         _logger = logger;
         _dtos = dtos;
     }
-    public Command MakeCommand()
-    {
-        var command = new Command("modlist-report");
-        command.Add(new Option<AbsolutePath>(new[] {"-i", "-input"}, "Wabbajack file from which to generate a report"));
-        command.Description = "Generates a usage report for a Modlist file";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
+
+    public static VerbDefinition Definition = new("modlist-report",
+        "Generates a usage report for a Modlist file", new[]
+        {
+            new OptionDefinition(typeof(AbsolutePath), "i", "input", "Wabbajack file from which to generate a report")
+        });
     
     private static async Task<string> ReportTemplate(object o)
     {

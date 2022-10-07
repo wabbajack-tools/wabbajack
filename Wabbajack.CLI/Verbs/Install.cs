@@ -1,6 +1,7 @@
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,18 +39,16 @@ public class Install : IVerb
         _cache = cache;
         _gameLocator = gameLocator;
     }
-    public Command MakeCommand()
+
+    public static VerbDefinition Definition = new VerbDefinition("install", "Installs a wabbajack file", new[]
     {
-        var command = new Command("install");
-        command.Add(new Option<AbsolutePath>(new[] {"-w", "-wabbajack"}, "Wabbajack file"));
-        command.Add(new Option<AbsolutePath>(new[] {"-m", "-machineUrl"}, "Machine url to download"));
-        command.Add(new Option<AbsolutePath>(new[] {"-o", "-output"}, "Output path"));
-        command.Add(new Option<AbsolutePath>(new[] {"-d", "-downloads"}, "Downloads path"));
-        command.Description = "Installs a wabbajack file";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
-    public async Task<int> Run(AbsolutePath wabbajack, AbsolutePath output, AbsolutePath downloads, string machineUrl, CancellationToken token)
+        new OptionDefinition(typeof(AbsolutePath), "w", "wabbajack", "Wabbajack file"),
+        new OptionDefinition(typeof(string), "m", "machineUrl", "Machine url to download"),
+        new OptionDefinition(typeof(AbsolutePath), "o", "output", "Output path"),
+        new OptionDefinition(typeof(AbsolutePath), "d", "downloads", "Downloads path")
+    });
+
+    internal async Task<int> Run(AbsolutePath wabbajack, AbsolutePath output, AbsolutePath downloads, string machineUrl, CancellationToken token)
     {
         if (!string.IsNullOrEmpty(machineUrl))
         {

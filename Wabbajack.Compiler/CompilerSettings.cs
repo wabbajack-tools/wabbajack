@@ -48,6 +48,8 @@ public class CompilerSettings
     [JsonIgnore]
     public IEnumerable<string> AllProfiles => AdditionalProfiles.Append(Profile);
 
+    [JsonIgnore] public bool IsMO2Modlist => AllProfiles.Any(p => !string.IsNullOrWhiteSpace(p));
+
 
 
     /// <summary>

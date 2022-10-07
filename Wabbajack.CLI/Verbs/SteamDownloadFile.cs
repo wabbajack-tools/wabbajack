@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,21 +34,18 @@ public class SteamDownloadFile : IVerb
         _dtos = dtos;
         _wjClient = wjClient;
     }
-    public Command MakeCommand()
-    {
-        var command = new Command("steam-download-file");
-        command.Description = "Dumps information to the console about the given app";
-        
-        command.Add(new Option<string>(new[] {"-g", "-game", "-gameName"}, "Wabbajack game name"));
 
-        command.Add(new Option<string>(new[] {"-v", "-version"}, "Version of the game to download for"));
-        command.Add(new Option<string>(new[] {"-f", "-file"}, "File to download (relative path)"));
-        command.Add(new Option<string>(new[] {"-o", "-output"}, "Output location"));
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
+    public static VerbDefinition Definition = new VerbDefinition("steam-download-file",
+        "Dumps information to the console about the given app",
+        new[]
+        {
+            new OptionDefinition(typeof(string), "g", "game", "Wabbajack game name"),
+            new OptionDefinition(typeof(string), "v", "version", "Version of the game to download for"),
+            new OptionDefinition(typeof(string), "f", "file", "File to download (relative path)"),
+            new OptionDefinition(typeof(string), "o", "output", "Output location")
+        });
 
-    private async Task<int> Run(string gameName, string version, string file, AbsolutePath output)
+    internal async Task<int> Run(string gameName, string version, string file, AbsolutePath output)
     {
         if (!GameRegistry.TryGetByFuzzyName(gameName, out var game))
             _logger.LogError("Can't find definition for {Game}", gameName);

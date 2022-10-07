@@ -26,7 +26,7 @@ using Wabbajack.VFS;
 
 namespace Wabbajack.Installer;
 
-public record StatusUpdate(string StatusCategory, string StatusText, Percent StepsProgress, Percent StepProgress)
+public record StatusUpdate(string StatusCategory, string StatusText, Percent StepsProgress, Percent StepProgress, int CurrentStep)
 {
 }
 
@@ -113,7 +113,7 @@ public abstract class AInstaller<T>
         _logger.LogInformation("Next Step: {Step}", statusText);
 
         OnStatusUpdate?.Invoke(new StatusUpdate(statusCategory, statusText,
-            Percent.FactoryPutInRange(_currentStep, MaxSteps), Percent.Zero));
+            Percent.FactoryPutInRange(_currentStep, MaxSteps), Percent.Zero, _currentStep));
     }
 
     public void UpdateProgress(long stepProgress)
@@ -122,7 +122,7 @@ public abstract class AInstaller<T>
 
         OnStatusUpdate?.Invoke(new StatusUpdate(_statusCategory, $"[{_currentStep}/{MaxSteps}] {_statusText} ({_statusFormatter(_currentStepProgress)}/{_statusFormatter(MaxStepProgress)})",
             Percent.FactoryPutInRange(_currentStep, MaxSteps),
-            Percent.FactoryPutInRange(_currentStepProgress, MaxStepProgress)));
+            Percent.FactoryPutInRange(_currentStepProgress, MaxStepProgress), _currentStep));
     }
 
     public abstract Task<bool> Begin(CancellationToken token);
@@ -232,7 +232,7 @@ public abstract class AInstaller<T>
             {
                 var file = directive.Directive;
                 UpdateProgress(file.Size);
-
+                var destPath = file.To.RelativeTo(_configuration.Install);
                 switch (file)
                 {
                     case PatchedFromArchive pfa:
@@ -240,9 +240,8 @@ public abstract class AInstaller<T>
                         await using var s = await sf.GetStream();
                         s.Position = 0;
                         await using var patchDataStream = await InlinedFileStream(pfa.PatchID);
-                        var toFile = file.To.RelativeTo(_configuration.Install);
                         {
-                            await using var os = toFile.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+                            await using var os = destPath.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None);
                             await BinaryPatching.ApplyPatch(s, patchDataStream, os);
                         }
                     }
@@ -252,8 +251,7 @@ public abstract class AInstaller<T>
                     case TransformedTexture tt:
                     {
                         await using var s = await sf.GetStream();
-                        await using var of = directive.Directive.To.RelativeTo(_configuration.Install)
-                            .Open(FileMode.Create, FileAccess.Write);
+                        await using var of = destPath.Open(FileMode.Create, FileAccess.Write);
                         _logger.LogInformation("Recompressing {Filename}", tt.To.FileName);
                         await ImageLoader.Recompress(s, tt.ImageState.Width, tt.ImageState.Height, tt.ImageState.Format,
                             of, token);
@@ -264,19 +262,19 @@ public abstract class AInstaller<T>
                     case FromArchive _:
                         if (grouped[vf].Count() == 1)
                         {
-                            await sf.Move(directive.Directive.To.RelativeTo(_configuration.Install), token);
+                            await sf.Move(destPath, token);
                         }
                         else
                         {
                             await using var s = await sf.GetStream();
-                            await directive.Directive.To.RelativeTo(_configuration.Install)
-                                .WriteAllAsync(s, token, false);
+                            await destPath.WriteAllAsync(s, token, false);
                         }
 
                         break;
                     default:
                         throw new Exception($"No handler for {directive}");
                 }
+                await FileHashCache.FileHashWriteCache(destPath, file.Hash);
 
                 await job.Report((int) directive.VF.Size, token);
             }
@@ -383,7 +381,7 @@ public abstract class AInstaller<T>
             }
 
             if (hash != default)
-                FileHashCache.FileHashWriteCache(destination.Value, hash);
+                await FileHashCache.FileHashWriteCache(destination.Value, hash);
 
             if (result == DownloadResult.Update)
                 await destination.Value.MoveToAsync(destination.Value.Parent.Combine(archive.Hash.ToHex()), true,
@@ -487,25 +485,26 @@ public abstract class AInstaller<T>
 
         NextStep(Consts.StepPreparing, "Looking for files to delete", 0);
         await _configuration.Install.EnumerateFiles()
-            .PDoAll(_limiter, async f =>
+            .PMapAllBatched(_limiter, async f =>
             {
                 var relativeTo = f.RelativeTo(_configuration.Install);
                 if (indexed.ContainsKey(relativeTo) || f.InFolder(_configuration.Downloads))
-                    return ;
+                    return f;
 
-                if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return;
+                if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return f;
 
                 if (NoDeleteRegex.IsMatch(f.ToString()))
-                    return ;
+                    return f;
 
                 if (bsaPathsToNotBuild.Contains(f))
-                    return ;
+                    return f;
 
-                _logger.LogInformation("Deleting {RelativePath} it's not part of this ModList", relativeTo);
+                //_logger.LogInformation("Deleting {RelativePath} it's not part of this ModList", relativeTo);
                 f.Delete();
-            });
+                return f;
+            }).Sink();
 
-        _logger.LogInformation("Cleaning empty folders");
+        NextStep(Consts.StepPreparing, "Cleaning empty folders", 0);
         var expectedFolders = indexed.Keys
             .Select(f => f.RelativeTo(_configuration.Install))
             // We ignore the last part of the path, so we need a dummy file name
@@ -542,12 +541,11 @@ public abstract class AInstaller<T>
         var existingfiles = _configuration.Install.EnumerateFiles().ToHashSet();
 
         NextStep(Consts.StepPreparing, "Looking for unmodified files", 0);
-        await indexed.Values.PMapAll<Directive, Directive?>(async d =>
+        await indexed.Values.PMapAllBatched(_limiter, async d =>
             {
                 // Bit backwards, but we want to return null for 
                 // all files we *want* installed. We return the files
                 // to remove from the install list.
-                using var job = await _limiter.Begin($"Hashing File {d.To}", 0, token);
                 var path = _configuration.Install.Combine(d.To);
                 if (!existingfiles.Contains(path)) return null;
 

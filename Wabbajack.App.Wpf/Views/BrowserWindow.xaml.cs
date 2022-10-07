@@ -54,6 +54,11 @@ public partial class BrowserWindow : MetroWindow
         });
         
         vm.RunWrapper(CancellationToken.None)
-            .ContinueWith(_ => Dispatcher.Invoke(Close));
+            .ContinueWith(_ => Dispatcher.Invoke(() =>
+            {
+                Close();
+                Browser.Dispose();
+                Browser = null;
+            }));
     }
 }

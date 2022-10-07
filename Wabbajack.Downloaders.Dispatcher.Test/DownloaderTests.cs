@@ -68,6 +68,7 @@ public class DownloaderTests
                     State = new DTOs.DownloadStates.GoogleDrive {Id = "2grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_"}
                 }
             },
+            /*
             // LoversLab Data
             new object[]
             {
@@ -94,6 +95,7 @@ public class DownloaderTests
                     State = new LoversLab {IsAttachment = true, IPS4Mod = 85329599}
                 }
             },
+            */
             // MediaFire Data
             new object[]
             {
@@ -147,6 +149,7 @@ public class DownloaderTests
                         {Url = new Uri("https://www.moddb.com/downloads/start/199178000000")}
                 }
             },
+            /*
             // VectorPlexus Data
             new object[]
             {
@@ -160,6 +163,7 @@ public class DownloaderTests
                     State = new VectorPlexus {IPS4Mod = 290, IPS4File = "WABBAJACK_TEST_FILE_bad.zip"}
                 }
             },
+            */
             // Wabbajack CDN Data
             new object[]
             {
@@ -181,6 +185,7 @@ public class DownloaderTests
                     }
                 }
             },
+            /*
             // Bethesda
             new object[]
             {
@@ -208,7 +213,9 @@ public class DownloaderTests
                         ContentId = "059054"
                     }
                 },
-            }
+                
+            };
+    */
         };
 
     private bool AutoPassTest(Archive archive)
@@ -252,7 +259,7 @@ public class DownloaderTests
             Assert.NotNull(parsed);
 
             Assert.Equal(goodArchive.State.GetType(), parsed.GetType());
-            Assert.True(await _dispatcher.Verify(new Archive {State = parsed}, CancellationToken.None));
+            Assert.True(await _dispatcher.Verify(new Archive {State = parsed, Hash = goodArchive.Hash}, CancellationToken.None));
         }
     }
 

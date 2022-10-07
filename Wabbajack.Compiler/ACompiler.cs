@@ -16,6 +16,7 @@ using Wabbajack.DTOs;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.FileExtractor.ExtractedFiles;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer;
 using Wabbajack.Networking.WabbajackClientApi;
@@ -120,7 +121,7 @@ public abstract class ACompiler
         if (OnStatusUpdate != null)
             OnStatusUpdate(this, new StatusUpdate(statusCategory, statusText,
                 Percent.FactoryPutInRange(_currentStep, MaxSteps),
-                Percent.Zero));
+                Percent.Zero, _currentStep));
     }
 
     public void UpdateProgress(long stepProgress)
@@ -135,7 +136,7 @@ public abstract class ACompiler
 
         if (OnStatusUpdate != null)
             OnStatusUpdate(this, new StatusUpdate(_statusCategory, _statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
-                Percent.FactoryPutInRange(_currentStepProgress, _maxStepProgress)));
+                Percent.FactoryPutInRange(_currentStepProgress, _maxStepProgress), _currentStep));
     }
     
     public void UpdateProgressAbsolute(long cur, long max)
@@ -151,7 +152,7 @@ public abstract class ACompiler
 
         if (OnStatusUpdate != null)
             OnStatusUpdate(this, new StatusUpdate(_statusCategory, _statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
-                Percent.FactoryPutInRange(_currentStepProgress, _maxStepProgress)));
+                Percent.FactoryPutInRange(_currentStepProgress, _maxStepProgress), _currentStep));
     }
 
     public abstract Task<bool> Begin(CancellationToken token);
@@ -395,12 +396,15 @@ public abstract class ACompiler
 
         _settings.OutputFile.Delete();
 
+        var allFiles = _stagingFolder.EnumerateFiles().ToList();
+        NextStep("Finalizing", "Writing Wabbajack File", allFiles.Count);
         await using (var fs = _settings.OutputFile.Open(FileMode.Create, FileAccess.Write))
         {
             using var za = new ZipArchive(fs, ZipArchiveMode.Create);
 
-            foreach (var f in _stagingFolder.EnumerateFiles())
+            foreach (var f in allFiles)
             {
+                UpdateProgress(1);
                 var ze = za.CreateEntry((string) f.FileName);
                 await using var os = ze.Open();
                 await using var ins = f.Open(FileMode.Open);
@@ -447,7 +451,13 @@ public abstract class ACompiler
     /// </summary>
     protected async Task BuildPatches(CancellationToken token)
     {
-     
+        await using var tempPath = _manager.CreateFolder();
+
+        AbsolutePath TempPath(Hash file)
+        {
+            return tempPath.Path.Combine(file.ToHex());
+        }
+        
         NextStep("Compiling","Looking for patches");   
         var toBuild = InstallDirectives.OfType<PatchedFromArchive>()
             .Where(p => _patchOptions.GetValueOrDefault(p, Array.Empty<VirtualFile>()).Length > 0)
@@ -455,42 +465,56 @@ public abstract class ACompiler
             {
                 To = p.To,
                 Hash = p.Hash,
+                FromHash = c.Hash,
                 ArchiveHashPath = c.MakeRelativePaths(),
                 Size = p.Size
             }))
             .ToArray();
 
-        NextStep("Compiling","Generating Patches", toBuild.Length);
-        if (toBuild.Length == 0) return;
+        if (toBuild.Any())
+        {
 
-        // Extract all the source files
-        var indexed = toBuild.GroupBy(f => _vfs.Index.FileForArchiveHashPath(f.ArchiveHashPath))
-            .ToDictionary(f => f.Key);
-        await _vfs.Extract(indexed.Keys.ToHashSet(),
-            async (vf, sf) =>
+            NextStep("Compiling", "Generating Patches", toBuild.Length);
+
+            var allFiles = (await toBuild.PMapAllBatched(CompilerLimiter, async f =>
+                {
+                    UpdateProgress(1);
+                    return new[]
+                    {
+                        _vfs.Index.FileForArchiveHashPath(f.ArchiveHashPath),
+                        FindDestFile(f.To)
+                    };
+                }).ToList())
+                .SelectMany(x => x)
+                .DistinctBy(f => f.Hash)
+                .ToHashSet();
+            
+            _logger.LogInformation("Extracting {Count} ({Size}) files for building patches", allFiles.Count,
+                allFiles.Sum(f => f.Size).ToFileSizeString());
+
+            NextStep("Compiling", "Extracting Patch Files", allFiles.Count);
+            await _vfs.Extract(allFiles, async (vf, file) =>
             {
                 UpdateProgress(1);
-                // For each, extract the destination
-                var matches = indexed[vf];
-                foreach (var match in matches)
-                {
-                    var destFile = FindDestFile(match.To);
-                    _logger.LogInformation("Patching {from} {to}", destFile, match.To);
-                    // Build the patch
-                    await _vfs.Extract(new[] {destFile}.ToHashSet(),
-                        async (destvf, destsfn) =>
-                        {
+                await using var ostream = TempPath(vf.Hash).Open(FileMode.Create, FileAccess.Write, FileShare.Read);
+                await using var istream = await file.GetStream();
+                await istream.CopyToAsync(ostream, token);
+            }, token);
 
-                            await using var srcStream = await sf.GetStream();
-                            await using var destStream = await destsfn.GetStream();
-                            using var _ = await CompilerLimiter.Begin($"Patching {match.To}", 100, token);
-                            var patchSize =
-                                await _patchCache.CreatePatch(srcStream, vf.Hash, destStream, destvf.Hash);
-                            _logger.LogInformation("Patch size {patchSize} for {to}", patchSize, match.To);
-                        }, token);
-                }
-            }, token, runInParallel: false);
+            if (toBuild.Length == 0) return;
 
+            NextStep("Compiling", "Generating Patch Files", toBuild.Length);
+            await toBuild.PMapAllBatched(CompilerLimiter, async patch =>
+            {
+                UpdateProgress(1);
+                await using var src = TempPath(patch.FromHash).Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                await using var dst = TempPath(patch.Hash).Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                await _patchCache.CreatePatch(src, patch.FromHash, dst, patch.Hash);
+                return patch;
+            }).ToList();
+        }
+
+        NextStep("Compiling", "Loading Patch Files");
         // Load in the patches
         await InstallDirectives.OfType<PatchedFromArchive>()
             .Where(p => p.PatchID == default)

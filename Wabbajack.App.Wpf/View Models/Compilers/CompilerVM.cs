@@ -13,7 +13,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
-using System.Windows.Threading;
 using DynamicData;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI.Fody.Helpers;
@@ -307,7 +306,7 @@ namespace Wabbajack
                         .Subscribe(update =>
                         {
                             var s = update.EventArgs;
-                            StatusText = $"[{s.StepsProgress}] {s.StatusText}";
+                            StatusText = $"[Step {s.CurrentStep}] {s.StatusText}";
                             StatusProgress = s.StepProgress;
                         });
 

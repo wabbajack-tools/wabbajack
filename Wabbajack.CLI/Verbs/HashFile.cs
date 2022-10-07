@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,15 +20,11 @@ public class HashFile : IVerb
         _logger = logger;
     }
 
-    public Command MakeCommand()
-    {
-        var command = new Command("hash-file");
-        command.Add(new Option<AbsolutePath>(new[] {"-i", "-input"}, "Path to the file to hash"));
-        command.Description = "Hashes a file with Wabbajack's xxHash64 implementation";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
-
+    public static VerbDefinition Definition = new VerbDefinition("hash-file",
+        "Hashes a file with Wabbajack's hashing routines", new[]
+        {
+            new OptionDefinition(typeof(AbsolutePath), "i", "input", "Path to the file to hash")
+        });
 
     public async Task<int> Run(AbsolutePath input)
     {

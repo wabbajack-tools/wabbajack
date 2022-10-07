@@ -14,7 +14,7 @@ public class IncludeRegex : ACompilationStep
     public IncludeRegex(ACompiler compiler, string pattern) : base(compiler)
     {
         _pattern = pattern;
-        _regex = new Regex(pattern, RegexOptions.Compiled);
+        _regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
     }
 
     public override async ValueTask<Directive?> Run(RawSourceFile source)

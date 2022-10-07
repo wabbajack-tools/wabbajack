@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  VERSION: 3.0.0.7
+  VERSION: 3.0.1.8
 
 jobs:
   build:
@@ -37,20 +37,14 @@ jobs:
         with:
           dotnet-version: '6.0.x'
           include-prerelease: true
-          
-      - name: Build
-        if: runner.os != 'Windows'
-        shell: bash
-        run: find Wabbajack.* -maxdepth 0 -type d ! -name "Wabbajack.App.Wpf" -exec dotnet build --configuration Release {} \;
 
-      - name: Build
-        if: runner.os == 'Windows'
-        shell: bash
-        run: find Wabbajack.* -maxdepth 0 -type d -exec dotnet build --configuration Release {} \;
-      
       - name: Test
-        shell: bash
-        run: find Wabbajack.*.Test -maxdepth 0 -type d ! -name "Wabbajack.App.Wpf" -exec dotnet test --filter "Category!=FlakeyNetwork" {} \;
+        run: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:EnableWindowsTargeting=true
+        
+      - uses: codecov/codecov-action@v3
+        with:
+          flags: unittests, ${{runner.os}}
+          verbose: true 
         
       #- name: Upload Test Folder on Failure
       #  if: ${{ failure() }}

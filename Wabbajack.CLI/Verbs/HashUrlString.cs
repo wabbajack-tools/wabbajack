@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Hashing.xxHash64;
@@ -16,15 +17,11 @@ public class HashUrlString : IVerb
         _logger = logger;
     }
 
-    public Command MakeCommand()
-    {
-        var command = new Command("hash-url-string");
-        command.Add(new Option<AbsolutePath>(new[] {"-u", "-url"}, "Url string to hash"));
-        command.Description = "Hashes a URL string and returns the hashcode as hex";
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
-
+    public static VerbDefinition Definition = new VerbDefinition("hash-url-string",
+        "Hashes a URL string and returns the hashcode as hex", new[]
+        {
+            new OptionDefinition(typeof(AbsolutePath), "u", "url", "Url string to hash")
+        });
 
     public async Task<int> Run(string u)
     {

@@ -39,15 +39,15 @@ public class FileHashCache
         cmd.ExecuteNonQuery();
     }
 
-    private (AbsolutePath Path, long LastModified, Hash Hash) Get(AbsolutePath path)
+    private async Task<(AbsolutePath Path, long LastModified, Hash Hash)> Get(AbsolutePath path)
     {
         using var cmd = new SQLiteCommand(_conn);
         cmd.CommandText = "SELECT LastModified, Hash FROM HashCache WHERE Path = @path";
         cmd.Parameters.AddWithValue("@path", path.ToString().ToLowerInvariant());
-        cmd.PrepareAsync();
+        await cmd.PrepareAsync();
 
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read()) return (path, reader.GetInt64(0), Hash.FromLong(reader.GetInt64(1)));
+        await using var reader = await cmd.ExecuteReaderAsync();
+        while (await reader.ReadAsync()) return (path, reader.GetInt64(0), Hash.FromLong(reader.GetInt64(1)));
 
         return default;
     }
@@ -62,17 +62,17 @@ public class FileHashCache
         cmd.ExecuteNonQuery();
     }
 
-    private void Upsert(AbsolutePath path, long lastModified, Hash hash)
+    private async Task Upsert(AbsolutePath path, long lastModified, Hash hash)
     {
-        using var cmd = new SQLiteCommand(_conn);
+        await using var cmd = new SQLiteCommand(_conn);
         cmd.CommandText = @"INSERT INTO HashCache (Path, LastModified, Hash) VALUES (@path, @lastModified, @hash)
             ON CONFLICT(Path) DO UPDATE SET LastModified = @lastModified, Hash = @hash";
         cmd.Parameters.AddWithValue("@path", path.ToString().ToLowerInvariant());
         cmd.Parameters.AddWithValue("@lastModified", lastModified);
         cmd.Parameters.AddWithValue("@hash", (long) hash);
-        cmd.PrepareAsync();
+        await cmd.PrepareAsync();
 
-        cmd.ExecuteNonQuery();
+        await cmd.ExecuteNonQueryAsync();
     }
 
     public void VacuumDatabase()
@@ -84,46 +84,45 @@ public class FileHashCache
         cmd.ExecuteNonQuery();
     }
 
-    public bool TryGetHashCache(AbsolutePath file, out Hash hash)
+    public async Task<Hash> TryGetHashCache(AbsolutePath file)
     {
-        hash = default;
-        if (!file.FileExists()) return false;
+        if (!file.FileExists()) return default;
 
-        var result = Get(file);
+        var result = await Get(file);
         if (result == default || result.Hash == default)
-            return false;
+            return default;
 
         if (result.LastModified == file.LastModifiedUtc().ToFileTimeUtc())
         {
-            hash = result.Hash;
-            return true;
+            return result.Hash;
         }
 
         Purge(file);
-        return false;
+        return default;
     }
 
-    private void WriteHashCache(AbsolutePath file, Hash hash)
+    private async Task WriteHashCache(AbsolutePath file, Hash hash)
     {
         if (!file.FileExists()) return;
-        Upsert(file, file.LastModifiedUtc().ToFileTimeUtc(), hash);
+        await Upsert(file, file.LastModifiedUtc().ToFileTimeUtc(), hash);
     }
 
-    public void FileHashWriteCache(AbsolutePath file, Hash hash)
+    public async Task FileHashWriteCache(AbsolutePath file, Hash hash)
     {
-        WriteHashCache(file, hash);
+        await WriteHashCache(file, hash);
     }
 
     public async Task<Hash> FileHashCachedAsync(AbsolutePath file, CancellationToken token)
     {
-        if (TryGetHashCache(file, out var foundHash)) return foundHash;
+        var hash = await TryGetHashCache(file);
+        if (hash != default) return hash;
 
         using var job = await _limiter.Begin($"Hashing {file.FileName}", file.Size(), token);
         await using var fs = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
 
-        var hash = await fs.HashingCopy(Stream.Null, token, job);
+        hash = await fs.HashingCopy(Stream.Null, token, job);
         if (hash != default)
-            WriteHashCache(file, hash);
+            await WriteHashCache(file, hash);
         return hash;
     }
 }

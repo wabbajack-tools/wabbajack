@@ -48,7 +48,7 @@ public class ModListDownloadMaintainer
         var path = ModListPath(metadata);
         if (!path.FileExists()) return false;
 
-        if (_hashCache.TryGetHashCache(path, out var hash) && hash == metadata.DownloadMetadata!.Hash) return true;
+        if (await _hashCache.TryGetHashCache(path) == metadata.DownloadMetadata!.Hash) return true;
         if (_downloadingCount > 0) return false;
 
         return await _hashCache.FileHashCachedAsync(path, token.Value) == metadata.DownloadMetadata!.Hash;
@@ -80,7 +80,7 @@ public class ModListDownloadMaintainer
                     Hash = metadata.DownloadMetadata.Hash
                 }, path, job, token.Value);
 
-                _hashCache.FileHashWriteCache(path, hash);
+                await _hashCache.FileHashWriteCache(path, hash);
                 await path.WithExtension(Ext.MetaData).WriteAllTextAsync(JsonSerializer.Serialize(metadata));
             }
             finally

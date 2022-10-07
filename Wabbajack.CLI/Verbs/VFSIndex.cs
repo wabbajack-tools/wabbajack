@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Paths;
@@ -7,24 +8,20 @@ using Wabbajack.VFS;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class VFSIndexFolder : IVerb
+public class VFSIndex : IVerb
 {
     private readonly Context _context;
 
-    public VFSIndexFolder(Context context)
+    public VFSIndex(Context context)
     {
         _context = context;
     }
 
-    public Command MakeCommand()
-    {
-        var command = new Command("vfs-index");
-        command.Add(new Option<AbsolutePath>(new[] {"-f", "--folder"}, "Folder to index"));
-        command.Description = "Index and cache the contents of a folder";
-
-        command.Handler = CommandHandler.Create(Run);
-        return command;
-    }
+    public static VerbDefinition Definition = new VerbDefinition("vfs-index",
+        "Index and cache the contents of a folder", new[]
+        {
+            new OptionDefinition(typeof(AbsolutePath), "f", "folder", "Folder to index")
+        });
 
     public async Task<int> Run(AbsolutePath folder)
     {

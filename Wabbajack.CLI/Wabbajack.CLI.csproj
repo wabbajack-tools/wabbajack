@@ -13,15 +13,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.2-mauipre.1.22054.8" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.2-mauipre.1.22054.8" />
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.2-mauipre.1.22054.8" />
-        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.2-mauipre.1.22054.8" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.2-mauipre.1.22054.8" />
-        <PackageReference Include="NLog" Version="5.0.2" />
-        <PackageReference Include="NLog.Extensions.Logging" Version="5.0.2" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.2-mauipre.1.22102.15" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.2-mauipre.1.22102.15" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.2-mauipre.1.22102.15" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.2-mauipre.1.22102.15" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.2" />
+        <PackageReference Include="NLog" Version="5.0.4" />
+        <PackageReference Include="NLog.Extensions.Logging" Version="5.0.4" />
         <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
-        <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21561.1" />
+        <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22468.1" />
+        <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22468.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -39,6 +40,18 @@
     <ItemGroup>
       <None Remove="Resources\ModlistReport.html" />
       <EmbeddedResource Include="Resources\ModlistReport.html" />
+      <None Update="VerbRegistration.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>VerbRegistration.cs</LastGenOutput>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="VerbRegistration.cs">
+        <AutoGen>True</AutoGen>
+        <DesignTime>True</DesignTime>
+        <DependentUpon>VerbRegistration.tt</DependentUpon>
+      </Compile>
     </ItemGroup>
 
 </Project>

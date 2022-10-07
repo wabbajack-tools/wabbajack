@@ -108,10 +108,6 @@ public class DownloadDispatcher
     {
         try
         {
-            if (a.Name.Contains("HorseReplacer"))
-            {
-                
-            }
             a = await MaybeProxy(a, token);
             var downloader = Downloader(a);
             using var job = await _limiter.Begin($"Verifying {a.State.PrimaryKeyString}", -1, token);

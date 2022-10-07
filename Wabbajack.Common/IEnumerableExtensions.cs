@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
 
 namespace Wabbajack.Common;
@@ -11,8 +12,9 @@ public static class IEnumerableExtensions
     {
         foreach (var i in coll) f(i);
     }
-    
+
     #region Shuffle
+
     /// https://stackoverflow.com/questions/5807128/an-extension-method-on-ienumerable-needed-for-shuffling
 
     public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source, Random rng)
@@ -32,6 +34,7 @@ public static class IEnumerableExtensions
             buffer[j] = buffer[i];
         }
     }
+
     #endregion
 
 
@@ -54,6 +57,22 @@ public static class IEnumerableExtensions
 
         return data;
     }
+
+    public static IEnumerable<IEnumerable<T>> Partition<T>(this IEnumerable<T> coll, int size)
+    {
+        var asList = coll.ToList();
+
+        IEnumerable<T> SkipEnumerable(IList<T> list, int offset, int size)
+        {
+            for (var i = offset; i < list.Count; i += size)
+            {
+                yield return list[i];
+            }
+        }
+
+        return Enumerable.Range(0, size).Select(offset => SkipEnumerable(asList, offset, size));
+    }
+
 
     public static IEnumerable<T> OnEach<T>(this IEnumerable<T> coll, Action<T> fn)
     {

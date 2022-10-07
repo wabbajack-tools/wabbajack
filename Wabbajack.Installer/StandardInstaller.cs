@@ -63,6 +63,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     public override async Task<bool> Begin(CancellationToken token)
     {
         if (token.IsCancellationRequested) return false;
+        _logger.LogInformation("Installing: {Name} - {Version}", _configuration.ModList.Name, _configuration.ModList.Version);
         await _wjClient.SendMetric(MetricNames.BeginInstall, ModList.Name);
         NextStep(Consts.StepPreparing, "Configuring Installer", 0);
         _logger.LogInformation("Configuring Processor");
@@ -142,7 +143,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         await RemapMO2File();
 
         CreateOutputMods();
-
+        
         SetScreenSizeInPrefs();
 
         await ExtractedModlistFolder!.DisposeAsync();
@@ -168,7 +169,11 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
     private void CreateOutputMods()
     {
-        _configuration.Install.Combine("profiles")
+        // Non MO2 Installs won't have this
+        var profileDir = _configuration.Install.Combine("profiles");
+        if (!profileDir.DirectoryExists()) return;
+        
+        profileDir
             .EnumerateFiles()
             .Where(f => f.FileName == Consts.SettingsIni)
             .Do(f =>
@@ -266,9 +271,11 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     {
         var bsas = ModList.Directives.OfType<CreateBSA>().ToList();
         _logger.LogInformation("Building {bsasCount} bsa files", bsas.Count);
+        NextStep("Installing", "Building BSAs", bsas.Count);
 
         foreach (var bsa in bsas)
         {
+            UpdateProgress(1);
             _logger.LogInformation("Building {bsaTo}", bsa.To.FileName);
             var sourceDir = _configuration.Install.Combine(BSACreationDir, bsa.TempID);
 
@@ -290,9 +297,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             await a.Build(outStream, token);
             streams.Do(s => s.Dispose());
             
-            FileHashCache.FileHashWriteCache(outPath, bsa.Hash);
-            
-
+            await FileHashCache.FileHashWriteCache(outPath, bsa.Hash);
             sourceDir.DeleteDirectory();
         }
 
@@ -320,9 +325,11 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                 {
                     case RemappedInlineFile file:
                         await WriteRemappedFile(file);
+                        await FileHashCache.FileHashCachedAsync(outPath, token);
                         break;
                     default:
                         await outPath.WriteAllBytesAsync(await LoadBytesFromPath(directive.SourceDataID), token);
+                        await FileHashCache.FileHashWriteCache(outPath, directive.Hash);
                         break;
                 }
             });
@@ -330,45 +337,53 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
     private void SetScreenSizeInPrefs()
     {
+        var profilesPath = _configuration.Install.Combine("profiles");
+        
+        // Don't remap files for Native Game Compiler games
+        if (!profilesPath.DirectoryExists()) return;
         if (_configuration.SystemParameters == null)
             _logger.LogWarning("No SystemParameters set, ignoring ini settings for system parameters");
 
         var config = new IniParserConfiguration {AllowDuplicateKeys = true, AllowDuplicateSections = true};
         config.CommentRegex = new Regex(@"^(#|;)(.*)");
         var oblivionPath = (RelativePath) "Oblivion.ini";
-        foreach (var file in _configuration.Install.Combine("profiles").EnumerateFiles()
-            .Where(f => ((string) f.FileName).EndsWith("refs.ini") || f.FileName == oblivionPath))
-            try
-            {
-                var parser = new FileIniDataParser(new IniDataParser(config));
-                var data = parser.ReadFile(file.ToString());
-                var modified = false;
-                if (data.Sections["Display"] != null)
-                    if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
-                    {
-                        data.Sections["Display"]["iSize W"] =
-                            _configuration.SystemParameters.ScreenWidth.ToString(CultureInfo.CurrentCulture);
-                        data.Sections["Display"]["iSize H"] =
-                            _configuration.SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture);
-                        modified = true;
-                    }
 
-                if (data.Sections["MEMORY"] != null)
-                    if (data.Sections["MEMORY"]["VideoMemorySizeMb"] != null)
-                    {
-                        data.Sections["MEMORY"]["VideoMemorySizeMb"] =
-                            _configuration.SystemParameters.EnbLEVRAMSize.ToString(CultureInfo.CurrentCulture);
-                        modified = true;
-                    }
+        if (profilesPath.DirectoryExists())
+        {
+            foreach (var file in profilesPath.EnumerateFiles()
+                         .Where(f => ((string) f.FileName).EndsWith("refs.ini") || f.FileName == oblivionPath))
+                try
+                {
+                    var parser = new FileIniDataParser(new IniDataParser(config));
+                    var data = parser.ReadFile(file.ToString());
+                    var modified = false;
+                    if (data.Sections["Display"] != null)
+                        if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
+                        {
+                            data.Sections["Display"]["iSize W"] =
+                                _configuration.SystemParameters.ScreenWidth.ToString(CultureInfo.CurrentCulture);
+                            data.Sections["Display"]["iSize H"] =
+                                _configuration.SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture);
+                            modified = true;
+                        }
 
-                if (!modified) continue;
-                parser.WriteFile(file.ToString(), data);
-                _logger.LogTrace("Remapped screen size in {file}", file);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogCritical(ex, "Skipping screen size remap for {file} due to parse error.", file);
-            }
+                    if (data.Sections["MEMORY"] != null)
+                        if (data.Sections["MEMORY"]["VideoMemorySizeMb"] != null)
+                        {
+                            data.Sections["MEMORY"]["VideoMemorySizeMb"] =
+                                _configuration.SystemParameters.EnbLEVRAMSize.ToString(CultureInfo.CurrentCulture);
+                            modified = true;
+                        }
+
+                    if (!modified) continue;
+                    parser.WriteFile(file.ToString(), data);
+                    _logger.LogTrace("Remapped screen size in {file}", file);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogCritical(ex, "Skipping screen size remap for {file} due to parse error.", file);
+                }
+        }
 
         var tweaksPath = (RelativePath) "SSEDisplayTweaks.ini";
         foreach (var file in _configuration.Install.EnumerateFiles()
@@ -443,24 +458,29 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
     public async Task GenerateZEditMerges(CancellationToken token)
     {
-        await _configuration.ModList
+        var patches = _configuration.ModList
             .Directives
             .OfType<MergedPatch>()
-            .PDoAll(async m =>
-            {
-                _logger.LogInformation("Generating zEdit merge: {to}", m.To);
+            .ToList();
+        NextStep("Installing", "Generating ZEdit Merges", patches.Count);
 
-                var srcData = (await m.Sources.SelectAsync(async s =>
-                            await _configuration.Install.Combine(s.RelativePath).ReadAllBytesAsync(token))
-                        .ToReadOnlyCollection())
-                    .ConcatArrays();
+        await patches.PMapAllBatched(_limiter, async m =>
+        {
+            UpdateProgress(1);
+            _logger.LogInformation("Generating zEdit merge: {to}", m.To);
 
-                var patchData = await LoadBytesFromPath(m.PatchID);
+            var srcData = (await m.Sources.SelectAsync(async s =>
+                        await _configuration.Install.Combine(s.RelativePath).ReadAllBytesAsync(token))
+                    .ToReadOnlyCollection())
+                .ConcatArrays();
 
-                await using var fs = _configuration.Install.Combine(m.To)
-                    .Open(FileMode.Create, FileAccess.Write, FileShare.None);
-                await BinaryPatching.ApplyPatch(new MemoryStream(srcData), new MemoryStream(patchData), fs);
-            });
+            var patchData = await LoadBytesFromPath(m.PatchID);
+
+            await using var fs = _configuration.Install.Combine(m.To)
+                .Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+            await BinaryPatching.ApplyPatch(new MemoryStream(srcData), new MemoryStream(patchData), fs);
+            return m;
+        }).ToList();
     }
 
     public static async Task<ModList> Load(DTOSerializer dtos, DownloadDispatcher dispatcher, ModlistMetadata metadata, CancellationToken token)

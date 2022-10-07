@@ -173,18 +173,30 @@ namespace Wabbajack
 
         private async Task Download()
         {
-            Status = ModListStatus.Downloading;
-            
-            using var ll = LoadingLock.WithLoading();
-            var (progress, task) = _maintainer.DownloadModlist(Metadata);
-            var dispose = progress
-                .BindToStrict(this, vm => vm.ProgressPercent);
+            try
+            {
+                Status = ModListStatus.Downloading;
 
-            await task;
-
-            await _wjClient.SendMetric("downloading", Metadata.Title);
-            await UpdateStatus();
-            dispose.Dispose();
+                using var ll = LoadingLock.WithLoading();
+                var (progress, task) = _maintainer.DownloadModlist(Metadata);
+                var dispose = progress
+                    .BindToStrict(this, vm => vm.ProgressPercent);
+                try
+                {
+                    await _wjClient.SendMetric("downloading", Metadata.Title);
+                    await task;
+                    await UpdateStatus();
+                }
+                finally
+                {
+                    dispose.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "While downloading {Modlist}", Metadata.RepositoryName);
+                await UpdateStatus();
+            }
         }
 
         private async Task UpdateStatus()

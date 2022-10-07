@@ -37,6 +37,21 @@ public class IncludePatches : ACompilationStep
         _isGenericGame = _compiler._settings.Game.MetaData().IsGenericMO2Plugin;
     }
 
+    private IncludePatches(ACompiler compiler, 
+        VirtualFile bsa,
+        Dictionary<RelativePath, IEnumerable<VirtualFile>> indexedByName,
+        Dictionary<RelativePath, IGrouping<RelativePath, VirtualFile>> indexed) : base(compiler)
+    {
+        _bsa = bsa;
+        _indexedByName = indexedByName;
+        _indexed = indexed;
+    }
+
+    public IncludePatches WithBSA(VirtualFile constructingFromBSA)
+    {
+        return new IncludePatches(_compiler, constructingFromBSA, _indexedByName, _indexed);
+    }
+
     public override async ValueTask<Directive?> Run(RawSourceFile source)
     {
         if (_isGenericGame)

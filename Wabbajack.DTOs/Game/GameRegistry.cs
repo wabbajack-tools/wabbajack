@@ -225,6 +225,7 @@ public static class GameRegistry
                 Game = Game.Dishonored,
                 NexusName = "dishonored",
                 MO2Name = "Dishonored",
+                MO2ArchiveName = "dishonored",
                 NexusGameId = 802,
                 SteamIDs = new[] {205100},
                 GOGIDs = new[] {1701063787},
@@ -242,6 +243,7 @@ public static class GameRegistry
                 NexusName = "witcher3",
                 NexusGameId = 952,
                 MO2Name = "The Witcher 3: Wild Hunt",
+                MO2ArchiveName = "witcher3",
                 SteamIDs = new[] {292030, 499450}, // normal and GotY
                 GOGIDs = new[]
                     {1207664643, 1495134320, 1207664663, 1640424747}, // normal, GotY and both in packages
@@ -258,6 +260,7 @@ public static class GameRegistry
                 Game = Game.StardewValley,
                 NexusName = "stardewvalley",
                 MO2Name = "Stardew Valley",
+                MO2ArchiveName = "stardewvalley",
                 NexusGameId = 1303,
                 SteamIDs = new[] {413150},
                 GOGIDs = new[] {1453375253},
@@ -405,7 +408,7 @@ public static class GameRegistry
            {
                 Game = Game.Cyberpunk2077,
                 SteamIDs = new[] {1091500},
-                GOGIDs = new [] {2093619782},
+                GOGIDs = new [] {2093619782, 1423049311},
                 MO2Name = "Cyberpunk 2077",
                 NexusName = "cyberpunk2077",
                 NexusGameId = 3333,
@@ -457,8 +460,7 @@ public static class GameRegistry
 
     public static GameMetaData? GetByMO2ArchiveName(string gameName)
     {
-        gameName = gameName.ToLower();
-        return Games.Values.FirstOrDefault(g => g.MO2ArchiveName?.ToLower() == gameName);
+        return Games.Values.FirstOrDefault(g => (g.MO2ArchiveName ?? g.NexusName ?? "")!.Equals(gameName, StringComparison.InvariantCultureIgnoreCase));
     }
 
     public static GameMetaData? GetByNexusName(string gameName)

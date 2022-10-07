@@ -7,6 +7,8 @@ public abstract class ACompilationStep : ICompilationStep
 {
     protected ACompiler _compiler;
 
+    public bool Disabled { get; set; } = false;
+
     public ACompilationStep(ACompiler compiler)
     {
         _compiler = compiler;
