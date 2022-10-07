@@ -9,7 +9,6 @@ namespace Wabbajack.Networking.Http;
 public abstract class AChunkedBufferingStream : Stream
 {
     private readonly int _chunkSize;
-    private readonly int _position;
     private readonly int _maxChunks;
     private readonly Dictionary<ulong, byte[]> _chunks;
     private readonly uint _chunkBitsShift;

@@ -27,7 +27,7 @@ public static class HttpClientExtensions
         CancellationToken token)
     {
         await using var stream = await content.ReadAsStreamAsync(token);
-        var memory = MemoryPool<byte>.Shared.Rent((int) job.Size);
+        var memory = MemoryPool<byte>.Shared.Rent((int) job.Size!);
 
         while (job.Current < job.Size)
         {

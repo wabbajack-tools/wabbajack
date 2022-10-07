@@ -112,7 +112,8 @@ public class SingleThreadedDownloader : IHttpDownloader
 
             {
                 writePosition += totalRead;
-                await job.Report(totalRead, token);
+                if (job != null) 
+                    await job.Report(totalRead, token);
                 message = CloneMessage(message);
                 message.Headers.Range = new RangeHeaderValue(writePosition, writePosition + CHUNK_SIZE);
                 await inputStream.DisposeAsync();

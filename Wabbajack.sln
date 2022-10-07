@@ -121,8 +121,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Networking.Steam"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Networking.Steam.Test", "Wabbajack.Networking.Steam.Test\Wabbajack.Networking.Steam.Test.csproj", "{D6351587-CAF6-4CB6-A2BD-5368E69F297C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.App.Blazor", "Wabbajack.App.Blazor\Wabbajack.App.Blazor.csproj", "{C6E9B15D-510F-4074-AB1C-069F36BA4622}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{18E36813-CB53-4172-8FF3-EFE3B9B30A5F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Networking.Http.Test", "Wabbajack.Networking.Http.Test\Wabbajack.Networking.Http.Test.csproj", "{34FC755D-24F0-456A-B5C1-5BA7F12DC233}"
@@ -353,10 +351,6 @@ Global
 		{D6351587-CAF6-4CB6-A2BD-5368E69F297C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6351587-CAF6-4CB6-A2BD-5368E69F297C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6351587-CAF6-4CB6-A2BD-5368E69F297C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C6E9B15D-510F-4074-AB1C-069F36BA4622}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C6E9B15D-510F-4074-AB1C-069F36BA4622}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C6E9B15D-510F-4074-AB1C-069F36BA4622}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C6E9B15D-510F-4074-AB1C-069F36BA4622}.Release|Any CPU.Build.0 = Release|Any CPU
 		{34FC755D-24F0-456A-B5C1-5BA7F12DC233}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{34FC755D-24F0-456A-B5C1-5BA7F12DC233}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{34FC755D-24F0-456A-B5C1-5BA7F12DC233}.Release|Any CPU.ActiveCfg = Release|Any CPU

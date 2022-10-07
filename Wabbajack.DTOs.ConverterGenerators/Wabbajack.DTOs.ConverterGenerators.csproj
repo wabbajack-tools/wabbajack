@@ -5,6 +5,9 @@
         <TargetFramework>net6.0</TargetFramework>
         <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
         <Version>$(VERSION)</Version>
+        <NoWarn>CS8600</NoWarn>
+        <NoWarn>CS8601</NoWarn>
+        <NoWarn>CS8618</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

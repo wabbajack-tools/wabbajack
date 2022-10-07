@@ -11,6 +11,7 @@ namespace Wabbajack.Common;
 /// <typeparam name="TKey"></typeparam>
 /// <typeparam name="TVal"></typeparam>
 public class LazyCache<TKey, TArg, TVal>
+where TKey : notnull
 {
     private readonly ConcurrentDictionary<TKey, AsyncLazy<TVal>> _data;
     private readonly Func<TArg, TKey> _selector;

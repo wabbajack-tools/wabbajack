@@ -28,8 +28,8 @@ public class Nexus : ADownloadState, IMetaState
     public string? Description { get; set; }
     public Uri? LinkUrl => new($"https://www.nexusmods.com/{Game.MetaData().NexusName}/mods/{ModID}");
 
-    public async Task<bool> LoadMetaData()
+    public Task<bool> LoadMetaData()
     {
-        return true;
+        return Task.FromResult(false);
     }
 }
