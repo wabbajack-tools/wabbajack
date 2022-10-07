@@ -133,7 +133,7 @@ public class ModListHarness
     public async Task AddManualDownload(AbsolutePath path)
     {
         var toPath = path.FileName.RelativeTo(_downloadPath);
-        await path.CopyToAsync(toPath, true, CancellationToken.None);
+        await path.CopyToAsync(toPath, CancellationToken.None);
 
         await toPath.WithExtension(Ext.Meta)
             .WriteAllLinesAsync(new[] {"[General]", $"manualURL={path.FileName}"}, CancellationToken.None);
@@ -170,7 +170,7 @@ public record Mod(RelativePath Name, AbsolutePath FullPath, ModListHarness Harne
     public async Task<AbsolutePath> AddFile(AbsolutePath src)
     {
         var dest = FullPath.Combine(src.FileName);
-        await src.CopyToAsync(dest, true, CancellationToken.None);
+        await src.CopyToAsync(dest, CancellationToken.None);
         return dest;
     }
 

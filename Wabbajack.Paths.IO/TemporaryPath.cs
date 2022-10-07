@@ -27,8 +27,9 @@ public struct TemporaryPath : IDisposable, IAsyncDisposable
         return tp.Path;
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         Path.Delete();
+        return ValueTask.CompletedTask;
     }
 }

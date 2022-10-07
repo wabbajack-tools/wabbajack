@@ -28,7 +28,7 @@ public static class AbsolutePathExtensions
             {
                 File.Delete(path);
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException)
             {
                 var fi = new FileInfo(path);
                 if (fi.IsReadOnly)
@@ -192,7 +192,7 @@ public static class AbsolutePathExtensions
                 File.Move(srcStr, destStr, overwrite);
                 return;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 if (retries > 10)
                     throw;
@@ -202,11 +202,12 @@ public static class AbsolutePathExtensions
         }
     }
 
-    public static async ValueTask CopyToAsync(this AbsolutePath src, AbsolutePath dest, bool overwrite,
+    public static async ValueTask CopyToAsync(this AbsolutePath src, AbsolutePath dest,
         CancellationToken token)
     {
-        // TODO: Make this async
-        File.Copy(src.ToString(), dest.ToString(), overwrite);
+        await using var inf = src.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+        await using var ouf = dest.Open(FileMode.Create, FileAccess.Write, FileShare.Read);
+        await inf.CopyToAsync(ouf, token);
     }
 
     public static void WriteAllText(this AbsolutePath file, string str)

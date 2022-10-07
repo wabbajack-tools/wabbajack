@@ -146,7 +146,7 @@ public class CompilerSanityTests : IAsyncLifetime
         {
             var newPath = file.RelativeTo(_mod.FullPath).RelativeTo(_mod.FullPath.Combine("duplicates"));
             newPath.Parent.CreateDirectory();
-            await file.CopyToAsync(newPath, true, CancellationToken.None);
+            await file.CopyToAsync(newPath, CancellationToken.None);
         }
 
         await CompileAndValidate(5);
