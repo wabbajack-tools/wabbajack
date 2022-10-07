@@ -10,7 +10,7 @@ public static class ArrayExtensions
         if (startB + length > (b?.Length ?? 0)) return false;
 
         for (var i = 0; i < length; i++)
-            if (!a[startA + i]!.Equals(b[startB + i]))
+            if (!a![startA + i]!.Equals(b![startB + i]))
                 return false;
         return true;
     }
@@ -22,7 +22,7 @@ public static class ArrayExtensions
         if (startB + length > (b?.Length ?? 0)) return false;
 
         for (var i = 0; i < length; i++)
-            if (!a[startA + i]!.Equals(b[startB + i], StringComparison.InvariantCultureIgnoreCase))
+            if (!a![startA + i]!.Equals(b![startB + i], StringComparison.InvariantCultureIgnoreCase))
                 return false;
         return true;
     }

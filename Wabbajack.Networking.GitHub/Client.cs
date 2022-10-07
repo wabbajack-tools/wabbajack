@@ -18,7 +18,6 @@ public class Client
     private readonly GitHubClient _client;
     private readonly DTOSerializer _dtos;
     private readonly ILogger<Client> _logger;
-    private readonly GithubAuthTokenProvider _token;
     private readonly HttpClient _httpClient;
 
     public Client(ILogger<Client> logger, DTOSerializer dtos, GitHubClient client, HttpClient httpClient)

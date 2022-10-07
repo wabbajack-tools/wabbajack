@@ -15,10 +15,7 @@ namespace Wabbajack.CLI;
 
 public partial class CommandLineBuilder
 {
-    private readonly IConsole _console;
-    private readonly IEnumerable<IVerb> _verbs;
     private static IServiceProvider _provider;
-
     public CommandLineBuilder(IServiceProvider provider, IConsole console, LoggingRateLimiterReporter _)
     {
         _provider = provider;
