@@ -115,4 +115,19 @@ public class AbsolutePathTests
         };
         Assert.Equal(data3, data2);
     }
+
+    [Fact]
+    public void CanGetThisAndAllParents()
+    {
+        var path = @"c:\foo\bar\baz.zip".ToAbsolutePath();
+        var subPaths = new[]
+        {
+            @"c:\",
+            @"C:\foo",
+            @"c:\foo\Bar",
+            @"c:\foo\bar\baz.zip"
+        }.Select(f => f.ToAbsolutePath());
+        
+        Assert.Equal(subPaths.OrderBy(f => f), path.ThisAndAllParents().OrderBy(f => f).ToArray());
+    }
 }
