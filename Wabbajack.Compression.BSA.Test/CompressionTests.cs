@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -12,6 +13,7 @@ using Xunit;
 
 namespace Wabbajack.Compression.BSA.Test;
 
+[SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters")]
 public class CompressionTests
 {
     private readonly ILogger<CompressionTests> _logger;

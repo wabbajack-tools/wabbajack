@@ -40,9 +40,9 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
         _downloader = downloader;
     }
 
-    public override async Task<bool> Prepare()
+    public override Task<bool> Prepare()
     {
-        return true;
+        return Task.FromResult(true);
     }
 
     public override bool IsAllowed(ServerAllowList allowList, IDownloadState state)

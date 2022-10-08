@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Subjects;
-using System.Timers;
 using DynamicData;
 using DynamicData.Kernel;
 using Microsoft.Extensions.Logging;
@@ -15,11 +14,10 @@ namespace Wabbajack.Models;
 
 public class ResourceMonitor : IDisposable
 {
-    private readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(250);
+    private readonly TimeSpan _pollInterval = TimeSpan.FromMilliseconds(250);
     
     private readonly IResource[] _resources;
-    private readonly Timer _timer;
-    
+
     private readonly Subject<(string Name, long Througput)[]> _updates = new ();
     private (string Name, long Throughput)[] _prev;
     public IObservable<(string Name, long Throughput)[]> Updates => _updates;
@@ -41,7 +39,7 @@ public class ResourceMonitor : IDisposable
         _resources = resources.ToArray();
         _prev = _resources.Select(x => (x.Name, (long)0)).ToArray();
         
-        RxApp.MainThreadScheduler.ScheduleRecurringAction(PollInterval, Elapsed)
+        RxApp.MainThreadScheduler.ScheduleRecurringAction(_pollInterval, Elapsed)
             .DisposeWith(_compositeDisposable);
         
         _tasks.Connect()
@@ -55,7 +53,7 @@ public class ResourceMonitor : IDisposable
     {
         var current = _resources.Select(x => (x.Name, x.StatusReport.Transferred)).ToArray();
         var diff = _prev.Zip(current)
-            .Select(t => (t.First.Name, (long)((t.Second.Transferred - t.First.Throughput) / PollInterval.TotalSeconds)))
+            .Select(t => (t.First.Name, (long)((t.Second.Transferred - t.First.Throughput) / _pollInterval.TotalSeconds)))
             .ToArray();
         _prev = current;
         _updates.OnNext(diff);

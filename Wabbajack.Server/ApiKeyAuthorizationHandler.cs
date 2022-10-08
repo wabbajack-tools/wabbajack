@@ -27,7 +27,6 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
     private readonly DTOSerializer _dtos;
     private readonly AppSettings _settings;
     private readonly AuthorKeys _authorKeys;
-    private readonly Task<HashSet<string>> _tarKeys;
     private readonly Metrics _metricsStore;
     private readonly TarLog _tarLog;
     private readonly Client _githubClient;

@@ -6,6 +6,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Nettle;
@@ -37,8 +38,8 @@ public class ModlistReport : IVerb
     
     private static async Task<string> ReportTemplate(object o)
     {
-        var data = (typeof(ModlistReport).Assembly.GetManifestResourceStream("Wabbajack.CLI.Resources.ModlistReport.html")!).ReadAllText();
-        var func = NettleEngine.GetCompiler().Compile(data);
+        var data = await (typeof(ModlistReport).Assembly.GetManifestResourceStream("Wabbajack.CLI.Resources.ModlistReport.html")!).ReadAllAsync();
+        var func = NettleEngine.GetCompiler().Compile(Encoding.UTF8.GetString(data));
         return func(o);
     }
 

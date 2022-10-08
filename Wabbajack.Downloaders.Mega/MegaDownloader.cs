@@ -67,7 +67,7 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
         if (!_apiClient.IsLoggedIn)
             await _apiClient.LoginAsync();
         
-        await using var ins = await _apiClient.DownloadAsync(state.Url, cancellationToken: token);
+        await using var ins = await _apiClient.DownloadAsync(state!.Url, cancellationToken: token);
         return await fn(ins);
     }
 

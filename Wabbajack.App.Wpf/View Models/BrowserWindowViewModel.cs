@@ -119,7 +119,7 @@ public abstract class BrowserWindowViewModel : ViewModel
                 
                 source.SetResult(new Uri(args.DownloadOperation.Uri));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 source.SetCanceled();
             }
@@ -170,7 +170,7 @@ public abstract class BrowserWindowViewModel : ViewModel
                         source.TrySetResult();
                 };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 source.SetCanceled();
             }

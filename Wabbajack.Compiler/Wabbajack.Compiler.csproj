@@ -7,6 +7,10 @@
         <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <NoWarn>CS8600,CS8601,CS8618,CS8604,CS1998</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj" />
         <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj" />

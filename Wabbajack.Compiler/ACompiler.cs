@@ -286,7 +286,7 @@ public abstract class ACompiler
     protected async Task CleanInvalidArchivesAndFillState()
     {
         NextStep("Compiling", "Cleaning Invalid Archives", IndexedArchives.Count);
-        var remove = await IndexedArchives.PKeepAll(CompilerLimiter, async a =>
+        var remove = await IndexedArchives.PMapAllBatchedAsync(CompilerLimiter, async a =>
         {
             UpdateProgress(1);
             try
@@ -302,14 +302,15 @@ public abstract class ACompiler
                 _logger.LogWarning(ex, "While resolving archive {Archive}", a.Name);
                 return a;
             }
-        }).ToHashSet();
+        }).Where(x => x != null)
+            .ToHashSet();
 
         if (remove.Count == 0) return;
 
         _logger.LogWarning(
             "Removing {count} archives from the compilation state, this is probably not an issue but reference this if you have compilation failures",
             remove.Count);
-        remove.Do(r => _logger.LogWarning("Resolution failed for: ({size} {hash}) {path}", r.File.Size, r.File.Hash,
+        remove.Do(r => _logger.LogWarning("Resolution failed for: ({size} {hash}) {path}", r!.File.Size, r.File.Hash,
             r.File.FullPath));
         IndexedArchives.RemoveAll(a => remove.Contains(a));
     }
@@ -476,7 +477,7 @@ public abstract class ACompiler
 
             NextStep("Compiling", "Generating Patches", toBuild.Length);
 
-            var allFiles = (await toBuild.PMapAllBatched(CompilerLimiter, async f =>
+            var allFiles = (await toBuild.PMapAllBatchedAsync(CompilerLimiter, async f =>
                 {
                     UpdateProgress(1);
                     return new[]
@@ -504,7 +505,7 @@ public abstract class ACompiler
             if (toBuild.Length == 0) return;
 
             NextStep("Compiling", "Generating Patch Files", toBuild.Length);
-            await toBuild.PMapAllBatched(CompilerLimiter, async patch =>
+            await toBuild.PMapAllBatchedAsync(CompilerLimiter, async patch =>
             {
                 UpdateProgress(1);
                 await using var src = TempPath(patch.FromHash).Open(FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -596,7 +597,7 @@ public abstract class ACompiler
 
     public async Task<Archive> ResolveArchive(Hash hash, IDictionary<Hash, IndexedArchive> archives)
     {
-        if (archives.TryGetValue(hash, out var found)) return await ResolveArchive(found);
+        if (archives.TryGetValue(hash, out var found)) return (await ResolveArchive(found))!;
 
         throw new ArgumentException($"No match found for Archive sha: {hash.ToBase64()} this shouldn't happen");
     }
@@ -663,7 +664,6 @@ public abstract class ACompiler
 
     public void PrintNoMatches(ICollection<NoMatch> noMatches)
     {
-        const int max = 10;
         if (noMatches.Count > 0)
             foreach (var file in noMatches)
                 _logger.LogWarning("     {fileTo} - {fileReason}", file.To, file.Reason);

@@ -1,10 +1,11 @@
 using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Wabbajack.Paths.IO;
 
-public class TemporaryFileManager : IDisposable
+public class TemporaryFileManager : IDisposable, IAsyncDisposable
 {
     private readonly AbsolutePath _basePath;
     private readonly bool _deleteOnDispose;
@@ -24,6 +25,7 @@ public class TemporaryFileManager : IDisposable
     {
         if (!_deleteOnDispose) return;
         for (var retries = 0; retries < 10; retries++)
+        {
             try
             {
                 if (!_basePath.DirectoryExists())
@@ -31,10 +33,31 @@ public class TemporaryFileManager : IDisposable
                 _basePath.DeleteDirectory();
                 return;
             }
-            catch (IOException ex)
+            catch (IOException)
             {
                 Thread.Sleep(1000);
             }
+        }
+    }
+    
+    
+    public async ValueTask DisposeAsync()
+    {
+        if (!_deleteOnDispose) return;
+        for (var retries = 0; retries < 10; retries++)
+        {
+            try
+            {
+                if (!_basePath.DirectoryExists())
+                    return;
+                _basePath.DeleteDirectory();
+                return;
+            }
+            catch (IOException)
+            {
+                await Task.Delay(1000);
+            }
+        }
     }
 
     public TemporaryPath CreateFile(Extension? ext = default, bool deleteOnDispose = true)
@@ -51,4 +74,5 @@ public class TemporaryFileManager : IDisposable
         path.CreateDirectory();
         return new TemporaryPath(path);
     }
+
 }

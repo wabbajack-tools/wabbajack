@@ -17,6 +17,11 @@
     <AssemblyName>Wabbajack</AssemblyName>
   </PropertyGroup>
 
+
+  <PropertyGroup>
+    <NoWarn>CS8600,CS8601,CS8618,CS8604,CS8632,CS1998</NoWarn>
+  </PropertyGroup>
+
     <PropertyGroup>
         <ApplicationIcon>Resources\Icons\wabbajack.ico</ApplicationIcon>
     </PropertyGroup>

@@ -152,10 +152,10 @@ public abstract class AInstaller<T>
         return await fullPath.ReadAllBytesAsync();
     }
 
-    public async Task<Stream> InlinedFileStream(RelativePath inlinedFile)
+    public Task<Stream> InlinedFileStream(RelativePath inlinedFile)
     {
         var fullPath = ExtractedModlistFolder.Path.Combine(inlinedFile);
-        return fullPath.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+        return Task.FromResult(fullPath.Open(FileMode.Open, FileAccess.Read, FileShare.Read));
     }
 
     public static async Task<ModList> LoadFromFile(DTOSerializer serializer, AbsolutePath path)
@@ -200,7 +200,7 @@ public abstract class AInstaller<T>
         await _vfs.BackfillMissing();
     }
 
-    public async Task BuildFolderStructure()
+    public Task BuildFolderStructure()
     {
         NextStep(Consts.StepPreparing, "Building Folder Structure", 0);
         _logger.LogInformation("Building Folder Structure");
@@ -209,6 +209,7 @@ public abstract class AInstaller<T>
             .Select(d => _configuration.Install.Combine(d.To.Parent))
             .Distinct()
             .Do(f => f.CreateDirectory());
+        return Task.CompletedTask;
     }
 
     public async Task InstallArchives(CancellationToken token)
@@ -406,7 +407,7 @@ public abstract class AInstaller<T>
             .ToList();
 
         _logger.LogInformation("Getting archive sizes");
-        var hashDict = (await allFiles.PMapAll(_limiter, async x => (x, x.Size())).ToList())
+        var hashDict = (await allFiles.PMapAllBatched(_limiter, x => (x, x.Size())).ToList())
             .GroupBy(f => f.Item2)
             .ToDictionary(g => g.Key, g => g.Select(v => v.x));
 
@@ -485,7 +486,7 @@ public abstract class AInstaller<T>
 
         NextStep(Consts.StepPreparing, "Looking for files to delete", 0);
         await _configuration.Install.EnumerateFiles()
-            .PMapAllBatched(_limiter, async f =>
+            .PMapAllBatched(_limiter,  f =>
             {
                 var relativeTo = f.RelativeTo(_configuration.Install);
                 if (indexed.ContainsKey(relativeTo) || f.InFolder(_configuration.Downloads))
@@ -541,7 +542,7 @@ public abstract class AInstaller<T>
         var existingfiles = _configuration.Install.EnumerateFiles().ToHashSet();
 
         NextStep(Consts.StepPreparing, "Looking for unmodified files", 0);
-        await indexed.Values.PMapAllBatched(_limiter, async d =>
+        await indexed.Values.PMapAllBatchedAsync(_limiter, async d =>
             {
                 // Bit backwards, but we want to return null for 
                 // all files we *want* installed. We return the files

@@ -154,10 +154,10 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         return true;
     }
 
-    private async Task RemapMO2File()
+    private Task RemapMO2File()
     {
         var iniFile = _configuration.Install.Combine("ModOrganizer.ini");
-        if (!iniFile.FileExists()) return;
+        if (!iniFile.FileExists()) return Task.CompletedTask;
 
         _logger.LogInformation("Remapping ModOrganizer.ini");
 
@@ -165,6 +165,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         var settings = iniData["Settings"];
         settings["download_directory"] = _configuration.Downloads.ToString().Replace("\\", "/");
         iniData.SaveIniFile(iniFile);
+        return Task.CompletedTask;
     }
 
     private void CreateOutputMods()
@@ -361,7 +362,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                         if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
                         {
                             data.Sections["Display"]["iSize W"] =
-                                _configuration.SystemParameters.ScreenWidth.ToString(CultureInfo.CurrentCulture);
+                                _configuration.SystemParameters!.ScreenWidth.ToString(CultureInfo.CurrentCulture);
                             data.Sections["Display"]["iSize H"] =
                                 _configuration.SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture);
                             modified = true;
@@ -371,7 +372,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                         if (data.Sections["MEMORY"]["VideoMemorySizeMb"] != null)
                         {
                             data.Sections["MEMORY"]["VideoMemorySizeMb"] =
-                                _configuration.SystemParameters.EnbLEVRAMSize.ToString(CultureInfo.CurrentCulture);
+                                _configuration.SystemParameters!.EnbLEVRAMSize.ToString(CultureInfo.CurrentCulture);
                             modified = true;
                         }
 
@@ -397,7 +398,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                     if (data.Sections["Render"]["Resolution"] != null)
                     {
                         data.Sections["Render"]["Resolution"] =
-                            $"{_configuration.SystemParameters.ScreenWidth.ToString(CultureInfo.CurrentCulture)}x{_configuration.SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture)}";
+                            $"{_configuration.SystemParameters!.ScreenWidth.ToString(CultureInfo.CurrentCulture)}x{_configuration.SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture)}";
                         modified = true;
                     }
 
@@ -464,7 +465,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             .ToList();
         NextStep("Installing", "Generating ZEdit Merges", patches.Count);
 
-        await patches.PMapAllBatched(_limiter, async m =>
+        await patches.PMapAllBatchedAsync(_limiter, async m =>
         {
             UpdateProgress(1);
             _logger.LogInformation("Generating zEdit merge: {to}", m.To);

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.IO;
-using System.ComponentModel;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -11,14 +10,9 @@ using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using Octokit;
-using Wabbajack.CLI.TypeConverters;
-using Wabbajack.CLI.Verbs;
-using Wabbajack.DTOs.GitHub;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
-using Wabbajack.Networking.WabbajackClientApi;
-using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Server.Lib;
 using Wabbajack.Services.OSIntegrated;
@@ -31,11 +25,6 @@ internal class Program
 {
     private static async Task<int> Main(string[] args)
     {
-        TypeDescriptor.AddAttributes(typeof(AbsolutePath),
-            new TypeConverterAttribute(typeof(AbsolutePathTypeConverter)));
-        TypeDescriptor.AddAttributes(typeof(List),
-            new TypeConverterAttribute(typeof(ModListCategoryConverter)));
-
         var host = Host.CreateDefaultBuilder(Array.Empty<string>())
             .ConfigureLogging(AddLogging)
             .ConfigureServices((host, services) =>

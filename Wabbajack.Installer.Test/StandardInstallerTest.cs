@@ -11,7 +11,6 @@ namespace Wabbajack.Installer.Test;
 
 public class StandardInstallerTest
 {
-    private readonly StandardInstaller _installer;
     private readonly TemporaryFileManager _manager;
     private readonly AbsolutePath _modList;
     private readonly IServiceProvider _provider;

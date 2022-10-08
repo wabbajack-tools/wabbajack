@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentFTP.Helpers;
 using Microsoft.Extensions.Logging;
-using Wabbajack.Downloaders.Bethesda;
 using Wabbajack.DTOs;
 using Wabbajack.Networking.WabbajackClientApi;
 
@@ -17,7 +16,6 @@ public class ListModlists : IVerb
 {
     private readonly ILogger<ListCreationClubContent> _logger;
     private readonly Client _client;
-    private readonly BethesdaDownloader _downloader;
 
     public ListModlists(ILogger<ListCreationClubContent> logger, Client wjClient)
     {

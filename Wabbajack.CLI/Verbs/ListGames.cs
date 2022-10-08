@@ -27,14 +27,13 @@ public class ListGames : IVerb
     public static VerbDefinition Definition = new VerbDefinition("list-games",
         "Lists all games Wabbajack recognizes, and their installed versions/locations (if any)", Array.Empty<OptionDefinition>());
     
-    internal async Task<int> Run(CancellationToken token)
+    internal Task<int> Run(CancellationToken token)
     {
         foreach (var game in GameRegistry.Games.OrderBy(g => g.Value.HumanFriendlyGameName))
         {
             if (_locator.IsInstalled(game.Key))
             {
                 var location = _locator.GameLocation(game.Key);
-                var version = "unknown";
                 var mainFile = game.Value.MainExecutable!.Value.RelativeTo(location);
 
                 if (!mainFile.FileExists())
@@ -50,6 +49,6 @@ public class ListGames : IVerb
             }
         }
 
-        return 0;
+        return Task.FromResult(0);
     }
 }

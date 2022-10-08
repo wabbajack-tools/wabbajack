@@ -48,7 +48,7 @@ public class Reader : IReader
         return rdr;
     }
 
-    private async Task LoadHeaders()
+    private Task LoadHeaders()
     {
         _headerMagic = Encoding.ASCII.GetString(_rdr.ReadBytes(4));
 
@@ -91,5 +91,7 @@ public class Reader : IReader
         Files = files;
         _stream?.Dispose();
         _rdr.Dispose();
+
+        return Task.CompletedTask;
     }
 }

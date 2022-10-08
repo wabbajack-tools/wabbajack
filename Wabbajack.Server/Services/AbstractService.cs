@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wabbajack.BuildServer;
 
@@ -100,7 +101,7 @@ public static class AbstractServiceExtensions
 {
     public static void UseService<T>(this IApplicationBuilder b)
     {
-        var poll = (IStartable) b.ApplicationServices.GetService(typeof(T));
+        var poll = (IStartable) b.ApplicationServices.GetRequiredService(typeof(T));
         poll.Start();
     }
 }

@@ -1,8 +1,0 @@
-﻿<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img"
-     width="1024px" height="1024px" preserveAspectRatio="xMidYMid meet" viewBox="0 0 36 36">
-    <path class="clr-i-outline clr-i-outline-path-1"
-          d="M34 21.08L30.86 8.43A2 2 0 0 0 28.94 7H7.06a2 2 0 0 0-1.93 1.47L2 21.08a1 1 0 0 0 0 .24V29a2 2 0 0 0 2 2h28a2 2 0 0 0 2-2v-7.69a1 1 0 0 0 0-.23zM4 29v-7.56L7.06 9h21.87L32 21.44V29z"
-          fill="#FFF"/>
-    <path class="clr-i-outline clr-i-outline-path-2" d="M6 20h24v2H6z" fill="#FFF"/>
-    <path class="clr-i-outline clr-i-outline-path-3" d="M26 24h4v2h-4z" fill="#FFF"/>
-</svg>

@@ -40,18 +40,18 @@ public class CesiVFSCache : IVfsCache
         }
         catch (Exception exception)
         {
-            _logger.LogInformation("Requesting CESI Information for: {Hash} - Not Found", hash.ToHex());
+            _logger.LogInformation(exception, "Requesting CESI Information for: {Hash} - Not Found", hash.ToHex());
             return null;
         }
     }
 
-    public async Task Put(IndexedVirtualFile file, CancellationToken token)
+    public Task Put(IndexedVirtualFile file, CancellationToken token)
     {
-        return;
+        return Task.CompletedTask;
     }
 
-    public async Task Clean()
+    public Task Clean()
     {
-        return;
+        return Task.CompletedTask;
     }
 }

@@ -45,7 +45,6 @@ public class Client
     private readonly IResource<Client> _hashLimiter;
     private readonly IResource<HttpClient> _limiter;
     private readonly ILogger<Client> _logger;
-    private readonly ParallelOptions _parallelOptions;
 
     private readonly ITokenProvider<WabbajackApiState> _token;
 
@@ -461,7 +460,7 @@ public class Client
             var result = await _client.SendAsync(msg);
             return result.IsSuccessStatusCode;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return false;
         }

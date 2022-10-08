@@ -6,6 +6,11 @@
         <Nullable>enable</Nullable>
         <AssemblyName>Wabbajack</AssemblyName>
     </PropertyGroup>
+    
+    <PropertyGroup>
+        <NoWarn>CS8600,CS8601,CS8618,CS8604,CS1998</NoWarn>
+    </PropertyGroup>
+    
     <ItemGroup>
         <AvaloniaResource Include="Assets\**" />
     </ItemGroup>

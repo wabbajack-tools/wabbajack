@@ -46,7 +46,6 @@ namespace Wabbajack
 
         public List<string> GameTypeEntries => GetGameTypeEntries();
 
-        private ObservableAsPropertyHelper<bool> _Loaded;
         private readonly Client _wjClient;
         private readonly ILogger<ModListGalleryVM> _logger;
         private readonly GameLocator _locator;

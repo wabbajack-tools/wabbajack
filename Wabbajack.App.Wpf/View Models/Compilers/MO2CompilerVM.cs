@@ -1,5 +1,4 @@
 ﻿using Microsoft.WindowsAPICodePack.Dialogs;
-using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.Reactive.Disposables;
@@ -12,23 +11,14 @@ using Wabbajack.DTOs;
 using Wabbajack.DTOs.GitHub;
 using Wabbajack;
 using Wabbajack.Extensions;
-using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Consts = Wabbajack.Consts;
 
 namespace Wabbajack
 {
-    public class MO2CompilerVM : ViewModel, ISubCompilerVM
+    public class MO2CompilerVM : ViewModel
     {
         public CompilerVM Parent { get; }
-
-        private readonly MO2CompilationSettings _settings;
-
-        private readonly ObservableAsPropertyHelper<AbsolutePath> _mo2Folder;
-        public AbsolutePath Mo2Folder => _mo2Folder.Value;
-
-        private readonly ObservableAsPropertyHelper<string> _moProfile;
-        public string MOProfile => _moProfile.Value;
 
         public FilePickerVM DownloadLocation { get; }
 
@@ -36,11 +26,7 @@ namespace Wabbajack
 
         [Reactive]
         public ACompiler ActiveCompilation { get; private set; }
-
-        private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _modlistSettings;
-        private readonly IObservable<IChangeSet<string>> _authorKeys;
-        public ModlistSettingsEditorVM ModlistSettings => _modlistSettings.Value;
-
+        
         [Reactive]
         public object StatusTracker { get; private set; }
 

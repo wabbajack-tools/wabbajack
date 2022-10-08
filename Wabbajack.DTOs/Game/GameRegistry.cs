@@ -456,7 +456,7 @@ public static class GameRegistry
         }
     };
 
-    public static ILookup<string?, GameMetaData> ByNexusName = Games.Values.ToLookup(g => g.NexusName ?? "");
+    public static ILookup<string, GameMetaData> ByNexusName = Games.Values.ToLookup(g => g.NexusName ?? "");
 
     public static GameMetaData? GetByMO2ArchiveName(string gameName)
     {

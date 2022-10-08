@@ -108,14 +108,12 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     public string SlideShowDescription { get; set; }
 
 
-    private readonly ObservableAsPropertyHelper<bool> _installing;
     private readonly DTOSerializer _dtos;
     private readonly ILogger<InstallerVM> _logger;
     private readonly SettingsManager _settingsManager;
     private readonly IServiceProvider _serviceProvider;
     private readonly SystemParametersConstructor _parametersConstructor;
     private readonly IGameLocator _gameLocator;
-    private readonly LogStream _loggerProvider;
     private readonly ResourceMonitor _resourceMonitor;
     private readonly Services.OSIntegrated.Configuration _configuration;
     private readonly HttpClient _client;
@@ -145,9 +143,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     public ReactiveCommand<Unit, Unit> OpenLogsCommand { get; }
     public ReactiveCommand<Unit, Unit> GoToInstallCommand { get; }
     public ReactiveCommand<Unit, Unit> BeginCommand { get; }
-    public ReactiveCommand<Unit, Unit> BackCommand { get; }
     
-
     public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
         Wabbajack.Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins) : base(logger)

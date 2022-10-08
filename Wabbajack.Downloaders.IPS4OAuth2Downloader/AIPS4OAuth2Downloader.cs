@@ -101,11 +101,11 @@ public class AIPS4OAuth2Downloader<TDownloader, TLogin, TState> : ADownloader<TS
         if (useOAuth2)
         {
             msg.Headers.Add("User-Agent", _appInfo.UserAgent);
-            msg.Headers.Add("Authorization", $"Bearer {loginData.ResultState.AccessToken}");
+            msg.Headers.Add("Authorization", $"Bearer {loginData!.ResultState.AccessToken}");
         }
         else
         {
-            msg.AddCookies(loginData.Cookies)
+            msg.AddCookies(loginData!.Cookies)
                 .AddChromeAgent();
         }
 
@@ -156,16 +156,16 @@ public class AIPS4OAuth2Downloader<TDownloader, TLogin, TState> : ADownloader<TS
         {
             var downloads = await GetDownloads(state.IPS4Mod, token);
             var fileEntry = downloads.Files.FirstOrDefault(f => f.Name == state.IPS4File);
-            var msg = new HttpRequestMessage(HttpMethod.Get, fileEntry.Url);
+            var msg = new HttpRequestMessage(HttpMethod.Get, fileEntry!.Url);
             msg.Version = new Version(2, 0);
             msg.Headers.Add("User-Agent", _appInfo.UserAgent);
             return await _downloader.Download(msg, destination, job, token);
         }
     }
 
-    public override async Task<bool> Prepare()
+    public override Task<bool> Prepare()
     {
-        return _loginInfo.HaveToken();
+        return Task.FromResult(_loginInfo.HaveToken());
     }
 
     public override bool IsAllowed(ServerAllowList allowList, IDownloadState state)

@@ -132,7 +132,7 @@ public class Context
                         token,
                         fileNames.Keys.ToHashSet());
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     await using var stream = await sfn.GetStream();
                     var hash = await stream.HashingCopy(Stream.Null, token);

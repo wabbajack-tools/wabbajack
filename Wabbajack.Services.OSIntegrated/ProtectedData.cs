@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -74,7 +75,7 @@ public static class ProtectedData
 
     public static async Task<byte[]> FromEncryptedDataFile(this AbsolutePath destination)
     {
-        if (!destination.FileExists()) return default;
+        if (!destination.FileExists()) return Array.Empty<byte>();
 
         await using var fs = destination.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
         await using var enc = await fs.UnProtect(destination.FileName.ToString());

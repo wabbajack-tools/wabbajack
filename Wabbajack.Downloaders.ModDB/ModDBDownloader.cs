@@ -20,7 +20,7 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Downloaders.ModDB;
 
-public class ModDBDownloader : ADownloader<DTOs.DownloadStates.ModDB>, IUrlDownloader, IProxyable
+public class ModDBDownloader : ADownloader<DTOs.DownloadStates.ModDB>, IProxyable
 {
     private readonly IHttpDownloader _downloader;
     private readonly HttpClient _httpClient;
@@ -98,8 +98,7 @@ public class ModDBDownloader : ADownloader<DTOs.DownloadStates.ModDB>, IUrlDownl
                 throw;
             }
         }
-        _logger.LogError("All servers were invalid downloading from ModDB {Uri}", state.Url);
-        return default;
+        throw new Exception($"All servers were invalid downloading from ModDB {state!.Url}");
     }
 
     public override async Task<Hash> Download(Archive archive, DTOs.DownloadStates.ModDB state,

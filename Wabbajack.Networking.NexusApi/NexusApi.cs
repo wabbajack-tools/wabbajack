@@ -15,7 +15,6 @@ using Wabbajack.DTOs.Logins;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi.DTOs;
-using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.Server.DTOs;
@@ -245,7 +244,7 @@ public class NexusApi
             throw new HttpException(result);
 
         var response = await result.Content.ReadFromJsonAsync<ChunkStatusResult>(_jsonOptions);
-        return response;
+        return response!;
     }
     public async Task UploadFile(UploadDefinition d)
     {
@@ -327,7 +326,7 @@ public class NexusApi
             _logger.LogInformation("Checking file status of {Uuid}", chunkStatus.UUID);
             var data = await _client.GetFromJsonAsync<FileStatusResult>(
                 $"https://upload.nexusmods.com/uploads/check_status?id={chunkStatus.UUID}");
-            if (data.FileChunksAssembled)
+            if (data!.FileChunksAssembled)
                 return data;
             await Task.Delay(TimeSpan.FromSeconds(5));
         }

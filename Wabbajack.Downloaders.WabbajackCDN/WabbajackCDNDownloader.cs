@@ -33,7 +33,6 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader,
     private readonly HttpClient _client;
     private readonly DTOSerializer _dtos;
     private readonly ILogger<WabbajackCDNDownloader> _logger;
-    private readonly ParallelOptions _parallelOptions;
     private readonly IResource<HttpClient> _limiter;
 
     public WabbajackCDNDownloader(ILogger<WabbajackCDNDownloader> logger, HttpClient client, IResource<HttpClient> limiter,  DTOSerializer dtos)

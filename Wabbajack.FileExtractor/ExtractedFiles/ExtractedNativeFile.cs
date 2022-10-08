@@ -23,6 +23,6 @@ public class ExtractedNativeFile : NativeFileStreamFactory, IExtractedFile
         if (CanMove)
             await _file.MoveToAsync(newPath, true, token);
         else
-            await _file.CopyToAsync(newPath, true, token);
+            await _file.CopyToAsync(newPath, token);
     }
 }

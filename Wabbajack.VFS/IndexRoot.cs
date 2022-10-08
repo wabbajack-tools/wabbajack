@@ -15,7 +15,7 @@ public class IndexRoot
         IDictionary<FullPath, VirtualFile> byFullPath,
         ILookup<Hash, VirtualFile> byHash,
         IDictionary<AbsolutePath, VirtualFile> byRoot,
-        ILookup<IPath, VirtualFile> byName)
+        ILookup<IPath?, VirtualFile> byName)
     {
         AllFiles = aFiles;
         ByFullPath = byFullPath;
@@ -37,7 +37,7 @@ public class IndexRoot
     public IReadOnlyList<VirtualFile> AllFiles { get; }
     public IDictionary<FullPath, VirtualFile> ByFullPath { get; }
     public ILookup<Hash, VirtualFile> ByHash { get; }
-    public ILookup<IPath, VirtualFile> ByName { get; set; }
+    public ILookup<IPath?, VirtualFile> ByName { get; set; }
     public IDictionary<AbsolutePath, VirtualFile> ByRootPath { get; }
 
     public async Task<IndexRoot> Integrate(IEnumerable<VirtualFile> files)
@@ -56,7 +56,7 @@ public class IndexRoot
             .ToLookup(f => f.Hash));
 
         var byName = Task.Run(() => allFiles.SelectMany(f => f.ThisAndAllChildren)
-            .ToLookup(f => f.Name));
+            .ToLookup<VirtualFile, IPath?>(f => f.Name));
 
         var byRootPath = Task.Run(() => allFiles.ToDictionary(f => f.AbsoluteName));
 
@@ -77,7 +77,7 @@ public class IndexRoot
 
     public static class EmptyLookup<TKey, TElement>
     {
-        public static ILookup<TKey, TElement> Instance { get; } =
+        public static ILookup<TKey?, TElement> Instance { get; } =
             Enumerable.Empty<TElement>().ToLookup(x => default(TKey));
     }
 }

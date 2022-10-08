@@ -1,8 +1,0 @@
-# All files
-[*]
-indent_style = space
-indent_size = 4
-insert_final_newline = true
-
-[*.scss]
-indent_size = 2

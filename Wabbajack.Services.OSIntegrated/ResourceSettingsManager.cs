@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Wabbajack.RateLimiter;
-using Wabbajack.Services.OSIntegrated;
 
-namespace Wabbajack.App.Models;
+namespace Wabbajack.Services.OSIntegrated;
 
 public class ResourceSettingsManager
 {

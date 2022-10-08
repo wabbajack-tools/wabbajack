@@ -81,7 +81,7 @@ public class NexusCacheManager
         {
             data = await file.ReadAllBytesAsync(token);
         }
-        catch (FileNotFoundException ex)
+        catch (FileNotFoundException)
         {
             return default;
         }

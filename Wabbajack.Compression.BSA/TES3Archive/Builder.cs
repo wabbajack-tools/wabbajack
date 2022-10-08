@@ -20,10 +20,11 @@ public class Builder : IBuilder
         _files = new (TES3File state, Stream data)[_state.FileCount];
     }
 
-    public async ValueTask AddFile(AFile state, Stream src, CancellationToken token)
+    public ValueTask AddFile(AFile state, Stream src, CancellationToken token)
     {
         var tesState = (TES3File) state;
         _files[state.Index] = (tesState, src);
+        return ValueTask.CompletedTask;
     }
 
     public async ValueTask Build(Stream file, CancellationToken token)
@@ -70,8 +71,8 @@ public class Builder : IBuilder
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return;
+        return ValueTask.CompletedTask;
     }
 }

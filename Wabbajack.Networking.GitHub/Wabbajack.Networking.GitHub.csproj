@@ -7,6 +7,10 @@
         <Version>$(VERSION)</Version>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <NoWarn>CS8600,CS8601,CS8618,CS8604</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.Http.Interfaces\Wabbajack.Networking.Http.Interfaces.csproj" />
@@ -14,7 +18,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.2" />
-        <PackageReference Include="Octokit" Version="3.0.0" />
+        <PackageReference Include="Octokit" Version="3.0.1" />
     </ItemGroup>
 
 </Project>

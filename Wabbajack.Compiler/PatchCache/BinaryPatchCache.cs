@@ -1,5 +1,4 @@
 using System;
-using System.Data.SQLite;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,8 +14,6 @@ namespace Wabbajack.Compiler;
 
 public class BinaryPatchCache : IBinaryPatchCache
 {
-    private readonly SQLiteConnection _conn;
-    private readonly string _connectionString;
     private readonly AbsolutePath _location;
     private readonly ILogger<BinaryPatchCache> _logger;
 
@@ -75,40 +72,5 @@ public class BinaryPatchCache : IBinaryPatchCache
         if (location.FileExists())
             return await location.ReadAllBytesAsync();
         return Array.Empty<byte>();
-    }
-
-    public async Task CreatePatchCached(byte[] a, byte[] b, Stream output)
-    {
-        await using var cmd = new SQLiteCommand(_conn);
-        cmd.CommandText = @"INSERT INTO PatchCache (FromHash, ToHash, PatchSize, Patch) 
-                  VALUES (@fromHash, @toHash, @patchSize, @patch)";
-
-        xxHashAlgorithm aAl = new(0), bAl = new(0);
-
-        var dataA = Hash.FromULong(aAl.HashBytes(a));
-        ;
-        var dataB = Hash.FromULong(bAl.HashBytes(b));
-        ;
-
-        cmd.Parameters.AddWithValue("@fromHash", (long) dataA);
-        cmd.Parameters.AddWithValue("@toHash", (long) dataB);
-
-        await using var patch = new MemoryStream();
-        OctoDiff.Create(a, b, patch);
-        patch.Position = 0;
-
-        cmd.Parameters.AddWithValue("@patchSize", patch.Length);
-        cmd.Parameters.AddWithValue("@patch", patch.ToArray());
-        try
-        {
-            await cmd.ExecuteNonQueryAsync();
-        }
-        catch (SQLiteException ex)
-        {
-            if (!ex.Message.StartsWith("constraint failed"))
-                throw;
-        }
-
-        await patch.CopyToAsync(output);
     }
 }

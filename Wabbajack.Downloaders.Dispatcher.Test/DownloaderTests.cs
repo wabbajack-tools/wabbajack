@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,11 +10,11 @@ using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer;
 using Wabbajack.Paths.IO;
-using Wabbajack.Services.OSIntegrated;
 using Xunit;
 
 namespace Wabbajack.Downloaders.Dispatcher.Test;
 
+[SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters")]
 public class DownloaderTests
 {
     private readonly DownloadDispatcher _dispatcher;

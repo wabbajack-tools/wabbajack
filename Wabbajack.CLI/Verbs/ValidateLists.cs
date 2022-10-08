@@ -665,7 +665,7 @@ public class ValidateLists : IVerb
         };
 
         await using var tempFile = _temporaryFileManager.CreateFile(Ext.Wabbajack);
-        _logger.LogInformation("Downloading {primaryKeyString}", state.PrimaryKeyString);
+        _logger.LogInformation("Downloading {primaryKeyString}", state!.PrimaryKeyString);
         var hash = await _dispatcher.Download(archive, tempFile.Path, token);
 
         if (hash != modList.DownloadMetadata.Hash)
