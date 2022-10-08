@@ -1,4 +1,4 @@
-name: Main Pipeline
+name: Tests
 
 on:
   push:
@@ -39,7 +39,7 @@ jobs:
           include-prerelease: true
 
       - name: Test
-        run: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:EnableWindowsTargeting=true
+        run: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:EnableWindowsTargeting=true --filter "Category!=FlakeyNetwork"
         
       - uses: codecov/codecov-action@v3
         with:
