@@ -141,7 +141,7 @@ public class Proxy : ControllerBase
 
             Response.Headers.Add( HeaderNames.ContentType, "application/octet-stream"  );
             
-            var result = await proxyDownloader.DownloadStream(archive, async s => { 
+            var result = await proxyDownloader!.DownloadStream(archive, async s => { 
                     return await s.HashingCopy(async m =>
                 {
                     var strmA = of.WriteAsync(m, token);

@@ -8,9 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.DTOs.JsonConverters;
-using Wabbajack.Networking.NexusApi;
 using Wabbajack.Networking.NexusApi.DTOs;
-using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Server.Services;
 
@@ -22,33 +20,17 @@ namespace Wabbajack.BuildServer.Controllers;
 [Route("/v1/games/")]
 public class NexusCache : ControllerBase
 {
-    private readonly NexusApi _api;
     private readonly ILogger<NexusCache> _logger;
-    private AppSettings _settings;
     private readonly HttpClient _client;
-    private readonly AbsolutePath _cacheFolder;
     private readonly DTOSerializer _dtos;
     private readonly NexusCacheManager _cache;
 
-    public NexusCache(ILogger<NexusCache> logger,AppSettings settings, HttpClient client, NexusCacheManager cache, DTOSerializer dtos)
+    public NexusCache(ILogger<NexusCache> logger, HttpClient client, NexusCacheManager cache, DTOSerializer dtos)
     {
-        _settings = settings;
         _logger = logger;
         _client = client;
         _cache = cache;
         _dtos = dtos;
-    }
-
-    private async Task ForwardToNexus(HttpRequest src)
-    {
-        _logger.LogInformation("Nexus Cache Forwarding: {path}", src.Path);
-        var request = new HttpRequestMessage(HttpMethod.Get, (Uri?)new Uri("https://api.nexusmods.com/" + src.Path));
-        request.Headers.Add("apikey", (string?)src.Headers["apikey"]);
-        request.Headers.Add("User-Agent", (string?)src.Headers.UserAgent);
-        using var response = await _client.SendAsync(request);
-        Response.Headers.ContentType = "application/json";
-        Response.StatusCode = (int)response.StatusCode;
-        await response.Content.CopyToAsync(Response.Body);
     }
 
     private async Task<T> ForwardRequest<T>(HttpRequest src, CancellationToken token)

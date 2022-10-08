@@ -15,7 +15,7 @@ public class IndexRoot
         IDictionary<FullPath, VirtualFile> byFullPath,
         ILookup<Hash, VirtualFile> byHash,
         IDictionary<AbsolutePath, VirtualFile> byRoot,
-        ILookup<IPath, VirtualFile> byName)
+        ILookup<IPath?, VirtualFile> byName)
     {
         AllFiles = aFiles;
         ByFullPath = byFullPath;
@@ -56,7 +56,7 @@ public class IndexRoot
             .ToLookup(f => f.Hash));
 
         var byName = Task.Run(() => allFiles.SelectMany(f => f.ThisAndAllChildren)
-            .ToLookup(f => f.Name));
+            .ToLookup<VirtualFile, IPath?>(f => f.Name));
 
         var byRootPath = Task.Run(() => allFiles.ToDictionary(f => f.AbsoluteName));
 

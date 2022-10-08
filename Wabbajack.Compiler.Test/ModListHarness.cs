@@ -97,7 +97,7 @@ public class ModListHarness
                 CancellationToken.None);
 
         var compiler = scope.ServiceProvider.GetService<MO2Compiler>();
-        if (!await compiler.Begin(CancellationToken.None))
+        if (!await compiler!.Begin(CancellationToken.None))
             return null;
 
         var modlist = await StandardInstaller.LoadFromFile(_dtos, settings.OutputFile);

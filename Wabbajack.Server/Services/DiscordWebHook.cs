@@ -56,7 +56,7 @@ public class DiscordWebHook : AbstractService<DiscordWebHook, int>
                 Channel.Ham => _settings.HamWebHook,
                 _ => null
             };
-            if (url == null) return;
+            if (string.IsNullOrWhiteSpace(url)) return;
 
             await _client.PostAsync(url,
                 new StringContent(_dtos.Serialize(message), Encoding.UTF8, "application/json"));

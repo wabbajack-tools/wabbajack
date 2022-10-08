@@ -21,8 +21,8 @@ public class AppSettings
     public string ProxyFolder { get; set; }
     public AbsolutePath ProxyPath => (AbsolutePath) ProxyFolder;
     public AbsolutePath TempPath => (AbsolutePath) TempFolder;
-    public string SpamWebHook { get; set; } = null;
-    public string HamWebHook { get; set; } = null;
+    public string SpamWebHook { get; set; } = "";
+    public string HamWebHook { get; set; } = "";
 
     public string DiscordKey { get; set; }
     

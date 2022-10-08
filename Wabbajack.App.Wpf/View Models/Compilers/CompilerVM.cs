@@ -58,7 +58,7 @@ namespace Wabbajack
         public CompilerState State { get; set; }
         
         [Reactive]
-        public ISubCompilerVM SubCompilerVM { get; set; }
+        public MO2CompilerVM SubCompilerVM { get; set; }
         
         // Paths 
         public FilePickerVM ModlistLocation { get; }

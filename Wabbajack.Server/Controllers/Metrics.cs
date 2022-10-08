@@ -100,24 +100,6 @@ public class MetricsController : ControllerBase
     public async Task GetMetrics([FromQuery] string action, [FromQuery] string from, [FromQuery] string? to, [FromQuery] string? subject)
     {
         throw new NotImplementedException();
-        var parser = new Parser();
-        
-        to ??= "now";
-
-        var toDate = parser.Parse(to).Start;
-        var fromDate = parser.Parse(from).Start;
-
-        var records = _metricsStore.GetRecords(fromDate!.Value, toDate!.Value, action);
-
-        Response.Headers.ContentType = "application/json";
-        await foreach (var record in records)
-        {
-            if (!string.IsNullOrWhiteSpace(subject) && !record.Subject.Contains(subject))
-                continue;
-            
-            await JsonSerializer.SerializeAsync(Response.Body, record);
-            await Response.Body.WriteAsync(EOL);
-        }
     }
 
     [HttpGet]

@@ -58,8 +58,8 @@ public class MatchSimilarTextures : ACompilationStep
                     from mainMatch in _byName[mainFile.FullPath.FileName.FileNameWithoutExtension]
                     where mainMatch.ImageState != null
                     where mainFile.ImageState != null
-                    let similarity = ImageLoader.ComputeDifference(mainFile.ImageState.PerceptualHash,
-                        mainMatch.ImageState.PerceptualHash)
+                    let similarity = ImageLoader.ComputeDifference(mainFile.ImageState!.PerceptualHash,
+                        mainMatch.ImageState!.PerceptualHash)
                     where similarity >= PerceptualTolerance
                     orderby similarity descending
                     let foundFile = mainMatch.InSameFolder(source.Path.FileName)

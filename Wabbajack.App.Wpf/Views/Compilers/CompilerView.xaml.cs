@@ -307,7 +307,7 @@ namespace Wabbajack
             ViewModel.AddOtherProfile(selectedPath.FileName.ToString());
         }
         
-        public async Task AddNoMatchIncludeCommand()
+        public Task AddNoMatchIncludeCommand()
         {
             var dlg = new CommonOpenFileDialog
             {
@@ -325,12 +325,13 @@ namespace Wabbajack
                 ShowPlacesList = true,
             };
 
-            if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
+            if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return Task.CompletedTask;
             var selectedPath = dlg.FileNames.First().ToAbsolutePath();
 
-            if (!selectedPath.InFolder(ViewModel.Source)) return;
+            if (!selectedPath.InFolder(ViewModel.Source)) return Task.CompletedTask;
             
             ViewModel.AddNoMatchInclude(selectedPath.RelativeTo(ViewModel!.Source));
+            return Task.CompletedTask;
         }
         
         public async Task AddIncludeCommand()

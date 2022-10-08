@@ -11,7 +11,6 @@ namespace Wabbajack.Compiler.CompilationSteps;
 public class IgnoreSaveFiles : MO2CompilationStep
 {
     private readonly bool _includeSaves;
-    private readonly AbsolutePath _sourcePath;
     private readonly string _tag;
     private readonly AbsolutePath[] _profilePaths;
 

@@ -13,7 +13,6 @@ using Wabbajack.DTOs.Texture;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
-using Wabbajack.Services.OSIntegrated;
 using Xunit;
 
 namespace Wabbajack.Compiler.Test;
@@ -29,7 +28,6 @@ public class CompilerSanityTests : IAsyncLifetime
     private readonly IServiceProvider _serviceProvider;
     private Mod _mod;
     private ModList? _modlist;
-    private readonly LoggingRateLimiterReporter _reporter;
 
     public CompilerSanityTests(ILogger<CompilerSanityTests> logger, IServiceProvider serviceProvider,
         FileExtractor.FileExtractor fileExtractor,
@@ -52,8 +50,9 @@ public class CompilerSanityTests : IAsyncLifetime
                 "https://authored-files.wabbajack.org/Tonal%20Architect_WJ_TEST_FILES.zip_9cb97a01-3354-4077-9e4a-7e808d47794f"));
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
+        return Task.CompletedTask;
     }
 
     private async Task CompileAndValidate(int expectedDirectives, Action<CompilerSettings>? configureSettings = null)
@@ -97,7 +96,7 @@ public class CompilerSanityTests : IAsyncLifetime
 
         await CompileAndValidate(4);
 
-        Assert.Single(_modlist.Directives.OfType<PatchedFromArchive>());
+        Assert.Single(_modlist!.Directives.OfType<PatchedFromArchive>());
         await InstallAndValidate();
     }
 
@@ -135,7 +134,7 @@ public class CompilerSanityTests : IAsyncLifetime
         }
 
         await CompileAndValidate(42);
-        Assert.Single(_modlist.Directives.OfType<CreateBSA>());
+        Assert.Single(_modlist!.Directives.OfType<CreateBSA>());
         await InstallAndValidate();
     }
 

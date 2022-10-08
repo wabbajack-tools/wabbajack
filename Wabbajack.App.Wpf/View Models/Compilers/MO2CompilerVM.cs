@@ -18,7 +18,7 @@ using Consts = Wabbajack.Consts;
 
 namespace Wabbajack
 {
-    public class MO2CompilerVM : ViewModel, ISubCompilerVM
+    public class MO2CompilerVM : ViewModel
     {
         public CompilerVM Parent { get; }
 
@@ -36,11 +36,7 @@ namespace Wabbajack
 
         [Reactive]
         public ACompiler ActiveCompilation { get; private set; }
-
-        private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _modlistSettings;
-        private readonly IObservable<IChangeSet<string>> _authorKeys;
-        public ModlistSettingsEditorVM ModlistSettings => _modlistSettings.Value;
-
+        
         [Reactive]
         public object StatusTracker { get; private set; }
 
