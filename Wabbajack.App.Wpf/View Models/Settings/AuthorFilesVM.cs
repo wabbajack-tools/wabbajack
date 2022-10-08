@@ -15,8 +15,6 @@ namespace Wabbajack.View_Models.Settings
 {
     public class AuthorFilesVM : BackNavigatingVM
     {
-        private readonly ObservableAsPropertyHelper<Visibility> _isVisible;
-        
         [Reactive]
         public Visibility IsVisible { get; set; }
         

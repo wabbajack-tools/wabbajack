@@ -5,16 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using HtmlAgilityPack;
-using Microsoft.Extensions.Logging;
 using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.Wpf;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
-using Wabbajack.Interventions;
-using Wabbajack.Models;
 using Wabbajack.Views;
-using Wabbajack.WebAutomation;
 
 namespace Wabbajack.UserIntervention;
 

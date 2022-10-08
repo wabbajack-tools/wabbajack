@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Downloaders;
-using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Messages;
 using Wabbajack.Networking.Http.Interfaces;
@@ -21,7 +20,6 @@ public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
 {
     private readonly ILogger<NexusLoginManager> _logger;
     private readonly ITokenProvider<NexusApiState> _token;
-    private readonly IUserInterventionHandler _handler;
     private readonly IServiceProvider _serviceProvider;
 
     public string SiteName { get; } = "Nexus Mods";

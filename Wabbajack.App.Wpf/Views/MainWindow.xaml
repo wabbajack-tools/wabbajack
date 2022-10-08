@@ -97,6 +97,6 @@
         </mahapps:WindowCommands>
     </mahapps:MetroWindow.RightWindowCommands>
     <Window.TaskbarItemInfo>
-        <TaskbarItemInfo x:Name="TaskbarItemInfo"></TaskbarItemInfo>
+        <TaskbarItemInfo x:Name="TaskbarItemInfoControl"></TaskbarItemInfo>
     </Window.TaskbarItemInfo>
 </mahapps:MetroWindow>

@@ -15,7 +15,6 @@ namespace Wabbajack
 {
     public class ModeSelectionVM : ViewModel
     {
-        private MainWindowVM _mainVM;
         public ICommand BrowseCommand { get; }
         public ICommand InstallCommand { get; }
         public ICommand CompileCommand { get; }

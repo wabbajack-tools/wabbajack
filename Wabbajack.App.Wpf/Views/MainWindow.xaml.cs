@@ -66,9 +66,9 @@ namespace Wabbajack
                     .ObserveOnGuiThread()
                     .Subscribe(u =>
                     {
-                        TaskbarItemInfo.Description = u.Description;
-                        TaskbarItemInfo.ProgressValue = u.ProgressValue;
-                        TaskbarItemInfo.ProgressState = u.State;
+                        TaskbarItemInfoControl.Description = u.Description;
+                        TaskbarItemInfoControl.ProgressValue = u.ProgressValue;
+                        TaskbarItemInfoControl.ProgressState = u.State;
                     });
 
 
@@ -84,7 +84,7 @@ namespace Wabbajack
                     p.SystemMemorySize.ToFileSizeString(), p.SystemPageSize.ToFileSizeString(), p.ScreenWidth, p.ScreenHeight, p.VideoMemorySize.ToFileSizeString(), p.EnbLEVRAMSize);
 
                 if (p.SystemPageSize == 0)
-                    _logger.LogInformation("Pagefile is disabled! Consider increasing to 20000MB. A disabled pagefile can cause crashes and poor in-game performance");
+                    _logger.LogInformation( "Pagefile is disabled! Consider increasing to 20000MB. A disabled pagefile can cause crashes and poor in-game performance");
                 else if (p.SystemPageSize < 2e+10)
                     _logger.LogInformation("Pagefile below recommended! Consider increasing to 20000MB. A suboptimal pagefile can cause crashes and poor in-game performance");
 

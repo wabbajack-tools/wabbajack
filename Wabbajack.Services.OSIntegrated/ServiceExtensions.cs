@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Wabbajack.App.Models;
 using Wabbajack.Compiler;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;

@@ -10,7 +10,6 @@ using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer;
 using Wabbajack.Paths.IO;
-using Wabbajack.Services.OSIntegrated;
 using Xunit;
 
 namespace Wabbajack.Downloaders.Dispatcher.Test;

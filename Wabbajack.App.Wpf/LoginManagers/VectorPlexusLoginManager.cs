@@ -13,7 +13,6 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.IPS4OAuth2Downloader;
-using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Messages;
 using Wabbajack.Networking.Http.Interfaces;
@@ -25,7 +24,6 @@ public class VectorPlexusLoginManager : ViewModel, ILoginFor<LoversLabDownloader
 {
     private readonly ILogger<VectorPlexusLoginManager> _logger;
     private readonly ITokenProvider<VectorPlexusLoginState> _token;
-    private readonly IUserInterventionHandler _handler;
     private readonly IServiceProvider _serviceProvider;
 
     public string SiteName { get; } = "Vector Plexus";
