@@ -10,7 +10,7 @@ namespace Wabbajack.CLI.Builder;
 public class CommandLineBuilder
 {
     private static IServiceProvider _provider;
-    public CommandLineBuilder(IServiceProvider provider, IConsole console)
+    public CommandLineBuilder(IServiceProvider provider)
     {
         _provider = provider;
     }
