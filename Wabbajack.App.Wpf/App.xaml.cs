@@ -27,15 +27,14 @@ namespace Wabbajack
     /// </summary>
     public partial class App
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly IHost _host;
+        private IHost _host;
 
-        public App()
+        private void OnStartup(object sender, StartupEventArgs e)
         {
             WebView2AutoInstaller.CheckAndInstallAsync(false, false).Wait();
             
             RxApp.MainThreadScheduler = new DispatcherScheduler(Dispatcher.CurrentDispatcher);
-            _host = Host.CreateDefaultBuilder(Array.Empty<string>())
+            _host = Host.CreateDefaultBuilder(e.Args)
                 .ConfigureLogging(AddLogging)
                 .ConfigureServices((host, services) =>
                 {
@@ -43,7 +42,12 @@ namespace Wabbajack
                 })
                 .Build();
             
-            _serviceProvider = _host.Services;
+            RxApp.MainThreadScheduler.Schedule(0, (_, _) =>
+            {
+                var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+                mainWindow!.Show();
+                return Disposable.Empty;
+            });
         }
 
         private void AddLogging(ILoggingBuilder loggingBuilder)
@@ -121,15 +125,7 @@ namespace Wabbajack
             
             return services;
         }
-        private void OnStartup(object sender, StartupEventArgs e)
-        {
-            RxApp.MainThreadScheduler.Schedule(0, (_, _) =>
-            {
-                var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-                mainWindow!.Show();
-                return Disposable.Empty;
-            });
-        }
+
 
         private void OnExit(object sender, ExitEventArgs e)
         {
