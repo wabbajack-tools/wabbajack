@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Nettle;
+using Wabbajack.CLI.Builder;
 using Wabbajack.Common;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.JsonConverters;
@@ -19,7 +20,7 @@ using Wabbajack.Paths.IO;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class ModlistReport : IVerb
+public class ModlistReport
 {
     private readonly ILogger<ModlistReport> _logger;
     private readonly DTOSerializer _dtos;

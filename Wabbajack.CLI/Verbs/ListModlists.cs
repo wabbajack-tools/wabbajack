@@ -7,12 +7,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentFTP.Helpers;
 using Microsoft.Extensions.Logging;
+using Wabbajack.CLI.Builder;
 using Wabbajack.DTOs;
 using Wabbajack.Networking.WabbajackClientApi;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class ListModlists : IVerb
+public class ListModlists
 {
     private readonly ILogger<ListCreationClubContent> _logger;
     private readonly Client _client;

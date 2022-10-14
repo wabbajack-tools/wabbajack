@@ -3,12 +3,13 @@ using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
 using System.Threading;
 using System.Threading.Tasks;
+using Wabbajack.CLI.Builder;
 using Wabbajack.Paths;
 using Wabbajack.VFS;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class VFSIndex : IVerb
+public class VFSIndex
 {
     private readonly Context _context;
 
@@ -17,7 +18,7 @@ public class VFSIndex : IVerb
         _context = context;
     }
 
-    public static VerbDefinition Definition = new VerbDefinition("vfs-index",
+    public static VerbDefinition Definition = new("vfs-index",
         "Index and cache the contents of a folder", new[]
         {
             new OptionDefinition(typeof(AbsolutePath), "f", "folder", "Folder to index")

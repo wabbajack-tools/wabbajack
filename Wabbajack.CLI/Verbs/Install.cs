@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.CLI.Builder;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
@@ -18,7 +19,7 @@ using Wabbajack.VFS;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class Install : IVerb
+public class Install
 {
     private readonly ILogger<Install> _logger;
     private readonly Client _wjClient;

@@ -3,13 +3,14 @@ using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.CLI.Builder;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class Encrypt : IVerb
+public class Encrypt
 {
     private readonly ILogger<Encrypt> _logger;
 

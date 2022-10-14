@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.CLI.Builder;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.Downloaders;
@@ -22,7 +23,7 @@ using Wabbajack.VFS;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class InstallCompileInstallVerify : IVerb
+public class InstallCompileInstallVerify
 {
     private readonly ILogger<InstallCompileInstallVerify> _logger;
     private readonly Client _wjClient;
@@ -47,7 +48,7 @@ public class InstallCompileInstallVerify : IVerb
         _inferencer = inferencer;
     }
 
-    public static VerbDefinition Definition = new VerbDefinition("install-compile-install-verify",
+    public static VerbDefinition Definition = new("install-compile-install-verify",
         "Installs a modlist, compiles it, installs it again, verifies it", new[]
         {
             new OptionDefinition(typeof(AbsolutePath), "m", "machineUrl", "Machine url(s) to download"),

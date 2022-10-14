@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using ReactiveUI;
+using Wabbajack.CLI.Builder;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.Interventions;
@@ -27,10 +29,9 @@ namespace Wabbajack
     /// </summary>
     public partial class App
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly IHost _host;
+        private IHost _host;
 
-        public App()
+        private void OnStartup(object sender, StartupEventArgs e)
         {
             WebView2AutoInstaller.CheckAndInstallAsync(false, false).Wait();
             
@@ -42,8 +43,28 @@ namespace Wabbajack
                     ConfigureServices(services);
                 })
                 .Build();
+
+            var args = e.Args;
+
             
-            _serviceProvider = _host.Services;
+            RxApp.MainThreadScheduler.Schedule(0, (_, _) =>
+            {
+                if (args.Length > 0)
+                {
+                    var builder = _host.Services.GetRequiredService<CommandLineBuilder>();
+                    builder.Run(e.Args).ContinueWith(async x =>
+                    {
+                        Environment.Exit(await x);
+                    });
+                    return Disposable.Empty;
+                }
+                else
+                {
+                    var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+                    mainWindow!.Show();
+                    return Disposable.Empty;
+                }
+            });
         }
 
         private void AddLogging(ILoggingBuilder loggingBuilder)
@@ -119,17 +140,13 @@ namespace Wabbajack
             services.AddSingleton<ManualDownloadHandler>();
             services.AddSingleton<ManualBlobDownloadHandler>();
             
+            // Verbs
+            services.AddSingleton<CommandLineBuilder>();
+            services.AddCLIVerbs();
+            
             return services;
         }
-        private void OnStartup(object sender, StartupEventArgs e)
-        {
-            RxApp.MainThreadScheduler.Schedule(0, (_, _) =>
-            {
-                var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-                mainWindow!.Show();
-                return Disposable.Empty;
-            });
-        }
+
 
         private void OnExit(object sender, ExitEventArgs e)
         {

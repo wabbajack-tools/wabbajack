@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SteamKit2;
+using Wabbajack.CLI.Builder;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Networking.Http.Interfaces;
@@ -15,7 +16,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class SteamDumpAppInfo : IVerb
+public class SteamDumpAppInfo
 {
     private readonly ILogger<SteamDumpAppInfo> _logger;
     private readonly Client _client;
@@ -33,7 +34,7 @@ public class SteamDumpAppInfo : IVerb
         _dtos = dtos;
     }
 
-    public static VerbDefinition Definition = new VerbDefinition("steam-app-dump-info",
+    public static VerbDefinition Definition = new("steam-app-dump-info",
         "Dumps information to the console about the given app", new[]
         {
             new OptionDefinition(typeof(string), "g", "game", "Wabbajack game name")

@@ -3,12 +3,13 @@ using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.CLI.Builder;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class MirrorFile : IVerb
+public class MirrorFile
 {
     private readonly ILogger<MirrorFile> _logger;
     private readonly Client _client;

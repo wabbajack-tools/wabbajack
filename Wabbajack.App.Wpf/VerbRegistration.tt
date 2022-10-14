@@ -6,8 +6,8 @@
 <#@ import namespace="System.Collections.Generic" #>
 
 using Microsoft.Extensions.DependencyInjection;
-namespace Wabbajack.CLI;
-using Wabbajack.CLI.Verbs;
+namespace Wabbajack;
+using Wabbajack.Verbs;
 using Wabbajack.CLI.Builder;
 
 public static class CommandLineBuilderExtensions{ 
