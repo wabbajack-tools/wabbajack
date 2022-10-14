@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 3.0.2.0 - ????
+* Show Modlist readmes after install
+
 #### Version - 3.0.1.9 - 10/4/2022
 * Lots of compiler improvements for faster compilation
 * Limit the log view to the last 200 messages for better UI performance
