@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.CLI.Builder;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.Bethesda;
 using Wabbajack.DTOs;
@@ -17,7 +18,7 @@ using Wabbajack.Paths;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class ListCreationClubContent : IVerb
+public class ListCreationClubContent
 {
     private readonly ILogger<ListCreationClubContent> _logger;
     private readonly Client _client;

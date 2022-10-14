@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using FluentFTP.Helpers;
 using Microsoft.Extensions.Logging;
 using SteamKit2;
+using Wabbajack.CLI.Builder;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Networking.Http.Interfaces;
@@ -15,7 +16,7 @@ using Wabbajack.Paths;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class SteamDownloadFile : IVerb
+public class SteamDownloadFile
 {
     private readonly ILogger<SteamDownloadFile> _logger;
     private readonly Client _client;
@@ -35,7 +36,7 @@ public class SteamDownloadFile : IVerb
         _wjClient = wjClient;
     }
 
-    public static VerbDefinition Definition = new VerbDefinition("steam-download-file",
+    public static VerbDefinition Definition = new("steam-download-file",
         "Dumps information to the console about the given app",
         new[]
         {

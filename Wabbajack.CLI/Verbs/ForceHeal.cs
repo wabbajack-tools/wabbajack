@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentFTP.Helpers;
 using Microsoft.Extensions.Logging;
+using Wabbajack.CLI.Builder;
 using Wabbajack.Common;
 using Wabbajack.Compiler.PatchCache;
 using Wabbajack.Downloaders;
@@ -25,7 +26,7 @@ using Wabbajack.VFS;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class ForceHeal : IVerb
+public class ForceHeal
 {
     private readonly ILogger<ForceHeal> _logger;
     private readonly Client _client;

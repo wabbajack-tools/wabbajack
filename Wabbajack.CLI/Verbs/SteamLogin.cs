@@ -4,13 +4,14 @@ using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.CLI.Builder;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.Steam;
 using Wabbajack.Paths;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class SteamLogin : IVerb
+public class SteamLogin
 {
     private readonly ILogger<SteamLogin> _logger;
     private readonly Client _client;

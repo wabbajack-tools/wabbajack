@@ -5,6 +5,7 @@ using System.CommandLine.NamingConventionBinder;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.CLI.Builder;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs;
@@ -13,7 +14,7 @@ using Wabbajack.Paths.IO;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class Extract : IVerb
+public class Extract
 {
 
     private readonly ILogger<DownloadUrl> _logger;

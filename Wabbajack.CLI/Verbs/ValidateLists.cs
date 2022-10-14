@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
+using Wabbajack.CLI.Builder;
 using Wabbajack.CLI.Services;
 using Wabbajack.Common;
 using Wabbajack.Compression.Zip;
@@ -35,7 +36,7 @@ using Wabbajack.Server.Lib.TokenProviders;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class ValidateLists : IVerb
+public class ValidateLists
 {
     private static readonly Uri MirrorPrefix = new("https://mirror.wabbajack.org");
     private readonly WriteOnlyClient _discord;
@@ -74,7 +75,7 @@ public class ValidateLists : IVerb
         _httpLimiter = httpLimiter;
     }
 
-    public static VerbDefinition Definition = new VerbDefinition("validate-lists",
+    public static VerbDefinition Definition = new("validate-lists",
         "Gets a list of modlists, validates them and exports a result list", new[]
         {
             new OptionDefinition(typeof(AbsolutePath), "r", "reports", "Location to store validation report outputs")

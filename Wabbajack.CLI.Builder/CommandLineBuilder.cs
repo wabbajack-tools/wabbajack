@@ -1,31 +1,20 @@
-using System;
-using System.Collections.Generic;
 using System.CommandLine;
+using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
-using System.ComponentModel.Design;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Wabbajack.CLI.Verbs;
 using Wabbajack.Paths;
-using Wabbajack.Services.OSIntegrated;
 
-namespace Wabbajack.CLI;
+namespace Wabbajack.CLI.Builder;
 
-public partial class CommandLineBuilder
+public class CommandLineBuilder
 {
     private static IServiceProvider _provider;
-    public CommandLineBuilder(IServiceProvider provider, IConsole console, LoggingRateLimiterReporter _)
+    public CommandLineBuilder(IServiceProvider provider, IConsole console)
     {
         _provider = provider;
     }
-
-    static CommandLineBuilder()
-    {
-        RegisterAll();
-    }
-
+    
     public async Task<int> Run(string[] args)
     {
         var root = new RootCommand();
@@ -58,7 +47,7 @@ public partial class CommandLineBuilder
         
     };
 
-    private Command MakeCommend(Type verbType, Func<IVerb, Delegate> verbHandler, VerbDefinition definition)
+    private Command MakeCommend(Type verbType, Func<object, Delegate> verbHandler, VerbDefinition definition)
     {
         var command = new Command(definition.Name, definition.Description);
         foreach (var option in definition.Options)
@@ -73,9 +62,9 @@ public partial class CommandLineBuilder
     {
         private IServiceProvider _provider;
         private Type _type;
-        private readonly Func<IVerb, Delegate> _delgate;
+        private readonly Func<object, Delegate> _delgate;
 
-        public HandlerDelegate(IServiceProvider provider, Type type, Func<IVerb, Delegate> inner)
+        public HandlerDelegate(IServiceProvider provider, Type type, Func<object, Delegate> inner)
         {
             _provider = provider;
             _type = type;
@@ -83,22 +72,23 @@ public partial class CommandLineBuilder
         }
         public int Invoke(InvocationContext context)
         {
-            var service = (IVerb)_provider.GetRequiredService(_type);
+            var service = _provider.GetRequiredService(_type);
             var handler = CommandHandler.Create(_delgate(service));
             return handler.Invoke(context);
         }
 
         public Task<int> InvokeAsync(InvocationContext context)
         {
-            var service = (IVerb)_provider.GetRequiredService(_type);
+            var service = _provider.GetRequiredService(_type);
             var handler = CommandHandler.Create(_delgate(service));
             return handler.InvokeAsync(context);
         }
     }
 
-    private static List<(Type Type, VerbDefinition Definition, Func<IVerb, Delegate> Handler)> _commands { get; set; } = new();
+    private static List<(Type Type, VerbDefinition Definition, Func<object, Delegate> Handler)> _commands { get; set; } = new();
     public static IEnumerable<Type> Verbs => _commands.Select(c => c.Type);
-    public static void RegisterCommand<T>(VerbDefinition definition, Func<IVerb, Delegate> handler)
+
+    public static void RegisterCommand<T>(VerbDefinition definition, Func<object, Delegate> handler)
     {
         _commands.Add((typeof(T), definition, handler));
         
@@ -120,17 +110,3 @@ public record VerbDefinition(string Name, string Description, OptionDefinition[]
 {
 }
 
-public static class CommandLineBuilderExtensions
-{
-    public static IServiceCollection AddCommands(this IServiceCollection services)
-    {
-        services.AddSingleton<CommandLineBuilder>();
-
-        foreach (var verb in CommandLineBuilder.Verbs)
-        {
-            services.AddSingleton(verb);
-        }
-
-        return services;
-    }
-}

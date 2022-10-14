@@ -5,19 +5,22 @@
 <#@ import namespace="System.IO"#>
 <#@ import namespace="System.Collections.Generic" #>
 
+using Microsoft.Extensions.DependencyInjection;
 namespace Wabbajack.CLI;
 using Wabbajack.CLI.Verbs;
+using Wabbajack.CLI.Builder;
 
-public partial class CommandLineBuilder { 
+public static class CommandLineBuilderExtensions{ 
 
-private static void RegisterAll() {
+public static void AddCLIVerbs(this IServiceCollection services) {
 <#
 foreach (var verb in Directory.EnumerateFiles("Verbs"))
 {
     var klass = verb.Split('\\').Last().Split('.').First();
     if (klass == "IVerb") continue;
     #>
-RegisterCommand<<#=klass#>>(<#=klass#>.Definition, c => ((<#=klass#>)c).Run);
+CommandLineBuilder.RegisterCommand<<#=klass#>>(<#=klass#>.Definition, c => ((<#=klass#>)c).Run);
+services.AddSingleton<<#=klass#>>();
 <#
 }
 

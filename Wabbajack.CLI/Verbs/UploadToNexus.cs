@@ -1,20 +1,16 @@
-using System.CommandLine;
-using System.CommandLine.Invocation;
-using System.CommandLine.NamingConventionBinder;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.CLI.Builder;
 using Wabbajack.Common;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Networking.NexusApi;
 using Wabbajack.Networking.NexusApi.DTOs;
 using Wabbajack.Paths;
-using Wabbajack.Paths.IO;
 
 
 namespace Wabbajack.CLI.Verbs;
 
-public class UploadToNexus : IVerb
+public class UploadToNexus
 {
     private readonly ILogger<UploadToNexus> _logger;
     private readonly NexusApi _client;

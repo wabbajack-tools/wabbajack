@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.CLI.Builder;
 using Wabbajack.Common;
 using Wabbajack.Compression.Zip;
 using Wabbajack.Downloaders;
@@ -16,7 +17,7 @@ using Wabbajack.Paths.IO;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class DumpZipInfo : IVerb
+public class DumpZipInfo
 {
     private readonly ILogger<DumpZipInfo> _logger;
 

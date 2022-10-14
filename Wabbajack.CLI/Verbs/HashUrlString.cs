@@ -3,12 +3,13 @@ using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.CLI.Builder;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class HashUrlString : IVerb
+public class HashUrlString
 {
     private readonly ILogger<HashUrlString> _logger;
 

@@ -5,13 +5,14 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.CLI.Builder;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
 namespace Wabbajack.CLI.Verbs;
 
-public class HashFile : IVerb
+public class HashFile
 {
     private readonly ILogger<HashFile> _logger;
 
