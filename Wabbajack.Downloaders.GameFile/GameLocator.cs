@@ -92,6 +92,7 @@ public class GameLocator : IGameLocator
                 if (path.DirectoryExists())
                 {
                     paths[getId(game)] = path;
+                    _logger.LogDebug("Found Game {} at {}", game, path);
                 }
                 else
                 {
