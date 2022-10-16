@@ -17,11 +17,13 @@ using Wabbajack.DTOs.Interventions;
 using Wabbajack.Interventions;
 using Wabbajack.LoginManagers;
 using Wabbajack.Models;
+using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.UserIntervention;
 using Wabbajack.Util;
 using WebView2.Runtime.AutoInstaller;
+using Ext = Wabbajack.Common.Ext;
 
 namespace Wabbajack
 {
@@ -47,10 +49,18 @@ namespace Wabbajack
 
             var args = e.Args;
 
-            
             RxApp.MainThreadScheduler.Schedule(0, (_, _) =>
             {
-                if (args.Length > 0)
+                if (args.Length == 1)
+                {
+                    var arg = args[0].ToAbsolutePath();
+                    if (arg.FileExists() && arg.Extension == Ext.Wabbajack)
+                    {
+                        var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+                        mainWindow!.Show();
+                        return Disposable.Empty;
+                    }
+                } else if (args.Length > 0)
                 {
                     var builder = _host.Services.GetRequiredService<CommandLineBuilder>();
                     builder.Run(e.Args).ContinueWith(async x =>
@@ -65,6 +75,8 @@ namespace Wabbajack
                     mainWindow!.Show();
                     return Disposable.Empty;
                 }
+
+                return Disposable.Empty;
             });
         }
 

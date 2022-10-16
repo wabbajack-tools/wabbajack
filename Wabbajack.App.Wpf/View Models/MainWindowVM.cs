@@ -25,6 +25,7 @@ using Wabbajack.Messages;
 using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.UserIntervention;
 using Wabbajack.View_Models;
 
@@ -219,16 +220,17 @@ namespace Wabbajack
 
         private static bool IsStartingFromModlist(out AbsolutePath modlistPath)
         {
-            /* TODO
-            if (CLIArguments.InstallPath == null)
+            var args = Environment.GetCommandLineArgs();
+            if (args.Length == 2)
             {
-                modlistPath = default;
-                return false;
+                var arg = args[1].ToAbsolutePath();
+                if (arg.FileExists() && arg.Extension == Ext.Wabbajack)
+                {
+                    modlistPath = arg;
+                    return true;
+                }
             }
 
-            modlistPath = (AbsolutePath)CLIArguments.InstallPath;
-            return true;
-            */
             modlistPath = default;
             return false;
         }
