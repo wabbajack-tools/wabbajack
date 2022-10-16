@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using NLog.Targets;
+using Orc.FileAssociation;
 using ReactiveUI;
 using Wabbajack.CLI.Builder;
 using Wabbajack.DTOs;
@@ -108,6 +109,9 @@ namespace Wabbajack
         {
             services.AddOSIntegrated();
 
+            // Orc.FileAssociation
+            services.AddSingleton<IApplicationRegistrationService>(new ApplicationRegistrationService());
+
             services.AddSingleton<CefService>();
             services.AddSingleton<IUserInterventionHandler, UserIntreventionHandler>();
             
@@ -146,7 +150,6 @@ namespace Wabbajack
             
             return services;
         }
-
 
         private void OnExit(object sender, ExitEventArgs e)
         {

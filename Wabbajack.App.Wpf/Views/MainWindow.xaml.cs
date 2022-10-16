@@ -143,34 +143,6 @@ namespace Wabbajack
             _settings = settings;
         }
 
-        /// <summary>
-        /// Starts some background initialization tasks spinning so they're already prepped when actually needed
-        /// </summary>
-        private void Warmup()
-        {
-            Task.Run(AssociateListsWithWabbajack).FireAndForget();
-        }
-
-        /// <summary>
-        /// Run logic to associate wabbajack lists with this app in the background
-        /// </summary>
-        private void AssociateListsWithWabbajack()
-        {
-            /* TODO
-            var appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            try
-            {
-                if (!ModListAssociationManager.IsAssociated() || ModListAssociationManager.NeedsUpdating(appPath))
-                {
-                    ModListAssociationManager.Associate(appPath);
-                }
-            }
-            catch (Exception e)
-            {
-                Utils.Log($"ExtensionManager had an exception:\n{e}");
-            }*/
-        }
-
         private void RunWhenLoaded(Action a)
         {
             if (IsLoaded)

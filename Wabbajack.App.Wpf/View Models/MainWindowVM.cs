@@ -14,6 +14,7 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Orc.FileAssociation;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack;
@@ -143,6 +144,13 @@ namespace Wabbajack
                 
                 Task.Run(() => _wjClient.SendMetric("started_wabbajack", fvi.FileVersion)).FireAndForget();
                 Task.Run(() => _wjClient.SendMetric("started_sha", ThisAssembly.Git.Sha));
+                
+                // setup file association
+                var applicationRegistrationService = _serviceProvider.GetRequiredService<IApplicationRegistrationService>();
+
+                var applicationInfo = new ApplicationInfo(assembly);
+                applicationInfo.SupportedExtensions.Add("wabbajack");
+                applicationRegistrationService.RegisterApplication(applicationInfo);
             }
             catch (Exception ex)
             {
