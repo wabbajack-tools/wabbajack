@@ -14,6 +14,7 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Orc.FileAssociation;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack;
@@ -24,6 +25,7 @@ using Wabbajack.Messages;
 using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.UserIntervention;
 using Wabbajack.View_Models;
 
@@ -143,6 +145,13 @@ namespace Wabbajack
                 
                 Task.Run(() => _wjClient.SendMetric("started_wabbajack", fvi.FileVersion)).FireAndForget();
                 Task.Run(() => _wjClient.SendMetric("started_sha", ThisAssembly.Git.Sha));
+                
+                // setup file association
+                var applicationRegistrationService = _serviceProvider.GetRequiredService<IApplicationRegistrationService>();
+
+                var applicationInfo = new ApplicationInfo(assembly);
+                applicationInfo.SupportedExtensions.Add("wabbajack");
+                applicationRegistrationService.RegisterApplication(applicationInfo);
             }
             catch (Exception ex)
             {
@@ -211,16 +220,17 @@ namespace Wabbajack
 
         private static bool IsStartingFromModlist(out AbsolutePath modlistPath)
         {
-            /* TODO
-            if (CLIArguments.InstallPath == null)
+            var args = Environment.GetCommandLineArgs();
+            if (args.Length == 2)
             {
-                modlistPath = default;
-                return false;
+                var arg = args[1].ToAbsolutePath();
+                if (arg.FileExists() && arg.Extension == Ext.Wabbajack)
+                {
+                    modlistPath = arg;
+                    return true;
+                }
             }
 
-            modlistPath = (AbsolutePath)CLIArguments.InstallPath;
-            return true;
-            */
             modlistPath = default;
             return false;
         }
