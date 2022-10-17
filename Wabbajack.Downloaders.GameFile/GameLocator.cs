@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+using GameFinder.RegistryUtils;
 using GameFinder.StoreHandlers.EGS;
 using GameFinder.StoreHandlers.GOG;
 using GameFinder.StoreHandlers.Origin;
@@ -5,37 +7,103 @@ using GameFinder.StoreHandlers.Steam;
 using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack.Downloaders.GameFile;
 
 public class GameLocator : IGameLocator
 {
-    private readonly EGSHandler? _egs;
+    private readonly SteamHandler _steam;
     private readonly GOGHandler? _gog;
+    private readonly EGSHandler? _egs;
+    private readonly OriginHandler? _origin;
+
+    private readonly Dictionary<int, AbsolutePath> _steamGames = new();
+    private readonly Dictionary<long, AbsolutePath> _gogGames = new();
+    private readonly Dictionary<string, AbsolutePath> _egsGames = new();
+    private readonly Dictionary<string, AbsolutePath> _originGames = new();
+
     private readonly Dictionary<Game, AbsolutePath> _locationCache;
     private readonly ILogger<GameLocator> _logger;
-    private readonly OriginHandler? _origin;
-    private readonly SteamHandler _steam;
 
     public GameLocator(ILogger<GameLocator> logger)
     {
         _logger = logger;
-        _steam = new SteamHandler(logger);
 
-        if (OperatingSystem.IsWindows())
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            _origin = new OriginHandler(true, false, logger);
-            _gog = new GOGHandler(logger);
+            var windowsRegistry = new WindowsRegistry();
+            
+            _steam = new SteamHandler(windowsRegistry);
+            _gog = new GOGHandler(windowsRegistry);
+            _egs = new EGSHandler(windowsRegistry);
+            _origin = new OriginHandler();
+        }
+        else
+        {
+            _steam = new SteamHandler(null);
+        }
+        
+        _locationCache = new Dictionary<Game, AbsolutePath>();
+        
+        FindAllGames();
+    }
 
-            _egs = new EGSHandler(logger);
+    private void FindAllGames()
+    {
+        FindStoreGames(_steam.FindAllGames(), _steamGames,
+            steamGame => steamGame.Path,
+            steamGame => steamGame.AppId);
+
+        if (_gog is not null)
+        {
+            FindStoreGames(_gog.FindAllGames(), _gogGames,
+                gogGame => gogGame.Path,
+                gogGame => gogGame.Id);
         }
 
-        _locationCache = new Dictionary<Game, AbsolutePath>();
+        if (_egs is not null)
+        {
+            FindStoreGames(_egs.FindAllGames(), _egsGames,
+                egsGame => egsGame.InstallLocation,
+                egsGame => egsGame.CatalogItemId);
+        }
 
-        _steam.FindAllGames();
-        _origin?.FindAllGames();
-        _gog?.FindAllGames();
-        _egs?.FindAllGames();
+        if (_origin is not null)
+        {
+            FindStoreGames(_origin.FindAllGames(), _originGames,
+                originGame => originGame.InstallPath,
+                originGame => originGame.Id);
+        }
+    }
+
+    private void FindStoreGames<TGame, TId>(
+        IEnumerable<(TGame? game, string? error)> games,
+        IDictionary<TId, AbsolutePath> paths,
+        Func<TGame, string> getPath,
+        Func<TGame, TId> getId)
+        where TGame : class
+    {
+        foreach (var (game, error) in games)
+        {
+            if (game is not null)
+            {
+                var path = getPath(game).ToAbsolutePath();
+                if (path.DirectoryExists())
+                {
+                    paths[getId(game)] = path;
+                    _logger.LogDebug("Found Game {} at {}", game, path);
+                }
+                else
+                {
+                    _logger.LogError("Game {} does not exist at {}", game, path);
+                }
+            }
+            else
+            {
+                _logger.LogError("{}", error);
+            }
+        }
     }
 
     public AbsolutePath GameLocation(Game game)
@@ -70,39 +138,33 @@ public class GameLocator : IGameLocator
     private bool TryFindLocationInner(Game game, out AbsolutePath path)
     {
         var metaData = game.MetaData();
-        foreach (var steamGame in _steam.Games.Where(steamGame => metaData.SteamIDs.Contains(steamGame.ID)))
+
+        int? steamId = metaData.SteamIDs.FirstOrDefault(id => _steamGames.ContainsKey(id));
+        if (steamId.HasValue)
         {
-            path = steamGame!.Path.ToAbsolutePath();
+            path = _steamGames[steamId.Value];
             return true;
         }
 
-        if (_gog != null)
+        int? gogId = metaData.GOGIDs.FirstOrDefault(id => _gogGames.ContainsKey(id));
+        if (gogId.HasValue)
         {
-            foreach (var gogGame in _gog.Games.Where(gogGame => metaData.GOGIDs.Contains(gogGame.GameID)))
-            {
-                path = gogGame!.Path.ToAbsolutePath();
-                return true;
-            }
+            path = _gogGames[gogId.Value];
+            return true;
         }
-
-        if (_egs != null)
+        
+        var egsId = metaData.EpicGameStoreIDs.FirstOrDefault(id => _egsGames.ContainsKey(id));
+        if (egsId is not null)
         {
-            foreach (var egsGame in _egs.Games.Where(egsGame =>
-                metaData.EpicGameStoreIDs.Contains(egsGame.CatalogItemId)))
-            {
-                path = egsGame!.Path.ToAbsolutePath();
-                return true;
-            }
+            path = _egsGames[egsId];
+            return true;
         }
-
-        if (_origin != null)
+        
+        var originId = metaData.OriginIDs.FirstOrDefault(id => _originGames.ContainsKey(id));
+        if (originId is not null)
         {
-            foreach (var originGame in _origin.Games.Where(originGame =>
-                metaData.EpicGameStoreIDs.Contains(originGame.Id)))
-            {
-                path = originGame.Path.ToAbsolutePath();
-                return true;
-            }
+            path = _originGames[originId];
+            return true;
         }
 
         path = default;
