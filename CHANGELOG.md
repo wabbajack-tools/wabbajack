@@ -3,6 +3,8 @@
 #### Version - 3.0.2.0 - 10/14/2022
 * Show Modlist readmes after install
 * Basic support for commandline options in the WPF app
+* Re-add support for file associations of Wabbajack and .wabbajack files (thanks erri!)
+* Update to the latest game finder libraries
 
 #### Version - 3.0.1.9 - 10/4/2022
 * Lots of compiler improvements for faster compilation
