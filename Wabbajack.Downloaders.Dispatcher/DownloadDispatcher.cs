@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Downloaders.Interfaces;
+using Wabbajack.Downloaders.VerificationCache;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.ServerResponses;
@@ -16,6 +17,7 @@ using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
+using StringExtensions = Wabbajack.Paths.StringExtensions;
 
 namespace Wabbajack.Downloaders;
 
@@ -26,15 +28,17 @@ public class DownloadDispatcher
     private readonly ILogger<DownloadDispatcher> _logger;
     private readonly Client _wjClient;
     private readonly bool _useProxyCache;
+    private readonly IVerificationCache _verificationCache;
 
     public DownloadDispatcher(ILogger<DownloadDispatcher> logger, IEnumerable<IDownloader> downloaders,
-        IResource<DownloadDispatcher> limiter, Client wjClient, bool useProxyCache = true)
+        IResource<DownloadDispatcher> limiter, Client wjClient, IVerificationCache verificationCache, bool useProxyCache = true)
     {
         _downloaders = downloaders.OrderBy(d => d.Priority).ToArray();
         _logger = logger;
         _wjClient = wjClient;
         _limiter = limiter;
         _useProxyCache = useProxyCache;
+        _verificationCache = verificationCache;
     }
 
     public async Task<Hash> Download(Archive a, AbsolutePath dest, CancellationToken token, bool? proxy = null)
@@ -108,13 +112,20 @@ public class DownloadDispatcher
     {
         try
         {
+            if (await _verificationCache.Get(a.State) == true)
+                return true;
+            
             a = await MaybeProxy(a, token);
             var downloader = Downloader(a);
             using var job = await _limiter.Begin($"Verifying {a.State.PrimaryKeyString}", -1, token);
-            return await downloader.Verify(a, job, token);
+            var result = await downloader.Verify(a, job, token);
+            await _verificationCache.Put(a.State, result);
+
+            return result;
         }
         catch (HttpException)
         {
+            await _verificationCache.Put(a.State, false);
             return false;
         }
     }

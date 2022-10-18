@@ -8,6 +8,7 @@ using Wabbajack.Downloaders.IPS4OAuth2Downloader;
 using Wabbajack.Downloaders.Manual;
 using Wabbajack.Downloaders.MediaFire;
 using Wabbajack.Downloaders.ModDB;
+using Wabbajack.Downloaders.VerificationCache;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.RateLimiter;
@@ -50,12 +51,13 @@ public static class ServiceExtensions
                 .AddWabbajackClient();
         }
 
-        services.AddSingleton(s => 
+        services.AddSingleton(s =>
             new DownloadDispatcher(s.GetRequiredService<ILogger<DownloadDispatcher>>(),
-            s.GetRequiredService<IEnumerable<IDownloader>>(),
-            s.GetRequiredService<IResource<DownloadDispatcher>>(),
-            s.GetRequiredService<Client>(),
-            useProxyCache));
+                s.GetRequiredService<IEnumerable<IDownloader>>(),
+                s.GetRequiredService<IResource<DownloadDispatcher>>(),
+                s.GetRequiredService<Client>(),
+                s.GetRequiredService<IVerificationCache>(),
+                useProxyCache));
 
         return services;
     }

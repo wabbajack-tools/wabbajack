@@ -27,6 +27,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders.VerificationCache\Wabbajack.Downloaders.VerificationCache.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.Http\Wabbajack.Networking.Http.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.NexusApi.Test\Wabbajack.Networking.NexusApi.Test.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.NexusApi\Wabbajack.Networking.NexusApi.csproj" />
