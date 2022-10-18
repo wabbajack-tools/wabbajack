@@ -479,7 +479,22 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
             await using var fs = _configuration.Install.Combine(m.To)
                 .Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-            await BinaryPatching.ApplyPatch(new MemoryStream(srcData), new MemoryStream(patchData), fs);
+            try
+            {
+                await BinaryPatching.ApplyPatch(new MemoryStream(srcData), new MemoryStream(patchData), fs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "While creating zEdit merge, entering debugging mode");
+                foreach (var source in m.Sources)
+                {
+                    var hash = await _configuration.Install.Combine(source.RelativePath).Hash();
+                    _logger.LogInformation("For {Source} expected hash {Expected} got {Got}", source.RelativePath, source.Hash, hash);
+                }
+
+                throw;
+            }
+
             return m;
         }).ToList();
     }

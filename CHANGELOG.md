@@ -5,6 +5,7 @@
 * Basic support for commandline options in the WPF app
 * Re-add support for file associations of Wabbajack and .wabbajack files (thanks erri!)
 * Update to the latest game finder libraries
+* Add some debugging messages for when zEdit merge fails
 
 #### Version - 3.0.1.9 - 10/4/2022
 * Lots of compiler improvements for faster compilation
