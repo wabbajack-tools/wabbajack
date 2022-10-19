@@ -19,6 +19,7 @@
         <ProjectReference Include="..\Wabbajack.Downloaders.Mega\Wabbajack.Downloaders.Mega.csproj" />
         <ProjectReference Include="..\Wabbajack.Downloaders.ModDB\Wabbajack.Downloaders.ModDB.csproj" />
         <ProjectReference Include="..\Wabbajack.Downloaders.Nexus\Wabbajack.Downloaders.Nexus.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders.VerificationCache\Wabbajack.Downloaders.VerificationCache.csproj" />
         <ProjectReference Include="..\Wabbajack.Downloaders.WabbajackCDN\Wabbajack.Downloaders.WabbajackCDN.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.WabbajackClientApi\Wabbajack.Networking.WabbajackClientApi.csproj" />
     </ItemGroup>

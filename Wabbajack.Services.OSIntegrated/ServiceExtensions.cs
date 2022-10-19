@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.Compiler;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
+using Wabbajack.Downloaders.VerificationCache;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
@@ -70,6 +71,11 @@ public static class ServiceExtensions
         service.AddSingleton<IBinaryPatchCache>(s => options.UseLocalCache
             ? new BinaryPatchCache(s.GetRequiredService<ILogger<BinaryPatchCache>>(), s.GetService<TemporaryFileManager>()!.CreateFolder().Path)
             : new BinaryPatchCache(s.GetRequiredService<ILogger<BinaryPatchCache>>(),KnownFolders.WabbajackAppLocal.Combine("PatchCache")));
+
+        
+        service.AddSingleton<IVerificationCache>(s => options.UseLocalCache
+            ? new VerificationCache(s.GetRequiredService<ILogger<VerificationCache>>(), s.GetService<TemporaryFileManager>()!.CreateFile().Path, TimeSpan.FromDays(1))
+            : new VerificationCache(s.GetRequiredService<ILogger<VerificationCache>>(),KnownFolders.WabbajackAppLocal.Combine("VerificationCache"), TimeSpan.FromDays(1)));
 
         service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount});
 

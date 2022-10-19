@@ -139,34 +139,34 @@ public class GameLocator : IGameLocator
     {
         var metaData = game.MetaData();
 
-        int? steamId = metaData.SteamIDs.FirstOrDefault(id => _steamGames.ContainsKey(id));
-        if (steamId.HasValue)
+        foreach (var id in metaData.SteamIDs)
         {
-            path = _steamGames[steamId.Value];
-            return true;
-        }
-
-        int? gogId = metaData.GOGIDs.FirstOrDefault(id => _gogGames.ContainsKey(id));
-        if (gogId.HasValue)
-        {
-            path = _gogGames[gogId.Value];
+            if (!_steamGames.TryGetValue(id, out var found)) continue;
+            path = found;
             return true;
         }
         
-        var egsId = metaData.EpicGameStoreIDs.FirstOrDefault(id => _egsGames.ContainsKey(id));
-        if (egsId is not null)
+        foreach (var id in metaData.GOGIDs)
         {
-            path = _egsGames[egsId];
-            return true;
-        }
-        
-        var originId = metaData.OriginIDs.FirstOrDefault(id => _originGames.ContainsKey(id));
-        if (originId is not null)
-        {
-            path = _originGames[originId];
+            if (!_gogGames.TryGetValue(id, out var found)) continue;
+            path = found;
             return true;
         }
 
+        foreach (var id in metaData.EpicGameStoreIDs)
+        {
+            if (!_egsGames.TryGetValue(id, out var found)) continue;
+            path = found;
+            return true;
+        }
+
+        foreach (var id in metaData.OriginIDs)
+        {
+            if (!_originGames.TryGetValue(id, out var found)) continue;
+            path = found;
+            return true;
+        }
+        
         path = default;
         return false;
     }
