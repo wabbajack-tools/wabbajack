@@ -139,34 +139,65 @@ public class GameLocator : IGameLocator
     {
         var metaData = game.MetaData();
 
-        foreach (var id in metaData.SteamIDs)
+        try
         {
-            if (!_steamGames.TryGetValue(id, out var found)) continue;
-            path = found;
-            return true;
+            foreach (var id in metaData.SteamIDs)
+            {
+                if (!_steamGames.TryGetValue(id, out var found)) continue;
+                path = found;
+                return true;
+            }
         }
-        
-        foreach (var id in metaData.GOGIDs)
+        catch (Exception ex)
         {
-            if (!_gogGames.TryGetValue(id, out var found)) continue;
-            path = found;
-            return true;
-        }
-
-        foreach (var id in metaData.EpicGameStoreIDs)
-        {
-            if (!_egsGames.TryGetValue(id, out var found)) continue;
-            path = found;
-            return true;
+            _logger.LogInformation(ex, "During Steam detection");
         }
 
-        foreach (var id in metaData.OriginIDs)
+
+        try
         {
-            if (!_originGames.TryGetValue(id, out var found)) continue;
-            path = found;
-            return true;
+            foreach (var id in metaData.GOGIDs)
+            {
+                if (!_gogGames.TryGetValue(id, out var found)) continue;
+                path = found;
+                return true;
+            }
         }
-        
+        catch (Exception ex)
+        {
+            _logger.LogInformation(ex, "During GOG detection");
+        }
+
+
+        try
+        {
+            foreach (var id in metaData.EpicGameStoreIDs)
+            {
+                if (!_egsGames.TryGetValue(id, out var found)) continue;
+                path = found;
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInformation(ex, "During Epic detection");
+        }
+
+
+        try
+        {
+            foreach (var id in metaData.OriginIDs)
+            {
+                if (!_originGames.TryGetValue(id, out var found)) continue;
+                path = found;
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInformation(ex, "During Origin Store detection");
+        }
+
         path = default;
         return false;
     }

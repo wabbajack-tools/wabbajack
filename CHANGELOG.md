@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 3.0.2.1 - 10/19/2022
+* HOTFIX: make game detection more safe against crashes
+
 #### Version - 3.0.2.0 - 10/19/2022
 * Show Modlist readmes after install
 * Basic support for commandline options in the WPF app
