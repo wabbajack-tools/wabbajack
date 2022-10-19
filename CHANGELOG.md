@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 3.0.2.3 - 10/19/2022
+* HOTFIX: revert GameFinder library to 1.8 until it's a bit more forgiving of corrupt files
+
 #### Version - 3.0.2.2 - 10/19/2022
 * HOTFIX: make game detection *even more* safe against crashes
 

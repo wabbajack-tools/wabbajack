@@ -147,11 +147,19 @@ namespace Wabbajack
                 Task.Run(() => _wjClient.SendMetric("started_sha", ThisAssembly.Git.Sha));
                 
                 // setup file association
-                var applicationRegistrationService = _serviceProvider.GetRequiredService<IApplicationRegistrationService>();
+                try
+                {
+                    var applicationRegistrationService =
+                        _serviceProvider.GetRequiredService<IApplicationRegistrationService>();
 
-                var applicationInfo = new ApplicationInfo(assembly);
-                applicationInfo.SupportedExtensions.Add("wabbajack");
-                applicationRegistrationService.RegisterApplication(applicationInfo);
+                    var applicationInfo = new ApplicationInfo(assembly);
+                    applicationInfo.SupportedExtensions.Add("wabbajack");
+                    applicationRegistrationService.RegisterApplication(applicationInfo);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "While setting up file associations");
+                }
             }
             catch (Exception ex)
             {
