@@ -14,7 +14,7 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.2-mauipre.1.22102.15" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.2" />
         <PackageReference Include="System.Data.SQLite.Core" Version="1.0.116" />
-        <PackageReference Include="Xunit.DependencyInjection" Version="8.5.0" />
+        <PackageReference Include="Xunit.DependencyInjection" Version="8.6.0" />
         <PackageReference Include="Xunit.DependencyInjection.Logging" Version="8.0.1" />
     </ItemGroup>
 
