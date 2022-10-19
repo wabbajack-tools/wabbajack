@@ -86,22 +86,29 @@ public class GameLocator : IGameLocator
     {
         foreach (var (game, error) in games)
         {
-            if (game is not null)
+            try
             {
-                var path = getPath(game).ToAbsolutePath();
-                if (path.DirectoryExists())
+                if (game is not null)
                 {
-                    paths[getId(game)] = path;
-                    _logger.LogDebug("Found Game {} at {}", game, path);
+                    var path = getPath(game).ToAbsolutePath();
+                    if (path.DirectoryExists())
+                    {
+                        paths[getId(game)] = path;
+                        _logger.LogDebug("Found Game {} at {}", game, path);
+                    }
+                    else
+                    {
+                        _logger.LogError("Game {} does not exist at {}", game, path);
+                    }
                 }
                 else
                 {
-                    _logger.LogError("Game {} does not exist at {}", game, path);
+                    _logger.LogError("{}", error);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogError("{}", error);
+                _logger.LogError(ex, "While locating game {Game}", game);
             }
         }
     }
