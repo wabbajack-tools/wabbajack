@@ -1,11 +1,12 @@
 ### Changelog
 
-#### Version - 3.0.2.0 - 10/14/2022
+#### Version - 3.0.2.0 - 10/19/2022
 * Show Modlist readmes after install
 * Basic support for commandline options in the WPF app
 * Re-add support for file associations of Wabbajack and .wabbajack files (thanks erri!)
 * Update to the latest game finder libraries
 * Add some debugging messages for when zEdit merge fails
+* Add caching of archive validation to remove the random failures during compilation
 
 #### Version - 3.0.1.9 - 10/4/2022
 * Lots of compiler improvements for faster compilation

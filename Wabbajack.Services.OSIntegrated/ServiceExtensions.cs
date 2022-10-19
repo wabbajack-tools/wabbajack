@@ -75,7 +75,7 @@ public static class ServiceExtensions
         
         service.AddSingleton<IVerificationCache>(s => options.UseLocalCache
             ? new VerificationCache(s.GetRequiredService<ILogger<VerificationCache>>(), s.GetService<TemporaryFileManager>()!.CreateFile().Path, TimeSpan.FromDays(1))
-            : new VerificationCache(s.GetRequiredService<ILogger<VerificationCache>>(),KnownFolders.WabbajackAppLocal.Combine("VerificationCache"), TimeSpan.FromDays(1)));
+            : new VerificationCache(s.GetRequiredService<ILogger<VerificationCache>>(),KnownFolders.WabbajackAppLocal.Combine("VerificationCache.sqlite"), TimeSpan.FromDays(1)));
 
         service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount});
 
