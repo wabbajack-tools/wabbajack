@@ -19,7 +19,7 @@
 
     <ItemGroup>
         <PackageReference Include="GameFinder.StoreHandlers.EGS" Version="1.8.0" />
-        <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="1.8.0" />
+        <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="2.0.1" />
         <PackageReference Include="GameFinder.StoreHandlers.Origin" Version="1.8.0" />
         <PackageReference Include="GameFinder.StoreHandlers.Steam" Version="1.8.0" />
     </ItemGroup>
