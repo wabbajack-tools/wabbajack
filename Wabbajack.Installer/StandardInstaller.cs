@@ -481,7 +481,8 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                 .Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None);
             try
             {
-                await BinaryPatching.ApplyPatch(new MemoryStream(srcData), new MemoryStream(patchData), fs);
+                var hash = await BinaryPatching.ApplyPatch(new MemoryStream(srcData), new MemoryStream(patchData), fs);
+                ThrowOnNonMatchingHash(m, hash);
             }
             catch (Exception ex)
             {

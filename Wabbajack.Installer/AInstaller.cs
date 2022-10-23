@@ -243,7 +243,8 @@ public abstract class AInstaller<T>
                         await using var patchDataStream = await InlinedFileStream(pfa.PatchID);
                         {
                             await using var os = destPath.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-                            await BinaryPatching.ApplyPatch(s, patchDataStream, os);
+                            var hash = await BinaryPatching.ApplyPatch(s, patchDataStream, os);
+                            ThrowOnNonMatchingHash(file, hash);
                         }
                     }
                         break;
@@ -268,7 +269,8 @@ public abstract class AInstaller<T>
                         else
                         {
                             await using var s = await sf.GetStream();
-                            await destPath.WriteAllAsync(s, token, false);
+                            var hash = await destPath.WriteAllHashedAsync(s, token, false);
+                            ThrowOnNonMatchingHash(file, hash);
                         }
 
                         break;
@@ -280,6 +282,17 @@ public abstract class AInstaller<T>
                 await job.Report((int) directive.VF.Size, token);
             }
         }, token);
+    }
+
+    protected void ThrowOnNonMatchingHash(Directive file, Hash gotHash)
+    {
+        if (file.Hash != gotHash)
+            ThrowNonMatchingError(file, gotHash);
+    }
+    private void ThrowNonMatchingError(Directive file, Hash gotHash)
+    {
+        _logger.LogError("Hashes for {Path} did not match, expected {Expected} got {Got}", file.To, file.Hash, gotHash);
+        throw new Exception($"Hashes for {file.To} did not match, expected {file.Hash} got {gotHash}");
     }
 
     public async Task DownloadArchives(CancellationToken token)

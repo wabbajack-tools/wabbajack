@@ -51,6 +51,8 @@ CommandLineBuilder.RegisterCommand<UploadToNexus>(UploadToNexus.Definition, c =>
 services.AddSingleton<UploadToNexus>();
 CommandLineBuilder.RegisterCommand<ValidateLists>(ValidateLists.Definition, c => ((ValidateLists)c).Run);
 services.AddSingleton<ValidateLists>();
+CommandLineBuilder.RegisterCommand<VerifyModlistInstall>(VerifyModlistInstall.Definition, c => ((VerifyModlistInstall)c).Run);
+services.AddSingleton<VerifyModlistInstall>();
 CommandLineBuilder.RegisterCommand<VFSIndex>(VFSIndex.Definition, c => ((VFSIndex)c).Run);
 services.AddSingleton<VFSIndex>();
 }
