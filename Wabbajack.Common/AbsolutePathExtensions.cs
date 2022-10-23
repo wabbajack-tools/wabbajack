@@ -36,4 +36,10 @@ public static class AbsolutePathExtensions
                 srcStream.Close();
         }
     }
+    
+    public static async Task<Hash> WriteAllHashedAsync(this AbsolutePath file, byte[] data, CancellationToken token)
+    {
+        await using var dest = file.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+        return await new MemoryStream(data).HashingCopy(dest, token);
+    }
 }

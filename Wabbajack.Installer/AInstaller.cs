@@ -12,6 +12,7 @@ using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.BSA.FileStates;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
@@ -293,6 +294,13 @@ public abstract class AInstaller<T>
     {
         _logger.LogError("Hashes for {Path} did not match, expected {Expected} got {Got}", file.To, file.Hash, gotHash);
         throw new Exception($"Hashes for {file.To} did not match, expected {file.Hash} got {gotHash}");
+    }
+    
+    
+    protected void ThrowOnNonMatchingHash(CreateBSA bsa, Directive directive, AFile state, Hash hash)
+    {
+        _logger.LogError("Hashes for BSA don't match after extraction, {BSA}, {Directive}, {ExpectedHash}, {Hash}", bsa.To, directive.To, directive.Hash, hash);
+        throw new Exception($"Hashes for {bsa.To} file {directive.To} did not match, expected {directive.Hash} got {hash}");
     }
 
     public async Task DownloadArchives(CancellationToken token)

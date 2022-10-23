@@ -19,9 +19,11 @@ using Wabbajack.Compression.Zip;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.BSA.FileStates;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer.Utilities;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
@@ -271,6 +273,8 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     private async Task BuildBSAs(CancellationToken token)
     {
         var bsas = ModList.Directives.OfType<CreateBSA>().ToList();
+        _logger.LogInformation("Generating debug caches");
+        var indexedByDestination = ModList.Directives.ToDictionary(d => d.To);
         _logger.LogInformation("Building {bsasCount} bsa files", bsas.Count);
         NextStep("Installing", "Building BSAs", bsas.Count);
 
@@ -281,7 +285,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             var sourceDir = _configuration.Install.Combine(BSACreationDir, bsa.TempID);
 
             await using var a = BSADispatch.CreateBuilder(bsa.State, _manager);
-            var streams = await bsa.FileStates.PMapAll(async state =>
+            var streams = await bsa.FileStates.PMapAllBatchedAsync(_limiter, async state =>
             {
                 using var job = await _limiter.Begin($"Adding {state.Path.FileName}", 0, token);
                 var fs = sourceDir.Combine(state.Path).Open(FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -300,6 +304,22 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             
             await FileHashCache.FileHashWriteCache(outPath, bsa.Hash);
             sourceDir.DeleteDirectory();
+            
+            _logger.LogInformation("Verifying {bsaTo}", bsa.To);
+            var reader = await BSADispatch.Open(outPath);
+            var results = await reader.Files.PMapAllBatchedAsync(_limiter, async state =>
+            {
+                var sf = await state.GetStreamFactory(token);
+                await using var stream = await sf.GetStream();
+                var hash = await stream.Hash(token);
+
+                var astate = bsa.FileStates.First(f => f.Path == state.Path);
+                var srcDirective = indexedByDestination[BSACreationDir.Combine(bsa.TempID, astate.Path)];
+                //DX10Files are lossy
+                if (astate is not BA2DX10File) 
+                    ThrowOnNonMatchingHash(bsa, srcDirective, astate, hash);
+                return (srcDirective, hash);
+            }).ToHashSet();
         }
 
         var bsaDir = _configuration.Install.Combine(BSACreationDir);
@@ -309,6 +329,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             bsaDir.DeleteDirectory();
         }
     }
+
 
     private async Task InstallIncludedFiles(CancellationToken token)
     {
@@ -329,7 +350,8 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                         await FileHashCache.FileHashCachedAsync(outPath, token);
                         break;
                     default:
-                        await outPath.WriteAllBytesAsync(await LoadBytesFromPath(directive.SourceDataID), token);
+                        var hash = await outPath.WriteAllHashedAsync(await LoadBytesFromPath(directive.SourceDataID), token);
+                        ThrowOnNonMatchingHash(directive, hash);
                         await FileHashCache.FileHashWriteCache(outPath, directive.Hash);
                         break;
                 }
