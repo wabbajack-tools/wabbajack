@@ -282,7 +282,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         {
             UpdateProgress(1);
             _logger.LogInformation("Building {bsaTo}", bsa.To.FileName);
-            var sourceDir = _configuration.Install.Combine(BSACreationDir, bsa.TempID);
+            var sourceDir = _configuration.Install.Combine(Consts.BSACreationDir, bsa.TempID);
 
             await using var a = BSADispatch.CreateBuilder(bsa.State, _manager);
             var streams = await bsa.FileStates.PMapAllBatchedAsync(_limiter, async state =>
@@ -314,7 +314,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                 var hash = await stream.Hash(token);
 
                 var astate = bsa.FileStates.First(f => f.Path == state.Path);
-                var srcDirective = indexedByDestination[BSACreationDir.Combine(bsa.TempID, astate.Path)];
+                var srcDirective = indexedByDestination[Consts.BSACreationDir.Combine(bsa.TempID, astate.Path)];
                 //DX10Files are lossy
                 if (astate is not BA2DX10File) 
                     ThrowOnNonMatchingHash(bsa, srcDirective, astate, hash);
@@ -322,10 +322,10 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             }).ToHashSet();
         }
 
-        var bsaDir = _configuration.Install.Combine(BSACreationDir);
+        var bsaDir = _configuration.Install.Combine(Consts.BSACreationDir);
         if (bsaDir.DirectoryExists())
         {
-            _logger.LogInformation("Removing temp folder {bsaCreationDir}", BSACreationDir);
+            _logger.LogInformation("Removing temp folder {bsaCreationDir}", Consts.BSACreationDir);
             bsaDir.DeleteDirectory();
         }
     }

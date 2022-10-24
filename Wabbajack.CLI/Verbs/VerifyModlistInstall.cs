@@ -42,10 +42,28 @@ public class VerifyModlistInstall
         _logger.LogInformation("Scanning files");
         foreach (var directive in list.Directives)
         {
+            if (directive is ArchiveMeta)
+                continue;
+            
+            if (directive is RemappedInlineFile)
+                continue;
+            
+            if (directive.To.InFolder(Consts.BSACreationDir))
+                continue;
+            
             var dest = directive.To.RelativeTo(installFolder);
+            if (!dest.FileExists())
+            {
+                errors.Add(new Result
+                {
+                    Path = directive.To,
+                    Message = $"File does not exist directive {directive.GetType()}"
+                });
+                continue;
+            }
             if (dest.Size() != directive.Size)
             {
-                errors.Add(new Result()
+                errors.Add(new Result
                 {
                     Path = directive.To,
                     Message = $"Sizes do not match got {dest.Size()} expected {directive.Size}"

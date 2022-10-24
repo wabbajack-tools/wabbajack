@@ -41,7 +41,7 @@ public abstract class AInstaller<T>
     where T : AInstaller<T>
 {
     private const int _limitMS = 100;
-    public static RelativePath BSACreationDir = "TEMP_BSA_FILES".ToRelativePath();
+
     private static readonly Regex NoDeleteRegex = new(@"(?i)[\\\/]\[NoDelete\]", RegexOptions.Compiled);
 
     protected readonly InstallerConfiguration _configuration;
@@ -498,8 +498,8 @@ public abstract class AInstaller<T>
                 return d switch
                 {
                     CreateBSA bsa => !bsasToNotBuild.Contains(bsa.TempID),
-                    FromArchive a when a.To.StartsWith($"{BSACreationDir}") => !bsasToNotBuild.Any(b =>
-                        a.To.RelativeTo(_configuration.Install).InFolder(_configuration.Install.Combine(BSACreationDir, b))),
+                    FromArchive a when a.To.StartsWith($"{Consts.BSACreationDir}") => !bsasToNotBuild.Any(b =>
+                        a.To.RelativeTo(_configuration.Install).InFolder(_configuration.Install.Combine(Consts.BSACreationDir, b))),
                     _ => true
                 };
             }).ToDictionary(d => d.To);
