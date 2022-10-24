@@ -16,6 +16,7 @@ using Wabbajack.DTOs.BSA.FileStates;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.FileExtractor.ExtractedFiles;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer.Utilities;
@@ -265,7 +266,8 @@ public abstract class AInstaller<T>
                     case FromArchive _:
                         if (grouped[vf].Count() == 1)
                         {
-                            await sf.Move(destPath, token);
+                            var hash = await sf.MoveHashedAsync(destPath, token);
+                            ThrowOnNonMatchingHash(file, hash);
                         }
                         else
                         {
@@ -299,6 +301,7 @@ public abstract class AInstaller<T>
     
     protected void ThrowOnNonMatchingHash(CreateBSA bsa, Directive directive, AFile state, Hash hash)
     {
+        if (hash == directive.Hash) return;
         _logger.LogError("Hashes for BSA don't match after extraction, {BSA}, {Directive}, {ExpectedHash}, {Hash}", bsa.To, directive.To, directive.Hash, hash);
         throw new Exception($"Hashes for {bsa.To} file {directive.To} did not match, expected {directive.Hash} got {hash}");
     }

@@ -274,7 +274,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     {
         var bsas = ModList.Directives.OfType<CreateBSA>().ToList();
         _logger.LogInformation("Generating debug caches");
-        var indexedByDestination = ModList.Directives.ToDictionary(d => d.To);
+        var indexedByDestination = UnoptimizedDirectives.ToDictionary(d => d.To);
         _logger.LogInformation("Building {bsasCount} bsa files", bsas.Count);
         NextStep("Installing", "Building BSAs", bsas.Count);
 
@@ -287,19 +287,19 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             await using var a = BSADispatch.CreateBuilder(bsa.State, _manager);
             var streams = await bsa.FileStates.PMapAllBatchedAsync(_limiter, async state =>
             {
-                using var job = await _limiter.Begin($"Adding {state.Path.FileName}", 0, token);
                 var fs = sourceDir.Combine(state.Path).Open(FileMode.Open, FileAccess.Read, FileShare.Read);
-                var size = fs.Length;
-                job.Size = size;
                 await a.AddFile(state, fs, token);
-                await job.Report((int)size, token);
                 return fs;
             }).ToList();
 
             _logger.LogInformation("Writing {bsaTo}", bsa.To);
             var outPath = _configuration.Install.Combine(bsa.To);
-            await using var outStream = outPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-            await a.Build(outStream, token);
+            
+            await using (var outStream = outPath.Open(FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                await a.Build(outStream, token);
+            }
+            
             streams.Do(s => s.Dispose());
             
             await FileHashCache.FileHashWriteCache(outPath, bsa.Hash);
@@ -330,7 +330,10 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         }
     }
 
-
+    private static HashSet<RelativePath> KnownModifiedFiles = new[]
+    {
+        "modlist.txt"
+    }.Select(r => r.ToRelativePath()).ToHashSet();
     private async Task InstallIncludedFiles(CancellationToken token)
     {
         _logger.LogInformation("Writing inline files");
@@ -351,7 +354,9 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                         break;
                     default:
                         var hash = await outPath.WriteAllHashedAsync(await LoadBytesFromPath(directive.SourceDataID), token);
-                        ThrowOnNonMatchingHash(directive, hash);
+                        if (!KnownModifiedFiles.Contains(directive.To.FileName))
+                            ThrowOnNonMatchingHash(directive, hash);
+
                         await FileHashCache.FileHashWriteCache(outPath, directive.Hash);
                         break;
                 }
