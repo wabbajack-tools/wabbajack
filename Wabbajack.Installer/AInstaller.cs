@@ -12,9 +12,11 @@ using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.BSA.FileStates;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.FileExtractor.ExtractedFiles;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer.Utilities;
@@ -39,7 +41,7 @@ public abstract class AInstaller<T>
     where T : AInstaller<T>
 {
     private const int _limitMS = 100;
-    public static RelativePath BSACreationDir = "TEMP_BSA_FILES".ToRelativePath();
+
     private static readonly Regex NoDeleteRegex = new(@"(?i)[\\\/]\[NoDelete\]", RegexOptions.Compiled);
 
     protected readonly InstallerConfiguration _configuration;
@@ -243,7 +245,8 @@ public abstract class AInstaller<T>
                         await using var patchDataStream = await InlinedFileStream(pfa.PatchID);
                         {
                             await using var os = destPath.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-                            await BinaryPatching.ApplyPatch(s, patchDataStream, os);
+                            var hash = await BinaryPatching.ApplyPatch(s, patchDataStream, os);
+                            ThrowOnNonMatchingHash(file, hash);
                         }
                     }
                         break;
@@ -263,12 +266,14 @@ public abstract class AInstaller<T>
                     case FromArchive _:
                         if (grouped[vf].Count() == 1)
                         {
-                            await sf.Move(destPath, token);
+                            var hash = await sf.MoveHashedAsync(destPath, token);
+                            ThrowOnNonMatchingHash(file, hash);
                         }
                         else
                         {
                             await using var s = await sf.GetStream();
-                            await destPath.WriteAllAsync(s, token, false);
+                            var hash = await destPath.WriteAllHashedAsync(s, token, false);
+                            ThrowOnNonMatchingHash(file, hash);
                         }
 
                         break;
@@ -280,6 +285,25 @@ public abstract class AInstaller<T>
                 await job.Report((int) directive.VF.Size, token);
             }
         }, token);
+    }
+
+    protected void ThrowOnNonMatchingHash(Directive file, Hash gotHash)
+    {
+        if (file.Hash != gotHash)
+            ThrowNonMatchingError(file, gotHash);
+    }
+    private void ThrowNonMatchingError(Directive file, Hash gotHash)
+    {
+        _logger.LogError("Hashes for {Path} did not match, expected {Expected} got {Got}", file.To, file.Hash, gotHash);
+        throw new Exception($"Hashes for {file.To} did not match, expected {file.Hash} got {gotHash}");
+    }
+    
+    
+    protected void ThrowOnNonMatchingHash(CreateBSA bsa, Directive directive, AFile state, Hash hash)
+    {
+        if (hash == directive.Hash) return;
+        _logger.LogError("Hashes for BSA don't match after extraction, {BSA}, {Directive}, {ExpectedHash}, {Hash}", bsa.To, directive.To, directive.Hash, hash);
+        throw new Exception($"Hashes for {bsa.To} file {directive.To} did not match, expected {directive.Hash} got {hash}");
     }
 
     public async Task DownloadArchives(CancellationToken token)
@@ -474,8 +498,8 @@ public abstract class AInstaller<T>
                 return d switch
                 {
                     CreateBSA bsa => !bsasToNotBuild.Contains(bsa.TempID),
-                    FromArchive a when a.To.StartsWith($"{BSACreationDir}") => !bsasToNotBuild.Any(b =>
-                        a.To.RelativeTo(_configuration.Install).InFolder(_configuration.Install.Combine(BSACreationDir, b))),
+                    FromArchive a when a.To.StartsWith($"{Consts.BSACreationDir}") => !bsasToNotBuild.Any(b =>
+                        a.To.RelativeTo(_configuration.Install).InFolder(_configuration.Install.Combine(Consts.BSACreationDir, b))),
                     _ => true
                 };
             }).ToDictionary(d => d.To);

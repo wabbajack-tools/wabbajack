@@ -21,4 +21,25 @@ public static class AbsolutePathExtensions
         await using var fs = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
         return await fs.FromJson<T>(dtos);
     }
+    
+    public static async Task<Hash> WriteAllHashedAsync(this AbsolutePath file, Stream srcStream, CancellationToken token,
+        bool closeWhenDone = true)
+    {
+        try
+        {
+            await using var dest = file.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+            return await srcStream.HashingCopy(dest, token);
+        }
+        finally
+        {
+            if (closeWhenDone)
+                srcStream.Close();
+        }
+    }
+    
+    public static async Task<Hash> WriteAllHashedAsync(this AbsolutePath file, byte[] data, CancellationToken token)
+    {
+        await using var dest = file.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+        return await new MemoryStream(data).HashingCopy(dest, token);
+    }
 }

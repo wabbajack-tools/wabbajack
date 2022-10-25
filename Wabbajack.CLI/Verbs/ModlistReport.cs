@@ -70,7 +70,7 @@ public class ModlistReport
 
         string FixupTo(RelativePath path)
         {
-            if (path.GetPart(0) != StandardInstaller.BSACreationDir.ToString()) return path.ToString();
+            if (path.GetPart(0) != Consts.BSACreationDir.ToString()) return path.ToString();
             var bsaId = path.GetPart(1);
             
             if (!bsas.TryGetValue(bsaId, out var bsa))
