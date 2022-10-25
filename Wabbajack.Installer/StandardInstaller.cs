@@ -330,10 +330,6 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         }
     }
 
-    private static HashSet<RelativePath> KnownModifiedFiles = new[]
-    {
-        "modlist.txt"
-    }.Select(r => r.ToRelativePath()).ToHashSet();
     private async Task InstallIncludedFiles(CancellationToken token)
     {
         _logger.LogInformation("Writing inline files");
@@ -354,7 +350,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                         break;
                     default:
                         var hash = await outPath.WriteAllHashedAsync(await LoadBytesFromPath(directive.SourceDataID), token);
-                        if (!KnownModifiedFiles.Contains(directive.To.FileName))
+                        if (!Consts.KnownModifiedFiles.Contains(directive.To.FileName))
                             ThrowOnNonMatchingHash(directive, hash);
 
                         await FileHashCache.FileHashWriteCache(outPath, directive.Hash);
