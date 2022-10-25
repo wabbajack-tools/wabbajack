@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Wabbajack.Paths;
 
 namespace Wabbajack.Installer;
@@ -26,4 +28,11 @@ public static class Consts
     public const string StepDownloading = "Downloading";
     public const string StepHashing = "Hashing";
     public const string StepFinished = "Finished";
+    public static RelativePath BSACreationDir = "TEMP_BSA_FILES".ToRelativePath();
+
+    public static HashSet<RelativePath> KnownModifiedFiles = new[]
+    {
+        "modlist.txt",
+        "SkyrimPrefs.ini"
+    }.Select(r => r.ToRelativePath()).ToHashSet();
 }

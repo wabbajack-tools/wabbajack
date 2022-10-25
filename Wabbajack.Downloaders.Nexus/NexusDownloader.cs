@@ -129,8 +129,23 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
                 var urls = await _api.DownloadLink(state.Game.MetaData().NexusName!, state.ModID, state.FileID, token);
                 _logger.LogInformation("Downloading Nexus File: {game}|{modid}|{fileid}", state.Game, state.ModID,
                     state.FileID);
-                var message = new HttpRequestMessage(HttpMethod.Get, urls.info.First().URI);
-                return await _downloader.Download(message, destination, job, token);
+                foreach (var link in urls.info)
+                {
+                    try
+                    {
+                        var message = new HttpRequestMessage(HttpMethod.Get, link.URI);
+                        return await _downloader.Download(message, destination, job, token);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (link.URI == urls.info.Last().URI)
+                            throw;
+                        _logger.LogInformation(ex, "While downloading {URI}, trying another link", link.URI);
+                    }
+                }
+
+                // Should never be hit
+                throw new NotImplementedException();
             }
             catch (HttpRequestException ex)
             {
