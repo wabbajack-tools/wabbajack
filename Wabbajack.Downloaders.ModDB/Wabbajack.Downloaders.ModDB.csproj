@@ -14,7 +14,7 @@
 
     <ItemGroup>
         <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
-        <PackageReference Include="MegaApiClient" Version="1.10.2" />
+        <PackageReference Include="MegaApiClient" Version="1.10.3" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.2" />
     </ItemGroup>
 
