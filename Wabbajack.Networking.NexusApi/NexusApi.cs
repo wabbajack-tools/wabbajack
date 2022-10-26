@@ -33,8 +33,7 @@ public class NexusApi
     private (ValidateInfo info, ResponseMetadata header) _lastValidatedInfo; 
 
     public NexusApi(ITokenProvider<NexusApiState> apiKey, ILogger<NexusApi> logger, HttpClient client,
-        IResource<HttpClient> limiter,
-        ApplicationInfo appInfo, JsonSerializerOptions jsonOptions)
+        IResource<HttpClient> limiter, ApplicationInfo appInfo, JsonSerializerOptions jsonOptions)
     {
         ApiKey = apiKey;
         _logger = logger;

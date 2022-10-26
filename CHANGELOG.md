@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 3.0.3.0 - 10/26/2022
+* Verify hashes of all installed files
+* Verify contents of BSAs during installation
+* Provide a new CLI command for verifying a installed modlist
+* When downloading from one Nexus CDN server fails, WJ will now try alternate Nexus servers
+
 #### Version - 3.0.2.3 - 10/19/2022
 * HOTFIX: revert GameFinder library to 1.8 until it's a bit more forgiving of corrupt files
 
