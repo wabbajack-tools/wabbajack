@@ -11,4 +11,5 @@ public class TransformedTexture : FromArchive
     ///     The file to apply to the source file to patch it
     /// </summary>
     public ImageState ImageState { get; set; } = new();
+    public override bool IsDeterministic => false;
 }

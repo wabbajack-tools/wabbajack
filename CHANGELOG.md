@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 3.0.3.1 - 10/30/2022
+* Fix file verification issues for CreatedBSAs
+* Fix files during verification where CreatedDate > LastModified
+
 #### Version - 3.0.3.0 - 10/26/2022
 * Verify hashes of all installed files
 * Verify contents of BSAs during installation
