@@ -44,5 +44,8 @@ public enum Game
     [Description("Terraria")] Terraria,
     [Description("Cyberpunk 2077")] Cyberpunk2077,
     [Description("The Sims 4")] Sims4,
-    [Description("Dragons Dogma Dark Arisen")] DragonsDogma
+    [Description("Dragons Dogma Dark Arisen")] DragonsDogma,
+
+    [Description("Karryn's Prison")]
+    KarrynsPrison,
 }
