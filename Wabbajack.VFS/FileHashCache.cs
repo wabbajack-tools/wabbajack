@@ -91,6 +91,10 @@ public class FileHashCache
         var result = await Get(file);
         if (result == default || result.Hash == default)
             return default;
+        
+        // Fix for strange issue where dates are messed up on some systems
+        if (file.LastModifiedUtc() < file.CreatedUtc())
+            file.Touch();
 
         if (result.LastModified == file.LastModifiedUtc().ToFileTimeUtc())
         {

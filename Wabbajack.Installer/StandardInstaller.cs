@@ -316,7 +316,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                 var astate = bsa.FileStates.First(f => f.Path == state.Path);
                 var srcDirective = indexedByDestination[Consts.BSACreationDir.Combine(bsa.TempID, astate.Path)];
                 //DX10Files are lossy
-                if (astate is not BA2DX10File) 
+                if (astate is not BA2DX10File && srcDirective.IsDeterministic) 
                     ThrowOnNonMatchingHash(bsa, srcDirective, astate, hash);
                 return (srcDirective, hash);
             }).ToHashSet();
