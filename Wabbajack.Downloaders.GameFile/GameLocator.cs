@@ -1,3 +1,6 @@
+using System.Runtime.InteropServices;
+using GameFinder.Common;
+using GameFinder.RegistryUtils;
 using GameFinder.StoreHandlers.EGS;
 using GameFinder.StoreHandlers.GOG;
 using GameFinder.StoreHandlers.Origin;
@@ -5,67 +8,120 @@ using GameFinder.StoreHandlers.Steam;
 using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack.Downloaders.GameFile;
 
 public class GameLocator : IGameLocator
 {
-    private readonly EGSHandler? _egs;
+    private readonly SteamHandler _steam;
     private readonly GOGHandler? _gog;
+    private readonly EGSHandler? _egs;
+    private readonly OriginHandler? _origin;
+
+    private readonly Dictionary<int, AbsolutePath> _steamGames = new();
+    private readonly Dictionary<long, AbsolutePath> _gogGames = new();
+    private readonly Dictionary<string, AbsolutePath> _egsGames = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, AbsolutePath> _originGames = new(StringComparer.OrdinalIgnoreCase);
+
     private readonly Dictionary<Game, AbsolutePath> _locationCache;
     private readonly ILogger<GameLocator> _logger;
-    private readonly OriginHandler? _origin;
-    private readonly SteamHandler _steam;
 
     public GameLocator(ILogger<GameLocator> logger)
     {
         _logger = logger;
-        _steam = new SteamHandler(logger);
 
-        if (OperatingSystem.IsWindows())
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            _origin = new OriginHandler(true, false, logger);
-            _gog = new GOGHandler(logger);
+            var windowsRegistry = new WindowsRegistry();
 
-            _egs = new EGSHandler(logger);
+            _steam = new SteamHandler(windowsRegistry);
+            _gog = new GOGHandler(windowsRegistry);
+            _egs = new EGSHandler(windowsRegistry);
+            _origin = new OriginHandler();
+        }
+        else
+        {
+            _steam = new SteamHandler(null);
         }
 
         _locationCache = new Dictionary<Game, AbsolutePath>();
 
+        FindAllGames();
+    }
+
+    private void FindAllGames()
+    {
         try
         {
-            _steam.FindAllGames();
+            FindStoreGames(_steam, _steamGames, game => game.Path);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            _logger.LogError(ex, "While finding Steam games");
+            _logger.LogError(e, "While finding games installed with Steam");
         }
 
         try
         {
-            _origin?.FindAllGames();
+            FindStoreGames(_gog, _gogGames, game => game.Path);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            _logger.LogInformation(ex, "While finding Origin games");
-        }
-
-        try
-        {
-            _gog?.FindAllGames();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInformation(ex, "While finding GoG games");
+            _logger.LogError(e, "While finding games installed with GOG Galaxy");
         }
 
         try
         {
-            _egs?.FindAllGames();
+            FindStoreGames(_egs, _egsGames, game => game.InstallLocation);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            _logger.LogInformation(ex, "While finding Epic Games");
+            _logger.LogError(e, "While finding games installed with the Epic Games Store");
+        }
+
+        try
+        {
+            FindStoreGames(_origin, _originGames, game => game.InstallPath);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "While finding games installed with Origin");
+        }
+    }
+
+    private void FindStoreGames<TGame, TId>(
+        AHandler<TGame, TId>? handler,
+        Dictionary<TId, AbsolutePath> paths,
+        Func<TGame, string> getPath)
+        where TGame : class
+    {
+        if (handler is null) return;
+
+        var games = handler.FindAllGamesById(out var errors);
+
+        foreach (var (id, game) in games)
+        {
+            try
+            {
+                var path = getPath(game).ToAbsolutePath();
+                if (!path.DirectoryExists())
+                {
+                    _logger.LogError("Game does not exist: {Game}", game);
+                    continue;
+                }
+
+                paths[id] = path;
+                _logger.LogDebug("Found {Game}", game);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "While locating {Game}", game);
+            }
+        }
+
+        foreach (var error in errors)
+        {
+            _logger.LogError("{Error}", error);
         }
     }
 
@@ -102,68 +158,32 @@ public class GameLocator : IGameLocator
     {
         var metaData = game.MetaData();
 
-        try
+        foreach (var id in metaData.SteamIDs)
         {
-            foreach (var steamGame in _steam.Games.Where(steamGame => metaData.SteamIDs.Contains(steamGame.ID)))
-            {
-                path = steamGame!.Path.ToAbsolutePath();
-                return true;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInformation(ex, "While finding {Game} from Steam", game);
+            if (!_steamGames.TryGetValue(id, out var found)) continue;
+            path = found;
+            return true;
         }
 
-        try
+        foreach (var id in metaData.GOGIDs)
         {
-            if (_gog != null)
-            {
-                foreach (var gogGame in _gog.Games.Where(gogGame => metaData.GOGIDs.Contains(gogGame.GameID)))
-                {
-                    path = gogGame!.Path.ToAbsolutePath();
-                    return true;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInformation(ex, "While finding {Game} from GoG", game);
+            if (!_gogGames.TryGetValue(id, out var found)) continue;
+            path = found;
+            return true;
         }
 
-        try
+        foreach (var id in metaData.EpicGameStoreIDs)
         {
-            if (_egs != null)
-            {
-                foreach (var egsGame in _egs.Games.Where(egsGame =>
-                             metaData.EpicGameStoreIDs.Contains(egsGame.CatalogItemId)))
-                {
-                    path = egsGame!.Path.ToAbsolutePath();
-                    return true;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInformation(ex, "While finding {Game} from Epic", game);
+            if (!_egsGames.TryGetValue(id, out var found)) continue;
+            path = found;
+            return true;
         }
 
-
-        try
+        foreach (var id in metaData.OriginIDs)
         {
-            if (_origin != null)
-            {
-                foreach (var originGame in _origin.Games.Where(originGame =>
-                             metaData.EpicGameStoreIDs.Contains(originGame.Id)))
-                {
-                    path = originGame.Path.ToAbsolutePath();
-                    return true;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInformation(ex, "While finding {Game} from Origin", game);
+            if (!_originGames.TryGetValue(id, out var found)) continue;
+            path = found;
+            return true;
         }
 
         path = default;
