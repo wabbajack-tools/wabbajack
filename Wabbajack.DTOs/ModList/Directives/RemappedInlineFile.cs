@@ -9,4 +9,5 @@ namespace Wabbajack.DTOs.Directives;
 [JsonAlias("RemappedInlineFile, Wabbajack.Lib")]
 public class RemappedInlineFile : InlineFile
 {
+    public override bool IsDeterministic => false;
 }
