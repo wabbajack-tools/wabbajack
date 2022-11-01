@@ -1,7 +1,17 @@
 ### Changelog
 
-#### Version - 3.0.2.4 - TBD
+#### Version - 3.0.4.0 - TBD
 * upgrade GameFinder to 2.2.1
+
+#### Version - 3.0.3.1 - 10/30/2022
+* Fix file verification issues for CreatedBSAs
+* Fix files during verification where CreatedDate > LastModified
+
+#### Version - 3.0.3.0 - 10/26/2022
+* Verify hashes of all installed files
+* Verify contents of BSAs during installation
+* Provide a new CLI command for verifying a installed modlist
+* When downloading from one Nexus CDN server fails, WJ will now try alternate Nexus servers
 
 #### Version - 3.0.2.3 - 10/19/2022
 * HOTFIX: revert GameFinder library to 1.8 until it's a bit more forgiving of corrupt files

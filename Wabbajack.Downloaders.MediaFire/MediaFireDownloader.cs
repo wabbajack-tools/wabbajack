@@ -40,7 +40,8 @@ public class MediaFireDownloader : ADownloader<DTOs.DownloadStates.MediaFire>, I
 
     public override bool IsAllowed(ServerAllowList allowList, IDownloadState state)
     {
-        return true;
+        var mediaFireState = (DTOs.DownloadStates.MediaFire) state;
+        return allowList.AllowedPrefixes.Any(p => mediaFireState.Url.ToString().StartsWith(p, StringComparison.OrdinalIgnoreCase));
     }
 
     public override IDownloadState? Resolve(IReadOnlyDictionary<string, string> iniData)
@@ -105,26 +106,26 @@ public class MediaFireDownloader : ADownloader<DTOs.DownloadStates.MediaFire>, I
         if (!result.IsSuccessStatusCode)
             return null;
 
-        if (job != null) 
+        if (job != null)
             job.Size = result.Content.Headers.ContentLength ?? 0;
 
         if (result.Content.Headers.ContentType!.MediaType!.StartsWith("text/html",
             StringComparison.OrdinalIgnoreCase))
         {
             var bodyData = await result.Content.ReadAsStringAsync((CancellationToken) token);
-            if (job != null) 
+            if (job != null)
                 await job.Report((int) (job.Size ?? 0), (CancellationToken) token);
             var body = new HtmlDocument();
             body.LoadHtml(bodyData);
             var node = body.DocumentNode.DescendantsAndSelf().FirstOrDefault(d => d.HasClass("input") && d.HasClass("popsok") &&
                                                                          d.GetAttributeValue("aria-label", "") ==
                                                                          "Download file");
-            if (node != null) 
+            if (node != null)
                 return new Uri(node.GetAttributeValue("href", "not-found"));
-            
+
             var startText = "window.location.href = '";
             var start = body.DocumentNode.InnerHtml.IndexOf(startText, StringComparison.CurrentCultureIgnoreCase);
-            
+
             if (start != -1)
             {
                 var end = body.DocumentNode.InnerHtml.IndexOf("\'", start + startText.Length,

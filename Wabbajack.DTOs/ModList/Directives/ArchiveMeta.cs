@@ -8,4 +8,6 @@ namespace Wabbajack.DTOs.Directives;
 public class ArchiveMeta : Directive
 {
     public RelativePath SourceDataID { get; set; }
+
+    public override bool IsDeterministic => false;
 }
