@@ -55,6 +55,11 @@ public static class AbsolutePathExtensions
     {
         return new FileInfo(file.ToNativePath()).LastWriteTimeUtc;
     }
+    
+    public static DateTime CreatedUtc(this AbsolutePath file)
+    {
+        return new FileInfo(file.ToNativePath()).CreationTimeUtc;
+    }
 
     public static DateTime LastModified(this AbsolutePath file)
     {

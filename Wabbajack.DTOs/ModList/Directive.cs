@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 
@@ -12,4 +13,6 @@ public abstract class Directive
     ///     location the file will be copied to, relative to the install path.
     /// </summary>
     public RelativePath To { get; set; }
+
+    [JsonIgnore] public virtual bool IsDeterministic => true;
 }
