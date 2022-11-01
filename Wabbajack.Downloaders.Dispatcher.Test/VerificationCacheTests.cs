@@ -9,7 +9,6 @@ namespace Wabbajack.Downloaders.Dispatcher.Test;
 
 public class VerificationCacheTests
 {
-    private readonly TemporaryFileManager _temp;
     private readonly ILogger<VerificationCache.VerificationCache> _logger;
 
     public VerificationCacheTests(ILogger<VerificationCache.VerificationCache> logger)

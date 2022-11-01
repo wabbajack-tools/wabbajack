@@ -54,61 +54,58 @@ public class VerifyModlistInstall
 
 
         _logger.LogInformation("Scanning files");
-        var errors = await list.Directives.PMapAllBatchedAsync(_limiter, async directive =>
-        {
-            if (directive is ArchiveMeta)
-                return null;
-
-            if (directive is RemappedInlineFile)
-                return null;
-
-            if (directive.To.InFolder(Consts.BSACreationDir))
-                return null;
-
-            var dest = directive.To.RelativeTo(installFolder);
-            if (!dest.FileExists())
+        var errors = await list.Directives.PMapAllBatchedAsync(_limiter, async directive => 
             {
-                return new Result
+                if (!(directive is CreateBSA || directive.IsDeterministic))
+                    return null;
+                
+                if (directive.To.InFolder(Consts.BSACreationDir))
+                    return null;
+
+                var dest = directive.To.RelativeTo(installFolder);
+                if (!dest.FileExists())
                 {
-                    Path = directive.To,
-                    Message = $"File does not exist directive {directive.GetType()}"
-                };
-            }
+                    return new Result
+                    {
+                        Path = directive.To,
+                        Message = $"File does not exist directive {directive.GetType()}"
+                    };
+                }
 
-            if (Consts.KnownModifiedFiles.Contains(directive.To.FileName))
+                if (Consts.KnownModifiedFiles.Contains(directive.To.FileName))
+                    return null;
+
+                if (directive is CreateBSA bsa)
+                {
+                    return await VerifyBSA(dest, bsa, byTo, token);
+                }
+
+                if (dest.Size() != directive.Size)
+                {
+                    return new Result
+                    {
+                        Path = directive.To,
+                        Message = $"Sizes do not match got {dest.Size()} expected {directive.Size}"
+                    };
+                }
+
+                if (directive.Size > (1024 * 1024 * 128))
+                {
+                    _logger.LogInformation("Hashing {Size} file at {Path}", directive.Size.ToFileSizeString(),
+                        directive.To);
+                }
+
+                var hash = await AbsolutePathExtensions.Hash(dest, token);
+                if (hash != directive.Hash)
+                {
+                    return new Result
+                    {
+                        Path = directive.To,
+                        Message = $"Hashes do not match, got {hash} expected {directive.Hash}"
+                    };
+                }
+
                 return null;
-
-            if (directive is CreateBSA bsa)
-            {
-                return await VerifyBSA(dest, bsa, byTo, token);
-            }
-
-            if (dest.Size() != directive.Size)
-            {
-                return new Result
-                {
-                    Path = directive.To,
-                    Message = $"Sizes do not match got {dest.Size()} expected {directive.Size}"
-                };
-            }
-
-            if (directive.Size > (1024 * 1024 * 128))
-            {
-                _logger.LogInformation("Hashing {Size} file at {Path}", directive.Size.ToFileSizeString(),
-                    directive.To);
-            }
-
-            var hash = await AbsolutePathExtensions.Hash(dest, token);
-            if (hash != directive.Hash)
-            {
-                return new Result
-                {
-                    Path = directive.To,
-                    Message = $"Hashes do not match, got {hash} expected {directive.Hash}"
-                };
-            }
-
-            return null;
         }).Where(r => r != null)
             .ToList();
         
@@ -149,6 +146,9 @@ public class VerifyModlistInstall
 
             var astate = bsa.FileStates.First(f => f.Path == state.Path);
             var srcDirective = byTo[Consts.BSACreationDir.Combine(bsa.TempID, astate.Path)];
+
+            if (!srcDirective.IsDeterministic)
+                continue;
 
             if (srcDirective.Hash != hash)
             {

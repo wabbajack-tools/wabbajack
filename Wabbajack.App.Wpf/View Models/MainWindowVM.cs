@@ -66,10 +66,10 @@ namespace Wabbajack
         public ICommand OpenSettingsCommand { get; }
 
         public string VersionDisplay { get; }
-        
+
         [Reactive]
         public string ResourceStatus { get; set; }
-        
+
         [Reactive]
         public string AppName { get; set; }
 
@@ -98,7 +98,7 @@ namespace Wabbajack
             MessageBus.Current.Listen<NavigateToGlobal>()
                 .Subscribe(m => HandleNavigateTo(m.Screen))
                 .DisposeWith(CompositeDisposable);
-            
+
             MessageBus.Current.Listen<NavigateTo>()
                 .Subscribe(m => HandleNavigateTo(m.ViewModel))
                 .DisposeWith(CompositeDisposable);
@@ -106,7 +106,7 @@ namespace Wabbajack
             MessageBus.Current.Listen<NavigateBack>()
                 .Subscribe(HandleNavigateBack)
                 .DisposeWith(CompositeDisposable);
-            
+
             MessageBus.Current.Listen<SpawnBrowserWindow>()
                 .ObserveOnGuiThread()
                 .Subscribe(HandleSpawnBrowserWindow)
@@ -116,7 +116,7 @@ namespace Wabbajack
                 .Select(r => string.Join(", ", r.Where(r => r.Throughput > 0)
                     .Select(s => $"{s.Name} - {s.Throughput.ToFileSizeString()}/sec")))
                 .BindToStrict(this, view => view.ResourceStatus);
-            
+
 
             if (IsStartingFromModlist(out var path))
             {
@@ -134,25 +134,24 @@ namespace Wabbajack
                 var assembly = Assembly.GetExecutingAssembly();
                 var location = assembly.Location;
                 if (string.IsNullOrWhiteSpace(location))
-                    location = Process.GetCurrentProcess().MainModule?.FileName ?? "";
-                
+                    location = Process.GetCurrentProcess().MainModule?.FileName ?? throw new Exception("Assembly location is unavailable!");
+
                 _logger.LogInformation("App Location: {Location}", assembly.Location);
                 var fvi = FileVersionInfo.GetVersionInfo(location);
                 Consts.CurrentMinimumWabbajackVersion = Version.Parse(fvi.FileVersion);
                 VersionDisplay = $"v{fvi.FileVersion}";
                 AppName = "WABBAJACK " + VersionDisplay;
                 _logger.LogInformation("Wabbajack Version: {FileVersion}", fvi.FileVersion);
-                
+
                 Task.Run(() => _wjClient.SendMetric("started_wabbajack", fvi.FileVersion)).FireAndForget();
                 Task.Run(() => _wjClient.SendMetric("started_sha", ThisAssembly.Git.Sha));
-                
+
                 // setup file association
                 try
                 {
-                    var applicationRegistrationService =
-                        _serviceProvider.GetRequiredService<IApplicationRegistrationService>();
+                    var applicationRegistrationService = _serviceProvider.GetRequiredService<IApplicationRegistrationService>();
 
-                    var applicationInfo = new ApplicationInfo(assembly);
+                    var applicationInfo = new ApplicationInfo("Wabbajack", "Wabbajack", "Wabbajack", location);
                     applicationInfo.SupportedExtensions.Add("wabbajack");
                     applicationRegistrationService.RegisterApplication(applicationInfo);
                 }
@@ -181,27 +180,27 @@ namespace Wabbajack
 
             ActivePane = objViewModel;
         }
-        
+
         private void HandleNavigateBack(NavigateBack navigateBack)
         {
             ActivePane = PreviousPanes.Last();
             PreviousPanes.RemoveAt(PreviousPanes.Count - 1);
         }
-        
+
         private void HandleManualDownload(ManualDownload manualDownload)
         {
             var handler = _serviceProvider.GetRequiredService<ManualDownloadHandler>();
             handler.Intervention = manualDownload;
             //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
         }
-        
+
         private void HandleManualBlobDownload(ManualBlobDownload manualDownload)
         {
             var handler = _serviceProvider.GetRequiredService<ManualBlobDownloadHandler>();
             handler.Intervention = manualDownload;
             //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
         }
-        
+
         private void HandleSpawnBrowserWindow(SpawnBrowserWindow msg)
         {
             var window = _serviceProvider.GetRequiredService<BrowserWindow>();
@@ -213,7 +212,7 @@ namespace Wabbajack
         {
             if (s is NavigateToGlobal.ScreenType.Settings)
                 PreviousPanes.Add(ActivePane);
-            
+
             ActivePane = s switch
             {
                 NavigateToGlobal.ScreenType.ModeSelectionView => ModeSelectionVM,
