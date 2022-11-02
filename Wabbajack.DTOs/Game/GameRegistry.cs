@@ -237,6 +237,23 @@ public static class GameRegistry
             }
         },
         {
+            Game.Witcher, new GameMetaData
+            {
+                Game = Game.Witcher,
+                NexusName = "witcher",
+                NexusGameId = 150,
+                MO2Name = "The Witcher: Enhanced Edition",
+                MO2ArchiveName = "witcher",
+                SteamIDs = new[] {20900}, // normal and GotY
+                GOGIDs = new[] {1207658924}, // normal, GotY and both in packages
+                RequiredFiles = new[]
+                {
+                    @"System\witcher.exe".ToRelativePath()
+                },
+                MainExecutable = @"System\witcher.exe".ToRelativePath()
+            }
+        },
+        {
             Game.Witcher3, new GameMetaData
             {
                 Game = Game.Witcher3,
