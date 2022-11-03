@@ -22,6 +22,7 @@ public enum Game
     [Description("Fallout 4 VR")] Fallout4VR,
     [Description("Darkest Dungeon")] DarkestDungeon,
     Dishonored,
+    [Description("Witcher: Enhanced Edition ")]Witcher,
     [Description("Witcher 3")] Witcher3,
     [Description("Stardew Valley")] StardewValley,
 
