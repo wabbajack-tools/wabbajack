@@ -468,7 +468,21 @@ public static class GameRegistry
                     @"DDDA.exe".ToRelativePath()
                 },
                 MainExecutable = @"DDDA.exe".ToRelativePath()
-                
+            }
+        },
+        {
+            Game.KarrynsPrison, new GameMetaData
+            {
+                Game = Game.KarrynsPrison,
+                SteamIDs = new[] { 1619750 },
+                MO2Name = "Karryn's Prison",
+                MO2ArchiveName = "karrynsprison",
+                IsGenericMO2Plugin = false,
+                RequiredFiles = new []
+                {
+                    "nw.exe".ToRelativePath()
+                },
+                MainExecutable = "nw.exe".ToRelativePath()
             }
         }
     };
