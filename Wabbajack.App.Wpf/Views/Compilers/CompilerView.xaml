@@ -165,7 +165,11 @@
                     <Button Name="AddInclude">
                         <icon:Material Kind="Plus"></icon:Material>
                     </Button>
-                    <Label>Include</Label>
+                    <Label>Include Folders</Label>
+                    <Button Name="AddIncludeFiles">
+                        <icon:Material Kind="Plus"></icon:Material>
+                    </Button>
+                    <Label>Include Files</Label>
                 </StackPanel>
                 <ListBox x:Name="Include">
                     <ListBox.ItemTemplate>
@@ -179,7 +183,11 @@
                     <Button Name="AddIgnore">
                         <icon:Material Kind="Plus"></icon:Material>
                     </Button>
-                    <Label>Ignore</Label>
+                    <Label>Ignore Folders</Label>
+                    <Button Name="AddIgnoreFiles">
+                        <icon:Material Kind="Plus"></icon:Material>
+                    </Button>
+                    <Label>Ignore Files</Label>
                 </StackPanel>
                 <ListBox x:Name="Ignore">
                     <ListBox.ItemTemplate>

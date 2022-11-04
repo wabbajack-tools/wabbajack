@@ -219,6 +219,7 @@ namespace Wabbajack
                     .DisposeWith(disposables);
 
                 AddInclude.Command = ReactiveCommand.CreateFromTask(async () => await AddIncludeCommand());
+                AddIncludeFiles.Command = ReactiveCommand.CreateFromTask(async () => await AddIncludeFilesCommand());
                 
                 ViewModel.WhenAnyValue(vm => vm.Ignore)
                     .WhereNotNull()
@@ -227,6 +228,7 @@ namespace Wabbajack
                     .DisposeWith(disposables);
 
                 AddIgnore.Command = ReactiveCommand.CreateFromTask(async () => await AddIgnoreCommand());
+                AddIgnoreFiles.Command = ReactiveCommand.CreateFromTask(async () => await AddIgnoreFilesCommand());
 
 
             });
@@ -258,16 +260,19 @@ namespace Wabbajack
                 EnsurePathExists = true,
                 EnsureReadOnly = false,
                 EnsureValidNames = true,
-                Multiselect = false,
+                Multiselect = true,
                 ShowPlacesList = true,
             };
 
             if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
-            var selectedPath = dlg.FileNames.First().ToAbsolutePath();
+            foreach (var fileName in dlg.FileNames)
+            {
+                var selectedPath = fileName.ToAbsolutePath();
 
-            if (!selectedPath.InFolder(ViewModel.Source)) return;
-            
-            ViewModel.AddAlwaysEnabled(selectedPath.RelativeTo(ViewModel.Source));
+                if (!selectedPath.InFolder(ViewModel.Source)) continue;
+
+                ViewModel.AddAlwaysEnabled(selectedPath.RelativeTo(ViewModel.Source));
+            }
         }
         
         public async Task AddOtherProfileCommand()
@@ -295,16 +300,19 @@ namespace Wabbajack
                 EnsurePathExists = true,
                 EnsureReadOnly = false,
                 EnsureValidNames = true,
-                Multiselect = false,
+                Multiselect = true,
                 ShowPlacesList = true,
             };
 
             if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
-            var selectedPath = dlg.FileNames.First().ToAbsolutePath();
-
-            if (!selectedPath.InFolder(ViewModel.Source.Combine("profiles"))) return;
-            
-            ViewModel.AddOtherProfile(selectedPath.FileName.ToString());
+            foreach (var filename in dlg.FileNames)
+            {
+                var selectedPath = filename.ToAbsolutePath();
+                
+                if (!selectedPath.InFolder(ViewModel.Source.Combine("profiles"))) continue;
+                
+                ViewModel.AddOtherProfile(selectedPath.FileName.ToString());
+            }
         }
         
         public Task AddNoMatchIncludeCommand()
@@ -321,16 +329,20 @@ namespace Wabbajack
                 EnsurePathExists = true,
                 EnsureReadOnly = false,
                 EnsureValidNames = true,
-                Multiselect = false,
+                Multiselect = true,
                 ShowPlacesList = true,
             };
 
             if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return Task.CompletedTask;
-            var selectedPath = dlg.FileNames.First().ToAbsolutePath();
+            foreach (var filename in dlg.FileNames)
+            {
+                var selectedPath = filename.ToAbsolutePath();
 
-            if (!selectedPath.InFolder(ViewModel.Source)) return Task.CompletedTask;
+                if (!selectedPath.InFolder(ViewModel.Source)) continue;
             
-            ViewModel.AddNoMatchInclude(selectedPath.RelativeTo(ViewModel!.Source));
+                ViewModel.AddNoMatchInclude(selectedPath.RelativeTo(ViewModel!.Source));
+            }
+            
             return Task.CompletedTask;
         }
         
@@ -338,7 +350,7 @@ namespace Wabbajack
         {
             var dlg = new CommonOpenFileDialog
             {
-                Title = "Please select a file to include",
+                Title = "Please select folders to include",
                 IsFolderPicker = true,
                 InitialDirectory = ViewModel!.Source.ToString(),
                 AddToMostRecentlyUsedList = false,
@@ -348,23 +360,55 @@ namespace Wabbajack
                 EnsurePathExists = true,
                 EnsureReadOnly = false,
                 EnsureValidNames = true,
-                Multiselect = false,
+                Multiselect = true,
                 ShowPlacesList = true,
             };
 
             if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
-            var selectedPath = dlg.FileNames.First().ToAbsolutePath();
+            foreach (var filename in dlg.FileNames)
+            {
+                var selectedPath = filename.ToAbsolutePath();
 
-            if (!selectedPath.InFolder(ViewModel.Source)) return;
+                if (!selectedPath.InFolder(ViewModel.Source)) continue;
             
-            ViewModel.AddInclude(selectedPath.RelativeTo(ViewModel!.Source));
+                ViewModel.AddInclude(selectedPath.RelativeTo(ViewModel!.Source));
+            }
+        }
+        
+        public async Task AddIncludeFilesCommand()
+        {
+            var dlg = new CommonOpenFileDialog
+            {
+                Title = "Please select files to include",
+                IsFolderPicker = false,
+                InitialDirectory = ViewModel!.Source.ToString(),
+                AddToMostRecentlyUsedList = false,
+                AllowNonFileSystemItems = false,
+                DefaultDirectory = ViewModel!.Source.ToString(),
+                EnsureFileExists = true,
+                EnsurePathExists = true,
+                EnsureReadOnly = false,
+                EnsureValidNames = true,
+                Multiselect = true,
+                ShowPlacesList = true,
+            };
+
+            if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
+            foreach (var filename in dlg.FileNames)
+            {
+                var selectedPath = filename.ToAbsolutePath();
+
+                if (!selectedPath.InFolder(ViewModel.Source)) continue;
+            
+                ViewModel.AddInclude(selectedPath.RelativeTo(ViewModel!.Source));
+            }
         }
         
         public async Task AddIgnoreCommand()
         {
             var dlg = new CommonOpenFileDialog
             {
-                Title = "Please select a file to ignore",
+                Title = "Please select folders to ignore",
                 IsFolderPicker = true,
                 InitialDirectory = ViewModel!.Source.ToString(),
                 AddToMostRecentlyUsedList = false,
@@ -374,16 +418,48 @@ namespace Wabbajack
                 EnsurePathExists = true,
                 EnsureReadOnly = false,
                 EnsureValidNames = true,
-                Multiselect = false,
+                Multiselect = true,
                 ShowPlacesList = true,
             };
 
             if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
-            var selectedPath = dlg.FileNames.First().ToAbsolutePath();
+            foreach (var filename in dlg.FileNames)
+            {
+                var selectedPath = filename.ToAbsolutePath();
 
-            if (!selectedPath.InFolder(ViewModel.Source)) return;
+                if (!selectedPath.InFolder(ViewModel.Source)) continue;
             
-            ViewModel.AddIgnore(selectedPath.RelativeTo(ViewModel!.Source));
+                ViewModel.AddIgnore(selectedPath.RelativeTo(ViewModel!.Source));
+            }
+        }
+        
+        public async Task AddIgnoreFilesCommand()
+        {
+            var dlg = new CommonOpenFileDialog
+            {
+                Title = "Please select files to ignore",
+                IsFolderPicker = false,
+                InitialDirectory = ViewModel!.Source.ToString(),
+                AddToMostRecentlyUsedList = false,
+                AllowNonFileSystemItems = false,
+                DefaultDirectory = ViewModel!.Source.ToString(),
+                EnsureFileExists = true,
+                EnsurePathExists = true,
+                EnsureReadOnly = false,
+                EnsureValidNames = true,
+                Multiselect = true,
+                ShowPlacesList = true,
+            };
+
+            if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
+            foreach (var filename in dlg.FileNames)
+            {
+                var selectedPath = filename.ToAbsolutePath();
+
+                if (!selectedPath.InFolder(ViewModel.Source)) continue;
+            
+                ViewModel.AddIgnore(selectedPath.RelativeTo(ViewModel!.Source));
+            }
         }
     }
 }
