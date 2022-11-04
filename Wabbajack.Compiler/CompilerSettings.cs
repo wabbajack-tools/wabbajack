@@ -64,7 +64,7 @@ public class CompilerSettings
     public RelativePath[] Include { get; set; } = Array.Empty<RelativePath>();
     
     /// <summary>
-    ///     These files are inlined into the modlist
+    ///     These files are ignored when compiling the modlist
     /// </summary>
     public RelativePath[] Ignore { get; set; } = Array.Empty<RelativePath>();
 
