@@ -151,7 +151,10 @@ namespace Wabbajack
                 {
                     var applicationRegistrationService = _serviceProvider.GetRequiredService<IApplicationRegistrationService>();
 
-                    var applicationInfo = new ApplicationInfo("Wabbajack", "Wabbajack", "Wabbajack", location);
+                    var processLocation = Process.GetCurrentProcess().MainModule?.FileName ??
+                                          throw new NotSupportedException("Unable to get process information");
+
+                    var applicationInfo = new ApplicationInfo("Wabbajack", "Wabbajack", "Wabbajack", processLocation);
                     applicationInfo.SupportedExtensions.Add("wabbajack");
                     applicationRegistrationService.RegisterApplication(applicationInfo);
                 }
