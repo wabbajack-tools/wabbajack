@@ -132,12 +132,13 @@ namespace Wabbajack
             try
             {
                 var assembly = Assembly.GetExecutingAssembly();
-                var location = assembly.Location;
-                if (string.IsNullOrWhiteSpace(location))
-                    location = Process.GetCurrentProcess().MainModule?.FileName ?? throw new Exception("Assembly location is unavailable!");
+                var assemblyLocation = assembly.Location;
+                var processLocation = Process.GetCurrentProcess().MainModule?.FileName ?? throw new Exception("Process location is unavailable!");
 
-                _logger.LogInformation("App Location: {Location}", assembly.Location);
-                var fvi = FileVersionInfo.GetVersionInfo(location);
+                _logger.LogInformation("Assembly Location: {AssemblyLocation}", assemblyLocation);
+                _logger.LogInformation("Process Location: {ProcessLocation}", processLocation);
+
+                var fvi = FileVersionInfo.GetVersionInfo(string.IsNullOrWhiteSpace(assemblyLocation) ? processLocation : assemblyLocation);
                 Consts.CurrentMinimumWabbajackVersion = Version.Parse(fvi.FileVersion);
                 VersionDisplay = $"v{fvi.FileVersion}";
                 AppName = "WABBAJACK " + VersionDisplay;
@@ -151,7 +152,7 @@ namespace Wabbajack
                 {
                     var applicationRegistrationService = _serviceProvider.GetRequiredService<IApplicationRegistrationService>();
 
-                    var applicationInfo = new ApplicationInfo("Wabbajack", "Wabbajack", "Wabbajack", location);
+                    var applicationInfo = new ApplicationInfo("Wabbajack", "Wabbajack", "Wabbajack", processLocation);
                     applicationInfo.SupportedExtensions.Add("wabbajack");
                     applicationRegistrationService.RegisterApplication(applicationInfo);
                 }
