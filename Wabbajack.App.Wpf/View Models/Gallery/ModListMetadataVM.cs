@@ -76,6 +76,9 @@ namespace Wabbajack
         public string InstallSizeText { get; private set; }
         
         [Reactive]
+        public string TotalSizeRequirementText { get; private set; }
+        
+        [Reactive]
         public string VersionText { get; private set; }
 
         [Reactive]
@@ -113,6 +116,9 @@ namespace Wabbajack
 
             DownloadSizeText = "Download size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
             InstallSizeText = "Installation size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
+            TotalSizeRequirementText =  "Total size requirement: " + UIUtils.FormatBytes(
+                    Metadata.DownloadMetadata.SizeOfArchives + Metadata.DownloadMetadata.SizeOfInstalledFiles
+                );
             VersionText = "Modlist version : " + Metadata.Version;
             IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;
             //https://www.wabbajack.org/#/modlists/info?machineURL=eldersouls
