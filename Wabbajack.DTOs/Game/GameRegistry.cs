@@ -107,6 +107,12 @@ public static class GameRegistry
                 MO2Name = "Skyrim Special Edition",
                 MO2ArchiveName = "skyrimse",
                 SteamIDs = new[] {489830},
+                GOGIDs = new[]
+                {
+                    1711230643,// The Elder Scrolls V: Skyrim Special Edition AKA Base Game
+                    1801825368,// The Elder Scrolls V: Skyrim Anniversary Edition AKA The Store Bundle 
+                    1162721350 // Upgrade DLC
+                },
                 RequiredFiles = new[]
                 {
                     "SkyrimSE.exe".ToRelativePath()
