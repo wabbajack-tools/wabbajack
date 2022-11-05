@@ -147,10 +147,10 @@ public class CompilerSettingsInferencer
         return null;
     }
 
-    private static bool MatchesVariants(AbsolutePath file, string baseVariant, bool txtMode = false)
+    private static bool MatchesVariants(AbsolutePath file, string baseVariant, bool readTxtFileMode = false)
     {
         var fileNameString = file.FileName.ToString();
-        if (!txtMode)
+        if (!readTxtFileMode)
         {
             return fileNameString == baseVariant;
         }
