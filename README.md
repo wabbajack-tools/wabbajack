@@ -17,30 +17,30 @@ Wabbajack is an automated Modlist Installer that can reproduce an entire modding
 If you own a game on this list on the Epic Games Store, and the store isn't listed as suppoted, please get in touch on [Discord](https://discord.gg/wabbajack), so you can help us make Wabbajack support those versions as well.
 This is needed, since the EGS has no public database of its game IDs.
 
-| Game                       | Platform                     | Versions                            | Notes        |
-|----------------------------|------------------------------|-------------------------------------|--------------|
-| Morrowind                  | Steam, GOG, BethNet          |                                     |              |
-| Oblivion                   | Steam, GOG                   | Normal and GotY                     |              |
-| Fallout 3                  | Steam, GOG                   | Normal and GotY                     |              |
-| Fallout New Vegas          | Steam, GOG                   | Normal and region locked RU version |              |
-| Skyrim                     | Steam                        |                                     |              |
-| Skyrim Special Edition     | Steam                        |                                     |              |
-| Enderal                    | Steam                        |                                     |              |
-| Enderal Special Edition    | Steam                        |                                     |              |
-| Fallout 4                  | Steam                        |                                     |              |
-| Skyrim VR                  | Steam                        |                                     |              |
-| Fallout 4 VR               | Steam                        |                                     |              |
-| Darkest Dungeon            | Steam, GOG, Epic Games Store |                                     | Experimental |
-| The Witcher 3              | Steam, GOG                   | Normal and GotY                     | Experimental |
-| Stardew Valley             | Steam, GOG                   |                                     | Experimental |
-| Kingdom Come: Deliverance  | Steam, GOG                   |                                     | Experimental |
-| Mechwarrior 5: Mercenaries | Epic Games Store             |                                     | Experimental |
-| No Man's Sky               | Steam, GOG                   |                                     | Experimental |
-| Dragon Age Origins         | Stean, GOG, Origin           |                                     | Experimental |
-| Dragon Age 2               | Steam, Origin                |                                     | Experimental |
-| Dragon Age Inquisition     | Steam, Origin                |                                     | Experimental |
-| Kerbal Space Program       | Steam, GOG                   |                                     | Experimental |
-| Karryn's Prison            | Steam                        |                                     | Experimental |   
+| Game                       | Platform                     | Versions                            | Notes                                      |
+|----------------------------|------------------------------|-------------------------------------|--------------------------------------------|
+| Morrowind                  | Steam, GOG, BethNet          |                                     |                                            |
+| Oblivion                   | Steam, GOG                   | Normal and GotY                     |                                            |
+| Fallout 3                  | Steam, GOG                   | Normal and GotY                     |                                            |
+| Fallout New Vegas          | Steam, GOG                   | Normal and region locked RU version |                                            |
+| Skyrim                     | Steam                        |                                     |                                            |
+| Skyrim Special Edition     | Steam, GOG                   |                                     | Platform support varies between mod lists! |
+| Enderal                    | Steam                        |                                     |                                            |
+| Enderal Special Edition    | Steam                        |                                     |                                            |
+| Fallout 4                  | Steam                        |                                     |                                            |
+| Skyrim VR                  | Steam                        |                                     |                                            |
+| Fallout 4 VR               | Steam                        |                                     |                                            |
+| Darkest Dungeon            | Steam, GOG, Epic Games Store |                                     | Experimental                               |
+| The Witcher 3              | Steam, GOG                   | Normal and GotY                     | Experimental                               |
+| Stardew Valley             | Steam, GOG                   |                                     | Experimental                               |
+| Kingdom Come: Deliverance  | Steam, GOG                   |                                     | Experimental                               |
+| Mechwarrior 5: Mercenaries | Epic Games Store             |                                     | Experimental                               |
+| No Man's Sky               | Steam, GOG                   |                                     | Experimental                               |
+| Dragon Age Origins         | Stean, GOG, Origin           |                                     | Experimental                               |
+| Dragon Age 2               | Steam, Origin                |                                     | Experimental                               |
+| Dragon Age Inquisition     | Steam, Origin                |                                     | Experimental                               |
+| Kerbal Space Program       | Steam, GOG                   |                                     | Experimental                               |
+| Karryn's Prison            | Steam                        |                                     | Experimental                               |   
 
 **Note about games marked with experimental support**:
 
