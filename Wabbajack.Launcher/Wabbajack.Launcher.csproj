@@ -18,6 +18,7 @@
         <ApplicationIcon>Resources\Icons\wabbajack.ico</ApplicationIcon>
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview3" />
         <PackageReference Include="GitInfo" Version="2.2.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
