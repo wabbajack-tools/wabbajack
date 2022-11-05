@@ -243,6 +243,23 @@ public static class GameRegistry
             }
         },
         {
+            Game.Witcher, new GameMetaData
+            {
+                Game = Game.Witcher,
+                NexusName = "witcher",
+                NexusGameId = 150,
+                MO2Name = "The Witcher: Enhanced Edition",
+                MO2ArchiveName = "witcher",
+                SteamIDs = new[] {20900}, // normal and GotY
+                GOGIDs = new[] {1207658924}, // normal, GotY and both in packages
+                RequiredFiles = new[]
+                {
+                    @"System\witcher.exe".ToRelativePath()
+                },
+                MainExecutable = @"System\witcher.exe".ToRelativePath()
+            }
+        },
+        {
             Game.Witcher3, new GameMetaData
             {
                 Game = Game.Witcher3,
@@ -457,7 +474,21 @@ public static class GameRegistry
                     @"DDDA.exe".ToRelativePath()
                 },
                 MainExecutable = @"DDDA.exe".ToRelativePath()
-                
+            }
+        },
+        {
+            Game.KarrynsPrison, new GameMetaData
+            {
+                Game = Game.KarrynsPrison,
+                SteamIDs = new[] { 1619750 },
+                MO2Name = "Karryn's Prison",
+                MO2ArchiveName = "karrynsprison",
+                IsGenericMO2Plugin = false,
+                RequiredFiles = new []
+                {
+                    "nw.exe".ToRelativePath()
+                },
+                MainExecutable = "nw.exe".ToRelativePath()
             }
         }
     };

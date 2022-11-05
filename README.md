@@ -40,7 +40,7 @@ This is needed, since the EGS has no public database of its game IDs.
 | Dragon Age 2               | Steam, Origin                |                                     | Experimental                               |
 | Dragon Age Inquisition     | Steam, Origin                |                                     | Experimental                               |
 | Kerbal Space Program       | Steam, GOG                   |                                     | Experimental                               |
-   
+| Karryn's Prison            | Steam                        |                                     | Experimental                               |   
 
 **Note about games marked with experimental support**:
 
