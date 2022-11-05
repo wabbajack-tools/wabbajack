@@ -1,7 +1,8 @@
 ### Changelog
 
 #### Version - 3.0.4.0 - TBD
-* upgrade GameFinder to 2.2.1
+* Upgrade GameFinder to 2.2.1
+* Update to .NET 7.0 (no user updates required)
 
 #### Version - 3.0.3.1 - 10/30/2022
 * Fix file verification issues for CreatedBSAs
