@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <Version>$(VERSION)</Version>
         <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
@@ -24,7 +24,7 @@
 
     <ItemGroup>
         <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
-        <PackageReference Include="Octopus.Octodiff" Version="1.3.93" />
+        <PackageReference Include="Octopus.Octodiff" Version="2.0.100" />
     </ItemGroup>
 
 </Project>
