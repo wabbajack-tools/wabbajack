@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
+using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -36,8 +38,21 @@ namespace Wabbajack
 
         private void OnStartup(object sender, StartupEventArgs e)
         {
+            if (IsAdmin())
+            {
+                var messageBox = MessageBox.Show("Don't run Wabbajack as Admin!", "Error", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
+                if (messageBox == MessageBoxResult.OK)
+                {
+                    Environment.Exit(1);
+                }
+                else
+                {
+                    Environment.Exit(1);
+                }
+            }
+
             WebView2AutoInstaller.CheckAndInstallAsync(false, false).Wait();
-            
+
             RxApp.MainThreadScheduler = new DispatcherScheduler(Dispatcher.CurrentDispatcher);
             _host = Host.CreateDefaultBuilder(Array.Empty<string>())
                 .ConfigureLogging(AddLogging)
@@ -80,6 +95,22 @@ namespace Wabbajack
             });
         }
 
+        private static bool IsAdmin()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return false;
+
+            try
+            {
+                var identity = WindowsIdentity.GetCurrent();
+                var principle = new WindowsPrincipal(identity);
+                return principle.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         private void AddLogging(ILoggingBuilder loggingBuilder)
         {
             var config = new NLog.Config.LoggingConfiguration();
@@ -87,7 +118,7 @@ namespace Wabbajack
             var logFolder = KnownFolders.LauncherAwarePath.Combine("logs");
             if (!logFolder.DirectoryExists())
                 logFolder.CreateDirectory();
-            
+
             var fileTarget = new FileTarget("file")
             {
                 FileName = logFolder.Combine("Wabbajack.current.log").ToString(),
@@ -97,15 +128,15 @@ namespace Wabbajack
                 Layout = "${processtime} [${level:uppercase=true}] (${logger}) ${message:withexception=true}",
                 Header = "############ Wabbajack log file - ${longdate} ############"
             };
-            
+
             var consoleTarget = new ConsoleTarget("console");
-        
+
             var uiTarget = new LogStream
             {
                 Name = "ui",
                 Layout = "${message:withexception=false}",
             };
-            
+
             loggingBuilder.Services.AddSingleton(uiTarget);
 
             config.AddRuleForAllLevels(fileTarget);
@@ -126,7 +157,7 @@ namespace Wabbajack
 
             services.AddSingleton<CefService>();
             services.AddSingleton<IUserInterventionHandler, UserIntreventionHandler>();
-            
+
             services.AddTransient<MainWindow>();
             services.AddTransient<MainWindowVM>();
             services.AddTransient<BrowserWindow>();
@@ -143,23 +174,23 @@ namespace Wabbajack
             services.AddTransient<InstallerVM>();
             services.AddTransient<SettingsVM>();
             services.AddTransient<WebBrowserVM>();
-            
+
             // Login Handlers
             services.AddTransient<VectorPlexusLoginHandler>();
             services.AddTransient<NexusLoginHandler>();
             services.AddTransient<LoversLabLoginHandler>();
-            
+
             // Login Managers
             services.AddAllSingleton<INeedsLogin, LoversLabLoginManager>();
             services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
             services.AddAllSingleton<INeedsLogin, VectorPlexusLoginManager>();
             services.AddSingleton<ManualDownloadHandler>();
             services.AddSingleton<ManualBlobDownloadHandler>();
-            
+
             // Verbs
             services.AddSingleton<CommandLineBuilder>();
             services.AddCLIVerbs();
-            
+
             return services;
         }
 
