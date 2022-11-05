@@ -464,6 +464,7 @@ public static class GameRegistry
             {
                 Game = Game.DragonsDogma,
                 SteamIDs = new[] {367500 },
+                GOGIDs = new []{1242384383},
                 MO2Name = "Dragon's Dogma: Dark Arisen",
                 MO2ArchiveName = "dragonsdogma",
                 NexusName = "dragonsdogma",
