@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -72,9 +71,36 @@ public class CompilerSettingsInferencer
                     
                     if (MatchesVariants(file, Consts.WABBAJACK_NOMATCH_INCLUDE))
                         cs.NoMatchInclude = cs.NoMatchInclude.Add(file.Parent.RelativeTo(mo2Folder));
-                    
+                    if (MatchesVariants(file, Consts.WABBAJACK_NOMATCH_INCLUDE, true))
+                    {
+                        cs.NoMatchInclude = cs.NoMatchInclude.Add(file.RelativeTo(mo2Folder));
+                        var taggedFiles = await file.ReadAllLinesAsync().ToArray();
+                        foreach (var taggedFile in taggedFiles)
+                        {
+                            var noMatchIncludeAsset =
+                                (AbsolutePath) file.ToString().Replace(file.FileName.ToString(), taggedFile);
+                            if (noMatchIncludeAsset.DirectoryExists())
+                                cs.NoMatchInclude = cs.NoMatchInclude.Add(noMatchIncludeAsset
+                                .RelativeTo(mo2Folder));
+                            if (noMatchIncludeAsset.FileExists())
+                                cs.Include = cs.Include.Add(noMatchIncludeAsset
+                                    .RelativeTo(mo2Folder)); 
+                        }
+                    }
+
                     if (MatchesVariants(file, Consts.WABBAJACK_IGNORE))
                         cs.Ignore = cs.Ignore.Add(file.Parent.RelativeTo(mo2Folder));
+                    if (MatchesVariants(file, Consts.WABBAJACK_IGNORE, true))
+                    {
+                        cs.Ignore = cs.Ignore.Add(file.RelativeTo(mo2Folder));
+                        var taggedFiles = await file.ReadAllLinesAsync().ToArray();
+                        foreach (var taggedFile in taggedFiles)
+                        {
+                            cs.Ignore = cs.Ignore.Add(
+                                ((AbsolutePath) file.ToString().Replace(file.FileName.ToString(), taggedFile))
+                                .RelativeTo(mo2Folder));
+                        }
+                    }
                 }
 
                 _logger.LogInformation("Finding Always Enabled mods");
@@ -121,11 +147,13 @@ public class CompilerSettingsInferencer
         return null;
     }
 
-    private static bool MatchesVariants(AbsolutePath file, string baseVariant)
+    private static bool MatchesVariants(AbsolutePath file, string baseVariant, bool readTxtFileMode = false)
     {
-        var withoutExt = file.FileName.WithoutExtension().ToString();
-        
-        return withoutExt == baseVariant ||
-               withoutExt == baseVariant + "_FILES";
+        var fileNameString = file.FileName.ToString();
+        if (!readTxtFileMode)
+        {
+            return fileNameString == baseVariant;
+        }
+        return fileNameString == baseVariant + "_FILES.txt" || fileNameString == baseVariant + "_FILES.TXT";
     }
 }
