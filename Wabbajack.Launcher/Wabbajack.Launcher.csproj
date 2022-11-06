@@ -27,6 +27,7 @@
         <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview3" />
         <PackageReference Include="Avalonia.Diagnostics" Version="11.0.0-preview3" />
         <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.0-preview3" />
+        <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
         <PackageReference Include="MessageBox.Avalonia" Version="2.3.1-prev2" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0-rc.2.22472.3" />
         <PackageReference Include="ReactiveUI.Fody" Version="18.3.1" />

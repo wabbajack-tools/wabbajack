@@ -9,8 +9,10 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using MessageBox.Avalonia.DTO;
 using ReactiveUI.Fody.Helpers;
+using Wabbajack.Common;
 using Wabbajack.Compression.Zip;
 using Wabbajack.Downloaders.Http;
 using Wabbajack.DTOs;
@@ -49,7 +51,7 @@ public class MainWindowViewModel : ViewModelBase
     private async Task CheckForUpdates()
     {
         await VerifyCurrentLocation();
-        
+
         _client.Headers.Add("user-agent", "Wabbajack Launcher");
         Status = "Selecting Release";
 
@@ -103,7 +105,7 @@ public class MainWindowViewModel : ViewModelBase
             Size = _version.Size,
             State = new Http {Url = uri}
         };
-        
+
         await using var stream = await _downloader.GetChunkedSeekableStream(archive, CancellationToken.None);
         var rdr = new ZipReader(stream, true);
         var entries = (await rdr.GetFiles()).OrderBy(d => d.FileOffset).ToArray();
@@ -115,14 +117,14 @@ public class MainWindowViewModel : ViewModelBase
             var outPath = baseFolder.Combine(relPath);
             if (!outPath.Parent.DirectoryExists())
                 outPath.Parent.CreateDirectory();
-            
+
             await using var of = outPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
             await rdr.Extract(file, of, CancellationToken.None);
         }*/
 
-        
+
         var wc = new WebClient();
-        wc.DownloadProgressChanged += UpdateProgress;
+        wc.DownloadProgressChanged += (sender, args) => UpdateProgress($"{_version.Version}", sender, args);
         Status = $"Downloading {_version.Version} ...";
         byte[] data;
         try
@@ -166,10 +168,52 @@ public class MainWindowViewModel : ViewModelBase
         {
             _errors.Add(ex.Message);
         }
-        finally
+
+        try
         {
-            await FinishAndExit();
+            await InstallWebView();
         }
+        catch (Exception e)
+        {
+            _errors.Add(e.Message);
+        }
+
+        await FinishAndExit();
+    }
+
+    [UriString]
+    private const string WebViewDownloadLink = "https://go.microsoft.com/fwlink/p/?LinkId=2124703";
+
+    private async Task InstallWebView(CancellationToken cancellationToken = default)
+    {
+        var setupPath = KnownFolders.WabbajackAppLocal.Combine("MicrosoftEdgeWebview2Setup.exe");
+        if (setupPath.FileExists()) return;
+
+        var wc = new WebClient();
+        wc.DownloadProgressChanged += (sender, args) => UpdateProgress("WebView2", sender, args);
+
+        Status = "Downloading WebView2 Runtime";
+
+        byte[] data;
+        try
+        {
+            data = await wc.DownloadDataTaskAsync(WebViewDownloadLink);
+        }
+        catch (Exception ex)
+        {
+            _errors.Add(ex.Message);
+            await FinishAndExit();
+            throw;
+        }
+
+        await setupPath.WriteAllBytesAsync(new Memory<byte>(data), cancellationToken);
+
+        var process = new ProcessHelper
+        {
+            Path = setupPath
+        };
+
+        await process.Start();
     }
 
     private async Task VerifyCurrentLocation()
@@ -211,6 +255,7 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
+    [ContractAnnotation("=> halt")]
     private async Task FinishAndExit()
     {
         try
@@ -275,16 +320,16 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private void UpdateProgress(object sender, DownloadProgressChangedEventArgs e)
+    private void UpdateProgress(string what, object sender, DownloadProgressChangedEventArgs e)
     {
-        Status = $"Downloading {_version.Version} ({e.ProgressPercentage}%)...";
+        Status = $"Downloading {what} ({e.ProgressPercentage}%)...";
     }
 
     private async Task<(Version Version, long Size, Func<Task<Uri>> Uri)> GetGithubRelease(CancellationToken token)
     {
         var releases = await GetGithubReleases();
-        
-        
+
+
         var version = releases.Select(r =>
         {
             if (r.Tag.Split(".").Length == 4 && Version.TryParse(r.Tag, out var v))
@@ -293,7 +338,7 @@ public class MainWindowViewModel : ViewModelBase
         })
             .OrderByDescending(r => r.Item1)
             .FirstOrDefault();
-        
+
         var asset = version.r.Assets.FirstOrDefault(a => a.Name == version.Item1 + ".zip");
         if (asset == null)
         {
@@ -303,7 +348,7 @@ public class MainWindowViewModel : ViewModelBase
 
         return (version.Item1, asset.Size, async () => asset!.BrowserDownloadUrl);
     }
-    
+
     private async Task<Release[]> GetGithubReleases()
     {
         Status = "Checking GitHub Repository";
@@ -311,13 +356,13 @@ public class MainWindowViewModel : ViewModelBase
         Status = "Parsing Response";
         return JsonSerializer.Deserialize<Release[]>(data)!;
     }
-    
+
     private async Task<(Version Version, long Size, Func<Task<Uri>> uri)> GetNexusReleases(CancellationToken token)
     {
         Status = "Checking Nexus for updates";
         if (!await _nexusApi.IsPremium(token))
             return default;
-        
+
         var data = await _nexusApi.ModFiles("site", 403, token);
         Status = "Parsing Response";
         //return JsonSerializer.Deserialize<Release[]>(data)!;
@@ -351,7 +396,7 @@ public class MainWindowViewModel : ViewModelBase
 
         [JsonPropertyName("name")] public string Name { get; set; }
 
-        
+
         [JsonPropertyName("size")] public long Size { get; set; }
     }
 }
