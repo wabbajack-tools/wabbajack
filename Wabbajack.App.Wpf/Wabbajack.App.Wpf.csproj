@@ -100,7 +100,6 @@
     <PackageReference Include="ReactiveUI.WPF" Version="18.3.1" />
     <PackageReference Include="Silk.NET.DXGI" Version="2.16.0" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
-    <PackageReference Include="WebView2.Runtime.AutoInstaller" Version="1.0.0" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
   </ItemGroup>
 
@@ -120,7 +119,7 @@
     <EmbeddedResource Include="LoginManagers\Icons\lovers_lab.png" />
     <None Remove="LoginManagers\Icons\vector_plexus.png" />
     <EmbeddedResource Include="LoginManagers\Icons\vector_plexus.png" />
-      
+
   </ItemGroup>
 
   <ItemGroup>
