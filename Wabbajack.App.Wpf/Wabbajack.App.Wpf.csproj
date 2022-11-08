@@ -90,7 +90,7 @@
     <PackageReference Include="MahApps.Metro" Version="2.4.9" />
     <PackageReference Include="MahApps.Metro.IconPacks" Version="4.11.0" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0-rc.2.22472.3" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1466-prerelease" />
     <PackageReference Include="NLog.Extensions.Logging" Version="5.1.0" />
     <PackageReference Include="Orc.FileAssociation" Version="5.0.0-alpha0061" />
