@@ -127,7 +127,9 @@ public class CompilerSettingsInferencer
                         cs.Include = cs.Include.Append(modFolder.RelativeTo(mo2Folder)).ToArray();
                     
                     if ((generalModData["notes"]?.Contains(Consts.WABBAJACK_IGNORE) ?? false) ||
-                        (generalModData["comments"]?.Contains(Consts.WABBAJACK_IGNORE) ?? false))
+                        (generalModData["comments"]?.Contains(Consts.WABBAJACK_IGNORE) ?? false) ||
+                        (generalModData["notes"]?.Contains(Consts.WABBAJACK_ALWAYS_DISABLE) ?? false) ||
+                        (generalModData["comments"]?.Contains(Consts.WABBAJACK_ALWAYS_DISABLE) ?? false))
                         cs.Ignore = cs.Ignore.Append(modFolder.RelativeTo(mo2Folder)).ToArray();
                 }
 
