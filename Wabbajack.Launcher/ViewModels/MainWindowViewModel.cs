@@ -210,7 +210,8 @@ public class MainWindowViewModel : ViewModelBase
 
         var process = new ProcessHelper
         {
-            Path = setupPath
+            Path = setupPath,
+            Arguments = new []{"/silent /install"}
         };
 
         await process.Start();
