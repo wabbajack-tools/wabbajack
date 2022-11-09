@@ -11,8 +11,8 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0-rc.2.22472.3" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0-rc.2.22472.3" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
         <PackageReference Include="System.Data.SQLite.Core" Version="1.0.116" />
         <PackageReference Include="Xunit.DependencyInjection" Version="8.6.1" />
         <PackageReference Include="Xunit.DependencyInjection.Logging" Version="8.0.1" />
