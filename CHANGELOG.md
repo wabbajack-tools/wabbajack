@@ -11,7 +11,7 @@
 * Added final installation-step for marking archives as hidden inside MO2 (They can be unhidden by users knowing what they are doing.)
 * Fixes to the inferring of settings (please use the re-infer settings button to apply them)
   * Wabbajack compilation tags should now be imported 1:1 to how they worked in 2.5
-+ Fixes for file association (double clicking .wabbajack files to open the installation Menu)
+* Fixes for file association (double clicking .wabbajack files to open the installation Menu)
 * Game support:
   * Added support for Karryn's Prison
   * Added support for The Witcher: Enhanced Edition
