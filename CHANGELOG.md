@@ -3,6 +3,20 @@
 #### Version - 3.0.4.0 - TBD
 * Upgrade GameFinder to 2.2.1
 * Update to .NET 7.0 (no user updates required)
+* Update to Gallery:
+  * The Gallery now also Shows the total combined storage requirement to avoid confusion
+* Updates to Compilation Screen:
+  * Include and Ignore Lists now have an option to add individual files
+  * All file/folder pickers now allow selection of multiple files in the same folder
+* Added final installation-step for marking archives as hidden inside MO2 (They can be unhidden by users knowing what they are doing.)
+* Fixes to the inferring of settings (please use the re-infer settings button to apply them)
+  * Wabbajack compilation tags should now be imported 1:1 to how they worked in 2.5
++ Fixes for file association (double clicking .wabbajack files to open the installation Menu)
+* Game support:
+  * Added support for Karryn's Prison
+  * Added support for The Witcher: Enhanced Edition
+  * Added support for GOG Version of Skyrim Special Edition (It now depends on individual lists if they support it.)
+  * Added support for GOG Version of Dragon's Dogma: Dark Arisen (It now depends on individual lists if they support it.)
 
 #### Version - 3.0.3.1 - 10/30/2022
 * Fix file verification issues for CreatedBSAs
