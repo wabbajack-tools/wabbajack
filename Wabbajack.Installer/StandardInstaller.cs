@@ -248,7 +248,9 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                         try
                         {
                             var parsed = metaFile.LoadIniFile();
-                            if (parsed["General"] is not null && (parsed["General"]["removed"] is null || parsed[General][removed=false]))
+                            if (parsed["General"] is not null && (
+                                    parsed["General"]["removed"] is null ||
+                                    parsed["General"]["removed"].Equals(bool.FalseString, StringComparison.OrdinalIgnoreCase)))
                             {
                                 // add removed=true to files not part of the Modlist so they don't show up in MO2
                                 parsed["General"]["removed"] = "true";
