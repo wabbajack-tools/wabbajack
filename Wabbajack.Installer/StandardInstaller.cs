@@ -107,7 +107,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         _configuration.Downloads.CreateDirectory();
 
         await OptimizeModlist(token);
-        
+
         await HashArchives(token);
 
         await DownloadArchives(token);
@@ -145,10 +145,8 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         await RemapMO2File();
 
         CreateOutputMods();
-        
-        SetScreenSizeInPrefs();
 
-        SetDownloadMetasToHideInMO2(token);
+        SetScreenSizeInPrefs();
 
         await ExtractedModlistFolder!.DisposeAsync();
         await _wjClient.SendMetric(MetricNames.FinishInstall, ModList.Name);
@@ -177,7 +175,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         // Non MO2 Installs won't have this
         var profileDir = _configuration.Install.Combine("profiles");
         if (!profileDir.DirectoryExists()) return;
-        
+
         profileDir
             .EnumerateFiles()
             .Where(f => f.FileName == Consts.SettingsIni)
@@ -244,8 +242,9 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                     try
                     {
                         var parsed = metaFile.LoadIniFile();
-                        if (parsed["General"] != null && parsed["General"]["unknownArchive"] == null)
+                        if (parsed["General"] is not null && parsed["General"]["unknownArchive"] is null)
                         {
+                            // meta doesn't have an associated archive
                             return;
                         }
                     }
@@ -254,7 +253,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                         // Ignore
                     }
                 }
-                
+
                 _logger.LogInformation("Writing {FileName}", metaFile.FileName);
                 var meta = AddInstalled(_downloadDispatcher.MetaIni(archive));
                 await metaFile.WriteAllLinesAsync(meta, token);
@@ -265,55 +264,12 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     {
         yield return "[General]";
         yield return "installed=true";
-        
+        yield return "removed=true";
+
         foreach (var f in getMetaIni)
         {
             yield return f;
         }
-    }
-
-    private async Task SetDownloadMetasToHideInMO2(CancellationToken token)
-    {
-        _logger.LogInformation("Updating Metas To Hide");
-        await _configuration.Downloads.EnumerateFiles()
-            .PDoAll(async download =>
-            {
-                if (download == default) return;
-                if (download.Extension == Ext.Meta) return;
-                
-                var linesToWriteNewFile = new HashSet<string>( );
-                linesToWriteNewFile.Add("[General]");
-                linesToWriteNewFile.Add("removed=true");
-                
-                var lineToWriteAppendFile = new HashSet<string> {"removed=true"};
-                
-                var metaFile = download.WithExtension(Ext.Meta);
-                if (metaFile.FileExists())
-                {
-                    try
-                    {
-                        var parsed = metaFile.LoadIniFile();
-                        if (parsed["General"] != null)
-                        {
-                            _logger.LogInformation("Updating {FileName}", metaFile.FileName);
-
-                            await metaFile.WriteAllLinesAsync(lineToWriteAppendFile,FileMode.Append,token); 
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogInformation("Re-Generating corrupted {FileName}", metaFile.FileName);
-                    
-                        await metaFile.WriteAllLinesAsync(linesToWriteNewFile,FileMode.Create,token); 
-                    }
-                }
-                else //Generate new metas to hide files without metas.
-                {
-                    _logger.LogInformation("Generating {FileName}", metaFile.FileName);
-                    
-                    await metaFile.WriteAllLinesAsync(linesToWriteNewFile,FileMode.Create,token); 
-                }
-            });
     }
 
     private async Task BuildBSAs(CancellationToken token)
@@ -340,17 +296,17 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
             _logger.LogInformation("Writing {bsaTo}", bsa.To);
             var outPath = _configuration.Install.Combine(bsa.To);
-            
+
             await using (var outStream = outPath.Open(FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 await a.Build(outStream, token);
             }
-            
+
             streams.Do(s => s.Dispose());
-            
+
             await FileHashCache.FileHashWriteCache(outPath, bsa.Hash);
             sourceDir.DeleteDirectory();
-            
+
             _logger.LogInformation("Verifying {bsaTo}", bsa.To);
             var reader = await BSADispatch.Open(outPath);
             var results = await reader.Files.PMapAllBatchedAsync(_limiter, async state =>
@@ -362,7 +318,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                 var astate = bsa.FileStates.First(f => f.Path == state.Path);
                 var srcDirective = indexedByDestination[Consts.BSACreationDir.Combine(bsa.TempID, astate.Path)];
                 //DX10Files are lossy
-                if (astate is not BA2DX10File && srcDirective.IsDeterministic) 
+                if (astate is not BA2DX10File && srcDirective.IsDeterministic)
                     ThrowOnNonMatchingHash(bsa, srcDirective, astate, hash);
                 return (srcDirective, hash);
             }).ToHashSet();
@@ -408,7 +364,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     private void SetScreenSizeInPrefs()
     {
         var profilesPath = _configuration.Install.Combine("profiles");
-        
+
         // Don't remap files for Native Game Compiler games
         if (!profilesPath.DirectoryExists()) return;
         if (_configuration.SystemParameters == null)
@@ -478,7 +434,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             {
                 _logger.LogCritical(ex, "Skipping screen size remap for {file} due to parse error.", file);
             }
-        
+
         // The Witcher 3
         if (_configuration.Game == Game.Witcher3)
         {
