@@ -134,7 +134,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
         await InstallIncludedFiles(token);
 
-        await InstallIncludedDownloadMetas(token);
+        await WriteMetaFiles(token);
 
         await BuildBSAs(token);
 
@@ -222,7 +222,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         }
     }
 
-    private async Task InstallIncludedDownloadMetas(CancellationToken token)
+    private async Task WriteMetaFiles(CancellationToken token)
     {
         _logger.LogInformation("Looking for downloads by size");
         var bySize = UnoptimizedArchives.ToLookup(x => x.Size);
@@ -231,40 +231,78 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         await _configuration.Downloads.EnumerateFiles()
             .PDoAll(async download =>
             {
+                var metaFile = download.WithExtension(Ext.Meta);
+
                 var found = bySize[download.Size()];
                 var hash = await FileHashCache.FileHashCachedAsync(download, token);
                 var archive = found.FirstOrDefault(f => f.Hash == hash);
-                if (archive == default) return;
 
-                var metaFile = download.WithExtension(Ext.Meta);
-                if (metaFile.FileExists())
+                IEnumerable<string> meta;
+
+                if (archive == default)
                 {
-                    try
+                    // archive is not part of the Modlist
+
+                    if (metaFile.FileExists())
                     {
-                        var parsed = metaFile.LoadIniFile();
-                        if (parsed["General"] is not null && parsed["General"]["unknownArchive"] is null)
+                        try
                         {
-                            // meta doesn't have an associated archive
+                            var parsed = metaFile.LoadIniFile();
+                            if (parsed["General"] is not null && parsed["General"]["removed"] is null)
+                            {
+                                // add removed=true to files not part of the Modlist so they don't show up in MO2
+                                parsed["General"]["removed"] = "true";
+
+                                _logger.LogInformation("Writing {FileName}", metaFile.FileName);
+                                parsed.SaveIniFile(metaFile);
+                            }
+                        }
+                        catch (Exception)
+                        {
                             return;
                         }
+
+                        return;
                     }
-                    catch (Exception)
+
+                    // create new meta file if missing
+                    meta = new[]
                     {
-                        // Ignore
+                        "[General]",
+                        "removed=true"
+                    };
+                }
+                else
+                {
+                    if (metaFile.FileExists())
+                    {
+                        try
+                        {
+                            var parsed = metaFile.LoadIniFile();
+                            if (parsed["General"] is not null && parsed["General"]["unknownArchive"] is null)
+                            {
+                                // meta doesn't have an associated archive
+                                return;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            // ignored
+                        }
                     }
+
+                    meta = AddInstalled(_downloadDispatcher.MetaIni(archive));
                 }
 
                 _logger.LogInformation("Writing {FileName}", metaFile.FileName);
-                var meta = AddInstalled(_downloadDispatcher.MetaIni(archive));
                 await metaFile.WriteAllLinesAsync(meta, token);
             });
     }
 
-    private IEnumerable<string> AddInstalled(IEnumerable<string> getMetaIni)
+    private static IEnumerable<string> AddInstalled(IEnumerable<string> getMetaIni)
     {
         yield return "[General]";
         yield return "installed=true";
-        yield return "removed=true";
 
         foreach (var f in getMetaIni)
         {
