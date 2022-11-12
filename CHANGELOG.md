@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 3.0.4.0 - TBD
+#### Version - 3.0.4.0 - 11/12/2022
 * Upgrade GameFinder to 2.2.1
 * Update to .NET 7.0 (no user updates required)
 * Update to Gallery:
