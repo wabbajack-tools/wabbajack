@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net7.0-windows</TargetFramework>
-        <TargetFramework Condition=" '$(OS)' != 'Windows_NT'">net7.0</TargetFramework>
+        <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net6.0-windows</TargetFramework>
+        <TargetFramework Condition=" '$(OS)' != 'Windows_NT'">net6.0</TargetFramework>
         <Nullable>enable</Nullable>
         <AssemblyName>Wabbajack</AssemblyName>
     </PropertyGroup>
@@ -18,19 +18,19 @@
         <ApplicationIcon>Resources\Icons\wabbajack.ico</ApplicationIcon>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview3" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview4" />
         <PackageReference Include="GitInfo" Version="2.2.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Avalonia" Version="11.0.0-preview3" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview3" />
-        <PackageReference Include="Avalonia.Diagnostics" Version="11.0.0-preview3" />
-        <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.0-preview3" />
+        <PackageReference Include="Avalonia" Version="11.0.0-preview4" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview4" />
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.0.0-preview4" />
+        <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.0-preview4" />
         <PackageReference Include="MessageBox.Avalonia" Version="2.3.1-prev2" />
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.2-mauipre.1.22102.15" />
         <PackageReference Include="ReactiveUI.Fody" Version="18.3.1" />
-        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="7.0.0" />
+        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="6.0.2-mauipre.1.22102.15" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.Downloaders.Http\Wabbajack.Downloaders.Http.csproj" />
