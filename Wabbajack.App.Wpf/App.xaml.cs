@@ -24,7 +24,6 @@ using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.UserIntervention;
 using Wabbajack.Util;
-using WebView2.Runtime.AutoInstaller;
 using Ext = Wabbajack.Common.Ext;
 
 namespace Wabbajack
@@ -50,8 +49,6 @@ namespace Wabbajack
                     Environment.Exit(1);
                 }
             }
-
-            WebView2AutoInstaller.CheckAndInstallAsync(false, false).Wait();
 
             RxApp.MainThreadScheduler = new DispatcherScheduler(Dispatcher.CurrentDispatcher);
             _host = Host.CreateDefaultBuilder(Array.Empty<string>())
