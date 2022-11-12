@@ -9,7 +9,7 @@ namespace Wabbajack.CLI.Builder;
 
 public class CommandLineBuilder
 {
-    private static IServiceProvider _provider;
+    private static IServiceProvider _provider = null!;
     public CommandLineBuilder(IServiceProvider provider)
     {
         _provider = provider;
