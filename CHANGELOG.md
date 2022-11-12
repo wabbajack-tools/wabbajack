@@ -8,7 +8,7 @@
 * Updates to Compilation Screen:
   * Include and Ignore Lists now have an option to add individual files
   * All file/folder pickers now allow selection of multiple files in the same folder
-* Added final installation-step for marking archives as hidden inside MO2 (They can be unhidden by users knowing what they are doing.)
+* Added installation-step for marking archives that weren't used during the installation as hidden inside MO2, to avoid confusion caused by leftover files from failed attempts or other modlist or private downloads (They can be unhidden by users knowing what they are doing.)
 * Fixes to the inferring of settings (please use the re-infer settings button to apply them)
   * Wabbajack compilation tags should now be imported 1:1 to how they worked in 2.5
 * Fixes for file association (double clicking .wabbajack files to open the installation Menu)
