@@ -148,6 +148,8 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         
         SetScreenSizeInPrefs();
 
+        SetDownloadMetasToHideInMO2(token);
+
         await ExtractedModlistFolder!.DisposeAsync();
         await _wjClient.SendMetric(MetricNames.FinishInstall, ModList.Name);
 
@@ -268,6 +270,50 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         {
             yield return f;
         }
+    }
+
+    private async Task SetDownloadMetasToHideInMO2(CancellationToken token)
+    {
+        _logger.LogInformation("Updating Metas To Hide");
+        await _configuration.Downloads.EnumerateFiles()
+            .PDoAll(async download =>
+            {
+                if (download == default) return;
+                if (download.Extension == Ext.Meta) return;
+                
+                var linesToWriteNewFile = new HashSet<string>( );
+                linesToWriteNewFile.Add("[General]");
+                linesToWriteNewFile.Add("removed=true");
+                
+                var lineToWriteAppendFile = new HashSet<string> {"removed=true"};
+                
+                var metaFile = download.WithExtension(Ext.Meta);
+                if (metaFile.FileExists())
+                {
+                    try
+                    {
+                        var parsed = metaFile.LoadIniFile();
+                        if (parsed["General"] != null)
+                        {
+                            _logger.LogInformation("Updating {FileName}", metaFile.FileName);
+
+                            await metaFile.WriteAllLinesAsync(lineToWriteAppendFile,FileMode.Append,token); 
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogInformation("Re-Generating corrupted {FileName}", metaFile.FileName);
+                    
+                        await metaFile.WriteAllLinesAsync(linesToWriteNewFile,FileMode.Create,token); 
+                    }
+                }
+                else //Generate new metas to hide files without metas.
+                {
+                    _logger.LogInformation("Generating {FileName}", metaFile.FileName);
+                    
+                    await metaFile.WriteAllLinesAsync(linesToWriteNewFile,FileMode.Create,token); 
+                }
+            });
     }
 
     private async Task BuildBSAs(CancellationToken token)

@@ -165,6 +165,15 @@ public static class AbsolutePathExtensions
 
         await sw.DisposeAsync();
     }
+    
+    public static async Task WriteAllLinesAsync(this AbsolutePath file, IEnumerable<string> src,
+        FileMode fileMode, CancellationToken token)
+    {
+        await using var dest = file.Open(fileMode, FileAccess.Write, FileShare.None);
+        await using var sw = new StreamWriter(dest, Encoding.UTF8);
+        foreach (var line in src) await sw.WriteLineAsync(line);
+        await sw.DisposeAsync();
+    }
 
     public static async ValueTask WriteAllBytesAsync(this AbsolutePath file, Memory<byte> data,
         CancellationToken token = default)
