@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 3.0.4.1 - TBD
+
+* Fix recursive writing of meta files for meta files
+
 #### Version - 3.0.4.0 - 11/12/2022
 * Upgrade GameFinder to 2.2.1
 * Update to .NET 7.0 (no user updates required)
