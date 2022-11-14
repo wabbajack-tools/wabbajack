@@ -24,7 +24,7 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
             FontSize="14"
-            Text="Installation Location"
+            Text="Modlist Installation Location"
             TextAlignment="Center" />
         <local:FilePicker Grid.Row="0" Grid.Column="2"
             Height="30"
@@ -35,7 +35,7 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
             FontSize="14"
-            Text="Download Location"
+            Text="Resource Download Location"
             TextAlignment="Center" />
         <local:FilePicker Grid.Row="1" Grid.Column="2"
             Height="30"
