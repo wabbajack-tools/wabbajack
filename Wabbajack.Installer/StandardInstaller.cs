@@ -229,9 +229,9 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
         _logger.LogInformation("Writing Metas");
         await _configuration.Downloads.EnumerateFiles()
+            .Where(download => download.Extension != Ext.Meta)
             .PDoAll(async download =>
             {
-                if (download.Extension == Ext.Meta) return;
                 var metaFile = download.WithExtension(Ext.Meta);
 
                 var found = bySize[download.Size()];
