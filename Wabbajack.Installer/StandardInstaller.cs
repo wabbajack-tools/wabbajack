@@ -229,6 +229,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
         _logger.LogInformation("Writing Metas");
         await _configuration.Downloads.EnumerateFiles()
+            .Where(download => download.Extension != Ext.Meta)
             .PDoAll(async download =>
             {
                 var metaFile = download.WithExtension(Ext.Meta);
