@@ -1,8 +1,9 @@
 ### Changelog
 
 #### Version - 3.0.4.1 - TBD
-
 * Improved Admin Check
+* Improved naming of installation fields to clear up some confusion. 
+
 
 #### Version - 3.0.4.0 - 11/12/2022
 * Upgrade GameFinder to 2.2.1
