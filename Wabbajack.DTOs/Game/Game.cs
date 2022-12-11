@@ -49,4 +49,5 @@ public enum Game
 
     [Description("Karryn's Prison")]
     KarrynsPrison,
+    [Description("Modding Tools")] ModdingTools,
 }

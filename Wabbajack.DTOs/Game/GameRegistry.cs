@@ -491,6 +491,15 @@ public static class GameRegistry
                 },
                 MainExecutable = "nw.exe".ToRelativePath()
             }
+        },
+        {
+            Game.ModdingTools, new GameMetaData
+            {
+                Game = Game.ModdingTools,
+                MO2Name = "Modding Tools",
+                MO2ArchiveName = "site",
+                IsGenericMO2Plugin = false,
+            }
         }
     };
 

@@ -258,9 +258,6 @@ public class MO2Compiler : ACompiler
             new IgnorePathContains(this, "SSEEdit Cache"),
             new IgnoreOtherProfiles(this),
             new IgnoreDisabledMods(this),
-            // TODO
-            //new IgnoreTaggedFiles(this, Consts.WABBAJACK_IGNORE_FILES),
-            //new IgnoreTaggedFolders(this,Consts.WABBAJACK_IGNORE),
             new IncludeThisProfile(this),
             // Ignore the ModOrganizer.ini file it contains info created by MO2 on startup
             new IncludeStubbedConfigFiles(this),
