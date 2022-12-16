@@ -498,6 +498,8 @@ public static class GameRegistry
                 Game = Game.ModdingTools,
                 MO2Name = "Modding Tools",
                 MO2ArchiveName = "site",
+                NexusName = "site",
+                NexusGameId = 2295,
                 IsGenericMO2Plugin = false,
             }
         }
