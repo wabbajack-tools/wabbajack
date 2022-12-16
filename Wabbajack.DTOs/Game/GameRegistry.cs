@@ -499,6 +499,8 @@ public static class GameRegistry
                 SteamIDs = new[] { 892970 },
                 MO2Name = "Valheim",
                 MO2ArchiveName = "valheim",
+                NexusName = "valheim",
+                NexusGameId = 3667,
                 IsGenericMO2Plugin = true,
                 RequiredFiles = new []
                 {
