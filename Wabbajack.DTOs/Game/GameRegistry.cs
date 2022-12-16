@@ -491,6 +491,21 @@ public static class GameRegistry
                 },
                 MainExecutable = "nw.exe".ToRelativePath()
             }
+        },
+        {
+            Game.Valheim, new GameMetaData
+            {
+                Game = Game.Valheim,
+                SteamIDs = new[] { 892970 },
+                MO2Name = "Valheim",
+                MO2ArchiveName = "valheim",
+                IsGenericMO2Plugin = true,
+                RequiredFiles = new []
+                {
+                    "valheim.exe".ToRelativePath()
+                },
+                MainExecutable = "valheim.exe".ToRelativePath()
+            }
         }
     };
 

@@ -48,5 +48,5 @@ public enum Game
     [Description("Dragons Dogma Dark Arisen")] DragonsDogma,
 
     [Description("Karryn's Prison")]
-    KarrynsPrison,
+    KarrynsPrison,[Description("Valheim")]Valheim,
 }

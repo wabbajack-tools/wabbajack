@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 3.0.x.x - TBD
+* Game support:
+  * Added support for Valheim
+
 #### Version - 3.0.4.1 - 11/17/2022
 * Fix recursive writing of meta files for meta files
 * Improved Admin Check
