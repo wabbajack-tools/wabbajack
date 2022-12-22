@@ -2,6 +2,8 @@
 
 #### Version - 3.0.x.x - TBD
 * Fix Website Links
+* Game Support:
+  * Added Cyberpunk 2077 Epic Games Store support
 
 #### Version - 3.0.4.1 - 11/17/2022
 * Fix recursive writing of meta files for meta files
