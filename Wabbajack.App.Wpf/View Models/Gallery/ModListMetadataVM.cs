@@ -121,14 +121,14 @@ namespace Wabbajack
                 );
             VersionText = "Modlist version : " + Metadata.Version;
             IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;
-            //https://www.wabbajack.org/#/modlists/info?machineURL=eldersouls
-            OpenWebsiteCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/#/modlists/info?machineURL={Metadata.NamespacedName}")));
+            // https://www.wabbajack.org/modlist/wj-featured/aldrnari
+            OpenWebsiteCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/modlists/{Metadata.NamespacedName}")));
 
             IsLoadingIdle = new Subject<bool>();
             
             ModListContentsCommend = ReactiveCommand.Create(async () =>
             {
-                UIUtils.OpenWebsite(new Uri("https://www.wabbajack.org/search/" + Metadata.NamespacedName));
+                UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/search/{Metadata.NamespacedName}"));
             }, IsLoadingIdle.StartWith(true));
             
             ExecuteCommand = ReactiveCommand.CreateFromTask(async () =>

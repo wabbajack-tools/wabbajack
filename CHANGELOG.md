@@ -1,6 +1,7 @@
 ### Changelog
 
 #### Version - 3.0.x.x - TBD
+* Fix Website Links
 * Game Support:
   * Added Cyberpunk 2077 Epic Games Store support
 
