@@ -509,7 +509,19 @@ public static class GameRegistry
                 },
                 MainExecutable = "valheim.exe".ToRelativePath()
             }
+        },
+        {
+            Game.ModdingTools, new GameMetaData
+            {
+                Game = Game.ModdingTools,
+                MO2Name = "Modding Tools",
+                MO2ArchiveName = "site",
+                NexusName = "site",
+                NexusGameId = 2295,
+                IsGenericMO2Plugin = false,
+            }
         }
+       
     };
 
     public static ILookup<string, GameMetaData> ByNexusName = Games.Values.ToLookup(g => g.NexusName ?? "");

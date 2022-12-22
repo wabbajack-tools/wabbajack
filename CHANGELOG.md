@@ -1,7 +1,7 @@
 ### Changelog
 
-#### Version - 3.0.x.x - TBD
-
+#### Version - 3.0.?.? - TBD
+* Add support for https://www.nexusmods.com/site hosted mods.
 * Fix Website Links
 * Game support:
   * Added support for Valheim
