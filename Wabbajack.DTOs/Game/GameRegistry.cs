@@ -493,6 +493,23 @@ public static class GameRegistry
                 MainExecutable = "nw.exe".ToRelativePath()
             }
         },
+         {
+            Game.Valheim, new GameMetaData
+            {
+                Game = Game.Valheim,
+                SteamIDs = new[] { 892970 },
+                MO2Name = "Valheim",
+                MO2ArchiveName = "valheim",
+                NexusName = "valheim",
+                NexusGameId = 3667,
+                IsGenericMO2Plugin = true,
+                RequiredFiles = new []
+                {
+                    "valheim.exe".ToRelativePath()
+                },
+                MainExecutable = "valheim.exe".ToRelativePath()
+            }
+        },
         {
             Game.ModdingTools, new GameMetaData
             {
@@ -502,8 +519,8 @@ public static class GameRegistry
                 NexusName = "site",
                 NexusGameId = 2295,
                 IsGenericMO2Plugin = false,
-            }
         }
+       
     };
 
     public static ILookup<string, GameMetaData> ByNexusName = Games.Values.ToLookup(g => g.NexusName ?? "");

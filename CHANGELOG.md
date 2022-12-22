@@ -2,7 +2,9 @@
 
 #### Version - 3.0.?.? - TBD
 * Add support for https://www.nexusmods.com/site hosted mods.
-* Game Support:
+* Fix Website Links
+* Game support:
+  * Added support for Valheim
   * Added Cyberpunk 2077 Epic Games Store support
 
 #### Version - 3.0.4.1 - 11/17/2022

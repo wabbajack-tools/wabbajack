@@ -49,5 +49,6 @@ public enum Game
 
     [Description("Karryn's Prison")]
     KarrynsPrison,
+    [Description("Valheim")]Valheim,
     [Description("Modding Tools")] ModdingTools,
 }
