@@ -1,8 +1,10 @@
 ### Changelog
 
 #### Version - 3.0.x.x - TBD
+
 * Fix Website Links
-* Game Support:
+* Game support:
+  * Added support for Valheim
   * Added Cyberpunk 2077 Epic Games Store support
 
 #### Version - 3.0.4.1 - 11/17/2022
