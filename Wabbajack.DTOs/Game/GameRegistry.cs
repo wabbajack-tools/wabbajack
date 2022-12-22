@@ -493,7 +493,7 @@ public static class GameRegistry
                 MainExecutable = "nw.exe".ToRelativePath()
             }
         },
-         {
+        {
             Game.Valheim, new GameMetaData
             {
                 Game = Game.Valheim,
@@ -519,6 +519,7 @@ public static class GameRegistry
                 NexusName = "site",
                 NexusGameId = 2295,
                 IsGenericMO2Plugin = false,
+            }
         }
        
     };
