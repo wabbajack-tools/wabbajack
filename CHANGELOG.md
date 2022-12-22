@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 3.0.?.? - TBD
+#### Version - 3.0.5.0 - 12/22/2022
 * Add support for https://www.nexusmods.com/site hosted mods.
 * Fix Website Links
 * Game support:
