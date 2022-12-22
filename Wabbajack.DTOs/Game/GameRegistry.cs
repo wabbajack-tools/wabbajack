@@ -432,6 +432,7 @@ public static class GameRegistry
                 Game = Game.Cyberpunk2077,
                 SteamIDs = new[] {1091500},
                 GOGIDs = new [] {2093619782, 1423049311},
+                EpicGameStoreIDs = new[] {"5beededaad9743df90e8f07d92df153f"},
                 MO2Name = "Cyberpunk 2077",
                 NexusName = "cyberpunk2077",
                 NexusGameId = 3333,
