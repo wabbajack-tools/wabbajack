@@ -111,7 +111,7 @@ public class GameLocator : IGameLocator
                 }
 
                 paths[id] = path;
-                _logger.LogDebug("Found {Game}", game);
+                _logger.LogInformation("Found {Game}", game);
             }
             catch (Exception e)
             {
