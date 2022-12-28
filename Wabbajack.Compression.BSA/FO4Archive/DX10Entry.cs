@@ -143,6 +143,12 @@ public class DX10Entry : IBA2FileEntry
         ddsHeader.PixelFormat.dwSize = ddsHeader.PixelFormat.GetSize();
         ddsHeader.dwDepth = 1;
         ddsHeader.dwSurfaceFlags = DDS.DDS_SURFACE_FLAGS_TEXTURE | DDS.DDS_SURFACE_FLAGS_MIPMAP;
+        ddsHeader.dwCubemapFlags = _isCubemap == 1 ? (uint)(DDSCAPS2.CUBEMAP
+                   | DDSCAPS2.CUBEMAP_NEGATIVEX | DDSCAPS2.CUBEMAP_POSITIVEX
+                   | DDSCAPS2.CUBEMAP_NEGATIVEY | DDSCAPS2.CUBEMAP_POSITIVEY
+                   | DDSCAPS2.CUBEMAP_NEGATIVEZ | DDSCAPS2.CUBEMAP_POSITIVEZ
+                   | DDSCAPS2.CUBEMAP_ALLFACES) : 0u;
+        
 
         switch ((DXGI_FORMAT) _format)
         {
