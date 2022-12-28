@@ -12,6 +12,7 @@ public static class KnownFolders
     {
         get
         {
+            return AppDomain.CurrentDomain.BaseDirectory.ToAbsolutePath();
             var result = Process.GetCurrentProcess().MainModule?.FileName?.ToAbsolutePath() ?? default;
 
             if (result != default &&

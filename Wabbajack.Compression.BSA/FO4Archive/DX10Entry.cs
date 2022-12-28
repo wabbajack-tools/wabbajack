@@ -18,19 +18,21 @@ namespace Wabbajack.Compression.BSA.FO4Archive;
 public class DX10Entry : IBA2FileEntry
 {
     private readonly Reader _bsa;
-    internal ushort _chunkHdrLen;
-    internal List<TextureChunk> _chunks;
-    internal uint _dirHash;
-    internal string _extension;
-    internal byte _format;
-    internal ushort _height;
-    internal int _index;
-    internal uint _nameHash;
-    internal byte _numChunks;
-    internal byte _numMips;
-    internal ushort _unk16;
-    internal byte _unk8;
-    internal ushort _width;
+    private ushort _chunkHdrLen;
+    private List<TextureChunk> _chunks;
+    private uint _dirHash;
+    private string _extension;
+    private byte _format;
+    private ushort _height;
+    private int _index;
+    private uint _nameHash;
+    private byte _numChunks;
+    private byte _numMips;
+    private ushort _unk16;
+    private byte _unk8;
+    private ushort _width;
+    private readonly byte _isCubemap;
+    private readonly byte _tileMode;
 
     public DX10Entry(Reader ba2Reader, int idx)
     {
@@ -47,7 +49,8 @@ public class DX10Entry : IBA2FileEntry
         _width = _rdr.ReadUInt16();
         _numMips = _rdr.ReadByte();
         _format = _rdr.ReadByte();
-        _unk16 = _rdr.ReadUInt16();
+        _isCubemap = _rdr.ReadByte();
+        _tileMode = _rdr.ReadByte();
         _index = idx;
 
         _chunks = Enumerable.Range(0, _numChunks)
@@ -74,7 +77,8 @@ public class DX10Entry : IBA2FileEntry
         Width = _width,
         NumMips = _numMips,
         PixelFormat = _format,
-        Unk16 = _unk16,
+        IsCubeMap = _isCubemap,
+        TileMode = _tileMode,
         Index = _index,
         Chunks = _chunks.Select(ch => new BA2Chunk
         {
