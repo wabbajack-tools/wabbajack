@@ -112,9 +112,13 @@ public class DownloadDispatcher
     {
         try
         {
-            if (await _verificationCache.Get(a.State) == true)
+            var (valid, newState) = await _verificationCache.Get(a.State);
+            if (valid == true)
+            {
+                a.State = newState;
                 return true;
-            
+            }
+
             a = await MaybeProxy(a, token);
             var downloader = Downloader(a);
             using var job = await _limiter.Begin($"Verifying {a.State.PrimaryKeyString}", -1, token);

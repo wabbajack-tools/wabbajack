@@ -13,6 +13,7 @@ using Wabbajack.Downloaders.GameFile;
 using Wabbajack.Downloaders.VerificationCache;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Interventions;
+using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Installer;
 using Wabbajack.Networking.BethesdaNet;
@@ -73,9 +74,19 @@ public static class ServiceExtensions
             : new BinaryPatchCache(s.GetRequiredService<ILogger<BinaryPatchCache>>(),KnownFolders.WabbajackAppLocal.Combine("PatchCache")));
 
         
-        service.AddSingleton<IVerificationCache>(s => options.UseLocalCache
-            ? new VerificationCache(s.GetRequiredService<ILogger<VerificationCache>>(), s.GetService<TemporaryFileManager>()!.CreateFile().Path, TimeSpan.FromDays(1))
-            : new VerificationCache(s.GetRequiredService<ILogger<VerificationCache>>(),KnownFolders.WabbajackAppLocal.Combine("VerificationCache.sqlite"), TimeSpan.FromDays(1)));
+        service.AddSingleton<IVerificationCache>(s =>
+        {
+            var dtos = s.GetRequiredService<DTOSerializer>();
+            return options.UseLocalCache
+                ? new VerificationCache(s.GetRequiredService<ILogger<VerificationCache>>(),
+                    s.GetService<TemporaryFileManager>()!.CreateFile().Path, 
+                    TimeSpan.FromDays(1),
+                    dtos)
+                : new VerificationCache(s.GetRequiredService<ILogger<VerificationCache>>(),
+                    KnownFolders.WabbajackAppLocal.Combine("VerificationCacheV2.sqlite"), 
+                    TimeSpan.FromDays(1),
+                    dtos);
+        });
 
         service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount});
 

@@ -5,6 +5,6 @@ namespace Wabbajack.Downloaders.VerificationCache;
 
 public interface IVerificationCache
 {
-    Task<bool?> Get(IDownloadState archive);
+    Task<(bool? IsValid, IDownloadState State)> Get(IDownloadState archive);
     Task Put(IDownloadState archive, bool valid);
 }
