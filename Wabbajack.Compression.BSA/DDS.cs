@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using Wabbajack.DTOs.Texture;
 
@@ -64,6 +65,19 @@ public enum DXT10_RESOURCE_DIMENSION
     DIMENSION_TEXTURE1D = 2,
     DIMENSION_TEXTURE2D = 3,
     DIMENSION_TEXTURE3D = 4
+}
+
+[Flags]
+public enum DDSCAPS2 : uint
+{
+    CUBEMAP = 0x200,
+    CUBEMAP_POSITIVEX = 0x400,
+    CUBEMAP_NEGATIVEX = 0x800,
+    CUBEMAP_POSITIVEY = 0x1000,
+    CUBEMAP_NEGATIVEY = 0x2000,
+    CUBEMAP_POSITIVEZ = 0x4000,
+    CUBEMAP_NEGATIVEZ = 0x8000,
+    CUBEMAP_ALLFACES = 0xFC00
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]

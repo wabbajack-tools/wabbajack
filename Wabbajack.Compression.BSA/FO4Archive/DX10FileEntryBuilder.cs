@@ -31,7 +31,8 @@ public class DX10FileEntryBuilder : IFileBuilder
         bw.Write(_state.Width);
         bw.Write(_state.NumMips);
         bw.Write(_state.PixelFormat);
-        bw.Write(_state.Unk16);
+        bw.Write((byte)_state.IsCubeMap);
+        bw.Write((byte)_state.TileMode);
 
         foreach (var chunk in _chunks)
             chunk.WriteHeader(bw);

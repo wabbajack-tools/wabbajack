@@ -1,7 +1,9 @@
 ﻿using System.Data.SQLite;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -15,12 +17,14 @@ public class VerificationCache : IVerificationCache, IDisposable
     private readonly SQLiteConnection _conn;
     private readonly TimeSpan _expiry;
     private readonly ILogger<VerificationCache> _logger;
+    private readonly DTOSerializer _dtos;
 
-    public VerificationCache(ILogger<VerificationCache> logger, AbsolutePath location, TimeSpan expiry)
+    public VerificationCache(ILogger<VerificationCache> logger, AbsolutePath location, TimeSpan expiry, DTOSerializer dtos)
     {
         _logger = logger;
         _location = location;
         _expiry = expiry;
+        _dtos = dtos;
 
         if (!_location.Parent.DirectoryExists())
             _location.Parent.CreateDirectory();
@@ -34,17 +38,18 @@ public class VerificationCache : IVerificationCache, IDisposable
         using var cmd = new SQLiteCommand(_conn);
         cmd.CommandText = @"CREATE TABLE IF NOT EXISTS VerficationCache (
             PKS TEXT PRIMARY KEY,
-            LastModified BIGINT)
+            LastModified BIGINT,
+            State TEXT)
             WITHOUT ROWID";
         cmd.ExecuteNonQuery();
     }
 
-    public async Task<bool?> Get(IDownloadState archive)
+    public async Task<(bool?, IDownloadState?)> Get(IDownloadState archive)
     {
         var key = archive.PrimaryKeyString;
 
         await using var cmd = new SQLiteCommand(_conn);
-        cmd.CommandText = "SELECT LastModified FROM VerficationCache WHERE PKS = @pks";
+        cmd.CommandText = "SELECT LastModified, State FROM VerficationCache WHERE PKS = @pks";
         cmd.Parameters.AddWithValue("@pks", key);
         await cmd.PrepareAsync();
 
@@ -52,10 +57,12 @@ public class VerificationCache : IVerificationCache, IDisposable
         while (await reader.ReadAsync())
         {
             var ts = DateTime.FromFileTimeUtc(reader.GetInt64(0));
-            return DateTime.UtcNow - ts <= _expiry;
+            var state = JsonSerializer.Deserialize<IDownloadState>(reader.GetString(1), _dtos.Options);
+            
+            return (DateTime.UtcNow - ts <= _expiry, state);
         }
 
-        return null;
+        return (null, null);
     }
 
     public async Task Put(IDownloadState state, bool valid)
@@ -64,10 +71,11 @@ public class VerificationCache : IVerificationCache, IDisposable
         if (valid)
         {
             await using var cmd = new SQLiteCommand(_conn);
-            cmd.CommandText = @"INSERT INTO VerficationCache (PKS, LastModified) VALUES (@pks, @lastModified)
-            ON CONFLICT(PKS) DO UPDATE SET LastModified = @lastModified";
+            cmd.CommandText = @"INSERT INTO VerficationCache (PKS, LastModified, State) VALUES (@pks, @lastModified, @state)
+            ON CONFLICT(PKS) DO UPDATE SET LastModified = @lastModified, State = @state";
             cmd.Parameters.AddWithValue("@pks", key);
             cmd.Parameters.AddWithValue("@lastModified", DateTime.UtcNow.ToFileTimeUtc());
+            cmd.Parameters.AddWithValue("@state", JsonSerializer.Serialize(state, _dtos.Options));
             await cmd.PrepareAsync();
 
             await cmd.ExecuteNonQueryAsync();

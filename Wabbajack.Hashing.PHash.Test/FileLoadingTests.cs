@@ -1,4 +1,7 @@
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Shipwreck.Phash;
 using Wabbajack.DTOs.Texture;
 using Wabbajack.Paths;
@@ -29,4 +32,27 @@ public class FileLoadingTests
                 new Digest {Coefficients = state.PerceptualHash.Data}),
             1.0);
     }
+
+    [Fact]
+    public async Task CanConvertCubeMaps()
+    {
+        // File used here via re-upload permissions found on the mod's Nexus page:
+        // https://www.nexusmods.com/fallout4/mods/43458?tab=description
+        // Used for testing purposes only
+        var path = "TestData/WindowDisabled_CGPlayerHouseCube.dds".ToRelativePath().RelativeTo(KnownFolders.EntryPoint);
+        
+        var baseState = await ImageLoader.Load(path);
+        baseState.Height.Should().Be(128);
+        baseState.Width.Should().Be(128);
+        //baseState.Frames.Should().Be(6);
+
+        using var ms = new MemoryStream();
+        await using var ins = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+        await ImageLoader.Recompress(ins, 128, 128, DXGI_FORMAT.BC1_UNORM, ms, CancellationToken.None, leaveOpen:true);
+        ms.Length.Should().Be(ins.Length);
+
+
+
+    }
+
 }

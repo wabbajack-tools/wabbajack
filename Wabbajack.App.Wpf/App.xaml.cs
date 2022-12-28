@@ -145,7 +145,7 @@ namespace Wabbajack
             config.AddRuleForAllLevels(uiTarget);
 
             loggingBuilder.ClearProviders();
-            loggingBuilder.SetMinimumLevel(LogLevel.Trace);
+            loggingBuilder.SetMinimumLevel(LogLevel.Information);
             loggingBuilder.AddNLog(config);
         }
 

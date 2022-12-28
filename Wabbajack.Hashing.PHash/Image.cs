@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,12 +72,24 @@ public class ImageLoader
     {
         var decoder = new BcDecoder();
         var ddsFile = DdsFile.Load(input);
-
+        
         if (!leaveOpen) await input.DisposeAsync();
 
-        var data = await decoder.DecodeToImageRgba32Async(ddsFile, token);
+        var faces = new List<Image<Rgba32>>();
+        
+        var origFormat = ddsFile.dx10Header.dxgiFormat == DxgiFormat.DxgiFormatUnknown
+            ? ddsFile.header.ddsPixelFormat.DxgiFormat
+            : ddsFile.dx10Header.dxgiFormat;
 
-        data.Mutate(x => x.Resize(width, height, KnownResamplers.Welch));
+        foreach (var face in ddsFile.Faces)
+        {
+
+            var data = await decoder.DecodeRawToImageRgba32Async(face.MipMaps[0].Data, 
+                (int)face.Width, (int)face.Height, ToCompressionFormat((DXGI_FORMAT)origFormat), token);
+
+            data.Mutate(x => x.Resize(width, height, KnownResamplers.Welch));
+            faces.Add(data);
+        }
 
         var encoder = new BcEncoder
         {
@@ -88,9 +101,20 @@ public class ImageLoader
                 FileFormat = OutputFileFormat.Dds
             }
         };
-        var file = await encoder.EncodeToDdsAsync(data, token);
-        file.Write(output);
-
+        
+        switch (faces.Count)
+        {
+            case 1:
+                (await encoder.EncodeToDdsAsync(faces[0], token)).Write(output);
+                break;
+            case 6:
+                (await encoder.EncodeCubeMapToDdsAsync(faces[0], faces[1], faces[2], faces[3], faces[4], faces[5], token))
+                    .Write(output);
+                break;
+            default:
+                throw new NotImplementedException($"Can't encode dds with {faces.Count} faces");
+        }
+        
         if (!leaveOpen)
             await output.DisposeAsync();
     }

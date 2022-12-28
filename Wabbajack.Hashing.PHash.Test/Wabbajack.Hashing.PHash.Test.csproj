@@ -11,6 +11,7 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
+        <PackageReference Include="FluentAssertions" Version="6.8.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0-preview-20221003-04" />
         <PackageReference Include="Shipwreck.Phash" Version="0.5.0" />
         <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
@@ -37,6 +38,9 @@
         </None>
         <None Update="TestData\test-dxt5-small-bc7-vflip.dds">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="TestData\WindowDisabled_CGPlayerHouseCube.dds">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 

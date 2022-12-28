@@ -8,8 +8,6 @@ public class BA2DX10File : AFile
 {
     public BA2Chunk[] Chunks { get; set; }
 
-    public ushort Unk16 { get; set; }
-
     public byte PixelFormat { get; set; }
 
     public byte NumMips { get; set; }
@@ -27,4 +25,6 @@ public class BA2DX10File : AFile
     public string Extension { get; set; }
 
     public uint NameHash { get; set; }
+    public byte IsCubeMap { get; set; }
+    public byte TileMode { get; set; }
 }
