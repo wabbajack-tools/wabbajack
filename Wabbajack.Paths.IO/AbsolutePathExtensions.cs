@@ -41,6 +41,18 @@ public static class AbsolutePathExtensions
                     throw;
                 }
             }
+            catch (IOException ex)
+            {
+                if (ex.Message.Contains("because it is being used by another process"))
+                {
+                    Thread.Sleep(1000);
+                    File.Delete(path);
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
         if (Directory.Exists(path))
             file.DeleteDirectory();

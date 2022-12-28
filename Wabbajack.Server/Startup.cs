@@ -23,6 +23,7 @@ using Newtonsoft.Json;
 using Octokit;
 using Wabbajack.BuildServer;
 using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.VerificationCache;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Logins;
@@ -97,6 +98,7 @@ public class Startup
             var settings = s.GetRequiredService<AppSettings>();
             return new TemporaryFileManager(settings.TempPath.Combine(Environment.ProcessId + "_" + Guid.NewGuid()));
         });
+        services.AddSingleton<IVerificationCache, NullCache>();
             
         services.AddAllSingleton<ITokenProvider<WabbajackApiState>, WabbajackApiTokenProvider>();
         services.AddAllSingleton<IResource, IResource<DownloadDispatcher>>(s => new Resource<DownloadDispatcher>("Downloads", 12));
