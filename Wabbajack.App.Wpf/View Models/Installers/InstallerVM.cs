@@ -505,7 +505,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "While loading slide");
+            _logger.LogTrace(ex, "While loading slide");
         }
     }
 
