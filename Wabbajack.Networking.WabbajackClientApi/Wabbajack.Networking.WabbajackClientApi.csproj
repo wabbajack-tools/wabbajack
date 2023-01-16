@@ -13,7 +13,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.3" />
-        <PackageReference Include="Octokit" Version="4.0.1" />
+        <PackageReference Include="Octokit" Version="4.0.4" />
         <PackageReference Include="YamlDotNet" Version="12.0.2" />
     </ItemGroup>
 
