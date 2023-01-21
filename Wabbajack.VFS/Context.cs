@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.FileExtractor.ExtractedFiles;
+using Wabbajack.Hashing.PHash;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -32,7 +33,8 @@ public class Context
 
     public Context(ILogger<Context> logger, ParallelOptions parallelOptions, TemporaryFileManager manager,
         IVfsCache vfsCache,
-        FileHashCache hashCache, IResource<Context> limiter, IResource<FileHashCache> hashLimiter, FileExtractor.FileExtractor extractor)
+        FileHashCache hashCache, IResource<Context> limiter, IResource<FileHashCache> hashLimiter, 
+        FileExtractor.FileExtractor extractor, IImageLoader imageLoader)
     {
         Limiter = limiter;
         HashLimiter = hashLimiter;
@@ -42,16 +44,18 @@ public class Context
         VfsCache = vfsCache;
         HashCache = hashCache;
         _parallelOptions = parallelOptions;
+        ImageLoader = imageLoader;
     }
 
     public Context WithTemporaryFileManager(TemporaryFileManager manager)
     {
         return new Context(Logger, _parallelOptions, manager, VfsCache, HashCache, Limiter, HashLimiter,
-            Extractor.WithTemporaryFileManager(manager));
+            Extractor.WithTemporaryFileManager(manager), ImageLoader);
     }
 
 
     public IndexRoot Index { get; private set; } = IndexRoot.Empty;
+    public IImageLoader ImageLoader { get; }
 
     public async Task<IndexRoot> AddRoot(AbsolutePath root, CancellationToken token)
     {

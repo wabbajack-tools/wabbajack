@@ -17,6 +17,7 @@ using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.FileExtractor.ExtractedFiles;
+using Wabbajack.Hashing.PHash;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer;
 using Wabbajack.Networking.WabbajackClientApi;
@@ -64,7 +65,8 @@ public abstract class ACompiler
         TemporaryFileManager manager, CompilerSettings settings,
         ParallelOptions parallelOptions, DownloadDispatcher dispatcher, Client wjClient, IGameLocator locator,
         DTOSerializer dtos, IResource<ACompiler> compilerLimiter,
-        IBinaryPatchCache patchCache)
+        IBinaryPatchCache patchCache,
+        IImageLoader imageLoader)
     {
         CompilerLimiter = compilerLimiter;
         _logger = logger;
@@ -83,8 +85,11 @@ public abstract class ACompiler
         _patchOptions = new ConcurrentDictionary<PatchedFromArchive, VirtualFile[]>();
         _sourceFileLinks = new ConcurrentDictionary<Directive, RawSourceFile>();
         _patchCache = patchCache;
+        ImageLoader = imageLoader;
         _updateStopWatch = new Stopwatch();
     }
+
+    public IImageLoader ImageLoader { get; }
 
     protected long MaxSteps { get; set; }
 

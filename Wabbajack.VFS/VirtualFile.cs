@@ -204,7 +204,7 @@ public class VirtualFile
         if (TextureExtensions.Contains(relPath.FileName.Extension) && await DDSSig.MatchesAsync(stream) != null)
             try
             {
-                self.ImageState = await ImageLoader.Load(stream);
+                self.ImageState = await context.ImageLoader.Load(stream);
                 if (job != null)
                 {
                     job.Size += self.Size;

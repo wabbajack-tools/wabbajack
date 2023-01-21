@@ -13,9 +13,23 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
         <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
         <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
         <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Tools" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Tools\texconv.exe">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Tools\texdiag.exe">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>
