@@ -519,7 +519,7 @@ public static class GameRegistry
                 MO2Name = "Mount & Blade II: Bannerlord",
                 MO2ArchiveName = "mountandblade2",
                 SteamIDs = new[] { 261550 },
-                IsGenericMO2Plugin = false,
+                IsGenericMO2Plugin = true,
                 RequiredFiles = new []
                 {
                     @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath() 
