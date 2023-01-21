@@ -34,7 +34,7 @@ public class MatchSimilarTextures : ACompilationStep
             _compiler._logger.LogInformation("Looking for texture match for {source}", source.File.FullPath);
             (float Similarity, VirtualFile File) found = _byName[source.Path.FileNameWithoutExtension]
                 .Select(f => (
-                    ImageLoader.ComputeDifference(f.ImageState!.PerceptualHash, source.File.ImageState.PerceptualHash),
+                    IImageLoader.ComputeDifference(f.ImageState!.PerceptualHash, source.File.ImageState.PerceptualHash),
                     f))
                 .Select(f => { return f; })
                 .OrderByDescending(f => f.Item1)
@@ -58,7 +58,7 @@ public class MatchSimilarTextures : ACompilationStep
                     from mainMatch in _byName[mainFile.FullPath.FileName.FileNameWithoutExtension]
                     where mainMatch.ImageState != null
                     where mainFile.ImageState != null
-                    let similarity = ImageLoader.ComputeDifference(mainFile.ImageState!.PerceptualHash,
+                    let similarity = IImageLoader.ComputeDifference(mainFile.ImageState!.PerceptualHash,
                         mainMatch.ImageState!.PerceptualHash)
                     where similarity >= PerceptualTolerance
                     orderby similarity descending

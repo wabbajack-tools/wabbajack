@@ -14,6 +14,7 @@ using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Hashing.PHash;
 using Wabbajack.Installer;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
@@ -30,9 +31,10 @@ public class MO2Compiler : ACompiler
         TemporaryFileManager manager, CompilerSettings settings, ParallelOptions parallelOptions,
         DownloadDispatcher dispatcher,
         Client wjClient, IGameLocator locator, DTOSerializer dtos, IResource<ACompiler> compilerLimiter,
-        IBinaryPatchCache patchCache) :
+        IBinaryPatchCache patchCache,
+        IImageLoader imageLoader) :
         base(logger, extractor, hashCache, vfs, manager, settings, parallelOptions, dispatcher, wjClient, locator, dtos,
-            compilerLimiter, patchCache)
+            compilerLimiter, patchCache, imageLoader)
     {
         MaxSteps = 14;
     }
@@ -51,7 +53,8 @@ public class MO2Compiler : ACompiler
             provider.GetRequiredService<IGameLocator>(),
             provider.GetRequiredService<DTOSerializer>(),
             provider.GetRequiredService<IResource<ACompiler>>(),
-            provider.GetRequiredService<IBinaryPatchCache>());
+            provider.GetRequiredService<IBinaryPatchCache>(),
+            provider.GetRequiredService<IImageLoader>());
     }
 
     public CompilerSettings Mo2Settings => (CompilerSettings) Settings;

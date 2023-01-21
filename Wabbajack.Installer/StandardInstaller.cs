@@ -23,6 +23,7 @@ using Wabbajack.DTOs.BSA.FileStates;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Hashing.PHash;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer.Utilities;
 using Wabbajack.Networking.WabbajackClientApi;
@@ -40,9 +41,9 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         InstallerConfiguration config,
         IGameLocator gameLocator, FileExtractor.FileExtractor extractor,
         DTOSerializer jsonSerializer, Context vfs, FileHashCache fileHashCache,
-        DownloadDispatcher downloadDispatcher, ParallelOptions parallelOptions, IResource<IInstaller> limiter, Client wjClient) :
+        DownloadDispatcher downloadDispatcher, ParallelOptions parallelOptions, IResource<IInstaller> limiter, Client wjClient, IImageLoader imageLoader) :
         base(logger, config, gameLocator, extractor, jsonSerializer, vfs, fileHashCache, downloadDispatcher,
-            parallelOptions, limiter, wjClient)
+            parallelOptions, limiter, wjClient, imageLoader)
     {
         MaxSteps = 14;
     }
@@ -59,7 +60,8 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             provider.GetRequiredService<DownloadDispatcher>(),
             provider.GetRequiredService<ParallelOptions>(),
             provider.GetRequiredService<IResource<IInstaller>>(),
-            provider.GetRequiredService<Client>());
+            provider.GetRequiredService<Client>(),
+            provider.GetRequiredService<IImageLoader>());
     }
 
     public override async Task<bool> Begin(CancellationToken token)
