@@ -252,6 +252,18 @@ public static class AbsolutePathExtensions
         return file.ToString();
     }
 
+    public static async Task CopyToAsync(this Stream from, AbsolutePath path, CancellationToken token = default)
+    {
+        await using var to = path.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+        await from.CopyToAsync(to, token);
+    }
+    
+    public static async Task CopyToAsync(this AbsolutePath from, Stream to, CancellationToken token = default)
+    {
+        await using var fromStream = from.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+        await fromStream.CopyToAsync(to, token);
+    }
+
     #region Directories
 
     public static void CreateDirectory(this AbsolutePath path)

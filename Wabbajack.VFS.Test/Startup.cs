@@ -1,7 +1,9 @@
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs;
+using Wabbajack.Hashing.PHash;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.VFS.Interfaces;
@@ -28,6 +30,13 @@ public class Startup
             .AddAllSingleton<IResource, IResource<FileHashCache>, Resource<FileHashCache>>(
                 s =>
                     new ("File Hash Cache", 2));
+        
+        // ImageLoader
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            service.AddSingleton<IImageLoader, TexConvImageLoader>();
+        else 
+            service.AddSingleton<IImageLoader, CrossPlatformImageLoader>();
+
 
         // Keep this fixed at 2 so that we can detect deadlocks in the VFS parallelOptions
         service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = 2});

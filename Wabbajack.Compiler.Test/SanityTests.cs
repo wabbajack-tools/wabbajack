@@ -28,10 +28,13 @@ public class CompilerSanityTests : IAsyncLifetime
     private readonly IServiceProvider _serviceProvider;
     private Mod _mod;
     private ModList? _modlist;
+    private readonly IImageLoader _imageLoader;
 
     public CompilerSanityTests(ILogger<CompilerSanityTests> logger, IServiceProvider serviceProvider,
         FileExtractor.FileExtractor fileExtractor,
-        TemporaryFileManager manager, ParallelOptions parallelOptions)
+        TemporaryFileManager manager, 
+        ParallelOptions parallelOptions,
+        IImageLoader imageLoader)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
@@ -40,6 +43,7 @@ public class CompilerSanityTests : IAsyncLifetime
         _fileExtractor = fileExtractor;
         _manager = manager;
         _parallelOptions = parallelOptions;
+        _imageLoader = imageLoader;
     }
 
 
@@ -195,12 +199,12 @@ public class CompilerSanityTests : IAsyncLifetime
 
         foreach (var file in _mod.FullPath.EnumerateFiles())
         {
-            var oldState = await ImageLoader.Load(file);
+            var oldState = await _imageLoader.Load(file);
             Assert.NotEqual(DXGI_FORMAT.UNKNOWN, oldState.Format);
             _logger.LogInformation("Recompressing {file}", file.FileName);
-            await ImageLoader.Recompress(file, 512, 512, DXGI_FORMAT.BC7_UNORM, file, CancellationToken.None);
+            await _imageLoader.Recompress(file, 512, 512, DXGI_FORMAT.BC7_UNORM, file, CancellationToken.None);
 
-            var state = await ImageLoader.Load(file);
+            var state = await _imageLoader.Load(file);
             Assert.Equal(DXGI_FORMAT.BC7_UNORM, state.Format);
         }
 

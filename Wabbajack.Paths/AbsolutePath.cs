@@ -85,7 +85,12 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
         }
     }
 
-    public AbsolutePath ReplaceExtension(Extension newExtension)
+    /// <summary>
+    /// Returns a new path that is this path with the extension changed.
+    /// </summary>
+    /// <param name="newExtension"></param>
+    /// <returns></returns>
+    public readonly AbsolutePath ReplaceExtension(Extension newExtension)
     {
         var paths = new string[Parts.Length];
         Array.Copy(Parts, paths, paths.Length);
@@ -94,7 +99,7 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
         paths[^1] = newName;
         return new AbsolutePath(paths, PathFormat);
     }
-
+    
     public static explicit operator AbsolutePath(string input)
     {
         return Parse(input);
