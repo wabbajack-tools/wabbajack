@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -19,11 +20,21 @@ public class FileLoadingTests : IAsyncDisposable
     public FileLoadingTests()
     {
         _tmp = new TemporaryFileManager();
-        _imageLoaders = new IImageLoader[]
+        
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+            _imageLoaders = new IImageLoader[]
+            {
+                new CrossPlatformImageLoader(),
+                new TexConvImageLoader(_tmp)
+            };
+        }
+        else
         {
-            new CrossPlatformImageLoader(),
-            new TexConvImageLoader(_tmp)
-        };
+            _imageLoaders = new IImageLoader[]
+            {
+                new CrossPlatformImageLoader(),
+            };
+        }
     }
     
     [Theory]
