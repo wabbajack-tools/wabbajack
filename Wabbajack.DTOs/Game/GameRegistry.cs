@@ -511,6 +511,23 @@ public static class GameRegistry
             }
         },
         {
+            Game.MountAndBlade2Bannerlord, new GameMetaData
+            {
+                Game = Game.MountAndBlade2Bannerlord,
+                NexusName = "mountandblade2bannerlord",
+                NexusGameId = 3174,
+                MO2Name = "Mount & Blade II: Bannerlord",
+                MO2ArchiveName = "mountandblade2",
+                SteamIDs = new[] { 261550 },
+                IsGenericMO2Plugin = false,
+                RequiredFiles = new []
+                {
+                    @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath() 
+                },
+                MainExecutable = @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath() 
+            }
+        },
+        {
             Game.ModdingTools, new GameMetaData
             {
                 Game = Game.ModdingTools,
