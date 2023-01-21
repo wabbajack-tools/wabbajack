@@ -49,6 +49,7 @@ public enum Game
 
     [Description("Karryn's Prison")]
     KarrynsPrison,
+    [Description("Mount & Blade II: Bannerlord")] MountAndBlade2Bannerlord,
     [Description("Valheim")]Valheim,
     [Description("Modding Tools")] ModdingTools,
 }
