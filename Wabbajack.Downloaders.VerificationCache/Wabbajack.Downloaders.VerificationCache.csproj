@@ -13,7 +13,7 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.3" />
-      <PackageReference Include="Stub.System.Data.SQLite.Core.NetStandard" Version="1.0.116" />
+      <PackageReference Include="Stub.System.Data.SQLite.Core.NetStandard" Version="1.0.117" />
     </ItemGroup>
 
 </Project>
