@@ -517,8 +517,13 @@ public static class GameRegistry
                 NexusName = "mountandblade2bannerlord",
                 NexusGameId = 3174,
                 MO2Name = "Mount & Blade II: Bannerlord",
-                MO2ArchiveName = "mountandblade2",
+                MO2ArchiveName = "mountandblade2bannerlord",
                 SteamIDs = new[] { 261550 },
+                GOGIDs = new [] {
+                    1564781494, //Mount & Blade II: Bannerlord : Game
+                    1681929523, //Mount & Blade II: Bannerlord - Digital Deluxe : Package
+                    1802539526, //Mount & Blade II: Bannerlord : Package
+                },
                 IsGenericMO2Plugin = true,
                 RequiredFiles = new []
                 {
