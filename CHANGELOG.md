@@ -3,6 +3,7 @@
 #### Version - 3.0.6.1 - TBD
 * Game support:
   * Added Mount & Blade II: Bennerlord support (Steam,GOG) 
+* Fixed BA2 files not being compressed properly due to MipMaps not being detected properly
 
 #### Version - 3.0.6.0 - 1/21/2023
 * Add support for Cubemaps in BA2 files, if you have problems with BA2 recompression, be sure to delete your `GlobalVFSCache3.sqlite` from your AppData before the next compile
