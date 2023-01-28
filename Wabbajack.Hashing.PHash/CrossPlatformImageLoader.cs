@@ -101,7 +101,7 @@ public class CrossPlatformImageLoader : IImageLoader
                 GenerateMipMaps = true,
                 Format = ToCompressionFormat(format),
                 FileFormat = OutputFileFormat.Dds,
-                MaxMipMapLevel = mipMaps
+                MaxMipMapLevel = mipMaps != 0 ? mipMaps : -1
             }
         };
 

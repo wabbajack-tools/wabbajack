@@ -46,8 +46,9 @@ public class FileLoadingTests : IAsyncDisposable
     {
         foreach (var imageLoader in _imageLoaders)
         {
+            var inputFile = "TestData/test-dxt5.dds".ToRelativePath().RelativeTo(KnownFolders.EntryPoint);
             var baseState =
-                await imageLoader.Load("TestData/test-dxt5.dds".ToRelativePath().RelativeTo(KnownFolders.EntryPoint));
+                await imageLoader.Load(inputFile);
             var state = await imageLoader.Load("TestData".ToRelativePath().Combine(file)
                 .RelativeTo(KnownFolders.EntryPoint));
 
@@ -58,6 +59,9 @@ public class FileLoadingTests : IAsyncDisposable
                     new Digest { Coefficients = baseState.PerceptualHash.Data },
                     new Digest { Coefficients = state.PerceptualHash.Data }),
                 1.0);
+
+            await using var outFile = _tmp.CreateFile();
+            await imageLoader.Recompress(inputFile, 64, 64, 0, DXGI_FORMAT.BC7_UNORM, outFile, CancellationToken.None);
         }
     }
 

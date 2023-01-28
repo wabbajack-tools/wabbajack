@@ -1,8 +1,12 @@
 ### Changelog
 
+#### Version - 3.0.6.2 - 1/28/2023
+* Add fallback for DDS compression when installing older lists. This should keep older DDS files from not being compressed without any mipmaps at all.
+* 
+
 #### Version - 3.0.6.1 - 1/28/2023
 * Game support:
-  * Added Mount & Blade II: Bennerlord support (Steam,GOG) 
+  * Added Mount & Blade II: Bennerlord support (Steam,GOG)
 * Fixed BA2 files not being compressed properly due to MipMaps not being detected properly
 
 #### Version - 3.0.6.0 - 1/21/2023

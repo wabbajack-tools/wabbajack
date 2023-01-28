@@ -83,11 +83,29 @@ public class TexConvImageLoader : IImageLoader
     
     public async Task ConvertImage(AbsolutePath from, AbsolutePath toFolder, int w, int h, int mipMaps, DXGI_FORMAT format, Extension fileFormat)
     {
-        // User isn't renaming the file, so we don't have to create a temporary folder
+        object[] args;
+        if (mipMaps != 0)
+        {
+            args = new object[]
+            {
+                from, "-ft", fileFormat.ToString()[1..], "-f", format, "-o", toFolder, "-w", w, "-h", h, "-m", mipMaps,
+                "-if", "CUBIC", "-singleproc"
+            };
+        }
+        else
+        {
+            args = new object[]
+            {
+                from, "-ft", fileFormat.ToString()[1..], "-f", format, "-o", toFolder, "-w", w, "-h", h,
+                "-if", "CUBIC", "-singleproc"
+            };
+        }
+
+            // User isn't renaming the file, so we don't have to create a temporary folder
         var ph = new ProcessHelper
         {
             Path = @"Tools\texconv.exe".ToRelativePath().RelativeTo(KnownFolders.EntryPoint),
-            Arguments = new object[] {from, "-ft", fileFormat.ToString()[1..], "-f", format, "-o", toFolder, "-w", w, "-h", h, "-m", mipMaps, "-if", "CUBIC", "-singleproc"},
+            Arguments = args,
             ThrowOnNonZeroExitCode = true,
             LogError = true
         }; 
