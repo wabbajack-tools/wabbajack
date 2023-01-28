@@ -43,6 +43,7 @@ public class CrossPlatformImageLoader : IImageLoader
         {
             Width = data.Width,
             Height = data.Height,
+            MipLevels = (int)ddsFile.header.dwMipMapCount,
             Format = (DXGI_FORMAT) format
         };
 
