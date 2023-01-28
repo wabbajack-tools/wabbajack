@@ -261,7 +261,7 @@ public abstract class AInstaller<T>
                         await using var s = await sf.GetStream();
                         await using var of = destPath.Open(FileMode.Create, FileAccess.Write);
                         _logger.LogInformation("Recompressing {Filename}", tt.To.FileName);
-                        await ImageLoader.Recompress(s, tt.ImageState.Width, tt.ImageState.Height, tt.ImageState.Format,
+                        await ImageLoader.Recompress(s, tt.ImageState.Width, tt.ImageState.Height, tt.ImageState.MipLevels, tt.ImageState.Format,
                             of, token);
                     }
                         break;

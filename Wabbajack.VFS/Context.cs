@@ -136,13 +136,13 @@ public class Context
                         token,
                         fileNames.Keys.ToHashSet());
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     await using var stream = await sfn.GetStream();
                     var hash = await stream.HashingCopy(Stream.Null, token);
                     if (hash != file.Hash)
                         throw new Exception(
-                            $"File {file.FullPath} is corrupt, please delete it and retry the installation");
+                            $"File {file.FullPath} is corrupt, please delete it and retry the installation, {ex.Message}", ex);
                     throw;
                 }
             }

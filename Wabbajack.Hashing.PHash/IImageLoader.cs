@@ -18,10 +18,10 @@ public interface IImageLoader
             new Digest {Coefficients = b.Data});
     }
 
-    public Task Recompress(AbsolutePath input, int width, int height, DXGI_FORMAT format,
+    public Task Recompress(AbsolutePath input, int width, int height, int mipMaps, DXGI_FORMAT format,
         AbsolutePath output,
         CancellationToken token);
 
-    public Task Recompress(Stream input, int width, int height, DXGI_FORMAT format, Stream output,
+    public Task Recompress(Stream input, int width, int height, int mipMaps, DXGI_FORMAT format, Stream output,
         CancellationToken token, bool leaveOpen = false);
 }

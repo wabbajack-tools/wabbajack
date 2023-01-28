@@ -20,24 +20,31 @@ public class Builder : IBuilder
 
     public async ValueTask AddFile(AFile state, Stream src, CancellationToken token)
     {
-        switch (_state.Type)
+        try
         {
-            case BA2EntryType.GNRL:
-                var result = await FileEntryBuilder.Create((BA2File) state, src, _slab, token);
-                lock (_entries)
-                {
-                    _entries.Add(result);
-                }
+            switch (_state.Type)
+            {
+                case BA2EntryType.GNRL:
+                    var result = await FileEntryBuilder.Create((BA2File)state, src, _slab, token);
+                    lock (_entries)
+                    {
+                        _entries.Add(result);
+                    }
 
-                break;
-            case BA2EntryType.DX10:
-                var resultdx10 = await DX10FileEntryBuilder.Create((BA2DX10File) state, src, _slab, token);
-                lock (_entries)
-                {
-                    _entries.Add(resultdx10);
-                }
+                    break;
+                case BA2EntryType.DX10:
+                    var resultdx10 = await DX10FileEntryBuilder.Create((BA2DX10File)state, src, _slab, token);
+                    lock (_entries)
+                    {
+                        _entries.Add(resultdx10);
+                    }
 
-                break;
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidDataException($"Error adding file {state.Path} to archive: {ex.Message}", ex);
         }
     }
 

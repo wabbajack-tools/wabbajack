@@ -78,7 +78,7 @@ public class FileLoadingTests : IAsyncDisposable
 
             using var ms = new MemoryStream();
             await using var ins = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
-            await imageLoader.Recompress(ins, 128, 128, DXGI_FORMAT.BC1_UNORM, ms, CancellationToken.None, leaveOpen:true);
+            await imageLoader.Recompress(ins, 128, 128, baseState.MipLevels, DXGI_FORMAT.BC1_UNORM, ms, CancellationToken.None, leaveOpen:true);
             ms.Length.Should().Be(ins.Length);
         }
     }
