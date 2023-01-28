@@ -60,16 +60,16 @@ public class CrossPlatformImageLoader : IImageLoader
             new Digest {Coefficients = b.Data});
     }
     
-    public async Task Recompress(AbsolutePath input, int width, int height, DXGI_FORMAT format,
+    public async Task Recompress(AbsolutePath input, int width, int height, int mipMaps, DXGI_FORMAT format,
         AbsolutePath output,
         CancellationToken token)
     {
         var inData = await input.ReadAllBytesAsync(token);
         await using var outStream = output.Open(FileMode.Create, FileAccess.Write);
-        await Recompress(new MemoryStream(inData), width, height, format, outStream, token);
+        await Recompress(new MemoryStream(inData), width, height, mipMaps, format, outStream, token);
     }
 
-    public async Task Recompress(Stream input, int width, int height, DXGI_FORMAT format, Stream output,
+    public async Task Recompress(Stream input, int width, int height, int mipMaps, DXGI_FORMAT format, Stream output,
         CancellationToken token, bool leaveOpen = false)
     {
         var decoder = new BcDecoder();
@@ -99,7 +99,8 @@ public class CrossPlatformImageLoader : IImageLoader
                 Quality = CompressionQuality.Balanced,
                 GenerateMipMaps = true,
                 Format = ToCompressionFormat(format),
-                FileFormat = OutputFileFormat.Dds
+                FileFormat = OutputFileFormat.Dds,
+                MaxMipMapLevel = mipMaps
             }
         };
 

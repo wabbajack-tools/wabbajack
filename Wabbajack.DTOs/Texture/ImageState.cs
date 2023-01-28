@@ -7,8 +7,10 @@ public class ImageState
     public DXGI_FORMAT Format { get; set; }
     public PHash PerceptualHash { get; set; }
 
+    public int MipLevels { get; set; }
+
     public override string ToString()
     {
-        return $"ImageState<{Width}, {Height}, {Format}>";
+        return $"ImageState<{Width}, {Height}, {Format}, {MipLevels} levels>";
     }
 }

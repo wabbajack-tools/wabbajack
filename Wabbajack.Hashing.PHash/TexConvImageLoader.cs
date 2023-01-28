@@ -57,16 +57,16 @@ public class TexConvImageLoader : IImageLoader
         return ext;
     }
 
-    public async Task Recompress(AbsolutePath input, int width, int height, DXGI_FORMAT format, AbsolutePath output,
+    public async Task Recompress(AbsolutePath input, int width, int height, int mipMaps, DXGI_FORMAT format, AbsolutePath output,
         CancellationToken token)
     {
         var outFolder = _tempManager.CreateFolder();
         var outFile = input.FileName.RelativeTo(outFolder.Path);
-        await ConvertImage(input, outFolder.Path, width, height, format, input.Extension);
+        await ConvertImage(input, outFolder.Path, width, height, mipMaps, format, input.Extension);
         await outFile.MoveToAsync(output, token: token, overwrite:true);
     }
 
-    public async Task Recompress(Stream input, int width, int height, DXGI_FORMAT format, Stream output, CancellationToken token,
+    public async Task Recompress(Stream input, int width, int height, int mipMaps, DXGI_FORMAT format, Stream output, CancellationToken token,
         bool leaveOpen = false)
     {
         var type = await DetermineType(input);
@@ -75,19 +75,19 @@ public class TexConvImageLoader : IImageLoader
         await input.CopyToAsync(fromFile.Path, token);
         var toFile = fromFile.Path.FileName.RelativeTo(toFolder);
         
-        await ConvertImage(fromFile.Path, toFolder.Path, width, height, format, type);
+        await ConvertImage(fromFile.Path, toFolder.Path, width, height, mipMaps, format, type);
         await using var fs = toFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
         await fs.CopyToAsync(output, token);
     }
     
     
-    public async Task ConvertImage(AbsolutePath from, AbsolutePath toFolder, int w, int h, DXGI_FORMAT format, Extension fileFormat)
+    public async Task ConvertImage(AbsolutePath from, AbsolutePath toFolder, int w, int h, int mipMaps, DXGI_FORMAT format, Extension fileFormat)
     {
         // User isn't renaming the file, so we don't have to create a temporary folder
         var ph = new ProcessHelper
         {
             Path = @"Tools\texconv.exe".ToRelativePath().RelativeTo(KnownFolders.EntryPoint),
-            Arguments = new object[] {from, "-ft", fileFormat.ToString()[1..], "-f", format, "-o", toFolder, "-w", w, "-h", h, "-if", "CUBIC", "-singleproc"},
+            Arguments = new object[] {from, "-ft", fileFormat.ToString()[1..], "-f", format, "-o", toFolder, "-w", w, "-h", h, "-m", mipMaps, "-if", "CUBIC", "-singleproc"},
             ThrowOnNonZeroExitCode = true,
             LogError = true
         }; 
@@ -100,7 +100,7 @@ public class TexConvImageLoader : IImageLoader
         await using var tmpFile = _tempManager.CreateFolder();
         var inFile = to.FileName.RelativeTo(tmpFile.Path);
         await inFile.WriteAllAsync(from, CancellationToken.None);
-        await ConvertImage(inFile, to.Parent, state.Width, state.Height, state.Format, ext);
+        await ConvertImage(inFile, to.Parent, state.Width, state.Height, state.MipLevels, state.Format, ext);
     }
     
     // Internals
@@ -133,7 +133,8 @@ public class TexConvImageLoader : IImageLoader
                 Width = int.Parse(data["width"]),
                 Height = int.Parse(data["height"]),
                 Format = Enum.Parse<DXGI_FORMAT>(data["format"]),
-                PerceptualHash = await GetPHash(path)
+                PerceptualHash = await GetPHash(path),
+                MipLevels = byte.Parse(data["mipLevels"])
             };
         }
         catch (Exception ex)
@@ -149,7 +150,7 @@ public class TexConvImageLoader : IImageLoader
             throw new FileNotFoundException($"Can't hash non-existent file {path}");
             
         await using var tmp = _tempManager.CreateFolder();
-        await ConvertImage(path, tmp.Path, 512, 512, DXGI_FORMAT.R8G8B8A8_UNORM, Ext.Png);
+        await ConvertImage(path, tmp.Path, 512, 512, 1, DXGI_FORMAT.R8G8B8A8_UNORM, Ext.Png);
             
         using var img = await Image.LoadAsync(path.FileName.RelativeTo(tmp.Path).ReplaceExtension(Ext.Png).ToString());
         img.Mutate(x => x.Resize(512, 512, KnownResamplers.Welch).Grayscale(GrayscaleMode.Bt601));

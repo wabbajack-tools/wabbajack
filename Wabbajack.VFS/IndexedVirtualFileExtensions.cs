@@ -36,6 +36,7 @@ public static class IndexedVirtualFileExtensions
     {
         bw.Write((ushort) state.Width);
         bw.Write((ushort) state.Height);
+        bw.Write((byte)state.MipLevels);
         bw.Write((byte) state.Format);
         state.PerceptualHash.Write(bw);
     }
@@ -46,6 +47,7 @@ public static class IndexedVirtualFileExtensions
         {
             Width = br.ReadUInt16(),
             Height = br.ReadUInt16(),
+            MipLevels = br.ReadByte(),
             Format = (DXGI_FORMAT) br.ReadByte(),
             PerceptualHash = PHash.Read(br)
         };

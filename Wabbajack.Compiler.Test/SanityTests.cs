@@ -202,7 +202,7 @@ public class CompilerSanityTests : IAsyncLifetime
             var oldState = await _imageLoader.Load(file);
             Assert.NotEqual(DXGI_FORMAT.UNKNOWN, oldState.Format);
             _logger.LogInformation("Recompressing {file}", file.FileName);
-            await _imageLoader.Recompress(file, 512, 512, DXGI_FORMAT.BC7_UNORM, file, CancellationToken.None);
+            await _imageLoader.Recompress(file, 512, 512, 1, DXGI_FORMAT.BC7_UNORM, file, CancellationToken.None);
 
             var state = await _imageLoader.Load(file);
             Assert.Equal(DXGI_FORMAT.BC7_UNORM, state.Format);
