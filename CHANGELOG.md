@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 3.0.6.1 - TBD
+#### Version - 3.0.6.1 - 1/28/2023
 * Game support:
   * Added Mount & Blade II: Bennerlord support (Steam,GOG) 
 * Fixed BA2 files not being compressed properly due to MipMaps not being detected properly
