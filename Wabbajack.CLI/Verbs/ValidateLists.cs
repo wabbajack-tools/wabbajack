@@ -106,6 +106,12 @@ public class ValidateLists
         var stopWatch = Stopwatch.StartNew();
         var listData = await _wjClient.LoadLists();
 
+        _logger.LogInformation("Found {Count} lists", listData.Length);
+        foreach (var list in listData.OrderBy(d => d.NamespacedName))
+        {
+            _logger.LogInformation("Validating {MachineUrl} - {Version}", list.NamespacedName, list.Version);
+        }
+
         var validatedLists = await listData.PMapAll(async modList =>
         {
             var validatedList = new ValidatedModList
