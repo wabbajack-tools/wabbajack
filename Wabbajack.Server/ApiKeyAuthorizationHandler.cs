@@ -86,6 +86,9 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         
         if (authorKey != null)
         {
+            if (await _tarLog.Contains(authorKey))
+                return AuthenticateResult.Fail("Banned author key");
+            
             var owner = await _authorKeys.AuthorForKey(authorKey);
             if (owner == null)
             {
