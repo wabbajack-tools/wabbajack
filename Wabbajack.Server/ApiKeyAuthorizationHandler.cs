@@ -86,9 +86,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         
         if (authorKey != null)
         {
-            if (await _tarLog.Contains(authorKey))
-                return AuthenticateResult.Fail("Banned author key");
-            
+
             var owner = await _authorKeys.AuthorForKey(authorKey);
             if (owner == null)
             {
@@ -100,6 +98,9 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
                 owner = "github/" + ghUser.Login;
             }
 
+            if (await _tarLog.Contains(owner))
+                return AuthenticateResult.Fail("Banned author key");
+            
             var claims = new List<Claim> {new(ClaimTypes.Name, owner)};
 
             claims.Add(new Claim(ClaimTypes.Role, "Author"));
