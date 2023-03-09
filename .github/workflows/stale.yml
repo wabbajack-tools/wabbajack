@@ -18,7 +18,7 @@ jobs:
       - name: Close Stale Issues
         uses: actions/stale@v5.0.0
         with:
-          stale-issue-message: "Marked as stale due to no interactions in the last 90 days. If the issue still exists, please provide any possibly still needed information or exuse the devs for not getting around to addressing this issue yet. If this issue is still considered unsolved a dev will soon remove the stale tag from this issue."
+          stale-issue-message: "Marked as stale due to no interactions in the last 90 days. If the issue still exists, please provide any possibly still needed information or excuse the devs for not getting around to addressing this issue yet. If this issue is still considered unsolved a dev will soon remove the stale tag from this issue."
           stale-pr-message: "Marked as stale due to inactivity."
           close-issue-message: "Closed due to inactivity. Please create a new issue if this problem has come up again and no dev has reopened this issue after a week of it being marked as closed."
           close-pr-message: "Closed due to inactivity."
