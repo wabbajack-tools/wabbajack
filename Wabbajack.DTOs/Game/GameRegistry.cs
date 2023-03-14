@@ -182,6 +182,7 @@ public static class GameRegistry
                 MO2Name = "Enderal Special Edition",
                 MO2ArchiveName = "enderalse",
                 SteamIDs = new[] {976620},
+                GOGIDs = new [] {1708684988},
                 RequiredFiles = new[]
                 {
                     "SkyrimSE.exe".ToRelativePath()

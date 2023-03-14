@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - TBD
+* Game support:
+  * Added Enderal GOG support (compatibility with existing lists unclear)
+
 #### Version - 3.0.6.2 - 1/28/2023
 * Add fallback for DDS compression when installing older lists. This should keep older DDS files from not being compressed without any mipmaps at all.
 * 
