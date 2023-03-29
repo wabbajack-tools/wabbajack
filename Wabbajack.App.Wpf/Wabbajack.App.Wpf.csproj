@@ -92,7 +92,7 @@
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.2-mauipre.1.22102.15" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1466-prerelease" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="5.1.0" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="5.2.3" />
     <PackageReference Include="Orc.FileAssociation" Version="5.0.0-alpha0061" />
     <PackageReference Include="PInvoke.User32" Version="0.7.124" />
     <PackageReference Include="ReactiveUI" Version="18.3.1" />
