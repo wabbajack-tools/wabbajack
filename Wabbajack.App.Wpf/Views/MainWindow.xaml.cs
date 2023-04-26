@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using DynamicData;
@@ -55,11 +55,8 @@ namespace Wabbajack
 
                 Closed += (s, e) =>
                 {
-                    Task.Run(async () =>
-                    {
-                        await Task.Delay(5000);
-                        Environment.Exit(0);
-                    });
+                    _mwvm.CancelRunningTasks(TimeSpan.FromSeconds(10));
+                    Application.Current.Shutdown();
                 };
 
                 MessageBus.Current.Listen<TaskBarUpdate>()

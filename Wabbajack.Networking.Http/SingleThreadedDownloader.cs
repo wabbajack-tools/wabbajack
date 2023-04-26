@@ -32,7 +32,7 @@ public class SingleThreadedDownloader : IHttpDownloader
         using var response = await _client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, token);
         if (!response.IsSuccessStatusCode)
             throw new HttpException(response);
-        
+
         if (job.Size == 0)
             job.Size = response.Content.Headers.ContentLength ?? 0;
 

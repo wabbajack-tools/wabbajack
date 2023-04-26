@@ -396,6 +396,10 @@ public abstract class AInstaller<T>
 
             var (result, hash) =
                 await _downloadDispatcher.DownloadWithPossibleUpgrade(archive, destination.Value, token);
+            if (token.IsCancellationRequested)
+            {
+                return false;
+            }
 
             if (hash != archive.Hash)
             {

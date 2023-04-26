@@ -5,8 +5,7 @@
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:controls="clr-namespace:Wabbajack.Extensions"
     ShutdownMode="OnExplicitShutdown"
-    Startup="OnStartup"
-    Exit="OnExit">
+    Startup="OnStartup">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
