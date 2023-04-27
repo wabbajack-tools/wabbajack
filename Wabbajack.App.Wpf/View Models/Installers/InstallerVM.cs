@@ -315,7 +315,9 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     {
         var lst = await _settingsManager.Load<AbsolutePath>(LastLoadedModlist);
         if (lst.FileExists())
-            await LoadModlist(lst, null);
+        {
+            ModListLocation.TargetPath = lst;
+        }
     }
 
     private async Task LoadModlist(AbsolutePath path, ModlistMetadata? metadata)
