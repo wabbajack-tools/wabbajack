@@ -109,12 +109,16 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         _configuration.Downloads.CreateDirectory();
 
         await OptimizeModlist(token);
+        if (token.IsCancellationRequested) return false;
 
         await HashArchives(token);
+        if (token.IsCancellationRequested) return false;
 
         await DownloadArchives(token);
+        if (token.IsCancellationRequested) return false;
 
         await HashArchives(token);
+        if (token.IsCancellationRequested) return false;
 
         var missing = ModList.Archives.Where(a => !HashedArchives.ContainsKey(a.Hash)).ToList();
         if (missing.Count > 0)
@@ -127,21 +131,27 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         }
 
         await ExtractModlist(token);
+        if (token.IsCancellationRequested) return false;
 
         await PrimeVFS();
 
         await BuildFolderStructure();
 
         await InstallArchives(token);
+        if (token.IsCancellationRequested) return false;
 
         await InstallIncludedFiles(token);
+        if (token.IsCancellationRequested) return false;
 
         await WriteMetaFiles(token);
+        if (token.IsCancellationRequested) return false;
 
         await BuildBSAs(token);
+        if (token.IsCancellationRequested) return false;
 
         // TODO: Port this
         await GenerateZEditMerges(token);
+        if (token.IsCancellationRequested) return false;
 
         await ForcePortable();
         await RemapMO2File();

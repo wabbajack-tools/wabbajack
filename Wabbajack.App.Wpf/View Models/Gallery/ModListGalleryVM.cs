@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
@@ -51,12 +52,13 @@ namespace Wabbajack
         private readonly GameLocator _locator;
         private readonly ModListDownloadMaintainer _maintainer;
         private readonly SettingsManager _settingsManager;
+        private readonly CancellationToken _cancellationToken;
 
         private FiltersSettings settings { get; set; } = new();
         public ICommand ClearFiltersCommand { get; set; }
 
-        public ModListGalleryVM(ILogger<ModListGalleryVM> logger, Client wjClient,
-            GameLocator locator, SettingsManager settingsManager, ModListDownloadMaintainer maintainer)
+        public ModListGalleryVM(ILogger<ModListGalleryVM> logger, Client wjClient, GameLocator locator,
+            SettingsManager settingsManager, ModListDownloadMaintainer maintainer, CancellationToken cancellationToken)
             : base(logger)
         {
             _wjClient = wjClient;
@@ -64,7 +66,8 @@ namespace Wabbajack
             _locator = locator;
             _maintainer = maintainer;
             _settingsManager = settingsManager;
-            
+            _cancellationToken = cancellationToken;
+
             ClearFiltersCommand = ReactiveCommand.Create(
                 () =>
                 {
@@ -196,7 +199,7 @@ namespace Wabbajack
                 {
                     e.Clear();
                     e.AddOrUpdate(modLists.Select(m =>
-                        new ModListMetadataVM(_logger, this, m, _maintainer, _wjClient)));
+                        new ModListMetadataVM(_logger, this, m, _maintainer, _wjClient, _cancellationToken)));
                 });
             }
             catch (Exception ex)

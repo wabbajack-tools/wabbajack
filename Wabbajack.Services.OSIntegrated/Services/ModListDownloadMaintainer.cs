@@ -54,12 +54,10 @@ public class ModListDownloadMaintainer
         return await _hashCache.FileHashCachedAsync(path, token.Value) == metadata.DownloadMetadata!.Hash;
     }
 
-    public (IObservable<Percent> Progress, Task Task) DownloadModlist(ModlistMetadata metadata, CancellationToken? token = null)
+    public (IObservable<Percent> Progress, Task Task) DownloadModlist(ModlistMetadata metadata, CancellationToken token)
     {
         var path = ModListPath(metadata);
-        
-        token ??= CancellationToken.None;
-        
+
         var progress = new Subject<Percent>();
         progress.OnNext(Percent.Zero);
 
@@ -69,7 +67,7 @@ public class ModListDownloadMaintainer
             {
                 Interlocked.Increment(ref _downloadingCount);
                 using var job = await _rateLimiter.Begin($"Downloading {metadata.Title}", metadata.DownloadMetadata!.Size,
-                    token.Value);
+                    token);
 
                 job.OnUpdate += (_, pr) => { progress.OnNext(pr.Progress); };
 
@@ -78,17 +76,21 @@ public class ModListDownloadMaintainer
                     State = _dispatcher.Parse(new Uri(metadata.Links.Download))!,
                     Size = metadata.DownloadMetadata.Size,
                     Hash = metadata.DownloadMetadata.Hash
-                }, path, job, token.Value);
+                }, path, job, token);
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
 
                 await _hashCache.FileHashWriteCache(path, hash);
-                await path.WithExtension(Ext.MetaData).WriteAllTextAsync(JsonSerializer.Serialize(metadata));
+                await path.WithExtension(Ext.MetaData).WriteAllTextAsync(JsonSerializer.Serialize(metadata), token);
             }
             finally
             {
                 progress.OnCompleted();
                 Interlocked.Decrement(ref _downloadingCount);
             }
-        });
+        }, token);
 
         return (progress, tsk);
     }

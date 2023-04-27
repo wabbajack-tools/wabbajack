@@ -1,4 +1,7 @@
+using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,5 +28,16 @@ public static class Extensions
         }
         return (await JsonSerializer.DeserializeAsync<T>(await result.Content.ReadAsStreamAsync(token.Value)))!;
     }
-    
+
+    public static WebHeaderCollection ToWebHeaderCollection(this HttpRequestHeaders headers)
+    {
+        var headerCollection = new WebHeaderCollection();
+
+        foreach (var header in headers.Where(header => !WebHeaderCollection.IsRestricted(header.Key)))
+        {
+            header.Value.ToList().ForEach(value => headerCollection.Add(header.Key, value));
+        }
+
+        return headerCollection;
+    }
 }
