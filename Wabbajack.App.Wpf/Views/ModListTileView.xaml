@@ -367,7 +367,8 @@
                         Height="40"
                         Margin="5,0"
                         VerticalAlignment="Center"
-                        Style="{StaticResource IconBareButtonStyle}">
+                        Style="{StaticResource IconBareButtonStyle}"
+                        ToolTip="View modlist website in browser">
                     <iconPacks:Material
                         Width="20"
                         Height="20"
@@ -379,7 +380,8 @@
                         Height="40"
                         Margin="5,0"
                         VerticalAlignment="Center"
-                        Style="{StaticResource IconBareButtonStyle}">
+                        Style="{StaticResource IconBareButtonStyle}"
+                        ToolTip="View modlist archives in browser">
                     <iconPacks:Material
                         Width="20"
                         Height="20"
@@ -390,7 +392,8 @@
                     Width="40"
                     Height="40"
                     Margin="5,0"
-                    VerticalAlignment="Center">
+                    VerticalAlignment="Center"
+                    ToolTip="Download modlist">
                     <StackPanel x:Name="IconContainer">
                         <iconPacks:Material
                             x:Name="ErrorIcon"
