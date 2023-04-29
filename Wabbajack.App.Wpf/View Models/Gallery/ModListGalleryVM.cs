@@ -111,7 +111,7 @@ namespace Wabbajack
             this.WhenActivated(disposables =>
             {
                 LoadModLists().FireAndForget();
-                //LoadSettings().FireAndForget();
+                LoadSettings().FireAndForget();
 
                 Disposable.Create(() => SaveSettings().FireAndForget())
                     .DisposeWith(disposables);
