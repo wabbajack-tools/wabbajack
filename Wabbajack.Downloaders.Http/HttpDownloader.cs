@@ -21,7 +21,7 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Downloaders.Http;
 
-public class HttpDownloader : ADownloader<DTOs.DownloadStates.Http>, IUrlDownloader, IUpgradingDownloader, IChunkedSeekableStreamDownloader
+public class HttpDownloader : ADownloader<DTOs.DownloadStates.Http>, IUrlDownloader, IChunkedSeekableStreamDownloader
 {
     private readonly HttpClient _client;
     private readonly IHttpDownloader _downloader;
@@ -32,23 +32,6 @@ public class HttpDownloader : ADownloader<DTOs.DownloadStates.Http>, IUrlDownloa
         _client = client;
         _logger = logger;
         _downloader = downloader;
-    }
-
-    public async Task<Archive?> TryGetUpgrade(Archive archive, IJob job, TemporaryFileManager temporaryFileManager,
-        CancellationToken token)
-    {
-        var state = (DTOs.DownloadStates.Http) archive.State;
-        await using var file = temporaryFileManager.CreateFile();
-
-        var newHash = await Download(archive, file.Path, job, token);
-
-        return new Archive
-        {
-            Hash = newHash,
-            Size = file.Path.Size(),
-            State = archive.State,
-            Name = archive.Name
-        };
     }
 
     public override IDownloadState? Resolve(IReadOnlyDictionary<string, string> iniData)

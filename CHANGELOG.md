@@ -1,8 +1,14 @@
 ### Changelog
 
+#### Version - TBD
+* Fixed Readme opening twice
+* Upadted Text in the UI to better describe current app behavior
+* Added support for resumable downloads after closing the app during downloads (not available for MEGA downloads)
+* Game support:
+  * Added Enderal GOG support (compatibility with existing lists unclear)
+
 #### Version - 3.0.6.2 - 1/28/2023
 * Add fallback for DDS compression when installing older lists. This should keep older DDS files from not being compressed without any mipmaps at all.
-* 
 
 #### Version - 3.0.6.1 - 1/28/2023
 * Game support:

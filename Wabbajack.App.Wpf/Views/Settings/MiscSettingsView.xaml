@@ -82,7 +82,7 @@
                 <Button Grid.Row="3"
                     Name="OpenTerminal"
                     Margin="0,5,0,0"
-                    Content="Open Terminal and Close WJ" />
+                    Content="Launch Wabbajack CLI" />
             </Grid>
         </Grid>
     </Border>

@@ -117,6 +117,8 @@ public class Context
 
         async Task HandleFile(VirtualFile file, IExtractedFile sfn)
         {
+            if (token.IsCancellationRequested) return;
+
             if (filesByParent.ContainsKey(file))
                 sfn.CanMove = false;
 
@@ -138,6 +140,7 @@ public class Context
                 }
                 catch (Exception ex)
                 {
+                    if (token.IsCancellationRequested) return;
                     await using var stream = await sfn.GetStream();
                     var hash = await stream.HashingCopy(Stream.Null, token);
                     if (hash != file.Hash)

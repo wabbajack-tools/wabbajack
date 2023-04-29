@@ -25,23 +25,27 @@
             VerticalAlignment="Center"
             FontSize="14"
             Text="Modlist Installation Location"
-            TextAlignment="Center" />
+            TextAlignment="Center" 
+            ToolTip="The directory where the modlist will be installed" />
         <local:FilePicker Grid.Row="0" Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
             FontSize="14"
-            PickerVM="{Binding Location}" />
+            PickerVM="{Binding Location}"
+            ToolTip="The directory where the modlist will be installed" />
         <TextBlock Grid.Row="1" Grid.Column="0"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
             FontSize="14"
             Text="Resource Download Location"
-            TextAlignment="Center" />
+            TextAlignment="Center" 
+            ToolTip="The directory where modlist archives will be downloaded to" />
         <local:FilePicker Grid.Row="1" Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
             FontSize="14"
-            PickerVM="{Binding DownloadLocation}" />
+            PickerVM="{Binding DownloadLocation}"
+            ToolTip="The directory where modlist archives will be downloaded to" />
         <CheckBox Grid.Row="2" Grid.Column="2"
             HorizontalAlignment="Right"
             Content="Overwrite Installation"

@@ -23,9 +23,9 @@ public class Job<T> : IJob, IDisposable
     public long Current { get; internal set; }
     public long? Size { get; set; }
 
-    public async ValueTask Report(int processedSize, CancellationToken token)
+    public async ValueTask Report(long processedSize, CancellationToken token)
     {
-        await Resource.Report(this, processedSize, token);
+        await Resource.Report(this, (int)Math.Min(processedSize, int.MaxValue), token);
         Current += processedSize;
         OnUpdate?.Invoke(this, (Percent.FactoryPutInRange(Current, Size ?? 1), Current));
     }
@@ -33,6 +33,12 @@ public class Job<T> : IJob, IDisposable
     public void ReportNoWait(int processedSize)
     {
         Resource.ReportNoWait(this, processedSize);
+        OnUpdate?.Invoke(this, (Percent.FactoryPutInRange(Current, Size ?? 1), Current));
+    }
+
+    public void ResetProgress()
+    {
+        Current = 0;
         OnUpdate?.Invoke(this, (Percent.FactoryPutInRange(Current, Size ?? 1), Current));
     }
 
