@@ -9,6 +9,7 @@ public interface IJob
     public long? Size { get; set; }
     public long Current { get; }
     public string Description { get; }
-    public ValueTask Report(int processedSize, CancellationToken token);
+    public ValueTask Report(long processedSize, CancellationToken token);
     public void ReportNoWait(int processedSize);
+    public void ResetProgress();
 }

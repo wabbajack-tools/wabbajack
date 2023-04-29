@@ -26,7 +26,7 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Downloaders.IPS4OAuth2Downloader;
 
-public class AIPS4OAuth2Downloader<TDownloader, TLogin, TState> : ADownloader<TState>, IUpgradingDownloader
+public class AIPS4OAuth2Downloader<TDownloader, TLogin, TState> : ADownloader<TState>
     where TLogin : OAuth2LoginState, new()
     where TState : IPS4OAuth2, new()
 {
@@ -57,41 +57,6 @@ public class AIPS4OAuth2Downloader<TDownloader, TLogin, TState> : ADownloader<TS
     }
 
     public override Priority Priority => Priority.Normal;
-
-    public async Task<Archive?> TryGetUpgrade(Archive archive, IJob job, TemporaryFileManager temporaryFileManager,
-        CancellationToken token)
-    {
-        var state = (TState) archive.State;
-        if (state.IsAttachment) return default;
-
-        var files = (await GetDownloads(state.IPS4Mod, token)).Files;
-        var nl = new Levenshtein();
-
-        foreach (var newFile in files.Where(f => f.Url != null)
-            .OrderBy(f => nl.Distance(archive.Name.ToLowerInvariant(), f.Name!.ToLowerInvariant())))
-        {
-            var newArchive = new Archive
-            {
-                State = new TState
-                {
-                    IPS4Mod = state.IPS4Mod,
-                    IPS4File = newFile.Name!
-                }
-            };
-            var tmp = temporaryFileManager.CreateFile();
-            var newHash = await Download(newArchive, (TState) newArchive.State, tmp.Path, job, token);
-            if (newHash != default)
-            {
-                newArchive.Size = tmp.Path.Size();
-                newArchive.Hash = newHash;
-                return newArchive;
-            }
-
-            await tmp.DisposeAsync();
-        }
-
-        return default;
-    }
 
     public async ValueTask<HttpRequestMessage> MakeMessage(HttpMethod method, Uri url, bool useOAuth2 = true)
     {

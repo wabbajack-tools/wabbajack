@@ -43,6 +43,11 @@ public class DownloadDispatcher
 
     public async Task<Hash> Download(Archive a, AbsolutePath dest, CancellationToken token, bool? proxy = null)
     {
+        if (token.IsCancellationRequested)
+        {
+            return new Hash();
+        }
+
         using var downloadScope = _logger.BeginScope("Downloading {Name}", a.Name);
         using var job = await _limiter.Begin("Downloading " + a.Name, a.Size, token);
         return await Download(a, dest, job, token, proxy);
@@ -74,33 +79,40 @@ public class DownloadDispatcher
 
     public async Task<Hash> Download(Archive a, AbsolutePath dest, Job<DownloadDispatcher> job, CancellationToken token, bool? useProxy = null)
     {
-        if (!dest.Parent.DirectoryExists())
-            dest.Parent.CreateDirectory();
-
-        var downloader = Downloader(a);
-        if ((useProxy ?? _useProxyCache) && downloader is IProxyable p)
+        try
         {
-            var uri = p.UnParse(a.State);
-            var newUri = await _wjClient.MakeProxyUrl(a, uri);
-            if (newUri != null)
-            {
-                a = new Archive
-                {
-                    Name = a.Name,
-                    Size = a.Size,
-                    Hash = a.Hash,
-                    State = new DTOs.DownloadStates.Http()
-                    {
-                        Url = newUri
-                    }
-                };
-                downloader = Downloader(a);
-                _logger.LogInformation("Downloading Proxy ({Hash}) {Uri}", (await uri.ToString().Hash()).ToHex(), uri);
-            }
-        }
+            if (!dest.Parent.DirectoryExists())
+                dest.Parent.CreateDirectory();
 
-        var hash = await downloader.Download(a, dest, job, token);
-        return hash;
+            var downloader = Downloader(a);
+            if ((useProxy ?? _useProxyCache) && downloader is IProxyable p)
+            {
+                var uri = p.UnParse(a.State);
+                var newUri = await _wjClient.MakeProxyUrl(a, uri);
+                if (newUri != null)
+                {
+                    a = new Archive
+                    {
+                        Name = a.Name,
+                        Size = a.Size,
+                        Hash = a.Hash,
+                        State = new DTOs.DownloadStates.Http()
+                        {
+                            Url = newUri
+                        }
+                    };
+                    downloader = Downloader(a);
+                    _logger.LogInformation("Downloading Proxy ({Hash}) {Uri}", (await uri.ToString().Hash()).ToHex(), uri);
+                }
+            }
+
+            var hash = await downloader.Download(a, dest, job, token);
+            return hash;
+        }
+        catch (TaskCanceledException)
+        {
+            return new Hash();
+        }
     }
 
     public Task<IDownloadState?> ResolveArchive(IReadOnlyDictionary<string, string> ini)
@@ -283,24 +295,6 @@ public class DownloadDispatcher
     public Task<bool> IsAllowed(ModUpgradeRequest request, CancellationToken allowList)
     {
         throw new NotImplementedException();
-    }
-
-    public async Task<Archive?> FindUpgrade(Archive archive, TemporaryFileManager fileManager, CancellationToken token)
-    {
-        try
-        {
-            var downloader = Downloader(archive);
-            if (downloader is not IUpgradingDownloader ud) return null;
-
-            using var job = await _limiter.Begin($"Finding upgrade for {archive.Name} - {archive.State.PrimaryKeyString}", 0,
-                token);
-            return await ud.TryGetUpgrade(archive, job, fileManager, token);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogCritical(ex, "While finding upgrade for {PrimaryKeyString}", archive.State.PrimaryKeyString);
-            return null;
-        }
     }
 
     public Task<IEnumerable<IDownloader>> AllDownloaders(IEnumerable<IDownloadState> downloadStates)

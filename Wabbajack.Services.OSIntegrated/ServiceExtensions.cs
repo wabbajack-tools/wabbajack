@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -45,6 +46,10 @@ public static class ServiceExtensions
     public static IServiceCollection AddOSIntegrated(this IServiceCollection service,
         Action<OSIntegratedOptions>? cfn = null)
     {
+        // Register app-wide cancellation token source to allow clean termination
+        service.AddSingleton(new CancellationTokenSource());
+        service.AddTransient(typeof(CancellationToken), s => s.GetRequiredService<CancellationTokenSource>().Token);
+
         var options = new OSIntegratedOptions();
         cfn?.Invoke(options);
 
@@ -117,25 +122,25 @@ public static class ServiceExtensions
         // Resources
 
         service.AddAllSingleton<IResource, IResource<DownloadDispatcher>>(s =>
-            new Resource<DownloadDispatcher>("Downloads", GetSettings(s, "Downloads")));
+            new Resource<DownloadDispatcher>("Downloads", GetSettings(s, "Downloads"), s.GetRequiredService<CancellationToken>()));
 
-        service.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", GetSettings(s, "Web Requests")));
-        service.AddAllSingleton<IResource, IResource<Context>>(s => new Resource<Context>("VFS", GetSettings(s, "VFS")));
+        service.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", GetSettings(s, "Web Requests"), s.GetRequiredService<CancellationToken>()));
+        service.AddAllSingleton<IResource, IResource<Context>>(s => new Resource<Context>("VFS", GetSettings(s, "VFS"), s.GetRequiredService<CancellationToken>()));
         service.AddAllSingleton<IResource, IResource<FileHashCache>>(s =>
-            new Resource<FileHashCache>("File Hashing", GetSettings(s, "File Hashing")));
+            new Resource<FileHashCache>("File Hashing", GetSettings(s, "File Hashing"), s.GetRequiredService<CancellationToken>()));
         service.AddAllSingleton<IResource, IResource<Client>>(s =>
-            new Resource<Client>("Wabbajack Client", GetSettings(s, "Wabbajack Client")));
+            new Resource<Client>("Wabbajack Client", GetSettings(s, "Wabbajack Client"), s.GetRequiredService<CancellationToken>()));
         service.AddAllSingleton<IResource, IResource<FileExtractor.FileExtractor>>(s =>
-            new Resource<FileExtractor.FileExtractor>("File Extractor", GetSettings(s, "File Extractor")));
+            new Resource<FileExtractor.FileExtractor>("File Extractor", GetSettings(s, "File Extractor"), s.GetRequiredService<CancellationToken>()));
 
         service.AddAllSingleton<IResource, IResource<ACompiler>>(s =>
-            new Resource<ACompiler>("Compiler", GetSettings(s, "Compiler")));
-        
+            new Resource<ACompiler>("Compiler", GetSettings(s, "Compiler"), s.GetRequiredService<CancellationToken>()));
+
         service.AddAllSingleton<IResource, IResource<IInstaller>>(s =>
-            new Resource<IInstaller>("Installer", GetSettings(s, "Installer")));
-        
+            new Resource<IInstaller>("Installer", GetSettings(s, "Installer"), s.GetRequiredService<CancellationToken>()));
+
         service.AddAllSingleton<IResource, IResource<IUserInterventionHandler>>(s =>
-            new Resource<IUserInterventionHandler>("User Intervention", 1));
+            new Resource<IUserInterventionHandler>("User Intervention", 1, token: s.GetRequiredService<CancellationToken>()));
 
         service.AddSingleton<LoggingRateLimiterReporter>();
 
