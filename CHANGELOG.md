@@ -2,7 +2,7 @@
 
 #### Version - TBD
 * Fixed Readme opening twice
-* Upadted Text in the UI to better describe current app behavior
+* Updated Text in the UI to better describe current app behavior
 * Added support for resumable downloads after closing the app during downloads (not available for MEGA downloads)
 * More and improved existing tooltips
 * Game Selector Improvements:
