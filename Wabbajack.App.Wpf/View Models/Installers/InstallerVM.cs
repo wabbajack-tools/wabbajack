@@ -169,12 +169,12 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         BackCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModeSelectionView));
 
         BeginCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget());
-        
+
         OpenReadmeCommand = ReactiveCommand.Create(() =>
         {
             UIUtils.OpenWebsite(new Uri(ModList!.Readme));
-        }, LoadingLock.IsNotLoadingObservable);
-        
+        }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModList.Readme, (isNotLoading, readme) => isNotLoading && !string.IsNullOrWhiteSpace(readme)));
+
         VisitModListWebsiteCommand = ReactiveCommand.Create(() =>
         {
             UIUtils.OpenWebsite(ModList!.Website);

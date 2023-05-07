@@ -218,7 +218,7 @@ namespace Wabbajack
             RxApp.MainThreadScheduler.Schedule(await _settingsManager.Load<FilterSettings>("modlist_gallery"),
                 (_, s) =>
             {
-                SelectedGameTypeEntry = GameTypeEntries.FirstOrDefault(gte => gte.HumanFriendlyName.Equals(s.GameType));
+                SelectedGameTypeEntry = GameTypeEntries?.FirstOrDefault(gte => gte.HumanFriendlyName.Equals(s.GameType));
                 ShowNSFW = s.ShowNSFW;
                 ShowUnofficialLists = s.ShowUnofficialLists;
                 Search = s.Search;
