@@ -131,6 +131,11 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
                     state.FileID);
                 foreach (var link in urls.info)
                 {
+                    if (token.IsCancellationRequested)
+                    {
+                        return new Hash();
+                    }
+
                     try
                     {
                         var message = new HttpRequestMessage(HttpMethod.Get, link.URI);

@@ -1,8 +1,20 @@
 ### Changelog
 
+#### Version - TBD
+* Fixed Readme opening twice
+* Updated Text in the UI to better describe current app behavior
+* Added support for resumable downloads after closing the app during downloads (not available for MEGA downloads)
+* More and improved existing tooltips
+* Fixed being able to click the readme button when there is no readme
+* Game Selector Improvements:
+  * Only games that have modlists are shown now
+  * Amount of lists for a game is shown
+  * Now able to filter for game in combination with filtering on only installed modlists
+* Game support:
+  * Added Enderal GOG support (compatibility with existing lists unclear)
+
 #### Version - 3.0.6.2 - 1/28/2023
 * Add fallback for DDS compression when installing older lists. This should keep older DDS files from not being compressed without any mipmaps at all.
-* 
 
 #### Version - 3.0.6.1 - 1/28/2023
 * Game support:

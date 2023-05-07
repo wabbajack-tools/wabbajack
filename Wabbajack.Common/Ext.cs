@@ -21,6 +21,7 @@ public static class Ext
     public static Extension Md = new(".md");
     public static Extension MetaData = new(".metadata");
     public static Extension CompilerSettings = new(".compiler_settings");
+    public static Extension DownloadPackage = new(".download_package");
     public static Extension Temp = new(".temp");
     public static Extension ModlistMetadataExtension = new(".modlist_metadata");
     public static Extension Txt = new(".txt");

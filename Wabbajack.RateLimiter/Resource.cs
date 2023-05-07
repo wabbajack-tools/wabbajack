@@ -19,7 +19,7 @@ public class Resource<T> : IResource<T>
     private long _totalUsed;
     public IEnumerable<IJob> Jobs => _tasks.Values;
 
-    public Resource(string? humanName = null, int? maxTasks = null, long maxThroughput = long.MaxValue)
+    public Resource(string? humanName = null, int? maxTasks = null, long maxThroughput = long.MaxValue, CancellationToken? token = null)
     {
         Name = humanName ?? "<unknown>";
         MaxTasks = maxTasks ?? Environment.ProcessorCount;
@@ -27,11 +27,11 @@ public class Resource<T> : IResource<T>
         _semaphore = new SemaphoreSlim(MaxTasks);
         _channel = Channel.CreateBounded<PendingReport>(10);
         _tasks = new ConcurrentDictionary<ulong, Job<T>>();
-        
-        var tsk = StartTask(CancellationToken.None);
+
+        var tsk = StartTask(token ?? CancellationToken.None);
     }
 
-    public Resource(string humanName, Func<Task<(int MaxTasks, long MaxThroughput)>> settingGetter)
+    public Resource(string humanName, Func<Task<(int MaxTasks, long MaxThroughput)>> settingGetter, CancellationToken? token = null)
     {
         Name = humanName;
         _tasks = new ConcurrentDictionary<ulong, Job<T>>();
@@ -43,9 +43,9 @@ public class Resource<T> : IResource<T>
             MaxThroughput = maxThroughput;
             _semaphore = new SemaphoreSlim(MaxTasks);
             _channel = Channel.CreateBounded<PendingReport>(10);
-            
-            await StartTask(CancellationToken.None);
-        });
+
+            await StartTask(token ?? CancellationToken.None);
+        }, token ?? CancellationToken.None);
     }
 
     public int MaxTasks { get; set; }

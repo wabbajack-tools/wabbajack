@@ -194,14 +194,5 @@ namespace Wabbajack
 
             return services;
         }
-
-        private void OnExit(object sender, ExitEventArgs e)
-        {
-            using (_host)
-            {
-                _host.StopAsync();
-            }
-            base.OnExit(e);
-        }
     }
 }

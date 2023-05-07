@@ -243,6 +243,20 @@ namespace Wabbajack
             return false;
         }
 
+        public void CancelRunningTasks(TimeSpan timeout)
+        {
+            var endTime = DateTime.Now.Add(timeout);
+            var cancellationTokenSource = _serviceProvider.GetRequiredService<CancellationTokenSource>();
+            cancellationTokenSource.Cancel();
+
+            bool IsInstalling() => Installer.InstallState is InstallState.Installing;
+
+            while (DateTime.Now < endTime && IsInstalling())
+            {
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+            }
+        }
+
         /*
         public void NavigateTo(ViewModel vm)
         {

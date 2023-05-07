@@ -91,45 +91,52 @@
             <Label
                 Margin="0,0,0,0"
                 VerticalAlignment="Center"
-                Content="Game" />
+                Content="Game"
+                ToolTip="Select a game" />
             <ComboBox
                 Width="150"
                 Margin="0,0,10,0"
                 VerticalAlignment="Center"
                 Foreground="{StaticResource ForegroundBrush}"
-                IsEnabled="{Binding OnlyInstalled, Converter={StaticResource InverseBooleanConverter}}"
-                ItemsSource="{Binding Path=GameTypeEntries}"
-                SelectedItem="{Binding GameType, Mode=TwoWay}"
+                ItemsSource="{Binding GameTypeEntries, Mode=TwoWay}"
+                SelectedItem="{Binding SelectedGameTypeEntry, Mode=TwoWay}"
+                DisplayMemberPath="FormattedName"
+                IsSynchronizedWithCurrentItem="True"
                 ToolTip="Select a game" />
             <TextBlock
                 Margin="0,0,5,0"
                 VerticalAlignment="Center"
                 Foreground="{StaticResource ForegroundBrush}"
-                Text="Search" />
+                Text="Search" 
+                ToolTip="Search for a game" />
             <TextBox
                 x:Name="SearchBox"
                 Width="95"
-                VerticalContentAlignment="Center" />
+                VerticalContentAlignment="Center"
+                ToolTip="Only show Not Safe For Work (NSFW) modlists" />
             <CheckBox
                 x:Name="ShowNSFW"
                 Margin="10,0,10,0"
                 VerticalAlignment="Center"
                 Content="Show NSFW"
-                Foreground="{StaticResource ForegroundBrush}" />
+                Foreground="{StaticResource ForegroundBrush}"
+                ToolTip="Only show Not Safe For Work (NSFW) modlists" />
 
             <CheckBox
                 x:Name="ShowUnofficialLists"
                 Margin="10,0,10,0"
                 VerticalAlignment="Center"
                 Content="Show Unofficial Lists"
-                Foreground="{StaticResource ForegroundBrush}" />
+                Foreground="{StaticResource ForegroundBrush}"
+                ToolTip="Show modlists from external repositories"/>
 
             <CheckBox
                 x:Name="OnlyInstalledCheckbox"
                 Margin="10,0,10,0"
                 VerticalAlignment="Center"
                 Content="Only Installed"
-                Foreground="{StaticResource ForegroundBrush}" />
+                Foreground="{StaticResource ForegroundBrush}" 
+                ToolTip="Only show modlists for games you have installed"/>
             <Button
                 x:Name="ClearFiltersButton"
                 Margin="0,0,10,0"

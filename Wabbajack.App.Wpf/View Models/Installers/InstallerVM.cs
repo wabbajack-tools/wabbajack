@@ -119,6 +119,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     private readonly HttpClient _client;
     private readonly DownloadDispatcher _downloadDispatcher;
     private readonly IEnumerable<INeedsLogin> _logins;
+    private readonly CancellationToken _cancellationToken;
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
 
     [Reactive]
@@ -146,7 +147,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     
     public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
-        Wabbajack.Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins) : base(logger)
+        Wabbajack.Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins,
+        CancellationToken cancellationToken) : base(logger)
     {
         _logger = logger;
         _configuration = configuration;
@@ -160,18 +162,19 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         _client = client;
         _downloadDispatcher = dispatcher;
         _logins = logins;
-        
+        _cancellationToken = cancellationToken;
+
         Installer = new MO2InstallerVM(this);
         
         BackCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModeSelectionView));
 
         BeginCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget());
-        
+
         OpenReadmeCommand = ReactiveCommand.Create(() =>
         {
             UIUtils.OpenWebsite(new Uri(ModList!.Readme));
-        }, LoadingLock.IsNotLoadingObservable);
-        
+        }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModList.Readme, (isNotLoading, readme) => isNotLoading && !string.IsNullOrWhiteSpace(readme)));
+
         VisitModListWebsiteCommand = ReactiveCommand.Create(() =>
         {
             UIUtils.OpenWebsite(ModList!.Website);
@@ -312,7 +315,9 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     {
         var lst = await _settingsManager.Load<AbsolutePath>(LastLoadedModlist);
         if (lst.FileExists())
-            await LoadModlist(lst, null);
+        {
+            ModListLocation.TargetPath = lst;
+        }
     }
 
     private async Task LoadModlist(AbsolutePath path, ModlistMetadata? metadata)
@@ -437,8 +442,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                     TaskBarUpdate.Send(update.StatusText, TaskbarItemProgressState.Indeterminate,
                         update.StepsProgress.Value);
                 };
-                
-                if (!await installer.Begin(CancellationToken.None))
+
+                if (!await installer.Begin(_cancellationToken))
                 {
                     TaskBarUpdate.Send($"Error during install of {ModList.Name}", TaskbarItemProgressState.Error);
                     InstallState = InstallState.Failure;

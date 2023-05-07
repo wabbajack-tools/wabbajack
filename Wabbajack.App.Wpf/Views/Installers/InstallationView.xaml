@@ -224,7 +224,7 @@
                         Margin="30,2"
                         FontSize="20"
                         Style="{StaticResource LargeButtonStyle}"
-                        ToolTip="Open the Discord for this Modlist">
+                        ToolTip="Open the Discord for the Modlist">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="30" />
@@ -290,7 +290,7 @@
                     Margin="30,2"
                     FontSize="20"
                     Style="{StaticResource LargeButtonStyle}"
-                    ToolTip="Open an explicit listing of all actions this modlist will take">
+                    ToolTip="Open an explicit listing of all archives this modlist contains">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="30" />

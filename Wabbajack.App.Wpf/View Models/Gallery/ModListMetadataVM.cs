@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -94,15 +95,17 @@ namespace Wabbajack
         private readonly ILogger _logger;
         private readonly ModListDownloadMaintainer _maintainer;
         private readonly Client _wjClient;
+        private readonly CancellationToken _cancellationToken;
 
         public ModListMetadataVM(ILogger logger, ModListGalleryVM parent, ModlistMetadata metadata,
-            ModListDownloadMaintainer maintainer, Client wjClient)
+            ModListDownloadMaintainer maintainer, Client wjClient, CancellationToken cancellationToken)
         {
             _logger = logger;
             _parent = parent;
             _maintainer = maintainer;
             Metadata = metadata;
             _wjClient = wjClient;
+            _cancellationToken = cancellationToken;
             Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.NamespacedName).WithExtension(Ext.Wabbajack);
             ModListTagList = new List<ModListTag>();
             
@@ -184,7 +187,7 @@ namespace Wabbajack
                 Status = ModListStatus.Downloading;
 
                 using var ll = LoadingLock.WithLoading();
-                var (progress, task) = _maintainer.DownloadModlist(Metadata);
+                var (progress, task) = _maintainer.DownloadModlist(Metadata, _cancellationToken);
                 var dispose = progress
                     .BindToStrict(this, vm => vm.ProgressPercent);
                 try
