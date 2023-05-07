@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - TBD
+#### Version - 3.1.0.0 - 5/7/2023
 * Fixed Readme opening twice
 * Updated Text in the UI to better describe current app behavior
 * Added support for resumable downloads after closing the app during downloads (not available for MEGA downloads)
