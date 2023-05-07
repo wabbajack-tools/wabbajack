@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Wabbajack.BuildServer;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -8,10 +9,12 @@ public class TarLog
 {
     private Task<HashSet<string>> _tarKeys;
     private readonly AppSettings _settings;
+    private readonly ILogger<TarLog> _logger;
 
-    public TarLog(AppSettings settings)
+    public TarLog(AppSettings settings, ILogger<TarLog> logger)
     {
         _settings = settings;
+        _logger = logger;
         Load();
     }
 
@@ -19,15 +22,21 @@ public class TarLog
     {
         if (_settings.TarKeyFile.ToAbsolutePath().FileExists())
         {
-            _tarKeys = Task.Run(async () => await _settings.TarKeyFile.ToAbsolutePath()
-                .ReadAllLinesAsync()
-                .Select(line => line.Trim())
-                .ToHashSetAsync());
+            _tarKeys = Task.Run(async () =>
+            {
+                var keys = await _settings.TarKeyFile.ToAbsolutePath()
+                    .ReadAllLinesAsync()
+                    .Select(line => line.Trim())
+                    .ToHashSetAsync();
+                _logger.LogInformation("Loaded {Count} tar keys", keys.Count);
+                return keys;
+            });
         }
         else
         {
             _tarKeys = Task.Run(async () => new HashSet<string>());
         }
+
     }
 
     public async Task<bool> Contains(string metricsKey)
