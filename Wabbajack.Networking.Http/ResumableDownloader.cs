@@ -76,7 +76,8 @@ internal class ResumableDownloader
             return new Hash();
         }
 
-        return await _outputPath.Open(FileMode.Open).Hash(token);
+        await using var file = _outputPath.Open(FileMode.Open);
+        return await file.Hash(token);
     }
 
     private DownloadConfiguration CreateConfiguration(HttpRequestMessage message)
