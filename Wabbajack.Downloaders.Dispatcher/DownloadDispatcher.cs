@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.Common;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.Downloaders.VerificationCache;
 using Wabbajack.DTOs;
@@ -50,7 +51,9 @@ public class DownloadDispatcher
 
         using var downloadScope = _logger.BeginScope("Downloading {Name}", a.Name);
         using var job = await _limiter.Begin("Downloading " + a.Name, a.Size, token);
-        return await Download(a, dest, job, token, proxy);
+        var hash = await Download(a, dest, job, token, proxy);
+        _logger.LogInformation("Finished downloading {name}. Hash: {hash}; Size: {size}/{expectedSize}", a.Name, hash, dest.Size().ToFileSizeString(), a.Size.ToFileSizeString());
+        return hash;
     }
 
     public async Task<Archive> MaybeProxy(Archive a, CancellationToken token)
@@ -153,8 +156,15 @@ public class DownloadDispatcher
         if (downloadedHash != default && (downloadedHash == archive.Hash || archive.Hash == default))
             return (DownloadResult.Success, downloadedHash);
 
-        downloadedHash = await DownloadFromMirror(archive, destination, token);
-        if (downloadedHash != default) return (DownloadResult.Mirror, downloadedHash);
+        try
+        {
+            downloadedHash = await DownloadFromMirror(archive, destination, token);
+            if (downloadedHash != default) return (DownloadResult.Mirror, downloadedHash);
+        }
+        catch (NotSupportedException)
+        {
+            // Thrown if downloading from mirror is not supported for archive, keep original hash
+        }
 
         return (DownloadResult.Failure, downloadedHash);
 
@@ -234,7 +244,7 @@ public class DownloadDispatcher
 
             return await Download(newArchive, destination, token);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not NotSupportedException)
         {
             _logger.LogCritical(ex, "While finding mirror for {hash}", archive.Hash);
             return default;
