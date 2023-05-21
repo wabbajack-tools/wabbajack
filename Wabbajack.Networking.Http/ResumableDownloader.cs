@@ -84,6 +84,8 @@ internal class ResumableDownloader
     {
         var configuration = new DownloadConfiguration
         {
+            Timeout = (int)TimeSpan.FromSeconds(120).TotalMilliseconds,
+            ReserveStorageSpaceBeforeStartingDownload = true,
             RequestConfiguration = new RequestConfiguration
             {
                 Headers = message.Headers.ToWebHeaderCollection(),
