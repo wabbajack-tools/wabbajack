@@ -110,12 +110,21 @@ internal class ResumableDownloader
         }
 
         await _job.Report(processedSize, _token);
+        if (_job.Current > _job.Size)
+        {
+            // Increase job size so progress doesn't appear stalled
+            _job.Size = (long)Math.Floor(_job.Current * 1.1);
+        }
     }
 
     private void OnDownloadStarted(object? sender, DownloadStartedEventArgs e)
     {
         _job.ResetProgress();
-        _job.Size = e.TotalBytesToReceive;
+
+        if (_job.Size < e.TotalBytesToReceive)
+        {
+            _job.Size = e.TotalBytesToReceive;
+        }
 
         // Get rid of package, since we can't use it to resume anymore
         DeletePackage();
