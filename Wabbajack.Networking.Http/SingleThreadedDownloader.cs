@@ -29,8 +29,23 @@ public class SingleThreadedDownloader : IHttpDownloader
     public async Task<Hash> Download(HttpRequestMessage message, AbsolutePath outputPath, IJob job,
         CancellationToken token)
     {
-        var downloader = new ResumableDownloader(message, outputPath, job);
-        return await downloader.Download(token);
+        Exception downloadError = null!;
+        var downloader = new ResumableDownloader(message, outputPath, job, _logger);
+        for (var i = 0; i < 3; i++)
+        {
+            try
+            {
+                return await downloader.Download(token);
+            }
+            catch (Exception ex)
+            {
+                downloadError = ex;
+                _logger.LogDebug("Download for '{name}' failed. Retrying...", outputPath.FileName.ToString());
+            }
+        }
+
+        _logger.LogError(downloadError, "Failed to download '{name}' after 3 tries.", outputPath.FileName.ToString());
+        return new Hash();
 
         // using var response = await _client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, token);
         // if (!response.IsSuccessStatusCode)
