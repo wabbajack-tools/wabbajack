@@ -37,11 +37,6 @@ public class ResourceSettingsManager
             }
 
             var setting = _settings[name];
-            if (name.Equals("Downloads"))
-            {
-                setting.MaxTasks = Math.Min(setting.MaxTasks, 8);
-            }
-
             return setting;
         }
         finally
