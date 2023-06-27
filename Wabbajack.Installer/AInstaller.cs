@@ -422,10 +422,17 @@ public abstract class AInstaller<T>
                 await destination.Value.MoveToAsync(destination.Value.Parent.Combine(archive.Hash.ToHex()), true,
                     token);
         }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            // No actual error. User canceled downloads.
+        }
+        catch (NotImplementedException) when (archive.State is GameFileSource)
+        {
+            _logger.LogError("Missing game file {name}. This could be caused by missing DLC or a modified installation.", archive.Name);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Download error for file {name}", archive.Name);
-            return false;
         }
 
         return false;

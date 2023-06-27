@@ -24,20 +24,20 @@ public class ResourceSettingsManager
         try
         {
             _settings ??= await _manager.Load<Dictionary<string, ResourceSetting>>("resource_settings");
-
-            if (_settings.TryGetValue(name, out var found)) return found;
-
-            var newSetting = new ResourceSetting
+            if (!_settings.ContainsKey(name))
             {
-                MaxTasks = Environment.ProcessorCount,
-                MaxThroughput = 0
-            };
+                var newSetting = new ResourceSetting
+                {
+                    MaxTasks = Environment.ProcessorCount,
+                    MaxThroughput = 0
+                };
 
-            _settings.Add(name, newSetting);
+                _settings.Add(name, newSetting);
+                await SaveSettings(_settings);
+            }
 
-            await _manager.Save("resource_settings", _settings);
-            
-            return _settings[name];
+            var setting = _settings[name];
+            return setting;
         }
         finally
         {

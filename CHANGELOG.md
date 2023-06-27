@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version TBD
+* Fixed issues related to high RAM usage
+  * The resumable downloads now reserve drive space to write to in advance instead of being managed in system RAM
+
 #### Version - 3.1.0.0 - 5/7/2023
 * Fixed Readme opening twice
 * Updated Text in the UI to better describe current app behavior
