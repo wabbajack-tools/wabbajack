@@ -4,6 +4,8 @@
 * Fixed issues related to high RAM usage
   * The resumable downloads now reserve drive space to write to in advance instead of being managed in system RAM
 
+  * Fixed No Delete and NoDelete being handled by stripping whitespace before the regex, to idiotproof things a bit
+
 #### Version - 3.1.0.0 - 5/7/2023
 * Fixed Readme opening twice
 * Updated Text in the UI to better describe current app behavior
