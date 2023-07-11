@@ -329,10 +329,6 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         {
             ModList = await StandardInstaller.LoadFromFile(_dtos, path);
             ModListImage = BitmapFrame.Create(await StandardInstaller.ModListImageStream(path));
-            
-            if (!string.IsNullOrWhiteSpace(ModList.Readme)) 
-                UIUtils.OpenWebsite(new Uri(ModList.Readme));
-
 
             StatusText = $"Install configuration for {ModList.Name}";
             TaskBarUpdate.Send($"Loaded {ModList.Name}", TaskbarItemProgressState.Normal);
@@ -454,8 +450,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                 {
                     TaskBarUpdate.Send($"Finished install of {ModList.Name}", TaskbarItemProgressState.Normal);
                     InstallState = InstallState.Success;
-                    
-                    if (!string.IsNullOrWhiteSpace(ModList.Readme)) 
+
+                    if (!string.IsNullOrWhiteSpace(ModList.Readme))
                         UIUtils.OpenWebsite(new Uri(ModList.Readme));
 
                 }
