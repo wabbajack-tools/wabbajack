@@ -219,7 +219,6 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         
         MessageBus.Current.Listen<LoadModlistForInstalling>()
             .Subscribe(msg => LoadModlistFromGallery(msg.Path, msg.Metadata).FireAndForget())
-            //.Subscribe(msg => LoadModlist(msg.Path, msg.Metadata).FireAndForget())
             .DisposeWith(CompositeDisposable);
 
         MessageBus.Current.Listen<LoadLastLoadedModlist>()
