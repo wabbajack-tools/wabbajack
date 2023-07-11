@@ -121,7 +121,7 @@ namespace Wabbajack
 
                 var searchTextPredicates = this.ObservableForProperty(vm => vm.Search)
                     .Select(change => change.Value)
-                    .StartWith("")
+                    .StartWith(Search)
                     .Select<string, Func<ModListMetadataVM, bool>>(txt =>
                     {
                         if (string.IsNullOrWhiteSpace(txt)) return _ => true;
