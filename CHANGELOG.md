@@ -3,7 +3,7 @@
 #### Version TBD
 * Fixed issues related to high RAM usage
   * The resumable downloads now reserve drive space to write to in advance instead of being managed in system RAM
-  * fixed search filter nto applying when pressing back button and reaccessing gallery
+  * fixed search filter not applying when pressing back button and reaccessing gallery
 
 #### Version - 3.1.0.0 - 5/7/2023
 * Fixed Readme opening twice
