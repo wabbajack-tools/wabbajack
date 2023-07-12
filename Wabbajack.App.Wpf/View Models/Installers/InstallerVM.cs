@@ -291,7 +291,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         
         if (installPath.InFolder(KnownFolders.EntryPoint))
             yield return ErrorResponse.Fail("Can't install a modlist into the Wabbajack.exe path");
-
+        if (downloadPath.InFolder(KnownFolders.EntryPoint))
+            yield return ErrorResponse.Fail("Can't download a modlist into the Wabbajack.exe path");
         if (KnownFolders.EntryPoint.ThisAndAllParents().Any(path => installPath == path))
         { 
             yield return ErrorResponse.Fail("Installing in this folder may overwrite Wabbajack");
