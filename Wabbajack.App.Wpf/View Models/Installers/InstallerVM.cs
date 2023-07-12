@@ -34,6 +34,7 @@ using Wabbajack.RateLimiter;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Util;
+using System.Diagnostics;
 
 namespace Wabbajack;
 
@@ -295,6 +296,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         if (KnownFolders.EntryPoint.ThisAndAllParents().Any(path => installPath == path))
         { 
             yield return ErrorResponse.Fail("Installing in this folder may overwrite Wabbajack");
+        }
+        if (KnownFolders.IsInSpecialFolder(installPath) || KnownFolders.IsInSpecialFolder(downloadPath))
+        {
+            yield return ErrorResponse.Fail("Can't install a modlist into Windows protected locations - such as Downloads, Documents etc");
         }
     }
 

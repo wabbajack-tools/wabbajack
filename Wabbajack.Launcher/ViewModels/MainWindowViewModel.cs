@@ -51,7 +51,6 @@ public class MainWindowViewModel : ViewModelBase
     private async Task CheckForUpdates()
     {
         await VerifyCurrentLocation();
-
         _client.Headers.Add("user-agent", "Wabbajack Launcher");
         Status = "Selecting Release";
 
@@ -222,11 +221,9 @@ public class MainWindowViewModel : ViewModelBase
         try
         {
             var entryPoint = KnownFolders.EntryPoint;
-            if (entryPoint.FileName == "Desktop".ToRelativePath()
-                || entryPoint.Depth <= 1
-                || entryPoint.FileName == "Downloads".ToRelativePath())
+            Debug.WriteLine("entrypoint = " + entryPoint.ToString());
+            if (KnownFolders.IsInSpecialFolder(entryPoint) || entryPoint.Depth <= 1)
             {
-
                 var msg = MessageBox.Avalonia.MessageBoxManager
                     .GetMessageBoxStandardWindow(new MessageBoxStandardParams()
                     {
@@ -234,7 +231,7 @@ public class MainWindowViewModel : ViewModelBase
                         ShowInCenter = true,
                         ContentTitle = "Wabbajack Launcher: Bad startup path",
                         ContentMessage =
-                            "Cannot start in the root, Downloads or Desktop folders.\nPlease move Wabbajack to another folder."
+                            "Cannot start in the root of a drive, or protected folder locations such as Downloads, Desktop etc.\nPlease move Wabbajack to another folder."
                     });
                 var result = await msg.Show();
                 Environment.Exit(1);
