@@ -51,6 +51,7 @@ public class MainWindowViewModel : ViewModelBase
     private async Task CheckForUpdates()
     {
         await VerifyCurrentLocation();
+
         _client.Headers.Add("user-agent", "Wabbajack Launcher");
         Status = "Selecting Release";
 

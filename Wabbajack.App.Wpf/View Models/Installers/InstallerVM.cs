@@ -34,7 +34,6 @@ using Wabbajack.RateLimiter;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Util;
-using System.Diagnostics;
 
 namespace Wabbajack;
 
