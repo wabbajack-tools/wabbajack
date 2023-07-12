@@ -49,7 +49,6 @@ public static class KnownFolders
         foreach (var val in Enum.GetValues(typeof(Environment.SpecialFolder)))
         {
             AbsolutePath specialPath = Environment.GetFolderPath((Environment.SpecialFolder)val).ToAbsolutePath();
-
             if ((candidate.ToString().Length > 0 && candidate == specialPath)
                 || KnownFolders.IsSubDirectoryOf(candidate.ToString(), specialPath.ToString()))
             {
