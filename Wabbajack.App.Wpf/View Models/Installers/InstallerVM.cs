@@ -301,7 +301,6 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             yield return ErrorResponse.Fail("Can't install a modlist into Windows protected locations - such as Downloads, Documents etc");
         }
     }
-
     
     private async Task BeginSlideShow(CancellationToken token)
     {
