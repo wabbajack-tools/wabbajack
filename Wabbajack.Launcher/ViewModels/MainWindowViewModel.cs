@@ -222,7 +222,6 @@ public class MainWindowViewModel : ViewModelBase
         try
         {
             var entryPoint = KnownFolders.EntryPoint;
-            Debug.WriteLine("entrypoint = " + entryPoint.ToString());
             if (KnownFolders.IsInSpecialFolder(entryPoint) || entryPoint.Depth <= 1)
             {
                 var msg = MessageBox.Avalonia.MessageBoxManager
