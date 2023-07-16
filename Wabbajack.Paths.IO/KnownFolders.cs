@@ -44,6 +44,48 @@ public static class KnownFolders
         }
     }
 
+    public static bool IsInSpecialFolder(this AbsolutePath candidate)
+    {
+        foreach (var val in Enum.GetValues(typeof(Environment.SpecialFolder)))
+        {
+            AbsolutePath specialPath = Environment.GetFolderPath((Environment.SpecialFolder)val).ToAbsolutePath();
+            if ((candidate.ToString().Length > 0 && candidate == specialPath)
+                || KnownFolders.IsSubDirectoryOf(candidate.ToString(), specialPath.ToString()))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static bool IsSubDirectoryOf(this string candidate, string other)
+    {
+        if (candidate.Length == 0) return false;
+        if (other.Length == 0) return false;
+        var isChild = false;
+        try
+        {
+            var candidateInfo = new DirectoryInfo(candidate);
+            var otherInfo = new DirectoryInfo(other);
+
+            while (candidateInfo.Parent != null)
+            {
+                if (candidateInfo.Parent.FullName == otherInfo.FullName)
+                {
+                    isChild = true;
+                    break;
+                }
+                else candidateInfo = candidateInfo.Parent;
+            }
+        }
+        catch (Exception error)
+        {
+            var message = String.Format("Unable to check directories {0} and {1}: {2}", candidate, other, error);
+            Trace.WriteLine(message);
+        }
+
+        return isChild;
+    }
+
     public static AbsolutePath AppDataLocal =>
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData).ToAbsolutePath();
 
