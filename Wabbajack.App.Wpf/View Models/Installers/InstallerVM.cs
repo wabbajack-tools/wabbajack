@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -221,7 +221,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         });
         
         MessageBus.Current.Listen<LoadModlistForInstalling>()
-            .Subscribe(msg => LoadModlist(msg.Path, msg.Metadata).FireAndForget())
+            .Subscribe(msg => LoadModlistFromGallery(msg.Path, msg.Metadata).FireAndForget())
             .DisposeWith(CompositeDisposable);
 
         MessageBus.Current.Listen<LoadLastLoadedModlist>()
@@ -276,7 +276,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             yield return ErrorResponse.Fail("Install path isn't set to a folder");
         if (installPath.InFolder(KnownFolders.Windows))
             yield return ErrorResponse.Fail("Don't install modlists into your Windows folder");
-
+        if( installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && installPath == downloadPath)
+        {
+            yield return ErrorResponse.Fail("Can't have identical install and download folders");
+        }
         foreach (var game in GameRegistry.Games)
         {
             if (!_gameLocator.TryFindLocation(game.Key, out var location))
@@ -294,11 +297,13 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         
         if (installPath.InFolder(KnownFolders.EntryPoint))
             yield return ErrorResponse.Fail("Can't install a modlist into the Wabbajack.exe path");
-
+        if (downloadPath.InFolder(KnownFolders.EntryPoint))
+            yield return ErrorResponse.Fail("Can't download a modlist into the Wabbajack.exe path");
         if (KnownFolders.EntryPoint.ThisAndAllParents().Any(path => installPath == path))
         { 
             yield return ErrorResponse.Fail("Installing in this folder may overwrite Wabbajack");
         }
+
         if (installPath.ToString().Length != 0 && installPath != LastInstallPath && 
             !Installer.AutomaticallyOverwrite && 
             Directory.EnumerateFileSystemEntries(installPath.ToString()).Any())
@@ -315,9 +320,12 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             {
                 Installer.Location.TargetPath = "".ToAbsolutePath();
             }
+
+        if (KnownFolders.IsInSpecialFolder(installPath) || KnownFolders.IsInSpecialFolder(downloadPath))
+        {
+            yield return ErrorResponse.Fail("Can't install a modlist into Windows protected locations - such as Downloads, Documents etc");
         }
     }
-
     
     private async Task BeginSlideShow(CancellationToken token)
     {
@@ -338,6 +346,12 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         {
             ModListLocation.TargetPath = lst;
         }
+    }
+
+    private async Task LoadModlistFromGallery(AbsolutePath path, ModlistMetadata metadata)
+    {
+        ModListLocation.TargetPath = path;
+        ModlistMetadata = metadata;
     }
 
     private async Task LoadModlist(AbsolutePath path, ModlistMetadata? metadata)

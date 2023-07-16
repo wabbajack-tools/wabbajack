@@ -39,6 +39,11 @@ namespace Wabbajack
                     .BindToStrict(this, view => view.BackButton.Command)
                     .DisposeWith(disposables);
 
+                ViewModel.WhenAnyValue(vm => vm.InstallState)
+                    .Select(v => v == InstallState.Installing ? Visibility.Collapsed : Visibility.Visible)
+                    .BindToStrict(this, view => view.BackButton.Visibility)
+                    .DisposeWith(disposables);
+
                 ViewModel.WhenAnyValue(vm => vm.OpenReadmeCommand)
                     .BindToStrict(this, view => view.OpenReadmePreInstallButton.Command)
                     .DisposeWith(disposables);

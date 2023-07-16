@@ -118,7 +118,12 @@ namespace Wabbajack
 
                 ((MainWindowVM) DataContext).WhenAnyValue(vm => vm.OpenSettingsCommand)
                     .BindTo(this, view => view.SettingsButton.Command);
-                    
+
+                ((MainWindowVM)DataContext).WhenAnyValue(vm => vm.Installer.InstallState)
+                    .ObserveOn(RxApp.MainThreadScheduler)
+                    .Select(v => v == InstallState.Installing ? Visibility.Collapsed : Visibility.Visible)
+                    .BindTo(this, view => view.SettingsButton.Visibility);
+
             }
             catch (Exception ex)
             {
