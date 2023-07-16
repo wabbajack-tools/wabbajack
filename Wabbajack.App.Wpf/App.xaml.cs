@@ -182,7 +182,9 @@ namespace Wabbajack
             services.AddTransient<LoversLabLoginHandler>();
 
             // Login Managers
-            services.AddAllSingleton<INeedsLogin, LoversLabLoginManager>();
+            
+            //Disabled because they are currently not used and bro
+            //services.AddAllSingleton<INeedsLogin, LoversLabLoginManager>();
             services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
             services.AddAllSingleton<INeedsLogin, VectorPlexusLoginManager>();
             services.AddSingleton<ManualDownloadHandler>();
