@@ -3,6 +3,7 @@
 #### Version TBD
 * Fixed issues related to high RAM usage
   * The resumable downloads now reserve drive space to write to in advance instead of being managed in system RAM
+  * Fixed allowing back button during install which can result in multiple install processes
   * fixed search filter not applying when pressing back button and reaccessing gallery
   * Added more robust checking for protected location paths and subfolders for the launcher exe and install and download paths
   * Fixed readme double opening when modlist details are prepoulated
