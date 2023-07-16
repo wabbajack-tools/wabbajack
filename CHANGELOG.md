@@ -3,8 +3,16 @@
 #### Version TBD
 * Fixed issues related to high RAM usage
   * The resumable downloads now reserve drive space to write to in advance instead of being managed in system RAM
-* remove LoversLab from the "Logins" Setting because it is deprecated for ages now and only causes confusion,
-  just for the unlikely probability that LL will fix their proper API.
+  * remove LoversLab from the "Logins" Setting because it is deprecated for ages now and only causes confusion,
+    just for the unlikely probability that LL will fix their proper API.
+  * Added safety to install path selection, to ensure that no files are deleted that are not intended to be.
+  * Fixed allowing back button during install which can result in multiple install processes
+  * fixed search filter not applying when pressing back button and reaccessing gallery
+  * Added more robust checking for protected location paths and subfolders for the launcher exe and install and download paths
+  * Fixed readme double opening when modlist details are prepoulated
+  * Added a check if Downloadpath is alongside Wabbajack.exe location, to match the install path check that already exists
+  * Added check for identical download and install paths
+  * Fixed No Delete and NoDelete being handled by stripping whitespace before the regex, to idiotproof things a bit
 
 #### Version - 3.1.0.0 - 5/7/2023
 * Fixed Readme opening twice
