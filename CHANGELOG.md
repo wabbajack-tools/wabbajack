@@ -4,6 +4,7 @@
 * Fixed issues related to high RAM usage
   * The resumable downloads now reserve drive space to write to in advance instead of being managed in system RAM
   * Added a check if Downloadpath is alongside Wabbajack.exe location, to match the install path check that already exists
+  * Added check for identical download and install paths
 
 #### Version - 3.1.0.0 - 5/7/2023
 * Fixed Readme opening twice
