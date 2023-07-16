@@ -3,6 +3,8 @@
 #### Version TBD
 * Fixed issues related to high RAM usage
   * The resumable downloads now reserve drive space to write to in advance instead of being managed in system RAM
+  * remove LoversLab from the "Logins" Setting because it is deprecated for ages now and only causes confusion,
+    just for the unlikely probability that LL will fix their proper API.
   * Added safety to install path selection, to ensure that no files are deleted that are not intended to be.
   * Fixed allowing back button during install which can result in multiple install processes
   * fixed search filter not applying when pressing back button and reaccessing gallery
