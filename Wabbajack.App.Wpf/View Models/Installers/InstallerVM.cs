@@ -273,7 +273,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             yield return ErrorResponse.Fail("Install path isn't set to a folder");
         if (installPath.InFolder(KnownFolders.Windows))
             yield return ErrorResponse.Fail("Don't install modlists into your Windows folder");
-
+        if( installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && installPath == downloadPath)
+        {
+            yield return ErrorResponse.Fail("Can't have identical install and download folders");
+        }
         foreach (var game in GameRegistry.Games)
         {
             if (!_gameLocator.TryFindLocation(game.Key, out var location))
@@ -291,7 +294,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         
         if (installPath.InFolder(KnownFolders.EntryPoint))
             yield return ErrorResponse.Fail("Can't install a modlist into the Wabbajack.exe path");
-
+        if (downloadPath.InFolder(KnownFolders.EntryPoint))
+            yield return ErrorResponse.Fail("Can't download a modlist into the Wabbajack.exe path");
         if (KnownFolders.EntryPoint.ThisAndAllParents().Any(path => installPath == path))
         { 
             yield return ErrorResponse.Fail("Installing in this folder may overwrite Wabbajack");

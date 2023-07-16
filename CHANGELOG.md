@@ -3,6 +3,8 @@
 #### Version TBD
 * Fixed issues related to high RAM usage
   * The resumable downloads now reserve drive space to write to in advance instead of being managed in system RAM
+  * Added a check if Downloadpath is alongside Wabbajack.exe location, to match the install path check that already exists
+  * Added check for identical download and install paths
 
   * Fixed No Delete and NoDelete being handled by stripping whitespace before the regex, to idiotproof things a bit
 
