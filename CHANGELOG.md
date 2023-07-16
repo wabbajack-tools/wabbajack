@@ -3,6 +3,7 @@
 #### Version TBD
 * Fixed issues related to high RAM usage
   * The resumable downloads now reserve drive space to write to in advance instead of being managed in system RAM
+  * Added safety to install path selection, to ensure that no files are deleted that are not intended to be.
 
 #### Version - 3.1.0.0 - 5/7/2023
 * Fixed Readme opening twice
