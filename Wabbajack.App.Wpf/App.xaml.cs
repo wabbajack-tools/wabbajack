@@ -183,7 +183,7 @@ namespace Wabbajack
 
             // Login Managers
             
-            //Disabled because they are currently not used and bro
+            //Disabled LL because it is currently not used and broken due to the way LL butchers their API
             //services.AddAllSingleton<INeedsLogin, LoversLabLoginManager>();
             services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
             services.AddAllSingleton<INeedsLogin, VectorPlexusLoginManager>();
