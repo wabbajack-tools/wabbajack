@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -304,11 +304,12 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             yield return ErrorResponse.Fail("Installing in this folder may overwrite Wabbajack");
         }
 
-        if (installPath.ToString().Length != 0 && installPath != LastInstallPath && 
-            !Installer.AutomaticallyOverwrite && 
+        if (installPath.ToString().Length != 0 && installPath != LastInstallPath &&
+            !Installer.AutomaticallyOverwrite &&
             Directory.EnumerateFileSystemEntries(installPath.ToString()).Any())
         {
-            string message = "There are existing files in the chosen install path, they will be deleted or overwritten (if updating existing modlist), continue?";
+            string message =
+                "There are existing files in the chosen install path, they will be deleted or overwritten (if updating existing modlist), continue?";
             string title = "Files found in install folder";
             MessageBoxButtons buttons = MessageBoxButtons.YesNo;
             DialogResult result = MessageBox.Show(message, title, buttons);
@@ -320,6 +321,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             {
                 Installer.Location.TargetPath = "".ToAbsolutePath();
             }
+        }
 
         if (KnownFolders.IsInSpecialFolder(installPath) || KnownFolders.IsInSpecialFolder(downloadPath))
         {

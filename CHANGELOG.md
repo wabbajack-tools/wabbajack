@@ -1,7 +1,7 @@
 ### Changelog
 
-#### Version TBD
-* Fixed issues related to high RAM usage
+#### Version - 3.2.0.0 - 7/16/2023
+  * Fixed issues related to high RAM usage
   * The resumable downloads now reserve drive space to write to in advance instead of being managed in system RAM
   * remove LoversLab from the "Logins" Setting because it is deprecated for ages now and only causes confusion,
     just for the unlikely probability that LL will fix their proper API.
