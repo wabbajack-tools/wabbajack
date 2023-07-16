@@ -534,8 +534,8 @@ public abstract class AInstaller<T>
                     return f;
 
                 if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return f;
-
-                if (NoDeleteRegex.IsMatch(f.ToString()))
+                var fNoSpaces = new string(f.ToString().Where(c => !Char.IsWhiteSpace(c)).ToArray());
+                if (NoDeleteRegex.IsMatch(fNoSpaces))
                     return f;
 
                 if (bsaPathsToNotBuild.Contains(f))
