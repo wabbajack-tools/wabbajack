@@ -218,7 +218,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         });
         
         MessageBus.Current.Listen<LoadModlistForInstalling>()
-            .Subscribe(msg => LoadModlist(msg.Path, msg.Metadata).FireAndForget())
+            .Subscribe(msg => LoadModlistFromGallery(msg.Path, msg.Metadata).FireAndForget())
             .DisposeWith(CompositeDisposable);
 
         MessageBus.Current.Listen<LoadLastLoadedModlist>()
@@ -322,6 +322,12 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         {
             ModListLocation.TargetPath = lst;
         }
+    }
+
+    private async Task LoadModlistFromGallery(AbsolutePath path, ModlistMetadata metadata)
+    {
+        ModListLocation.TargetPath = path;
+        ModlistMetadata = metadata;
     }
 
     private async Task LoadModlist(AbsolutePath path, ModlistMetadata? metadata)
