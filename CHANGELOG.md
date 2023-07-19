@@ -1,5 +1,8 @@
 ### Changelog
 
+### Version - TBA
+  * Fixed some UI issues arising from 3.2.0.0 changes - more informative error text, drive space checking, wiki link button
+
 #### Version - 3.2.0.0 - 7/16/2023
   * Fixed issues related to high RAM usage
   * The resumable downloads now reserve drive space to write to in advance instead of being managed in system RAM

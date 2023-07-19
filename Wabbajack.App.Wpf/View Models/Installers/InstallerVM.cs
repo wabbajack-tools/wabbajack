@@ -35,8 +35,6 @@ using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Util;
 using System.Windows.Forms;
-using System.Web;
-using System.Diagnostics;
 
 namespace Wabbajack;
 

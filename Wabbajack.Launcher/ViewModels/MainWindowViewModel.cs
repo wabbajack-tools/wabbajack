@@ -22,6 +22,7 @@ using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+#pragma warning disable SYSLIB0014
 
 namespace Wabbajack.Launcher.ViewModels;
 
