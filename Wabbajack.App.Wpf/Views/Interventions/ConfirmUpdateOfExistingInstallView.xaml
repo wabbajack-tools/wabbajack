@@ -33,13 +33,6 @@
         <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
             x:Name="ExtendedDescription"
             TextWrapping="WrapWithOverflow" />
-        <CheckBox Grid.Row="2" Grid.Column="2"
-            x:Name="AutoOverwriteCheckbox"
-            Margin="4"
-            HorizontalAlignment="Right"
-            Content="Remember"
-            IsChecked="{Binding Installer.AutomaticallyOverwrite}"
-            ToolTip="If installing over an existing installation next time, automatically replace it without asking permission." />
         <Button Grid.Row="3" Grid.Column="0"
             x:Name="CancelButton"
             Content="Cancel" />

@@ -39,6 +39,13 @@
                 FontSize="14"
                 Text="Target Modlist"
                 TextAlignment="Center" />
+            <TextBlock x:Name="errorTextBox"
+                Grid.Row="3"
+                FontFamily="Verdana" FontSize="10" FontWeight="ExtraBold"
+                Background="{StaticResource WindowBackgroundBrush}"
+                Foreground="Red"
+                Text=""
+                TextAlignment="Left" Margin="0,79,0,-45" Grid.ColumnSpan="3" />
             <local:FilePicker Grid.Row="1" Grid.Column="2"
                 x:Name="ModListLocationPicker"
                 Height="30"

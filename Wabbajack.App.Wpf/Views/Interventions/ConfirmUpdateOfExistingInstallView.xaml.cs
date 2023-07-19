@@ -40,11 +40,6 @@ namespace Wabbajack
                 this.WhenAny(x => x.ViewModel.Source.CancelCommand)
                     .BindToStrict(this, x => x.CancelButton.Command)
                     .DisposeWith(dispose);
-
-                this.BindStrict(this.ViewModel, x => x.Installer.AutomaticallyOverwrite, x => x.AutoOverwriteCheckbox.IsChecked,
-                        vmToViewConverter: x => x,
-                        viewToVmConverter: x => x ?? false)
-                    .DisposeWith(dispose);
             });
         }
     }

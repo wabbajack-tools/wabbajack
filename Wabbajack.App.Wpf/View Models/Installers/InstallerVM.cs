@@ -35,6 +35,8 @@ using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Util;
 using System.Windows.Forms;
+using System.Web;
+using System.Diagnostics;
 
 namespace Wabbajack;
 
@@ -140,6 +142,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     // Command properties
     public ReactiveCommand<Unit, Unit> ShowManifestCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenReadmeCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenWikiCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenDiscordButton { get; }
     public ReactiveCommand<Unit, Unit> VisitModListWebsiteCommand { get; }
         
@@ -177,6 +180,11 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         {
             UIUtils.OpenWebsite(new Uri(ModList!.Readme));
         }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModList.Readme, (isNotLoading, readme) => isNotLoading && !string.IsNullOrWhiteSpace(readme)));
+
+        OpenWikiCommand = ReactiveCommand.Create(() =>
+        {
+            UIUtils.OpenWebsite(new Uri("https://wiki.wabbajack.org/index.html"));
+        }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
 
         VisitModListWebsiteCommand = ReactiveCommand.Create(() =>
         {
@@ -280,6 +288,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         {
             yield return ErrorResponse.Fail("Can't have identical install and download folders");
         }
+        if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && KnownFolders.IsSubDirectoryOf(installPath.ToString(), downloadPath.ToString()))
+        {
+            yield return ErrorResponse.Fail("Can't put the install folder inside the download folder");
+        }
         foreach (var game in GameRegistry.Games)
         {
             if (!_gameLocator.TryFindLocation(game.Key, out var location))
@@ -305,11 +317,12 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         }
 
         if (installPath.ToString().Length != 0 && installPath != LastInstallPath &&
-            !Installer.AutomaticallyOverwrite &&
             Directory.EnumerateFileSystemEntries(installPath.ToString()).Any())
         {
             string message =
-                "There are existing files in the chosen install path, they will be deleted or overwritten (if updating existing modlist), continue?";
+                "There are files already in the chosen install path, if you are updating an existing modlist, this is fine. " + Environment.NewLine + 
+                " Otherwise, please ensure you intend for the folder contents to be deleted during the modlist install." + Environment.NewLine +
+                " Continue? ";
             string title = "Files found in install folder";
             MessageBoxButtons buttons = MessageBoxButtons.YesNo;
             DialogResult result = MessageBox.Show(message, title, buttons);
@@ -325,10 +338,43 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
 
         if (KnownFolders.IsInSpecialFolder(installPath) || KnownFolders.IsInSpecialFolder(downloadPath))
         {
-            yield return ErrorResponse.Fail("Can't install a modlist into Windows protected locations - such as Downloads, Documents etc");
+            yield return ErrorResponse.Fail("Can't install a modlist into Windows protected locations - such as Downloads,Documents etc, please make a new folder for the modlist.");
+        }
+
+        if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && !HasEnoughSpace(installPath, downloadPath)){
+            yield return ErrorResponse.Fail("Can't install modlist due to lack of free hard drive space, please read the modlist Readme to learn more.");
         }
     }
     
+    private bool HasEnoughSpace(AbsolutePath inpath, AbsolutePath downpath)
+    {      
+        string driveLetterInPath = inpath.ToString().Substring(0,1);
+        string driveLetterDownPath = inpath.ToString().Substring(0,1);
+        DriveInfo driveUsedInPath = new DriveInfo(driveLetterInPath);
+        DriveInfo driveUsedDownPath = new DriveInfo(driveLetterDownPath);
+        long spaceRequiredforInstall = ModlistMetadata.DownloadMetadata.SizeOfInstalledFiles;
+        long spaceRequiredforDownload = ModlistMetadata.DownloadMetadata.SizeOfArchives;
+        long spaceInstRemaining = driveUsedInPath.AvailableFreeSpace;
+        long spaceDownRemaining = driveUsedDownPath.AvailableFreeSpace;
+        if ( driveLetterInPath == driveLetterDownPath)
+        {
+            long totalSpaceRequired = spaceRequiredforInstall + spaceRequiredforDownload;
+            if (spaceInstRemaining < totalSpaceRequired)
+            {
+                return false;
+            }
+
+        } else
+        {
+            if( spaceInstRemaining < spaceRequiredforInstall || spaceDownRemaining < spaceRequiredforDownload)
+            {
+                return false;
+            }
+        }
+        return true;
+
+    }
+
     private async Task BeginSlideShow(CancellationToken token)
     {
         while (!token.IsCancellationRequested)
