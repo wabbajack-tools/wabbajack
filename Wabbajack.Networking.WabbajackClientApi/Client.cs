@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Reactive.Subjects;
@@ -47,6 +48,7 @@ public class Client
     private readonly ILogger<Client> _logger;
 
     private readonly ITokenProvider<WabbajackApiState> _token;
+    private bool _inited;
 
 
     public Client(ILogger<Client> logger, HttpClient client, ITokenProvider<WabbajackApiState> token,
@@ -60,6 +62,7 @@ public class Client
         _dtos = dtos;
         _limiter = limiter;
         _hashLimiter = hashLimiter;
+        _inited = false;
     }
 
     private async ValueTask<HttpRequestMessage> MakeMessage(HttpMethod method, Uri uri, HttpContent? content = null)
@@ -75,11 +78,23 @@ public class Client
         return msg;
     }
 
-    public async Task SendMetric(string action, string subject)
+    public async Task SendMetric(string action, string subject, bool rebound = true)
     {
+        if (!_inited)
+        {
+            _logger.LogInformation("Init Client: {Id}", (await _token.Get())?.MetricsKey);
+            _inited = true;
+        }
+        
         var msg = await MakeMessage(HttpMethod.Get,
             new Uri($"{_configuration.BuildServerUrl}metrics/{action}/{subject}"));
-        await _client.SendAsync(msg);
+        var result = await _client.SendAsync(msg);
+        if (rebound && result.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.InternalServerError)
+        {
+            _logger.LogError("HTTP Error: {Result}", result);
+            await SendMetric("rebound", "Error", false);
+            Environment.Exit(0);
+        }
     }
 
     public async Task<ServerAllowList> LoadDownloadAllowList()
