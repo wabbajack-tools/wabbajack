@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - TBA
+  * Added optional JSON flag for `DisplayVersionOnlyInInstallerView` to enable the installer image to only show version number.
+
 #### Version - 3.2.0.1 - 7/23/2023
   * Code cleanup: re-added some network and diagnostic code missing since 2.5
 

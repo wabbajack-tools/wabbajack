@@ -30,6 +30,8 @@ public class ModlistMetadata
     [JsonPropertyName("image_contains_title")]
     public bool ImageContainsTitle { get; set; }
 
+    [JsonPropertyName("DisplayVersionOnlyInInstallerView")] public bool DisplayVersionOnlyInInstallerView { get; set; }
+
     [JsonPropertyName("force_down")] public bool ForceDown { get; set; }
 
     [JsonPropertyName("links")] public LinksObject Links { get; set; } = new();
