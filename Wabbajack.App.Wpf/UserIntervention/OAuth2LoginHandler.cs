@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
+using Wabbajack.Common;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Messages;
@@ -40,7 +41,7 @@ public abstract class OAuth2LoginHandler<TLoginType> : BrowserWindowViewModel
 
         var tcs = new TaskCompletionSource<Uri>();
         await NavigateTo(tlogin.AuthorizationEndpoint);
-        
+
         Browser!.Browser.CoreWebView2.Settings.UserAgent = "Wabbajack";
         Browser!.Browser.NavigationStarting += (sender, args) =>
         {
@@ -50,7 +51,7 @@ public abstract class OAuth2LoginHandler<TLoginType> : BrowserWindowViewModel
                 tcs.TrySetResult(uri);
             }
         };
-        
+
         Instructions = $"Please log in and allow Wabbajack to access your {tlogin.SiteName} account";
 
         var scopes = string.Join(" ", tlogin.Scopes);
@@ -88,8 +89,7 @@ public abstract class OAuth2LoginHandler<TLoginType> : BrowserWindowViewModel
         var msg = new HttpRequestMessage();
         msg.Method = HttpMethod.Post;
         msg.RequestUri = tlogin.TokenEndpoint;
-        msg.Headers.Add("User-Agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36");
+        msg.AddChromeAgent();
         msg.Headers.Add("Cookie", string.Join(";", cookies.Select(c => $"{c.Name}={c.Value}")));
         msg.Content = new FormUrlEncodedContent(formData.ToList());
 
@@ -101,6 +101,6 @@ public abstract class OAuth2LoginHandler<TLoginType> : BrowserWindowViewModel
             Cookies = cookies,
             ResultState = data!
         });
-        
+
     }
 }

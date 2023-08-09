@@ -65,7 +65,7 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
         return new Uri(
             $"https://drive.google.com/uc?id={(state as DTOs.DownloadStates.GoogleDrive)?.Id}&export=download");
     }
-    
+
     public override IDownloadState? Resolve(IReadOnlyDictionary<string, string> iniData)
     {
         if (iniData.ContainsKey("directURL") && Uri.TryCreate(iniData["directURL"].CleanIniString(), UriKind.Absolute, out var uri))
@@ -74,8 +74,8 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
     }
 
     public override Priority Priority => Priority.Normal;
-    
-    
+
+
     public async Task<T> DownloadStream<T>(Archive archive, Func<Stream, Task<T>> fn, CancellationToken token)
     {
         var state = archive.State as DTOs.DownloadStates.GoogleDrive;
@@ -112,8 +112,8 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
         {
             var initialUrl = $"https://drive.google.com/uc?id={state.Id}&export=download";
             var msg = new HttpRequestMessage(HttpMethod.Get, initialUrl);
-            msg.UseChromeUserAgent();
-            
+            msg.AddChromeAgent();
+
             using var response = await _client.SendAsync(msg, token);
             var cookies = response.GetSetCookies();
             var warning = cookies.FirstOrDefault(c => c.Key.StartsWith("download_warning_"));
@@ -124,7 +124,7 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
                 var txt = await response.Content.ReadAsStringAsync(token);
                 if (txt.Contains("<title>Google Drive - Quota exceeded</title>"))
                     throw new Exception("Google Drive - Quota Exceeded");
-                
+
                 doc.LoadHtml(txt);
 
                 var action = doc.DocumentNode.DescendantsAndSelf()
@@ -133,7 +133,7 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
                     .Select(d => d.GetAttributeValue("action", ""))
                     .FirstOrDefault();
 
-                if (action != null) 
+                if (action != null)
                     warning = ("download_warning_", "t");
 
             }
@@ -145,18 +145,18 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
 
             var url = $"https://drive.google.com/uc?export=download&confirm={warning.Value}&id={state.Id}";
             var httpState = new HttpRequestMessage(HttpMethod.Get, url);
-            httpState.UseChromeUserAgent();
+            httpState.AddChromeAgent();
             return httpState;
         }
         else
         {
             var url = $"https://drive.google.com/file/d/{state.Id}/edit";
             var msg = new HttpRequestMessage(HttpMethod.Get, url);
-            msg.UseChromeUserAgent();
-            
+            msg.AddChromeAgent();
+
             using var response = await _client.SendAsync(msg, token);
             msg = new HttpRequestMessage(HttpMethod.Get, url);
-            msg.UseChromeUserAgent();
+            msg.AddChromeAgent();
             return !response.IsSuccessStatusCode ? null : msg;
         }
     }
