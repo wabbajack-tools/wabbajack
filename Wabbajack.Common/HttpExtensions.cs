@@ -19,7 +19,7 @@ public static class HttpExtensions
         msg.Headers.Add("Cookie", string.Join(";", cookies.Select(c => $"{c.Name}={c.Value}")));
         return msg;
     }
-    
+
     public static HttpRequestMessage AddHeaders(this HttpRequestMessage msg, IEnumerable<(string Key, string Value)> headers)
     {
         foreach (var header in headers)
@@ -29,17 +29,10 @@ public static class HttpExtensions
         return msg;
     }
 
-    public static HttpRequestMessage AddChromeAgent(this HttpRequestMessage msg)
-    {
-        msg.Headers.Add("User-Agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36");
-        return msg;
-    }
-
     public static HttpRequestMessage ToHttpRequestMessage(this ManualDownload.BrowserDownloadState browserState)
     {
         var msg = new HttpRequestMessage(HttpMethod.Get, browserState.Uri);
-        msg.AddChromeAgent();
+        msg.Headers.Add("User-Agent", browserState.UserAgent);
         msg.AddCookies(browserState.Cookies);
         msg.AddHeaders(browserState.Headers);
         return msg;
