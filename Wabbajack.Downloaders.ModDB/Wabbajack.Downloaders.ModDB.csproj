@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
+        <PackageReference Include="HtmlAgilityPack" Version="1.11.51" />
         <PackageReference Include="MegaApiClient" Version="1.10.3" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.3" />
     </ItemGroup>

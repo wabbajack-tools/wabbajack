@@ -12,7 +12,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
+        <PackageReference Include="HtmlAgilityPack" Version="1.11.51" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.3" />
     </ItemGroup>
 
