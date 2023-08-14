@@ -24,7 +24,7 @@
 
     <ItemGroup>
         <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
-        <PackageReference Include="Octopus.Octodiff" Version="2.0.100" />
+        <PackageReference Include="Octopus.Octodiff" Version="2.0.326" />
     </ItemGroup>
 
 </Project>
