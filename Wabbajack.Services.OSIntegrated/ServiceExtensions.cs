@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Compiler;
+using Wabbajack.Configuration;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.Downloaders.VerificationCache;
@@ -79,24 +80,36 @@ public static class ServiceExtensions
             ? new BinaryPatchCache(s.GetRequiredService<ILogger<BinaryPatchCache>>(), s.GetService<TemporaryFileManager>()!.CreateFolder().Path)
             : new BinaryPatchCache(s.GetRequiredService<ILogger<BinaryPatchCache>>(),KnownFolders.WabbajackAppLocal.Combine("PatchCache")));
 
-        
+
         service.AddSingleton<IVerificationCache>(s =>
         {
             var dtos = s.GetRequiredService<DTOSerializer>();
             return options.UseLocalCache
                 ? new VerificationCache(s.GetRequiredService<ILogger<VerificationCache>>(),
-                    s.GetService<TemporaryFileManager>()!.CreateFile().Path, 
+                    s.GetService<TemporaryFileManager>()!.CreateFile().Path,
                     TimeSpan.FromDays(1),
                     dtos)
                 : new VerificationCache(s.GetRequiredService<ILogger<VerificationCache>>(),
-                    KnownFolders.WabbajackAppLocal.Combine("VerificationCacheV2.sqlite"), 
+                    KnownFolders.WabbajackAppLocal.Combine("VerificationCacheV2.sqlite"),
                     TimeSpan.FromDays(1),
                     dtos);
         });
 
         service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount});
 
-        Func<Task<(int MaxTasks, long MaxThroughput)>> GetSettings(IServiceProvider provider, string name)
+        MainSettings GetAppSettings(IServiceProvider provider, string name)
+        {
+            var settingsManager = provider.GetService<SettingsManager>();
+            var settings = settingsManager!.Load<MainSettings>(name).Result;
+            if (settings.Upgrade())
+            {
+                settingsManager.Save("app_settings", settings).Wait();
+            }
+
+            return settings;
+        }
+
+        Func<Task<(int MaxTasks, long MaxThroughput)>> GetResourceSettings(IServiceProvider provider, string name)
         {
             return async () =>
             {
@@ -104,9 +117,9 @@ public static class ServiceExtensions
                 return ((int) s.MaxTasks, s.MaxThroughput);
             };
         }
-        
+
         // Settings
-        
+
         service.AddSingleton(s => new Configuration
         {
             EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
@@ -118,26 +131,27 @@ public static class ServiceExtensions
 
         service.AddSingleton<SettingsManager>();
         service.AddSingleton<ResourceSettingsManager>();
-        
+        service.AddSingleton<MainSettings>(s => GetAppSettings(s, "app_settings"));
+
         // Resources
 
         service.AddAllSingleton<IResource, IResource<DownloadDispatcher>>(s =>
-            new Resource<DownloadDispatcher>("Downloads", GetSettings(s, "Downloads"), s.GetRequiredService<CancellationToken>()));
+            new Resource<DownloadDispatcher>("Downloads", GetResourceSettings(s, "Downloads"), s.GetRequiredService<CancellationToken>()));
 
-        service.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", GetSettings(s, "Web Requests"), s.GetRequiredService<CancellationToken>()));
-        service.AddAllSingleton<IResource, IResource<Context>>(s => new Resource<Context>("VFS", GetSettings(s, "VFS"), s.GetRequiredService<CancellationToken>()));
+        service.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", GetResourceSettings(s, "Web Requests"), s.GetRequiredService<CancellationToken>()));
+        service.AddAllSingleton<IResource, IResource<Context>>(s => new Resource<Context>("VFS", GetResourceSettings(s, "VFS"), s.GetRequiredService<CancellationToken>()));
         service.AddAllSingleton<IResource, IResource<FileHashCache>>(s =>
-            new Resource<FileHashCache>("File Hashing", GetSettings(s, "File Hashing"), s.GetRequiredService<CancellationToken>()));
+            new Resource<FileHashCache>("File Hashing", GetResourceSettings(s, "File Hashing"), s.GetRequiredService<CancellationToken>()));
         service.AddAllSingleton<IResource, IResource<Client>>(s =>
-            new Resource<Client>("Wabbajack Client", GetSettings(s, "Wabbajack Client"), s.GetRequiredService<CancellationToken>()));
+            new Resource<Client>("Wabbajack Client", GetResourceSettings(s, "Wabbajack Client"), s.GetRequiredService<CancellationToken>()));
         service.AddAllSingleton<IResource, IResource<FileExtractor.FileExtractor>>(s =>
-            new Resource<FileExtractor.FileExtractor>("File Extractor", GetSettings(s, "File Extractor"), s.GetRequiredService<CancellationToken>()));
+            new Resource<FileExtractor.FileExtractor>("File Extractor", GetResourceSettings(s, "File Extractor"), s.GetRequiredService<CancellationToken>()));
 
         service.AddAllSingleton<IResource, IResource<ACompiler>>(s =>
-            new Resource<ACompiler>("Compiler", GetSettings(s, "Compiler"), s.GetRequiredService<CancellationToken>()));
+            new Resource<ACompiler>("Compiler", GetResourceSettings(s, "Compiler"), s.GetRequiredService<CancellationToken>()));
 
         service.AddAllSingleton<IResource, IResource<IInstaller>>(s =>
-            new Resource<IInstaller>("Installer", GetSettings(s, "Installer"), s.GetRequiredService<CancellationToken>()));
+            new Resource<IInstaller>("Installer", GetResourceSettings(s, "Installer"), s.GetRequiredService<CancellationToken>()));
 
         service.AddAllSingleton<IResource, IResource<IUserInterventionHandler>>(s =>
             new Resource<IUserInterventionHandler>("User Intervention", 1, token: s.GetRequiredService<CancellationToken>()));
@@ -154,7 +168,7 @@ public static class ServiceExtensions
         service.AddAllSingleton<IHttpDownloader, SingleThreadedDownloader>();
 
         service.AddSteam();
-            
+
         service.AddSingleton<Client>();
         service.AddSingleton<WriteOnlyClient>();
         service.AddBethesdaNet();
@@ -186,11 +200,11 @@ public static class ServiceExtensions
             service.AddAllSingleton<IGameLocator, StubbedGameLocator>();
         else
             service.AddAllSingleton<IGameLocator, GameLocator>();
-        
+
         // ImageLoader
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             service.AddSingleton<IImageLoader, TexConvImageLoader>();
-        else 
+        else
             service.AddSingleton<IImageLoader, CrossPlatformImageLoader>();
 
         // Installer/Compiler Configuration
@@ -214,9 +228,9 @@ public static class ServiceExtensions
             OSVersion = Environment.OSVersion.VersionString,
             Version = version
         });
-        
 
-        
+
+
         return service;
     }
 
@@ -224,7 +238,7 @@ public static class ServiceExtensions
     {
         // Get directories first and cache them, this freezes the directories were looking at
         // so any new ones don't show up in the middle of our deletes.
-        
+
         var dirs = path.EnumerateDirectories().ToList();
         var processIds = Process.GetProcesses().Select(p => p.Id).ToHashSet();
         foreach (var dir in dirs)
@@ -232,7 +246,7 @@ public static class ServiceExtensions
             var name = dir.FileName.ToString().Split("_");
             if (!int.TryParse(name[0], out var processId)) continue;
             if (processIds.Contains(processId)) continue;
-            
+
             try
             {
                 dir.DeleteDirectory();
@@ -242,7 +256,7 @@ public static class ServiceExtensions
                 // ignored
             }
         }
-        
+
     }
 
     public class OSIntegratedOptions
