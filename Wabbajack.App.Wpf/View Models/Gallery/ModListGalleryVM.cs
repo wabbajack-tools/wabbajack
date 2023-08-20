@@ -80,7 +80,6 @@ namespace Wabbajack
         private readonly SettingsManager _settingsManager;
         private readonly CancellationToken _cancellationToken;
 
-        private FiltersSettings settings { get; set; } = new();
         public ICommand ClearFiltersCommand { get; set; }
 
         public ModListGalleryVM(ILogger<ModListGalleryVM> logger, Client wjClient, GameLocator locator,

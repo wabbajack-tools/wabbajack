@@ -28,7 +28,6 @@ namespace Wabbajack
 
         public LoginManagerVM Login { get; }
         public PerformanceSettings Performance { get; }
-        public FiltersSettings Filters { get; }
         public AuthorFilesVM AuthorFile { get; }
 
         public ICommand OpenTerminalCommand { get; }

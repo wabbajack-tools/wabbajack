@@ -16,11 +16,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Orc.FileAssociation;
 using Wabbajack.Common;
-using Wabbajack.Downloaders.GameFile;
-using Wabbajack;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.Interventions;
-using Wabbajack.LoginManagers;
 using Wabbajack.Messages;
 using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
@@ -38,8 +35,6 @@ namespace Wabbajack
     public class MainWindowVM : ViewModel
     {
         public MainWindow MainWindow { get; }
-
-        public MainSettings Settings { get; }
 
         [Reactive]
         public ViewModel ActivePane { get; private set; }
@@ -76,7 +71,7 @@ namespace Wabbajack
         [Reactive]
         public bool UpdateAvailable { get; private set; }
 
-        public MainWindowVM(ILogger<MainWindowVM> logger, MainSettings settings, Client wjClient,
+        public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
             IServiceProvider serviceProvider, ModeSelectionVM modeSelectionVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
             InstallerVM installer, CompilerVM compilerVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM)
         {
@@ -85,7 +80,6 @@ namespace Wabbajack
             _resourceMonitor = resourceMonitor;
             _serviceProvider = serviceProvider;
             ConverterRegistration.Register();
-            Settings = settings;
             Installer = installer;
             Compiler = compilerVM;
             SettingsPane = settingsVM;
