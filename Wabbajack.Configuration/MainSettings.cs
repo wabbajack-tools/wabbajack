@@ -1,15 +1,13 @@
-﻿using System.Text.Json.Serialization;
-
-namespace Wabbajack.Configuration;
+﻿namespace Wabbajack.Configuration;
 
 public class MainSettings
 {
+    public const string SettingsFileName = "app_settings";
     private const int SettingsVersion = 1;
 
-    [JsonInclude]
-    private int CurrentSettingsVersion { get; set; }
+    public int CurrentSettingsVersion { get; private set; }
 
-    public PerformanceSettings PerformanceSettings { get; set; } = new();
+    public PerformanceSettings PerformanceSettings { get; } = new();
 
     public bool Upgrade()
     {

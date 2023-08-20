@@ -5,10 +5,11 @@ using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Wabbajack.Compiler;
+using Wabbajack.Downloaders;
 using Wabbajack.DTOs.JsonConverters;
-using Wabbajack;
 using Wabbajack.Paths;
-using Consts = Wabbajack.Consts;
+using Wabbajack.RateLimiter;
+using Wabbajack.Util;
 
 namespace Wabbajack
 {
@@ -24,7 +25,6 @@ namespace Wabbajack
         public InstallerSettings Installer { get; set; } = new();
         public FiltersSettings Filters { get; set; } = new();
         public CompilerSettings Compiler { get; set; } = new();
-        public PerformanceSettings Performance { get; set; } = new();
 
         private Subject<Unit> _saveSignal = new();
         [JsonIgnore]
@@ -52,7 +52,7 @@ namespace Wabbajack
 
             var backup = Consts.SettingsFile.AppendToName("-backup");
             await backup.DeleteAsync();
-            
+
             await Consts.SettingsFile.CopyToAsync(backup);
             await Consts.SettingsFile.DeleteAsync();
 */
@@ -97,71 +97,48 @@ namespace Wabbajack
         public string Search { get; set; }
         private bool _isPersistent = true;
         public bool IsPersistent { get => _isPersistent; set => RaiseAndSetIfChanged(ref _isPersistent, value); }
-        
+
         private bool _useCompression = false;
         public bool UseCompression { get => _useCompression; set => RaiseAndSetIfChanged(ref _useCompression, value); }
         public bool ShowUtilityLists { get; set; }
     }
 
-    [JsonName("PerformanceSettings")]
-    [JsonObject(MemberSerialization.OptOut)]
     public class PerformanceSettings : ViewModel
     {
-        public PerformanceSettings()
+        private readonly Configuration.MainSettings _settings;
+        private readonly int _defaultMaximumMemoryPerDownloadThreadMb;
+
+        public PerformanceSettings(Configuration.MainSettings settings, IResource<DownloadDispatcher> downloadResources, SystemParametersConstructor systemParams)
         {
-            _reduceHDDThreads = true;
-            _favorPerfOverRam = false;
-            _diskThreads = Environment.ProcessorCount;
-            _downloadThreads = Environment.ProcessorCount <= 8 ? Environment.ProcessorCount : 8;
-        }
+            var p = systemParams.Create();
 
-        private int _downloadThreads;
-        public int DownloadThreads { get => _downloadThreads; set => RaiseAndSetIfChanged(ref _downloadThreads, value); }
-        
-        private int _diskThreads;
-        public int DiskThreads { get => _diskThreads; set => RaiseAndSetIfChanged(ref _diskThreads, value); }
+            _settings = settings;
+            // Split half of available memory among download threads
+            _defaultMaximumMemoryPerDownloadThreadMb = (int)(p.SystemMemorySize / downloadResources.MaxTasks / 1024 / 1024) / 2;
+            _maximumMemoryPerDownloadThreadMb = settings.PerformanceSettings.MaximumMemoryPerDownloadThreadMb;
 
-        private bool _reduceHDDThreads;
-        public bool ReduceHDDThreads { get => _reduceHDDThreads; set => RaiseAndSetIfChanged(ref _reduceHDDThreads, value); }
-
-        private bool _favorPerfOverRam;
-        public bool FavorPerfOverRam { get => _favorPerfOverRam; set => RaiseAndSetIfChanged(ref _favorPerfOverRam, value); }
-        
-        private bool _networkWorkaroundMode;
-        public bool NetworkWorkaroundMode
-        {
-            get => _networkWorkaroundMode;
-            set
+            if (MaximumMemoryPerDownloadThreadMb < 0)
             {
-                Consts.UseNetworkWorkaroundMode = value;
-                RaiseAndSetIfChanged(ref _networkWorkaroundMode, value);
+                ResetMaximumMemoryPerDownloadThreadMb();
             }
         }
 
-        
-        private bool _disableTextureResizing;
-        public bool DisableTextureResizing
+        private int _maximumMemoryPerDownloadThreadMb;
+
+        public int MaximumMemoryPerDownloadThreadMb
         {
-            get => _disableTextureResizing;
+            get => _maximumMemoryPerDownloadThreadMb;
             set
             {
-                RaiseAndSetIfChanged(ref _disableTextureResizing, value);
+                RaiseAndSetIfChanged(ref _maximumMemoryPerDownloadThreadMb, value);
+                _settings.PerformanceSettings.MaximumMemoryPerDownloadThreadMb = value;
             }
         }
 
-
-
-        /*
-        public void SetProcessorSettings(ABatchProcessor processor)
+        public void ResetMaximumMemoryPerDownloadThreadMb()
         {
-            processor.DownloadThreads = DownloadThreads;
-            processor.DiskThreads = DiskThreads;
-            processor.ReduceHDDThreads = ReduceHDDThreads;
-            processor.FavorPerfOverRam = FavorPerfOverRam;
-
-            if (processor is MO2Compiler mo2c)
-                mo2c.DisableTextureResizing = DisableTextureResizing;
-        }*/
+            MaximumMemoryPerDownloadThreadMb = _defaultMaximumMemoryPerDownloadThreadMb;
+        }
     }
 
     [JsonName("CompilationModlistSettings")]
@@ -174,7 +151,7 @@ namespace Wabbajack
         public string Website { get; set; }
         public string Readme { get; set; }
         public bool IsNSFW { get; set; }
-        
+
         public string MachineUrl { get; set; }
         public AbsolutePath SplashScreen { get; set; }
         public bool Publish { get; set; }

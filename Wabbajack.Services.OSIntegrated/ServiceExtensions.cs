@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.Configuration;
 using Wabbajack.Downloaders;
@@ -103,7 +104,7 @@ public static class ServiceExtensions
             var settings = settingsManager!.Load<MainSettings>(name).Result;
             if (settings.Upgrade())
             {
-                settingsManager.Save("app_settings", settings).Wait();
+                settingsManager.Save(MainSettings.SettingsFileName, settings).FireAndForget();
             }
 
             return settings;
@@ -131,7 +132,7 @@ public static class ServiceExtensions
 
         service.AddSingleton<SettingsManager>();
         service.AddSingleton<ResourceSettingsManager>();
-        service.AddSingleton<MainSettings>(s => GetAppSettings(s, "app_settings"));
+        service.AddSingleton<MainSettings>(s => GetAppSettings(s, MainSettings.SettingsFileName));
 
         // Resources
 
