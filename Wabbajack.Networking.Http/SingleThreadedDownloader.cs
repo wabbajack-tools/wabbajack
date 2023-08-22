@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.Configuration;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Paths;
@@ -19,18 +20,20 @@ public class SingleThreadedDownloader : IHttpDownloader
 {
     private readonly HttpClient _client;
     private readonly ILogger<SingleThreadedDownloader> _logger;
+    private readonly PerformanceSettings _settings;
 
-    public SingleThreadedDownloader(ILogger<SingleThreadedDownloader> logger, HttpClient client)
+    public SingleThreadedDownloader(ILogger<SingleThreadedDownloader> logger, HttpClient client, MainSettings settings)
     {
         _logger = logger;
         _client = client;
+        _settings = settings.PerformanceSettings;
     }
 
     public async Task<Hash> Download(HttpRequestMessage message, AbsolutePath outputPath, IJob job,
         CancellationToken token)
     {
         Exception downloadError = null!;
-        var downloader = new ResumableDownloader(message, outputPath, job, _logger);
+        var downloader = new ResumableDownloader(message, outputPath, job, _settings, _logger);
         for (var i = 0; i < 3; i++)
         {
             try

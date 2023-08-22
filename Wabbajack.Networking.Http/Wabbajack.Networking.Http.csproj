@@ -8,11 +8,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Downloader" Version="3.0.4" />
+        <PackageReference Include="Downloader" Version="3.0.6" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.2-mauipre.1.22102.15" />
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Wabbajack.Configuration\Wabbajack.Configuration.csproj" />
         <ProjectReference Include="..\Wabbajack.Downloaders.Interfaces\Wabbajack.Downloaders.Interfaces.csproj" />
         <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.Http.Interfaces\Wabbajack.Networking.Http.Interfaces.csproj" />

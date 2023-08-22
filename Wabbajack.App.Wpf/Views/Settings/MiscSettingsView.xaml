@@ -6,7 +6,6 @@
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
-    xmlns:xwpf="http://schemas.xceed.com/wpf/xaml/toolkit"
     d:DesignHeight="450"
     d:DesignWidth="800"
     x:TypeArguments="local:SettingsVM"
@@ -32,16 +31,18 @@
                 <ColumnDefinition Width="5" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
+            <TextBlock
+                Grid.Column="0"
+                Grid.ColumnSpan="2"
                 FontFamily="Lucida Sans"
                 FontSize="20"
                 FontWeight="Bold"
                 Text="Misc Settings" />
-            <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3">
+            <Grid
+                Grid.Row="2"
+                Grid.Column="0"
+                Grid.ColumnSpan="3">
                 <Grid.RowDefinitions>
-                    <RowDefinition />
-                    <RowDefinition />
-                    <RowDefinition />
                     <RowDefinition />
                 </Grid.RowDefinitions>
                 <Grid.Resources>
@@ -55,32 +56,9 @@
                         </Style.Triggers>
                     </Style>
                 </Grid.Resources>
-                <CheckBox Grid.Row="0"
-                    Name="FilterPersistCheckBox"
-                    Margin="0,5,0,0"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Top"
-                    Content="Gallery filters are saved on exit">
-                    <CheckBox.LayoutTransform>
-                        <ScaleTransform ScaleX="1.2" ScaleY="1.2" />
-                    </CheckBox.LayoutTransform>
-                </CheckBox>
-                <CheckBox Grid.Row="1"
-                    Name="UseCompressionCheckBox"
-                    Margin="0,5,0,0"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Top"
-                    Content="Use NTFS LZS compression during install">
-                    <CheckBox.LayoutTransform>
-                        <ScaleTransform ScaleX="1.2" ScaleY="1.2" />
-                    </CheckBox.LayoutTransform>
-                </CheckBox>
-                <Button Grid.Row="2"
-                    Name="ClearCefCache"
-                    Margin="0,5,0,0"
-                    Content="Clear In-App Browser Cache" />
-                <Button Grid.Row="3"
+                <Button
                     Name="OpenTerminal"
+                    Grid.Row="0"
                     Margin="0,5,0,0"
                     Content="Launch Wabbajack CLI" />
             </Grid>

@@ -3,7 +3,6 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
@@ -166,7 +165,6 @@ namespace Wabbajack
             services.AddSingleton<LauncherUpdater>();
             services.AddSingleton<ResourceMonitor>();
 
-            services.AddSingleton<MainSettings>();
             services.AddTransient<CompilerVM>();
             services.AddTransient<InstallerVM>();
             services.AddTransient<ModeSelectionVM>();
@@ -182,7 +180,7 @@ namespace Wabbajack
             services.AddTransient<LoversLabLoginHandler>();
 
             // Login Managers
-            
+
             //Disabled LL because it is currently not used and broken due to the way LL butchers their API
             //services.AddAllSingleton<INeedsLogin, LoversLabLoginManager>();
             services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
