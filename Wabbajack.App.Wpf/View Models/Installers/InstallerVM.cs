@@ -565,7 +565,14 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
 
     private void PopulateSlideShow(ModList modList)
     {
-        SlideShowTitle = modList.Name;
+        if (ModlistMetadata.ImageContainsTitle && ModlistMetadata.DisplayVersionOnlyInInstallerView)
+        {
+            SlideShowTitle = "v" + ModlistMetadata.Version.ToString();
+        }
+        else
+        {
+            SlideShowTitle = modList.Name;
+        }
         SlideShowAuthor = modList.Author;
         SlideShowDescription = modList.Description;
         SlideShowImage = ModListImage;
