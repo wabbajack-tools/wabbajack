@@ -10,14 +10,14 @@ namespace Wabbajack.DTOs.Interventions;
 public class ManualDownload : AUserIntervention<ManualDownload.BrowserDownloadState>
 {
     public Archive Archive { get; }
-    
+
     public ManualDownload(Archive archive)
     {
         Archive = archive;
     }
 
-    public record BrowserDownloadState(Uri Uri, Cookie[] Cookies, (string Key, string Value)[] Headers)
+    public record BrowserDownloadState(Uri Uri, Cookie[] Cookies, (string Key, string Value)[] Headers, string UserAgent)
     {
-        
+
     }
 }
