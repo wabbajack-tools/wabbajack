@@ -46,21 +46,5 @@
             FontSize="14"
             PickerVM="{Binding DownloadLocation}"
             ToolTip="The directory where modlist archives will be downloaded to" />
-        <CheckBox Grid.Row="2" Grid.Column="2"
-            HorizontalAlignment="Right"
-            Content="Overwrite Installation"
-            IsChecked="{Binding AutomaticallyOverwrite}"
-            ToolTip="If installing over an existing installation, automatically replace it without asking permission.">
-            <CheckBox.Style>
-                <Style TargetType="CheckBox">
-                    <Setter Property="Opacity" Value="0.6" />
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True">
-                            <Setter Property="Opacity" Value="1" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </CheckBox.Style>
-        </CheckBox>
     </Grid>
 </UserControl>

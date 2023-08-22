@@ -1,5 +1,8 @@
 ### Changelog
 
+### Version - TBA
+* Fixed some UI issues arising from 3.2.0.0 changes - more informative error text, drive space checking, wiki link button
+
 #### Version - 3.2.0.1 - 7/23/2023
   * Code cleanup: re-added some network and diagnostic code missing since 2.5
 

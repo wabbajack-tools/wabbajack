@@ -39,9 +39,6 @@ namespace Wabbajack
 
         public bool SupportsAfterInstallNavigation => true;
 
-        [Reactive]
-        public bool AutomaticallyOverwrite { get; set; }
-
         public int ConfigVisualVerticalOffset => 25;
 
         public MO2InstallerVM(InstallerVM installerVM)
@@ -166,7 +163,6 @@ namespace Wabbajack
             if (settings == null) return;
             settings.InstallationLocation = Location.TargetPath;
             settings.DownloadLocation = DownloadLocation.TargetPath;
-            settings.AutomaticallyOverrideExistingInstall = AutomaticallyOverwrite;
         }
 
         public void AfterInstallNavigation()
