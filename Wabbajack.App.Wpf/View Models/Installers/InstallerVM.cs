@@ -322,7 +322,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         if (installPath.ToString().Length != 0 && installPath != LastInstallPath && !OverwriteFiles &&
             Directory.EnumerateFileSystemEntries(installPath.ToString()).Any())
         {
-            yield return ErrorResponse.Fail("There are files in the install folder, please tick 'Overwrite Installation' to confirm you want to install to this folder, if you are updating an existing modlist, this is fine.");
+            yield return ErrorResponse.Fail("There are files in the install folder, please tick 'Overwrite Installation' to confirm you want to install to this folder " + Environment.NewLine + 
+                 "if you are updating an existing modlist, then this is expected and can be overwritten.");
         }
 
         if (KnownFolders.IsInSpecialFolder(installPath) || KnownFolders.IsInSpecialFolder(downloadPath))
