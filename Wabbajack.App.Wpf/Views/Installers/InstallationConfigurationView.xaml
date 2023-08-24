@@ -81,10 +81,11 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <local:BeginButton Grid.Row="1"
                 x:Name="BeginButton"
-                HorizontalAlignment="Right"
+                HorizontalAlignment="Center"
                 VerticalAlignment="Center" />
             <icon:PackIconFontAwesome Grid.Row="2"
                 x:Name="ErrorSummaryIconGlow"
@@ -99,8 +100,27 @@
             <icon:PackIconFontAwesome Grid.Row="2"
                 x:Name="ErrorSummaryIcon"
                 HorizontalAlignment="Center"
+                VerticalAlignment="Top"
                 Foreground="{StaticResource WarningBrush}"
                 Kind="ExclamationTriangleSolid" />
+            <CheckBox Grid.Row="2" Grid.Column="2"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Bottom"
+            x:Name="OverwriteCheckBox"
+            Content="Overwrite Installation"
+            IsChecked="False"
+            ToolTip="Confirm to overwrite files in install folder.">
+                <CheckBox.Style>
+                    <Style TargetType="CheckBox">
+                        <Setter Property="Opacity" Value="0.6" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True">
+                                <Setter Property="Opacity" Value="1" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </CheckBox.Style>
+            </CheckBox>
         </Grid>
     </Grid>
 </rxui:ReactiveUserControl>

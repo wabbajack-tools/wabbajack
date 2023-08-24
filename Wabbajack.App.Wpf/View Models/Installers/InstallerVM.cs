@@ -135,6 +135,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     public LogStream LoggerProvider { get; }
 
     private AbsolutePath LastInstallPath { get; set; }
+
+    [Reactive] public bool OverwriteFiles { get; set; }
     
     
     // Command properties
@@ -225,7 +227,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         {
             UIUtils.OpenFolder(Installer.Location.TargetPath);
         });
-        
+
+        this.WhenAnyValue(x => x.OverwriteFiles)
+            .Subscribe(x => ConfirmOverwrite());
+
         MessageBus.Current.Listen<LoadModlistForInstalling>()
             .Subscribe(msg => LoadModlistFromGallery(msg.Path, msg.Metadata).FireAndForget())
             .DisposeWith(CompositeDisposable);
@@ -314,24 +319,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             yield return ErrorResponse.Fail("Installing in this folder may overwrite Wabbajack");
         }
 
-        if (installPath.ToString().Length != 0 && installPath != LastInstallPath &&
+        if (installPath.ToString().Length != 0 && installPath != LastInstallPath && !OverwriteFiles &&
             Directory.EnumerateFileSystemEntries(installPath.ToString()).Any())
         {
-            string message =
-                "There are files already in the chosen install path, if you are updating an existing modlist, this is fine. " + Environment.NewLine + 
-                " Otherwise, please ensure you intend for the folder contents to be deleted during the modlist install." + Environment.NewLine +
-                " Continue? ";
-            string title = "Files found in install folder";
-            MessageBoxButtons buttons = MessageBoxButtons.YesNo;
-            DialogResult result = MessageBox.Show(message, title, buttons);
-            if (result == DialogResult.Yes)
-            {
-                // everythings fine
-            }
-            else
-            {
-                Installer.Location.TargetPath = "".ToAbsolutePath();
-            }
+            yield return ErrorResponse.Fail("There are files in the install folder, please tick 'Overwrite Installation' to confirm you want to install to this folder, if you are updating an existing modlist, this is fine.");
         }
 
         if (KnownFolders.IsInSpecialFolder(installPath) || KnownFolders.IsInSpecialFolder(downloadPath))
@@ -453,6 +444,13 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             _logger.LogError(ex, "While loading modlist");
             ll.Fail();
         }
+    }
+
+    private void ConfirmOverwrite()
+    {
+        AbsolutePath prev = Installer.Location.TargetPath;
+        Installer.Location.TargetPath = "".ToAbsolutePath();
+        Installer.Location.TargetPath = prev;
     }
 
     private async Task BeginInstall()
