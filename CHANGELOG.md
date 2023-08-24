@@ -1,13 +1,12 @@
 ### Changelog
 
-### Version - 3.3.0.0-Pre - 08/22/2023
-* Fixed some UI issues arising from 3.2.0.0 changes - more informative error text, drive space checking, wiki link button
-* Added optional JSON flag for `DisplayVersionOnlyInInstallerView` to enable the installer image to only show version number.
-* Fixed manual downloader downloading in the OS's "Downloads" folder
-* Added RAM Limit setting for downloads
-
+<<<<<<<<< Temporary merge branch 1
+### Version - TBA
+  * Fixed some UI issues arising from 3.2.0.0 changes - more informative error text, drive space checking, wiki link button
+=========
 #### Version - 3.2.0.1 - 7/23/2023
-* Code cleanup: re-added some network and diagnostic code missing since 2.5
+  * Code cleanup: re-added some network and diagnostic code missing since 2.5
+>>>>>>>>> Temporary merge branch 2
 
 #### Version - 3.2.0.0 - 7/16/2023
 * Fixed issues related to high RAM usage
