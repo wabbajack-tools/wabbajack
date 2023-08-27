@@ -130,6 +130,7 @@ public static class GameRegistry
                 MO2Name = "Fallout 4",
                 MO2ArchiveName = "fallout4",
                 SteamIDs = new[] {377160},
+                GOGIDs = new []{1998527297},
                 RequiredFiles = new[]
                 {
                     "Fallout4.exe".ToRelativePath()
