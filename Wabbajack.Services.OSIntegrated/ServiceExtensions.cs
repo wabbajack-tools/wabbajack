@@ -100,8 +100,8 @@ public static class ServiceExtensions
 
         MainSettings GetAppSettings(IServiceProvider provider, string name)
         {
-            var settingsManager = provider.GetService<SettingsManager>();
-            var settings = settingsManager!.Load<MainSettings>(name).Result;
+            var settingsManager = provider.GetRequiredService<SettingsManager>();
+            var settings = Task.Run(() => settingsManager.Load<MainSettings>(name)).Result;
             if (settings.Upgrade())
             {
                 settingsManager.Save(MainSettings.SettingsFileName, settings).FireAndForget();
