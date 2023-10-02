@@ -20,6 +20,9 @@ namespace Wabbajack
         [Reactive]
         public IInstaller ActiveInstallation { get; private set; }
 
+        [Reactive]
+        public Mo2ModlistInstallationSettings CurrentSettings { get; set; }
+
         public FilePickerVM Location { get; }
 
         public FilePickerVM DownloadLocation { get; }
@@ -60,6 +63,16 @@ namespace Wabbajack
 
         public void Unload()
         {
+            SaveSettings(this.CurrentSettings);
+        }
+
+        private void SaveSettings(Mo2ModlistInstallationSettings settings)
+        {
+            //Parent.MWVM.Settings.Installer.LastInstalledListLocation = Parent.ModListLocation.TargetPath;
+            if (settings == null) return;
+            settings.InstallationLocation = Location.TargetPath;
+            settings.DownloadLocation = DownloadLocation.TargetPath;
+            settings.AutomaticallyOverrideExistingInstall = AutomaticallyOverwrite;
         }
 
         public void AfterInstallNavigation()
