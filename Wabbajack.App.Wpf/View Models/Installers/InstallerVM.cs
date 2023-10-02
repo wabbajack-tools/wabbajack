@@ -279,11 +279,11 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             yield return ErrorResponse.Fail("Mod list source does not exist");
 
         var downloadPath = Installer.DownloadLocation.TargetPath;
-        if (downloadPath.Depth <= 1)
+        if (!downloadPath.DirectoryExists())
             yield return ErrorResponse.Fail("Download path isn't set to a folder");
         
         var installPath = Installer.Location.TargetPath;
-        if (installPath.Depth <= 1)
+        if (!installPath.DirectoryExists())
             yield return ErrorResponse.Fail("Install path isn't set to a folder");
         if (installPath.InFolder(KnownFolders.Windows))
             yield return ErrorResponse.Fail("Don't install modlists into your Windows folder");
