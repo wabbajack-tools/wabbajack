@@ -1,6 +1,6 @@
 ### Changelog
 
-### Version - 3.3.0.0-Pre - 08/22/2023
+#### Version - 3.3.0.0-Pre - 10/02/2023
 * Fixed some UI issues arising from 3.2.0.0 changes - more informative error text, drive space checking, wiki link button
 * Added optional JSON flag for `DisplayVersionOnlyInInstallerView` to enable the installer image to only show version number.
 * Fixed manual downloader downloading in the OS's "Downloads" folder
