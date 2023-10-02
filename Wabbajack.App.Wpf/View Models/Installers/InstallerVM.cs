@@ -279,11 +279,11 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             yield return ErrorResponse.Fail("Mod list source does not exist");
 
         var downloadPath = Installer.DownloadLocation.TargetPath;
-        if (!downloadPath.DirectoryExists())
+        if (downloadPath.Depth <= 1)
             yield return ErrorResponse.Fail("Download path isn't set to a folder");
         
         var installPath = Installer.Location.TargetPath;
-        if (!installPath.DirectoryExists())
+        if (installPath.Depth <= 1)
             yield return ErrorResponse.Fail("Install path isn't set to a folder");
         if (installPath.InFolder(KnownFolders.Windows))
             yield return ErrorResponse.Fail("Don't install modlists into your Windows folder");
@@ -330,12 +330,13 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         {
             yield return ErrorResponse.Fail("Can't install into Windows locations such as Documents etc, please make a new folder for the modlist - C:\\ModList\\ for example.");
         }
-
-        if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && !HasEnoughSpace(installPath, downloadPath)){
-            yield return ErrorResponse.Fail("Can't install modlist due to lack of free hard drive space, please read the modlist Readme to learn more.");
-        }
+        // Disabled Because it was causing issues for people trying to update lists.
+        //if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && !HasEnoughSpace(installPath, downloadPath)){
+        //    yield return ErrorResponse.Fail("Can't install modlist due to lack of free hard drive space, please read the modlist Readme to learn more.");
+        //}
     }
     
+    /*
     private bool HasEnoughSpace(AbsolutePath inpath, AbsolutePath downpath)
     {      
         string driveLetterInPath = inpath.ToString().Substring(0,1);
@@ -363,7 +364,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         }
         return true;
 
-    }
+    }*/
 
     private async Task BeginSlideShow(CancellationToken token)
     {
