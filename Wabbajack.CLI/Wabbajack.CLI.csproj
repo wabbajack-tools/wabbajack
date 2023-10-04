@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -13,6 +13,7 @@
         <NoWarn>CS8600</NoWarn>
         <NoWarn>CS8601</NoWarn>
         <NoWarn>CS8618</NoWarn>
+        <TargetFramework>net7.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>

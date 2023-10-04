@@ -16,6 +16,7 @@
     </ItemGroup>
     <PropertyGroup>
         <ApplicationIcon>Resources\Icons\wabbajack.ico</ApplicationIcon>
+        <TargetFramework>net7.0-windows</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview4" />
