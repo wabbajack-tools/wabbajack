@@ -21,7 +21,7 @@ public class GameMetaData
     public int[] SteamIDs { get; internal init; } = Array.Empty<int>();
 
     // to get gog ids: https://www.gogdb.org
-    public int[] GOGIDs { get; internal init; } = Array.Empty<int>();
+    public long[] GOGIDs { get; internal init; } = Array.Empty<long>();
 
     // to get these ids, split the numbers from the letters in file names found in
     // C:\ProgramData\Origin\LocalContent\{game name)\*.mfst
