@@ -1,12 +1,7 @@
-﻿using System;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentFTP;
+using Humanizer;
+using Humanizer.Localisation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -18,7 +13,6 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Server.DataModels;
 using Wabbajack.Server.DTOs;
-using Wabbajack.Server.Extensions;
 using Wabbajack.Server.Services;
 
 namespace Wabbajack.BuildServer.Controllers;
@@ -27,29 +21,13 @@ namespace Wabbajack.BuildServer.Controllers;
 [Route("/authored_files")]
 public class AuthoredFiles : ControllerBase
 {
-    private static readonly Func<object, string> HandleGetListTemplate = NettleEngine.GetCompiler().Compile(@"
-            <html><body>
-                <table>
-                {{each $.files }}
-                <tr>
-                       <td><a href='https://authored-files.wabbajack.org/{{$.Definition.MungedName}}'>{{$.Definition.OriginalFileName}}</a></td>
-                       <td>{{$.HumanSize}}</td>
-                       <td>{{$.Definition.Author}}</td>
-                       <td>{{$.Updated}}</td>
-                       <td><a href='/authored_files/direct_link/{{$.Definition.MungedName}}'>(Slow) HTTP Direct Link</a></td>
-                </tr>
-                {{/each}}
-                </table>
-            </body></html>
-        ");
-
-
     private readonly DTOSerializer _dtos;
 
     private readonly DiscordWebHook _discord;
     private readonly ILogger<AuthoredFiles> _logger;
     private readonly AppSettings _settings;
     private readonly AuthorFiles _authoredFiles;
+    private readonly Func<object,string> _authoredFilesTemplate;
 
 
     public AuthoredFiles(ILogger<AuthoredFiles> logger, AuthorFiles authorFiles, AppSettings settings, DiscordWebHook discord,
@@ -60,6 +38,9 @@ public class AuthoredFiles : ControllerBase
         _discord = discord;
         _dtos = dtos;
         _authoredFiles = authorFiles;
+        using var stream = typeof(AuthoredFiles).Assembly
+            .GetManifestResourceStream("Wabbajack.Server.Resources.Reports.AuthoredFiles.html");
+        _authoredFilesTemplate = NettleEngine.GetCompiler().Compile(stream.ReadAllText());
     }
     
     [HttpPut]
@@ -165,12 +146,17 @@ public class AuthoredFiles : ControllerBase
     public async Task<ContentResult> UploadedFilesGet()
     {
         var files = await _authoredFiles.AllAuthoredFiles();
-        var response = HandleGetListTemplate(new {files = files.OrderByDescending(f => f.Updated).ToArray()});
+        var response = _authoredFilesTemplate(new
+        {
+            Files = files.OrderByDescending(f => f.Updated).ToArray(),
+            TotalSpace = _authoredFiles.TotalSpace.Bytes().Humanize("#.##"),
+            FreeSpace = _authoredFiles.FreeSpace.Bytes().Humanize("#.##")
+        });
         return new ContentResult
         {
             ContentType = "text/html",
             StatusCode = (int) HttpStatusCode.OK,
-            Content = response
+            Content = response,
         };
     }
     

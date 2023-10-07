@@ -28,6 +28,21 @@ public class AuthorFiles
     }
 
     public IEnumerable<AbsolutePath> AllDefinitions => AuthorFilesLocation.EnumerateFiles("definition.json.gz");
+    
+    /// <summary>
+    /// Total unused space available for authored files
+    /// </summary>
+    public long FreeSpace => new DriveInfo(AuthorFilesLocation.ToString()).AvailableFreeSpace;
+    
+    /// <summary>
+    /// Total space available for authored files
+    /// </summary>
+    public long TotalSpace => new DriveInfo(AuthorFilesLocation.ToString()).TotalSize;
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
 
     public async Task<FileDefinitionMetadata[]> AllAuthoredFiles()
     {
