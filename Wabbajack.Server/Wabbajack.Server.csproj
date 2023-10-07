@@ -49,6 +49,8 @@
         <EmbeddedResource Include="sheo_quotes.txt" />
         <None Remove="Controllers\Templates\TotalListTemplate.html" />
         <EmbeddedResource Include="Controllers\Templates\TotalListTemplate.html" />
+        <None Remove="Resources\Reports\AuthoredFiles.html" />
+        <EmbeddedResource Include="Resources\Reports\AuthoredFiles.html" />
     </ItemGroup>
 
     <ItemGroup>
