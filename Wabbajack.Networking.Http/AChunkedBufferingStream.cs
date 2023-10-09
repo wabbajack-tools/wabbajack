@@ -23,6 +23,12 @@ public abstract class AChunkedBufferingStream : Stream
         _maxChunks = maxChunks;
         _chunks = new Dictionary<ulong, byte[]>();
     }
+    
+    protected override void Dispose(bool disposing)
+    {
+        _chunks.Clear();
+        base.Dispose(disposing);
+    }
 
     public abstract Task<byte[]> LoadChunk(long offset, int size);
     

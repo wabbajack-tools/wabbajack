@@ -587,10 +587,10 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             Hash = metadata.DownloadMetadata.Hash
         };
 
-        var stream = await dispatcher.ChunkedSeekableStream(archive, token);
+        await using var stream = await dispatcher.ChunkedSeekableStream(archive, token);
         await using var reader = new ZipReader(stream);
         var entry = (await reader.GetFiles()).First(e => e.FileName == "modlist");
-        var ms = new MemoryStream();
+        using var ms = new MemoryStream();
         await reader.Extract(entry, ms, token);
         ms.Position = 0;
         return JsonSerializer.Deserialize<ModList>(ms, dtos.Options)!;
