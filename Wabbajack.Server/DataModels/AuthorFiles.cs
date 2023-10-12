@@ -120,9 +120,12 @@ public class AuthorFiles
 
     private async Task<FileDefinition> PrimeDefinition(RelativePath name)
     {
-        var uri = _baseUri + $"{name}/definition.json.gz";
-        using var response = await _httpClient.GetAsync(uri);
-        return await ReadDefinition(await response.Content.ReadAsStreamAsync());
+        return await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
+        {
+            var uri = _baseUri + $"{name}/definition.json.gz";
+            using var response = await _httpClient.GetAsync(uri);
+            return await ReadDefinition(await response.Content.ReadAsStreamAsync());
+        });
     }
 
     private async IAsyncEnumerable<S3Object> AllObjects()
