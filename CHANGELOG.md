@@ -1,11 +1,14 @@
 ### Changelog
 
-#### Version - 3.3.0.0-Pre - 10/02/2023
+#### Version - 3.3.0.0 - TBA
 * Fixed some UI issues arising from 3.2.0.0 changes - more informative error text, wiki link button
 * Added optional JSON flag for `DisplayVersionOnlyInInstallerView` to enable the installer image to only show version number.
 * Fixed manual downloader downloading in the OS's "Downloads" folder
 * Added RAM Limit setting for downloads
 * Added Fallout 4 (GOG) to the index
+* Updated App to .NET 7.0
+  * Should fix random crashes on some systems
+* Updated GameFinder to 4.0.0
 
 #### Version - 3.2.0.1 - 7/23/2023
   * Code cleanup: re-added some network and diagnostic code missing since 2.5
