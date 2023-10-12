@@ -53,6 +53,8 @@ public class ValidateLists
     private readonly Networking.WabbajackClientApi.Client _wjClient;
     private readonly HttpClient _httpClient;
     private readonly IResource<HttpClient> _httpLimiter;
+    private readonly AsyncLock _imageProcessLock;
+
 
     public ValidateLists(ILogger<ValidateLists> logger, Networking.WabbajackClientApi.Client wjClient,
         Client gitHubClient, TemporaryFileManager temporaryFileManager,
@@ -73,6 +75,7 @@ public class ValidateLists
         _random = new Random();
         _httpClient = httpClient;
         _httpLimiter = httpLimiter;
+        _imageProcessLock = new AsyncLock();
     }
 
     public static VerbDefinition Definition = new("validate-lists",
@@ -139,6 +142,9 @@ public class ValidateLists
                 _logger.LogInformation("Loading Modlist");
                 modListData =
                     await StandardInstaller.Load(_dtos, _dispatcher, modList, token);
+                // Clear out the directives to save memory
+                modListData.Directives = Array.Empty<Directive>();
+                GC.Collect();
             }
             catch (Exception ex)
             {
@@ -146,8 +152,10 @@ public class ValidateLists
                 validatedList.Status = ListStatus.ForcedDown;
                 return validatedList;
             }
+            
 
-            _logger.LogInformation("Verifying {Count} archives", modListData.Archives.Length);
+
+            _logger.LogInformation("Verifying {Count} archives from {Name}", modListData.Archives.Length, modList.NamespacedName);
 
             var archives = await modListData.Archives.PMapAll(async archive =>
             {
@@ -248,7 +256,6 @@ public class ValidateLists
 
         await ExportReports(reports, validatedLists, token);
         
-        
         var usedMirroredFiles = validatedLists.SelectMany(a => a.Archives)
             .Where(m => m.Status == ArchiveStatus.Mirrored)
             .Select(m => m.Original.Hash)
@@ -261,6 +268,7 @@ public class ValidateLists
     private async Task<(RelativePath SmallImage, RelativePath LargeImage)> ProcessModlistImage(AbsolutePath reports, ModlistMetadata validatedList,
         CancellationToken token)
     {
+        using var _ = await _imageProcessLock.WaitAsync();
         _logger.LogInformation("Processing Modlist Image for {MachineUrl}", validatedList.NamespacedName);
         var baseFolder = reports.Combine(validatedList.NamespacedName);
         baseFolder.CreateDirectory();
@@ -400,6 +408,7 @@ public class ValidateLists
         "skyrimprefs.ini",
         "skyrimvr.ini",
     }.Select(f => f.ToRelativePath()).ToHashSet();
+
 
     private async Task<Dictionary<RelativePath, byte[]>> GetFiles(ModList modlist, ModlistMetadata metadata, CancellationToken token)
     {
