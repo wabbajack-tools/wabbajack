@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.S3;
+using Amazon.Util.Internal;
 using cesi.DTOs;
 using CouchDB.Driver;
 using CouchDB.Driver.Options;
@@ -24,6 +25,7 @@ using Nettle.Compiler;
 using Newtonsoft.Json;
 using Octokit;
 using Wabbajack.BuildServer;
+using Wabbajack.Configuration;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.VerificationCache;
 using Wabbajack.DTOs;
@@ -45,6 +47,7 @@ using Wabbajack.VFS;
 using YamlDotNet.Serialization.NamingConventions;
 using Client = Wabbajack.Networking.GitHub.Client;
 using Metric = Wabbajack.Server.DTOs.Metric;
+using SettingsManager = Wabbajack.Services.OSIntegrated.SettingsManager;
 
 namespace Wabbajack.Server;
 
@@ -153,6 +156,20 @@ public class Startup
         });
         services.AddDTOSerializer();
         services.AddDTOConverters();
+        
+        services.AddSingleton(s => new Wabbajack.Services.OSIntegrated.Configuration
+        {
+            EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
+            ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
+            SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings"),
+            LogLocation = KnownFolders.LauncherAwarePath.Combine("logs"),
+            ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
+        });
+
+
+        services.AddSingleton<SettingsManager>();
+        services.AddSingleton<MainSettings>(s => Wabbajack.Services.OSIntegrated.ServiceExtensions.GetAppSettings(s, MainSettings.SettingsFileName));
+        
         services.AddResponseCompression(options =>
         {
             options.Providers.Add<BrotliCompressionProvider>();

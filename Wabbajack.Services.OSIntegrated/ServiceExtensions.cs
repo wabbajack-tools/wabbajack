@@ -98,17 +98,7 @@ public static class ServiceExtensions
 
         service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount});
 
-        MainSettings GetAppSettings(IServiceProvider provider, string name)
-        {
-            var settingsManager = provider.GetRequiredService<SettingsManager>();
-            var settings = Task.Run(() => settingsManager.Load<MainSettings>(name)).Result;
-            if (settings.Upgrade())
-            {
-                settingsManager.Save(MainSettings.SettingsFileName, settings).FireAndForget();
-            }
 
-            return settings;
-        }
 
         Func<Task<(int MaxTasks, long MaxThroughput)>> GetResourceSettings(IServiceProvider provider, string name)
         {
@@ -233,6 +223,18 @@ public static class ServiceExtensions
 
 
         return service;
+    }
+    
+    public static MainSettings GetAppSettings(IServiceProvider provider, string name)
+    {
+        var settingsManager = provider.GetRequiredService<SettingsManager>();
+        var settings = Task.Run(() => settingsManager.Load<MainSettings>(name)).Result;
+        if (settings.Upgrade())
+        {
+            settingsManager.Save(MainSettings.SettingsFileName, settings).FireAndForget();
+        }
+
+        return settings;
     }
 
     private static void CleanAllTempData(AbsolutePath path)
