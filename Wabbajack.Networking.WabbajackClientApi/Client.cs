@@ -93,7 +93,7 @@ public class Client
         {
             _logger.LogError("HTTP Error: {Result}", result);
             await SendMetric("rebound", "Error", false);
-           // Environment.Exit(0);
+            Environment.Exit(0);
         }
     }
 
