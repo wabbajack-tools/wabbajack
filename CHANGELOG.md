@@ -5,6 +5,7 @@
 * Added optional JSON flag for `DisplayVersionOnlyInInstallerView` to enable the installer image to only show version number.
 * Fixed manual downloader downloading in the OS's "Downloads" folder
 * Added RAM Limit setting for downloads
+  * This fixes the High RAM usage (and sometimes app crashes) on some Hardware + Very High Speed Internet Connection Systems
 * Added Fallout 4 (GOG) to the index
 * Updated App to .NET 7.0
   * Should fix random crashes on some systems
