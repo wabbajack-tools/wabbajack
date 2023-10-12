@@ -135,11 +135,14 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     public LogStream LoggerProvider { get; }
 
     private AbsolutePath LastInstallPath { get; set; }
+
+    [Reactive] public bool OverwriteFiles { get; set; }
     
     
     // Command properties
     public ReactiveCommand<Unit, Unit> ShowManifestCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenReadmeCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenWikiCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenDiscordButton { get; }
     public ReactiveCommand<Unit, Unit> VisitModListWebsiteCommand { get; }
         
@@ -177,6 +180,11 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         {
             UIUtils.OpenWebsite(new Uri(ModList!.Readme));
         }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModList.Readme, (isNotLoading, readme) => isNotLoading && !string.IsNullOrWhiteSpace(readme)));
+
+        OpenWikiCommand = ReactiveCommand.Create(() =>
+        {
+            UIUtils.OpenWebsite(new Uri("https://wiki.wabbajack.org/index.html"));
+        }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
 
         VisitModListWebsiteCommand = ReactiveCommand.Create(() =>
         {
@@ -219,7 +227,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         {
             UIUtils.OpenFolder(Installer.Location.TargetPath);
         });
-        
+
+        this.WhenAnyValue(x => x.OverwriteFiles)
+            .Subscribe(x => ConfirmOverwrite());
+
         MessageBus.Current.Listen<LoadModlistForInstalling>()
             .Subscribe(msg => LoadModlistFromGallery(msg.Path, msg.Metadata).FireAndForget())
             .DisposeWith(CompositeDisposable);
@@ -280,6 +291,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         {
             yield return ErrorResponse.Fail("Can't have identical install and download folders");
         }
+        if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && KnownFolders.IsSubDirectoryOf(installPath.ToString(), downloadPath.ToString()))
+        {
+            yield return ErrorResponse.Fail("Can't put the install folder inside the download folder");
+        }
         foreach (var game in GameRegistry.Games)
         {
             if (!_gameLocator.TryFindLocation(game.Key, out var location))
@@ -304,31 +319,53 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             yield return ErrorResponse.Fail("Installing in this folder may overwrite Wabbajack");
         }
 
-        if (installPath.ToString().Length != 0 && installPath != LastInstallPath &&
-            !Installer.AutomaticallyOverwrite &&
+        if (installPath.ToString().Length != 0 && installPath != LastInstallPath && !OverwriteFiles &&
             Directory.EnumerateFileSystemEntries(installPath.ToString()).Any())
         {
-            string message =
-                "There are existing files in the chosen install path, they will be deleted or overwritten (if updating existing modlist), continue?";
-            string title = "Files found in install folder";
-            MessageBoxButtons buttons = MessageBoxButtons.YesNo;
-            DialogResult result = MessageBox.Show(message, title, buttons);
-            if (result == DialogResult.Yes)
-            {
-                // everythings fine
-            }
-            else
-            {
-                Installer.Location.TargetPath = "".ToAbsolutePath();
-            }
+            yield return ErrorResponse.Fail("There are files in the install folder, please tick 'Overwrite Installation' to confirm you want to install to this folder " + Environment.NewLine + 
+                 "if you are updating an existing modlist, then this is expected and can be overwritten.");
         }
 
         if (KnownFolders.IsInSpecialFolder(installPath) || KnownFolders.IsInSpecialFolder(downloadPath))
         {
-            yield return ErrorResponse.Fail("Can't install a modlist into Windows protected locations - such as Downloads, Documents etc");
+            yield return ErrorResponse.Fail("Can't install into Windows locations such as Documents etc, please make a new folder for the modlist - C:\\ModList\\ for example.");
         }
+        // Disabled Because it was causing issues for people trying to update lists.
+        //if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && !HasEnoughSpace(installPath, downloadPath)){
+        //    yield return ErrorResponse.Fail("Can't install modlist due to lack of free hard drive space, please read the modlist Readme to learn more.");
+        //}
     }
     
+    /*
+    private bool HasEnoughSpace(AbsolutePath inpath, AbsolutePath downpath)
+    {      
+        string driveLetterInPath = inpath.ToString().Substring(0,1);
+        string driveLetterDownPath = inpath.ToString().Substring(0,1);
+        DriveInfo driveUsedInPath = new DriveInfo(driveLetterInPath);
+        DriveInfo driveUsedDownPath = new DriveInfo(driveLetterDownPath);
+        long spaceRequiredforInstall = ModlistMetadata.DownloadMetadata.SizeOfInstalledFiles;
+        long spaceRequiredforDownload = ModlistMetadata.DownloadMetadata.SizeOfArchives;
+        long spaceInstRemaining = driveUsedInPath.AvailableFreeSpace;
+        long spaceDownRemaining = driveUsedDownPath.AvailableFreeSpace;
+        if ( driveLetterInPath == driveLetterDownPath)
+        {
+            long totalSpaceRequired = spaceRequiredforInstall + spaceRequiredforDownload;
+            if (spaceInstRemaining < totalSpaceRequired)
+            {
+                return false;
+            }
+
+        } else
+        {
+            if( spaceInstRemaining < spaceRequiredforInstall || spaceDownRemaining < spaceRequiredforDownload)
+            {
+                return false;
+            }
+        }
+        return true;
+
+    }*/
+
     private async Task BeginSlideShow(CancellationToken token)
     {
         while (!token.IsCancellationRequested)
@@ -409,6 +446,13 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             _logger.LogError(ex, "While loading modlist");
             ll.Fail();
         }
+    }
+
+    private void ConfirmOverwrite()
+    {
+        AbsolutePath prev = Installer.Location.TargetPath;
+        Installer.Location.TargetPath = "".ToAbsolutePath();
+        Installer.Location.TargetPath = prev;
     }
 
     private async Task BeginInstall()
@@ -521,7 +565,14 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
 
     private void PopulateSlideShow(ModList modList)
     {
-        SlideShowTitle = modList.Name;
+        if (ModlistMetadata.ImageContainsTitle && ModlistMetadata.DisplayVersionOnlyInInstallerView)
+        {
+            SlideShowTitle = "v" + ModlistMetadata.Version.ToString();
+        }
+        else
+        {
+            SlideShowTitle = modList.Name;
+        }
         SlideShowAuthor = modList.Author;
         SlideShowDescription = modList.Description;
         SlideShowImage = ModListImage;

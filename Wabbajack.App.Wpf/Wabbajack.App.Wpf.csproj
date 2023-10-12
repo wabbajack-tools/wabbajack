@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <Platforms>x64</Platforms>
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
@@ -73,12 +73,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DynamicData" Version="7.12.1" />
+    <PackageReference Include="DynamicData" Version="8.0.2" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.4.0">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
     <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
-    <PackageReference Include="Fody" Version="6.6.4">
+    <PackageReference Include="Fody" Version="6.8.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -95,11 +95,11 @@
     <PackageReference Include="NLog.Extensions.Logging" Version="5.1.0" />
     <PackageReference Include="Orc.FileAssociation" Version="5.0.0-alpha0061" />
     <PackageReference Include="PInvoke.User32" Version="0.7.124" />
-    <PackageReference Include="ReactiveUI" Version="18.3.1" />
-    <PackageReference Include="ReactiveUI.Fody" Version="18.3.1" />
-    <PackageReference Include="ReactiveUI.WPF" Version="18.3.1" />
+    <PackageReference Include="ReactiveUI" Version="19.5.1" />
+    <PackageReference Include="ReactiveUI.Fody" Version="19.5.1" />
+    <PackageReference Include="ReactiveUI.WPF" Version="19.5.1" />
     <PackageReference Include="Silk.NET.DXGI" Version="2.16.0" />
-    <PackageReference Include="System.Reactive" Version="5.0.0" />
+    <PackageReference Include="System.Reactive" Version="6.0.1-preview.1" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
   </ItemGroup>
 

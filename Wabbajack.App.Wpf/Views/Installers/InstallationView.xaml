@@ -324,20 +324,6 @@
             <local:CpuView Grid.Column="2"
                 x:Name="CpuView"
                 ViewModel="{Binding}" />
-            <!--
-            <local:AttentionBorder Grid.Column="2"
-                x:Name="UserInterventionsControl"
-                Content="{Binding ActiveGlobalUserIntervention}">
-                <local:AttentionBorder.Resources>
-                    <DataTemplate DataType="{x:Type lib1:ConfirmationIntervention}">
-                        <local:ConfirmationInterventionView ViewModel="{Binding}" />
-                    </DataTemplate>
-                    <DataTemplate DataType="{x:Type local:ConfirmUpdateOfExistingInstallVM}">
-                        <local:ConfirmUpdateOfExistingInstallView ViewModel="{Binding}" />
-                    </DataTemplate>
-                </local:AttentionBorder.Resources>
-            </local:AttentionBorder>
-            -->
             <local:InstallationCompleteView Grid.Column="2"
                 x:Name="InstallComplete"
                 ViewModel="{Binding}" />

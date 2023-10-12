@@ -39,14 +39,21 @@ namespace Wabbajack
                 this.WhenAny(x => x.ViewModel.BeginCommand)
                     .BindToStrict(this, x => x.BeginButton.Command)
                     .DisposeWith(dispose);
-                
+                this.BindStrict(ViewModel, vm => vm.OverwriteFiles, x => x.OverwriteCheckBox.IsChecked)
+                    .DisposeWith(dispose);
+
                 // Error handling
-                
+
                 this.WhenAnyValue(x => x.ViewModel.ErrorState)
                     .Select(v => !v.Failed)
                     .BindToStrict(this, view => view.BeginButton.IsEnabled)
                     .DisposeWith(dispose);
-                
+
+                this.WhenAnyValue(x => x.ViewModel.ErrorState)
+                    .Select(v => v.Reason)
+                    .BindToStrict(this, view => view.errorTextBox.Text)
+                    .DisposeWith(dispose);
+
                 this.WhenAnyValue(x => x.ViewModel.ErrorState)
                     .Select(v => v.Failed ? Visibility.Visible : Visibility.Hidden)
                     .BindToStrict(this, view => view.ErrorSummaryIcon.Visibility)
