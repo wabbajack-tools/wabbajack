@@ -68,8 +68,7 @@ public class AuthoredFiles : ControllerBase
                 $"Hashes don't match for index {index}. Sizes ({ms.Length} vs {part.Size}). Hashes ({hash} vs {part.Hash}");
 
         ms.Position = 0;
-        await using var partStream = await _authoredFiles.CreatePart(definition.MungedName, (int)index);
-        await ms.CopyToAsync(partStream, token);
+        await _authoredFiles.WritePart(definition.MungedName, (int) index, ms);
         return Ok(part.Hash.ToBase64());
     }
 
@@ -123,7 +122,7 @@ public class AuthoredFiles : ControllerBase
     public async Task<IActionResult> DeleteUpload(string serverAssignedUniqueId)
     {
         var user = User.FindFirstValue(ClaimTypes.Name);
-        var definition = (await _authoredFiles.AllAuthoredFiles())
+        var definition = _authoredFiles.AllDefinitions
             .First(f => f.Definition.ServerAssignedUniqueId == serverAssignedUniqueId)
             .Definition;
         if (definition.Author != user)
@@ -145,12 +144,12 @@ public class AuthoredFiles : ControllerBase
     [Route("")]
     public async Task<ContentResult> UploadedFilesGet()
     {
-        var files = await _authoredFiles.AllAuthoredFiles();
+        var files = _authoredFiles.AllDefinitions
+            .ToArray();
         var response = _authoredFilesTemplate(new
         {
             Files = files.OrderByDescending(f => f.Updated).ToArray(),
-            TotalSpace = _authoredFiles.TotalSpace.Bytes().Humanize("#.##"),
-            FreeSpace = _authoredFiles.FreeSpace.Bytes().Humanize("#.##")
+            UsedSpace = _authoredFiles.UsedSpace.Bytes().Humanize("#.##"),
         });
         return new ContentResult
         {
@@ -172,10 +171,13 @@ public class AuthoredFiles : ControllerBase
         Response.Headers.ContentType = new StringValues("application/octet-stream");
         Response.Headers.ContentLength = definition.Size;
         Response.Headers.ETag = definition.MungedName + "_direct";
-        foreach (var part in definition.Parts)
+
+        foreach (var part in definition.Parts.OrderBy(p => p.Index))
         {
-            await using var partStream = await _authoredFiles.StreamForPart(mungedName, (int)part.Index);
-            await partStream.CopyToAsync(Response.Body);
+            await _authoredFiles.StreamForPart(mungedName, (int)part.Index, async stream =>
+            {
+                await stream.CopyToAsync(Response.Body);
+            });
         }
     }
 }

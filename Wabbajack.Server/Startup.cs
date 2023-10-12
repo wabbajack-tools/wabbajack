@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Amazon.Runtime;
+using Amazon.S3;
 using cesi.DTOs;
 using CouchDB.Driver;
 using CouchDB.Driver.Options;
@@ -39,10 +41,10 @@ using Wabbajack.Server.Services;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths.IO;
-using Wabbajack.Server.DTOs;
 using Wabbajack.VFS;
 using YamlDotNet.Serialization.NamingConventions;
 using Client = Wabbajack.Networking.GitHub.Client;
+using Metric = Wabbajack.Server.DTOs.Metric;
 
 namespace Wabbajack.Server;
 
@@ -93,6 +95,16 @@ public class Startup
         services.AddSingleton<TarLog>();
         services.AddAllSingleton<IHttpDownloader, SingleThreadedDownloader>();
         services.AddDownloadDispatcher(useLoginDownloaders:false, useProxyCache:false);
+        services.AddSingleton<IAmazonS3>(s =>
+        {
+            var appSettings = s.GetRequiredService<AppSettings>();
+            var settings = new BasicAWSCredentials(appSettings.AuthoredFilesS3.AccessKey,
+                appSettings.AuthoredFilesS3.SecretKey);
+            return new AmazonS3Client(settings, new AmazonS3Config
+            {
+                ServiceURL = appSettings.AuthoredFilesS3.ServiceURL,
+            });
+        });
         services.AddTransient(s =>
         {
             var settings = s.GetRequiredService<AppSettings>();
@@ -243,5 +255,7 @@ public class Startup
         // Trigger the internal update code
         app.ApplicationServices.GetRequiredService<NexusCacheManager>();
         app.ApplicationServices.GetRequiredService<DiscordBackend>();
+
+        app.ApplicationServices.GetRequiredService<AuthorFiles>();
     }
 }

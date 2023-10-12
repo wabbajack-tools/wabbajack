@@ -147,7 +147,7 @@ public class AuthorControls : ControllerBase
     public async Task<IActionResult> HomePage()
     {
         var user = User.FindFirstValue(ClaimTypes.Name);
-        var files = (await _authorFiles.AllAuthoredFiles())
+        var files = _authorFiles.AllDefinitions
             .Where(af => af.Definition.Author == user)
             .Select(af => new
             {
