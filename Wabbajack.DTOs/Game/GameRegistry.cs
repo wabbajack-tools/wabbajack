@@ -14,7 +14,7 @@ public static class GameRegistry
             {
                 Game = Game.Morrowind,
                 SteamIDs = new[] {22320},
-                GOGIDs = new[] {1440163901, 1435828767},
+                GOGIDs = new long[] {1440163901, 1435828767},
                 NexusName = "morrowind",
                 NexusGameId = 100,
                 MO2Name = "Morrowind",
@@ -38,7 +38,7 @@ public static class GameRegistry
                 MO2Name = "Oblivion",
                 MO2ArchiveName = "oblivion",
                 SteamIDs = new[] {22330},
-                GOGIDs = new[] {1458058109},
+                GOGIDs = new long[] {1458058109},
                 RequiredFiles = new[]
                 {
                     "oblivion.exe".ToRelativePath()
@@ -56,7 +56,7 @@ public static class GameRegistry
                 MO2Name = "Fallout 3",
                 MO2ArchiveName = "fallout3",
                 SteamIDs = new[] {22300, 22370}, // base game and GotY
-                GOGIDs = new[] {1454315831}, // GotY edition
+                GOGIDs = new long[] {1454315831}, // GotY edition
                 RequiredFiles = new[]
                 {
                     "Fallout3.exe".ToRelativePath()
@@ -73,7 +73,7 @@ public static class GameRegistry
                 MO2Name = "New Vegas",
                 MO2ArchiveName = "falloutnv",
                 SteamIDs = new[] {22380, 22490}, // normal and RU version
-                GOGIDs = new[] {1454587428},
+                GOGIDs = new long[] {1454587428},
                 RequiredFiles = new[]
                 {
                     "FalloutNV.exe".ToRelativePath()
@@ -107,7 +107,7 @@ public static class GameRegistry
                 MO2Name = "Skyrim Special Edition",
                 MO2ArchiveName = "skyrimse",
                 SteamIDs = new[] {489830},
-                GOGIDs = new[]
+                GOGIDs = new long[]
                 {
                     1711230643,// The Elder Scrolls V: Skyrim Special Edition AKA Base Game
                     1801825368,// The Elder Scrolls V: Skyrim Anniversary Edition AKA The Store Bundle 
@@ -130,6 +130,7 @@ public static class GameRegistry
                 MO2Name = "Fallout 4",
                 MO2ArchiveName = "fallout4",
                 SteamIDs = new[] {377160},
+                GOGIDs = new long[]{1998527297},
                 RequiredFiles = new[]
                 {
                     "Fallout4.exe".ToRelativePath()
@@ -182,7 +183,7 @@ public static class GameRegistry
                 MO2Name = "Enderal Special Edition",
                 MO2ArchiveName = "enderalse",
                 SteamIDs = new[] {976620},
-                GOGIDs = new [] {1708684988},
+                GOGIDs = new long[] {1708684988},
                 RequiredFiles = new[]
                 {
                     "SkyrimSE.exe".ToRelativePath()
@@ -216,7 +217,7 @@ public static class GameRegistry
                 MO2Name = "Darkest Dungeon",
                 NexusGameId = 804,
                 SteamIDs = new[] {262060},
-                GOGIDs = new[] {1450711444},
+                GOGIDs = new long[] {1450711444},
                 EpicGameStoreIDs = new[] {"b4eecf70e3fe4e928b78df7855a3fc2d"},
                 IsGenericMO2Plugin = true,
                 RequiredFiles = new[]
@@ -235,7 +236,7 @@ public static class GameRegistry
                 MO2ArchiveName = "dishonored",
                 NexusGameId = 802,
                 SteamIDs = new[] {205100},
-                GOGIDs = new[] {1701063787},
+                GOGIDs = new long[] {1701063787},
                 RequiredFiles = new[]
                 {
                     @"Binaries\Win32\Dishonored.exe".ToRelativePath()
@@ -252,7 +253,7 @@ public static class GameRegistry
                 MO2Name = "The Witcher: Enhanced Edition",
                 MO2ArchiveName = "witcher",
                 SteamIDs = new[] {20900}, // normal and GotY
-                GOGIDs = new[] {1207658924}, // normal, GotY and both in packages
+                GOGIDs = new long[] {1207658924}, // normal, GotY and both in packages
                 RequiredFiles = new[]
                 {
                     @"System\witcher.exe".ToRelativePath()
@@ -269,7 +270,7 @@ public static class GameRegistry
                 MO2Name = "The Witcher 3: Wild Hunt",
                 MO2ArchiveName = "witcher3",
                 SteamIDs = new[] {292030, 499450}, // normal and GotY
-                GOGIDs = new[]
+                GOGIDs = new long[]
                     {1207664643, 1495134320, 1207664663, 1640424747}, // normal, GotY and both in packages
                 RequiredFiles = new[]
                 {
@@ -287,7 +288,7 @@ public static class GameRegistry
                 MO2ArchiveName = "stardewvalley",
                 NexusGameId = 1303,
                 SteamIDs = new[] {413150},
-                GOGIDs = new[] {1453375253},
+                GOGIDs = new long[] {1453375253},
                 IsGenericMO2Plugin = true,
                 RequiredFiles = new[]
                 {
@@ -305,7 +306,7 @@ public static class GameRegistry
                 MO2ArchiveName = "kingdomcomedeliverance",
                 NexusGameId = 2298,
                 SteamIDs = new[] {379430},
-                GOGIDs = new[] {1719198803},
+                GOGIDs = new long[] {1719198803},
                 IsGenericMO2Plugin = true,
                 RequiredFiles = new[]
                 {
@@ -339,7 +340,7 @@ public static class GameRegistry
                 NexusGameId = 1634,
                 MO2Name = "No Man's Sky",
                 SteamIDs = new[] {275850},
-                GOGIDs = new[] {1446213994},
+                GOGIDs = new long[] {1446213994},
                 RequiredFiles = new[]
                 {
                     @"Binaries\NMS.exe".ToRelativePath()
@@ -356,7 +357,7 @@ public static class GameRegistry
                 MO2Name = "Dragon Age: Origins",
                 SteamIDs = new[] {47810},
                 OriginIDs = new[] {"DR:169789300", "DR:208591800"},
-                GOGIDs = new[] {1949616134},
+                GOGIDs = new long[] {1949616134},
                 RequiredFiles = new[]
                 {
                     @"bin_ship\daorigins.exe".ToRelativePath()
@@ -404,7 +405,7 @@ public static class GameRegistry
                 MO2Name = "Kerbal Space Program",
                 NexusGameId = 272,
                 SteamIDs = new[] {220200},
-                GOGIDs = new[] {1429864849},
+                GOGIDs = new long[] {1429864849},
                 IsGenericMO2Plugin = true,
                 RequiredFiles = new[]
                 {
@@ -432,7 +433,7 @@ public static class GameRegistry
            {
                 Game = Game.Cyberpunk2077,
                 SteamIDs = new[] {1091500},
-                GOGIDs = new [] {2093619782, 1423049311},
+                GOGIDs = new long[] {2093619782, 1423049311},
                 EpicGameStoreIDs = new[] {"5beededaad9743df90e8f07d92df153f"},
                 MO2Name = "Cyberpunk 2077",
                 NexusName = "cyberpunk2077",
@@ -466,7 +467,7 @@ public static class GameRegistry
             {
                 Game = Game.DragonsDogma,
                 SteamIDs = new[] {367500 },
-                GOGIDs = new []{1242384383},
+                GOGIDs = new long[]{1242384383},
                 MO2Name = "Dragon's Dogma: Dark Arisen",
                 MO2ArchiveName = "dragonsdogma",
                 NexusName = "dragonsdogma",
@@ -520,7 +521,7 @@ public static class GameRegistry
                 MO2Name = "Mount & Blade II: Bannerlord",
                 MO2ArchiveName = "mountandblade2bannerlord",
                 SteamIDs = new[] { 261550 },
-                GOGIDs = new [] {
+                GOGIDs = new long[] {
                     1564781494, //Mount & Blade II: Bannerlord : Game
                     1681929523, //Mount & Blade II: Bannerlord - Digital Deluxe : Package
                     1802539526, //Mount & Blade II: Bannerlord : Package

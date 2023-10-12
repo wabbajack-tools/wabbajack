@@ -12,12 +12,13 @@
     x:TypeArguments="local:InstallerVM"
     mc:Ignorable="d">
     <local:AttentionBorder x:Name="AttentionBorder" ClipToBounds="True">
-        <Grid Margin="5">
+        <Grid Margin="6">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="3*" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -124,11 +125,34 @@
                 <TextBlock Grid.Row="1"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
-                    Text="Readme" />
+                    Text="Modlist Readme" />
             </Grid>
             <Grid Grid.Row="1" Grid.Column="4"
+                VerticalAlignment="Center"
+                Background="Transparent">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Button
+                    x:Name="OpenWikiButton"
+                    Width="50"
+                    Height="50"
+                    Style="{StaticResource CircleButtonStyle}">
+                    <icon:PackIconFontAwesome
+                        Width="25"
+                        Height="25"
+                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                        Kind="QuestionSolid" />
+                </Button>
+                <TextBlock Grid.Row="1"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Text="Help and Wiki" />
+            </Grid>
+            <Grid Grid.Row="1" Grid.Column="5"
                   VerticalAlignment="Center"
-                  Background="Transparent">
+                  Background="Transparent" Grid.ColumnSpan="2" Margin="0,0,10,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />

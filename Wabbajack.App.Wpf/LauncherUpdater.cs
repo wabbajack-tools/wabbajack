@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
+using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
@@ -27,9 +28,9 @@ namespace Wabbajack
         private readonly HttpClient _client;
         private readonly Client _wjclient;
         private readonly DTOSerializer _dtos;
-        
+
         private readonly DownloadDispatcher _downloader;
-        
+
         private static Uri GITHUB_REPO_RELEASES = new("https://api.github.com/repos/wabbajack-tools/wabbajack/releases");
 
         public LauncherUpdater(ILogger<LauncherUpdater> logger, HttpClient client, Client wjclient, DTOSerializer dtos,
@@ -41,8 +42,8 @@ namespace Wabbajack
             _dtos = dtos;
             _downloader = downloader;
         }
-            
-            
+
+
         public static Lazy<AbsolutePath> CommonFolder = new (() =>
         {
             var entryPoint = KnownFolders.EntryPoint;
@@ -105,7 +106,7 @@ namespace Wabbajack
 
             var launcherFolder = KnownFolders.EntryPoint.Parent;
             var exePath = launcherFolder.Combine("Wabbajack.exe");
-            
+
             var launcherVersion = FileVersionInfo.GetVersionInfo(exePath.ToString());
 
             if (release != default && release.version > Version.Parse(launcherVersion.FileVersion!))
@@ -119,7 +120,7 @@ namespace Wabbajack
                     Name = release.asset.Name,
                     Size = release.asset.Size
                 }, tempPath, CancellationToken.None);
-                    
+
                 if (tempPath.Size() != release.asset.Size)
                 {
                     _logger.LogInformation(
@@ -130,12 +131,12 @@ namespace Wabbajack
                 if (exePath.FileExists())
                     exePath.Delete();
                 await tempPath.MoveToAsync(exePath, true, CancellationToken.None);
-                
+
                 _logger.LogInformation("Finished updating wabbajack");
                 await _wjclient.SendMetric("updated_launcher", $"{launcherVersion.FileVersion} -> {release.version}");
             }
         }
-        
+
         private async Task<Release[]> GetReleases()
         {
             _logger.LogInformation("Getting new Wabbajack version list");
@@ -146,7 +147,7 @@ namespace Wabbajack
         private HttpRequestMessage MakeMessage(Uri uri)
         {
             var msg =  new HttpRequestMessage(HttpMethod.Get, uri);
-            msg.UseChromeUserAgent();
+            msg.AddChromeAgent();
             return msg;
         }
 

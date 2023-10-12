@@ -1,21 +1,32 @@
 ### Changelog
 
+#### Version - 3.3.0.0 - TBA
+* Fixed some UI issues arising from 3.2.0.0 changes - more informative error text, wiki link button
+* Added optional JSON flag for `DisplayVersionOnlyInInstallerView` to enable the installer image to only show version number.
+* Fixed manual downloader downloading in the OS's "Downloads" folder
+* Added RAM Limit setting for downloads
+  * This fixes the High RAM usage (and sometimes app crashes) on some Hardware + Very High Speed Internet Connection Systems
+* Added Fallout 4 (GOG) to the index
+* Updated App to .NET 7.0
+  * Should fix random crashes on some systems
+* Updated GameFinder to 4.0.0
+
 #### Version - 3.2.0.1 - 7/23/2023
   * Code cleanup: re-added some network and diagnostic code missing since 2.5
 
 #### Version - 3.2.0.0 - 7/16/2023
-  * Fixed issues related to high RAM usage
-  * The resumable downloads now reserve drive space to write to in advance instead of being managed in system RAM
-  * remove LoversLab from the "Logins" Setting because it is deprecated for ages now and only causes confusion,
-    just for the unlikely probability that LL will fix their proper API.
-  * Added safety to install path selection, to ensure that no files are deleted that are not intended to be.
-  * Fixed allowing back button during install which can result in multiple install processes
-  * fixed search filter not applying when pressing back button and reaccessing gallery
-  * Added more robust checking for protected location paths and subfolders for the launcher exe and install and download paths
-  * Fixed readme double opening when modlist details are prepoulated
-  * Added a check if Downloadpath is alongside Wabbajack.exe location, to match the install path check that already exists
-  * Added check for identical download and install paths
-  * Fixed No Delete and NoDelete being handled by stripping whitespace before the regex, to idiotproof things a bit
+* Fixed issues related to high RAM usage
+* The resumable downloads now reserve drive space to write to in advance instead of being managed in system RAM
+* remove LoversLab from the "Logins" Setting because it is deprecated for ages now and only causes confusion,
+  just for the unlikely probability that LL will fix their proper API.
+* Added safety to install path selection, to ensure that no files are deleted that are not intended to be.
+* Fixed allowing back button during install which can result in multiple install processes
+* fixed search filter not applying when pressing back button and reaccessing gallery
+* Added more robust checking for protected location paths and subfolders for the launcher exe and install and download paths
+* Fixed readme double opening when modlist details are prepoulated
+* Added a check if Downloadpath is alongside Wabbajack.exe location, to match the install path check that already exists
+* Added check for identical download and install paths
+* Fixed No Delete and NoDelete being handled by stripping whitespace before the regex, to idiotproof things a bit
 
 #### Version - 3.1.0.0 - 5/7/2023
 * Fixed Readme opening twice

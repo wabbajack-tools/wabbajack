@@ -24,7 +24,7 @@
                 <RowDefinition Height="10" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="25" />
-                <RowDefinition Height="25" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="25" />
                 <RowDefinition Height="25" />
                 <RowDefinition Height="25" />
@@ -34,15 +34,42 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
+            <TextBlock
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
                 FontFamily="Lucida Sans"
                 FontSize="20"
                 FontWeight="Bold"
                 Text="Performance" />
-            <Button Grid.Row="2" x:Name="EditResourceSettings">
+            <Button x:Name="EditResourceSettings" Grid.Row="2">
                 <TextBlock FontSize="14" FontWeight="Bold">Edit Resource Usage Settings and Close Wabbajack</TextBlock>
+            </Button>
+            <TextBlock
+                Grid.Row="4"
+                FontSize="14"
+                Foreground="{StaticResource ForegroundBrush}"
+                Text="Maximum RAM per download thread (MB)"
+                ToolTip="Defines the maximum amount of RAM each download thread can use for buffering. Set to 0 to disable this limit completely." />
+            <xwpf:IntegerUpDown
+                x:Name="MaximumMemoryPerDownloadThreadIntegerUpDown"
+                Grid.Row="4"
+                Grid.Column="2"
+                Width="80"
+                HorizontalAlignment="Left"
+                Foreground="{StaticResource ForegroundBrush}"
+                Maximum="10000"
+                Minimum="0" />
+            <Button
+                x:Name="ResetMaximumMemoryPerDownloadThread"
+                Grid.Row="4"
+                Grid.Column="3"
+                Margin="20,0,0,0"
+                Padding="10,0"
+                HorizontalAlignment="Left">
+                <TextBlock FontSize="14">Reset</TextBlock>
             </Button>
         </Grid>
     </Border>

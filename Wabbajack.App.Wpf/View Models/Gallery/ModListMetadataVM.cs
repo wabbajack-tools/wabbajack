@@ -83,6 +83,13 @@ namespace Wabbajack
         public string VersionText { get; private set; }
 
         [Reactive]
+        public bool ImageContainsTitle { get; private set; }
+
+        [Reactive]
+
+        public bool DisplayVersionOnlyInInstallerView { get; private set; }
+
+        [Reactive]
         public IErrorResponse Error { get; private set; }
 
         private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
@@ -123,6 +130,8 @@ namespace Wabbajack
                     Metadata.DownloadMetadata.SizeOfArchives + Metadata.DownloadMetadata.SizeOfInstalledFiles
                 );
             VersionText = "Modlist version : " + Metadata.Version;
+            ImageContainsTitle = Metadata.ImageContainsTitle;
+            DisplayVersionOnlyInInstallerView = Metadata.DisplayVersionOnlyInInstallerView;
             IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;
             // https://www.wabbajack.org/modlist/wj-featured/aldrnari
             OpenWebsiteCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/modlist/{Metadata.NamespacedName}")));

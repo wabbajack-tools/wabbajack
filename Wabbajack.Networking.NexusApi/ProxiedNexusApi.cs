@@ -8,15 +8,15 @@ using Wabbajack.DTOs;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi.DTOs;
-using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.RateLimiter;
+using ClientConfiguration = Wabbajack.Networking.WabbajackClientApi.Configuration;
 
 namespace Wabbajack.Networking.NexusApi;
 
 public class ProxiedNexusApi : NexusApi
 {
     private readonly ITokenProvider<WabbajackApiState> _apiState;
-    private readonly Configuration _wabbajackClientConfiguration;
+    private readonly ClientConfiguration _wabbajackClientConfiguration;
 
     public HashSet<string> ProxiedEndpoints = new()
     {
@@ -28,7 +28,7 @@ public class ProxiedNexusApi : NexusApi
     public ProxiedNexusApi(ITokenProvider<NexusApiState> apiKey, ILogger<ProxiedNexusApi> logger, HttpClient client,
         IResource<HttpClient> limiter,
         ApplicationInfo appInfo, JsonSerializerOptions jsonOptions, ITokenProvider<WabbajackApiState> apiState,
-        Configuration wabbajackClientConfiguration)
+        ClientConfiguration wabbajackClientConfiguration)
         : base(apiKey, logger, client, limiter, appInfo, jsonOptions)
     {
         _apiState = apiState;
