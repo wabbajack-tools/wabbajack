@@ -29,6 +29,7 @@ public class AuthorFiles
     private HashSet<RelativePath> _mangledNames;
     private readonly RecyclableMemoryStreamManager _streamPool;
     private readonly HttpClient _httpClient;
+    private readonly AbsolutePath _cacheFile;
 
     private Uri _baseUri => new($"https://r2.wabbajack.org/");
     
@@ -43,25 +44,25 @@ public class AuthorFiles
         _bucketName = settings.AuthoredFilesS3.BucketName;
         _ = PrimeCache();
         _streamPool = new RecyclableMemoryStreamManager();
+        _cacheFile = _settings.AuthoredFilesS3.BucketCacheFile.ToAbsolutePath();
     }
 
     private async Task PrimeCache()
     {
         try
         {
-            var cacheFile = _settings.AuthoredFilesS3.BucketCacheFile.ToAbsolutePath();
-            if (!cacheFile.FileExists())
+            if (!_cacheFile.FileExists())
             {
                 var allObjects = await AllObjects().ToArrayAsync();
                 foreach (var obje in allObjects)
                 {
                     _allObjects.TryAdd(obje.Key.ToRelativePath(), obje.LastModified.ToFileTimeUtc());
                 }
-                SaveBucketCacheFile(cacheFile);
+                SaveBucketCacheFile(_cacheFile);
             }
             else
             {
-                LoadBucketCacheFile(cacheFile);
+                LoadBucketCacheFile(_cacheFile);
             }
 
 
@@ -183,7 +184,8 @@ public class AuthorFiles
             BucketName = _bucketName,
             Key = mungedName.ToRelativePath().Combine("parts", part.ToString()).ToString().Replace("\\", "/"),
             InputStream = ms,
-            DisablePayloadSigning = true
+            DisablePayloadSigning = true,
+            ContentType = "application/octet-stream"
         });
     }
 
@@ -201,7 +203,8 @@ public class AuthorFiles
             BucketName = _bucketName,
             Key = definition.MungedName.ToRelativePath().Combine("definition.json.gz").ToString().Replace("\\", "/"),
             InputStream = ms,
-            DisablePayloadSigning = true
+            DisablePayloadSigning = true,
+            ContentType = "application/octet-stream"
         });
         _fileCache.TryAdd(definition.MungedName, new FileDefinitionMetadata
         {
