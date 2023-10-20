@@ -141,6 +141,7 @@ public class Proxy : ControllerBase
         {
             if (tempFile.Path.FileExists())
                 tempFile.Path.Delete();
+            return NotFound();
         }
         
         await PutCacheEntry(tempFile.Path, cacheName, hashResult);
