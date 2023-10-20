@@ -44,7 +44,7 @@ public class AuthorFiles
         _bucketName = settings.S3.AuthoredFilesBucket;
         _ = PrimeCache();
         _streamPool = new RecyclableMemoryStreamManager();
-        _cacheFile = _settings.S3.AuthoredFilesBucket.ToAbsolutePath();
+        _cacheFile = _settings.S3.AuthoredFilesBucketCache.ToAbsolutePath();
     }
 
     private async Task PrimeCache()
