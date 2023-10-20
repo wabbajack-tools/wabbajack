@@ -31,7 +31,7 @@ public class AuthorFiles
     private readonly HttpClient _httpClient;
     private readonly AbsolutePath _cacheFile;
 
-    private Uri _baseUri => new($"https://r2.wabbajack.org/");
+    private Uri _baseUri => new($"https://authored-files.wabbajack.org/");
     
     public AuthorFiles(ILogger<AuthorFiles> logger, AppSettings settings, DTOSerializer dtos, IAmazonS3 s3, HttpClient client)
     {
@@ -41,10 +41,10 @@ public class AuthorFiles
         _settings = settings;
         _dtos = dtos;
         _fileCache = new ConcurrentDictionary<string, FileDefinitionMetadata>();
-        _bucketName = settings.AuthoredFilesS3.BucketName;
+        _bucketName = settings.S3.AuthoredFilesBucket;
         _ = PrimeCache();
         _streamPool = new RecyclableMemoryStreamManager();
-        _cacheFile = _settings.AuthoredFilesS3.BucketCacheFile.ToAbsolutePath();
+        _cacheFile = _settings.S3.AuthoredFilesBucket.ToAbsolutePath();
     }
 
     private async Task PrimeCache()
