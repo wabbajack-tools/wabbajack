@@ -166,8 +166,17 @@ internal class ResumableDownloader
             return null;
         }
 
-        var packageJson = _packagePath.ReadAllText();
-        return JsonSerializer.Deserialize<DownloadPackage>(packageJson);
+        try
+        {
+            var packageJson = _packagePath.ReadAllText();
+            return JsonSerializer.Deserialize<DownloadPackage>(packageJson);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Package for '{name}' couldn't be parsed. Deleting package and starting from scratch...", _outputPath.FileName.ToString());
+            DeletePackage();
+            return null;
+        }
     }
 
     private void SavePackage(DownloadPackage package)
