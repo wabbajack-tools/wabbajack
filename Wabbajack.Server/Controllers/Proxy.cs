@@ -1,4 +1,7 @@
 using System.Text;
+using Amazon.Runtime;
+using Amazon.S3;
+using Amazon.S3.Model;
 using FluentFTP.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +13,9 @@ using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 using Wabbajack.VFS;
 
 namespace Wabbajack.Server.Controllers;
@@ -24,46 +29,44 @@ public class Proxy : ControllerBase
     private readonly TemporaryFileManager _tempFileManager;
     private readonly AppSettings _appSettings;
     private readonly FileHashCache _hashCache;
+    private readonly IAmazonS3 _s3;
+    private readonly string _bucket;
+    
+    private string _redirectUrl = "https://proxy.wabbajack.org/";
+    private readonly IResource<DownloadDispatcher> _resource;
 
-    public Proxy(ILogger<Proxy> logger, DownloadDispatcher dispatcher, TemporaryFileManager tempFileManager, FileHashCache hashCache, AppSettings appSettings)
+    public Proxy(ILogger<Proxy> logger, DownloadDispatcher dispatcher, TemporaryFileManager tempFileManager, 
+        FileHashCache hashCache, AppSettings appSettings, IAmazonS3 s3, IResource<DownloadDispatcher> resource)
     {
         _logger = logger;
         _dispatcher = dispatcher;
         _tempFileManager = tempFileManager;
         _appSettings = appSettings;
         _hashCache = hashCache;
+        _s3 = s3;
+        _bucket = _appSettings.S3.ProxyFilesBucket;
+        _resource = resource;
     }
 
     [HttpHead]
     public async Task<IActionResult> ProxyHead(CancellationToken token, [FromQuery] Uri uri, [FromQuery] string? name,
         [FromQuery] string? hash)
     {
-        var shouldMatch = hash != null ? Hash.FromHex(hash) : default;
-        _logger.LogInformation("Got proxy head request for {Uri}", uri);
-        var state = _dispatcher.Parse(uri);
         var cacheName = (await Encoding.UTF8.GetBytes(uri.ToString()).Hash()).ToHex();
-        var cacheFile = _appSettings.ProxyPath.Combine(cacheName);
-
-        if (!cacheFile.FileExists())
-            return NotFound();
-        
-        if (shouldMatch != default)
-            if (await _hashCache.FileHashCachedAsync(cacheFile, token) != shouldMatch)
-                return NotFound();
-
-        return Ok();
-
+        return new RedirectResult(_redirectUrl + cacheName);
     }
 
     [HttpGet]
     public async Task<IActionResult> ProxyGet(CancellationToken token, [FromQuery] Uri uri, [FromQuery] string? name, [FromQuery] string? hash)
     {
+
+        Hash hashResult = default;
         var shouldMatch = hash != null ? Hash.FromHex(hash) : default;
         
         _logger.LogInformation("Got proxy request for {Uri}", uri);
         var state = _dispatcher.Parse(uri);
         var cacheName = (await Encoding.UTF8.GetBytes(uri.ToString()).Hash()).ToHex();
-        var cacheFile = _appSettings.ProxyPath.Combine(cacheName);
+        var cacheFile = await GetCacheEntry(cacheName);
 
         if (state == null)
         {
@@ -84,26 +87,27 @@ public class Proxy : ControllerBase
             return BadRequest(new {Type = "Downloader is not IProxyable", Downloader = downloader.GetType().FullName});
         }
         
-        if (cacheFile.FileExists() && (DateTime.Now - cacheFile.LastModified()) > TimeSpan.FromHours(4))
+        if (cacheFile != null && (DateTime.UtcNow - cacheFile.LastModified) > TimeSpan.FromHours(4))
         {
             try
             {
                 var verify = await _dispatcher.Verify(archive, token);
                 if (verify)
-                    cacheFile.Touch();
+                    await TouchCacheEntry(cacheName);
             }
             catch (Exception ex)
             {
-                _logger.LogInformation(ex, "When trying to verify cached file ({Hash}) {Url}", cacheFile.FileName, uri);
-                cacheFile.Touch();
+                _logger.LogInformation(ex, "When trying to verify cached file ({Hash}) {Url}", 
+                    cacheFile.Hash, uri);
+                await TouchCacheEntry(cacheName);
             }
         }
         
-        if (cacheFile.FileExists() && (DateTime.Now - cacheFile.LastModified()) > TimeSpan.FromHours(24))
+        if (cacheFile != null && (DateTime.Now - cacheFile.LastModified) > TimeSpan.FromHours(24))
         {
             try
             {
-                cacheFile.Delete();
+                await DeleteCacheEntry(cacheName);
             }
             catch (Exception ex)
             {
@@ -112,18 +116,15 @@ public class Proxy : ControllerBase
         }
 
 
-        if (cacheFile.FileExists())
+        var redirectUrl = _redirectUrl + cacheName + "?response-content-disposition=attachment;filename=" + (name ?? "unknown");
+        if (cacheFile != null)
         {
             if (hash != default)
             {
-                var hashResult = await _hashCache.FileHashCachedAsync(cacheFile, token);
-                if (hashResult != shouldMatch)
+                if (cacheFile.Hash != shouldMatch)
                     return BadRequest(new {Type = "Unmatching Hashes", Expected = shouldMatch.ToHex(), Found = hashResult.ToHex()});
             }
-            var ret = new PhysicalFileResult(cacheFile.ToString(), "application/octet-stream");
-            if (name != null)
-                ret.FileDownloadName = name;
-            return ret;
+            return new RedirectResult(redirectUrl);
         }
 
         _logger.LogInformation("Downloading proxy request for {Uri}", uri);
@@ -131,38 +132,97 @@ public class Proxy : ControllerBase
         var tempFile = _tempFileManager.CreateFile(deleteOnDispose:false);
 
         var proxyDownloader = _dispatcher.Downloader(archive) as IProxyable;
-        await using (var of = tempFile.Path.Open(FileMode.Create, FileAccess.Write, FileShare.None))
-        {
-            Response.StatusCode = 200;
-            if (name != null)
-            {
-                Response.Headers.Add(HeaderNames.ContentDisposition, $"attachment; filename=\"{name}\"");
-            }
 
-            Response.Headers.Add( HeaderNames.ContentType, "application/octet-stream"  );
-            
-            var result = await proxyDownloader!.DownloadStream(archive, async s => { 
-                    return await s.HashingCopy(async m =>
-                {
-                    var strmA = of.WriteAsync(m, token);
-                    await Response.Body.WriteAsync(m, token);
-                    await Response.Body.FlushAsync(token);
-                    await strmA;
-                }, token); },
-                token);
-            
-            
-            if (hash != default && result != shouldMatch)
+        using var job = await _resource.Begin("Downloading file", 0, token);
+        hashResult = await proxyDownloader!.Download(archive, tempFile.Path, job, token);
+        
+        
+        if (hash != default && hashResult != shouldMatch)
+        {
+            if (tempFile.Path.FileExists())
+                tempFile.Path.Delete();
+            return NotFound();
+        }
+        
+        await PutCacheEntry(tempFile.Path, cacheName, hashResult);
+
+        _logger.LogInformation("Returning proxy request for {Uri}", uri);
+        return new RedirectResult(redirectUrl);
+    }
+
+    private async Task<CacheStatus?> GetCacheEntry(string name)
+    {
+        GetObjectMetadataResponse info;
+        try
+        {
+            info = await _s3.GetObjectMetadataAsync(new GetObjectMetadataRequest()
             {
-                if (tempFile.Path.FileExists())
-                    tempFile.Path.Delete();
-            }
+                BucketName = _bucket,
+                Key = name,
+            });
+        }
+        catch (Exception _)
+        {
+            return null;
         }
 
+        if (info.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
+            return null;
+        
+        if (info.Metadata["WJ-Hash"] == null)
+            return null;
+        
+        if (!Hash.TryGetFromHex(info.Metadata["WJ-Hash"], out var hash))
+            return null;
+        
+        return new CacheStatus
+        {
+            LastModified = info.LastModified,
+            Size = info.ContentLength,
+            Hash = hash
+        };
+    }
+    
+    private async Task TouchCacheEntry(string name)
+    {
+        await _s3.CopyObjectAsync(new CopyObjectRequest()
+        {
+            SourceBucket = _bucket,
+            DestinationBucket = _bucket,
+            SourceKey = name,
+            DestinationKey = name,
+            MetadataDirective = S3MetadataDirective.REPLACE,
+        });
+    }
+    
+    private async Task PutCacheEntry(AbsolutePath path, string name, Hash hash)
+    {
+        var obj = new PutObjectRequest
+        {
+            BucketName = _bucket,
+            Key = name,
+            FilePath = path.ToString(),
+            ContentType = "application/octet-stream",
+            DisablePayloadSigning = true
+        };
+        obj.Metadata.Add("WJ-Hash", hash.ToHex());
+        await _s3.PutObjectAsync(obj);
+    }
+    
+    private async Task DeleteCacheEntry(string name)
+    {
+        await _s3.DeleteObjectAsync(new DeleteObjectRequest
+        {
+            BucketName = _bucket,
+            Key = name
+        });
+    }
 
-        await tempFile.Path.MoveToAsync(cacheFile, true, token);
-
-        _logger.LogInformation("Returning proxy request for {Uri} {Size}", uri, cacheFile.Size().FileSizeToString());
-        return new EmptyResult();
+    record CacheStatus
+    {
+        public DateTime LastModified { get; init; }
+        public long Size { get; init; }
+        
+        public Hash Hash { get; init; }
     }
 }

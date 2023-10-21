@@ -37,18 +37,19 @@ public class AppSettings
     public CouchDBSetting CesiDB { get; set; }
     public CouchDBSetting MetricsDB { get; set; }
 
-    public S3Settings AuthoredFilesS3 { get; set; }
+    public S3Settings S3 { get; set; }
 }
 
 public class S3Settings
 {
     public string AccessKey { get; set; }
     public string SecretKey { get; set; }
-    public string ServiceURL { get; set; }
+    public string ServiceUrl { get; set; }
     
-    public string BucketName { get; set; }
+    public string AuthoredFilesBucket { get; set; }
+    public string ProxyFilesBucket { get; set; }
     
-    public string BucketCacheFile { get; set; }
+    public string AuthoredFilesBucketCache { get; set; }
 }
 
 public class CouchDBSetting

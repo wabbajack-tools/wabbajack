@@ -101,11 +101,11 @@ public class Startup
         services.AddSingleton<IAmazonS3>(s =>
         {
             var appSettings = s.GetRequiredService<AppSettings>();
-            var settings = new BasicAWSCredentials(appSettings.AuthoredFilesS3.AccessKey,
-                appSettings.AuthoredFilesS3.SecretKey);
+            var settings = new BasicAWSCredentials(appSettings.S3.AccessKey,
+                appSettings.S3.SecretKey);
             return new AmazonS3Client(settings, new AmazonS3Config
             {
-                ServiceURL = appSettings.AuthoredFilesS3.ServiceURL,
+                ServiceURL = appSettings.S3.ServiceUrl,
             });
         });
         services.AddTransient(s =>
