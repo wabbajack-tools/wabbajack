@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Amazon.S3;
+using Microsoft.Extensions.Configuration;
 using Wabbajack.Paths;
 
 namespace Wabbajack.BuildServer;
@@ -26,8 +27,6 @@ public class AppSettings
 
     public string DiscordKey { get; set; }
     
-    public string AuthoredFilesFolder { get; set; }
-    
     public string PatchesFilesFolder { get; set; }
     public string MirrorFilesFolder { get; set; }
     public string NexusCacheFolder { get; set; }
@@ -37,6 +36,20 @@ public class AppSettings
     
     public CouchDBSetting CesiDB { get; set; }
     public CouchDBSetting MetricsDB { get; set; }
+
+    public S3Settings S3 { get; set; }
+}
+
+public class S3Settings
+{
+    public string AccessKey { get; set; }
+    public string SecretKey { get; set; }
+    public string ServiceUrl { get; set; }
+    
+    public string AuthoredFilesBucket { get; set; }
+    public string ProxyFilesBucket { get; set; }
+    
+    public string AuthoredFilesBucketCache { get; set; }
 }
 
 public class CouchDBSetting

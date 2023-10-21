@@ -80,33 +80,36 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader,
         var definition = (await GetDefinition(state, token))!;
         await using var fs = destination.Open(FileMode.Create, FileAccess.Write, FileShare.None);
 
-        await definition.Parts.PMapAll(async part =>
+        await definition.Parts.PMapAll<PartDefinition, (MemoryStream, PartDefinition)>(async part =>
         {
-            using var partJob = await _limiter.Begin(
-                $"Downloading {definition.MungedName} ({part.Index}/{definition.Size})",
-                part.Size, token);
-            var msg = MakeMessage(new Uri(state.Url + $"/parts/{part.Index}"));
-            using var response = await _client.SendAsync(msg, HttpCompletionOption.ResponseHeadersRead, token);
-            if (!response.IsSuccessStatusCode)
-                throw new InvalidDataException($"Bad response for part request for part {part.Index}");
-
-            var length = response.Content.Headers.ContentLength;
-            if (length != part.Size)
-                throw new InvalidDataException(
-                    $"Bad part size, expected {part.Size} got {length} for part {part.Index}");
-
-            await using var data = await response.Content.ReadAsStreamAsync(token);
-
-            var ms = new MemoryStream();
-            var hash = await data.HashingCopy(ms, token, partJob);
-            ms.Position = 0;
-            if (hash != part.Hash)
+            return await CircuitBreaker.WithAutoRetryAllAsync<(MemoryStream, PartDefinition)>(_logger, async () =>
             {
-                throw new Exception(
-                    $"Invalid part hash {part.Index} got {hash} instead of {part.Hash} for {definition.MungedName}");
-            }
+                using var partJob = await _limiter.Begin(
+                    $"Downloading {definition.MungedName} ({part.Index}/{definition.Size})",
+                    part.Size, token);
+                var msg = MakeMessage(new Uri(state.Url + $"/parts/{part.Index}"));
+                using var response = await _client.SendAsync(msg, HttpCompletionOption.ResponseHeadersRead, token);
+                if (!response.IsSuccessStatusCode)
+                    throw new InvalidDataException($"Bad response for part request for part {part.Index}");
 
-            return (ms, part);
+                var length = response.Content.Headers.ContentLength;
+                if (length != part.Size)
+                    throw new InvalidDataException(
+                        $"Bad part size, expected {part.Size} got {length} for part {part.Index}");
+
+                await using var data = await response.Content.ReadAsStreamAsync(token);
+
+                var ms = new MemoryStream();
+                var hash = await data.HashingCopy(ms, token, partJob);
+                ms.Position = 0;
+                if (hash != part.Hash)
+                {
+                    throw new Exception(
+                        $"Invalid part hash {part.Index} got {hash} instead of {part.Hash} for {definition.MungedName}");
+                }
+
+                return (ms, part);
+            });
 
 
         }).Do(async rec =>

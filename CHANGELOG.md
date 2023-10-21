@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 3.3.0.0 - TBA
+#### Version - 3.3.0.0 - 10/13/2023
 * Fixed some UI issues arising from 3.2.0.0 changes - more informative error text, wiki link button
 * Added optional JSON flag for `DisplayVersionOnlyInInstallerView` to enable the installer image to only show version number.
 * Fixed manual downloader downloading in the OS's "Downloads" folder

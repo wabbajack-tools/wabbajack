@@ -58,7 +58,14 @@ public static class IEnumerableExtensions
         return data;
     }
 
-    public static IEnumerable<IEnumerable<T>> Partition<T>(this IEnumerable<T> coll, int size)
+    /// <summary>
+    /// Splits the collection into `size` parts
+    /// </summary>
+    /// <param name="coll"></param>
+    /// <param name="count"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static IEnumerable<IEnumerable<T>> Partition<T>(this IEnumerable<T> coll, int count)
     {
         var asList = coll.ToList();
 
@@ -70,7 +77,30 @@ public static class IEnumerableExtensions
             }
         }
 
-        return Enumerable.Range(0, size).Select(offset => SkipEnumerable(asList, offset, size));
+        return Enumerable.Range(0, count).Select(offset => SkipEnumerable(asList, offset, count));
+    }
+
+    /// <summary>
+    /// Split the collection into `size` parts
+    /// </summary>
+    /// <param name="coll"></param>
+    /// <param name="size"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static IEnumerable<IEnumerable<T>> Batch<T>(this IEnumerable<T> coll, int size)
+    {
+        List<T> current = new();
+        foreach (var itm in coll)
+        {
+            current.Add(itm);
+            if (current.Count == size)
+            {
+                yield return current;
+                current = new List<T>();
+            }
+        }
+        if (current.Count > 0)
+            yield return current;
     }
 
 
