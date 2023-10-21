@@ -7,7 +7,7 @@
 * Added RAM Limit setting for downloads
   * This fixes the High RAM usage (and sometimes app crashes) on some Hardware + Very High Speed Internet Connection Systems
 * Added Fallout 4 (GOG) to the index
-* Updated App to .NET 7.0
+* Updated App to .NET 8.0
   * Should fix random crashes on some systems
 * Updated GameFinder to 4.0.0
 
