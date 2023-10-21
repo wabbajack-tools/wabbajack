@@ -45,6 +45,7 @@ namespace Wabbajack
 
                 Closed += (s, e) =>
                 {
+                    _logger.LogInformation("Beginning shutdown...");
                     _mwvm.CancelRunningTasks(TimeSpan.FromSeconds(10));
                     Application.Current.Shutdown();
                 };
