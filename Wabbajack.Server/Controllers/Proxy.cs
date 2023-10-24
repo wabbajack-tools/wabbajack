@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +16,6 @@ using Wabbajack.VFS;
 namespace Wabbajack.Server.Controllers;
 
 [ApiController]
-[Route("/proxy")]
 public class Proxy : ControllerBase
 {
     private readonly ILogger<Proxy> _logger;
@@ -31,7 +31,35 @@ public class Proxy : ControllerBase
         _s3 = s3;
     }
     
-    [HttpGet]
+    [HttpGet("/verify")]
+    public async Task<IActionResult> ProxyValidate(CancellationToken token, [FromQuery] Uri uri, [FromQuery] string hashAsHex)
+    {
+        _logger.LogInformation("Got proxy request for {Uri}", uri);
+        var state = _dispatcher.Parse(uri);
+        
+        if (state == null)
+        {
+            return BadRequest(new {Type = "Could not get state from Uri", Uri = uri.ToString()});
+        }
+
+        var archive = new Archive
+        {
+            State = state,
+            Hash = Hash.FromHex(hashAsHex)
+        };
+
+        var downloader = _dispatcher.Downloader(archive);
+        if (downloader is not IProxyable pDownloader)
+        {
+            return BadRequest(new {Type = "Downloader is not IProxyable", Downloader = downloader.GetType().FullName});
+        }
+        
+        var isValid = await _dispatcher.Verify(archive, token);
+        
+        return isValid ? Ok() : BadRequest();
+    }
+    
+    [HttpGet("/proxy")]
     public async Task<IActionResult> ProxyGet(CancellationToken token, [FromQuery] Uri uri)
     {
         _logger.LogInformation("Got proxy request for {Uri}", uri);
@@ -73,14 +101,19 @@ public class Proxy : ControllerBase
             }, token);
             return hashFn();
         }, token);
+
+        JsonSerializer.Serialize(new Response()
+        {
+            Hash = hash.ToHex(),
+            TempId = tmpName
+        });
         
-        return Ok(hash.ToHex());
+        return Ok();
     }
 
     public class Response
     {
         public string Hash { get; set; }
-        public ulong Size { get; set; }
         public string TempId { get; set; }
     }
 }
