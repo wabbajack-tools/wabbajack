@@ -11,6 +11,7 @@ using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 using Wabbajack.VFS;
 
 namespace Wabbajack.Server.Controllers;
@@ -29,6 +30,7 @@ public class Proxy : ControllerBase
         _dispatcher = dispatcher;
         _appSettings = appSettings;
         _s3 = s3;
+        _dispatcher.UseProxy = false;
     }
     
     [HttpGet("/verify")]
