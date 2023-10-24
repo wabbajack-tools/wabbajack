@@ -29,16 +29,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Update="public\WABBAJACK_TEST_FILE.txt">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
         <None Update="appsettings.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="public\metrics.html">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Controllers\Templates\AuthorControls.html">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Controllers\Templates\AuthorControls.html">
@@ -50,9 +41,7 @@
         <None Remove="sheo_quotes.txt" />
         <EmbeddedResource Include="sheo_quotes.txt" />
         <None Remove="Controllers\Templates\TotalListTemplate.html" />
-        <EmbeddedResource Include="Controllers\Templates\TotalListTemplate.html" />
         <None Remove="Resources\Reports\AuthoredFiles.html" />
-        <EmbeddedResource Include="Resources\Reports\AuthoredFiles.html" />
     </ItemGroup>
 
     <ItemGroup>
