@@ -104,13 +104,13 @@ public class Proxy : ControllerBase
             return hashFn();
         }, token);
 
-        JsonSerializer.Serialize(new DataResponse
+        var data = JsonSerializer.Serialize(new DataResponse
         {
             Hash = hash.ToHex(),
             TempId = tmpName
         });
         
-        return Ok();
+        return Ok(data);
     }
 
     public class DataResponse
