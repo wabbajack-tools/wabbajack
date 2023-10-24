@@ -102,7 +102,7 @@ public class Proxy : ControllerBase
             return hashFn();
         }, token);
 
-        JsonSerializer.Serialize(new Response()
+        JsonSerializer.Serialize(new DataResponse
         {
             Hash = hash.ToHex(),
             TempId = tmpName
@@ -111,7 +111,7 @@ public class Proxy : ControllerBase
         return Ok();
     }
 
-    public class Response
+    public class DataResponse
     {
         public string Hash { get; set; }
         public string TempId { get; set; }
