@@ -118,13 +118,6 @@ public class Startup
         services.AddSingleton<SettingsManager>();
         services.AddSingleton<MainSettings>(s => Wabbajack.Services.OSIntegrated.ServiceExtensions.GetAppSettings(s, MainSettings.SettingsFileName));
         
-        services.AddResponseCompression(options =>
-        {
-            options.Providers.Add<BrotliCompressionProvider>();
-            options.Providers.Add<GzipCompressionProvider>();
-            options.MimeTypes = new[] {"application/json"};
-        });
-        
         services.AddMvc();
         services
             .AddControllers()
@@ -147,16 +140,8 @@ public class Startup
         provider.Mappings[".7z"] = "application/x-7z-compressed";
         provider.Mappings[".zip"] = "application/zip";
         provider.Mappings[".wabbajack"] = "application/zip";
-        app.UseStaticFiles();
 
         app.UseRouting();
-
-        app.UseAuthentication();
-        app.UseAuthorization();
-        app.UseResponseCompression();
-
-
-        app.UseResponseCaching();
 
         app.Use(next =>
         {
