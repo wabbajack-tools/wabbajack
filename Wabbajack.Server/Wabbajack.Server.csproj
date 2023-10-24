@@ -13,6 +13,10 @@
     
     <ItemGroup>
         <PackageReference Include="AWSSDK.S3" Version="3.7.205.17" />
+        <PackageReference Include="GitInfo" Version="3.3.3">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.13" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
     </ItemGroup>
