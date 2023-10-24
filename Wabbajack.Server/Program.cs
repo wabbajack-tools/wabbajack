@@ -23,8 +23,11 @@ public class Program
                     .UseKestrel(options =>
                     {
                         options.AllowSynchronousIO = true;
+#if DEBUG
                         options.Listen(IPAddress.Any, 5000);
-                        options.Limits.MaxRequestBodySize = null;
+#else
+                        options.Listen(IPAddress.Any, 80);
+#endif
                     });
             });
     }
