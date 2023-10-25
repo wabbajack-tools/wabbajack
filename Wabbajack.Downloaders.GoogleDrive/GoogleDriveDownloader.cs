@@ -80,7 +80,7 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
     {
         var state = archive.State as DTOs.DownloadStates.GoogleDrive;
         var msg = await ToMessage(state, true, token);
-        using var result = await _client.SendAsync(msg, token);
+        using var result = await _client.SendAsync(msg, HttpCompletionOption.ResponseHeadersRead, token);
         HttpException.ThrowOnFailure(result);
         await using var stream = await result.Content.ReadAsStreamAsync(token);
         return await fn(stream);
