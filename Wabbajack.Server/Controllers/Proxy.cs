@@ -24,8 +24,9 @@ public class Proxy : ControllerBase
     private readonly AppSettings _appSettings;
     private readonly IAmazonS3 _s3;
     private readonly TemporaryFileManager _temporaryFileManager;
+    private readonly IResource<Proxy> _resource;
 
-    public Proxy(ILogger<Proxy> logger, DownloadDispatcher dispatcher, AppSettings appSettings, IAmazonS3 s3, TemporaryFileManager temporaryFileManager)
+    public Proxy(ILogger<Proxy> logger, DownloadDispatcher dispatcher, AppSettings appSettings, IAmazonS3 s3, TemporaryFileManager temporaryFileManager, IResource<Proxy> resource)
     {
         _logger = logger;
         _dispatcher = dispatcher;
@@ -33,11 +34,13 @@ public class Proxy : ControllerBase
         _s3 = s3;
         _dispatcher.UseProxy = false;
         _temporaryFileManager = temporaryFileManager;
+        _resource = resource;
     }
     
     [HttpGet("/verify")]
     public async Task<IActionResult> ProxyValidate(CancellationToken token, [FromQuery] Uri uri, [FromQuery] string hashAsHex)
     {
+        using var _ = await _resource.Begin($"Proxy Validate {uri}", 0, token);
         _logger.LogInformation("Got proxy request for {Uri}", uri);
         var state = _dispatcher.Parse(uri);
         
@@ -66,6 +69,7 @@ public class Proxy : ControllerBase
     [HttpGet("/proxy")]
     public async Task<IActionResult> ProxyGet(CancellationToken token, [FromQuery] Uri uri)
     {
+        using var _ = await _resource.Begin($"Proxy Begin {uri}", 0, token);
         _logger.LogInformation("Got proxy request for {Uri}", uri);
         var state = _dispatcher.Parse(uri);
         

@@ -27,6 +27,7 @@ using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 using Wabbajack.Paths.IO;
+using Wabbajack.Server.Controllers;
 using Wabbajack.VFS;
 using Client = Wabbajack.Networking.GitHub.Client;
 using SettingsManager = Wabbajack.Services.OSIntegrated.SettingsManager;
@@ -77,6 +78,7 @@ public class Startup
         services.AddSingleton<IVerificationCache, NullCache>();
             
         services.AddAllSingleton<ITokenProvider<WabbajackApiState>, WabbajackApiTokenProvider>();
+        services.AddAllSingleton<IResource, IResource<Proxy>>(s => new Resource<Proxy>("Proxy", 2));
         services.AddAllSingleton<IResource, IResource<DownloadDispatcher>>(s => new Resource<DownloadDispatcher>("Downloads", 12));
         services.AddAllSingleton<IResource, IResource<FileHashCache>>(s => new Resource<FileHashCache>("File Hashing", 12));
         services.AddAllSingleton<IResource, IResource<Wabbajack.Networking.WabbajackClientApi.Client>>(s => 
