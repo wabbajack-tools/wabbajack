@@ -152,6 +152,7 @@ public class Startup
         provider.Mappings[".wabbajack"] = "application/zip";
 
         app.UseRouting();
+        app.UseRateLimiter();
 
         app.Use(next =>
         {
