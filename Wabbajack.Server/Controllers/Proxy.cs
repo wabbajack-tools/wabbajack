@@ -23,14 +23,16 @@ public class Proxy : ControllerBase
     private readonly DownloadDispatcher _dispatcher;
     private readonly AppSettings _appSettings;
     private readonly IAmazonS3 _s3;
+    private readonly TemporaryFileManager _temporaryFileManager;
 
-    public Proxy(ILogger<Proxy> logger, DownloadDispatcher dispatcher, AppSettings appSettings, IAmazonS3 s3)
+    public Proxy(ILogger<Proxy> logger, DownloadDispatcher dispatcher, AppSettings appSettings, IAmazonS3 s3, TemporaryFileManager temporaryFileManager)
     {
         _logger = logger;
         _dispatcher = dispatcher;
         _appSettings = appSettings;
         _s3 = s3;
         _dispatcher.UseProxy = false;
+        _temporaryFileManager = temporaryFileManager;
     }
     
     [HttpGet("/verify")]
@@ -84,26 +86,24 @@ public class Proxy : ControllerBase
         }
 
         var tmpName = Guid.NewGuid().ToString();
+        
+        await using var file = _temporaryFileManager.CreateFile();
 
         var hash = await pDownloader.DownloadStream(archive, async s =>
         {
-            var (inputStream, hashFn) = s.HashingPull();
-            
-            await _s3.PutObjectAsync(new PutObjectRequest
-            {
-                Key = tmpName,
-                BucketName = _appSettings.ProxyStorage.BucketName,
-                InputStream = inputStream,
-                DisablePayloadSigning = true,
-                ContentType = "application/octet-stream",
-                Headers =
-                {
-                    ContentLength = s.Length,
-                }
-            }, token);
-            return hashFn();
+            await using var outFs = file.Path.Open(FileMode.Create, FileAccess.Write);
+            return await s.HashingCopy(outFs, token);
         }, token);
-
+        
+        await _s3.PutObjectAsync(new PutObjectRequest()
+        {
+            Key = tmpName,
+            BucketName = _appSettings.ProxyStorage.BucketName,
+            DisablePayloadSigning = true,
+            FilePath = file.ToString(),
+            ContentType = "application/octet-stream",
+        }, token);
+        
         var data = JsonSerializer.Serialize(new DataResponse
         {
             Hash = hash.ToHex(),

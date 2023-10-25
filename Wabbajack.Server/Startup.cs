@@ -104,6 +104,7 @@ public class Startup
 
         services.AddDTOSerializer();
         services.AddDTOConverters();
+        services.AddSingleton<TemporaryFileManager>();
         
         services.AddSingleton(s => new Wabbajack.Services.OSIntegrated.Configuration
         {
