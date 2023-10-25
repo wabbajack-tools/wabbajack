@@ -1,11 +1,13 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Amazon.Runtime;
 using Amazon.S3;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
@@ -105,6 +107,13 @@ public class Startup
         services.AddDTOSerializer();
         services.AddDTOConverters();
         services.AddSingleton<TemporaryFileManager>();
+        services.AddRateLimiter(_ => _
+            .AddConcurrencyLimiter("fixed", options =>
+            {
+                options.PermitLimit = 2;
+                options.QueueLimit = 4;
+                options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            }));
         
         services.AddSingleton(s => new Wabbajack.Services.OSIntegrated.Configuration
         {
