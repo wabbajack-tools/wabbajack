@@ -16,6 +16,7 @@ using Microsoft.Extensions.Hosting;
 using Wabbajack.BuildServer;
 using Wabbajack.Configuration;
 using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.ModDB;
 using Wabbajack.Downloaders.VerificationCache;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
@@ -28,6 +29,7 @@ using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 using Wabbajack.Paths.IO;
 using Wabbajack.Server.Controllers;
+using Wabbajack.Services.OSIntegrated;
 using Wabbajack.VFS;
 using Client = Wabbajack.Networking.GitHub.Client;
 using SettingsManager = Wabbajack.Services.OSIntegrated.SettingsManager;
@@ -90,6 +92,9 @@ public class Startup
 
         services.AddAllSingleton<ITokenProvider<NexusApiState>, NexusApiTokenProvider>();
         services.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", 12));
+        
+        services.AddAllSingleton<ITokenProvider<MegaToken>, EncryptedJsonTokenProvider<MegaToken>, MegaTokenProvider>();
+        
         // Application Info
         
         var version =

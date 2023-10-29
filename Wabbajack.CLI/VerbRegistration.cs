@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.Extensions.DependencyInjection;
 namespace Wabbajack.CLI;
 using Wabbajack.CLI.Verbs;
@@ -37,6 +37,8 @@ CommandLineBuilder.RegisterCommand<ListGames>(ListGames.Definition, c => ((ListG
 services.AddSingleton<ListGames>();
 CommandLineBuilder.RegisterCommand<ListModlists>(ListModlists.Definition, c => ((ListModlists)c).Run);
 services.AddSingleton<ListModlists>();
+CommandLineBuilder.RegisterCommand<MegaLogin>(MegaLogin.Definition, c => ((MegaLogin)c).Run);
+services.AddSingleton<MegaLogin>();
 CommandLineBuilder.RegisterCommand<MirrorFile>(MirrorFile.Definition, c => ((MirrorFile)c).Run);
 services.AddSingleton<MirrorFile>();
 CommandLineBuilder.RegisterCommand<ModlistReport>(ModlistReport.Definition, c => ((ModlistReport)c).Run);

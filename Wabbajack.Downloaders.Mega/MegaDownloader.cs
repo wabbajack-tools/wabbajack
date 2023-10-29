@@ -12,6 +12,7 @@ using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.Validation;
 using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
@@ -24,11 +25,13 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
     private const string MegaFilePrefix = "https://mega.nz/file/";
     private readonly MegaApiClient _apiClient;
     private readonly ILogger<MegaDownloader> _logger;
+    private readonly ITokenProvider<MegaToken> _tokenProvider;
 
-    public MegaDownloader(ILogger<MegaDownloader> logger, MegaApiClient apiClient)
+    public MegaDownloader(ILogger<MegaDownloader> logger, MegaApiClient apiClient, ITokenProvider<MegaToken> tokenProvider)
     {
         _logger = logger;
         _apiClient = apiClient;
+        _tokenProvider = tokenProvider;
     }
 
     public override async Task<bool> Prepare()
@@ -65,8 +68,18 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
     {
         var state = archive.State as Mega;
         if (!_apiClient.IsLoggedIn)
-            await _apiClient.LoginAsync();
-        
+        {
+            if (_tokenProvider.HaveToken())
+            {
+                var authInfo = await _tokenProvider.Get();
+                await _apiClient.LoginAsync(authInfo!.Email, authInfo.Password);
+            }
+            else
+            {
+                await _apiClient.LoginAsync();
+            }
+        }
+
         await using var ins = await _apiClient.DownloadAsync(state!.Url, cancellationToken: token);
         return await fn(ins);
     }
