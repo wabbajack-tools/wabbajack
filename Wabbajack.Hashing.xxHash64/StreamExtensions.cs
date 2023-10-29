@@ -15,9 +15,9 @@ public static class StreamExtensions
     }
 
     public static async Task<Hash> HashingCopy(this Stream inputStream, Stream outputStream,
-        CancellationToken token, IJob? job = null)
+        CancellationToken token, IJob? job = null, int buffserSize = 1024 * 1024)
     {
-        using var rented = MemoryPool<byte>.Shared.Rent(1024 * 1024);
+        using var rented = MemoryPool<byte>.Shared.Rent(buffserSize);
         var buffer = rented.Memory;
 
         var hasher = new xxHashAlgorithm(0);

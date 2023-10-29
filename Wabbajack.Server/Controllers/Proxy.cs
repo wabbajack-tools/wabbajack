@@ -1,10 +1,12 @@
-using System.Text;
+
+using System.Collections.Concurrent;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using Amazon.S3;
 using Amazon.S3.Model;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Net.Http.Headers;
 using Wabbajack.BuildServer;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.Interfaces;
@@ -12,7 +14,6 @@ using Wabbajack.DTOs;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
-using Wabbajack.VFS;
 
 namespace Wabbajack.Server.Controllers;
 
@@ -25,6 +26,7 @@ public class Proxy : ControllerBase
     private readonly IAmazonS3 _s3;
     private readonly TemporaryFileManager _temporaryFileManager;
     private readonly IResource<Proxy> _resource;
+    private static readonly ConcurrentDictionary<Guid, Hash> _concurrentDictionary = new();
 
     public Proxy(ILogger<Proxy> logger, DownloadDispatcher dispatcher, AppSettings appSettings, IAmazonS3 s3, TemporaryFileManager temporaryFileManager, IResource<Proxy> resource)
     {
@@ -115,6 +117,54 @@ public class Proxy : ControllerBase
         });
         
         return Ok(data);
+    }
+    
+    [HttpGet("/proxy_stream")]
+    public async Task ProxyStream(CancellationToken token, [FromQuery] Uri uri)
+    {
+        using var _ = await _resource.Begin($"Proxy Begin {uri}", 0, token);
+        _logger.LogInformation("Got proxy request for {Uri}", uri);
+        var state = _dispatcher.Parse(uri);
+        
+        if (state == null)
+        {
+            Response.StatusCode = 400;
+            await Response.WriteAsync("Could not get state from Uri", cancellationToken: token);
+            return;
+        }
+
+        var archive = new Archive
+        {
+            State = state,
+        };
+
+        var downloader = _dispatcher.Downloader(archive);
+        if (downloader is not IProxyable pDownloader)
+        {
+            Response.StatusCode = 400;
+            await Response.WriteAsync("Downloader is not IProxyable", cancellationToken: token);
+            return;
+        }
+
+        var id = Guid.NewGuid();
+        var hash = await pDownloader.DownloadStream(archive, async s =>
+        {
+            _logger.LogInformation("Starting proxy stream for {Uri}", uri);
+            Response.StatusCode = 200;
+            Response.Headers.Add("Content-Type", "application/octet-stream");
+            Response.Headers.Add("x-guid-id", id.ToString());
+            Response.Headers.ContentLength = s.Length;
+            await Response.Body.FlushAsync(token);
+            return await s.HashingCopy(Response.Body, token, buffserSize: 1024);
+        }, token);
+        
+        _concurrentDictionary.TryAdd(id, hash);
+    }
+
+    [HttpGet("/proxy_stream/{id}")]
+    public async Task<IActionResult> ProxyStream(CancellationToken token, string id)
+    {
+        return Ok(_concurrentDictionary[Guid.Parse(id)].ToHex());
     }
 
     public class DataResponse

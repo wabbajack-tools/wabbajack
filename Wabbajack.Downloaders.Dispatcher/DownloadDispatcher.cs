@@ -43,7 +43,7 @@ public class DownloadDispatcher
         
     }
 
-    public bool UseProxy { get; set; } = true;
+    public bool UseProxy { get; set; } = false;
 
     public async Task<Hash> Download(Archive a, AbsolutePath dest, CancellationToken token, bool? proxy = null)
     {
@@ -61,6 +61,7 @@ public class DownloadDispatcher
 
     public async Task<Archive> MaybeProxy(Archive a, CancellationToken token)
     {
+        if (!UseProxy) return a;
         var downloader = Downloader(a);
         if (downloader is not IProxyable p) return a;
         
