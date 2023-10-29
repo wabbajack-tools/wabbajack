@@ -36,8 +36,7 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
 
     public override async Task<bool> Prepare()
     {
-        if (!_apiClient.IsLoggedIn)
-            await _apiClient.LoginAsync();
+        await LoginIfNotLoggedIn();
         return true;
     }
 
@@ -67,6 +66,14 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
     public async Task<T> DownloadStream<T>(Archive archive, Func<Stream, Task<T>> fn, CancellationToken token)
     {
         var state = archive.State as Mega;
+        await LoginIfNotLoggedIn();
+
+        await using var ins = await _apiClient.DownloadAsync(state!.Url, cancellationToken: token);
+        return await fn(ins);
+    }
+
+    private async Task LoginIfNotLoggedIn()
+    {
         if (!_apiClient.IsLoggedIn)
         {
             if (_tokenProvider.HaveToken())
@@ -79,17 +86,13 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
                 await _apiClient.LoginAsync();
             }
         }
-
-        await using var ins = await _apiClient.DownloadAsync(state!.Url, cancellationToken: token);
-        return await fn(ins);
     }
 
     public override async Task<Hash> Download(Archive archive, Mega state, AbsolutePath destination, IJob job,
         CancellationToken token)
     {
-        if (!_apiClient.IsLoggedIn)
-            await _apiClient.LoginAsync();
-
+        await LoginIfNotLoggedIn();
+        
         await using var ous = destination.Open(FileMode.Create, FileAccess.Write, FileShare.None);
         await using var ins = await _apiClient.DownloadAsync(state.Url, cancellationToken: token);
         return await ins.HashingCopy(ous, token, job);
@@ -106,9 +109,8 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
 
     public override async Task<bool> Verify(Archive archive, Mega archiveState, IJob job, CancellationToken token)
     {
-        if (!_apiClient.IsLoggedIn)
-            await _apiClient.LoginAsync();
-
+        await LoginIfNotLoggedIn();
+        
         for (var times = 0; times < 5; times++)
         {
             try
