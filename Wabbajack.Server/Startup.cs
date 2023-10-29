@@ -78,7 +78,7 @@ public class Startup
         services.AddSingleton<IVerificationCache, NullCache>();
             
         services.AddAllSingleton<ITokenProvider<WabbajackApiState>, WabbajackApiTokenProvider>();
-        services.AddAllSingleton<IResource, IResource<Proxy>>(s => new Resource<Proxy>("Proxy", 2));
+        services.AddAllSingleton<IResource, IResource<Proxy>>(s => new Resource<Proxy>("Proxy", 8));
         services.AddAllSingleton<IResource, IResource<DownloadDispatcher>>(s => new Resource<DownloadDispatcher>("Downloads", 12));
         services.AddAllSingleton<IResource, IResource<FileHashCache>>(s => new Resource<FileHashCache>("File Hashing", 12));
         services.AddAllSingleton<IResource, IResource<Wabbajack.Networking.WabbajackClientApi.Client>>(s => 
