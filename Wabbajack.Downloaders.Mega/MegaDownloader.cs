@@ -79,10 +79,12 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
             if (_tokenProvider.HaveToken())
             {
                 var authInfo = await _tokenProvider.Get();
+                _logger.LogInformation("Logging into Mega with {Email}", authInfo!.Email);
                 await _apiClient.LoginAsync(authInfo!.Email, authInfo.Password);
             }
             else
             {
+                _logger.LogInformation("Logging into Mega without credentials");
                 await _apiClient.LoginAsync();
             }
         }
