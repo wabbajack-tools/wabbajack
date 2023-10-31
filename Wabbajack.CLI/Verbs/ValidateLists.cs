@@ -564,10 +564,11 @@ public class ValidateLists
 
         await using var proxyFile = reports.Combine("proxyable.txt")
             .Open(FileMode.Create, FileAccess.Write, FileShare.None);
+        await using var tw = new StreamWriter(proxyFile);
         foreach (var file in _proxyableFiles)
         {
             var str = $"{file.Item1}#name={file.Item2.ToHex()}";
-            await proxyFile.WriteAsync(Encoding.UTF8.GetBytes(str), token);
+            await tw.WriteLineAsync(str);
         }
     }
     
