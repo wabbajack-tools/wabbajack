@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
@@ -6,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -55,6 +57,8 @@ public class ValidateLists
     private readonly IResource<HttpClient> _httpLimiter;
     private readonly AsyncLock _imageProcessLock;
 
+    private readonly ConcurrentBag<(Uri, Hash)> _proxyableFiles = new();
+
 
     public ValidateLists(ILogger<ValidateLists> logger, Networking.WabbajackClientApi.Client wjClient,
         Client gitHubClient, TemporaryFileManager temporaryFileManager,
@@ -92,10 +96,7 @@ public class ValidateLists
         
         reports.CreateDirectory();
         var token = CancellationToken.None;
-
-        _logger.LogInformation("Scanning for existing patches/mirrors");
-        var mirroredFiles = (await _wjClient.GetAllMirroredFileDefinitions(token)).Select(m => m.Hash).ToHashSet();
-        _logger.LogInformation("Found {Count} mirrored files", mirroredFiles.Count);
+        
         var patchFiles = await _wjClient.GetAllPatches(token);
         _logger.LogInformation("Found {Count} patches", patchFiles.Length);
 
@@ -168,30 +169,7 @@ public class ValidateLists
                         Original = archive
                     };
                 }
-
-
-                if (result.Status == ArchiveStatus.InValid)
-                {
-                    if (mirroredFiles.Contains(archive.Hash))
-                    {
-                        return new ValidatedArchive
-                        {
-                            Status = ArchiveStatus.Mirrored,
-                            Original = archive,
-                            PatchedFrom = new Archive
-                            {
-                                State = new WabbajackCDN
-                                {
-                                    Url = _wjClient.GetMirrorUrl(archive.Hash)!
-                                },
-                                Size = archive.Size,
-                                Name = archive.Name,
-                                Hash = archive.Hash
-                            }
-                        };
-                    }
-                }
-
+                
                 if (result.Status == ArchiveStatus.InValid)
                 {
                     _logger.LogInformation("Looking for patch for {Hash}", archive.Hash);
@@ -210,7 +188,13 @@ public class ValidateLists
                     }
                 }
 
-                return new ValidatedArchive()
+                var downloader = _dispatcher.Downloader(archive);
+                if (downloader is IProxyable proxyable)
+                {
+                    _proxyableFiles.Add((proxyable.UnParse(archive.State), archive.Hash));
+                }
+
+                return new ValidatedArchive
                 {
                     Status = ArchiveStatus.InValid,
                     Original = archive
@@ -255,12 +239,7 @@ public class ValidateLists
         }
 
         await ExportReports(reports, validatedLists, token);
-        
-        var usedMirroredFiles = validatedLists.SelectMany(a => a.Archives)
-            .Where(m => m.Status == ArchiveStatus.Mirrored)
-            .Select(m => m.Original.Hash)
-            .ToHashSet();
-        await DeleteOldMirrors(mirroredFiles, usedMirroredFiles);
+
 
         return 0;
     }
@@ -580,7 +559,13 @@ public class ValidateLists
             .Open(FileMode.Create, FileAccess.Write, FileShare.None);
         await _dtos.Serialize(upgradedMetas, upgradedMetasFile, true);
 
-
+        await using var proxyFile = reports.Combine("proxyable.txt")
+            .Open(FileMode.Create, FileAccess.Write, FileShare.None);
+        foreach (var file in _proxyableFiles)
+        {
+            var str = $"{file.Item1}#name={file.Item2.ToHex()}";
+            await proxyFile.WriteAsync(Encoding.UTF8.GetBytes(str), token);
+        }
     }
     
     private async Task SendDefinitionToLoadOrderLibrary(ValidatedModList validatedModList, CancellationToken token)

@@ -75,8 +75,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Compiler.Test", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Downloaders.WabbajackCDN", "Wabbajack.Downloaders.WabbajackCDN\Wabbajack.Downloaders.WabbajackCDN.csproj", "{0210A092-4A69-479F-8FF4-120921B5758E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Server", "Wabbajack.Server\Wabbajack.Server.csproj", "{8F7FB1BE-4E1E-4798-AC9E-AA2E18CCDD42}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Networking.GitHub", "Wabbajack.Networking.GitHub\Wabbajack.Networking.GitHub.csproj", "{549D01FD-8E26-42C7-ABEA-4BAF6E24E754}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Services.OSIntegrated", "Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj", "{45E48012-6C58-4C3D-843F-C6EED02868B7}"
@@ -299,10 +297,6 @@ Global
 		{0210A092-4A69-479F-8FF4-120921B5758E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0210A092-4A69-479F-8FF4-120921B5758E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0210A092-4A69-479F-8FF4-120921B5758E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8F7FB1BE-4E1E-4798-AC9E-AA2E18CCDD42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8F7FB1BE-4E1E-4798-AC9E-AA2E18CCDD42}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8F7FB1BE-4E1E-4798-AC9E-AA2E18CCDD42}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8F7FB1BE-4E1E-4798-AC9E-AA2E18CCDD42}.Release|Any CPU.Build.0 = Release|Any CPU
 		{549D01FD-8E26-42C7-ABEA-4BAF6E24E754}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{549D01FD-8E26-42C7-ABEA-4BAF6E24E754}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{549D01FD-8E26-42C7-ABEA-4BAF6E24E754}.Release|Any CPU.ActiveCfg = Release|Any CPU
