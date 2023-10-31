@@ -12,6 +12,7 @@ using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.Validation;
 using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
@@ -24,17 +25,18 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
     private const string MegaFilePrefix = "https://mega.nz/file/";
     private readonly MegaApiClient _apiClient;
     private readonly ILogger<MegaDownloader> _logger;
+    private readonly ITokenProvider<MegaToken> _tokenProvider;
 
-    public MegaDownloader(ILogger<MegaDownloader> logger, MegaApiClient apiClient)
+    public MegaDownloader(ILogger<MegaDownloader> logger, MegaApiClient apiClient, ITokenProvider<MegaToken> tokenProvider)
     {
         _logger = logger;
         _apiClient = apiClient;
+        _tokenProvider = tokenProvider;
     }
 
     public override async Task<bool> Prepare()
     {
-        if (!_apiClient.IsLoggedIn)
-            await _apiClient.LoginAsync();
+        await LoginIfNotLoggedIn();
         return true;
     }
 
@@ -64,19 +66,35 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
     public async Task<T> DownloadStream<T>(Archive archive, Func<Stream, Task<T>> fn, CancellationToken token)
     {
         var state = archive.State as Mega;
-        if (!_apiClient.IsLoggedIn)
-            await _apiClient.LoginAsync();
-        
+        await LoginIfNotLoggedIn();
+
         await using var ins = await _apiClient.DownloadAsync(state!.Url, cancellationToken: token);
         return await fn(ins);
+    }
+
+    private async Task LoginIfNotLoggedIn()
+    {
+        if (!_apiClient.IsLoggedIn)
+        {
+            if (_tokenProvider.HaveToken())
+            {
+                var authInfo = await _tokenProvider.Get();
+                _logger.LogInformation("Logging into Mega with {Email}", authInfo!.Email);
+                await _apiClient.LoginAsync(authInfo!.Email, authInfo.Password);
+            }
+            else
+            {
+                _logger.LogInformation("Logging into Mega without credentials");
+                await _apiClient.LoginAsync();
+            }
+        }
     }
 
     public override async Task<Hash> Download(Archive archive, Mega state, AbsolutePath destination, IJob job,
         CancellationToken token)
     {
-        if (!_apiClient.IsLoggedIn)
-            await _apiClient.LoginAsync();
-
+        await LoginIfNotLoggedIn();
+        
         await using var ous = destination.Open(FileMode.Create, FileAccess.Write, FileShare.None);
         await using var ins = await _apiClient.DownloadAsync(state.Url, cancellationToken: token);
         return await ins.HashingCopy(ous, token, job);
@@ -93,9 +111,8 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
 
     public override async Task<bool> Verify(Archive archive, Mega archiveState, IJob job, CancellationToken token)
     {
-        if (!_apiClient.IsLoggedIn)
-            await _apiClient.LoginAsync();
-
+        await LoginIfNotLoggedIn();
+        
         for (var times = 0; times < 5; times++)
         {
             try

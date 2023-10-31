@@ -79,7 +79,7 @@ public class MediaFireDownloader : ADownloader<DTOs.DownloadStates.MediaFire>, I
         var state = archive.State as DTOs.DownloadStates.MediaFire;
         var url = await Resolve(state!);
         var msg = new HttpRequestMessage(HttpMethod.Get, url!);
-        using var result = await _httpClient.SendAsync(msg, token);
+        using var result = await _httpClient.SendAsync(msg, HttpCompletionOption.ResponseHeadersRead, token);
         await using var stream = await result.Content.ReadAsStreamAsync(token);
         return await fn(stream);
     }
