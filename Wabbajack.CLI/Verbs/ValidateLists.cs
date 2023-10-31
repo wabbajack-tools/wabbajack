@@ -187,19 +187,22 @@ public class ValidateLists
                         }
                     }
                 }
-
-                var downloader = _dispatcher.Downloader(archive);
-                if (downloader is IProxyable proxyable)
-                {
-                    _proxyableFiles.Add((proxyable.UnParse(archive.State), archive.Hash));
-                }
-
+                
                 return new ValidatedArchive
                 {
                     Status = ArchiveStatus.InValid,
                     Original = archive
                 };
             }).ToArray();
+
+            foreach (var archive in archives)
+            {
+                var downloader = _dispatcher.Downloader(archive.Original);
+                if (downloader is IProxyable proxyable)
+                {
+                    _proxyableFiles.Add((proxyable.UnParse(archive.Original.State), archive.Original.Hash));
+                }
+            }
 
             validatedList.Archives = archives;
             validatedList.Status = archives.Any(a => a.Status == ArchiveStatus.InValid)
