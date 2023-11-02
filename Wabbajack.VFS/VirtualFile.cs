@@ -243,9 +243,9 @@ public class VirtualFile
         }
         catch (Exception ex)
         {
-            context.Logger.LogError(ex, "Error while examining the contents of {path}", relPath.FileName);
+            context.Logger.LogError(ex, "Error while examining the contents of {Path}", relPath.FileName);
             if (!ex.Message.Equals("End of stream before end of limit")) throw;
-            context.Logger.LogError("Possibly not enough free storage space in Wabbajack Folder Location");
+            context.Logger.LogError("Not enough free storage space in {TempFolder}",Environment.CurrentDirectory+"\\temp");
             throw;
         }
 
