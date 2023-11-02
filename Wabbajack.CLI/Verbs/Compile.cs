@@ -11,6 +11,7 @@ using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.VFS;
 
 namespace Wabbajack.CLI.Verbs;
@@ -58,6 +59,12 @@ public class Compile
 
         inferredSettings.UseGamePaths = true;
         
+        if(outputPath.DirectoryExists())
+        {
+            inferredSettings.OutputFile = outputPath.Combine(inferredSettings.OutputFile.FileName);
+            _logger.LogInformation("Output file will be in: {outputPath}", inferredSettings.OutputFile);
+        }
+
         var compiler = MO2Compiler.Create(_serviceProvider, inferredSettings);
         var result = await compiler.Begin(token);
         if (!result)
