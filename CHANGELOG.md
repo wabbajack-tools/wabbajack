@@ -6,7 +6,7 @@
   * **To list authors still compiling on Wabbajack 3.0.5.0:**  
     This is what is causing your compiles with any newer Wabbajack version to fail.
     The reason the compile works is that you already have a full cache for all your mods and BSAs with that version and WJ only needs to add a small amount of new files to that cache and needs less temporary drive space because of that. Any version higher than 3.0.5.0 needs a new cache that can't be converted and needs WJ to unpack every Archive (zip/rar/7z/BSA/BA2) and add the files inside to the new cache.  
-    Finding ways to reduce the storage footprint when compiling huge lists for the first time (since any following compiles won't need that space requirement anymore) has become the next big priority.
+    Finding ways to reduce the storage footprint when compiling huge lists for the first time (since any following compiles won't need that space requirement anymore) will be investigated.
 * Wabbajack will now clean the `temp` folder when closed
 * Updated Dependencies
   * LZ4 to version 1.3.7-beta
