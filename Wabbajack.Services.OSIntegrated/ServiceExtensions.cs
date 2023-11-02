@@ -13,6 +13,7 @@ using Wabbajack.Compiler;
 using Wabbajack.Configuration;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
+using Wabbajack.Downloaders.ModDB;
 using Wabbajack.Downloaders.VerificationCache;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Interventions;
@@ -166,6 +167,8 @@ public static class ServiceExtensions
 
         // Token Providers
         service.AddAllSingleton<ITokenProvider<NexusApiState>, EncryptedJsonTokenProvider<NexusApiState>, NexusApiTokenProvider>();
+        service.AddAllSingleton<ITokenProvider<MegaToken>, EncryptedJsonTokenProvider<MegaToken>, MegaTokenProvider>();
+        
         service.AddAllSingleton<ITokenProvider<BethesdaNetLoginState>, EncryptedJsonTokenProvider<BethesdaNetLoginState>, BethesdaNetTokenProvider>();
         service
             .AddAllSingleton<ITokenProvider<LoversLabLoginState>, EncryptedJsonTokenProvider<LoversLabLoginState>,

@@ -40,7 +40,10 @@ public class DownloadDispatcher
         _limiter = limiter;
         _useProxyCache = useProxyCache;
         _verificationCache = verificationCache;
+        
     }
+
+    public bool UseProxy { get; set; } = false;
 
     public async Task<Hash> Download(Archive a, AbsolutePath dest, CancellationToken token, bool? proxy = null)
     {
@@ -58,6 +61,7 @@ public class DownloadDispatcher
 
     public async Task<Archive> MaybeProxy(Archive a, CancellationToken token)
     {
+        if (!UseProxy) return a;
         var downloader = Downloader(a);
         if (downloader is not IProxyable p) return a;
         
@@ -134,7 +138,9 @@ public class DownloadDispatcher
                 return true;
             }
 
-            a = await MaybeProxy(a, token);
+            if (UseProxy) 
+                a = await MaybeProxy(a, token);
+            
             var downloader = Downloader(a);
             using var job = await _limiter.Begin($"Verifying {a.State.PrimaryKeyString}", -1, token);
             var result = await downloader.Verify(a, job, token);

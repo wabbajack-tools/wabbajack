@@ -15,6 +15,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
    <!-- <IncludeSymbolsInSingleFile>true</IncludeSymbolsInSingleFile> -->
     <AssemblyName>Wabbajack</AssemblyName>
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
   </PropertyGroup>
 
 
