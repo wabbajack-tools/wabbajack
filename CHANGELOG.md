@@ -1,6 +1,21 @@
 ### Changelog
 
-#### Version - 3.3.0.0 - 10/13/2023
+#### Version - 3.3.1.0 - TBA
+* Fixed `--outputPath` not being used for the CLI `compile` (thanks to @majcosta for fixing that)
+* Improved Log message for cases where low storage on the drive Wabbajack is installed on causes compiles to fail
+  * **To list authors still compiling on Wabbajack 3.0.5.0:**  
+    This is what is causing your compiles with any newer Wabbajack version to fail.
+    The reason the compile works is that you already have a full cache for all your mods and BSAs with that version and WJ only needs to add a small amount of new files to that cache and needs less temporary drive space because of that. Any version higher than 3.0.5.0 needs a new cache that can't be converted and needs WJ to unpack every Archive (zip/rar/7z/BSA/BA2) and add the files inside to the new cache.  
+    Finding ways to reduce the storage footprint when compiling huge lists for the first time (since any following compiles won't need that space requirement anymore) has become the next big priority.
+* Wabbajack will now clean the `temp` folder when closed
+* Updated Dependencies
+  * LZ4 to version 1.3.7-beta
+  * SharpZipLib to version 1.4.2
+
+#### Version - 3.3.0.1 - (Was only a Pre-Release)
+* Fixed Manual Downloading on NexusMods being blocked by a hidden cookie consent banner
+
+#### Version - 3.3.0.0 - 10/13/2023 (taken down due to build issues)
 * Fixed some UI issues arising from 3.2.0.0 changes - more informative error text, wiki link button
 * Added optional JSON flag for `DisplayVersionOnlyInInstallerView` to enable the installer image to only show version number.
 * Fixed manual downloader downloading in the OS's "Downloads" folder
