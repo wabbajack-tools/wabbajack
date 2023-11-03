@@ -69,7 +69,7 @@ namespace Wabbajack
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogDebug("Directory {TempDir} doesn't exist",tempDirectory);
+                        _logger.LogError(ex,"Failed clearing {TempDir}",tempDirectory);
                     }
                     
                     
