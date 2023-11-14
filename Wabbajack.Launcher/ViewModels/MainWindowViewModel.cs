@@ -10,13 +10,10 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using MessageBox.Avalonia.DTO;
+using MsBox.Avalonia.Dto;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
-using Wabbajack.Compression.Zip;
 using Wabbajack.Downloaders.Http;
-using Wabbajack.DTOs;
-using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi;
@@ -224,8 +221,8 @@ public class MainWindowViewModel : ViewModelBase
             var entryPoint = KnownFolders.EntryPoint;
             if (KnownFolders.IsInSpecialFolder(entryPoint) || entryPoint.Depth <= 1)
             {
-                var msg = MessageBox.Avalonia.MessageBoxManager
-                    .GetMessageBoxStandardWindow(new MessageBoxStandardParams()
+                var msg = MsBox.Avalonia.MessageBoxManager
+                    .GetMessageBoxStandard(new MessageBoxStandardParams()
                     {
                         Topmost = true,
                         ShowInCenter = true,
@@ -233,22 +230,22 @@ public class MainWindowViewModel : ViewModelBase
                         ContentMessage =
                             "Cannot start in the root of a drive, or protected folder locations such as Downloads, Desktop etc.\nPlease move Wabbajack to another folder, creating a new folder if necessary ( example : C:\\Wabbajack\\), outside of these locations."
                     });
-                var result = await msg.Show();
+                var result = await msg.ShowAsync();
                 Environment.Exit(1);
             }
         }
         catch (Exception ex)
         {
             Status = ex.Message;
-            var msg = MessageBox.Avalonia.MessageBoxManager
-                .GetMessageBoxStandardWindow(new MessageBoxStandardParams()
+            var msg = MsBox.Avalonia.MessageBoxManager
+                .GetMessageBoxStandard(new MessageBoxStandardParams()
                 {
                     Topmost = true,
                     ShowInCenter = true,
                     ContentTitle = "Wabbajack Launcher: Error",
                     ContentMessage = ex.ToString()
                 });
-            var result = await msg.Show();
+            var result = await msg.ShowAsync();
             Environment.Exit(1);
         }
     }

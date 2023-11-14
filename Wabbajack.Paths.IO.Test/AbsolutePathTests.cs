@@ -29,7 +29,7 @@ public class AbsolutePathTests
     }
 
     [Fact]
-    public async ValueTask CanReadAndWriteFilesAsync()
+    public async Task CanReadAndWriteFilesAsync()
     {
         var data = "This is a test";
         var file = GetTempFile();

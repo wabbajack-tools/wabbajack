@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Nettle;
@@ -41,7 +42,7 @@ public class ModlistReport
     {
         var data = await (typeof(ModlistReport).Assembly.GetManifestResourceStream("Wabbajack.CLI.Resources.ModlistReport.html")!).ReadAllAsync();
         var func = NettleEngine.GetCompiler().Compile(Encoding.UTF8.GetString(data));
-        return func(o);
+        return await func(o, CancellationToken.None);
     }
 
     public async Task<int> Run(AbsolutePath input)
