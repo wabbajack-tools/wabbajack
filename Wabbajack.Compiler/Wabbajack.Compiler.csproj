@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="F23.StringSimilarity" Version="5.0.0" />
+        <PackageReference Include="F23.StringSimilarity" Version="5.1.0" />
         <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
     </ItemGroup>
 
