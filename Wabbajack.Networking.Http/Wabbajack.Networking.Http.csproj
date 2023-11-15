@@ -9,7 +9,7 @@
 
     <ItemGroup>
         <PackageReference Include="Downloader" Version="3.0.6" />
-        <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.2-mauipre.1.22102.15" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     </ItemGroup>
 
     <ItemGroup>
