@@ -21,7 +21,7 @@ public class ManualDownloadHandler : BrowserWindowViewModel
 
         var task = WaitForDownloadUri(token, async () =>
         {
-            await RunJavaScript("Array.from(document.getElementsByTagName(\"iframe\")).forEach(f => f.remove())");
+            await RunJavaScript("Array.from(document.getElementsByTagName(\"iframe\")).forEach(f => {if (f.title != \"SP Consent Message\" && !f.src.includes(\"challenges.cloudflare.com\")) f.remove()})");
         });
         await NavigateTo(md.Url);
         var uri = await task;

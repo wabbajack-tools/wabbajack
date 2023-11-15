@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -45,7 +46,33 @@ namespace Wabbajack
 
                 Closed += (s, e) =>
                 {
+                    _logger.LogInformation("Beginning shutdown...");
                     _mwvm.CancelRunningTasks(TimeSpan.FromSeconds(10));
+                    
+                    // Cleaning the temp folder when the app closes since it can take up multiple Gigabytes of Storage
+                    var tempDirectory = Environment.CurrentDirectory + "\\temp";
+                    _logger.LogInformation("Clearing {TempDir}",tempDirectory);
+                    try
+                    {
+                        var directoryInfo = new DirectoryInfo(tempDirectory);
+                        
+                        foreach (var file in directoryInfo.EnumerateFiles())
+                        {
+                            file.Delete(); 
+                        }
+                        foreach (var dir in directoryInfo.EnumerateDirectories())
+                        {
+                            dir.Delete(true); 
+                        }
+                        
+                        _logger.LogInformation("Finished clearing {TempDir}",tempDirectory);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex,"Failed clearing {TempDir}",tempDirectory);
+                    }
+                    
+                    
                     Application.Current.Shutdown();
                 };
 
