@@ -45,13 +45,13 @@
             </Grid.RowDefinitions>
             <TextBlock Grid.Row="0"
                 Margin="0,0,0,10"
-                FontFamily="Lucida Sans"
+                FontFamily="{StaticResource AtkinsonHyperlegible}"
                 FontSize="30"
                 FontWeight="Bold"
                 Foreground="{StaticResource YellowBrush}"
                 Text="UNDER MAINTENANCE" />
             <TextBlock Grid.Row="1"
-                FontFamily="Lucida Sans"
+                FontFamily="{StaticResource AtkinsonHyperlegible}"
                 FontSize="15"
                 FontWeight="Bold"
                 Foreground="{StaticResource YellowBrush}"
@@ -72,7 +72,7 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0"
-                    FontFamily="Lucida Sans"
+                    FontFamily="{StaticResource AtkinsonHyperlegible}"
                     FontSize="100"
                     FontWeight="Bold"
                     Foreground="{StaticResource YellowBrush}"
@@ -102,7 +102,7 @@
                         Kind="HelpCircle" />
                 </Button>
                 <TextBlock Grid.Row="1"
-                    FontFamily="Lucida Sans"
+                    FontFamily="{StaticResource AtkinsonHyperlegible}"
                     FontSize="100"
                     FontWeight="Bold"
                     Foreground="{StaticResource YellowBrush}"

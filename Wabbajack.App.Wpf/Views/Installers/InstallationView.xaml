@@ -152,7 +152,7 @@
                             Margin="4"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            FontFamily="Lucida Sans"
+                            FontFamily="{StaticResource AtkinsonHyperlegible}"
                             FontSize="9"
                             FontWeight="Bold"
                             Text="NSFW" />

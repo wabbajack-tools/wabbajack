@@ -51,6 +51,12 @@
 
   <ItemGroup>
     <None Remove="Readme.md" />
+    <None Remove="Resources\Fonts\Atkinson-Hyperlegible-Italic-102.ttf" />
+    <None Remove="Resources\Fonts\Atkinson-Hyperlegible-Regular-102.ttf" />
+    <None Remove="Resources\Fonts\AtkinsonHyperlegible-Bold.ttf" />
+    <None Remove="Resources\Fonts\AtkinsonHyperlegible-BoldItalic.ttf" />
+    <None Remove="Resources\Fonts\AtkinsonHyperlegible-Italic.ttf" />
+    <None Remove="Resources\Fonts\AtkinsonHyperlegible-Regular.ttf" />
     <None Remove="Resources\GameGridIcons\Fallout4.png" />
     <None Remove="Resources\GameGridIcons\SkyrimSpecialEdition.png" />
     <None Remove="Resources\Icons\middle_mouse_button.png" />
@@ -101,6 +107,7 @@
     <PackageReference Include="ReactiveUI.WPF" Version="19.5.1" />
     <PackageReference Include="Silk.NET.DXGI" Version="2.18.0" />
     <PackageReference Include="System.Reactive" Version="6.0.1-preview.1" />
+    <PackageReference Include="WPF-UI" Version="3.0.0-preview.9" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
   </ItemGroup>
 
@@ -110,6 +117,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\Fonts\AtkinsonHyperlegible-Bold.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Fonts\AtkinsonHyperlegible-BoldItalic.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Fonts\AtkinsonHyperlegible-Italic.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Fonts\AtkinsonHyperlegible-Regular.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\middle_mouse_button.png" />
     <Resource Include="Resources\MO2Button.png" />
     <Resource Include="Resources\VortexButton.png" />

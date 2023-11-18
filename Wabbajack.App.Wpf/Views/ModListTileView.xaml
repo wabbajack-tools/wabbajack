@@ -294,7 +294,7 @@
                 Margin="5"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
-                FontFamily="Lucida Sans"
+                FontFamily="{StaticResource AtkinsonHyperlegible}"
                 FontSize="30"
                 FontWeight="Bold"
                 Style="{StaticResource BackgroundBlurStyle}"
@@ -308,7 +308,7 @@
                 Margin="5"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
-                FontFamily="Lucida Sans"
+                FontFamily="{StaticResource AtkinsonHyperlegible}"
                 FontSize="30"
                 FontWeight="Bold"
                 TextWrapping="Wrap">

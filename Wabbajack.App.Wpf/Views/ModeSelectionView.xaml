@@ -25,6 +25,7 @@
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
+        <!--
         <Viewbox Grid.Row="0" Grid.RowSpan="3"
             Name="Banner"
             HorizontalAlignment="Center"
@@ -32,6 +33,8 @@
             Stretch="UniformToFill">
             <Image Margin="40,20,40,240" Source="../Resources/Wabba_Mouth.png" />
         </Viewbox>
+        -->
+        <Label Content="Welcome to Wabbajack" FontSize="36" FontWeight="Bold"/>
 
         <Grid Grid.Row="1" Margin="5,15">
             <Grid.ColumnDefinitions>

@@ -10,6 +10,8 @@
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     mc:Ignorable="d">
 
+    <FontFamily x:Key="AtkinsonHyperlegible">pack://application:,,,/Resources/Fonts/#Atkinson Hyperlegible</FontFamily>
+
     <!--  Converters  -->
     <local:BoolToVisibilityConverter x:Key="bool2VisibilityConverter" />
     <local:BoolToVisibilityHiddenConverter x:Key="bool2VisibilityHiddenConverter" />
@@ -38,11 +40,11 @@
     <Color x:Key="HotColor">#525252</Color>
 
     <Color x:Key="Yellow">#ffc400</Color>
-    <Color x:Key="Red">#e83a40</Color>
-    <Color x:Key="Green">#52b545</Color>
+    <Color x:Key="Red">#db2955</Color>
+    <Color x:Key="Green">#5fad56</Color>
     <Color x:Key="YellowDark">#967400</Color>
 
-    <Color x:Key="Primary">#BB86FC</Color>
+    <Color x:Key="Primary">#D9BBF9</Color>
     <Color x:Key="PrimaryTransparent">#00BB86FC</Color>
     <Color x:Key="PrimaryVariant">#3700B3</Color>
     <Color x:Key="DarkPrimaryVariant">#270080</Color>
@@ -234,21 +236,21 @@
 
     <!--  FontStyle  -->
     <Style TargetType="{x:Type TextBlock}">
-        <Setter Property="FontFamily" Value="Calibri light" />
+        <Setter Property="FontFamily" Value="{StaticResource AtkinsonHyperlegible}" />
         <!--<Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>-->
     </Style>
     <Style TargetType="{x:Type Control}">
-        <Setter Property="FontFamily" Value="Calibri light" />
+        <Setter Property="FontFamily" Value="{StaticResource AtkinsonHyperlegible}" />
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
     </Style>
     <Style TargetType="{x:Type Window}">
-        <Setter Property="FontFamily" Value="Calibri light" />
+        <Setter Property="FontFamily" Value="{StaticResource AtkinsonHyperlegible}" />
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
         <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
     </Style>
     <!--  Necessary for Blend designer for UserControls  -->
     <Style TargetType="{x:Type UserControl}">
-        <Setter Property="FontFamily" Value="Calibri light" />
+        <Setter Property="FontFamily" Value="{StaticResource AtkinsonHyperlegible}" />
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
     </Style>
 
@@ -1620,7 +1622,7 @@
     </Style>
     <Style TargetType="{x:Type Expander}">
         <Setter Property="Foreground" Value="{StaticResource Expander.MouseOver.Arrow.Stroke}" />
-        <Setter Property="FontFamily" Value="Calibri light" />
+        <Setter Property="FontFamily" Value="{StaticResource AtkinsonHyperlegible}" />
         <Setter Property="Padding" Value="2" />
         <Setter Property="Background" Value="{StaticResource Expander.Background}" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -2351,7 +2353,7 @@
         <Setter Property="Height" Value="18" />
         <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-        <Setter Property="FontFamily" Value="{DynamicResource {x:Static SystemFonts.StatusFontFamilyKey}}" />
+        <Setter Property="FontFamily" Value="{StaticResource AtkinsonHyperlegible}" />
         <Setter Property="FontSize" Value="{DynamicResource {x:Static SystemFonts.StatusFontSizeKey}}" />
         <Setter Property="FontStyle" Value="{DynamicResource {x:Static SystemFonts.StatusFontStyleKey}}" />
         <Setter Property="FontWeight" Value="{DynamicResource {x:Static SystemFonts.StatusFontWeightKey}}" />
