@@ -120,20 +120,27 @@ public abstract class BrowserWindowViewModel : ViewModel
         while (_browser.CoreWebView2 == null)
             await Task.Delay(10, token);
 
-        _browser.CoreWebView2.DownloadStarting += (sender, args) =>
+        EventHandler<CoreWebView2DownloadStartingEventArgs> handler = null!;
+        
+        handler = (_, args) =>
         {
             try
             {
                 source.SetResult(new Uri(args.DownloadOperation.Uri));
+                _browser.CoreWebView2.DownloadStarting -= handler;
             }
             catch (Exception)
             {
-                source.SetCanceled();
+                source.SetCanceled(token);
+                _browser.CoreWebView2.DownloadStarting -= handler;
             }
 
             args.Cancel = true;
             args.Handled = true;
         };
+
+        _browser.CoreWebView2.DownloadStarting += handler;     
+            
         Uri uri;
 
         while (true)
@@ -184,7 +191,7 @@ public abstract class BrowserWindowViewModel : ViewModel
             catch (Exception)
             {
                 source.SetCanceled();
-            }
+            } 
         };
 
         await source.Task;

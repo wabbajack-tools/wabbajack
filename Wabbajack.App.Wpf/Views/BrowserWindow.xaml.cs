@@ -2,6 +2,7 @@ using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using MahApps.Metro.Controls;
@@ -57,7 +58,6 @@ public partial class BrowserWindow : MetroWindow
             .ContinueWith(_ => Dispatcher.Invoke(() =>
             {
                 Close();
-                Browser.Dispose();
                 Browser = null;
             }));
     }
