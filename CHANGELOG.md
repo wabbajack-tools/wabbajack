@@ -1,7 +1,7 @@
 ### Changelog
 
 #### Version - TBD
-* Added Support for Final Fantasy 7: Remake Integrate
+* Added Support for Final Fantasy 7: Remake Intergrade
 
 #### Version - 3.4.0.0 - 11/19/2023
 * Fixed `--outputPath` not being used for the CLI `compile` (thanks to @majcosta for fixing that)
