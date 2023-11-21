@@ -44,5 +44,5 @@ public enum Game
     [Description("Terraria")] Terraria,
     [Description("Cyberpunk 2077")] Cyberpunk2077,
 
-    [Description["Final Fantasy VII Remake"] FinalFantasy7Remake,
+    [Description["Final Fantasy VII Remake"] FinalFantasy7Remake
 }
