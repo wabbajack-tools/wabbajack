@@ -42,5 +42,7 @@ public enum Game
     EnderalSpecialEdition,
 
     [Description("Terraria")] Terraria,
-    [Description("Cyberpunk 2077")] Cyberpunk2077
+    [Description("Cyberpunk 2077")] Cyberpunk2077,
+
+    [Description["Final Fantasy VII Remake"] FinalFantasy7Remake,
 }
