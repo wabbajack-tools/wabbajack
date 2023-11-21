@@ -538,7 +538,7 @@ public static class GameRegistry
             Game.FinalFantasy7Remake, new GameMetaData
             {
                 Game = Game.FinalFantasy7Remake,
-                NexusName = 'finalfantasy7remake",
+                NexusName = "finalfantasy7remake",
                 NexusGameId = 4202,
                 MO2Name = "FINAL FANTASY VII REMAKE",
                 MO2ArchiveName = "finalfantasy7remake",
