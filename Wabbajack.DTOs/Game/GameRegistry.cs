@@ -416,6 +416,22 @@ public static class GameRegistry
                 },
                 MainExecutable = @"bin\x64\Cyberpunk2077.exe".ToRelativePath()
             }
+        },
+        {
+            Game.FinalFantasy7Remake, new GameMetaData
+            {
+                Game = Game.FinalFantasy7Remake,
+                NexusName = "finalfantasy7remake",
+                MO2 Name = "FINAL FANTASY VII REMAKE",
+                NexusGameId = 4202,
+                SteamIDs = new[] { 1462040 },
+                IsGenericMO2Plugin = true,
+                RequiredFiles = new[]
+                {
+                    @"ff7remake.exe".ToRelativePath()
+                },
+                MainExecutable = @"ff7remake.exe".ToRelativePath()
+            }
         }
     };
 
