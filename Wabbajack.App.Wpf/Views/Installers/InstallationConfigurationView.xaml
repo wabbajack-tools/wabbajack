@@ -41,7 +41,7 @@
                 TextAlignment="Center" />
             <TextBlock x:Name="errorTextBox"
                 Grid.Row="3"
-                FontFamily="{StaticResource AtkinsonHyperlegible}" FontSize="10" FontWeight="ExtraBold"
+                FontFamily="{StaticResource PrimaryFont}" FontSize="10" FontWeight="ExtraBold"
                 Background="{StaticResource WindowBackgroundBrush}"
                 Foreground="Red"
                 Text=""

@@ -34,7 +34,7 @@
             </Grid.Resources>
             <TextBlock
                 Margin="5,0"
-                FontFamily="{StaticResource AtkinsonHyperlegible}"
+                FontFamily="{StaticResource PrimaryFont}"
                 FontSize="20"
                 FontWeight="Bold"
                 Text="Logins" />

@@ -59,6 +59,9 @@ namespace Wabbajack
         public ICommand CopyVersionCommand { get; }
         public ICommand ShowLoginManagerVM { get; }
         public ICommand OpenSettingsCommand { get; }
+        public ICommand MinimizeCommand { get; }
+        public ICommand MaximizeCommand { get; }
+        public ICommand CloseCommand { get; }
 
         public string VersionDisplay { get; }
 
@@ -135,7 +138,7 @@ namespace Wabbajack
                 var fvi = FileVersionInfo.GetVersionInfo(string.IsNullOrWhiteSpace(assemblyLocation) ? processLocation : assemblyLocation);
                 Consts.CurrentMinimumWabbajackVersion = Version.Parse(fvi.FileVersion);
                 VersionDisplay = $"v{fvi.FileVersion}";
-                AppName = "WABBAJACK " + VersionDisplay;
+                AppName = $"{Consts.AppName} {VersionDisplay}";
                 _logger.LogInformation("Wabbajack Version: {FileVersion}", fvi.FileVersion);
 
                 Task.Run(() => _wjClient.SendMetric("started_wabbajack", fvi.FileVersion)).FireAndForget();
@@ -168,6 +171,26 @@ namespace Wabbajack
                 canExecute: this.WhenAny(x => x.ActivePane)
                     .Select(active => !object.ReferenceEquals(active, SettingsPane)),
                 execute: () => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Settings));
+            MinimizeCommand = ReactiveCommand.Create(Minimize);
+            MaximizeCommand = ReactiveCommand.Create(Maximize);
+            CloseCommand = ReactiveCommand.Create(Close);
+        }
+
+        private void Minimize()
+        {
+            var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+            mainWindow.WindowState = WindowState.Minimized;
+        }
+
+        private void Maximize()
+        {
+            var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+            mainWindow.WindowState = WindowState.Maximized;
+        }
+
+        private void Close()
+        {
+            Environment.Exit(0);
         }
 
         private void HandleNavigateTo(ViewModel objViewModel)

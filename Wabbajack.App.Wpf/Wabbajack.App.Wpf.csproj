@@ -53,10 +53,11 @@
     <None Remove="Readme.md" />
     <None Remove="Resources\Fonts\Atkinson-Hyperlegible-Italic-102.ttf" />
     <None Remove="Resources\Fonts\Atkinson-Hyperlegible-Regular-102.ttf" />
-    <None Remove="Resources\Fonts\AtkinsonHyperlegible-Bold.ttf" />
-    <None Remove="Resources\Fonts\AtkinsonHyperlegible-BoldItalic.ttf" />
-    <None Remove="Resources\Fonts\AtkinsonHyperlegible-Italic.ttf" />
-    <None Remove="Resources\Fonts\AtkinsonHyperlegible-Regular.ttf" />
+    <None Remove="Resources\Fonts\Gabarito-VariableFont_wght-BF651cdf1f55e6c.ttf" />
+    <None Remove="Resources\Fonts\PrimaryFont-Bold.ttf" />
+    <None Remove="Resources\Fonts\PrimaryFont-BoldItalic.ttf" />
+    <None Remove="Resources\Fonts\PrimaryFont-Italic.ttf" />
+    <None Remove="Resources\Fonts\PrimaryFont-Regular.ttf" />
     <None Remove="Resources\GameGridIcons\Fallout4.png" />
     <None Remove="Resources\GameGridIcons\SkyrimSpecialEdition.png" />
     <None Remove="Resources\Icons\middle_mouse_button.png" />
@@ -85,6 +86,7 @@
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
     <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
+    <PackageReference Include="FluentIcons.WPF" Version="1.1.223" />
     <PackageReference Include="Fody" Version="6.8.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -117,16 +119,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\Fonts\AtkinsonHyperlegible-Bold.ttf">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\Fonts\AtkinsonHyperlegible-BoldItalic.ttf">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\Fonts\AtkinsonHyperlegible-Italic.ttf">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\Fonts\AtkinsonHyperlegible-Regular.ttf">
+    <Resource Include="Resources\Fonts\Gabarito-VariableFont_wght-BF651cdf1f55e6c.ttf">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\middle_mouse_button.png" />

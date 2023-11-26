@@ -33,7 +33,7 @@
             </Grid.ColumnDefinitions>
             <TextBlock Grid.ColumnSpan="3"
                 Margin="5,0"
-                FontFamily="{StaticResource AtkinsonHyperlegible}"
+                FontFamily="{StaticResource PrimaryFont}"
                 FontSize="20"
                 FontWeight="Bold"
                 Text="File Uploader" />

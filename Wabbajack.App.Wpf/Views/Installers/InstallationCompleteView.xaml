@@ -29,7 +29,7 @@
                 x:Name="TitleText"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
-                FontFamily="{StaticResource AtkinsonHyperlegible}"
+                FontFamily="{StaticResource PrimaryFont}"
                 FontSize="22"
                 FontWeight="Black">
                 <TextBlock.Effect>

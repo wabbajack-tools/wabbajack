@@ -40,7 +40,7 @@
             <TextBlock
                 Grid.Column="0"
                 Grid.ColumnSpan="3"
-                FontFamily="{StaticResource AtkinsonHyperlegible}"
+                FontFamily="{StaticResource PrimaryFont}"
                 FontSize="20"
                 FontWeight="Bold"
                 Text="Performance" />

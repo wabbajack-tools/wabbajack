@@ -23,7 +23,7 @@
                  WindowTitleBrush="{StaticResource MahApps.Brushes.Accent}"
                  ContentRendered="BrowserWindow_OnActivated"
                  mc:Ignorable="d">
-    <Grid  Background="#121212" MouseDown="UIElement_OnMouseDown">
+    <Grid  Background="{StaticResource BackgroundBrush}" MouseDown="UIElement_OnMouseDown">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>

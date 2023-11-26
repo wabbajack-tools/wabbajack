@@ -9,68 +9,83 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModels="clr-namespace:Wabbajack.View_Models"
     xmlns:views="clr-namespace:Wabbajack.Views"
+    xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
     ShowTitleBar="False"
-    Title="WABBAJACK"
-    Width="1280"
-    Height="960"
-    MinWidth="850"
-    MinHeight="650"
+    ShowCloseButton="False"
+    ShowMinButton="False"
+    ShowMaxRestoreButton="False"
+    Title="Wabbajack"
+    Width="1424"
+    Height="686"
+    MinWidth="712"
+    MinHeight="343"
     Closing="Window_Closing"
     RenderOptions.BitmapScalingMode="HighQuality"
     ResizeMode="CanResize"
     Style="{StaticResource {x:Type Window}}"
     TitleBarHeight="25"
     UseLayoutRounding="True"
-    WindowTitleBrush="{StaticResource MahApps.Brushes.Accent}"
+    WindowTitleBrush="{StaticResource BackgroundBrush}"
     mc:Ignorable="d">
 
 
-               <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"></RowDefinition>
-                        <RowDefinition Height="*"></RowDefinition>
-                        <RowDefinition Height="Auto"></RowDefinition>
-                    </Grid.RowDefinitions>
-                   <Grid Grid.Row="0" Margin="5">
-                       <Grid.ColumnDefinitions>
-                           <ColumnDefinition Width="Auto"></ColumnDefinition>
-                           <ColumnDefinition Width="*"></ColumnDefinition>
-                           <ColumnDefinition Width="Auto"></ColumnDefinition>
-                           <ColumnDefinition Width="140"></ColumnDefinition>
-                       </Grid.ColumnDefinitions>
-                       <TextBlock Grid.Column="0" FontSize="16" Margin="0, 0, 8, 0" Name="AppName"></TextBlock>
-                       <TextBlock Grid.Column="1" FontSize="16" Margin="5, 0" Name="ResourceUsage" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
-                       <Button Grid.Column="2" Name="SettingsButton" ToolTip="Open Wabbajack settings">
-                           <icon:Material Kind="Cog"></icon:Material>
-                       </Button>
-                   </Grid>
-                    <ContentPresenter Grid.Row="1" Content="{Binding ActivePane}">
-                        <ContentPresenter.Resources>
-                            <DataTemplate DataType="{x:Type local:CompilerVM}">
-                                <local:CompilerView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:InstallerVM}">
-                                <local:InstallationView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
-                                <local:ModeSelectionView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
-                                <local:ModListGalleryView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:WebBrowserVM}">
-                                <local:WebBrowserView />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:SettingsVM}">
-                                <local:SettingsView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type viewModels:ModListContentsVM}">
-                                <local:ModListContentsView ViewModel="{Binding}" />
-                            </DataTemplate>
-                        </ContentPresenter.Resources>
-                    </ContentPresenter>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" FontSize="16" Padding="8, 8" Name="AppName"></TextBlock>
+            <TextBlock Grid.Column="1" FontSize="16" Padding="8, 8" Name="ResourceUsage" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
+            <Button Grid.Column="2" Name="SettingsButton" Padding="12, 8" ToolTip="Open Wabbajack settings">
+                <ic:SymbolIcon Symbol="Settings"/>
+            </Button>
+            <Button Grid.Column="3" Name="MinimizeButton" Padding="12, 8">
+                <ic:SymbolIcon Symbol="Subtract"/>
+            </Button>
+            <Button Grid.Column="4" Name="MaximizeButton" Padding="12, 8">
+                <ic:SymbolIcon Symbol="Maximize"/>
+            </Button>
+            <Button Grid.Column="5" Name="CloseButton" Padding="12, 8">
+                <ic:SymbolIcon Symbol="ArrowExit"/>
+            </Button>
+        </Grid>
+        <ContentPresenter Grid.Row="1" Content="{Binding ActivePane}">
+            <ContentPresenter.Resources>
+                <DataTemplate DataType="{x:Type local:CompilerVM}">
+                    <local:CompilerView ViewModel="{Binding}" />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type local:InstallerVM}">
+                    <local:InstallationView ViewModel="{Binding}" />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
+                    <local:ModeSelectionView ViewModel="{Binding}" />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
+                    <local:ModListGalleryView ViewModel="{Binding}" />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type local:WebBrowserVM}">
+                    <local:WebBrowserView />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type local:SettingsVM}">
+                    <local:SettingsView ViewModel="{Binding}" />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type viewModels:ModListContentsVM}">
+                    <local:ModListContentsView ViewModel="{Binding}" />
+                </DataTemplate>
+            </ContentPresenter.Resources>
+        </ContentPresenter>
 
-                </Grid>
+    </Grid>
 
     <mahapps:MetroWindow.RightWindowCommands>
         <mahapps:WindowCommands>
@@ -93,6 +108,30 @@
                     Width="17"
                     Height="17"
                     Kind="Cog" />
+            </Button>
+            <Button Grid.Column="1"
+                    Margin="5,0"
+                    Command="{Binding MinimizeCommand}">
+                <icon:PackIconMaterial
+                    Width="17"
+                    Height="17"
+                    Kind="WindowMinimize" />
+            </Button>
+            <Button Grid.Column="1"
+                    Margin="5,0"
+                    Command="{Binding MaximizeCommand}">
+                <icon:PackIconMaterial
+                    Width="17"
+                    Height="17"
+                    Kind="WindowMaximize" />
+            </Button>
+            <Button Grid.Column="1"
+                    Margin="5,0"
+                    Command="{Binding CloseCommand}">
+                <icon:PackIconMaterial
+                    Width="17"
+                    Height="17"
+                    Kind="WindowClose" />
             </Button>
         </mahapps:WindowCommands>
     </mahapps:MetroWindow.RightWindowCommands>

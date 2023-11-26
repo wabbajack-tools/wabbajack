@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -36,6 +37,14 @@ namespace Wabbajack
                     .DisposeWith(dispose);
                 this.WhenAny(x => x.ViewModel.CompileCommand)
                     .BindToStrict(this, x => x.CompileButton.Command)
+                    .DisposeWith(dispose);
+                this.WhenAnyValue(x => x.ViewModel.Modlists)
+                    .Select(x => x?.Length.ToString() ?? "0")
+                    .BindToStrict(this, x => x.ModlistAmountTextBlock.Text)
+                    .DisposeWith(dispose);
+                this.WhenAnyValue(x => x.ViewModel.Modlists)
+                    .Select(x => x?.GroupBy(y => y.Game).Count().ToString() ?? "0")
+                    .BindToStrict(this, x => x.GameAmountTextBlock.Text)
                     .DisposeWith(dispose);
             });
         }

@@ -34,7 +34,7 @@
             <TextBlock
                 Grid.Column="0"
                 Grid.ColumnSpan="2"
-                FontFamily="{StaticResource AtkinsonHyperlegible}"
+                FontFamily="{StaticResource PrimaryFont}"
                 FontSize="20"
                 FontWeight="Bold"
                 Text="Misc Settings" />

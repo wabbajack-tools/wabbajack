@@ -10,7 +10,7 @@
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     mc:Ignorable="d">
 
-    <FontFamily x:Key="AtkinsonHyperlegible">pack://application:,,,/Resources/Fonts/#Atkinson Hyperlegible</FontFamily>
+    <FontFamily x:Key="PrimaryFont">pack://application:,,,/Resources/Fonts/#Gabarito</FontFamily>
 
     <!--  Converters  -->
     <local:BoolToVisibilityConverter x:Key="bool2VisibilityConverter" />
@@ -21,13 +21,14 @@
     <local:IsTypeVisibilityConverter x:Key="IsTypeVisibilityConverter" />
     <local:AbsolutePathToStringConverter x:Key="AbsolutePathToStringConverter" />
     <local:FileSizeConverter x:Key="FileSizeConverter"/>
+    <local:WidthHeightRectConverter x:Key="WidthHeightRectConverter" />
 
     <!--  Colors  -->
-    <Color x:Key="WindowBackgroundColor">#121212</Color>
-    <Color x:Key="DarkBackgroundColor">#222222</Color>
-    <Color x:Key="DarkHoverBackgroundColor">#272727</Color>
+    <Color x:Key="WindowBackgroundColor">#222531</Color>
+    <Color x:Key="DarkBackgroundColor">#222531</Color>
+    <Color x:Key="DarkHoverBackgroundColor">#2A2B41</Color>
     <Color x:Key="LightBackgroundColor">#424242</Color>
-    <Color x:Key="BackgroundColor">#323232</Color>
+    <Color x:Key="BackgroundColor">#222531</Color>
     <Color x:Key="DisabledBackgroundColor">#424242</Color>
     <Color x:Key="PressedBackgroundColor">#323232</Color>
     <Color x:Key="LightDisabledBackgroundColor">#666666</Color>
@@ -46,7 +47,7 @@
 
     <Color x:Key="Primary">#D9BBF9</Color>
     <Color x:Key="PrimaryTransparent">#00BB86FC</Color>
-    <Color x:Key="PrimaryVariant">#3700B3</Color>
+    <Color x:Key="PrimaryVariant">#8866ad</Color>
     <Color x:Key="DarkPrimaryVariant">#270080</Color>
     <Color x:Key="DarkerPrimaryVariant">#1b0059</Color>
     <Color x:Key="Secondary">#03DAC6</Color>
@@ -236,21 +237,21 @@
 
     <!--  FontStyle  -->
     <Style TargetType="{x:Type TextBlock}">
-        <Setter Property="FontFamily" Value="{StaticResource AtkinsonHyperlegible}" />
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}" />
         <!--<Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>-->
     </Style>
     <Style TargetType="{x:Type Control}">
-        <Setter Property="FontFamily" Value="{StaticResource AtkinsonHyperlegible}" />
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}" />
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
     </Style>
     <Style TargetType="{x:Type Window}">
-        <Setter Property="FontFamily" Value="{StaticResource AtkinsonHyperlegible}" />
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}" />
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
         <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
     </Style>
     <!--  Necessary for Blend designer for UserControls  -->
     <Style TargetType="{x:Type UserControl}">
-        <Setter Property="FontFamily" Value="{StaticResource AtkinsonHyperlegible}" />
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}" />
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
     </Style>
 
@@ -1176,13 +1177,13 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
                             <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
-                            <Setter Property="BorderBrush" Value="{StaticResource DarkComplementaryBrush}" />
-                            <Setter Property="Foreground" Value="{StaticResource ComplementaryBrush}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
+                            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
                             <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
-                            <Setter Property="BorderBrush" Value="{StaticResource ComplementaryBrush}" />
-                            <Setter Property="Foreground" Value="{StaticResource IntenseComplementaryBrush}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
+                            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
                             <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
@@ -1241,13 +1242,13 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
                             <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
-                            <Setter Property="BorderBrush" Value="{StaticResource DarkComplementaryBrush}" />
-                            <Setter Property="Foreground" Value="{StaticResource ComplementaryBrush}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
+                            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
                             <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
-                            <Setter Property="BorderBrush" Value="{StaticResource ComplementaryBrush}" />
-                            <Setter Property="Foreground" Value="{StaticResource IntenseComplementaryBrush}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
+                            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
                             <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
@@ -1288,8 +1289,8 @@
             </Trigger>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="#333333" />
-                <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Gray7}" />
-                <Setter Property="Foreground" Value="{StaticResource IntenseComplementaryBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
+                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -1319,7 +1320,7 @@
             </Trigger>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Gray7}" />
-                <Setter Property="Foreground" Value="{StaticResource IntenseComplementaryBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
                 <Setter Property="Background" Value="Transparent" />
             </Trigger>
             <Trigger Property="IsPressed" Value="True">
@@ -1341,12 +1342,12 @@
                 <Setter Property="Background" Value="Transparent" />
             </Trigger>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Gray7}" />
-                <Setter Property="Foreground" Value="{StaticResource IntenseComplementaryBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
+                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
                 <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}" />
             </Trigger>
             <Trigger Property="IsPressed" Value="True">
-                <Setter Property="BorderBrush" Value="{StaticResource DarkComplementaryBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
                 <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}" />
             </Trigger>
         </Style.Triggers>
@@ -1622,7 +1623,7 @@
     </Style>
     <Style TargetType="{x:Type Expander}">
         <Setter Property="Foreground" Value="{StaticResource Expander.MouseOver.Arrow.Stroke}" />
-        <Setter Property="FontFamily" Value="{StaticResource AtkinsonHyperlegible}" />
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}" />
         <Setter Property="Padding" Value="2" />
         <Setter Property="Background" Value="{StaticResource Expander.Background}" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -2353,7 +2354,7 @@
         <Setter Property="Height" Value="18" />
         <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-        <Setter Property="FontFamily" Value="{StaticResource AtkinsonHyperlegible}" />
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}" />
         <Setter Property="FontSize" Value="{DynamicResource {x:Static SystemFonts.StatusFontSizeKey}}" />
         <Setter Property="FontStyle" Value="{DynamicResource {x:Static SystemFonts.StatusFontStyleKey}}" />
         <Setter Property="FontWeight" Value="{DynamicResource {x:Static SystemFonts.StatusFontWeightKey}}" />

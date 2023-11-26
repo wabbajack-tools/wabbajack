@@ -14,13 +14,6 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <TextBlock
-            Text="Wabbajack is free, but supported by users like you. Please consider supporting us on Patreon to help offset the costs of hosting these modlists."
-            TextWrapping="Wrap"
-            FontWeight="Bold"
-            FontSize="14"
-            MouseDown="Patreon_Click"
-            />
         <Button Grid.Column="1"
                 Width="40"
                 Height="35"
