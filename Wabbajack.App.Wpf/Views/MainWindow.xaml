@@ -104,34 +104,22 @@
             <Button Grid.Column="1"
                     Margin="5,0"
                     Command="{Binding OpenSettingsCommand}">
-                <icon:PackIconMaterial
-                    Width="17"
-                    Height="17"
-                    Kind="Cog" />
+                <ic:SymbolIcon Symbol="Settings" FontSize="17"/>
             </Button>
             <Button Grid.Column="1"
                     Margin="5,0"
                     Command="{Binding MinimizeCommand}">
-                <icon:PackIconMaterial
-                    Width="17"
-                    Height="17"
-                    Kind="WindowMinimize" />
+                <ic:SymbolIcon Symbol="Subtract" FontSize="17"/>
             </Button>
             <Button Grid.Column="1"
                     Margin="5,0"
                     Command="{Binding MaximizeCommand}">
-                <icon:PackIconMaterial
-                    Width="17"
-                    Height="17"
-                    Kind="WindowMaximize" />
+                <ic:SymbolIcon Symbol="Maximize" FontSize="17"/>
             </Button>
             <Button Grid.Column="1"
                     Margin="5,0"
                     Command="{Binding CloseCommand}">
-                <icon:PackIconMaterial
-                    Width="17"
-                    Height="17"
-                    Kind="WindowClose" />
+                <ic:SymbolIcon Symbol="ArrowExit" FontSize="17"/>
             </Button>
         </mahapps:WindowCommands>
     </mahapps:MetroWindow.RightWindowCommands>
