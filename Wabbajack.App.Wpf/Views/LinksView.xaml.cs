@@ -17,18 +17,12 @@ namespace Wabbajack
         }
 
         private void GitHub_Click(object sender, RoutedEventArgs e)
-        {
-            UIUtils.OpenWebsite(new Uri("https://github.com/wabbajack-tools/wabbajack"));
-        }
+            => UIUtils.OpenWebsite(Consts.WabbajackGithubUri);
 
         private void Discord_Click(object sender, RoutedEventArgs e)
-        {
-            UIUtils.OpenWebsite(new Uri("https://discord.gg/wabbajack"));
-        }
+            => UIUtils.OpenWebsite(Consts.WabbajackDiscordUri);
 
         private void Patreon_Click(object sender, RoutedEventArgs e)
-        {
-            UIUtils.OpenWebsite(new Uri("https://www.patreon.com/user?u=11907933"));
-        }
+            => UIUtils.OpenWebsite(Consts.WabbajackPatreonUri);
     }
 }

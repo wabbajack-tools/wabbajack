@@ -46,16 +46,16 @@
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" FontSize="16" Padding="8, 8" Name="AppName"></TextBlock>
             <TextBlock Grid.Column="1" FontSize="16" Padding="8, 8" Name="ResourceUsage" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
-            <Button Grid.Column="2" Name="SettingsButton" Padding="12, 8" ToolTip="Open Wabbajack settings">
+            <Button Grid.Column="2" Style="{StaticResource IconBareButtonStyle}" Name="SettingsButton" Padding="12, 8" ToolTip="Open Wabbajack settings">
                 <ic:SymbolIcon Symbol="Settings"/>
             </Button>
-            <Button Grid.Column="3" Name="MinimizeButton" Padding="12, 8">
+            <Button Grid.Column="3" Style="{StaticResource IconBareButtonStyle}" Name="MinimizeButton" Padding="12, 8">
                 <ic:SymbolIcon Symbol="Subtract"/>
             </Button>
-            <Button Grid.Column="4" Name="MaximizeButton" Padding="12, 8">
+            <Button Grid.Column="4" Style="{StaticResource IconBareButtonStyle}" Name="MaximizeButton" Padding="12, 8">
                 <ic:SymbolIcon Symbol="Maximize"/>
             </Button>
-            <Button Grid.Column="5" Name="CloseButton" Padding="12, 8">
+            <Button Grid.Column="5" Style="{StaticResource IconBareButtonStyle}" Name="CloseButton" Padding="12, 8">
                 <ic:SymbolIcon Symbol="ArrowExit"/>
             </Button>
         </Grid>
@@ -102,22 +102,22 @@
                 </Button.ToolTip>
             </Button>
             <Button Grid.Column="1"
-                    Margin="5,0"
+                    Style="{StaticResource IconBareButtonStyle}"
                     Command="{Binding OpenSettingsCommand}">
                 <ic:SymbolIcon Symbol="Settings" FontSize="17"/>
             </Button>
             <Button Grid.Column="1"
-                    Margin="5,0"
+                    Style="{StaticResource IconBareButtonStyle}"
                     Command="{Binding MinimizeCommand}">
                 <ic:SymbolIcon Symbol="Subtract" FontSize="17"/>
             </Button>
             <Button Grid.Column="1"
-                    Margin="5,0"
+                    Style="{StaticResource IconBareButtonStyle}"
                     Command="{Binding MaximizeCommand}">
                 <ic:SymbolIcon Symbol="Maximize" FontSize="17"/>
             </Button>
             <Button Grid.Column="1"
-                    Margin="5,0"
+                    Style="{StaticResource IconBareButtonStyle}"
                     Command="{Binding CloseCommand}">
                 <ic:SymbolIcon Symbol="ArrowExit" FontSize="17"/>
             </Button>

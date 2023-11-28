@@ -10,6 +10,9 @@ public static class Consts
     public static string AppName = "Wabbajack";
     public static Uri WabbajackBuildServerUri => new("https://build.wabbajack.org");
     public static Uri WabbajackModlistWizardUri => new("https://wizard.wabbajack.org");
+    public static Uri WabbajackGithubUri => new("https://github.com/wabbajack-tools/wabbajack");
+    public static Uri WabbajackDiscordUri => new("https://discord.gg/wabbajack");
+    public static Uri WabbajackPatreonUri => new("https://www.patreon.com/user?u=11907933");
     public static Version CurrentMinimumWabbajackVersion { get; set; } = Version.Parse("2.3.0.0");
     public static bool UseNetworkWorkaroundMode { get; set; } = false;
     public static AbsolutePath CefCacheLocation { get; } = KnownFolders.WabbajackAppLocal.Combine("Cef");

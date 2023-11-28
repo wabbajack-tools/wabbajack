@@ -15,8 +15,8 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="3*" />
+            <RowDefinition Height="0.2*" />
             <RowDefinition Height="1*" />
-            <RowDefinition Height="0.05*" />
         </Grid.RowDefinitions>
         <Grid Grid.Row="0" Grid.Column="0">
             <Grid.RowDefinitions>
@@ -184,6 +184,7 @@
             </Grid>
         </Grid>
 
+<!--
         <Grid Grid.Row="1" Margin="5,15">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -647,9 +648,8 @@
                 </Grid>
             </Button>
         </Grid>
-        <local:LinksView Grid.Row="0" Grid.RowSpan="3" Grid.Column="0"
-            Margin="10"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top" />
+        -->
+        <GridSplitter Grid.Row="1" Background="White" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Stretch" />
+        <local:LinksView Grid.Row="2" Grid.Column="0"/>
     </Grid>
 </rxui:ReactiveUserControl>
