@@ -24,5 +24,8 @@ namespace Wabbajack
 
         private void Patreon_Click(object sender, RoutedEventArgs e)
             => UIUtils.OpenWebsite(Consts.WabbajackPatreonUri);
+
+        private void Wiki_Click(object sender, RoutedEventArgs e)
+            => UIUtils.OpenWebsite(Consts.WabbajackWikiUri);
     }
 }
