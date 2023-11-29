@@ -140,7 +140,7 @@
                             Grid.Row="0"
                             Grid.Column="1"
                             VerticalAlignment="Top"
-                            Symbol="DrawerArrowDownload"
+                            Symbol="ArrowDownload"
                             IsFilled="True"
                             FontSize="28"
                         />

@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:options="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
     mc:Ignorable="d">
 
     <FontFamily x:Key="PrimaryFont">pack://application:,,,/Resources/Fonts/#Gabarito</FontFamily>
@@ -1241,6 +1242,15 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Resources>
+            <Style TargetType="ic:SymbolIcon">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button, AncestorLevel=1}, Path=IsMouseOver}" Value="True">
+                        <Setter Property="IsFilled" Value="True" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Style.Resources>
     </Style>
     <Style BasedOn="{StaticResource MainButtonStyle}" TargetType="{x:Type Button}" />
 
