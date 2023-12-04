@@ -31,9 +31,8 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition Height="*"></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
@@ -59,31 +58,39 @@
                 <ic:SymbolIcon Symbol="ArrowExit"/>
             </Button>
         </Grid>
-        <ContentPresenter Grid.Row="1" Content="{Binding ActivePane}">
-            <ContentPresenter.Resources>
-                <DataTemplate DataType="{x:Type local:CompilerVM}">
-                    <local:CompilerView ViewModel="{Binding}" />
-                </DataTemplate>
-                <DataTemplate DataType="{x:Type local:InstallerVM}">
-                    <local:InstallationView ViewModel="{Binding}" />
-                </DataTemplate>
-                <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
-                    <local:ModeSelectionView ViewModel="{Binding}" />
-                </DataTemplate>
-                <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
-                    <local:ModListGalleryView ViewModel="{Binding}" />
-                </DataTemplate>
-                <DataTemplate DataType="{x:Type local:WebBrowserVM}">
-                    <local:WebBrowserView />
-                </DataTemplate>
-                <DataTemplate DataType="{x:Type local:SettingsVM}">
-                    <local:SettingsView ViewModel="{Binding}" />
-                </DataTemplate>
-                <DataTemplate DataType="{x:Type viewModels:ModListContentsVM}">
-                    <local:ModListContentsView ViewModel="{Binding}" />
-                </DataTemplate>
-            </ContentPresenter.Resources>
-        </ContentPresenter>
+        <Grid Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="128" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+                <Border Grid.Column="1" Margin="0" Background="Green">
+                    <ContentPresenter Content="{Binding ActivePane}">
+                        <ContentPresenter.Resources>
+                            <DataTemplate DataType="{x:Type local:CompilerVM}">
+                                <local:CompilerView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:InstallerVM}">
+                                <local:InstallationView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
+                                <local:ModeSelectionView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
+                                <local:ModListGalleryView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:WebBrowserVM}">
+                                <local:WebBrowserView />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:SettingsVM}">
+                                <local:SettingsView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type viewModels:ModListContentsVM}">
+                                <local:ModListContentsView ViewModel="{Binding}" />
+                            </DataTemplate>
+                        </ContentPresenter.Resources>
+                    </ContentPresenter>
+                </Border>
+        </Grid>
 
     </Grid>
 
