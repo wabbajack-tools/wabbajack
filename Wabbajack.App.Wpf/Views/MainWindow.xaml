@@ -63,8 +63,8 @@
                 <ColumnDefinition Width="128" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-                <Border Grid.Column="1" Margin="0" Background="Green">
-                    <ContentPresenter Content="{Binding ActivePane}">
+                <Border Grid.Column="1" Margin="0" Background="{StaticResource ComplementaryBackgroundBrush}" x:Name="MainContent" Padding="28" CornerRadius="8">
+                    <ContentPresenter Content="{Binding ActivePane}" VerticalAlignment="Stretch">
                         <ContentPresenter.Resources>
                             <DataTemplate DataType="{x:Type local:CompilerVM}">
                                 <local:CompilerView ViewModel="{Binding}" />

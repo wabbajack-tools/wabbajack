@@ -52,7 +52,7 @@
     <Color x:Key="DarkPrimaryVariant">#270080</Color>
     <Color x:Key="DarkerPrimaryVariant">#1b0059</Color>
     <Color x:Key="Secondary">#3C3652</Color>
-    <Color x:Key="DarkSecondary">#0e8f83</Color>
+    <Color x:Key="DarkSecondary">#363952</Color>
     <Color x:Key="DarkerSecondary">#095952</Color>
     <Color x:Key="SecondaryBackground">#042421</Color>
     <Color x:Key="OffWhiteSeconday">#cef0ed</Color>
@@ -60,7 +60,7 @@
     <Color x:Key="IntenseSecondary">#00ffe7</Color>
     <Color x:Key="Complementary">#4e4571</Color>
     <Color x:Key="DarkComplementary">#3C3652</Color>
-    <Color x:Key="ComplementaryBackground">#4b6130</Color>
+    <Color x:Key="ComplementaryBackground">#2A2B41</Color>
     <Color x:Key="IntenseComplementary">#abf74d</Color>
     <Color x:Key="Analogous1">#868CFC</Color>
     <Color x:Key="Analogous2">#F686FC</Color>
