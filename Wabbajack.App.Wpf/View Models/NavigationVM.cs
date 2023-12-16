@@ -22,7 +22,10 @@ namespace Wabbajack
     public class NavigationVM : ViewModel
     {
         private readonly ILogger<NavigationVM> _logger;
-
+        public ICommand BrowseCommand { get; }
+        public ICommand InstallCommand { get; }
+        public ICommand CompileCommand { get; }
+        public ReactiveCommand<Unit, Unit> UpdateCommand { get; }
         public NavigationVM(ILogger<NavigationVM> logger)
         {
             _logger = logger;
@@ -34,9 +37,5 @@ namespace Wabbajack
             CompileCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Compiler));
             BrowseCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModListGallery));
         }
-        public ICommand BrowseCommand { get; set; }
-        public ICommand InstallCommand { get; set; }
-        public ICommand CompileCommand { get; set; }
-        public ReactiveCommand<Unit, Unit> UpdateCommand { get; }
     }
 }

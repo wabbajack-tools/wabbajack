@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using System.Windows;
 using System.Windows.Controls;
 using Wabbajack.Common;
+using Wabbajack.Messages;
 
 namespace Wabbajack
 {
@@ -19,7 +20,7 @@ namespace Wabbajack
             this.WhenActivated(dispose =>
             {
                 this.WhenAny(x => x.ViewModel.BrowseCommand)
-                    .BindTo(this, x => x.BrowseButton.Command)
+                    .BindToStrict(this, x => x.BrowseButton.Command)
                     .DisposeWith(dispose);
 
                 /*

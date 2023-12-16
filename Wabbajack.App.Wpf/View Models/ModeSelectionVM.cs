@@ -27,13 +27,6 @@ namespace Wabbajack
         public ModeSelectionVM(Client wjClient)
         {
             _wjClient = wjClient;
-            InstallCommand = ReactiveCommand.Create(() =>
-            {
-                LoadLastLoadedModlist.Send();
-                NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Installer);
-            });
-            CompileCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Compiler));
-            BrowseCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModListGallery));
             VisitModlistWizardCommand = ReactiveCommand.Create(() =>
             {
                 ProcessStartInfo processStartInfo = new(Consts.WabbajackModlistWizardUri.ToString())
@@ -54,9 +47,6 @@ namespace Wabbajack
                 }
             });
         }
-        public ICommand BrowseCommand { get; }
-        public ICommand InstallCommand { get; }
-        public ICommand CompileCommand { get; }
         public ICommand VisitModlistWizardCommand { get; }
         public ReactiveCommand<Unit, Unit> UpdateCommand { get; }
 
