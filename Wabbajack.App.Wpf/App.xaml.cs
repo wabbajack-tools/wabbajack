@@ -160,6 +160,7 @@ namespace Wabbajack
 
             services.AddTransient<MainWindow>();
             services.AddTransient<MainWindowVM>();
+            services.AddTransient<NavigationVM>();
             services.AddTransient<BrowserWindow>();
             services.AddSingleton<SystemParametersConstructor>();
             services.AddSingleton<LauncherUpdater>();

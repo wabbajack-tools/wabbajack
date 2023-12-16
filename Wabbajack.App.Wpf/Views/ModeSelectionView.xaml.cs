@@ -29,17 +29,6 @@ namespace Wabbajack
             InitializeComponent();
             this.WhenActivated(dispose =>
             {
-                /*
-                this.WhenAny(x => x.ViewModel.BrowseCommand)
-                    .BindToStrict(this, x => x.BrowseButton.Command)
-                    .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.InstallCommand)
-                    .BindToStrict(this, x => x.InstallButton.Command)
-                    .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.CompileCommand)
-                    .BindToStrict(this, x => x.CompileButton.Command)
-                    .DisposeWith(dispose);
-                */
                 this.WhenAnyValue(x => x.ViewModel.Modlists)
                     .Select(x => x?.Length.ToString() ?? "0")
                     .BindToStrict(this, x => x.ModlistAmountTextBlock.Text)

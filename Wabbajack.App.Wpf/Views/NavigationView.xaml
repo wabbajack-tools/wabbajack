@@ -1,0 +1,50 @@
+﻿<rxui:ReactiveUserControl
+    x:Class="Wabbajack.NavigationView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:rxui="http://reactiveui.net"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
+    x:TypeArguments="local:NavigationVM"
+    mc:Ignorable="d">
+    <Border BorderThickness="0" Padding="10, 0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="108"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="108"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="108"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="108"/>
+            </Grid.RowDefinitions>
+            <Button x:Name="HomeButton">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Home" FontSize="48" />
+                    <TextBlock Grid.Row="1" FontWeight="DemiBold" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 10, 0, 0">
+                    Home
+                    </TextBlock>
+                </Grid>
+            </Button>
+            <Button x:Name="BrowseButton" Grid.Row="2">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="CloudArrowDown" FontSize="48" />
+                    <TextBlock Grid.Row="1" FontWeight="DemiBold" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="4">
+                    Browse lists
+                    </TextBlock>
+                </Grid>
+            </Button>
+        </Grid>
+    </Border>
+</rxui:ReactiveUserControl>

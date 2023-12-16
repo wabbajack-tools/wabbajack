@@ -47,6 +47,7 @@ namespace Wabbajack
         public readonly ModListGalleryVM Gallery;
         public readonly ModeSelectionVM ModeSelectionVM;
         public readonly WebBrowserVM WebBrowserVM;
+        public readonly NavigationVM NavigationVM;
         public readonly Lazy<ModListContentsVM> ModListContentsVM;
         public readonly UserInterventionHandlers UserInterventionHandlers;
         private readonly Client _wjClient;
@@ -76,7 +77,7 @@ namespace Wabbajack
 
         public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
             IServiceProvider serviceProvider, ModeSelectionVM modeSelectionVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-            InstallerVM installer, CompilerVM compilerVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM)
+            InstallerVM installer, CompilerVM compilerVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM)
         {
             _logger = logger;
             _wjClient = wjClient;
@@ -89,6 +90,7 @@ namespace Wabbajack
             Gallery = modListGalleryVM;
             ModeSelectionVM = modeSelectionVM;
             WebBrowserVM = webBrowserVM;
+            NavigationVM = navigationVM;
             ModListContentsVM = new Lazy<ModListContentsVM>(() => new ModListContentsVM(serviceProvider.GetRequiredService<ILogger<ModListContentsVM>>(), this));
             UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetRequiredService<ILogger<UserInterventionHandlers>>(), this);
 
