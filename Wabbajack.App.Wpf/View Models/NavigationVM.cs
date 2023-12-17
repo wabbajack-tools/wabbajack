@@ -16,6 +16,7 @@ using Wabbajack.DTOs;
 using Microsoft.Extensions.Logging;
 using System.Reactive.Disposables;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace Wabbajack
 {
@@ -33,11 +34,23 @@ namespace Wabbajack
                 NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Installer);
             });
             CompileCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Compiler));
+            SettingsCommand = ReactiveCommand.Create(
+                /*
+                canExecute: this.WhenAny(x => x.ActivePane)
+                    .Select(active => !object.ReferenceEquals(active, SettingsPane)),
+                */
+                execute: () => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Settings));
+            var processLocation = Process.GetCurrentProcess().MainModule?.FileName ?? throw new Exception("Process location is unavailable!");
+            var assembly = Assembly.GetExecutingAssembly();
+            var assemblyLocation = assembly.Location;
+            var fvi = FileVersionInfo.GetVersionInfo(string.IsNullOrWhiteSpace(assemblyLocation) ? processLocation : assemblyLocation);
+            Version = $"{fvi.FileVersion}";
         }
         public ICommand HomeCommand { get; }
         public ICommand BrowseCommand { get; }
         public ICommand InstallCommand { get; }
         public ICommand CompileCommand { get; }
-        public ReactiveCommand<Unit, Unit> UpdateCommand { get; }
+        public ICommand SettingsCommand { get; }
+        public string Version { get; }
     }
 }

@@ -41,20 +41,16 @@
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" FontSize="16" Padding="8, 8" Name="AppName"></TextBlock>
             <TextBlock Grid.Column="1" FontSize="16" Padding="8, 8" Name="ResourceUsage" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
-            <Button Grid.Column="2" Style="{StaticResource IconBareButtonStyle}" Name="SettingsButton" Padding="12, 8" ToolTip="Open Wabbajack settings">
-                <ic:SymbolIcon Symbol="Settings"/>
-            </Button>
-            <Button Grid.Column="3" Style="{StaticResource IconBareButtonStyle}" Name="MinimizeButton" Padding="12, 8">
+            <Button Grid.Column="2" Style="{StaticResource IconBareButtonStyle}" Name="MinimizeButton" Padding="12, 8">
                 <ic:SymbolIcon Symbol="Subtract"/>
             </Button>
-            <Button Grid.Column="4" Style="{StaticResource IconBareButtonStyle}" Name="MaximizeButton" Padding="12, 8">
+            <Button Grid.Column="3" Style="{StaticResource IconBareButtonStyle}" Name="MaximizeButton" Padding="12, 8">
                 <ic:SymbolIcon Symbol="Maximize"/>
             </Button>
-            <Button Grid.Column="5" Style="{StaticResource IconBareButtonStyle}" Name="CloseButton" Padding="12, 8">
+            <Button Grid.Column="4" Style="{StaticResource IconBareButtonStyle}" Name="CloseButton" Padding="12, 8">
                 <ic:SymbolIcon Symbol="ArrowExit"/>
             </Button>
         </Grid>

@@ -61,7 +61,6 @@ namespace Wabbajack
 
         public ICommand CopyVersionCommand { get; }
         public ICommand ShowLoginManagerVM { get; }
-        public ICommand OpenSettingsCommand { get; }
         public ICommand MinimizeCommand { get; }
         public ICommand MaximizeCommand { get; }
         public ICommand CloseCommand { get; }
@@ -72,7 +71,7 @@ namespace Wabbajack
         public string ResourceStatus { get; set; }
 
         [Reactive]
-        public string AppName { get; set; }
+        public string WindowTitle { get; set; }
 
         [Reactive]
         public bool UpdateAvailable { get; private set; }
@@ -141,8 +140,7 @@ namespace Wabbajack
 
                 var fvi = FileVersionInfo.GetVersionInfo(string.IsNullOrWhiteSpace(assemblyLocation) ? processLocation : assemblyLocation);
                 Consts.CurrentMinimumWabbajackVersion = Version.Parse(fvi.FileVersion);
-                VersionDisplay = $"v{fvi.FileVersion}";
-                AppName = $"{Consts.AppName} {VersionDisplay}";
+                WindowTitle = $"{Consts.AppName}";
                 _logger.LogInformation("Wabbajack Version: {FileVersion}", fvi.FileVersion);
 
                 Task.Run(() => _wjClient.SendMetric("started_wabbajack", fvi.FileVersion)).FireAndForget();
@@ -171,10 +169,6 @@ namespace Wabbajack
             {
                 Clipboard.SetText($"Wabbajack {VersionDisplay}\n{ThisAssembly.Git.Sha}");
             });
-            OpenSettingsCommand = ReactiveCommand.Create(
-                canExecute: this.WhenAny(x => x.ActivePane)
-                    .Select(active => !object.ReferenceEquals(active, SettingsPane)),
-                execute: () => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Settings));
             MinimizeCommand = ReactiveCommand.Create(Minimize);
             MaximizeCommand = ReactiveCommand.Create(Maximize);
             CloseCommand = ReactiveCommand.Create(Close);

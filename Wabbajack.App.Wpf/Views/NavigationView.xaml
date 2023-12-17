@@ -20,6 +20,7 @@
                 <RowDefinition Height="108"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="108"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Button x:Name="HomeButton">
                 <Grid>
@@ -28,7 +29,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Home" FontSize="48" />
-                    <TextBlock Grid.Row="1" FontWeight="DemiBold" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 10, 0, 0">
+                    <TextBlock Grid.Row="1" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 10, 0, 0">
                     Home
                     </TextBlock>
                 </Grid>
@@ -40,11 +41,36 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="CloudArrowDown" FontSize="48" />
-                    <TextBlock Grid.Row="1" FontWeight="DemiBold" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="4">
+                    <TextBlock Grid.Row="1" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="4">
                     Browse lists
                     </TextBlock>
                 </Grid>
             </Button>
+            <Button x:Name="CompileButton" Grid.Row="4">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Toolbox" FontSize="48" />
+                    <TextBlock Grid.Row="1" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="4">
+                    Create a list
+                    </TextBlock>
+                </Grid>
+            </Button>
+            <Button x:Name="SettingsButton" Grid.Row="6" Margin="0, 0, 0, 10">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Settings" FontSize="48" />
+                    <TextBlock Grid.Row="1" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="4">
+                    Settings
+                    </TextBlock>
+                </Grid>
+            </Button>
+            <TextBlock x:Name="VersionTextBlock" Grid.Row="7" FontSize="12" HorizontalAlignment="Center" Margin="0, 0, 0, 10" Foreground="{StaticResource ForegroundBrush}" Opacity="0.66"/>
         </Grid>
     </Border>
 </rxui:ReactiveUserControl>
