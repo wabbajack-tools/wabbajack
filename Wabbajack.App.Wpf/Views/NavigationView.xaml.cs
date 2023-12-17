@@ -19,10 +19,10 @@ namespace Wabbajack
             InitializeComponent();
             this.WhenActivated(dispose =>
             {
-                this.WhenAny(x => x.ViewModel.BrowseCommand)
-                    .BindToStrict(this, x => x.BrowseButton.Command)
+                this.BindCommand(ViewModel, vm => vm.BrowseCommand, v => v.BrowseButton)
                     .DisposeWith(dispose);
-
+                this.BindCommand(ViewModel, vm => vm.HomeCommand, v => v.HomeButton)
+                    .DisposeWith(dispose);
                 /*
                 this.WhenAny(x => x.ViewModel.InstallCommand)
                     .BindToStrict(this, x => x.InstallButton.Command)

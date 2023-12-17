@@ -1194,6 +1194,15 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Resources>
+            <Style TargetType="ic:SymbolIcon">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button, AncestorLevel=1}, Path=IsMouseOver}" Value="True">
+                        <Setter Property="IsFilled" Value="True" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Style.Resources>
     </Style>
     <Style x:Key="LargeButtonStyle" TargetType="{x:Type Button}">
         <Setter Property="FocusVisualStyle" Value="{StaticResource ButtonFocusVisual}" />
@@ -1306,6 +1315,15 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Resources>
+            <Style TargetType="ic:SymbolIcon">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button, AncestorLevel=1}, Path=IsMouseOver}" Value="True">
+                        <Setter Property="IsFilled" Value="True" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Style.Resources>
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
@@ -1329,6 +1347,15 @@
         <Setter Property="Focusable" Value="False" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
+        <Style.Resources>
+            <Style TargetType="ic:SymbolIcon">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button, AncestorLevel=1}, Path=IsMouseOver}" Value="True">
+                        <Setter Property="IsFilled" Value="True" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Style.Resources>
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />

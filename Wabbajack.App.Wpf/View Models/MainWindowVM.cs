@@ -39,6 +39,9 @@ namespace Wabbajack
         [Reactive]
         public ViewModel ActivePane { get; private set; }
 
+        [Reactive]
+        public NavigationVM NavigationVM { get; private set; }
+
         public ObservableCollectionExtended<IStatusMessage> Log { get; } = new ObservableCollectionExtended<IStatusMessage>();
 
         public readonly CompilerVM Compiler;
@@ -47,7 +50,6 @@ namespace Wabbajack
         public readonly ModListGalleryVM Gallery;
         public readonly ModeSelectionVM ModeSelectionVM;
         public readonly WebBrowserVM WebBrowserVM;
-        public readonly NavigationVM NavigationVM;
         public readonly Lazy<ModListContentsVM> ModListContentsVM;
         public readonly UserInterventionHandlers UserInterventionHandlers;
         private readonly Client _wjClient;

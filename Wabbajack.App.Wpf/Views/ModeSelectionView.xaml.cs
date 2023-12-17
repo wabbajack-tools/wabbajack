@@ -27,6 +27,7 @@ namespace Wabbajack
         public ModeSelectionView()
         {
             InitializeComponent();
+            var vm = ViewModel;
             this.WhenActivated(dispose =>
             {
                 this.WhenAnyValue(x => x.ViewModel.Modlists)
