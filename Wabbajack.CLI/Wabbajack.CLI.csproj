@@ -13,7 +13,6 @@
         <NoWarn>CS8600</NoWarn>
         <NoWarn>CS8601</NoWarn>
         <NoWarn>CS8618</NoWarn>
-        <TargetFramework>net8.0</TargetFramework>
         <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
     </PropertyGroup>
 
