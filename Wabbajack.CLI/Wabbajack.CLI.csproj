@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net6.0-windows</TargetFramework>
-        <TargetFramework Condition=" '$(OS)' != 'Windows_NT'">net6.0</TargetFramework>
+        <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net8.0-windows</TargetFramework>
+        <TargetFramework Condition=" '$(OS)' != 'Windows_NT'">net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
         <Version>$(VERSION)</Version>
