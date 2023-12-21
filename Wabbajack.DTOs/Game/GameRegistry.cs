@@ -552,6 +552,24 @@ public static class GameRegistry
             }
         },
         {
+            Game.BadlursGate3, new GameMetaData
+            {
+                Game = Game.BadlursGate3,
+                NexusName = "baldursgate3",
+                NexusGameId = 3474,
+                MO2Name = "Baldur's Gate 3",
+                MO2ArchiveName = "baldursgate3",
+                SteamIDs = [1086940],
+                GOGIDs = [1456460669],
+                IsGenericMO2Plugin = true,
+                RequiredFiles = new []
+                {
+                    @"bin/bg3.exe".ToRelativePath()
+                },
+                MainExecutable = @"bin/bg3.exe".ToRelativePath()
+            }
+        },
+        {
             Game.ModdingTools, new GameMetaData
             {
                 Game = Game.ModdingTools,

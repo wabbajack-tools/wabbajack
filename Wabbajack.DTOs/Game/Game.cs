@@ -53,5 +53,6 @@ public enum Game
     [Description("Valheim")]Valheim,
     [Description("Modding Tools")] ModdingTools,
 
-    [Description("Final Fantasy VII Remake")] FinalFantasy7Remake
+    [Description("Final Fantasy VII Remake")] FinalFantasy7Remake,
+    [Description("Baldur's Gate 3")] BadlursGate3
 }
