@@ -6,7 +6,7 @@
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
-    xmlns:settings="clr-namespace:Wabbajack.View_Models.Settings"
+    xmlns:settings="clr-namespace:Wabbajack.ViewModels.Settings"
     d:DesignHeight="450"
     d:DesignWidth="800"
     x:TypeArguments="settings:AuthorFilesVM"

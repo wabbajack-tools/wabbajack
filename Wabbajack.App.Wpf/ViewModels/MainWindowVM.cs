@@ -24,7 +24,7 @@ using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.UserIntervention;
-using Wabbajack.View_Models;
+using Wabbajack.ViewModels;
 
 namespace Wabbajack
 {
@@ -48,7 +48,7 @@ namespace Wabbajack
         public readonly InstallerVM Installer;
         public readonly SettingsVM SettingsPane;
         public readonly ModListGalleryVM Gallery;
-        public readonly ModeSelectionVM ModeSelectionVM;
+        public readonly HomeVM HomeVM;
         public readonly WebBrowserVM WebBrowserVM;
         public readonly Lazy<ModListContentsVM> ModListContentsVM;
         public readonly UserInterventionHandlers UserInterventionHandlers;
@@ -77,7 +77,7 @@ namespace Wabbajack
         public bool UpdateAvailable { get; private set; }
 
         public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
-            IServiceProvider serviceProvider, ModeSelectionVM modeSelectionVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
+            IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
             InstallerVM installer, CompilerVM compilerVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM)
         {
             _logger = logger;
@@ -89,7 +89,7 @@ namespace Wabbajack
             Compiler = compilerVM;
             SettingsPane = settingsVM;
             Gallery = modListGalleryVM;
-            ModeSelectionVM = modeSelectionVM;
+            HomeVM = homeVM;
             WebBrowserVM = webBrowserVM;
             NavigationVM = navigationVM;
             ModListContentsVM = new Lazy<ModListContentsVM>(() => new ModListContentsVM(serviceProvider.GetRequiredService<ILogger<ModListContentsVM>>(), this));
@@ -126,7 +126,7 @@ namespace Wabbajack
             else
             {
                 // Start on mode selection
-                NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModeSelectionView);
+                NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Home);
             }
 
             try
@@ -140,7 +140,7 @@ namespace Wabbajack
 
                 var fvi = FileVersionInfo.GetVersionInfo(string.IsNullOrWhiteSpace(assemblyLocation) ? processLocation : assemblyLocation);
                 Consts.CurrentMinimumWabbajackVersion = Version.Parse(fvi.FileVersion);
-                WindowTitle = $"{Consts.AppName}";
+                WindowTitle = Consts.AppName;
                 _logger.LogInformation("Wabbajack Version: {FileVersion}", fvi.FileVersion);
 
                 Task.Run(() => _wjClient.SendMetric("started_wabbajack", fvi.FileVersion)).FireAndForget();
@@ -193,7 +193,6 @@ namespace Wabbajack
 
         private void HandleNavigateTo(ViewModel objViewModel)
         {
-
             ActivePane = objViewModel;
         }
 
@@ -231,7 +230,7 @@ namespace Wabbajack
 
             ActivePane = s switch
             {
-                NavigateToGlobal.ScreenType.ModeSelectionView => ModeSelectionVM,
+                NavigateToGlobal.ScreenType.Home => HomeVM,
                 NavigateToGlobal.ScreenType.ModListGallery => Gallery,
                 NavigateToGlobal.ScreenType.Installer => Installer,
                 NavigateToGlobal.ScreenType.Compiler => Compiler,

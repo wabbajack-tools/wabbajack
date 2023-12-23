@@ -58,7 +58,7 @@
                     </TextBlock>
                 </Grid>
             </Button>
-            <Button x:Name="SettingsButton" Grid.Row="6" Margin="0, 0, 0, 10">
+            <Button x:Name="SettingsButton" Grid.Row="6">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
@@ -70,7 +70,7 @@
                     </TextBlock>
                 </Grid>
             </Button>
-            <TextBlock x:Name="VersionTextBlock" Grid.Row="7" FontSize="12" HorizontalAlignment="Center" Margin="0, 0, 0, 10" Foreground="{StaticResource ForegroundBrush}" Opacity="0.66"/>
+            <TextBlock x:Name="VersionTextBlock" Grid.Row="7" FontSize="12" HorizontalAlignment="Center" Margin="0, 10, 0, 10" Foreground="{StaticResource ForegroundBrush}" Opacity="0.66"/>
         </Grid>
     </Border>
 </rxui:ReactiveUserControl>

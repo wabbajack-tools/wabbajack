@@ -6,7 +6,7 @@
                  xmlns:local="clr-namespace:Wabbajack"
                  xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                 xmlns:viewModels="clr-namespace:Wabbajack.View_Models"
+                 xmlns:viewModels="clr-namespace:Wabbajack.ViewModels"
                  xmlns:wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
                  ShowTitleBar="False"
                  Title="Browser Window"

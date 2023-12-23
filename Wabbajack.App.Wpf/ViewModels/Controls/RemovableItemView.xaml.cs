@@ -2,7 +2,7 @@ using System.Reactive.Disposables;
 using System.Windows.Controls;
 using ReactiveUI;
 
-namespace Wabbajack.View_Models.Controls;
+namespace Wabbajack.ViewModels.Controls;
 
 public partial class RemovableItemView : ReactiveUserControl<RemovableItemViewModel>
 {

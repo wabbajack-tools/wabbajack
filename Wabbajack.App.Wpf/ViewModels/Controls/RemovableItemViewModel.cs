@@ -1,7 +1,7 @@
 using System;
 using ReactiveUI.Fody.Helpers;
 
-namespace Wabbajack.View_Models.Controls;
+namespace Wabbajack.ViewModels.Controls;
 
 public class RemovableItemViewModel : ViewModel
 {

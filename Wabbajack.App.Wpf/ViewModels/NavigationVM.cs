@@ -17,16 +17,22 @@ using Microsoft.Extensions.Logging;
 using System.Reactive.Disposables;
 using System.Diagnostics;
 using System.Reflection;
+using System.Collections.Generic;
+using Wabbajack.Models;
 
 namespace Wabbajack
 {
     public class NavigationVM : ViewModel
     {
         private readonly ILogger<NavigationVM> _logger;
+        [Reactive]
+        public NavigateToGlobal.ScreenType ActiveScreen { get; set; }
+        [Reactive]
+        public List<INavigationItem> NavigationItems { get; set; }
         public NavigationVM(ILogger<NavigationVM> logger)
         {
             _logger = logger;
-            HomeCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModeSelectionView));
+            HomeCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Home));
             BrowseCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModListGallery));
             InstallCommand = ReactiveCommand.Create(() =>
             {
@@ -40,6 +46,16 @@ namespace Wabbajack
                     .Select(active => !object.ReferenceEquals(active, SettingsPane)),
                 */
                 execute: () => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Settings));
+            MessageBus.Current.Listen<NavigateToGlobal>()
+                              .Subscribe(x => ActiveScreen = x.Screen);
+            /*
+            this.WhenActivated(dispose =>
+            {
+                this.WhenAny(x => x.ActiveScreen)
+                    .
+            })
+            */
+
             var processLocation = Process.GetCurrentProcess().MainModule?.FileName ?? throw new Exception("Process location is unavailable!");
             var assembly = Assembly.GetExecutingAssembly();
             var assemblyLocation = assembly.Location;

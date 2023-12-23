@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 using ReactiveUI;
-using Wabbajack.View_Models.Settings;
+using Wabbajack.ViewModels.Settings;
 
 namespace Wabbajack
 {

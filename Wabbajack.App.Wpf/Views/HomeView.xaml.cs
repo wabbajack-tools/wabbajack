@@ -22,9 +22,9 @@ namespace Wabbajack
     /// <summary>
     /// Interaction logic for ModeSelectionView.xaml
     /// </summary>
-    public partial class ModeSelectionView : ReactiveUserControl<ModeSelectionVM>
+    public partial class HomeView : ReactiveUserControl<HomeVM>
     {
-        public ModeSelectionView()
+        public HomeView()
         {
             InitializeComponent();
             var vm = ViewModel;

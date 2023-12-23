@@ -19,14 +19,15 @@ using System.Diagnostics;
 
 namespace Wabbajack
 {
-    public class ModeSelectionVM : ViewModel
+    public class HomeVM : ViewModel
     {
-        private readonly ILogger<ModeSelectionVM> _logger;
+        private readonly ILogger<HomeVM> _logger;
         private readonly Client _wjClient;
 
-        public ModeSelectionVM(Client wjClient)
+        public HomeVM(Client wjClient)
         {
             _wjClient = wjClient;
+            BrowseCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModListGallery));
             VisitModlistWizardCommand = ReactiveCommand.Create(() =>
             {
                 ProcessStartInfo processStartInfo = new(Consts.WabbajackModlistWizardUri.ToString())
@@ -48,6 +49,7 @@ namespace Wabbajack
             });
         }
         public ICommand VisitModlistWizardCommand { get; }
+        public ICommand BrowseCommand { get; }
         public ReactiveCommand<Unit, Unit> UpdateCommand { get; }
 
         [Reactive]

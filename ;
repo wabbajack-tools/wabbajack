@@ -1,0 +1,12 @@
+using System.Windows.Input;
+using Wabbajack.Messages;
+
+namespace Wabbajack.App.Wpf.Models.NavigationItems
+{
+    public interface INavigationItem
+    {
+        public ICommand GoToCommand { get; }
+        public NavigateToGlobal.ScreenType Screen { get; }
+        public bool MainMenuItem { get; }
+    }
+}

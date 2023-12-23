@@ -13,7 +13,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using Wabbajack.Common;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Wabbajack.View_Models.Controls;
+using Wabbajack.ViewModels.Controls;
 
 namespace Wabbajack
 {

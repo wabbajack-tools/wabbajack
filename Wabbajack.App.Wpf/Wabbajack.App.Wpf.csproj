@@ -67,8 +67,8 @@
     <None Remove="Resources\Wabba_Mouth.png" />
     <None Remove="Resources\Wabba_Mouth_No_Text.png" />
     <None Remove="Resources\Wabba_Mouth_Small.png" />
-    <Compile Remove="View Models\Compilers\VortexCompilerVM.cs" />
-    <Compile Remove="View Models\Installers\VortexInstallerVM.cs" />
+    <Compile Remove="ViewModels\Compilers\VortexCompilerVM.cs" />
+    <Compile Remove="ViewModels\Installers\VortexInstallerVM.cs" />
     <None Update="VerbRegistration.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>VerbRegistration.cs</LastGenOutput>

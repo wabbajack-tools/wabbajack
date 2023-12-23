@@ -17,7 +17,7 @@ using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 using Wabbajack.Util;
-using Wabbajack.View_Models.Settings;
+using Wabbajack.ViewModels.Settings;
 
 namespace Wabbajack
 {

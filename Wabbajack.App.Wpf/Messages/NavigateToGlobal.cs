@@ -6,7 +6,7 @@ public class NavigateToGlobal
 {
     public enum ScreenType
     {
-        ModeSelectionView,
+        Home,
         ModListGallery,
         Installer,
         Settings,

@@ -11,7 +11,7 @@ using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.ServerResponses;
 
-namespace Wabbajack.View_Models
+namespace Wabbajack.ViewModels
 {
     public class ModListContentsVM : BackNavigatingVM
     {

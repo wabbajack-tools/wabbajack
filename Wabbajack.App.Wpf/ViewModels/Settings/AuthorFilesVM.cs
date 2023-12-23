@@ -11,7 +11,7 @@ using Wabbajack;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 
-namespace Wabbajack.View_Models.Settings
+namespace Wabbajack.ViewModels.Settings
 {
     public class AuthorFilesVM : BackNavigatingVM
     {
