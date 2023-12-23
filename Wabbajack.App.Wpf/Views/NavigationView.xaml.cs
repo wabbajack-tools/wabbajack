@@ -70,17 +70,5 @@ namespace Wabbajack
                     button.Style = mainButtonStyle;
             }
         }
-        /*
-    {
-        var activeStyle = (Style)Application.Current.Resources["ActiveButton"];
-        switch(x)
-        {
-            case ScreenType.Home:
-                HomeButton.Style = activeStyle;
-            default:
-                return;
-        }
-    }
-        */
     }
 }
