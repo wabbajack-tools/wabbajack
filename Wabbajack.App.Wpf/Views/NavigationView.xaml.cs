@@ -1,5 +1,6 @@
 ﻿using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -15,9 +16,16 @@ namespace Wabbajack
     /// </summary>
     public partial class NavigationView : ReactiveUserControl<NavigationVM>
     {
+        public Dictionary<ScreenType, Button> ScreenButtonDictionary { get; set; }
         public NavigationView()
         {
             InitializeComponent();
+            ScreenButtonDictionary = new() {
+                { ScreenType.Home, HomeButton },
+                { ScreenType.ModListGallery, BrowseButton },
+                { ScreenType.Compiler, CompileButton },
+                { ScreenType.Settings, SettingsButton },
+            };
             this.WhenActivated(dispose =>
             {
                 this.BindCommand(ViewModel, vm => vm.BrowseCommand, v => v.BrowseButton)
@@ -33,6 +41,12 @@ namespace Wabbajack
                     .Select(version => $"v{version}")
                     .BindToStrict(this, v => v.VersionTextBlock.Text)
                     .DisposeWith(dispose);
+
+
+                this.WhenAny(x => x.ViewModel.ActiveScreen)
+                    .Subscribe(x => SetActiveScreen(x))
+                    .DisposeWith(dispose);
+
                 /*
                 this.WhenAny(x => x.ViewModel.InstallCommand)
                     .BindToStrict(this, x => x.InstallButton.Command)
@@ -43,5 +57,30 @@ namespace Wabbajack
                 */
             });
         }
+
+        private void SetActiveScreen(ScreenType activeScreen)
+        {
+            var activeButtonStyle = (Style)Application.Current.Resources["ActiveNavButtonStyle"];
+            var mainButtonStyle = (Style)Application.Current.Resources["MainNavButtonStyle"];
+            foreach(var (screen, button) in ScreenButtonDictionary)
+            {
+                if (screen == activeScreen)
+                    button.Style = activeButtonStyle;
+                else
+                    button.Style = mainButtonStyle;
+            }
+        }
+        /*
+    {
+        var activeStyle = (Style)Application.Current.Resources["ActiveButton"];
+        switch(x)
+        {
+            case ScreenType.Home:
+                HomeButton.Style = activeStyle;
+            default:
+                return;
+        }
+    }
+        */
     }
 }

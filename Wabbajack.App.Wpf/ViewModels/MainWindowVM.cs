@@ -121,12 +121,12 @@ namespace Wabbajack
             if (IsStartingFromModlist(out var path))
             {
                 LoadModlistForInstalling.Send(path, null);
-                NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Installer);
+                NavigateToGlobal.Send(ScreenType.Installer);
             }
             else
             {
                 // Start on mode selection
-                NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Home);
+                NavigateToGlobal.Send(ScreenType.Home);
             }
 
             try
@@ -223,18 +223,18 @@ namespace Wabbajack
             window.Show();
         }
 
-        private void HandleNavigateTo(NavigateToGlobal.ScreenType s)
+        private void HandleNavigateTo(ScreenType s)
         {
-            if (s is NavigateToGlobal.ScreenType.Settings)
+            if (s is ScreenType.Settings)
                 PreviousPanes.Add(ActivePane);
 
             ActivePane = s switch
             {
-                NavigateToGlobal.ScreenType.Home => HomeVM,
-                NavigateToGlobal.ScreenType.ModListGallery => Gallery,
-                NavigateToGlobal.ScreenType.Installer => Installer,
-                NavigateToGlobal.ScreenType.Compiler => Compiler,
-                NavigateToGlobal.ScreenType.Settings => SettingsPane,
+                ScreenType.Home => HomeVM,
+                ScreenType.ModListGallery => Gallery,
+                ScreenType.Installer => Installer,
+                ScreenType.Compiler => Compiler,
+                ScreenType.Settings => SettingsPane,
                 _ => ActivePane
             };
         }
@@ -270,20 +270,6 @@ namespace Wabbajack
                 Thread.Sleep(TimeSpan.FromSeconds(1));
             }
         }
-
-        /*
-        public void NavigateTo(ViewModel vm)
-        {
-            ActivePane = vm;
-        }*/
-
-        /*
-        public void NavigateTo<T>(T vm)
-            where T : ViewModel, IBackNavigatingVM
-        {
-            vm.NavigateBackTarget = ActivePane;
-            ActivePane = vm;
-        }*/
 
         public async Task ShutdownApplication()
         {

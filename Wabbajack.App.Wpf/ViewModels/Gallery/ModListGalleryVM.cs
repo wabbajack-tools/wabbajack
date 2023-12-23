@@ -106,7 +106,7 @@ namespace Wabbajack
             BackCommand = ReactiveCommand.Create(
                 () =>
                 {
-                    NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Home);
+                    NavigateToGlobal.Send(ScreenType.Home);
                 });
 
 

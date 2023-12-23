@@ -26,35 +26,27 @@ namespace Wabbajack
     {
         private readonly ILogger<NavigationVM> _logger;
         [Reactive]
-        public NavigateToGlobal.ScreenType ActiveScreen { get; set; }
-        [Reactive]
-        public List<INavigationItem> NavigationItems { get; set; }
+        public ScreenType ActiveScreen { get; set; }
         public NavigationVM(ILogger<NavigationVM> logger)
         {
             _logger = logger;
-            HomeCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Home));
-            BrowseCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModListGallery));
+            HomeCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.Home));
+            BrowseCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.ModListGallery));
             InstallCommand = ReactiveCommand.Create(() =>
             {
                 LoadLastLoadedModlist.Send();
-                NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Installer);
+                NavigateToGlobal.Send(ScreenType.Installer);
             });
-            CompileCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Compiler));
+            CompileCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.Compiler));
             SettingsCommand = ReactiveCommand.Create(
                 /*
                 canExecute: this.WhenAny(x => x.ActivePane)
                     .Select(active => !object.ReferenceEquals(active, SettingsPane)),
                 */
-                execute: () => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Settings));
+                execute: () => NavigateToGlobal.Send(ScreenType.Settings));
             MessageBus.Current.Listen<NavigateToGlobal>()
-                              .Subscribe(x => ActiveScreen = x.Screen);
-            /*
-            this.WhenActivated(dispose =>
-            {
-                this.WhenAny(x => x.ActiveScreen)
-                    .
-            })
-            */
+                .Subscribe(x => ActiveScreen = x.Screen)
+                .DisposeWith(CompositeDisposable);
 
             var processLocation = Process.GetCurrentProcess().MainModule?.FileName ?? throw new Exception("Process location is unavailable!");
             var assembly = Assembly.GetExecutingAssembly();
@@ -62,6 +54,7 @@ namespace Wabbajack
             var fvi = FileVersionInfo.GetVersionInfo(string.IsNullOrWhiteSpace(assemblyLocation) ? processLocation : assemblyLocation);
             Version = $"{fvi.FileVersion}";
         }
+
         public ICommand HomeCommand { get; }
         public ICommand BrowseCommand { get; }
         public ICommand InstallCommand { get; }

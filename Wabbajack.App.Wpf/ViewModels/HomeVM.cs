@@ -27,7 +27,7 @@ namespace Wabbajack
         public HomeVM(Client wjClient)
         {
             _wjClient = wjClient;
-            BrowseCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModListGallery));
+            BrowseCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.ModListGallery));
             VisitModlistWizardCommand = ReactiveCommand.Create(() =>
             {
                 ProcessStartInfo processStartInfo = new(Consts.WabbajackModlistWizardUri.ToString())

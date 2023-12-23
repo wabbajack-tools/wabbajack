@@ -172,7 +172,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
 
         Installer = new MO2InstallerVM(this);
         
-        BackCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Home));
+        BackCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.Home));
 
         BeginCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget());
 

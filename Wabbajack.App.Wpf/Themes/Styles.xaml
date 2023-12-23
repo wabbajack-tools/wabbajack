@@ -26,6 +26,7 @@
 
     <!--  Colors  -->
     <Color x:Key="WindowBackgroundColor">#222531</Color>
+    <Color x:Key="WindowHoverBackgroundColor">#2A2B41</Color>
     <Color x:Key="DarkBackgroundColor">#3c3652</Color>
     <Color x:Key="DarkHoverBackgroundColor">#4e4571</Color>
     <Color x:Key="LightBackgroundColor">#424242</Color>
@@ -118,6 +119,7 @@
     <SolidColorBrush x:Key="DimForegroundBrush" Color="{StaticResource DimForegroundColor}" />
     <SolidColorBrush x:Key="MouseOverForegroundBrush" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}" />
+    <SolidColorBrush x:Key="WindowHoverBackgroundBrush" Color="{StaticResource WindowHoverBackgroundColor}" />
     <SolidColorBrush x:Key="BorderInterestBrush" Color="{StaticResource HeatedBorderColor}" />
     <SolidColorBrush x:Key="HeatedBorderBrush" Color="{StaticResource HeatedBorderColor}" />
 
@@ -1196,8 +1198,8 @@
         <Style.Resources>
             <Style TargetType="ic:SymbolIcon">
                 <Style.Triggers>
-                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button, AncestorLevel=1}, Path=IsMouseOver}" Value="True">
-                        <Setter Property="IsFilled" Value="True" />
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=IsMouseOver}" Value="True">
+                        <Setter Property="IsFilled" Value="True"/>
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
@@ -1260,7 +1262,29 @@
             </Style>
         </Style.Resources>
     </Style>
-    <Style BasedOn="{StaticResource MainButtonStyle}" TargetType="{x:Type Button}" />
+    <Style x:Key="MainNavButtonStyle" BasedOn="{StaticResource MainButtonStyle}" TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Style.Resources>
+            <Style TargetType="Button">
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </Style.Resources>
+    </Style>
+    <Style x:Key="ActiveNavButtonStyle" BasedOn="{StaticResource MainButtonStyle}" TargetType="{x:Type Button}">
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Background" Value="{StaticResource WindowHoverBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+        <Style.Resources>
+            <Style TargetType="ic:SymbolIcon">
+                <Setter Property="IsFilled" Value="True"/>
+            </Style>
+        </Style.Resources>
+    </Style>
 
     <Style
         x:Key="CircleButtonStyle"

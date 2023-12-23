@@ -124,7 +124,7 @@ namespace Wabbajack
                 ReactiveCommand.CreateFromTask(async () =>
                 {
                     await SaveSettingsFile();
-                    NavigateToGlobal.Send(NavigateToGlobal.ScreenType.Home);
+                    NavigateToGlobal.Send(ScreenType.Home);
                 });
             
             SubCompilerVM = new MO2CompilerVM(this);
