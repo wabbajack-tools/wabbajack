@@ -32,7 +32,7 @@
     <Color x:Key="LightBackgroundColor">#424242</Color>
     <Color x:Key="BackgroundColor">#222531</Color>
     <Color x:Key="DisabledBackgroundColor">#424242</Color>
-    <Color x:Key="PressedBackgroundColor">#323232</Color>
+    <Color x:Key="PressedBackgroundColor">#4e4571</Color>
     <Color x:Key="LightDisabledBackgroundColor">#666666</Color>
     <Color x:Key="HeatedBorderColor">#362675</Color>
 
