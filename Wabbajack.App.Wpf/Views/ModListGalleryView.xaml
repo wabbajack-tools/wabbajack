@@ -9,31 +9,22 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
     xmlns:system="clr-namespace:System;assembly=mscorlib"
+    xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
     d:DesignHeight="450"
     d:DesignWidth="900"
     x:TypeArguments="local:ModListGalleryVM"
     mc:Ignorable="d">
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="47" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <Rectangle Grid.Row="1" Grid.RowSpan="3"
-            Margin="6,0">
-            <Rectangle.Fill>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Offset="0" Color="#123700B3" />
-                    <GradientStop Offset="1" Color="#00000000" />
-                </LinearGradientBrush>
-            </Rectangle.Fill>
-        </Rectangle>
-        <Border Grid.Row="1"
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="3*" />
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="1"
             BorderBrush="Transparent"
-            BorderThickness="1,0,1,1">
+            BorderThickness="0">
             <ScrollViewer Background="Transparent" VerticalScrollBarVisibility="Auto">
                 <ItemsControl
                     x:Name="ModListGalleryControl"
-                    Margin="0,10,0,0"
                     HorizontalAlignment="Center"
                     ScrollViewer.VerticalScrollBarVisibility="Visible">
                     <ItemsControl.ItemsPanel>
@@ -49,26 +40,28 @@
                 </ItemsControl>
             </ScrollViewer>
         </Border>
-        <mahapps:ProgressRing Grid.Row="1"
+        <mahapps:ProgressRing Grid.Column="1"
             x:Name="LoadingRing"
             Visibility="Collapsed" />
-        <StackPanel Grid.Row="1"
+        <StackPanel Grid.Column="1"
             x:Name="NoneFound"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Orientation="Vertical"
             Visibility="Collapsed">
-            <iconPacks:PackIconControl
-                Width="50"
-                Height="50"
-                Margin="0,0,0,10"
-                HorizontalAlignment="Center"
+            <ic:SymbolIcon
+                Grid.Column="1"
                 Foreground="{StaticResource Triadic2Brush}"
-                Kind="{x:Static iconPacks:PackIconMaterialKind.Cancel}" />
+                VerticalAlignment="Top"
+                Symbol="DismissCircle"
+                IsFilled="False"
+                FontSize="72"
+            />
             <TextBlock
-                FontSize="14"
+                FontSize="24"
+                Margin="0, 10, 0, 0"
                 Foreground="{StaticResource ForegroundBrush}"
-                Text="No Matches" />
+                Text="No modlists matching specified criteria" />
         </StackPanel>
         <iconPacks:PackIconControl Grid.Row="1"
             x:Name="ErrorIcon"
@@ -80,29 +73,30 @@
             Kind="{x:Static iconPacks:PackIconMaterialKind.AlertCircle}"
             ToolTip="Error loading modlist gallery"
             Visibility="Collapsed" />
-        <local:TopProgressView Grid.Row="0" Grid.RowSpan="2"
+        <!--<local:TopProgressView Grid.Row="0" Grid.RowSpan="2"
             Title="Browsing Modlists"
-            ShadowMargin="False" />
-        <WrapPanel Grid.Row="0"
-            Height="25"
-            Margin="5,5,5,10"
-            HorizontalAlignment="Right"
-            Orientation="Horizontal">
-            <Label
-                Margin="0,0,0,0"
-                VerticalAlignment="Center"
-                Content="Game"
-                ToolTip="Select a game" />
+            ShadowMargin="False" />-->
+        <StackPanel Grid.Row="0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Background="Green"
+            Orientation="Vertical">
             <ComboBox
-                Width="150"
-                Margin="0,0,10,0"
                 VerticalAlignment="Center"
                 Foreground="{StaticResource ForegroundBrush}"
                 ItemsSource="{Binding GameTypeEntries, Mode=TwoWay}"
                 SelectedItem="{Binding SelectedGameTypeEntry, Mode=TwoWay}"
-                DisplayMemberPath="FormattedName"
                 IsSynchronizedWithCurrentItem="True"
-                ToolTip="Select a game" />
+                ToolTip="Filter modlists on game">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding GameMetaData.IconSource}" Stretch="UniformToFill" Height="32" Width="32"/>
+                            <TextBlock Margin="10, 0, 0, 0" Text="{Binding FormattedName}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
             <TextBlock
                 Margin="0,0,5,0"
                 VerticalAlignment="Center"
@@ -140,21 +134,16 @@
             <Button
                 x:Name="ClearFiltersButton"
                 Margin="0,0,10,0"
-                Style="{StaticResource IconBareButtonStyle}"
-                ToolTip="Clear All Filters">
-                <iconPacks:Material Kind="FilterRemove" />
+                Style="{StaticResource LargeButtonStyle}"
+                ToolTip="Reset filters to the default options"
+                FontSize="24">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <ic:SymbolIcon Symbol="FilterDismiss" />
+                        <TextBlock Margin="10, 0, 0, 0">Reset filters</TextBlock>
+                    </StackPanel>
+                </Button.Content>
             </Button>
-        </WrapPanel>
-        <Button Grid.Row="0"
-            x:Name="BackButton"
-            Width="30"
-            Height="30"
-            Margin="7,5,0,0"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Style="{StaticResource IconCircleButtonStyle}"
-            ToolTip="Back to main menu">
-            <iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
-        </Button>
+        </StackPanel>
     </Grid>
 </rxui:ReactiveUserControl>

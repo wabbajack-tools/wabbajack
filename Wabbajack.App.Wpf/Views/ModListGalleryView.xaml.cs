@@ -13,9 +13,11 @@ namespace Wabbajack
 
             this.WhenActivated(dispose =>
             {
+                /*
                 this.WhenAny(x => x.ViewModel.BackCommand)
                     .BindToStrict(this, x => x.BackButton.Command)
                     .DisposeWith(dispose);
+                */
                 this.WhenAny(x => x.ViewModel.ModLists)
                     .BindToStrict(this, x => x.ModListGalleryControl.ItemsSource)
                     .DisposeWith(dispose);

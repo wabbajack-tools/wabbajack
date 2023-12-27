@@ -24,8 +24,9 @@ namespace Wabbajack
         private readonly ILogger<HomeVM> _logger;
         private readonly Client _wjClient;
 
-        public HomeVM(Client wjClient)
+        public HomeVM(ILogger<HomeVM> logger, Client wjClient)
         {
+            _logger = logger;
             _wjClient = wjClient;
             BrowseCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.ModListGallery));
             VisitModlistWizardCommand = ReactiveCommand.Create(() =>

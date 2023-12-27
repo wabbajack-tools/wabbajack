@@ -26,7 +26,8 @@ public static class GameRegistry
                 {
                     "Morrowind.exe".ToRelativePath()
                 },
-                MainExecutable = "Morrowind.exe".ToRelativePath()
+                MainExecutable = "Morrowind.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/661c1c090ff5831a647202397c61d73c/24/32x32.png"
             }
         },
         {
@@ -43,7 +44,8 @@ public static class GameRegistry
                 {
                     "oblivion.exe".ToRelativePath()
                 },
-                MainExecutable = "Oblivion.exe".ToRelativePath()
+                MainExecutable = "Oblivion.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/e403262769f74b83009bffb6e3c0a3b7/32/32x32.png"
             }
         },
 
@@ -61,7 +63,8 @@ public static class GameRegistry
                 {
                     "Fallout3.exe".ToRelativePath()
                 },
-                MainExecutable = "Fallout3.exe".ToRelativePath()
+                MainExecutable = "Fallout3.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/9fc14d103064494b6a2be4dbd1dcdf32/32/32x32.png"
             }
         },
         {
@@ -78,7 +81,8 @@ public static class GameRegistry
                 {
                     "FalloutNV.exe".ToRelativePath()
                 },
-                MainExecutable = "FalloutNV.exe".ToRelativePath()
+                MainExecutable = "FalloutNV.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/f7c0dc716cd86f8d162c366d370baf14/32/32x32.png"
             }
         },
         {
@@ -95,7 +99,8 @@ public static class GameRegistry
                     "tesv.exe".ToRelativePath()
                 },
                 MainExecutable = "TESV.exe".ToRelativePath(),
-                CommonlyConfusedWith = new[] {Game.SkyrimSpecialEdition, Game.SkyrimVR}
+                CommonlyConfusedWith = new[] {Game.SkyrimSpecialEdition, Game.SkyrimVR},
+                IconSource = "https://cdn2.steamgriddb.com/icon/58ee2794cc87707943624dc8db2ff5a0/8/32x32.png"
             }
         },
         {
@@ -118,7 +123,8 @@ public static class GameRegistry
                     "SkyrimSE.exe".ToRelativePath()
                 },
                 MainExecutable = "SkyrimSE.exe".ToRelativePath(),
-                CommonlyConfusedWith = new[] {Game.Skyrim, Game.SkyrimVR}
+                CommonlyConfusedWith = new[] {Game.Skyrim, Game.SkyrimVR},
+                IconSource = "https://cdn2.steamgriddb.com/icon/e1b90346c92331860b1391257a106bb1/32/32x32.png"
             }
         },
         {
@@ -136,7 +142,8 @@ public static class GameRegistry
                     "Fallout4.exe".ToRelativePath()
                 },
                 MainExecutable = "Fallout4.exe".ToRelativePath(),
-                CommonlyConfusedWith = new[] {Game.Fallout4VR}
+                CommonlyConfusedWith = new[] {Game.Fallout4VR},
+                IconSource = "https://cdn2.steamgriddb.com/icon/73640de25b7d656733ce2f808a330f18/32/32x32.png"
             }
         },
         {
@@ -154,7 +161,8 @@ public static class GameRegistry
                 },
                 MainExecutable = "SkyrimVR.exe".ToRelativePath(),
                 CommonlyConfusedWith = new[] {Game.Skyrim, Game.SkyrimSpecialEdition},
-                CanSourceFrom = new[] {Game.SkyrimSpecialEdition}
+                CanSourceFrom = new[] {Game.SkyrimSpecialEdition},
+                IconSource = "https://cdn2.steamgriddb.com/icon/0e003154a81256e3cf5732f8d0d7efaa/32/32x32.png"
             }
         },
         {
@@ -171,7 +179,8 @@ public static class GameRegistry
                     "TESV.exe".ToRelativePath()
                 },
                 MainExecutable = "TESV.exe".ToRelativePath(),
-                CommonlyConfusedWith = new[] {Game.EnderalSpecialEdition}
+                CommonlyConfusedWith = new[] {Game.EnderalSpecialEdition},
+                IconSource = "https://cdn2.steamgriddb.com/icon/6505e8a0c0e1a90d8da8879e49a437f0.png"
             }
         },
         {
@@ -189,7 +198,8 @@ public static class GameRegistry
                     "SkyrimSE.exe".ToRelativePath()
                 },
                 MainExecutable = "SkyrimSE.exe".ToRelativePath(),
-                CommonlyConfusedWith = new[] {Game.Enderal}
+                CommonlyConfusedWith = new[] {Game.Enderal},
+                IconSource = "https://cdn2.steamgriddb.com/icon/104c6f99020b85465ae361a92d09a8d1.png"
             }
         },
         {
@@ -206,7 +216,8 @@ public static class GameRegistry
                 },
                 MainExecutable = "Fallout4VR.exe".ToRelativePath(),
                 CommonlyConfusedWith = new[] {Game.Fallout4},
-                CanSourceFrom = new[] {Game.Fallout4}
+                CanSourceFrom = new[] {Game.Fallout4},
+                IconSource = "https://cdn2.steamgriddb.com/icon/5f9ce39aec46f3e8e8aebbc722d8ceeb/32/32x32.png"
             }
         },
         {
@@ -224,7 +235,8 @@ public static class GameRegistry
                 {
                     @"_windowsnosteam\Darkest.exe".ToRelativePath()
                 },
-                MainExecutable = @"_windowsnosteam\Darkest.exe".ToRelativePath()
+                MainExecutable = @"_windowsnosteam\Darkest.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/b1d2128cee734a257c5e0d5c73bbdd1b.png"
             }
         },
         {
@@ -241,7 +253,8 @@ public static class GameRegistry
                 {
                     @"Binaries\Win32\Dishonored.exe".ToRelativePath()
                 },
-                MainExecutable = @"Binaries\Win32\Dishonored.exe".ToRelativePath()
+                MainExecutable = @"Binaries\Win32\Dishonored.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/6fcd734d28ae00944f8f7c68a219bbc5/32/32x32.png"
             }
         },
         {
@@ -258,7 +271,8 @@ public static class GameRegistry
                 {
                     @"System\witcher.exe".ToRelativePath()
                 },
-                MainExecutable = @"System\witcher.exe".ToRelativePath()
+                MainExecutable = @"System\witcher.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/fd72ecaa23aa0a514a53c6a16eabb9c6.png"
             }
         },
         {
@@ -276,7 +290,8 @@ public static class GameRegistry
                 {
                     @"bin\x64\witcher3.exe".ToRelativePath()
                 },
-                MainExecutable = @"bin\x64\witcher3.exe".ToRelativePath()
+                MainExecutable = @"bin\x64\witcher3.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/2af9b1a840b4ecd522fe1cda88c8385e/32/32x32.png"
             }
         },
         {
@@ -294,7 +309,8 @@ public static class GameRegistry
                 {
                     "Stardew Valley.exe".ToRelativePath()
                 },
-                MainExecutable = "Stardew Valley.exe".ToRelativePath()
+                MainExecutable = "Stardew Valley.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/2119b8d43eafcf353e07d7cb5554170b/32/32x32.png"
             }
         },
         {
@@ -312,7 +328,8 @@ public static class GameRegistry
                 {
                     @"bin\Win64\KingdomCome.exe".ToRelativePath()
                 },
-                MainExecutable = @"bin\Win64\KingdomCome.exe".ToRelativePath()
+                MainExecutable = @"bin\Win64\KingdomCome.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/1bdde90ebfdef547440410e79b1877bf.png"
             }
         },
         {
@@ -329,7 +346,8 @@ public static class GameRegistry
                 {
                     @"MW5Mercs\Binaries\Win64\MechWarrior-Win64-Shipping.exe".ToRelativePath()
                 },
-                MainExecutable = @"MW5Mercs\Binaries\Win64\MechWarrior-Win64-Shipping.exe".ToRelativePath()
+                MainExecutable = @"MW5Mercs\Binaries\Win64\MechWarrior-Win64-Shipping.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/c59bb6bab3096620efe78bdeb031f027/8/32x32.png"
             }
         },
         {
@@ -345,7 +363,8 @@ public static class GameRegistry
                 {
                     @"Binaries\NMS.exe".ToRelativePath()
                 },
-                MainExecutable = @"Binaries\NMS.exe".ToRelativePath()
+                MainExecutable = @"Binaries\NMS.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/970e789e0a92eab99bcabf36dfa6050c/32/32x32.png"
             }
         },
         {
@@ -362,7 +381,8 @@ public static class GameRegistry
                 {
                     @"bin_ship\daorigins.exe".ToRelativePath()
                 },
-                MainExecutable = @"bin_ship\daorigins.exe".ToRelativePath()
+                MainExecutable = @"bin_ship\daorigins.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/b55d7ce2adb9449fc4dae6115cbbe30f/32/32x32.png"
             }
         },
         {
@@ -378,7 +398,8 @@ public static class GameRegistry
                 {
                     @"bin_ship\DragonAge2.exe".ToRelativePath()
                 },
-                MainExecutable = @"bin_ship\DragonAge2.exe".ToRelativePath()
+                MainExecutable = @"bin_ship\DragonAge2.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/a6a946f7265ed7f28a6425ee76621c3a/32/32x32.png"
             }
         },
         {
@@ -394,7 +415,8 @@ public static class GameRegistry
                 {
                     @"DragonAgeInquisition.exe".ToRelativePath()
                 },
-                MainExecutable = @"DragonAgeInquisition.exe".ToRelativePath()
+                MainExecutable = @"DragonAgeInquisition.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/b98004311446c60521a8831075423c20.png"
             }
         },
         {
@@ -411,7 +433,8 @@ public static class GameRegistry
                 {
                     @"KSP_x64.exe".ToRelativePath()
                 },
-                MainExecutable = @"KSP_x64.exe".ToRelativePath()
+                MainExecutable = @"KSP_x64.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/2ee4162f4a89db5fa43b3b08900ee370.png"
             }
         },
         {
@@ -425,7 +448,8 @@ public static class GameRegistry
                 {
                     @"tModLoader.exe".ToRelativePath()
                 },
-                MainExecutable = @"tModLoader.exe".ToRelativePath()
+                MainExecutable = @"tModLoader.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/e658047c67a80c47b5ba982ab520b59a.png"
             }
         },
         {
@@ -443,7 +467,8 @@ public static class GameRegistry
                 {
                     @"bin\x64\Cyberpunk2077.exe".ToRelativePath()
                 },
-                MainExecutable = @"bin\x64\Cyberpunk2077.exe".ToRelativePath()
+                MainExecutable = @"bin\x64\Cyberpunk2077.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/2d45da15db966ba887cf4e573989fcc8/32/32x32.png"
             }
         },
         {
@@ -459,7 +484,8 @@ public static class GameRegistry
                 {
                     @"Game\Bin\TS4_x64.exe".ToRelativePath()
                 },
-                MainExecutable = @"Game\Bin\TS4_x64.exe".ToRelativePath()
+                MainExecutable = @"Game\Bin\TS4_x64.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/9fc664916bce863561527f06a96f5ff3/32/32x32.png"
             }
         },
         {
@@ -477,7 +503,8 @@ public static class GameRegistry
                 {
                     @"DDDA.exe".ToRelativePath()
                 },
-                MainExecutable = @"DDDA.exe".ToRelativePath()
+                MainExecutable = @"DDDA.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/a830839bbb4a4022a84ff2b8af5c46e0.png"
             }
         },
         {
@@ -492,7 +519,8 @@ public static class GameRegistry
                 {
                     "nw.exe".ToRelativePath()
                 },
-                MainExecutable = "nw.exe".ToRelativePath()
+                MainExecutable = "nw.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/37286bc401299e97a564f6b42792eb6d.png"
             }
         },
         {
@@ -509,7 +537,8 @@ public static class GameRegistry
                 {
                     "valheim.exe".ToRelativePath()
                 },
-                MainExecutable = "valheim.exe".ToRelativePath()
+                MainExecutable = "valheim.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/dd055f53a45702fe05e449c30ac80df9/32/32x32.png"
             }
         },
         {
@@ -531,7 +560,8 @@ public static class GameRegistry
                 {
                     @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath() 
                 },
-                MainExecutable = @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath() 
+                MainExecutable = @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/811cf46d61c9ae564bf7fa4b5abc639b.png"
             }
         },
         {

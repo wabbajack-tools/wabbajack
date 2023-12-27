@@ -32,7 +32,7 @@ namespace Wabbajack
 
         public ReadOnlyObservableCollection<ModListMetadataVM> ModLists => _filteredModLists;
 
-        private const string ALL_GAME_TYPE = "All";
+        private const string ALL_GAME_IDENTIFIER = "All games";
 
         [Reactive] public IErrorResponse Error { get; set; }
 
@@ -48,15 +48,20 @@ namespace Wabbajack
 
         public class GameTypeEntry
         {
-            public GameTypeEntry(string humanFriendlyName, int amount)
+            public GameTypeEntry(GameMetaData gameMetaData, int amount)
             {
-                HumanFriendlyName = humanFriendlyName;
+                GameMetaData = gameMetaData;
+                IsAllGamesEntry = gameMetaData == null;
+                GameIdentifier = IsAllGamesEntry ? ALL_GAME_IDENTIFIER : gameMetaData?.HumanFriendlyGameName;
                 Amount = amount;
-                FormattedName = $"{HumanFriendlyName} ({Amount})";
+                FormattedName = IsAllGamesEntry ? $"{ALL_GAME_IDENTIFIER} ({Amount})" : $"{gameMetaData.HumanFriendlyGameName} ({Amount})";
             }
-            public string HumanFriendlyName { get; set; }
-            public int Amount { get; set; }
-            public string FormattedName { get; set; }
+            public bool IsAllGamesEntry { get; set; }
+            public GameMetaData GameMetaData { get; private set; }
+            public int Amount { get; private set; }
+            public string FormattedName { get; private set; }
+            public string GameIdentifier { get; private set; }
+            public static GameTypeEntry GetAllGamesEntry(int amount) => new(null, amount);
         }
 
         [Reactive] public List<GameTypeEntry> GameTypeEntries { get; set; }
@@ -68,8 +73,8 @@ namespace Wabbajack
             get => _selectedGameTypeEntry;
             set
             {
-                RaiseAndSetIfChanged(ref _selectedGameTypeEntry, value == null ? GameTypeEntries?.FirstOrDefault(gte => gte.HumanFriendlyName == ALL_GAME_TYPE) : value);
-                GameType = _selectedGameTypeEntry?.HumanFriendlyName;
+                RaiseAndSetIfChanged(ref _selectedGameTypeEntry, value == null ? GameTypeEntries?.FirstOrDefault(gte => gte.IsAllGamesEntry) : value);
+                GameType = _selectedGameTypeEntry?.GameIdentifier;
             }
         }
 
@@ -156,7 +161,7 @@ namespace Wabbajack
                     .Select<string, Func<ModListMetadataVM, bool>>(selected =>
                     {
                         _filteringOnGame = true;
-                        if (selected is null or ALL_GAME_TYPE) return _ => true;
+                        if (selected is null or ALL_GAME_IDENTIFIER) return _ => true;
                         return item => item.Metadata.Game.MetaData().HumanFriendlyGameName == selected;
                     })
                     .StartWith(_ => true);
@@ -176,8 +181,8 @@ namespace Wabbajack
                             var previousGameType = GameType;
                             SelectedGameTypeEntry = null;
                             GameTypeEntries = new(GetGameTypeEntries());
-                            var nextEntry = GameTypeEntries.FirstOrDefault(gte => previousGameType == gte.HumanFriendlyName);
-                            SelectedGameTypeEntry = nextEntry != default ? nextEntry : GameTypeEntries.FirstOrDefault(gte => GameType == ALL_GAME_TYPE);
+                            var nextEntry = GameTypeEntries.FirstOrDefault(gte => previousGameType == gte.GameIdentifier);
+                            SelectedGameTypeEntry = nextEntry != default ? nextEntry : GameTypeEntries.FirstOrDefault(gte => GameType == ALL_GAME_IDENTIFIER);
                         }
                         _filteringOnGame = false;
                     })
@@ -217,7 +222,7 @@ namespace Wabbajack
             RxApp.MainThreadScheduler.Schedule(await _settingsManager.Load<FilterSettings>("modlist_gallery"),
                 (_, s) =>
             {
-                SelectedGameTypeEntry = GameTypeEntries?.FirstOrDefault(gte => gte.HumanFriendlyName.Equals(s.GameType));
+                SelectedGameTypeEntry = GameTypeEntries?.FirstOrDefault(gte => gte.GameIdentifier.Equals(s.GameType));
                 ShowNSFW = s.ShowNSFW;
                 ShowUnofficialLists = s.ShowUnofficialLists;
                 Search = s.Search;
@@ -251,9 +256,9 @@ namespace Wabbajack
         {
             return ModLists.Select(fm => fm.Metadata)
                    .GroupBy(m => m.Game)
-                   .Select(g => new GameTypeEntry(g.Key.MetaData().HumanFriendlyGameName, g.Count()))
-                   .OrderBy(gte => gte.HumanFriendlyName)
-                   .Prepend(new GameTypeEntry(ALL_GAME_TYPE, ModLists.Count))
+                   .Select(g => new GameTypeEntry(g.Key.MetaData(), g.Count()))
+                   .OrderBy(gte => gte.GameMetaData.HumanFriendlyGameName)
+                   .Prepend(GameTypeEntry.GetAllGamesEntry(ModLists.Count))
                    .ToList();
         }
     }
