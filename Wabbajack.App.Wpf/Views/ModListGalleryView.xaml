@@ -17,7 +17,7 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="3*" />
         </Grid.ColumnDefinitions>
         <Border Grid.Column="1"
             BorderBrush="Transparent"
@@ -76,20 +76,29 @@
         <!--<local:TopProgressView Grid.Row="0" Grid.RowSpan="2"
             Title="Browsing Modlists"
             ShadowMargin="False" />-->
-        <StackPanel Grid.Row="0"
+        <Grid Grid.Row="0"
             HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Background="Green"
-            Width="256"
-            Height="Auto"
-            Orientation="Vertical">
-            <Grid>
+            VerticalAlignment="Stretch"
+            MinWidth="256"
+            MaxWidth="480"
+            Height="Auto">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
                 <TextBox
                 x:Name="SearchBox"
-                Height="28"
+                FontSize="14"
+                Height="36"
                 VerticalContentAlignment="Center"
                 ToolTip="Search for a game" />
-                <TextBlock IsHitTestVisible="False" Text="Search for a game..." VerticalAlignment="Center" Margin="5, 0, 0, 0" Foreground="{StaticResource TextBoxDisabledForeground}">
+                <TextBlock FontSize="14" IsHitTestVisible="False" Text="Search for a modlist..." VerticalAlignment="Center" Margin="5, 0, 0, 0" Foreground="{StaticResource TextBoxDisabledForeground}">
                     <TextBlock.Style>
                         <Style TargetType="{x:Type TextBlock}">
                             <Setter Property="Visibility" Value="Collapsed" />
@@ -106,7 +115,10 @@
                 </Border>
             </Grid>
             <ComboBox
+                Grid.Row="1"
+                Margin="0, 10, 0, 0"
                 VerticalAlignment="Center"
+                FontSize="14"
                 Foreground="{StaticResource ForegroundBrush}"
                 ItemsSource="{Binding GameTypeEntries, Mode=TwoWay}"
                 SelectedItem="{Binding SelectedGameTypeEntry, Mode=TwoWay}"
@@ -125,36 +137,67 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <CheckBox
+            <Grid Grid.Row="2" Margin="0, 10, 0, 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox
                 x:Name="ShowNSFW"
-                Margin="10,0,10,0"
+                FontSize="7"
                 VerticalAlignment="Center"
-                Content="Show NSFW"
                 Foreground="{StaticResource ForegroundBrush}"
-                ToolTip="Only show Not Safe For Work (NSFW) modlists" />
+                ToolTip="Only show Not Safe For Work (NSFW) modlists">
+                    <CheckBox.LayoutTransform>
+                        <ScaleTransform ScaleX="1.6" ScaleY="1.6"/>
+                    </CheckBox.LayoutTransform>
+                </CheckBox>
+                <TextBlock Grid.Column="1" Margin="5, 0, 0, 0" Text="Show NSFW modlists" FontSize="14" VerticalAlignment="Center" />
+            </Grid>
 
-            <CheckBox
+            <Grid Grid.Row="3" Margin="0, 10, 0, 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox
                 x:Name="ShowUnofficialLists"
-                Margin="10,0,10,0"
                 VerticalAlignment="Center"
-                Content="Show Unofficial Lists"
                 Foreground="{StaticResource ForegroundBrush}"
-                ToolTip="Show modlists from external repositories"/>
+                ToolTip="Show modlists from external repositories">
+                    <CheckBox.LayoutTransform>
+                        <ScaleTransform ScaleX="1.6" ScaleY="1.6"/>
+                    </CheckBox.LayoutTransform>
+                </CheckBox>
+                <TextBlock Grid.Column="1" Margin="5, 0, 0, 0" Text="Show unofficial modlists" FontSize="14" VerticalAlignment="Center" />
+            </Grid>
 
-            <CheckBox
+            <Grid Grid.Row="4" Margin="0, 10, 0, 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox
                 x:Name="OnlyInstalledCheckbox"
-                Margin="10,0,10,0"
                 VerticalAlignment="Center"
-                Content="Only Installed"
-                Foreground="{StaticResource ForegroundBrush}" 
-                ToolTip="Only show modlists for games you have installed"/>
+                Foreground="{StaticResource ForegroundBrush}"
+                ToolTip="Show only modlists for games you have installed on your PC">
+                    <CheckBox.LayoutTransform>
+                        <ScaleTransform ScaleX="1.6" ScaleY="1.6"/>
+                    </CheckBox.LayoutTransform>
+                </CheckBox>
+                <TextBlock Grid.Column="1" Margin="5, 0, 0, 0" Text="Show only modlists for installed games" FontSize="14" VerticalAlignment="Center" />
+            </Grid>
+
             <Button
                 x:Name="ClearFiltersButton"
-                Margin="0,0,10,0"
+                Grid.Row="6"
                 Style="{StaticResource LargeButtonStyle}"
                 ToolTip="Reset filters to the default options"
                 VerticalAlignment="Bottom"
-                FontSize="24">
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center"
+                FontSize="14">
                 <Button.Content>
                     <StackPanel Orientation="Horizontal">
                         <ic:SymbolIcon Symbol="FilterDismiss" />
@@ -162,6 +205,6 @@
                     </StackPanel>
                 </Button.Content>
             </Button>
-        </StackPanel>
+        </Grid>
     </Grid>
 </rxui:ReactiveUserControl>

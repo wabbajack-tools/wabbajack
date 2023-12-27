@@ -29,7 +29,7 @@
     <Color x:Key="WindowHoverBackgroundColor">#2A2B41</Color>
     <Color x:Key="DarkBackgroundColor">#3c3652</Color>
     <Color x:Key="DarkHoverBackgroundColor">#4e4571</Color>
-    <Color x:Key="LightBackgroundColor">#424242</Color>
+    <Color x:Key="LightBackgroundColor">#4e4571</Color>
     <Color x:Key="BackgroundColor">#222531</Color>
     <Color x:Key="DisabledBackgroundColor">#424242</Color>
     <Color x:Key="PressedBackgroundColor">#4e4571</Color>
@@ -164,7 +164,7 @@
     <SolidColorBrush x:Key="TextBoxDisabledBackground" Color="{StaticResource DisabledBackgroundColor}" />
     <SolidColorBrush x:Key="InactiveSelectionHighlightBrush" Color="#335C85" />
 
-    <SolidColorBrush x:Key="ComboBoxButtonNormalBackground" Color="#808080" />
+    <SolidColorBrush x:Key="ComboBoxButtonNormalBackground" Color="Transparent" />
 
     <SolidColorBrush x:Key="ButtonNormalBackground" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="ButtonNormalBorder" Color="#4C4C4C" />

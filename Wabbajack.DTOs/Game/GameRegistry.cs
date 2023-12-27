@@ -162,7 +162,7 @@ public static class GameRegistry
                 MainExecutable = "SkyrimVR.exe".ToRelativePath(),
                 CommonlyConfusedWith = new[] {Game.Skyrim, Game.SkyrimSpecialEdition},
                 CanSourceFrom = new[] {Game.SkyrimSpecialEdition},
-                IconSource = "https://cdn2.steamgriddb.com/icon/0e003154a81256e3cf5732f8d0d7efaa/32/32x32.png"
+                IconSource = "https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/apps/611670/c3073540a41e6ab38870b1b0509ef5c6ba162925.ico"
             }
         },
         {
