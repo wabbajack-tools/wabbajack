@@ -1,4 +1,5 @@
-﻿using System.Reactive.Disposables;
+﻿using System;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows;
 using ReactiveUI;
@@ -44,7 +45,10 @@ namespace Wabbajack
                     .DisposeWith(dispose);
 
 
-                this.BindStrict(ViewModel, vm => vm.Search, x => x.SearchBox.Text)
+                this.WhenAny(x => x.SearchBox.Text)
+                    .Throttle(TimeSpan.FromSeconds(0.2), RxApp.TaskpoolScheduler)
+                    .Select(x => x?.Trim())
+                    .BindToStrict(this, x => x.ViewModel.Search)
                     .DisposeWith(dispose);
 
                 this.BindStrict(ViewModel, vm => vm.OnlyInstalled, x => x.OnlyInstalledCheckbox.IsChecked)
