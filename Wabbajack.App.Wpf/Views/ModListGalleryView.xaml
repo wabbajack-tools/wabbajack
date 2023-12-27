@@ -17,7 +17,7 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="3*" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Border Grid.Column="1"
             BorderBrush="Transparent"
@@ -80,7 +80,29 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Background="Green"
+            Width="256"
+            Height="Auto"
             Orientation="Vertical">
+            <Grid>
+                <TextBox
+                x:Name="SearchBox"
+                Height="28"
+                VerticalContentAlignment="Center"
+                ToolTip="Search for a game" />
+                <TextBlock IsHitTestVisible="False" Text="Search for a game..." VerticalAlignment="Center" Margin="5, 0, 0, 0" Foreground="{StaticResource TextBoxDisabledForeground}">
+                    <TextBlock.Style>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value="">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <ic:SymbolIcon Symbol="Search" HorizontalAlignment="Right" Margin="0, 0, 5, 0" IsFilled="True"/>
+            </Grid>
             <ComboBox
                 VerticalAlignment="Center"
                 Foreground="{StaticResource ForegroundBrush}"
@@ -101,17 +123,6 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <TextBlock
-                Margin="0,0,5,0"
-                VerticalAlignment="Center"
-                Foreground="{StaticResource ForegroundBrush}"
-                Text="Search" 
-                ToolTip="Search for a game" />
-            <TextBox
-                x:Name="SearchBox"
-                Width="95"
-                VerticalContentAlignment="Center"
-                ToolTip="Only show Not Safe For Work (NSFW) modlists" />
             <CheckBox
                 x:Name="ShowNSFW"
                 Margin="10,0,10,0"
@@ -140,6 +151,7 @@
                 Margin="0,0,10,0"
                 Style="{StaticResource LargeButtonStyle}"
                 ToolTip="Reset filters to the default options"
+                VerticalAlignment="Bottom"
                 FontSize="24">
                 <Button.Content>
                     <StackPanel Orientation="Horizontal">
