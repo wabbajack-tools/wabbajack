@@ -90,8 +90,12 @@
                 ToolTip="Filter modlists on game">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <Image Source="{Binding GameMetaData.IconSource}" Stretch="UniformToFill" Height="32" Width="32"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="32" Height="32" BorderThickness="0" CornerRadius="8, 8, 8, 8" VerticalAlignment="Center">
+                                <Border.Background>
+                                    <ImageBrush Stretch="Fill" ImageSource="{Binding GameMetaData.IconSource}"/>
+                                </Border.Background>
+                            </Border>
                             <TextBlock Margin="10, 0, 0, 0" Text="{Binding FormattedName}" VerticalAlignment="Center" />
                         </StackPanel>
                     </DataTemplate>
