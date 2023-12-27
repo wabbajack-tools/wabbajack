@@ -64,7 +64,7 @@ public static class GameRegistry
                     "Fallout3.exe".ToRelativePath()
                 },
                 MainExecutable = "Fallout3.exe".ToRelativePath(),
-                IconSource = "https://cdn2.steamgriddb.com/icon/9fc14d103064494b6a2be4dbd1dcdf32/32/32x32.png"
+                IconSource = "https://cdn2.steamgriddb.com/icon/ac7ed855f313b05391de74046180fb34.png"
             }
         },
         {
@@ -82,7 +82,7 @@ public static class GameRegistry
                     "FalloutNV.exe".ToRelativePath()
                 },
                 MainExecutable = "FalloutNV.exe".ToRelativePath(),
-                IconSource = "https://cdn2.steamgriddb.com/icon/f7c0dc716cd86f8d162c366d370baf14/32/32x32.png"
+                IconSource = "https://cdn2.steamgriddb.com/icon/c706723a17a2b2acec4f9ebc9f572e31.png"
             }
         },
         {
@@ -143,7 +143,7 @@ public static class GameRegistry
                 },
                 MainExecutable = "Fallout4.exe".ToRelativePath(),
                 CommonlyConfusedWith = new[] {Game.Fallout4VR},
-                IconSource = "https://cdn2.steamgriddb.com/icon/73640de25b7d656733ce2f808a330f18/32/32x32.png"
+                IconSource = "https://cdn2.steamgriddb.com/icon/578d9dd532e0be0cdd050b5bec4967a1.png"
             }
         },
         {
@@ -217,7 +217,7 @@ public static class GameRegistry
                 MainExecutable = "Fallout4VR.exe".ToRelativePath(),
                 CommonlyConfusedWith = new[] {Game.Fallout4},
                 CanSourceFrom = new[] {Game.Fallout4},
-                IconSource = "https://cdn2.steamgriddb.com/icon/5f9ce39aec46f3e8e8aebbc722d8ceeb/32/32x32.png"
+                IconSource = "https://cdn2.steamgriddb.com/icon/9058c666789874c718d1976270cee814.png"
             }
         },
         {
@@ -310,7 +310,7 @@ public static class GameRegistry
                     "Stardew Valley.exe".ToRelativePath()
                 },
                 MainExecutable = "Stardew Valley.exe".ToRelativePath(),
-                IconSource = "https://cdn2.steamgriddb.com/icon/2119b8d43eafcf353e07d7cb5554170b/32/32x32.png"
+                IconSource = "https://cdn2.steamgriddb.com/icon/f6c4718557e1197ecdbe1b7ff52975d2.png"
             }
         },
         {
@@ -561,7 +561,7 @@ public static class GameRegistry
                     @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath() 
                 },
                 MainExecutable = @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath(),
-                IconSource = "https://cdn2.steamgriddb.com/icon/811cf46d61c9ae564bf7fa4b5abc639b.png"
+                IconSource = "https://cdn2.steamgriddb.com/icon/811cf46d61c9ae564bf7fa4b5ac639b.png"
             }
         },
         {
