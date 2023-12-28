@@ -176,7 +176,7 @@ namespace Wabbajack
                 .ToGuiProperty(this, nameof(Exists));
 
             var imageObs = Observable.Return(Metadata.Links.ImageUri)
-                .DownloadBitmapImage((ex) => _logger.LogError("Error downloading modlist image {Title}", Metadata.Title), LoadingImageLock);
+                .DownloadBitmapImage((ex) => _logger.LogError("Error downloading modlist image {Title} from {ImageUri}: {Exception}", Metadata.Title, Metadata.Links.ImageUri, ex.Message), LoadingImageLock);
 
             _Image = imageObs
                 .ToGuiProperty(this, nameof(Image));

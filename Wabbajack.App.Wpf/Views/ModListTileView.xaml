@@ -48,14 +48,15 @@
     </UserControl.Resources>
     <Border
         x:Name="ModListTile"
-        Margin="10"
+        Margin="8"
         Background="Transparent"
-        BorderThickness="1">
+        CornerRadius="8"
+        BorderThickness="0">
         <Border.Effect>
             <DropShadowEffect
                 BlurRadius="25"
-                Opacity="0.5"
-                ShadowDepth="5" />
+                Opacity="0.25"
+                ShadowDepth="3" />
         </Border.Effect>
         <Border.Style>
             <Style TargetType="Border">
@@ -68,227 +69,216 @@
             </Style>
         </Border.Style>
         <Grid
-            Width="570"
-            Height="480"
-            Background="{StaticResource DarkBackgroundBrush}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="40" />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                BorderBrush="{StaticResource ButtonNormalBorder}"
-                BorderThickness="0,0,0,1">
-                <Grid ClipToBounds="True">
-                    <mahapps:ProgressRing x:Name="LoadingProgress" />
-                    <Viewbox
-                        Height="340"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Stretch="UniformToFill">
-                        <Image x:Name="ModListImage">
-                            <Image.Style>
-                                <Style TargetType="Image">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsBroken}" Value="True">
-                                            <Setter Property="Effect">
-                                                <Setter.Value>
-                                                    <BlurEffect Radius="35" />
-                                                </Setter.Value>
-                                            </Setter>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Image.Style>
-                        </Image>
-                    </Viewbox>
-                    <Ellipse
+            Width="327"
+            Height="184"
+            Background="Transparent">
+            <Grid ClipToBounds="True">
+                <mahapps:ProgressRing x:Name="LoadingProgress" />
+                <TextBlock Text="{Binding Metadata.Title}" VerticalAlignment="Bottom" FontSize="14" Margin="10, 0, 0, 10" Panel.ZIndex="1"/>
+                <Border
+                        BorderThickness="0"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch">
+                    <Border.Background>
+                        <ImageBrush x:Name="ModlistImage" Stretch="UniformToFill"/>
+                    </Border.Background>
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsBroken}" Value="True">
+                                    <Setter Property="Effect">
+                                        <Setter.Value>
+                                            <BlurEffect Radius="35" />
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                </Border>
+                <Ellipse
                         Height="120"
-                        Margin="-40,0,-40,-60"
-                        VerticalAlignment="Bottom"
-                        Fill="Black"
-                        Opacity="0.5">
-                        <Ellipse.Effect>
-                            <BlurEffect Radius="55" />
-                        </Ellipse.Effect>
-                        <Ellipse.Style>
-                            <Style TargetType="Ellipse">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
-                                        <DataTrigger.EnterActions>
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimation
+                        Margin="-80,-100,-80,0"
+                        VerticalAlignment="Top"
+                        Fill="White"
+                        Opacity="0.15">
+                    <Ellipse.Effect>
+                        <BlurEffect Radius="75" />
+                    </Ellipse.Effect>
+                    <Ellipse.Style>
+                        <Style TargetType="Ellipse">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
+                                    <DataTrigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
                                                         Storyboard.TargetProperty="Opacity"
-                                                        To="0.75"
+                                                        To="0.25"
                                                         Duration="0:0:0.08" />
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </DataTrigger.EnterActions>
-                                        <DataTrigger.ExitActions>
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimation
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.EnterActions>
+                                    <DataTrigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
                                                         Storyboard.TargetProperty="Opacity"
-                                                        To="0.5"
+                                                        To="0.15"
                                                         Duration="0:0:0.08" />
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </DataTrigger.ExitActions>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Ellipse.Style>
-                    </Ellipse>
-                    <Label
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.ExitActions>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Ellipse.Style>
+                </Ellipse>
+                <Label
                         Margin="10,242,0,0"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         Content="{Binding VersionText}"
                         Opacity="0">
-                        <Label.Style>
-                            <Style TargetType="Label">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
-                                        <DataTrigger.EnterActions>
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimation
+                    <Label.Style>
+                        <Style TargetType="Label">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
+                                    <DataTrigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
                                                         Storyboard.TargetProperty="Opacity"
                                                         To="1"
                                                         Duration="0:0:0.08" />
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </DataTrigger.EnterActions>
-                                        <DataTrigger.ExitActions>
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimation
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.EnterActions>
+                                    <DataTrigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
                                                         Storyboard.TargetProperty="Opacity"
                                                         To="0"
                                                         Duration="0:0:0.08" />
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </DataTrigger.ExitActions>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Label.Style>
-                    </Label>
-                    <Label
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.ExitActions>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Label.Style>
+                </Label>
+                <Label
                         Margin="10,257,0,0"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         Content="{Binding DownloadSizeText}"
                         Opacity="0">
-                        <Label.Style>
-                            <Style TargetType="Label">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
-                                        <DataTrigger.EnterActions>
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimation
+                    <Label.Style>
+                        <Style TargetType="Label">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
+                                    <DataTrigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
                                                         Storyboard.TargetProperty="Opacity"
                                                         To="1"
                                                         Duration="0:0:0.08" />
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </DataTrigger.EnterActions>
-                                        <DataTrigger.ExitActions>
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimation
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.EnterActions>
+                                    <DataTrigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
                                                         Storyboard.TargetProperty="Opacity"
                                                         To="0"
                                                         Duration="0:0:0.08" />
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </DataTrigger.ExitActions>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Label.Style>
-                    </Label>
-                    <Label
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.ExitActions>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Label.Style>
+                </Label>
+                <Label
                         Margin="10,272,0,0"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         Content="{Binding InstallSizeText}"
                         Opacity="0">
-                        <Label.Style>
-                            <Style TargetType="Label">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
-                                        <DataTrigger.EnterActions>
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimation
+                    <Label.Style>
+                        <Style TargetType="Label">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
+                                    <DataTrigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
                                                         Storyboard.TargetProperty="Opacity"
                                                         To="1"
                                                         Duration="0:0:0.08" />
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </DataTrigger.EnterActions>
-                                        <DataTrigger.ExitActions>
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimation
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.EnterActions>
+                                    <DataTrigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
                                                         Storyboard.TargetProperty="Opacity"
                                                         To="0"
                                                         Duration="0:0:0.08" />
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </DataTrigger.ExitActions>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Label.Style>
-                    </Label>
-                    <Label
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.ExitActions>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Label.Style>
+                </Label>
+                <Label
                         Margin="10,287,0,0"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         Content="{Binding TotalSizeRequirementText}"
                         Opacity="0">
-                        <Label.Style>
-                            <Style TargetType="Label">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
-                                        <DataTrigger.EnterActions>
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimation
+                    <Label.Style>
+                        <Style TargetType="Label">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
+                                    <DataTrigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
                                                         Storyboard.TargetProperty="Opacity"
                                                         To="1"
                                                         Duration="0:0:0.08" />
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </DataTrigger.EnterActions>
-                                        <DataTrigger.ExitActions>
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimation
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.EnterActions>
+                                    <DataTrigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
                                                         Storyboard.TargetProperty="Opacity"
                                                         To="0"
                                                         Duration="0:0:0.08" />
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </DataTrigger.ExitActions>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Label.Style>
-                    </Label>
-                </Grid>
-            </Border>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.ExitActions>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Label.Style>
+                </Label>
+            </Grid>
             <local:UnderMaintenanceOverlay Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                 x:Name="Overlay"
                 Visibility="Collapsed" />
+            <!--
             <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                 x:Name="ModListTitleShadow"
                 Margin="5"
@@ -402,8 +392,8 @@
                             Kind="Exclamation" />
                     </StackPanel>
                 </Button>
-
             </Grid>
+-->
         </Grid>
     </Border>
 </rxui:ReactiveUserControl>

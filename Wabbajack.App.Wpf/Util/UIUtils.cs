@@ -19,6 +19,9 @@ using Wabbajack.Extensions;
 using Wabbajack.Models;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using System.Drawing;
+using Catel.IO;
+using System.Drawing.Imaging;
 
 namespace Wabbajack
 {
@@ -35,6 +38,32 @@ namespace Wabbajack
             img.EndInit();
             img.Freeze();
             return img;
+        }
+
+        public static BitmapImage BitmapImageFromWebp(byte[] bytes, bool getThumbnail = false)
+        {
+            using(WebP webp = new())
+            {
+                Bitmap bitmap;
+                if (getThumbnail)
+                    bitmap = webp.GetThumbnailFast(bytes, 640, 360);
+                else
+                    bitmap = webp.Decode(bytes);
+
+                using(var ms = new MemoryStream())
+                {
+                    bitmap.Save(ms, ImageFormat.Png);
+                    ms.Position = 0;
+
+                    var img = new BitmapImage();
+                    img.BeginInit();
+                    img.CacheOption = BitmapCacheOption.OnLoad;
+                    img.StreamSource = ms;
+                    img.EndInit();
+                    img.Freeze();
+                    return img;
+                }
+            }
         }
 
         public static bool TryGetBitmapImageFromFile(AbsolutePath path, out BitmapImage bitmapImage)
@@ -95,7 +124,7 @@ namespace Wabbajack
                     try
                     {
                         var (found, mstream) = await FindCachedImage(url);
-                        if (found) return (ll, mstream);
+                        if (found) return (ll, mstream, url);
                         
                         var ret = new MemoryStream();
                         using (var client = new HttpClient())
@@ -107,21 +136,21 @@ namespace Wabbajack
                         ret.Seek(0, SeekOrigin.Begin);
 
                         await WriteCachedImage(url, ret.ToArray());
-                        return (ll, ret);
+                        return (ll, ret, url);
                     }
                     catch (Exception ex)
                     {
                         exceptionHandler(ex);
-                        return (ll, default);
+                        return (ll, default, url);
                     }
                 })
                 .Select(x =>
                 {
-                    var (ll, memStream) = x;
+                    var (ll, memStream, url) = x;
                     if (memStream == null) return default;
                     try
                     {
-                        return BitmapImageFromStream(memStream);
+                        return url.EndsWith("webp", StringComparison.InvariantCultureIgnoreCase) ? BitmapImageFromWebp(memStream.ToArray(), true) : BitmapImageFromStream(memStream);
                     }
                     catch (Exception ex)
                     {

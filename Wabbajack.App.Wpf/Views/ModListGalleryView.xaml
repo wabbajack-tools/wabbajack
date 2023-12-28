@@ -17,7 +17,7 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="3*" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Border Grid.Column="1"
             BorderBrush="Transparent"
@@ -137,25 +137,8 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <Grid Grid.Row="2" Margin="0, 10, 0, 0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <CheckBox
-                x:Name="ShowNSFW"
-                FontSize="7"
-                VerticalAlignment="Center"
-                Foreground="{StaticResource ForegroundBrush}"
-                ToolTip="Only show Not Safe For Work (NSFW) modlists">
-                    <CheckBox.LayoutTransform>
-                        <ScaleTransform ScaleX="1.6" ScaleY="1.6"/>
-                    </CheckBox.LayoutTransform>
-                </CheckBox>
-                <TextBlock Grid.Column="1" Margin="5, 0, 0, 0" Text="Show NSFW modlists" FontSize="14" VerticalAlignment="Center" />
-            </Grid>
 
-            <Grid Grid.Row="3" Margin="0, 10, 0, 0">
+            <Grid Grid.Row="2" Margin="0, 10, 0, 0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
@@ -170,6 +153,24 @@
                     </CheckBox.LayoutTransform>
                 </CheckBox>
                 <TextBlock Grid.Column="1" Margin="5, 0, 0, 0" Text="Show unofficial modlists" FontSize="14" VerticalAlignment="Center" />
+            </Grid>
+
+            <Grid Grid.Row="3" Margin="0, 10, 0, 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox
+                x:Name="ShowNSFW"
+                FontSize="7"
+                VerticalAlignment="Center"
+                Foreground="{StaticResource ForegroundBrush}"
+                ToolTip="Only show Not Safe For Work (NSFW) modlists">
+                    <CheckBox.LayoutTransform>
+                        <ScaleTransform ScaleX="1.6" ScaleY="1.6"/>
+                    </CheckBox.LayoutTransform>
+                </CheckBox>
+                <TextBlock Grid.Column="1" Margin="5, 0, 0, 0" Text="Show only NSFW modlists" FontSize="14" VerticalAlignment="Center" />
             </Grid>
 
             <Grid Grid.Row="4" Margin="0, 10, 0, 0">

@@ -133,7 +133,8 @@ namespace Wabbajack
                     {
                         if (string.IsNullOrWhiteSpace(txt)) return _ => true;
                         return item => item.Metadata.Title.ContainsCaseInsensitive(txt) ||
-                                       item.Metadata.Description.ContainsCaseInsensitive(txt);
+                                       item.Metadata.Description.ContainsCaseInsensitive(txt) ||
+                                       item.Metadata.Tags.Contains(txt);
                     });
 
                 var onlyInstalledGamesFilter = this.ObservableForProperty(vm => vm.OnlyInstalled)
@@ -169,12 +170,12 @@ namespace Wabbajack
                     })
                     .StartWith(_ => true);
 
-                var searchSorter = this.WhenValueChanged(x => x.Search)
-                                        .Where(x => !string.IsNullOrWhiteSpace(x))
+                var searchSorter = this.WhenValueChanged(vm => vm.Search)
+                                        .Where(s => !string.IsNullOrWhiteSpace(s))
                                         .Throttle(searchThrottle, RxApp.MainThreadScheduler)
                                         .Select(s => SortExpressionComparer<ModListMetadataVM>
-                                                     .Descending(modlist => modlist.Metadata.Title.StartsWith(s, StringComparison.InvariantCultureIgnoreCase))
-                                                     .ThenByDescending(modlist => modlist.Metadata.Title.Contains(s, StringComparison.InvariantCultureIgnoreCase)));
+                                                     .Descending(m => m.Metadata.Title.StartsWith(s, StringComparison.InvariantCultureIgnoreCase))
+                                                     .ThenByDescending(m => m.Metadata.Title.Contains(s, StringComparison.InvariantCultureIgnoreCase)));
                 _modLists.Connect()
                     .ObserveOn(RxApp.MainThreadScheduler)
                     .Filter(searchTextPredicates)
@@ -183,6 +184,7 @@ namespace Wabbajack
                     .Filter(showNSFWFilter)
                     .Filter(gameFilter)
                     .Sort(searchSorter)
+                    .Sort(SortExpressionComparer<ModListMetadataVM>.Descending(modlist => !modlist.IsBroken))
                     .TreatMovesAsRemoveAdd()
                     .Bind(out _filteredModLists)
                     .Subscribe((_) =>
