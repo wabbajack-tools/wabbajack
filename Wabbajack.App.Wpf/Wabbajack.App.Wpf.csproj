@@ -69,6 +69,12 @@
     <None Remove="Resources\Wabba_Mouth_Small.png" />
     <Compile Remove="ViewModels\Compilers\VortexCompilerVM.cs" />
     <Compile Remove="ViewModels\Installers\VortexInstallerVM.cs" />
+    <None Update="Resources\libwebp_x64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\libwebp_x86.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="VerbRegistration.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>VerbRegistration.cs</LastGenOutput>
