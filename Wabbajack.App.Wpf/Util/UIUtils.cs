@@ -150,7 +150,7 @@ namespace Wabbajack
                     if (memStream == null) return default;
                     try
                     {
-                        return url.EndsWith("webp", StringComparison.InvariantCultureIgnoreCase) ? BitmapImageFromWebp(memStream.ToArray(), true) : BitmapImageFromStream(memStream);
+                        return url.EndsWith("webp", StringComparison.InvariantCultureIgnoreCase) ? BitmapImageFromWebp(memStream.ToArray()) : BitmapImageFromStream(memStream);
                     }
                     catch (Exception ex)
                     {

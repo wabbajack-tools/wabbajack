@@ -1,5 +1,9 @@
 ### Changelog
 
+### Version - 4.0.0.0
+* The entire user interface has been reworked.
+ * Modlists with WebP images now load correctly on Windows installations without the WebP image extensions
+ * The search functionality has been improved to better show relevant searches on list titles
 #### Version - 3.3.1.0 - TBA
 * Fixed `--outputPath` not being used for the CLI `compile` (thanks to @majcosta for fixing that)
 * Improved Log message for cases where low storage on the drive Wabbajack is installed on causes compiles to fail
