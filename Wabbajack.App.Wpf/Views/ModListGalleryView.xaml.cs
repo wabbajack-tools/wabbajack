@@ -45,12 +45,16 @@ namespace Wabbajack
                     .DisposeWith(dispose);
 
 
-                this.WhenAny(x => x.SearchBox.Text)
-                    .Throttle(TimeSpan.FromSeconds(0.2), RxApp.TaskpoolScheduler)
+                /*
+                this.WhenAnyValue(x => x.ViewModel.Search)
+                    .Throttle(TimeSpan.FromSeconds(0.25), RxApp.TaskpoolScheduler)
                     .Select(x => x?.Trim())
-                    .BindToStrict(this, x => x.ViewModel.Search)
+                    .BindToStrict(this, x => x.SearchBox.Text)
                     .DisposeWith(dispose);
+                */
 
+                this.BindStrict(ViewModel, vm => vm.Search, x => x.SearchBox.Text)
+                    .DisposeWith(dispose);
                 this.BindStrict(ViewModel, vm => vm.OnlyInstalled, x => x.OnlyInstalledCheckbox.IsChecked)
                     .DisposeWith(dispose);
                 this.BindStrict(ViewModel, vm => vm.ShowNSFW, x => x.ShowNSFW.IsChecked)

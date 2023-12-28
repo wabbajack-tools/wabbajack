@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
+using DynamicData.Binding;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -91,6 +92,7 @@ namespace Wabbajack
             SettingsManager settingsManager, ModListDownloadMaintainer maintainer, CancellationToken cancellationToken)
             : base(logger)
         {
+            var searchThrottle = TimeSpan.FromSeconds(0.5);
             _wjClient = wjClient;
             _logger = logger;
             _locator = locator;
@@ -124,7 +126,8 @@ namespace Wabbajack
                     .DisposeWith(disposables);
 
                 var searchTextPredicates = this.ObservableForProperty(vm => vm.Search)
-                    .Select(change => change.Value)
+                    .Throttle(searchThrottle, RxApp.MainThreadScheduler)
+                    .Select(change => change.Value.Trim())
                     .StartWith(Search)
                     .Select<string, Func<ModListMetadataVM, bool>>(txt =>
                     {
@@ -166,6 +169,12 @@ namespace Wabbajack
                     })
                     .StartWith(_ => true);
 
+                var searchSorter = this.WhenValueChanged(x => x.Search)
+                                        .Where(x => !string.IsNullOrWhiteSpace(x))
+                                        .Throttle(searchThrottle, RxApp.MainThreadScheduler)
+                                        .Select(s => SortExpressionComparer<ModListMetadataVM>
+                                                     .Descending(modlist => modlist.Metadata.Title.StartsWith(s, StringComparison.InvariantCultureIgnoreCase))
+                                                     .ThenByDescending(modlist => modlist.Metadata.Title.Contains(s, StringComparison.InvariantCultureIgnoreCase)));
                 _modLists.Connect()
                     .ObserveOn(RxApp.MainThreadScheduler)
                     .Filter(searchTextPredicates)
@@ -173,6 +182,8 @@ namespace Wabbajack
                     .Filter(showUnofficial)
                     .Filter(showNSFWFilter)
                     .Filter(gameFilter)
+                    .Sort(searchSorter)
+                    .TreatMovesAsRemoveAdd()
                     .Bind(out _filteredModLists)
                     .Subscribe((_) =>
                     {
