@@ -48,7 +48,7 @@
     </UserControl.Resources>
     <Border
         x:Name="ModListTile"
-        Margin="8"
+        Margin="10, 0, 10, 16"
         Background="Transparent"
         CornerRadius="8"
         BorderThickness="0">
@@ -69,8 +69,8 @@
             </Style>
         </Border.Style>
         <Grid
-            Width="327"
-            Height="184"
+            Width="300"
+            Height="169"
             Background="Transparent">
             <Grid ClipToBounds="True">
                 <mahapps:ProgressRing x:Name="LoadingProgress" />

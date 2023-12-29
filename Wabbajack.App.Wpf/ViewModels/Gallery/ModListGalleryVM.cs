@@ -184,7 +184,6 @@ namespace Wabbajack
                     .Filter(showNSFWFilter)
                     .Filter(gameFilter)
                     .Sort(searchSorter)
-                    .Sort(SortExpressionComparer<ModListMetadataVM>.Descending(modlist => !modlist.IsBroken))
                     .TreatMovesAsRemoveAdd()
                     .Bind(out _filteredModLists)
                     .Subscribe((_) =>

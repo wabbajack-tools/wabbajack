@@ -64,7 +64,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <local:NavigationView Grid.Column="0" ViewModel="{Binding NavigationVM}" />
-            <Border Grid.Column="1" Margin="0" Background="{StaticResource ComplementaryBackgroundBrush}" x:Name="MainContent" Padding="28" CornerRadius="8">
+            <Border Grid.Column="1" Margin="0" Background="{StaticResource ComplementaryBackgroundBrush}" x:Name="MainContent" Padding="18" CornerRadius="8">
                     <ContentPresenter Content="{Binding ActivePane}" VerticalAlignment="Stretch">
                         <ContentPresenter.Resources>
                             <DataTemplate DataType="{x:Type local:CompilerVM}">

@@ -152,7 +152,7 @@
     <SolidColorBrush x:Key="ScrollViewerBackground" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="VerticalScrollBarBackground" Color="{StaticResource BackgroundColor}" />
     <SolidColorBrush x:Key="HorizontalScrollBarBackground" Color="{StaticResource BackgroundColor}" />
-    <SolidColorBrush x:Key="VerticalScrollBarThumb" Color="#808080" />
+    <SolidColorBrush x:Key="VerticalScrollBarThumb" Color="{StaticResource Primary}" />
     <SolidColorBrush x:Key="ScrollBarDisabledBackground" Color="{StaticResource BackgroundColor}" />
     <SolidColorBrush x:Key="ScrollBarHotThumb" Color="#CCCCCC" />
     <SolidColorBrush x:Key="ScrollBarSelectedThumb" Color="#E5E5E5" />
@@ -453,22 +453,22 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ScrollBar}">
                     <Grid
-                        x:Name="Bg"
-                        Background="{TemplateBinding Background}"
-                        SnapsToDevicePixels="true">
+                    x:Name="Bg"
+                    Background="{TemplateBinding Background}"
+                    SnapsToDevicePixels="true">
                         <Grid.RowDefinitions>
                             <RowDefinition MaxHeight="{DynamicResource {x:Static SystemParameters.VerticalScrollBarButtonHeightKey}}" />
                             <RowDefinition Height="0.00001*" />
                             <RowDefinition MaxHeight="{DynamicResource {x:Static SystemParameters.VerticalScrollBarButtonHeightKey}}" />
                         </Grid.RowDefinitions>
                         <RepeatButton
-                            Command="{x:Static ScrollBar.LineUpCommand}"
-                            IsEnabled="{TemplateBinding IsMouseOver}"
-                            Style="{StaticResource RepeatButtonUpStyle}" />
+                        Command="{x:Static ScrollBar.LineUpCommand}"
+                        IsEnabled="{TemplateBinding IsMouseOver}"
+                        Style="{StaticResource RepeatButtonUpStyle}" />
                         <Track Grid.Row="1"
-                            x:Name="PART_Track"
-                            IsDirectionReversed="true"
-                            IsEnabled="{TemplateBinding IsMouseOver}">
+                        x:Name="PART_Track"
+                        IsDirectionReversed="true"
+                        IsEnabled="{TemplateBinding IsMouseOver}">
                             <Track.DecreaseRepeatButton>
                                 <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}" Style="{StaticResource VerticalScrollBarPageButton}" />
                             </Track.DecreaseRepeatButton>
@@ -480,9 +480,9 @@
                             </Track.Thumb>
                         </Track>
                         <RepeatButton Grid.Row="2"
-                            Command="{x:Static ScrollBar.LineDownCommand}"
-                            IsEnabled="{TemplateBinding IsMouseOver}"
-                            Style="{DynamicResource RepeatButtonDownStyle}" />
+                        Command="{x:Static ScrollBar.LineDownCommand}"
+                        IsEnabled="{TemplateBinding IsMouseOver}"
+                        Style="{DynamicResource RepeatButtonDownStyle}" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsEnabled" Value="false">
