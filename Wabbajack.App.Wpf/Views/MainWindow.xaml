@@ -111,11 +111,6 @@
             </Button>
             <Button Grid.Column="1"
                     Style="{StaticResource IconBareButtonStyle}"
-                    Command="{Binding OpenSettingsCommand}">
-                <ic:SymbolIcon Symbol="Settings" FontSize="17"/>
-            </Button>
-            <Button Grid.Column="1"
-                    Style="{StaticResource IconBareButtonStyle}"
                     Command="{Binding MinimizeCommand}">
                 <ic:SymbolIcon Symbol="Subtract" FontSize="17"/>
             </Button>

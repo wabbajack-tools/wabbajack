@@ -86,8 +86,13 @@
                             </Border.Background>
                         </Border>
                         <Grid Margin="5, 0, 0, 0">
-                            <TextBlock x:Name="GameName" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding GameMetaData.HumanFriendlyGameName}" Panel.ZIndex="2"/>
-                            <Border Background="{StaticResource WindowBackgroundBrush}" Opacity="0.5" Width="{Binding ElementName=GameName, Path=ActualWidth,Converter={StaticResource MathConverter}, ConverterParameter=x+10}" Height="{Binding ElementName=GameIcon, Path=ActualHeight}" CornerRadius="6">
+                            <TextBlock x:Name="GameName"
+                                       Text="{Binding GameMetaData.HumanFriendlyGameName}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Opacity="0.85"
+                                       Panel.ZIndex="2"/>
+                            <Border Background="{StaticResource WindowBackgroundBrush}" Opacity="0.4" Width="{Binding ElementName=GameName, Path=ActualWidth,Converter={StaticResource MathConverter}, ConverterParameter=x+10}" Height="{Binding ElementName=GameIcon, Path=ActualHeight}" CornerRadius="6">
                             </Border>
                         </Grid>
                     </StackPanel>
@@ -112,17 +117,17 @@
                             </Style>
                         </Border.Style>
                     </Border>
-                    <Ellipse
+                    <Rectangle
                         Height="120"
-                        Margin="-80,-100,-80,0"
+                        Margin="-80, -75, -80, 0"
                         VerticalAlignment="Top"
                         Fill="White"
                         Opacity="0.15">
-                        <Ellipse.Effect>
-                            <BlurEffect Radius="75" />
-                        </Ellipse.Effect>
-                        <Ellipse.Style>
-                            <Style TargetType="Ellipse">
+                        <Rectangle.Effect>
+                            <BlurEffect Radius="100" />
+                        </Rectangle.Effect>
+                        <Rectangle.Style>
+                            <Style TargetType="Rectangle">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
                                         <DataTrigger.EnterActions>
@@ -130,7 +135,7 @@
                                                 <Storyboard>
                                                     <DoubleAnimation
                                                         Storyboard.TargetProperty="Opacity"
-                                                        To="0.25"
+                                                        To="0.3"
                                                         Duration="0:0:0.08" />
                                                 </Storyboard>
                                             </BeginStoryboard>
@@ -148,8 +153,46 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </Ellipse.Style>
-                    </Ellipse>
+                        </Rectangle.Style>
+                    </Rectangle>
+                    <Rectangle
+                        Height="120"
+                        Margin="-80, 0, -80, -75"
+                        VerticalAlignment="Bottom"
+                        Fill="Black"
+                        Opacity="0.4">
+                        <Rectangle.Effect>
+                            <BlurEffect Radius="100" />
+                        </Rectangle.Effect>
+                        <Rectangle.Style>
+                            <Style TargetType="Rectangle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
+                                        <DataTrigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation
+                                                        Storyboard.TargetProperty="Opacity"
+                                                        To="0.7"
+                                                        Duration="0:0:0.08" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.EnterActions>
+                                        <DataTrigger.ExitActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation
+                                                        Storyboard.TargetProperty="Opacity"
+                                                        To="0.4"
+                                                        Duration="0:0:0.08" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.ExitActions>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Rectangle.Style>
+                    </Rectangle>
                     <Label
                         Margin="10,242,0,0"
                         HorizontalAlignment="Left"
@@ -292,8 +335,9 @@
                     </Label>
                 </Grid>
                 <local:UnderMaintenanceOverlay Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                x:Name="Overlay"
-                Visibility="Collapsed" />
+                    x:Name="Overlay"
+                    Visibility="Collapsed"
+                    ClipToBounds="True" />
                 <!--
             <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                 x:Name="ModListTitleShadow"
