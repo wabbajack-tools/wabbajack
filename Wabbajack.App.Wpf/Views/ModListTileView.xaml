@@ -78,14 +78,27 @@
                 </Grid.OpacityMask>
                 <Grid ClipToBounds="True">
                     <mahapps:ProgressRing x:Name="LoadingProgress" />
-                    <TextBlock Text="{Binding Metadata.Title}" VerticalAlignment="Bottom" FontSize="14" Margin="10, 0, 0, 10" Panel.ZIndex="1"/>
+                    <TextBlock
+                        Text="{Binding Metadata.Title}"
+                        FontSize="16"
+                        VerticalAlignment="Bottom"
+                        Margin="10, 0, 0, 10"
+                        Panel.ZIndex="1">
+                        <TextBlock.Visibility>
+                            <MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="Or(!x, y) ? `Visible` : `Collapsed`">
+                                <Binding Path="Metadata.ImageContainsTitle" />
+                                <Binding ElementName="ModListTile" Path="IsMouseOver" />
+                            </MultiBinding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
                     <StackPanel Orientation="Horizontal" Margin="5, 5, 0, 0" VerticalAlignment="Top" HorizontalAlignment="Left" Panel.ZIndex="1">
                         <Border x:Name="GameIcon" Width="24" Height="24" CornerRadius="6">
                             <Border.Background>
                                 <ImageBrush Stretch="Fill" ImageSource="{Binding GameMetaData.IconSource}"/>
                             </Border.Background>
                         </Border>
-                        <Grid Margin="5, 0, 0, 0">
+                        <Grid Margin="5, 0, 0, 0"
+                              Visibility="{Binding ElementName=ModListTile, Path=IsMouseOver, Converter={StaticResource bool2VisibilityConverter}}">
                             <TextBlock x:Name="GameName"
                                        Text="{Binding GameMetaData.HumanFriendlyGameName}"
                                        HorizontalAlignment="Center"
