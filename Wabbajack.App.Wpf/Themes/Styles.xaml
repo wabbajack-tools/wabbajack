@@ -154,8 +154,8 @@
     <SolidColorBrush x:Key="HorizontalScrollBarBackground" Color="{StaticResource BackgroundColor}" />
     <SolidColorBrush x:Key="VerticalScrollBarThumb" Color="{StaticResource Primary}" />
     <SolidColorBrush x:Key="ScrollBarDisabledBackground" Color="{StaticResource BackgroundColor}" />
-    <SolidColorBrush x:Key="ScrollBarHotThumb" Color="#CCCCCC" />
-    <SolidColorBrush x:Key="ScrollBarSelectedThumb" Color="#E5E5E5" />
+    <SolidColorBrush x:Key="ScrollBarHotThumb" Color="{StaticResource Primary}" />
+    <SolidColorBrush x:Key="ScrollBarSelectedThumb" Color="{StaticResource PrimaryVariant}" />
     <SolidColorBrush x:Key="CornerBorder" Color="{StaticResource DarkBackgroundColor}" />
 
     <SolidColorBrush x:Key="TextBoxBorder" Color="{StaticResource DarkBackgroundColor}" />
