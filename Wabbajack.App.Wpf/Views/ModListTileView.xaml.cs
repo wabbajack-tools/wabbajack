@@ -7,6 +7,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using MahApps.Metro.IconPacks;
 using ReactiveUI;
+using Wabbajack.DTOs;
 
 namespace Wabbajack
 {
@@ -23,6 +24,7 @@ namespace Wabbajack
                 ViewModel.WhenAnyValue(vm => vm.Image)
                          .BindToStrict(this, v => v.ModlistImage.ImageSource)
                          .DisposeWith(disposables);
+                        
                 /*
                 this.WhenAny(x => x.ViewModel.Metadata.Links.ImageUri)
                     .Select(x => new BitmapImage() { UriSource = new Uri(x) })

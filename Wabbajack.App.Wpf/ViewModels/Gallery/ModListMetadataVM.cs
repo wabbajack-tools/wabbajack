@@ -24,6 +24,7 @@ using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated.Services;
+using System.Windows.Media;
 
 namespace Wabbajack
 {
@@ -86,6 +87,9 @@ namespace Wabbajack
         public bool ImageContainsTitle { get; private set; }
 
         [Reactive]
+        public GameMetaData GameMetaData { get; private set; }
+
+        [Reactive]
 
         public bool DisplayVersionOnlyInInstallerView { get; private set; }
 
@@ -113,6 +117,8 @@ namespace Wabbajack
             Metadata = metadata;
             _wjClient = wjClient;
             _cancellationToken = cancellationToken;
+
+            GameMetaData = Metadata.Game.MetaData();
             Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.NamespacedName).WithExtension(Ext.Wabbajack);
             ModListTagList = new List<ModListTag>();
             
@@ -122,7 +128,7 @@ namespace Wabbajack
             {
                 ModListTagList.Add(new ModListTag(tag));
             });
-            ModListTagList.Add(new ModListTag(metadata.Game.MetaData().HumanFriendlyGameName));
+            ModListTagList.Add(new ModListTag(GameMetaData.HumanFriendlyGameName));
 
             DownloadSizeText = "Download size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
             InstallSizeText = "Installation size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
