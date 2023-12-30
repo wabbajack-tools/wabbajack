@@ -16,6 +16,7 @@ using Wabbajack.DTOs;
 using Microsoft.Extensions.Logging;
 using System.Reactive.Disposables;
 using System.Diagnostics;
+using DynamicData;
 
 namespace Wabbajack
 {
@@ -23,6 +24,7 @@ namespace Wabbajack
     {
         private readonly ILogger<HomeVM> _logger;
         private readonly Client _wjClient;
+        private readonly SourceCache<ModListMetadataVM, string> _modLists = new(x => x.Metadata.NamespacedName);
 
         public HomeVM(ILogger<HomeVM> logger, Client wjClient)
         {
@@ -37,23 +39,28 @@ namespace Wabbajack
                 };
                 Process.Start(processStartInfo);
             });
-            this.WhenActivated(async disposables =>
-            {
-                try
-                {
-                    Modlists = await _wjClient.LoadLists().DisposeWith(disposables);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "While loading lists");
-                }
-            });
+            LoadModLists().FireAndForget();
         }
+        private async Task LoadModLists()
+        {
+            using var ll = LoadingLock.WithLoading();
+            try
+            {
+                Modlists = await _wjClient.LoadLists();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "While loading lists");
+                ll.Fail();
+            }
+            ll.Succeed();
+        }
+
         public ICommand VisitModlistWizardCommand { get; }
         public ICommand BrowseCommand { get; }
         public ReactiveCommand<Unit, Unit> UpdateCommand { get; }
 
         [Reactive]
-        public ModlistMetadata[] Modlists { get; set; }
+        public ModlistMetadata[] Modlists { get; private set; }
     }
 }
