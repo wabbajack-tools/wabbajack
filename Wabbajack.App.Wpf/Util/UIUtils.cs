@@ -22,6 +22,8 @@ using Wabbajack.Paths.IO;
 using System.Drawing;
 using Catel.IO;
 using System.Drawing.Imaging;
+using System.Linq;
+using System.Data;
 
 namespace Wabbajack
 {
@@ -150,7 +152,20 @@ namespace Wabbajack
                     if (memStream == null) return default;
                     try
                     {
-                        return url.EndsWith("webp", StringComparison.InvariantCultureIgnoreCase) ? BitmapImageFromWebp(memStream.ToArray()) : BitmapImageFromStream(memStream);
+                        // System.Windows.Media.Imaging does not include WebP support by default, it falls back onto Windows Imaging Components (WIC) if it's a format that's not supported.
+                        // Only the latest Windows versions seem to include a new version of WIC that has WebP support, so fallback on libwebp to support all Windows installations
+                        // Also the Nexus image CDN has files ending with PNG/JPEG but they're actually encoded as WebP, so use this method for Nexus aswell
+                        bool isWebp = url.EndsWith("webp", StringComparison.InvariantCultureIgnoreCase) || url.Contains("staticdelivery.nexusmods.com");
+                        try
+                        {
+                            return BitmapImageFromStream(memStream);
+                        }
+                        catch(NotSupportedException)
+                        {
+                            if (isWebp)
+                                return BitmapImageFromWebp(memStream.ToArray());
+                            throw;
+                        }
                     }
                     catch (Exception ex)
                     {
