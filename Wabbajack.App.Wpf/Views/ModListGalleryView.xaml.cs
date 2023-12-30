@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows;
@@ -22,6 +23,19 @@ namespace Wabbajack
                 this.WhenAny(x => x.ViewModel.ModLists)
                     .BindToStrict(this, x => x.ModListGalleryControl.ItemsSource)
                     .DisposeWith(dispose);
+
+                this.WhenAny(x => x.ViewModel.MinSizeModlist)
+                    .Where(x => x != null)
+                    .Select(modlist => Math.Round(modlist.Metadata.DownloadMetadata.TotalSize / Math.Pow(1024, 3), 1))
+                    .BindToStrict(this, x => x.SizeSliderFilter.Minimum)
+                    .DisposeWith(dispose);
+
+                this.WhenAny(x => x.ViewModel.MaxSizeModlist)
+                    .Where(x => x != null)
+                    .Select(modlist => Math.Round(modlist.Metadata.DownloadMetadata.TotalSize / Math.Pow(1024, 3), 1))
+                    .BindToStrict(this, x => x.SizeSliderFilter.Maximum)
+                    .DisposeWith(dispose);
+
                 
                 this.WhenAny(x => x.ViewModel.LoadingLock.IsLoading)
                     .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
@@ -60,6 +74,10 @@ namespace Wabbajack
                 this.BindStrict(ViewModel, vm => vm.ShowNSFW, x => x.ShowNSFW.IsChecked)
                     .DisposeWith(dispose);
                 this.BindStrict(ViewModel, vm => vm.ShowUnofficialLists, x => x.ShowUnofficialLists.IsChecked)
+                    .DisposeWith(dispose);
+                this.BindStrict(ViewModel, vm => vm.MinSizeFilter, x => x.SizeSliderFilter.LowerValue)
+                    .DisposeWith(dispose);
+                this.BindStrict(ViewModel, vm => vm.MaxSizeFilter, x => x.SizeSliderFilter.UpperValue)
                     .DisposeWith(dispose);
 
                 this.WhenAny(x => x.ViewModel.ClearFiltersCommand)

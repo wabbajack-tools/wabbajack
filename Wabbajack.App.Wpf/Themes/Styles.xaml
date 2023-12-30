@@ -87,7 +87,7 @@
     <SolidColorBrush
         x:Key="MahApps.Brushes.AccentBase"
         options:Freeze="True"
-        Color="{StaticResource MahApps.Colors.AccentBase}" />
+        Color="{StaticResource Primary}" />
     <SolidColorBrush
         x:Key="MahApps.Brushes.Accent"
         options:Freeze="True"

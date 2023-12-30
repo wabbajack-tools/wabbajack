@@ -114,7 +114,7 @@ namespace Wabbajack
 
             _resourceMonitor.Updates
                 .Select(r => string.Join(", ", r.Where(r => r.Throughput > 0)
-                    .Select(s => $"{s.Name} - {s.Throughput.ToFileSizeString()}/sec")))
+                    .Select(s => $"{s.Name} - {s.Throughput.ToFileSizeString()}/s")))
                 .BindToStrict(this, view => view.ResourceStatus);
 
 

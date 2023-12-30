@@ -46,6 +46,11 @@ namespace Wabbajack
         [Reactive] public bool ShowUnofficialLists { get; set; }
 
         [Reactive] public string GameType { get; set; }
+        [Reactive] public double MinSizeFilter { get; set; }
+        [Reactive] public double MaxSizeFilter { get; set; }
+
+        [Reactive] public ModListMetadataVM MinSizeModlist { get; set; }
+        [Reactive] public ModListMetadataVM MaxSizeModlist { get; set; }
 
         public class GameTypeEntry
         {
@@ -67,6 +72,8 @@ namespace Wabbajack
 
         [Reactive] public List<GameTypeEntry> GameTypeEntries { get; set; }
         private bool _filteringOnGame;
+        private bool _filteringOnMinSize;
+        private bool _filteringOnMaxSize;
         private GameTypeEntry _selectedGameTypeEntry = null;
 
         public GameTypeEntry SelectedGameTypeEntry
@@ -170,12 +177,29 @@ namespace Wabbajack
                     })
                     .StartWith(_ => true);
 
+                var minSizeFilter = this.ObservableForProperty(vm => vm.MinSizeFilter)
+                                     .Select(v => v.Value)
+                                     .Select<double, Func<ModListMetadataVM, bool>>(minSize =>
+                                     {
+                                         _filteringOnMinSize = true;
+                                         return item => item.Metadata.DownloadMetadata.TotalSize > (minSize * Math.Pow(1024, 3));
+                                     });
+
+                var maxSizeFilter = this.ObservableForProperty(vm => vm.MaxSizeFilter)
+                                     .Select(v => v.Value)
+                                     .Select<double, Func<ModListMetadataVM, bool>>(maxSize =>
+                                     {
+                                         _filteringOnMaxSize = true;
+                                         return item => item.Metadata.DownloadMetadata.TotalSize < (maxSize * Math.Pow(1024, 3));
+                                     });
+                                    
+
                 var searchSorter = this.WhenValueChanged(vm => vm.Search)
-                                        .Where(s => !string.IsNullOrWhiteSpace(s))
                                         .Throttle(searchThrottle, RxApp.MainThreadScheduler)
                                         .Select(s => SortExpressionComparer<ModListMetadataVM>
                                                      .Descending(m => m.Metadata.Title.StartsWith(s, StringComparison.InvariantCultureIgnoreCase))
-                                                     .ThenByDescending(m => m.Metadata.Title.Contains(s, StringComparison.InvariantCultureIgnoreCase)));
+                                                     .ThenByDescending(m => m.Metadata.Title.Contains(s, StringComparison.InvariantCultureIgnoreCase))
+                                                     .ThenByDescending(m => !m.IsBroken));
                 _modLists.Connect()
                     .ObserveOn(RxApp.MainThreadScheduler)
                     .Filter(searchTextPredicates)
@@ -183,6 +207,8 @@ namespace Wabbajack
                     .Filter(showUnofficial)
                     .Filter(showNSFWFilter)
                     .Filter(gameFilter)
+                    .Filter(minSizeFilter)
+                    .Filter(maxSizeFilter)
                     .Sort(searchSorter)
                     .TreatMovesAsRemoveAdd()
                     .Bind(out _filteredModLists)
@@ -196,7 +222,16 @@ namespace Wabbajack
                             var nextEntry = GameTypeEntries.FirstOrDefault(gte => previousGameType == gte.GameIdentifier);
                             SelectedGameTypeEntry = nextEntry != default ? nextEntry : GameTypeEntries.FirstOrDefault(gte => GameType == ALL_GAME_IDENTIFIER);
                         }
+                        /*
+                        if (!_filteringOnMinSize)
+                            MinSizeModlist = ModLists.MinBy(ml => ml.Metadata.DownloadMetadata.TotalSize);
+                        if(!_filteringOnMaxSize)
+                            MaxSizeModlist = ModLists.MaxBy(ml => ml.Metadata.DownloadMetadata.TotalSize);
+                        */
+
                         _filteringOnGame = false;
+                        _filteringOnMinSize = false;
+                        _filteringOnMaxSize = false;
                     })
                     .DisposeWith(disposables);
             });
@@ -255,6 +290,8 @@ namespace Wabbajack
                     e.AddOrUpdate(modLists.Select(m =>
                         new ModListMetadataVM(_logger, this, m, _maintainer, _wjClient, _cancellationToken)));
                 });
+                MinSizeModlist = _modLists.Items.Any() ? _modLists.Items.MinBy(ml => ml.Metadata.DownloadMetadata.TotalSize) : null;
+                MaxSizeModlist = _modLists.Items.Any() ? _modLists.Items.MaxBy(ml => ml.Metadata.DownloadMetadata.TotalSize) : null;
             }
             catch (Exception ex)
             {

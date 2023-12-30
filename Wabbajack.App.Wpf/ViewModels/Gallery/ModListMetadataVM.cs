@@ -132,9 +132,7 @@ namespace Wabbajack
 
             DownloadSizeText = "Download size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
             InstallSizeText = "Installation size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
-            TotalSizeRequirementText =  "Total size requirement: " + UIUtils.FormatBytes(
-                    Metadata.DownloadMetadata.SizeOfArchives + Metadata.DownloadMetadata.SizeOfInstalledFiles
-                );
+            TotalSizeRequirementText =  "Total size requirement: " + UIUtils.FormatBytes( Metadata.DownloadMetadata.TotalSize );
             VersionText = "Modlist version : " + Metadata.Version;
             ImageContainsTitle = Metadata.ImageContainsTitle;
             DisplayVersionOnlyInInstallerView = Metadata.DisplayVersionOnlyInInstallerView;
@@ -181,8 +179,9 @@ namespace Wabbajack
                 })
                 .ToGuiProperty(this, nameof(Exists));
 
-            var imageObs = Observable.Return(Metadata.ValidationSummary.SmallImage.ToString())
-                .DownloadBitmapImage((ex) => _logger.LogError("Error downloading modlist image {Title} from {ImageUri}: {Exception}", Metadata.Title, Metadata.ValidationSummary.SmallImage, ex.Message), LoadingImageLock);
+            var modlistImageSource = Metadata.ValidationSummary?.SmallImage?.ToString() ?? Metadata.Links.ImageUri;
+            var imageObs = Observable.Return(modlistImageSource)
+                .DownloadBitmapImage((ex) => _logger.LogError("Error downloading modlist image {Title} from {ImageUri}: {Exception}", Metadata.Title, modlistImageSource, ex.Message), LoadingImageLock);
 
             _Image = imageObs
                 .ToGuiProperty(this, nameof(Image));
