@@ -72,8 +72,6 @@ namespace Wabbajack
 
         [Reactive] public List<GameTypeEntry> GameTypeEntries { get; set; }
         private bool _filteringOnGame;
-        private bool _filteringOnMinSize;
-        private bool _filteringOnMaxSize;
         private GameTypeEntry _selectedGameTypeEntry = null;
 
         public GameTypeEntry SelectedGameTypeEntry
@@ -181,16 +179,20 @@ namespace Wabbajack
                                      .Select(v => v.Value)
                                      .Select<double, Func<ModListMetadataVM, bool>>(minSize =>
                                      {
-                                         _filteringOnMinSize = true;
-                                         return item => item.Metadata.DownloadMetadata.TotalSize > (minSize * Math.Pow(1024, 3));
+                                         return item =>
+                                         {
+                                             return item.Metadata.DownloadMetadata.TotalSize >= minSize;
+                                         };
                                      });
 
                 var maxSizeFilter = this.ObservableForProperty(vm => vm.MaxSizeFilter)
                                      .Select(v => v.Value)
                                      .Select<double, Func<ModListMetadataVM, bool>>(maxSize =>
                                      {
-                                         _filteringOnMaxSize = true;
-                                         return item => item.Metadata.DownloadMetadata.TotalSize < (maxSize * Math.Pow(1024, 3));
+                                         return item =>
+                                         {
+                                             return item.Metadata.DownloadMetadata.TotalSize <= maxSize;
+                                         };
                                      });
                                     
 
@@ -222,16 +224,8 @@ namespace Wabbajack
                             var nextEntry = GameTypeEntries.FirstOrDefault(gte => previousGameType == gte.GameIdentifier);
                             SelectedGameTypeEntry = nextEntry != default ? nextEntry : GameTypeEntries.FirstOrDefault(gte => GameType == ALL_GAME_IDENTIFIER);
                         }
-                        /*
-                        if (!_filteringOnMinSize)
-                            MinSizeModlist = ModLists.MinBy(ml => ml.Metadata.DownloadMetadata.TotalSize);
-                        if(!_filteringOnMaxSize)
-                            MaxSizeModlist = ModLists.MaxBy(ml => ml.Metadata.DownloadMetadata.TotalSize);
-                        */
 
                         _filteringOnGame = false;
-                        _filteringOnMinSize = false;
-                        _filteringOnMaxSize = false;
                     })
                     .DisposeWith(disposables);
             });
