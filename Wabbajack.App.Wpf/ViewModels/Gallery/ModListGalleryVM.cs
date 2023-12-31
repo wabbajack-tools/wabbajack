@@ -175,24 +175,18 @@ namespace Wabbajack
                     })
                     .StartWith(_ => true);
 
-                var minSizeFilter = this.ObservableForProperty(vm => vm.MinModlistSize)
+                var minModlistSizeFilter = this.ObservableForProperty(vm => vm.MinModlistSize)
                                      .Select(v => v.Value)
-                                     .Select<double, Func<ModListMetadataVM, bool>>(minSize =>
+                                     .Select<double, Func<ModListMetadataVM, bool>>(minModlistSize =>
                                      {
-                                         return item =>
-                                         {
-                                             return item.Metadata.DownloadMetadata.TotalSize >= minSize;
-                                         };
+                                         return item => item.Metadata.DownloadMetadata.TotalSize >= minModlistSize;
                                      });
 
-                var maxSizeFilter = this.ObservableForProperty(vm => vm.MaxModlistSize)
+                var maxModlistSizeFilter = this.ObservableForProperty(vm => vm.MaxModlistSize)
                                      .Select(v => v.Value)
                                      .Select<double, Func<ModListMetadataVM, bool>>(maxSize =>
                                      {
-                                         return item =>
-                                         {
-                                             return item.Metadata.DownloadMetadata.TotalSize <= maxSize;
-                                         };
+                                         return item => item.Metadata.DownloadMetadata.TotalSize <= maxSize;
                                      });
                                     
 
@@ -209,8 +203,8 @@ namespace Wabbajack
                     .Filter(showUnofficial)
                     .Filter(showNSFWFilter)
                     .Filter(gameFilter)
-                    .Filter(minSizeFilter)
-                    .Filter(maxSizeFilter)
+                    .Filter(minModlistSizeFilter)
+                    .Filter(maxModlistSizeFilter)
                     .Sort(searchSorter)
                     .TreatMovesAsRemoveAdd()
                     .Bind(out _filteredModLists)
