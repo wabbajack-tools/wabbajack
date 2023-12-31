@@ -19,13 +19,13 @@ namespace Wabbajack
                     .BindToStrict(this, x => x.ModListGalleryControl.ItemsSource)
                     .DisposeWith(dispose);
 
-                this.WhenAny(x => x.ViewModel.MinSizeModlist)
+                this.WhenAny(x => x.ViewModel.SmallestSizedModlist)
                     .Where(x => x != null)
                     .Select(x => x.Metadata.DownloadMetadata.TotalSize / Math.Pow(1024, 3))
                     .BindToStrict(this, x => x.SizeSliderFilter.Minimum)
                     .DisposeWith(dispose);
 
-                this.WhenAny(x => x.ViewModel.MaxSizeModlist)
+                this.WhenAny(x => x.ViewModel.LargestSizedModlist)
                     .Where(x => x != null)
                     .Select(x => x.Metadata.DownloadMetadata.TotalSize / Math.Pow(1024, 3))
                     .BindToStrict(this, x => x.SizeSliderFilter.Maximum)

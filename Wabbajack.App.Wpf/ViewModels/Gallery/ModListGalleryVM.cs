@@ -49,8 +49,8 @@ namespace Wabbajack
         [Reactive] public double MinModlistSize { get; set; }
         [Reactive] public double MaxModlistSize { get; set; }
 
-        [Reactive] public ModListMetadataVM MinSizeModlist { get; set; }
-        [Reactive] public ModListMetadataVM MaxSizeModlist { get; set; }
+        [Reactive] public ModListMetadataVM SmallestSizedModlist { get; set; }
+        [Reactive] public ModListMetadataVM LargestSizedModlist { get; set; }
 
         public class GameTypeEntry
         {
@@ -286,8 +286,8 @@ namespace Wabbajack
                     e.AddOrUpdate(modLists.Select(m =>
                         new ModListMetadataVM(_logger, this, m, _maintainer, _wjClient, _cancellationToken)));
                 });
-                MinSizeModlist = _modLists.Items.Any() ? _modLists.Items.MinBy(ml => ml.Metadata.DownloadMetadata.TotalSize) : null;
-                MaxSizeModlist = _modLists.Items.Any() ? _modLists.Items.MaxBy(ml => ml.Metadata.DownloadMetadata.TotalSize) : null;
+                SmallestSizedModlist = _modLists.Items.Any() ? _modLists.Items.MinBy(ml => ml.Metadata.DownloadMetadata.TotalSize) : null;
+                LargestSizedModlist = _modLists.Items.Any() ? _modLists.Items.MaxBy(ml => ml.Metadata.DownloadMetadata.TotalSize) : null;
             }
             catch (Exception ex)
             {
