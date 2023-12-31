@@ -46,8 +46,8 @@ namespace Wabbajack
         [Reactive] public bool ShowUnofficialLists { get; set; }
 
         [Reactive] public string GameType { get; set; }
-        [Reactive] public double MinSizeFilter { get; set; }
-        [Reactive] public double MaxSizeFilter { get; set; }
+        [Reactive] public double MinModlistSize { get; set; }
+        [Reactive] public double MaxModlistSize { get; set; }
 
         [Reactive] public ModListMetadataVM MinSizeModlist { get; set; }
         [Reactive] public ModListMetadataVM MaxSizeModlist { get; set; }
@@ -130,6 +130,8 @@ namespace Wabbajack
                 Disposable.Create(() => SaveSettings().FireAndForget())
                     .DisposeWith(disposables);
 
+                this.ObservableForProperty(vm => vm.MinModlistSize)
+
                 var searchTextPredicates = this.ObservableForProperty(vm => vm.Search)
                     .Throttle(searchThrottle, RxApp.MainThreadScheduler)
                     .Select(change => change.Value.Trim())
@@ -175,7 +177,7 @@ namespace Wabbajack
                     })
                     .StartWith(_ => true);
 
-                var minSizeFilter = this.ObservableForProperty(vm => vm.MinSizeFilter)
+                var minSizeFilter = this.ObservableForProperty(vm => vm.MinModlistSize)
                                      .Select(v => v.Value)
                                      .Select<double, Func<ModListMetadataVM, bool>>(minSize =>
                                      {
@@ -185,7 +187,7 @@ namespace Wabbajack
                                          };
                                      });
 
-                var maxSizeFilter = this.ObservableForProperty(vm => vm.MaxSizeFilter)
+                var maxSizeFilter = this.ObservableForProperty(vm => vm.MaxModlistSize)
                                      .Select(v => v.Value)
                                      .Select<double, Func<ModListMetadataVM, bool>>(maxSize =>
                                      {
