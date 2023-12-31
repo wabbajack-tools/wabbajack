@@ -130,8 +130,6 @@ namespace Wabbajack
                 Disposable.Create(() => SaveSettings().FireAndForget())
                     .DisposeWith(disposables);
 
-                this.ObservableForProperty(vm => vm.MinModlistSize)
-
                 var searchTextPredicates = this.ObservableForProperty(vm => vm.Search)
                     .Throttle(searchThrottle, RxApp.MainThreadScheduler)
                     .Select(change => change.Value.Trim())
