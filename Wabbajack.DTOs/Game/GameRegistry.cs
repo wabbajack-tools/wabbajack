@@ -546,9 +546,10 @@ public static class GameRegistry
                 IsGenericMO2Plugin = true,
                 RequiredFiles = new []
                 {
-                    @"ff7remake.exe".ToRelativePath()
+                    @"End\Binaries\Win64\ff7remake_.exe".ToRelativePath(),
+                    @"ff7remake_.exe".ToRelativePath()
                 },
-                MainExecutable = @"ff7remake.exe".ToRelativePath()
+                MainExecutable = @"End\Binaries\Win64\ff7remake_.exe"ToRelativePath()
             }
         },
         {
