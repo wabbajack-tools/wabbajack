@@ -549,7 +549,7 @@ public static class GameRegistry
                     @"End\Binaries\Win64\ff7remake_.exe".ToRelativePath(),
                     @"ff7remake_.exe".ToRelativePath()
                 },
-                MainExecutable = @"End\Binaries\Win64\ff7remake_.exe"ToRelativePath()
+                MainExecutable = @"End\Binaries\Win64\ff7remake_.exe".ToRelativePath()
             }
         },
         {
