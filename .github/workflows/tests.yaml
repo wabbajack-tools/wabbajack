@@ -71,6 +71,7 @@ jobs:
           - Wabbajack.Compiler
           - Wabbajack.Compression.BSA
           - Wabbajack.Compression.Zip
+          - Wabbajack.Configuration
           - Wabbajack.Downloaders.Bethesda
           - Wabbajack.Downloaders.Dispatcher
           - Wabbajack.Downloaders.GameFile
