@@ -14,6 +14,7 @@
 * Added Support for Baldur's Gate 3 
   * Very Work in Progress
   * **NOT** Plug and Play for compiling and installing!
+* Fixed a logging error when closing the App without a `temp` folder to delete
 
 #### Version - 3.4.0.0 - 11/19/2023
 * Fixed `--outputPath` not being used for the CLI `compile` (thanks to @majcosta for fixing that)
