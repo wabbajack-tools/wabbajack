@@ -1,7 +1,7 @@
 ### Changelog
 
 #### Version - TBD
-* Updated GameFinder
+* Updated GameFinder to 4.1.0
   * Fixes Wabbajack not Launching on some systems
 * Added the GameFinder module for EA Desktop
   * Only `Dragon Age: Origins` & `Dragon Age: Inquisition` supported for now.
