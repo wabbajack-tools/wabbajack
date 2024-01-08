@@ -357,6 +357,22 @@ public static class GameRegistry
                 MO2Name = "Dragon Age: Origins",
                 SteamIDs = new[] {47810},
                 OriginIDs = new[] {"DR:169789300", "DR:208591800"},
+                EADesktopIDs = new [] // Possibly Wrong
+                {
+                    "9df89a8e-b201-4507-8a8d-bd6799fedb18",
+                    "Origin.SFT.50.0000078", 
+                    "Origin.SFT.50.0000078",
+                    "Origin.SFT.50.0000078",
+                    "Origin.SFT.50.0000085",
+                    "Origin.SFT.50.0000086",
+                    "Origin.SFT.50.0000087",
+                    "Origin.SFT.50.0000088",
+                    "Origin.SFT.50.0000089",
+                    "Origin.SFT.50.0000090",
+                    "Origin.SFT.50.0000091",
+                    "Origin.SFT.50.0000097",
+                    "Origin.SFT.50.0000098"
+                },
                 GOGIDs = new long[] {1949616134},
                 RequiredFiles = new[]
                 {
@@ -374,6 +390,22 @@ public static class GameRegistry
                 MO2Name = "Dragon Age 2", // Probably wrong
                 SteamIDs = new[] {1238040},
                 OriginIDs = new[] {"OFB-EAST:59474", "DR:201797000"},
+                EADesktopIDs = new [] // Possibly Wrong
+                {
+                    "Origin.SFT.50.0000073",
+                    "Origin.SFT.50.0000255",
+                    "Origin.SFT.50.0000256",
+                    "Origin.SFT.50.0000257",
+                    "Origin.SFT.50.0000288",
+                    "Origin.SFT.50.0000310",
+                    "Origin.SFT.50.0000311",
+                    "Origin.SFT.50.0000356",
+                    "Origin.SFT.50.0000385",
+                    "Origin.SFT.50.0000429",
+                    "Origin.SFT.50.0000449",
+                    "Origin.SFT.50.0000452",
+                    "Origin.SFT.50.0000453"
+                },
                 RequiredFiles = new[]
                 {
                     @"bin_ship\DragonAge2.exe".ToRelativePath()

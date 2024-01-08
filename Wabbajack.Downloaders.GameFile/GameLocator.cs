@@ -1,6 +1,8 @@
 using System.Runtime.InteropServices;
 using GameFinder.Common;
 using GameFinder.RegistryUtils;
+using GameFinder.StoreHandlers.EADesktop;
+using GameFinder.StoreHandlers.EADesktop.Crypto.Windows;
 using GameFinder.StoreHandlers.EGS;
 using GameFinder.StoreHandlers.GOG;
 using GameFinder.StoreHandlers.Origin;
@@ -20,12 +22,14 @@ public class GameLocator : IGameLocator
     private readonly GOGHandler? _gog;
     private readonly EGSHandler? _egs;
     private readonly OriginHandler? _origin;
+    private readonly EADesktopHandler? _eaDesktop;
 
     private readonly Dictionary<AppId, AbsolutePath> _steamGames = new();
     private readonly Dictionary<GOGGameId, AbsolutePath> _gogGames = new();
     private readonly Dictionary<EGSGameId, AbsolutePath> _egsGames = new();
     private readonly Dictionary<OriginGameId, AbsolutePath> _originGames = new();
-
+    private readonly Dictionary<EADesktopGameId, AbsolutePath> _eaDesktopGames = new();
+    
     private readonly Dictionary<Game, AbsolutePath> _locationCache;
     private readonly ILogger<GameLocator> _logger;
 
@@ -42,6 +46,7 @@ public class GameLocator : IGameLocator
             _gog = new GOGHandler(windowsRegistry, fileSystem);
             _egs = new EGSHandler(windowsRegistry, fileSystem);
             _origin = new OriginHandler(fileSystem);
+            _eaDesktop = new EADesktopHandler(fileSystem, new HardwareInfoProvider());
         }
         else
         {
@@ -89,6 +94,14 @@ public class GameLocator : IGameLocator
         catch (Exception e)
         {
             _logger.LogError(e, "While finding games installed with Origin");
+        }
+        try
+        {
+            FindStoreGames(_eaDesktop, _eaDesktopGames, game => (AbsolutePath)game.BaseInstallPath.GetFullPath());
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "While finding games installed with EADesktop");
         }
     }
 
@@ -186,6 +199,13 @@ public class GameLocator : IGameLocator
         foreach (var id in metaData.OriginIDs)
         {
             if (!_originGames.TryGetValue(OriginGameId.From(id), out var found)) continue;
+            path = found;
+            return true;
+        }
+        
+        foreach (var id in metaData.EADesktopIDs)
+        {
+            if (!_eaDesktopGames.TryGetValue(EADesktopGameId.From(id), out var found)) continue;
             path = found;
             return true;
         }
