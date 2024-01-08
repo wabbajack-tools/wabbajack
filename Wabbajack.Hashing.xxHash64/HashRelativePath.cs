@@ -31,7 +31,7 @@ public readonly struct HashRelativePath : IPath, IEquatable<HashRelativePath>, I
 
     public override bool Equals(object? obj)
     {
-        return obj is FullPath path && Equals(path);
+        return obj is HashRelativePath path && Equals(path);
     }
 
     public override int GetHashCode()

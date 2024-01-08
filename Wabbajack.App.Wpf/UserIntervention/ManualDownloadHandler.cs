@@ -27,5 +27,6 @@ public class ManualDownloadHandler : BrowserWindowViewModel
         var uri = await task;
 
         Intervention.Finish(uri);
+        await Task.Delay(5000, CancellationToken.None);
     }
 }
