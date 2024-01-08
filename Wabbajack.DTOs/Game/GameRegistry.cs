@@ -540,15 +540,16 @@ public static class GameRegistry
                 Game = Game.FinalFantasy7Remake,
                 NexusName = "finalfantasy7remake",
                 NexusGameId = 4202,
-                MO2Name = "FINAL FANTASY VII REMAKE",
+                MO2Name = "FINAL FANTASY VII REMAKE INTERGRADE",
                 MO2ArchiveName = "finalfantasy7remake",
                 SteamIDs = new[] { 1462040 },
                 IsGenericMO2Plugin = true,
                 RequiredFiles = new []
                 {
-                    @"ff7remake.exe".ToRelativePath()
+                    @"End\Binaries\Win64\ff7remake_.exe".ToRelativePath(),
+                    @"ff7remake_.exe".ToRelativePath()
                 },
-                MainExecutable = @"ff7remake.exe".ToRelativePath()
+                MainExecutable = @"End\Binaries\Win64\ff7remake_.exe".ToRelativePath()
             }
         },
         {
