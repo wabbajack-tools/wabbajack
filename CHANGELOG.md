@@ -1,5 +1,12 @@
 ### Changelog
 
+#### Version - TBD
+* Updated GameFinder
+  * Fixes Wabbajack not Launching on some systems
+* Added the GameFinder module for EA Desktop
+  * Only `Dragon Age: Origins` & `Dragon Age: Inquisition` supported for now.
+  * For other games we still need to collect the right store IDs
+
 #### Version - 3.4.1.0 - 12/21/2023
 * Added Support for Final Fantasy 7: Remake Intergrade
 * Update CLI to .NET 8.0 (was missed in the last update)
