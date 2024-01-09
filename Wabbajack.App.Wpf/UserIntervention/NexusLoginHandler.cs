@@ -45,7 +45,7 @@ public class NexusLoginHandler : BrowserWindowViewModel
 
         Instructions = "Getting API Key...";
 
-        await NavigateTo(new Uri("https://www.nexusmods.com/users/myaccount?tab=api"));
+        await NavigateTo(new Uri("https://next.nexusmods.com/settings/api-keys"));
 
         var key = "";
 
@@ -53,12 +53,16 @@ public class NexusLoginHandler : BrowserWindowViewModel
         {
             try
             {
+                key = (await GetDom(token)).DocumentNode.QuerySelectorAll("img[alt='Wabbajack']").SelectMany(p => p.ParentNode.ParentNode.QuerySelectorAll("input[aria-label='api key']")).Select(node => node.Attributes["value"]).FirstOrDefault()?.Value;
+                //var apiKey = (await GetDom(token)).DocumentNode.QuerySelectorAll("input[aria-label='api key']");
+                /*
                 key = (await GetDom(token))
                     .DocumentNode
-                    .QuerySelectorAll("input[value=wabbajack]")
+                    .QuerySelectorAll("input[aria-label='api key']")
                     .SelectMany(p => p.ParentNode.ParentNode.QuerySelectorAll("textarea.application-key"))
                     .Select(node => node.InnerHtml)
                     .FirstOrDefault() ?? "";
+                */
             }
             catch (Exception)
             {
