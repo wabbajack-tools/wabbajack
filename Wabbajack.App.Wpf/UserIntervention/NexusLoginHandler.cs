@@ -75,7 +75,7 @@ public class NexusLoginHandler : BrowserWindowViewModel
             try
             {
                 await EvaluateJavaScript(
-                    "var found = document.querySelector(\"input[value=wabbajack]\").parentElement.parentElement.querySelector(\"form button[type=submit]\");" +
+                    //"var found = document.querySelector(\"img[alt='Wabbajack']\").parentElement.parentElement.querySelector(\"input[aria-label='api key'] button[type=submit]\");" +
                     "found.onclick= function() {return true;};" +
                     "found.class = \" \"; " +
                     "found.click();" +
