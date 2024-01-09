@@ -176,6 +176,7 @@ namespace Wabbajack
                     .StartWith(_ => true);
 
                 var minModlistSizeFilter = this.ObservableForProperty(vm => vm.MinModlistSize)
+                                     .Throttle(TimeSpan.FromSeconds(0.05), RxApp.MainThreadScheduler)
                                      .Select(v => v.Value)
                                      .Select<double, Func<ModListMetadataVM, bool>>(minModlistSize =>
                                      {
@@ -183,10 +184,11 @@ namespace Wabbajack
                                      });
 
                 var maxModlistSizeFilter = this.ObservableForProperty(vm => vm.MaxModlistSize)
+                                     .Throttle(TimeSpan.FromSeconds(0.05), RxApp.MainThreadScheduler)
                                      .Select(v => v.Value)
-                                     .Select<double, Func<ModListMetadataVM, bool>>(maxSize =>
+                                     .Select<double, Func<ModListMetadataVM, bool>>(maxModlistSize =>
                                      {
-                                         return item => item.Metadata.DownloadMetadata.TotalSize <= maxSize;
+                                         return item => item.Metadata.DownloadMetadata.TotalSize <= maxModlistSize;
                                      });
                                     
 
@@ -280,6 +282,8 @@ namespace Wabbajack
                 });
                 SmallestSizedModlist = _modLists.Items.Any() ? _modLists.Items.MinBy(ml => ml.Metadata.DownloadMetadata.TotalSize) : null;
                 LargestSizedModlist = _modLists.Items.Any() ? _modLists.Items.MaxBy(ml => ml.Metadata.DownloadMetadata.TotalSize) : null;
+                MinModlistSize = SmallestSizedModlist.Metadata.DownloadMetadata.TotalSize;
+                MaxModlistSize = LargestSizedModlist.Metadata.DownloadMetadata.TotalSize;
             }
             catch (Exception ex)
             {

@@ -50,6 +50,7 @@
     <Color x:Key="YellowDark">#967400</Color>
 
     <Color x:Key="Primary">#D9BBF9</Color>
+    <Color x:Key="DarkPrimary">#383750</Color>
     <Color x:Key="PrimaryTransparent">#00BB86FC</Color>
     <Color x:Key="PrimaryVariant">#8866ad</Color>
     <Color x:Key="DarkPrimaryVariant">#270080</Color>
@@ -126,6 +127,7 @@
     <SolidColorBrush x:Key="HeatedBorderBrush" Color="{StaticResource HeatedBorderColor}" />
 
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
+    <SolidColorBrush x:Key="DarkPrimaryBrush" Color="{StaticResource DarkPrimary}" />
     <SolidColorBrush x:Key="PrimaryVariantBrush" Color="{StaticResource PrimaryVariant}" />
     <SolidColorBrush x:Key="DarkPrimaryVariantBrush" Color="{StaticResource DarkPrimaryVariant}" />
     <SolidColorBrush x:Key="DarkerPrimaryVariantBrush" Color="{StaticResource DarkerPrimaryVariant}" />
@@ -160,16 +162,16 @@
     <SolidColorBrush x:Key="ScrollBarSelectedThumb" Color="{StaticResource PrimaryVariant}" />
     <SolidColorBrush x:Key="CornerBorder" Color="{StaticResource DarkBackgroundColor}" />
 
-    <SolidColorBrush x:Key="TextBoxBorder" Color="{StaticResource DarkBackgroundColor}" />
-    <SolidColorBrush x:Key="TextBoxBackground" Color="{StaticResource DarkBackgroundColor}" />
+    <SolidColorBrush x:Key="TextBoxBorder" Color="{StaticResource DarkPrimary}" />
+    <SolidColorBrush x:Key="TextBoxBackground" Color="{StaticResource DarkPrimary}" />
     <SolidColorBrush x:Key="TextBoxDisabledForeground" Color="#8C8C8C" />
     <SolidColorBrush x:Key="TextBoxDisabledBackground" Color="{StaticResource DisabledBackgroundColor}" />
     <SolidColorBrush x:Key="InactiveSelectionHighlightBrush" Color="#335C85" />
 
     <SolidColorBrush x:Key="ComboBoxButtonNormalBackground" Color="Transparent" />
 
-    <SolidColorBrush x:Key="ButtonNormalBackground" Color="{StaticResource DarkBackgroundColor}" />
-    <SolidColorBrush x:Key="ButtonNormalBorder" Color="#4C4C4C" />
+    <SolidColorBrush x:Key="ButtonNormalBackground" Color="{StaticResource DarkPrimary}" />
+    <SolidColorBrush x:Key="ButtonNormalBorder" Color="{StaticResource DarkPrimary}" />
 
     <SolidColorBrush x:Key="ButtonForeground" Color="{StaticResource ForegroundColor}" />
     <SolidColorBrush x:Key="MouseOverButtonForeground" Color="White" />
@@ -185,11 +187,12 @@
     <SolidColorBrush x:Key="Expander.Disabled.Arrow.Stroke" Color="{StaticResource LightDisabledBackgroundColor}" />
     <SolidColorBrush x:Key="Expander.Static.Arrow.Stroke" Color="#AAAAAA" />
 
-    <SolidColorBrush x:Key="CheckBoxFillNormal" Color="{StaticResource LightDisabledBackgroundColor}" />
+    <SolidColorBrush x:Key="CheckBoxFillNormal" Color="{StaticResource DarkPrimary}" />
+    <SolidColorBrush x:Key="CheckBoxForeground" Color="{StaticResource Primary}" />
     <SolidColorBrush x:Key="CheckBoxMouseOverStroke" Color="{StaticResource ForegroundColor}" />
     <SolidColorBrush x:Key="CheckBoxDisabledStroke" Color="{StaticResource DisabledBackgroundColor}" />
     <SolidColorBrush x:Key="CheckBoxDisabledForeground" Color="#939393" />
-    <SolidColorBrush x:Key="CheckBoxStroke" Color="{StaticResource DarkBackgroundColor}" />
+    <SolidColorBrush x:Key="CheckBoxStroke" Color="{StaticResource DarkPrimary}" />
 
     <SolidColorBrush x:Key="RadioButtonMouseOverStroke" Color="{StaticResource ForegroundColor}" />
     <SolidColorBrush x:Key="RadioButtonDisabledStroke" Color="{StaticResource DisabledBackgroundColor}" />
@@ -743,7 +746,8 @@
                             <ScrollViewer
                                 x:Name="PART_ContentHost"
                                 Padding="{TemplateBinding Padding}"
-                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                Background="{StaticResource TextBoxBackground}"/>
                             <TextBlock Grid.Row="1" Grid.Column="0"
                                 x:Name="PART_Message"
                                 Padding="{TemplateBinding Padding}"
@@ -867,39 +871,16 @@
                         SnapsToDevicePixels="true">
                         <Border
                             x:Name="PopUpButton"
-                            Width="15"
-                            Margin="1"
+                            Width="30"
                             HorizontalAlignment="Right"
                             Background="{DynamicResource ComboBoxButtonNormalBackground}"
                             CornerRadius="3">
-                            <Path
-                                x:Name="Arrow"
-                                Width="5.5"
-                                Height="5.5"
-                                Margin="0,4,0,7"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Data="{StaticResource ComboBoxArrow}"
-                                Fill="{DynamicResource ButtonForeground}"
-                                RenderTransformOrigin="0.5,0.5"
-                                Stretch="Fill">
-                                <Path.RenderTransform>
-                                    <TransformGroup>
-                                        <ScaleTransform />
-                                        <SkewTransform />
-                                        <RotateTransform Angle="45" />
-                                        <TranslateTransform />
-                                    </TransformGroup>
-                                </Path.RenderTransform>
-                            </Path>
+                            <ic:SymbolIcon x:Name="Arrow" Symbol="ChevronDown" FontSize="14" IsFilled="True" Foreground="{DynamicResource ButtonForeground}"/>
                         </Border>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
                             <Setter TargetName="PopUpButton" Property="Background" Value="{DynamicResource MouseOverButtonBackground}" />
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="false">
-                            <Setter TargetName="Arrow" Property="Fill" Value="{DynamicResource DisabledButtonForeground}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -1864,6 +1845,7 @@
                                 Height="12"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
+                                CornerRadius="2"
                                 BorderThickness="1">
                                 <Path
                                     x:Name="CheckMark"
@@ -1871,7 +1853,7 @@
                                     Height="Auto"
                                     Margin="1,1.007,1,1"
                                     Data="{StaticResource CheckBoxCheckmark}"
-                                    Fill="{StaticResource ButtonForeground}"
+                                    Fill="{StaticResource CheckBoxForeground}"
                                     Stretch="Fill" />
                             </Border>
                         </BulletDecorator.Bullet>
@@ -3524,11 +3506,11 @@
     <Style BasedOn="{StaticResource MahApps.Styles.Slider}" TargetType="Slider" />
 
     <Style BasedOn="{StaticResource MahApps.Styles.ToolTip}" TargetType="ToolTip">
-        <Setter Property="Background" Value="{DynamicResource MahApps.Brushes.Control.Background}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Gray7}" />
+        <Setter Property="Background" Value="{StaticResource DarkPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="FontSize" Value="{DynamicResource MahApps.Font.Size.Tooltip}" />
-        <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Foreground" Value="White" />
         <Setter Property="Padding" Value="6,3" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Template">
@@ -3541,6 +3523,7 @@
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
                         Opacity="0"
+                        CornerRadius="6"
                         SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
                         <Border.Resources>
                             <Storyboard x:Key="Visible State" />
@@ -3575,6 +3558,161 @@
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
                     </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="MahApps.Styles.Thumb.Slider" TargetType="{x:Type Thumb}">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="UIElement.SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Thumb}">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="MahApps.Styles.RepeatButton.Slider.HorizontalTrack" TargetType="{x:Type RepeatButton}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="FrameworkElement.OverridesDefaultStyle" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RepeatButton}">
+                    <Grid Background="{TemplateBinding Background}">
+                        <Border Height="5" Background="{StaticResource DarkBackgroundBrush}" CornerRadius="3" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type mahapps:RangeSlider}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type mahapps:RangeSlider}">
+                    <Grid x:Name="PART_Container"
+                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                          Background="{TemplateBinding Background}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" MinHeight="{TemplateBinding mahapps:RangeSlider.MinHeight}" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TickBar x:Name="PART_TopTick"
+                     Grid.Row="0"
+                     Height="4"
+                     Fill="{TemplateBinding Foreground}"
+                     IsSelectionRangeEnabled="{TemplateBinding IsSelectionRangeEnabled}"
+                     Maximum="{TemplateBinding Maximum}"
+                     Minimum="{TemplateBinding Minimum}"
+                     Placement="Top"
+                     ReservedSpace="{DynamicResource MahApps.Sizes.Slider.HorizontalThumb.Width}"
+                     SelectionEnd="{TemplateBinding SelectionEnd}"
+                     SelectionStart="{TemplateBinding SelectionStart}"
+                     TickFrequency="{TemplateBinding TickFrequency}"
+                     Ticks="{TemplateBinding Ticks}"
+                     Visibility="Collapsed" />
+                        <TickBar x:Name="PART_BottomTick"
+                     Grid.Row="2"
+                     Height="4"
+                     Fill="{TemplateBinding Foreground}"
+                     IsSelectionRangeEnabled="{TemplateBinding IsSelectionRangeEnabled}"
+                     Maximum="{TemplateBinding Maximum}"
+                     Minimum="{TemplateBinding Minimum}"
+                     Placement="Bottom"
+                     ReservedSpace="{DynamicResource MahApps.Sizes.Slider.HorizontalThumb.Width}"
+                     SelectionEnd="{TemplateBinding SelectionEnd}"
+                     SelectionStart="{TemplateBinding SelectionStart}"
+                     TickFrequency="{TemplateBinding TickFrequency}"
+                     Ticks="{TemplateBinding Ticks}"
+                     Visibility="Collapsed" />
+                        <StackPanel x:Name="PART_RangeSliderContainer"
+                        Grid.Row="1"
+                        Background="Transparent"
+                        Orientation="Horizontal">
+                            <RepeatButton x:Name="PART_LeftEdge"
+                              Foreground="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackFillBrush)}"
+                              Style="{DynamicResource MahApps.Styles.RepeatButton.Slider.HorizontalTrack}" />
+
+                            <mahapps:MetroThumb x:Name="PART_LeftThumb"
+                                Width="{DynamicResource MahApps.Sizes.Slider.HorizontalThumb.Width}"
+                                Height="{DynamicResource MahApps.Sizes.Slider.HorizontalThumb.Height}"
+                                Background="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.ThumbFillBrush)}"
+                                BorderThickness="1 0"
+                                Cursor="Arrow"
+                                Style="{DynamicResource MahApps.Styles.Thumb.Slider}" />
+                            <mahapps:MetroThumb x:Name="PART_MiddleThumb"
+                                MinWidth="{TemplateBinding MinRangeWidth}"
+                                Cursor="Hand"
+                                Foreground="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackValueFillBrush)}"
+                                Style="{DynamicResource MahApps.Styles.MetroThumb.RangeSlider.Horizontal.Middle}" />
+                            <mahapps:MetroThumb x:Name="PART_RightThumb"
+                                Width="{DynamicResource MahApps.Sizes.Slider.HorizontalThumb.Width}"
+                                Height="{DynamicResource MahApps.Sizes.Slider.HorizontalThumb.Height}"
+                                Background="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.ThumbFillBrush)}"
+                                BorderThickness="1 0"
+                                Cursor="Arrow"
+                                Style="{DynamicResource MahApps.Styles.Thumb.Slider}" />
+
+                            <RepeatButton x:Name="PART_RightEdge"
+                              Foreground="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackFillBrush)}"
+                              Style="{DynamicResource MahApps.Styles.RepeatButton.Slider.HorizontalTrack}" />
+                        </StackPanel>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="TickPlacement" Value="TopLeft">
+                            <Setter TargetName="PART_TopTick" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="TickPlacement" Value="BottomRight">
+                            <Setter TargetName="PART_BottomTick" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="TickPlacement" Value="Both">
+                            <Setter TargetName="PART_BottomTick" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="PART_TopTick" Property="Visibility" Value="Visible" />
+                        </Trigger>
+
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="PART_LeftEdge" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackFillHoverBrush)}" />
+                            <Setter TargetName="PART_LeftThumb" Property="Background" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.ThumbFillHoverBrush)}" />
+                            <Setter TargetName="PART_MiddleThumb" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackValueFillHoverBrush)}" />
+                            <Setter TargetName="PART_RightEdge" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackFillHoverBrush)}" />
+                            <Setter TargetName="PART_RightThumb" Property="Background" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.ThumbFillHoverBrush)}" />
+                        </Trigger>
+                        <Trigger SourceName="PART_LeftEdge" Property="IsPressed" Value="True">
+                            <Setter TargetName="PART_LeftEdge" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackFillPressedBrush)}" />
+                            <Setter TargetName="PART_LeftThumb" Property="Background" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.ThumbFillPressedBrush)}" />
+                            <Setter TargetName="PART_MiddleThumb" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackValueFillPressedBrush)}" />
+                            <Setter TargetName="PART_RightEdge" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackFillPressedBrush)}" />
+                            <Setter TargetName="PART_RightThumb" Property="Background" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.ThumbFillPressedBrush)}" />
+                        </Trigger>
+                        <Trigger SourceName="PART_RightEdge" Property="IsPressed" Value="True">
+                            <Setter TargetName="PART_LeftEdge" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackFillPressedBrush)}" />
+                            <Setter TargetName="PART_LeftThumb" Property="Background" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.ThumbFillPressedBrush)}" />
+                            <Setter TargetName="PART_MiddleThumb" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackValueFillPressedBrush)}" />
+                            <Setter TargetName="PART_RightEdge" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackFillPressedBrush)}" />
+                            <Setter TargetName="PART_RightThumb" Property="Background" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.ThumbFillPressedBrush)}" />
+                        </Trigger>
+                        <Trigger SourceName="PART_MiddleThumb" Property="IsDragging" Value="True">
+                            <Setter TargetName="PART_LeftEdge" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackFillPressedBrush)}" />
+                            <Setter TargetName="PART_LeftThumb" Property="Background" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.ThumbFillPressedBrush)}" />
+                            <Setter TargetName="PART_MiddleThumb" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackValueFillPressedBrush)}" />
+                            <Setter TargetName="PART_RightEdge" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackFillPressedBrush)}" />
+                            <Setter TargetName="PART_RightThumb" Property="Background" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.ThumbFillPressedBrush)}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="PART_LeftEdge" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackFillDisabledBrush)}" />
+                            <Setter TargetName="PART_LeftThumb" Property="Background" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.ThumbFillDisabledBrush)}" />
+                            <Setter TargetName="PART_MiddleThumb" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackValueFillDisabledBrush)}" />
+                            <Setter TargetName="PART_RightEdge" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackFillDisabledBrush)}" />
+                            <Setter TargetName="PART_RightThumb" Property="Background" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.ThumbFillDisabledBrush)}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

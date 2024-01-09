@@ -109,8 +109,8 @@
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
-                <Border BorderThickness="0" Padding="5, 0, 5, 0" Background="{StaticResource SecondaryBrush}" HorizontalAlignment="Right">
-                    <ic:SymbolIcon Symbol="Search" HorizontalAlignment="Right" Margin="0, 0, 0, 0" IsFilled="True"/>
+                <Border BorderThickness="0" Width="30" Background="{StaticResource DarkPrimaryBrush}" HorizontalAlignment="Right">
+                    <ic:SymbolIcon Symbol="Search" HorizontalAlignment="Center" IsFilled="True"/>
                 </Border>
             </Grid>
             <ComboBox
@@ -190,14 +190,20 @@
             </Grid>
 
             <Grid Grid.Row="5" Margin="0, 25, 0, 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <TextBlock FontSize="14" Text="Modlist size"/>
-                <mahapps:RangeSlider Margin="0, 10, 0, 0" x:Name="SizeSliderFilter" Grid.Row="1" AutoToolTipPlacement="TopLeft" AutoToolTipPrecision="1" />
+                <TextBlock Grid.ColumnSpan="2" FontSize="14" Text="Total modlist size"/>
+                <mahapps:RangeSlider Grid.ColumnSpan="2" Grid.Row="1" Margin="0, 10, 0, 0" x:Name="SizeSliderFilter" MinRangeWidth="3" AutoToolTipPlacement="TopLeft" AutoToolTipPrecision="1" mahapps:SliderHelper.TrackValueFillBrush="{StaticResource PrimaryVariantBrush}" mahapps:SliderHelper.ThumbFillBrush="{StaticResource PrimaryVariantBrush}" mahapps:SliderHelper.ThumbFillHoverBrush="{StaticResource PrimaryBrush}" mahapps:SliderHelper.ThumbFillPressedBrush="{StaticResource PrimaryBrush}"/>
+                <TextBlock Grid.Row="2" Text="{Binding ElementName=SizeSliderFilter, Path=Minimum, Converter={StaticResource MathConverter}, ConverterParameter='Round(x,1)', StringFormat={}{0} GB}" Foreground="{StaticResource PrimaryVariantBrush}"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right" Text="{Binding ElementName=SizeSliderFilter, Path=Maximum, Converter={StaticResource MathConverter}, ConverterParameter='Round(x,1)', StringFormat={}{0} GB}" Foreground="{StaticResource PrimaryVariantBrush}"/>
             </Grid>
-            
 
             <Button
                 x:Name="ClearFiltersButton"
