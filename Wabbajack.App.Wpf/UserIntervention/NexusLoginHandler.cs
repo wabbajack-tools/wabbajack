@@ -54,15 +54,6 @@ public class NexusLoginHandler : BrowserWindowViewModel
             try
             {
                 key = (await GetDom(token)).DocumentNode.QuerySelectorAll("img[alt='Wabbajack']").SelectMany(p => p.ParentNode.ParentNode.QuerySelectorAll("input[aria-label='api key']")).Select(node => node.Attributes["value"]).FirstOrDefault()?.Value;
-                //var apiKey = (await GetDom(token)).DocumentNode.QuerySelectorAll("input[aria-label='api key']");
-                /*
-                key = (await GetDom(token))
-                    .DocumentNode
-                    .QuerySelectorAll("input[aria-label='api key']")
-                    .SelectMany(p => p.ParentNode.ParentNode.QuerySelectorAll("textarea.application-key"))
-                    .Select(node => node.InnerHtml)
-                    .FirstOrDefault() ?? "";
-                */
             }
             catch (Exception)
             {
@@ -75,11 +66,10 @@ public class NexusLoginHandler : BrowserWindowViewModel
             try
             {
                 await EvaluateJavaScript(
-                    //"var found = document.querySelector(\"img[alt='Wabbajack']\").parentElement.parentElement.querySelector(\"input[aria-label='api key'] button[type=submit]\");" +
+                    "var found = document.querySelector(\"img[alt='Wabbajack']\").parentElement.parentElement.querySelector(\"button[aria-label='Request Api Key']\");" +
                     "found.onclick= function() {return true;};" +
                     "found.class = \" \"; " +
-                    "found.click();" +
-                    "found.remove(); found = undefined;"
+                    "found.click();"
                 );
                 Instructions = "Generating API Key, Please Wait...";
             }
