@@ -45,7 +45,7 @@ public class NexusLoginHandler : BrowserWindowViewModel
 
         Instructions = "Getting API Key...";
 
-        await NavigateTo(new Uri("https://www.nexusmods.com/users/myaccount?tab=api"));
+        await NavigateTo(new Uri("https://next.nexusmods.com/settings/api-keys"));
 
         var key = "";
 
@@ -53,12 +53,7 @@ public class NexusLoginHandler : BrowserWindowViewModel
         {
             try
             {
-                key = (await GetDom(token))
-                    .DocumentNode
-                    .QuerySelectorAll("input[value=wabbajack]")
-                    .SelectMany(p => p.ParentNode.ParentNode.QuerySelectorAll("textarea.application-key"))
-                    .Select(node => node.InnerHtml)
-                    .FirstOrDefault() ?? "";
+                key = (await GetDom(token)).DocumentNode.QuerySelectorAll("img[alt='Wabbajack']").SelectMany(p => p.ParentNode.ParentNode.QuerySelectorAll("input[aria-label='api key']")).Select(node => node.Attributes["value"]).FirstOrDefault()?.Value;
             }
             catch (Exception)
             {
@@ -71,11 +66,10 @@ public class NexusLoginHandler : BrowserWindowViewModel
             try
             {
                 await EvaluateJavaScript(
-                    "var found = document.querySelector(\"input[value=wabbajack]\").parentElement.parentElement.querySelector(\"form button[type=submit]\");" +
+                    "var found = document.querySelector(\"img[alt='Wabbajack']\").parentElement.parentElement.querySelector(\"button[aria-label='Request Api Key']\");" +
                     "found.onclick= function() {return true;};" +
                     "found.class = \" \"; " +
-                    "found.click();" +
-                    "found.remove(); found = undefined;"
+                    "found.click();"
                 );
                 Instructions = "Generating API Key, Please Wait...";
             }
