@@ -62,7 +62,7 @@ public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
 
     private void StartLogin()
     {
-        var view = new BrowserWindow();
+        var view = new BrowserWindow(_serviceProvider);
         view.Closed += (sender, args) => { RefreshTokenState(); };
         var provider = _serviceProvider.GetRequiredService<NexusLoginHandler>();
         view.DataContext = provider;

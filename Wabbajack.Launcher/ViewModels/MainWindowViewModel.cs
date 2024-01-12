@@ -303,10 +303,13 @@ public class MainWindowViewModel : ViewModelBase
     {
         try
         {
-            filename = filename.Parent.Combine("wabbajack-cli.exe");
+            filename = filename.Parent.Combine("cli", "wabbajack-cli.exe");
             var data = $"\"{filename}\" %*";
             var file = Path.Combine(Directory.GetCurrentDirectory(), "wabbajack-cli.bat");
             if (File.Exists(file) && await File.ReadAllTextAsync(file) == data) return;
+            var parent = Directory.GetParent(file).FullName;
+            if (!Directory.Exists(file))
+                Directory.CreateDirectory(parent);
             await File.WriteAllTextAsync(file, data);
         }
         catch (Exception ex)

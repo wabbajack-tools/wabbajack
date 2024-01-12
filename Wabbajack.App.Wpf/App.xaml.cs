@@ -8,6 +8,7 @@ using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Web.WebView2.Wpf;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using Orc.FileAssociation;
@@ -164,6 +165,7 @@ namespace Wabbajack
             services.AddSingleton<SystemParametersConstructor>();
             services.AddSingleton<LauncherUpdater>();
             services.AddSingleton<ResourceMonitor>();
+            services.AddSingleton<WebView2>();
 
             services.AddTransient<CompilerVM>();
             services.AddTransient<InstallerVM>();

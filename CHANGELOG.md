@@ -7,6 +7,10 @@
   * Only `Dragon Age: Origins` & `Dragon Age: Inquisition` supported for now.
   * For other games we still need to collect the right store IDs
 * Fixed Final Fantasy 7: Remake Intergrade meta data
+* Fixed new WebView2 instances being created constantly causing a memory leak
+* Fixed the Nexus API key no longer being picked up when logging in
+* Fixed Baldur's Gate 3 having to be named 'badlursgate3' instead of 'baldursgate3' when defining a modlist JSON
+* Fixed wabbajack-cli.bat pointing to the wrong CLI executable path
 
 #### Version - 3.4.1.0 - 12/21/2023
 * Added Support for Final Fantasy 7: Remake Intergrade
