@@ -46,8 +46,5 @@
             <icon:PackIconModern Kind="PageCopy"></icon:PackIconModern>
         </Button>
         <TextBox  Grid.Row="2" Grid.Column="3" Margin="4" VerticalContentAlignment="Center" Name="AddressBar" IsEnabled="False"></TextBox>
-        
-        <!--<wpf:WebView2 Grid.Row="3" Grid.ColumnSpan="3" Name="Browser"></wpf:WebView2>-->
-        
     </Grid>
 </mahapps:MetroWindow>
