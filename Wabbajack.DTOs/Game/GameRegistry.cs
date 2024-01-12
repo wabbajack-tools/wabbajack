@@ -585,9 +585,9 @@ public static class GameRegistry
             }
         },
         {
-            Game.BadlursGate3, new GameMetaData
+            Game.BaldursGate3, new GameMetaData
             {
-                Game = Game.BadlursGate3,
+                Game = Game.BaldursGate3,
                 NexusName = "baldursgate3",
                 NexusGameId = 3474,
                 MO2Name = "Baldur's Gate 3",
