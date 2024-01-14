@@ -66,7 +66,7 @@ public class VectorPlexusLoginManager : ViewModel, ILoginFor<LoversLabDownloader
         
     private void StartLogin()
     {
-        var view = new BrowserWindow();
+        var view = new BrowserWindow(_serviceProvider);
         view.Closed += (sender, args) => { RefreshTokenState(); };
         var provider = _serviceProvider.GetRequiredService<VectorPlexusLoginHandler>();
         view.DataContext = provider;

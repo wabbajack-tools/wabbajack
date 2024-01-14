@@ -1,11 +1,24 @@
 ### Changelog
 
+#### Version - TBD
+* Updated GameFinder to 4.1.0
+  * Fixes Wabbajack not Launching on some systems
+* Added the GameFinder module for EA Desktop
+  * Only `Dragon Age: Origins` & `Dragon Age: Inquisition` supported for now.
+  * For other games we still need to collect the right store IDs
+* Fixed Final Fantasy 7: Remake Intergrade meta data
+* Fixed new WebView2 instances being created constantly causing a memory leak
+* Fixed the Nexus API key no longer being picked up when logging in
+* Fixed Baldur's Gate 3 having to be named 'badlursgate3' instead of 'baldursgate3' when defining a modlist JSON
+* Fixed wabbajack-cli.bat pointing to the wrong CLI executable path
+
 #### Version - 3.4.1.0 - 12/21/2023
 * Added Support for Final Fantasy 7: Remake Intergrade
 * Update CLI to .NET 8.0 (was missed in the last update)
 * Added Support for Baldur's Gate 3 
   * Very Work in Progress
   * **NOT** Plug and Play for compiling and installing!
+* Fixed a logging error when closing the App without a `temp` folder to delete
 
 #### Version - 3.4.0.0 - 11/19/2023
 * Fixed `--outputPath` not being used for the CLI `compile` (thanks to @majcosta for fixing that)
