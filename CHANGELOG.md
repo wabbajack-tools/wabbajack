@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - TBD
+#### Version - 3.4.2.0 - 1/24/2024
 * Updated GameFinder to 4.1.0
   * Fixes Wabbajack not Launching on some systems
 * Added the GameFinder module for EA Desktop
