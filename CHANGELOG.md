@@ -1,6 +1,14 @@
 ### Changelog
 
-#### Version - 3.4.2.0 - 1/24/2024
+#### Version - 3.5.0.0 - 1/15/2024
+* Fixed a *long* standing bug with the BSA reader. This problem has existed for at least 4 years, but was never seen
+  till now. The latest Skyrim updates exposed the error. If a file inside a BSA was compressed and the compressed file
+  size was *exactly* the same as the uncompressed file, WJ would not decompress the file and instead write out the raw
+  LZ4 data. This would caus a ton of issues all throughout the app. 
+* Modlist Authors: Delete your VFS cache, hash cache, and recompile your list from scratch. This will ensure that all
+  files are properly decompressed and properly reindexed. 
+
+#### Version - 3.4.2.0 - 1/14/2024
 * Updated GameFinder to 4.1.0
   * Fixes Wabbajack not Launching on some systems
 * Added the GameFinder module for EA Desktop
