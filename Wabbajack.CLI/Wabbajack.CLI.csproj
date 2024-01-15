@@ -22,8 +22,8 @@
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
         <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
-        <PackageReference Include="NLog" Version="5.2.5" />
-        <PackageReference Include="NLog.Extensions.Logging" Version="5.3.5" />
+        <PackageReference Include="NLog" Version="5.2.8" />
+        <PackageReference Include="NLog.Extensions.Logging" Version="5.3.8" />
         <PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
         <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22272.1" />
