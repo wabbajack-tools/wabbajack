@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 3.5.0.1 - 1/15/2024
+* *HOTFIX* - change the cache file names so files will be auto-rehashed
+
 #### Version - 3.5.0.0 - 1/15/2024
 * Fixed a *long* standing bug with the BSA reader. This problem has existed for at least 4 years, but was never seen
   till now. The latest Skyrim updates exposed the error. If a file inside a BSA was compressed and the compressed file
