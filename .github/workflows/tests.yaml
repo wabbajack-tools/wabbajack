@@ -84,6 +84,7 @@ jobs:
           - Wabbajack.Downloaders.Mega
           - Wabbajack.Downloaders.ModDB
           - Wabbajack.Downloaders.Nexus
+          - Wabbajack.Downloaders.VerificationCache
           - Wabbajack.Downloaders.WabbajackCDN
           - Wabbajack.DTOs
           - Wabbajack.FileExtractor
