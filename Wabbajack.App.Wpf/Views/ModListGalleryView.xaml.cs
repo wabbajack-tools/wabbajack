@@ -63,13 +63,18 @@ namespace Wabbajack
                 this.BindStrict(ViewModel, vm => vm.ShowUnofficialLists, x => x.ShowUnofficialLists.IsChecked)
                     .DisposeWith(dispose);
 
-                this.WhenAny(x => x.SizeSliderFilter.LowerValue)
-                    .Select(x => x * Math.Pow(1024, 3))
-                    .BindToStrict(ViewModel, vm => vm.MinModlistSize)
+                this.BindStrict(ViewModel,
+                                vm => vm.MinModlistSize,
+                                view => view.SizeSliderFilter.LowerValue,
+                                (double vmProp) => vmProp / Math.Pow(1024, 3),
+                                (double vProp) => vProp * Math.Pow(1024, 3))
                     .DisposeWith(dispose);
-                this.WhenAny(x => x.SizeSliderFilter.UpperValue)
-                    .Select(x => x * Math.Pow(1024, 3))
-                    .BindToStrict(ViewModel, vm => vm.MaxModlistSize)
+
+                this.BindStrict(ViewModel,
+                                vm => vm.MaxModlistSize,
+                                view => view.SizeSliderFilter.UpperValue,
+                                (double vmProp) => vmProp / Math.Pow(1024, 3),
+                                (double vProp) => vProp * Math.Pow(1024, 3))
                     .DisposeWith(dispose);
 
                 this.WhenAny(x => x.ViewModel.ClearFiltersCommand)
