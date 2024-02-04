@@ -93,22 +93,7 @@
             <Grid Grid.Row="0">
                 <TextBox
                 x:Name="SearchBox"
-                FontSize="14"
-                Height="36"
-                VerticalContentAlignment="Center"
-                ToolTip="Search for a game" />
-                <TextBlock FontSize="14" IsHitTestVisible="False" Text="Search for a modlist..." VerticalAlignment="Center" Margin="5, 0, 0, 0" Foreground="{StaticResource TextBoxDisabledForeground}">
-                    <TextBlock.Style>
-                        <Style TargetType="{x:Type TextBlock}">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value="">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
+                mahapps:TextBoxHelper.Watermark="Search for a modlist..." />
                 <Border BorderThickness="0" Width="30" Background="{StaticResource DarkPrimaryBrush}" HorizontalAlignment="Right">
                     <ic:SymbolIcon Symbol="Search" HorizontalAlignment="Center" IsFilled="True"/>
                 </Border>
@@ -117,8 +102,6 @@
                 Grid.Row="1"
                 Margin="0, 10, 0, 0"
                 VerticalAlignment="Center"
-                FontSize="14"
-                Foreground="{StaticResource ForegroundBrush}"
                 ItemsSource="{Binding GameTypeEntries, Mode=TwoWay}"
                 SelectedItem="{Binding SelectedGameTypeEntry, Mode=TwoWay}"
                 IsSynchronizedWithCurrentItem="True"

@@ -29,60 +29,23 @@
             <ColumnDefinition Width="5*" />
             <ColumnDefinition Width="5" />
         </Grid.ColumnDefinitions>
-        <local:HeatedBackgroundView Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" Grid.ColumnSpan="5"
-            x:Name="HeatedBackground" />
-        <Border Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
-            x:Name="ModlistDetailsBackground"
-            Margin="1,1,5,0"
-            Background="{StaticResource WindowBackgroundBrush}"
-            BorderThickness="0,0,1,1">
-            <Border.BorderBrush>
-                <LinearGradientBrush StartPoint="1,0" EndPoint="0,0">
-                    <GradientStop Offset="0.5" Color="{StaticResource DarkBackgroundColor}" />
-                    <GradientStop Offset="1" Color="{StaticResource WindowBackgroundColor}" />
-                </LinearGradientBrush>
-            </Border.BorderBrush>
-        </Border>
-        <Border Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
-            x:Name="ModlistDetailsHeatBorder"
-            Margin="1,1,5,0"
-            BorderBrush="{StaticResource HeatedBorderBrush}"
-            BorderThickness="1" />
-        <Border Grid.Row="1" Grid.Column="3"
-            BorderBrush="{StaticResource BorderInterestBrush}"
-            BorderThickness="1,0,1,1">
-            <local:DetailImageView x:Name="DetailImage" BorderThickness="0" />
-        </Border>
+        <local:DetailImageView Grid.Row="1" Grid.Column="3" x:Name="DetailImage" BorderThickness="0" />
         <!--  Comes after image area so shadow can overlay  -->
+        <!--
         <local:TopProgressView Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="5"
             x:Name="TopProgressBar"
-            OverhangShadow="True" />
-        <Button Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5"
-            x:Name="BackButton"
-            Width="30"
-            Height="30"
-            Margin="12,5,0,0"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Style="{StaticResource IconCircleButtonStyle}"
-            ToolTip="Back to main menu">
-            <icon:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
-        </Button>
+            OverhangShadow="False" />
+            -->
         <ScrollViewer Grid.Row="1" Grid.Column="1"
             x:Name="SettingsScrollViewer"
-            Margin="5"
             Background="Transparent"
             HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="Auto">
             <StackPanel
-                Margin="0,5,0,0"
                 Background="Transparent"
                 Orientation="Vertical">
                 <StackPanel.Resources>
-                    <Thickness
-                        x:Key="TitleMargin"
-                        Bottom="1"
-                        Left="5" />
+                    <Thickness x:Key="TitleMargin" Bottom="4" />
                     <Style
                         x:Key="ValueStyle"
                         BasedOn="{StaticResource MainTextBoxStyle}"
@@ -99,18 +62,31 @@
                         <Setter Property="Margin" Value="0,0,0,6" />
                     </Style>
                 </StackPanel.Resources>
-                <TextBlock Margin="{StaticResource TitleMargin}" Text="ModList Name" />
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
+                <Grid>
+                    <TextBox
+                    x:Name="AuthorNameSetting"
+                    Style="{StaticResource ValueStyle}" />
+                    <TextBlock IsHitTestVisible="False" Text="Author name..." VerticalAlignment="Center" Foreground="{StaticResource TextBoxDisabledForeground}">
+                        <TextBlock.Style>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Text, ElementName=AuthorNameSetting}" Value="">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Title" />
                 <TextBox x:Name="ModListNameSetting" Style="{StaticResource ValueStyle}" />
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Version" />
+                <TextBox x:Name="VersionSetting" MaxLength="9" Style="{StaticResource ValueStyle}" />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Selected Profile (if using MO2)" />
                 <TextBox x:Name="SelectedProfile" Style="{StaticResource ValueStyle}" />
                 <Button Margin="5" x:Name="ReInferSettings"> Re-infer Settings </Button>
-                <TextBlock Margin="{StaticResource TitleMargin}" Text="Version" />
-                <TextBox
-                    x:Name="VersionSetting"
-                    MaxLength="9"
-                    Style="{StaticResource ValueStyle}" />
-                <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
-                <TextBox x:Name="AuthorNameSetting" Style="{StaticResource ValueStyle}" />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
                 <TextBox
                     x:Name="DescriptionSetting"

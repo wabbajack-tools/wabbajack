@@ -74,9 +74,11 @@ namespace Wabbajack
                     .BindToStrict(this, view => view.BeginButton.Command)
                     .DisposeWith(disposables);
                 
+                /*
                 ViewModel.WhenAnyValue(vm => vm.BackCommand)
                     .BindToStrict(this, view => view.BackButton.Command)
                     .DisposeWith(disposables);
+                */
                 
                 ViewModel.WhenAnyValue(vm => vm.ReInferSettingsCommand)
                     .BindToStrict(this, view => view.ReInferSettings.Command)
@@ -178,6 +180,7 @@ namespace Wabbajack
                     .DisposeWith(disposables);
                 
 
+                /*
                 ViewModel.WhenAnyValue(vm => vm.StatusText)
                     .BindToStrict(this, view => view.TopProgressBar.Title)
                     .DisposeWith(disposables);
@@ -186,6 +189,7 @@ namespace Wabbajack
                     .Select(d => d.Value)
                     .BindToStrict(this, view => view.TopProgressBar.ProgressPercent)
                     .DisposeWith(disposables);
+                */
 
                 ViewModel.WhenAnyValue(vm => vm.AlwaysEnabled)
                     .WhereNotNull()

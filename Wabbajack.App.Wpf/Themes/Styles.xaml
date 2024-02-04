@@ -726,6 +726,9 @@
         TargetType="{x:Type TextBox}">
         <Setter Property="Background" Value="{StaticResource TextBoxBackground}" />
         <Setter Property="BorderBrush" Value="{StaticResource TextBoxBorder}" />
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Height" Value="36" />
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="3" />
         <Setter Property="AllowDrop" Value="true" />
@@ -837,6 +840,20 @@
     </Style>
     <Style BasedOn="{StaticResource MainTextBoxStyle}" TargetType="TextBox" />
 
+    <!-- TextBlock -->
+    <!--
+    <Style x:Key="WatermarkTextblock" TargetType="TextBlock">
+        <Setter Property="Visibility" Value="Collapsed" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Foreground" Value="{StaticResource TextBoxDisabledForeground}"/>
+        <Setter Property="Margin" Value="5, 0, 0, 0"/>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Text, RelativeSource=Prev}}"
+        </Style.Triggers>
+    </Style>
+    -->
     <!--  ComboBox  -->
     <Style x:Key="ComboBoxFocusVisual">
         <Setter Property="Control.Template">
@@ -975,6 +992,7 @@
         <Setter Property="BorderBrush" Value="{StaticResource ButtonNormalBorder}" />
         <Setter Property="Padding" Value="5,3,5,1" />
         <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontSize" Value="14" />
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
         <Setter Property="ScrollViewer.CanContentScroll" Value="true" />
