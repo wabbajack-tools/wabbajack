@@ -93,7 +93,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2151.40" />
     <PackageReference Include="NLog.Extensions.Logging" Version="5.3.5" />
-    <PackageReference Include="Orc.FileAssociation" Version="5.0.0-alpha0061" />
+    <PackageReference Include="Orc.FileAssociation" Version="5.0.0" />
     <PackageReference Include="PInvoke.User32" Version="0.7.124" />
     <PackageReference Include="ReactiveUI" Version="19.5.1" />
     <PackageReference Include="ReactiveUI.Fody" Version="19.5.1" />
