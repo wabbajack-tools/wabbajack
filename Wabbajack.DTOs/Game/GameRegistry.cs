@@ -131,6 +131,7 @@ public static class GameRegistry
                 MO2ArchiveName = "fallout4",
                 SteamIDs = new[] {377160},
                 GOGIDs = new long[]{1998527297},
+                XboxGamePassGameStoreIds = new [] {"BethesdaSoftworks.Fallout4-PC"},
                 RequiredFiles = new[]
                 {
                     "Fallout4.exe".ToRelativePath()

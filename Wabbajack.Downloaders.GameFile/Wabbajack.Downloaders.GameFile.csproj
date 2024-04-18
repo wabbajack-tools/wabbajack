@@ -23,6 +23,7 @@
         <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="4.1.0" />
         <PackageReference Include="GameFinder.StoreHandlers.Origin" Version="4.1.0" />
         <PackageReference Include="GameFinder.StoreHandlers.Steam" Version="4.1.0" />
+        <PackageReference Include="GameFinder.StoreHandlers.Xbox" Version="4.2.0" />
     </ItemGroup>
 
 </Project>

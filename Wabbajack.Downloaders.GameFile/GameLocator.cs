@@ -9,6 +9,7 @@ using GameFinder.StoreHandlers.Origin;
 using GameFinder.StoreHandlers.Steam;
 using GameFinder.StoreHandlers.Steam.Models;
 using GameFinder.StoreHandlers.Steam.Models.ValueTypes;
+using GameFinder.StoreHandlers.Xbox;
 using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs;
 using Wabbajack.Paths;
@@ -23,12 +24,15 @@ public class GameLocator : IGameLocator
     private readonly EGSHandler? _egs;
     private readonly OriginHandler? _origin;
     private readonly EADesktopHandler? _eaDesktop;
+    private readonly XboxHandler? _xboxGP;
 
     private readonly Dictionary<AppId, AbsolutePath> _steamGames = new();
     private readonly Dictionary<GOGGameId, AbsolutePath> _gogGames = new();
     private readonly Dictionary<EGSGameId, AbsolutePath> _egsGames = new();
     private readonly Dictionary<OriginGameId, AbsolutePath> _originGames = new();
     private readonly Dictionary<EADesktopGameId, AbsolutePath> _eaDesktopGames = new();
+    private readonly Dictionary<XboxGameId, AbsolutePath> _xboxGamePassGames = new();
+
     
     private readonly Dictionary<Game, AbsolutePath> _locationCache;
     private readonly ILogger<GameLocator> _logger;
@@ -47,6 +51,7 @@ public class GameLocator : IGameLocator
             _egs = new EGSHandler(windowsRegistry, fileSystem);
             _origin = new OriginHandler(fileSystem);
             _eaDesktop = new EADesktopHandler(fileSystem, new HardwareInfoProvider());
+            _xboxGP = new XboxHandler(fileSystem);
         }
         else
         {
@@ -102,6 +107,14 @@ public class GameLocator : IGameLocator
         catch (Exception e)
         {
             _logger.LogError(e, "While finding games installed with EADesktop");
+        }
+        try
+        {
+            FindStoreGames(_xboxGP, _xboxGamePassGames, game => (AbsolutePath)game.Path.GetFullPath());
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "While finding games installed with XBox Game Pass");
         }
     }
 
@@ -206,6 +219,13 @@ public class GameLocator : IGameLocator
         foreach (var id in metaData.EADesktopIDs)
         {
             if (!_eaDesktopGames.TryGetValue(EADesktopGameId.From(id), out var found)) continue;
+            path = found;
+            return true;
+        }
+
+        foreach (var id in metaData.XboxGamePassGameStoreIds)
+        {
+            if (!_xboxGamePassGames.TryGetValue(XboxGameId.From(id), out var found)) continue;
             path = found;
             return true;
         }
