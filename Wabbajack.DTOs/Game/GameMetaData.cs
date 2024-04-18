@@ -34,6 +34,8 @@ public class GameMetaData
 
     public string[] EpicGameStoreIDs { get; internal init; } = Array.Empty<string>();
 
+    public string[] XboxGamePassGameStoreIds { get; set; } = Array.Empty<string>();
+
     // to get BethNet IDs: check the registry
     public int BethNetID { get; internal init; }
 

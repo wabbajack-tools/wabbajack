@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version - 3.5.0.2 - 4/18/2024
+* Added Xbox Game Pass lookup for Wabbajack.Downloaders.GameFile solution
+* Added in Fallout 4 lookup for Xbox Game Pass
+* *TODO* Add in other games from game pass that are supported 
+
 #### Version - 3.5.0.1 - 1/15/2024
 * *HOTFIX* - change the cache file names so files will be auto-rehashed
 
