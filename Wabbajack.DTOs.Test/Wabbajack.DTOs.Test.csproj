@@ -22,7 +22,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="YamlDotNet" Version="13.7.1" />
+        <PackageReference Include="YamlDotNet" Version="15.1.2" />
     </ItemGroup>
 
     <ItemGroup>
