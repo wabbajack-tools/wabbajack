@@ -24,7 +24,6 @@ namespace Wabbajack
     {
         private readonly ILogger<HomeVM> _logger;
         private readonly Client _wjClient;
-        private readonly SourceCache<ModListMetadataVM, string> _modLists = new(x => x.Metadata.NamespacedName);
 
         public HomeVM(ILogger<HomeVM> logger, Client wjClient)
         {

@@ -23,7 +23,7 @@ namespace Wabbajack
             ScreenButtonDictionary = new() {
                 { ScreenType.Home, HomeButton },
                 { ScreenType.ModListGallery, BrowseButton },
-                { ScreenType.Compiler, CompileButton },
+                { ScreenType.CreateAList, CompileButton },
                 { ScreenType.Settings, SettingsButton },
             };
             this.WhenActivated(dispose =>
@@ -32,7 +32,7 @@ namespace Wabbajack
                     .DisposeWith(dispose);
                 this.BindCommand(ViewModel, vm => vm.HomeCommand, v => v.HomeButton)
                     .DisposeWith(dispose);
-                this.BindCommand(ViewModel, vm => vm.CompileCommand, v => v.CompileButton)
+                this.BindCommand(ViewModel, vm => vm.CreateAListCommand, v => v.CompileButton)
                     .DisposeWith(dispose);
                 this.BindCommand(ViewModel, vm => vm.SettingsCommand, v => v.SettingsButton)
                     .DisposeWith(dispose);

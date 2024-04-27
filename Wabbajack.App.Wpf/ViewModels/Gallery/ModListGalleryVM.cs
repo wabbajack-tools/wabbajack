@@ -1,6 +1,4 @@
-﻿
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -28,10 +26,10 @@ namespace Wabbajack
     {
         public MainWindowVM MWVM { get; }
 
-        private readonly SourceCache<ModListMetadataVM, string> _modLists = new(x => x.Metadata.NamespacedName);
-        public ReadOnlyObservableCollection<ModListMetadataVM> _filteredModLists;
+        private readonly SourceCache<GalleryModListMetadataVM, string> _modLists = new(x => x.Metadata.NamespacedName);
+        public ReadOnlyObservableCollection<GalleryModListMetadataVM> _filteredModLists;
 
-        public ReadOnlyObservableCollection<ModListMetadataVM> ModLists => _filteredModLists;
+        public ReadOnlyObservableCollection<GalleryModListMetadataVM> ModLists => _filteredModLists;
 
         private const string ALL_GAME_IDENTIFIER = "All games";
 
@@ -49,8 +47,8 @@ namespace Wabbajack
         [Reactive] public double MinModlistSize { get; set; }
         [Reactive] public double MaxModlistSize { get; set; }
 
-        [Reactive] public ModListMetadataVM SmallestSizedModlist { get; set; }
-        [Reactive] public ModListMetadataVM LargestSizedModlist { get; set; }
+        [Reactive] public GalleryModListMetadataVM SmallestSizedModlist { get; set; }
+        [Reactive] public GalleryModListMetadataVM LargestSizedModlist { get; set; }
 
         public class GameTypeEntry
         {
@@ -134,7 +132,7 @@ namespace Wabbajack
                     .Throttle(searchThrottle, RxApp.MainThreadScheduler)
                     .Select(change => change.Value.Trim())
                     .StartWith(Search)
-                    .Select<string, Func<ModListMetadataVM, bool>>(txt =>
+                    .Select<string, Func<GalleryModListMetadataVM, bool>>(txt =>
                     {
                         if (string.IsNullOrWhiteSpace(txt)) return _ => true;
                         return item => item.Metadata.Title.ContainsCaseInsensitive(txt) ||
@@ -144,7 +142,7 @@ namespace Wabbajack
 
                 var onlyInstalledGamesFilter = this.ObservableForProperty(vm => vm.OnlyInstalled)
                     .Select(v => v.Value)
-                    .Select<bool, Func<ModListMetadataVM, bool>>(onlyInstalled =>
+                    .Select<bool, Func<GalleryModListMetadataVM, bool>>(onlyInstalled =>
                     {
                         if (onlyInstalled == false) return _ => true;
                         return item => _locator.IsInstalled(item.Metadata.Game);
@@ -154,7 +152,7 @@ namespace Wabbajack
                 var showUnofficial = this.ObservableForProperty(vm => vm.ShowUnofficialLists)
                     .Select(v => v.Value)
                     .StartWith(false)
-                    .Select<bool, Func<ModListMetadataVM, bool>>(unoffical =>
+                    .Select<bool, Func<GalleryModListMetadataVM, bool>>(unoffical =>
                     {
                         if (unoffical) return x => true;
                         return x => x.Metadata.Official;
@@ -162,12 +160,12 @@ namespace Wabbajack
 
                 var showNSFWFilter = this.ObservableForProperty(vm => vm.ShowNSFW)
                     .Select(v => v.Value)
-                    .Select<bool, Func<ModListMetadataVM, bool>>(showNsfw => { return item => item.Metadata.NSFW == showNsfw; })
+                    .Select<bool, Func<GalleryModListMetadataVM, bool>>(showNsfw => { return item => item.Metadata.NSFW == showNsfw; })
                     .StartWith(item => item.Metadata.NSFW == false);
 
                 var gameFilter = this.ObservableForProperty(vm => vm.GameType)
                     .Select(v => v.Value)
-                    .Select<string, Func<ModListMetadataVM, bool>>(selected =>
+                    .Select<string, Func<GalleryModListMetadataVM, bool>>(selected =>
                     {
                         _filteringOnGame = true;
                         if (selected is null or ALL_GAME_IDENTIFIER) return _ => true;
@@ -178,7 +176,7 @@ namespace Wabbajack
                 var minModlistSizeFilter = this.ObservableForProperty(vm => vm.MinModlistSize)
                                      .Throttle(TimeSpan.FromSeconds(0.05), RxApp.MainThreadScheduler)
                                      .Select(v => v.Value)
-                                     .Select<double, Func<ModListMetadataVM, bool>>(minModlistSize =>
+                                     .Select<double, Func<GalleryModListMetadataVM, bool>>(minModlistSize =>
                                      {
                                          return item => item.Metadata.DownloadMetadata.TotalSize >= minModlistSize;
                                      });
@@ -186,7 +184,7 @@ namespace Wabbajack
                 var maxModlistSizeFilter = this.ObservableForProperty(vm => vm.MaxModlistSize)
                                      .Throttle(TimeSpan.FromSeconds(0.05), RxApp.MainThreadScheduler)
                                      .Select(v => v.Value)
-                                     .Select<double, Func<ModListMetadataVM, bool>>(maxModlistSize =>
+                                     .Select<double, Func<GalleryModListMetadataVM, bool>>(maxModlistSize =>
                                      {
                                          return item => item.Metadata.DownloadMetadata.TotalSize <= maxModlistSize;
                                      });
@@ -194,7 +192,7 @@ namespace Wabbajack
 
                 var searchSorter = this.WhenValueChanged(vm => vm.Search)
                                         .Throttle(searchThrottle, RxApp.MainThreadScheduler)
-                                        .Select(s => SortExpressionComparer<ModListMetadataVM>
+                                        .Select(s => SortExpressionComparer<GalleryModListMetadataVM>
                                                      .Descending(m => m.Metadata.Title.StartsWith(s, StringComparison.InvariantCultureIgnoreCase))
                                                      .ThenByDescending(m => m.Metadata.Title.Contains(s, StringComparison.InvariantCultureIgnoreCase))
                                                      .ThenByDescending(m => !m.IsBroken));
@@ -278,7 +276,7 @@ namespace Wabbajack
                 {
                     e.Clear();
                     e.AddOrUpdate(modLists.Select(m =>
-                        new ModListMetadataVM(_logger, this, m, _maintainer, _wjClient, _cancellationToken)));
+                        new GalleryModListMetadataVM(_logger, this, m, _maintainer, _wjClient, _cancellationToken)));
                 });
                 SmallestSizedModlist = _modLists.Items.Any() ? _modLists.Items.MinBy(ml => ml.Metadata.DownloadMetadata.TotalSize) : null;
                 LargestSizedModlist = _modLists.Items.Any() ? _modLists.Items.MaxBy(ml => ml.Metadata.DownloadMetadata.TotalSize) : null;

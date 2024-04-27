@@ -12,7 +12,7 @@
     d:DesignWidth="1000"
     x:TypeArguments="local:HomeVM"
     mc:Ignorable="d">
-    <Grid Grid.Row="0" Grid.Column="0" VerticalAlignment="Stretch">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -47,7 +47,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Border Grid.Row="0" Grid.Column="0" BorderBrush="{StaticResource PrimaryVariantBrush}" CornerRadius="8" BorderThickness="19" Margin="0, 0, 20, 20">
-                <Grid Grid.Row="0" Grid.Column="0" Background="{StaticResource PrimaryVariantBrush}" Margin="-1">
+                <Grid Background="{StaticResource PrimaryVariantBrush}" Margin="-1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto" />
@@ -78,7 +78,7 @@
                 </Grid>
             </Border>
             <Border Grid.Row="0" Grid.Column="2" BorderBrush="{StaticResource PrimaryVariantBrush}" CornerRadius="8" BorderThickness="19" Margin="0, 0, 0, 20">
-                <Grid Grid.Row="0" Grid.Column="0" Background="{StaticResource PrimaryVariantBrush}" Margin="-1">
+                <Grid Background="{StaticResource PrimaryVariantBrush}" Margin="-1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto" />
@@ -109,7 +109,7 @@
                 </Grid>
             </Border>
             <Border Grid.Row="2" Grid.Column="0" BorderBrush="{StaticResource PrimaryVariantBrush}" CornerRadius="8" BorderThickness="19" Margin="0, 0, 20, 0">
-                <Grid Grid.Row="0" Grid.Column="0" Background="{StaticResource PrimaryVariantBrush}" Margin="-1">
+                <Grid Background="{StaticResource PrimaryVariantBrush}" Margin="-1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto" />
@@ -140,7 +140,7 @@
                 </Grid>
             </Border>
             <Border Grid.Row="2" Grid.Column="2" BorderBrush="{StaticResource PrimaryVariantBrush}" CornerRadius="8" BorderThickness="19">
-                <Grid Grid.Row="0" Grid.Column="0" Background="{StaticResource PrimaryVariantBrush}" Margin="-1">
+                <Grid Background="{StaticResource PrimaryVariantBrush}" Margin="-1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto" />

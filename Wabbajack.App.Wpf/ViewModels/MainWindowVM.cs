@@ -44,10 +44,10 @@ namespace Wabbajack
 
         public ObservableCollectionExtended<IStatusMessage> Log { get; } = new ObservableCollectionExtended<IStatusMessage>();
 
-        public readonly CompilerVM Compiler;
-        public readonly InstallerVM Installer;
-        public readonly SettingsVM SettingsPane;
-        public readonly ModListGalleryVM Gallery;
+        public readonly CreateModListVM CreateAListVM;
+        public readonly InstallerVM InstallerVM;
+        public readonly SettingsVM SettingsPaneVM;
+        public readonly ModListGalleryVM GalleryVM;
         public readonly HomeVM HomeVM;
         public readonly WebBrowserVM WebBrowserVM;
         public readonly Lazy<ModListContentsVM> ModListContentsVM;
@@ -78,17 +78,17 @@ namespace Wabbajack
 
         public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
             IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-            InstallerVM installer, CompilerVM compilerVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM)
+            InstallerVM installer, CreateModListVM createAListVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM)
         {
             _logger = logger;
             _wjClient = wjClient;
             _resourceMonitor = resourceMonitor;
             _serviceProvider = serviceProvider;
             ConverterRegistration.Register();
-            Installer = installer;
-            Compiler = compilerVM;
-            SettingsPane = settingsVM;
-            Gallery = modListGalleryVM;
+            InstallerVM = installer;
+            CreateAListVM = createAListVM;
+            SettingsPaneVM = settingsVM;
+            GalleryVM = modListGalleryVM;
             HomeVM = homeVM;
             WebBrowserVM = webBrowserVM;
             NavigationVM = navigationVM;
@@ -231,10 +231,10 @@ namespace Wabbajack
             ActivePane = s switch
             {
                 ScreenType.Home => HomeVM,
-                ScreenType.ModListGallery => Gallery,
-                ScreenType.Installer => Installer,
-                ScreenType.Compiler => Compiler,
-                ScreenType.Settings => SettingsPane,
+                ScreenType.ModListGallery => GalleryVM,
+                ScreenType.Installer => InstallerVM,
+                ScreenType.CreateAList => CreateAListVM,
+                ScreenType.Settings => SettingsPaneVM,
                 _ => ActivePane
             };
         }
@@ -263,7 +263,7 @@ namespace Wabbajack
             var cancellationTokenSource = _serviceProvider.GetRequiredService<CancellationTokenSource>();
             cancellationTokenSource.Cancel();
 
-            bool IsInstalling() => Installer.InstallState is InstallState.Installing;
+            bool IsInstalling() => InstallerVM.InstallState is InstallState.Installing;
 
             while (DateTime.Now < endTime && IsInstalling())
             {

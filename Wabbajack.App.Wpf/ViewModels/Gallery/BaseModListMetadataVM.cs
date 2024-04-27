@@ -1,30 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using DynamicData;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
-using Wabbajack.DTOs.ServerResponses;
-using Wabbajack;
-using Wabbajack.Extensions;
 using Wabbajack.Messages;
 using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
-using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated.Services;
-using System.Windows.Media;
 
 namespace Wabbajack
 {
@@ -39,18 +32,14 @@ namespace Wabbajack
         public string Name { get; }
     }
 
-    public class ModListMetadataVM : ViewModel
+    public class BaseModListMetadataVM : ViewModel
     {
         public ModlistMetadata Metadata { get; }
-        private ModListGalleryVM _parent;
 
         public ICommand OpenWebsiteCommand { get; }
         public ICommand ExecuteCommand { get; }
         
         public ICommand ModListContentsCommend { get; }
-
-        private readonly ObservableAsPropertyHelper<bool> _Exists;
-        public bool Exists => _Exists.Value;
 
         public AbsolutePath Location { get; }
 
@@ -108,11 +97,10 @@ namespace Wabbajack
         private readonly Client _wjClient;
         private readonly CancellationToken _cancellationToken;
 
-        public ModListMetadataVM(ILogger logger, ModListGalleryVM parent, ModlistMetadata metadata,
+        public BaseModListMetadataVM(ILogger logger, ModlistMetadata metadata,
             ModListDownloadMaintainer maintainer, Client wjClient, CancellationToken cancellationToken)
         {
             _logger = logger;
-            _parent = parent;
             _maintainer = maintainer;
             Metadata = metadata;
             _wjClient = wjClient;
@@ -162,23 +150,6 @@ namespace Wabbajack
                 .CombineLatest(this.WhenAnyValue(vm => vm.IsBroken))
                 .Select(v => !v.First && !v.Second));
 
-            _Exists = Observable.Interval(TimeSpan.FromSeconds(0.5))
-                .Unit()
-                .StartWith(Unit.Default)
-                .FlowSwitch(_parent.WhenAny(x => x.IsActive))
-                .SelectAsync(async _ =>
-                {
-                    try
-                    {
-                        return !IsDownloading && await maintainer.HaveModList(metadata);
-                    }
-                    catch (Exception)
-                    {
-                        return true;
-                    }
-                })
-                .ToGuiProperty(this, nameof(Exists));
-
             var modlistImageSource = Metadata.ValidationSummary?.SmallImage?.ToString() ?? Metadata.Links.ImageUri;
             var imageObs = Observable.Return(modlistImageSource)
                 .DownloadBitmapImage((ex) => _logger.LogError("Error downloading modlist image {Title} from {ImageUri}: {Exception}", Metadata.Title, modlistImageSource, ex.Message), LoadingImageLock);
@@ -194,7 +165,7 @@ namespace Wabbajack
 
 
 
-        private async Task Download()
+        protected async Task Download()
         {
             try
             {
@@ -222,7 +193,7 @@ namespace Wabbajack
             }
         }
 
-        private async Task UpdateStatus()
+        protected async Task UpdateStatus()
         {
             if (await _maintainer.HaveModList(Metadata))
                 Status = ModListStatus.Downloaded;

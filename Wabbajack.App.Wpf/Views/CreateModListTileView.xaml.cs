@@ -1,22 +1,16 @@
-﻿using System;
-using System.Reactive.Disposables;
+﻿using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
-using MahApps.Metro.IconPacks;
 using ReactiveUI;
-using Wabbajack.DTOs;
 
 namespace Wabbajack
 {
     /// <summary>
-    /// Interaction logic for ModListTileView.xaml
+    /// Interaction logic for CreateModListTileView.xaml
     /// </summary>
-    public partial class ModListTileView : ReactiveUserControl<GalleryModListMetadataVM>
+    public partial class CreateModListTileView : ReactiveUserControl<CreateModListMetadataVM>
     {
-        public ModListTileView()
+        public CreateModListTileView()
         {
             InitializeComponent();
             this.WhenActivated(disposables =>
@@ -30,14 +24,10 @@ namespace Wabbajack
                                 ViewModel.WhenAnyValue(vm => vm.IsBroken))
                     .Select(x => x.Second && !x.Third ? "" : x.First);
 
+
                 ViewModel.WhenAnyValue(x => x.LoadingImageLock.IsLoading)
                     .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
                     .BindToStrict(this, x => x.LoadingProgress.Visibility)
-                    .DisposeWith(disposables);
-
-                ViewModel.WhenAnyValue(x => x.IsBroken)
-                    .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
-                    .BindToStrict(this, view => view.Overlay.Visibility)
                     .DisposeWith(disposables);
             });
         }

@@ -8,7 +8,7 @@ public enum ScreenType
     ModListGallery,
     Installer,
     Settings,
-    Compiler,
+    CreateAList,
     ModListContents,
     WebBrowser
 }
