@@ -80,9 +80,11 @@ namespace Wabbajack
                     .DisposeWith(disposables);
                 */
                 
+                /*
                 ViewModel.WhenAnyValue(vm => vm.ReInferSettingsCommand)
                     .BindToStrict(this, view => view.ReInferSettings.Command)
                     .DisposeWith(disposables);
+                */
                 
                 ViewModel.WhenAnyValue(vm => vm.State)
                     .Select(v => v == CompilerState.Configuration ? Visibility.Visible : Visibility.Collapsed)

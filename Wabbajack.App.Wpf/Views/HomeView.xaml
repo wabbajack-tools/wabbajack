@@ -22,19 +22,19 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Label Grid.Row="0" Grid.Column="0" FontSize="87" FontWeight="Bold" Padding="0" Margin="0">
+        <Label Grid.Row="0" Grid.Column="0" FontWeight="Bold" Padding="0" Margin="0">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Grid.Row="0" Grid.Column="0" FontSize="87" FontWeight="Bold" Foreground="{StaticResource ForegroundBrush}" Text="Welcome to " />
-                <TextBlock Foreground="{StaticResource PrimaryBrush}" Text="Wabbajack" />
+                <TextBlock Foreground="{StaticResource PrimaryBrush}" Text="Wabbajack" FontSize="87" />
             </StackPanel>
         </Label>
-        <Label Grid.Row="1" FontSize="24" Foreground="{StaticResource ForegroundBrush}" Margin="0">
+        <Label Grid.Row="1" Foreground="{StaticResource ForegroundBrush}" Margin="0">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="The home of " />
-                <TextBlock x:Name="ModlistAmountTextBlock" Foreground="{StaticResource PrimaryBrush}" />
-                <TextBlock Text=" ready-made modlists spanning " />
-                <TextBlock x:Name="GameAmountTextBlock" Foreground="{StaticResource PrimaryBrush}" />
-                <TextBlock Text=" games." />
+                <TextBlock Text="The home of " FontSize="24" />
+                <TextBlock x:Name="ModlistAmountTextBlock" Foreground="{StaticResource PrimaryBrush}" FontSize="24" />
+                <TextBlock Text=" ready-made modlists spanning " FontSize="24" />
+                <TextBlock x:Name="GameAmountTextBlock" Foreground="{StaticResource PrimaryBrush}" FontSize="24" />
+                <TextBlock Text=" games." FontSize="24" />
             </StackPanel>
         </Label>
         <Grid Grid.Row="3" Grid.RowSpan="2" Margin="0, 32, 0, 0">

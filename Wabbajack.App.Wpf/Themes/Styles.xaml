@@ -105,6 +105,10 @@
         x:Key="MahApps.Brushes.Accent4"
         options:Freeze="True"
         Color="{StaticResource MahApps.Colors.Accent4}" />
+    <SolidColorBrush
+        x:Key="MahApps.Brushes.TextBlock.FloatingMessage"
+        options:Freeze="True"
+        Color="{StaticResource MahApps.Colors.Accent4}"/>
 
     <!--  Brushes  -->
     <SolidColorBrush x:Key="YellowBrush" Color="{StaticResource Yellow}" />
@@ -245,6 +249,7 @@
     <!--  FontStyle  -->
     <Style TargetType="{x:Type TextBlock}">
         <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}" />
+        <Setter Property="FontSize" Value="14"/>
         <!--<Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>-->
     </Style>
     <Style TargetType="{x:Type Control}">
@@ -840,20 +845,6 @@
     </Style>
     <Style BasedOn="{StaticResource MainTextBoxStyle}" TargetType="TextBox" />
 
-    <!-- TextBlock -->
-    <!--
-    <Style x:Key="WatermarkTextblock" TargetType="TextBlock">
-        <Setter Property="Visibility" Value="Collapsed" />
-        <Setter Property="IsHitTestVisible" Value="False" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="FontSize" Value="14"/>
-        <Setter Property="Foreground" Value="{StaticResource TextBoxDisabledForeground}"/>
-        <Setter Property="Margin" Value="5, 0, 0, 0"/>
-        <Style.Triggers>
-            <DataTrigger Binding="{Binding Text, RelativeSource=Prev}}"
-        </Style.Triggers>
-    </Style>
-    -->
     <!--  ComboBox  -->
     <Style x:Key="ComboBoxFocusVisual">
         <Setter Property="Control.Template">
@@ -3516,6 +3507,7 @@
     <!--  FilePicker  -->
     <Style x:Key="MainFilePickerStyle" TargetType="{x:Type local:FilePicker}">
         <Setter Property="FontSize" Value="14" />
+        <Setter Property="Background" Value="{StaticResource DarkPrimaryBrush}"/>
     </Style>
     <Style BasedOn="{StaticResource MainFilePickerStyle}" TargetType="{x:Type local:FilePicker}" />
 
