@@ -29,7 +29,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" BorderBrush="{StaticResource PrimaryVariantBrush}" CornerRadius="8" BorderThickness="19" Margin="0, 0, 20, 20">
+            <Border Grid.Column="0" BorderBrush="{StaticResource PrimaryVariantBrush}" CornerRadius="8" BorderThickness="19" Margin="0, 0, 20, 20" x:Name="CompileNewModListBorder">
                 <Grid Background="{StaticResource PrimaryVariantBrush}" Margin="-1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -109,7 +109,7 @@
             Recently Compiled Modlists
             </TextBlock>
 
-            <ScrollViewer Grid.Row="1" Background="Green" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer Grid.Row="1" Background="Transparent" VerticalScrollBarVisibility="Auto">
                 <ItemsControl
                     x:Name="CreatedModListsControl"
                     HorizontalAlignment="Center"
@@ -121,7 +121,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <local:CreateModListTileView ViewModel="{Binding}" />
+                            <local:CreatedModListTileView ViewModel="{Binding}" />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

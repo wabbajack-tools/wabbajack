@@ -31,8 +31,6 @@ using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack
 {
-    
-    
     public enum CompilerState
     {
         Configuration,
@@ -42,7 +40,6 @@ namespace Wabbajack
     }
     public class CompilerVM : BackNavigatingVM, ICpuStatusVM
     {
-        private const string LastSavedCompilerSettings = "last-saved-compiler-settings";
         private readonly DTOSerializer _dtos;
         private readonly SettingsManager _settingsManager;
         private readonly IServiceProvider _serviceProvider;
@@ -268,7 +265,6 @@ namespace Wabbajack
             Ignore = settings.Ignore;
             if (path.FileName == "modlist.txt".ToRelativePath())
             {
-                await SaveSettingsFile();
                 await LoadLastSavedSettings();
             }
         }
@@ -379,15 +375,26 @@ namespace Wabbajack
         private async Task SaveSettingsFile()
         {
             if (Source == default) return;
-            await using var st = SettingsOutputLocation.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-            await JsonSerializer.SerializeAsync(st, GetSettings(), _dtos.Options);
 
-            await _settingsManager.Save(LastSavedCompilerSettings, SettingsOutputLocation);
+            var settings = GetSettings();
+
+            await using var st = SettingsOutputLocation.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+            await JsonSerializer.SerializeAsync(st, settings, _dtos.Options);
+
+            var allSavedCompilerSettings = await _settingsManager.Load<List<AbsolutePath>>(Consts.AllSavedCompilerSettingsPaths);
+            allSavedCompilerSettings.Remove(SettingsOutputLocation);
+            allSavedCompilerSettings.Insert(0, SettingsOutputLocation);
+
+            await _settingsManager.Save(Consts.AllSavedCompilerSettingsPaths, allSavedCompilerSettings);
         }
 
         private async Task LoadLastSavedSettings()
         {
-            var lastPath = await _settingsManager.Load<AbsolutePath>(LastSavedCompilerSettings);
+            AbsolutePath lastPath = default;
+            var allSavedCompilerSettings = await _settingsManager.Load<List<AbsolutePath>>(Consts.AllSavedCompilerSettingsPaths);
+            if (allSavedCompilerSettings.Any())
+                lastPath = allSavedCompilerSettings[0];
+
             if (lastPath == default || !lastPath.FileExists() || lastPath.FileName.Extension != Ext.CompilerSettings) return;
             ModlistLocation.TargetPath = lastPath;
         }

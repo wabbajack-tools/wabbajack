@@ -23,7 +23,7 @@ namespace Wabbajack
             ScreenButtonDictionary = new() {
                 { ScreenType.Home, HomeButton },
                 { ScreenType.ModListGallery, BrowseButton },
-                { ScreenType.CreateAList, CompileButton },
+                { ScreenType.CreateModList, CompileButton },
                 { ScreenType.Settings, SettingsButton },
             };
             this.WhenActivated(dispose =>
@@ -32,7 +32,7 @@ namespace Wabbajack
                     .DisposeWith(dispose);
                 this.BindCommand(ViewModel, vm => vm.HomeCommand, v => v.HomeButton)
                     .DisposeWith(dispose);
-                this.BindCommand(ViewModel, vm => vm.CreateAListCommand, v => v.CompileButton)
+                this.BindCommand(ViewModel, vm => vm.CreateModListCommand, v => v.CompileButton)
                     .DisposeWith(dispose);
                 this.BindCommand(ViewModel, vm => vm.SettingsCommand, v => v.SettingsButton)
                     .DisposeWith(dispose);
@@ -44,7 +44,7 @@ namespace Wabbajack
 
 
                 this.WhenAny(x => x.ViewModel.ActiveScreen)
-                    .Subscribe(x => SetActiveScreen(x))
+                    .Subscribe(x => SetButtonActive(x))
                     .DisposeWith(dispose);
 
                 /*
@@ -58,7 +58,7 @@ namespace Wabbajack
             });
         }
 
-        private void SetActiveScreen(ScreenType activeScreen)
+        private void SetButtonActive(ScreenType activeScreen)
         {
             var activeButtonStyle = (Style)Application.Current.Resources["ActiveNavButtonStyle"];
             var mainButtonStyle = (Style)Application.Current.Resources["MainNavButtonStyle"];

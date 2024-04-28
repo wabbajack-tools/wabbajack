@@ -1,15 +1,28 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using DynamicData;
+using DynamicData.Binding;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
+using SteamKit2.GC.Dota.Internal;
+using SteamKit2.Internal;
 using Wabbajack.Common;
+using Wabbajack.Compiler;
+using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Messages;
 using Wabbajack.Networking.WabbajackClientApi;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.Services;
 
@@ -20,55 +33,35 @@ namespace Wabbajack
         private readonly SettingsManager _settingsManager;
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<CreateModListVM> _logger;
-        private readonly Client _wjClient;
-
-        private readonly ModListDownloadMaintainer _maintainer;
         private readonly CancellationToken _cancellationToken;
+        private readonly DTOSerializer _dtos;
 
-        private readonly SourceCache<CreateModListMetadataVM, string> _modLists = new(x => x.Metadata.NamespacedName);
-        public ReadOnlyObservableCollection<CreateModListMetadataVM> _filteredModLists;
+        public ICommand CompileModListCommand { get; set; }
 
-        public ReadOnlyObservableCollection<CreateModListMetadataVM> ModLists => _filteredModLists;
-        
+        [Reactive]
+        public ObservableCollection<CreatedModlistVM> CreatedModlists { get; set; }
+
         public CreateModListVM(ILogger<CreateModListVM> logger, SettingsManager settingsManager,
-            IServiceProvider serviceProvider, Client wjClient, ModListDownloadMaintainer maintainer)
+            IServiceProvider serviceProvider, DTOSerializer dtos)
         {
             _logger = logger;
             _settingsManager = settingsManager;
             _serviceProvider = serviceProvider;
-            _wjClient = wjClient;
-            _maintainer = maintainer;
-
-            LoadModLists().FireAndForget();
-            
-            this.WhenActivated(disposables =>
-            {
-                _modLists.Connect()
-                    .ObserveOn(RxApp.MainThreadScheduler)
-                    .Bind(out _filteredModLists)
-                    .Subscribe((_) => { })
-                    .DisposeWith(disposables);
-            });
+            _dtos = dtos;
+            CompileModListCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.Compiler));
+            LoadAllCompilerSettings().FireAndForget();
         }
-        private async Task LoadModLists()
+
+        private async Task LoadAllCompilerSettings()
         {
-            using var ll = LoadingLock.WithLoading();
-            try
+            CreatedModlists = new();
+            var savedCompilerSettingsPaths = await _settingsManager.Load<List<AbsolutePath>>(Consts.AllSavedCompilerSettingsPaths);
+            foreach(var settingsPath in savedCompilerSettingsPaths)
             {
-                var modLists = await _wjClient.LoadLists();
-                _modLists.Edit(e =>
-                {
-                    e.Clear();
-                    e.AddOrUpdate(modLists.Select(m =>
-                        new CreateModListMetadataVM(_logger, this, m, _maintainer, _wjClient, _cancellationToken)));
-                });
+                await using var fs = settingsPath.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                var settings = (await _dtos.DeserializeAsync<CompilerSettings>(fs))!;
+                CreatedModlists.Add(new CreatedModlistVM(_logger, settings));
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "While loading lists");
-                ll.Fail();
-            }
-            ll.Succeed();
         }
     }
 }

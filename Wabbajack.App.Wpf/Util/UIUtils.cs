@@ -42,8 +42,9 @@ namespace Wabbajack
             return img;
         }
 
-        public static BitmapImage BitmapImageFromWebp(byte[] bytes, bool getThumbnail = false)
+        public static BitmapImage BitmapImageFromWebp(MemoryStream stream, bool getThumbnail = false)
         {
+            byte[] bytes = stream.ToArray();
             using(WebP webp = new())
             {
                 Bitmap bitmap;
@@ -163,7 +164,7 @@ namespace Wabbajack
                         catch(NotSupportedException)
                         {
                             if (isWebp)
-                                return BitmapImageFromWebp(memStream.ToArray());
+                                return BitmapImageFromWebp(memStream);
                             throw;
                         }
                     }

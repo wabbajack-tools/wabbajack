@@ -225,15 +225,6 @@ namespace Wabbajack
             });
         }
 
-        private class FilterSettings
-        {
-            public string GameType { get; set; }
-            public bool ShowNSFW { get; set; }
-            public bool ShowUnofficialLists { get; set; }
-            public bool OnlyInstalled { get; set; }
-            public string Search { get; set; }
-        }
-
         public override void Unload()
         {
             Error = null;
@@ -241,7 +232,7 @@ namespace Wabbajack
 
         private async Task SaveSettings()
         {
-            await _settingsManager.Save("modlist_gallery", new FilterSettings
+            await _settingsManager.Save("modlist_gallery", new GalleryFilterSettings
             {
                 GameType = GameType,
                 ShowNSFW = ShowNSFW,
@@ -254,7 +245,7 @@ namespace Wabbajack
         private async Task LoadSettings()
         {
             using var ll = LoadingLock.WithLoading();
-            RxApp.MainThreadScheduler.Schedule(await _settingsManager.Load<FilterSettings>("modlist_gallery"),
+            RxApp.MainThreadScheduler.Schedule(await _settingsManager.Load<GalleryFilterSettings>("modlist_gallery"),
                 (_, s) =>
             {
                 SelectedGameTypeEntry = GameTypeEntries?.FirstOrDefault(gte => gte.GameIdentifier.Equals(s.GameType));

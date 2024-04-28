@@ -14,6 +14,7 @@ using Wabbajack.Common;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.ViewModels.Controls;
+using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack
 {

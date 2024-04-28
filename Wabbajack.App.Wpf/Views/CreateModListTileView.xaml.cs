@@ -8,27 +8,25 @@ namespace Wabbajack
     /// <summary>
     /// Interaction logic for CreateModListTileView.xaml
     /// </summary>
-    public partial class CreateModListTileView : ReactiveUserControl<CreateModListMetadataVM>
+    public partial class CreatedModListTileView : ReactiveUserControl<CreatedModlistVM>
     {
-        public CreateModListTileView()
+        public CreatedModListTileView()
         {
             InitializeComponent();
             this.WhenActivated(disposables =>
             {
-                ViewModel.WhenAnyValue(vm => vm.Image)
+                ViewModel.WhenAnyValue(vm => vm.CompilerSettings.ModListImage)
+                         .Select(imagePath => { UIUtils.TryGetBitmapImageFromFile(imagePath, out var bitmapImage); return bitmapImage; })
                          .BindToStrict(this, v => v.ModlistImage.ImageSource)
                          .DisposeWith(disposables);
 
-                var textXformed = ViewModel.WhenAnyValue(vm => vm.Metadata.Title)
-                    .CombineLatest(ViewModel.WhenAnyValue(vm => vm.Metadata.ImageContainsTitle),
-                                ViewModel.WhenAnyValue(vm => vm.IsBroken))
-                    .Select(x => x.Second && !x.Third ? "" : x.First);
 
-
+                /*
                 ViewModel.WhenAnyValue(x => x.LoadingImageLock.IsLoading)
                     .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
                     .BindToStrict(this, x => x.LoadingProgress.Visibility)
                     .DisposeWith(disposables);
+                */
             });
         }
     }

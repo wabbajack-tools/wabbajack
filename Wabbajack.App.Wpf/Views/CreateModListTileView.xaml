@@ -1,5 +1,5 @@
 <rxui:ReactiveUserControl
-    x:Class="Wabbajack.CreateModListTileView"
+    x:Class="Wabbajack.CreatedModListTileView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -10,7 +10,7 @@
     xmlns:rxui="http://reactiveui.net"
     d:DesignHeight="450"
     d:DesignWidth="800"
-    x:TypeArguments="local:CreateModListMetadataVM"
+    x:TypeArguments="local:CreatedModlistVM"
     mc:Ignorable="d">
     <UserControl.Resources>
         <Color x:Key="TextBackgroundFill">#92000000</Color>
@@ -85,24 +85,6 @@
                         </Grid.OpacityMask>
                         <Grid ClipToBounds="True">
                             <mahapps:ProgressRing x:Name="LoadingProgress" />
-                            <StackPanel Orientation="Horizontal" Margin="5, 5, 0, 0" VerticalAlignment="Top" HorizontalAlignment="Left" Panel.ZIndex="1">
-                                <Border x:Name="GameIcon" Width="24" Height="24" CornerRadius="6">
-                                    <Border.Background>
-                                        <ImageBrush Stretch="Fill" ImageSource="{Binding GameMetaData.IconSource}"/>
-                                    </Border.Background>
-                                </Border>
-                                <Grid Margin="5, 0, 0, 0"
-                              Visibility="{Binding ElementName=CompiledModListTile, Path=IsMouseOver, Converter={StaticResource bool2VisibilityConverter}}">
-                                    <TextBlock x:Name="GameName"
-                                       Text="{Binding GameMetaData.HumanFriendlyGameName}"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Opacity="0.85"
-                                       Panel.ZIndex="2"/>
-                                    <Border Background="{StaticResource WindowBackgroundBrush}" Opacity="0.4" Width="{Binding ElementName=GameName, Path=ActualWidth,Converter={StaticResource MathConverter}, ConverterParameter=x+10}" Height="{Binding ElementName=GameIcon, Path=ActualHeight}" CornerRadius="6">
-                                    </Border>
-                                </Grid>
-                            </StackPanel>
                             <Border
                         BorderThickness="0"
                         HorizontalAlignment="Stretch"
@@ -110,19 +92,6 @@
                                 <Border.Background>
                                     <ImageBrush x:Name="ModlistImage" Stretch="UniformToFill"/>
                                 </Border.Background>
-                                <Border.Style>
-                                    <Style TargetType="Border">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsBroken}" Value="True">
-                                                <Setter Property="Effect">
-                                                    <Setter.Value>
-                                                        <BlurEffect Radius="35" />
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Border.Style>
                             </Border>
                             <Rectangle
                         Height="120"
@@ -204,112 +173,7 @@
                         Margin="10,242,0,0"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
-                        Content="{Binding VersionText}"
-                        Opacity="0">
-                                <Label.Style>
-                                    <Style TargetType="Label">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True">
-                                                <DataTrigger.EnterActions>
-                                                    <BeginStoryboard>
-                                                        <Storyboard>
-                                                            <DoubleAnimation
-                                                        Storyboard.TargetProperty="Opacity"
-                                                        To="1"
-                                                        Duration="0:0:0.08" />
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </DataTrigger.EnterActions>
-                                                <DataTrigger.ExitActions>
-                                                    <BeginStoryboard>
-                                                        <Storyboard>
-                                                            <DoubleAnimation
-                                                        Storyboard.TargetProperty="Opacity"
-                                                        To="0"
-                                                        Duration="0:0:0.08" />
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </DataTrigger.ExitActions>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Label.Style>
-                            </Label>
-                            <Label
-                        Margin="10,257,0,0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        Content="{Binding DownloadSizeText}"
-                        Opacity="0">
-                                <Label.Style>
-                                    <Style TargetType="Label">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True">
-                                                <DataTrigger.EnterActions>
-                                                    <BeginStoryboard>
-                                                        <Storyboard>
-                                                            <DoubleAnimation
-                                                        Storyboard.TargetProperty="Opacity"
-                                                        To="1"
-                                                        Duration="0:0:0.08" />
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </DataTrigger.EnterActions>
-                                                <DataTrigger.ExitActions>
-                                                    <BeginStoryboard>
-                                                        <Storyboard>
-                                                            <DoubleAnimation
-                                                        Storyboard.TargetProperty="Opacity"
-                                                        To="0"
-                                                        Duration="0:0:0.08" />
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </DataTrigger.ExitActions>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Label.Style>
-                            </Label>
-                            <Label
-                        Margin="10,272,0,0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        Content="{Binding InstallSizeText}"
-                        Opacity="0">
-                                <Label.Style>
-                                    <Style TargetType="Label">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True">
-                                                <DataTrigger.EnterActions>
-                                                    <BeginStoryboard>
-                                                        <Storyboard>
-                                                            <DoubleAnimation
-                                                        Storyboard.TargetProperty="Opacity"
-                                                        To="1"
-                                                        Duration="0:0:0.08" />
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </DataTrigger.EnterActions>
-                                                <DataTrigger.ExitActions>
-                                                    <BeginStoryboard>
-                                                        <Storyboard>
-                                                            <DoubleAnimation
-                                                        Storyboard.TargetProperty="Opacity"
-                                                        To="0"
-                                                        Duration="0:0:0.08" />
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </DataTrigger.ExitActions>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Label.Style>
-                            </Label>
-                            <Label
-                        Margin="10,287,0,0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        Content="{Binding TotalSizeRequirementText}"
+                        Content="{Binding CompilerSettings.Version}"
                         Opacity="0">
                                 <Label.Style>
                                     <Style TargetType="Label">
@@ -341,131 +205,11 @@
                                 </Label.Style>
                             </Label>
                         </Grid>
-                        <local:UnderMaintenanceOverlay Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                    x:Name="Overlay"
-                    Visibility="Collapsed"
-                    ClipToBounds="True" />
-                        <!--
-            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                x:Name="ModListTitleShadow"
-                Margin="5"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Bottom"
-                FontFamily="{StaticResource PrimaryFont}"
-                FontSize="30"
-                FontWeight="Bold"
-                Style="{StaticResource BackgroundBlurStyle}"
-                TextWrapping="Wrap">
-                <TextBlock.Effect>
-                    <BlurEffect Radius="25" />
-                </TextBlock.Effect>
-            </TextBlock>
-            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                x:Name="ModListTitle"
-                Margin="5"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Bottom"
-                FontFamily="{StaticResource PrimaryFont}"
-                FontSize="30"
-                FontWeight="Bold"
-                TextWrapping="Wrap">
-                <TextBlock.Effect>
-                    <DropShadowEffect />
-                </TextBlock.Effect>
-            </TextBlock>
-            <mahapps:MetroProgressBar Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                x:Name="DownloadProgressBar"
-                Height="3"
-                VerticalAlignment="Bottom"
-                Background="{StaticResource BackgroundBrush}"
-                Foreground="{StaticResource SecondaryBrush}"
-                Maximum="1"
-                Visibility="{Binding IsEnabled, ElementName=ExecuteButton, Converter={StaticResource bool2VisibilityHiddenConverter}, ConverterParameter=False}" />
-            <ScrollViewer Grid.Row="1" Grid.Column="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <TextBlock
-                       x:Name="MetadataDescription"
-                       Margin="8,5"
-                       VerticalAlignment="Center"
-                       FontSize="14"
-                       TextWrapping="Wrap" />
-            </ScrollViewer>
-            <ItemsControl Grid.Row="2" Name="TagsList">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Grid.Row="0" Grid.ColumnSpan="2"
-                                    Margin="5,5,0,5"
-                                    Background="{StaticResource Analogous1Brush}"
-                                    BorderThickness="1"
-                                    CornerRadius="7,7,7,7"
-                                    VerticalAlignment="Center"
-                                    Opacity="0.90">
-                                    <TextBlock
-                                        Margin="5,5,5,5"
-                                        FontSize="15"
-                                        Text="{Binding Name}" />
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-            <Grid Grid.Row="1" Grid.Column="1" Grid.RowSpan="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <Button Grid.Row="0"
-                        x:Name="OpenWebsiteButton"
-                        Width="40"
-                        Height="40"
-                        Margin="5,0"
-                        VerticalAlignment="Center"
-                        Style="{StaticResource IconBareButtonStyle}"
-                        ToolTip="View modlist website in browser">
-                    <iconPacks:Material
-                        Width="20"
-                        Height="20"
-                        Kind="Web" />
-                </Button>
-                <Button Grid.Row="1"
-                        x:Name="ModListContentsButton"
-                        Width="40"
-                        Height="40"
-                        Margin="5,0"
-                        VerticalAlignment="Center"
-                        Style="{StaticResource IconBareButtonStyle}"
-                        ToolTip="View modlist archives in browser">
-                    <iconPacks:Material
-                        Width="20"
-                        Height="20"
-                        Kind="TableSearch" />
-                </Button>
-                <Button Grid.Row="2"
-                    x:Name="ExecuteButton"
-                    Width="40"
-                    Height="40"
-                    Margin="5,0"
-                    VerticalAlignment="Center"
-                    ToolTip="Download modlist">
-                    <StackPanel x:Name="IconContainer">
-                        <iconPacks:Material
-                            x:Name="ErrorIcon"
-                            Width="20"
-                            Height="20"
-                            Kind="Exclamation" />
-                    </StackPanel>
-                </Button>
-            </Grid>
--->
                     </Grid>
                 </Grid>
             </Border>
             <TextBlock
-                        Text="{Binding Metadata.Title}"
+                        Text="{Binding CompilerSettings.ModListName}"
                         FontSize="16"
                         VerticalAlignment="Bottom"
                         Margin="10, 0, 0, 10"

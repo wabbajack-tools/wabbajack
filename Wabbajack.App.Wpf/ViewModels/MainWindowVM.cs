@@ -44,7 +44,8 @@ namespace Wabbajack
 
         public ObservableCollectionExtended<IStatusMessage> Log { get; } = new ObservableCollectionExtended<IStatusMessage>();
 
-        public readonly CreateModListVM CreateAListVM;
+        public readonly CompilerVM CompilerVM;
+        public readonly CreateModListVM CreateModListVM;
         public readonly InstallerVM InstallerVM;
         public readonly SettingsVM SettingsPaneVM;
         public readonly ModListGalleryVM GalleryVM;
@@ -78,15 +79,16 @@ namespace Wabbajack
 
         public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
             IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-            InstallerVM installer, CreateModListVM createAListVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM)
+            InstallerVM installerVM, CompilerVM compilerVM, CreateModListVM createModListVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM)
         {
             _logger = logger;
             _wjClient = wjClient;
             _resourceMonitor = resourceMonitor;
             _serviceProvider = serviceProvider;
             ConverterRegistration.Register();
-            InstallerVM = installer;
-            CreateAListVM = createAListVM;
+            InstallerVM = installerVM;
+            CompilerVM = compilerVM;
+            CreateModListVM = createModListVM;
             SettingsPaneVM = settingsVM;
             GalleryVM = modListGalleryVM;
             HomeVM = homeVM;
@@ -233,7 +235,8 @@ namespace Wabbajack
                 ScreenType.Home => HomeVM,
                 ScreenType.ModListGallery => GalleryVM,
                 ScreenType.Installer => InstallerVM,
-                ScreenType.CreateAList => CreateAListVM,
+                ScreenType.Compiler => CompilerVM,
+                ScreenType.CreateModList => CreateModListVM,
                 ScreenType.Settings => SettingsPaneVM,
                 _ => ActivePane
             };

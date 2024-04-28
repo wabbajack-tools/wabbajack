@@ -14,11 +14,13 @@ using Wabbajack.Common;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.ViewModels.Controls;
+using ReactiveMarbles.ObservableEvents;
+using System.Reactive;
 
 namespace Wabbajack
 {
     /// <summary>
-    /// Interaction logic for CreateAListView.xaml
+    /// Interaction logic for CreateModList.xaml
     /// </summary>
     public partial class CreateModListView : ReactiveUserControl<CreateModListVM>
     {
@@ -28,11 +30,16 @@ namespace Wabbajack
 
             this.WhenActivated(dispose =>
             {
-                this.WhenAny(x => x.ViewModel.ModLists)
+                this.WhenAny(x => x.ViewModel.CreatedModlists)
                     .BindToStrict(this, x => x.CreatedModListsControl.ItemsSource)
                     .DisposeWith(dispose);
-            });
 
+                CompileNewModListBorder
+                .Events().MouseDown
+                .Select(args => Unit.Default)
+                .InvokeCommand(this, x => x.ViewModel.CompileModListCommand)
+                .DisposeWith(dispose);
+            });
         }
     }
 }

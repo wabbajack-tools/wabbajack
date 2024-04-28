@@ -31,7 +31,6 @@ namespace Wabbajack
                     .BindToStrict(this, x => x.SizeSliderFilter.Maximum)
                     .DisposeWith(dispose);
 
-                
                 this.WhenAny(x => x.ViewModel.LoadingLock.IsLoading)
                     .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
                     .StartWith(Visibility.Collapsed)
@@ -52,7 +51,6 @@ namespace Wabbajack
                     .StartWith(Visibility.Collapsed)
                     .BindToStrict(this, x => x.NoneFound.Visibility)
                     .DisposeWith(dispose);
-
 
                 this.BindStrict(ViewModel, vm => vm.Search, x => x.SearchBox.Text)
                     .DisposeWith(dispose);

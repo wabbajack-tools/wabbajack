@@ -1,4 +1,6 @@
-﻿using Wabbajack.Downloaders;
+﻿using System.Collections.Generic;
+using Wabbajack.Compiler;
+using Wabbajack.Downloaders;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
@@ -50,5 +52,13 @@ namespace Wabbajack
         {
             MaximumMemoryPerDownloadThreadMb = _defaultMaximumMemoryPerDownloadThreadMb;
         }
+    }
+    public class GalleryFilterSettings
+    {
+        public string GameType { get; set; }
+        public bool ShowNSFW { get; set; }
+        public bool ShowUnofficialLists { get; set; }
+        public bool OnlyInstalled { get; set; }
+        public string Search { get; set; }
     }
 }
