@@ -1,17 +1,18 @@
-﻿using System.Linq;
-using System.Threading;
+﻿using System.Windows.Input;
 using Microsoft.Extensions.Logging;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Compiler;
-using Wabbajack.DTOs;
-using Wabbajack.Networking.WabbajackClientApi;
-using Wabbajack.Services.OSIntegrated.Services;
+using Wabbajack.Messages;
+using Wabbajack.Models;
 
 namespace Wabbajack
 {
     public class CreatedModlistVM
     {
         private ILogger _logger;
+        public LoadingLock LoadingImageLock { get; } = new();
+        public ICommand CompileModListCommand { get; set; }
         [Reactive]
         public CompilerSettings CompilerSettings { get; set; }
 
@@ -19,6 +20,14 @@ namespace Wabbajack
         {
             _logger = logger;
             CompilerSettings = compilerSettings;
+            CompileModListCommand = ReactiveCommand.Create(CompileModList);
+        }
+
+        private void CompileModList()
+        {
+            _logger.LogInformation($"Selected modlist {CompilerSettings.ModListName} for compilation, located in '{CompilerSettings.Source}'");
+            NavigateToGlobal.Send(ScreenType.Compiler);
+            LoadModlistForCompiling.Send(CompilerSettings);
         }
     }
 }

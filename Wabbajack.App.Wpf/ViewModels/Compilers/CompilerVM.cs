@@ -114,6 +114,10 @@ namespace Wabbajack
             _inferencer = inferencer;
             _wjClient = wjClient;
 
+            MessageBus.Current.Listen<LoadModlistForCompiling>()
+                .Subscribe(msg => LoadCompilerSettings(msg.CompilerSettings))
+                .DisposeWith(CompositeDisposable);
+
             StatusText = "Compiler Settings";
             StatusProgress = Percent.Zero;
 
@@ -186,7 +190,7 @@ namespace Wabbajack
                     .BindToStrict(this, vm => vm.ErrorState)
                     .DisposeWith(disposables);
                 
-                LoadLastSavedSettings().FireAndForget();
+                //LoadLastSavedSettings().FireAndForget();
             });
         }
 
@@ -240,6 +244,16 @@ namespace Wabbajack
                 return;
             }
 
+            LoadCompilerSettings(settings);
+
+            if (path.FileName == "modlist.txt".ToRelativePath())
+            {
+                await LoadLastSavedSettings();
+            }
+        }
+
+        private void LoadCompilerSettings(CompilerSettings settings)
+        {
             BaseGame = settings.Game;
             ModListName = settings.ModListName;
             Version = settings.Version?.ToString() ?? "";
@@ -249,7 +263,7 @@ namespace Wabbajack
             Website = settings.ModListWebsite?.ToString() ?? "";
             Readme = settings.ModListReadme?.ToString() ?? "";
             IsNSFW = settings.ModlistIsNSFW;
-            
+
             Source = settings.Source;
             DownloadLocation.TargetPath = settings.Downloads;
             if (settings.OutputFile.Extension == Ext.Wabbajack)
@@ -263,12 +277,7 @@ namespace Wabbajack
             NoMatchInclude = settings.NoMatchInclude;
             Include = settings.Include;
             Ignore = settings.Ignore;
-            if (path.FileName == "modlist.txt".ToRelativePath())
-            {
-                await LoadLastSavedSettings();
-            }
         }
-
 
         private async Task StartCompilation()
         {
@@ -399,7 +408,6 @@ namespace Wabbajack
             ModlistLocation.TargetPath = lastPath;
         }
 
-                    
         private CompilerSettings GetSettings()
         {
 

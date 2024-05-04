@@ -2,6 +2,8 @@
 using System.Reactive.Linq;
 using System.Windows;
 using ReactiveUI;
+using ReactiveMarbles.ObservableEvents;
+using System.Reactive;
 
 namespace Wabbajack
 {
@@ -13,20 +15,24 @@ namespace Wabbajack
         public CreatedModListTileView()
         {
             InitializeComponent();
-            this.WhenActivated(disposables =>
+            this.WhenActivated(dispose =>
             {
                 ViewModel.WhenAnyValue(vm => vm.CompilerSettings.ModListImage)
                          .Select(imagePath => { UIUtils.TryGetBitmapImageFromFile(imagePath, out var bitmapImage); return bitmapImage; })
                          .BindToStrict(this, v => v.ModlistImage.ImageSource)
-                         .DisposeWith(disposables);
+                         .DisposeWith(dispose);
+
+                CompiledModListTile
+                .Events().MouseDown
+                .Select(args => Unit.Default)
+                .InvokeCommand(this, x => x.ViewModel.CompileModListCommand)
+                .DisposeWith(dispose);
 
 
-                /*
                 ViewModel.WhenAnyValue(x => x.LoadingImageLock.IsLoading)
                     .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
                     .BindToStrict(this, x => x.LoadingProgress.Visibility)
-                    .DisposeWith(disposables);
-                */
+                    .DisposeWith(dispose);
             });
         }
     }
