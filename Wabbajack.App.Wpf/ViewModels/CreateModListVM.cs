@@ -49,7 +49,10 @@ namespace Wabbajack
             _serviceProvider = serviceProvider;
             _dtos = dtos;
             CompileModListCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.Compiler));
-            LoadAllCompilerSettings().FireAndForget();
+            this.WhenActivated(disposables =>
+            {
+                LoadAllCompilerSettings().DisposeWith(disposables);
+            });
         }
 
         private async Task LoadAllCompilerSettings()

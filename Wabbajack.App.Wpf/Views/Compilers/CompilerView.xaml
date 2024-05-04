@@ -28,7 +28,7 @@
             <ColumnDefinition Width="5*" />
             <ColumnDefinition Width="5" />
         </Grid.ColumnDefinitions>
-        <Grid Grid.Row="1" Grid.Column="3">
+        <Grid Grid.Row="0" Grid.Column="3">
             
             <local:DetailImageView x:Name="DetailImage" BorderThickness="0" />
         </Grid>

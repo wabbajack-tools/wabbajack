@@ -40,20 +40,20 @@ namespace Wabbajack
                     .BindToStrict(this, x => x.CompilationComplete.TitleText.Text)
                     .DisposeWith(disposables);
 
-                ViewModel.WhenAny(vm => vm.ModListImagePath.TargetPath)
+                ViewModel.WhenAny(vm => vm.ModListImageLocation.TargetPath)
                     .Where(i => i.FileExists())
                     .Select(i => (UIUtils.TryGetBitmapImageFromFile(i, out var img), img))
                     .Where(i => i.Item1)
                     .Select(i => i.img)
                     .BindToStrict(this, view => view.DetailImage.Image);
 
-                ViewModel.WhenAny(vm => vm.ModListName)
+                ViewModel.WhenAny(vm => vm.Settings.ModListName)
                     .BindToStrict(this, view => view.DetailImage.Title);
                 
-                ViewModel.WhenAny(vm => vm.Author)
+                ViewModel.WhenAny(vm => vm.Settings.ModListAuthor)
                     .BindToStrict(this, view => view.DetailImage.Author);
 
-                ViewModel.WhenAny(vm => vm.Description)
+                ViewModel.WhenAny(vm => vm.Settings.ModListDescription)
                     .BindToStrict(this, view => view.DetailImage.Description);
 
                 CompilationComplete.GoToModlistButton.Command = ReactiveCommand.Create(() =>
@@ -74,18 +74,6 @@ namespace Wabbajack
                 ViewModel.WhenAnyValue(vm => vm.ExecuteCommand)
                     .BindToStrict(this, view => view.BeginButton.Command)
                     .DisposeWith(disposables);
-                
-                /*
-                ViewModel.WhenAnyValue(vm => vm.BackCommand)
-                    .BindToStrict(this, view => view.BackButton.Command)
-                    .DisposeWith(disposables);
-                */
-                
-                /*
-                ViewModel.WhenAnyValue(vm => vm.ReInferSettingsCommand)
-                    .BindToStrict(this, view => view.ReInferSettings.Command)
-                    .DisposeWith(disposables);
-                */
                 
                 ViewModel.WhenAnyValue(vm => vm.State)
                     .Select(v => v == CompilerState.Configuration ? Visibility.Visible : Visibility.Collapsed)
@@ -148,38 +136,45 @@ namespace Wabbajack
                 
                 // Settings 
                 
-                this.Bind(ViewModel, vm => vm.ModListName, view => view.ModListNameSetting.Text)
+                this.Bind(ViewModel, vm => vm.Settings.ModListName, view => view.ModListNameSetting.Text)
                     .DisposeWith(disposables);
                 
-                this.Bind(ViewModel, vm => vm.SelectedProfile, view => view.SelectedProfile.Text)
+                this.Bind(ViewModel, vm => vm.Settings.Profile, view => view.SelectedProfile.Text)
                     .DisposeWith(disposables);
                 
-                this.Bind(ViewModel, vm => vm.Author, view => view.AuthorNameSetting.Text)
+                this.Bind(ViewModel, vm => vm.Settings.ModListAuthor, view => view.AuthorNameSetting.Text)
                     .DisposeWith(disposables);
                 
-                this.Bind(ViewModel, vm => vm.Version, view => view.VersionSetting.Text)
+                this.Bind(ViewModel,
+                          vm => vm.Settings.Version,
+                          view => view.VersionSetting.Text,
+                          vmVersion => vmVersion?.ToString() ?? "",
+                          viewVersion => {
+                              Version.TryParse(viewVersion, out var version);
+                              return version ?? Version.Parse("1.0.0");
+                          })
                     .DisposeWith(disposables);
 
-                this.Bind(ViewModel, vm => vm.Description, view => view.DescriptionSetting.Text)
+                this.Bind(ViewModel, vm => vm.Settings.ModListDescription, view => view.DescriptionSetting.Text)
                     .DisposeWith(disposables);
 
                 
-                this.Bind(ViewModel, vm => vm.ModListImagePath, view => view.ImageFilePicker.PickerVM)
+                this.Bind(ViewModel, vm => vm.ModListImageLocation, view => view.ImageFilePicker.PickerVM)
                     .DisposeWith(disposables);
                 
-                this.Bind(ViewModel, vm => vm.Website, view => view.WebsiteSetting.Text)
+                this.Bind(ViewModel, vm => vm.Settings.ModListWebsite, view => view.WebsiteSetting.Text)
                     .DisposeWith(disposables);
                 
-                this.Bind(ViewModel, vm => vm.Readme, view => view.ReadmeSetting.Text)
+                this.Bind(ViewModel, vm => vm.Settings.ModListReadme, view => view.ReadmeSetting.Text)
                     .DisposeWith(disposables);
                 
-                this.Bind(ViewModel, vm => vm.IsNSFW, view => view.NSFWSetting.IsChecked)
+                this.Bind(ViewModel, vm => vm.Settings.ModlistIsNSFW, view => view.NSFWSetting.IsChecked)
                     .DisposeWith(disposables);
                 
-                this.Bind(ViewModel, vm => vm.PublishUpdate, view => view.PublishUpdate.IsChecked)
+                this.Bind(ViewModel, vm => vm.Settings.PublishUpdate, view => view.PublishUpdate.IsChecked)
                     .DisposeWith(disposables);
 
-                this.Bind(ViewModel, vm => vm.MachineUrl, view => view.MachineUrl.Text)
+                this.Bind(ViewModel, vm => vm.Settings.MachineUrl, view => view.MachineUrl.Text)
                     .DisposeWith(disposables);
                 
 
@@ -194,7 +189,7 @@ namespace Wabbajack
                     .DisposeWith(disposables);
                 */
 
-                ViewModel.WhenAnyValue(vm => vm.AlwaysEnabled)
+                ViewModel.WhenAnyValue(vm => vm.Settings.AlwaysEnabled)
                     .WhereNotNull()
                     .Select(itms => itms.Select(itm => new RemovableItemViewModel(itm.ToString(), () => ViewModel.RemoveAlwaysEnabled(itm))).ToArray())
                     .BindToStrict(this, view => view.AlwaysEnabled.ItemsSource)
@@ -203,7 +198,7 @@ namespace Wabbajack
                 AddAlwaysEnabled.Command = ReactiveCommand.CreateFromTask(async () => await AddAlwaysEnabledCommand());
                 
                 
-                ViewModel.WhenAnyValue(vm => vm.OtherProfiles)
+                ViewModel.WhenAnyValue(vm => vm.Settings.AdditionalProfiles)
                     .WhereNotNull()
                     .Select(itms => itms.Select(itm => new RemovableItemViewModel(itm.ToString(), () => ViewModel.RemoveProfile(itm))).ToArray())
                     .BindToStrict(this, view => view.OtherProfiles.ItemsSource)
@@ -211,7 +206,7 @@ namespace Wabbajack
 
                 AddOtherProfile.Command = ReactiveCommand.CreateFromTask(async () => await AddOtherProfileCommand());
                 
-                ViewModel.WhenAnyValue(vm => vm.NoMatchInclude)
+                ViewModel.WhenAnyValue(vm => vm.Settings.NoMatchInclude)
                     .WhereNotNull()
                     .Select(itms => itms.Select(itm => new RemovableItemViewModel(itm.ToString(), () => ViewModel.RemoveNoMatchInclude(itm))).ToArray())
                     .BindToStrict(this, view => view.NoMatchInclude.ItemsSource)
@@ -219,7 +214,7 @@ namespace Wabbajack
 
                 AddNoMatchInclude.Command = ReactiveCommand.CreateFromTask(async () => await AddNoMatchIncludeCommand());
                 
-                ViewModel.WhenAnyValue(vm => vm.Include)
+                ViewModel.WhenAnyValue(vm => vm.Settings.Include)
                     .WhereNotNull()
                     .Select(itms => itms.Select(itm => new RemovableItemViewModel(itm.ToString(), () => ViewModel.RemoveInclude(itm))).ToArray())
                     .BindToStrict(this, view => view.Include.ItemsSource)
@@ -228,7 +223,7 @@ namespace Wabbajack
                 AddInclude.Command = ReactiveCommand.CreateFromTask(async () => await AddIncludeCommand());
                 AddIncludeFiles.Command = ReactiveCommand.CreateFromTask(async () => await AddIncludeFilesCommand());
                 
-                ViewModel.WhenAnyValue(vm => vm.Ignore)
+                ViewModel.WhenAnyValue(vm => vm.Settings.Ignore)
                     .WhereNotNull()
                     .Select(itms => itms.Select(itm => new RemovableItemViewModel(itm.ToString(), () => ViewModel.RemoveIgnore(itm))).ToArray())
                     .BindToStrict(this, view => view.Ignore.ItemsSource)
@@ -246,13 +241,13 @@ namespace Wabbajack
         {
             AbsolutePath dirPath;
 
-            if (ViewModel!.Source != default && ViewModel.Source.Combine("mods").DirectoryExists())
+            if (ViewModel!.Settings.Source != default && ViewModel.Settings.Source.Combine("mods").DirectoryExists())
             {
-                dirPath = ViewModel.Source.Combine("mods");
+                dirPath = ViewModel.Settings.Source.Combine("mods");
             }
             else
             {
-                dirPath = ViewModel.Source;
+                dirPath = ViewModel.Settings.Source;
             }
             
             var dlg = new CommonOpenFileDialog
@@ -276,9 +271,9 @@ namespace Wabbajack
             {
                 var selectedPath = fileName.ToAbsolutePath();
 
-                if (!selectedPath.InFolder(ViewModel.Source)) continue;
+                if (!selectedPath.InFolder(ViewModel.Settings.Source)) continue;
 
-                ViewModel.AddAlwaysEnabled(selectedPath.RelativeTo(ViewModel.Source));
+                ViewModel.AddAlwaysEnabled(selectedPath.RelativeTo(ViewModel.Settings.Source));
             }
         }
         
@@ -286,13 +281,13 @@ namespace Wabbajack
         {
             AbsolutePath dirPath;
 
-            if (ViewModel!.Source != default && ViewModel.Source.Combine("mods").DirectoryExists())
+            if (ViewModel!.Settings.Source != default && ViewModel.Settings.Source.Combine("mods").DirectoryExists())
             {
-                dirPath = ViewModel.Source.Combine("mods");
+                dirPath = ViewModel.Settings.Source.Combine("mods");
             }
             else
             {
-                dirPath = ViewModel.Source;
+                dirPath = ViewModel.Settings.Source;
             }
             
             var dlg = new CommonOpenFileDialog
@@ -316,7 +311,7 @@ namespace Wabbajack
             {
                 var selectedPath = filename.ToAbsolutePath();
                 
-                if (!selectedPath.InFolder(ViewModel.Source.Combine("profiles"))) continue;
+                if (!selectedPath.InFolder(ViewModel.Settings.Source.Combine("profiles"))) continue;
                 
                 ViewModel.AddOtherProfile(selectedPath.FileName.ToString());
             }
@@ -328,10 +323,10 @@ namespace Wabbajack
             {
                 Title = "Please select a folder",
                 IsFolderPicker = true,
-                InitialDirectory = ViewModel!.Source.ToString(),
+                InitialDirectory = ViewModel!.Settings.Source.ToString(),
                 AddToMostRecentlyUsedList = false,
                 AllowNonFileSystemItems = false,
-                DefaultDirectory = ViewModel!.Source.ToString(),
+                DefaultDirectory = ViewModel!.Settings.Source.ToString(),
                 EnsureFileExists = true,
                 EnsurePathExists = true,
                 EnsureReadOnly = false,
@@ -345,9 +340,9 @@ namespace Wabbajack
             {
                 var selectedPath = filename.ToAbsolutePath();
 
-                if (!selectedPath.InFolder(ViewModel.Source)) continue;
+                if (!selectedPath.InFolder(ViewModel.Settings.Source)) continue;
             
-                ViewModel.AddNoMatchInclude(selectedPath.RelativeTo(ViewModel!.Source));
+                ViewModel.AddNoMatchInclude(selectedPath.RelativeTo(ViewModel!.Settings.Source));
             }
             
             return Task.CompletedTask;
@@ -359,10 +354,10 @@ namespace Wabbajack
             {
                 Title = "Please select folders to include",
                 IsFolderPicker = true,
-                InitialDirectory = ViewModel!.Source.ToString(),
+                InitialDirectory = ViewModel!.Settings.Source.ToString(),
                 AddToMostRecentlyUsedList = false,
                 AllowNonFileSystemItems = false,
-                DefaultDirectory = ViewModel!.Source.ToString(),
+                DefaultDirectory = ViewModel!.Settings.Source.ToString(),
                 EnsureFileExists = true,
                 EnsurePathExists = true,
                 EnsureReadOnly = false,
@@ -376,9 +371,9 @@ namespace Wabbajack
             {
                 var selectedPath = filename.ToAbsolutePath();
 
-                if (!selectedPath.InFolder(ViewModel.Source)) continue;
+                if (!selectedPath.InFolder(ViewModel.Settings.Source)) continue;
             
-                ViewModel.AddInclude(selectedPath.RelativeTo(ViewModel!.Source));
+                ViewModel.AddInclude(selectedPath.RelativeTo(ViewModel!.Settings.Source));
             }
         }
         
@@ -388,10 +383,10 @@ namespace Wabbajack
             {
                 Title = "Please select files to include",
                 IsFolderPicker = false,
-                InitialDirectory = ViewModel!.Source.ToString(),
+                InitialDirectory = ViewModel!.Settings.Source.ToString(),
                 AddToMostRecentlyUsedList = false,
                 AllowNonFileSystemItems = false,
-                DefaultDirectory = ViewModel!.Source.ToString(),
+                DefaultDirectory = ViewModel!.Settings.Source.ToString(),
                 EnsureFileExists = true,
                 EnsurePathExists = true,
                 EnsureReadOnly = false,
@@ -405,9 +400,9 @@ namespace Wabbajack
             {
                 var selectedPath = filename.ToAbsolutePath();
 
-                if (!selectedPath.InFolder(ViewModel.Source)) continue;
+                if (!selectedPath.InFolder(ViewModel.Settings.Source)) continue;
             
-                ViewModel.AddInclude(selectedPath.RelativeTo(ViewModel!.Source));
+                ViewModel.AddInclude(selectedPath.RelativeTo(ViewModel!.Settings.Source));
             }
         }
         
@@ -417,10 +412,10 @@ namespace Wabbajack
             {
                 Title = "Please select folders to ignore",
                 IsFolderPicker = true,
-                InitialDirectory = ViewModel!.Source.ToString(),
+                InitialDirectory = ViewModel!.Settings.Source.ToString(),
                 AddToMostRecentlyUsedList = false,
                 AllowNonFileSystemItems = false,
-                DefaultDirectory = ViewModel!.Source.ToString(),
+                DefaultDirectory = ViewModel!.Settings.Source.ToString(),
                 EnsureFileExists = true,
                 EnsurePathExists = true,
                 EnsureReadOnly = false,
@@ -434,9 +429,9 @@ namespace Wabbajack
             {
                 var selectedPath = filename.ToAbsolutePath();
 
-                if (!selectedPath.InFolder(ViewModel.Source)) continue;
+                if (!selectedPath.InFolder(ViewModel.Settings.Source)) continue;
             
-                ViewModel.AddIgnore(selectedPath.RelativeTo(ViewModel!.Source));
+                ViewModel.AddIgnore(selectedPath.RelativeTo(ViewModel!.Settings.Source));
             }
         }
         
@@ -446,10 +441,10 @@ namespace Wabbajack
             {
                 Title = "Please select files to ignore",
                 IsFolderPicker = false,
-                InitialDirectory = ViewModel!.Source.ToString(),
+                InitialDirectory = ViewModel!.Settings.Source.ToString(),
                 AddToMostRecentlyUsedList = false,
                 AllowNonFileSystemItems = false,
-                DefaultDirectory = ViewModel!.Source.ToString(),
+                DefaultDirectory = ViewModel!.Settings.Source.ToString(),
                 EnsureFileExists = true,
                 EnsurePathExists = true,
                 EnsureReadOnly = false,
@@ -463,9 +458,9 @@ namespace Wabbajack
             {
                 var selectedPath = filename.ToAbsolutePath();
 
-                if (!selectedPath.InFolder(ViewModel.Source)) continue;
+                if (!selectedPath.InFolder(ViewModel.Settings.Source)) continue;
             
-                ViewModel.AddIgnore(selectedPath.RelativeTo(ViewModel!.Source));
+                ViewModel.AddIgnore(selectedPath.RelativeTo(ViewModel!.Settings.Source));
             }
         }
     }

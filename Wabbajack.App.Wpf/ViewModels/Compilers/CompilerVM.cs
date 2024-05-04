@@ -61,36 +61,10 @@ namespace Wabbajack
         public FilePickerVM ModlistLocation { get; }
         public FilePickerVM DownloadLocation { get; }
         public FilePickerVM OutputLocation { get; }
-        
-        // Modlist Settings
-        
-        [Reactive] public string ModListName { get; set; }
-        [Reactive] public string Version { get; set; }
-        [Reactive] public string Author { get; set; }
-        [Reactive] public string Description { get; set; }
-        public FilePickerVM ModListImagePath { get; } = new();
-        [Reactive] public ImageSource ModListImage { get; set; }
-        [Reactive] public string Website { get; set; }
-        [Reactive] public string Readme { get; set; }
-        [Reactive] public bool IsNSFW { get; set; }
-        [Reactive] public bool PublishUpdate { get; set; }
-        [Reactive] public string MachineUrl { get; set; }
-        [Reactive] public Game BaseGame { get; set; }
-        [Reactive] public string SelectedProfile { get; set; }
-        [Reactive] public AbsolutePath GamePath { get; set; }
-        [Reactive] public bool IsMO2Compilation { get; set; }
 
-        [Reactive] public RelativePath[] AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
-        [Reactive] public RelativePath[] NoMatchInclude { get; set; } = Array.Empty<RelativePath>();
-        [Reactive] public RelativePath[] Include { get; set; } = Array.Empty<RelativePath>();
-        [Reactive] public RelativePath[] Ignore { get; set; } = Array.Empty<RelativePath>();
-        
-        [Reactive] public string[] OtherProfiles { get; set; } = Array.Empty<string>();
-        
-        [Reactive] public AbsolutePath Source { get; set; }
-        
-        public AbsolutePath SettingsOutputLocation => Source.Combine(ModListName).WithExtension(Ext.CompilerSettings);
-        
+        [Reactive] public CompilerSettingsVM Settings { get; set; } = new();
+
+        public FilePickerVM ModListImageLocation { get; } = new();
         
         public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
         public ReactiveCommand<Unit, Unit> ReInferSettingsCommand { get; set; }
@@ -115,27 +89,33 @@ namespace Wabbajack
             _wjClient = wjClient;
 
             MessageBus.Current.Listen<LoadModlistForCompiling>()
-                .Subscribe(msg => LoadCompilerSettings(msg.CompilerSettings))
+                .Subscribe(msg => {
+                    var csVm = new CompilerSettingsVM(msg.CompilerSettings);
+                    ModlistLocation.TargetPath = csVm.ProfilePath;
+                    ModListImageLocation.TargetPath = csVm.ModListImage;
+                    DownloadLocation.TargetPath = csVm.Downloads;
+                    OutputLocation.TargetPath = csVm.OutputFile;
+                    Settings = csVm;
+                })
                 .DisposeWith(CompositeDisposable);
 
             StatusText = "Compiler Settings";
             StatusProgress = Percent.Zero;
 
-            BackCommand =
-                ReactiveCommand.CreateFromTask(async () =>
-                {
-                    await SaveSettingsFile();
-                    NavigateToGlobal.Send(ScreenType.Home);
-                });
-            
+            BackCommand = ReactiveCommand.CreateFromTask(async () =>
+            {
+                await SaveSettingsFile();
+                NavigateToGlobal.Send(ScreenType.Home);
+            });
+
             SubCompilerVM = new MO2CompilerVM(this);
 
             ExecuteCommand = ReactiveCommand.CreateFromTask(async () => await StartCompilation());
             ReInferSettingsCommand = ReactiveCommand.CreateFromTask(async () => await ReInferSettings(),
-                this.WhenAnyValue(vm => vm.Source)
+                this.WhenAnyValue(vm => vm.Settings.Source)
                     .ObserveOnGuiThread()
                     .Select(v => v != default)
-                    .CombineLatest(this.WhenAnyValue(vm => vm.ModListName)
+                    .CombineLatest(this.WhenAnyValue(vm => vm.Settings.ModListName)
                         .ObserveOnGuiThread()
                         .Select(p => !string.IsNullOrWhiteSpace(p)))
                     .Select(v => v.First && v.Second));
@@ -174,23 +154,37 @@ namespace Wabbajack
                 Disposable.Empty.DisposeWith(disposables);
 
                 ModlistLocation.WhenAnyValue(vm => vm.TargetPath)
-                    .Subscribe(p => InferModListFromLocation(p).FireAndForget())
+                    .Subscribe(async p => {
+                        if (string.IsNullOrEmpty(Settings.ModListName))
+                        {
+                            Settings = new CompilerSettingsVM(await InferModListFromLocation(p));
+                        }
+                        else await ReInferSettings();
+                    })
                     .DisposeWith(disposables);
-
 
                 this.WhenAnyValue(x => x.DownloadLocation.TargetPath)
                     .CombineLatest(this.WhenAnyValue(x => x.ModlistLocation.TargetPath),
                         this.WhenAnyValue(x => x.OutputLocation.TargetPath),
                         this.WhenAnyValue(x => x.DownloadLocation.ErrorState),
                         this.WhenAnyValue(x => x.ModlistLocation.ErrorState),
-                        this.WhenAnyValue(x => x.OutputLocation.ErrorState),
-                        this.WhenAnyValue(x => x.ModListName),
-                        this.WhenAnyValue(x => x.Version))
+                        this.WhenAnyValue(x => x.OutputLocation.ErrorState))
                     .Select(_ => Validate())
                     .BindToStrict(this, vm => vm.ErrorState)
                     .DisposeWith(disposables);
-                
-                //LoadLastSavedSettings().FireAndForget();
+
+                this.WhenAnyValue(x => x.Settings)
+                    .Throttle(TimeSpan.FromSeconds(2))
+                    .Subscribe(_ => SaveSettingsFile().FireAndForget())
+                    .DisposeWith(disposables);
+
+                this.WhenAnyValue(x => x.ModListImageLocation.TargetPath)
+                    .BindToStrict(this, vm => vm.Settings.ModListImage)
+                    .DisposeWith(disposables);
+
+                this.WhenAnyValue(x => x.DownloadLocation.TargetPath)
+                    .BindToStrict(this, vm => vm.Settings.Downloads)
+                    .DisposeWith(disposables);
             });
         }
 
@@ -199,7 +193,7 @@ namespace Wabbajack
         private async Task ReInferSettings()
         {
             var newSettings = await _inferencer.InferModListFromLocation(
-                Source.Combine("profiles", SelectedProfile, "modlist.txt"));
+                Settings.Source.Combine("profiles", Settings.Profile, "modlist.txt"));
 
             if (newSettings == null)
             {
@@ -207,28 +201,30 @@ namespace Wabbajack
                 return;
             }
             
-            Include = newSettings.Include;
-            Ignore = newSettings.Ignore;
-            AlwaysEnabled = newSettings.AlwaysEnabled;
-            NoMatchInclude = newSettings.NoMatchInclude;
-            OtherProfiles = newSettings.AdditionalProfiles;
+            Settings.Include = newSettings.Include;
+            Settings.Ignore = newSettings.Ignore;
+            Settings.AlwaysEnabled = newSettings.AlwaysEnabled;
+            Settings.NoMatchInclude = newSettings.NoMatchInclude;
+            Settings.AdditionalProfiles = newSettings.AdditionalProfiles;
         }
 
         private ErrorResponse Validate()
         {
-            var errors = new List<ErrorResponse>();
-            errors.Add(DownloadLocation.ErrorState);
-            errors.Add(ModlistLocation.ErrorState);
-            errors.Add(OutputLocation.ErrorState);
+            var errors = new List<ErrorResponse>
+            {
+                DownloadLocation.ErrorState,
+                ModlistLocation.ErrorState,
+                OutputLocation.ErrorState
+            };
             return ErrorResponse.Combine(errors);
         }
 
-        private async Task InferModListFromLocation(AbsolutePath path)
+        private async Task<CompilerSettings> InferModListFromLocation(AbsolutePath path)
         {
             using var _ = LoadingLock.WithLoading();
 
             CompilerSettings settings;
-            if (path == default) return;
+            if (path == default) return new();
             if (path.FileName.Extension == Ext.CompilerSettings)
             {
                 await using var fs = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -237,46 +233,14 @@ namespace Wabbajack
             else if (path.FileName == "modlist.txt".ToRelativePath())
             {
                 settings = await _inferencer.InferModListFromLocation(path);
-                if (settings == null) return;
+                if (settings == null) return new();
             }
             else
             {
-                return;
+                return new();
             }
 
-            LoadCompilerSettings(settings);
-
-            if (path.FileName == "modlist.txt".ToRelativePath())
-            {
-                await LoadLastSavedSettings();
-            }
-        }
-
-        private void LoadCompilerSettings(CompilerSettings settings)
-        {
-            BaseGame = settings.Game;
-            ModListName = settings.ModListName;
-            Version = settings.Version?.ToString() ?? "";
-            Author = settings.ModListAuthor;
-            Description = settings.Description;
-            ModListImagePath.TargetPath = settings.ModListImage;
-            Website = settings.ModListWebsite?.ToString() ?? "";
-            Readme = settings.ModListReadme?.ToString() ?? "";
-            IsNSFW = settings.ModlistIsNSFW;
-
-            Source = settings.Source;
-            DownloadLocation.TargetPath = settings.Downloads;
-            if (settings.OutputFile.Extension == Ext.Wabbajack)
-                settings.OutputFile = settings.OutputFile.Parent;
-            OutputLocation.TargetPath = settings.OutputFile;
-            SelectedProfile = settings.Profile;
-            PublishUpdate = settings.PublishUpdate;
-            MachineUrl = settings.MachineUrl;
-            OtherProfiles = settings.AdditionalProfiles;
-            AlwaysEnabled = settings.AlwaysEnabled;
-            NoMatchInclude = settings.NoMatchInclude;
-            Include = settings.Include;
-            Ignore = settings.Ignore;
+            return settings;
         }
 
         private async Task StartCompilation()
@@ -285,24 +249,22 @@ namespace Wabbajack
             {
                 try
                 {
-
                     await SaveSettingsFile();
                     var token = CancellationToken.None;
                     State = CompilerState.Compiling;
 
-                    var mo2Settings = GetSettings();
-                    mo2Settings.UseGamePaths = true;
-                    if (mo2Settings.OutputFile.DirectoryExists())
-                        mo2Settings.OutputFile = mo2Settings.OutputFile.Combine(mo2Settings.ModListName.ToRelativePath()
+                    Settings.UseGamePaths = true;
+                    if (Settings.OutputFile.DirectoryExists())
+                        Settings.OutputFile = Settings.OutputFile.Combine(Settings.ModListName.ToRelativePath()
                             .WithExtension(Ext.Wabbajack));
 
-                    if (PublishUpdate && !await RunPreflightChecks(token))
+                    if (Settings.PublishUpdate && !await RunPreflightChecks(token))
                     {
                         State = CompilerState.Errored;
                         return;
                     }
 
-                    var compiler = MO2Compiler.Create(_serviceProvider, mo2Settings);
+                    var compiler = MO2Compiler.Create(_serviceProvider, Settings.ToCompilerSettings());
 
                     var events = Observable.FromEventPattern<StatusUpdate>(h => compiler.OnStatusUpdate += h,
                             h => compiler.OnStatusUpdate -= h)
@@ -327,12 +289,12 @@ namespace Wabbajack
                         events.Dispose();
                     }
 
-                    if (PublishUpdate)
+                    if (Settings.PublishUpdate)
                     {
                         _logger.LogInformation("Publishing List");
                         var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
-                            await mo2Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
-                        await _wjClient.PublishModlist(MachineUrl, System.Version.Parse(Version), mo2Settings.OutputFile, downloadMetadata);
+                            await Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
+                        await _wjClient.PublishModlist(Settings.MachineUrl, Settings.Version, Settings.OutputFile, downloadMetadata);
                     }
                     _logger.LogInformation("Compiler Finished");
                     
@@ -366,15 +328,9 @@ namespace Wabbajack
         private async Task<bool> RunPreflightChecks(CancellationToken token)
         {
             var lists = await _wjClient.GetMyModlists(token);
-            if (!lists.Any(x => x.Equals(MachineUrl, StringComparison.InvariantCultureIgnoreCase)))
+            if (!lists.Any(x => x.Equals(Settings.MachineUrl, StringComparison.InvariantCultureIgnoreCase)))
             {
-                _logger.LogError("Preflight Check failed, list {MachineUrl} not found in any repository", MachineUrl);
-                return false;
-            }
-
-            if (!System.Version.TryParse(Version, out var v))
-            {
-                _logger.LogError("Bad Version Number {Version}", Version);
+                _logger.LogError("Preflight Check failed, list {MachineUrl} not found in any repository", Settings.MachineUrl);
                 return false;
             }
 
@@ -383,16 +339,14 @@ namespace Wabbajack
 
         private async Task SaveSettingsFile()
         {
-            if (Source == default) return;
+            if (Settings.Source == default) return;
 
-            var settings = GetSettings();
-
-            await using var st = SettingsOutputLocation.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-            await JsonSerializer.SerializeAsync(st, settings, _dtos.Options);
+            await using var st = Settings.CompilerSettingsPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+            await JsonSerializer.SerializeAsync(st, Settings.ToCompilerSettings(), _dtos.Options);
 
             var allSavedCompilerSettings = await _settingsManager.Load<List<AbsolutePath>>(Consts.AllSavedCompilerSettingsPaths);
-            allSavedCompilerSettings.Remove(SettingsOutputLocation);
-            allSavedCompilerSettings.Insert(0, SettingsOutputLocation);
+            allSavedCompilerSettings.Remove(Settings.CompilerSettingsPath);
+            allSavedCompilerSettings.Insert(0, Settings.CompilerSettingsPath);
 
             await _settingsManager.Save(Consts.AllSavedCompilerSettingsPaths, allSavedCompilerSettings);
         }
@@ -408,89 +362,57 @@ namespace Wabbajack
             ModlistLocation.TargetPath = lastPath;
         }
 
-        private CompilerSettings GetSettings()
-        {
-
-            System.Version.TryParse(Version, out var pversion);
-            Uri.TryCreate(Website, UriKind.Absolute, out var websiteUri);
-            
-            return new CompilerSettings
-            {
-                ModListName = ModListName,
-                ModListAuthor = Author,
-                Version = pversion ?? new Version(),
-                Description = Description,
-                ModListReadme = Readme,
-                ModListImage = ModListImagePath.TargetPath,
-                ModlistIsNSFW = IsNSFW,
-                ModListWebsite = websiteUri ?? new Uri("http://www.wabbajack.org"),
-                Downloads = DownloadLocation.TargetPath,
-                Source = Source,
-                Game = BaseGame,
-                PublishUpdate = PublishUpdate,
-                MachineUrl = MachineUrl,
-                Profile = SelectedProfile,
-                UseGamePaths = true,
-                OutputFile = OutputLocation.TargetPath,
-                AlwaysEnabled = AlwaysEnabled,
-                AdditionalProfiles = OtherProfiles,
-                NoMatchInclude = NoMatchInclude,
-                Include = Include,
-                Ignore = Ignore
-            };
-        }
-
         #region ListOps
 
         public void AddOtherProfile(string profile)
         {
-            OtherProfiles = (OtherProfiles ?? Array.Empty<string>()).Append(profile).Distinct().ToArray();
+            Settings.AdditionalProfiles = (Settings.AdditionalProfiles ?? Array.Empty<string>()).Append(profile).Distinct().ToArray();
         }
 
         public void RemoveProfile(string profile)
         {
-            OtherProfiles = OtherProfiles.Where(p => p != profile).ToArray();
+            Settings.AdditionalProfiles = Settings.AdditionalProfiles.Where(p => p != profile).ToArray();
         }
         
         public void AddAlwaysEnabled(RelativePath path)
         {
-            AlwaysEnabled = (AlwaysEnabled ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
+            Settings.AlwaysEnabled = (Settings.AlwaysEnabled ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
         }
 
         public void RemoveAlwaysEnabled(RelativePath path)
         {
-            AlwaysEnabled = AlwaysEnabled.Where(p => p != path).ToArray();
+            Settings.AlwaysEnabled = Settings.AlwaysEnabled.Where(p => p != path).ToArray();
         }
         
         public void AddNoMatchInclude(RelativePath path)
         {
-            NoMatchInclude = (NoMatchInclude ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
+            Settings.NoMatchInclude = (Settings.NoMatchInclude ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
         }
 
         public void RemoveNoMatchInclude(RelativePath path)
         {
-            NoMatchInclude = NoMatchInclude.Where(p => p != path).ToArray();
+            Settings.NoMatchInclude = Settings.NoMatchInclude.Where(p => p != path).ToArray();
         }
         
         public void AddInclude(RelativePath path)
         {
-            Include = (Include ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
+            Settings.Include = (Settings.Include ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
         }
 
         public void RemoveInclude(RelativePath path)
         {
-            Include = Include.Where(p => p != path).ToArray();
+            Settings.Include = Settings.Include.Where(p => p != path).ToArray();
         }
 
         
         public void AddIgnore(RelativePath path)
         {
-            Ignore = (Ignore ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
+            Settings.Ignore = (Settings.Ignore ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
         }
 
         public void RemoveIgnore(RelativePath path)
         {
-            Ignore = Ignore.Where(p => p != path).ToArray();
+            Settings.Ignore = Settings.Ignore.Where(p => p != path).ToArray();
         }
 
         #endregion

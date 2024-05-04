@@ -50,7 +50,7 @@
                         Grid.Row="0"
                         Grid.Column="1"
                         VerticalAlignment="Top"
-                        Symbol="AppsAddIn"
+                        Symbol="Add"
                         IsFilled="True"
                         FontSize="28"
                     />
@@ -81,7 +81,7 @@
                         Grid.Row="0"
                         Grid.Column="1"
                         VerticalAlignment="Top"
-                        Symbol="AppsAddIn"
+                        Symbol="ArrowImport"
                         IsFilled="True"
                         FontSize="28"
                     />
