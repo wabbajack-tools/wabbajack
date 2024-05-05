@@ -34,10 +34,10 @@ namespace Wabbajack
                     .BindToStrict(this, x => x.CreatedModListsControl.ItemsSource)
                     .DisposeWith(dispose);
 
-                CompileNewModListBorder
+                NewModListBorder
                 .Events().MouseDown
                 .Select(args => Unit.Default)
-                .InvokeCommand(this, x => x.ViewModel.CompileModListCommand)
+                .InvokeCommand(this, x => x.ViewModel.NewModListCommand)
                 .DisposeWith(dispose);
             });
         }

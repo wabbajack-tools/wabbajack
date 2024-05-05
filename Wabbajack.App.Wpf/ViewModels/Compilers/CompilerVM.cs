@@ -111,7 +111,8 @@ namespace Wabbajack
             SubCompilerVM = new MO2CompilerVM(this);
 
             ExecuteCommand = ReactiveCommand.CreateFromTask(async () => await StartCompilation());
-            ReInferSettingsCommand = ReactiveCommand.CreateFromTask(async () => await ReInferSettings(),
+            /*ReInferSettingsCommand = ReactiveCommand.CreateFromTask(async () => await ReInferSettings(),
+
                 this.WhenAnyValue(vm => vm.Settings.Source)
                     .ObserveOnGuiThread()
                     .Select(v => v != default)
@@ -119,6 +120,7 @@ namespace Wabbajack
                         .ObserveOnGuiThread()
                         .Select(p => !string.IsNullOrWhiteSpace(p)))
                     .Select(v => v.First && v.Second));
+            */
 
             ModlistLocation = new FilePickerVM
             {
@@ -159,7 +161,7 @@ namespace Wabbajack
                         {
                             Settings = new CompilerSettingsVM(await InferModListFromLocation(p));
                         }
-                        else await ReInferSettings();
+                        else if(p.FileName == "modlist.txt".ToRelativePath()) await ReInferSettings(p);
                     })
                     .DisposeWith(disposables);
 
@@ -177,30 +179,45 @@ namespace Wabbajack
                     .Throttle(TimeSpan.FromSeconds(2))
                     .Subscribe(_ => SaveSettingsFile().FireAndForget())
                     .DisposeWith(disposables);
+                /*
 
-                this.WhenAnyValue(x => x.ModListImageLocation.TargetPath)
-                    .BindToStrict(this, vm => vm.Settings.ModListImage)
-                    .DisposeWith(disposables);
+                ModListImageLocation.WhenAnyValue(x => x.TargetPath)
+                                    .BindToStrict(this, vm => vm.Settings.ModListImage)
+                                    .DisposeWith(disposables);
 
-                this.WhenAnyValue(x => x.DownloadLocation.TargetPath)
-                    .BindToStrict(this, vm => vm.Settings.Downloads)
-                    .DisposeWith(disposables);
+                DownloadLocation.WhenAnyValue(x => x.TargetPath)
+                                .BindToStrict(this, vm => vm.Settings.Downloads)
+                                .DisposeWith(disposables);
+
+                Settings.WhenAnyValue(x => x.Downloads)
+                        .BindToStrict(this, vm => vm.DownloadLocation.TargetPath)
+                        .DisposeWith(disposables);
+                */
+
             });
         }
 
 
 
-        private async Task ReInferSettings()
+        private async Task ReInferSettings(AbsolutePath filePath)
         {
-            var newSettings = await _inferencer.InferModListFromLocation(
-                Settings.Source.Combine("profiles", Settings.Profile, "modlist.txt"));
+            var newSettings = await _inferencer.InferModListFromLocation(filePath);
 
             if (newSettings == null)
             {
                 _logger.LogError("Cannot infer settings");
                 return;
             }
-            
+
+            Settings.Source = newSettings.Source;
+            Settings.Downloads = newSettings.Downloads;
+
+            if (string.IsNullOrEmpty(Settings.ModListName))
+                Settings.OutputFile = newSettings.OutputFile.Combine(newSettings.Profile).WithExtension(Ext.Wabbajack);
+            else
+                Settings.OutputFile = newSettings.OutputFile.Combine(newSettings.ModListName).WithExtension(Ext.Wabbajack);
+
+            Settings.Game = newSettings.Game;
             Settings.Include = newSettings.Include;
             Settings.Ignore = newSettings.Ignore;
             Settings.AlwaysEnabled = newSettings.AlwaysEnabled;
@@ -294,7 +311,7 @@ namespace Wabbajack
                         _logger.LogInformation("Publishing List");
                         var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
                             await Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
-                        await _wjClient.PublishModlist(Settings.MachineUrl, Settings.Version, Settings.OutputFile, downloadMetadata);
+                        await _wjClient.PublishModlist(Settings.MachineUrl, Version.Parse(Settings.Version), Settings.OutputFile, downloadMetadata);
                     }
                     _logger.LogInformation("Compiler Finished");
                     
@@ -334,18 +351,26 @@ namespace Wabbajack
                 return false;
             }
 
+            if(!Version.TryParse(Settings.Version, out var version))
+            {
+                _logger.LogError("Preflight Check failed, version {Version} was not valid", Settings.Version);
+                return false;
+            }
+
             return true;
         }
 
         private async Task SaveSettingsFile()
         {
-            if (Settings.Source == default) return;
+            if (Settings.Source == default || Settings.CompilerSettingsPath == default) return;
 
             await using var st = Settings.CompilerSettingsPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
             await JsonSerializer.SerializeAsync(st, Settings.ToCompilerSettings(), _dtos.Options);
 
             var allSavedCompilerSettings = await _settingsManager.Load<List<AbsolutePath>>(Consts.AllSavedCompilerSettingsPaths);
-            allSavedCompilerSettings.Remove(Settings.CompilerSettingsPath);
+
+            // Don't simply remove Settings.CompilerSettingsPath here, because WJ sometimes likes to make default compiler settings files
+            allSavedCompilerSettings.RemoveAll(path => path.Parent == Settings.Source);
             allSavedCompilerSettings.Insert(0, Settings.CompilerSettingsPath);
 
             await _settingsManager.Save(Consts.AllSavedCompilerSettingsPaths, allSavedCompilerSettings);

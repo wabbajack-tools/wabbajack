@@ -31,7 +31,7 @@ public class CompilerSettingsVM : ViewModel
         ModListDescription = cs.ModListDescription;
         ModListReadme = cs.ModListReadme;
         ModListWebsite = cs.ModListWebsite;
-        ModlistVersion = cs.ModlistVersion;
+        ModlistVersion = cs.ModlistVersion?.ToString() ?? "";
         PublishUpdate = cs.PublishUpdate;
         MachineUrl = cs.MachineUrl;
         Profile = cs.Profile;
@@ -40,7 +40,7 @@ public class CompilerSettingsVM : ViewModel
         Include = cs.Include;
         Ignore = cs.Ignore;
         AlwaysEnabled = cs.AlwaysEnabled;
-        Version = cs.Version;
+        Version = cs.Version?.ToString() ?? "";
         Description = cs.Description;
     }
 
@@ -62,7 +62,7 @@ public class CompilerSettingsVM : ViewModel
     [Reactive] public string ModListDescription { get; set; } = "";
     [Reactive] public string ModListReadme { get; set; } = "";
     [Reactive] public Uri? ModListWebsite { get; set; }
-    [Reactive] public Version ModlistVersion { get; set; } = Version.Parse("0.0.1.0");
+    [Reactive] public string ModlistVersion { get; set; } = "";
     [Reactive] public bool PublishUpdate { get; set; } = false;
     [Reactive] public string MachineUrl { get; set; } = "";
 
@@ -103,7 +103,7 @@ public class CompilerSettingsVM : ViewModel
     [Reactive] public RelativePath[] Ignore { get; set; } = Array.Empty<RelativePath>();
 
     [Reactive] public RelativePath[] AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
-    [Reactive] public Version Version { get; set; }
+    [Reactive] public string Version { get; set; }
     [Reactive] public string Description { get; set; }
 
     public CompilerSettings ToCompilerSettings()
@@ -125,7 +125,7 @@ public class CompilerSettingsVM : ViewModel
             ModListDescription = ModListDescription,
             ModListReadme = ModListReadme,
             ModListWebsite = ModListWebsite,
-            ModlistVersion = ModlistVersion,
+            ModlistVersion = System.Version.Parse(ModlistVersion),
             PublishUpdate = PublishUpdate,
             MachineUrl = MachineUrl,
             Profile = Profile,
@@ -134,10 +134,24 @@ public class CompilerSettingsVM : ViewModel
             Include = Include,
             Ignore = Ignore,
             AlwaysEnabled = AlwaysEnabled,
-            Version = Version,
+            Version = System.Version.Parse(Version),
             Description = Description
         };
     }
-    public AbsolutePath CompilerSettingsPath => Source.Combine(ModListName).WithExtension(Ext.CompilerSettings);
-    public AbsolutePath ProfilePath => Source.Combine("profiles").Combine(Profile).Combine("modlist").WithExtension(Ext.Txt);
+    public AbsolutePath CompilerSettingsPath
+    {
+        get
+        {
+            if (Source == default || string.IsNullOrEmpty(Profile)) return default;
+            return Source.Combine(ModListName).WithExtension(Ext.CompilerSettings);
+        }
+    }
+    public AbsolutePath ProfilePath
+    {
+        get
+        {
+            if (Source == default || string.IsNullOrEmpty(Profile)) return default;
+            return Source.Combine("profiles").Combine(Profile).Combine("modlist").WithExtension(Ext.Txt);
+        }
+    }
 }

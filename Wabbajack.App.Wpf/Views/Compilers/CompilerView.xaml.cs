@@ -102,10 +102,18 @@ namespace Wabbajack
                 ViewModel.WhenAnyValue(vm => vm.DownloadLocation)
                     .BindToStrict(this, view => view.CompilerConfigView.DownloadsLocation.PickerVM)
                     .DisposeWith(disposables);
+
+                ViewModel.WhenAnyValue(vm => vm.Settings.Downloads)
+                         .BindToStrict(this, view => view.CompilerConfigView.DownloadsLocation.PickerVM.TargetPath)
+                         .DisposeWith(disposables);
                 
                 ViewModel.WhenAnyValue(vm => vm.OutputLocation)
                     .BindToStrict(this, view => view.CompilerConfigView.OutputLocation.PickerVM)
                     .DisposeWith(disposables);
+
+                ViewModel.WhenAnyValue(vm => vm.Settings.OutputFile)
+                         .BindToStrict(this, view => view.CompilerConfigView.OutputLocation.PickerVM.TargetPath)
+                         .DisposeWith(disposables);
                 
                 UserInterventionsControl.Visibility = Visibility.Collapsed;
                 
@@ -145,14 +153,7 @@ namespace Wabbajack
                 this.Bind(ViewModel, vm => vm.Settings.ModListAuthor, view => view.AuthorNameSetting.Text)
                     .DisposeWith(disposables);
                 
-                this.Bind(ViewModel,
-                          vm => vm.Settings.Version,
-                          view => view.VersionSetting.Text,
-                          vmVersion => vmVersion?.ToString() ?? "",
-                          viewVersion => {
-                              Version.TryParse(viewVersion, out var version);
-                              return version ?? Version.Parse("1.0.0");
-                          })
+                this.Bind(ViewModel, vm => vm.Settings.Version, view => view.VersionSetting.Text)
                     .DisposeWith(disposables);
 
                 this.Bind(ViewModel, vm => vm.Settings.ModListDescription, view => view.DescriptionSetting.Text)
@@ -160,6 +161,9 @@ namespace Wabbajack
 
                 
                 this.Bind(ViewModel, vm => vm.ModListImageLocation, view => view.ImageFilePicker.PickerVM)
+                    .DisposeWith(disposables);
+
+                this.Bind(ViewModel, vm => vm.Settings.ModListImage, view => view.ImageFilePicker.PickerVM.TargetPath)
                     .DisposeWith(disposables);
                 
                 this.Bind(ViewModel, vm => vm.Settings.ModListWebsite, view => view.WebsiteSetting.Text)

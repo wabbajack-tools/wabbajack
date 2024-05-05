@@ -36,7 +36,7 @@ namespace Wabbajack
         private readonly CancellationToken _cancellationToken;
         private readonly DTOSerializer _dtos;
 
-        public ICommand CompileModListCommand { get; set; }
+        public ICommand NewModListCommand { get; set; }
 
         [Reactive]
         public ObservableCollection<CreatedModlistVM> CreatedModlists { get; set; }
@@ -48,7 +48,10 @@ namespace Wabbajack
             _settingsManager = settingsManager;
             _serviceProvider = serviceProvider;
             _dtos = dtos;
-            CompileModListCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.Compiler));
+            NewModListCommand = ReactiveCommand.Create(() => {
+                NavigateToGlobal.Send(ScreenType.Compiler);
+                LoadModlistForCompiling.Send(new());
+            });
             this.WhenActivated(disposables =>
             {
                 LoadAllCompilerSettings().DisposeWith(disposables);
