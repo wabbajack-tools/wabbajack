@@ -139,9 +139,6 @@ namespace Wabbajack
                     .DisposeWith(disposables);
 
                 
-                
-                
-                
                 // Settings 
                 
                 this.Bind(ViewModel, vm => vm.Settings.ModListName, view => view.ModListNameSetting.Text)

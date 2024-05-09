@@ -39,6 +39,12 @@ namespace Wabbajack
                 .Select(args => Unit.Default)
                 .InvokeCommand(this, x => x.ViewModel.NewModListCommand)
                 .DisposeWith(dispose);
+
+                LoadSettingsBorder
+                .Events().MouseDown
+                .Select(args => Unit.Default)
+                .InvokeCommand(this, x => x.ViewModel.LoadSettingsCommand)
+                .DisposeWith(dispose);
             });
         }
     }

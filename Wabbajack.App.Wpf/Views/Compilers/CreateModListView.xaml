@@ -60,7 +60,7 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Column="1" BorderBrush="{StaticResource PrimaryVariantBrush}" CornerRadius="8" BorderThickness="19" Margin="0, 0, 20, 20">
+            <Border Grid.Column="1" BorderBrush="{StaticResource PrimaryVariantBrush}" CornerRadius="8" BorderThickness="19" Margin="0, 0, 20, 20" x:Name="LoadSettingsBorder">
                 <Grid Background="{StaticResource PrimaryVariantBrush}" Margin="-1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>

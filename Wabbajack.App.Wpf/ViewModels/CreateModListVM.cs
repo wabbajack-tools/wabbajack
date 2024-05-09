@@ -12,6 +12,7 @@ using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using SteamKit2.GC.Dota.Internal;
@@ -37,9 +38,12 @@ namespace Wabbajack
         private readonly DTOSerializer _dtos;
 
         public ICommand NewModListCommand { get; set; }
+        public ICommand LoadSettingsCommand { get; set; }
 
         [Reactive]
         public ObservableCollection<CreatedModlistVM> CreatedModlists { get; set; }
+
+        public FilePickerVM CompilerSettingsPicker { get; private set; }
 
         public CreateModListVM(ILogger<CreateModListVM> logger, SettingsManager settingsManager,
             IServiceProvider serviceProvider, DTOSerializer dtos)
@@ -48,10 +52,33 @@ namespace Wabbajack
             _settingsManager = settingsManager;
             _serviceProvider = serviceProvider;
             _dtos = dtos;
+
+            CompilerSettingsPicker = new FilePickerVM
+            {
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
+                PathType = FilePickerVM.PathTypeOptions.File,
+                PromptTitle = "Select a compiler settings file"
+            };
+            CompilerSettingsPicker.Filters.AddRange([
+                new CommonFileDialogFilter("Compiler Settings File", "*" + Ext.CompilerSettings)
+            ]);
+
             NewModListCommand = ReactiveCommand.Create(() => {
                 NavigateToGlobal.Send(ScreenType.Compiler);
                 LoadModlistForCompiling.Send(new());
             });
+
+            LoadSettingsCommand = ReactiveCommand.Create(() =>
+            {
+                CompilerSettingsPicker.SetTargetPathCommand.Execute(null);
+                if(CompilerSettingsPicker.TargetPath != default)
+                {
+                    NavigateToGlobal.Send(ScreenType.Compiler);
+                    var compilerSettings = _dtos.Deserialize<CompilerSettings>(File.ReadAllText(CompilerSettingsPicker.TargetPath.ToString()));
+                    LoadModlistForCompiling.Send(compilerSettings);
+                }
+            });
+
             this.WhenActivated(disposables =>
             {
                 LoadAllCompilerSettings().DisposeWith(disposables);

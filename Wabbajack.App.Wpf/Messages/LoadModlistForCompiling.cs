@@ -1,5 +1,8 @@
 using ReactiveUI;
+using System.IO;
 using Wabbajack.Compiler;
+using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Paths;
 
 namespace Wabbajack.Messages;
 
@@ -10,6 +13,7 @@ public class LoadModlistForCompiling
     {
         CompilerSettings = cs;
     }
+
 
     public static void Send(CompilerSettings cs)
     {
