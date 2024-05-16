@@ -25,10 +25,9 @@ public class SetNexusApiKey
 
     public static VerbDefinition Definition = new VerbDefinition("set-nexus-api-key",
         "Sets the Nexus API key to the specified value",
-        new[]
-        {
+        [
             new OptionDefinition(typeof(string), "k", "key", "The Nexus API key")
-        });
+        ]);
 
     public async Task<int> Run(string key)
     {

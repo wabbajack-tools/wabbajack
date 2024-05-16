@@ -8,7 +8,7 @@
         <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
         <Version>$(VERSION)</Version>
         <AssemblyName>wabbajack-cli</AssemblyName>
-        <PublishTrimmed>true</PublishTrimmed>
+        <PublishTrimmed>false</PublishTrimmed>
         <TimeMode>linked</TimeMode>
         <NoWarn>CS8600</NoWarn>
         <NoWarn>CS8601</NoWarn>
