@@ -29,11 +29,11 @@ using Wabbajack.Services.OSIntegrated.Services;
 
 namespace Wabbajack
 {
-    public class CreateModListVM : ViewModel
+    public class CompilerHomeVM : ViewModel
     {
         private readonly SettingsManager _settingsManager;
         private readonly IServiceProvider _serviceProvider;
-        private readonly ILogger<CreateModListVM> _logger;
+        private readonly ILogger<CompilerHomeVM> _logger;
         private readonly CancellationToken _cancellationToken;
         private readonly DTOSerializer _dtos;
 
@@ -41,11 +41,11 @@ namespace Wabbajack
         public ICommand LoadSettingsCommand { get; set; }
 
         [Reactive]
-        public ObservableCollection<CreatedModlistVM> CreatedModlists { get; set; }
+        public ObservableCollection<CompiledModListTileVM> CompiledModLists { get; set; }
 
         public FilePickerVM CompilerSettingsPicker { get; private set; }
 
-        public CreateModListVM(ILogger<CreateModListVM> logger, SettingsManager settingsManager,
+        public CompilerHomeVM(ILogger<CompilerHomeVM> logger, SettingsManager settingsManager,
             IServiceProvider serviceProvider, DTOSerializer dtos)
         {
             _logger = logger;
@@ -64,7 +64,7 @@ namespace Wabbajack
             ]);
 
             NewModListCommand = ReactiveCommand.Create(() => {
-                NavigateToGlobal.Send(ScreenType.Compiler);
+                NavigateToGlobal.Send(ScreenType.CompilerDetails);
                 LoadModlistForCompiling.Send(new());
             });
 
@@ -73,7 +73,7 @@ namespace Wabbajack
                 CompilerSettingsPicker.SetTargetPathCommand.Execute(null);
                 if(CompilerSettingsPicker.TargetPath != default)
                 {
-                    NavigateToGlobal.Send(ScreenType.Compiler);
+                    NavigateToGlobal.Send(ScreenType.CompilerDetails);
                     var compilerSettings = _dtos.Deserialize<CompilerSettings>(File.ReadAllText(CompilerSettingsPicker.TargetPath.ToString()));
                     LoadModlistForCompiling.Send(compilerSettings);
                 }
@@ -87,13 +87,13 @@ namespace Wabbajack
 
         private async Task LoadAllCompilerSettings()
         {
-            CreatedModlists = new();
+            CompiledModLists = new();
             var savedCompilerSettingsPaths = await _settingsManager.Load<List<AbsolutePath>>(Consts.AllSavedCompilerSettingsPaths);
             foreach(var settingsPath in savedCompilerSettingsPaths)
             {
                 await using var fs = settingsPath.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
                 var settings = (await _dtos.DeserializeAsync<CompilerSettings>(fs))!;
-                CreatedModlists.Add(new CreatedModlistVM(_logger, settings));
+                CompiledModLists.Add(new CompiledModListTileVM(_logger, settings));
             }
         }
     }

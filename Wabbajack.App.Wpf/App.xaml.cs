@@ -168,8 +168,8 @@ namespace Wabbajack
 
             services.AddTransient<HomeVM>();
             services.AddTransient<ModListGalleryVM>();
-            services.AddTransient<CompilerVM>();
-            services.AddTransient<CreateModListVM>();
+            services.AddTransient<CompilerDetailsVM>();
+            services.AddTransient<CompilerHomeVM>();
             services.AddTransient<InstallerVM>();
             services.AddTransient<SettingsVM>();
             services.AddTransient<WebBrowserVM>();

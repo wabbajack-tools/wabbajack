@@ -67,20 +67,20 @@
             <Border Grid.Column="1" Margin="0" Background="{StaticResource ComplementaryBackgroundBrush}" x:Name="MainContent" Padding="18" CornerRadius="8">
                     <ContentPresenter Content="{Binding ActivePane}" VerticalAlignment="Stretch">
                         <ContentPresenter.Resources>
-                            <DataTemplate DataType="{x:Type local:CompilerVM}">
-                                <local:CompilerView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:CreateModListVM}">
-                                <local:CreateModListView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:InstallerVM}">
-                                <local:InstallationView ViewModel="{Binding}" />
-                            </DataTemplate>
                             <DataTemplate DataType="{x:Type local:HomeVM}">
                                 <local:HomeView ViewModel="{Binding}" />
                             </DataTemplate>
                             <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
                                 <local:ModListGalleryView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:CompilerHomeVM}">
+                                <local:CompilerHomeView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:CompilerDetailsVM}">
+                                <local:CompilerDetailsView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:InstallerVM}">
+                                <local:InstallationView ViewModel="{Binding}" />
                             </DataTemplate>
                             <DataTemplate DataType="{x:Type local:WebBrowserVM}">
                                 <local:WebBrowserView />

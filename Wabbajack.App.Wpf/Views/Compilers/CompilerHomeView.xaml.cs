@@ -22,16 +22,16 @@ namespace Wabbajack
     /// <summary>
     /// Interaction logic for CreateModList.xaml
     /// </summary>
-    public partial class CreateModListView : ReactiveUserControl<CreateModListVM>
+    public partial class CompilerHomeView : ReactiveUserControl<CompilerHomeVM>
     {
-        public CreateModListView()
+        public CompilerHomeView()
         {
             InitializeComponent();
 
             this.WhenActivated(dispose =>
             {
-                this.WhenAny(x => x.ViewModel.CreatedModlists)
-                    .BindToStrict(this, x => x.CreatedModListsControl.ItemsSource)
+                this.WhenAny(x => x.ViewModel.CompiledModLists)
+                    .BindToStrict(this, x => x.CompiledModListsControl.ItemsSource)
                     .DisposeWith(dispose);
 
                 NewModListBorder

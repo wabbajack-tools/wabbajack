@@ -38,12 +38,12 @@ namespace Wabbajack
         Completed,
         Errored
     }
-    public class CompilerVM : BackNavigatingVM, ICpuStatusVM
+    public class CompilerDetailsVM : BackNavigatingVM, ICpuStatusVM
     {
         private readonly DTOSerializer _dtos;
         private readonly SettingsManager _settingsManager;
         private readonly IServiceProvider _serviceProvider;
-        private readonly ILogger<CompilerVM> _logger;
+        private readonly ILogger<CompilerDetailsVM> _logger;
         private readonly ResourceMonitor _resourceMonitor;
         private readonly CompilerSettingsInferencer _inferencer;
         private readonly Client _wjClient;
@@ -75,7 +75,7 @@ namespace Wabbajack
         [Reactive]
         public ErrorResponse ErrorState { get; private set; }
         
-        public CompilerVM(ILogger<CompilerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
+        public CompilerDetailsVM(ILogger<CompilerDetailsVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
             IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
             CompilerSettingsInferencer inferencer, Client wjClient) : base(logger)
         {

@@ -8,7 +8,7 @@ using Wabbajack.Models;
 
 namespace Wabbajack
 {
-    public class CreatedModlistVM
+    public class CompiledModListTileVM
     {
         private ILogger _logger;
         public LoadingLock LoadingImageLock { get; } = new();
@@ -16,7 +16,7 @@ namespace Wabbajack
         [Reactive]
         public CompilerSettings CompilerSettings { get; set; }
 
-        public CreatedModlistVM(ILogger logger, CompilerSettings compilerSettings)
+        public CompiledModListTileVM(ILogger logger, CompilerSettings compilerSettings)
         {
             _logger = logger;
             CompilerSettings = compilerSettings;
@@ -26,7 +26,7 @@ namespace Wabbajack
         private void CompileModList()
         {
             _logger.LogInformation($"Selected modlist {CompilerSettings.ModListName} for compilation, located in '{CompilerSettings.Source}'");
-            NavigateToGlobal.Send(ScreenType.Compiler);
+            NavigateToGlobal.Send(ScreenType.CompilerDetails);
             LoadModlistForCompiling.Send(CompilerSettings);
         }
     }

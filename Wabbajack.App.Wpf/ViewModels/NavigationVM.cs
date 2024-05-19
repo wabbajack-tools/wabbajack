@@ -37,7 +37,7 @@ namespace Wabbajack
                 LoadLastLoadedModlist.Send();
                 NavigateToGlobal.Send(ScreenType.Installer);
             });
-            CreateModListCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.CreateModList));
+            CompileModListCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.CompilerHome));
             SettingsCommand = ReactiveCommand.Create(
                 /*
                 canExecute: this.WhenAny(x => x.ActivePane)
@@ -58,7 +58,7 @@ namespace Wabbajack
         public ICommand HomeCommand { get; }
         public ICommand BrowseCommand { get; }
         public ICommand InstallCommand { get; }
-        public ICommand CreateModListCommand { get; }
+        public ICommand CompileModListCommand { get; }
         public ICommand SettingsCommand { get; }
         public string Version { get; }
     }

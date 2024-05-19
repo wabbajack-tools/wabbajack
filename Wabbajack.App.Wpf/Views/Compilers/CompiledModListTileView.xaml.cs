@@ -10,9 +10,9 @@ namespace Wabbajack
     /// <summary>
     /// Interaction logic for CreateModListTileView.xaml
     /// </summary>
-    public partial class CreatedModListTileView : ReactiveUserControl<CreatedModlistVM>
+    public partial class CompiledModListTileView : ReactiveUserControl<CompiledModListTileVM>
     {
-        public CreatedModListTileView()
+        public CompiledModListTileView()
         {
             InitializeComponent();
             this.WhenActivated(dispose =>

@@ -44,8 +44,8 @@ namespace Wabbajack
 
         public ObservableCollectionExtended<IStatusMessage> Log { get; } = new ObservableCollectionExtended<IStatusMessage>();
 
-        public readonly CompilerVM CompilerVM;
-        public readonly CreateModListVM CreateModListVM;
+        public readonly CompilerDetailsVM CompilerDetailsVM;
+        public readonly CompilerHomeVM CompilerHomeVM;
         public readonly InstallerVM InstallerVM;
         public readonly SettingsVM SettingsPaneVM;
         public readonly ModListGalleryVM GalleryVM;
@@ -79,7 +79,7 @@ namespace Wabbajack
 
         public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
             IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-            InstallerVM installerVM, CompilerVM compilerVM, CreateModListVM createModListVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM)
+            InstallerVM installerVM, CompilerDetailsVM compilerVM, CompilerHomeVM compilerHomeVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM)
         {
             _logger = logger;
             _wjClient = wjClient;
@@ -87,8 +87,8 @@ namespace Wabbajack
             _serviceProvider = serviceProvider;
             ConverterRegistration.Register();
             InstallerVM = installerVM;
-            CompilerVM = compilerVM;
-            CreateModListVM = createModListVM;
+            CompilerDetailsVM = compilerVM;
+            CompilerHomeVM = compilerHomeVM;
             SettingsPaneVM = settingsVM;
             GalleryVM = modListGalleryVM;
             HomeVM = homeVM;
@@ -235,8 +235,8 @@ namespace Wabbajack
                 ScreenType.Home => HomeVM,
                 ScreenType.ModListGallery => GalleryVM,
                 ScreenType.Installer => InstallerVM,
-                ScreenType.Compiler => CompilerVM,
-                ScreenType.CreateModList => CreateModListVM,
+                ScreenType.CompilerDetails => CompilerDetailsVM,
+                ScreenType.CompilerHome => CompilerHomeVM,
                 ScreenType.Settings => SettingsPaneVM,
                 _ => ActivePane
             };

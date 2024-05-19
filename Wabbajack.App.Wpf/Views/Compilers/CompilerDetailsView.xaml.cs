@@ -19,11 +19,11 @@ using Wabbajack.Services.OSIntegrated;
 namespace Wabbajack
 {
     /// <summary>
-    /// Interaction logic for CompilerView.xaml
+    /// Interaction logic for CompilerDetailsView.xaml
     /// </summary>
-    public partial class CompilerView : ReactiveUserControl<CompilerVM>
+    public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM>
     {
-        public CompilerView()
+        public CompilerDetailsView()
         {
             InitializeComponent();
 
