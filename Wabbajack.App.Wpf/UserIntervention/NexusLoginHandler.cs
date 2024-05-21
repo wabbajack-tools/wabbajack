@@ -36,7 +36,7 @@ public class NexusLoginHandler : BrowserWindowViewModel
         while (true)
         {
             cookies = await GetCookies("nexusmods.com", token);
-            if (cookies.Any(c => c.Name == "member_id"))
+            if (cookies.Any(c => c.Name.Contains("SessionUser")))
                 break;
 
             token.ThrowIfCancellationRequested();
