@@ -27,7 +27,7 @@ namespace Wabbajack
         {
             _logger.LogInformation($"Selected modlist {CompilerSettings.ModListName} for compilation, located in '{CompilerSettings.Source}'");
             NavigateToGlobal.Send(ScreenType.CompilerDetails);
-            LoadModlistForCompiling.Send(CompilerSettings);
+            LoadCompilerSettings.Send(CompilerSettings);
         }
     }
 }

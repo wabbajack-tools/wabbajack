@@ -47,18 +47,5 @@
             VerticalAlignment="Center"
             FontSize="14"
             ToolTip="The folder where MO2 downloads your mods." />
-        <TextBlock Grid.Row="2" Grid.Column="0"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Center"
-            FontSize="14"
-            Text="Output Location"
-            TextAlignment="Center"
-            ToolTip="The folder to place the resulting modlist.wabbajack file" />
-        <local:FilePicker Grid.Row="2" Grid.Column="2"
-            x:Name="OutputLocation"             
-            Height="30"
-            VerticalAlignment="Center"
-            FontSize="14"
-            ToolTip="The folder to place the resulting modlist.wabbajack file" />
     </Grid>
 </UserControl>

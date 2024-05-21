@@ -66,8 +66,9 @@ namespace Wabbajack
 
         public FilePickerVM ModListImageLocation { get; } = new();
         
-        public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
+        /* public ReactiveCommand<Unit, Unit> ExecuteCommand { get; } */
         public ReactiveCommand<Unit, Unit> ReInferSettingsCommand { get; set; }
+        public ReactiveCommand<Unit, Unit> NextCommand { get; }
 
         public LogStream LoggerProvider { get; }
         public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
@@ -88,7 +89,7 @@ namespace Wabbajack
             _inferencer = inferencer;
             _wjClient = wjClient;
 
-            MessageBus.Current.Listen<LoadModlistForCompiling>()
+            MessageBus.Current.Listen<LoadCompilerSettings>()
                 .Subscribe(msg => {
                     var csVm = new CompilerSettingsVM(msg.CompilerSettings);
                     ModlistLocation.TargetPath = csVm.ProfilePath;
@@ -110,7 +111,7 @@ namespace Wabbajack
 
             SubCompilerVM = new MO2CompilerVM(this);
 
-            ExecuteCommand = ReactiveCommand.CreateFromTask(async () => await StartCompilation());
+            //ExecuteCommand = ReactiveCommand.CreateFromTask(async () => await StartCompilation());
             /*ReInferSettingsCommand = ReactiveCommand.CreateFromTask(async () => await ReInferSettings(),
 
                 this.WhenAnyValue(vm => vm.Settings.Source)
@@ -121,6 +122,7 @@ namespace Wabbajack
                         .Select(p => !string.IsNullOrWhiteSpace(p)))
                     .Select(v => v.First && v.Second));
             */
+            NextCommand = ReactiveCommand.CreateFromTask(async () => await NextPage());
 
             ModlistLocation = new FilePickerVM
             {
@@ -258,6 +260,12 @@ namespace Wabbajack
             }
 
             return settings;
+        }
+
+        private async Task NextPage()
+        {
+            NavigateToGlobal.Send(ScreenType.CompilerFileManager);
+            LoadCompilerSettings.Send(Settings.ToCompilerSettings());
         }
 
         private async Task StartCompilation()

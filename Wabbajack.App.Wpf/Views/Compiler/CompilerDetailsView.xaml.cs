@@ -29,17 +29,6 @@ namespace Wabbajack
 
             this.WhenActivated(disposables =>
             {
-                ViewModel.WhenAny(vm => vm.State)
-                    .Select(x => x == CompilerState.Errored)
-                    .BindToStrict(this, x => x.CompilationComplete.AttentionBorder.Failure)
-                    .DisposeWith(disposables);
-                
-                ViewModel.WhenAny(vm => vm.State)
-                    .Select(x => x == CompilerState.Errored)
-                    .Select(failed => $"Compilation {(failed ? "Failed" : "Complete")}")
-                    .BindToStrict(this, x => x.CompilationComplete.TitleText.Text)
-                    .DisposeWith(disposables);
-
                 ViewModel.WhenAny(vm => vm.ModListImageLocation.TargetPath)
                     .Where(i => i.FileExists())
                     .Select(i => (UIUtils.TryGetBitmapImageFromFile(i, out var img), img))
@@ -55,88 +44,6 @@ namespace Wabbajack
 
                 ViewModel.WhenAny(vm => vm.Settings.ModListDescription)
                     .BindToStrict(this, view => view.DetailImage.Description);
-
-                CompilationComplete.GoToModlistButton.Command = ReactiveCommand.Create(() =>
-                {
-                    UIUtils.OpenFolder(ViewModel.OutputLocation.TargetPath);
-                }).DisposeWith(disposables);
-
-                ViewModel.WhenAnyValue(vm => vm.BackCommand)
-                    .BindToStrict(this, view => view.CompilationComplete.BackButton.Command)
-                    .DisposeWith(disposables);
-
-                CompilationComplete.CloseWhenCompletedButton.Command = ReactiveCommand.Create(() =>
-                {
-                    Environment.Exit(0);
-                }).DisposeWith(disposables);
-
-                
-                ViewModel.WhenAnyValue(vm => vm.ExecuteCommand)
-                    .BindToStrict(this, view => view.BeginButton.Command)
-                    .DisposeWith(disposables);
-                
-                ViewModel.WhenAnyValue(vm => vm.State)
-                    .Select(v => v == CompilerState.Configuration ? Visibility.Visible : Visibility.Collapsed)
-                    .BindToStrict(this, view => view.BottomCompilerSettingsGrid.Visibility)
-                    .DisposeWith(disposables);
-
-                ViewModel.WhenAnyValue(vm => vm.State)
-                    .Select(v => v != CompilerState.Configuration ? Visibility.Visible : Visibility.Collapsed)
-                    .BindToStrict(this, view => view.LogView.Visibility)
-                    .DisposeWith(disposables);
-
-                ViewModel.WhenAnyValue(vm => vm.State)
-                    .Select(v => v == CompilerState.Compiling ? Visibility.Visible : Visibility.Collapsed)
-                    .BindToStrict(this, view => view.CpuView.Visibility)
-                    .DisposeWith(disposables);
-                
-                ViewModel.WhenAnyValue(vm => vm.State)
-                    .Select(v => v is CompilerState.Completed or CompilerState.Errored ? Visibility.Visible : Visibility.Collapsed)
-                    .BindToStrict(this, view => view.CompilationComplete.Visibility)
-                    .DisposeWith(disposables);
-
-                ViewModel.WhenAnyValue(vm => vm.ModlistLocation)
-                    .BindToStrict(this, view => view.CompilerConfigView.ModListLocation.PickerVM)
-                    .DisposeWith(disposables);
-                
-                ViewModel.WhenAnyValue(vm => vm.DownloadLocation)
-                    .BindToStrict(this, view => view.CompilerConfigView.DownloadsLocation.PickerVM)
-                    .DisposeWith(disposables);
-
-                ViewModel.WhenAnyValue(vm => vm.Settings.Downloads)
-                         .BindToStrict(this, view => view.CompilerConfigView.DownloadsLocation.PickerVM.TargetPath)
-                         .DisposeWith(disposables);
-                
-                ViewModel.WhenAnyValue(vm => vm.OutputLocation)
-                    .BindToStrict(this, view => view.CompilerConfigView.OutputLocation.PickerVM)
-                    .DisposeWith(disposables);
-
-                ViewModel.WhenAnyValue(vm => vm.Settings.OutputFile)
-                         .BindToStrict(this, view => view.CompilerConfigView.OutputLocation.PickerVM.TargetPath)
-                         .DisposeWith(disposables);
-                
-                UserInterventionsControl.Visibility = Visibility.Collapsed;
-                
-                // Errors
-                this.WhenAnyValue(view => view.ViewModel.ErrorState)
-                    .Select(x => !x.Failed)
-                    .BindToStrict(this, view => view.BeginButton.IsEnabled)
-                    .DisposeWith(disposables);
-                
-                this.WhenAnyValue(view => view.ViewModel.ErrorState)
-                    .Select(x => x.Failed ? Visibility.Visible : Visibility.Hidden)
-                    .BindToStrict(this, view => view.ErrorSummaryIcon.Visibility)
-                    .DisposeWith(disposables);
-                
-                this.WhenAnyValue(view => view.ViewModel.ErrorState)
-                    .Select(x => x.Failed ? Visibility.Visible : Visibility.Hidden)
-                    .BindToStrict(this, view => view.ErrorSummaryIconGlow.Visibility)
-                    .DisposeWith(disposables);
-                
-                this.WhenAnyValue(view => view.ViewModel.ErrorState)
-                    .Select(x => x.Reason)
-                    .BindToStrict(this, view => view.ErrorSummaryIcon.ToolTip)
-                    .DisposeWith(disposables);
 
                 
                 // Settings 
@@ -176,6 +83,9 @@ namespace Wabbajack
                     .DisposeWith(disposables);
 
                 this.Bind(ViewModel, vm => vm.Settings.MachineUrl, view => view.MachineUrl.Text)
+                    .DisposeWith(disposables);
+
+                this.BindCommand(ViewModel, vm => vm.NextCommand, v => v.ContinueButton)
                     .DisposeWith(disposables);
                 
 

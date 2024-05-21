@@ -1141,7 +1141,7 @@
         </Setter>
     </Style>
 
-    <Style x:Key="MainButtonStyle" TargetType="{x:Type Button}">
+    <Style x:Key="MainButtonBaseStyle" TargetType="{x:Type Button}">
         <Setter Property="FocusVisualStyle" Value="{StaticResource ButtonFocusVisual}" />
         <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
@@ -1151,6 +1151,36 @@
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Padding" Value="1" />
+
+        <Style.Resources>
+            <Style TargetType="ic:SymbolIcon">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=IsMouseOver}" Value="True">
+                        <Setter Property="IsFilled" Value="True"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Style.Resources>
+
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="true">
+                <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
+                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="true">
+                <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
+                <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
+                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="false">
+                <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+                <Setter Property="Background" Value="{StaticResource DisabledButtonBackground}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="MainButtonStyle" BasedOn="{StaticResource MainButtonBaseStyle}" TargetType="{x:Type Button}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
@@ -1187,23 +1217,8 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <Style.Resources>
-            <Style TargetType="ic:SymbolIcon">
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=IsMouseOver}" Value="True">
-                        <Setter Property="IsFilled" Value="True"/>
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-        </Style.Resources>
     </Style>
-    <Style x:Key="LargeButtonStyle" TargetType="{x:Type Button}">
-        <Setter Property="FocusVisualStyle" Value="{StaticResource ButtonFocusVisual}" />
-        <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Focusable" Value="False" />
-        <Setter Property="Foreground" Value="{StaticResource ButtonForeground}" />
+    <Style x:Key="LargeButtonStyle" BasedOn="{StaticResource MainButtonStyle}" TargetType="{x:Type Button}">
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalContentAlignment" Value="Stretch" />
         <Setter Property="Padding" Value="2" />
@@ -1244,15 +1259,6 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <Style.Resources>
-            <Style TargetType="ic:SymbolIcon">
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button, AncestorLevel=1}, Path=IsMouseOver}" Value="True">
-                        <Setter Property="IsFilled" Value="True" />
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-        </Style.Resources>
     </Style>
     <Style x:Key="MainNavButtonStyle" BasedOn="{StaticResource MainButtonStyle}" TargetType="{x:Type Button}">
         <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}"/>
@@ -1386,6 +1392,39 @@
                 <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}" />
             </Trigger>
         </Style.Triggers>
+    </Style>
+
+    <Style x:Key="AltButtonStyle" BasedOn="{StaticResource MainButtonStyle}" TargetType="{x:Type Button}">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}"/>
+        <Setter Property="FontSize" Value="14"/>
+    </Style>
+
+    <Style x:Key="WizardButtonStyle" BasedOn="{StaticResource AltButtonStyle}" TargetType="{x:Type Button}">
+        <Setter Property="Width" Value="200" />
+        <Setter Property="Margin" Value="0, 8, 0, 0" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid>
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4" >
+                            <ContentPresenter
+                                Margin="{TemplateBinding Padding}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                RecognizesAccessKey="True"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!--  ToggleButton  -->

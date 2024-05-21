@@ -80,6 +80,7 @@ namespace Wabbajack
                     .BindToStrict(this, x => x.AuthorShadowTextRun.Text)
                     .DisposeWith(dispose);
 
+                /*
                 var descVisible = this.WhenAny(x => x.Description)
                     .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)
                     .Replay(1)
@@ -96,6 +97,7 @@ namespace Wabbajack
                 this.WhenAny(x => x.Description)
                     .BindToStrict(this, x => x.DescriptionTextShadow.Text)
                     .DisposeWith(dispose);
+                */
 
                 var titleVisible = this.WhenAny(x => x.Title)
                     .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)

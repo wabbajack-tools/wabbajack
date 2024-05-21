@@ -18,27 +18,14 @@
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="4*" />
-            <RowDefinition Height="*" MinHeight="150" />
+            <RowDefinition Height="8*" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="5" />
-            <ColumnDefinition Width="2*" />
-            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="1.8*" />
             <ColumnDefinition Width="5*" />
-            <ColumnDefinition Width="5" />
         </Grid.ColumnDefinitions>
-        <Grid Grid.Row="0" Grid.Column="3">
-            
-            <local:DetailImageView x:Name="DetailImage" BorderThickness="0" />
-        </Grid>
-        <!--  Comes after image area so shadow can overlay  -->
-        <!--
-        <local:TopProgressView Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="5"
-            x:Name="TopProgressBar"
-            OverhangShadow="False" />
-            -->
-        <ScrollViewer Grid.Row="0" Grid.Column="1"
+        <ScrollViewer Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
             x:Name="SettingsScrollViewer"
             Background="Transparent"
             HorizontalScrollBarVisibility="Disabled"
@@ -187,73 +174,44 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
-
             </StackPanel>
         </ScrollViewer>
-        <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5"
-            x:Name="BottomBarBackground"
-            Margin="5"
-            Background="{StaticResource WindowBackgroundBrush}" />
-        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5"
-            MaxWidth="1000">
-            <Grid
-                x:Name="BottomCompilerSettingsGrid"
-                Margin="35,0,35,0"
-                VerticalAlignment="Center"
-                ClipToBounds="False">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="20" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <local:MO2CompilerConfigView x:Name="CompilerConfigView" Grid.Row="1" Grid.Column="1" />
-                <local:BeginButton Grid.Row="0" Grid.RowSpan="3" Grid.Column="5"
-                    x:Name="BeginButton" />
-                <icon:PackIconFontAwesome Grid.Row="2"
-                                          Grid.Column="5"
-                                          x:Name="ErrorSummaryIconGlow"
-                                          HorizontalAlignment="Center"
-                                          Foreground="{StaticResource WarningBrush}"
-                                          Kind="ExclamationTriangleSolid"
-                                          Opacity="0.6">
-                    <icon:PackIconFontAwesome.Effect>
-                        <BlurEffect Radius="15" />
-                    </icon:PackIconFontAwesome.Effect>
-                </icon:PackIconFontAwesome>
-                <icon:PackIconFontAwesome Grid.Row="2"
-                                          Grid.Column="5"
-                                          x:Name="ErrorSummaryIcon"
-                                          HorizontalAlignment="Center"
-                                          Foreground="{StaticResource WarningBrush}"
-                                          Kind="ExclamationTriangleSolid" />
-            </Grid>
+        <Grid Grid.Row="0" Grid.Column="1">
+            <local:DetailImageView x:Name="DetailImage" BorderThickness="0" Padding="16, 0, 0, 8" />
         </Grid>
-        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5"
-            x:Name="MidCompilationGrid"
-            Margin="5">
+        <Grid Grid.Row="1" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="4*" />
-                <ColumnDefinition Width="5" />
                 <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <local:LogView x:Name="LogView" Grid.Column="0" />
-            <local:CpuView Grid.Column="2"
-                x:Name="CpuView"
-                ViewModel="{Binding}" />
-            <local:AttentionBorder x:Name="UserInterventionsControl" Grid.Column="2">
-                <Grid>
-                    <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type local:ConfirmationIntervention}}" />
-                </Grid>
-            </local:AttentionBorder>
-            <local:CompilationCompleteView Grid.Column="2"
-                x:Name="CompilationComplete"
-                ViewModel="{Binding}" />
+            <TextBlock
+                HorizontalAlignment="Left"
+                Margin="16, 0, 0, 8"
+                VerticalAlignment="Center"
+                FontSize="14"
+                Text="Output Location"
+                TextAlignment="Center"
+                ToolTip="The folder to place the resulting modlist.wabbajack file" />
+            <local:FilePicker
+            Grid.Row="1"
+            x:Name="OutputLocation"             
+            Margin="16, 0, 0, 0"
+            Height="30"
+            VerticalAlignment="Center"
+            FontSize="14"
+            ToolTip="The folder to place the resulting modlist.wabbajack file" />
+
+            <Button 
+                x:Name="ContinueButton"
+                Grid.RowSpan="2"
+                Grid.Column="1"
+                Style="{StaticResource WizardButtonStyle}"
+                Content="Continue">
+            </Button>
         </Grid>
     </Grid>
 </rxui:ReactiveUserControl>

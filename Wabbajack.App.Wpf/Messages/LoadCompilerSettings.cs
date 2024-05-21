@@ -6,17 +6,16 @@ using Wabbajack.Paths;
 
 namespace Wabbajack.Messages;
 
-public class LoadModlistForCompiling
+public class LoadCompilerSettings
 {
     public CompilerSettings CompilerSettings { get; set; }
-    public LoadModlistForCompiling(CompilerSettings cs)
+    public LoadCompilerSettings(CompilerSettings cs)
     {
         CompilerSettings = cs;
     }
 
-
     public static void Send(CompilerSettings cs)
     {
-        MessageBus.Current.SendMessage(new LoadModlistForCompiling(cs));
+        MessageBus.Current.SendMessage(new LoadCompilerSettings(cs));
     }
 }

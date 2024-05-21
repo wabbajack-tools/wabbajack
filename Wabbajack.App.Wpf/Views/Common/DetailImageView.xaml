@@ -56,7 +56,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Rectangle Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="2"
-            Fill="{StaticResource WindowBackgroundBrush}" />
+            Fill="{StaticResource WindowBackgroundBrush}"/>
         <Viewbox Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="2"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
@@ -126,36 +126,5 @@
             <Run FontSize="15" Text="by" />
             <Run x:Name="AuthorTextRun" />
         </TextBlock>
-        <TextBlock Grid.Row="2" Grid.RowSpan="2" Grid.Column="1"
-            x:Name="DescriptionTextShadow"
-            Margin="-10,15,-5,15"
-            Padding="30,10"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom"
-            FontFamily="{StaticResource PrimaryFont}"
-            FontSize="16"
-            Style="{StaticResource BackgroundBlurStyle}"
-            TextAlignment="Right"
-            TextWrapping="Wrap">
-            <TextBlock.Effect>
-                <BlurEffect Radius="55" />
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Grid.Row="2" Grid.RowSpan="2" Grid.Column="1"
-            x:Name="DescriptionTextBlock"
-            Margin="20,25,25,25"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom"
-            FontFamily="{StaticResource PrimaryFont}"
-            FontSize="16"
-            TextAlignment="Right"
-            TextWrapping="Wrap">
-            <TextBlock.Effect>
-                <DropShadowEffect />
-            </TextBlock.Effect>
-        </TextBlock>
-        <Rectangle Grid.Row="2" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
-            x:Name="TextHoverTrigger"
-            Fill="Transparent" />
     </Grid>
 </local:UserControlRx>

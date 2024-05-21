@@ -65,7 +65,7 @@ namespace Wabbajack
 
             NewModListCommand = ReactiveCommand.Create(() => {
                 NavigateToGlobal.Send(ScreenType.CompilerDetails);
-                LoadModlistForCompiling.Send(new());
+                LoadCompilerSettings.Send(new());
             });
 
             LoadSettingsCommand = ReactiveCommand.Create(() =>
@@ -75,7 +75,7 @@ namespace Wabbajack
                 {
                     NavigateToGlobal.Send(ScreenType.CompilerDetails);
                     var compilerSettings = _dtos.Deserialize<CompilerSettings>(File.ReadAllText(CompilerSettingsPicker.TargetPath.ToString()));
-                    LoadModlistForCompiling.Send(compilerSettings);
+                    LoadCompilerSettings.Send(compilerSettings);
                 }
             });
 
