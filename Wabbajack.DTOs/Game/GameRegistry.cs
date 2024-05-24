@@ -607,7 +607,7 @@ public static class GameRegistry
             {
                 Game = Game.Starfield,
                 NexusName = "starfield",
-                NexusGameId = 4187f
+                NexusGameId = 4187,
                 MO2Name = "Starfield",
                 MO2ArchiveName = "Starfield",
                 SteamIDs = [1716740],
