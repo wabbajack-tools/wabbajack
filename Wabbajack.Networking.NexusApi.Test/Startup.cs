@@ -1,3 +1,4 @@
+/* TODO: Fix LOGIN with automated tests
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Services.OSIntegrated;
@@ -18,3 +19,4 @@ public class Startup
         loggerFactory.AddProvider(new XunitTestOutputLoggerProvider(accessor, delegate { return true; }));
     }
 }
+*/
