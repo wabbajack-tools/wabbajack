@@ -30,9 +30,37 @@ using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated;
 using NexusMods.Paths.FileTree;
 using System.Windows.Controls;
+using FluentIcons.Common;
 
 namespace Wabbajack
 {
+    public class FileTreeViewItemVM : TreeViewItem
+    {
+        public FileSystemInfo Info { get; set; }
+        public bool IsDirectory { get; set; }
+        public Symbol Symbol { get; set; }
+        public FileTreeViewItemVM(DirectoryInfo info)
+        {
+            Info = info;
+            IsDirectory = true;
+            Header = info.Name;
+            Symbol = Symbol.Folder;
+        }
+        public FileTreeViewItemVM(FileInfo info)
+        {
+            Info = info;
+            Header = info.Name;
+            Symbol = info.Extension.ToLower() switch {
+                ".exe" or ".sh" => Symbol.DocumentLightning,
+                ".7z" or ".zip" or ".rar" or ".bsa" => Symbol.Archive,
+                ".toml" or ".ini" or ".cfg" or ".json" => Symbol.DocumentSettings,
+                ".txt" or ".md" => Symbol.DocumentText,
+                ".nif" => Symbol.DocumentCube,
+                _ => Symbol.Document
+            };
+        }
+        public override string ToString() => Info.FullName;
+    }
     public class CompilerFileManagerVM : BackNavigatingVM
     {
         private readonly DTOSerializer _dtos;
@@ -76,9 +104,8 @@ namespace Wabbajack
 
         private IEnumerable<TreeViewItem> LoadFiles(DirectoryInfo parent)
         {
-            var parentTreeItem = new TreeViewItem()
+            var parentTreeItem = new FileTreeViewItemVM(parent)
             {
-                Header = parent,
                 IsExpanded = true,
                 ItemsSource = LoadDirectoryContents(parent)
             };
@@ -90,22 +117,22 @@ namespace Wabbajack
         {
             return parent.EnumerateDirectories()
                   .OrderBy(dir => dir.Name)
-                  .Select(dir => new TreeViewItem() { Header = dir, ItemsSource = (dir.EnumerateDirectories().Any() || dir.EnumerateFiles().Any()) ? new ObservableCollection<TreeViewItem>([new TreeViewItem() { Header = "Loading..." }]) : null}).Select(item => {
+                  .Select(dir => new FileTreeViewItemVM(dir) { ItemsSource = (dir.EnumerateDirectories().Any() || dir.EnumerateFiles().Any()) ? new ObservableCollection<TreeViewItem>([new TreeViewItem() { Header = "Loading..." }]) : null}).Select(item => {
                       item.Expanded += LoadingItem_Expanded;
                       return item;
                   })
                   .Concat(parent.EnumerateFiles()
                                 .OrderBy(file => file.Name)
-                                .Select(file => new TreeViewItem() { Header = file }));
+                                .Select(file => new FileTreeViewItemVM(file)));
         }
 
         private void LoadingItem_Expanded(object sender, System.Windows.RoutedEventArgs e)
         {
-            var parent = (TreeViewItem)e.OriginalSource;
+            var parent = (FileTreeViewItemVM)e.OriginalSource;
             var children = parent.ItemsSource.OfType<TreeViewItem>();
             var firstChild = children.Any() ? children.First().Header : null;
             if (firstChild != null && firstChild is string firstString && firstString == "Loading...")
-                parent.ItemsSource = LoadDirectoryContents((DirectoryInfo)parent.Header);
+                parent.ItemsSource = LoadDirectoryContents((DirectoryInfo)parent.Info);
         }
 
         private IEnumerable<FileSystemInfo> GetDirectoryContents(DirectoryInfo dir)

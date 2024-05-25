@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:options="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:wj="clr-namespace:Wabbajack"
     xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
     xmlns:math="http://hexinnovation.com/math"
     mc:Ignorable="d">
@@ -2221,6 +2222,97 @@
                                     x:Name="PART_Header"
                                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                     ContentSource="Header" />
+                            </Grid>
+                        </Border>
+                        <ItemsPresenter x:Name="ItemsHost" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="false">
+                            <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="HasItems" Value="false">
+                            <Setter TargetName="Expander" Property="Visibility" Value="Hidden" />
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="HasHeader" Value="false" />
+                                <Condition Property="Width" Value="Auto" />
+                            </MultiTrigger.Conditions>
+
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="HasHeader" Value="false" />
+                                <Condition Property="Height" Value="Auto" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="PART_Header" Property="MinHeight" Value="21" />
+                        </MultiTrigger>
+                        <Trigger Property="IsSelected" Value="true">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource SelectedListItem}" />
+                            <Setter Property="Foreground" Value="{StaticResource SelectedListItemForeground}" />
+                            <Setter TargetName="Expander" Property="Style" Value="{DynamicResource TreeViewSelectedToggleButtonStyle}" />
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition SourceName="Bd" Property="IsMouseOver" Value="true" />
+                                <Condition Property="IsSelected" Value="false" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource MouseOverListItem}" />
+                        </MultiTrigger>
+                        <!--<MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="true"/>
+                                <Condition Property="IsSelectionActive" Value="false"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+                        </MultiTrigger>-->
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter Property="Foreground" Value="{StaticResource TreeViewDisabledForeground}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style TargetType="{x:Type wj:FileTreeViewItemVM}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="MinHeight" Value="21" />
+        <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
+        <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
+        <Setter Property="Padding" Value="4,6,4,6" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource TreeViewItemFocusVisual}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TreeViewItem}">
+                    <ControlTemplate.Resources>
+                        <darkBlendTheme:LeftMarginMultiplierConverter x:Key="LengthConverter" Length="30" />
+                    </ControlTemplate.Resources>
+                    <StackPanel>
+                        <Border
+                            Name="Bd"
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}">
+                            <Grid Margin="{Binding Converter={StaticResource LengthConverter}, RelativeSource={RelativeSource TemplatedParent}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="15" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <ToggleButton Grid.Column="0"
+                                    x:Name="Expander"
+                                    ClickMode="Press"
+                                    IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                    Style="{DynamicResource TreeViewToggleButtonStyle}" />
+
+                                <StackPanel Orientation="Horizontal" Grid.Column="1">
+                                    <ic:SymbolIcon IsFilled="True" Symbol="{Binding Path=Symbol, RelativeSource={RelativeSource TemplatedParent}}" Margin="0, 0, 4, 0" Foreground="{StaticResource PrimaryBrush}"/>
+                                    <ContentPresenter
+                                        x:Name="PART_Header"
+                                        Margin="4, 0, 0, 0"
+                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                        ContentSource="Header" />
+                                </StackPanel>
                             </Grid>
                         </Border>
                         <ItemsPresenter x:Name="ItemsHost" />
