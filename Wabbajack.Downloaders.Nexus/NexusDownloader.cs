@@ -48,7 +48,7 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
 
     public override Task<bool> Prepare()
     {
-        return Task.FromResult(_api.ApiKey.HaveToken());
+        return Task.FromResult(_api.AuthInfo.HaveToken());
     }
 
     public override bool IsAllowed(ServerAllowList allowList, IDownloadState state)
