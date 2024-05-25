@@ -25,7 +25,7 @@ public class ProxiedNexusApi : NexusApi
         Endpoints.ModFile
     };
 
-    public ProxiedNexusApi(ITokenProvider<NexusApiState> apiKey, ILogger<ProxiedNexusApi> logger, HttpClient client,
+    public ProxiedNexusApi(ITokenProvider<NexusOAuthState> apiKey, ILogger<ProxiedNexusApi> logger, HttpClient client,
         IResource<HttpClient> limiter,
         ApplicationInfo appInfo, JsonSerializerOptions jsonOptions, ITokenProvider<WabbajackApiState> apiState,
         ClientConfiguration wabbajackClientConfiguration)

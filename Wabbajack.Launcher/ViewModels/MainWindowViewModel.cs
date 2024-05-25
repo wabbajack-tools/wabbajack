@@ -32,9 +32,9 @@ public class MainWindowViewModel : ViewModelBase
     public Uri GITHUB_REPO = new("https://api.github.com/repos/wabbajack-tools/wabbajack/releases");
     private readonly NexusApi _nexusApi;
     private readonly HttpDownloader _downloader;
-    private readonly ITokenProvider<NexusApiState> _tokenProvider;
+    private readonly ITokenProvider<NexusOAuthState> _tokenProvider;
 
-    public MainWindowViewModel(NexusApi nexusApi, HttpDownloader downloader, ITokenProvider<NexusApiState> tokenProvider)
+    public MainWindowViewModel(NexusApi nexusApi, HttpDownloader downloader, ITokenProvider<NexusOAuthState> tokenProvider)
     {
         _nexusApi = nexusApi;
         Status = "Checking for new versions";

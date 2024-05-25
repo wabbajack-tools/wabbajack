@@ -3,6 +3,6 @@ using Wabbajack.Networking.Http.Interfaces;
 
 namespace Wabbajack.Networking.NexusApi;
 
-public interface ApiKey : ITokenProvider<NexusApiState>
+public interface AuthInfo : ITokenProvider<NexusOAuthState>
 {
 }
