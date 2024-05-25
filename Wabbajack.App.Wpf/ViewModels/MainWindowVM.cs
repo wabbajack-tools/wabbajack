@@ -80,7 +80,7 @@ namespace Wabbajack
 
         public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
             IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-            InstallerVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerVM, CompilerFileManagerVM compilerFileManagerVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM)
+            InstallerVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM)
         {
             _logger = logger;
             _wjClient = wjClient;
@@ -89,7 +89,7 @@ namespace Wabbajack
             ConverterRegistration.Register();
             InstallerVM = installerVM;
             CompilerHomeVM = compilerHomeVM;
-            CompilerDetailsVM = compilerVM;
+            CompilerDetailsVM = compilerDetailsVM;
             CompilerFileManagerVM = compilerFileManagerVM;
             SettingsPaneVM = settingsVM;
             GalleryVM = modListGalleryVM;

@@ -27,11 +27,13 @@ namespace Wabbajack
         {
             InitializeComponent();
 
-            /*
+
             this.WhenActivated(disposables =>
             {
+                this.WhenAny(x => x.ViewModel.Files)
+                    .BindToStrict(this, v => v.FileTreeView.ItemsSource)
+                    .DisposeWith(disposables);
             });
-            */
 
         }
 

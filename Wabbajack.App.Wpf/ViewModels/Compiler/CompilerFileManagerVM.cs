@@ -28,6 +28,8 @@ using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated;
+using NexusMods.Paths.FileTree;
+using System.Windows.Controls;
 
 namespace Wabbajack
 {
@@ -42,6 +44,8 @@ namespace Wabbajack
         private readonly Client _wjClient;
         
         [Reactive] public CompilerSettingsVM Settings { get; set; } = new();
+        public IEnumerable<TreeViewItem> Files { get; set; }
+
 
         public CompilerFileManagerVM(ILogger<CompilerFileManagerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
             IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
@@ -61,6 +65,42 @@ namespace Wabbajack
                     Settings = csVm;
                 })
                 .DisposeWith(CompositeDisposable);
+
+            this.WhenActivated(disposables =>
+            {
+                var fileTree = GetDirectoryContents(new DirectoryInfo(Settings.Source.ToString()));
+                Files = LoadFileTree(new DirectoryInfo(Settings.Source.ToString()));
+                Disposable.Create(() => { }).DisposeWith(disposables);
+            });
+        }
+
+        private IEnumerable<TreeViewItem> LoadFileTree(DirectoryInfo parent)
+        {
+            var parentTreeItem = new TreeViewItem()
+            {
+                Header = parent,
+                IsExpanded = true,
+                ItemsSource = GetRecursiveFileTree(parent)
+            };
+            return [parentTreeItem];
+
+        }
+
+        private IEnumerable<TreeViewItem> GetRecursiveFileTree(DirectoryInfo parent)
+        {
+            return parent.EnumerateDirectories()
+                  .OrderBy(dir => dir.Name)
+                  .Select(dir => new TreeViewItem() { Header = dir, ItemsSource = GetRecursiveFileTree(dir) })
+                  .Concat(parent.EnumerateFiles()
+                                .OrderBy(file => file.Name)
+                                .Select(file => new TreeViewItem() { Header = file }));
+        }
+
+        private IEnumerable<FileSystemInfo> GetDirectoryContents(DirectoryInfo dir)
+        {
+            var directories = dir.EnumerateDirectories();
+            var items = dir.EnumerateFiles();
+            return directories.OrderBy(x => x.Name).Concat<FileSystemInfo>(items.OrderBy(y => y.Name));
         }
 
         private async Task NextPage()
