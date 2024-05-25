@@ -13,7 +13,6 @@ using Wabbajack.Downloaders.Http;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Logins;
-using Wabbajack.Launcher.Models;
 using Wabbajack.Launcher.ViewModels;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
@@ -57,7 +56,7 @@ internal class Program
                 
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddSingleton<HttpClient>();
-                services.AddSingleton<ITokenProvider<NexusApiState>, NexusApiTokenProvider>();
+                services.AddSingleton<ITokenProvider<NexusOAuthState>, NexusApiTokenProvider>();
                 services.AddSingleton<HttpDownloader>();
                 services.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", 4));
                 services.AddAllSingleton<IHttpDownloader, SingleThreadedDownloader>();
