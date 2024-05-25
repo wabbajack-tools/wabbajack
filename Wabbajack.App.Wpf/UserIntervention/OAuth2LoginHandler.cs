@@ -6,6 +6,7 @@ using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.Common;
@@ -103,4 +104,5 @@ public abstract class OAuth2LoginHandler<TLoginType> : BrowserWindowViewModel
         });
 
     }
+
 }

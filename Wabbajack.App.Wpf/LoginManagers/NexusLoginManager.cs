@@ -19,7 +19,7 @@ namespace Wabbajack.LoginManagers;
 public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
 {
     private readonly ILogger<NexusLoginManager> _logger;
-    private readonly ITokenProvider<NexusApiState> _token;
+    private readonly ITokenProvider<NexusOAuthState> _token;
     private readonly IServiceProvider _serviceProvider;
 
     public string SiteName { get; } = "Nexus Mods";
@@ -35,7 +35,7 @@ public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
     [Reactive]
     public bool HaveLogin { get; set; }
     
-    public NexusLoginManager(ILogger<NexusLoginManager> logger, ITokenProvider<NexusApiState> token, IServiceProvider serviceProvider)
+    public NexusLoginManager(ILogger<NexusLoginManager> logger, ITokenProvider<NexusOAuthState> token, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _token = token;
