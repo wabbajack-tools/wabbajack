@@ -193,11 +193,8 @@ public class NexusApi
         var userAgent =
             $"{_appInfo.ApplicationSlug}/{_appInfo.Version} ({_appInfo.OSVersion}; {_appInfo.Platform})";
 
-        if (!AuthInfo.HaveToken())
-            throw new Exception("Please log into the Nexus before attempting to use Wabbajack");
+        await AddAuthHeaders(msg);
         
-        var token = (await AuthInfo.Get())!;
-
         if (uri.StartsWith("http"))
         {
             msg.RequestUri = new Uri($"{string.Format(uri, parameters)}");
@@ -211,7 +208,6 @@ public class NexusApi
         msg.Headers.Add("Application-Name", _appInfo.ApplicationSlug);
         msg.Headers.Add("Application-Version", _appInfo.Version);
         
-        await AddAuthHeaders(msg);
 
         msg.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         return msg;
