@@ -603,6 +603,22 @@ public static class GameRegistry
             }
         },
         {
+            Game.Starfield, new GameMetaData
+            {
+                Game = Game.Starfield,
+                NexusName = "starfield",
+                NexusGameId = 4187,
+                MO2Name = "Starfield",
+                MO2ArchiveName = "Starfield",
+                SteamIDs = [1716740],
+                RequiredFiles = new []
+                {
+                    @"Starfield.exe".ToRelativePath()
+                },
+                MainExecutable = @"Starfield.exe".ToRelativePath()
+            }
+        },
+        {
             Game.ModdingTools, new GameMetaData
             {
                 Game = Game.ModdingTools,
