@@ -69,31 +69,43 @@ namespace Wabbajack
             this.WhenActivated(disposables =>
             {
                 var fileTree = GetDirectoryContents(new DirectoryInfo(Settings.Source.ToString()));
-                Files = LoadFileTree(new DirectoryInfo(Settings.Source.ToString()));
+                Files = LoadFiles(new DirectoryInfo(Settings.Source.ToString()));
                 Disposable.Create(() => { }).DisposeWith(disposables);
             });
         }
 
-        private IEnumerable<TreeViewItem> LoadFileTree(DirectoryInfo parent)
+        private IEnumerable<TreeViewItem> LoadFiles(DirectoryInfo parent)
         {
             var parentTreeItem = new TreeViewItem()
             {
                 Header = parent,
                 IsExpanded = true,
-                ItemsSource = GetRecursiveFileTree(parent)
+                ItemsSource = LoadDirectoryContents(parent)
             };
             return [parentTreeItem];
 
         }
 
-        private IEnumerable<TreeViewItem> GetRecursiveFileTree(DirectoryInfo parent)
+        private IEnumerable<TreeViewItem> LoadDirectoryContents(DirectoryInfo parent)
         {
             return parent.EnumerateDirectories()
                   .OrderBy(dir => dir.Name)
-                  .Select(dir => new TreeViewItem() { Header = dir, ItemsSource = GetRecursiveFileTree(dir) })
+                  .Select(dir => new TreeViewItem() { Header = dir, ItemsSource = (dir.EnumerateDirectories().Any() || dir.EnumerateFiles().Any()) ? new ObservableCollection<TreeViewItem>([new TreeViewItem() { Header = "Loading..." }]) : null}).Select(item => {
+                      item.Expanded += LoadingItem_Expanded;
+                      return item;
+                  })
                   .Concat(parent.EnumerateFiles()
                                 .OrderBy(file => file.Name)
                                 .Select(file => new TreeViewItem() { Header = file }));
+        }
+
+        private void LoadingItem_Expanded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            var parent = (TreeViewItem)e.OriginalSource;
+            var children = parent.ItemsSource.OfType<TreeViewItem>();
+            var firstChild = children.Any() ? children.First().Header : null;
+            if (firstChild != null && firstChild is string firstString && firstString == "Loading...")
+                parent.ItemsSource = LoadDirectoryContents((DirectoryInfo)parent.Header);
         }
 
         private IEnumerable<FileSystemInfo> GetDirectoryContents(DirectoryInfo dir)

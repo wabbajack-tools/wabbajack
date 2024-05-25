@@ -15,6 +15,7 @@ using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.ViewModels.Controls;
 using Wabbajack.Services.OSIntegrated;
+using ReactiveMarbles.ObservableEvents;
 
 namespace Wabbajack
 {
@@ -33,6 +34,7 @@ namespace Wabbajack
                 this.WhenAny(x => x.ViewModel.Files)
                     .BindToStrict(this, v => v.FileTreeView.ItemsSource)
                     .DisposeWith(disposables);
+
             });
 
         }
