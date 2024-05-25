@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  VERSION: 3.5.0.2
+  VERSION: 3.6.0.0
 
 jobs:
   build:
@@ -38,18 +38,6 @@ jobs:
           dotnet-version: '8.0.x'
           include-prerelease: true
           
-      - name: Setup .NET Core SDK 7.0.x
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '7.0.x'
-          include-prerelease: true
-          
-      - name: Setup .NET Core SDK 6.0.x
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '6.0.x'
-          include-prerelease: true
-
       - name: Test
         run: dotnet test /p:EnableWindowsTargeting=true --filter "Category!=FlakeyNetwork"
         
