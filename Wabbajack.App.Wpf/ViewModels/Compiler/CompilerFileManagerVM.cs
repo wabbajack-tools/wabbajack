@@ -51,11 +51,16 @@ namespace Wabbajack
             Info = info;
             Header = info.Name;
             Symbol = info.Extension.ToLower() switch {
-                ".exe" or ".sh" => Symbol.DocumentLightning,
+                ".exe" => Symbol.ReceiptPlay,
                 ".7z" or ".zip" or ".rar" or ".bsa" => Symbol.Archive,
                 ".toml" or ".ini" or ".cfg" or ".json" => Symbol.DocumentSettings,
-                ".txt" or ".md" => Symbol.DocumentText,
+                ".txt" or ".md" or ".compiler_settings" or ".log" => Symbol.DocumentText,
+                ".dds" or ".jpg" or ".png" or ".webp" => Symbol.DocumentImage,
                 ".nif" => Symbol.DocumentCube,
+                ".js" => Symbol.DocumentJavascript,
+                ".java" => Symbol.DocumentJava,
+                ".pdf" => Symbol.DocumentPdf,
+                ".esp" or ".esl" or ".esm" => Symbol.DocumentTable,
                 _ => Symbol.Document
             };
         }
