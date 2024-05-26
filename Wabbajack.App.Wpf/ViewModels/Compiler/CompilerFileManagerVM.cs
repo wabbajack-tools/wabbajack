@@ -51,16 +51,19 @@ namespace Wabbajack
             Info = info;
             Header = info.Name;
             Symbol = info.Extension.ToLower() switch {
-                ".exe" => Symbol.ReceiptPlay,
-                ".7z" or ".zip" or ".rar" or ".bsa" => Symbol.Archive,
-                ".toml" or ".ini" or ".cfg" or ".json" => Symbol.DocumentSettings,
+                ".7z" or ".zip" or ".rar" or ".bsa" or ".ba2" or ".wabbajack" or ".tar" or ".tar.gz" => Symbol.Archive,
+                ".toml" or ".ini" or ".cfg" or ".json" or ".yaml" or ".xml" or ".yml" or ".meta" => Symbol.DocumentSettings,
                 ".txt" or ".md" or ".compiler_settings" or ".log" => Symbol.DocumentText,
-                ".dds" or ".jpg" or ".png" or ".webp" => Symbol.DocumentImage,
-                ".nif" => Symbol.DocumentCube,
+                ".dds" or ".jpg" or ".png" or ".webp" or ".svg" or ".xnb" => Symbol.DocumentImage,
+                ".hkx" => Symbol.DocumentPerson,
+                ".nif" or ".btr" => Symbol.DocumentCube,
+                ".mp3" or ".wav" or ".fuz" => Symbol.DocumentCatchUp,
                 ".js" => Symbol.DocumentJavascript,
                 ".java" => Symbol.DocumentJava,
                 ".pdf" => Symbol.DocumentPdf,
-                ".esp" or ".esl" or ".esm" => Symbol.DocumentTable,
+                ".lua" or ".py" or ".bat" or ".reds" or ".psc" => Symbol.Receipt,
+                ".exe" => Symbol.ReceiptPlay,
+                ".esp" or ".esl" or ".esm" or ".archive" => Symbol.DocumentTable,
                 _ => Symbol.Document
             };
         }
