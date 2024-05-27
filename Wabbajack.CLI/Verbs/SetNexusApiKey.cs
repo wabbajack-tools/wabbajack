@@ -14,10 +14,10 @@ namespace Wabbajack.CLI.Verbs;
 
 public class SetNexusApiKey
 {
-    private readonly EncryptedJsonTokenProvider<NexusApiState> _tokenProvider;
+    private readonly EncryptedJsonTokenProvider<NexusOAuthState> _tokenProvider;
     private readonly ILogger<SetNexusApiKey> _logger;
 
-    public SetNexusApiKey(EncryptedJsonTokenProvider<NexusApiState> tokenProvider, ILogger<SetNexusApiKey> logger)
+    public SetNexusApiKey(EncryptedJsonTokenProvider<NexusOAuthState> tokenProvider, ILogger<SetNexusApiKey> logger)
     {
         _tokenProvider = tokenProvider;
         _logger = logger;
@@ -38,7 +38,7 @@ public class SetNexusApiKey
         }
         else
         {
-            await _tokenProvider.SetToken(new NexusApiState { ApiKey = key });
+            await _tokenProvider.SetToken(new NexusOAuthState { ApiKey = key });
             _logger.LogInformation("Set Nexus API Key to {key}", key);
             return 0;
         }
