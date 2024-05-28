@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 3.6.1.1 - TBD
+* Fixed `set-nexus-api-key` CLI command
+
 #### Version - 3.6.1.0 - 5/26/2024
 * Fixed a race condition on renewing Nexus Mods OAuth2 tokens
 * Added `set-nexus-api-key` CLI command
