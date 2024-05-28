@@ -611,7 +611,9 @@ public class ValidateLists
                 return (ArchiveStatus.InValid, archive);
         }
 
-        if (archive.State is Http http && http.Url.Host.EndsWith("github.com"))
+        if (archive.State is Http http && (http.Url.Host.EndsWith("github.com")
+                                           //TODO: Find a better solution for the list validation of LoversLab files.
+                                           || http.Url.Host.EndsWith("loverslab.com")))
             return (ArchiveStatus.Valid, archive);
         
         try

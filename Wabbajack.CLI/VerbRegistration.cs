@@ -43,6 +43,8 @@ CommandLineBuilder.RegisterCommand<MirrorFile>(MirrorFile.Definition, c => ((Mir
 services.AddSingleton<MirrorFile>();
 CommandLineBuilder.RegisterCommand<ModlistReport>(ModlistReport.Definition, c => ((ModlistReport)c).Run);
 services.AddSingleton<ModlistReport>();
+CommandLineBuilder.RegisterCommand<SetNexusApiKey>(SetNexusApiKey.Definition, c => ((SetNexusApiKey)c).Run);
+services.AddSingleton<SetNexusApiKey>();
 CommandLineBuilder.RegisterCommand<SteamDownloadFile>(SteamDownloadFile.Definition, c => ((SteamDownloadFile)c).Run);
 services.AddSingleton<SteamDownloadFile>();
 CommandLineBuilder.RegisterCommand<SteamDumpAppInfo>(SteamDumpAppInfo.Definition, c => ((SteamDumpAppInfo)c).Run);
