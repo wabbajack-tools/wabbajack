@@ -33,6 +33,7 @@ public class NexusApi
     public readonly ITokenProvider<NexusOAuthState> AuthInfo;
     private DateTime _lastValidated;
     private (ValidateInfo info, ResponseMetadata header) _lastValidatedInfo; 
+    private AsyncLock _authLock = new();
 
     public NexusApi(ITokenProvider<NexusOAuthState> authInfo, ILogger<NexusApi> logger, HttpClient client,
         IResource<HttpClient> limiter, ApplicationInfo appInfo, JsonSerializerOptions jsonOptions)
@@ -187,6 +188,7 @@ public class NexusApi
     protected virtual async ValueTask<HttpRequestMessage> GenerateMessage(HttpMethod method, string uri,
         params object?[] parameters)
     {
+        using var _ = await _authLock.WaitAsync();
         var msg = new HttpRequestMessage();
         msg.Method = method;
 

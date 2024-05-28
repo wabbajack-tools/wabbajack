@@ -54,5 +54,6 @@ public enum Game
     [Description("Modding Tools")] ModdingTools,
 
     [Description("Final Fantasy VII Remake")] FinalFantasy7Remake,
-    [Description("Baldur's Gate 3")] BaldursGate3
+    [Description("Baldur's Gate 3")] BaldursGate3,
+    [Description("Starfield")] Starfield
 }
