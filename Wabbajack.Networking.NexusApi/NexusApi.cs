@@ -273,6 +273,8 @@ public class NexusApi
         var response = await _client.PostAsync($"https://users.nexusmods.com/oauth/token", content, cancel);
         var responseString = await response.Content.ReadAsStringAsync(cancel);
         var newJwt = JsonSerializer.Deserialize<JwtTokenReply>(responseString);
+        if (newJwt != null)
+            newJwt.ReceivedAt = DateTime.UtcNow.ToFileTimeUtc();
         
         state.OAuth = newJwt;
         await AuthInfo.SetToken(state);
