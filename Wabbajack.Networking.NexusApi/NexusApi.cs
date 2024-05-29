@@ -51,6 +51,7 @@ public class NexusApi
     public virtual async Task<(ValidateInfo info, ResponseMetadata header)> Validate(
         CancellationToken token = default)
     {
+        using var _ = await _authLock.WaitAsync();
         var (isApi, code) = await GetAuthInfo();
 
         if (isApi)
