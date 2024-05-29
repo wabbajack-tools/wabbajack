@@ -34,11 +34,22 @@ using FluentIcons.Common;
 
 namespace Wabbajack
 {
+    public enum State
+    {
+        AutoMatch,
+        NoMatchInclude,
+        Include,
+        Ignore,
+        AlwaysEnabled
+    } 
     public class FileTreeViewItemVM : TreeViewItem
     {
+        public int Depth { get; set; }
         public FileSystemInfo Info { get; set; }
         public bool IsDirectory { get; set; }
         public Symbol Symbol { get; set; }
+        public State CompilerState { get; set; }
+        public RelativePath PathRelativeToRoot { get; set; }
         public FileTreeViewItemVM(DirectoryInfo info)
         {
             Info = info;
@@ -127,6 +138,12 @@ namespace Wabbajack
                   .OrderBy(dir => dir.Name)
                   .Select(dir => new FileTreeViewItemVM(dir) { ItemsSource = (dir.EnumerateDirectories().Any() || dir.EnumerateFiles().Any()) ? new ObservableCollection<TreeViewItem>([new TreeViewItem() { Header = "Loading..." }]) : null}).Select(item => {
                       item.Expanded += LoadingItem_Expanded;
+                      item.PathRelativeToRoot = ((AbsolutePath)item.Info.FullName).RelativeTo(Settings.Source);
+                      if (Settings.NoMatchInclude.Contains(item.PathRelativeToRoot)) { item.CompilerState = State.NoMatchInclude; }
+                      else if(Settings.Include.Contains(item.PathRelativeToRoot)) { item.CompilerState = State.Include; }
+                      else if(Settings.Ignore.Contains(item.PathRelativeToRoot)) { item.CompilerState = State.Ignore; }
+                      else if(Settings.AlwaysEnabled.Contains(item.PathRelativeToRoot)) { item.CompilerState = State.AlwaysEnabled; }
+
                       return item;
                   })
                   .Concat(parent.EnumerateFiles()
