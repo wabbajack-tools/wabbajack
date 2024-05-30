@@ -1,13 +1,7 @@
-
-using System.CommandLine;
-using System.CommandLine.Invocation;
-using System.CommandLine.NamingConventionBinder;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Builder;
 using Wabbajack.DTOs.Logins;
-using Wabbajack.Paths;
-using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.CLI.Verbs;
@@ -23,7 +17,7 @@ public class SetNexusApiKey
         _logger = logger;
     }
 
-    public static VerbDefinition Definition = new VerbDefinition("set-nexus-api-key",
+    public static VerbDefinition Definition = new("set-nexus-api-key",
         "Sets the Nexus API key to the specified value",
         [
             new OptionDefinition(typeof(string), "k", "key", "The Nexus API key")
@@ -38,7 +32,7 @@ public class SetNexusApiKey
         }
         else
         {
-            await _tokenProvider.SetToken(new NexusOAuthState { ApiKey = key });
+            await _tokenProvider.SetToken(new() { ApiKey = key });
             _logger.LogInformation("Set Nexus API Key to {key}", key);
             return 0;
         }
