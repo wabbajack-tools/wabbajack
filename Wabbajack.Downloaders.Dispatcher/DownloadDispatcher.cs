@@ -148,8 +148,9 @@ public class DownloadDispatcher
 
             return result;
         }
-        catch (HttpException)
+        catch (HttpException ex)
         {
+            _logger.LogError($"Failed verifying {a.State.PrimaryKeyString}: {ex}");
             await _verificationCache.Put(a.State, false);
             return false;
         }
