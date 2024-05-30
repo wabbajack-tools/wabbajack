@@ -51,7 +51,6 @@ public class NexusApi
     public virtual async Task<(ValidateInfo info, ResponseMetadata header)> Validate(
         CancellationToken token = default)
     {
-        using var _ = await _authLock.WaitAsync();
         var (isApi, code) = await GetAuthInfo();
 
         if (isApi)
@@ -189,7 +188,6 @@ public class NexusApi
     protected virtual async ValueTask<HttpRequestMessage> GenerateMessage(HttpMethod method, string uri,
         params object?[] parameters)
     {
-        using var _ = await _authLock.WaitAsync();
         var msg = new HttpRequestMessage();
         msg.Method = method;
 
@@ -233,6 +231,7 @@ public class NexusApi
 
     private async ValueTask<(bool IsApiKey, string code)> GetAuthInfo()
     {
+        using var _ = await _authLock.WaitAsync();
         if (AuthInfo.HaveToken())
         {
             var info = await AuthInfo.Get();
@@ -273,6 +272,8 @@ public class NexusApi
         var response = await _client.PostAsync($"https://users.nexusmods.com/oauth/token", content, cancel);
         var responseString = await response.Content.ReadAsStringAsync(cancel);
         var newJwt = JsonSerializer.Deserialize<JwtTokenReply>(responseString);
+        if (newJwt != null) 
+            newJwt.ReceivedAt = DateTime.UtcNow.ToFileTimeUtc();
         
         state.OAuth = newJwt;
         await AuthInfo.SetToken(state);

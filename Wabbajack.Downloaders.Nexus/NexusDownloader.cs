@@ -217,8 +217,9 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
             
             return fileInfo.info.FileId == state.FileID;
         }
-        catch (HttpException)
+        catch (HttpException ex)
         {
+            _logger.LogError($"HttpException: {ex} on {archive.Name}");
             return false;
         }
     }
