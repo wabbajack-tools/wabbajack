@@ -2,6 +2,7 @@
 
 #### Version - 3.6.2.0 - TBD
 * Updated GameFinder dependency
+* Updated WebView dependency
 * Updated other dependencies
 
 #### Version - 3.6.1.1 - 5/30/2024
