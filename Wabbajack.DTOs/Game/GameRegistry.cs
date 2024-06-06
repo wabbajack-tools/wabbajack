@@ -74,6 +74,7 @@ public static class GameRegistry
                 MO2ArchiveName = "falloutnv",
                 SteamIDs = new[] {22380, 22490}, // normal and RU version
                 GOGIDs = new long[] {1454587428},
+                EpicGameStoreIDs = new[] {"dabb52e328834da7bbe99691e374cb84"},
                 RequiredFiles = new[]
                 {
                     "FalloutNV.exe".ToRelativePath()
@@ -600,6 +601,22 @@ public static class GameRegistry
                     @"bin/bg3.exe".ToRelativePath()
                 },
                 MainExecutable = @"bin/bg3.exe".ToRelativePath()
+            }
+        },
+        {
+            Game.Starfield, new GameMetaData
+            {
+                Game = Game.Starfield,
+                NexusName = "starfield",
+                NexusGameId = 4187,
+                MO2Name = "Starfield",
+                MO2ArchiveName = "Starfield",
+                SteamIDs = [1716740],
+                RequiredFiles = new []
+                {
+                    @"Starfield.exe".ToRelativePath()
+                },
+                MainExecutable = @"Starfield.exe".ToRelativePath()
             }
         },
         {
