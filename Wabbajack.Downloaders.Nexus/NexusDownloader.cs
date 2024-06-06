@@ -48,7 +48,7 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
 
     public override Task<bool> Prepare()
     {
-        return Task.FromResult(_api.ApiKey.HaveToken());
+        return Task.FromResult(_api.AuthInfo.HaveToken());
     }
 
     public override bool IsAllowed(ServerAllowList allowList, IDownloadState state)
@@ -217,8 +217,9 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
             
             return fileInfo.info.FileId == state.FileID;
         }
-        catch (HttpException)
+        catch (HttpException ex)
         {
+            _logger.LogError($"HttpException: {ex} on {archive.Name}");
             return false;
         }
     }

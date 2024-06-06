@@ -1,5 +1,23 @@
 ### Changelog
 
+#### Version - 3.6.1.1 - 5/30/2024
+* Fixed `set-nexus-api-key` CLI command
+* Fixed other issues related to OAuth
+
+#### Version - 3.6.1.0 - 5/26/2024
+* Fixed a race condition on renewing Nexus Mods OAuth2 tokens
+* Added `set-nexus-api-key` CLI command
+* Added Starfield meta data
+* Added Fallout New Vegas Epic Games metadata
+
+#### Version - 3.6.0.0 - 5/25/2024
+* Wabbajack now uses OAuth2 for Nexus Mods logins
+* Support for DirectURL use with LL files
+
+#### Version - 3.5.0.2 - 5/21/2024
+* *HOTFIX* - change how we log into Nexus Mods. We still need to rewrite this on
+  Oauth2, but this should fix the current issues we have, and get people back up and running
+
 #### Version - 3.5.0.1 - 1/15/2024
 * *HOTFIX* - change the cache file names so files will be auto-rehashed
 

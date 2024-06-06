@@ -166,7 +166,7 @@ public static class ServiceExtensions
         service.AddBethesdaNet();
 
         // Token Providers
-        service.AddAllSingleton<ITokenProvider<NexusApiState>, EncryptedJsonTokenProvider<NexusApiState>, NexusApiTokenProvider>();
+        service.AddAllSingleton<ITokenProvider<NexusOAuthState>, EncryptedJsonTokenProvider<NexusOAuthState>, NexusApiTokenProvider>();
         service.AddAllSingleton<ITokenProvider<MegaToken>, EncryptedJsonTokenProvider<MegaToken>, MegaTokenProvider>();
         
         service.AddAllSingleton<ITokenProvider<BethesdaNetLoginState>, EncryptedJsonTokenProvider<BethesdaNetLoginState>, BethesdaNetTokenProvider>();
