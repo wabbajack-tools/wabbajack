@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 3.6.2.0 - TBD
+* Updated GameFinder dependency
+* Updated other dependencies
+
 #### Version - 3.6.1.1 - 5/30/2024
 * Fixed `set-nexus-api-key` CLI command
 * Fixed other issues related to OAuth
