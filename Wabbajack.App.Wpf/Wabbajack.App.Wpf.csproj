@@ -74,7 +74,7 @@
 
   <ItemGroup>
     <PackageReference Include="DynamicData" Version="8.1.1" />
-    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.5.1">
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.6.0">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
     <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
