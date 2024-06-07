@@ -73,7 +73,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DynamicData" Version="8.1.1" />
+    <PackageReference Include="DynamicData" Version="8.4.1" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.5.1">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
