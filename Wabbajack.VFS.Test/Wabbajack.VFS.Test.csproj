@@ -12,7 +12,7 @@
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
         <PackageReference Include="System.Data.SQLite.Core" Version="1.0.118" />
         <PackageReference Include="Xunit.DependencyInjection" Version="9.3.0" />
         <PackageReference Include="Xunit.DependencyInjection.Logging" Version="8.1.0" />
