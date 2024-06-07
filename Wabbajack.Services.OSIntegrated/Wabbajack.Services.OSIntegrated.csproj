@@ -13,7 +13,7 @@
 
     <ItemGroup>
         <PackageReference Include="DeviceId" Version="6.5.0" />
-        <PackageReference Include="GitInfo" Version="3.3.3">
+        <PackageReference Include="GitInfo" Version="3.3.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
