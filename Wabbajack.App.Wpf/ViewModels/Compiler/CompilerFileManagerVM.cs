@@ -31,15 +31,22 @@ using Wabbajack.Services.OSIntegrated;
 using NexusMods.Paths.FileTree;
 using System.Windows.Controls;
 using FluentIcons.Common;
+using System.Windows.Input;
+using System.ComponentModel;
 
 namespace Wabbajack
 {
-    public enum State
+    public enum CompilerFileState
     {
+        [Description("Auto Match")]
         AutoMatch,
+        [Description("No Match Include")]
         NoMatchInclude,
+        [Description("Force Include")]
         Include,
+        [Description("Force Ignore")]
         Ignore,
+        [Description("Always Enabled")]
         AlwaysEnabled
     } 
     public class FileTreeViewItemVM : TreeViewItem
@@ -48,7 +55,7 @@ namespace Wabbajack
         public FileSystemInfo Info { get; set; }
         public bool IsDirectory { get; set; }
         public Symbol Symbol { get; set; }
-        public State CompilerState { get; set; }
+        public CompilerFileState CompilerFileState { get; set; }
         public RelativePath PathRelativeToRoot { get; set; }
         public FileTreeViewItemVM(DirectoryInfo info)
         {
@@ -92,6 +99,7 @@ namespace Wabbajack
         
         [Reactive] public CompilerSettingsVM Settings { get; set; } = new();
         public IEnumerable<TreeViewItem> Files { get; set; }
+        public ICommand PrevCommand { get; set; }
 
 
         public CompilerFileManagerVM(ILogger<CompilerFileManagerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
@@ -113,6 +121,7 @@ namespace Wabbajack
                 })
                 .DisposeWith(CompositeDisposable);
 
+            PrevCommand = ReactiveCommand.Create(PrevPage);
             this.WhenActivated(disposables =>
             {
                 var fileTree = GetDirectoryContents(new DirectoryInfo(Settings.Source.ToString()));
@@ -121,12 +130,18 @@ namespace Wabbajack
             });
         }
 
+        private void PrevPage()
+        {
+            NavigateToGlobal.Send(ScreenType.CompilerDetails);
+            LoadCompilerSettings.Send(Settings.ToCompilerSettings());
+        }
+
         private IEnumerable<TreeViewItem> LoadFiles(DirectoryInfo parent)
         {
             var parentTreeItem = new FileTreeViewItemVM(parent)
             {
                 IsExpanded = true,
-                ItemsSource = LoadDirectoryContents(parent)
+                ItemsSource = LoadDirectoryContents(parent),
             };
             return [parentTreeItem];
 
@@ -139,10 +154,10 @@ namespace Wabbajack
                   .Select(dir => new FileTreeViewItemVM(dir) { ItemsSource = (dir.EnumerateDirectories().Any() || dir.EnumerateFiles().Any()) ? new ObservableCollection<TreeViewItem>([new TreeViewItem() { Header = "Loading..." }]) : null}).Select(item => {
                       item.Expanded += LoadingItem_Expanded;
                       item.PathRelativeToRoot = ((AbsolutePath)item.Info.FullName).RelativeTo(Settings.Source);
-                      if (Settings.NoMatchInclude.Contains(item.PathRelativeToRoot)) { item.CompilerState = State.NoMatchInclude; }
-                      else if(Settings.Include.Contains(item.PathRelativeToRoot)) { item.CompilerState = State.Include; }
-                      else if(Settings.Ignore.Contains(item.PathRelativeToRoot)) { item.CompilerState = State.Ignore; }
-                      else if(Settings.AlwaysEnabled.Contains(item.PathRelativeToRoot)) { item.CompilerState = State.AlwaysEnabled; }
+                      if (Settings.NoMatchInclude.Contains(item.PathRelativeToRoot)) { item.CompilerFileState = CompilerFileState.NoMatchInclude; }
+                      else if(Settings.Include.Contains(item.PathRelativeToRoot)) { item.CompilerFileState = CompilerFileState.Include; }
+                      else if(Settings.Ignore.Contains(item.PathRelativeToRoot)) { item.CompilerFileState = CompilerFileState.Ignore; }
+                      else if(Settings.AlwaysEnabled.Contains(item.PathRelativeToRoot)) { item.CompilerFileState = CompilerFileState.AlwaysEnabled; }
 
                       return item;
                   })

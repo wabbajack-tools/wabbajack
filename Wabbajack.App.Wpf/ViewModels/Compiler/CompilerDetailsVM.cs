@@ -122,7 +122,7 @@ namespace Wabbajack
                         .Select(p => !string.IsNullOrWhiteSpace(p)))
                     .Select(v => v.First && v.Second));
             */
-            NextCommand = ReactiveCommand.CreateFromTask(async () => await NextPage());
+            NextCommand = ReactiveCommand.CreateFromTask(NextPage);
 
             ModlistLocation = new FilePickerVM
             {
@@ -220,10 +220,10 @@ namespace Wabbajack
                 Settings.OutputFile = newSettings.OutputFile.Combine(newSettings.ModListName).WithExtension(Ext.Wabbajack);
 
             Settings.Game = newSettings.Game;
-            Settings.Include = newSettings.Include;
-            Settings.Ignore = newSettings.Ignore;
-            Settings.AlwaysEnabled = newSettings.AlwaysEnabled;
-            Settings.NoMatchInclude = newSettings.NoMatchInclude;
+            Settings.Include = newSettings.Include.ToHashSet();
+            Settings.Ignore = newSettings.Ignore.ToHashSet();
+            Settings.AlwaysEnabled = newSettings.AlwaysEnabled.ToHashSet();
+            Settings.NoMatchInclude = newSettings.NoMatchInclude.ToHashSet();
             Settings.AdditionalProfiles = newSettings.AdditionalProfiles;
         }
 
@@ -264,6 +264,7 @@ namespace Wabbajack
 
         private async Task NextPage()
         {
+            await SaveSettingsFile();
             NavigateToGlobal.Send(ScreenType.CompilerFileManager);
             LoadCompilerSettings.Send(Settings.ToCompilerSettings());
         }
@@ -409,43 +410,43 @@ namespace Wabbajack
         
         public void AddAlwaysEnabled(RelativePath path)
         {
-            Settings.AlwaysEnabled = (Settings.AlwaysEnabled ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
+            Settings.AlwaysEnabled = (Settings.AlwaysEnabled ?? new()).Append(path).Distinct().ToHashSet();
         }
 
         public void RemoveAlwaysEnabled(RelativePath path)
         {
-            Settings.AlwaysEnabled = Settings.AlwaysEnabled.Where(p => p != path).ToArray();
+            Settings.AlwaysEnabled = Settings.AlwaysEnabled.Where(p => p != path).ToHashSet();
         }
         
         public void AddNoMatchInclude(RelativePath path)
         {
-            Settings.NoMatchInclude = (Settings.NoMatchInclude ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
+            Settings.NoMatchInclude = (Settings.NoMatchInclude ?? new()).Append(path).Distinct().ToHashSet();
         }
 
         public void RemoveNoMatchInclude(RelativePath path)
         {
-            Settings.NoMatchInclude = Settings.NoMatchInclude.Where(p => p != path).ToArray();
+            Settings.NoMatchInclude = Settings.NoMatchInclude.Where(p => p != path).ToHashSet();
         }
         
         public void AddInclude(RelativePath path)
         {
-            Settings.Include = (Settings.Include ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
+            Settings.Include = (Settings.Include ?? new()).Append(path).Distinct().ToHashSet();
         }
 
         public void RemoveInclude(RelativePath path)
         {
-            Settings.Include = Settings.Include.Where(p => p != path).ToArray();
+            Settings.Include = Settings.Include.Where(p => p != path).ToHashSet();
         }
 
         
         public void AddIgnore(RelativePath path)
         {
-            Settings.Ignore = (Settings.Ignore ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
+            Settings.Ignore = (Settings.Ignore ?? new()).Append(path).Distinct().ToHashSet();
         }
 
         public void RemoveIgnore(RelativePath path)
         {
-            Settings.Ignore = Settings.Ignore.Where(p => p != path).ToArray();
+            Settings.Ignore = Settings.Ignore.Where(p => p != path).ToHashSet();
         }
 
         #endregion

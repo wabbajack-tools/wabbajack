@@ -36,10 +36,10 @@ public class CompilerSettingsVM : ViewModel
         MachineUrl = cs.MachineUrl;
         Profile = cs.Profile;
         AdditionalProfiles = cs.AdditionalProfiles;
-        NoMatchInclude = cs.NoMatchInclude;
-        Include = cs.Include;
-        Ignore = cs.Ignore;
-        AlwaysEnabled = cs.AlwaysEnabled;
+        NoMatchInclude = cs.NoMatchInclude.ToHashSet();
+        Include = cs.Include.ToHashSet();
+        Ignore = cs.Ignore.ToHashSet();
+        AlwaysEnabled = cs.AlwaysEnabled.ToHashSet();
         Version = cs.Version?.ToString() ?? "";
         Description = cs.Description;
     }
@@ -90,19 +90,19 @@ public class CompilerSettingsVM : ViewModel
     ///     This file, or files in these folders, are automatically included if they don't match
     ///     any other step
     /// </summary>
-    [Reactive] public RelativePath[] NoMatchInclude { get; set; } = Array.Empty<RelativePath>();
+    [Reactive] public HashSet<RelativePath> NoMatchInclude { get; set; } = new();
 
     /// <summary>
     ///     These files are inlined into the modlist
     /// </summary>
-    [Reactive] public RelativePath[] Include { get; set; } = Array.Empty<RelativePath>();
+    [Reactive] public HashSet<RelativePath> Include { get; set; } = new();
 
     /// <summary>
     ///     These files are ignored when compiling the modlist
     /// </summary>
-    [Reactive] public RelativePath[] Ignore { get; set; } = Array.Empty<RelativePath>();
+    [Reactive] public HashSet<RelativePath> Ignore { get; set; } = new();
 
-    [Reactive] public RelativePath[] AlwaysEnabled { get; set; } = Array.Empty<RelativePath>();
+    [Reactive] public HashSet<RelativePath> AlwaysEnabled { get; set; } = new();
     [Reactive] public string Version { get; set; }
     [Reactive] public string Description { get; set; }
 
@@ -130,10 +130,10 @@ public class CompilerSettingsVM : ViewModel
             MachineUrl = MachineUrl,
             Profile = Profile,
             AdditionalProfiles = AdditionalProfiles,
-            NoMatchInclude = NoMatchInclude,
-            Include = Include,
-            Ignore = Ignore,
-            AlwaysEnabled = AlwaysEnabled,
+            NoMatchInclude = NoMatchInclude.ToArray(),
+            Include = Include.ToArray(),
+            Ignore = Ignore.ToArray(),
+            AlwaysEnabled = AlwaysEnabled.ToArray(),
             Version = System.Version.Parse(Version),
             Description = Description
         };

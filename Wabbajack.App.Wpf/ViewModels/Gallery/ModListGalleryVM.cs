@@ -130,7 +130,7 @@ namespace Wabbajack
 
                 var searchTextPredicates = this.ObservableForProperty(vm => vm.Search)
                     .Throttle(searchThrottle, RxApp.MainThreadScheduler)
-                    .Select(change => change.Value.Trim())
+                    .Select(change => change.Value?.Trim() ?? "")
                     .StartWith(Search)
                     .Select<string, Func<GalleryModListMetadataVM, bool>>(txt =>
                     {
@@ -193,8 +193,8 @@ namespace Wabbajack
                 var searchSorter = this.WhenValueChanged(vm => vm.Search)
                                         .Throttle(searchThrottle, RxApp.MainThreadScheduler)
                                         .Select(s => SortExpressionComparer<GalleryModListMetadataVM>
-                                                     .Descending(m => m.Metadata.Title.StartsWith(s, StringComparison.InvariantCultureIgnoreCase))
-                                                     .ThenByDescending(m => m.Metadata.Title.Contains(s, StringComparison.InvariantCultureIgnoreCase))
+                                                     .Descending(m => m.Metadata.Title.StartsWith(s ?? "", StringComparison.InvariantCultureIgnoreCase))
+                                                     .ThenByDescending(m => m.Metadata.Title.Contains(s ?? "", StringComparison.InvariantCultureIgnoreCase))
                                                      .ThenByDescending(m => !m.IsBroken));
                 _modLists.Connect()
                     .ObserveOn(RxApp.MainThreadScheduler)

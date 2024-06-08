@@ -25,7 +25,7 @@
     <local:AbsolutePathToStringConverter x:Key="AbsolutePathToStringConverter" />
     <local:FileSizeConverter x:Key="FileSizeConverter"/>
     <local:WidthHeightRectConverter x:Key="WidthHeightRectConverter" />
-    <math:MathConverter x:Key="MathConverter"/>
+    <math:MathConverter x:Key="MathConverter" />
 
     <!--  Colors  -->
     <Color x:Key="WindowBackgroundColor">#222531</Color>
@@ -2303,16 +2303,25 @@
                                     x:Name="Expander"
                                     ClickMode="Press"
                                     IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
-                                    Style="{DynamicResource TreeViewToggleButtonStyle}" />
+                                    Style="{DynamicResource TreeViewToggleButtonStyle}"
+                                    Foreground="{StaticResource PrimaryBrush}"/>
 
-                                <StackPanel Orientation="Horizontal" Grid.Column="1">
+                                <Grid Grid.Column="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="5*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
                                     <ic:SymbolIcon IsFilled="True" Symbol="{Binding Path=Symbol, RelativeSource={RelativeSource TemplatedParent}}" Margin="0, 0, 4, 0" Foreground="{StaticResource PrimaryBrush}"/>
-                                    <ContentPresenter
+                                    <StackPanel Orientation="Horizontal" Grid.Column="1">
+                                        <ContentPresenter
                                         x:Name="PART_Header"
                                         Margin="4, 0, 0, 0"
                                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                        ContentSource="Header" />
-                                </StackPanel>
+                                        ContentSource="Header"/>
+                                    </StackPanel>
+                                    <ComboBox Name="CompilerFileStateListbox" ItemsSource="{wj:EnumToItemsSource {x:Type wj:CompilerFileState}}" DisplayMemberPath="DisplayName" SelectedValue="{Binding Path=CompilerFileState, RelativeSource={RelativeSource TemplatedParent}}" SelectedValuePath="Value" Grid.Column="2"/>
+                                </Grid>
                             </Grid>
                         </Border>
                         <ItemsPresenter x:Name="ItemsHost" />

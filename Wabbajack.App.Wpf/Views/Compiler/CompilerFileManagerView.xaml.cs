@@ -35,6 +35,9 @@ namespace Wabbajack
                     .BindToStrict(this, v => v.FileTreeView.ItemsSource)
                     .DisposeWith(disposables);
 
+                this.BindCommand(ViewModel, vm => vm.PrevCommand, v => v.PrevButton)
+                    .DisposeWith(disposables);
+
             });
 
         }
