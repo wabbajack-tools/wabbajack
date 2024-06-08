@@ -2321,6 +2321,19 @@
                                         ContentSource="Header"/>
                                     </StackPanel>
                                     <ComboBox Name="CompilerFileStateListbox" ItemsSource="{wj:EnumToItemsSource {x:Type wj:CompilerFileState}}" DisplayMemberPath="DisplayName" SelectedValue="{Binding Path=CompilerFileState, RelativeSource={RelativeSource TemplatedParent}}" SelectedValuePath="Value" Grid.Column="2"/>
+                                    <Grid.Style>
+                                        <Style TargetType="Grid">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Path=SpecialFileState, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource PrimaryVariantBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Grid.Style>
+                                    <!--
+                                    <Grid.Triggers>
+                                    </Grid.Triggers>
+                                    -->
                                 </Grid>
                             </Grid>
                         </Border>

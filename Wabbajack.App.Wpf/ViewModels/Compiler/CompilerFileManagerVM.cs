@@ -51,12 +51,22 @@ namespace Wabbajack
     } 
     public class FileTreeViewItemVM : TreeViewItem
     {
-        public int Depth { get; set; }
+        private CompilerFileState _compilerFileState = CompilerFileState.AutoMatch;
         public FileSystemInfo Info { get; set; }
         public bool IsDirectory { get; set; }
         public Symbol Symbol { get; set; }
-        public CompilerFileState CompilerFileState { get; set; }
+        public CompilerFileState CompilerFileState
+        {
+            get => _compilerFileState;
+            set
+            {
+                _compilerFileState = value;
+                SpecialFileState = _compilerFileState != CompilerFileState.AutoMatch;
+            }
+        }
+
         public RelativePath PathRelativeToRoot { get; set; }
+        [Reactive] public bool SpecialFileState { get; set; }
         public FileTreeViewItemVM(DirectoryInfo info)
         {
             Info = info;
@@ -84,6 +94,7 @@ namespace Wabbajack
                 ".esp" or ".esl" or ".esm" or ".archive" => Symbol.DocumentTable,
                 _ => Symbol.Document
             };
+            SpecialFileState = CompilerFileState != CompilerFileState.AutoMatch;
         }
         public override string ToString() => Info.FullName;
     }
@@ -158,7 +169,15 @@ namespace Wabbajack
                       else if(Settings.Include.Contains(item.PathRelativeToRoot)) { item.CompilerFileState = CompilerFileState.Include; }
                       else if(Settings.Ignore.Contains(item.PathRelativeToRoot)) { item.CompilerFileState = CompilerFileState.Ignore; }
                       else if(Settings.AlwaysEnabled.Contains(item.PathRelativeToRoot)) { item.CompilerFileState = CompilerFileState.AlwaysEnabled; }
-
+                      item.SpecialFileState = item.CompilerFileState != CompilerFileState.AutoMatch;
+                      while(!item.SpecialFileState)
+                      {
+                          item.SpecialFileState = Settings.NoMatchInclude.Any(p => item.PathRelativeToRoot.InFolder(p));
+                          item.SpecialFileState = Settings.Include.Any(p => item.PathRelativeToRoot.InFolder(p));
+                          item.SpecialFileState = Settings.Ignore.Any(p => item.PathRelativeToRoot.InFolder(p));
+                          item.SpecialFileState = Settings.AlwaysEnabled.Any(p => item.PathRelativeToRoot.InFolder(p));
+                          break;
+                      }
                       return item;
                   })
                   .Concat(parent.EnumerateFiles()
