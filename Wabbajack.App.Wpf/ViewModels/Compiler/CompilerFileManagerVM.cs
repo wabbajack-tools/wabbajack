@@ -48,36 +48,41 @@ namespace Wabbajack
         Ignore,
         [Description("Always Enabled")]
         AlwaysEnabled
-    } 
-    public class FileTreeViewItemVM : TreeViewItem
+    }
+    public class FileTreeViewItem : TreeViewItem
     {
-        private CompilerFileState _compilerFileState = CompilerFileState.AutoMatch;
+        public FileTreeViewItem(DirectoryInfo dir)
+        {
+            Header = new FileTreeItemVM(dir);
+        }
+        public FileTreeViewItem(FileInfo file)
+        {
+            Header = new FileTreeItemVM(file);
+        }
+    }
+    public class FileTreeItemVM : ReactiveObject, IDisposable
+    {
+        private readonly CompositeDisposable _disposable = new();
         public FileSystemInfo Info { get; set; }
         public bool IsDirectory { get; set; }
         public Symbol Symbol { get; set; }
-        public CompilerFileState CompilerFileState
-        {
-            get => _compilerFileState;
-            set
-            {
-                _compilerFileState = value;
-                SpecialFileState = _compilerFileState != CompilerFileState.AutoMatch;
-            }
-        }
+        [Reactive] public CompilerFileState CompilerFileState { get; set; }
 
         public RelativePath PathRelativeToRoot { get; set; }
         [Reactive] public bool SpecialFileState { get; set; }
-        public FileTreeViewItemVM(DirectoryInfo info)
+        public FileTreeItemVM(DirectoryInfo info)
         {
             Info = info;
             IsDirectory = true;
-            Header = info.Name;
             Symbol = Symbol.Folder;
+
+            this.WhenAnyValue(ftvivm => ftvivm.CompilerFileState)
+                .Subscribe(cfs => SpecialFileState = cfs != CompilerFileState.AutoMatch)
+                .DisposeWith(_disposable);
         }
-        public FileTreeViewItemVM(FileInfo info)
+        public FileTreeItemVM(FileInfo info)
         {
             Info = info;
-            Header = info.Name;
             Symbol = info.Extension.ToLower() switch {
                 ".7z" or ".zip" or ".rar" or ".bsa" or ".ba2" or ".wabbajack" or ".tar" or ".tar.gz" => Symbol.Archive,
                 ".toml" or ".ini" or ".cfg" or ".json" or ".yaml" or ".xml" or ".yml" or ".meta" => Symbol.DocumentSettings,
@@ -95,8 +100,17 @@ namespace Wabbajack
                 _ => Symbol.Document
             };
             SpecialFileState = CompilerFileState != CompilerFileState.AutoMatch;
+
+            this.WhenAnyValue(ftvivm => ftvivm.CompilerFileState)
+                .Subscribe(cfs => SpecialFileState = cfs != CompilerFileState.AutoMatch)
+                .DisposeWith(_disposable);
         }
-        public override string ToString() => Info.FullName;
+        public override string ToString() => Info.Name;
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            _disposable.Dispose();
+        }
     }
     public class CompilerFileManagerVM : BackNavigatingVM
     {
@@ -149,7 +163,7 @@ namespace Wabbajack
 
         private IEnumerable<TreeViewItem> LoadFiles(DirectoryInfo parent)
         {
-            var parentTreeItem = new FileTreeViewItemVM(parent)
+            var parentTreeItem = new FileTreeViewItem(parent)
             {
                 IsExpanded = true,
                 ItemsSource = LoadDirectoryContents(parent),
@@ -162,36 +176,38 @@ namespace Wabbajack
         {
             return parent.EnumerateDirectories()
                   .OrderBy(dir => dir.Name)
-                  .Select(dir => new FileTreeViewItemVM(dir) { ItemsSource = (dir.EnumerateDirectories().Any() || dir.EnumerateFiles().Any()) ? new ObservableCollection<TreeViewItem>([new TreeViewItem() { Header = "Loading..." }]) : null}).Select(item => {
+                  .Select(dir => new FileTreeViewItem(dir) { ItemsSource = (dir.EnumerateDirectories().Any() || dir.EnumerateFiles().Any()) ? new ObservableCollection<TreeViewItem>([new TreeViewItem() { Header = "Loading..." }]) : null}).Select(item => {
                       item.Expanded += LoadingItem_Expanded;
-                      item.PathRelativeToRoot = ((AbsolutePath)item.Info.FullName).RelativeTo(Settings.Source);
-                      if (Settings.NoMatchInclude.Contains(item.PathRelativeToRoot)) { item.CompilerFileState = CompilerFileState.NoMatchInclude; }
-                      else if(Settings.Include.Contains(item.PathRelativeToRoot)) { item.CompilerFileState = CompilerFileState.Include; }
-                      else if(Settings.Ignore.Contains(item.PathRelativeToRoot)) { item.CompilerFileState = CompilerFileState.Ignore; }
-                      else if(Settings.AlwaysEnabled.Contains(item.PathRelativeToRoot)) { item.CompilerFileState = CompilerFileState.AlwaysEnabled; }
-                      item.SpecialFileState = item.CompilerFileState != CompilerFileState.AutoMatch;
-                      while(!item.SpecialFileState)
+                      var header = (FileTreeItemVM)item.Header;
+                      header.PathRelativeToRoot = ((AbsolutePath)header.Info.FullName).RelativeTo(Settings.Source);
+                      if (Settings.NoMatchInclude.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.NoMatchInclude; }
+                      else if(Settings.Include.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.Include; }
+                      else if(Settings.Ignore.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.Ignore; }
+                      else if(Settings.AlwaysEnabled.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.AlwaysEnabled; }
+                      header.SpecialFileState = header.CompilerFileState != CompilerFileState.AutoMatch;
+                      while(!header.SpecialFileState)
                       {
-                          item.SpecialFileState = Settings.NoMatchInclude.Any(p => item.PathRelativeToRoot.InFolder(p));
-                          item.SpecialFileState = Settings.Include.Any(p => item.PathRelativeToRoot.InFolder(p));
-                          item.SpecialFileState = Settings.Ignore.Any(p => item.PathRelativeToRoot.InFolder(p));
-                          item.SpecialFileState = Settings.AlwaysEnabled.Any(p => item.PathRelativeToRoot.InFolder(p));
+                          header.SpecialFileState = Settings.NoMatchInclude.Any(p => header.PathRelativeToRoot.InFolder(p));
+                          header.SpecialFileState = Settings.Include.Any(p => header.PathRelativeToRoot.InFolder(p));
+                          header.SpecialFileState = Settings.Ignore.Any(p => header.PathRelativeToRoot.InFolder(p));
+                          header.SpecialFileState = Settings.AlwaysEnabled.Any(p => header.PathRelativeToRoot.InFolder(p));
                           break;
                       }
+                      item.Header = header;
                       return item;
                   })
                   .Concat(parent.EnumerateFiles()
                                 .OrderBy(file => file.Name)
-                                .Select(file => new FileTreeViewItemVM(file)));
+                                .Select(file => new FileTreeViewItem(file)));
         }
 
         private void LoadingItem_Expanded(object sender, System.Windows.RoutedEventArgs e)
         {
-            var parent = (FileTreeViewItemVM)e.OriginalSource;
+            var parent = (FileTreeViewItem)e.OriginalSource;
             var children = parent.ItemsSource.OfType<TreeViewItem>();
             var firstChild = children.Any() ? children.First().Header : null;
             if (firstChild != null && firstChild is string firstString && firstString == "Loading...")
-                parent.ItemsSource = LoadDirectoryContents((DirectoryInfo)parent.Info);
+                parent.ItemsSource = LoadDirectoryContents((DirectoryInfo)((FileTreeItemVM)parent.Header).Info);
         }
 
         private IEnumerable<FileSystemInfo> GetDirectoryContents(DirectoryInfo dir)

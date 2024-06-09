@@ -2188,12 +2188,12 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <Style TargetType="{x:Type TreeViewItem}">
+    <Style TargetType="{x:Type TreeViewItem}" x:Key="TreeViewItem">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="MinHeight" Value="21" />
         <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
         <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
-        <Setter Property="Padding" Value="2,4,2,3" />
+        <Setter Property="Padding" Value="4,6,4,6" />
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
         <Setter Property="FocusVisualStyle" Value="{StaticResource TreeViewItemFocusVisual}" />
         <Setter Property="Template">
@@ -2275,14 +2275,7 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <Style TargetType="{x:Type wj:FileTreeViewItemVM}">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="MinHeight" Value="21" />
-        <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
-        <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
-        <Setter Property="Padding" Value="4,6,4,6" />
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-        <Setter Property="FocusVisualStyle" Value="{StaticResource TreeViewItemFocusVisual}" />
+    <Style TargetType="{x:Type wj:FileTreeViewItem}" BasedOn="{StaticResource TreeViewItem}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TreeViewItem}">
@@ -2312,7 +2305,7 @@
                                         <ColumnDefinition Width="5*" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <ic:SymbolIcon IsFilled="True" Symbol="{Binding Path=Symbol, RelativeSource={RelativeSource TemplatedParent}}" Margin="0, 0, 4, 0" Foreground="{StaticResource PrimaryBrush}"/>
+                                    <ic:SymbolIcon IsFilled="True" Symbol="{Binding Path=Header.Symbol, RelativeSource={RelativeSource TemplatedParent}}" Margin="0, 0, 4, 0" Foreground="{StaticResource PrimaryBrush}"/>
                                     <StackPanel Orientation="Horizontal" Grid.Column="1">
                                         <ContentPresenter
                                         x:Name="PART_Header"
@@ -2320,11 +2313,11 @@
                                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                         ContentSource="Header"/>
                                     </StackPanel>
-                                    <ComboBox Name="CompilerFileStateListbox" ItemsSource="{wj:EnumToItemsSource {x:Type wj:CompilerFileState}}" DisplayMemberPath="DisplayName" SelectedValue="{Binding Path=CompilerFileState, RelativeSource={RelativeSource TemplatedParent}}" SelectedValuePath="Value" Grid.Column="2"/>
+                                    <ComboBox Name="CompilerFileStateListbox" ItemsSource="{wj:EnumToItemsSource {x:Type wj:CompilerFileState}}" DisplayMemberPath="DisplayName" SelectedValue="{Binding Path=Header.CompilerFileState, RelativeSource={RelativeSource TemplatedParent}}" SelectedValuePath="Value" Grid.Column="2"/>
                                     <Grid.Style>
                                         <Style TargetType="Grid">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Path=SpecialFileState, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
+                                                <DataTrigger Binding="{Binding Path=Header.SpecialFileState, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
                                                     <Setter Property="Background" Value="{StaticResource PrimaryVariantBrush}" />
                                                 </DataTrigger>
                                             </Style.Triggers>
