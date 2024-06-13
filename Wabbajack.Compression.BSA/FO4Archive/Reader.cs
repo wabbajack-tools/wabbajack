@@ -15,6 +15,8 @@ public class Reader : IReader
     internal string _headerMagic;
     internal ulong _nameTableOffset;
     internal uint _numFiles;
+    internal uint _unknown1;
+    internal uint _unknown2;
     internal BinaryReader _rdr;
     public IStreamFactory _streamFactory;
     internal BA2EntryType _type;
@@ -29,6 +31,13 @@ public class Reader : IReader
     public bool UseATIFourCC { get; set; } = false;
 
     public bool HasNameTable => _nameTableOffset > 0;
+
+    /// <summary>
+    /// Who came up with this versioning scheme?
+    /// Fallout 4 - Version 1, 7 or 8
+    /// Starfield - Version 2 or 3
+    /// </summary>
+    public bool Starfield => _version == 2 || _version == 3;
 
     public IEnumerable<IFile> Files { get; private set; }
 
@@ -67,6 +76,9 @@ public class Reader : IReader
         _numFiles = _rdr.ReadUInt32();
         _nameTableOffset = _rdr.ReadUInt64();
 
+        _unknown1 = (Starfield) ? _rdr.ReadUInt32() : 0;
+        _unknown2 = (Starfield) ? _rdr.ReadUInt32() : 0;
+
         var files = new List<IBA2FileEntry>();
         for (var idx = 0; idx < _numFiles; idx += 1)
             switch (_type)
@@ -75,7 +87,10 @@ public class Reader : IReader
                     files.Add(new FileEntry(this, idx));
                     break;
                 case BA2EntryType.DX10:
-                    files.Add(new DX10Entry(this, idx));
+                    if (Starfield)
+                        files.Add(new SFArchive.DX10Entry(this, idx));
+                    else
+                        files.Add(new DX10Entry(this, idx));
                     break;
                 case BA2EntryType.GNMF:
                     break;
