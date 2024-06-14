@@ -54,6 +54,14 @@ public class CompressionTests
     public async Task CanRecreateBSAs(string name, AbsolutePath path)
     {
         if (name == "tes4.bsa") return; // not sure why is is failing
+        if (name == "fnv.bsa")
+        {
+            name = "Starfield - Textures11.ba2";
+            path = (AbsolutePath)"S:\\SteamLibrary\\steamapps\\common\\Starfield\\Data\\Starfield - Textures11.ba2";
+            //name = "Fallout4 - Textures1.ba2";
+            //path = (AbsolutePath)"C:\\SteamLibrary\\steamapps\\common\\Fallout 4\\Data\\Fallout4 - Textures1.ba2";
+        }
+
 
         var reader = await BSADispatch.Open(path);
 

@@ -3,6 +3,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using K4os.Compression.LZ4;
+using K4os.Compression.LZ4.Streams;
 using Wabbajack.Common;
 using Wabbajack.DTOs.BSA.FileStates;
 
@@ -27,18 +29,35 @@ public class ChunkBuilder
         }
         else
         {
-            var deflater = new Deflater(Deflater.BEST_COMPRESSION);
-            await using var ms = new MemoryStream();
-            await using (var ds = new DeflaterOutputStream(ms, deflater))
+            if (!state.Lz4Compression)
             {
-                ds.IsStreamOwner = false;
-                await src.CopyToLimitAsync(ds, (int) chunk.FullSz, token);
-            }
+                var deflater = new Deflater(Deflater.BEST_COMPRESSION);
+                await using var ms = new MemoryStream();
+                await using (var ds = new DeflaterOutputStream(ms, deflater))
+                {
+                    ds.IsStreamOwner = false;
+                    await src.CopyToLimitAsync(ds, (int)chunk.FullSz, token);
+                }
 
-            builder._dataSlab = slab.Allocate(ms.Length);
-            ms.Position = 0;
-            await ms.CopyToLimitAsync(builder._dataSlab, (int) ms.Length, token);
-            builder._packSize = (uint) ms.Length;
+                builder._dataSlab = slab.Allocate(ms.Length);
+                ms.Position = 0;
+                await ms.CopyToLimitAsync(builder._dataSlab, (int)ms.Length, token);
+                builder._packSize = (uint)ms.Length;
+            }
+            else
+            {
+                await using var ms = new MemoryStream();
+                await using (var w = LZ4Stream.Encode(ms,
+                    new LZ4EncoderSettings {CompressionLevel = LZ4Level.L12_MAX}, true))
+                {
+                    await src.CopyToLimitAsync(w, (int)chunk.FullSz, token);
+                }
+
+                builder._dataSlab = slab.Allocate(ms.Length);
+                ms.Position = 0;
+                await ms.CopyToLimitAsync(builder._dataSlab, (int)ms.Length, token);
+                builder._packSize = (uint)ms.Length;
+            }
         }
 
         builder._dataSlab.Position = 0;

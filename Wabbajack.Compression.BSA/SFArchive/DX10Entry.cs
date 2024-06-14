@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.Zip.Compression;
+using K4os.Compression.LZ4;
+using K4os.Compression.LZ4.Streams;
 using Wabbajack.Common;
 using Wabbajack.Compression.BSA.FO4Archive;
 using Wabbajack.DTOs.BSA.FileStates;
@@ -35,14 +37,15 @@ public class DX10Entry : IBA2FileEntry
     private ushort _width;
     private readonly byte _isCubemap;
     private readonly byte _tileMode;
+    private bool _lz4Compression;
 
-    public DX10Entry(Reader ba2Reader, int idx)
+    public DX10Entry(Reader ba2Reader, int idx, bool lz4Compression)
     {
         _bsa = ba2Reader;
+        _lz4Compression = lz4Compression;
         var _rdr = ba2Reader._rdr;
         _nameHash = _rdr.ReadUInt32();
         FullPath = _nameHash.ToString("X");
-        _unk0 = _rdr.ReadUInt32();
         _extension = Encoding.UTF8.GetString(_rdr.ReadBytes(4));
         _dirHash = _rdr.ReadUInt32();
         _unk8 = _rdr.ReadByte();
@@ -90,7 +93,8 @@ public class DX10Entry : IBA2FileEntry
             EndMip = ch._endMip,
             Align = ch._align,
             Compressed = ch._packSz != 0
-        }).ToArray()
+        }).ToArray(),
+        Lz4Compression = _lz4Compression
     };
 
     public async ValueTask CopyDataTo(Stream output, CancellationToken token)
@@ -116,9 +120,16 @@ public class DX10Entry : IBA2FileEntry
             {
                 var compressed = new byte[chunk._packSz];
                 await br.BaseStream.ReadAsync(compressed, token);
-                var inflater = new Inflater();
-                inflater.SetInput(compressed);
-                inflater.Inflate(full);
+                if (!_lz4Compression)
+                {
+                    var inflater = new Inflater();
+                    inflater.SetInput(compressed);
+                    inflater.Inflate(full);
+                }
+                else
+                {
+                    LZ4Codec.PartialDecode(compressed, full);
+                }
             }
 
             await bw.BaseStream.WriteAsync(full, token);
@@ -250,3 +261,4 @@ public class DX10Entry : IBA2FileEntry
         }
     }
 }
+
