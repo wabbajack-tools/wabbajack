@@ -17,7 +17,7 @@ public class Reader : IReader
     internal uint _numFiles;
     internal uint _unknown1;
     internal uint _unknown2;
-    internal uint _compressionFlag;
+    internal uint _compression;
     internal BinaryReader _rdr;
     public IStreamFactory _streamFactory;
     internal BA2EntryType _type;
@@ -45,7 +45,8 @@ public class Reader : IReader
         Version = _version,
         HeaderMagic = _headerMagic,
         Type = _type,
-        HasNameTable = HasNameTable
+        HasNameTable = HasNameTable,
+        Compression = _compression,
     };
 
 
@@ -77,7 +78,7 @@ public class Reader : IReader
 
         _unknown1 = (_version >= 2) ? _rdr.ReadUInt32() : 0;
         _unknown2 = (_version >= 2) ? _rdr.ReadUInt32() : 0;
-        _compressionFlag = (_version >= 3) ? _rdr.ReadUInt32() : 0;
+        _compression = (_version == 3) ? _rdr.ReadUInt32() : 0;
 
         var files = new List<IBA2FileEntry>();
         for (var idx = 0; idx < _numFiles; idx += 1)
@@ -88,7 +89,7 @@ public class Reader : IReader
                     break;
                 case BA2EntryType.DX10:
                     if (_version == 2 || _version == 3)
-                        files.Add(new SFArchive.DX10Entry(this, idx, _compressionFlag == 3));
+                        files.Add(new SFArchive.DX10Entry(this, idx));
                     else
                         files.Add(new DX10Entry(this, idx));
                     break;

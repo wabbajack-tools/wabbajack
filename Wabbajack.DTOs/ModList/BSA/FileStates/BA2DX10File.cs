@@ -27,5 +27,4 @@ public class BA2DX10File : AFile
     public uint NameHash { get; set; }
     public byte IsCubeMap { get; set; }
     public byte TileMode { get; set; }
-    public bool Lz4Compression { get; set; }
 }

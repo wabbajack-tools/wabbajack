@@ -33,7 +33,7 @@ public class Builder : IBuilder
 
                     break;
                 case BA2EntryType.DX10:
-                    var resultdx10 = await DX10FileEntryBuilder.Create((BA2DX10File)state, src, _slab, token);
+                    var resultdx10 = await DX10FileEntryBuilder.Create((BA2DX10File)state, src, _slab, _state.Compression == 3, token);
                     lock (_entries)
                     {
                         _entries.Add(resultdx10);

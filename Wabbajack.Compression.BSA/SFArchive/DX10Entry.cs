@@ -2,18 +2,17 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Compression.BSA;
+using DirectXTex;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using K4os.Compression.LZ4;
-using K4os.Compression.LZ4.Streams;
 using Wabbajack.Common;
 using Wabbajack.Compression.BSA.FO4Archive;
 using Wabbajack.DTOs.BSA.FileStates;
 using Wabbajack.DTOs.Streams;
-using Wabbajack.DTOs.Texture;
 using Wabbajack.Paths;
 
 namespace Wabbajack.Compression.BSA.SFArchive;
@@ -29,7 +28,6 @@ public class DX10Entry : IBA2FileEntry
     private ushort _height;
     private int _index;
     private uint _nameHash;
-    private uint _unk0;
     private byte _numChunks;
     private byte _numMips;
     private ushort _unk16;
@@ -37,12 +35,10 @@ public class DX10Entry : IBA2FileEntry
     private ushort _width;
     private readonly byte _isCubemap;
     private readonly byte _tileMode;
-    private bool _lz4Compression;
 
-    public DX10Entry(Reader ba2Reader, int idx, bool lz4Compression)
+    public DX10Entry(Reader ba2Reader, int idx)
     {
         _bsa = ba2Reader;
-        _lz4Compression = lz4Compression;
         var _rdr = ba2Reader._rdr;
         _nameHash = _rdr.ReadUInt32();
         FullPath = _nameHash.ToString("X");
@@ -64,7 +60,25 @@ public class DX10Entry : IBA2FileEntry
             .ToList();
     }
 
-    public uint HeaderSize => DDS.HeaderSizeForFormat((DXGI_FORMAT) _format);
+    private uint _headerSize = 0;
+    public uint HeaderSize
+    {
+        get
+        {
+            if (_headerSize > 0)
+                return _headerSize;
+            uint size = 0;
+            size += (uint)Marshal.SizeOf(DirectXTexUtility.DDSHeader.DDSMagic);
+            size += (uint)Marshal.SizeOf<DirectXTexUtility.DDSHeader>();
+            var metadata = DirectXTexUtility.GenerateMetadata(_width, _height, _numMips, (DirectXTexUtility.DXGIFormat)_format, _isCubemap == 1);
+            var pixelFormat = DirectXTexUtility.GetPixelFormat(metadata);
+            var hasDx10Header = DirectXTexUtility.HasDx10Header(pixelFormat);
+            if (hasDx10Header)
+                size += (uint)Marshal.SizeOf<DirectXTexUtility.DX10Header>();
+
+            return _headerSize = size;
+        }
+    }
 
     public string FullPath { get; set; }
 
@@ -93,8 +107,7 @@ public class DX10Entry : IBA2FileEntry
             EndMip = ch._endMip,
             Align = ch._align,
             Compressed = ch._packSz != 0
-        }).ToArray(),
-        Lz4Compression = _lz4Compression
+        }).ToArray()
     };
 
     public async ValueTask CopyDataTo(Stream output, CancellationToken token)
@@ -110,7 +123,7 @@ public class DX10Entry : IBA2FileEntry
             var full = new byte[chunk._fullSz];
             var isCompressed = chunk._packSz != 0;
 
-            br.BaseStream.Seek((long) chunk._offset, SeekOrigin.Begin);
+            br.BaseStream.Seek((long)chunk._offset, SeekOrigin.Begin);
 
             if (!isCompressed)
             {
@@ -120,21 +133,22 @@ public class DX10Entry : IBA2FileEntry
             {
                 var compressed = new byte[chunk._packSz];
                 await br.BaseStream.ReadAsync(compressed, token);
-                if (!_lz4Compression)
+                if (_bsa._compression == 3)
+                {
+                    LZ4Codec.PartialDecode(compressed, full);
+                }
+                else
                 {
                     var inflater = new Inflater();
                     inflater.SetInput(compressed);
                     inflater.Inflate(full);
-                }
-                else
-                {
-                    LZ4Codec.PartialDecode(compressed, full);
                 }
             }
 
             await bw.BaseStream.WriteAsync(full, token);
         }
     }
+
 
     public async ValueTask<IStreamFactory> GetStreamFactory(CancellationToken token)
     {
@@ -146,119 +160,10 @@ public class DX10Entry : IBA2FileEntry
 
     private void WriteHeader(BinaryWriter bw)
     {
-        var ddsHeader = new DDS_HEADER();
-
-        ddsHeader.dwSize = ddsHeader.GetSize();
-        ddsHeader.dwHeaderFlags = DDS.DDS_HEADER_FLAGS_TEXTURE | DDS.DDS_HEADER_FLAGS_LINEARSIZE |
-                                  DDS.DDS_HEADER_FLAGS_MIPMAP;
-        ddsHeader.dwHeight = _height;
-        ddsHeader.dwWidth = _width;
-        ddsHeader.dwMipMapCount = _numMips;
-        ddsHeader.PixelFormat.dwSize = ddsHeader.PixelFormat.GetSize();
-        ddsHeader.dwDepth = 1;
-        ddsHeader.dwSurfaceFlags = DDS.DDS_SURFACE_FLAGS_TEXTURE | DDS.DDS_SURFACE_FLAGS_MIPMAP;
-        ddsHeader.dwCubemapFlags = _isCubemap == 1 ? (uint)(DDSCAPS2.CUBEMAP
-                   | DDSCAPS2.CUBEMAP_NEGATIVEX | DDSCAPS2.CUBEMAP_POSITIVEX
-                   | DDSCAPS2.CUBEMAP_NEGATIVEY | DDSCAPS2.CUBEMAP_POSITIVEY
-                   | DDSCAPS2.CUBEMAP_NEGATIVEZ | DDSCAPS2.CUBEMAP_POSITIVEZ
-                   | DDSCAPS2.CUBEMAP_ALLFACES) : 0u;
-        
-
-        switch ((DXGI_FORMAT) _format)
-        {
-            case DXGI_FORMAT.BC1_UNORM:
-                ddsHeader.PixelFormat.dwFlags = DDS.DDS_FOURCC;
-                ddsHeader.PixelFormat.dwFourCC = DDS.MAKEFOURCC('D', 'X', 'T', '1');
-                ddsHeader.dwPitchOrLinearSize = (uint) (_width * _height / 2); // 4bpp
-                break;
-            case DXGI_FORMAT.BC2_UNORM:
-                ddsHeader.PixelFormat.dwFlags = DDS.DDS_FOURCC;
-                ddsHeader.PixelFormat.dwFourCC = DDS.MAKEFOURCC('D', 'X', 'T', '3');
-                ddsHeader.dwPitchOrLinearSize = (uint) (_width * _height); // 8bpp
-                break;
-            case DXGI_FORMAT.BC3_UNORM:
-                ddsHeader.PixelFormat.dwFlags = DDS.DDS_FOURCC;
-                ddsHeader.PixelFormat.dwFourCC = DDS.MAKEFOURCC('D', 'X', 'T', '5');
-                ddsHeader.dwPitchOrLinearSize = (uint) (_width * _height); // 8bpp
-                break;
-            case DXGI_FORMAT.BC5_UNORM:
-                ddsHeader.PixelFormat.dwFlags = DDS.DDS_FOURCC;
-                if (_bsa.UseATIFourCC)
-                    ddsHeader.PixelFormat.dwFourCC =
-                        DDS.MAKEFOURCC('A', 'T', 'I',
-                            '2'); // this is more correct but the only thing I have found that supports it is the nvidia photoshop plugin
-                else
-                    ddsHeader.PixelFormat.dwFourCC = DDS.MAKEFOURCC('B', 'C', '5', 'U');
-                ddsHeader.dwPitchOrLinearSize = (uint) (_width * _height); // 8bpp
-                break;
-            case DXGI_FORMAT.BC1_UNORM_SRGB:
-                ddsHeader.PixelFormat.dwFlags = DDS.DDS_FOURCC;
-                ddsHeader.PixelFormat.dwFourCC = DDS.MAKEFOURCC('D', 'X', '1', '0');
-                ddsHeader.dwPitchOrLinearSize = (uint) (_width * _height / 2); // 4bpp
-                break;
-            case DXGI_FORMAT.BC3_UNORM_SRGB:
-            case DXGI_FORMAT.BC6H_UF16:
-            case DXGI_FORMAT.BC4_UNORM:
-            case DXGI_FORMAT.BC5_SNORM:
-            case DXGI_FORMAT.BC7_UNORM:
-            case DXGI_FORMAT.BC7_UNORM_SRGB:
-                ddsHeader.PixelFormat.dwFlags = DDS.DDS_FOURCC;
-                ddsHeader.PixelFormat.dwFourCC = DDS.MAKEFOURCC('D', 'X', '1', '0');
-                ddsHeader.dwPitchOrLinearSize = (uint) (_width * _height); // 8bpp
-                break;
-            case DXGI_FORMAT.R8G8B8A8_UNORM:
-            case DXGI_FORMAT.R8G8B8A8_UNORM_SRGB:
-                ddsHeader.PixelFormat.dwFlags = DDS.DDS_RGBA;
-                ddsHeader.PixelFormat.dwRGBBitCount = 32;
-                ddsHeader.PixelFormat.dwRBitMask = 0x000000FF;
-                ddsHeader.PixelFormat.dwGBitMask = 0x0000FF00;
-                ddsHeader.PixelFormat.dwBBitMask = 0x00FF0000;
-                ddsHeader.PixelFormat.dwABitMask = 0xFF000000;
-                ddsHeader.dwPitchOrLinearSize = (uint) (_width * _height * 4); // 32bpp
-                break;
-            case DXGI_FORMAT.B8G8R8A8_UNORM:
-            case DXGI_FORMAT.B8G8R8X8_UNORM:
-                ddsHeader.PixelFormat.dwFlags = DDS.DDS_RGBA;
-                ddsHeader.PixelFormat.dwRGBBitCount = 32;
-                ddsHeader.PixelFormat.dwRBitMask = 0x00FF0000;
-                ddsHeader.PixelFormat.dwGBitMask = 0x0000FF00;
-                ddsHeader.PixelFormat.dwBBitMask = 0x000000FF;
-                ddsHeader.PixelFormat.dwABitMask = 0xFF000000;
-                ddsHeader.dwPitchOrLinearSize = (uint) (_width * _height * 4); // 32bpp
-                break;
-            case DXGI_FORMAT.R8_UNORM:
-                ddsHeader.PixelFormat.dwFlags = DDS.DDS_RGB;
-                ddsHeader.PixelFormat.dwRGBBitCount = 8;
-                ddsHeader.PixelFormat.dwRBitMask = 0xFF;
-                ddsHeader.dwPitchOrLinearSize = (uint) (_width * _height); // 8bpp
-                break;
-            default:
-                throw new Exception("Unsupported DDS header format. File: " + FullPath);
-        }
-
-        bw.Write((uint) DDS.DDS_MAGIC);
-        ddsHeader.Write(bw);
-
-        switch ((DXGI_FORMAT) _format)
-        {
-            case DXGI_FORMAT.BC1_UNORM_SRGB:
-            case DXGI_FORMAT.BC3_UNORM_SRGB:
-            case DXGI_FORMAT.BC4_UNORM:
-            case DXGI_FORMAT.BC5_SNORM:
-            case DXGI_FORMAT.BC6H_UF16:
-            case DXGI_FORMAT.BC7_UNORM:
-            case DXGI_FORMAT.BC7_UNORM_SRGB:
-                var dxt10 = new DDS_HEADER_DXT10
-                {
-                    dxgiFormat = _format,
-                    resourceDimension = (uint) DXT10_RESOURCE_DIMENSION.DIMENSION_TEXTURE2D,
-                    miscFlag = 0,
-                    arraySize = 1,
-                    miscFlags2 = DDS.DDS_ALPHA_MODE_UNKNOWN
-                };
-                dxt10.Write(bw);
-                break;
-        }
+        var metadata = DirectXTexUtility.GenerateMetadata(_width, _height, _numMips, (DirectXTexUtility.DXGIFormat)_format, _isCubemap == 1);
+        DirectXTexUtility.GenerateDDSHeader(metadata, DirectXTexUtility.DDSFlags.FORCEDX10EXTMISC2, out var header, out var header10);
+        var headerBytes = DirectXTexUtility.EncodeDDSHeader(header, header10);
+        bw.Write(headerBytes);
     }
 }
 

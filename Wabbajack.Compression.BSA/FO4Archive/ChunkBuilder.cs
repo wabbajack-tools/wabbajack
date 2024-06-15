@@ -18,7 +18,7 @@ public class ChunkBuilder
     private uint _packSize;
 
     public static async Task<ChunkBuilder> Create(BA2DX10File state, BA2Chunk chunk, Stream src,
-        DiskSlabAllocator slab, CancellationToken token)
+        DiskSlabAllocator slab, bool useLz4Compression, CancellationToken token)
     {
         var builder = new ChunkBuilder {_chunk = chunk};
 
@@ -29,7 +29,7 @@ public class ChunkBuilder
         }
         else
         {
-            if (!state.Lz4Compression)
+            if (!useLz4Compression)
             {
                 var deflater = new Deflater(Deflater.BEST_COMPRESSION);
                 await using var ms = new MemoryStream();
@@ -50,12 +50,12 @@ public class ChunkBuilder
                 await using (var w = LZ4Stream.Encode(ms,
                     new LZ4EncoderSettings {CompressionLevel = LZ4Level.L12_MAX}, true))
                 {
-                    await src.CopyToLimitAsync(w, (int)chunk.FullSz, token);
+                    await src.CopyToWithStatusAsync((int)chunk.FullSz, w, token);
                 }
 
                 builder._dataSlab = slab.Allocate(ms.Length);
                 ms.Position = 0;
-                await ms.CopyToLimitAsync(builder._dataSlab, (int)ms.Length, token);
+                await ms.CopyToWithStatusAsync((int)ms.Length, builder._dataSlab, token);
                 builder._packSize = (uint)ms.Length;
             }
         }
