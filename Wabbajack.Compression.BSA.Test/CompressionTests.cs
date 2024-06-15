@@ -88,13 +88,11 @@ public class CompressionTests
         var rebuiltStream = new MemoryStream();
         await build.Build(rebuiltStream, CancellationToken.None);
         rebuiltStream.Position = 0;
-        /*
         using(var fileStream = File.Create(@"C:\TexturesTest\Starfield - Textures11.ba2"))
         {
             rebuiltStream.Seek(0, SeekOrigin.Begin);
             rebuiltStream.CopyTo(fileStream);
         }
-        */
 
         var reader2 = await BSADispatch.Open(new MemoryStreamFactory(rebuiltStream, path, path.LastModifiedUtc()));
         await reader.Files.Zip(reader2.Files)

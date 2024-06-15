@@ -46,6 +46,8 @@ public class Reader : IReader
         HeaderMagic = _headerMagic,
         Type = _type,
         HasNameTable = HasNameTable,
+        Unknown1 = _unknown1,
+        Unknown2 = _unknown2,
         Compression = _compression,
     };
 
@@ -76,8 +78,8 @@ public class Reader : IReader
         _numFiles = _rdr.ReadUInt32();
         _nameTableOffset = _rdr.ReadUInt64();
 
-        _unknown1 = (_version >= 2) ? _rdr.ReadUInt32() : 0;
-        _unknown2 = (_version >= 2) ? _rdr.ReadUInt32() : 0;
+        _unknown1 = (_version == 2 || _version == 3) ? _rdr.ReadUInt32() : 0;
+        _unknown2 = (_version == 2 || _version == 3) ? _rdr.ReadUInt32() : 0;
         _compression = (_version == 3) ? _rdr.ReadUInt32() : 0;
 
         var files = new List<IBA2FileEntry>();

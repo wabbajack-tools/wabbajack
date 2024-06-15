@@ -85,7 +85,6 @@ public class DX10Entry : IBA2FileEntry
     public RelativePath Path => FullPath.ToRelativePath();
     public uint Size => (uint)_chunks.Sum(f => f._fullSz) + HeaderSize;
 
-
     public AFile State => new BA2DX10File
     {
         Path = Path,

@@ -59,6 +59,13 @@ public class Builder : IBuilder
         bw.Write((uint) _entries.Count);
         var tableOffsetLoc = bw.BaseStream.Position;
         bw.Write((ulong) 0);
+        if(_state.Version == 2 || _state.Version == 3)
+        {
+            bw.Write(_state.Unknown1);
+            bw.Write(_state.Unknown2);
+            if (_state.Version == 3)
+                bw.Write(_state.Compression);
+        }
 
         foreach (var entry in _entries) entry.WriteHeader(bw, token);
 
