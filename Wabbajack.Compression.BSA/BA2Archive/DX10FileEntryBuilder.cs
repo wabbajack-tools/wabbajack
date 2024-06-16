@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Wabbajack.DTOs.BSA.FileStates;
 using Wabbajack.DTOs.Texture;
 
-namespace Wabbajack.Compression.BSA.FO4Archive;
+namespace Wabbajack.Compression.BSA.BA2Archive;
 
 public class DX10FileEntryBuilder : IFileBuilder
 {

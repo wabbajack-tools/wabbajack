@@ -6,7 +6,7 @@ using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using Wabbajack.Common;
 using Wabbajack.DTOs.BSA.FileStates;
 
-namespace Wabbajack.Compression.BSA.FO4Archive;
+namespace Wabbajack.Compression.BSA.BA2Archive;
 
 public class FileEntryBuilder : IFileBuilder
 {

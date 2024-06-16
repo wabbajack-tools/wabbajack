@@ -8,12 +8,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using DirectXTex;
 using ICSharpCode.SharpZipLib.Zip.Compression;
+using K4os.Compression.LZ4;
+using K4os.Compression.LZ4.Streams;
 using Wabbajack.Common;
+using Wabbajack.Compression.BSA.BA2Archive;
 using Wabbajack.DTOs.BSA.FileStates;
 using Wabbajack.DTOs.Streams;
 using Wabbajack.Paths;
 
-namespace Wabbajack.Compression.BSA.FO4Archive;
+namespace Wabbajack.Compression.BSA.BA2Archive;
 
 public class DX10Entry : IBA2FileEntry
 {
@@ -57,6 +60,17 @@ public class DX10Entry : IBA2FileEntry
             .Select(_ => new TextureChunk(_rdr))
             .ToList();
     }
+    private DirectXTexUtility.TexMetadata? _metadata = null;
+
+    public DirectXTexUtility.TexMetadata Metadata
+    {
+        get
+        {
+            if (_metadata == null)
+                _metadata = DirectXTexUtility.GenerateMetadata(_width, _height, _numMips, (DirectXTexUtility.DXGIFormat)_format, _isCubemap == 1);
+            return (DirectXTexUtility.TexMetadata)_metadata;
+        }
+    }
 
     private uint _headerSize = 0;
     public uint HeaderSize
@@ -68,8 +82,7 @@ public class DX10Entry : IBA2FileEntry
             uint size = 0;
             size += (uint)Marshal.SizeOf(DirectXTexUtility.DDSHeader.DDSMagic);
             size += (uint)Marshal.SizeOf<DirectXTexUtility.DDSHeader>();
-            var metadata = DirectXTexUtility.GenerateMetadata(_width, _height, _numMips, (DirectXTexUtility.DXGIFormat)_format, _isCubemap == 1);
-            var pixelFormat = DirectXTexUtility.GetPixelFormat(metadata);
+            var pixelFormat = DirectXTexUtility.GetPixelFormat(Metadata);
             var hasDx10Header = DirectXTexUtility.HasDx10Header(pixelFormat);
             if (hasDx10Header)
                 size += (uint)Marshal.SizeOf<DirectXTexUtility.DX10Header>();
@@ -81,7 +94,7 @@ public class DX10Entry : IBA2FileEntry
     public string FullPath { get; set; }
 
     public RelativePath Path => FullPath.ToRelativePath();
-    public uint Size => (uint) _chunks.Sum(f => f._fullSz) + HeaderSize + sizeof(uint);
+    public uint Size => (uint)_chunks.Sum(f => f._fullSz) + HeaderSize;
 
     public AFile State => new BA2DX10File
     {
@@ -105,7 +118,7 @@ public class DX10Entry : IBA2FileEntry
             EndMip = ch._endMip,
             Align = ch._align,
             Compressed = ch._packSz != 0
-        }).ToArray(),
+        }).ToArray()
     };
 
     public async ValueTask CopyDataTo(Stream output, CancellationToken token)
@@ -121,7 +134,7 @@ public class DX10Entry : IBA2FileEntry
             var full = new byte[chunk._fullSz];
             var isCompressed = chunk._packSz != 0;
 
-            br.BaseStream.Seek((long) chunk._offset, SeekOrigin.Begin);
+            br.BaseStream.Seek((long)chunk._offset, SeekOrigin.Begin);
 
             if (!isCompressed)
             {
@@ -131,14 +144,22 @@ public class DX10Entry : IBA2FileEntry
             {
                 var compressed = new byte[chunk._packSz];
                 await br.BaseStream.ReadAsync(compressed, token);
-                var inflater = new Inflater();
-                inflater.SetInput(compressed);
-                inflater.Inflate(full);
+                if (_bsa._compression == 3)
+                {
+                    LZ4Codec.PartialDecode(compressed, full);
+                }
+                else
+                {
+                    var inflater = new Inflater();
+                    inflater.SetInput(compressed);
+                    inflater.Inflate(full);
+                }
             }
 
             await bw.BaseStream.WriteAsync(full, token);
         }
     }
+
 
     public async ValueTask<IStreamFactory> GetStreamFactory(CancellationToken token)
     {
@@ -150,9 +171,9 @@ public class DX10Entry : IBA2FileEntry
 
     private void WriteHeader(BinaryWriter bw)
     {
-        var metadata = DirectXTexUtility.GenerateMetadata(_width, _height, _numMips, (DirectXTexUtility.DXGIFormat)_format, _isCubemap == 1);
-        DirectXTexUtility.GenerateDDSHeader(metadata, DirectXTexUtility.DDSFlags.FORCEDX10EXTMISC2, out var header, out var header10);
+        DirectXTexUtility.GenerateDDSHeader(Metadata, DirectXTexUtility.DDSFlags.FORCEDX10EXTMISC2, out var header, out var header10);
         var headerBytes = DirectXTexUtility.EncodeDDSHeader(header, header10);
         bw.Write(headerBytes);
     }
 }
+

@@ -10,7 +10,7 @@ using Wabbajack.Common;
 using Wabbajack.DTOs.BSA.FileStates;
 using Wabbajack.DTOs.GitHub;
 
-namespace Wabbajack.Compression.BSA.FO4Archive;
+namespace Wabbajack.Compression.BSA.BA2Archive;
 
 public class ChunkBuilder
 {

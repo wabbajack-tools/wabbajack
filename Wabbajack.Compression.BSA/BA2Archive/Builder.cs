@@ -10,7 +10,7 @@ using Wabbajack.DTOs.BSA.ArchiveStates;
 using Wabbajack.DTOs.BSA.FileStates;
 using Wabbajack.Paths.IO;
 
-namespace Wabbajack.Compression.BSA.FO4Archive;
+namespace Wabbajack.Compression.BSA.BA2Archive;
 
 public class Builder : IBuilder
 {

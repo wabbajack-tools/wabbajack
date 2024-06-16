@@ -7,7 +7,7 @@ using Wabbajack.Compression.BSA.Interfaces;
 using Wabbajack.DTOs.BSA.ArchiveStates;
 using Wabbajack.DTOs.Streams;
 
-namespace Wabbajack.Compression.BSA.FO4Archive;
+namespace Wabbajack.Compression.BSA.BA2Archive;
 
 public class Reader : IReader
 {
@@ -90,10 +90,7 @@ public class Reader : IReader
                     files.Add(new FileEntry(this, idx));
                     break;
                 case BA2EntryType.DX10:
-                    if (_version == 2 || _version == 3)
-                        files.Add(new SFArchive.DX10Entry(this, idx));
-                    else
-                        files.Add(new DX10Entry(this, idx));
+                    files.Add(new DX10Entry(this, idx));
                     break;
                 case BA2EntryType.GNMF:
                     break;
