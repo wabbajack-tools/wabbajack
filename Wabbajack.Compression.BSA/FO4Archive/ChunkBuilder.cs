@@ -1,12 +1,14 @@
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using K4os.Compression.LZ4;
-using K4os.Compression.LZ4.Streams;
+using K4os.Compression.LZ4.Encoders;
 using Wabbajack.Common;
 using Wabbajack.DTOs.BSA.FileStates;
+using Wabbajack.DTOs.GitHub;
 
 namespace Wabbajack.Compression.BSA.FO4Archive;
 
@@ -46,17 +48,20 @@ public class ChunkBuilder
             }
             else
             {
-                await using var ms = new MemoryStream();
-                await using (var w = LZ4Stream.Encode(ms,
-                    new LZ4EncoderSettings {CompressionLevel = LZ4Level.L12_MAX}, true))
+                byte[] full = new byte[chunk.FullSz];
+                await using (var copyStream = new MemoryStream())
                 {
-                    await src.CopyToWithStatusAsync((int)chunk.FullSz, w, token);
+                    await src.CopyToLimitAsync(copyStream, (int)chunk.FullSz, token);
+                    full = copyStream.ToArray(); 
                 }
-
-                builder._dataSlab = slab.Allocate(ms.Length);
+                var maxOutput = LZ4Codec.MaximumOutputSize((int)chunk.FullSz);
+                byte[] compressed = new byte[maxOutput];
+                int compressedSize = LZ4Codec.Encode(full, 0, full.Length, compressed, 0, compressed.Length, LZ4Level.L12_MAX);
+                var ms = new MemoryStream(compressed, 0, compressedSize);
+                builder._dataSlab = slab.Allocate(compressedSize);
                 ms.Position = 0;
-                await ms.CopyToWithStatusAsync((int)ms.Length, builder._dataSlab, token);
-                builder._packSize = (uint)ms.Length;
+                await ms.CopyToLimitAsync(builder._dataSlab, compressedSize, token);
+                builder._packSize = (uint)compressedSize;
             }
         }
 

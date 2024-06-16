@@ -87,6 +87,7 @@ public class CompressionTests
 
         var rebuiltStream = new MemoryStream();
         await build.Build(rebuiltStream, CancellationToken.None);
+
         rebuiltStream.Position = 0;
         using(var fileStream = File.Create(@"C:\TexturesTest\Starfield - Textures11.ba2"))
         {
@@ -107,8 +108,11 @@ public class CompressionTests
                 var newData = new MemoryStream();
                 await oldFile.CopyDataTo(oldData, CancellationToken.None);
                 await newFile.CopyDataTo(newData, CancellationToken.None);
-                Assert.Equal(oldData.ToArray(), newData.ToArray());
                 Assert.Equal(oldFile.Size, newFile.Size);
+                var oldDataArr = oldData.ToArray();
+                var newDataArr = newData.ToArray();
+                var sequenceEquals = oldDataArr.SequenceEqual(newDataArr);
+                Assert.Equal(oldData.ToArray(), newData.ToArray());
             });
     }
 }

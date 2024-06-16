@@ -23,6 +23,7 @@
 // Author: Philip/Scobalula
 // Description: DirectXTex DDS Header Utilities
 // Source: https://gist.github.com/Scobalula/d9474f3fcf3d5a2ca596fceb64e16c98
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -163,6 +164,7 @@ namespace DirectXTex
         /// <summary>
         /// DDS Flags
         /// </summary>
+        [Flags]
         public enum DDSFlags
         {
             NONE = 0x0,
@@ -218,6 +220,7 @@ namespace DirectXTex
         /// <summary>
         /// CP Flags
         /// </summary>
+        [Flags]
         public enum CPFLAGS
         {
             NONE = 0x0,      // Normal operation
@@ -358,6 +361,7 @@ namespace DirectXTex
             /// <summary>
             /// DDS Header Flags
             /// </summary>
+            [Flags]
             public enum HeaderFlags : uint
             {
                 TEXTURE = 0x00001007,  // DDSDCAPS | DDSDHEIGHT | DDSDWIDTH | DDSDPIXELFORMAT 
@@ -533,7 +537,7 @@ namespace DirectXTex
         /// <summary>
         /// Gets the Bits Per Pixel for the given format
         /// </summary>
-        private static long BitsPerPixel(DXGIFormat format)
+        private static ulong BitsPerPixel(DXGIFormat format)
         {
             switch (format)
             {
@@ -634,19 +638,6 @@ namespace DirectXTex
                 case DXGIFormat.R8SNORM:
                 case DXGIFormat.R8SINT:
                 case DXGIFormat.A8UNORM:
-                case DXGIFormat.AI44:
-                case DXGIFormat.IA44:
-                case DXGIFormat.P8:
-                    return 8;
-                case DXGIFormat.R1UNORM:
-                    return 1;
-                case DXGIFormat.BC1TYPELESS:
-                case DXGIFormat.BC1UNORM:
-                case DXGIFormat.BC1UNORMSRGB:
-                case DXGIFormat.BC4TYPELESS:
-                case DXGIFormat.BC4UNORM:
-                case DXGIFormat.BC4SNORM:
-                    return 4;
                 case DXGIFormat.BC2TYPELESS:
                 case DXGIFormat.BC2UNORM:
                 case DXGIFormat.BC2UNORMSRGB:
@@ -661,8 +652,20 @@ namespace DirectXTex
                 case DXGIFormat.BC6HSF16:
                 case DXGIFormat.BC7TYPELESS:
                 case DXGIFormat.BC7UNORM:
-                case DXGIFormat.BC7UNORMSRGB:
+                case DXGIFormat.BC7UNORMSRGB:    
+                case DXGIFormat.AI44:
+                case DXGIFormat.IA44:
+                case DXGIFormat.P8:
                     return 8;
+                case DXGIFormat.R1UNORM:
+                    return 1;
+                case DXGIFormat.BC1TYPELESS:
+                case DXGIFormat.BC1UNORM:
+                case DXGIFormat.BC1UNORMSRGB:
+                case DXGIFormat.BC4TYPELESS:
+                case DXGIFormat.BC4UNORM:
+                case DXGIFormat.BC4SNORM:
+                    return 4;
                 default:
                     return 0;
             }
@@ -671,7 +674,7 @@ namespace DirectXTex
         /// <summary>
         /// Computes Row and Slice Pitch
         /// </summary>
-        private static void ComputePitch(DXGIFormat format, long width, long height, out long rowPitch, out long slicePitch, CPFLAGS flags)
+        private static void ComputePitch(DXGIFormat format, uint width, uint height, out ulong rowPitch, out ulong slicePitch, CPFLAGS flags)
         {
             switch (format)
             {
@@ -684,16 +687,16 @@ namespace DirectXTex
                     {
                         if (flags.HasFlag(CPFLAGS.BADDXTNTAILS))
                         {
-                            long nbw = width >> 2;
-                            long nbh = height >> 2;
-                            rowPitch = Clamp(1, nbw * 8, Int64.MaxValue);
-                            slicePitch = Clamp(1, rowPitch * nbh, Int64.MaxValue);
+                            var nbw = width >> 2;
+                            var nbh = height >> 2;
+                            rowPitch = Clamp((ulong) nbw * 8u, ulong.MaxValue, 1u);
+                            slicePitch = Clamp(rowPitch * nbh, ulong.MaxValue, 1u);
                         }
                         else
                         {
-                            long nbw = Clamp(1, (width + 3) / 4, Int64.MaxValue);
-                            long nbh = Clamp(1, (height + 3) / 4, Int64.MaxValue);
-                            rowPitch = nbw * 8;
+                            var nbw = Clamp(((ulong) width + 3u) / 4u, ulong.MaxValue, 1u);
+                            var nbh = Clamp(((ulong) height + 3u) / 4u, ulong.MaxValue, 1u);
+                            rowPitch = nbw * 8u;
                             slicePitch = rowPitch * nbh;
                         }
                     }
@@ -716,16 +719,16 @@ namespace DirectXTex
                     {
                         if (flags.HasFlag(CPFLAGS.BADDXTNTAILS))
                         {
-                            long nbw = width >> 2;
-                            long nbh = height >> 2;
-                            rowPitch = Clamp(1, nbw * 16, Int64.MaxValue);
-                            slicePitch = Clamp(1, rowPitch * nbh, Int64.MaxValue);
+                            var nbw = width >> 2;
+                            var nbh = height >> 2;
+                            rowPitch = Clamp((ulong) nbw * 16u, ulong.MaxValue, 1u);
+                            slicePitch = Clamp(rowPitch * nbh, ulong.MaxValue, 1u);
                         }
                         else
                         {
-                            long nbw = Clamp(1, (width + 3) / 4, Int64.MaxValue);
-                            long nbh = Clamp(1, (height + 3) / 4, Int64.MaxValue);
-                            rowPitch = nbw * 16;
+                            var nbw = Clamp((width + 3) / 4, ulong.MaxValue, 1u);
+                            var nbh = Clamp((height + 3) / 4, ulong.MaxValue, 1u);
+                            rowPitch = nbw * 16u;
                             slicePitch = rowPitch * nbh;
                         }
                     }
@@ -759,8 +762,7 @@ namespace DirectXTex
                     break;
                 default:
                     {
-
-                        long bpp;
+                        ulong bpp;
 
                         if (flags.HasFlag(CPFLAGS.BPP24))
                             bpp = 24;
@@ -775,36 +777,36 @@ namespace DirectXTex
                         {
                             if (flags.HasFlag(CPFLAGS.PAGE4K))
                             {
-                                rowPitch = ((width * bpp + 32767) / 32768) * 4096;
+                                rowPitch = (width * bpp + 32767u) / 32768u * 4096u;
                                 slicePitch = rowPitch * height;
                             }
                             else if (flags.HasFlag(CPFLAGS.ZMM))
                             {
-                                rowPitch = ((width * bpp + 511) / 512) * 64;
+                                rowPitch = (width * bpp + 511u) / 512u * 64u;
                                 slicePitch = rowPitch * height;
                             }
                             else if (flags.HasFlag(CPFLAGS.YMM))
                             {
-                                rowPitch = ((width * bpp + 255) / 256) * 32;
+                                rowPitch = (width * bpp + 255u) / 256u * 32u;
                                 slicePitch = rowPitch * height;
                             }
                             else if (flags.HasFlag(CPFLAGS.PARAGRAPH))
                             {
-                                rowPitch = ((width * bpp + 127) / 128) * 16;
+                                rowPitch = (width * bpp + 127u) / 128u * 16u;
                                 slicePitch = rowPitch * height;
                             }
                             else // DWORD alignment
                             {
                                 // Special computation for some incorrectly created DDS files based on
                                 // legacy DirectDraw assumptions about pitch alignment
-                                rowPitch = ((width * bpp + 31) / 32) * 4;
+                                rowPitch = (width * bpp + 31u) / 32u * sizeof(uint);
                                 slicePitch = rowPitch * height;
                             }
                         }
                         else
                         {
                             // Default byte alignment
-                            rowPitch = (width * bpp + 7) / 8;
+                            rowPitch = (width * bpp + 7u) / 8u;
                             slicePitch = rowPitch * height;
                         }
                     }
@@ -898,6 +900,8 @@ namespace DirectXTex
                 );
         }
 
+        private static readonly uint[] _elevenUInts = Enumerable.Repeat((uint)0, 11).ToArray();
+        
         /// <summary>
         /// Generates a DDS Header, and if requires, a DX10 Header
         /// </summary>
@@ -917,17 +921,38 @@ namespace DirectXTex
             // Check for DX10 Ext
             if (flags.HasFlag(DDSFlags.FORCEDX10EXTMISC2))
                 flags |= DDSFlags.FORCEDX10EXT;
+            
             // Create DDS Header
             header = new DDSHeader
             {
                 // Set Data
-                Size = (uint)Marshal.SizeOf<DDSHeader>(),
+                Size = (uint) Marshal.SizeOf<DDSHeader>(),
                 Flags = DDSHeader.HeaderFlags.TEXTURE,
-                Caps = (uint)DDSHeader.SurfaceFlags.TEXTURE,
-                PixelFormat = new DDSHeader.DDSPixelFormat()
+                Height = 0,
+                Width = 0,
+                PitchOrLinearSize = 0,
+                Depth = 0,
+                MipMapCount = 0,
+                Reserved1 = _elevenUInts,
+                Caps = (uint) DDSHeader.SurfaceFlags.TEXTURE,
+                Caps2 = 0,
+                Caps3 = 0,
+                Caps4 = 0,
+                Reserved2 = 0,
+                PixelFormat = new DDSHeader.DDSPixelFormat(),
+
             };
+            
             // Create DX10 Header
-            dx10Header = new DX10Header();
+            dx10Header = new DX10Header
+            {
+                Format = 0,
+                ResourceDimension = (TexDimension) 0,
+                MiscFlag = (TexMiscFlags) 0,
+                ArraySize = 0,
+                MiscFlags2 = 0,
+            };
+            
             // Switch format
             header.PixelFormat = GetPixelFormat(metaData);
             // Check for mips
@@ -999,7 +1024,7 @@ namespace DirectXTex
 
             }
             // Calculate the Pitch
-            ComputePitch(metaData.Format, metaData.Width, metaData.Height, out long rowPitch, out long slicePitch, CPFLAGS.NONE);
+            ComputePitch(metaData.Format, (uint) metaData.Width, (uint) metaData.Height, out var rowPitch, out var slicePitch, CPFLAGS.NONE);
             // Validate results
             if (slicePitch > UInt32.MaxValue || rowPitch > UInt32.MaxValue)
                 throw new ArgumentException("Failed to calculate row and/or slice pitch, values returned were too large");

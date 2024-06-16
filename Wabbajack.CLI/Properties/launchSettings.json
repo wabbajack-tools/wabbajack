@@ -2,7 +2,7 @@
   "profiles": {
     "Wabbajack.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "extract -i \"S:\\SteamLibrary\\steamapps\\common\\Starfield\\Data\\Starfield - Textures11.ba2\" -o \"C:\\TexturesTest\\StarfieldTextures\\wj_alt\""
+      "commandLineArgs": "extract -i \"S:\\SteamLibrary\\steamapps\\common\\Starfield\\Data\\Starfield - Textures11.ba2\" -o \"C:\\TexturesTest\\StarfieldTextures\\wj_read\""
     }
   }
 }
