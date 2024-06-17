@@ -1,6 +1,8 @@
 ### Changelog
 
-#### Version - 3.6.2.0 - TBD
+#### Version - 3.7.0.0 - TBD
+* Added Starfield support
+    * Note: Hashes were added earlier, but the earlier version was not fully compatible due to Wabbajack extracting the BA2 archives incorrectly. This has been fixed.
 * Updated GameFinder dependency
 * Updated WebView dependency
 * Updated other dependencies
