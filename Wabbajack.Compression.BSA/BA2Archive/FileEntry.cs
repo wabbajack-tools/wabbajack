@@ -9,7 +9,7 @@ using Wabbajack.DTOs.BSA.FileStates;
 using Wabbajack.DTOs.Streams;
 using Wabbajack.Paths;
 
-namespace Wabbajack.Compression.BSA.FO4Archive;
+namespace Wabbajack.Compression.BSA.BA2Archive;
 
 public class FileEntry : IBA2FileEntry
 {
