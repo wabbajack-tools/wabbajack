@@ -38,15 +38,11 @@ namespace Wabbajack
         Completed,
         Errored
     }
-    public class CompilerDetailsVM : BackNavigatingVM, ICpuStatusVM
+    public class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
     {
-        private readonly DTOSerializer _dtos;
-        private readonly SettingsManager _settingsManager;
         private readonly IServiceProvider _serviceProvider;
-        private readonly ILogger<CompilerDetailsVM> _logger;
         private readonly ResourceMonitor _resourceMonitor;
         private readonly CompilerSettingsInferencer _inferencer;
-        private readonly Client _wjClient;
         
         [Reactive] public string StatusText { get; set; }
         [Reactive] public Percent StatusProgress { get; set; }
@@ -62,8 +58,6 @@ namespace Wabbajack
         public FilePickerVM DownloadLocation { get; }
         public FilePickerVM OutputLocation { get; }
 
-        [Reactive] public CompilerSettingsVM Settings { get; set; } = new();
-
         public FilePickerVM ModListImageLocation { get; } = new();
         
         /* public ReactiveCommand<Unit, Unit> ExecuteCommand { get; } */
@@ -78,16 +72,12 @@ namespace Wabbajack
         
         public CompilerDetailsVM(ILogger<CompilerDetailsVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
             IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
-            CompilerSettingsInferencer inferencer, Client wjClient) : base(logger)
+            CompilerSettingsInferencer inferencer, Client wjClient) : base(dtos, settingsManager, logger, wjClient)
         {
-            _logger = logger;
-            _dtos = dtos;
-            _settingsManager = settingsManager;
             _serviceProvider = serviceProvider;
             LoggerProvider = loggerProvider;
             _resourceMonitor = resourceMonitor;
             _inferencer = inferencer;
-            _wjClient = wjClient;
 
             MessageBus.Current.Listen<LoadCompilerSettings>()
                 .Subscribe(msg => {
@@ -105,7 +95,7 @@ namespace Wabbajack
 
             BackCommand = ReactiveCommand.CreateFromTask(async () =>
             {
-                await SaveSettingsFile();
+                await SaveSettings();
                 NavigateToGlobal.Send(ScreenType.Home);
             });
 
@@ -179,7 +169,7 @@ namespace Wabbajack
 
                 this.WhenAnyValue(x => x.Settings)
                     .Throttle(TimeSpan.FromSeconds(2))
-                    .Subscribe(_ => SaveSettingsFile().FireAndForget())
+                    .Subscribe(_ => SaveSettings().FireAndForget())
                     .DisposeWith(disposables);
                 /*
 
@@ -264,7 +254,7 @@ namespace Wabbajack
 
         private async Task NextPage()
         {
-            await SaveSettingsFile();
+            await SaveSettings();
             NavigateToGlobal.Send(ScreenType.CompilerFileManager);
             LoadCompilerSettings.Send(Settings.ToCompilerSettings());
         }
@@ -275,7 +265,7 @@ namespace Wabbajack
             {
                 try
                 {
-                    await SaveSettingsFile();
+                    await SaveSettings();
                     var token = CancellationToken.None;
                     State = CompilerState.Compiling;
 
@@ -367,33 +357,6 @@ namespace Wabbajack
             }
 
             return true;
-        }
-
-        private async Task SaveSettingsFile()
-        {
-            if (Settings.Source == default || Settings.CompilerSettingsPath == default) return;
-
-            await using var st = Settings.CompilerSettingsPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-            await JsonSerializer.SerializeAsync(st, Settings.ToCompilerSettings(), _dtos.Options);
-
-            var allSavedCompilerSettings = await _settingsManager.Load<List<AbsolutePath>>(Consts.AllSavedCompilerSettingsPaths);
-
-            // Don't simply remove Settings.CompilerSettingsPath here, because WJ sometimes likes to make default compiler settings files
-            allSavedCompilerSettings.RemoveAll(path => path.Parent == Settings.Source);
-            allSavedCompilerSettings.Insert(0, Settings.CompilerSettingsPath);
-
-            await _settingsManager.Save(Consts.AllSavedCompilerSettingsPaths, allSavedCompilerSettings);
-        }
-
-        private async Task LoadLastSavedSettings()
-        {
-            AbsolutePath lastPath = default;
-            var allSavedCompilerSettings = await _settingsManager.Load<List<AbsolutePath>>(Consts.AllSavedCompilerSettingsPaths);
-            if (allSavedCompilerSettings.Any())
-                lastPath = allSavedCompilerSettings[0];
-
-            if (lastPath == default || !lastPath.FileExists() || lastPath.FileName.Extension != Ext.CompilerSettings) return;
-            ModlistLocation.TargetPath = lastPath;
         }
 
         #region ListOps

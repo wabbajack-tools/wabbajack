@@ -3,32 +3,22 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Reactive;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Messages;
 using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media;
-using DynamicData;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
-using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
-using Wabbajack.Extensions;
-using Wabbajack.Installer;
 using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated;
-using NexusMods.Paths.FileTree;
 using System.Windows.Controls;
 using FluentIcons.Common;
 using System.Windows.Input;
@@ -114,31 +104,22 @@ namespace Wabbajack
             _disposable.Dispose();
         }
     }
-    public class CompilerFileManagerVM : BackNavigatingVM
+    public class CompilerFileManagerVM : BaseCompilerVM
     {
-        private readonly DTOSerializer _dtos;
-        private readonly SettingsManager _settingsManager;
         private readonly IServiceProvider _serviceProvider;
-        private readonly ILogger<CompilerFileManagerVM> _logger;
         private readonly ResourceMonitor _resourceMonitor;
         private readonly CompilerSettingsInferencer _inferencer;
-        private readonly Client _wjClient;
         
-        [Reactive] public CompilerSettingsVM Settings { get; set; } = new();
         public ObservableCollection<FileTreeViewItem> Files { get; set; }
         public ICommand PrevCommand { get; set; }
 
         public CompilerFileManagerVM(ILogger<CompilerFileManagerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
             IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
-            CompilerSettingsInferencer inferencer, Client wjClient) : base(logger)
+            CompilerSettingsInferencer inferencer, Client wjClient) : base(dtos, settingsManager, logger, wjClient)
         {
-            _logger = logger;
-            _dtos = dtos;
-            _settingsManager = settingsManager;
             _serviceProvider = serviceProvider;
             _resourceMonitor = resourceMonitor;
             _inferencer = inferencer;
-            _wjClient = wjClient;
 
             MessageBus.Current.Listen<LoadCompilerSettings>()
                 .Subscribe(msg => {
@@ -152,6 +133,7 @@ namespace Wabbajack
             {
                 var fileTree = GetDirectoryContents(new DirectoryInfo(Settings.Source.ToString()));
                 Files = LoadFiles(new DirectoryInfo(Settings.Source.ToString()));
+
                 Disposable.Create(() => { }).DisposeWith(disposables);
             });
         }
@@ -202,11 +184,11 @@ namespace Wabbajack
                                 .Select(file => new FileTreeViewItem(file)));
         }
 
-        private void Header_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private async void Header_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            var updatedItem = (FileTreeItemVM)sender;
             if(e.PropertyName == nameof(FileTreeItemVM.SpecialFileState))
             {
-                var updatedItem = (FileTreeItemVM)sender;
                 IEnumerable<FileTreeViewItem> currentEnumerable = null;
                 for (int i = 0; i < updatedItem.PathRelativeToRoot.Depth - 1; i++)
                 {
@@ -217,6 +199,30 @@ namespace Wabbajack
                     currentItem.Header.SpecialFileState = updatedItem.CompilerFileState != CompilerFileState.AutoMatch;
                     currentEnumerable = (IEnumerable<FileTreeViewItem>)currentItem.ItemsSource;
                 }
+            }
+            else if(e.PropertyName == nameof(FileTreeItemVM.CompilerFileState))
+            {
+                Settings.NoMatchInclude.Remove(updatedItem.PathRelativeToRoot);
+                Settings.Include.Remove(updatedItem.PathRelativeToRoot);
+                Settings.Ignore.Remove(updatedItem.PathRelativeToRoot);
+                Settings.AlwaysEnabled.Remove(updatedItem.PathRelativeToRoot);
+
+                switch(updatedItem.CompilerFileState)
+                {
+                    case CompilerFileState.NoMatchInclude:
+                        Settings.NoMatchInclude.Add(updatedItem.PathRelativeToRoot);
+                        break;
+                    case CompilerFileState.Include:
+                        Settings.Include.Add(updatedItem.PathRelativeToRoot);
+                        break;
+                    case CompilerFileState.Ignore:
+                        Settings.Ignore.Add(updatedItem.PathRelativeToRoot);
+                        break;
+                    case CompilerFileState.AlwaysEnabled:
+                        Settings.AlwaysEnabled.Add(updatedItem.PathRelativeToRoot);
+                        break;
+                };
+                await SaveSettings();
             }
         }
 
@@ -245,32 +251,6 @@ namespace Wabbajack
         {
             NavigateToGlobal.Send(ScreenType.CompilerFileManager);
             LoadCompilerSettings.Send(Settings.ToCompilerSettings());
-        }
-
-        private async Task SaveSettingsFile()
-        {
-            if (Settings.Source == default || Settings.CompilerSettingsPath == default) return;
-
-            await using var st = Settings.CompilerSettingsPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-            await JsonSerializer.SerializeAsync(st, Settings.ToCompilerSettings(), _dtos.Options);
-
-            var allSavedCompilerSettings = await _settingsManager.Load<List<AbsolutePath>>(Consts.AllSavedCompilerSettingsPaths);
-
-            // Don't simply remove Settings.CompilerSettingsPath here, because WJ sometimes likes to make default compiler settings files
-            allSavedCompilerSettings.RemoveAll(path => path.Parent == Settings.Source);
-            allSavedCompilerSettings.Insert(0, Settings.CompilerSettingsPath);
-
-            await _settingsManager.Save(Consts.AllSavedCompilerSettingsPaths, allSavedCompilerSettings);
-        }
-
-        private async Task LoadLastSavedSettings()
-        {
-            AbsolutePath lastPath = default;
-            var allSavedCompilerSettings = await _settingsManager.Load<List<AbsolutePath>>(Consts.AllSavedCompilerSettingsPaths);
-            if (allSavedCompilerSettings.Any())
-                lastPath = allSavedCompilerSettings[0];
-
-            if (lastPath == default || !lastPath.FileExists() || lastPath.FileName.Extension != Ext.CompilerSettings) return;
         }
     }
 }
