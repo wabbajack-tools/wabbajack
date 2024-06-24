@@ -53,12 +53,14 @@ namespace Wabbajack
     {
         public FileTreeViewItem(DirectoryInfo dir)
         {
-            Header = new FileTreeItemVM(dir);
+            base.Header = new FileTreeItemVM(dir);
         }
         public FileTreeViewItem(FileInfo file)
         {
-            Header = new FileTreeItemVM(file);
+            base.Header = new FileTreeItemVM(file);
         }
+        public new FileTreeItemVM Header => base.Header as FileTreeItemVM;
+        public static FileTreeViewItem Placeholder => default;
     }
     public class FileTreeItemVM : ReactiveObject, IDisposable
     {
@@ -123,9 +125,8 @@ namespace Wabbajack
         private readonly Client _wjClient;
         
         [Reactive] public CompilerSettingsVM Settings { get; set; } = new();
-        public IEnumerable<TreeViewItem> Files { get; set; }
+        public ObservableCollection<FileTreeViewItem> Files { get; set; }
         public ICommand PrevCommand { get; set; }
-
 
         public CompilerFileManagerVM(ILogger<CompilerFileManagerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
             IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
@@ -161,7 +162,7 @@ namespace Wabbajack
             LoadCompilerSettings.Send(Settings.ToCompilerSettings());
         }
 
-        private IEnumerable<TreeViewItem> LoadFiles(DirectoryInfo parent)
+        private ObservableCollection<FileTreeViewItem> LoadFiles(DirectoryInfo parent)
         {
             var parentTreeItem = new FileTreeViewItem(parent)
             {
@@ -176,9 +177,9 @@ namespace Wabbajack
         {
             return parent.EnumerateDirectories()
                   .OrderBy(dir => dir.Name)
-                  .Select(dir => new FileTreeViewItem(dir) { ItemsSource = (dir.EnumerateDirectories().Any() || dir.EnumerateFiles().Any()) ? new ObservableCollection<TreeViewItem>([new TreeViewItem() { Header = "Loading..." }]) : null}).Select(item => {
+                  .Select(dir => new FileTreeViewItem(dir) { ItemsSource = (dir.EnumerateDirectories().Any() || dir.EnumerateFiles().Any()) ? new ObservableCollection<FileTreeViewItem>([FileTreeViewItem.Placeholder]) : null}).Select(item => {
                       item.Expanded += LoadingItem_Expanded;
-                      var header = (FileTreeItemVM)item.Header;
+                      var header = item.Header;
                       header.PathRelativeToRoot = ((AbsolutePath)header.Info.FullName).RelativeTo(Settings.Source);
                       if (Settings.NoMatchInclude.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.NoMatchInclude; }
                       else if(Settings.Include.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.Include; }
@@ -193,7 +194,7 @@ namespace Wabbajack
                           header.SpecialFileState = Settings.AlwaysEnabled.Any(p => header.PathRelativeToRoot.InFolder(p));
                           break;
                       }
-                      item.Header = header;
+                      header.PropertyChanged += Header_PropertyChanged;
                       return item;
                   })
                   .Concat(parent.EnumerateFiles()
@@ -201,13 +202,36 @@ namespace Wabbajack
                                 .Select(file => new FileTreeViewItem(file)));
         }
 
+        private void Header_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == nameof(FileTreeItemVM.SpecialFileState))
+            {
+                var updatedItem = (FileTreeItemVM)sender;
+                IEnumerable<FileTreeViewItem> currentEnumerable = null;
+                for (int i = 0; i < updatedItem.PathRelativeToRoot.Depth - 1; i++)
+                {
+                    if (currentEnumerable == null)
+                        currentEnumerable = ((IEnumerable<FileTreeViewItem>)Files.ElementAt(0).ItemsSource);
+
+                    var currentItem = currentEnumerable.First(x => x.Header.IsDirectory && updatedItem.PathRelativeToRoot.Parts[i] == x.Header.Info.Name);
+                    currentItem.Header.SpecialFileState = updatedItem.CompilerFileState != CompilerFileState.AutoMatch;
+                    currentEnumerable = (IEnumerable<FileTreeViewItem>)currentItem.ItemsSource;
+                }
+            }
+        }
+
         private void LoadingItem_Expanded(object sender, System.Windows.RoutedEventArgs e)
         {
             var parent = (FileTreeViewItem)e.OriginalSource;
-            var children = parent.ItemsSource.OfType<TreeViewItem>();
-            var firstChild = children.Any() ? children.First().Header : null;
-            if (firstChild != null && firstChild is string firstString && firstString == "Loading...")
-                parent.ItemsSource = LoadDirectoryContents((DirectoryInfo)((FileTreeItemVM)parent.Header).Info);
+            foreach(var child in parent.ItemsSource)
+            {
+                if (child == FileTreeViewItem.Placeholder)
+                {
+                    parent.ItemsSource = LoadDirectoryContents((DirectoryInfo)parent.Header.Info);
+                    break;
+                }
+                break;
+            }
         }
 
         private IEnumerable<FileSystemInfo> GetDirectoryContents(DirectoryInfo dir)
@@ -247,7 +271,6 @@ namespace Wabbajack
                 lastPath = allSavedCompilerSettings[0];
 
             if (lastPath == default || !lastPath.FileExists() || lastPath.FileName.Extension != Ext.CompilerSettings) return;
-            //ModlistLocation.TargetPath = lastPath;
         }
     }
 }

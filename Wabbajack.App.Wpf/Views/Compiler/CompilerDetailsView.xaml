@@ -51,10 +51,10 @@
                         <Setter Property="Margin" Value="0,0,0,6" />
                     </Style>
                 </StackPanel.Resources>
-                <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
-                <TextBox x:Name="AuthorNameSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="Author name..." />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Title" />
                 <TextBox x:Name="ModListNameSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="Modlist name..." />
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
+                <TextBox x:Name="AuthorNameSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="Author name..." />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Version" />
                 <TextBox x:Name="VersionSetting" MaxLength="9" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="1.0.0" />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
