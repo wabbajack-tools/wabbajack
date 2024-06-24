@@ -50,6 +50,13 @@
 
   <ItemGroup>
     <None Remove="Readme.md" />
+    <None Remove="Resources\Fonts\Atkinson-Hyperlegible-Italic-102.ttf" />
+    <None Remove="Resources\Fonts\Atkinson-Hyperlegible-Regular-102.ttf" />
+    <None Remove="Resources\Fonts\Gabarito-VariableFont_wght-BF651cdf1f55e6c.ttf" />
+    <None Remove="Resources\Fonts\PrimaryFont-Bold.ttf" />
+    <None Remove="Resources\Fonts\PrimaryFont-BoldItalic.ttf" />
+    <None Remove="Resources\Fonts\PrimaryFont-Italic.ttf" />
+    <None Remove="Resources\Fonts\PrimaryFont-Regular.ttf" />
     <None Remove="Resources\GameGridIcons\Fallout4.png" />
     <None Remove="Resources\GameGridIcons\SkyrimSpecialEdition.png" />
     <None Remove="Resources\Icons\middle_mouse_button.png" />
@@ -59,8 +66,14 @@
     <None Remove="Resources\Wabba_Mouth.png" />
     <None Remove="Resources\Wabba_Mouth_No_Text.png" />
     <None Remove="Resources\Wabba_Mouth_Small.png" />
-    <Compile Remove="View Models\Compilers\VortexCompilerVM.cs" />
-    <Compile Remove="View Models\Installers\VortexInstallerVM.cs" />
+    <Compile Remove="ViewModels\Compiler\VortexCompilerVM.cs" />
+    <Compile Remove="ViewModels\Installers\VortexInstallerVM.cs" />
+    <None Update="Resources\libwebp_x64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\libwebp_x86.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="VerbRegistration.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>VerbRegistration.cs</LastGenOutput>
@@ -78,6 +91,7 @@
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
     <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
+    <PackageReference Include="FluentIcons.WPF" Version="1.1.223" />
     <PackageReference Include="Fody" Version="6.8.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -87,8 +101,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MahApps.Metro" Version="2.4.10" />
+    <PackageReference Include="MahApps.Metro" Version="3.0.0-alpha0476" />
     <PackageReference Include="MahApps.Metro.IconPacks" Version="4.11.0" />
+    <PackageReference Include="MathConverter" Version="2.2.1" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.6" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
@@ -96,11 +111,13 @@
     <PackageReference Include="NLog.Extensions.Logging" Version="5.3.5" />
     <PackageReference Include="Orc.FileAssociation" Version="5.0.0" />
     <PackageReference Include="PInvoke.User32" Version="0.7.124" />
+    <PackageReference Include="ReactiveMarbles.ObservableEvents.SourceGenerator" Version="1.3.1" />
     <PackageReference Include="ReactiveUI" Version="19.5.1" />
     <PackageReference Include="ReactiveUI.Fody" Version="19.5.1" />
     <PackageReference Include="ReactiveUI.WPF" Version="19.5.1" />
     <PackageReference Include="Silk.NET.DXGI" Version="2.21.0" />
     <PackageReference Include="System.Reactive" Version="6.0.1-preview.1" />
+    <PackageReference Include="WPF-UI" Version="3.0.0-preview.9" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
   </ItemGroup>
 
@@ -110,6 +127,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\Fonts\Gabarito-VariableFont_wght-BF651cdf1f55e6c.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\middle_mouse_button.png" />
     <Resource Include="Resources\MO2Button.png" />
     <Resource Include="Resources\VortexButton.png" />

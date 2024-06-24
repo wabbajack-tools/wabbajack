@@ -115,13 +115,21 @@ namespace Wabbajack
                     this.Topmost = false;
                 };
 
-                ((MainWindowVM) DataContext).WhenAnyValue(vm => vm.OpenSettingsCommand)
-                    .BindTo(this, view => view.SettingsButton.Command);
+                ((MainWindowVM) DataContext).WhenAnyValue(vm => vm.MinimizeCommand)
+                    .BindTo(this, view => view.MinimizeButton.Command);
 
+                ((MainWindowVM) DataContext).WhenAnyValue(vm => vm.MaximizeCommand)
+                    .BindTo(this, view => view.MaximizeButton.Command);
+
+                ((MainWindowVM) DataContext).WhenAnyValue(vm => vm.CloseCommand)
+                    .BindTo(this, view => view.CloseButton.Command);
+
+                /*
                 ((MainWindowVM)DataContext).WhenAnyValue(vm => vm.Installer.InstallState)
                     .ObserveOn(RxApp.MainThreadScheduler)
                     .Select(v => v == InstallState.Installing ? Visibility.Collapsed : Visibility.Visible)
                     .BindTo(this, view => view.SettingsButton.Visibility);
+                */
 
             }
             catch (Exception ex)
@@ -132,7 +140,7 @@ namespace Wabbajack
 
             vm.WhenAnyValue(vm => vm.ResourceStatus)
                 .BindToStrict(this, view => view.ResourceUsage.Text);
-            vm.WhenAnyValue(vm => vm.AppName)
+            vm.WhenAnyValue(vm => vm.WindowTitle)
                 .BindToStrict(this, view => view.AppName.Text);
 
         }

@@ -56,7 +56,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Rectangle Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="2"
-            Fill="{StaticResource WindowBackgroundBrush}" />
+            Fill="{StaticResource WindowBackgroundBrush}"/>
         <Viewbox Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="2"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
@@ -75,7 +75,7 @@
             Padding="40,20"
             HorizontalAlignment="Left"
             VerticalAlignment="Bottom"
-            FontFamily="Lucida Sans"
+            FontFamily="{StaticResource PrimaryFont}"
             FontSize="65"
             FontWeight="Bold"
             Style="{StaticResource BackgroundBlurStyle}"
@@ -89,7 +89,7 @@
             Margin="35,-10,-10,10"
             Padding="30,10"
             HorizontalAlignment="Left"
-            FontFamily="Lucida Sans"
+            FontFamily="{StaticResource PrimaryFont}"
             FontSize="30"
             FontWeight="Bold"
             Style="{StaticResource BackgroundBlurStyle}"
@@ -105,7 +105,7 @@
             Margin="20,25,20,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Bottom"
-            FontFamily="Lucida Sans"
+            FontFamily="{StaticResource PrimaryFont}"
             FontSize="65"
             FontWeight="Bold"
             TextWrapping="WrapWithOverflow">
@@ -116,7 +116,7 @@
         <TextBlock Grid.Row="3" Grid.Column="0"
             x:Name="AuthorTextBlock"
             Margin="55,0,20,20"
-            FontFamily="Lucida Sans"
+            FontFamily="{StaticResource PrimaryFont}"
             FontSize="30"
             FontWeight="Bold"
             TextWrapping="Wrap">
@@ -126,36 +126,5 @@
             <Run FontSize="15" Text="by" />
             <Run x:Name="AuthorTextRun" />
         </TextBlock>
-        <TextBlock Grid.Row="2" Grid.RowSpan="2" Grid.Column="1"
-            x:Name="DescriptionTextShadow"
-            Margin="-10,15,-5,15"
-            Padding="30,10"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom"
-            FontFamily="Lucida Sans"
-            FontSize="16"
-            Style="{StaticResource BackgroundBlurStyle}"
-            TextAlignment="Right"
-            TextWrapping="Wrap">
-            <TextBlock.Effect>
-                <BlurEffect Radius="55" />
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Grid.Row="2" Grid.RowSpan="2" Grid.Column="1"
-            x:Name="DescriptionTextBlock"
-            Margin="20,25,25,25"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom"
-            FontFamily="Lucida Sans"
-            FontSize="16"
-            TextAlignment="Right"
-            TextWrapping="Wrap">
-            <TextBlock.Effect>
-                <DropShadowEffect />
-            </TextBlock.Effect>
-        </TextBlock>
-        <Rectangle Grid.Row="2" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
-            x:Name="TextHoverTrigger"
-            Fill="Transparent" />
     </Grid>
 </local:UserControlRx>

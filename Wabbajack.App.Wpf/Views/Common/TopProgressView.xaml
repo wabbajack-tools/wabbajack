@@ -78,7 +78,7 @@
                 Width="130"
                 Margin="0,0,0,0"
                 VerticalAlignment="Center"
-                FontFamily="Lucida Sans"
+                FontFamily="{StaticResource PrimaryFont}"
                 FontWeight="Black"
                 Foreground="{StaticResource ComplementaryBrush}"
                 TextAlignment="Right" />
@@ -89,7 +89,7 @@
                 x:Name="TitleText"
                 Margin="15,0,0,0"
                 VerticalAlignment="Center"
-                FontFamily="Lucida Sans"
+                FontFamily="{StaticResource PrimaryFont}"
                 FontSize="25"
                 FontWeight="Black" />
             <ContentControl Grid.Column="2" />

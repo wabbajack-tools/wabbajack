@@ -161,17 +161,18 @@ namespace Wabbajack
 
             services.AddTransient<MainWindow>();
             services.AddTransient<MainWindowVM>();
+            services.AddTransient<NavigationVM>();
             services.AddTransient<BrowserWindow>();
             services.AddSingleton<SystemParametersConstructor>();
             services.AddSingleton<LauncherUpdater>();
             services.AddSingleton<ResourceMonitor>();
             services.AddSingleton<WebView2>();
 
-            services.AddTransient<CompilerVM>();
-            services.AddTransient<InstallerVM>();
-            services.AddTransient<ModeSelectionVM>();
+            services.AddTransient<HomeVM>();
             services.AddTransient<ModListGalleryVM>();
-            services.AddTransient<CompilerVM>();
+            services.AddTransient<CompilerHomeVM>();
+            services.AddTransient<CompilerDetailsVM>();
+            services.AddTransient<CompilerFileManagerVM>();
             services.AddTransient<InstallerVM>();
             services.AddTransient<SettingsVM>();
             services.AddTransient<WebBrowserVM>();

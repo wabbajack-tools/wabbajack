@@ -24,7 +24,7 @@
                 <Style TargetType="Border">
                     <Setter Property="Opacity" Value="0.5" />
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding IsMouseOver, ElementName=BeginButton}" Value="True">
+                        <DataTrigger Binding="{Binding IsMouseOver, ElementName=BeginButtonPurpleGlow}" Value="True">
                             <Setter Property="Opacity" Value="0.8" />
                         </DataTrigger>
                     </Style.Triggers>
