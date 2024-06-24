@@ -1,10 +1,60 @@
 ### Changelog
 
-### Version - 4.0.0.0
-* The entire user interface has been reworked.
- * Modlists with WebP images now load correctly on Windows installations without the WebP image extensions
- * The search functionality has been improved to better show relevant searches on list titles
-#### Version - 3.3.1.0 - TBA
+#### Version - 3.6.2.0 - TBD
+* Updated GameFinder dependency
+* Updated WebView dependency
+* Updated other dependencies
+
+#### Version - 3.6.1.1 - 5/30/2024
+* Fixed `set-nexus-api-key` CLI command
+* Fixed other issues related to OAuth
+
+#### Version - 3.6.1.0 - 5/26/2024
+* Fixed a race condition on renewing Nexus Mods OAuth2 tokens
+* Added `set-nexus-api-key` CLI command
+* Added Starfield meta data
+* Added Fallout New Vegas Epic Games metadata
+
+#### Version - 3.6.0.0 - 5/25/2024
+* Wabbajack now uses OAuth2 for Nexus Mods logins
+* Support for DirectURL use with LL files
+
+#### Version - 3.5.0.2 - 5/21/2024
+* *HOTFIX* - change how we log into Nexus Mods. We still need to rewrite this on
+  Oauth2, but this should fix the current issues we have, and get people back up and running
+
+#### Version - 3.5.0.1 - 1/15/2024
+* *HOTFIX* - change the cache file names so files will be auto-rehashed
+
+#### Version - 3.5.0.0 - 1/15/2024
+* Fixed a *long* standing bug with the BSA reader. This problem has existed for at least 4 years, but was never seen
+  till now. The latest Skyrim updates exposed the error. If a file inside a BSA was compressed and the compressed file
+  size was *exactly* the same as the uncompressed file, WJ would not decompress the file and instead write out the raw
+  LZ4 data. This would caus a ton of issues all throughout the app. 
+* Modlist Authors: Delete your VFS cache, hash cache, and recompile your list from scratch. This will ensure that all
+  files are properly decompressed and properly reindexed. 
+
+#### Version - 3.4.2.0 - 1/14/2024
+* Updated GameFinder to 4.1.0
+  * Fixes Wabbajack not Launching on some systems
+* Added the GameFinder module for EA Desktop
+  * Only `Dragon Age: Origins` & `Dragon Age: Inquisition` supported for now.
+  * For other games we still need to collect the right store IDs
+* Fixed Final Fantasy 7: Remake Intergrade meta data
+* Fixed new WebView2 instances being created constantly causing a memory leak
+* Fixed the Nexus API key no longer being picked up when logging in
+* Fixed Baldur's Gate 3 having to be named 'badlursgate3' instead of 'baldursgate3' when defining a modlist JSON
+* Fixed wabbajack-cli.bat pointing to the wrong CLI executable path
+
+#### Version - 3.4.1.0 - 12/21/2023
+* Added Support for Final Fantasy 7: Remake Intergrade
+* Update CLI to .NET 8.0 (was missed in the last update)
+* Added Support for Baldur's Gate 3 
+  * Very Work in Progress
+  * **NOT** Plug and Play for compiling and installing!
+* Fixed a logging error when closing the App without a `temp` folder to delete
+
+#### Version - 3.4.0.0 - 11/19/2023
 * Fixed `--outputPath` not being used for the CLI `compile` (thanks to @majcosta for fixing that)
 * Improved Log message for cases where low storage on the drive Wabbajack is installed on causes compiles to fail
   * **To list authors still compiling on Wabbajack 3.0.5.0:**  
@@ -15,6 +65,8 @@
 * Updated Dependencies
   * LZ4 to version 1.3.7-beta
   * SharpZipLib to version 1.4.2
+* Fully upgraded to .NET 8.0
+* Fixed the WebView2 based browser window to no longer crash the application when closed
 
 #### Version - 3.3.0.1 - (Was only a Pre-Release)
 * Fixed Manual Downloading on NexusMods being blocked by a hidden cookie consent banner

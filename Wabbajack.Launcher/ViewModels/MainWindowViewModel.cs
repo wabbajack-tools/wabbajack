@@ -32,9 +32,9 @@ public class MainWindowViewModel : ViewModelBase
     public Uri GITHUB_REPO = new("https://api.github.com/repos/wabbajack-tools/wabbajack/releases");
     private readonly NexusApi _nexusApi;
     private readonly HttpDownloader _downloader;
-    private readonly ITokenProvider<NexusApiState> _tokenProvider;
+    private readonly ITokenProvider<NexusOAuthState> _tokenProvider;
 
-    public MainWindowViewModel(NexusApi nexusApi, HttpDownloader downloader, ITokenProvider<NexusApiState> tokenProvider)
+    public MainWindowViewModel(NexusApi nexusApi, HttpDownloader downloader, ITokenProvider<NexusOAuthState> tokenProvider)
     {
         _nexusApi = nexusApi;
         Status = "Checking for new versions";
@@ -303,10 +303,13 @@ public class MainWindowViewModel : ViewModelBase
     {
         try
         {
-            filename = filename.Parent.Combine("wabbajack-cli.exe");
+            filename = filename.Parent.Combine("cli", "wabbajack-cli.exe");
             var data = $"\"{filename}\" %*";
             var file = Path.Combine(Directory.GetCurrentDirectory(), "wabbajack-cli.bat");
             if (File.Exists(file) && await File.ReadAllTextAsync(file) == data) return;
+            var parent = Directory.GetParent(file).FullName;
+            if (!Directory.Exists(file))
+                Directory.CreateDirectory(parent);
             await File.WriteAllTextAsync(file, data);
         }
         catch (Exception ex)

@@ -52,4 +52,8 @@ public enum Game
     [Description("Mount & Blade II: Bannerlord")] MountAndBlade2Bannerlord,
     [Description("Valheim")]Valheim,
     [Description("Modding Tools")] ModdingTools,
+
+    [Description("Final Fantasy VII Remake")] FinalFantasy7Remake,
+    [Description("Baldur's Gate 3")] BaldursGate3,
+    [Description("Starfield")] Starfield
 }

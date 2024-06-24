@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Logins;
+using Wabbajack.DTOs.OAuth;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi.DTOs;
@@ -28,14 +30,15 @@ public class NexusApi
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly IResource<HttpClient> _limiter;
     private readonly ILogger<NexusApi> _logger;
-    public readonly ITokenProvider<NexusApiState> ApiKey;
+    public readonly ITokenProvider<NexusOAuthState> AuthInfo;
     private DateTime _lastValidated;
     private (ValidateInfo info, ResponseMetadata header) _lastValidatedInfo; 
+    private AsyncLock _authLock = new();
 
-    public NexusApi(ITokenProvider<NexusApiState> apiKey, ILogger<NexusApi> logger, HttpClient client,
+    public NexusApi(ITokenProvider<NexusOAuthState> authInfo, ILogger<NexusApi> logger, HttpClient client,
         IResource<HttpClient> limiter, ApplicationInfo appInfo, JsonSerializerOptions jsonOptions)
     {
-        ApiKey = apiKey;
+        AuthInfo = authInfo;
         _logger = logger;
         _client = client;
         _appInfo = appInfo;
@@ -48,8 +51,27 @@ public class NexusApi
     public virtual async Task<(ValidateInfo info, ResponseMetadata header)> Validate(
         CancellationToken token = default)
     {
-        var msg = await GenerateMessage(HttpMethod.Get, Endpoints.Validate);
-        return await Send<ValidateInfo>(msg, token);
+        var (isApi, code) = await GetAuthInfo();
+
+        if (isApi)
+        {
+            var msg = await GenerateMessage(HttpMethod.Get, Endpoints.Validate);
+            _lastValidatedInfo = await Send<ValidateInfo>(msg, token);
+        }
+        else
+        {
+            var msg = await GenerateMessage(HttpMethod.Get, Endpoints.OAuthValidate);
+            var (data, header) = await Send<OAuthUserInfo>(msg, token);
+            var validateInfo = new ValidateInfo
+            {
+                IsPremium = data.MembershipRoles.Contains("premium"),
+                Name = data.Name,
+            };
+            _lastValidatedInfo = (validateInfo, header);
+        }
+
+        _lastValidated = DateTime.Now;
+        return _lastValidatedInfo;
     }
     
     public async Task<(ValidateInfo info, ResponseMetadata header)> ValidateCached(
@@ -60,8 +82,8 @@ public class NexusApi
             return _lastValidatedInfo;
         }
 
-        var msg = await GenerateMessage(HttpMethod.Get, Endpoints.Validate);
-        _lastValidatedInfo = await Send<ValidateInfo>(msg, token);
+        await Validate(token);
+
         return _lastValidatedInfo;
     }
 
@@ -172,18 +194,90 @@ public class NexusApi
         var userAgent =
             $"{_appInfo.ApplicationSlug}/{_appInfo.Version} ({_appInfo.OSVersion}; {_appInfo.Platform})";
 
-        if (!ApiKey.HaveToken())
-            throw new Exception("Please log into the Nexus before attempting to use Wabbajack");
+        await AddAuthHeaders(msg);
         
-        var token = (await ApiKey.Get())!;
+        if (uri.StartsWith("http"))
+        {
+            msg.RequestUri = new Uri($"{string.Format(uri, parameters)}");
+        }
+        else
+        {
+            msg.RequestUri = new Uri($"https://api.nexusmods.com/{string.Format(uri, parameters)}");
+        }
 
-        msg.RequestUri = new Uri($"https://api.nexusmods.com/{string.Format(uri, parameters)}");
         msg.Headers.Add("User-Agent", userAgent);
         msg.Headers.Add("Application-Name", _appInfo.ApplicationSlug);
         msg.Headers.Add("Application-Version", _appInfo.Version);
-        msg.Headers.Add("apikey", token.ApiKey);
+        
+
         msg.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         return msg;
+    }
+    
+    private async ValueTask AddAuthHeaders(HttpRequestMessage msg)
+    {
+        var (isApi, code) = await GetAuthInfo();
+        if (string.IsNullOrWhiteSpace(code))
+            throw new Exception("No API Key or OAuth Token found for NexusMods");
+        
+        if (isApi)
+            msg.Headers.Add("apikey", code);
+        else
+        {
+            msg.Headers.Authorization = new AuthenticationHeaderValue("Bearer", code);
+        }
+
+    }
+
+    private async ValueTask<(bool IsApiKey, string code)> GetAuthInfo()
+    {
+        using var _ = await _authLock.WaitAsync();
+        if (AuthInfo.HaveToken())
+        {
+            var info = await AuthInfo.Get();
+            if (info!.OAuth != null)
+            {
+                if (info!.OAuth.IsExpired)
+                    info = await RefreshToken(info, CancellationToken.None);
+                return (false, info.OAuth!.AccessToken!);
+            }
+            if (!string.IsNullOrWhiteSpace(info.ApiKey))
+            {
+                return (true, info.ApiKey);
+            }
+        }
+        else
+        {
+            if (Environment.GetEnvironmentVariable("NEXUS_API_KEY") is { } apiKey)
+            {
+                return (true, apiKey);
+            }
+        }
+
+        return default;
+    }
+    
+    private async Task<NexusOAuthState> RefreshToken(NexusOAuthState state, CancellationToken cancel)
+    {
+        _logger.LogInformation("Refreshing OAuth Token");
+        var request = new Dictionary<string, string>
+        {
+            { "grant_type", "refresh_token" },
+            { "client_id", "wabbajack" },
+            { "refresh_token", state.OAuth!.RefreshToken },
+        };
+
+        var content = new FormUrlEncodedContent(request);
+
+        var response = await _client.PostAsync($"https://users.nexusmods.com/oauth/token", content, cancel);
+        var responseString = await response.Content.ReadAsStringAsync(cancel);
+        var newJwt = JsonSerializer.Deserialize<JwtTokenReply>(responseString);
+        if (newJwt != null) 
+            newJwt.ReceivedAt = DateTime.UtcNow.ToFileTimeUtc();
+        
+        state.OAuth = newJwt;
+        await AuthInfo.SetToken(state);
+        return state;
     }
 
     public async Task<(UpdateEntry[], ResponseMetadata headers)> GetUpdates(Game game, CancellationToken token)
@@ -274,7 +368,7 @@ public class NexusApi
     private async Task CheckAccess()
     {
         var msg = new HttpRequestMessage(HttpMethod.Get, "https://www.nexusmods.com/users/myaccount");
-        msg.AddCookies((await ApiKey.Get())!.Cookies);
+        throw new NotSupportedException("Uploading to NexusMods is currently disabled");
         using var response = await _client.SendAsync(msg);
         var body = await response.Content.ReadAsStringAsync();
 
@@ -292,7 +386,7 @@ public class NexusApi
             new Uri(
                 $"https://www.nexusmods.com/{d.Game.MetaData().NexusName}/mods/edit/?id={d.ModId}&game_id={d.GameId}&step=files");
         
-        msg.AddCookies((await ApiKey.Get())!.Cookies);
+        throw new NotSupportedException("Uploading to NexusMods is currently disabled");
         var form = new MultipartFormDataContent();
         form.Add(new StringContent(d.GameId.ToString()), "game_id");
         form.Add(new StringContent(d.Name), "name");
@@ -330,6 +424,7 @@ public class NexusApi
             await Task.Delay(TimeSpan.FromSeconds(5));
         }
     }
+    
 
     public async Task<bool> IsPremium(CancellationToken token)
     {

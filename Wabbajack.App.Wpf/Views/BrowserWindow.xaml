@@ -23,7 +23,7 @@
                  WindowTitleBrush="{StaticResource MahApps.Brushes.Accent}"
                  ContentRendered="BrowserWindow_OnActivated"
                  mc:Ignorable="d">
-    <Grid  Background="{StaticResource BackgroundBrush}" MouseDown="UIElement_OnMouseDown">
+    <Grid x:Name="MainGrid" Background="{StaticResource BackgroundBrush}" MouseDown="UIElement_OnMouseDown">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
@@ -36,9 +36,9 @@
             <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Row="0" Margin="4, 0, 0, 0"  Grid.ColumnSpan="3" FontSize="16" Name="Header"></TextBlock>
-        
+
         <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Margin="4" FontSize="20" FontWeight="Bold" Name="Instructions"></TextBlock>
-        
+
         <Button Grid.Row="2" Grid.Column="0" Margin="4" Name="BackButton">
             <icon:PackIconModern Kind="NavigatePrevious"></icon:PackIconModern>
         </Button>
@@ -46,8 +46,5 @@
             <icon:PackIconModern Kind="PageCopy"></icon:PackIconModern>
         </Button>
         <TextBox  Grid.Row="2" Grid.Column="3" Margin="4" VerticalContentAlignment="Center" Name="AddressBar" IsEnabled="False"></TextBox>
-        
-        <wpf:WebView2 Grid.Row="3" Grid.ColumnSpan="3" Name="Browser"></wpf:WebView2>
-        
     </Grid>
 </mahapps:MetroWindow>

@@ -77,6 +77,7 @@ public static class GameRegistry
                 MO2ArchiveName = "falloutnv",
                 SteamIDs = new[] {22380, 22490}, // normal and RU version
                 GOGIDs = new long[] {1454587428},
+                EpicGameStoreIDs = new[] {"dabb52e328834da7bbe99691e374cb84"},
                 RequiredFiles = new[]
                 {
                     "FalloutNV.exe".ToRelativePath()
@@ -376,6 +377,22 @@ public static class GameRegistry
                 MO2Name = "Dragon Age: Origins",
                 SteamIDs = new[] {47810},
                 OriginIDs = new[] {"DR:169789300", "DR:208591800"},
+                EADesktopIDs = new [] // Possibly Wrong
+                {
+                    "9df89a8e-b201-4507-8a8d-bd6799fedb18",
+                    "Origin.SFT.50.0000078", 
+                    "Origin.SFT.50.0000078",
+                    "Origin.SFT.50.0000078",
+                    "Origin.SFT.50.0000085",
+                    "Origin.SFT.50.0000086",
+                    "Origin.SFT.50.0000087",
+                    "Origin.SFT.50.0000088",
+                    "Origin.SFT.50.0000089",
+                    "Origin.SFT.50.0000090",
+                    "Origin.SFT.50.0000091",
+                    "Origin.SFT.50.0000097",
+                    "Origin.SFT.50.0000098"
+                },
                 GOGIDs = new long[] {1949616134},
                 RequiredFiles = new[]
                 {
@@ -394,6 +411,22 @@ public static class GameRegistry
                 MO2Name = "Dragon Age 2", // Probably wrong
                 SteamIDs = new[] {1238040},
                 OriginIDs = new[] {"OFB-EAST:59474", "DR:201797000"},
+                EADesktopIDs = new [] // Possibly Wrong
+                {
+                    "Origin.SFT.50.0000073",
+                    "Origin.SFT.50.0000255",
+                    "Origin.SFT.50.0000256",
+                    "Origin.SFT.50.0000257",
+                    "Origin.SFT.50.0000288",
+                    "Origin.SFT.50.0000310",
+                    "Origin.SFT.50.0000311",
+                    "Origin.SFT.50.0000356",
+                    "Origin.SFT.50.0000385",
+                    "Origin.SFT.50.0000429",
+                    "Origin.SFT.50.0000449",
+                    "Origin.SFT.50.0000452",
+                    "Origin.SFT.50.0000453"
+                },
                 RequiredFiles = new[]
                 {
                     @"bin_ship\DragonAge2.exe".ToRelativePath()
@@ -562,6 +595,58 @@ public static class GameRegistry
                 },
                 MainExecutable = @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath(),
                 IconSource = "https://cdn2.steamgriddb.com/icon/811cf46d61c9ae564bf7fa4b5ac639b.png"
+            }
+        },
+        {
+            Game.FinalFantasy7Remake, new GameMetaData
+            {
+                Game = Game.FinalFantasy7Remake,
+                NexusName = "finalfantasy7remake",
+                NexusGameId = 4202,
+                MO2Name = "FINAL FANTASY VII REMAKE INTERGRADE",
+                MO2ArchiveName = "finalfantasy7remake",
+                SteamIDs = new[] { 1462040 },
+                IsGenericMO2Plugin = true,
+                RequiredFiles = new []
+                {
+                    @"End\Binaries\Win64\ff7remake_.exe".ToRelativePath(),
+                    @"ff7remake_.exe".ToRelativePath()
+                },
+                MainExecutable = @"End\Binaries\Win64\ff7remake_.exe".ToRelativePath()
+            }
+        },
+        {
+            Game.BaldursGate3, new GameMetaData
+            {
+                Game = Game.BaldursGate3,
+                NexusName = "baldursgate3",
+                NexusGameId = 3474,
+                MO2Name = "Baldur's Gate 3",
+                MO2ArchiveName = "baldursgate3",
+                SteamIDs = [1086940],
+                GOGIDs = [1456460669],
+                IsGenericMO2Plugin = true,
+                RequiredFiles = new []
+                {
+                    @"bin/bg3.exe".ToRelativePath()
+                },
+                MainExecutable = @"bin/bg3.exe".ToRelativePath()
+            }
+        },
+        {
+            Game.Starfield, new GameMetaData
+            {
+                Game = Game.Starfield,
+                NexusName = "starfield",
+                NexusGameId = 4187,
+                MO2Name = "Starfield",
+                MO2ArchiveName = "Starfield",
+                SteamIDs = [1716740],
+                RequiredFiles = new []
+                {
+                    @"Starfield.exe".ToRelativePath()
+                },
+                MainExecutable = @"Starfield.exe".ToRelativePath()
             }
         },
         {

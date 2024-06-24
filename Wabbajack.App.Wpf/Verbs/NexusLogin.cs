@@ -25,7 +25,7 @@ public class NexusLogin
     public async Task<int> Run(CancellationToken token)
     {
         var tcs = new TaskCompletionSource<int>();
-        var view = new BrowserWindow();
+        var view = new BrowserWindow(_services);
         view.Closed += (sender, args) => { tcs.TrySetResult(0); };
         var provider = _services.GetRequiredService<NexusLoginHandler>();
         view.DataContext = provider;

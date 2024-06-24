@@ -159,7 +159,6 @@ namespace Wabbajack
                     Filters.Connect().QueryWhenChanged(),
                 resultSelector: (target, type, checkOption, query) =>
                 {
-                    Console.WriteLine("fff");
                     switch (type)
                     {
                         case PathTypeOptions.Either:

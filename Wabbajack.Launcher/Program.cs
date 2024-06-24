@@ -1,22 +1,26 @@
 ﻿using System;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.ReactiveUI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Wabbajack.Common;
+using Wabbajack.Configuration;
 using Wabbajack.Downloaders.Http;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Logins;
-using Wabbajack.Launcher.Models;
 using Wabbajack.Launcher.ViewModels;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
+using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 
 namespace Wabbajack.Launcher;
@@ -36,9 +40,23 @@ internal class Program
                 services.AddNexusApi();
                 services.AddDTOConverters();
                 services.AddDTOSerializer();
+                
+                services.AddSingleton(s => new Services.OSIntegrated.Configuration
+                {
+                    EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
+                    ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
+                    SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings"),
+                    LogLocation = KnownFolders.LauncherAwarePath.Combine("logs"),
+                    ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
+                });
+                
+                services.AddSingleton<SettingsManager>();
+                services.AddSingleton<ResourceSettingsManager>();
+                services.AddSingleton<MainSettings>(s => GetAppSettings(s, MainSettings.SettingsFileName));
+                
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddSingleton<HttpClient>();
-                services.AddSingleton<ITokenProvider<NexusApiState>, NexusApiTokenProvider>();
+                services.AddSingleton<ITokenProvider<NexusOAuthState>, NexusApiTokenProvider>();
                 services.AddSingleton<HttpDownloader>();
                 services.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", 4));
                 services.AddAllSingleton<IHttpDownloader, SingleThreadedDownloader>();
@@ -62,6 +80,19 @@ internal class Program
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
     }
+
+    private static MainSettings GetAppSettings(IServiceProvider provider, string name)
+    {
+        var settingsManager = provider.GetRequiredService<SettingsManager>();
+        var settings = Task.Run(() => settingsManager.Load<MainSettings>(name)).Result;
+        if (settings.Upgrade())
+        {
+            settingsManager.Save(MainSettings.SettingsFileName, settings).FireAndForget();
+        }
+
+        return settings;
+    }
+
     public static IServiceProvider Services { get; set; }
 
     // Avalonia configuration, don't remove; also used by visual designer.

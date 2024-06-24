@@ -40,9 +40,9 @@ public class Startup
 
         // Keep this fixed at 2 so that we can detect deadlocks in the VFS parallelOptions
         service.AddSingleton(new ParallelOptions {MaxDegreeOfParallelism = 2});
-        service.AddSingleton(new FileHashCache(KnownFolders.EntryPoint.Combine("hashcache.sqlite"),
+        service.AddSingleton(new FileHashCache(KnownFolders.EntryPoint.Combine("hashcache_2.sqlite"),
             new Resource<FileHashCache>("File Hashing", 10)));
-        service.AddAllSingleton<IVfsCache, VFSDiskCache>(x => new VFSDiskCache(KnownFolders.EntryPoint.Combine("vfscache.sqlite")));
+        service.AddAllSingleton<IVfsCache, VFSDiskCache>(x => new VFSDiskCache(KnownFolders.EntryPoint.Combine("vfscache_2.sqlite")));
         service.AddTransient<Context>();
         service.AddSingleton<FileExtractor.FileExtractor>();
     }

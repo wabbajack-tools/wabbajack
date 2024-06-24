@@ -5,10 +5,10 @@ using Wabbajack.Networking.NexusApi;
 
 namespace Wabbajack.Services.OSIntegrated.TokenProviders;
 
-public class NexusApiTokenProvider : EncryptedJsonTokenProvider<NexusApiState>, ApiKey
+public class NexusApiTokenProvider : EncryptedJsonTokenProvider<NexusOAuthState>, IAuthInfo
 {
     public NexusApiTokenProvider(ILogger<NexusApiTokenProvider> logger, DTOSerializer dtos) : base(logger, dtos,
-        "nexus-login")
+        "nexus-oauth-info")
     {
     }
 }

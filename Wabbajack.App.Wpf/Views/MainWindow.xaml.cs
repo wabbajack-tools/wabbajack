@@ -52,26 +52,25 @@ namespace Wabbajack
                     // Cleaning the temp folder when the app closes since it can take up multiple Gigabytes of Storage
                     var tempDirectory = Environment.CurrentDirectory + "\\temp";
                     _logger.LogInformation("Clearing {TempDir}",tempDirectory);
+                    var directoryInfo = new DirectoryInfo(tempDirectory);
                     try
                     {
-                        var directoryInfo = new DirectoryInfo(tempDirectory);
-                        
                         foreach (var file in directoryInfo.EnumerateFiles())
                         {
-                            file.Delete(); 
+                            file.Delete();
                         }
+
                         foreach (var dir in directoryInfo.EnumerateDirectories())
                         {
-                            dir.Delete(true); 
+                            dir.Delete(true);
                         }
-                        
-                        _logger.LogInformation("Finished clearing {TempDir}",tempDirectory);
+
+                        _logger.LogInformation("Finished clearing {TempDir}", tempDirectory);
                     }
-                    catch (Exception ex)
+                    catch (DirectoryNotFoundException)
                     {
-                        _logger.LogError(ex,"Failed clearing {TempDir}",tempDirectory);
+                        _logger.LogInformation("Unable to find {TempDir}", tempDirectory);
                     }
-                    
                     
                     Application.Current.Shutdown();
                 };

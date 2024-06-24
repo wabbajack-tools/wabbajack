@@ -91,7 +91,7 @@ public class FileRecord : IFile
 
         if (BSA.HeaderType == VersionType.SSE)
         {
-            if (Compressed && size.Size != size.OnDisk)
+            if (Compressed)
             {
                 await using var r = LZ4Stream.Decode(rdr.BaseStream);
                 await r.CopyToLimitAsync(output, (int) size.Original, token).ConfigureAwait(false);

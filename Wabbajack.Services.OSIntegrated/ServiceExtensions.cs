@@ -65,14 +65,14 @@ public static class ServiceExtensions
         service.AddSingleton(s => options.UseLocalCache
             ? new FileHashCache(s.GetService<TemporaryFileManager>()!.CreateFile().Path,
                 s.GetService<IResource<FileHashCache>>()!)
-            : new FileHashCache(KnownFolders.AppDataLocal.Combine("Wabbajack", "GlobalHashCache.sqlite"),
+            : new FileHashCache(KnownFolders.AppDataLocal.Combine("Wabbajack", "GlobalHashCache2.sqlite"),
                 s.GetService<IResource<FileHashCache>>()!));
 
         service.AddSingleton<IVfsCache>(s =>
         {
             var diskCache = options.UseLocalCache
                 ? new VFSDiskCache(s.GetService<TemporaryFileManager>()!.CreateFile().Path)
-                : new VFSDiskCache(KnownFolders.WabbajackAppLocal.Combine("GlobalVFSCache4.sqlite"));
+                : new VFSDiskCache(KnownFolders.WabbajackAppLocal.Combine("GlobalVFSCache5.sqlite"));
             var cesiCache = new CesiVFSCache(s.GetRequiredService<ILogger<CesiVFSCache>>(),
                 s.GetRequiredService<Client>());
             return new FallthroughVFSCache(new IVfsCache[] {diskCache});
@@ -92,7 +92,7 @@ public static class ServiceExtensions
                     TimeSpan.FromDays(1),
                     dtos)
                 : new VerificationCache(s.GetRequiredService<ILogger<VerificationCache>>(),
-                    KnownFolders.WabbajackAppLocal.Combine("VerificationCacheV2.sqlite"),
+                    KnownFolders.WabbajackAppLocal.Combine("VerificationCacheV3.sqlite"),
                     TimeSpan.FromDays(1),
                     dtos);
         });
@@ -166,7 +166,7 @@ public static class ServiceExtensions
         service.AddBethesdaNet();
 
         // Token Providers
-        service.AddAllSingleton<ITokenProvider<NexusApiState>, EncryptedJsonTokenProvider<NexusApiState>, NexusApiTokenProvider>();
+        service.AddAllSingleton<ITokenProvider<NexusOAuthState>, EncryptedJsonTokenProvider<NexusOAuthState>, NexusApiTokenProvider>();
         service.AddAllSingleton<ITokenProvider<MegaToken>, EncryptedJsonTokenProvider<MegaToken>, MegaTokenProvider>();
         
         service.AddAllSingleton<ITokenProvider<BethesdaNetLoginState>, EncryptedJsonTokenProvider<BethesdaNetLoginState>, BethesdaNetTokenProvider>();

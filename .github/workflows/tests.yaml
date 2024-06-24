@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  VERSION: 3.0.6.2
+  VERSION: 3.6.0.0
 
 jobs:
   build:
@@ -23,7 +23,7 @@ jobs:
     
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest]
 
     steps:
       - uses: actions/checkout@v2
@@ -38,18 +38,6 @@ jobs:
           dotnet-version: '8.0.x'
           include-prerelease: true
           
-      - name: Setup .NET Core SDK 7.0.x
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '7.0.x'
-          include-prerelease: true
-          
-      - name: Setup .NET Core SDK 6.0.x
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '6.0.x'
-          include-prerelease: true
-
       - name: Test
         run: dotnet test /p:EnableWindowsTargeting=true --filter "Category!=FlakeyNetwork"
         
@@ -71,6 +59,7 @@ jobs:
           - Wabbajack.Compiler
           - Wabbajack.Compression.BSA
           - Wabbajack.Compression.Zip
+          - Wabbajack.Configuration
           - Wabbajack.Downloaders.Bethesda
           - Wabbajack.Downloaders.Dispatcher
           - Wabbajack.Downloaders.GameFile
@@ -83,6 +72,7 @@ jobs:
           - Wabbajack.Downloaders.Mega
           - Wabbajack.Downloaders.ModDB
           - Wabbajack.Downloaders.Nexus
+          - Wabbajack.Downloaders.VerificationCache
           - Wabbajack.Downloaders.WabbajackCDN
           - Wabbajack.DTOs
           - Wabbajack.FileExtractor
@@ -109,10 +99,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Setup .NET Core SDK 6.0.x
+      - name: Setup .NET Core SDK 8.0.x
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '7.0.x'
+          dotnet-version: '8.0.x'
           include-prerelease: true      
 
       - name: Restore

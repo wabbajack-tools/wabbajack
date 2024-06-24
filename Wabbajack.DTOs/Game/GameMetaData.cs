@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices.JavaScript;
 using Wabbajack.Paths;
 
 namespace Wabbajack.DTOs;
@@ -28,6 +29,8 @@ public class GameMetaData
     // So for DA:O this is "DR208591800.mfst" -> "DR:208591800"
     // EAPlay games may have @subscription appended to the file name
     public string[] OriginIDs { get; set; } = Array.Empty<string>();
+
+    public string[] EADesktopIDs { get; set; } = Array.Empty<string>();
 
     public string[] EpicGameStoreIDs { get; internal init; } = Array.Empty<string>();
 

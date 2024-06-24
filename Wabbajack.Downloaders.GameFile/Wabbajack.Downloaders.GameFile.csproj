@@ -18,10 +18,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="GameFinder.StoreHandlers.EGS" Version="4.0.0" />
-        <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="4.0.0" />
-        <PackageReference Include="GameFinder.StoreHandlers.Origin" Version="4.0.0" />
-        <PackageReference Include="GameFinder.StoreHandlers.Steam" Version="4.0.0" />
+        <PackageReference Include="GameFinder.StoreHandlers.EADesktop" Version="4.2.2" />
+        <PackageReference Include="GameFinder.StoreHandlers.EGS" Version="4.2.2" />
+        <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="4.2.2" />
+        <PackageReference Include="GameFinder.StoreHandlers.Origin" Version="4.2.2" />
+        <PackageReference Include="GameFinder.StoreHandlers.Steam" Version="4.2.2" />
     </ItemGroup>
 
 </Project>
