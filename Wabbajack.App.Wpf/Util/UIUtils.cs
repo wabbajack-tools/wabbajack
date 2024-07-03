@@ -19,7 +19,6 @@ using Wabbajack.Extensions;
 using Wabbajack.Models;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using System.Linq;
 
 namespace Wabbajack
 {
