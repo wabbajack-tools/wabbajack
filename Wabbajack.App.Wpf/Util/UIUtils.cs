@@ -19,6 +19,7 @@ using Wabbajack.Extensions;
 using Wabbajack.Models;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using System.Linq;
 
 namespace Wabbajack
 {
@@ -66,9 +67,15 @@ namespace Wabbajack
 
         public static void OpenFolder(AbsolutePath path)
         {
+            String folderPath = path.ToString();
+            if (!folderPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
+            {
+                folderPath += Path.DirectorySeparatorChar.ToString();
+            }
+
             Process.Start(new ProcessStartInfo()
             {
-                FileName = path.ToString(),
+                FileName = folderPath,
                 UseShellExecute = true,
                 Verb = "open"
             });

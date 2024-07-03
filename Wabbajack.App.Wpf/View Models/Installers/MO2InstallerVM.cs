@@ -77,7 +77,7 @@ namespace Wabbajack
 
         public void AfterInstallNavigation()
         {
-            Process.Start("explorer.exe", Location.TargetPath.ToString());
+            UIUtils.OpenFolder(Location.TargetPath);
         }
 
         public async Task<bool> Install()
