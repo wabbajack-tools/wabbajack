@@ -66,7 +66,7 @@ namespace Wabbajack
 
         public static void OpenFolder(AbsolutePath path)
         {
-            String folderPath = path.ToString();
+            string folderPath = path.ToString();
             if (!folderPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
             {
                 folderPath += Path.DirectorySeparatorChar.ToString();
