@@ -56,7 +56,6 @@ namespace Wabbajack
             }
         }
         
-        
         public static void OpenWebsite(Uri url)
         {
             Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url}")
@@ -64,15 +63,22 @@ namespace Wabbajack
                 CreateNoWindow = true,
             });
         }
-        
+
         public static void OpenFolder(AbsolutePath path)
         {
-            Process.Start(new ProcessStartInfo(KnownFolders.Windows.Combine("explorer.exe").ToString(), path.ToString())
+            string folderPath = path.ToString();
+            if (!folderPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
             {
-                CreateNoWindow = true,
+                folderPath += Path.DirectorySeparatorChar.ToString();
+            }
+
+            Process.Start(new ProcessStartInfo()
+            {
+                FileName = folderPath,
+                UseShellExecute = true,
+                Verb = "open"
             });
         }
-
 
         public static AbsolutePath OpenFileDialog(string filter, string initialDirectory = null)
         {
