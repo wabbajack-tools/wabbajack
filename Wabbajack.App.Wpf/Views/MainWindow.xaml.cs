@@ -8,7 +8,6 @@ using System.Windows.Input;
 using DynamicData.Binding;
 using MahApps.Metro.Controls;
 using Microsoft.Extensions.Logging;
-using NLog;
 using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Messages;

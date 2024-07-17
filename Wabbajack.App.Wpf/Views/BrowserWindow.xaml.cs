@@ -9,7 +9,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using MahApps.Metro.Controls;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Web.WebView2.Wpf;
 using ReactiveUI;
 using Wabbajack.Common;
