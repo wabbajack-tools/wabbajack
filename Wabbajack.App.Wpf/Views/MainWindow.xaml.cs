@@ -8,6 +8,7 @@ using System.Windows.Input;
 using DynamicData.Binding;
 using MahApps.Metro.Controls;
 using Microsoft.Extensions.Logging;
+using NLog;
 using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Messages;
@@ -144,7 +145,10 @@ namespace Wabbajack
 
         private void UIElement_OnMouseDown(object sender, MouseButtonEventArgs e)
         {
-            this.DragMove();
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                this.DragMove();
+            }
         }
 
     }

@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using MahApps.Metro.Controls;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Web.WebView2.Wpf;
 using ReactiveUI;
 using Wabbajack.Common;
@@ -24,7 +25,6 @@ public partial class BrowserWindow : MetroWindow
     public BrowserWindow(IServiceProvider serviceProvider)
     {
         InitializeComponent();
-
 
         _disposable = new CompositeDisposable();
         _serviceProvider = serviceProvider;
@@ -43,7 +43,10 @@ public partial class BrowserWindow : MetroWindow
 
     private void UIElement_OnMouseDown(object sender, MouseButtonEventArgs e)
     {
-        base.DragMove();
+        if (e.LeftButton == MouseButtonState.Pressed)
+        {
+            base.DragMove();
+        }
     }
 
     private void BrowserWindow_OnActivated(object sender, EventArgs e)
