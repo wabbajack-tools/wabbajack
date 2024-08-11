@@ -247,7 +247,16 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                 var metaFile = download.WithExtension(Ext.Meta);
 
                 var found = bySize[download.Size()];
-                var hash = await FileHashCache.FileHashCachedAsync(download, token);
+                Hash hash = default;
+                try
+                {
+                    hash = await FileHashCache.FileHashCachedAsync(download, token);
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError($"Failed to get hash for file {download}!");
+                    throw;
+                }
                 var archive = found.FirstOrDefault(f => f.Hash == hash);
 
                 IEnumerable<string> meta;
