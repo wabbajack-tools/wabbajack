@@ -23,6 +23,7 @@ public static class BinaryHelperExtensions
         return version switch
         {
             VersionType.TES3 => Encoding.ASCII,
+            VersionType.FO3 => Encoding.UTF8,
             VersionType.SSE => Windows1252,
             _ => Encoding.UTF7
         };
