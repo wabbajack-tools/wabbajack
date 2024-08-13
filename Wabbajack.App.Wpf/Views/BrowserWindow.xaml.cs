@@ -25,7 +25,6 @@ public partial class BrowserWindow : MetroWindow
     {
         InitializeComponent();
 
-
         _disposable = new CompositeDisposable();
         _serviceProvider = serviceProvider;
         Browser = _serviceProvider.GetRequiredService<WebView2>();
@@ -43,7 +42,10 @@ public partial class BrowserWindow : MetroWindow
 
     private void UIElement_OnMouseDown(object sender, MouseButtonEventArgs e)
     {
-        base.DragMove();
+        if (e.LeftButton == MouseButtonState.Pressed)
+        {
+            base.DragMove();
+        }
     }
 
     private void BrowserWindow_OnActivated(object sender, EventArgs e)

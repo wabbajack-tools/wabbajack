@@ -5,6 +5,7 @@
   * This issue only affected Fallout 3, Fallout NV and Skyrim LE
 * Added logging to determine which downloaded files cannot be hashed
   * This could occur in the downloading phase when installing a modlist when there are broken/corrupted files in the downloads folder
+* Fixed Wabbajack crashing when double-clicking the browser window titlebar or URL
 
 #### Version - 3.7.0.0 - 6/21/2024
 * Added Starfield support
