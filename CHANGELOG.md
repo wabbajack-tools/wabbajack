@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 3.7.1.0 - ?
+* Fixed file paths with special characters corrupting when packed into BSAs
+  * This issue only affected Fallout 3, Fallout NV and Skyrim LE
+* Added logging to determine which downloaded files cannot be hashed
+  * This could occur in the downloading phase when installing a modlist when there are broken/corrupted files in the downloads folder
+
 #### Version - 3.7.0.0 - 6/21/2024
 * Added Starfield support
     * Note: Hashes were added earlier, but the earlier version was not fully compatible due to Wabbajack extracting the BA2 archives incorrectly. This has been fixed.
