@@ -9,7 +9,7 @@
     <Version>$(VERSION)</Version>
     <AssemblyVersion>$(VERSION)</AssemblyVersion>
     <FileVersion>$(VERSION)</FileVersion>
-    <Copyright>Copyright © 2019-2022</Copyright>
+    <Copyright>Copyright © 2019-2024</Copyright>
     <Description>An automated ModList installer</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
    <!-- <IncludeSymbolsInSingleFile>true</IncludeSymbolsInSingleFile> -->
