@@ -144,7 +144,10 @@ namespace Wabbajack
 
         private void UIElement_OnMouseDown(object sender, MouseButtonEventArgs e)
         {
-            this.DragMove();
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                this.DragMove();
+            }
         }
 
     }
