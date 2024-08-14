@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 3.7.1.0 - ?
+#### Version - 3.7.1.0 - 8/13/2024
 * Fixed file paths with special characters corrupting when packed into BSAs
   * This issue only affected Fallout 3, Fallout NV and Skyrim LE
 * Added logging to determine which downloaded files cannot be hashed
