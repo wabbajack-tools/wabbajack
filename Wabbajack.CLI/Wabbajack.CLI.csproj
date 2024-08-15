@@ -14,6 +14,7 @@
         <NoWarn>CS8601</NoWarn>
         <NoWarn>CS8618</NoWarn>
         <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+        <TargetFramework>net8.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
