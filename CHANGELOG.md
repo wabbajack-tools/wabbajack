@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version
+* Fixed CLI .NET version, should allow modlist-report to work again for everyone
+* CLI modlist-report command reports export path after running it and now opens report in browser by default (`-b false` to turn it off)
+
 #### Version - 3.7.1.0 - 8/13/2024
 * Fixed file paths with special characters corrupting when packed into BSAs
   * This issue only affected Fallout 3, Fallout NV and Skyrim LE
