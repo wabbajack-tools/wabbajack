@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 3.7.2.0 - 8/25/2024
+* Added a new button to the installer configuration window for verifying installs. This runs the same code as the verify CLI command, now it's in the UI for easier access. The output of this command
+is written to a `.html` file and opened in the default browser.
+* When a modlist install fails due to one or more missing non-nexus files, the installer will now write a `.html` file with all the links and instructions, and open it with the default browser. This data was
+previsoously only written to the log file.
+
 #### Version - 3.7.1.1 - 8/13/2024
 * HOTFIX: buggy release pipeline caused some corruption in the files of 3.7.1.0
 
