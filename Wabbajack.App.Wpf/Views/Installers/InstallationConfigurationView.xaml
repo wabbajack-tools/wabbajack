@@ -82,6 +82,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <local:BeginButton Grid.Row="1"
                 x:Name="BeginButton"
@@ -104,12 +105,12 @@
                 Foreground="{StaticResource WarningBrush}"
                 Kind="ExclamationTriangleSolid" />
             <CheckBox Grid.Row="2" Grid.Column="2"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Bottom"
-            x:Name="OverwriteCheckBox"
-            Content="Overwrite Installation"
-            IsChecked="False"
-            ToolTip="Confirm to overwrite files in install folder.">
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Bottom"
+                      x:Name="OverwriteCheckBox"
+                      Content="Overwrite Installation"
+                      IsChecked="False"
+                      ToolTip="Confirm to overwrite files in install folder.">
                 <CheckBox.Style>
                     <Style TargetType="CheckBox">
                         <Setter Property="Opacity" Value="0.6" />
@@ -121,6 +122,13 @@
                     </Style>
                 </CheckBox.Style>
             </CheckBox>
+            <Button Grid.Row="3" Grid.Column="2"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Bottom"
+                      x:Name="VerifyButton"
+                      Content="Verify Installation"
+                      ToolTip="Scan the output folders, creating a report on any corrupt or missing files.">
+            </Button>
         </Grid>
     </Grid>
 </rxui:ReactiveUserControl>
