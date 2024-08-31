@@ -45,7 +45,7 @@ public class DeconstructBSAs : ACompilationStep
 
         // Cache these so their internal caches aren't recreated on every use
         _directMatch = new DirectMatch(_mo2Compiler);
-        _matchSimilar = new MatchSimilarTextures(_mo2Compiler);
+        //_matchSimilar = new MatchSimilarTextures(_mo2Compiler);
         _includePatches = new IncludePatches(_mo2Compiler);
         _dropAll = new DropAll(_mo2Compiler);
         _includeAll = new IncludeAll(_mo2Compiler);
@@ -53,7 +53,7 @@ public class DeconstructBSAs : ACompilationStep
         _microstack = bsa => new List<ICompilationStep>
         {
             _directMatch,
-            _matchSimilar,
+            //_matchSimilar,
             _includePatches.WithBSA(bsa),
             _dropAll
         };
@@ -61,7 +61,7 @@ public class DeconstructBSAs : ACompilationStep
         _microstackWithInclude = bsa => new List<ICompilationStep>
         {
             _directMatch,
-            _matchSimilar,
+            //_matchSimilar,
             _includePatches.WithBSA(bsa),
             _includeAll
         };
