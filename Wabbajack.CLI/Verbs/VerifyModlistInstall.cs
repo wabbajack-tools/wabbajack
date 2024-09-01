@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -137,7 +136,7 @@ public class VerifyModlistInstall
 
         _logger.LogInformation("Report written to {Report}", reportFile.Path);
         
-        Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {reportFile}")
+        Process.Start(new ProcessStartInfo("cmd.exe", $"start /c \"{reportFile.Path}\"")
         {
             CreateNoWindow = true,
         });

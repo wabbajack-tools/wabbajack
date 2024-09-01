@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 3.7.2.1 - 9/1/2024
+* Fixed a bug with the html reports when in a folder with a space in the name
+
 #### Version - 3.7.2.0 - 8/25/2024
 * Added a new button to the installer configuration window for verifying installs. This runs the same code as the verify CLI command, now it's in the UI for easier access. The output of this command
 is written to a `.html` file and opened in the default browser.

@@ -210,7 +210,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             writer.Write("</body></html>");
         }
         
-        Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {report}")
+        Process.Start(new ProcessStartInfo("cmd.exe", $"start /c \"{report}\"")
         {
             CreateNoWindow = true,
         });
