@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - TBD
+* Wabbajack will now put modfile Titles, Description and Version into the `.meta` file.
+
 #### Version - 3.7.2.1 - 9/1/2024
 * Fixed a bug with the html reports when in a folder with a space in the name
 
