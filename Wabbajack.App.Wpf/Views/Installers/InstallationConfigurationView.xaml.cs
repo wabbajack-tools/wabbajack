@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Catel;
 using ReactiveUI;
 
 namespace Wabbajack
@@ -42,16 +43,12 @@ namespace Wabbajack
                 this.WhenAny(x => x.ViewModel.VerifyCommand)
                     .BindToStrict(this, x => x.VerifyButton.Command)
                     .DisposeWith(dispose);
-                this.BindStrict(ViewModel, vm => vm.OverwriteFiles, x => x.OverwriteCheckBox.IsChecked)
-                    .DisposeWith(dispose);
 
-                // Error handling
-
-                this.WhenAnyValue(x => x.ViewModel.ErrorState)
-                    .Select(v => !v.Failed)
+                this.WhenAnyValue(x => x.ViewModel.ErrorState, x => x.ViewModel.IsKeyPressed, x => x.ViewModel.UnrecognisedFilesPresent)
+                    .Select(v => (!v.Item1.Failed || v.Item1.Succeeded ) || (v.Item1.Failed && v.Item2 && v.Item3))
                     .BindToStrict(this, view => view.BeginButton.IsEnabled)
                     .DisposeWith(dispose);
-                
+
                 this.WhenAnyValue(x => x.ViewModel.ErrorState)
                     .Select(v => !v.Failed)
                     .BindToStrict(this, view => view.VerifyButton.IsEnabled)
@@ -63,10 +60,15 @@ namespace Wabbajack
                     .DisposeWith(dispose);
 
                 this.WhenAnyValue(x => x.ViewModel.ErrorState)
+                    .Select(v => v.Failed ? Brushes.Red : Brushes.Green)
+                    .BindToStrict(this, view => view.errorTextBox.Foreground)
+                    .DisposeWith(dispose);
+
+                this.WhenAnyValue(x => x.ViewModel.ErrorState)
                     .Select(v => v.Failed ? Visibility.Visible : Visibility.Hidden)
                     .BindToStrict(this, view => view.ErrorSummaryIcon.Visibility)
                     .DisposeWith(dispose);
-                
+
                 this.WhenAnyValue(x => x.ViewModel.ErrorState)
                     .Select(v => v.Failed ? Visibility.Visible : Visibility.Hidden)
                     .BindToStrict(this, view => view.ErrorSummaryIconGlow.Visibility)
@@ -76,7 +78,33 @@ namespace Wabbajack
                     .Select(v => v.Reason)
                     .BindToStrict(this, view => view.ErrorSummaryIcon.ToolTip)
                     .DisposeWith(dispose);
+
+                Window.GetWindow(this).KeyDown += Window_KeyDown;
+                Window.GetWindow(this).KeyUp += Window_KeyUp;
             });
+
+
+        }
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.LeftShift)
+            {
+                if (DataContext is InstallerVM viewModel)
+                {
+                    viewModel.IsKeyPressed = true;
+                }
+            }
+        }
+
+        private void Window_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.LeftShift)
+            {
+                if (DataContext is InstallerVM viewModel)
+                {
+                    viewModel.IsKeyPressed = false;
+                }
+            }
         }
     }
 }
