@@ -38,9 +38,7 @@ using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.CLI.Verbs;
 using Wabbajack.VFS;
-using SteamKit2.GC.Underlords.Internal;
 using Wabbajack.Compiler;
-using System.Windows.Controls.Primitives;
 
 namespace Wabbajack;
 
@@ -327,16 +325,11 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             yield return ErrorResponse.Fail("Mod list source does not exist");
 
         var downloadPath = Installer.DownloadLocation.TargetPath;
-
-
         if (downloadPath.Depth <= 1)
         {
             yield return ErrorResponse.Fail("Download path isn't set to a folder");
         }
-        
         var installPath = Installer.Location.TargetPath;
-
-
         if (installPath.Depth <= 1)
         {
             yield return ErrorResponse.Fail("Install path isn't set to a folder");
