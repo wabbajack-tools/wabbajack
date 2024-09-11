@@ -79,17 +79,6 @@ namespace Wabbajack
             _resourceMonitor = resourceMonitor;
             _inferencer = inferencer;
 
-            MessageBus.Current.Listen<LoadCompilerSettings>()
-                .Subscribe(msg => {
-                    var csVm = new CompilerSettingsVM(msg.CompilerSettings);
-                    ModlistLocation.TargetPath = csVm.ProfilePath;
-                    ModListImageLocation.TargetPath = csVm.ModListImage;
-                    DownloadLocation.TargetPath = csVm.Downloads;
-                    OutputLocation.TargetPath = csVm.OutputFile;
-                    Settings = csVm;
-                })
-                .DisposeWith(CompositeDisposable);
-
             StatusText = "Compiler Settings";
             StatusProgress = Percent.Zero;
 
@@ -167,9 +156,9 @@ namespace Wabbajack
                     .BindToStrict(this, vm => vm.ErrorState)
                     .DisposeWith(disposables);
 
-                this.WhenAnyValue(x => x.Settings)
-                    .Throttle(TimeSpan.FromSeconds(2))
-                    .Subscribe(_ => SaveSettings().FireAndForget())
+                this.WhenAnyValue(x => x.ModlistLocation.TargetPath)
+                    .Select(x => x != default ? x.Parent.Parent : default)
+                    .BindToStrict(this, vm => vm.Settings.Source)
                     .DisposeWith(disposables);
                 /*
 

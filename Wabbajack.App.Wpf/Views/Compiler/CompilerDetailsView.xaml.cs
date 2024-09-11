@@ -87,6 +87,10 @@ namespace Wabbajack
 
                 this.BindCommand(ViewModel, vm => vm.NextCommand, v => v.ContinueButton)
                     .DisposeWith(disposables);
+
+                ViewModel.WhenAnyValue(vm => vm.ModlistLocation)
+                    .BindToStrict(this, view => view.ModlistLocation.PickerVM)
+                    .DisposeWith(disposables);
                 
 
                 /*
@@ -99,51 +103,6 @@ namespace Wabbajack
                     .BindToStrict(this, view => view.TopProgressBar.ProgressPercent)
                     .DisposeWith(disposables);
                 */
-
-                ViewModel.WhenAnyValue(vm => vm.Settings.AlwaysEnabled)
-                    .WhereNotNull()
-                    .Select(itms => itms.Select(itm => new RemovableItemViewModel(itm.ToString(), () => ViewModel.RemoveAlwaysEnabled(itm))).ToArray())
-                    .BindToStrict(this, view => view.AlwaysEnabled.ItemsSource)
-                    .DisposeWith(disposables);
-
-                AddAlwaysEnabled.Command = ReactiveCommand.CreateFromTask(async () => await AddAlwaysEnabledCommand());
-                
-                
-                ViewModel.WhenAnyValue(vm => vm.Settings.AdditionalProfiles)
-                    .WhereNotNull()
-                    .Select(itms => itms.Select(itm => new RemovableItemViewModel(itm.ToString(), () => ViewModel.RemoveProfile(itm))).ToArray())
-                    .BindToStrict(this, view => view.OtherProfiles.ItemsSource)
-                    .DisposeWith(disposables);
-
-                AddOtherProfile.Command = ReactiveCommand.CreateFromTask(async () => await AddOtherProfileCommand());
-                
-                ViewModel.WhenAnyValue(vm => vm.Settings.NoMatchInclude)
-                    .WhereNotNull()
-                    .Select(itms => itms.Select(itm => new RemovableItemViewModel(itm.ToString(), () => ViewModel.RemoveNoMatchInclude(itm))).ToArray())
-                    .BindToStrict(this, view => view.NoMatchInclude.ItemsSource)
-                    .DisposeWith(disposables);
-
-                AddNoMatchInclude.Command = ReactiveCommand.CreateFromTask(async () => await AddNoMatchIncludeCommand());
-                
-                ViewModel.WhenAnyValue(vm => vm.Settings.Include)
-                    .WhereNotNull()
-                    .Select(itms => itms.Select(itm => new RemovableItemViewModel(itm.ToString(), () => ViewModel.RemoveInclude(itm))).ToArray())
-                    .BindToStrict(this, view => view.Include.ItemsSource)
-                    .DisposeWith(disposables);
-
-                AddInclude.Command = ReactiveCommand.CreateFromTask(async () => await AddIncludeCommand());
-                AddIncludeFiles.Command = ReactiveCommand.CreateFromTask(async () => await AddIncludeFilesCommand());
-                
-                ViewModel.WhenAnyValue(vm => vm.Settings.Ignore)
-                    .WhereNotNull()
-                    .Select(itms => itms.Select(itm => new RemovableItemViewModel(itm.ToString(), () => ViewModel.RemoveIgnore(itm))).ToArray())
-                    .BindToStrict(this, view => view.Ignore.ItemsSource)
-                    .DisposeWith(disposables);
-
-                AddIgnore.Command = ReactiveCommand.CreateFromTask(async () => await AddIgnoreCommand());
-                AddIgnoreFiles.Command = ReactiveCommand.CreateFromTask(async () => await AddIgnoreFilesCommand());
-
-
             });
 
         }

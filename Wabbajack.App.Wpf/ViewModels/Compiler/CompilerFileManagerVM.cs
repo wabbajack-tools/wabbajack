@@ -121,18 +121,14 @@ namespace Wabbajack
             _resourceMonitor = resourceMonitor;
             _inferencer = inferencer;
 
-            MessageBus.Current.Listen<LoadCompilerSettings>()
-                .Subscribe(msg => {
-                    var csVm = new CompilerSettingsVM(msg.CompilerSettings);
-                    Settings = csVm;
-                })
-                .DisposeWith(CompositeDisposable);
-
             PrevCommand = ReactiveCommand.Create(PrevPage);
             this.WhenActivated(disposables =>
             {
-                var fileTree = GetDirectoryContents(new DirectoryInfo(Settings.Source.ToString()));
-                Files = LoadFiles(new DirectoryInfo(Settings.Source.ToString()));
+                if (Settings.Source != default)
+                {
+                    var fileTree = GetDirectoryContents(new DirectoryInfo(Settings.Source.ToString()));
+                    Files = LoadFiles(new DirectoryInfo(Settings.Source.ToString()));
+                }
 
                 Disposable.Create(() => { }).DisposeWith(disposables);
             });

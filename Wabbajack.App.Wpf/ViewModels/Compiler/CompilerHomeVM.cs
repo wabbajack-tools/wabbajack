@@ -73,9 +73,16 @@ namespace Wabbajack
                 CompilerSettingsPicker.SetTargetPathCommand.Execute(null);
                 if(CompilerSettingsPicker.TargetPath != default)
                 {
-                    NavigateToGlobal.Send(ScreenType.CompilerDetails);
-                    var compilerSettings = _dtos.Deserialize<CompilerSettings>(File.ReadAllText(CompilerSettingsPicker.TargetPath.ToString()));
-                    LoadCompilerSettings.Send(compilerSettings);
+                    try
+                    {
+                        var compilerSettings = _dtos.Deserialize<CompilerSettings>(File.ReadAllText(CompilerSettingsPicker.TargetPath.ToString()));
+                        NavigateToGlobal.Send(ScreenType.CompilerDetails);
+                        LoadCompilerSettings.Send(compilerSettings);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError("Failed to load compiler settings from {0}! {1}", CompilerSettingsPicker.TargetPath, ex.ToString());
+                    }
                 }
             });
 

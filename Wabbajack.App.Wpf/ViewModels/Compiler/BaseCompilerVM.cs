@@ -14,6 +14,8 @@ using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Paths.IO;
 using System.Linq;
 using Wabbajack.Networking.WabbajackClientApi;
+using System.Threading;
+using Wabbajack.Messages;
 
 namespace Wabbajack
 {
@@ -32,14 +34,28 @@ namespace Wabbajack
             _settingsManager = settingsManager;
             _logger = logger;
             _wjClient = wjClient;
+
+            MessageBus.Current.Listen<LoadCompilerSettings>()
+                .Subscribe(msg => {
+                    var csVm = new CompilerSettingsVM(msg.CompilerSettings);
+                    Settings = csVm;
+                })
+                .DisposeWith(CompositeDisposable);
         }
 
         protected async Task SaveSettings()
         {
             if (Settings.Source == default || Settings.CompilerSettingsPath == default) return;
 
-            await using var st = Settings.CompilerSettingsPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-            await JsonSerializer.SerializeAsync(st, Settings.ToCompilerSettings(), _dtos.Options);
+            try
+            {
+                await using var st = Settings.CompilerSettingsPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+                await JsonSerializer.SerializeAsync(st, Settings.ToCompilerSettings(), new JsonSerializerOptions(_dtos.Options) { WriteIndented = true });
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("Failed to save compiler settings to {0}! {1}", Settings.CompilerSettingsPath, ex.ToString());
+            }
 
             var allSavedCompilerSettings = await _settingsManager.Load<List<AbsolutePath>>(Consts.AllSavedCompilerSettingsPaths);
 
@@ -47,7 +63,14 @@ namespace Wabbajack
             allSavedCompilerSettings.RemoveAll(path => path.Parent == Settings.Source);
             allSavedCompilerSettings.Insert(0, Settings.CompilerSettingsPath);
 
-            await _settingsManager.Save(Consts.AllSavedCompilerSettingsPaths, allSavedCompilerSettings);
+            try
+            {
+                await _settingsManager.Save(Consts.AllSavedCompilerSettingsPaths, allSavedCompilerSettings);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("Failed to save all saved compiler settings! {0}", ex.ToString());
+            }
         }
     }
 }

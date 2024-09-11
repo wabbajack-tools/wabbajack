@@ -96,84 +96,6 @@
                     Text="MachineUrl"
                     ToolTip="If this box has a value the modlist will be published to this MachineUrl after compilation" />
                 <TextBox x:Name="MachineUrl" Style="{StaticResource ValueStyle}" />
-                
-                <StackPanel Orientation="Horizontal">
-                    <Button Name="AddNoMatchInclude">
-                        <icon:Material Kind="Plus"></icon:Material>
-                    </Button>
-                    <Label>No Match Include</Label>
-                </StackPanel>
-                <ListBox x:Name="NoMatchInclude">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <controls1:RemovableItemView ViewModel="{Binding}" ></controls1:RemovableItemView>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-                
-                <StackPanel Orientation="Horizontal">
-                    <Button Name="AddInclude">
-                        <icon:Material Kind="Plus"></icon:Material>
-                    </Button>
-                    <Label>Include Folders</Label>
-                    <Button Name="AddIncludeFiles">
-                        <icon:Material Kind="Plus"></icon:Material>
-                    </Button>
-                    <Label>Include Files</Label>
-                </StackPanel>
-                <ListBox x:Name="Include">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <controls1:RemovableItemView ViewModel="{Binding}" ></controls1:RemovableItemView>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-                
-                <StackPanel Orientation="Horizontal">
-                    <Button Name="AddIgnore">
-                        <icon:Material Kind="Plus"></icon:Material>
-                    </Button>
-                    <Label>Ignore Folders</Label>
-                    <Button Name="AddIgnoreFiles">
-                        <icon:Material Kind="Plus"></icon:Material>
-                    </Button>
-                    <Label>Ignore Files</Label>
-                </StackPanel>
-                <ListBox x:Name="Ignore">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <controls1:RemovableItemView ViewModel="{Binding}" ></controls1:RemovableItemView>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-                                
-                <StackPanel Orientation="Horizontal">
-                    <Button Name="AddOtherProfile">
-                        <icon:Material Kind="Plus"></icon:Material>
-                    </Button>
-                    <Label>Other Profiles</Label>
-                </StackPanel>
-                <ListBox x:Name="OtherProfiles">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <controls1:RemovableItemView ViewModel="{Binding}" ></controls1:RemovableItemView>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-                
-                <StackPanel Orientation="Horizontal">
-                    <Button Name="AddAlwaysEnabled">
-                        <icon:Material Kind="Plus"></icon:Material>
-                    </Button>
-                    <Label>Always Enabled Mods</Label>
-                </StackPanel>
-                <ListBox x:Name="AlwaysEnabled">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <controls1:RemovableItemView ViewModel="{Binding}" ></controls1:RemovableItemView>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
             </StackPanel>
         </ScrollViewer>
         <Grid Grid.Row="0" Grid.Column="1">
@@ -193,17 +115,17 @@
                 Margin="16, 0, 0, 8"
                 VerticalAlignment="Center"
                 FontSize="14"
-                Text="Output Location"
+                Text="Modlist Location"
                 TextAlignment="Center"
-                ToolTip="The folder to place the resulting modlist.wabbajack file" />
+                ToolTip="The folder in which the modlist is located" />
             <local:FilePicker
             Grid.Row="1"
-            x:Name="OutputLocation"             
+            x:Name="ModlistLocation"             
             Margin="16, 0, 0, 0"
             Height="30"
             VerticalAlignment="Center"
             FontSize="14"
-            ToolTip="The folder to place the resulting modlist.wabbajack file" />
+            ToolTip="The folder in which the modlist is located (containing the 'mods' folder)" />
 
             <Button 
                 x:Name="ContinueButton"
