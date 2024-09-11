@@ -135,7 +135,13 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     
     [Reactive]
     public bool ShowNSFWSlides { get; set; }
-    
+
+    [Reactive]
+    public bool UnrecognisedFilesPresent { get; set; }
+
+    [Reactive]
+    public bool IsShiftKeyPressed { get; set; }
+
     public LogStream LoggerProvider { get; }
 
     private AbsolutePath LastInstallPath { get; set; }
@@ -155,20 +161,6 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     
     public ReactiveCommand<Unit, Unit> VerifyCommand { get; }
 
-
-    private bool _isKeyPressed;
-    public bool IsKeyPressed
-    {
-        get => _isKeyPressed;
-        set => this.RaiseAndSetIfChanged(ref _isKeyPressed, value);
-    }
-
-    private bool _UnrecognisedFilesPresent;
-    public bool UnrecognisedFilesPresent
-    {
-        get => _UnrecognisedFilesPresent;
-        set => this.RaiseAndSetIfChanged(ref _UnrecognisedFilesPresent, value);
-    }
 
     private string UnrecognisedFilesFoundErrorMessage = "Files found in the install folder, please choose a different folder, or if you are CERTAIN you want to install here " +
                                                     Environment.NewLine + " then hold down shift to enable the button. This will delete any unrecognised files in the folder!";
@@ -290,14 +282,16 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                     {
                         UnrecognisedFilesPresent = false;
                         return ErrorResponse.Success;
-                    } else
+                    } 
+                    else
                     {
                         if(errors.Length == 1)
                         {
                             if(errors[0].Reason == UnrecognisedFilesFoundErrorMessage)
                             {
                                 UnrecognisedFilesPresent = true;
-                            } else
+                            } 
+                            else
                             {
                                 UnrecognisedFilesPresent = false;
                                 if (errors[0].Succeeded)
@@ -305,7 +299,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                                     return ErrorResponse.Succeed(errors[0].Reason);
                                 }
                             }
-                        } else
+                        } 
+                        else
                         {
                             //other errors too, not just this one particular error we want to handle for
                             UnrecognisedFilesPresent = false;
@@ -373,22 +368,22 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         { 
             yield return ErrorResponse.Fail("Installing in this folder may overwrite Wabbajack");
         }
-        bool OnlyDownloadFolderPresent = false;
-        bool UpdatingExisting = false;
+        bool onlyDownloadFolderPresent = false;
+        bool updatingExisting = false;
         if (installPath.ToString().Length != 0 && AreThereFilesInInstallFolder(installPath)){
             if (downloadPath.ToString().Length > 0)
             {
                 if (IsSelectedDownloadFolderTheOnlyThingThere(installPath, downloadPath))
                 {
-                    OnlyDownloadFolderPresent = true;
+                    onlyDownloadFolderPresent = true;
                 }
             }
-            if (OnlyDownloadFolderPresent == false)
+            if (onlyDownloadFolderPresent == false)
             {
                 var listname = IsAModListDirectory(installPath);
                 if (listname == ModList.Name)
                 {
-                    UpdatingExisting = true;
+                    updatingExisting = true;
                     yield return ErrorResponse.Succeed("Existing install of this modlist found, installing to this folder will reset the modlist to its default state");
                 }
                 else
@@ -403,7 +398,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         {
             yield return ErrorResponse.Fail("Can't install into Windows locations such as Documents etc, please make a new folder for the modlist - C:\\ModList\\ for example.");
         }
-        if (!UpdatingExisting && !OnlyDownloadFolderPresent && installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && !HasEnoughSpace(installPath, downloadPath)){
+        if (!updatingExisting && !onlyDownloadFolderPresent && installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && !HasEnoughSpace(installPath, downloadPath)){
             yield return ErrorResponse.Fail("Can't install modlist due to lack of free hard drive space, please read the modlist Readme to learn more.");
         }
     }
@@ -426,7 +421,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                 return false;
             }
 
-        } else
+        } 
+        else
         {
             if( spaceInstRemaining < spaceRequiredforInstall || spaceDownRemaining < spaceRequiredforDownload)
             {

@@ -43,7 +43,7 @@ namespace Wabbajack
                     .BindToStrict(this, x => x.VerifyButton.Command)
                     .DisposeWith(dispose);
 
-                this.WhenAnyValue(x => x.ViewModel.ErrorState, x => x.ViewModel.IsKeyPressed, x => x.ViewModel.UnrecognisedFilesPresent)
+                this.WhenAnyValue(x => x.ViewModel.ErrorState, x => x.ViewModel.IsShiftKeyPressed, x => x.ViewModel.UnrecognisedFilesPresent)
                     .Select(v => (!v.Item1.Failed || v.Item1.Succeeded ) || (v.Item1.Failed && v.Item2 && v.Item3))
                     .BindToStrict(this, view => view.BeginButton.IsEnabled)
                     .DisposeWith(dispose);
@@ -90,7 +90,7 @@ namespace Wabbajack
             {
                 if (DataContext is InstallerVM viewModel)
                 {
-                    viewModel.IsKeyPressed = true;
+                    viewModel.IsShiftKeyPressed = true;
                 }
             }
         }
@@ -101,7 +101,7 @@ namespace Wabbajack
             {
                 if (DataContext is InstallerVM viewModel)
                 {
-                    viewModel.IsKeyPressed = false;
+                    viewModel.IsShiftKeyPressed = false;
                 }
             }
         }
