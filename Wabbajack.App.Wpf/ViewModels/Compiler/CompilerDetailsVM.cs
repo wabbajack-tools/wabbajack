@@ -54,11 +54,11 @@ namespace Wabbajack
         public MO2CompilerVM SubCompilerVM { get; set; }
         
         // Paths 
-        public FilePickerVM ModlistLocation { get; }
-        public FilePickerVM DownloadLocation { get; }
-        public FilePickerVM OutputLocation { get; }
+        public FilePickerVM ModlistLocation { get; private set; }
+        public FilePickerVM DownloadLocation { get; private set; }
+        public FilePickerVM OutputLocation { get; private set; }
 
-        public FilePickerVM ModListImageLocation { get; } = new();
+        public FilePickerVM ModListImageLocation { get; private set; } = new();
         
         /* public ReactiveCommand<Unit, Unit> ExecuteCommand { get; } */
         public ReactiveCommand<Unit, Unit> ReInferSettingsCommand { get; set; }
@@ -103,41 +103,43 @@ namespace Wabbajack
             */
             NextCommand = ReactiveCommand.CreateFromTask(NextPage);
 
-            ModlistLocation = new FilePickerVM
-            {
-                ExistCheckOption = FilePickerVM.CheckOptions.On,
-                PathType = FilePickerVM.PathTypeOptions.File,
-                PromptTitle = "Select a config file or a modlist.txt file"
-            };
-
-            DownloadLocation = new FilePickerVM
-            {
-                ExistCheckOption = FilePickerVM.CheckOptions.On,
-                PathType = FilePickerVM.PathTypeOptions.Folder,
-                PromptTitle = "Location where the downloads for this list are stored"
-            };
-            
-            OutputLocation = new FilePickerVM
-            {
-                ExistCheckOption = FilePickerVM.CheckOptions.Off,
-                PathType = FilePickerVM.PathTypeOptions.Folder,
-                PromptTitle = "Location where the compiled modlist will be stored"
-            };
-
-            ModlistLocation.Filters.AddRange(new []
-            {
-                new CommonFileDialogFilter("MO2 Modlist", "*" + Ext.Txt),
-                new CommonFileDialogFilter("Compiler Settings File", "*" + Ext.CompilerSettings)
-            });
-
             
             this.WhenActivated(disposables =>
             {
                 State = CompilerState.Configuration;
-                Disposable.Empty.DisposeWith(disposables);
+
+                ModlistLocation = new FilePickerVM
+                {
+                    ExistCheckOption = FilePickerVM.CheckOptions.On,
+                    PathType = FilePickerVM.PathTypeOptions.File,
+                    PromptTitle = "Select a config file or a modlist.txt file",
+                    TargetPath = Settings.ProfilePath
+                };
+
+                ModlistLocation.Filters.AddRange(new[]
+                {
+                    new CommonFileDialogFilter("MO2 Modlist", "*" + Ext.Txt),
+                    new CommonFileDialogFilter("Compiler Settings File", "*" + Ext.CompilerSettings)
+                });
+
+                DownloadLocation = new FilePickerVM
+                {
+                    ExistCheckOption = FilePickerVM.CheckOptions.On,
+                    PathType = FilePickerVM.PathTypeOptions.Folder,
+                    PromptTitle = "Location where the downloads for this list are stored"
+                };
+
+                OutputLocation = new FilePickerVM
+                {
+                    ExistCheckOption = FilePickerVM.CheckOptions.Off,
+                    PathType = FilePickerVM.PathTypeOptions.Folder,
+                    PromptTitle = "Location where the compiled modlist will be stored"
+                };
+
 
                 ModlistLocation.WhenAnyValue(vm => vm.TargetPath)
                     .Subscribe(async p => {
+                        if (p == default) return;
                         if (string.IsNullOrEmpty(Settings.ModListName))
                         {
                             Settings = new CompilerSettingsVM(await InferModListFromLocation(p));
@@ -156,10 +158,6 @@ namespace Wabbajack
                     .BindToStrict(this, vm => vm.ErrorState)
                     .DisposeWith(disposables);
 
-                this.WhenAnyValue(x => x.ModlistLocation.TargetPath)
-                    .Select(x => x != default ? x.Parent.Parent : default)
-                    .BindToStrict(this, vm => vm.Settings.Source)
-                    .DisposeWith(disposables);
                 /*
 
                 ModListImageLocation.WhenAnyValue(x => x.TargetPath)
@@ -177,8 +175,6 @@ namespace Wabbajack
 
             });
         }
-
-
 
         private async Task ReInferSettings(AbsolutePath filePath)
         {
