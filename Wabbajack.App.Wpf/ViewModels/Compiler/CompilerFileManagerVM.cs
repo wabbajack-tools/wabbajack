@@ -104,7 +104,7 @@ namespace Wabbajack
             _disposable.Dispose();
         }
     }
-    public class CompilerFileManagerVM : BaseCompilerVM
+    public class CompilerFileManagerVM : BaseCompilerVM, IHasInfoVM
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ResourceMonitor _resourceMonitor;
@@ -112,6 +112,8 @@ namespace Wabbajack
         
         public ObservableCollection<FileTreeViewItem> Files { get; set; }
         public ICommand PrevCommand { get; set; }
+
+        public ICommand InfoCommand { get; }
 
         public CompilerFileManagerVM(ILogger<CompilerFileManagerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
             IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
@@ -122,6 +124,7 @@ namespace Wabbajack
             _inferencer = inferencer;
 
             PrevCommand = ReactiveCommand.Create(PrevPage);
+            InfoCommand = ReactiveCommand.Create(Info);
             this.WhenActivated(disposables =>
             {
                 if (Settings.Source != default)
@@ -138,6 +141,10 @@ namespace Wabbajack
         {
             NavigateToGlobal.Send(ScreenType.CompilerDetails);
             LoadCompilerSettings.Send(Settings.ToCompilerSettings());
+        }
+        private void Info()
+        {
+            LoadInfoScreen.Send("This is the file manager", this);
         }
 
         private ObservableCollection<FileTreeViewItem> LoadFiles(DirectoryInfo parent)

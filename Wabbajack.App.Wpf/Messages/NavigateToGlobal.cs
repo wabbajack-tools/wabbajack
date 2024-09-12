@@ -12,7 +12,8 @@ public enum ScreenType
     CompilerDetails,
     CompilerFileManager,
     ModListContents,
-    WebBrowser
+    WebBrowser,
+    Info
 }
 
 public class NavigateToGlobal

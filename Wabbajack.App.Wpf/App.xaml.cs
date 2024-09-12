@@ -176,6 +176,7 @@ namespace Wabbajack
             services.AddTransient<InstallerVM>();
             services.AddTransient<SettingsVM>();
             services.AddTransient<WebBrowserVM>();
+            services.AddTransient<InfoVM>();
 
             // Login Handlers
             services.AddTransient<VectorPlexusLoginHandler>();

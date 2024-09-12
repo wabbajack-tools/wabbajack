@@ -53,6 +53,7 @@ namespace Wabbajack
         public readonly HomeVM HomeVM;
         public readonly WebBrowserVM WebBrowserVM;
         public readonly Lazy<ModListContentsVM> ModListContentsVM;
+        public readonly InfoVM InfoVM;
         public readonly UserInterventionHandlers UserInterventionHandlers;
         private readonly Client _wjClient;
         private readonly ILogger<MainWindowVM> _logger;
@@ -63,6 +64,7 @@ namespace Wabbajack
 
         public ICommand CopyVersionCommand { get; }
         public ICommand ShowLoginManagerVM { get; }
+        public ICommand InfoCommand { get; }
         public ICommand MinimizeCommand { get; }
         public ICommand MaximizeCommand { get; }
         public ICommand CloseCommand { get; }
@@ -80,7 +82,7 @@ namespace Wabbajack
 
         public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
             IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-            InstallerVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM)
+            InstallerVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM)
         {
             _logger = logger;
             _wjClient = wjClient;
@@ -97,6 +99,7 @@ namespace Wabbajack
             WebBrowserVM = webBrowserVM;
             NavigationVM = navigationVM;
             ModListContentsVM = new Lazy<ModListContentsVM>(() => new ModListContentsVM(serviceProvider.GetRequiredService<ILogger<ModListContentsVM>>(), this));
+            InfoVM = infoVM;
             UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetRequiredService<ILogger<UserInterventionHandlers>>(), this);
 
             MessageBus.Current.Listen<NavigateToGlobal>()
@@ -173,9 +176,15 @@ namespace Wabbajack
             {
                 Clipboard.SetText($"Wabbajack {VersionDisplay}\n{ThisAssembly.Git.Sha}");
             });
+            InfoCommand = ReactiveCommand.Create(ShowInfo);
             MinimizeCommand = ReactiveCommand.Create(Minimize);
             MaximizeCommand = ReactiveCommand.Create(Maximize);
             CloseCommand = ReactiveCommand.Create(Close);
+        }
+
+        private void ShowInfo()
+        {
+            if (ActivePane is IHasInfoVM) ((IHasInfoVM)ActivePane).InfoCommand.Execute(null);
         }
 
         private void Minimize()
@@ -241,6 +250,7 @@ namespace Wabbajack
                 ScreenType.CompilerDetails => CompilerDetailsVM,
                 ScreenType.CompilerFileManager => CompilerFileManagerVM,
                 ScreenType.Settings => SettingsPaneVM,
+                ScreenType.Info => InfoVM,
                 _ => ActivePane
             };
         }

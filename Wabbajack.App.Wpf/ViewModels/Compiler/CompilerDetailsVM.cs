@@ -140,10 +140,7 @@ namespace Wabbajack
                 ModlistLocation.WhenAnyValue(vm => vm.TargetPath)
                     .Subscribe(async p => {
                         if (p == default) return;
-                        if (string.IsNullOrEmpty(Settings.ModListName))
-                        {
-                            Settings = new CompilerSettingsVM(await InferModListFromLocation(p));
-                        }
+                        if (Settings.CompilerSettingsPath != default) return;
                         else if(p.FileName == "modlist.txt".ToRelativePath()) await ReInferSettings(p);
                     })
                     .DisposeWith(disposables);
@@ -182,7 +179,7 @@ namespace Wabbajack
 
             if (newSettings == null)
             {
-                _logger.LogError("Cannot infer settings");
+                _logger.LogError("Cannot infer settings from {0}", filePath);
                 return;
             }
 

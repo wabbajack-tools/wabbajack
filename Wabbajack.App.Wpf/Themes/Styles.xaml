@@ -1404,8 +1404,6 @@
 
     <Style x:Key="WizardButtonStyle" BasedOn="{StaticResource AltButtonStyle}" TargetType="{x:Type Button}">
         <Setter Property="Width" Value="200" />
-        <Setter Property="Margin" Value="0, 8, 0, 0" />
-        <Setter Property="HorizontalAlignment" Value="Right" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">

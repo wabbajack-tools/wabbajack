@@ -132,6 +132,7 @@
                 Grid.RowSpan="2"
                 Grid.Column="1"
                 Style="{StaticResource WizardButtonStyle}"
+                HorizontalAlignment="Right"
                 Content="Continue">
             </Button>
         </Grid>

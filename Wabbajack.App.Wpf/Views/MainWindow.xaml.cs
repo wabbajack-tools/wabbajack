@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -97,9 +98,7 @@ namespace Wabbajack
                     p.SystemMemorySize.ToFileSizeString(), p.SystemPageSize.ToFileSizeString(), p.ScreenWidth, p.ScreenHeight, p.VideoMemorySize.ToFileSizeString(), p.EnbLEVRAMSize);
 
                 if (p.SystemPageSize == 0)
-                    _logger.LogInformation( "Pagefile is disabled! Consider increasing to 20000MB. A disabled pagefile can cause crashes and poor in-game performance");
-                else if (p.SystemPageSize < 2e+10)
-                    _logger.LogInformation("Pagefile below recommended! Consider increasing to 20000MB. A suboptimal pagefile can cause crashes and poor in-game performance");
+                    _logger.LogInformation("Pagefile is disabled! This will cause issues such as crashing with Wabbajack and other applications!");
 
                 var _ = updater.Run();
 
@@ -114,6 +113,11 @@ namespace Wabbajack
                 {
                     this.Topmost = false;
                 };
+
+                ((MainWindowVM)DataContext).WhenAnyValue(vm => vm.ActivePane)
+                    .Subscribe(pane => InfoButton.Visibility = (pane is IHasInfoVM) ? Visibility.Visible : Visibility.Collapsed);
+                ((MainWindowVM) DataContext).WhenAnyValue(vm => vm.InfoCommand)
+                    .BindTo(this, view => view.InfoButton.Command);
 
                 ((MainWindowVM) DataContext).WhenAnyValue(vm => vm.MinimizeCommand)
                     .BindTo(this, view => view.MinimizeButton.Command);

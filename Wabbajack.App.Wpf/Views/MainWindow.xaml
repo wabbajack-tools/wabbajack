@@ -42,19 +42,23 @@
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Border BorderThickness="0" Margin="10, 0, 5, 0" >
                 <Image Grid.Column="0" Width="18" Height="18" Source="{StaticResource WabbajackLogo}"/>
             </Border>
             <TextBlock Grid.Column="1" FontSize="16" Padding="8, 8" Name="AppName"></TextBlock>
             <TextBlock Grid.Column="2" FontSize="16" Padding="8, 8" Name="ResourceUsage" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
-            <Button Grid.Column="3" Style="{StaticResource IconBareButtonStyle}" Name="MinimizeButton" Padding="12, 8">
+            <Button Grid.Column="3" Style="{StaticResource IconBareButtonStyle}" Name="InfoButton" Padding="12, 8" Margin="12, 0">
+                <ic:SymbolIcon Symbol="QuestionCircle"/>
+            </Button>
+            <Button Grid.Column="4" Style="{StaticResource IconBareButtonStyle}" Name="MinimizeButton" Padding="12, 8">
                 <ic:SymbolIcon Symbol="Subtract"/>
             </Button>
-            <Button Grid.Column="4" Style="{StaticResource IconBareButtonStyle}" Name="MaximizeButton" Padding="12, 8">
+            <Button Grid.Column="5" Style="{StaticResource IconBareButtonStyle}" Name="MaximizeButton" Padding="12, 8">
                 <ic:SymbolIcon Symbol="Maximize"/>
             </Button>
-            <Button Grid.Column="5" Style="{StaticResource IconBareButtonStyle}" Name="CloseButton" Padding="12, 8">
+            <Button Grid.Column="6" Style="{StaticResource IconBareButtonStyle}" Name="CloseButton" Padding="12, 8">
                 <ic:SymbolIcon Symbol="ArrowExit"/>
             </Button>
         </Grid>
@@ -93,6 +97,9 @@
                             </DataTemplate>
                             <DataTemplate DataType="{x:Type viewModels:ModListContentsVM}">
                                 <local:ModListContentsView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:InfoVM}">
+                                <local:InfoView ViewModel="{Binding}" />
                             </DataTemplate>
                         </ContentPresenter.Resources>
                     </ContentPresenter>
