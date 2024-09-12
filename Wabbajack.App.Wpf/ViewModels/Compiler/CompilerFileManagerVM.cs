@@ -144,7 +144,7 @@ namespace Wabbajack
         }
         private void Info()
         {
-            LoadInfoScreen.Send("This is the file manager", this);
+            LoadInfoScreen.Send(Consts.FileManagerInfo, this);
         }
 
         private ObservableCollection<FileTreeViewItem> LoadFiles(DirectoryInfo parent)
