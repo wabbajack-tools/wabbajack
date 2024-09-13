@@ -51,9 +51,6 @@ namespace Wabbajack
                 this.Bind(ViewModel, vm => vm.Settings.ModListName, view => view.ModListNameSetting.Text)
                     .DisposeWith(disposables);
                 
-                this.Bind(ViewModel, vm => vm.Settings.Profile, view => view.SelectedProfile.Text)
-                    .DisposeWith(disposables);
-                
                 this.Bind(ViewModel, vm => vm.Settings.ModListAuthor, view => view.AuthorNameSetting.Text)
                     .DisposeWith(disposables);
                 

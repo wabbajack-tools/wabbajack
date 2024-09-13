@@ -1930,6 +1930,11 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Setter Property="LayoutTransform">
+            <Setter.Value>
+                <ScaleTransform ScaleX="1.4" ScaleY="1.4" />
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!--  RadioButton  -->

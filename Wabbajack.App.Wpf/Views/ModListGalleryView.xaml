@@ -120,57 +120,35 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
 
-            <Grid Grid.Row="2" Margin="0, 25, 0, 0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <CheckBox
+            <CheckBox
                 x:Name="ShowUnofficialLists"
+                Grid.Row="2"
+                Margin="0, 25, 0, 0"
                 VerticalAlignment="Center"
                 Foreground="{StaticResource ForegroundBrush}"
                 ToolTip="Show modlists from external repositories">
-                    <CheckBox.LayoutTransform>
-                        <ScaleTransform ScaleX="1.4" ScaleY="1.4"/>
-                    </CheckBox.LayoutTransform>
-                </CheckBox>
-                <TextBlock Grid.Column="1" Margin="3, 0, 0, 0" Text="Show unofficial modlists" FontSize="14" VerticalAlignment="Center" />
-            </Grid>
+                <TextBlock Text="Show unofficial modlists" FontSize="10" VerticalAlignment="Center" />
+            </CheckBox>
 
-            <Grid Grid.Row="3" Margin="0, 10, 0, 0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <CheckBox
+            <CheckBox
+                Grid.Row="3"
+                Margin="0, 10, 0, 0"
                 x:Name="ShowNSFW"
-                FontSize="7"
                 VerticalAlignment="Center"
                 Foreground="{StaticResource ForegroundBrush}"
                 ToolTip="Only show Not Safe For Work (NSFW) modlists">
-                    <CheckBox.LayoutTransform>
-                        <ScaleTransform ScaleX="1.4" ScaleY="1.4"/>
-                    </CheckBox.LayoutTransform>
-                </CheckBox>
-                <TextBlock Grid.Column="1" Margin="3, 0, 0, 0" Text="Show only NSFW modlists" FontSize="14" VerticalAlignment="Center" />
-            </Grid>
+                <TextBlock Text="Show only NSFW modlists" FontSize="10" VerticalAlignment="Center" />
+            </CheckBox>
 
-            <Grid Grid.Row="4" Margin="0, 10, 0, 0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <CheckBox
+            <CheckBox
+                Grid.Row="4"
                 x:Name="OnlyInstalledCheckbox"
+                Margin="0, 10, 0, 0"
                 VerticalAlignment="Center"
                 Foreground="{StaticResource ForegroundBrush}"
                 ToolTip="Show only modlists for games you have installed on your PC">
-                    <CheckBox.LayoutTransform>
-                        <ScaleTransform ScaleX="1.4" ScaleY="1.4"/>
-                    </CheckBox.LayoutTransform>
-                </CheckBox>
-                <TextBlock Grid.Column="1" Margin="3, 0, 0, 0" Text="Show only modlists for installed games" FontSize="14" VerticalAlignment="Center" />
-            </Grid>
+                <TextBlock Grid.Column="1" Text="Show only modlists for installed games" FontSize="10" VerticalAlignment="Center" />
+            </CheckBox>
 
             <Grid Grid.Row="5" Margin="0, 25, 0, 0">
                 <Grid.ColumnDefinitions>

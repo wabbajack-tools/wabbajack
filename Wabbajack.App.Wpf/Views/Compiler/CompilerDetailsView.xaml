@@ -11,6 +11,7 @@
     xmlns:rxui="http://reactiveui.net"
     xmlns:wabbacommon="clr-namespace:Wabbajack.Common;assembly=Wabbajack.Common"
     xmlns:controls1="clr-namespace:Wabbajack.ViewModels.Controls"
+    xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
     d:DataContext="{d:DesignInstance local:CompilerDetailsVM}"
     d:DesignHeight="450"
     d:DesignWidth="800"
@@ -34,7 +35,7 @@
                 Background="Transparent"
                 Orientation="Vertical">
                 <StackPanel.Resources>
-                    <Thickness x:Key="TitleMargin" Bottom="4" />
+                    <Thickness x:Key="TitleMargin" Bottom="8" />
                     <Style
                         x:Key="ValueStyle"
                         BasedOn="{StaticResource MainTextBoxStyle}"
@@ -67,9 +68,6 @@
                     MaxLength="700"
                     Style="{StaticResource ValueStyle}"
                     TextWrapping="Wrap" />
-                <TextBlock Margin="{StaticResource TitleMargin}" Text="MO2 Profile name" />
-                <TextBox x:Name="SelectedProfile" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="Default" />
-                <!--<Button Margin="5" x:Name="ReInferSettings"> Re-infer Settings </Button>-->
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Image" />
                 <local:FilePicker
                     x:Name="ImageFilePicker"
@@ -85,12 +83,16 @@
                 <TextBox x:Name="ReadmeSetting" Style="{StaticResource ValueStyle}" />
                 <CheckBox
                     x:Name="NSFWSetting"
-                    Content="NSFW"
-                    ToolTip="Select this if your Modlist has adult themed content such as SexLab or other mods involving sexual acts. Nude body replacer do not fall under this category neither do revealing outfits or gore." />
+                    Margin="{StaticResource TitleMargin}"
+                    ToolTip="Select this if your Modlist has adult themed content such as SexLab or other mods involving sexual acts. Nude body replacer do not fall under this category neither do revealing outfits or gore.">
+                    <TextBlock Text="NSFW" FontSize="10" VerticalAlignment="Center" />
+                </CheckBox>
                 <CheckBox
                     x:Name="PublishUpdate"
-                    Content="Publish Update"
-                    ToolTip="Select this if your want Wabbajack to automatically publish this modlist when compilation finished (requires a selected machineURL)" />
+                    Margin="{StaticResource TitleMargin}"
+                    ToolTip="Select this if your want Wabbajack to automatically publish this modlist when compilation finished (requires a Machine URL)">
+                    <TextBlock Text="Publish Update" FontSize="10" VerticalAlignment="Center" />
+                </CheckBox>
                 <TextBlock
                     Margin="{StaticResource TitleMargin}"
                     Text="MachineUrl"
@@ -131,9 +133,13 @@
                 x:Name="ContinueButton"
                 Grid.RowSpan="2"
                 Grid.Column="1"
+                Margin="0, 8, 0, 0"
                 Style="{StaticResource WizardButtonStyle}"
-                HorizontalAlignment="Right"
-                Content="Continue">
+                HorizontalAlignment="Right" >
+                <StackPanel>
+                    <ic:SymbolIcon Symbol="ChevronRight" FontSize="28" />
+                    <TextBlock Text="Continue" />
+                </StackPanel>
             </Button>
         </Grid>
     </Grid>
