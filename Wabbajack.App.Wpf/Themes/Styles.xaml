@@ -236,31 +236,220 @@
     <SolidColorBrush x:Key="{x:Static DataGrid.FocusBorderBrushKey}" Color="Red" />
 
     <VisualBrush 
-      x:Key="DiagonalLeftToRightStripeBrush" 
+      x:Key="DiagonalStripeBrush" 
       TileMode="Tile" Viewport="0,0,10,10" 
       ViewportUnits="Absolute" Viewbox="0,0,10,10"    
       ViewboxUnits="Absolute">
         <VisualBrush.Visual>
             <Canvas>
                 <Rectangle Fill="Transparent" Width="10" Height="10" />
-                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 10" Opacity="0.6" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 10" Opacity="0.35" />
             </Canvas>
         </VisualBrush.Visual>
     </VisualBrush>
 
     <VisualBrush 
-      x:Key="DiagonalRightToLeftStripeBrush" 
+      x:Key="InverseDiagonalStripeBrush" 
       TileMode="Tile" Viewport="0,0,10,10" 
       ViewportUnits="Absolute" Viewbox="0,0,10,10"    
       ViewboxUnits="Absolute">
         <VisualBrush.Visual>
             <Canvas>
                 <Rectangle Fill="Transparent" Width="10" Height="10" />
-                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 10 l 10 -10" Opacity="0.6" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 10 l 10 -10" Opacity="0.35" />
             </Canvas>
         </VisualBrush.Visual>
     </VisualBrush>
 
+    <VisualBrush 
+      x:Key="VerticalStripeBrush" 
+      TileMode="Tile" Viewport="0,0,10,10" 
+      ViewportUnits="Absolute" Viewbox="0,0,10,10"    
+      ViewboxUnits="Absolute">
+        <VisualBrush.Visual>
+            <Canvas>
+                <Rectangle Fill="Transparent" Width="10" Height="10" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 0 10" Opacity="0.35" />
+            </Canvas>
+        </VisualBrush.Visual>
+    </VisualBrush>
+
+    <VisualBrush 
+      x:Key="HorizontalStripeBrush" 
+      TileMode="Tile" Viewport="0,0,10,10" 
+      ViewportUnits="Absolute" Viewbox="0,0,10,10"    
+      ViewboxUnits="Absolute">
+        <VisualBrush.Visual>
+            <Canvas>
+                <Rectangle Fill="Transparent" Width="10" Height="10" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 0" Opacity="0.35" />
+            </Canvas>
+        </VisualBrush.Visual>
+    </VisualBrush>
+
+<!--#region Combined stripe brushes -->
+
+    <VisualBrush
+      x:Key="VerticalHorizontalStripeBrush"
+      TileMode="Tile" Viewport="0,0,10,10"
+      ViewportUnits="Absolute" Viewbox="0,0,10,10"
+      ViewboxUnits="Absolute">
+        <VisualBrush.Visual>
+            <Canvas>
+                <Rectangle Fill="Transparent" Width="10" Height="10" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 0 10" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 0" Opacity="0.35" />
+            </Canvas>
+        </VisualBrush.Visual>
+    </VisualBrush>
+
+    <VisualBrush
+      x:Key="VerticalDiagonalStripeBrush"
+      TileMode="Tile" Viewport="0,0,10,10"
+      ViewportUnits="Absolute" Viewbox="0,0,10,10"
+      ViewboxUnits="Absolute">
+        <VisualBrush.Visual>
+            <Canvas>
+                <Rectangle Fill="Transparent" Width="10" Height="10" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 0 10" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 10" Opacity="0.35" />
+            </Canvas>
+        </VisualBrush.Visual>
+    </VisualBrush>
+
+    <VisualBrush
+      x:Key="VerticalInverseDiagonalStripeBrush"
+      TileMode="Tile" Viewport="0,0,10,10"
+      ViewportUnits="Absolute" Viewbox="0,0,10,10"
+      ViewboxUnits="Absolute">
+        <VisualBrush.Visual>
+            <Canvas>
+                <Rectangle Fill="Transparent" Width="10" Height="10" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 0 10" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 10 l 10 -10" Opacity="0.35" />
+            </Canvas>
+        </VisualBrush.Visual>
+    </VisualBrush>
+
+    <VisualBrush
+      x:Key="HorizontalDiagonalStripeBrush"
+      TileMode="Tile" Viewport="0,0,10,10"
+      ViewportUnits="Absolute" Viewbox="0,0,10,10"
+      ViewboxUnits="Absolute">
+        <VisualBrush.Visual>
+            <Canvas>
+                <Rectangle Fill="Transparent" Width="10" Height="10" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 0" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 10" Opacity="0.35" />
+            </Canvas>
+        </VisualBrush.Visual>
+    </VisualBrush>
+
+    <VisualBrush
+      x:Key="HorizontalInverseDiagonalStripeBrush"
+      TileMode="Tile" Viewport="0,0,10,10"
+      ViewportUnits="Absolute" Viewbox="0,0,10,10"
+      ViewboxUnits="Absolute">
+        <VisualBrush.Visual>
+            <Canvas>
+                <Rectangle Fill="Transparent" Width="10" Height="10" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 0" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 10 l 10 -10" Opacity="0.35" />
+            </Canvas>
+        </VisualBrush.Visual>
+    </VisualBrush>
+
+    <VisualBrush
+      x:Key="DiagonalInverseDiagonalStripeBrush"
+      TileMode="Tile" Viewport="0,0,10,10"
+      ViewportUnits="Absolute" Viewbox="0,0,10,10"
+      ViewboxUnits="Absolute">
+        <VisualBrush.Visual>
+            <Canvas>
+                <Rectangle Fill="Transparent" Width="10" Height="10" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 10" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 10 l 10 -10" Opacity="0.35" />
+            </Canvas>
+        </VisualBrush.Visual>
+    </VisualBrush>
+
+    <VisualBrush
+      x:Key="HorizontalDiagonalInverseDiagonalStripeBrush"
+      TileMode="Tile" Viewport="0,0,10,10"
+      ViewportUnits="Absolute" Viewbox="0,0,10,10"
+      ViewboxUnits="Absolute">
+        <VisualBrush.Visual>
+            <Canvas>
+                <Rectangle Fill="Transparent" Width="10" Height="10" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 0" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 10" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 10 l 10 -10" Opacity="0.35" />
+            </Canvas>
+        </VisualBrush.Visual>
+    </VisualBrush>
+
+    <VisualBrush
+      x:Key="VerticalDiagonalInverseDiagonalStripeBrush"
+      TileMode="Tile" Viewport="0,0,10,10"
+      ViewportUnits="Absolute" Viewbox="0,0,10,10"
+      ViewboxUnits="Absolute">
+        <VisualBrush.Visual>
+            <Canvas>
+                <Rectangle Fill="Transparent" Width="10" Height="10" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 0 10" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 10" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 10 l 10 -10" Opacity="0.35" />
+            </Canvas>
+        </VisualBrush.Visual>
+    </VisualBrush>
+
+    <VisualBrush
+      x:Key="VerticalHorizontalInverseDiagonalStripeBrush"
+      TileMode="Tile" Viewport="0,0,10,10"
+      ViewportUnits="Absolute" Viewbox="0,0,10,10"
+      ViewboxUnits="Absolute">
+        <VisualBrush.Visual>
+            <Canvas>
+                <Rectangle Fill="Transparent" Width="10" Height="10" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 0 10" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 0" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 10 l 10 -10" Opacity="0.35" />
+            </Canvas>
+        </VisualBrush.Visual>
+    </VisualBrush>
+
+    <VisualBrush
+      x:Key="VerticalHorizontalDiagonalStripeBrush"
+      TileMode="Tile" Viewport="0,0,10,10"
+      ViewportUnits="Absolute" Viewbox="0,0,10,10"
+      ViewboxUnits="Absolute">
+        <VisualBrush.Visual>
+            <Canvas>
+                <Rectangle Fill="Transparent" Width="10" Height="10" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 0 10" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 0" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 10" Opacity="0.35" />
+            </Canvas>
+        </VisualBrush.Visual>
+    </VisualBrush>
+
+    <VisualBrush
+      x:Key="VerticalHorizontalDiagonalInverseDiagonalStripeBrush"
+      TileMode="Tile" Viewport="0,0,10,10"
+      ViewportUnits="Absolute" Viewbox="0,0,10,10"
+      ViewboxUnits="Absolute">
+        <VisualBrush.Visual>
+            <Canvas>
+                <Rectangle Fill="Transparent" Width="10" Height="10" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 0 10" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 0" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 10" Opacity="0.35" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 10 l 10 -10" Opacity="0.35" />
+            </Canvas>
+        </VisualBrush.Visual>
+    </VisualBrush>
+
+<!--#endregion-->
 
     <Geometry x:Key="MenuScrollDownArrowGeometry">M-0.7,5.2 L-2.2,6.7 3.6,12.6 9.5,6.7 8,5.2 3.6,9.6 z</Geometry>
     <Geometry x:Key="MenuScrollUpArrowGeometry">M-2.2,10.9 L-0.7,12.4 3.7,8 8,12.4 9.5,10.9 3.7,5 z</Geometry>
@@ -2347,15 +2536,127 @@
                                     <Grid.Style>
                                         <Style TargetType="Grid">
                                             <Style.Triggers>
+
                                                 <DataTrigger Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
-                                                    <Setter Property="Background" Value="{StaticResource DiagonalLeftToRightStripeBrush}" />
+                                                    <Setter Property="Background" Value="{StaticResource DiagonalStripeBrush}" />
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
-                                                    <Setter Property="Background" Value="{StaticResource DiagonalRightToLeftStripeBrush}" />
+                                                    <Setter Property="Background" Value="{StaticResource InverseDiagonalStripeBrush}" />
                                                 </DataTrigger>
+                                                <DataTrigger Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource VerticalStripeBrush}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource HorizontalStripeBrush}" />
+                                                </DataTrigger>
+
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="{StaticResource VerticalHorizontalStripeBrush}" />
+                                                </MultiDataTrigger>
+
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="{StaticResource VerticalDiagonalStripeBrush}" />
+                                                </MultiDataTrigger>
+
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="{StaticResource VerticalInverseDiagonalStripeBrush}" />
+                                                </MultiDataTrigger>
+
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="{StaticResource HorizontalDiagonalStripeBrush}" />
+                                                </MultiDataTrigger>
+
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="{StaticResource HorizontalInverseDiagonalStripeBrush}" />
+                                                </MultiDataTrigger>
+
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="{StaticResource DiagonalInverseDiagonalStripeBrush}" />
+                                                </MultiDataTrigger>
+
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="{StaticResource HorizontalDiagonalInverseDiagonalStripeBrush}" />
+                                                </MultiDataTrigger>
+
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="{StaticResource VerticalDiagonalInverseDiagonalStripeBrush}" />
+                                                </MultiDataTrigger>
+
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="{StaticResource VerticalDiagonalInverseDiagonalStripeBrush}" />
+                                                </MultiDataTrigger>
+
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="{StaticResource VerticalHorizontalInverseDiagonalStripeBrush}" />
+                                                </MultiDataTrigger>
+
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="{StaticResource VerticalHorizontalInverseDiagonalStripeBrush}" />
+                                                </MultiDataTrigger>
+
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="{StaticResource VerticalHorizontalDiagonalInverseDiagonalStripeBrush}" />
+                                                </MultiDataTrigger>
+
                                                 <DataTrigger Binding="{Binding Path=Header.SpecialFileState, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
                                                     <Setter Property="Background" Value="{StaticResource PrimaryVariantBrush}" />
                                                 </DataTrigger>
+
                                             </Style.Triggers>
                                         </Style>
                                     </Grid.Style>
