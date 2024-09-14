@@ -235,6 +235,33 @@
     <SolidColorBrush x:Key="GridLinesBrush" Color="Transparent" />
     <SolidColorBrush x:Key="{x:Static DataGrid.FocusBorderBrushKey}" Color="Red" />
 
+    <VisualBrush 
+      x:Key="DiagonalLeftToRightStripeBrush" 
+      TileMode="Tile" Viewport="0,0,10,10" 
+      ViewportUnits="Absolute" Viewbox="0,0,10,10"    
+      ViewboxUnits="Absolute">
+        <VisualBrush.Visual>
+            <Canvas>
+                <Rectangle Fill="Transparent" Width="10" Height="10" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 0 l 10 10" Opacity="0.6" />
+            </Canvas>
+        </VisualBrush.Visual>
+    </VisualBrush>
+
+    <VisualBrush 
+      x:Key="DiagonalRightToLeftStripeBrush" 
+      TileMode="Tile" Viewport="0,0,10,10" 
+      ViewportUnits="Absolute" Viewbox="0,0,10,10"    
+      ViewboxUnits="Absolute">
+        <VisualBrush.Visual>
+            <Canvas>
+                <Rectangle Fill="Transparent" Width="10" Height="10" />
+                <Path Stroke="{StaticResource PrimaryBrush}" Data="M 0 10 l 10 -10" Opacity="0.6" />
+            </Canvas>
+        </VisualBrush.Visual>
+    </VisualBrush>
+
+
     <Geometry x:Key="MenuScrollDownArrowGeometry">M-0.7,5.2 L-2.2,6.7 3.6,12.6 9.5,6.7 8,5.2 3.6,9.6 z</Geometry>
     <Geometry x:Key="MenuScrollUpArrowGeometry">M-2.2,10.9 L-0.7,12.4 3.7,8 8,12.4 9.5,10.9 3.7,5 z</Geometry>
     <Geometry x:Key="Checkmark">M1.0E-41,4.2 L0,2.1 2.5,4.5 6.7,4.4E-47 6.7,2.3 2.5,6.7 z</Geometry>
@@ -2320,16 +2347,18 @@
                                     <Grid.Style>
                                         <Style TargetType="Grid">
                                             <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource DiagonalLeftToRightStripeBrush}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource DiagonalRightToLeftStripeBrush}" />
+                                                </DataTrigger>
                                                 <DataTrigger Binding="{Binding Path=Header.SpecialFileState, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
                                                     <Setter Property="Background" Value="{StaticResource PrimaryVariantBrush}" />
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Grid.Style>
-                                    <!--
-                                    <Grid.Triggers>
-                                    </Grid.Triggers>
-                                    -->
                                 </Grid>
                             </Grid>
                         </Border>

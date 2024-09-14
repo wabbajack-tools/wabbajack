@@ -9,7 +9,6 @@ using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.DTOs.JsonConverters;
@@ -18,90 +17,11 @@ using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Services.OSIntegrated;
 using System.Windows.Controls;
-using FluentIcons.Common;
 using System.Windows.Input;
 using System.ComponentModel;
 
 namespace Wabbajack
 {
-    public enum CompilerFileState
-    {
-        [Description("Auto Match")]
-        AutoMatch,
-        [Description("No Match Include")]
-        NoMatchInclude,
-        [Description("Force Include")]
-        Include,
-        [Description("Force Ignore")]
-        Ignore,
-        [Description("Always Enabled")]
-        AlwaysEnabled
-    }
-    public class FileTreeViewItem : TreeViewItem
-    {
-        public FileTreeViewItem(DirectoryInfo dir)
-        {
-            base.Header = new FileTreeItemVM(dir);
-        }
-        public FileTreeViewItem(FileInfo file)
-        {
-            base.Header = new FileTreeItemVM(file);
-        }
-        public new FileTreeItemVM Header => base.Header as FileTreeItemVM;
-        public static FileTreeViewItem Placeholder => default;
-    }
-    public class FileTreeItemVM : ReactiveObject, IDisposable
-    {
-        private readonly CompositeDisposable _disposable = new();
-        public FileSystemInfo Info { get; set; }
-        public bool IsDirectory { get; set; }
-        public Symbol Symbol { get; set; }
-        [Reactive] public CompilerFileState CompilerFileState { get; set; }
-
-        public RelativePath PathRelativeToRoot { get; set; }
-        [Reactive] public bool SpecialFileState { get; set; }
-        public FileTreeItemVM(DirectoryInfo info)
-        {
-            Info = info;
-            IsDirectory = true;
-            Symbol = Symbol.Folder;
-
-            this.WhenAnyValue(ftvivm => ftvivm.CompilerFileState)
-                .Subscribe(cfs => SpecialFileState = cfs != CompilerFileState.AutoMatch)
-                .DisposeWith(_disposable);
-        }
-        public FileTreeItemVM(FileInfo info)
-        {
-            Info = info;
-            Symbol = info.Extension.ToLower() switch {
-                ".7z" or ".zip" or ".rar" or ".bsa" or ".ba2" or ".wabbajack" or ".tar" or ".tar.gz" => Symbol.Archive,
-                ".toml" or ".ini" or ".cfg" or ".json" or ".yaml" or ".xml" or ".yml" or ".meta" => Symbol.DocumentSettings,
-                ".txt" or ".md" or ".compiler_settings" or ".log" => Symbol.DocumentText,
-                ".dds" or ".jpg" or ".png" or ".webp" or ".svg" or ".xnb" => Symbol.DocumentImage,
-                ".hkx" => Symbol.DocumentPerson,
-                ".nif" or ".btr" => Symbol.DocumentCube,
-                ".mp3" or ".wav" or ".fuz" => Symbol.DocumentCatchUp,
-                ".js" => Symbol.DocumentJavascript,
-                ".java" => Symbol.DocumentJava,
-                ".pdf" => Symbol.DocumentPdf,
-                ".lua" or ".py" or ".bat" or ".reds" or ".psc" => Symbol.Receipt,
-                ".exe" => Symbol.ReceiptPlay,
-                ".esp" or ".esl" or ".esm" or ".archive" => Symbol.DocumentTable,
-                _ => Symbol.Document
-            };
-            SpecialFileState = CompilerFileState != CompilerFileState.AutoMatch;
-
-            this.WhenAnyValue(ftvivm => ftvivm.CompilerFileState)
-                .Subscribe(cfs => SpecialFileState = cfs != CompilerFileState.AutoMatch)
-                .DisposeWith(_disposable);
-        }
-        public override string ToString() => Info.Name;
-        public void Dispose()
-        {
-            GC.SuppressFinalize(this);
-            _disposable.Dispose();
-        }
-    }
     public class CompilerFileManagerVM : BaseCompilerVM, IHasInfoVM
     {
         private readonly IServiceProvider _serviceProvider;
@@ -110,7 +30,6 @@ namespace Wabbajack
         
         public ObservableCollection<FileTreeViewItem> Files { get; set; }
         public ICommand PrevCommand { get; set; }
-
         public ICommand InfoCommand { get; }
 
         public CompilerFileManagerVM(ILogger<CompilerFileManagerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
@@ -128,7 +47,7 @@ namespace Wabbajack
                 if (Settings.Source != default)
                 {
                     var fileTree = GetDirectoryContents(new DirectoryInfo(Settings.Source.ToString()));
-                    Files = LoadFiles(new DirectoryInfo(Settings.Source.ToString()));
+                    Files = LoadSource(new DirectoryInfo(Settings.Source.ToString()));
                 }
 
                 Disposable.Create(() => { }).DisposeWith(disposables);
@@ -145,7 +64,7 @@ namespace Wabbajack
             LoadInfoScreen.Send(Consts.FileManagerInfo, this);
         }
 
-        private ObservableCollection<FileTreeViewItem> LoadFiles(DirectoryInfo parent)
+        private ObservableCollection<FileTreeViewItem> LoadSource(DirectoryInfo parent)
         {
             var parentTreeItem = new FileTreeViewItem(parent)
             {
@@ -160,48 +79,61 @@ namespace Wabbajack
         {
             return parent.EnumerateDirectories()
                   .OrderBy(dir => dir.Name)
-                  .Select(dir => new FileTreeViewItem(dir) { ItemsSource = (dir.EnumerateDirectories().Any() || dir.EnumerateFiles().Any()) ? new ObservableCollection<FileTreeViewItem>([FileTreeViewItem.Placeholder]) : null}).Select(item => {
+                  .Select(dir => new FileTreeViewItem(dir) { ItemsSource = (dir.EnumerateDirectories().Any() || dir.EnumerateFiles().Any()) ? new ObservableCollection<FileTreeViewItem>([FileTreeViewItem.Placeholder]) : null}).Select(item =>
+                  {
                       item.Expanded += LoadingItem_Expanded;
-                      var header = item.Header;
-                      header.PathRelativeToRoot = ((AbsolutePath)header.Info.FullName).RelativeTo(Settings.Source);
-                      if (Settings.NoMatchInclude.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.NoMatchInclude; }
-                      else if(Settings.Include.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.Include; }
-                      else if(Settings.Ignore.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.Ignore; }
-                      else if(Settings.AlwaysEnabled.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.AlwaysEnabled; }
-                      header.SpecialFileState = header.CompilerFileState != CompilerFileState.AutoMatch;
-                      while(!header.SpecialFileState)
-                      {
-                          header.SpecialFileState = Settings.NoMatchInclude.Any(p => header.PathRelativeToRoot.InFolder(p));
-                          header.SpecialFileState = Settings.Include.Any(p => header.PathRelativeToRoot.InFolder(p));
-                          header.SpecialFileState = Settings.Ignore.Any(p => header.PathRelativeToRoot.InFolder(p));
-                          header.SpecialFileState = Settings.AlwaysEnabled.Any(p => header.PathRelativeToRoot.InFolder(p));
-                          break;
-                      }
-                      header.PropertyChanged += Header_PropertyChanged;
+                      SetFileTreeViewItemProperties(item);
                       return item;
                   })
                   .Concat(parent.EnumerateFiles()
                                 .OrderBy(file => file.Name)
-                                .Select(file => new FileTreeViewItem(file)));
+                                .Select(file => {
+                                    var item = new FileTreeViewItem(file);
+                                    SetFileTreeViewItemProperties(item);
+                                    return item;
+                                }))
+                  .ToList();
+        }
+
+        private void SetFileTreeViewItemProperties(FileTreeViewItem item)
+        {
+            var header = item.Header;
+            header.PathRelativeToRoot = ((AbsolutePath)header.Info.FullName).RelativeTo(Settings.Source);
+            if (Settings.NoMatchInclude.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.NoMatchInclude; }
+            else if (Settings.Include.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.Include; }
+            else if (Settings.Ignore.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.Ignore; }
+            else if (Settings.AlwaysEnabled.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.AlwaysEnabled; }
+            SetContainedStates(header);
+            header.PropertyChanged += Header_PropertyChanged;
+        }
+
+        private void SetContainedStates(FileTreeItemVM header)
+        {
+            header.ContainsNoMatchIncludes = Settings.NoMatchInclude.Any(p => p.InFolder(header.PathRelativeToRoot));
+            header.ContainsIncludes = Settings.Include.Any(p => p.InFolder(header.PathRelativeToRoot));
+            header.ContainsIgnores = Settings.Ignore.Any(p => p.InFolder(header.PathRelativeToRoot));
+            header.ContainsAlwaysEnableds = Settings.AlwaysEnabled.Any(p => p.InFolder(header.PathRelativeToRoot));
         }
 
         private async void Header_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             var updatedItem = (FileTreeItemVM)sender;
+            /*
             if(e.PropertyName == nameof(FileTreeItemVM.SpecialFileState))
             {
                 IEnumerable<FileTreeViewItem> currentEnumerable = null;
                 for (int i = 0; i < updatedItem.PathRelativeToRoot.Depth - 1; i++)
                 {
                     if (currentEnumerable == null)
-                        currentEnumerable = ((IEnumerable<FileTreeViewItem>)Files.ElementAt(0).ItemsSource);
+                        currentEnumerable = Files.ElementAt(0).ItemsSource.Cast<FileTreeViewItem>();
 
                     var currentItem = currentEnumerable.First(x => x.Header.IsDirectory && updatedItem.PathRelativeToRoot.Parts[i] == x.Header.Info.Name);
                     currentItem.Header.SpecialFileState = updatedItem.CompilerFileState != CompilerFileState.AutoMatch;
-                    currentEnumerable = (IEnumerable<FileTreeViewItem>)currentItem.ItemsSource;
+                    currentEnumerable = currentItem.ItemsSource.Cast<FileTreeViewItem>();
                 }
             }
-            else if(e.PropertyName == nameof(FileTreeItemVM.CompilerFileState))
+            */
+            if(e.PropertyName == nameof(FileTreeItemVM.CompilerFileState))
             {
                 Settings.NoMatchInclude.Remove(updatedItem.PathRelativeToRoot);
                 Settings.Include.Remove(updatedItem.PathRelativeToRoot);
@@ -223,6 +155,26 @@ namespace Wabbajack
                         Settings.AlwaysEnabled.Add(updatedItem.PathRelativeToRoot);
                         break;
                 };
+
+                // Update contained states of parents upon changing compiler state on child (ContainsIgnores, ContainsIncludes)
+                if (updatedItem.PathRelativeToRoot.Depth > 1)
+                {
+                    IEnumerable<FileTreeViewItem> files = Files.First().ItemsSource.Cast<FileTreeViewItem>();
+                    for (int i = 0; i < updatedItem.PathRelativeToRoot.Depth - 1; i++)
+                    {
+                        var currPathPart = updatedItem.PathRelativeToRoot.Parts[i];
+                        foreach (var file in files)
+                        {
+                            if (file.Header.ToString() == currPathPart)
+                            {
+                                SetContainedStates(file.Header);
+                                files = file.ItemsSource.Cast<FileTreeViewItem>();
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 await SaveSettings();
             }
         }
