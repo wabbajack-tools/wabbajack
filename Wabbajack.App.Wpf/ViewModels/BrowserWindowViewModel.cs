@@ -1,20 +1,15 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.Wpf;
-using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Hashing.xxHash64;
-using Wabbajack.Messages;
 using Wabbajack.Paths;
-using Wabbajack.Views;
 
 namespace Wabbajack;
 

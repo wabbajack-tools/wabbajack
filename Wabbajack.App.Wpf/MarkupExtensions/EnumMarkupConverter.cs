@@ -1,49 +1,44 @@
-﻿using SteamKit2.GC.Artifact.Internal;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Markup;
 
-namespace Wabbajack
+namespace Wabbajack;
+
+public class EnumToItemsSource : MarkupExtension
 {
-    public class EnumToItemsSource : MarkupExtension
+    private readonly Type _type;
+
+    public EnumToItemsSource(Type type)
     {
-        private readonly Type _type;
+        _type = type;
+    }
+    public static string GetEnumDescription(Enum value)
+    {
+        FieldInfo fi = value.GetType().GetField(value.ToString());
 
-        public EnumToItemsSource(Type type)
+        DescriptionAttribute[] attributes = fi.GetCustomAttributes(typeof(DescriptionAttribute), false) as DescriptionAttribute[];
+
+        if (attributes != null && attributes.Any())
         {
-            _type = type;
+            return attributes.First().Description;
         }
-        public static string GetEnumDescription(Enum value)
-        {
-            FieldInfo fi = value.GetType().GetField(value.ToString());
 
-            DescriptionAttribute[] attributes = fi.GetCustomAttributes(typeof(DescriptionAttribute), false) as DescriptionAttribute[];
+        return value.ToString();
+    }
 
-            if (attributes != null && attributes.Any())
+    public override object ProvideValue(IServiceProvider serviceProvider)
+    {
+        return Enum.GetValues(_type)
+            .Cast<Enum>()
+            .Select(e =>
             {
-                return attributes.First().Description;
-            }
-
-            return value.ToString();
-        }
-
-        public override object ProvideValue(IServiceProvider serviceProvider)
-        {
-            return Enum.GetValues(_type)
-                .Cast<Enum>()
-                .Select(e =>
+                return new
                 {
-                    return new
-                    {
-                        Value = e,
-                        DisplayName = GetEnumDescription((Enum)e)
-                    };
-                });
-        }
+                    Value = e,
+                    DisplayName = GetEnumDescription((Enum)e)
+                };
+            });
     }
 }

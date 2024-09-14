@@ -3,16 +3,10 @@ using System.Collections.ObjectModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Text;
-using System.Windows.Data;
 using DynamicData;
-using DynamicData.Binding;
-using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Targets;
 using ReactiveUI;
-using Wabbajack.Extensions;
-using LogLevel = NLog.LogLevel;
 
 namespace Wabbajack.Models;
 

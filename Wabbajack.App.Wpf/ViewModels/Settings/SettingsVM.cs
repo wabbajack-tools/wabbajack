@@ -19,56 +19,55 @@ using Wabbajack.Services.OSIntegrated.TokenProviders;
 using Wabbajack.Util;
 using Wabbajack.ViewModels.Settings;
 
-namespace Wabbajack
+namespace Wabbajack;
+
+public class SettingsVM : BackNavigatingVM
 {
-    public class SettingsVM : BackNavigatingVM
+    private readonly Configuration.MainSettings _settings;
+    private readonly SettingsManager _settingsManager;
+
+    public LoginManagerVM Login { get; }
+    public PerformanceSettings Performance { get; }
+    public AuthorFilesVM AuthorFile { get; }
+
+    public ICommand OpenTerminalCommand { get; }
+
+    public SettingsVM(ILogger<SettingsVM> logger, IServiceProvider provider)
+        : base(logger)
     {
-        private readonly Configuration.MainSettings _settings;
-        private readonly SettingsManager _settingsManager;
+        _settings = provider.GetRequiredService<Configuration.MainSettings>();
+        _settingsManager = provider.GetRequiredService<SettingsManager>();
 
-        public LoginManagerVM Login { get; }
-        public PerformanceSettings Performance { get; }
-        public AuthorFilesVM AuthorFile { get; }
-
-        public ICommand OpenTerminalCommand { get; }
-
-        public SettingsVM(ILogger<SettingsVM> logger, IServiceProvider provider)
-            : base(logger)
+        Login = new LoginManagerVM(provider.GetRequiredService<ILogger<LoginManagerVM>>(), this,
+            provider.GetRequiredService<IEnumerable<INeedsLogin>>());
+        AuthorFile = new AuthorFilesVM(provider.GetRequiredService<ILogger<AuthorFilesVM>>()!,
+            provider.GetRequiredService<WabbajackApiTokenProvider>()!, provider.GetRequiredService<Client>()!, this);
+        OpenTerminalCommand = ReactiveCommand.CreateFromTask(OpenTerminal);
+        Performance = new PerformanceSettings(
+            _settings,
+            provider.GetRequiredService<IResource<DownloadDispatcher>>(),
+            provider.GetRequiredService<SystemParametersConstructor>());
+        BackCommand = ReactiveCommand.Create(() =>
         {
-            _settings = provider.GetRequiredService<Configuration.MainSettings>();
-            _settingsManager = provider.GetRequiredService<SettingsManager>();
+            NavigateBack.Send();
+            Unload();
+        });
+    }
 
-            Login = new LoginManagerVM(provider.GetRequiredService<ILogger<LoginManagerVM>>(), this,
-                provider.GetRequiredService<IEnumerable<INeedsLogin>>());
-            AuthorFile = new AuthorFilesVM(provider.GetRequiredService<ILogger<AuthorFilesVM>>()!,
-                provider.GetRequiredService<WabbajackApiTokenProvider>()!, provider.GetRequiredService<Client>()!, this);
-            OpenTerminalCommand = ReactiveCommand.CreateFromTask(OpenTerminal);
-            Performance = new PerformanceSettings(
-                _settings,
-                provider.GetRequiredService<IResource<DownloadDispatcher>>(),
-                provider.GetRequiredService<SystemParametersConstructor>());
-            BackCommand = ReactiveCommand.Create(() =>
-            {
-                NavigateBack.Send();
-                Unload();
-            });
-        }
+    public override void Unload()
+    {
+        _settingsManager.Save(Configuration.MainSettings.SettingsFileName, _settings).FireAndForget();
 
-        public override void Unload()
+        base.Unload();
+    }
+
+    private async Task OpenTerminal()
+    {
+        var process = new ProcessStartInfo
         {
-            _settingsManager.Save(Configuration.MainSettings.SettingsFileName, _settings).FireAndForget();
-
-            base.Unload();
-        }
-
-        private async Task OpenTerminal()
-        {
-            var process = new ProcessStartInfo
-            {
-                FileName = "cmd.exe",
-                WorkingDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location)!
-            };
-            Process.Start(process);
-        }
+            FileName = "cmd.exe",
+            WorkingDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location)!
+        };
+        Process.Start(process);
     }
 }

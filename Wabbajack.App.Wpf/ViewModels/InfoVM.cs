@@ -5,20 +5,19 @@ using System;
 using System.Reactive.Disposables;
 using Wabbajack.Messages;
 
-namespace Wabbajack
+namespace Wabbajack;
+
+public class InfoVM : BackNavigatingVM
 {
-    public class InfoVM : BackNavigatingVM
+    public InfoVM(ILogger<InfoVM> logger) : base(logger)
     {
-        public InfoVM(ILogger<InfoVM> logger) : base(logger)
-        {
-            MessageBus.Current.Listen<LoadInfoScreen>()
-                .Subscribe(msg => {
-                    Info = msg.Info;
-                    NavigateBackTarget = msg.NavigateBackTarget;
-                    BackCommand = ReactiveCommand.Create(() => NavigateTo.Send(NavigateBackTarget));
-                })
-                .DisposeWith(CompositeDisposable);
-        }
-        [Reactive] public string Info { get; set; }
+        MessageBus.Current.Listen<LoadInfoScreen>()
+            .Subscribe(msg => {
+                Info = msg.Info;
+                NavigateBackTarget = msg.NavigateBackTarget;
+                BackCommand = ReactiveCommand.Create(() => NavigateTo.Send(NavigateBackTarget));
+            })
+            .DisposeWith(CompositeDisposable);
     }
+    [Reactive] public string Info { get; set; }
 }

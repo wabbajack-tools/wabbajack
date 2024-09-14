@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Wabbajack.Common;
 using Wabbajack.Interventions;
 
 namespace Wabbajack

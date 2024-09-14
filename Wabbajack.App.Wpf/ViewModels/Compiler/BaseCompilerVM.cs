@@ -7,14 +7,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Paths;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Paths.IO;
-using System.Linq;
 using Wabbajack.Networking.WabbajackClientApi;
-using System.Threading;
 using Wabbajack.Messages;
 
 namespace Wabbajack

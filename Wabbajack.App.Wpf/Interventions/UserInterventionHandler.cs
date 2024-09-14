@@ -1,6 +1,4 @@
 using System;
-using System.Reactive.Disposables;
-using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;

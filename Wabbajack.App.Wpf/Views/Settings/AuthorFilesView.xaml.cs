@@ -1,15 +1,13 @@
-﻿using System.Windows.Controls;
-using ReactiveUI;
+﻿using ReactiveUI;
 using Wabbajack.ViewModels.Settings;
 
-namespace Wabbajack
+namespace Wabbajack;
+
+public partial class AuthorFilesView : ReactiveUserControl<AuthorFilesVM>
 {
-    public partial class AuthorFilesView : ReactiveUserControl<AuthorFilesVM>
+    public AuthorFilesView()
     {
-        public AuthorFilesView()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }
 

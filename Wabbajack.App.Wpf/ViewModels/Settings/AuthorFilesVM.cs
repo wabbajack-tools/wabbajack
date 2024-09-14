@@ -11,83 +11,82 @@ using Wabbajack;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 
-namespace Wabbajack.ViewModels.Settings
+namespace Wabbajack.ViewModels.Settings;
+
+public class AuthorFilesVM : BackNavigatingVM
 {
-    public class AuthorFilesVM : BackNavigatingVM
+    [Reactive]
+    public Visibility IsVisible { get; set; }
+    
+    public ICommand SelectFile { get; }
+    public ICommand HyperlinkCommand { get; }
+    public IReactiveCommand Upload { get; }
+    public IReactiveCommand ManageFiles { get; }
+
+    [Reactive] public double UploadProgress { get; set; }
+    [Reactive] public string FinalUrl { get; set; }
+    public FilePickerVM Picker { get;}
+    
+    private Subject<bool> _isUploading = new();
+    private readonly WabbajackApiTokenProvider _token;
+    private readonly Client _wjClient;
+    private IObservable<bool> IsUploading { get; }
+
+    public AuthorFilesVM(ILogger<AuthorFilesVM> logger, WabbajackApiTokenProvider token, Client wjClient, SettingsVM vm) : base(logger)
     {
-        [Reactive]
-        public Visibility IsVisible { get; set; }
-        
-        public ICommand SelectFile { get; }
-        public ICommand HyperlinkCommand { get; }
-        public IReactiveCommand Upload { get; }
-        public IReactiveCommand ManageFiles { get; }
+        _token = token;
+        _wjClient = wjClient;
+        IsUploading = _isUploading;
+        Picker = new FilePickerVM(this);
 
-        [Reactive] public double UploadProgress { get; set; }
-        [Reactive] public string FinalUrl { get; set; }
-        public FilePickerVM Picker { get;}
-        
-        private Subject<bool> _isUploading = new();
-        private readonly WabbajackApiTokenProvider _token;
-        private readonly Client _wjClient;
-        private IObservable<bool> IsUploading { get; }
 
-        public AuthorFilesVM(ILogger<AuthorFilesVM> logger, WabbajackApiTokenProvider token, Client wjClient, SettingsVM vm) : base(logger)
+        IsVisible = Visibility.Hidden;
+
+        Task.Run(async () =>
         {
-            _token = token;
-            _wjClient = wjClient;
-            IsUploading = _isUploading;
-            Picker = new FilePickerVM(this);
+            var isAuthor = !string.IsNullOrWhiteSpace((await _token.Get())?.AuthorKey);
+            IsVisible = isAuthor ? Visibility.Visible : Visibility.Collapsed;
+        });
 
+        SelectFile = Picker.ConstructTypicalPickerCommand(IsUploading.StartWith(false).Select(u => !u));
 
-            IsVisible = Visibility.Hidden;
+        HyperlinkCommand = ReactiveCommand.Create(() => Clipboard.SetText(FinalUrl));
 
-            Task.Run(async () =>
+        ManageFiles = ReactiveCommand.Create(async () =>
+        {
+            var authorApiKey = (await token.Get())!.AuthorKey;
+            UIUtils.OpenWebsite(new Uri($"{Consts.WabbajackBuildServerUri}author_controls/login/{authorApiKey}"));
+        });
+        
+        Upload = ReactiveCommand.Create(async () =>
+        {
+            _isUploading.OnNext(true);
+            try
             {
-                var isAuthor = !string.IsNullOrWhiteSpace((await _token.Get())?.AuthorKey);
-                IsVisible = isAuthor ? Visibility.Visible : Visibility.Collapsed;
-            });
+                var (progress, task) = await _wjClient.UploadAuthorFile(Picker.TargetPath);
 
-            SelectFile = Picker.ConstructTypicalPickerCommand(IsUploading.StartWith(false).Select(u => !u));
+                var disposable = progress.Subscribe(m =>
+                {
+                    FinalUrl = m.Message;
+                    UploadProgress = (double)m.PercentDone;
+                });
 
-            HyperlinkCommand = ReactiveCommand.Create(() => Clipboard.SetText(FinalUrl));
-
-            ManageFiles = ReactiveCommand.Create(async () =>
+                var final = await task;
+                disposable.Dispose();
+                FinalUrl = final.ToString();
+            }
+            catch (Exception ex)
             {
-                var authorApiKey = (await token.Get())!.AuthorKey;
-                UIUtils.OpenWebsite(new Uri($"{Consts.WabbajackBuildServerUri}author_controls/login/{authorApiKey}"));
-            });
-            
-            Upload = ReactiveCommand.Create(async () =>
+                FinalUrl = ex.ToString();
+            }
+            finally
             {
-                _isUploading.OnNext(true);
-                try
-                {
-                    var (progress, task) = await _wjClient.UploadAuthorFile(Picker.TargetPath);
-
-                    var disposable = progress.Subscribe(m =>
-                    {
-                        FinalUrl = m.Message;
-                        UploadProgress = (double)m.PercentDone;
-                    });
-
-                    var final = await task;
-                    disposable.Dispose();
-                    FinalUrl = final.ToString();
-                }
-                catch (Exception ex)
-                {
-                    FinalUrl = ex.ToString();
-                }
-                finally
-                {
-                    FinalUrl = FinalUrl.Replace(" ", "%20");
-                    _isUploading.OnNext(false);
-                }
-            }, IsUploading.StartWith(false).Select(u => !u)
-                .CombineLatest(Picker.WhenAnyValue(t => t.TargetPath).Select(f => f != default),
-                (a, b) => a && b));
-        }
-
+                FinalUrl = FinalUrl.Replace(" ", "%20");
+                _isUploading.OnNext(false);
+            }
+        }, IsUploading.StartWith(false).Select(u => !u)
+            .CombineLatest(Picker.WhenAnyValue(t => t.TargetPath).Select(f => f != default),
+            (a, b) => a && b));
     }
+
 }

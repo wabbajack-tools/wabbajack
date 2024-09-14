@@ -1,15 +1,14 @@
 ﻿using System.Windows.Controls;
 
-namespace Wabbajack
+namespace Wabbajack;
+
+/// <summary>
+/// Interaction logic for MO2CompilerConfigView.xaml
+/// </summary>
+public partial class MO2CompilerConfigView : UserControl
 {
-    /// <summary>
-    /// Interaction logic for MO2CompilerConfigView.xaml
-    /// </summary>
-    public partial class MO2CompilerConfigView : UserControl
+    public MO2CompilerConfigView()
     {
-        public MO2CompilerConfigView()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

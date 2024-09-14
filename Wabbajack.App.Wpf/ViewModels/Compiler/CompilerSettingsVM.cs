@@ -1,9 +1,7 @@
-﻿using Microsoft.Web.WebView2.Core;
-using ReactiveUI.Fody.Helpers;
+﻿using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.DTOs;

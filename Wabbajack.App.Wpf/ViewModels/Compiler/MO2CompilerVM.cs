@@ -1,18 +1,8 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
-using ReactiveUI.Fody.Helpers;
+﻿using ReactiveUI.Fody.Helpers;
 using System;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
-using DynamicData;
-using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.DTOs;
-using Wabbajack.DTOs.GitHub;
-using Wabbajack;
-using Wabbajack.Extensions;
-using Wabbajack.Paths.IO;
-using Consts = Wabbajack.Consts;
 
 namespace Wabbajack
 {

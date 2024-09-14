@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
-using Wabbajack;
 using Wabbajack.Extensions;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;

@@ -1,5 +1,4 @@
 using System;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -10,7 +9,6 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs.Logins;
-using Wabbajack.Messages;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.UserIntervention;
 

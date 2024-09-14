@@ -1,8 +1,6 @@
 using System.Net.Http;
 using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs.Logins;
-using Wabbajack.Models;
-using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.UserIntervention;

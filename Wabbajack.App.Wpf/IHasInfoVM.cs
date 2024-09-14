@@ -1,9 +1,8 @@
 ﻿using System.Windows.Input;
 
-namespace Wabbajack
+namespace Wabbajack;
+
+public interface IHasInfoVM
 {
-    public interface IHasInfoVM
-    {
-        public ICommand InfoCommand { get; }
-    }
+    public ICommand InfoCommand { get; }
 }

@@ -1,51 +1,34 @@
-﻿using System;
-using System.Diagnostics.Eventing.Reader;
-using System.Linq;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
-using System.Windows.Controls;
+﻿using System.Reactive.Disposables;
 using ReactiveUI;
-using System.Windows;
-using System.Windows.Forms;
-using DynamicData;
-using Microsoft.WindowsAPICodePack.Dialogs;
-using Wabbajack.Common;
-using Wabbajack.Paths;
-using Wabbajack.Paths.IO;
-using Wabbajack.ViewModels.Controls;
-using Wabbajack.Services.OSIntegrated;
-using ReactiveMarbles.ObservableEvents;
 
-namespace Wabbajack
+namespace Wabbajack;
+
+/// <summary>
+/// Interaction logic for CompilerFileManagerView.xaml
+/// </summary>
+public partial class CompilerFileManagerView : ReactiveUserControl<CompilerFileManagerVM>
 {
-    /// <summary>
-    /// Interaction logic for CompilerFileManagerView.xaml
-    /// </summary>
-    public partial class CompilerFileManagerView : ReactiveUserControl<CompilerFileManagerVM>
+    public CompilerFileManagerView()
     {
-        public CompilerFileManagerView()
+        InitializeComponent();
+
+
+        this.WhenActivated(disposables =>
         {
-            InitializeComponent();
+            this.WhenAny(x => x.ViewModel.Files)
+                .BindToStrict(this, v => v.FileTreeView.ItemsSource)
+                .DisposeWith(disposables);
 
+            /*
+            this.BindStrict(ViewModel, vm => vm.Search, x => x.SearchBox.Text)
+                .DisposeWith(dispose);
+            */
 
-            this.WhenActivated(disposables =>
-            {
-                this.WhenAny(x => x.ViewModel.Files)
-                    .BindToStrict(this, v => v.FileTreeView.ItemsSource)
-                    .DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.PrevCommand, v => v.PrevButton)
+                .DisposeWith(disposables);
 
-                /*
-                this.BindStrict(ViewModel, vm => vm.Search, x => x.SearchBox.Text)
-                    .DisposeWith(dispose);
-                */
-
-                this.BindCommand(ViewModel, vm => vm.PrevCommand, v => v.PrevButton)
-                    .DisposeWith(disposables);
-
-            });
-
-        }
+        });
 
     }
+
 }

@@ -1,18 +1,13 @@
-﻿using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using ReactiveUI;
+﻿namespace Wabbajack;
 
-namespace Wabbajack
+/// <summary>
+/// Interaction logic for CompilationCompleteView.xaml
+/// </summary>
+public partial class CompilationCompleteView
 {
-    /// <summary>
-    /// Interaction logic for CompilationCompleteView.xaml
-    /// </summary>
-    public partial class CompilationCompleteView
+    public CompilationCompleteView()
     {
-        public CompilationCompleteView()
-        {
-            InitializeComponent();
+        InitializeComponent();
 
-        }
     }
 }
