@@ -42,7 +42,7 @@
     <Color x:Key="ForegroundColor">#EFEFEF</Color>
     <Color x:Key="DimForegroundColor">#CCCCCC</Color>
 
-    <Color x:Key="HighlightColor">#BDBDBD</Color>
+    <Color x:Key="HighlightColor">#D9BBF9</Color>
     <Color x:Key="HotColor">#525252</Color>
 
     <Color x:Key="Yellow">#ffc400</Color>
@@ -210,7 +210,7 @@
     <SolidColorBrush x:Key="ListBackground" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="SelectedListItem" Color="{StaticResource HighlightColor}" />
     <SolidColorBrush x:Key="SelectedListItemForeground" Color="{StaticResource DarkBackgroundColor}" />
-    <SolidColorBrush x:Key="MouseOverListItem" Color="#4A4A4A" />
+    <SolidColorBrush x:Key="MouseOverListItem" Color="{StaticResource DarkHoverBackgroundColor}" />
 
     <SolidColorBrush x:Key="TreeViewBackground" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="TreeViewDisabledForeground" Color="{StaticResource LightDisabledBackgroundColor}" />
@@ -2505,7 +2505,7 @@
                         <Border
                             Name="Bd"
                             Padding="{TemplateBinding Padding}"
-                            Background="{TemplateBinding Background}">
+                            Background="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Background}">
                             <Grid Margin="{Binding Converter={StaticResource LengthConverter}, RelativeSource={RelativeSource TemplatedParent}}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="15" />
@@ -2524,7 +2524,7 @@
                                         <ColumnDefinition Width="5*" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <ic:SymbolIcon IsFilled="True" Symbol="{Binding Path=Header.Symbol, RelativeSource={RelativeSource TemplatedParent}}" Margin="0, 0, 4, 0" Foreground="{StaticResource PrimaryBrush}"/>
+                                    <ic:SymbolIcon x:Name="Foreground" IsFilled="True" Symbol="{Binding Path=Header.Symbol, RelativeSource={RelativeSource TemplatedParent}}" Margin="0, 0, 4, 0" Foreground="{StaticResource PrimaryBrush}"/>
                                     <StackPanel Orientation="Horizontal" Grid.Column="1">
                                         <ContentPresenter
                                         x:Name="PART_Header"
@@ -2532,146 +2532,140 @@
                                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                         ContentSource="Header"/>
                                     </StackPanel>
-                                    <ComboBox Name="CompilerFileStateListbox" ItemsSource="{wj:EnumToItemsSource {x:Type wj:CompilerFileState}}" DisplayMemberPath="DisplayName" SelectedValue="{Binding Path=Header.CompilerFileState, RelativeSource={RelativeSource TemplatedParent}}" SelectedValuePath="Value" Grid.Column="2"/>
-                                    <Grid.Style>
-                                        <Style TargetType="Grid">
-                                            <Style.Triggers>
-
-                                                <DataTrigger Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
-                                                    <Setter Property="Background" Value="{StaticResource DiagonalStripeBrush}" />
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
-                                                    <Setter Property="Background" Value="{StaticResource InverseDiagonalStripeBrush}" />
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
-                                                    <Setter Property="Background" Value="{StaticResource VerticalStripeBrush}" />
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
-                                                    <Setter Property="Background" Value="{StaticResource HorizontalStripeBrush}" />
-                                                </DataTrigger>
-
-                                                <MultiDataTrigger>
-                                                    <MultiDataTrigger.Conditions>
-                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                    </MultiDataTrigger.Conditions>
-                                                    <Setter Property="Background" Value="{StaticResource VerticalHorizontalStripeBrush}" />
-                                                </MultiDataTrigger>
-
-                                                <MultiDataTrigger>
-                                                    <MultiDataTrigger.Conditions>
-                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                    </MultiDataTrigger.Conditions>
-                                                    <Setter Property="Background" Value="{StaticResource VerticalDiagonalStripeBrush}" />
-                                                </MultiDataTrigger>
-
-                                                <MultiDataTrigger>
-                                                    <MultiDataTrigger.Conditions>
-                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                    </MultiDataTrigger.Conditions>
-                                                    <Setter Property="Background" Value="{StaticResource VerticalInverseDiagonalStripeBrush}" />
-                                                </MultiDataTrigger>
-
-                                                <MultiDataTrigger>
-                                                    <MultiDataTrigger.Conditions>
-                                                        <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                    </MultiDataTrigger.Conditions>
-                                                    <Setter Property="Background" Value="{StaticResource HorizontalDiagonalStripeBrush}" />
-                                                </MultiDataTrigger>
-
-                                                <MultiDataTrigger>
-                                                    <MultiDataTrigger.Conditions>
-                                                        <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                    </MultiDataTrigger.Conditions>
-                                                    <Setter Property="Background" Value="{StaticResource HorizontalInverseDiagonalStripeBrush}" />
-                                                </MultiDataTrigger>
-
-                                                <MultiDataTrigger>
-                                                    <MultiDataTrigger.Conditions>
-                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                    </MultiDataTrigger.Conditions>
-                                                    <Setter Property="Background" Value="{StaticResource DiagonalInverseDiagonalStripeBrush}" />
-                                                </MultiDataTrigger>
-
-                                                <MultiDataTrigger>
-                                                    <MultiDataTrigger.Conditions>
-                                                        <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                    </MultiDataTrigger.Conditions>
-                                                    <Setter Property="Background" Value="{StaticResource HorizontalDiagonalInverseDiagonalStripeBrush}" />
-                                                </MultiDataTrigger>
-
-                                                <MultiDataTrigger>
-                                                    <MultiDataTrigger.Conditions>
-                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                    </MultiDataTrigger.Conditions>
-                                                    <Setter Property="Background" Value="{StaticResource VerticalDiagonalInverseDiagonalStripeBrush}" />
-                                                </MultiDataTrigger>
-
-                                                <MultiDataTrigger>
-                                                    <MultiDataTrigger.Conditions>
-                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                    </MultiDataTrigger.Conditions>
-                                                    <Setter Property="Background" Value="{StaticResource VerticalDiagonalInverseDiagonalStripeBrush}" />
-                                                </MultiDataTrigger>
-
-                                                <MultiDataTrigger>
-                                                    <MultiDataTrigger.Conditions>
-                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                    </MultiDataTrigger.Conditions>
-                                                    <Setter Property="Background" Value="{StaticResource VerticalHorizontalInverseDiagonalStripeBrush}" />
-                                                </MultiDataTrigger>
-
-                                                <MultiDataTrigger>
-                                                    <MultiDataTrigger.Conditions>
-                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                    </MultiDataTrigger.Conditions>
-                                                    <Setter Property="Background" Value="{StaticResource VerticalHorizontalInverseDiagonalStripeBrush}" />
-                                                </MultiDataTrigger>
-
-                                                <MultiDataTrigger>
-                                                    <MultiDataTrigger.Conditions>
-                                                        <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                        <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
-                                                    </MultiDataTrigger.Conditions>
-                                                    <Setter Property="Background" Value="{StaticResource VerticalHorizontalDiagonalInverseDiagonalStripeBrush}" />
-                                                </MultiDataTrigger>
-
-                                                <DataTrigger Binding="{Binding Path=Header.SpecialFileState, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
-                                                    <Setter Property="Background" Value="{StaticResource PrimaryVariantBrush}" />
-                                                </DataTrigger>
-
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Grid.Style>
+                                    <ComboBox Name="CompilerFileStateListbox" ItemsSource="{wj:EnumToItemsSource {x:Type wj:CompilerFileState}}" DisplayMemberPath="DisplayName" SelectedValue="{Binding Path=Header.CompilerFileState, RelativeSource={RelativeSource TemplatedParent}}" SelectedValuePath="Value" Grid.Column="2" BorderThickness="1" BorderBrush="{StaticResource PrimaryBrush}"/>
                                 </Grid>
                             </Grid>
                         </Border>
                         <ItemsPresenter x:Name="ItemsHost" />
                     </StackPanel>
                     <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource Self}}" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource DiagonalStripeBrush}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource Self}}" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource InverseDiagonalStripeBrush}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource Self}}" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource VerticalStripeBrush}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource Self}}" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource HorizontalStripeBrush}" />
+                        </DataTrigger>
+
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource VerticalHorizontalStripeBrush}" />
+                        </MultiDataTrigger>
+
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource VerticalDiagonalStripeBrush}" />
+                        </MultiDataTrigger>
+
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource VerticalInverseDiagonalStripeBrush}" />
+                        </MultiDataTrigger>
+
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource HorizontalDiagonalStripeBrush}" />
+                        </MultiDataTrigger>
+
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource HorizontalInverseDiagonalStripeBrush}" />
+                        </MultiDataTrigger>
+
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource DiagonalInverseDiagonalStripeBrush}" />
+                        </MultiDataTrigger>
+
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource HorizontalDiagonalInverseDiagonalStripeBrush}" />
+                        </MultiDataTrigger>
+
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource VerticalDiagonalInverseDiagonalStripeBrush}" />
+                        </MultiDataTrigger>
+
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource VerticalDiagonalInverseDiagonalStripeBrush}" />
+                        </MultiDataTrigger>
+
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource VerticalHorizontalInverseDiagonalStripeBrush}" />
+                        </MultiDataTrigger>
+
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource VerticalHorizontalInverseDiagonalStripeBrush}" />
+                        </MultiDataTrigger>
+
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsNoMatchIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Path=Header.ContainsIncludes, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource VerticalHorizontalDiagonalInverseDiagonalStripeBrush}" />
+                        </MultiDataTrigger>
+
+                        <DataTrigger Binding="{Binding Path=Header.SpecialFileState, RelativeSource={RelativeSource Self}}" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimaryVariantBrush}" />
+                        </DataTrigger>
+
                         <Trigger Property="IsExpanded" Value="false">
                             <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed" />
                         </Trigger>
                         <Trigger Property="HasItems" Value="false">
                             <Setter TargetName="Expander" Property="Visibility" Value="Hidden" />
                         </Trigger>
+
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
                                 <Condition Property="HasHeader" Value="false" />
@@ -2690,6 +2684,7 @@
                             <Setter TargetName="Bd" Property="Background" Value="{StaticResource SelectedListItem}" />
                             <Setter Property="Foreground" Value="{StaticResource SelectedListItemForeground}" />
                             <Setter TargetName="Expander" Property="Style" Value="{DynamicResource TreeViewSelectedToggleButtonStyle}" />
+                            <Setter TargetName="Foreground" Property="Foreground" Value="{StaticResource SelectedListItemForeground}" />
                         </Trigger>
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
