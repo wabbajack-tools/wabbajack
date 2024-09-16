@@ -20,14 +20,6 @@ public partial class DetailImageView : UserControlRx<ViewModel>
     public static readonly DependencyProperty ImageProperty = DependencyProperty.Register(nameof(Image), typeof(ImageSource), typeof(DetailImageView),
          new FrameworkPropertyMetadata(default(ImageSource), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
-    public ImageSource Badge
-    {
-        get => (ImageSource)GetValue(BadgeProperty);
-        set => SetValue(BadgeProperty, value);
-    }
-    public static readonly DependencyProperty BadgeProperty = DependencyProperty.Register(nameof(Badge), typeof(ImageSource), typeof(DetailImageView),
-         new FrameworkPropertyMetadata(default(ImageSource), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
-
     public string Title
     {
         get => (string)GetValue(TitleProperty);
@@ -66,14 +58,8 @@ public partial class DetailImageView : UserControlRx<ViewModel>
             authorVisible
                 .BindToStrict(this, x => x.AuthorTextBlock.Visibility)
                 .DisposeWith(dispose);
-            authorVisible
-                .BindToStrict(this, x => x.AuthorTextShadow.Visibility)
-                .DisposeWith(dispose);
             this.WhenAny(x => x.Author)
                 .BindToStrict(this, x => x.AuthorTextRun.Text)
-                .DisposeWith(dispose);
-            this.WhenAny(x => x.Author)
-                .BindToStrict(this, x => x.AuthorShadowTextRun.Text)
                 .DisposeWith(dispose);
 
             /*
@@ -102,20 +88,10 @@ public partial class DetailImageView : UserControlRx<ViewModel>
             titleVisible
                 .BindToStrict(this, x => x.TitleTextBlock.Visibility)
                 .DisposeWith(dispose);
-            titleVisible
-                .BindToStrict(this, x => x.TitleTextShadow.Visibility)
-                .DisposeWith(dispose);
             this.WhenAny(x => x.Title)
                 .BindToStrict(this, x => x.TitleTextBlock.Text)
                 .DisposeWith(dispose);
-            this.WhenAny(x => x.Title)
-                .BindToStrict(this, x => x.TitleTextShadow.Text)
-                .DisposeWith(dispose);
 
-            // Update other items
-            this.WhenAny(x => x.Badge)
-                .BindToStrict(this, x => x.BadgeImage.Source)
-                .DisposeWith(dispose);
             this.WhenAny(x => x.Image)
                 .Select(f => f)
                 .BindToStrict(this, x => x.ModlistImage.Source)

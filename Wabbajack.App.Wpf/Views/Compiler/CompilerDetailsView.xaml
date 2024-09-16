@@ -116,18 +116,16 @@
                 HorizontalAlignment="Left"
                 Margin="16, 0, 0, 8"
                 VerticalAlignment="Center"
-                FontSize="14"
-                Text="Modlist Location"
+                Text="Modlist Profile Location"
                 TextAlignment="Center"
-                ToolTip="The folder in which the modlist is located" />
+                />
             <local:FilePicker
             Grid.Row="1"
             x:Name="ModlistLocation"             
             Margin="16, 0, 0, 0"
-            Height="30"
             VerticalAlignment="Center"
             FontSize="14"
-            ToolTip="The folder in which the modlist is located (containing the 'mods' folder)" />
+            ToolTip="The modlist.txt of your Mod Organizer profile" />
 
             <Button 
                 x:Name="ContinueButton"
