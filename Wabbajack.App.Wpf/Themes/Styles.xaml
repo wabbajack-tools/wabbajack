@@ -188,9 +188,9 @@
     <SolidColorBrush x:Key="DisabledButtonForeground" Color="#FF7E7E7E" />
 
     <SolidColorBrush x:Key="Expander.Background" Color="{StaticResource LightBackgroundColor}" />
-    <SolidColorBrush x:Key="Expander.MouseOver.Arrow.Stroke" Color="{StaticResource ForegroundColor}" />
-    <SolidColorBrush x:Key="Expander.Disabled.Arrow.Stroke" Color="{StaticResource LightDisabledBackgroundColor}" />
-    <SolidColorBrush x:Key="Expander.Static.Arrow.Stroke" Color="#AAAAAA" />
+    <SolidColorBrush x:Key="Expander.MouseOver.Arrow.Stroke" Color="{StaticResource Primary}" />
+    <SolidColorBrush x:Key="Expander.Disabled.Arrow.Stroke" Color="{StaticResource DarkSecondary}" />
+    <SolidColorBrush x:Key="Expander.Static.Arrow.Stroke" Color="{StaticResource Primary}" />
 
     <SolidColorBrush x:Key="CheckBoxFillNormal" Color="{StaticResource DarkPrimary}" />
     <SolidColorBrush x:Key="CheckBoxForeground" Color="{StaticResource Primary}" />
