@@ -109,6 +109,7 @@ namespace Wabbajack
 
         private void SetContainedStates(FileTreeItemVM header)
         {
+            if (!header.IsDirectory) return;
             header.ContainsNoMatchIncludes = Settings.NoMatchInclude.Any(p => p.InFolder(header.PathRelativeToRoot));
             header.ContainsIncludes = Settings.Include.Any(p => p.InFolder(header.PathRelativeToRoot));
             header.ContainsIgnores = Settings.Ignore.Any(p => p.InFolder(header.PathRelativeToRoot));
