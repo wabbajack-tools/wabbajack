@@ -237,9 +237,14 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
     public override IEnumerable<string> MetaIni(Archive a, Nexus state)
     {
         var meta = state.Game.MetaData();
+        // modid, fileid and gamename are givens - they will always be there even if manually constructed metas
+        // the others may not - they should if queried from Nexus, but not guaranteed
+        var NameNull = (state.Name is not null) ? state.Name : string.Empty;
+        var DescriptionNull = (state.Description is not null) ? state.Description : string.Empty;
+        var VersionNull = (state.Version is not null) ? state.Version : string.Empty;
         return new[]
         {
-            $"gameName={meta.MO2ArchiveName ?? meta.NexusName}", $"modID={state.ModID}", $"fileID={state.FileID}"
+            $"gameName={meta.MO2ArchiveName ?? meta.NexusName}", $"modID={state.ModID}",$"modName={NameNull}",$"description={DescriptionNull}",$"version={VersionNull}", $"fileID={state.FileID}"
         };
     }
 }
