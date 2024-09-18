@@ -1,6 +1,7 @@
 ﻿using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows;
@@ -15,15 +16,15 @@ namespace Wabbajack;
 /// </summary>
 public partial class NavigationView : ReactiveUserControl<NavigationVM>
 {
-    public Dictionary<ScreenType, Button> ScreenButtonDictionary { get; set; }
+    public Dictionary<HashSet<ScreenType>, Button> ScreenButtonDictionary { get; set; }
     public NavigationView()
     {
         InitializeComponent();
         ScreenButtonDictionary = new() {
-            { ScreenType.Home, HomeButton },
-            { ScreenType.ModListGallery, BrowseButton },
-            { ScreenType.CompilerHome, CompileButton },
-            { ScreenType.Settings, SettingsButton },
+            { [ScreenType.Home], HomeButton },
+            { [ScreenType.ModListGallery], BrowseButton },
+            { [ ScreenType.CompilerHome, ScreenType.CompilerDetails, ScreenType.CompilerFileManager ], CompileButton },
+            { [ScreenType.Settings], SettingsButton },
         };
         this.WhenActivated(dispose =>
         {
@@ -61,9 +62,9 @@ public partial class NavigationView : ReactiveUserControl<NavigationVM>
     {
         var activeButtonStyle = (Style)Application.Current.Resources["ActiveNavButtonStyle"];
         var mainButtonStyle = (Style)Application.Current.Resources["MainNavButtonStyle"];
-        foreach(var (screen, button) in ScreenButtonDictionary)
+        foreach(var (screens, button) in ScreenButtonDictionary)
         {
-            if (screen == activeScreen)
+            if (screens.Contains(activeScreen))
                 button.Style = activeButtonStyle;
             else
                 button.Style = mainButtonStyle;
