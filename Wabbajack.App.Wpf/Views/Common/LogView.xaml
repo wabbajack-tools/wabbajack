@@ -13,12 +13,41 @@
         <ListBox
             local:AutoScrollBehavior.ScrollOnNewItem="True"
             BorderBrush="Transparent"
-            BorderThickness="1"
+            BorderThickness="0"
             ItemsSource="{Binding LoggerProvider.MessageLog}"
-            ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+            AlternationCount="2">
+            <!--
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <StackPanel>
+                                    <Rectangle Width="Auto" Height="1" Fill="{StaticResource PrimaryBrush}" Opacity="0.5" Margin="0, 4, 0, 8"></Rectangle>
+                                    <ContentPresenter />
+                                </StackPanel>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            -->
+            <ListBox.Resources>
+                <Style TargetType="{x:Type ListBoxItem}">
+                    <Style.Triggers>
+                        <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                            <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}"/>
+                        </Trigger>
+                        <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                            <Setter Property="Background" Value="{StaticResource Primary05Brush}"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ListBox.Resources>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding ShortMessage}" TextWrapping="WrapWithOverflow" />
+                    <TextBlock Text="{Binding LongMessage}" LineHeight="18" Margin="0, 8, 0, 8"  VerticalAlignment="Center" TextWrapping="WrapWithOverflow" />
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>

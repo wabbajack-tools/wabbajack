@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -61,7 +62,7 @@ public class LogStream : TargetWithLayout
 
         string ShortMessage { get; }
         DateTime TimeStamp { get; }
-        string LongMessage { get; }
+        LogLevel Level { get; }
     }
 
     private record LogMessage(LogEventInfo info) : ILogMessage
@@ -69,7 +70,8 @@ public class LogStream : TargetWithLayout
         public long MessageId => info.SequenceID;
         public string ShortMessage => info.FormattedMessage;
         public DateTime TimeStamp => info.TimeStamp;
-        public string LongMessage => info.FormattedMessage;
+        public LogLevel Level => info.Level;
+        public string LongMessage => $"[{TimeStamp.ToString("HH:mm:ss")} {info.Level.ToString().ToUpper()}] {info.FormattedMessage}";
     }
     
 }

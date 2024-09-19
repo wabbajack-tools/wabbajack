@@ -18,6 +18,11 @@
     x:TypeArguments="local:CompilerMainVM"
     mc:Ignorable="d">
     <Grid>
-        <Label Content="Compiler main!"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+        <local:LogView x:Name="LogView" />
+        <local:CpuView x:Name="CpuView" Grid.Column="1" ViewModel="{Binding}" />
     </Grid>
 </rxui:ReactiveUserControl>
