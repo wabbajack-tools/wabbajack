@@ -61,6 +61,7 @@ public class LogStream : TargetWithLayout
         long MessageId { get; }
 
         string ShortMessage { get; }
+        string LongMessage { get; }
         DateTime TimeStamp { get; }
         LogLevel Level { get; }
     }
