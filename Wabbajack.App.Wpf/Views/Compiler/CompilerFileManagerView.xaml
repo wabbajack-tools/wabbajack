@@ -38,7 +38,7 @@
                 </StackPanel>
             </Button>
             <!--<Button Grid.Column="1" x:Name="ReinferSettingsButton" Content="Re-infer Settings" Margin="0, 0, 16, 0"/>-->
-            <Button Grid.Column="5" x:Name="ContinueButton" Margin="0" HorizontalAlignment="Right" Style="{StaticResource WizardButtonStyle}">
+            <Button Grid.Column="5" x:Name="ContinueButton" Margin="0" HorizontalAlignment="Right" Style="{StaticResource WizardButtonStyle}" Command="{Binding NextCommand}">
                 <StackPanel Orientation="Vertical">
                     <ic:SymbolIcon Symbol="ChevronRight" FontSize="28" />
                     <TextBlock Text="Continue" VerticalAlignment="Center"/>

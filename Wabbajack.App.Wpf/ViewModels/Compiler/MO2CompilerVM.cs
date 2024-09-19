@@ -8,7 +8,7 @@ namespace Wabbajack
 {
     public class MO2CompilerVM : ViewModel
     {
-        public CompilerDetailsVM Parent { get; }
+        public BaseCompilerVM Parent { get; }
 
         public FilePickerVM DownloadLocation { get; }
 
@@ -31,7 +31,7 @@ namespace Wabbajack
             throw new NotImplementedException();
         }
 
-        public MO2CompilerVM(CompilerDetailsVM parent)
+        public MO2CompilerVM(BaseCompilerVM parent)
         {
         }
     }

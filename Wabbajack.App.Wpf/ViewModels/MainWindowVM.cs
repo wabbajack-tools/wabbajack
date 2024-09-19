@@ -47,6 +47,7 @@ public class MainWindowVM : ViewModel
     public readonly CompilerHomeVM CompilerHomeVM;
     public readonly CompilerDetailsVM CompilerDetailsVM;
     public readonly CompilerFileManagerVM CompilerFileManagerVM;
+    public readonly CompilerMainVM CompilerMainVM;
     public readonly InstallerVM InstallerVM;
     public readonly SettingsVM SettingsPaneVM;
     public readonly ModListGalleryVM GalleryVM;
@@ -82,7 +83,7 @@ public class MainWindowVM : ViewModel
 
     public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
         IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-        InstallerVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM)
+        InstallerVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM)
     {
         _logger = logger;
         _wjClient = wjClient;
@@ -93,6 +94,7 @@ public class MainWindowVM : ViewModel
         CompilerHomeVM = compilerHomeVM;
         CompilerDetailsVM = compilerDetailsVM;
         CompilerFileManagerVM = compilerFileManagerVM;
+        CompilerMainVM = compilerMainVM;
         SettingsPaneVM = settingsVM;
         GalleryVM = modListGalleryVM;
         HomeVM = homeVM;
@@ -121,7 +123,7 @@ public class MainWindowVM : ViewModel
 
         _resourceMonitor.Updates
             .Select(r => string.Join(", ", r.Where(r => r.Throughput > 0)
-                .Select(s => $"{s.Name} - {s.Throughput.ToFileSizeString()}/s")))
+            .Select(s => $"{s.Name} - {s.Throughput.ToFileSizeString()}/s")))
             .BindToStrict(this, view => view.ResourceStatus);
 
 
@@ -249,6 +251,7 @@ public class MainWindowVM : ViewModel
             ScreenType.CompilerHome => CompilerHomeVM,
             ScreenType.CompilerDetails => CompilerDetailsVM,
             ScreenType.CompilerFileManager => CompilerFileManagerVM,
+            ScreenType.CompilerMain => CompilerMainVM,
             ScreenType.Settings => SettingsPaneVM,
             ScreenType.Info => InfoVM,
             _ => ActivePane

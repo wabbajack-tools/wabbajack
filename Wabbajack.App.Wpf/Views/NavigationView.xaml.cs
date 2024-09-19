@@ -23,7 +23,7 @@ public partial class NavigationView : ReactiveUserControl<NavigationVM>
         ScreenButtonDictionary = new() {
             { [ScreenType.Home], HomeButton },
             { [ScreenType.ModListGallery], BrowseButton },
-            { [ ScreenType.CompilerHome, ScreenType.CompilerDetails, ScreenType.CompilerFileManager ], CompileButton },
+            { [ScreenType.CompilerHome, ScreenType.CompilerDetails, ScreenType.CompilerFileManager], CompileButton },
             { [ScreenType.Settings], SettingsButton },
         };
         this.WhenActivated(dispose =>
@@ -47,14 +47,6 @@ public partial class NavigationView : ReactiveUserControl<NavigationVM>
                 .Subscribe(x => SetButtonActive(x))
                 .DisposeWith(dispose);
 
-            /*
-            this.WhenAny(x => x.ViewModel.InstallCommand)
-                .BindToStrict(this, x => x.InstallButton.Command)
-                .DisposeWith(dispose);
-            this.WhenAny(x => x.ViewModel.CompileCommand)
-                .BindToStrict(this, x => x.CompileButton.Command)
-                .DisposeWith(dispose);
-            */
         });
     }
 

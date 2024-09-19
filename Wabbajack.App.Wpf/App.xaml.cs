@@ -173,6 +173,7 @@ public partial class App
         services.AddTransient<CompilerHomeVM>();
         services.AddTransient<CompilerDetailsVM>();
         services.AddTransient<CompilerFileManagerVM>();
+        services.AddTransient<CompilerMainVM>();
         services.AddTransient<InstallerVM>();
         services.AddTransient<SettingsVM>();
         services.AddTransient<WebBrowserVM>();

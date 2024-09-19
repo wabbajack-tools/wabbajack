@@ -88,17 +88,6 @@ namespace Wabbajack
 
             SubCompilerVM = new MO2CompilerVM(this);
 
-            //ExecuteCommand = ReactiveCommand.CreateFromTask(async () => await StartCompilation());
-            /*ReInferSettingsCommand = ReactiveCommand.CreateFromTask(async () => await ReInferSettings(),
-
-                this.WhenAnyValue(vm => vm.Settings.Source)
-                    .ObserveOnGuiThread()
-                    .Select(v => v != default)
-                    .CombineLatest(this.WhenAnyValue(vm => vm.Settings.ModListName)
-                        .ObserveOnGuiThread()
-                        .Select(p => !string.IsNullOrWhiteSpace(p)))
-                    .Select(v => v.First && v.Second));
-            */
             NextCommand = ReactiveCommand.CreateFromTask(NextPage);
 
             
@@ -237,106 +226,6 @@ namespace Wabbajack
             await SaveSettings();
             NavigateToGlobal.Send(ScreenType.CompilerFileManager);
             LoadCompilerSettings.Send(Settings.ToCompilerSettings());
-        }
-
-        private async Task StartCompilation()
-        {
-            var tsk = Task.Run(async () =>
-            {
-                try
-                {
-                    await SaveSettings();
-                    var token = CancellationToken.None;
-                    State = CompilerState.Compiling;
-
-                    Settings.UseGamePaths = true;
-                    if (Settings.OutputFile.DirectoryExists())
-                        Settings.OutputFile = Settings.OutputFile.Combine(Settings.ModListName.ToRelativePath()
-                            .WithExtension(Ext.Wabbajack));
-
-                    if (Settings.PublishUpdate && !await RunPreflightChecks(token))
-                    {
-                        State = CompilerState.Errored;
-                        return;
-                    }
-
-                    var compiler = MO2Compiler.Create(_serviceProvider, Settings.ToCompilerSettings());
-
-                    var events = Observable.FromEventPattern<StatusUpdate>(h => compiler.OnStatusUpdate += h,
-                            h => compiler.OnStatusUpdate -= h)
-                        .ObserveOnGuiThread()
-                        .Debounce(TimeSpan.FromSeconds(0.5))
-                        .Subscribe(update =>
-                        {
-                            var s = update.EventArgs;
-                            StatusText = $"[Step {s.CurrentStep}] {s.StatusText}";
-                            StatusProgress = s.StepProgress;
-                        });
-
-
-                    try
-                    {
-                        var result = await compiler.Begin(token);
-                        if (!result)
-                            throw new Exception("Compilation Failed");
-                    }
-                    finally
-                    {
-                        events.Dispose();
-                    }
-
-                    if (Settings.PublishUpdate)
-                    {
-                        _logger.LogInformation("Publishing List");
-                        var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
-                            await Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
-                        await _wjClient.PublishModlist(Settings.MachineUrl, Version.Parse(Settings.Version), Settings.OutputFile, downloadMetadata);
-                    }
-                    _logger.LogInformation("Compiler Finished");
-                    
-                    RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
-                    {
-                        StatusText = "Compilation Completed";
-                        StatusProgress = Percent.Zero;
-                        State = CompilerState.Completed;
-                        return Disposable.Empty; 
-                    });
-                    
-
-                }
-                catch (Exception ex)
-                {
-                    RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
-                    {
-                        StatusText = "Compilation Failed";
-                        StatusProgress = Percent.Zero;
-
-                        State = CompilerState.Errored;
-                        _logger.LogInformation(ex, "Failed Compilation : {Message}", ex.Message);
-                        return Disposable.Empty;
-                    });
-                }
-            });
-
-            await tsk;
-        }
-
-        private async Task<bool> RunPreflightChecks(CancellationToken token)
-        {
-            var lists = await _wjClient.GetMyModlists(token);
-            if (!lists.Any(x => x.Equals(Settings.MachineUrl, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                _logger.LogError("Preflight Check failed, list {MachineUrl} not found in any repository", Settings.MachineUrl);
-                return false;
-            }
-
-            if(!Version.TryParse(Settings.Version, out var version))
-            {
-                _logger.LogError("Preflight Check failed, version {Version} was not valid", Settings.Version);
-                return false;
-            }
-
-            return true;
         }
 
         #region ListOps

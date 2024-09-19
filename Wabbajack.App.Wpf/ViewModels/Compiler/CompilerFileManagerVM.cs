@@ -29,7 +29,8 @@ namespace Wabbajack
         private readonly CompilerSettingsInferencer _inferencer;
         
         public ObservableCollection<FileTreeViewItem> Files { get; set; }
-        public ICommand PrevCommand { get; set; }
+        public ICommand PrevCommand { get; }
+        public ICommand NextCommand { get; }
         public ICommand InfoCommand { get; }
 
         public CompilerFileManagerVM(ILogger<CompilerFileManagerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
@@ -41,6 +42,7 @@ namespace Wabbajack
             _inferencer = inferencer;
 
             PrevCommand = ReactiveCommand.Create(PrevPage);
+            NextCommand = ReactiveCommand.Create(NextPage);
             InfoCommand = ReactiveCommand.Create(Info);
             this.WhenActivated(disposables =>
             {
@@ -203,7 +205,7 @@ namespace Wabbajack
 
         private async Task NextPage()
         {
-            NavigateToGlobal.Send(ScreenType.CompilerFileManager);
+            NavigateToGlobal.Send(ScreenType.CompilerMain);
             LoadCompilerSettings.Send(Settings.ToCompilerSettings());
         }
     }
