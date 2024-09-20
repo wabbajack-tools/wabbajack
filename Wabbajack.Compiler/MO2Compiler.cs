@@ -206,9 +206,18 @@ public class MO2Compiler : ACompiler
     {
         NextStep("Finalizing", "Validating Archives", modList.Archives.Length);
         var allowList = await _wjClient.LoadDownloadAllowList();
+        var mirrors = (await _wjClient.LoadMirrors()).ToLookup(a => a.Hash);
         foreach (var archive in modList.Archives)
         {
             UpdateProgress(1);
+            var matchedHashes = mirrors[archive.Hash].ToArray();
+            if (matchedHashes.Any())
+            {
+                _logger.LogInformation("Replacing {name}, {primaryKeyString} with {mirror}", archive.Name,
+                    archive.State.PrimaryKeyString, matchedHashes.First().Name);
+                archive.State = matchedHashes.First().State;
+            }
+            
             if (!_dispatcher.IsAllowed(archive, allowList))
             {
                 _logger.LogCritical("Archive {name}, {primaryKeyString} is not allowed", archive.Name,

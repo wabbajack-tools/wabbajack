@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 3.7.3.0 - 9/19/2024
+* Downloads now start in a random order, to reduce the amount of lag in the UI when initially starting
+* Wabbajack may now redirect some downloads to mirrors hosted on Nexus Mods (by request of the mod authors)
+
 #### Version - 3.7.2.1 - 9/1/2024
 * Fixed a bug with the html reports when in a folder with a space in the name
 

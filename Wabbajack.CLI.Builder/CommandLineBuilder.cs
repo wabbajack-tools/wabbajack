@@ -33,6 +33,10 @@ public class CommandLineBuilder
             d => new Option<string>(d.Aliases, description: d.Description)
         },
         {
+            typeof(int),
+            d => new Option<int>(d.Aliases, description: d.Description)
+        },
+        {
             typeof(AbsolutePath),
             d => new Option<AbsolutePath>(d.Aliases, description: d.Description, parseArgument: d => d.Tokens.Single().Value.ToAbsolutePath())
         },
