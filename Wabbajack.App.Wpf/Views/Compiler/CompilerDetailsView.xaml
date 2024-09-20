@@ -23,8 +23,8 @@
             <ColumnDefinition Width="5*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="8*" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <ScrollViewer Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
             x:Name="SettingsScrollViewer"
@@ -101,7 +101,7 @@
             </StackPanel>
         </ScrollViewer>
         <Grid Grid.Row="0" Grid.Column="1">
-            <local:DetailImageView x:Name="DetailImage" TitleFontSize="56" AuthorFontSize="28" BorderThickness="0" Padding="16, 0, 0, 8" />
+            <local:DetailImageView x:Name="DetailImage" TitleFontSize="56" AuthorFontSize="28" BorderThickness="0" Margin="16, 0, 0, 0" />
         </Grid>
         <Grid Grid.Row="1" Grid.Column="1">
             <Grid.RowDefinitions>
@@ -114,8 +114,8 @@
             </Grid.ColumnDefinitions>
             <TextBlock
                 HorizontalAlignment="Left"
-                Margin="16, 0, 0, 8"
-                VerticalAlignment="Center"
+                Margin="16, 16, 0, 8"
+                VerticalAlignment="Top"
                 Text="Modlist Profile Location"
                 TextAlignment="Center"
                 />
@@ -123,19 +123,18 @@
             Grid.Row="1"
             x:Name="ModlistLocation"             
             Margin="16, 0, 0, 0"
-            VerticalAlignment="Center"
-            FontSize="14"
+            VerticalAlignment="Bottom"
             ToolTip="The modlist.txt of your Mod Organizer profile" />
 
             <Button 
                 x:Name="ContinueButton"
                 Grid.RowSpan="2"
                 Grid.Column="1"
-                Margin="0, 8, 0, 0"
+                Margin="0, 16, 0, 0"
                 Style="{StaticResource WizardButtonStyle}"
                 HorizontalAlignment="Right" >
                 <StackPanel>
-                    <ic:SymbolIcon Symbol="ChevronRight" FontSize="28" />
+                    <ic:SymbolIcon Symbol="ChevronRight" FontSize="24" />
                     <TextBlock Text="Continue" />
                 </StackPanel>
             </Button>

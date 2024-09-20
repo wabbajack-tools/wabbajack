@@ -19,28 +19,21 @@
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="7*"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <TreeView x:Name="FileTreeView"/>
         <Grid Grid.Row="1" Margin="0, 16, 0, 0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <Button x:Name="PrevButton" HorizontalAlignment="Left" Margin="0" Style="{StaticResource WizardButtonStyle}">
+            <Button x:Name="PrevButton" HorizontalAlignment="Left" Style="{StaticResource WizardButtonStyle}">
                 <StackPanel>
-                    <ic:SymbolIcon Symbol="ChevronLeft" FontSize="28" />
+                    <ic:SymbolIcon Symbol="ChevronLeft" FontSize="24" />
                     <TextBlock Text="Back to Modlist Details" />
                 </StackPanel>
             </Button>
             <!--<Button Grid.Column="1" x:Name="ReinferSettingsButton" Content="Re-infer Settings" Margin="0, 0, 16, 0"/>-->
-            <Button Grid.Column="5" x:Name="ContinueButton" Margin="0" HorizontalAlignment="Right" Style="{StaticResource WizardButtonStyle}" Command="{Binding NextCommand}">
+            <Button Grid.Column="5" x:Name="ContinueButton" HorizontalAlignment="Right" Style="{StaticResource WizardButtonStyle}" Command="{Binding NextCommand}">
                 <StackPanel Orientation="Vertical">
-                    <ic:SymbolIcon Symbol="ChevronRight" FontSize="28" />
+                    <ic:SymbolIcon Symbol="ChevronRight" FontSize="24" />
                     <TextBlock Text="Continue" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>

@@ -23,47 +23,50 @@
             <ColumnDefinition Width="2*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="4*" />
-            <RowDefinition Height="4*" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <local:LogView x:Name="LogView" Grid.RowSpan="3" Margin="0, 0, 16, 0" />
+        <local:LogView x:Name="LogView" Grid.RowSpan="2" Margin="0, 0, 16, 0" />
         <local:DetailImageView x:Name="DetailImage" Grid.Column="1" BorderThickness="0" TitleFontSize="28" AuthorFontSize="14" />
-        <local:CpuView x:Name="CpuView" Grid.Column="1" Grid.Row="1" ViewModel="{Binding}" Margin="0, 16, 0, 0" />
-        <Grid x:Name="ButtonsGrid" Grid.Column="1" Grid.Row="2" VerticalAlignment="Bottom" Background="Green">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <Button x:Name="OpenFolderButton" Grid.Column="2" Style="{StaticResource MainButtonStyle}" Padding="8">
+        <local:CpuView x:Name="CpuView" Grid.Column="1" Grid.Row="1" ViewModel="{Binding}" />
+        <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="0, 16, 0, 0">
+            <Button x:Name="PrevButton" HorizontalAlignment="Left" Style="{StaticResource WizardButtonStyle}" Command="{Binding PrevCommand}">
                 <Button.Content>
                     <StackPanel>
-                        <ic:SymbolIcon Symbol="Folder" FontSize="28"/>
-                        <TextBlock Text="Open folder" />
+                        <ic:SymbolIcon Symbol="ChevronLeft" FontSize="24"/>
+                        <TextBlock Text="Back to File Manager" />
                     </StackPanel>
                 </Button.Content>
             </Button>
-            <Button x:Name="CancelButton" Grid.Column="4" Style="{StaticResource MainButtonStyle}">
+            <Button x:Name="CancelButton" HorizontalAlignment="Left" Style="{StaticResource WizardButtonStyle}">
                 <Button.Content>
                     <StackPanel>
-                        <ic:SymbolIcon Symbol="Dismiss" FontSize="28"/>
+                        <ic:SymbolIcon Symbol="Dismiss" FontSize="24"/>
                         <TextBlock Text="Cancel" />
                     </StackPanel>
                 </Button.Content>
             </Button>
-            <Button x:Name="PublishButton" Grid.Column="4" Style="{StaticResource MainButtonStyle}">
+            <Button x:Name="OpenFolderButton" HorizontalAlignment="Right" Style="{StaticResource WizardButtonStyle}">
                 <Button.Content>
                     <StackPanel>
-                        <ic:SymbolIcon Symbol="CloudArrowUp" FontSize="28" />
+                        <ic:SymbolIcon Symbol="Folder" FontSize="24"/>
+                        <TextBlock Text="Open folder" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            <Button x:Name="PublishButton" HorizontalAlignment="Right" Style="{StaticResource WizardButtonStyle}">
+                <Button.Content>
+                    <StackPanel>
+                        <ic:SymbolIcon Symbol="CloudArrowUp" FontSize="24" />
                         <TextBlock Text="Publish Modlist" />
                     </StackPanel>
                 </Button.Content>
             </Button>
-            <Button x:Name="StartButton" Grid.Column="4" Style="{StaticResource MainButtonStyle}">
+            <Button x:Name="StartButton" HorizontalAlignment="Right" Style="{StaticResource WizardButtonStyle}" Command="{Binding StartCommand}">
                 <Button.Content>
                     <StackPanel>
-                        <ic:SymbolIcon Symbol="PlayCircle" FontSize="28" />
+                        <ic:SymbolIcon Symbol="PlayCircle" FontSize="24" />
                         <TextBlock Text="Start" />
                     </StackPanel>
                 </Button.Content>

@@ -52,7 +52,8 @@ namespace Wabbajack
         [Reactive]
         public ErrorResponse ErrorState { get; private set; }
 
-        public ICommand ClickCommand { get; }
+        public ICommand PrevCommand { get; }
+        public ICommand StartCommand { get; }
         
         public CompilerMainVM(ILogger<CompilerMainVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
             IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
@@ -62,7 +63,8 @@ namespace Wabbajack
             LoggerProvider = loggerProvider;
             _resourceMonitor = resourceMonitor;
             _inferencer = inferencer;
-            ClickCommand = ReactiveCommand.Create(Click);
+            PrevCommand = ReactiveCommand.Create(PrevPage);
+            StartCommand = ReactiveCommand.Create(StartCompilation);
 
             StatusProgress = Percent.Zero;
 
@@ -90,6 +92,12 @@ namespace Wabbajack
 
                 Disposable.Empty.DisposeWith(disposables);
             });
+        }
+
+        private void PrevPage()
+        {
+            NavigateToGlobal.Send(ScreenType.CompilerFileManager);
+            LoadCompilerSettings.Send(Settings.ToCompilerSettings());
         }
 
         private void Click()

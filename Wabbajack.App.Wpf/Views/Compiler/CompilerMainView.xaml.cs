@@ -40,6 +40,10 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
                     .BindToStrict(this, view => view.StartButton.Visibility);
 
             ViewModel.WhenAny(vm => vm.State)
+                    .Select(s => s == CompilerState.Configuration ? Visibility.Visible : Visibility.Hidden)
+                    .BindToStrict(this, view => view.PrevButton.Visibility);
+
+            ViewModel.WhenAny(vm => vm.State)
                     .Select(s => s == CompilerState.Compiling ? Visibility.Visible : Visibility.Hidden)
                     .BindToStrict(this, view => view.CancelButton.Visibility);
 

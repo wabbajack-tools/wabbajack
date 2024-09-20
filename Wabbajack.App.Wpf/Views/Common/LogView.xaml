@@ -47,7 +47,7 @@
             </ListBox.Resources>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding LongMessage}" LineHeight="18" Margin="0, 8, 0, 8"  VerticalAlignment="Center" TextWrapping="WrapWithOverflow" />
+                    <TextBlock Text="{Binding ShortMessage}" FontSize="14" Margin="0, 2, 0, 2"  VerticalAlignment="Center" TextWrapping="WrapWithOverflow" />
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
