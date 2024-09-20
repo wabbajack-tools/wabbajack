@@ -34,10 +34,6 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
             
             ViewModel.WhenAny(vm => vm.Settings.ModListAuthor)
                 .BindToStrict(this, view => view.DetailImage.Author);
-
-            ViewModel.WhenAny(vm => vm.Settings.ModListDescription)
-                .BindToStrict(this, view => view.DetailImage.Description);
-
             
             // Settings 
             

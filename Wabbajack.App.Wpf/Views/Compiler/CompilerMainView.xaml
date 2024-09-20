@@ -22,7 +22,52 @@
             <ColumnDefinition Width="3*" />
             <ColumnDefinition Width="2*" />
         </Grid.ColumnDefinitions>
-        <local:LogView x:Name="LogView" />
-        <local:CpuView x:Name="CpuView" Grid.Column="1" ViewModel="{Binding}" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="4*" />
+            <RowDefinition Height="4*" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <local:LogView x:Name="LogView" Grid.RowSpan="3" Margin="0, 0, 16, 0" />
+        <local:DetailImageView x:Name="DetailImage" Grid.Column="1" BorderThickness="0" TitleFontSize="28" AuthorFontSize="14" />
+        <local:CpuView x:Name="CpuView" Grid.Column="1" Grid.Row="1" ViewModel="{Binding}" Margin="0, 16, 0, 0" />
+        <Grid x:Name="ButtonsGrid" Grid.Column="1" Grid.Row="2" VerticalAlignment="Bottom" Background="Green">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Button x:Name="OpenFolderButton" Grid.Column="2" Style="{StaticResource MainButtonStyle}" Padding="8">
+                <Button.Content>
+                    <StackPanel>
+                        <ic:SymbolIcon Symbol="Folder" FontSize="28"/>
+                        <TextBlock Text="Open folder" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            <Button x:Name="CancelButton" Grid.Column="4" Style="{StaticResource MainButtonStyle}">
+                <Button.Content>
+                    <StackPanel>
+                        <ic:SymbolIcon Symbol="Dismiss" FontSize="28"/>
+                        <TextBlock Text="Cancel" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            <Button x:Name="PublishButton" Grid.Column="4" Style="{StaticResource MainButtonStyle}">
+                <Button.Content>
+                    <StackPanel>
+                        <ic:SymbolIcon Symbol="CloudArrowUp" FontSize="28" />
+                        <TextBlock Text="Publish Modlist" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            <Button x:Name="StartButton" Grid.Column="4" Style="{StaticResource MainButtonStyle}">
+                <Button.Content>
+                    <StackPanel>
+                        <ic:SymbolIcon Symbol="PlayCircle" FontSize="28" />
+                        <TextBlock Text="Start" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+        </Grid>
     </Grid>
 </rxui:ReactiveUserControl>

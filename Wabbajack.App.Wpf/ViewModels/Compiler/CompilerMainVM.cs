@@ -23,6 +23,7 @@ using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated;
+using System.Windows.Input;
 
 namespace Wabbajack
 {
@@ -50,6 +51,8 @@ namespace Wabbajack
         
         [Reactive]
         public ErrorResponse ErrorState { get; private set; }
+
+        public ICommand ClickCommand { get; }
         
         public CompilerMainVM(ILogger<CompilerMainVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
             IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
@@ -59,6 +62,7 @@ namespace Wabbajack
             LoggerProvider = loggerProvider;
             _resourceMonitor = resourceMonitor;
             _inferencer = inferencer;
+            ClickCommand = ReactiveCommand.Create(Click);
 
             StatusProgress = Percent.Zero;
 
@@ -86,6 +90,12 @@ namespace Wabbajack
 
                 Disposable.Empty.DisposeWith(disposables);
             });
+        }
+
+        private void Click()
+        {
+            int i = 0;
+            //Settings.ModListImage = (AbsolutePath)@"C:\Users\tik\Downloads\1.0.0.png";
         }
 
         private async Task ReInferSettings(AbsolutePath filePath)

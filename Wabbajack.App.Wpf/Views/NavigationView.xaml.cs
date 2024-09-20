@@ -16,15 +16,15 @@ namespace Wabbajack;
 /// </summary>
 public partial class NavigationView : ReactiveUserControl<NavigationVM>
 {
-    public Dictionary<HashSet<ScreenType>, Button> ScreenButtonDictionary { get; set; }
+    public Dictionary<Button, HashSet<ScreenType>> ButtonScreensDictionary { get; set; }
     public NavigationView()
     {
         InitializeComponent();
-        ScreenButtonDictionary = new() {
-            { [ScreenType.Home], HomeButton },
-            { [ScreenType.ModListGallery], BrowseButton },
-            { [ScreenType.CompilerHome, ScreenType.CompilerDetails, ScreenType.CompilerFileManager], CompileButton },
-            { [ScreenType.Settings], SettingsButton },
+        ButtonScreensDictionary = new() {
+            { HomeButton, [ScreenType.Home] },
+            { BrowseButton, [ScreenType.ModListGallery] },
+            { CompileButton, [ScreenType.CompilerHome, ScreenType.CompilerDetails, ScreenType.CompilerFileManager, ScreenType.CompilerMain] },
+            { SettingsButton, [ScreenType.Settings] },
         };
         this.WhenActivated(dispose =>
         {
@@ -46,7 +46,6 @@ public partial class NavigationView : ReactiveUserControl<NavigationVM>
             this.WhenAny(x => x.ViewModel.ActiveScreen)
                 .Subscribe(x => SetButtonActive(x))
                 .DisposeWith(dispose);
-
         });
     }
 
@@ -54,7 +53,7 @@ public partial class NavigationView : ReactiveUserControl<NavigationVM>
     {
         var activeButtonStyle = (Style)Application.Current.Resources["ActiveNavButtonStyle"];
         var mainButtonStyle = (Style)Application.Current.Resources["MainNavButtonStyle"];
-        foreach(var (screens, button) in ScreenButtonDictionary)
+        foreach(var (button, screens) in ButtonScreensDictionary)
         {
             if (screens.Contains(activeScreen))
                 button.Style = activeButtonStyle;

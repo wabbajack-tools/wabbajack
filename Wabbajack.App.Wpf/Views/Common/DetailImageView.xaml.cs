@@ -28,6 +28,13 @@ public partial class DetailImageView : UserControlRx<ViewModel>
     public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(nameof(Title), typeof(string), typeof(DetailImageView),
          new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
+    public double TitleFontSize
+    {
+        get => (double)GetValue(TitleFontSizeProperty);
+        set => SetValue(TitleFontSizeProperty, value);
+    }
+    public static readonly DependencyProperty TitleFontSizeProperty = DependencyProperty.Register(nameof(TitleFontSize), typeof(double), typeof(DetailImageView), new FrameworkPropertyMetadata(default(double), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
+
     public string Author
     {
         get => (string)GetValue(AuthorProperty);
@@ -35,14 +42,13 @@ public partial class DetailImageView : UserControlRx<ViewModel>
     }
     public static readonly DependencyProperty AuthorProperty = DependencyProperty.Register(nameof(Author), typeof(string), typeof(DetailImageView),
          new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
-
-    public string Description
+    public double AuthorFontSize
     {
-        get => (string)GetValue(DescriptionProperty);
-        set => SetValue(DescriptionProperty, value);
+        get => (double)GetValue(AuthorFontSizeProperty);
+        set => SetValue(AuthorFontSizeProperty, value);
     }
-    public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(nameof(Description), typeof(string), typeof(DetailImageView),
-         new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
+    public static readonly DependencyProperty AuthorFontSizeProperty = DependencyProperty.Register(nameof(AuthorFontSize), typeof(double), typeof(DetailImageView), new FrameworkPropertyMetadata(default(double), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
+
 
     public DetailImageView()
     {
@@ -62,25 +68,6 @@ public partial class DetailImageView : UserControlRx<ViewModel>
                 .BindToStrict(this, x => x.AuthorTextRun.Text)
                 .DisposeWith(dispose);
 
-            /*
-            var descVisible = this.WhenAny(x => x.Description)
-                .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)
-                .Replay(1)
-                .RefCount();
-            descVisible
-                .BindToStrict(this, x => x.DescriptionTextBlock.Visibility)
-                .DisposeWith(dispose);
-            descVisible
-                .BindToStrict(this, x => x.DescriptionTextShadow.Visibility)
-                .DisposeWith(dispose);
-            this.WhenAny(x => x.Description)
-                .BindToStrict(this, x => x.DescriptionTextBlock.Text)
-                .DisposeWith(dispose);
-            this.WhenAny(x => x.Description)
-                .BindToStrict(this, x => x.DescriptionTextShadow.Text)
-                .DisposeWith(dispose);
-            */
-
             var titleVisible = this.WhenAny(x => x.Title)
                 .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)
                 .Replay(1)
@@ -99,6 +86,13 @@ public partial class DetailImageView : UserControlRx<ViewModel>
             this.WhenAny(x => x.Image)
                 .Select(img => img == null ? Visibility.Hidden : Visibility.Visible)
                 .BindToStrict(this, x => x.Visibility)
+                .DisposeWith(dispose);
+
+            this.WhenAny(x => x.TitleFontSize)
+                .BindToStrict(this, x => x.TitleTextBlock.FontSize)
+                .DisposeWith(dispose);
+            this.WhenAny(x => x.AuthorFontSize)
+                .BindToStrict(this, x => x.AuthorTextBlock.FontSize)
                 .DisposeWith(dispose);
         });
     }

@@ -63,11 +63,10 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Bottom"
             FontFamily="{StaticResource PrimaryFont}"
-            FontSize="56"
             FontWeight="Bold"
             TextWrapping="WrapWithOverflow">
                 </TextBlock>
-                <TextBlock Grid.Row="3" Grid.Column="0" x:Name="AuthorTextBlock" Margin="16,0,0,16" FontFamily="{StaticResource PrimaryFont}" FontSize="28" FontWeight="Bold" TextWrapping="Wrap">
+                <TextBlock Grid.Row="3" Grid.Column="0" x:Name="AuthorTextBlock" Margin="16,0,0,16" FontFamily="{StaticResource PrimaryFont}" FontWeight="Bold" TextWrapping="Wrap">
                     <Run Text="by" FontWeight="Normal" />
                     <Run x:Name="AuthorTextRun" />
                 </TextBlock>

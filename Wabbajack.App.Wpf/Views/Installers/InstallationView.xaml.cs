@@ -93,9 +93,6 @@ public partial class InstallationView : ReactiveUserControl<InstallerVM>
             ViewModel.WhenAnyValue(vm => vm.SlideShowAuthor)
                 .BindToStrict(this, view => view.DetailImage.Author)
                 .DisposeWith(disposables);
-            ViewModel.WhenAnyValue(vm => vm.SlideShowDescription)
-                .BindToStrict(this, view => view.DetailImage.Description)
-                .DisposeWith(disposables);
 
             ViewModel.WhenAnyValue(vm => vm.SlideShowImage)
                 .BindToStrict(this, view => view.DetailImage.Image)

@@ -1,13 +1,10 @@
 ﻿using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using ReactiveUI;
-using DynamicData;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using Wabbajack.Common;
-using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using System.Windows;
+using System.Reactive.Disposables;
 
 namespace Wabbajack;
 
@@ -22,7 +19,37 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
 
         this.WhenActivated(disposables =>
         {
-            Disposable.Empty.DisposeWith(disposables);
+            ViewModel.WhenAny(vm => vm.Settings.ModListImage)
+                .Where(i => i.FileExists())
+                .Select(i => (UIUtils.TryGetBitmapImageFromFile(i, out var img), img))
+                .Where(i => i.Item1)
+                .Select(i => i.img)
+                .BindToStrict(this, view => view.DetailImage.Image)
+                .DisposeWith(disposables);
+
+            ViewModel.WhenAny(vm => vm.Settings.ModListName)
+                .BindToStrict(this, view => view.DetailImage.Title)
+                .DisposeWith(disposables);
+
+            ViewModel.WhenAny(vm => vm.Settings.ModListAuthor)
+                .BindToStrict(this, view => view.DetailImage.Author)
+                .DisposeWith(disposables);
+
+            ViewModel.WhenAny(vm => vm.State)
+                    .Select(s => s == CompilerState.Configuration ? Visibility.Visible : Visibility.Hidden)
+                    .BindToStrict(this, view => view.StartButton.Visibility);
+
+            ViewModel.WhenAny(vm => vm.State)
+                    .Select(s => s == CompilerState.Compiling ? Visibility.Visible : Visibility.Hidden)
+                    .BindToStrict(this, view => view.CancelButton.Visibility);
+
+            ViewModel.WhenAny(vm => vm.State)
+                    .Select(s => s == CompilerState.Completed ? Visibility.Visible : Visibility.Hidden)
+                    .BindToStrict(this, view => view.PublishButton.Visibility);
+
+            ViewModel.WhenAny(vm => vm.State)
+                    .Select(s => s == CompilerState.Completed ? Visibility.Visible : Visibility.Hidden)
+                    .BindToStrict(this, view => view.OpenFolderButton.Visibility);
         });
 
     }

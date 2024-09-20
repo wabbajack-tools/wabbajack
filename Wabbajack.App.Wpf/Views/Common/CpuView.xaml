@@ -12,7 +12,7 @@
     <Grid x:Name="ControlGrid" Background="Transparent">
         <Rectangle x:Name="HeatedBorderRect" Fill="{StaticResource HeatedBorderBrush}" />
         <Border BorderBrush="Transparent" BorderThickness="1" />
-        <Grid Margin="1" Background="{StaticResource DarkBackgroundBrush}">
+        <Grid Background="{StaticResource DarkBackgroundBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
