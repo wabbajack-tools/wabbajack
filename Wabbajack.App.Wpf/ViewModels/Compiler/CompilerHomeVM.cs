@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using SteamKit2.GC.Dota.Internal;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.DTOs.JsonConverters;
@@ -28,6 +29,7 @@ namespace Wabbajack
         private readonly ILogger<CompilerHomeVM> _logger;
         private readonly CancellationToken _cancellationToken;
         private readonly DTOSerializer _dtos;
+        private readonly CompilerSettingsInferencer _inferencer;
 
         public ICommand NewModListCommand { get; set; }
         public ICommand LoadSettingsCommand { get; set; }
@@ -36,14 +38,27 @@ namespace Wabbajack
         public ObservableCollection<CompiledModListTileVM> CompiledModLists { get; set; }
 
         public FilePickerVM CompilerSettingsPicker { get; private set; }
+        public FilePickerVM NewModlistPicker { get; private set; }
+
 
         public CompilerHomeVM(ILogger<CompilerHomeVM> logger, SettingsManager settingsManager,
-            IServiceProvider serviceProvider, DTOSerializer dtos)
+            IServiceProvider serviceProvider, DTOSerializer dtos, CompilerSettingsInferencer inferencer)
         {
             _logger = logger;
             _settingsManager = settingsManager;
             _serviceProvider = serviceProvider;
             _dtos = dtos;
+            _inferencer = inferencer;
+
+            NewModlistPicker = new FilePickerVM
+            {
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
+                PathType = FilePickerVM.PathTypeOptions.File,
+                PromptTitle = "Select a Mod Organizer profile (modlist.txt)"
+            };
+            NewModlistPicker.Filters.AddRange([
+                new CommonFileDialogFilter("Modlist", "modlist" + Ext.Txt)
+            ]);
 
             CompilerSettingsPicker = new FilePickerVM
             {
@@ -55,9 +70,21 @@ namespace Wabbajack
                 new CommonFileDialogFilter("Compiler Settings File", "*" + Ext.CompilerSettings)
             ]);
 
-            NewModListCommand = ReactiveCommand.Create(() => {
-                NavigateToGlobal.Send(ScreenType.CompilerDetails);
-                LoadCompilerSettings.Send(new());
+            NewModListCommand = ReactiveCommand.CreateFromTask(async () => {
+                NewModlistPicker.SetTargetPathCommand.Execute(null);
+                if(NewModlistPicker.TargetPath != default)
+                {
+                    try
+                    {
+                        var compilerSettings = await _inferencer.InferModListFromLocation(NewModlistPicker.TargetPath);
+                        NavigateToGlobal.Send(ScreenType.CompilerDetails);
+                        LoadCompilerSettings.Send(compilerSettings);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError("Failed to create new compiler settings for target path {0}! {1}", NewModlistPicker.TargetPath, ex.ToString());
+                    }
+                }
             });
 
             LoadSettingsCommand = ReactiveCommand.Create(() =>
