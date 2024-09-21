@@ -31,46 +31,11 @@
         <local:DetailImageView x:Name="DetailImage" Grid.Column="1" BorderThickness="0" TitleFontSize="28" AuthorFontSize="14" />
         <local:CpuView x:Name="CpuView" Grid.Column="1" Grid.Row="1" ViewModel="{Binding}" />
         <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="0, 16, 0, 0">
-            <Button x:Name="PrevButton" HorizontalAlignment="Left" Style="{StaticResource WizardButtonStyle}" Command="{Binding PrevCommand}">
-                <Button.Content>
-                    <StackPanel>
-                        <ic:SymbolIcon Symbol="ChevronLeft" FontSize="24"/>
-                        <TextBlock Text="Back to File Manager" />
-                    </StackPanel>
-                </Button.Content>
-            </Button>
-            <Button x:Name="CancelButton" HorizontalAlignment="Left" Style="{StaticResource WizardButtonStyle}">
-                <Button.Content>
-                    <StackPanel>
-                        <ic:SymbolIcon Symbol="Dismiss" FontSize="24"/>
-                        <TextBlock Text="Cancel" />
-                    </StackPanel>
-                </Button.Content>
-            </Button>
-            <Button x:Name="OpenFolderButton" HorizontalAlignment="Right" Style="{StaticResource WizardButtonStyle}">
-                <Button.Content>
-                    <StackPanel>
-                        <ic:SymbolIcon Symbol="Folder" FontSize="24"/>
-                        <TextBlock Text="Open folder" />
-                    </StackPanel>
-                </Button.Content>
-            </Button>
-            <Button x:Name="PublishButton" HorizontalAlignment="Right" Style="{StaticResource WizardButtonStyle}">
-                <Button.Content>
-                    <StackPanel>
-                        <ic:SymbolIcon Symbol="CloudArrowUp" FontSize="24" />
-                        <TextBlock Text="Publish Modlist" />
-                    </StackPanel>
-                </Button.Content>
-            </Button>
-            <Button x:Name="StartButton" HorizontalAlignment="Right" Style="{StaticResource WizardButtonStyle}" Command="{Binding StartCommand}">
-                <Button.Content>
-                    <StackPanel>
-                        <ic:SymbolIcon Symbol="PlayCircle" FontSize="24" />
-                        <TextBlock Text="Start" />
-                    </StackPanel>
-                </Button.Content>
-            </Button>
+            <local:WizardButton x:Name="PrevButton" Text="Back to File Manager" Icon="ChevronLeft" Command="{Binding PrevCommand}" Direction="RightToLeft" HorizontalAlignment="Left" />
+            <local:WizardButton x:Name="CancelButton" Text="Cancel" Icon="Dismiss" Command="{Binding CancelCommand}" Direction="RightToLeft" HorizontalAlignment="Left" />
+            <local:WizardButton x:Name="OpenFolderButton" Text="Open folder" Icon="Folder" Command="{Binding OpenFolderCommand}" HorizontalAlignment="Right" UseAltStyle="True" />
+            <local:WizardButton x:Name="PublishButton" Text="Publish" Icon="CloudArrowUp" Command="{Binding PublishCommand}" HorizontalAlignment="Right" UseAltStyle="True" />
+            <local:WizardButton x:Name="StartButton" Text="Start" Icon="PlayCircle" Command="{Binding StartCommand}" HorizontalAlignment="Right" UseAltStyle="True" />
         </Grid>
     </Grid>
 </rxui:ReactiveUserControl>

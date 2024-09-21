@@ -71,12 +71,16 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
             this.Bind(ViewModel, vm => vm.Settings.MachineUrl, view => view.MachineUrl.Text)
                 .DisposeWith(disposables);
 
+            /*
             this.BindCommand(ViewModel, vm => vm.NextCommand, v => v.ContinueButton)
                 .DisposeWith(disposables);
+            */
 
+            /*
             ViewModel.WhenAnyValue(vm => vm.ModlistLocation)
                 .BindToStrict(this, view => view.ModlistLocation.PickerVM)
                 .DisposeWith(disposables);
+            */
             
 
             /*

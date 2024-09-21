@@ -103,6 +103,7 @@
         <Grid Grid.Row="0" Grid.Column="1">
             <local:DetailImageView x:Name="DetailImage" TitleFontSize="56" AuthorFontSize="28" BorderThickness="0" Margin="16, 0, 0, 0" />
         </Grid>
+        <!--
         <Grid Grid.Row="1" Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition />
@@ -125,19 +126,9 @@
             Margin="16, 0, 0, 0"
             VerticalAlignment="Bottom"
             ToolTip="The modlist.txt of your Mod Organizer profile" />
+            -->
 
-            <Button 
-                x:Name="ContinueButton"
-                Grid.RowSpan="2"
-                Grid.Column="1"
-                Margin="0, 16, 0, 0"
-                Style="{StaticResource WizardButtonStyle}"
-                HorizontalAlignment="Right" >
-                <StackPanel>
-                    <ic:SymbolIcon Symbol="ChevronRight" FontSize="24" />
-                    <TextBlock Text="Continue" />
-                </StackPanel>
-            </Button>
-        </Grid>
+        <local:WizardButton x:Name="ContinueButton" Grid.Row="1" Grid.Column="1" Margin="0, 16, 0, 0" HorizontalAlignment="Right" Text="Continue" Icon="ChevronRight" Command="{Binding NextCommand}" UseAltStyle="True" />
+        <!--</Grid>-->
     </Grid>
 </rxui:ReactiveUserControl>
