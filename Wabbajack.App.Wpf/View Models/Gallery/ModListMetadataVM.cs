@@ -105,7 +105,7 @@ namespace Wabbajack
         private readonly CancellationToken _cancellationToken;
 
         public ModListMetadataVM(ILogger logger, ModListGalleryVM parent, ModlistMetadata metadata,
-            ModListDownloadMaintainer maintainer, Client wjClient, CancellationToken cancellationToken)
+            ModListDownloadMaintainer maintainer, ModListSummary[] modlistSummaries, Client wjClient, CancellationToken cancellationToken)
         {
             _logger = logger;
             _parent = parent;
@@ -132,7 +132,8 @@ namespace Wabbajack
             VersionText = "Modlist version : " + Metadata.Version;
             ImageContainsTitle = Metadata.ImageContainsTitle;
             DisplayVersionOnlyInInstallerView = Metadata.DisplayVersionOnlyInInstallerView;
-            IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;
+            var modListSummary = GetModListSummaryForModlist(modlistSummaries, metadata.NamespacedName);
+            IsBroken = modListSummary.HasFailures || metadata.ForceDown;
             // https://www.wabbajack.org/modlist/wj-featured/aldrnari
             OpenWebsiteCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/modlist/{Metadata.NamespacedName}")));
 
@@ -232,6 +233,11 @@ namespace Wabbajack
             NotDownloaded,
             Downloading,
             Downloaded
+        }
+
+        private static ModListSummary GetModListSummaryForModlist(ModListSummary[] modListSummaries, string machineUrl)
+        {
+            return modListSummaries.FirstOrDefault(x => x.MachineURL == machineUrl);
         }
     }
 }
