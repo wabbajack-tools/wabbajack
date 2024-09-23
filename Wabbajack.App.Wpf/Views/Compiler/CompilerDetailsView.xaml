@@ -19,24 +19,26 @@
     mc:Ignorable="d">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1.8*" />
-            <ColumnDefinition Width="5*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="1.25*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+
+        <!-- Modlist image -->
+        <local:DetailImageView x:Name="DetailImage" TitleFontSize="40" AuthorFontSize="18" BorderThickness="0" Margin="0, 0, 16, 16" />
+
         <!-- Settings -->
         <ScrollViewer Grid.Column="0" Grid.Row="1" Grid.RowSpan="2"
             x:Name="SettingsScrollViewer"
             Background="Transparent"
             HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="Auto">
-            <StackPanel
-                Background="Transparent"
-                Orientation="Vertical">
-                <StackPanel.Resources>
-                    <Thickness x:Key="TitleMargin" Bottom="8" />
+            <Grid>
+                <Grid.Resources>
+                    <Thickness x:Key="TitleMargin" Top="8" Bottom="8" />
                     <Style
                         x:Key="ValueStyle"
                         BasedOn="{StaticResource MainTextBoxStyle}"
@@ -51,52 +53,99 @@
                         TargetType="local:FilePicker">
                         <Setter Property="Margin" Value="0,0,0,6" />
                     </Style>
-                </StackPanel.Resources>
-                <TextBlock Margin="{StaticResource TitleMargin}" Text="Title" />
-                <TextBox x:Name="ModListNameSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="Modlist name..." />
-                <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
-                <TextBox x:Name="AuthorNameSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="Author name..." />
-                <TextBlock Margin="{StaticResource TitleMargin}" Text="Version" />
-                <TextBox x:Name="VersionSetting" MaxLength="9" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="1.0.0" />
-                <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
-                <TextBox x:Name="DescriptionSetting" Height="150" mahapps:TextBoxHelper.Watermark="A comprehensive overhaul of..." AcceptsReturn="True" AcceptsTab="False" MaxLength="700" Style="{StaticResource ValueStyle}" TextWrapping="Wrap" />
-                <TextBlock Margin="{StaticResource TitleMargin}" Text="Image" />
-                <local:FilePicker x:Name="ImageFilePicker" Style="{StaticResource PickerStyle}" ToolTip="Path to an image to display for the modlist." />
-                <TextBlock Margin="{StaticResource TitleMargin}" Text="Output location" />
-                <local:FilePicker x:Name="OutputFilePicker" Style="{StaticResource PickerStyle}" ToolTip="Path to the folder where the list installer will be saved to on completion" />
-                <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
-                <TextBox x:Name="WebsiteSetting" Style="{StaticResource ValueStyle}" />
-                <TextBlock
+                </Grid.Resources>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Orientation="Vertical" Margin="0, 0, 16, 0">
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
+                    <TextBox x:Name="AuthorNameSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="Author name..." />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Vertical" Margin="0, 0, 16, 0">
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Version" />
+                    <TextBox x:Name="VersionSetting" MaxLength="9" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="1.0.0" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Orientation="Vertical" Margin="0, 0, 16, 0">
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Title" />
+                    <TextBox x:Name="ModListNameSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="Modlist name..." />
+                </StackPanel>
+                <!-- Selected MO2 Profile -->
+
+                <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0, 0, 16, 0">
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
+                    <TextBox x:Name="DescriptionSetting" Height="135" VerticalContentAlignment="Top" mahapps:TextBoxHelper.Watermark="A comprehensive overhaul of..." AcceptsReturn="True" AcceptsTab="False" MaxLength="380" Style="{StaticResource ValueStyle}" TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0, 0, 16, 0">
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Image" />
+                    <local:FilePicker x:Name="ImageFilePicker" Style="{StaticResource PickerStyle}" ToolTip="Path to an image to display for the modlist." />
+                </StackPanel>
+                <StackPanel Grid.Row="4" Orientation="Vertical" Margin="0, 0, 16, 0">
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Documentation (Readme)" ToolTip="Link to the documentation." mahapps:TextBoxHelper.Watermark="https://www..."/>
+                    <TextBox x:Name="ReadmeSetting" Style="{StaticResource ValueStyle}" />
+                </StackPanel>
+                <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Vertical" Margin="0, 0, 16, 0">
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
+                    <TextBox x:Name="WebsiteSetting" Style="{StaticResource ValueStyle}" />
+                </StackPanel>
+                <StackPanel Grid.Row="5" Orientation="Vertical" Margin="0, 0, 16, 0">
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Community" />
+                    <TextBox x:Name="CommunitySetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="https://discord.gg/..." />
+                </StackPanel>
+                <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Vertical">
+                    <TextBlock
                     Margin="{StaticResource TitleMargin}"
-                    Text="Readme"
-                    ToolTip="Link to the Readme."
-                    mahapps:TextBoxHelper.Watermark="https://www.wabbajack.org"/>
-                <TextBox x:Name="ReadmeSetting" Style="{StaticResource ValueStyle}" />
-                <CheckBox
+                    Text="Machine URL"
+                    ToolTip="If this box has a value the modlist will be published to this MachineUrl after compilation" />
+                    <TextBox x:Name="MachineUrl" Style="{StaticResource ValueStyle}" />
+                </StackPanel>
+                <StackPanel Grid.Row="8" Orientation="Vertical" Margin="0, 0, 16, 0">
+                    <CheckBox
                     x:Name="NSFWSetting"
                     Margin="{StaticResource TitleMargin}"
-                    ToolTip="Select this if your Modlist has adult themed content such as SexLab or other mods involving sexual acts. Nude body replacer do not fall under this category neither do revealing outfits or gore.">
-                    <TextBlock Text="NSFW" FontSize="10" VerticalAlignment="Center" />
-                </CheckBox>
-                <CheckBox
+                    ToolTip="Select this if your modlist has adult themed content such as SexLab or other mods involving sexual acts. Nude body replacer do not fall under this category, neither do revealing outfits or gore.">
+                        <TextBlock Text="Not Safe For Work (NSFW)" FontSize="10" VerticalAlignment="Center" />
+                    </CheckBox>
+                </StackPanel>
+                <StackPanel Grid.Row="8" Grid.Column="1" Orientation="Vertical" Margin="0, 0, 16, 0">
+
+                    <CheckBox
                     x:Name="PublishUpdate"
                     Margin="{StaticResource TitleMargin}"
                     ToolTip="Select this if your want Wabbajack to automatically publish this modlist when compilation finished (requires a Machine URL)">
-                    <TextBlock Text="Publish Update" FontSize="10" VerticalAlignment="Center" />
-                </CheckBox>
-                <TextBlock
-                    Margin="{StaticResource TitleMargin}"
-                    Text="MachineUrl"
-                    ToolTip="If this box has a value the modlist will be published to this MachineUrl after compilation" />
-                <TextBox x:Name="MachineUrl" Style="{StaticResource ValueStyle}" />
-            </StackPanel>
+                        <TextBlock Text="Publish Update" FontSize="10" VerticalAlignment="Center" />
+                    </CheckBox>
+                </StackPanel>
+                <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0, 0, 16, 0">
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Export destination" />
+                    <local:FilePicker x:Name="OutputFilePicker" Style="{StaticResource PickerStyle}" ToolTip="Path to the folder where the list installer will be saved to on completion" />
+                </StackPanel>
+            </Grid>
         </ScrollViewer>
 
-        <Grid Grid.Row="0" Grid.Column="0">
-            <local:DetailImageView x:Name="DetailImage" TitleFontSize="56" AuthorFontSize="28" BorderThickness="0" Margin="16, 0, 0, 0" />
+        <!-- File Manager -->
+        <Grid Grid.Column="1" Grid.RowSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <local:CompilerFileManagerView ViewModel="{Binding CompilerFileManagerVM}" Margin="16, 0, 0, 0" />
+            <local:WizardButton x:Name="ContinueButton" Grid.Row="1" Grid.Column="1" Margin="0, 16, 0, 0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="Compile List" Icon="Box" Command="{Binding NextCommand}" UseAltStyle="True" />
         </Grid>
 
-        <local:WizardButton x:Name="ContinueButton" Grid.Row="1" Grid.Column="1" Margin="0, 16, 0, 0" HorizontalAlignment="Right" Text="Continue" Icon="ChevronRight" Command="{Binding NextCommand}" UseAltStyle="True" />
         <!--</Grid>-->
     </Grid>
 </rxui:ReactiveUserControl>

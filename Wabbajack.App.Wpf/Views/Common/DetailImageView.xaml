@@ -10,9 +10,9 @@
     x:TypeArguments="local:ViewModel"
     ClipToBounds="True"
     mc:Ignorable="d">
-    <Border x:Name="BorderMask2" CornerRadius="4" BorderThickness="0" Background="White">
+    <Border x:Name="BorderMask2" CornerRadius="8" BorderThickness="0" Background="White">
         <Grid>
-            <Border Name="BorderMask" CornerRadius="4" Background="White" Margin="1"/>
+            <Border Name="BorderMask" CornerRadius="8" Background="White" Margin="1"/>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="5*" />

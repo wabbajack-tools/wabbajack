@@ -42,6 +42,7 @@ namespace Wabbajack
         private readonly ResourceMonitor _resourceMonitor;
         private readonly CompilerSettingsInferencer _inferencer;
         
+        public CompilerFileManagerVM CompilerFileManagerVM { get; private set; }
         [Reactive] public string StatusText { get; set; }
         [Reactive] public Percent StatusProgress { get; set; }
 
@@ -70,12 +71,13 @@ namespace Wabbajack
         
         public CompilerDetailsVM(ILogger<CompilerDetailsVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
             IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
-            CompilerSettingsInferencer inferencer, Client wjClient) : base(dtos, settingsManager, logger, wjClient)
+            CompilerSettingsInferencer inferencer, Client wjClient, CompilerFileManagerVM compilerFileManagerVM) : base(dtos, settingsManager, logger, wjClient)
         {
             _serviceProvider = serviceProvider;
             LoggerProvider = loggerProvider;
             _resourceMonitor = resourceMonitor;
             _inferencer = inferencer;
+            CompilerFileManagerVM = compilerFileManagerVM;
 
             StatusText = "Compiler Settings";
             StatusProgress = Percent.Zero;

@@ -993,6 +993,7 @@
                                 TextAlignment="{TemplateBinding mahapps:TextBoxHelper.WatermarkAlignment}"
                                 TextTrimming="{TemplateBinding mahapps:TextBoxHelper.WatermarkTrimming}"
                                 TextWrapping="{TemplateBinding mahapps:TextBoxHelper.WatermarkWrapping}"
+                                Opacity="0.5"
                                 Visibility="Collapsed" />
                         </Grid>
                     </Border>
@@ -1001,7 +1002,7 @@
                             <DoubleAnimation
                                 Storyboard.TargetName="PART_Message"
                                 Storyboard.TargetProperty="Opacity"
-                                To=".2"
+                                To=".0"
                                 Duration="0:0:0.2" />
                         </Storyboard>
                         <Storyboard x:Key="exitGotFocus">
@@ -1045,6 +1046,26 @@
                             <MultiTrigger.ExitActions>
                                 <BeginStoryboard Storyboard="{StaticResource exitGotFocus}" />
                             </MultiTrigger.ExitActions>
+                        </MultiTrigger>
+
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="mahapps:TextBoxHelper.HasText" Value="False" />
+                                <Condition Property="VerticalContentAlignment" Value="Top" />
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.Setters>
+                                <Setter TargetName="PART_Message" Property="Margin" Value="4, 4, 0, 0" />
+                            </MultiTrigger.Setters>
+                        </MultiTrigger>
+
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="mahapps:TextBoxHelper.HasText" Value="False" />
+                                <Condition Property="VerticalContentAlignment" Value="Center" />
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.Setters>
+                                <Setter TargetName="PART_Message" Property="Margin" Value="4, 0, 0, 0" />
+                            </MultiTrigger.Setters>
                         </MultiTrigger>
 
                         <Trigger Property="mahapps:TextBoxHelper.HasText" Value="True">
