@@ -10,7 +10,7 @@
     x:TypeArguments="local:ViewModel"
     ClipToBounds="True"
     mc:Ignorable="d">
-    <Border Name="BorderMask2" CornerRadius="4" BorderThickness="0" Background="White">
+    <Border x:Name="BorderMask2" CornerRadius="4" BorderThickness="0" Background="White">
         <Grid>
             <Border Name="BorderMask" CornerRadius="4" Background="White" Margin="1"/>
             <Grid>
@@ -25,7 +25,7 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Grid.OpacityMask>
-                    <VisualBrush Visual="{Binding ElementName=BorderMask}"/>
+                    <VisualBrush Visual="{Binding ElementName=BorderMask}" />
                 </Grid.OpacityMask>
                 <Rectangle Grid.ColumnSpan="2" Grid.RowSpan="4" Fill="{StaticResource DarkPrimaryBrush}" Visibility="{Binding ElementName=ModlistImage, Path=Source, Converter={StaticResource IsNotNullVisibilityConverter}}"/>
                 <Rectangle Grid.ColumnSpan="2" Grid.RowSpan="4" Fill="Black"/>

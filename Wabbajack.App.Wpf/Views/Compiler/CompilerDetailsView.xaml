@@ -42,7 +42,6 @@
                         TargetType="TextBox">
                         <Setter Property="MaxLength" Value="150" />
                         <Setter Property="AcceptsTab" Value="False" />
-                        <Setter Property="FontSize" Value="15" />
                         <Setter Property="Margin" Value="0,0,0,6" />
                     </Style>
                     <Style
@@ -59,20 +58,11 @@
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Version" />
                 <TextBox x:Name="VersionSetting" MaxLength="9" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="1.0.0" />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
-                <TextBox
-                    x:Name="DescriptionSetting"
-                    Height="150"
-                    mahapps:TextBoxHelper.Watermark="A comprehensive overhaul of..."
-                    AcceptsReturn="True"
-                    AcceptsTab="False"
-                    MaxLength="700"
-                    Style="{StaticResource ValueStyle}"
-                    TextWrapping="Wrap" />
+                <TextBox x:Name="DescriptionSetting" Height="150" mahapps:TextBoxHelper.Watermark="A comprehensive overhaul of..." AcceptsReturn="True" AcceptsTab="False" MaxLength="700" Style="{StaticResource ValueStyle}" TextWrapping="Wrap" />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Image" />
-                <local:FilePicker
-                    x:Name="ImageFilePicker"
-                    Style="{StaticResource PickerStyle}"
-                    ToolTip="Path to an image to display for the modlist." />
+                <local:FilePicker x:Name="ImageFilePicker" Style="{StaticResource PickerStyle}" ToolTip="Path to an image to display for the modlist." />
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Output location" />
+                <local:FilePicker x:Name="OutputFilePicker" Style="{StaticResource PickerStyle}" ToolTip="Path to the folder where the list installer will be saved to on completion" />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
                 <TextBox x:Name="WebsiteSetting" Style="{StaticResource ValueStyle}" />
                 <TextBlock

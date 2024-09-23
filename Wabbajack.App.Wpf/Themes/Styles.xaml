@@ -37,7 +37,7 @@
     <Color x:Key="DisabledBackgroundColor">#424242</Color>
     <Color x:Key="PressedBackgroundColor">#4e4571</Color>
     <Color x:Key="LightDisabledBackgroundColor">#666666</Color>
-    <Color x:Key="HeatedBorderColor">#362675</Color>
+    <Color x:Key="HeatedBorderColor">#514c6b</Color>
 
     <Color x:Key="ForegroundColor">#EFEFEF</Color>
     <Color x:Key="DimForegroundColor">#CCCCCC</Color>
@@ -50,9 +50,10 @@
     <Color x:Key="Green">#5fad56</Color>
     <Color x:Key="YellowDark">#967400</Color>
 
-    <Color x:Key="Primary">#D9BBF9</Color>
+    <Color x:Key="Primary">#D8BAF8</Color>
     <Color x:Key="DarkPrimary">#383750</Color>
     <Color x:Key="PrimaryVariant">#8866ad</Color>
+    <Color x:Key="DarkPrimaryAlt">#514c6b</Color>
     <Color x:Key="DarkPrimaryVariant">#270080</Color>
     <Color x:Key="DarkerPrimaryVariant">#1b0059</Color>
     <Color x:Key="Secondary">#3C3652</Color>
@@ -135,7 +136,9 @@
     <SolidColorBrush x:Key="Primary25Brush" Color="{StaticResource Primary}" Opacity="0.25" />
     <SolidColorBrush x:Key="Primary10Brush" Color="{StaticResource Primary}" Opacity="0.1" />
     <SolidColorBrush x:Key="Primary05Brush" Color="{StaticResource Primary}" Opacity="0.05" />
+
     <SolidColorBrush x:Key="DarkPrimaryBrush" Color="{StaticResource DarkPrimary}" />
+    <SolidColorBrush x:Key="DarkPrimaryAltBrush" Color="{StaticResource DarkPrimaryAlt}" />
     <SolidColorBrush x:Key="PrimaryVariantBrush" Color="{StaticResource PrimaryVariant}" />
     <SolidColorBrush x:Key="DarkPrimaryVariantBrush" Color="{StaticResource DarkPrimaryVariant}" />
     <SolidColorBrush x:Key="DarkerPrimaryVariantBrush" Color="{StaticResource DarkerPrimaryVariant}" />
@@ -154,6 +157,9 @@
     <SolidColorBrush x:Key="Analogous2Brush" Color="{StaticResource Analogous2}" />
     <SolidColorBrush x:Key="Triadic1Brush" Color="{StaticResource Triadic1}" />
     <SolidColorBrush x:Key="Triadic2Brush" Color="{StaticResource Triadic2}" />
+
+    <SolidColorBrush x:Key="LogViewAlternateBrush" Color="{StaticResource Primary}" Opacity="0.03" />
+    <SolidColorBrush x:Key="ProgressBrush" Color="{StaticResource Primary}" Opacity="0.16" />
 
     <SolidColorBrush x:Key="TabItemHotBackground" Color="{StaticResource HotColor}" />
     <SolidColorBrush x:Key="TabItemSelectedBackground" Color="{StaticResource LightBackgroundColor}" />

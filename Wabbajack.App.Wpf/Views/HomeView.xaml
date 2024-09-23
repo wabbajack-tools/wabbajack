@@ -72,8 +72,8 @@
                         FontSize="28"
                     />
                     <TextBlock Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" LineHeight="24" FontSize="14" VerticalAlignment="Bottom">
-                    Go through a series of questions to find a modlist that works for you through <Hyperlink Command="{Binding VisitModlistWizardCommand}"> our<LineBreak />
-                    Wabbakinator quiz</Hyperlink>, or <Hyperlink Command="{Binding BrowseCommand}">navigate the gallery</Hyperlink> yourself and pick something that looks fun.
+                    Go through a series of questions to find a modlist that works for you through <Hyperlink Command="{Binding VisitModlistWizardCommand}" FontWeight="Bold" />our<LineBreak />
+                    Wabbakinator quiz, or <Hyperlink Command="{Binding BrowseCommand}" FontWeight="Bold">navigate the gallery</Hyperlink> yourself and pick something that looks fun.
                     </TextBlock>
                 </Grid>
             </Border>

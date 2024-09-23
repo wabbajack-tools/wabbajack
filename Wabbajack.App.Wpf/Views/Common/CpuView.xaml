@@ -10,9 +10,9 @@
     x:TypeArguments="local:ICpuStatusVM"
     mc:Ignorable="d">
     <Grid x:Name="ControlGrid" Background="Transparent">
-        <Rectangle x:Name="HeatedBorderRect" Fill="{StaticResource HeatedBorderBrush}" />
+        <Rectangle x:Name="HeatedBorderRect" Fill="{StaticResource ProgressBrush}" />
         <Border BorderBrush="Transparent" BorderThickness="1" />
-        <Grid Background="{StaticResource DarkBackgroundBrush}">
+        <Grid Background="{StaticResource DarkPrimaryBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
@@ -23,7 +23,7 @@
                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <local:CpuLineView ViewModel="{Binding}" />
+                        <local:CpuLineView Margin="0, 4, 0, 0" ViewModel="{Binding}" />
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>

@@ -11,25 +11,17 @@
     d:DesignWidth="400"
     x:TypeArguments="local:CPUDisplayVM"
     mc:Ignorable="d">
-    <Grid Background="{StaticResource WindowBackgroundBrush}">
-        <mahapps:MetroProgressBar
-            x:Name="BackgroundProgressBar"
-            Background="Transparent"
-            BorderThickness="0"
-            Foreground="{StaticResource DarkPrimaryVariantBrush}"
-            Maximum="1" />
-        <Grid Height="1" VerticalAlignment="Bottom">
-            <mahapps:MetroProgressBar
-                x:Name="ThinProgressBar"
-                Background="Transparent"
-                BorderThickness="0"
-                Foreground="{StaticResource DarkSecondaryBrush}"
-                Maximum="1" />
+    <Border x:Name="BorderMask2" CornerRadius="4" BorderThickness="0" Background="White">
+        <Grid>
+            <Border x:Name="BorderMask" CornerRadius="4" Background="White" Margin="1" />
+            <Grid Height="28" Background="{StaticResource WindowBackgroundBrush}">
+                <Grid.OpacityMask>
+                    <VisualBrush Visual="{Binding ElementName=BorderMask}"/>
+                </Grid.OpacityMask>
+                <mahapps:MetroProgressBar x:Name="BackgroundProgressBar" Background="Transparent" BorderThickness="0" Foreground="{StaticResource DarkPrimaryBrush}" Maximum="1" />
+                <TextBlock x:Name="Text" Margin="8, 0, 0, 0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" TextWrapping="NoWrap" />
+                <TextBlock x:Name="Progress" Margin="0, 0, 8, 0" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="NoWrap" />
+            </Grid>
         </Grid>
-        <TextBlock
-            x:Name="Text"
-            Margin="0,0,0,2"
-            TextTrimming="CharacterEllipsis"
-            TextWrapping="NoWrap" />
-    </Grid>
+    </Border>
 </rxui:ReactiveUserControl>

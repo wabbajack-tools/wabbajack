@@ -76,19 +76,12 @@ namespace Wabbajack
 
             SubCompilerVM = new MO2CompilerVM(this);
 
-            NextCommand = ReactiveCommand.CreateFromTask(NextPage);
-
             
             this.WhenActivated(disposables =>
             {
                 State = CompilerState.Configuration;
 
-                OutputLocation = new FilePickerVM
-                {
-                    ExistCheckOption = FilePickerVM.CheckOptions.Off,
-                    PathType = FilePickerVM.PathTypeOptions.Folder,
-                    PromptTitle = "Location where the compiled modlist will be saved to"
-                };
+                StartCommand.Execute(null);
 
                 Disposable.Empty.DisposeWith(disposables);
             });
@@ -139,14 +132,6 @@ namespace Wabbajack
                 OutputLocation.ErrorState
             };
             return ErrorResponse.Combine(errors);
-        }
-
-        private async Task NextPage()
-        {
-            await SaveSettings();
-            //NavigateToGlobal.Send(ScreenType.CompilerFileManager);
-            //LoadCompilerSettings.Send(Settings.ToCompilerSettings());
-            await StartCompilation();
         }
 
         private async Task StartCompilation()

@@ -1,4 +1,5 @@
-﻿using System.Reactive.Disposables;
+﻿using System;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
 
@@ -18,20 +19,17 @@ public partial class CpuLineView : ReactiveUserControl<CPUDisplayVM>
                 .Select(x => x.Value)
                 .BindToStrict(this, x => x.BackgroundProgressBar.Value)
                 .DisposeWith(dispose);
-            this.WhenAny(x => x.ViewModel.ProgressPercent)
-                .Select(x => x.Value)
-                .BindToStrict(this, x => x.BackgroundProgressBar.Opacity)
-                .DisposeWith(dispose);
-            this.WhenAny(x => x.ViewModel.ProgressPercent)
-                .Select(x => x.Value)
-                .BindToStrict(this, x => x.ThinProgressBar.Value)
-                .DisposeWith(dispose);
 
             this.WhenAny(x => x.ViewModel.Msg)
                 .BindToStrict(this, x => x.Text.Text)
                 .DisposeWith(dispose);
             this.WhenAny(x => x.ViewModel.Msg)
                 .BindToStrict(this, x => x.Text.ToolTip)
+                .DisposeWith(dispose);
+
+            this.WhenAny(x => x.ViewModel.ProgressPercent)
+                .Select(x => (int)(x.Value * 100) + "%")
+                .BindToStrict(this, x => x.Progress.Text)
                 .DisposeWith(dispose);
         });
     }
