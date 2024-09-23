@@ -12,15 +12,19 @@
     x:TypeArguments="local:CPUDisplayVM"
     mc:Ignorable="d">
     <Border x:Name="BorderMask2" CornerRadius="4" BorderThickness="0" Background="White">
-        <Grid>
+        <Grid Margin="-1">
             <Border x:Name="BorderMask" CornerRadius="4" Background="White" Margin="1" />
             <Grid Height="28" Background="{StaticResource WindowBackgroundBrush}">
                 <Grid.OpacityMask>
                     <VisualBrush Visual="{Binding ElementName=BorderMask}"/>
                 </Grid.OpacityMask>
-                <mahapps:MetroProgressBar x:Name="BackgroundProgressBar" Background="Transparent" BorderThickness="0" Foreground="{StaticResource DarkPrimaryBrush}" Maximum="1" />
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <mahapps:MetroProgressBar Grid.ColumnSpan="2" x:Name="BackgroundProgressBar" Background="Transparent" BorderThickness="0" Foreground="{StaticResource DarkPrimaryBrush}" Maximum="1" />
                 <TextBlock x:Name="Text" Margin="8, 0, 0, 0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" TextWrapping="NoWrap" />
-                <TextBlock x:Name="Progress" Margin="0, 0, 8, 0" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="NoWrap" />
+                <TextBlock x:Name="Progress" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="NoWrap" Margin="0, 0, 8, 0" />
             </Grid>
         </Grid>
     </Border>

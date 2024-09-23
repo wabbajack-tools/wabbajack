@@ -44,16 +44,17 @@ namespace Wabbajack
         
         public FilePickerVM OutputLocation { get; private set; }
         
-        public ReactiveCommand<Unit, Unit> NextCommand { get; }
-
         public LogStream LoggerProvider { get; }
         public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
-        
+
+        public bool Cancelling { get; private set; }
         [Reactive]
         public ErrorResponse ErrorState { get; private set; }
 
         public ICommand PrevCommand { get; }
         public ICommand StartCommand { get; }
+        public ICommand CancelCommand { get; }
+        public CancellationTokenSource CancellationTokenSource { get; private set; }
         
         public CompilerMainVM(ILogger<CompilerMainVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
             IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
@@ -63,6 +64,8 @@ namespace Wabbajack
             LoggerProvider = loggerProvider;
             _resourceMonitor = resourceMonitor;
             _inferencer = inferencer;
+
+            CancellationTokenSource = new CancellationTokenSource();
             PrevCommand = ReactiveCommand.Create(PrevPage);
             StartCommand = ReactiveCommand.Create(StartCompilation);
 
@@ -73,6 +76,8 @@ namespace Wabbajack
                 await SaveSettings();
                 NavigateToGlobal.Send(ScreenType.Home);
             });
+
+            CancelCommand = ReactiveCommand.CreateFromTask(CancelCompilation);
 
             SubCompilerVM = new MO2CompilerVM(this);
 
@@ -87,16 +92,19 @@ namespace Wabbajack
             });
         }
 
+        private async Task CancelCompilation()
+        {
+            if (State != CompilerState.Compiling) return;
+            Cancelling = true;
+            _logger.LogInformation("Cancel pressed, cancelling compilation...");
+            await CancellationTokenSource.CancelAsync();
+            CancellationTokenSource = new CancellationTokenSource();
+        }
+
         private void PrevPage()
         {
             NavigateToGlobal.Send(ScreenType.CompilerFileManager);
             LoadCompilerSettings.Send(Settings.ToCompilerSettings());
-        }
-
-        private void Click()
-        {
-            int i = 0;
-            //Settings.ModListImage = (AbsolutePath)@"C:\Users\tik\Downloads\1.0.0.png";
         }
 
         private async Task ReInferSettings(AbsolutePath filePath)
@@ -141,7 +149,7 @@ namespace Wabbajack
                 try
                 {
                     await SaveSettings();
-                    var token = CancellationToken.None;
+                    var token = CancellationTokenSource.Token;
                     State = CompilerState.Compiling;
 
                     Settings.UseGamePaths = true;
@@ -203,12 +211,24 @@ namespace Wabbajack
                 {
                     RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
                     {
-                        StatusText = "Compilation Failed";
-                        StatusProgress = Percent.Zero;
+                        if (Cancelling)
+                        {
+                            StatusText = "Compilation Cancelled";
+                            StatusProgress = Percent.Zero;
+                            State = CompilerState.Configuration;
+                            _logger.LogInformation(ex, "Cancelled Compilation : {Message}", ex.Message);
+                            Cancelling = false;
+                            return Disposable.Empty;
+                        }
+                        else
+                        {
+                            StatusText = "Compilation Failed";
+                            StatusProgress = Percent.Zero;
 
-                        State = CompilerState.Errored;
-                        _logger.LogInformation(ex, "Failed Compilation : {Message}", ex.Message);
-                        return Disposable.Empty;
+                            State = CompilerState.Errored;
+                            _logger.LogInformation(ex, "Failed Compilation : {Message}", ex.Message);
+                            return Disposable.Empty;
+                        }
                     });
                 }
             });
