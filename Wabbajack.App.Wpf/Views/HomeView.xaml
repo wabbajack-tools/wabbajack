@@ -71,7 +71,7 @@
                         IsFilled="True"
                         FontSize="28"
                     />
-                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" LineHeight="24" FontSize="14" VerticalAlignment="Bottom">
+                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" LineHeight="24" FontSize="13" VerticalAlignment="Bottom">
                     Go through a series of questions to find a modlist that works for you through <Hyperlink Command="{Binding VisitModlistWizardCommand}" FontWeight="Bold" />our<LineBreak />
                     Wabbakinator quiz, or <Hyperlink Command="{Binding BrowseCommand}" FontWeight="Bold">navigate the gallery</Hyperlink> yourself and pick something that looks fun.
                     </TextBlock>
@@ -102,7 +102,7 @@
                         IsFilled="True"
                         FontSize="28"
                     />
-                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" LineHeight="24" FontSize="14" VerticalAlignment="Bottom">
+                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" LineHeight="24" FontSize="13" VerticalAlignment="Bottom">
                         Some modlists have steps that you need to take before you install the list, some don't.<LineBreak/>
                         Check your list's documentation on how to get started.
                     </TextBlock>
@@ -133,7 +133,7 @@
                         IsFilled="True"
                         FontSize="28"
                     />
-                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" LineHeight="24" FontSize="14" VerticalAlignment="Bottom">
+                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" LineHeight="24" FontSize="13" VerticalAlignment="Bottom">
                         Pick a destination with enough free space and click the "Start download" button.<LineBreak/>
                         You might have to log into Nexus first, but rest assured it will just work™.
                     </TextBlock>
@@ -164,7 +164,7 @@
                         IsFilled="True"
                         FontSize="28"
                     />
-                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" LineHeight="24" FontSize="14" VerticalAlignment="Bottom">
+                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" LineHeight="24" FontSize="13" VerticalAlignment="Bottom">
                         If your install completed successfully and you're done with the documentation as well, <LineBreak />
                         you're now ready to launch the modlist and play!
                     </TextBlock>

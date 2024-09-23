@@ -23,27 +23,27 @@
         <TextBlock Grid.Row="0" Grid.Column="0"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
-            FontSize="14"
+            FontSize="13"
             Text="Modlist Installation Location"
             TextAlignment="Center" 
             ToolTip="The directory where the modlist will be installed" />
         <local:FilePicker Grid.Row="0" Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
-            FontSize="14"
+            FontSize="13"
             PickerVM="{Binding Location}"
             ToolTip="The directory where the modlist will be installed" />
         <TextBlock Grid.Row="1" Grid.Column="0"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
-            FontSize="14"
+            FontSize="13"
             Text="Resource Download Location"
             TextAlignment="Center" 
             ToolTip="The directory where modlist archives will be downloaded to" />
         <local:FilePicker Grid.Row="1" Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
-            FontSize="14"
+            FontSize="13"
             PickerVM="{Binding DownloadLocation}"
             ToolTip="The directory where modlist archives will be downloaded to" />
     </Grid>

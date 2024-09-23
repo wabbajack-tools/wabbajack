@@ -23,7 +23,7 @@
         <TextBlock Grid.Row="0" Grid.Column="0"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
-            FontSize="14"
+            FontSize="13"
             Text="Compiler Settings"
             TextAlignment="Center"
             ToolTip=".compiler_settings file, or select a modlist.txt to auto-detect the compiler settings" />
@@ -32,12 +32,12 @@
             Grid.Row="0" Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
-            FontSize="14"
+            FontSize="13"
             ToolTip="The MO2 modlist.txt file you want to use as your source" />
         <TextBlock Grid.Row="1" Grid.Column="0"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
-            FontSize="14"
+            FontSize="13"
             Text="Download Location"
             TextAlignment="Center"
             ToolTip="The folder where MO2 downloads your mods." />
@@ -45,7 +45,7 @@
             x:Name="DownloadsLocation"              
             Height="30"
             VerticalAlignment="Center"
-            FontSize="14"
+            FontSize="13"
             ToolTip="The folder where MO2 downloads your mods." />
     </Grid>
 </UserControl>

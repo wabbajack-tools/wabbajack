@@ -52,7 +52,7 @@
                 Text="UNDER MAINTENANCE" />
             <TextBlock Grid.Row="1"
                 FontFamily="{StaticResource PrimaryFont}"
-                FontSize="14"
+                FontSize="13"
                 Foreground="{StaticResource YellowBrush}"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Center"

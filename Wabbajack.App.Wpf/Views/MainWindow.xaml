@@ -15,15 +15,15 @@
     ShowMinButton="False"
     ShowMaxRestoreButton="False"
     Title="Wabbajack"
-    Width="1424"
-    Height="686"
+    Width="1441"
+    Height="695"
     MinWidth="712"
     MinHeight="343"
     Closing="Window_Closing"
     RenderOptions.BitmapScalingMode="HighQuality"
     ResizeMode="CanResize"
     Style="{StaticResource {x:Type Window}}"
-    TitleBarHeight="25"
+    TitleBarHeight="64"
     UseLayoutRounding="True"
     WindowTitleBrush="{StaticResource BackgroundBrush}"
     mc:Ignorable="d">
@@ -31,7 +31,7 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="54" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
@@ -44,27 +44,27 @@
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <Border BorderThickness="0" Margin="10, 0, 5, 0" >
-                <Image Grid.Column="0" Width="18" Height="18" Source="{StaticResource WabbajackLogo}"/>
+            <Border BorderThickness="0" Margin="16, 0, 8, 0" >
+                <Image Grid.Column="0" Width="24" Height="24" Source="{StaticResource WabbajackLogo}"/>
             </Border>
-            <TextBlock Grid.Column="1" FontSize="16" Padding="8, 8" Name="AppName"></TextBlock>
-            <TextBlock Grid.Column="2" FontSize="16" Padding="8, 8" Name="ResourceUsage" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
-            <Button Grid.Column="3" Style="{StaticResource IconBareButtonStyle}" Name="InfoButton" Padding="12, 8" Margin="12, 0">
+            <TextBlock Grid.Column="1" FontSize="13" Name="AppName" VerticalAlignment="Center"></TextBlock>
+            <TextBlock Grid.Column="2" FontSize="13" Padding="8, 8" Name="ResourceUsage" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
+            <Button Grid.Column="3" Style="{StaticResource IconBareButtonStyle}" Name="InfoButton" Padding="8" Margin="12, 0">
                 <ic:SymbolIcon Symbol="QuestionCircle"/>
             </Button>
-            <Button Grid.Column="4" Style="{StaticResource IconBareButtonStyle}" Name="MinimizeButton" Padding="12, 8">
+            <Button Grid.Column="4" Style="{StaticResource IconBareButtonStyle}" Name="MinimizeButton" Padding="12">
                 <ic:SymbolIcon Symbol="Subtract"/>
             </Button>
-            <Button Grid.Column="5" Style="{StaticResource IconBareButtonStyle}" Name="MaximizeButton" Padding="12, 8">
+            <Button Grid.Column="5" Style="{StaticResource IconBareButtonStyle}" Name="MaximizeButton" Padding="12">
                 <ic:SymbolIcon Symbol="Maximize"/>
             </Button>
-            <Button Grid.Column="6" Style="{StaticResource IconBareButtonStyle}" Name="CloseButton" Padding="12, 8">
-                <ic:SymbolIcon Symbol="ArrowExit"/>
+            <Button Grid.Column="6" Style="{StaticResource IconBareButtonStyle}" Name="CloseButton" Padding="12">
+                <ic:SymbolIcon Symbol="Dismiss"/>
             </Button>
         </Grid>
-        <Grid Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0">
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="128" />
+                <ColumnDefinition Width="115" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <local:NavigationView Grid.Column="0" ViewModel="{Binding NavigationVM}" />

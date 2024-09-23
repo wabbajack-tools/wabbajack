@@ -26,7 +26,8 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <ScrollViewer Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
+        <!-- Settings -->
+        <ScrollViewer Grid.Column="0" Grid.Row="1" Grid.RowSpan="2"
             x:Name="SettingsScrollViewer"
             Background="Transparent"
             HorizontalScrollBarVisibility="Disabled"
@@ -90,33 +91,10 @@
                 <TextBox x:Name="MachineUrl" Style="{StaticResource ValueStyle}" />
             </StackPanel>
         </ScrollViewer>
-        <Grid Grid.Row="0" Grid.Column="1">
+
+        <Grid Grid.Row="0" Grid.Column="0">
             <local:DetailImageView x:Name="DetailImage" TitleFontSize="56" AuthorFontSize="28" BorderThickness="0" Margin="16, 0, 0, 0" />
         </Grid>
-        <!--
-        <Grid Grid.Row="1" Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition />
-                <RowDefinition />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <TextBlock
-                HorizontalAlignment="Left"
-                Margin="16, 16, 0, 8"
-                VerticalAlignment="Top"
-                Text="Modlist Profile Location"
-                TextAlignment="Center"
-                />
-            <local:FilePicker
-            Grid.Row="1"
-            x:Name="ModlistLocation"             
-            Margin="16, 0, 0, 0"
-            VerticalAlignment="Bottom"
-            ToolTip="The modlist.txt of your Mod Organizer profile" />
-            -->
 
         <local:WizardButton x:Name="ContinueButton" Grid.Row="1" Grid.Column="1" Margin="0, 16, 0, 0" HorizontalAlignment="Right" Text="Continue" Icon="ChevronRight" Command="{Binding NextCommand}" UseAltStyle="True" />
         <!--</Grid>-->

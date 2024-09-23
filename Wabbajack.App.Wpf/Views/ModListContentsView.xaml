@@ -46,7 +46,7 @@
             <iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
         </Button>
                 
-        <DataGrid Grid.Row="1" x:Name="ArchiveGrid" AutoGenerateColumns="False" AlternatingRowBackground="#131313" FontSize="14">
+        <DataGrid Grid.Row="1" x:Name="ArchiveGrid" AutoGenerateColumns="False" AlternatingRowBackground="#131313" FontSize="13">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True"></DataGridTextColumn>
                 <DataGridTextColumn Header="Downloader" Binding="{Binding Downloader}" IsReadOnly="True"></DataGridTextColumn>

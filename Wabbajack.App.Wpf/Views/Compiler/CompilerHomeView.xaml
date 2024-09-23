@@ -54,7 +54,7 @@
                         IsFilled="True"
                         FontSize="28"
                     />
-                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" LineHeight="24" FontSize="14" VerticalAlignment="Bottom">
+                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" LineHeight="24" FontSize="13" VerticalAlignment="Bottom">
                     Import the modlist.txt file to set up a new modlist export
                     </TextBlock>
                 </Grid>
@@ -85,7 +85,7 @@
                         IsFilled="True"
                         FontSize="28"
                     />
-                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" LineHeight="24" FontSize="14" VerticalAlignment="Bottom">
+                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" LineHeight="24" FontSize="13" VerticalAlignment="Bottom">
                     Continue the export of an existing modlist or push an update
                     </TextBlock>
                 </Grid>

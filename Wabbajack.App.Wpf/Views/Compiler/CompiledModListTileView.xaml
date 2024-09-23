@@ -138,7 +138,7 @@
                     </Border>
                 </Grid>
                 <TextBlock FontSize="20" Text="{Binding CompilerSettings.ModListName}" Margin="10, 10, 10, 0"/>
-                <TextBlock Text="{Binding CompilerSettings.Source}" FontSize="14" Opacity="0.5" Margin="10, 10, 10, 10"/>
+                <TextBlock Text="{Binding CompilerSettings.Source}" FontSize="13" Opacity="0.5" Margin="10, 10, 10, 10"/>
             </StackPanel>
         </Grid>
 </rxui:ReactiveUserControl>

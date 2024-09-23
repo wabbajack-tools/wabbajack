@@ -10,62 +10,62 @@
     xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
     x:TypeArguments="local:NavigationVM"
     mc:Ignorable="d">
-    <Border BorderThickness="0" Padding="10, 0">
+    <Border BorderThickness="0">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="108"/>
-                <RowDefinition Height="10"/>
-                <RowDefinition Height="108"/>
-                <RowDefinition Height="10"/>
-                <RowDefinition Height="108"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="8"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="8"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="108"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Button x:Name="HomeButton">
+            <Button x:Name="HomeButton" Height="95" Margin="8, 0, 8, 0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Home" FontSize="48" />
-                    <TextBlock Grid.Row="1" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 10, 0, 0">
+                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Home" FontSize="36" />
+                    <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 8, 0, 0">
                     Home
                     </TextBlock>
                 </Grid>
             </Button>
-            <Button x:Name="BrowseButton" Grid.Row="2">
+            <Button x:Name="BrowseButton" Grid.Row="2" Height="95" Margin="8, 0, 8, 0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="CloudArrowDown" FontSize="48" />
-                    <TextBlock Grid.Row="1" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="4">
+                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="CloudArrowDown" FontSize="36" />
+                    <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 8, 0, 0">
                     Browse lists
                     </TextBlock>
                 </Grid>
             </Button>
-            <Button x:Name="CompileButton" Grid.Row="4">
+            <Button x:Name="CompileButton" Grid.Row="4" Height="95" Margin="8, 0, 8, 0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Toolbox" FontSize="48" />
-                    <TextBlock Grid.Row="1" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="4">
+                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Toolbox" FontSize="36" />
+                    <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 8, 0, 0">
                     Create a list
                     </TextBlock>
                 </Grid>
             </Button>
-            <Button x:Name="SettingsButton" Grid.Row="6">
+            <Button x:Name="SettingsButton" Grid.Row="6" Padding="12" Height="95" Margin="8, 0, 8, 0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Settings" FontSize="48" />
-                    <TextBlock Grid.Row="1" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="4">
+                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Settings" FontSize="36" />
+                    <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 8, 0, 0">
                     Settings
                     </TextBlock>
                 </Grid>

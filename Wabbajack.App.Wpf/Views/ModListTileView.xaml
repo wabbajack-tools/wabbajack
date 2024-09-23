@@ -392,7 +392,7 @@
                        x:Name="MetadataDescription"
                        Margin="8,5"
                        VerticalAlignment="Center"
-                       FontSize="14"
+                       FontSize="13"
                        TextWrapping="Wrap" />
             </ScrollViewer>
             <ItemsControl Grid.Row="2" Name="TagsList">

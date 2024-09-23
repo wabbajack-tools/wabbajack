@@ -17,16 +17,6 @@
     d:DesignWidth="800"
     x:TypeArguments="local:CompilerFileManagerVM"
     mc:Ignorable="d">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
         <TreeView x:Name="FileTreeView"/>
-        <Grid Grid.Row="1" Margin="0, 16, 0, 0">
-            <local:WizardButton Grid.Column="5" Text="Back to Modlist Details" Icon="ChevronLeft" Command="{Binding PrevCommand}" HorizontalAlignment="Left" Direction="RightToLeft" />
-            <local:WizardButton Grid.Column="5" Text="Compile Modlist" Icon="Box" Command="{Binding NextCommand}" HorizontalAlignment="Right" UseAltStyle="True" />
-        </Grid>
-    </Grid>
 
 </rxui:ReactiveUserControl>

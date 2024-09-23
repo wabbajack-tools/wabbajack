@@ -28,7 +28,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <local:LogView x:Name="LogView" Grid.RowSpan="2" Margin="0, 0, 16, 0" />
-        <local:DetailImageView x:Name="DetailImage" Grid.Column="1" BorderThickness="0" TitleFontSize="28" AuthorFontSize="14" />
+        <local:DetailImageView x:Name="DetailImage" Grid.Column="1" BorderThickness="0" TitleFontSize="28" AuthorFontSize="13" />
         <local:CpuView x:Name="CpuView" Grid.Column="1" Grid.Row="1" ViewModel="{Binding}" />
         <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="0, 16, 0, 0">
             <local:WizardButton x:Name="PrevButton" Text="Back to File Manager" Icon="ChevronLeft" Command="{Binding PrevCommand}" Direction="RightToLeft" HorizontalAlignment="Left" />

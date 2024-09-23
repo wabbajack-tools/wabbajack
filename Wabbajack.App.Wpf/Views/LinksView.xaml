@@ -31,7 +31,7 @@
                 <TextBlock FontWeight="DemiBold" FontSize="28" VerticalAlignment="Center" HorizontalAlignment="Left">
                 Patreon
                 </TextBlock>
-                <TextBlock Grid.Row="1" FontSize="14" VerticalAlignment="Center" Margin="0, 3, 0, 0">
+                <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" Margin="0, 3, 0, 0">
                 Help support the project
                 </TextBlock>
                 <ic:SymbolIcon Grid.Column="1" FontSize="28" Symbol="Heart" VerticalAlignment="Center" HorizontalAlignment="Right" />
@@ -50,7 +50,7 @@
                 <TextBlock FontWeight="DemiBold" FontSize="28" VerticalAlignment="Center" HorizontalAlignment="Left">
                 GitHub
                 </TextBlock>
-                <TextBlock Grid.Row="1" FontSize="14" VerticalAlignment="Center" Margin="0, 3, 0, 0">
+                <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" Margin="0, 3, 0, 0">
                 Contribute to the project
                 </TextBlock>
                 <ic:SymbolIcon Grid.Column="1" FontSize="28" Symbol="CodeCircle" VerticalAlignment="Center" HorizontalAlignment="Right" />
@@ -69,7 +69,7 @@
                 <TextBlock FontWeight="DemiBold" FontSize="28" VerticalAlignment="Center" HorizontalAlignment="Left">
                 Discord
                 </TextBlock>
-                <TextBlock Grid.Row="1" FontSize="14" VerticalAlignment="Center" Margin="0, 3, 0, 0">
+                <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" Margin="0, 3, 0, 0">
                 Visit the Wabbajack community
                 </TextBlock>
                 <ic:SymbolIcon Grid.Column="1" FontSize="28" Symbol="PeopleChat" VerticalAlignment="Center" HorizontalAlignment="Right" />
@@ -88,7 +88,7 @@
                 <TextBlock FontWeight="DemiBold" FontSize="28" VerticalAlignment="Center" HorizontalAlignment="Left">
                 Wiki
                 </TextBlock>
-                <TextBlock Grid.Row="1" FontSize="14" VerticalAlignment="Center" Margin="0, 3, 0, 0">
+                <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" Margin="0, 3, 0, 0">
                 Read the general documentation
                 </TextBlock>
                 <ic:SymbolIcon Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right" Symbol="TextQuote" FontSize="28" />

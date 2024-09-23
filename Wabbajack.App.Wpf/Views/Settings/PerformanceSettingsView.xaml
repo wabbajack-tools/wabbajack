@@ -45,11 +45,11 @@
                 FontWeight="Bold"
                 Text="Performance" />
             <Button x:Name="EditResourceSettings" Grid.Row="2">
-                <TextBlock FontSize="14" FontWeight="Bold">Edit Resource Usage Settings and Close Wabbajack</TextBlock>
+                <TextBlock FontSize="13" FontWeight="Bold">Edit Resource Usage Settings and Close Wabbajack</TextBlock>
             </Button>
             <TextBlock
                 Grid.Row="4"
-                FontSize="14"
+                FontSize="13"
                 Foreground="{StaticResource ForegroundBrush}"
                 Text="Maximum RAM per download thread (MB)"
                 ToolTip="Defines the maximum amount of RAM each download thread can use for buffering. Set to 0 to disable this limit completely." />
@@ -69,7 +69,7 @@
                 Margin="20,0,0,0"
                 Padding="10,0"
                 HorizontalAlignment="Left">
-                <TextBlock FontSize="14">Reset</TextBlock>
+                <TextBlock FontSize="13">Reset</TextBlock>
             </Button>
         </Grid>
     </Border>

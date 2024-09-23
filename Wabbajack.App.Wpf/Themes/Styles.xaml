@@ -1109,7 +1109,7 @@
                             HorizontalAlignment="Right"
                             Background="{DynamicResource ComboBoxButtonNormalBackground}"
                             CornerRadius="4">
-                            <ic:SymbolIcon x:Name="Arrow" Symbol="ChevronDown" FontSize="14" IsFilled="True" Foreground="{DynamicResource ButtonForeground}"/>
+                            <ic:SymbolIcon x:Name="Arrow" Symbol="ChevronDown" FontSize="13" IsFilled="True" Foreground="{DynamicResource ButtonForeground}"/>
                         </Border>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -1503,6 +1503,45 @@
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="Background" Value="{StaticResource WindowHoverBackgroundBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid>
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="16">
+                            <Grid>
+                                <Border Background="{StaticResource PrimaryBrush}" HorizontalAlignment="Left" Width="5" Height="40" BorderBrush="{StaticResource PrimaryBrush}" CornerRadius="3" />
+                                <ContentPresenter
+                                Margin="{TemplateBinding Padding}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                RecognizesAccessKey="True"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
+                            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="true">
+                            <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
+                            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+                            <Setter Property="Background" Value="{StaticResource DisabledButtonBackground}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
         <Style.Resources>
             <Style TargetType="ic:SymbolIcon">
                 <Setter Property="IsFilled" Value="True"/>

@@ -36,7 +36,7 @@
             <TextBlock Grid.Row="1" Grid.Column="0"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
-                FontSize="14"
+                FontSize="13"
                 Text="Target Modlist"
                 TextAlignment="Center" />
             <TextBlock x:Name="errorTextBox"
@@ -50,7 +50,7 @@
                 x:Name="ModListLocationPicker"
                 Height="30"
                 VerticalAlignment="Center"
-                FontSize="14" />
+                FontSize="13" />
             <ContentPresenter Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3"
                 x:Name="InstallerCustomizationContent"
                 VerticalAlignment="Top">
