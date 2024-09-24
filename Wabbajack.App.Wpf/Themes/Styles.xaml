@@ -2477,8 +2477,6 @@
     <Style TargetType="{x:Type TreeViewItem}" x:Key="TreeViewItem">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="MinHeight" Value="21" />
-        <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
-        <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
         <Setter Property="Padding" Value="4,6,4,6" />
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
         <Setter Property="FocusVisualStyle" Value="{StaticResource TreeViewItemFocusVisual}" />
@@ -2486,7 +2484,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TreeViewItem}">
                     <ControlTemplate.Resources>
-                        <darkBlendTheme:LeftMarginMultiplierConverter x:Key="LengthConverter" Length="15" />
+                        <darkBlendTheme:LeftMarginMultiplierConverter x:Key="LengthConverter" Length="8" />
                     </ControlTemplate.Resources>
                     <StackPanel>
                         <Border
@@ -2566,7 +2564,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TreeViewItem}">
                     <ControlTemplate.Resources>
-                        <darkBlendTheme:LeftMarginMultiplierConverter x:Key="LengthConverter" Length="30" />
+                        <darkBlendTheme:LeftMarginMultiplierConverter x:Key="LengthConverter" Length="16" />
                     </ControlTemplate.Resources>
                     <StackPanel>
                         <Border
@@ -2575,7 +2573,7 @@
                             Background="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Background}">
                             <Grid Margin="{Binding Converter={StaticResource LengthConverter}, RelativeSource={RelativeSource TemplatedParent}}">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="15" />
+                                    <ColumnDefinition Width="16" />
                                     <ColumnDefinition />
                                 </Grid.ColumnDefinitions>
                                 <ToggleButton Grid.Column="0"
@@ -2588,17 +2586,18 @@
                                 <Grid Grid.Column="1">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="5*" />
                                         <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="150" />
                                     </Grid.ColumnDefinitions>
                                     <ic:SymbolIcon x:Name="Foreground" IsFilled="True" Symbol="{Binding Path=Header.Symbol, RelativeSource={RelativeSource TemplatedParent}}" Margin="0, 0, 4, 0" Foreground="{StaticResource PrimaryBrush}"/>
-                                    <StackPanel Orientation="Horizontal" Grid.Column="1">
+                                    <TextBlock x:Name="PART_Header" Grid.Column="1" Text="{Binding Path=Header, RelativeSource={RelativeSource TemplatedParent}}" TextTrimming="CharacterEllipsis" Margin="4, 0, 4, 0" VerticalAlignment="Center" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                                        <!--
                                         <ContentPresenter
                                         x:Name="PART_Header"
                                         Margin="4, 0, 0, 0"
                                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                         ContentSource="Header"/>
-                                    </StackPanel>
+                                        -->
                                     <ComboBox Name="CompilerFileStateListbox" ItemsSource="{wj:EnumToItemsSource {x:Type wj:CompilerFileState}}" DisplayMemberPath="DisplayName" SelectedValue="{Binding Path=Header.CompilerFileState, RelativeSource={RelativeSource TemplatedParent}}" SelectedValuePath="Value" Grid.Column="2" BorderThickness="1" BorderBrush="{StaticResource PrimaryBrush}"/>
                                 </Grid>
                             </Grid>

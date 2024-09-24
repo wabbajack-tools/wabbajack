@@ -23,7 +23,7 @@
                 <VisualBrush Visual="{Binding ElementName=BorderMask}"/>
             </Grid.OpacityMask>
             <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1" />
-            <TreeView x:Name="FileTreeView" />
+            <TreeView x:Name="FileTreeView" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
         </Grid>
     </Border>
 
