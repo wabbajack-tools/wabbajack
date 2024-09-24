@@ -2606,6 +2606,16 @@
 
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding SelectedValue, ElementName=CompilerFileStateListbox}" Value="0" />
+                                <Condition Binding="{Binding IsMouseOver, ElementName=Bd}" Value="False" />
+                            </MultiDataTrigger.Conditions>
+                            <MultiDataTrigger.Setters>
+                                <Setter TargetName="CompilerFileStateListbox" Property="Visibility" Value="Hidden" />
+                            </MultiDataTrigger.Setters>
+                        </MultiDataTrigger>
+
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding Path=Header.ContainsIgnores, RelativeSource={RelativeSource Self}}" Value="True" />
                                 <Condition Binding="{Binding Path=Header.ContainsAlwaysEnableds, RelativeSource={RelativeSource Self}}" Value="True" />
                             </MultiDataTrigger.Conditions>
