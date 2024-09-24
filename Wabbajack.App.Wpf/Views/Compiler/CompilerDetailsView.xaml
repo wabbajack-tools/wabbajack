@@ -45,13 +45,13 @@
                         TargetType="TextBox">
                         <Setter Property="MaxLength" Value="150" />
                         <Setter Property="AcceptsTab" Value="False" />
-                        <Setter Property="Margin" Value="0,0,0,6" />
+                        <Setter Property="Margin" Value="0, 0, 0, 8" />
                     </Style>
                     <Style
                         x:Key="PickerStyle"
                         BasedOn="{StaticResource MainFilePickerStyle}"
                         TargetType="local:FilePicker">
-                        <Setter Property="Margin" Value="0,0,0,6" />
+                        <Setter Property="Margin" Value="0, 0, 0, 8" />
                     </Style>
                 </Grid.Resources>
                 <Grid.ColumnDefinitions>
@@ -70,49 +70,64 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Orientation="Vertical" Margin="0, 0, 16, 0">
-                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
-                    <TextBox x:Name="AuthorNameSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="Author name..." />
+                <StackPanel Margin="0, 0, 16, 0">
+                    <DockPanel HorizontalAlignment="Stretch">
+                        <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
+                    </DockPanel>
+                    <TextBox x:Name="AuthorNameSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="Author name(s)..." />
                 </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Vertical" Margin="0, 0, 16, 0">
+                <StackPanel Grid.Column="1" Margin="0, 0, 16, 0">
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Version" />
                     <TextBox x:Name="VersionSetting" MaxLength="9" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="1.0.0" />
                 </StackPanel>
 
-                <StackPanel Grid.Row="1" Orientation="Vertical" Margin="0, 0, 16, 0">
+                <StackPanel Grid.Row="1" Margin="0, 0, 16, 0">
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Title" />
                     <TextBox x:Name="ModListNameSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="Modlist name..." />
                 </StackPanel>
                 <!-- Selected MO2 Profile -->
 
-                <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0, 0, 16, 0">
+                <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0, 0, 16, 0">
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
                     <TextBox x:Name="DescriptionSetting" Height="135" VerticalContentAlignment="Top" mahapps:TextBoxHelper.Watermark="A comprehensive overhaul of..." AcceptsReturn="True" AcceptsTab="False" MaxLength="380" Style="{StaticResource ValueStyle}" TextWrapping="Wrap" />
                 </StackPanel>
-                <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0, 0, 16, 0">
+                <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="0, 0, 16, 0">
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Image" />
-                    <local:FilePicker x:Name="ImageFilePicker" Style="{StaticResource PickerStyle}" ToolTip="Path to an image to display for the modlist." />
+                    <local:FilePicker x:Name="ImageFilePicker" Style="{StaticResource PickerStyle}" Icon="DocumentImage" ToolTip="Path to an image to display for the modlist." />
                 </StackPanel>
-                <StackPanel Grid.Row="4" Orientation="Vertical" Margin="0, 0, 16, 0">
-                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Documentation (Readme)" ToolTip="Link to the documentation." mahapps:TextBoxHelper.Watermark="https://www..."/>
+                <StackPanel Grid.Row="4" Margin="0, 0, 16, 0">
+                    <DockPanel>
+                        <TextBlock Margin="{StaticResource TitleMargin}" Text="Documentation (Readme)" ToolTip="Link to the documentation." mahapps:TextBoxHelper.Watermark="https://www..."/>
+                        <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
+                    </DockPanel>
                     <TextBox x:Name="ReadmeSetting" Style="{StaticResource ValueStyle}" />
                 </StackPanel>
-                <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Vertical" Margin="0, 0, 16, 0">
-                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
+                <StackPanel Grid.Row="4" Grid.Column="1" Margin="0, 0, 16, 0">
+                    <DockPanel>
+                        <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
+                        <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
+                    </DockPanel>
                     <TextBox x:Name="WebsiteSetting" Style="{StaticResource ValueStyle}" />
                 </StackPanel>
-                <StackPanel Grid.Row="5" Orientation="Vertical" Margin="0, 0, 16, 0">
-                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Community" />
+                <StackPanel Grid.Row="5" Margin="0, 0, 16, 0">
+                    <DockPanel>
+                        <TextBlock Margin="{StaticResource TitleMargin}" Text="Community" />
+                        <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
+                    </DockPanel>
                     <TextBox x:Name="CommunitySetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="https://discord.gg/..." />
                 </StackPanel>
                 <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Vertical">
                     <TextBlock
                     Margin="{StaticResource TitleMargin}"
                     Text="Machine URL"
-                    ToolTip="If this box has a value the modlist will be published to this MachineUrl after compilation" />
-                    <TextBox x:Name="MachineUrl" Style="{StaticResource ValueStyle}" />
+                    ToolTip="Unique text string for this modlist prefixed with its GitHub repository name." />
+                    <TextBox x:Name="MachineUrl" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="modlistRepository/ModlistName" />
                 </StackPanel>
-                <StackPanel Grid.Row="8" Orientation="Vertical" Margin="0, 0, 16, 0">
+                <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Margin="0, 0, 16, 0">
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Export destination" />
+                    <local:FilePicker x:Name="OutputFilePicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the folder where the list installer will be saved to on completion" />
+                </StackPanel>
+                <StackPanel Grid.Row="7" Margin="0, 0, 16, 0">
                     <CheckBox
                     x:Name="NSFWSetting"
                     Margin="{StaticResource TitleMargin}"
@@ -120,7 +135,8 @@
                         <TextBlock Text="Not Safe For Work (NSFW)" FontSize="10" VerticalAlignment="Center" />
                     </CheckBox>
                 </StackPanel>
-                <StackPanel Grid.Row="8" Grid.Column="1" Orientation="Vertical" Margin="0, 0, 16, 0">
+                <!--
+                <StackPanel Grid.Row="8" Grid.Column="1" Margin="0, 0, 16, 0">
 
                     <CheckBox
                     x:Name="PublishUpdate"
@@ -129,10 +145,7 @@
                         <TextBlock Text="Publish Update" FontSize="10" VerticalAlignment="Center" />
                     </CheckBox>
                 </StackPanel>
-                <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0, 0, 16, 0">
-                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Export destination" />
-                    <local:FilePicker x:Name="OutputFilePicker" Style="{StaticResource PickerStyle}" ToolTip="Path to the folder where the list installer will be saved to on completion" />
-                </StackPanel>
+                -->
             </Grid>
         </ScrollViewer>
 

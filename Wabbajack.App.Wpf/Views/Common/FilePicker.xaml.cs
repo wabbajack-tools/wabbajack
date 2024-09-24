@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using FluentIcons.Common;
+using System.Windows;
 
 namespace Wabbajack;
 
@@ -16,6 +17,14 @@ public partial class FilePicker
     }
     public static readonly DependencyProperty PickerVMProperty = DependencyProperty.Register(nameof(PickerVM), typeof(FilePickerVM), typeof(FilePicker),
          new FrameworkPropertyMetadata(default(FilePickerVM)));
+
+    public Symbol Icon
+    {
+        get => (Symbol)GetValue(IconProperty);
+        set => SetValue(IconProperty, value);
+    }
+    public static readonly DependencyProperty IconProperty = DependencyProperty.Register(nameof(Icon), typeof(Symbol), typeof(FilePicker),
+        new PropertyMetadata(default(Symbol)));
 
     public FilePicker()
     {

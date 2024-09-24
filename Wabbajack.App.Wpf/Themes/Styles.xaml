@@ -36,7 +36,6 @@
     <Color x:Key="BackgroundColor">#222531</Color>
     <Color x:Key="DisabledBackgroundColor">#424242</Color>
     <Color x:Key="PressedBackgroundColor">#4e4571</Color>
-    <Color x:Key="LightDisabledBackgroundColor">#666666</Color>
     <Color x:Key="HeatedBorderColor">#514c6b</Color>
 
     <Color x:Key="ForegroundColor">#EFEFEF</Color>
@@ -193,8 +192,8 @@
     <SolidColorBrush x:Key="ButtonBorder" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="PressedButtonBackground" Color="{StaticResource PressedBackgroundColor}" />
     <SolidColorBrush x:Key="MouseOverButtonBackground" Color="{StaticResource LightBackgroundColor}" />
-    <SolidColorBrush x:Key="DisabledButtonBackground" Color="{StaticResource LightDisabledBackgroundColor}" />
-    <SolidColorBrush x:Key="DisabledButtonForeground" Color="#FF7E7E7E" />
+    <SolidColorBrush x:Key="DisabledButtonBackground" Color="{StaticResource Primary16}" />
+    <SolidColorBrush x:Key="DisabledButtonForeground" Color="#40FFFFFF" />
 
     <SolidColorBrush x:Key="Expander.Background" Color="{StaticResource LightBackgroundColor}" />
     <SolidColorBrush x:Key="Expander.MouseOver.Arrow.Stroke" Color="{StaticResource Primary}" />
@@ -222,7 +221,7 @@
     <SolidColorBrush x:Key="MouseOverListItem" Color="{StaticResource Primary16}" />
 
     <SolidColorBrush x:Key="TreeViewBackground" Color="{StaticResource Primary08}" />
-    <SolidColorBrush x:Key="TreeViewDisabledForeground" Color="{StaticResource LightDisabledBackgroundColor}" />
+    <SolidColorBrush x:Key="TreeViewDisabledForeground" Color="#40FFFFFF" />
 
     <SolidColorBrush x:Key="DisabledMenuForeground" Color="#656565" />
     <SolidColorBrush x:Key="MenuBackground" Color="#3A3A3A" />
@@ -1424,6 +1423,7 @@
                 <ControlTemplate TargetType="{x:Type Button}">
                     <Grid>
                         <Border
+                            x:Name="Border"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
