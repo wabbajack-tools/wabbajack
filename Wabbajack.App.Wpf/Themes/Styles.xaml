@@ -296,7 +296,7 @@
         </VisualBrush.Visual>
     </VisualBrush>
 
-<!--#region Combined stripe brushes -->
+    <!-- #region Combined stripe brushes -->
 
     <VisualBrush
       x:Key="VerticalHorizontalStripeBrush"
@@ -457,8 +457,8 @@
             </Canvas>
         </VisualBrush.Visual>
     </VisualBrush>
+    <!-- #endregion -->
 
-<!--#endregion-->
 
     <Geometry x:Key="MenuScrollDownArrowGeometry">M-0.7,5.2 L-2.2,6.7 3.6,12.6 9.5,6.7 8,5.2 3.6,9.6 z</Geometry>
     <Geometry x:Key="MenuScrollUpArrowGeometry">M-2.2,10.9 L-0.7,12.4 3.7,8 8,12.4 9.5,10.9 3.7,5 z</Geometry>
@@ -528,7 +528,6 @@
                         <ScrollBar Grid.Row="0" Grid.Column="1"
                             x:Name="PART_VerticalScrollBar"
                             AutomationProperties.AutomationId="VerticalScrollBar"
-                            Cursor="Arrow"
                             Maximum="{TemplateBinding ScrollableHeight}"
                             Minimum="0"
                             Style="{DynamicResource VerticalScrollBarStyle}"
@@ -589,10 +588,10 @@
                     <Grid>
                         <Rectangle
                             x:Name="VerticalThumb"
-                            Width="7.4"
+                            Width="14"
                             Fill="{StaticResource VerticalScrollBarThumb}"
-                            RadiusX="4"
-                            RadiusY="4" />
+                            RadiusX="7"
+                            RadiusY="7" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -679,7 +678,6 @@
         </Setter>
     </Style>
     <Style x:Key="VerticalScrollBarStyle" TargetType="{x:Type ScrollBar}">
-        <Setter Property="Background" Value="{StaticResource VerticalScrollBarBackground}" />
         <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false" />
         <Setter Property="Stylus.IsFlicksEnabled" Value="false" />
         <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
@@ -690,35 +688,18 @@
                 <ControlTemplate TargetType="{x:Type ScrollBar}">
                     <Grid
                     x:Name="Bg"
-                    Background="{TemplateBinding Background}"
-                    SnapsToDevicePixels="true">
-                        <Grid.RowDefinitions>
-                            <RowDefinition MaxHeight="{DynamicResource {x:Static SystemParameters.VerticalScrollBarButtonHeightKey}}" />
-                            <RowDefinition Height="0.00001*" />
-                            <RowDefinition MaxHeight="{DynamicResource {x:Static SystemParameters.VerticalScrollBarButtonHeightKey}}" />
-                        </Grid.RowDefinitions>
-                        <RepeatButton
-                        Command="{x:Static ScrollBar.LineUpCommand}"
-                        IsEnabled="{TemplateBinding IsMouseOver}"
-                        Style="{StaticResource RepeatButtonUpStyle}" />
-                        <Track Grid.Row="1"
+                    SnapsToDevicePixels="true" Width="{DynamicResource {x:Static SystemParameters.VerticalScrollBarWidthKey}}">
+                        <Rectangle Width="9" RadiusX="3" RadiusY="3" Fill="{StaticResource VerticalScrollBarBackground}" HorizontalAlignment="Center"/>
+                        <Track
                         x:Name="PART_Track"
                         IsDirectionReversed="true"
-                        IsEnabled="{TemplateBinding IsMouseOver}">
-                            <Track.DecreaseRepeatButton>
-                                <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}" Style="{StaticResource VerticalScrollBarPageButton}" />
-                            </Track.DecreaseRepeatButton>
-                            <Track.IncreaseRepeatButton>
-                                <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}" Style="{StaticResource VerticalScrollBarPageButton}" />
-                            </Track.IncreaseRepeatButton>
+                        IsEnabled="{TemplateBinding IsMouseOver}"
+                        HorizontalAlignment="Center"
+                        >
                             <Track.Thumb>
                                 <Thumb Style="{StaticResource ScrollBarThumb}" />
                             </Track.Thumb>
                         </Track>
-                        <RepeatButton Grid.Row="2"
-                        Command="{x:Static ScrollBar.LineDownCommand}"
-                        IsEnabled="{TemplateBinding IsMouseOver}"
-                        Style="{DynamicResource RepeatButtonDownStyle}" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsEnabled" Value="false">
@@ -779,6 +760,16 @@
                 </Setter>
             </Trigger>
         </Style.Triggers>
+        <!--
+        <Style.Resources>
+            <Style TargetType="{x:Type Track}">
+                <Style.Resources>
+                    <sys:Double x:Key="{x:Static SystemParameters.VerticalScrollBarButtonWidthKey}">32</sys:Double>
+                    <sys:Double x:Key="{x:Static SystemParameters.VerticalScrollBarButtonHeightKey}">32</sys:Double>
+                </Style.Resources>
+            </Style>
+        </Style.Resources>
+        -->
     </Style>
     <Style x:Key="HorisontalScrollBarStyle" TargetType="{x:Type ScrollBar}">
         <Setter Property="Background" Value="{StaticResource VerticalScrollBarBackground}" />
