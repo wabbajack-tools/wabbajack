@@ -6,6 +6,7 @@
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     d:DesignHeight="35"
     d:DesignWidth="400"
     mc:Ignorable="d">
@@ -54,6 +55,7 @@
             VerticalContentAlignment="Center"
             Background="{StaticResource DarkBackgroundBrush}"
             Text="{Binding PickerVM.TargetPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource AbsolutePathToStringConverter}}"
+            mahapps:TextBoxHelper.Watermark="{Binding Watermark, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
             />
             <Grid Grid.Column="1"
             HorizontalAlignment="Right"

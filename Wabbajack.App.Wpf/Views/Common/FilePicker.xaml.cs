@@ -25,6 +25,13 @@ public partial class FilePicker
     }
     public static readonly DependencyProperty IconProperty = DependencyProperty.Register(nameof(Icon), typeof(Symbol), typeof(FilePicker),
         new PropertyMetadata(default(Symbol)));
+    public string Watermark
+    {
+        get => (string)GetValue(WatermarkProperty);
+        set => SetValue(WatermarkProperty, value);
+    }
+    public static readonly DependencyProperty WatermarkProperty = DependencyProperty.Register(nameof(Watermark), typeof(string), typeof(FilePicker),
+        new PropertyMetadata(default(string)));
 
     public FilePicker()
     {
