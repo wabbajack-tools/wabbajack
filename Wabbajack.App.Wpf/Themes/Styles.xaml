@@ -2591,13 +2591,6 @@
                                     </Grid.ColumnDefinitions>
                                     <ic:SymbolIcon x:Name="Foreground" IsFilled="True" Symbol="{Binding Path=Header.Symbol, RelativeSource={RelativeSource TemplatedParent}}" Margin="0, 0, 4, 0" Foreground="{StaticResource PrimaryBrush}"/>
                                     <TextBlock x:Name="PART_Header" Grid.Column="1" Text="{Binding Path=Header, RelativeSource={RelativeSource TemplatedParent}}" TextTrimming="CharacterEllipsis" Margin="4, 0, 4, 0" VerticalAlignment="Center" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
-                                        <!--
-                                        <ContentPresenter
-                                        x:Name="PART_Header"
-                                        Margin="4, 0, 0, 0"
-                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                        ContentSource="Header"/>
-                                        -->
                                     <ComboBox Name="CompilerFileStateListbox" ItemsSource="{wj:EnumToItemsSource {x:Type wj:CompilerFileState}}" DisplayMemberPath="DisplayName" SelectedValue="{Binding Path=Header.CompilerFileState, RelativeSource={RelativeSource TemplatedParent}}" SelectedValuePath="Value" Grid.Column="2" BorderThickness="1" BorderBrush="{StaticResource PrimaryBrush}"/>
                                 </Grid>
                             </Grid>
