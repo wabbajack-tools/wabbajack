@@ -94,7 +94,7 @@
                 <TextBox
                 x:Name="SearchBox"
                 mahapps:TextBoxHelper.Watermark="Search for a modlist..." />
-                <Border BorderThickness="0" Width="30" Background="{StaticResource DarkPrimaryBrush}" HorizontalAlignment="Right">
+                <Border BorderThickness="0" Width="30" Background="{StaticResource Primary08Brush}" HorizontalAlignment="Right">
                     <ic:SymbolIcon Symbol="Search" HorizontalAlignment="Center" IsFilled="True"/>
                 </Border>
             </Grid>

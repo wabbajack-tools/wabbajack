@@ -37,7 +37,7 @@
                 <Style TargetType="{x:Type ListBoxItem}">
                     <Style.Triggers>
                         <Trigger Property="ItemsControl.AlternationIndex" Value="0">
-                            <Setter Property="Background" Value="{StaticResource DarkPrimaryBrush}"/>
+                            <Setter Property="Background" Value="{StaticResource Primary08Brush}"/>
                         </Trigger>
                         <Trigger Property="ItemsControl.AlternationIndex" Value="1">
                             <Setter Property="Background" Value="{StaticResource LogViewAlternateBrush}"/>

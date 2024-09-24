@@ -51,7 +51,11 @@
     <Color x:Key="YellowDark">#967400</Color>
 
     <Color x:Key="Primary">#D8BAF8</Color>
-    <Color x:Key="DarkPrimary">#383750</Color>
+
+    <!-- Primary color mixed with Background, number indicates opacity -->
+    <Color x:Key="Primary08">#383750</Color>
+    <Color x:Key="Primary16">#45425D</Color>
+
     <Color x:Key="PrimaryVariant">#8866ad</Color>
     <Color x:Key="DarkPrimaryAlt">#514c6b</Color>
     <Color x:Key="DarkPrimaryVariant">#270080</Color>
@@ -132,12 +136,8 @@
     <SolidColorBrush x:Key="HeatedBorderBrush" Color="{StaticResource HeatedBorderColor}" />
 
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
-    <SolidColorBrush x:Key="Primary50Brush" Color="{StaticResource Primary}" Opacity="0.5" />
-    <SolidColorBrush x:Key="Primary25Brush" Color="{StaticResource Primary}" Opacity="0.25" />
-    <SolidColorBrush x:Key="Primary10Brush" Color="{StaticResource Primary}" Opacity="0.1" />
-    <SolidColorBrush x:Key="Primary05Brush" Color="{StaticResource Primary}" Opacity="0.05" />
-
-    <SolidColorBrush x:Key="DarkPrimaryBrush" Color="{StaticResource DarkPrimary}" />
+    <SolidColorBrush x:Key="Primary16Brush" Color="{StaticResource Primary16}" />
+    <SolidColorBrush x:Key="Primary08Brush" Color="{StaticResource Primary08}" />
     <SolidColorBrush x:Key="DarkPrimaryAltBrush" Color="{StaticResource DarkPrimaryAlt}" />
     <SolidColorBrush x:Key="PrimaryVariantBrush" Color="{StaticResource PrimaryVariant}" />
     <SolidColorBrush x:Key="DarkPrimaryVariantBrush" Color="{StaticResource DarkPrimaryVariant}" />
@@ -176,16 +176,16 @@
     <SolidColorBrush x:Key="ScrollBarSelectedThumb" Color="{StaticResource PrimaryVariant}" />
     <SolidColorBrush x:Key="CornerBorder" Color="{StaticResource DarkBackgroundColor}" />
 
-    <SolidColorBrush x:Key="TextBoxBorder" Color="{StaticResource DarkPrimary}" />
-    <SolidColorBrush x:Key="TextBoxBackground" Color="{StaticResource DarkPrimary}" />
+    <SolidColorBrush x:Key="TextBoxBorder" Color="{StaticResource Primary08}" />
+    <SolidColorBrush x:Key="TextBoxBackground" Color="{StaticResource Primary08}" />
     <SolidColorBrush x:Key="TextBoxDisabledForeground" Color="#8C8C8C" />
     <SolidColorBrush x:Key="TextBoxDisabledBackground" Color="{StaticResource DisabledBackgroundColor}" />
     <SolidColorBrush x:Key="InactiveSelectionHighlightBrush" Color="#335C85" />
 
     <SolidColorBrush x:Key="ComboBoxButtonNormalBackground" Color="Transparent" />
 
-    <SolidColorBrush x:Key="ButtonNormalBackground" Color="{StaticResource DarkPrimary}" />
-    <SolidColorBrush x:Key="ButtonNormalBorder" Color="{StaticResource DarkPrimary}" />
+    <SolidColorBrush x:Key="ButtonNormalBackground" Color="{StaticResource Primary08}" />
+    <SolidColorBrush x:Key="ButtonNormalBorder" Color="{StaticResource Primary08}" />
 
     <SolidColorBrush x:Key="ButtonForeground" Color="{StaticResource ForegroundColor}" />
     <SolidColorBrush x:Key="MouseOverButtonForeground" Color="White" />
@@ -201,12 +201,12 @@
     <SolidColorBrush x:Key="Expander.Disabled.Arrow.Stroke" Color="{StaticResource DarkSecondary}" />
     <SolidColorBrush x:Key="Expander.Static.Arrow.Stroke" Color="{StaticResource Primary}" />
 
-    <SolidColorBrush x:Key="CheckBoxFillNormal" Color="{StaticResource DarkPrimary}" />
+    <SolidColorBrush x:Key="CheckBoxFillNormal" Color="{StaticResource Primary08}" />
     <SolidColorBrush x:Key="CheckBoxForeground" Color="{StaticResource Primary}" />
     <SolidColorBrush x:Key="CheckBoxMouseOverStroke" Color="{StaticResource ForegroundColor}" />
     <SolidColorBrush x:Key="CheckBoxDisabledStroke" Color="{StaticResource DisabledBackgroundColor}" />
     <SolidColorBrush x:Key="CheckBoxDisabledForeground" Color="#939393" />
-    <SolidColorBrush x:Key="CheckBoxStroke" Color="{StaticResource DarkPrimary}" />
+    <SolidColorBrush x:Key="CheckBoxStroke" Color="{StaticResource Primary08}" />
 
     <SolidColorBrush x:Key="RadioButtonMouseOverStroke" Color="{StaticResource ForegroundColor}" />
     <SolidColorBrush x:Key="RadioButtonDisabledStroke" Color="{StaticResource DisabledBackgroundColor}" />
@@ -216,12 +216,12 @@
     <SolidColorBrush x:Key="RadioButtonBackground" Color="{StaticResource LightDisabledBackgroundColor}" />
 
     <SolidColorBrush x:Key="ListBorder" Color="{StaticResource DarkBackgroundColor}" />
-    <SolidColorBrush x:Key="ListBackground" Color="{StaticResource DarkBackgroundColor}" />
+    <SolidColorBrush x:Key="ListBackground" Color="{StaticResource Primary08}" />
     <SolidColorBrush x:Key="SelectedListItem" Color="{StaticResource HighlightColor}" />
     <SolidColorBrush x:Key="SelectedListItemForeground" Color="{StaticResource DarkBackgroundColor}" />
-    <SolidColorBrush x:Key="MouseOverListItem" Color="{StaticResource DarkHoverBackgroundColor}" />
+    <SolidColorBrush x:Key="MouseOverListItem" Color="{StaticResource Primary16}" />
 
-    <SolidColorBrush x:Key="TreeViewBackground" Color="{StaticResource DarkBackgroundColor}" />
+    <SolidColorBrush x:Key="TreeViewBackground" Color="{StaticResource Primary08}" />
     <SolidColorBrush x:Key="TreeViewDisabledForeground" Color="{StaticResource LightDisabledBackgroundColor}" />
 
     <SolidColorBrush x:Key="DisabledMenuForeground" Color="#656565" />
@@ -1673,7 +1673,7 @@
 
     <Style x:Key="WizardButtonStyle" BasedOn="{StaticResource MainButtonStyle}" TargetType="{x:Type Button}">
         <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Background" Value="{StaticResource DarkPrimaryBrush}"/>
+        <Setter Property="Background" Value="{StaticResource Primary08Brush}"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="Template">
@@ -2557,11 +2557,13 @@
                     <ControlTemplate.Resources>
                         <darkBlendTheme:LeftMarginMultiplierConverter x:Key="LengthConverter" Length="16" />
                     </ControlTemplate.Resources>
-                    <StackPanel>
+                    <StackPanel Margin="0, 4, 0, 0">
                         <Border
                             Name="Bd"
                             Padding="{TemplateBinding Padding}"
-                            Background="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Background}">
+                            Background="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Background}"
+                            CornerRadius="4"
+                            Margin="8, 0, 4, 0">
                             <Grid Margin="{Binding Converter={StaticResource LengthConverter}, RelativeSource={RelativeSource TemplatedParent}}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="16" />
@@ -4021,7 +4023,7 @@
     <!--  FilePicker  -->
     <Style x:Key="MainFilePickerStyle" TargetType="{x:Type local:FilePicker}">
         <Setter Property="FontSize" Value="14" />
-        <Setter Property="Background" Value="{StaticResource DarkPrimaryBrush}"/>
+        <Setter Property="Background" Value="{StaticResource Primary08Brush}"/>
     </Style>
     <Style BasedOn="{StaticResource MainFilePickerStyle}" TargetType="{x:Type local:FilePicker}" />
 
@@ -4030,7 +4032,7 @@
     <Style BasedOn="{StaticResource MahApps.Styles.Slider}" TargetType="Slider" />
 
     <Style BasedOn="{StaticResource MahApps.Styles.ToolTip}" TargetType="ToolTip">
-        <Setter Property="Background" Value="{StaticResource DarkPrimaryBrush}" />
+        <Setter Property="Background" Value="{StaticResource Primary08Brush}" />
         <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="FontSize" Value="14" />

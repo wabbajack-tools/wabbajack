@@ -27,7 +27,7 @@
                 <Grid.OpacityMask>
                     <VisualBrush Visual="{Binding ElementName=BorderMask}" />
                 </Grid.OpacityMask>
-                <Rectangle Grid.ColumnSpan="2" Grid.RowSpan="4" Fill="{StaticResource DarkPrimaryBrush}" Visibility="{Binding ElementName=ModlistImage, Path=Source, Converter={StaticResource IsNotNullVisibilityConverter}}"/>
+                <Rectangle Grid.ColumnSpan="2" Grid.RowSpan="4" Fill="{StaticResource Primary08Brush}" Visibility="{Binding ElementName=ModlistImage, Path=Source, Converter={StaticResource IsNotNullVisibilityConverter}}"/>
                 <Rectangle Grid.ColumnSpan="2" Grid.RowSpan="4" Fill="Black"/>
                 <Viewbox 
                         Grid.ColumnSpan="2"
