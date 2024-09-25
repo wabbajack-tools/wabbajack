@@ -34,15 +34,12 @@ namespace Wabbajack
         public ICommand InfoCommand { get; }
 
         public CompilerFileManagerVM(ILogger<CompilerFileManagerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
-            IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
+            IServiceProvider serviceProvider, ResourceMonitor resourceMonitor, 
             CompilerSettingsInferencer inferencer, Client wjClient) : base(dtos, settingsManager, logger, wjClient)
         {
             _serviceProvider = serviceProvider;
             _resourceMonitor = resourceMonitor;
             _inferencer = inferencer;
-
-            PrevCommand = ReactiveCommand.Create(PrevPage);
-            NextCommand = ReactiveCommand.Create(NextPage);
             InfoCommand = ReactiveCommand.Create(Info);
             this.WhenActivated(disposables =>
             {
@@ -56,11 +53,6 @@ namespace Wabbajack
             });
         }
 
-        private void PrevPage()
-        {
-            NavigateToGlobal.Send(ScreenType.CompilerDetails);
-            LoadCompilerSettings.Send(Settings.ToCompilerSettings());
-        }
         private void Info()
         {
             LoadInfoScreen.Send(Consts.FileManagerInfo, this);
@@ -121,21 +113,6 @@ namespace Wabbajack
         private async void Header_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             var updatedItem = (FileTreeItemVM)sender;
-            /*
-            if(e.PropertyName == nameof(FileTreeItemVM.SpecialFileState))
-            {
-                IEnumerable<FileTreeViewItem> currentEnumerable = null;
-                for (int i = 0; i < updatedItem.PathRelativeToRoot.Depth - 1; i++)
-                {
-                    if (currentEnumerable == null)
-                        currentEnumerable = Files.ElementAt(0).ItemsSource.Cast<FileTreeViewItem>();
-
-                    var currentItem = currentEnumerable.First(x => x.Header.IsDirectory && updatedItem.PathRelativeToRoot.Parts[i] == x.Header.Info.Name);
-                    currentItem.Header.SpecialFileState = updatedItem.CompilerFileState != CompilerFileState.AutoMatch;
-                    currentEnumerable = currentItem.ItemsSource.Cast<FileTreeViewItem>();
-                }
-            }
-            */
             if(e.PropertyName == nameof(FileTreeItemVM.CompilerFileState))
             {
                 Settings.NoMatchInclude.Remove(updatedItem.PathRelativeToRoot);

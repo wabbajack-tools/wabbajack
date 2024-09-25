@@ -61,7 +61,7 @@ namespace Wabbajack
         
         /* public ReactiveCommand<Unit, Unit> ExecuteCommand { get; } */
         public ReactiveCommand<Unit, Unit> ReInferSettingsCommand { get; set; }
-        public ReactiveCommand<Unit, Unit> NextCommand { get; }
+        public ReactiveCommand<Unit, Unit> StartCommand { get; }
 
         public LogStream LoggerProvider { get; }
         public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
@@ -90,7 +90,7 @@ namespace Wabbajack
 
             SubCompilerVM = new MO2CompilerVM(this);
 
-            NextCommand = ReactiveCommand.CreateFromTask(NextPage);
+            StartCommand = ReactiveCommand.CreateFromTask(StartCompilation);
 
             
             this.WhenActivated(disposables =>
@@ -223,10 +223,10 @@ namespace Wabbajack
             return settings;
         }
 
-        private async Task NextPage()
+        private async Task StartCompilation()
         {
             await SaveSettings();
-            NavigateToGlobal.Send(ScreenType.CompilerFileManager);
+            NavigateToGlobal.Send(ScreenType.CompilerMain);
             LoadCompilerSettings.Send(Settings.ToCompilerSettings());
         }
 

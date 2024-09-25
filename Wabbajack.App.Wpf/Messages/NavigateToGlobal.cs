@@ -9,8 +9,6 @@ public enum ScreenType
     Installer,
     Settings,
     CompilerHome,
-    CompilerDetails,
-    CompilerFileManager,
     CompilerMain,
     ModListContents,
     WebBrowser,

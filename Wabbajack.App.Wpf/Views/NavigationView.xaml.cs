@@ -23,7 +23,7 @@ public partial class NavigationView : ReactiveUserControl<NavigationVM>
         ButtonScreensDictionary = new() {
             { HomeButton, [ScreenType.Home] },
             { BrowseButton, [ScreenType.ModListGallery] },
-            { CompileButton, [ScreenType.CompilerHome, ScreenType.CompilerDetails, ScreenType.CompilerFileManager, ScreenType.CompilerMain] },
+            { CompileButton, [ScreenType.CompilerHome, ScreenType.CompilerMain] },
             { SettingsButton, [ScreenType.Settings] },
         };
         this.WhenActivated(dispose =>

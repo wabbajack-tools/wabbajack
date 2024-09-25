@@ -89,6 +89,9 @@
                         <DataTemplate DataType="{x:Type local:CompilerMainVM}">
                             <local:CompilerMainView ViewModel="{Binding}" />
                         </DataTemplate>
+                        <DataTemplate DataType="{x:Type local:CompilingVM}">
+                            <local:CompilerMainView ViewModel="{Binding}" />
+                        </DataTemplate>
                         <DataTemplate DataType="{x:Type local:InstallerVM}">
                             <local:InstallationView ViewModel="{Binding}" />
                         </DataTemplate>

@@ -11,13 +11,12 @@ namespace Wabbajack;
 /// <summary>
 /// Interaction logic for CompilingView.xaml
 /// </summary>
-public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
+public partial class CompilingView : ReactiveUserControl<CompilingVM>
 {
-    public CompilerMainView()
+    public CompilingView()
     {
         InitializeComponent();
 
-        /*
         this.WhenActivated(disposables =>
         {
             ViewModel.WhenAny(vm => vm.Settings.ModListImage)
@@ -56,7 +55,6 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
                     .Select(s => s == CompilerState.Completed ? Visibility.Visible : Visibility.Hidden)
                     .BindToStrict(this, view => view.OpenFolderButton.Visibility);
         });
-        */
 
     }
 }

@@ -40,7 +40,6 @@ namespace Wabbajack
         public FilePickerVM CompilerSettingsPicker { get; private set; }
         public FilePickerVM NewModlistPicker { get; private set; }
 
-
         public CompilerHomeVM(ILogger<CompilerHomeVM> logger, SettingsManager settingsManager,
             IServiceProvider serviceProvider, DTOSerializer dtos, CompilerSettingsInferencer inferencer)
         {
@@ -77,7 +76,7 @@ namespace Wabbajack
                     try
                     {
                         var compilerSettings = await _inferencer.InferModListFromLocation(NewModlistPicker.TargetPath);
-                        NavigateToGlobal.Send(ScreenType.CompilerDetails);
+                        NavigateToGlobal.Send(ScreenType.CompilerMain);
                         LoadCompilerSettings.Send(compilerSettings);
                     }
                     catch (Exception ex)
@@ -95,7 +94,7 @@ namespace Wabbajack
                     try
                     {
                         var compilerSettings = _dtos.Deserialize<CompilerSettings>(File.ReadAllText(CompilerSettingsPicker.TargetPath.ToString()));
-                        NavigateToGlobal.Send(ScreenType.CompilerDetails);
+                        NavigateToGlobal.Send(ScreenType.CompilerMain);
                         LoadCompilerSettings.Send(compilerSettings);
                     }
                     catch (Exception ex)
