@@ -18,6 +18,22 @@
     x:TypeArguments="local:CompilerMainVM"
     mc:Ignorable="d">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="1.4*" />
+        </Grid.ColumnDefinitions>
+
         <local:CompilerDetailsView ViewModel="{Binding CompilerDetailsVM}" />
+
+        <!-- File Manager -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <local:CompilerFileManagerView ViewModel="{Binding CompilerFileManagerVM}" Margin="16, 0, 0, 0" />
+            <local:WizardButton x:Name="ContinueButton" Grid.Row="1" Grid.Column="1" Margin="0, 16, 0, 0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="Compile List" Icon="Box" Command="{Binding StartCommand}" UseAltStyle="True" />
+        </Grid>
+
     </Grid>
 </rxui:ReactiveUserControl>

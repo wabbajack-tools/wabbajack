@@ -51,9 +51,12 @@
 
     <Color x:Key="Primary">#D8BAF8</Color>
 
-    <!-- Primary color mixed with Background, number indicates opacity -->
-    <Color x:Key="Primary08">#383750</Color>
-    <Color x:Key="Primary16">#45425D</Color>
+    <!-- PrimaryColor mixed with BackgroundColor, number indicates opacity of primary color -->
+    <Color x:Key="BackgroundPrimary08">#303141</Color>
+    <!-- PrimaryColor mixed with ComplementaryBackgroundColor, number indicates opacity of primary color -->
+    <Color x:Key="ComplementaryPrimary08">#383750</Color>
+    <Color x:Key="ComplementaryPrimary16">#45425D</Color>
+
 
     <Color x:Key="PrimaryVariant">#8866ad</Color>
     <Color x:Key="DarkPrimaryAlt">#514c6b</Color>
@@ -135,8 +138,9 @@
     <SolidColorBrush x:Key="HeatedBorderBrush" Color="{StaticResource HeatedBorderColor}" />
 
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
-    <SolidColorBrush x:Key="Primary16Brush" Color="{StaticResource Primary16}" />
-    <SolidColorBrush x:Key="Primary08Brush" Color="{StaticResource Primary08}" />
+    <SolidColorBrush x:Key="BackgroundPrimary08Brush" Color="{StaticResource BackgroundPrimary08}" />
+    <SolidColorBrush x:Key="ComplementaryPrimary16Brush" Color="{StaticResource ComplementaryPrimary16}" />
+    <SolidColorBrush x:Key="ComplementaryPrimary08Brush" Color="{StaticResource ComplementaryPrimary08}" />
     <SolidColorBrush x:Key="DarkPrimaryAltBrush" Color="{StaticResource DarkPrimaryAlt}" />
     <SolidColorBrush x:Key="PrimaryVariantBrush" Color="{StaticResource PrimaryVariant}" />
     <SolidColorBrush x:Key="DarkPrimaryVariantBrush" Color="{StaticResource DarkPrimaryVariant}" />
@@ -175,16 +179,16 @@
     <SolidColorBrush x:Key="ScrollBarSelectedThumb" Color="{StaticResource PrimaryVariant}" />
     <SolidColorBrush x:Key="CornerBorder" Color="{StaticResource DarkBackgroundColor}" />
 
-    <SolidColorBrush x:Key="TextBoxBorder" Color="{StaticResource Primary08}" />
-    <SolidColorBrush x:Key="TextBoxBackground" Color="{StaticResource Primary08}" />
+    <SolidColorBrush x:Key="TextBoxBorder" Color="{StaticResource ComplementaryPrimary08}" />
+    <SolidColorBrush x:Key="TextBoxBackground" Color="{StaticResource ComplementaryPrimary08}" />
     <SolidColorBrush x:Key="TextBoxDisabledForeground" Color="#8C8C8C" />
     <SolidColorBrush x:Key="TextBoxDisabledBackground" Color="{StaticResource DisabledBackgroundColor}" />
     <SolidColorBrush x:Key="InactiveSelectionHighlightBrush" Color="#335C85" />
 
     <SolidColorBrush x:Key="ComboBoxButtonNormalBackground" Color="Transparent" />
 
-    <SolidColorBrush x:Key="ButtonNormalBackground" Color="{StaticResource Primary08}" />
-    <SolidColorBrush x:Key="ButtonNormalBorder" Color="{StaticResource Primary08}" />
+    <SolidColorBrush x:Key="ButtonNormalBackground" Color="{StaticResource ComplementaryPrimary08}" />
+    <SolidColorBrush x:Key="ButtonNormalBorder" Color="{StaticResource ComplementaryPrimary08}" />
 
     <SolidColorBrush x:Key="ButtonForeground" Color="{StaticResource ForegroundColor}" />
     <SolidColorBrush x:Key="MouseOverButtonForeground" Color="White" />
@@ -192,7 +196,7 @@
     <SolidColorBrush x:Key="ButtonBorder" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="PressedButtonBackground" Color="{StaticResource PressedBackgroundColor}" />
     <SolidColorBrush x:Key="MouseOverButtonBackground" Color="{StaticResource LightBackgroundColor}" />
-    <SolidColorBrush x:Key="DisabledButtonBackground" Color="{StaticResource Primary16}" />
+    <SolidColorBrush x:Key="DisabledButtonBackground" Color="{StaticResource ComplementaryPrimary16}" />
     <SolidColorBrush x:Key="DisabledButtonForeground" Color="#40FFFFFF" />
 
     <SolidColorBrush x:Key="Expander.Background" Color="{StaticResource LightBackgroundColor}" />
@@ -200,12 +204,12 @@
     <SolidColorBrush x:Key="Expander.Disabled.Arrow.Stroke" Color="{StaticResource DarkSecondary}" />
     <SolidColorBrush x:Key="Expander.Static.Arrow.Stroke" Color="{StaticResource Primary}" />
 
-    <SolidColorBrush x:Key="CheckBoxFillNormal" Color="{StaticResource Primary08}" />
+    <SolidColorBrush x:Key="CheckBoxFillNormal" Color="{StaticResource ComplementaryPrimary08}" />
     <SolidColorBrush x:Key="CheckBoxForeground" Color="{StaticResource Primary}" />
     <SolidColorBrush x:Key="CheckBoxMouseOverStroke" Color="{StaticResource ForegroundColor}" />
     <SolidColorBrush x:Key="CheckBoxDisabledStroke" Color="{StaticResource DisabledBackgroundColor}" />
     <SolidColorBrush x:Key="CheckBoxDisabledForeground" Color="#939393" />
-    <SolidColorBrush x:Key="CheckBoxStroke" Color="{StaticResource Primary08}" />
+    <SolidColorBrush x:Key="CheckBoxStroke" Color="{StaticResource ComplementaryPrimary08}" />
 
     <SolidColorBrush x:Key="RadioButtonMouseOverStroke" Color="{StaticResource ForegroundColor}" />
     <SolidColorBrush x:Key="RadioButtonDisabledStroke" Color="{StaticResource DisabledBackgroundColor}" />
@@ -215,12 +219,12 @@
     <SolidColorBrush x:Key="RadioButtonBackground" Color="{StaticResource LightDisabledBackgroundColor}" />
 
     <SolidColorBrush x:Key="ListBorder" Color="{StaticResource DarkBackgroundColor}" />
-    <SolidColorBrush x:Key="ListBackground" Color="{StaticResource Primary08}" />
+    <SolidColorBrush x:Key="ListBackground" Color="{StaticResource ComplementaryPrimary08}" />
     <SolidColorBrush x:Key="SelectedListItem" Color="{StaticResource HighlightColor}" />
     <SolidColorBrush x:Key="SelectedListItemForeground" Color="{StaticResource DarkBackgroundColor}" />
-    <SolidColorBrush x:Key="MouseOverListItem" Color="{StaticResource Primary16}" />
+    <SolidColorBrush x:Key="MouseOverListItem" Color="{StaticResource ComplementaryPrimary16}" />
 
-    <SolidColorBrush x:Key="TreeViewBackground" Color="{StaticResource Primary08}" />
+    <SolidColorBrush x:Key="TreeViewBackground" Color="{StaticResource ComplementaryPrimary08}" />
     <SolidColorBrush x:Key="TreeViewDisabledForeground" Color="#40FFFFFF" />
 
     <SolidColorBrush x:Key="DisabledMenuForeground" Color="#656565" />
@@ -1456,6 +1460,45 @@
             </Setter.Value>
         </Setter>
     </Style>
+    <Style x:Key="MainButtonStyleLessRounded" BasedOn="{StaticResource MainButtonStyle}" TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid>
+                        <Border
+                            x:Name="Border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                            <ContentPresenter
+                                Margin="{TemplateBinding Padding}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                RecognizesAccessKey="True"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
+                            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="true">
+                            <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
+                            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+                            <Setter Property="Background" Value="{StaticResource DisabledButtonBackground}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
     <Style x:Key="LargeButtonStyle" BasedOn="{StaticResource MainButtonStyle}" TargetType="{x:Type Button}">
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalContentAlignment" Value="Stretch" />
@@ -1673,7 +1716,7 @@
 
     <Style x:Key="WizardButtonStyle" BasedOn="{StaticResource MainButtonStyle}" TargetType="{x:Type Button}">
         <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Background" Value="{StaticResource Primary08Brush}"/>
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="Template">
@@ -4033,7 +4076,7 @@
     <!--  FilePicker  -->
     <Style x:Key="MainFilePickerStyle" TargetType="{x:Type local:FilePicker}">
         <Setter Property="FontSize" Value="14" />
-        <Setter Property="Background" Value="{StaticResource Primary08Brush}"/>
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}"/>
     </Style>
     <Style BasedOn="{StaticResource MainFilePickerStyle}" TargetType="{x:Type local:FilePicker}" />
 
@@ -4042,7 +4085,7 @@
     <Style BasedOn="{StaticResource MahApps.Styles.Slider}" TargetType="Slider" />
 
     <Style BasedOn="{StaticResource MahApps.Styles.ToolTip}" TargetType="ToolTip">
-        <Setter Property="Background" Value="{StaticResource Primary08Brush}" />
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
         <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="FontSize" Value="14" />

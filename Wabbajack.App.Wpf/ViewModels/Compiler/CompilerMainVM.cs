@@ -7,10 +7,13 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Services.OSIntegrated;
+using System.Windows.Input;
+using System;
+using System.Diagnostics;
 
 namespace Wabbajack;
 
-public class CompilerMainVM : BaseCompilerVM
+public class CompilerMainVM : BaseCompilerVM, IHasInfoVM
 {
     public CompilerDetailsVM CompilerDetailsVM { get; set; }
     public CompilerFileManagerVM CompilerFileManagerVM { get; set; }
@@ -19,6 +22,9 @@ public class CompilerMainVM : BaseCompilerVM
     [Reactive]
     public CompilerState State { get; set; }
     public LogStream LoggerProvider { get; }
+
+    public ICommand InfoCommand { get; }
+
     public CompilerMainVM(ILogger<CompilerMainVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
         LogStream loggerProvider, Client wjClient, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilingVM compilingVM) : base(dtos, settingsManager, logger, wjClient)
     {
@@ -32,6 +38,8 @@ public class CompilerMainVM : BaseCompilerVM
             await SaveSettings();
             NavigateToGlobal.Send(ScreenType.Home);
         });
+
+        InfoCommand = ReactiveCommand.Create(Info);
         
         this.WhenActivated(disposables =>
         {
@@ -43,5 +51,10 @@ public class CompilerMainVM : BaseCompilerVM
 
             Disposable.Empty.DisposeWith(disposables);
         });
+    }
+
+    private void Info()
+    {
+        Process.Start(new ProcessStartInfo("https://wiki.wabbajack.org/modlist_author_documentation/Compilation.html") { UseShellExecute = true });
     }
 }

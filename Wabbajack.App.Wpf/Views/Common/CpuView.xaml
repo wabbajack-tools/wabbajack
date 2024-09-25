@@ -12,7 +12,7 @@
     <Grid x:Name="ControlGrid" Background="Transparent">
         <Rectangle x:Name="HeatedBorderRect" Fill="{StaticResource ProgressBrush}" />
         <Border BorderBrush="Transparent" BorderThickness="1" />
-        <Grid Background="{StaticResource Primary08Brush}">
+        <Grid Background="{StaticResource ComplementaryPrimary08Brush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
