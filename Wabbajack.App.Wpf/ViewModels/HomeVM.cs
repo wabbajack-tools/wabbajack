@@ -24,14 +24,7 @@ public class HomeVM : ViewModel, IHasInfoVM
         _wjClient = wjClient;
         BrowseCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.ModListGallery));
         InfoCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo("https://wiki.wabbajack.org/") { UseShellExecute = true }));
-        VisitModlistWizardCommand = ReactiveCommand.Create(() =>
-        {
-            ProcessStartInfo processStartInfo = new(Consts.WabbajackModlistWizardUri.ToString())
-            {
-                UseShellExecute = true
-            };
-            Process.Start(processStartInfo);
-        });
+        VisitModlistWizardCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(Consts.WabbajackModlistWizardUri.ToString()) { UseShellExecute = true }));
         LoadModLists().FireAndForget();
     }
     private async Task LoadModLists()

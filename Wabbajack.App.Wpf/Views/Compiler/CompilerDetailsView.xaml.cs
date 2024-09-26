@@ -22,21 +22,6 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
 
         this.WhenActivated(disposables =>
         {
-            ViewModel.WhenAny(vm => vm.ModListImageLocation.TargetPath)
-                .Where(i => i.FileExists())
-                .Select(i => (UIUtils.TryGetBitmapImageFromFile(i, out var img), img))
-                .Where(i => i.Item1)
-                .Select(i => i.img)
-                .BindToStrict(this, view => view.DetailImage.Image);
-
-            ViewModel.WhenAny(vm => vm.Settings.ModListName)
-                .BindToStrict(this, view => view.DetailImage.Title);
-            
-            ViewModel.WhenAny(vm => vm.Settings.ModListAuthor)
-                .BindToStrict(this, view => view.DetailImage.Author);
-            
-            // Settings 
-            
             this.Bind(ViewModel, vm => vm.Settings.ModListName, view => view.ModListNameSetting.Text)
                 .DisposeWith(disposables);
             

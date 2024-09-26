@@ -173,7 +173,6 @@ public partial class App
         services.AddTransient<CompilerHomeVM>();
         services.AddTransient<CompilerDetailsVM>();
         services.AddTransient<CompilerFileManagerVM>();
-        services.AddTransient<CompilingVM>();
         services.AddTransient<CompilerMainVM>();
         services.AddTransient<InstallerVM>();
         services.AddTransient<SettingsVM>();

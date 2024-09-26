@@ -17,7 +17,6 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
     {
         InitializeComponent();
 
-        /*
         this.WhenActivated(disposables =>
         {
             ViewModel.WhenAny(vm => vm.Settings.ModListImage)
@@ -36,27 +35,30 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
                 .BindToStrict(this, view => view.DetailImage.Author)
                 .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.State)
-                    .Select(s => s == CompilerState.Configuration ? Visibility.Visible : Visibility.Hidden)
-                    .BindToStrict(this, view => view.StartButton.Visibility);
+            ViewModel.WhenAny(x => x.State)
+                     .Select(s => s == CompilerState.Configuration ? Visibility.Visible : Visibility.Hidden)
+                     .BindToStrict(this, x => x.ConfigurationView.Visibility)
+                     .DisposeWith(disposables);
 
             ViewModel.WhenAny(vm => vm.State)
                     .Select(s => s == CompilerState.Configuration ? Visibility.Visible : Visibility.Hidden)
-                    .BindToStrict(this, view => view.PrevButton.Visibility);
+                    .BindToStrict(this, view => view.ConfigurationButtons.Visibility)
+                    .DisposeWith(disposables);
+
+            ViewModel.WhenAny(x => x.State)
+                     .Select(s => s == CompilerState.Compiling || s == CompilerState.Errored ? Visibility.Visible : Visibility.Hidden)
+                     .BindToStrict(this, x => x.LogView.Visibility)
+                     .DisposeWith(disposables);
+
+            ViewModel.WhenAny(x => x.State)
+                     .Select(s => s == CompilerState.Compiling ? Visibility.Visible : Visibility.Hidden)
+                     .BindToStrict(this, x => x.CpuView.Visibility)
+                     .DisposeWith(disposables);
 
             ViewModel.WhenAny(vm => vm.State)
                     .Select(s => s == CompilerState.Compiling ? Visibility.Visible : Visibility.Hidden)
-                    .BindToStrict(this, view => view.CancelButton.Visibility);
-
-            ViewModel.WhenAny(vm => vm.State)
-                    .Select(s => s == CompilerState.Completed ? Visibility.Visible : Visibility.Hidden)
-                    .BindToStrict(this, view => view.PublishButton.Visibility);
-
-            ViewModel.WhenAny(vm => vm.State)
-                    .Select(s => s == CompilerState.Completed ? Visibility.Visible : Visibility.Hidden)
-                    .BindToStrict(this, view => view.OpenFolderButton.Visibility);
+                    .BindToStrict(this, view => view.CompilationButtons.Visibility)
+                    .DisposeWith(disposables);
         });
-        */
-
     }
 }

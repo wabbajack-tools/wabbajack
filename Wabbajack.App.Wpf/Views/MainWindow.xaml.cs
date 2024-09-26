@@ -25,8 +25,6 @@ public partial class MainWindow : MetroWindow
     private readonly ILogger<MainWindow> _logger;
     private readonly SystemParametersConstructor _systemParams;
 
-    private ObservableCollection<ViewModel> TabVMs = new ObservableCollectionExtended<ViewModel>();
-
     public MainWindow(ILogger<MainWindow> logger, SystemParametersConstructor systemParams, LauncherUpdater updater, MainWindowVM vm)
     {
         InitializeComponent();
