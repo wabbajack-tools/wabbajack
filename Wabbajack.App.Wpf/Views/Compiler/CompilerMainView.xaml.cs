@@ -5,6 +5,8 @@ using Wabbajack.Common;
 using Wabbajack.Paths.IO;
 using System.Windows;
 using System.Reactive.Disposables;
+using System;
+using System.Windows.Media.Imaging;
 
 namespace Wabbajack;
 
@@ -22,9 +24,15 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
             ViewModel.WhenAny(vm => vm.Settings.ModListImage)
                 .Where(i => i.FileExists())
                 .Select(i => (UIUtils.TryGetBitmapImageFromFile(i, out var img), img))
-                .Where(i => i.Item1)
-                .Select(i => i.img)
-                .BindToStrict(this, view => view.DetailImage.Image)
+                .Subscribe(x =>
+                {
+                    bool success = x.Item1;
+
+                    if(success)
+                    {
+                        BigImage.Image = DetailImage.Image = x.img;
+                    }
+                })
                 .DisposeWith(disposables);
 
             ViewModel.WhenAny(vm => vm.Settings.ModListName)
@@ -73,6 +81,16 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
             ViewModel.WhenAny(vm => vm.State)
                     .Select(s => s == CompilerState.Completed)
                     .BindToStrict(this, view => view.PublishButton.IsEnabled)
+                    .DisposeWith(disposables);
+
+            ViewModel.WhenAny(vm => vm.State)
+                     .Select(s => s == CompilerState.Completed ? Visibility.Visible : Visibility.Hidden)
+                     .BindToStrict(this, view => view.BigImage.Visibility)
+                     .DisposeWith(disposables);
+
+            ViewModel.WhenAny(vm => vm.State)
+                    .Select(s => s == CompilerState.Completed ? Visibility.Visible : Visibility.Hidden)
+                    .BindToStrict(this, view => view.CompletedButtons.Visibility)
                     .DisposeWith(disposables);
         });
     }

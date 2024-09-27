@@ -28,13 +28,17 @@
             <ColumnDefinition Width="1.4*" />
         </Grid.ColumnDefinitions>
 
-        <local:DetailImageView x:Name="DetailImage" TitleFontSize="40" AuthorFontSize="18" BorderThickness="0" Margin="0, 0, 0, 16" />
+        <!-- Configuration -->
+
+        <local:DetailImageView x:Name="DetailImage" TitleFontSize="40" AuthorFontSize="18" Margin="0, 0, 0, 16" />
         <local:CompilerDetailsView x:Name="CompilerDetailsView" Grid.Row="1" Grid.RowSpan="2" ViewModel="{Binding CompilerDetailsVM}" />
 
         <local:CompilerFileManagerView x:Name="FileManager" ViewModel="{Binding CompilerFileManagerVM}" Grid.Column="1" Grid.RowSpan="2" Margin="16, 0, 0, 0" />
         <DockPanel x:Name="ConfigurationButtons" Grid.Row="2" Grid.Column="1" Margin="0, 16, 0, 0">
             <local:WizardButton x:Name="StartButton" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="Compile List" Icon="Box" Command="{Binding StartCommand}" UseAltStyle="True" />
         </DockPanel>
+
+        <!-- Compilation -->
         <Grid x:Name="CompilationButtons" Grid.Row="2" Grid.Column="1" Margin="0, 16, 0, 0" Visibility="Visible" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -42,11 +46,27 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <local:WizardButton x:Name="CancelButton" Text="Cancel" Icon="Dismiss" Command="{Binding CancelCommand}" Grid.Column="0" Width="Auto" Margin="16, 0, 0, 0"/>
-            <local:WizardButton x:Name="OpenFolderButton" Text="Open in File Explorer" Icon="Folder" Command="{Binding OpenFolderCommand}" Grid.Column="1" Width="Auto" Margin="16, 0, 0, 0" />
-            <local:WizardButton x:Name="PublishButton" Text="Publish Modlist" Icon="CloudArrowUp" Command="{Binding PublishCommand}" Grid.Column="2" Width="Auto" Margin="16, 0, 0, 0" />
+            <local:WizardButton Text="Open in File Explorer" Icon="Folder" IsEnabled="False" Grid.Column="1" Width="Auto" Margin="16, 0, 0, 0" />
+            <local:WizardButton Text="Publish Modlist" Icon="CloudArrowUp" IsEnabled="False" Grid.Column="2" Width="Auto" Margin="16, 0, 0, 0" />
         </Grid>
 
         <local:CpuView x:Name="CpuView" Grid.Row="1" Grid.RowSpan="2" ViewModel="{Binding}" Visibility="Hidden" Margin="0, 0, 0, 0" />
         <local:LogView x:Name="LogView" Grid.Column="1" Grid.RowSpan="2" Margin="16, 0, 0, 0" Visibility="Hidden" />
+
+        <!-- Completion -->
+
+        <local:DetailImageView x:Name="BigImage" TitleFontSize="80" AuthorFontSize="36" Grid.ColumnSpan="2" Grid.RowSpan="2" Visibility="Hidden"/>
+        <Grid x:Name="CompletedButtons" Grid.Row="3" Grid.ColumnSpan="2" Margin="0, 16, 0, 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <local:WizardButton x:Name="OpenLogButton" Text="Open Log" Icon="DocumentText" Command="{Binding OpenLogCommand}" HorizontalAlignment="Left" />
+            <local:WizardButton x:Name="OpenFolderButton" Text="Open in File Explorer" Icon="Folder" Command="{Binding OpenFolderCommand}" HorizontalAlignment="Right" Grid.Column="2" UseAltStyle="True" />
+            <local:WizardButton x:Name="PublishButton" Text="Publish Modlist" Icon="CloudArrowUp" Command="{Binding PublishCommand}" HorizontalAlignment="Right" Grid.Column="4" UseAltStyle="True" />
+        </Grid>
     </Grid>
 </rxui:ReactiveUserControl>

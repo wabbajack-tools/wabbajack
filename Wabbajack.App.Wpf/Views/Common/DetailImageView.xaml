@@ -59,7 +59,7 @@
                     -->
                 <TextBlock Grid.Row="2" Grid.Column="0"
             x:Name="TitleTextBlock"
-            Margin="16,0,0,0"
+            Margin="16, 0, 0, 0"
             HorizontalAlignment="Left"
             VerticalAlignment="Bottom"
             FontFamily="{StaticResource PrimaryFont}"

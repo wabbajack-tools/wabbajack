@@ -85,7 +85,7 @@ public partial class DetailImageView : UserControlRx<ViewModel>
                 .DisposeWith(dispose);
             this.WhenAny(x => x.Image)
                 .Select(img => img == null ? Visibility.Hidden : Visibility.Visible)
-                .BindToStrict(this, x => x.Visibility)
+                .BindToStrict(this, x => x.ModlistImage.Visibility)
                 .DisposeWith(dispose);
 
             this.WhenAny(x => x.TitleFontSize)

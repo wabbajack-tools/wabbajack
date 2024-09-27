@@ -42,6 +42,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
     public ICommand InfoCommand { get; }
     public ICommand StartCommand { get; }
     public ICommand CancelCommand { get; }
+    public ICommand OpenLogCommand { get; }
     public ICommand OpenFolderCommand { get; }
     public ICommand PublishCommand { get; }
 
@@ -68,10 +69,24 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
         InfoCommand = ReactiveCommand.Create(Info);
         StartCommand = ReactiveCommand.Create(StartCompilation);
         CancelCommand = ReactiveCommand.Create(CancelCompilation);
+        OpenLogCommand = ReactiveCommand.Create(OpenLog);
         OpenFolderCommand = ReactiveCommand.Create(OpenFolder);
         PublishCommand = ReactiveCommand.Create(Publish); 
 
         StatusProgress = Percent.Zero;
+        this.WhenActivated(disposables =>
+        {
+            if (State == CompilerState.Completed || State == CompilerState.Errored)
+                State = CompilerState.Configuration;
+
+            Disposable.Empty.DisposeWith(disposables);
+        });
+    }
+
+    private void OpenLog()
+    {
+        var log = KnownFolders.LauncherAwarePath.Combine("logs").Combine("Wabbajack.current.log").ToString();
+        Process.Start(new ProcessStartInfo(log) { UseShellExecute = true });
     }
 
     private void Publish()
@@ -79,7 +94,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
         throw new NotImplementedException();
     }
 
-    private void OpenFolder() => Process.Start(new ProcessStartInfo(Settings.OutputFile.Parent.ToString()));
+    private void OpenFolder() => Process.Start(new ProcessStartInfo() { FileName = "explorer.exe ", Arguments = $"/select, \"{Settings.OutputFile}\"" });
 
     private void Info() => Process.Start(new ProcessStartInfo("https://wiki.wabbajack.org/modlist_author_documentation/Compilation.html") { UseShellExecute = true });
 
