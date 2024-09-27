@@ -45,7 +45,7 @@
     <Color x:Key="HotColor">#525252</Color>
 
     <Color x:Key="Yellow">#ffc400</Color>
-    <Color x:Key="Red">#db2955</Color>
+    <Color x:Key="RedDark">#5e2c2b</Color>
     <Color x:Key="Green">#5fad56</Color>
     <Color x:Key="YellowDark">#967400</Color>
 
@@ -120,10 +120,8 @@
     <!--  Brushes  -->
     <SolidColorBrush x:Key="YellowBrush" Color="{StaticResource Yellow}" />
     <SolidColorBrush x:Key="GreenBrush" Color="{StaticResource Green}" />
-    <SolidColorBrush x:Key="RedBrush" Color="{StaticResource Red}" />
     <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Yellow}" />
     <SolidColorBrush x:Key="WarningDarkBrush" Color="{StaticResource YellowDark}" />
-    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Red}" />
 
     <SolidColorBrush x:Key="DarkBackgroundBrush" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="DarkHoverBackgroundBrush" Color="{StaticResource DarkHoverBackgroundColor}" />
@@ -198,6 +196,8 @@
     <SolidColorBrush x:Key="MouseOverButtonBackground" Color="{StaticResource LightBackgroundColor}" />
     <SolidColorBrush x:Key="DisabledButtonBackground" Color="{StaticResource ComplementaryPrimary16}" />
     <SolidColorBrush x:Key="DisabledButtonForeground" Color="#40FFFFFF" />
+    <SolidColorBrush x:Key="MouseOverDangerButtonBackground" Color="{StaticResource RedDark}" />
+    <SolidColorBrush x:Key="MouseOverDangerButtonForeground" Color="#ebe5e5" />
 
     <SolidColorBrush x:Key="Expander.Background" Color="{StaticResource LightBackgroundColor}" />
     <SolidColorBrush x:Key="Expander.MouseOver.Arrow.Stroke" Color="{StaticResource Primary}" />
@@ -1741,9 +1741,19 @@
         </Setter>
     </Style>
 
-    <Style x:Key="WizardAltButtonStyle" BasedOn="{StaticResource WizardButtonStyle}" TargetType="{x:Type Button}">
+    <Style x:Key="WizardColorButtonStyle" BasedOn="{StaticResource WizardButtonStyle}" TargetType="{x:Type Button}">
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
         <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}"/>
+    </Style>
+
+    <Style x:Key="WizardDangerButtonStyle" BasedOn="{StaticResource WizardButtonStyle}" TargetType="{x:Type Button}">
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
+                <Setter Property="Background" Value="{StaticResource MouseOverDangerButtonBackground}" />
+                <Setter Property="Foreground" Value="{StaticResource MouseOverDangerButtonForeground}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!--  ToggleButton  -->

@@ -11,6 +11,12 @@ namespace Wabbajack;
 /// <summary>
 /// Interaction logic for WizardButton.xaml
 /// </summary>
+public enum ButtonStyle
+{
+    Mono,
+    Color,
+    Danger
+}
 public partial class WizardButton : UserControlRx<ViewModel>
 {
     public string Text
@@ -42,12 +48,12 @@ public partial class WizardButton : UserControlRx<ViewModel>
     }
     public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(WizardButton), new PropertyMetadata(default(ReactiveCommand)));
 
-    public bool UseAltStyle
+    public ButtonStyle ButtonStyle
     {
-        get => (bool)GetValue(UseAltStyleProperty);
-        set => SetValue(UseAltStyleProperty, value);
+        get => (ButtonStyle)GetValue(ButtonStyleProperty);
+        set => SetValue(ButtonStyleProperty, value);
     }
-    public static readonly DependencyProperty UseAltStyleProperty = DependencyProperty.Register(nameof(UseAltStyle), typeof(bool), typeof(WizardButton), new PropertyMetadata(false));
+    public static readonly DependencyProperty ButtonStyleProperty = DependencyProperty.Register(nameof(ButtonStyle), typeof(ButtonStyle), typeof(WizardButton), new PropertyMetadata(ButtonStyle.Mono));
 
     public WizardButton()
     {
@@ -70,8 +76,14 @@ public partial class WizardButton : UserControlRx<ViewModel>
                 .BindToStrict(this, x => x.Button.Command)
                 .DisposeWith(dispose);
 
-            this.WhenAny(x => x.UseAltStyle)
-                .Subscribe(x => Button.Style = x ? (Style)Application.Current.Resources["WizardAltButtonStyle"] : Button.Style = (Style)Application.Current.Resources["WizardButtonStyle"])
+            this.WhenAny(x => x.ButtonStyle)
+                .Subscribe(x => Button.Style = x switch
+                {
+                    ButtonStyle.Mono => (Style)Application.Current.Resources["WizardButtonStyle"],
+                    ButtonStyle.Color => (Style)Application.Current.Resources["WizardColorButtonStyle"],
+                    ButtonStyle.Danger => (Style)Application.Current.Resources["WizardDangerButtonStyle"],
+                    _ => (Style)Application.Current.Resources["WizardButtonStyle"],
+                })
                 .DisposeWith(dispose);
 
         });
