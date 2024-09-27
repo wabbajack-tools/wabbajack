@@ -501,17 +501,9 @@ public class Client
     public async Task<IReadOnlyList<string>> GetMyModlists(CancellationToken token)
     {
         var msg = await MakeMessage(HttpMethod.Get, new Uri($"{_configuration.BuildServerUrl}author_controls/lists"));
-        try
-        {
         using var response = await _client.SendAsync(msg, token);
-            HttpException.ThrowOnFailure(response);
-            return (await _dtos.DeserializeAsync<string[]>(await response.Content.ReadAsStreamAsync(token), token))!;
-        }
-        catch(Exception ex)
-        {
-            int i = 0;
-        }
-        return new List<string>();
+        HttpException.ThrowOnFailure(response);
+        return (await _dtos.DeserializeAsync<string[]>(await response.Content.ReadAsStreamAsync(token), token))!;
     }
 
     public async Task PublishModlist(string namespacedName, Version version,  AbsolutePath modList, DownloadMetadata metadata)
