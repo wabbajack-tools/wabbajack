@@ -10,8 +10,10 @@
     ClipToBounds="True"
     d:DesignHeight="48"
     d:DesignWidth="200"
+    Width="200"
+    Height="48"
     mc:Ignorable="d">
-    <Button x:Name="Button" Width="200" Height="48">
+    <Button x:Name="Button">
         <Grid Width="{Binding ElementName=Button, Path=ActualWidth}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />

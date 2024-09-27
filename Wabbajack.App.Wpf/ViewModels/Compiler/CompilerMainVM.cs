@@ -42,6 +42,8 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
     public ICommand InfoCommand { get; }
     public ICommand StartCommand { get; }
     public ICommand CancelCommand { get; }
+    public ICommand OpenFolderCommand { get; }
+    public ICommand PublishCommand { get; }
 
     [Reactive] public CompilerState State { get; set; }
     public bool Cancelling { get; private set; }
@@ -66,21 +68,20 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
         InfoCommand = ReactiveCommand.Create(Info);
         StartCommand = ReactiveCommand.Create(StartCompilation);
         CancelCommand = ReactiveCommand.Create(CancelCompilation);
+        OpenFolderCommand = ReactiveCommand.Create(OpenFolder);
+        PublishCommand = ReactiveCommand.Create(Publish); 
 
         StatusProgress = Percent.Zero;
-
-        this.WhenActivated(disposables =>
-        {
-            State = CompilerState.Configuration;
-
-            Disposable.Empty.DisposeWith(disposables);
-        });
     }
 
-    private void Info()
+    private void Publish()
     {
-        Process.Start(new ProcessStartInfo("https://wiki.wabbajack.org/modlist_author_documentation/Compilation.html") { UseShellExecute = true });
+        throw new NotImplementedException();
     }
+
+    private void OpenFolder() => Process.Start(new ProcessStartInfo(Settings.OutputFile.Parent.ToString()));
+
+    private void Info() => Process.Start(new ProcessStartInfo("https://wiki.wabbajack.org/modlist_author_documentation/Compilation.html") { UseShellExecute = true });
 
     private async Task StartCompilation()
     {
@@ -90,7 +91,12 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
             {
                 await SaveSettings();
                 var token = CancellationTokenSource.Token;
-                State = CompilerState.Compiling;
+                RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+                {
+                    StatusText = "Compiling";
+                    State = CompilerState.Compiling;
+                    return Disposable.Empty;
+                });
 
                 Settings.UseGamePaths = true;
                 if (Settings.OutputFile.DirectoryExists())

@@ -18,32 +18,35 @@
     x:TypeArguments="local:CompilerMainVM"
     mc:Ignorable="d">
     <Grid>
-        <Grid x:Name="ConfigurationView">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="1.4*" />
+        </Grid.ColumnDefinitions>
+
+        <local:DetailImageView x:Name="DetailImage" TitleFontSize="40" AuthorFontSize="18" BorderThickness="0" Margin="0, 0, 0, 16" />
+        <local:CompilerDetailsView x:Name="CompilerDetailsView" Grid.Row="1" Grid.RowSpan="2" ViewModel="{Binding CompilerDetailsVM}" />
+
+        <local:CompilerFileManagerView x:Name="FileManager" ViewModel="{Binding CompilerFileManagerVM}" Grid.Column="1" Grid.RowSpan="2" Margin="16, 0, 0, 0" />
+        <DockPanel x:Name="ConfigurationButtons" Grid.Row="2" Grid.Column="1" Margin="0, 16, 0, 0">
+            <local:WizardButton x:Name="StartButton" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="Compile List" Icon="Box" Command="{Binding StartCommand}" UseAltStyle="True" />
+        </DockPanel>
+        <Grid x:Name="CompilationButtons" Grid.Row="2" Grid.Column="1" Margin="0, 16, 0, 0" Visibility="Visible" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="1.4*" />
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-
-            <local:DetailImageView x:Name="DetailImage" TitleFontSize="40" AuthorFontSize="18" BorderThickness="0" Margin="0, 0, 0, 16" />
-            <local:CompilerDetailsView Grid.Row="1" Grid.RowSpan="2" ViewModel="{Binding CompilerDetailsVM}" />
-
-            <local:CompilerFileManagerView ViewModel="{Binding CompilerFileManagerVM}" Grid.Column="1" Grid.RowSpan="2" Margin="16, 0, 0, 0" />
-            <DockPanel x:Name="ConfigurationButtons" Grid.Row="2" Grid.Column="1" Margin="0, 16, 0, 0">
-                <local:WizardButton x:Name="StartButton" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="Compile List" Icon="Box" Command="{Binding StartCommand}" UseAltStyle="True" />
-            </DockPanel>
-            <DockPanel x:Name="CompilationButtons" Grid.Row="2" Grid.Column="1" Margin="0, 16, 0, 0">
-                <local:WizardButton x:Name="CancelButton" Text="Cancel" Icon="Dismiss" Command="{Binding CancelCommand}" Direction="RightToLeft" />
-                <local:WizardButton x:Name="OpenFolderButton" Text="Open in File Explorer" Icon="Folder" Command="{Binding OpenFolderCommand}" />
-                <local:WizardButton x:Name="PublishButton" Text="Publish" Icon="CloudArrowUp" Command="{Binding PublishCommand}" />
-            </DockPanel>
-
-            <local:CpuView x:Name="CpuView" Grid.Row="1" ViewModel="{Binding}" Visibility="Hidden" />
-            <local:LogView x:Name="LogView" Grid.Column="1" Grid.RowSpan="2" Margin="0, 0, 16, 0" Visibility="Hidden" />
+            <local:WizardButton x:Name="CancelButton" Text="Cancel" Icon="Dismiss" Command="{Binding CancelCommand}" Grid.Column="0" Width="Auto" Margin="16, 0, 0, 0"/>
+            <local:WizardButton x:Name="OpenFolderButton" Text="Open in File Explorer" Icon="Folder" Command="{Binding OpenFolderCommand}" Grid.Column="1" Width="Auto" Margin="16, 0, 0, 0" />
+            <local:WizardButton x:Name="PublishButton" Text="Publish Modlist" Icon="CloudArrowUp" Command="{Binding PublishCommand}" Grid.Column="2" Width="Auto" Margin="16, 0, 0, 0" />
         </Grid>
+
+        <local:CpuView x:Name="CpuView" Grid.Row="1" Grid.RowSpan="2" ViewModel="{Binding}" Visibility="Hidden" Margin="0, 0, 0, 0" />
+        <local:LogView x:Name="LogView" Grid.Column="1" Grid.RowSpan="2" Margin="16, 0, 0, 0" Visibility="Hidden" />
     </Grid>
 </rxui:ReactiveUserControl>

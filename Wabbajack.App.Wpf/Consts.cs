@@ -23,7 +23,7 @@ public static class Consts
     public static byte SettingsVersion = 0;
 
     public static RelativePath NativeSettingsJson = "native_settings.json".ToRelativePath();
-    public const string AllSavedCompilerSettingsPaths = "all-compiler-settings-paths";
+    public const string AllSavedCompilerSettingsPaths = "compiler_settings_paths";
 
     // Info - TODO, make rich document?
     public const string FileManagerInfo = @"
