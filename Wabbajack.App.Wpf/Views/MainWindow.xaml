@@ -48,8 +48,23 @@
                 <Image Grid.Column="0" Width="18" Height="18" Source="{StaticResource WabbajackLogo}"/>
             </Border>
             <TextBlock Grid.Column="1" FontSize="13" Name="AppName" VerticalAlignment="Center"></TextBlock>
-            <TextBlock Grid.Column="2" FontSize="13" Padding="8, 8" Name="ResourceUsage" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
-            <Button Grid.Column="3" Style="{StaticResource MainButtonStyleLessRounded}" Background="{StaticResource BackgroundPrimary08Brush}" Name="InfoButton" Padding="12, 4" Margin="0, 12, 12, 12">
+            <DockPanel x:Name="WizardSteps" Grid.Column="0" Grid.ColumnSpan="7" HorizontalAlignment="Center" Margin="0, 10, 0, 10">
+                <Button x:Name="WizardConfigurationButton" Content="Modlist Details" Style="{StaticResource MainButtonStyleLessRounded}" Background="{StaticResource ComplementaryPrimary16Brush}" Padding="12, 0" HorizontalAlignment="Center"/>
+                <Border x:Name="BorderMask2" CornerRadius="8" BorderThickness="0" Background="White" Margin="12, 1, 0, 1">
+                    <Grid Margin="-1">
+                        <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1" />
+                        <Grid>
+                            <Grid.OpacityMask>
+                                <VisualBrush Visual="{Binding ElementName=BorderMask}"/>
+                            </Grid.OpacityMask>
+                            <mahapps:MetroProgressBar x:Name="WizardProgressBar" Background="{StaticResource ComplementaryBackgroundBrush}" BorderThickness="0" Foreground="{StaticResource ComplementaryPrimary16Brush}" Maximum="1" />
+                            <TextBlock x:Name="ProgressText" Margin="12, 0, 12, 0" VerticalAlignment="Center" Text="Packing BSAs..." />
+                        </Grid>
+                    </Grid>
+                </Border>
+            </DockPanel>
+            <!--<TextBlock Grid.Column="2" FontSize="13" Padding="8, 8" Name="ResourceUsage" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>-->
+            <Button Grid.Column="3" Style="{StaticResource MainButtonStyleLessRounded}" Background="{StaticResource BackgroundPrimary08Brush}" Name="InfoButton" Padding="12, 0" Margin="0, 10, 12, 10">
                 <DockPanel>
                     <TextBlock FontSize="13" Text="Get Help" VerticalAlignment="Center" Margin="0, 0, 8, 0" />
                     <ic:SymbolIcon FontSize="18" Symbol="QuestionCircle" VerticalAlignment="Center"/>

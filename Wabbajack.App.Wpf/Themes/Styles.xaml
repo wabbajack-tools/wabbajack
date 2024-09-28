@@ -55,7 +55,7 @@
     <Color x:Key="BackgroundPrimary08">#303141</Color>
     <!-- PrimaryColor mixed with ComplementaryBackgroundColor, number indicates opacity of primary color -->
     <Color x:Key="ComplementaryPrimary08">#383750</Color>
-    <Color x:Key="ComplementaryPrimary16">#45425D</Color>
+    <Color x:Key="ComplementaryPrimary16">#46425F</Color>
 
 
     <Color x:Key="PrimaryVariant">#8866ad</Color>
@@ -122,6 +122,7 @@
     <SolidColorBrush x:Key="GreenBrush" Color="{StaticResource Green}" />
     <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Yellow}" />
     <SolidColorBrush x:Key="WarningDarkBrush" Color="{StaticResource YellowDark}" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource RedDark}" />
 
     <SolidColorBrush x:Key="DarkBackgroundBrush" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="DarkHoverBackgroundBrush" Color="{StaticResource DarkHoverBackgroundColor}" />

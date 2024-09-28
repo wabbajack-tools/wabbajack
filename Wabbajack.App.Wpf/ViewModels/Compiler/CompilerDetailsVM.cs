@@ -82,12 +82,6 @@ public class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
         StatusText = "Compiler Settings";
         StatusProgress = Percent.Zero;
 
-        BackCommand = ReactiveCommand.CreateFromTask(async () =>
-        {
-            await SaveSettings();
-            NavigateToGlobal.Send(ScreenType.Home);
-        });
-
         SubCompilerVM = new MO2CompilerVM(this);
 
         StartCommand = ReactiveCommand.CreateFromTask(StartCompilation);

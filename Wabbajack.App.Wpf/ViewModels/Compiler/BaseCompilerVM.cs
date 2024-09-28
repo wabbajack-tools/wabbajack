@@ -16,7 +16,7 @@ using Wabbajack.Messages;
 
 namespace Wabbajack;
 
-public abstract class BaseCompilerVM : BackNavigatingVM
+public abstract class BaseCompilerVM : WizardViewModel
 {
     protected readonly DTOSerializer _dtos;
     protected readonly SettingsManager _settingsManager;
@@ -25,7 +25,7 @@ public abstract class BaseCompilerVM : BackNavigatingVM
 
     [Reactive] public CompilerSettingsVM Settings { get; set; } = new();
 
-    public BaseCompilerVM(DTOSerializer dtos, SettingsManager settingsManager, ILogger<BaseCompilerVM> logger, Client wjClient) : base(logger)
+    public BaseCompilerVM(DTOSerializer dtos, SettingsManager settingsManager, ILogger<BaseCompilerVM> logger, Client wjClient)
     {
         _dtos = dtos;
         _settingsManager = settingsManager;

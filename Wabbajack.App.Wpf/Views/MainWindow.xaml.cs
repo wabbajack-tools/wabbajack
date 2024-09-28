@@ -111,18 +111,54 @@ public partial class MainWindow : MetroWindow
                 this.Topmost = false;
             };
 
-            ((MainWindowVM)DataContext).WhenAnyValue(vm => vm.ActivePane)
+            vm.WhenAnyValue(vm => vm.ActivePane)
+                .Subscribe(pane => WizardSteps.Visibility = (pane is IWizardVM) ? Visibility.Visible : Visibility.Collapsed);
+
+            vm.WhenAnyValue(vm => vm.ActivePane)
+              .Where(pane => pane is IWizardVM)
+              .Subscribe(pane =>
+              {
+                  var wizardVM = (WizardViewModel)pane;
+
+                  wizardVM.WhenAnyValue(x => x.ConfigurationText)
+                          .BindTo(this, view => view.WizardConfigurationButton.Content);
+                  wizardVM.WhenAnyValue(x => x.ProgressText)
+                          .BindTo(this, view => view.ProgressText.Text);
+                  wizardVM.WhenAnyValue(x => x.ProgressPercent.Value)
+                          .BindTo(this, view => view.WizardProgressBar.Value);
+                  wizardVM.WhenAnyValue(x => x.CurrentStep)
+                          .Subscribe(step =>
+                          {
+                              WizardConfigurationButton.Width = double.NaN;
+                              WizardConfigurationButton.HorizontalContentAlignment = HorizontalAlignment.Center;
+                              WizardProgressBar.Width = double.NaN;
+                              ProgressText.HorizontalAlignment = HorizontalAlignment.Center;
+                              if (step == Step.Configuration)
+                              {
+                                  WizardConfigurationButton.Width = 500;
+                                  WizardConfigurationButton.HorizontalContentAlignment = HorizontalAlignment.Left;
+                              }
+                              else if (step == Step.Busy)
+                              {
+                                  WizardProgressBar.Width = 500;
+                                  ProgressText.HorizontalAlignment = HorizontalAlignment.Left;
+                              }
+                          });
+
+              });
+
+            vm.WhenAnyValue(vm => vm.ActivePane)
                 .Subscribe(pane => InfoButton.Visibility = (pane is IHasInfoVM) ? Visibility.Visible : Visibility.Collapsed);
-            ((MainWindowVM) DataContext).WhenAnyValue(vm => vm.InfoCommand)
+            vm.WhenAnyValue(vm => vm.InfoCommand)
                 .BindTo(this, view => view.InfoButton.Command);
 
-            ((MainWindowVM) DataContext).WhenAnyValue(vm => vm.MinimizeCommand)
+            vm.WhenAnyValue(vm => vm.MinimizeCommand)
                 .BindTo(this, view => view.MinimizeButton.Command);
 
-            ((MainWindowVM) DataContext).WhenAnyValue(vm => vm.MaximizeCommand)
+            vm.WhenAnyValue(vm => vm.MaximizeCommand)
                 .BindTo(this, view => view.MaximizeButton.Command);
 
-            ((MainWindowVM) DataContext).WhenAnyValue(vm => vm.CloseCommand)
+            vm.WhenAnyValue(vm => vm.CloseCommand)
                 .BindTo(this, view => view.CloseButton.Command);
 
             /*
@@ -139,8 +175,10 @@ public partial class MainWindow : MetroWindow
             Environment.Exit(-1);
         }
 
+        /*
         vm.WhenAnyValue(vm => vm.ResourceStatus)
             .BindToStrict(this, view => view.ResourceUsage.Text);
+        */
         vm.WhenAnyValue(vm => vm.WindowTitle)
             .BindToStrict(this, view => view.AppName.Text);
 

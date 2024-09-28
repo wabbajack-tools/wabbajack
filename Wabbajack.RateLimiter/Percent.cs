@@ -6,6 +6,7 @@ public readonly struct Percent : IComparable, IEquatable<Percent>
 {
     public static readonly Percent One = new(1d);
     public static readonly Percent Zero = new(0d);
+    public static readonly Percent Hundred = new(100d);
 
     public readonly double Value;
     public Percent Inverse => new(1d - Value, false);

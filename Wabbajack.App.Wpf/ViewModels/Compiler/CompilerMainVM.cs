@@ -48,8 +48,6 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
 
     [Reactive] public CompilerState State { get; set; }
     public bool Cancelling { get; private set; }
-    [Reactive] public string StatusText { get; set; }
-    [Reactive] public Percent StatusProgress { get; set; }
 
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
 
@@ -73,11 +71,18 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
         OpenFolderCommand = ReactiveCommand.Create(OpenFolder);
         PublishCommand = ReactiveCommand.Create(Publish); 
 
-        StatusProgress = Percent.Zero;
+        ProgressPercent = Percent.Zero;
         this.WhenActivated(disposables =>
         {
-            if (State == CompilerState.Completed || State == CompilerState.Errored)
+            if (State != CompilerState.Compiling)
+            {
+                ConfigurationText = "Modlist Details";
+                ProgressText = "Compilation";
+                ProgressPercent = Percent.Zero;
+                CurrentStep = Step.Configuration;
                 State = CompilerState.Configuration;
+                ProgressState = ProgressState.Normal;
+            }
 
             Disposable.Empty.DisposeWith(disposables);
         });
@@ -100,18 +105,21 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
 
     private async Task StartCompilation()
     {
-        var tsk = Task.Run(async () =>
+        var tsk = Task.Run((Func<Task>)(async () =>
         {
             try
             {
                 await SaveSettings();
                 var token = CancellationTokenSource.Token;
-                RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+                RxApp.MainThreadScheduler.Schedule(_logger, (Func<System.Reactive.Concurrency.IScheduler, ILogger<BaseCompilerVM>, IDisposable>)((_, _) =>
                 {
-                    StatusText = "Compiling";
+                    this.ProgressText = "Compiling...";
                     State = CompilerState.Compiling;
+                    CurrentStep = Step.Busy;
+                    ProgressText = "Compiling...";
+                    ProgressState = ProgressState.Normal;
                     return Disposable.Empty;
-                });
+                }));
 
                 Settings.UseGamePaths = true;
                 if (Settings.OutputFile.DirectoryExists())
@@ -129,13 +137,12 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
                 var events = Observable.FromEventPattern<StatusUpdate>(h => compiler.OnStatusUpdate += h,
                         h => compiler.OnStatusUpdate -= h)
                     .ObserveOnGuiThread()
-                    .Debounce(TimeSpan.FromSeconds(0.5))
-                    .Subscribe(update =>
+                    .Subscribe((Action<EventPattern<StatusUpdate>>)(update =>
                     {
                         var s = update.EventArgs;
-                        StatusText = $"[Step {s.CurrentStep}] {s.StatusText}";
-                        StatusProgress = s.StepProgress;
-                    });
+                        ProgressText = $"Step {s.CurrentStep} - {s.StatusText}";
+                        ProgressPercent = s.StepsProgress;
+                    }));
 
 
                 try
@@ -158,24 +165,26 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
                 }
                 _logger.LogInformation("Compiler Finished");
 
-                RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+                RxApp.MainThreadScheduler.Schedule(_logger, (Func<System.Reactive.Concurrency.IScheduler, ILogger<BaseCompilerVM>, IDisposable>)((_, _) =>
                 {
-                    StatusText = "Compilation Completed";
-                    StatusProgress = Percent.Zero;
+                    ProgressText = "Compiled";
+                    ProgressPercent = Percent.Hundred;
                     State = CompilerState.Completed;
+                    CurrentStep = Step.Done;
+                    ProgressState = ProgressState.Success;
                     return Disposable.Empty;
-                });
+                }));
 
 
             }
             catch (Exception ex)
             {
-                RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+                RxApp.MainThreadScheduler.Schedule(_logger, (Func<System.Reactive.Concurrency.IScheduler, ILogger<BaseCompilerVM>, IDisposable>)((_, _) =>
                 {
                     if (Cancelling)
                     {
-                        StatusText = "Compilation Cancelled";
-                        StatusProgress = Percent.Zero;
+                        this.ProgressText = "Compilation Cancelled";
+                        ProgressPercent = Percent.Zero;
                         State = CompilerState.Configuration;
                         _logger.LogInformation(ex, "Cancelled Compilation : {Message}", ex.Message);
                         Cancelling = false;
@@ -183,16 +192,16 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
                     }
                     else
                     {
-                        StatusText = "Compilation Failed";
-                        StatusProgress = Percent.Zero;
+                        this.ProgressText = "Compilation Failed";
+                        ProgressPercent = Percent.Zero;
 
                         State = CompilerState.Errored;
                         _logger.LogInformation(ex, "Failed Compilation : {Message}", ex.Message);
                         return Disposable.Empty;
                     }
-                });
+                }));
             }
-        });
+        }));
 
         await tsk;
     }
