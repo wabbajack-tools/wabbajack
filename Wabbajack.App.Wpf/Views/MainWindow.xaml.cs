@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -121,11 +123,14 @@ public partial class MainWindow : MetroWindow
                   var wizardVM = (WizardViewModel)pane;
 
                   wizardVM.WhenAnyValue(x => x.ConfigurationText)
-                          .BindTo(this, view => view.WizardConfigurationButton.Content);
+                          .BindTo(this, view => view.WizardConfigurationButton.Content)
+                          .DisposeWith(wizardVM.CompositeDisposable);
                   wizardVM.WhenAnyValue(x => x.ProgressText)
-                          .BindTo(this, view => view.ProgressText.Text);
+                          .BindTo(this, view => view.ProgressText.Text)
+                          .DisposeWith(wizardVM.CompositeDisposable);
                   wizardVM.WhenAnyValue(x => x.ProgressPercent.Value)
-                          .BindTo(this, view => view.WizardProgressBar.Value);
+                          .BindTo(this, view => view.WizardProgressBar.Value)
+                          .DisposeWith(wizardVM.CompositeDisposable);
                   wizardVM.WhenAnyValue(x => x.CurrentStep)
                           .Subscribe(step =>
                           {
@@ -143,7 +148,8 @@ public partial class MainWindow : MetroWindow
                                   WizardProgressBar.Width = 500;
                                   ProgressText.HorizontalAlignment = HorizontalAlignment.Left;
                               }
-                          });
+                          })
+                          .DisposeWith(wizardVM.CompositeDisposable);
 
               });
 
