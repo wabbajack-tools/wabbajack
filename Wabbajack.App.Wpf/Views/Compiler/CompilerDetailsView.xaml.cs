@@ -74,30 +74,6 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
 
             this.Bind(ViewModel, vm => vm.Settings.OutputFile, view => view.OutputFilePicker.PickerVM.TargetPath)
                 .DisposeWith(disposables);
-
-
-            /*
-            this.BindCommand(ViewModel, vm => vm.NextCommand, v => v.ContinueButton)
-                .DisposeWith(disposables);
-            */
-
-            /*
-            ViewModel.WhenAnyValue(vm => vm.ModlistLocation)
-                .BindToStrict(this, view => view.ModlistLocation.PickerVM)
-                .DisposeWith(disposables);
-            */
-            
-
-            /*
-            ViewModel.WhenAnyValue(vm => vm.StatusText)
-                .BindToStrict(this, view => view.TopProgressBar.Title)
-                .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(vm => vm.StatusProgress)
-                .Select(d => d.Value)
-                .BindToStrict(this, view => view.TopProgressBar.ProgressPercent)
-                .DisposeWith(disposables);
-            */
         });
 
     }
