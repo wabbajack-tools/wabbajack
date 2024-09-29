@@ -84,7 +84,25 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
                 ProgressState = ProgressState.Normal;
             }
 
-            Disposable.Empty.DisposeWith(disposables);
+            this.WhenAnyValue(x => x.CompilerDetailsVM.Settings)
+                .BindTo(this, x => x.Settings)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.CompilerFileManagerVM.Settings.Include)
+                .BindTo(this, x => x.Settings.Include)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.CompilerFileManagerVM.Settings.Ignore)
+                .BindTo(this, x => x.Settings.Ignore)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.CompilerFileManagerVM.Settings.NoMatchInclude)
+                .BindTo(this, x => x.Settings.NoMatchInclude)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.CompilerFileManagerVM.Settings.AlwaysEnabled)
+                .BindTo(this, x => x.Settings.AlwaysEnabled)
+                .DisposeWith(disposables);
         });
     }
 
