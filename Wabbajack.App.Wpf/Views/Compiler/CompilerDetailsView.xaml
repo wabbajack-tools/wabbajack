@@ -119,8 +119,8 @@
                 <CheckBox
                     x:Name="TextureRecompressionSetting"
                     Margin="{StaticResource TitleMargin}"
-                    ToolTip="If this box is ticked, Wabbajack will handle DDS texture recompression in a non-exact way to save on export file size rather than using the default binary patching method.">
-                    <TextBlock Text="Disable Texture Recompression" FontSize="10" VerticalAlignment="Center" />
+                    ToolTip="If this box is ticked, Wabbajack will recompress DDS textures to save on export file size rather than using the default binary patching method.">
+                    <TextBlock Text="Enable Texture Recompression" FontSize="10" VerticalAlignment="Center" />
                 </CheckBox>
             </StackPanel>
             <!--
