@@ -123,13 +123,13 @@ public partial class MainWindow : MetroWindow
                   var wizardVM = (WizardViewModel)pane;
 
                   wizardVM.WhenAnyValue(x => x.ConfigurationText)
-                          .BindTo(this, view => view.WizardConfigurationButton.Content)
+                          .BindTo(this, view => view.ConfigurationText.Text)
                           .DisposeWith(wizardVM.CompositeDisposable);
                   wizardVM.WhenAnyValue(x => x.ProgressText)
                           .BindTo(this, view => view.ProgressText.Text)
                           .DisposeWith(wizardVM.CompositeDisposable);
                   wizardVM.WhenAnyValue(x => x.ProgressPercent.Value)
-                          .Select(x => x.IsGreaterThan(0) ? Visibility.Visible : Visibility.Hidden)
+                          .Select(x => x.IsGreaterThan(0) && !x.IsOne() ? Visibility.Visible : Visibility.Hidden)
                           .BindTo(this, view => view.ProgressPercentage.Visibility)
                           .DisposeWith(wizardVM.CompositeDisposable);
                   wizardVM.WhenAnyValue(x => x.ProgressPercent.Value)
@@ -137,23 +137,23 @@ public partial class MainWindow : MetroWindow
                           .BindTo(this, view => view.ProgressPercentage.Text)
                           .DisposeWith(wizardVM.CompositeDisposable);
                   wizardVM.WhenAnyValue(x => x.ProgressPercent.Value)
-                          .BindTo(this, view => view.WizardProgressBar.Value)
+                          .BindTo(this, view => view.WizardProgress.Value)
                           .DisposeWith(wizardVM.CompositeDisposable);
                   wizardVM.WhenAnyValue(x => x.CurrentStep)
                           .Subscribe(step =>
                           {
-                              WizardConfigurationButton.Width = double.NaN;
-                              WizardConfigurationButton.HorizontalContentAlignment = HorizontalAlignment.Center;
-                              WizardProgressBar.Width = double.NaN;
+                              ConfigurationText.Width = double.NaN;
+                              ConfigurationText.HorizontalAlignment = HorizontalAlignment.Center;
+                              ProgressText.Width = double.NaN;
                               ProgressText.HorizontalAlignment = HorizontalAlignment.Center;
                               if (step == Step.Configuration)
                               {
-                                  WizardConfigurationButton.Width = 500;
-                                  WizardConfigurationButton.HorizontalContentAlignment = HorizontalAlignment.Left;
+                                  ConfigurationText.Width = 500;
+                                  ConfigurationText.HorizontalAlignment = HorizontalAlignment.Left;
                               }
                               else if (step == Step.Busy)
                               {
-                                  WizardProgressBar.Width = 500;
+                                  ProgressText.Width = 500;
                                   ProgressText.HorizontalAlignment = HorizontalAlignment.Left;
                               }
                           })
