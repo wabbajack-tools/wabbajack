@@ -38,13 +38,11 @@ public enum CompilerState
 }
 public class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
 {
-    private readonly IServiceProvider _serviceProvider;
     private readonly ResourceMonitor _resourceMonitor;
     private readonly CompilerSettingsInferencer _inferencer;
     
     public CompilerFileManagerVM CompilerFileManagerVM { get; private set; }
-    [Reactive] public string StatusText { get; set; }
-    [Reactive] public Percent StatusProgress { get; set; }
+    [Reactive] public List<string> AvailableProfiles { get; set; }
 
     [Reactive]
     public CompilerState State { get; set; }
@@ -73,14 +71,10 @@ public class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
         IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
         CompilerSettingsInferencer inferencer, Client wjClient, CompilerFileManagerVM compilerFileManagerVM) : base(dtos, settingsManager, logger, wjClient)
     {
-        _serviceProvider = serviceProvider;
         LoggerProvider = loggerProvider;
         _resourceMonitor = resourceMonitor;
         _inferencer = inferencer;
         CompilerFileManagerVM = compilerFileManagerVM;
-
-        StatusText = "Compiler Settings";
-        StatusProgress = Percent.Zero;
 
         SubCompilerVM = new MO2CompilerVM(this);
 
@@ -119,6 +113,19 @@ public class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
                 PromptTitle = "Location where the compiled modlist will be stored"
             };
 
+            ModListImageLocation = new FilePickerVM
+            {
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
+                PathType = FilePickerVM.PathTypeOptions.File,
+                PromptTitle = "Thumbnail image file to use for the modlist"
+            };
+            ModListImageLocation.Filters.AddRange(new[]
+            {
+                new CommonFileDialogFilter("WebP Image (preferred)", "*" + Ext.Webp),
+                new CommonFileDialogFilter("PNG Image", "*" + Ext.Png),
+                new CommonFileDialogFilter("JPG Image", "*" + Ext.Jpg),
+            });
+
 
             ModlistLocation.WhenAnyValue(vm => vm.TargetPath)
                 .Subscribe(async p => {
@@ -137,21 +144,12 @@ public class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
                 .Select(_ => Validate())
                 .BindToStrict(this, vm => vm.ErrorState)
                 .DisposeWith(disposables);
-
-            /*
-
-            ModListImageLocation.WhenAnyValue(x => x.TargetPath)
-                                .BindToStrict(this, vm => vm.Settings.ModListImage)
-                                .DisposeWith(disposables);
-
-            DownloadLocation.WhenAnyValue(x => x.TargetPath)
-                            .BindToStrict(this, vm => vm.Settings.Downloads)
-                            .DisposeWith(disposables);
-
-            Settings.WhenAnyValue(x => x.Downloads)
-                    .BindToStrict(this, vm => vm.DownloadLocation.TargetPath)
-                    .DisposeWith(disposables);
-            */
+            this.WhenAnyValue(x => x.Settings.Source)
+                .Subscribe(source =>
+                {
+                    AvailableProfiles = source.Combine("profiles").EnumerateDirectories().Select(dir => dir.FileName.ToString()).ToList();
+                })
+                .DisposeWith(disposables);
 
         });
     }

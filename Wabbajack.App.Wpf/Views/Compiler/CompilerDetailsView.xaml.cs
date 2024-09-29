@@ -52,6 +52,15 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
 
             this.Bind(ViewModel, vm => vm.Settings.UseTextureRecompression, view => view.TextureRecompressionSetting.IsChecked)
                 .DisposeWith(disposables);
+
+            this.WhenAnyValue(v => v.ViewModel.AvailableProfiles)
+                .BindToStrict(this, view => view.ProfileSetting.ItemsSource)
+                .DisposeWith(disposables);
+
+            /*
+            this.Bind(ViewModel, vm => vm.Settings.Profile, view => (string)view.ProfileSetting.SelectedItem)
+                .DisposeWith(disposables);
+            */
             
             /*
             this.Bind(ViewModel, vm => vm.Settings.PublishUpdate, view => view.PublishUpdate.IsChecked)

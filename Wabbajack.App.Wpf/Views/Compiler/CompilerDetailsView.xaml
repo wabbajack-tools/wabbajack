@@ -60,9 +60,19 @@
                 <TextBox x:Name="VersionSetting" MaxLength="9" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="1.0.0..." />
             </StackPanel>
 
-            <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0, 0, 16, 0">
+            <StackPanel Grid.Row="1" Margin="0, 0, 16, 0">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Title" />
                 <TextBox x:Name="ModListNameSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="Modlist name..." />
+            </StackPanel>
+            <StackPanel Grid.Row="1" Grid.Column="1" Margin="0, 0, 16, 0">
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Selected MO2 Profile" />
+                <ComboBox x:Name="ProfileSetting" IsSynchronizedWithCurrentItem="True">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Padding="2, 8, 0, 8" Text="{Binding}" VerticalAlignment="Center" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
             </StackPanel>
             <!-- Selected MO2 Profile -->
 
@@ -123,17 +133,6 @@
                     <TextBlock Text="Enable Texture Recompression" FontSize="10" VerticalAlignment="Center" />
                 </CheckBox>
             </StackPanel>
-            <!--
-                <StackPanel Grid.Row="8" Grid.Column="1" Margin="0, 0, 16, 0">
-
-                    <CheckBox
-                    x:Name="PublishUpdate"
-                    Margin="{StaticResource TitleMargin}"
-                    ToolTip="Select this if your want Wabbajack to automatically publish this modlist when compilation finished (requires a Machine URL)">
-                        <TextBlock Text="Publish Update" FontSize="10" VerticalAlignment="Center" />
-                    </CheckBox>
-                </StackPanel>
-                -->
         </Grid>
     </ScrollViewer>
 </rxui:ReactiveUserControl>
