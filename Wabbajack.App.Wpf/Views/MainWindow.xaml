@@ -58,7 +58,8 @@
                                 <VisualBrush Visual="{Binding ElementName=BorderMask}"/>
                             </Grid.OpacityMask>
                             <mahapps:MetroProgressBar x:Name="WizardProgressBar" Background="{StaticResource ComplementaryBackgroundBrush}" BorderThickness="0" Foreground="{StaticResource ComplementaryPrimary16Brush}" Maximum="1" />
-                            <TextBlock x:Name="ProgressText" Margin="12, 0, 12, 0" VerticalAlignment="Center" Text="Packing BSAs..." />
+                            <TextBlock x:Name="ProgressText" Margin="12, 0, 12, 0" VerticalAlignment="Center" />
+                            <TextBlock x:Name="ProgressPercentage" Margin="0, 0, 12, 0" VerticalAlignment="Center" HorizontalAlignment="Right" />
                         </Grid>
                     </Grid>
                 </Border>

@@ -129,6 +129,14 @@ public partial class MainWindow : MetroWindow
                           .BindTo(this, view => view.ProgressText.Text)
                           .DisposeWith(wizardVM.CompositeDisposable);
                   wizardVM.WhenAnyValue(x => x.ProgressPercent.Value)
+                          .Select(x => x.IsGreaterThan(0) ? Visibility.Visible : Visibility.Hidden)
+                          .BindTo(this, view => view.ProgressPercentage.Visibility)
+                          .DisposeWith(wizardVM.CompositeDisposable);
+                  wizardVM.WhenAnyValue(x => x.ProgressPercent.Value)
+                          .Select(x => (int)(x * 100) + "%")
+                          .BindTo(this, view => view.ProgressPercentage.Text)
+                          .DisposeWith(wizardVM.CompositeDisposable);
+                  wizardVM.WhenAnyValue(x => x.ProgressPercent.Value)
                           .BindTo(this, view => view.WizardProgressBar.Value)
                           .DisposeWith(wizardVM.CompositeDisposable);
                   wizardVM.WhenAnyValue(x => x.CurrentStep)

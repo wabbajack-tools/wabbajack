@@ -168,7 +168,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
                 RxApp.MainThreadScheduler.Schedule(_logger, (Func<System.Reactive.Concurrency.IScheduler, ILogger<BaseCompilerVM>, IDisposable>)((_, _) =>
                 {
                     ProgressText = "Compiled";
-                    ProgressPercent = Percent.Hundred;
+                    ProgressPercent = Percent.One;
                     State = CompilerState.Completed;
                     CurrentStep = Step.Done;
                     ProgressState = ProgressState.Success;
