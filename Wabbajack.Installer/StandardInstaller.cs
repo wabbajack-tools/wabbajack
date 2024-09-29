@@ -185,7 +185,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             writer.Write("<html><head><title>Missing Manual Downloads</title></head><body>");
             writer.Write("<h1>Missing Manual Downloads</h1>");
             writer.Write(
-                "<p>Wabbajack was unable to download the following archives automaticall. Please download them manually and place them in the downloads folder you chose during the install setup.</p>");
+                "<p>Wabbajack was unable to download the following archives automatically. Please download them manually and place them in the downloads folder you chose during the install setup.</p>");
             foreach (var archive in toArray)
             {
                 switch (archive.State)
