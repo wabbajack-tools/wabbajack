@@ -30,7 +30,6 @@ public class CompilerSettingsVM : ViewModel
         ModListReadme = cs.ModListReadme;
         ModListWebsite = cs.ModListWebsite;
         ModlistVersion = cs.ModlistVersion?.ToString() ?? "";
-        PublishUpdate = cs.PublishUpdate;
         MachineUrl = cs.MachineUrl;
         Profile = cs.Profile;
         AdditionalProfiles = cs.AdditionalProfiles;
@@ -61,7 +60,6 @@ public class CompilerSettingsVM : ViewModel
     [Reactive] public string ModListReadme { get; set; } = "";
     [Reactive] public Uri? ModListWebsite { get; set; }
     [Reactive] public string ModlistVersion { get; set; } = "";
-    [Reactive] public bool PublishUpdate { get; set; } = false;
     [Reactive] public string MachineUrl { get; set; } = "";
 
     /// <summary>
@@ -124,7 +122,6 @@ public class CompilerSettingsVM : ViewModel
             ModListReadme = ModListReadme,
             ModListWebsite = ModListWebsite,
             ModlistVersion = System.Version.Parse(ModlistVersion),
-            PublishUpdate = PublishUpdate,
             MachineUrl = MachineUrl,
             Profile = Profile,
             AdditionalProfiles = AdditionalProfiles,

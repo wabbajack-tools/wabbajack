@@ -114,6 +114,15 @@
                     <TextBlock Text="Not Safe For Work (NSFW)" FontSize="10" VerticalAlignment="Center" />
                 </CheckBox>
             </StackPanel>
+
+            <StackPanel Grid.Row="7" Grid.Column="1" Margin="0, 0, 16, 0">
+                <CheckBox
+                    x:Name="TextureRecompressionSetting"
+                    Margin="{StaticResource TitleMargin}"
+                    ToolTip="If this box is ticked, Wabbajack will handle DDS texture recompression in a non-exact way to save on export file size rather than using the default binary patching method.">
+                    <TextBlock Text="Disable Texture Recompression" FontSize="10" VerticalAlignment="Center" />
+                </CheckBox>
+            </StackPanel>
             <!--
                 <StackPanel Grid.Row="8" Grid.Column="1" Margin="0, 0, 16, 0">
 

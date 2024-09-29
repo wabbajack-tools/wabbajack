@@ -49,6 +49,9 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
             
             this.Bind(ViewModel, vm => vm.Settings.ModlistIsNSFW, view => view.NSFWSetting.IsChecked)
                 .DisposeWith(disposables);
+
+            this.Bind(ViewModel, vm => vm.Settings.UseTextureRecompression, view => view.TextureRecompressionSetting.IsChecked)
+                .DisposeWith(disposables);
             
             /*
             this.Bind(ViewModel, vm => vm.Settings.PublishUpdate, view => view.PublishUpdate.IsChecked)

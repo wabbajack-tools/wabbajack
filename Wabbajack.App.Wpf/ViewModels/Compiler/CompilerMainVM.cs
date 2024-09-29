@@ -94,9 +94,15 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
         Process.Start(new ProcessStartInfo(log) { UseShellExecute = true });
     }
 
-    private void Publish()
+    private async Task Publish()
     {
-        throw new NotImplementedException();
+        bool readyForPublish = await RunPreflightChecks(CancellationToken.None);
+        if (!readyForPublish) return;
+
+        _logger.LogInformation("Publishing List");
+        var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
+            await Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
+        await _wjClient.PublishModlist(Settings.MachineUrl, Version.Parse(Settings.Version), Settings.OutputFile, downloadMetadata);
     }
 
     private void OpenFolder() => Process.Start(new ProcessStartInfo() { FileName = "explorer.exe ", Arguments = $"/select, \"{Settings.OutputFile}\"" });
@@ -126,23 +132,17 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
                     Settings.OutputFile = Settings.OutputFile.Combine(Settings.ModListName.ToRelativePath()
                         .WithExtension(Ext.Wabbajack));
 
-                if (Settings.PublishUpdate && !await RunPreflightChecks(token))
-                {
-                    State = CompilerState.Errored;
-                    return;
-                }
-
                 var compiler = MO2Compiler.Create(_serviceProvider, Settings.ToCompilerSettings());
 
                 var events = Observable.FromEventPattern<StatusUpdate>(h => compiler.OnStatusUpdate += h,
                         h => compiler.OnStatusUpdate -= h)
                     .ObserveOnGuiThread()
-                    .Subscribe((Action<EventPattern<StatusUpdate>>)(update =>
+                    .Subscribe(update =>
                     {
                         var s = update.EventArgs;
-                        ProgressText = $"Step {s.CurrentStep} - {s.StatusText}";
+                        ProgressText = $"{s.StatusText}";
                         ProgressPercent = s.StepsProgress;
-                    }));
+                    });
 
 
                 try
@@ -156,13 +156,6 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
                     events.Dispose();
                 }
 
-                if (Settings.PublishUpdate)
-                {
-                    _logger.LogInformation("Publishing List");
-                    var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
-                        await Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
-                    await _wjClient.PublishModlist(Settings.MachineUrl, Version.Parse(Settings.Version), Settings.OutputFile, downloadMetadata);
-                }
                 _logger.LogInformation("Compiler Finished");
 
                 RxApp.MainThreadScheduler.Schedule(_logger, (Func<System.Reactive.Concurrency.IScheduler, ILogger<BaseCompilerVM>, IDisposable>)((_, _) =>
