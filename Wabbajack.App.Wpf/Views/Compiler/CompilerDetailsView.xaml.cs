@@ -8,6 +8,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using Wabbajack.Common;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using System.Collections.Generic;
 
 namespace Wabbajack;
 
@@ -57,15 +58,13 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
                 .BindToStrict(this, view => view.ProfileSetting.ItemsSource)
                 .DisposeWith(disposables);
 
-            /*
-            this.Bind(ViewModel, vm => vm.Settings.Profile, view => (string)view.ProfileSetting.SelectedItem)
+            this.Bind(ViewModel, vm => vm.Settings.Profile, view => view.ProfileSetting.SelectedItem)
                 .DisposeWith(disposables);
-            */
-            
-            /*
-            this.Bind(ViewModel, vm => vm.Settings.PublishUpdate, view => view.PublishUpdate.IsChecked)
-                .DisposeWith(disposables);
-            */
+
+            ViewModel.WhenAnyValue(v => v.AvailableProfiles, v => v.Settings.Profile)
+                     .Select((x) => x.Item1.Except([x.Item2]).ToList())
+                     .BindToStrict(this, x => x.AdditionalProfilesSetting.ItemsSource)
+                     .DisposeWith(disposables);
 
             this.Bind(ViewModel, vm => vm.Settings.MachineUrl, view => view.MachineUrl.Text)
                 .DisposeWith(disposables);

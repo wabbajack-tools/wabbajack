@@ -133,6 +133,17 @@
                     <TextBlock Text="Enable Texture Recompression" FontSize="10" VerticalAlignment="Center" />
                 </CheckBox>
             </StackPanel>
+
+            <StackPanel Grid.Row="8" Grid.ColumnSpan="2" Margin="0, 0, 16, 0" ToolTip="Wabbajack will include these profiles as part of the modlist alongside your main selected MO2 profile.">
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Additional profile(s)"/>
+                <ListBox SelectionMode="Multiple" x:Name="AdditionalProfilesSetting">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Padding="2, 8, 0, 8" Text="{Binding}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
         </Grid>
     </ScrollViewer>
 </rxui:ReactiveUserControl>
