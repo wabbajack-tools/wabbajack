@@ -192,7 +192,7 @@
     <SolidColorBrush x:Key="ButtonForeground" Color="{StaticResource ForegroundColor}" />
     <SolidColorBrush x:Key="MouseOverButtonForeground" Color="White" />
     <SolidColorBrush x:Key="ButtonBackground" Color="{StaticResource LightBackgroundColor}" />
-    <SolidColorBrush x:Key="ButtonBorder" Color="{StaticResource DarkBackgroundColor}" />
+    <SolidColorBrush x:Key="ButtonBorder" Color="{StaticResource ComplementaryPrimary08}" />
     <SolidColorBrush x:Key="PressedButtonBackground" Color="{StaticResource PressedBackgroundColor}" />
     <SolidColorBrush x:Key="MouseOverButtonBackground" Color="{StaticResource LightBackgroundColor}" />
     <SolidColorBrush x:Key="DisabledButtonBackground" Color="{StaticResource ComplementaryPrimary16}" />
@@ -1385,7 +1385,7 @@
 
     <Style x:Key="MainButtonBaseStyle" TargetType="{x:Type Button}">
         <Setter Property="FocusVisualStyle" Value="{StaticResource ButtonFocusVisual}" />
-        <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}" />
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
         <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Focusable" Value="False" />

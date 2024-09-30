@@ -8,35 +8,49 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
     mc:Ignorable="d">
-    <Grid Margin="0, 0">
+    <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300*" />
-            <ColumnDefinition Width="20*" />
-            <ColumnDefinition Width="300*" />
-            <ColumnDefinition Width="20*" />
-            <ColumnDefinition Width="300*" />
-            <ColumnDefinition Width="20*" />
-            <ColumnDefinition Width="300*" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Button Style="{StaticResource LargeButtonStyle}" Click="Patreon_Click" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Padding="2">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <TextBlock FontWeight="DemiBold" FontSize="28" VerticalAlignment="Center" HorizontalAlignment="Left">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Button x:Name="PatreonButton" Style="{StaticResource MainButtonStyleLessRounded}" Click="Patreon_Click" Width="180" Height="49" Margin="0, 0, 0, 16">
+            <DockPanel Width="{Binding ElementName=PatreonButton, Path=ActualWidth}">
+                <TextBlock FontWeight="DemiBold" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="16, 0, 0, 0">
                 Patreon
                 </TextBlock>
-                <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" Margin="0, 3, 0, 0">
-                Help support the project
-                </TextBlock>
-                <ic:SymbolIcon Grid.Column="1" FontSize="28" Symbol="Heart" VerticalAlignment="Center" HorizontalAlignment="Right" />
-            </Grid>
+                <ic:SymbolIcon FontSize="24" Symbol="Heart" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="{StaticResource PrimaryBrush}" Margin="0, 0, 16, 0" />
+            </DockPanel>
         </Button>
+        <Button x:Name="GitHubButton" Grid.Row="1" Style="{StaticResource MainButtonStyleLessRounded}" Click="GitHub_Click" Width="180" Height="49" Margin="0, 0, 0, 16">
+            <DockPanel Width="{Binding ElementName=GitHubButton, Path=ActualWidth}">
+                <TextBlock FontWeight="DemiBold" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="16, 0, 0, 0">
+                GitHub
+                </TextBlock>
+                <ic:SymbolIcon FontSize="24" Symbol="BranchFork" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="{StaticResource PrimaryBrush}" Margin="0, 0, 16, 0" />
+            </DockPanel>
+        </Button>
+        <Button x:Name="DiscordButton" Grid.Row="2" Style="{StaticResource MainButtonStyleLessRounded}" Click="Discord_Click" Width="180" Height="49" Margin="0, 0, 0, 16">
+            <DockPanel Width="{Binding ElementName=DiscordButton, Path=ActualWidth}">
+                <TextBlock FontWeight="DemiBold" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="16, 0, 0, 0">
+                Discord
+                </TextBlock>
+                <ic:SymbolIcon FontSize="24" Symbol="PeopleChat" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="{StaticResource PrimaryBrush}" Margin="0, 0, 16, 0" />
+            </DockPanel>
+        </Button>
+        <Button x:Name="WikiButton" Grid.Row="3" Style="{StaticResource MainButtonStyleLessRounded}" Click="Wiki_Click" Width="180" Height="49" Margin="0, 0, 0, 16">
+            <DockPanel Width="{Binding ElementName=WikiButton, Path=ActualWidth}">
+                <TextBlock FontWeight="DemiBold" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="16, 0, 0, 0">
+                Wiki
+                </TextBlock>
+                <ic:SymbolIcon FontSize="24" Symbol="QuestionCircle" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="{StaticResource PrimaryBrush}" Margin="0, 0, 16, 0" />
+            </DockPanel>
+        </Button>
+        <!--
         <Button Grid.Column="2" Style="{StaticResource LargeButtonStyle}" Click="GitHub_Click" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Padding="2">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -94,5 +108,6 @@
                 <ic:SymbolIcon Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right" Symbol="TextQuote" FontSize="28" />
             </Grid>
         </Button>
+        -->
     </Grid>
 </UserControl>
