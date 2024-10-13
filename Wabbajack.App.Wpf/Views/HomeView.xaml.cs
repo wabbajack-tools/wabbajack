@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using ReactiveMarbles.ObservableEvents;
 using ReactiveUI;
 
 namespace Wabbajack;
@@ -25,6 +27,12 @@ public partial class HomeView : ReactiveUserControl<HomeVM>
                 .Select(x => x?.GroupBy(y => y.Game).Count().ToString() ?? "0")
                 .BindToStrict(this, x => x.GameAmountTextBlock.Text)
                 .DisposeWith(dispose);
+
+            GetStartedButton.Events()
+                            .MouseDown
+                            .Select(args => Unit.Default)
+                            .InvokeCommand(this, x => x.ViewModel.BrowseCommand)
+                            .DisposeWith(dispose);
         });
     }
 }

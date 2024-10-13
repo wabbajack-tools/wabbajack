@@ -23,8 +23,6 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Label Grid.Row="0" Grid.Column="0" FontWeight="Bold" Padding="0" Margin="0">
             <StackPanel Orientation="Horizontal">
@@ -41,7 +39,7 @@
                 <TextBlock Text=" games." FontSize="24" />
             </StackPanel>
         </Label>
-        <Grid Grid.Row="3" Grid.RowSpan="2" Margin="0, 32, 0, 0">
+        <Grid Grid.Row="2" Margin="0, 16, 0, 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -60,39 +58,128 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock
-                       Grid.Column="0"
-                       Grid.Row="0"
-                       VerticalAlignment="Center"
-                       Text="Find a modlist that suits you"
-                       FontWeight="DemiBold"
-                       FontSize="24"
-                       Margin="0, 0, 0, 4"
-                       />
-                    <ic:SymbolIcon
-                        Grid.Row="0"
-                        Grid.Column="1"
-                        VerticalAlignment="Center"
-                        Symbol="CheckmarkStarburst"
-                        IsFilled="True"
-                        FontSize="28"
-                        Foreground="{StaticResource PrimaryBrush}"
-                    />
+                    <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Find a modlist that suits you" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
+                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="CheckmarkStarburst" IsFilled="True" FontSize="28" Foreground="{StaticResource PrimaryBrush}" />
                     <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
                     Go through a series of questions to find a modlist that works for you through our<LineBreak />
                      <Hyperlink Command="{Binding VisitModlistWizardCommand}">Wabbakinator quiz</Hyperlink>, or <Hyperlink Command="{Binding BrowseCommand}">navigate the gallery</Hyperlink> yourself and pick something fun.
                     </TextBlock>
                 </Grid>
             </Border>
+            <Border Grid.Row="0" Grid.Column="1" BorderBrush="{StaticResource ComplementaryPrimary08Brush}" CornerRadius="16" BorderThickness="3" Margin="0, 0, 16, 16">
+                <Grid Margin="12" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Follow the install notes" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
+                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="DocumentOnePageMultiple" IsFilled="True" FontSize="28" Foreground="{StaticResource PrimaryBrush}" />
+                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
+                        Some modlists have steps that you need to take before you install the list, some <LineBreak />
+                        don't. Check your list's documentation to see how to get started.
+                    </TextBlock>
+                </Grid>
+            </Border>
+            <Border Grid.Row="1" Grid.Column="0" BorderBrush="{StaticResource ComplementaryPrimary08Brush}" CornerRadius="16" BorderThickness="3" Margin="0, 0, 16, 16">
+                <Grid Margin="12" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Start downloading your chosen list" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
+                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="ArrowDownload" IsFilled="True" FontSize="28" Foreground="{StaticResource PrimaryBrush}"
+                    />
+                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
+                        Pick a destination with enough free space and click the download button. <LineBreak />
+                        Heads up; for full automation of Nexus downloads, a premium account is required.
+                    </TextBlock>
+                </Grid>
+            </Border>
+            <Border Grid.Row="1" Grid.Column="1" BorderBrush="{StaticResource ComplementaryPrimary08Brush}" CornerRadius="16" BorderThickness="3" Margin="0, 0, 16, 16">
+                <Grid Margin="12" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Ready to start playing!" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
+                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="Games" IsFilled="True" FontSize="28" Foreground="{StaticResource PrimaryBrush}"
+                    />
+                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
+                        If your install completed successfully and you're done with the documentation as<LineBreak />
+                        well, you're now ready to launch the modlist and play!
+                    </TextBlock>
+                </Grid>
+            </Border>
         </Grid>
-        <Grid Grid.Row="5" Margin="0, 20, 0, 20">
+        <local:LinksView Grid.Row="2" Grid.Column="1" Margin="0, 16, 0, 0"/>
+        <Grid Grid.Row="3" Margin="0, 16, 0, 16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="6*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Border Grid.Column="1" Background="{StaticResource DarkSecondaryBrush}" BorderBrush="{StaticResource DarkSecondaryBrush}" BorderThickness="2" CornerRadius="4" Margin="0, 10, 0, 10" />
+            <Border Grid.Column="1" Background="{StaticResource DarkSecondaryBrush}" BorderBrush="{StaticResource DarkSecondaryBrush}" BorderThickness="2" CornerRadius="4" />
         </Grid>
-        <local:LinksView Grid.Row="3" Grid.Column="1"/>
+        <Border x:Name="GetStartedButton" Grid.Row="4" Grid.Column="0" CornerRadius="16" BorderThickness="3" Margin="0, 16, 16, 16">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource MouseOverButtonBackground}" />
+                        </Trigger>
+                    </Style.Triggers>
+                    <Style.Resources>
+                        <Style TargetType="ic:SymbolIcon">
+                            <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
+                                    <Setter Property="IsFilled" Value="True"/>
+                                    <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
+                                    <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Style.Resources>
+                </Style>
+            </Border.Style>
+            <Grid Margin="12" VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Get Started" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4">
+                </TextBlock>
+                <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="ImageTable" FontSize="28" />
+                <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
+                        Browse the gallery and find yourself a modlist to play
+                </TextBlock>
+            </Grid>
+        </Border>
     </Grid>
 </rxui:ReactiveUserControl>
