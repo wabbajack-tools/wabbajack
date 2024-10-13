@@ -132,7 +132,7 @@
             </Grid.ColumnDefinitions>
             <Border Grid.Column="1" Background="{StaticResource DarkSecondaryBrush}" BorderBrush="{StaticResource DarkSecondaryBrush}" BorderThickness="2" CornerRadius="4" />
         </Grid>
-        <Border x:Name="GetStartedButton" Grid.Row="4" Grid.Column="0" CornerRadius="16" BorderThickness="3" Margin="0, 16, 16, 16">
+        <Border x:Name="GetStartedButton" Grid.Row="4" Grid.Column="0" CornerRadius="16" BorderThickness="3" Margin="0, 16, 16, 16" Height="108">
             <Border.Style>
                 <Style TargetType="Border">
                     <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
