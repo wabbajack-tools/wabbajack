@@ -73,7 +73,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DynamicData" Version="8.1.1" />
+    <PackageReference Include="DynamicData" Version="9.0.1" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.5.1">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
@@ -100,7 +100,7 @@
     <PackageReference Include="ReactiveUI.Fody" Version="19.5.1" />
     <PackageReference Include="ReactiveUI.WPF" Version="19.5.1" />
     <PackageReference Include="Silk.NET.DXGI" Version="2.21.0" />
-    <PackageReference Include="System.Reactive" Version="6.0.1-preview.1" />
+    <PackageReference Include="System.Reactive" Version="6.0.1" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
   </ItemGroup>
 
