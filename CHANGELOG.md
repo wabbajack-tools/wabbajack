@@ -3,6 +3,7 @@
 #### Version - 3.7.4.0 - TBD
 * Fix for gallery not properly showing lists that are in maintenance.
 * Fix typo for a typo in with the error logging (thanks to [@code-syl](https://github.com/code-syl))
+* Add support for the comming nexus game ID change (thanks to [@https://github.com/JonathanFeenstra](https://github.com/JonathanFeenstra))
 
 #### Version - 3.7.3.0 - 9/19/2024
 * Downloads now start in a random order, to reduce the amount of lag in the UI when initially starting
