@@ -29,7 +29,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="47" />
-            <RowDefinition Height="4*" />
+            <RowDefinition Height="3*" />
             <RowDefinition Height="*" MinHeight="175" />
         </Grid.RowDefinitions>
         <Rectangle Grid.Row="1" Grid.RowSpan="2"
@@ -209,8 +209,8 @@
             ClipToBounds="True">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="4" />
-                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="6*" />
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="0" Margin="0">
                 <Grid.RowDefinitions>
@@ -221,7 +221,7 @@
                 </Grid.RowDefinitions>
                 <Button Grid.Row="0"
                         x:Name="OpenDiscordPreInstallButton"
-                        Margin="30,2"
+                        Margin="2,2"
                         FontSize="20"
                         Style="{StaticResource LargeButtonStyle}"
                         ToolTip="Open the Discord for the Modlist">
@@ -243,7 +243,7 @@
                 </Button>
                 <Button Grid.Row="1"
                         x:Name="OpenReadmePreInstallButton"
-                        Margin="30,2"
+                        Margin="2,2"
                         FontSize="20"
                         Style="{StaticResource LargeButtonStyle}"
                         ToolTip="Open the readme for the modlist">
@@ -265,7 +265,7 @@
                 </Button>
                 <Button Grid.Row="2"
                     x:Name="VisitWebsitePreInstallButton"
-                    Margin="30,2"
+                    Margin="2,2"
                     FontSize="20"
                     Style="{StaticResource LargeButtonStyle}"
                     ToolTip="Open the webpage for the modlist">
@@ -287,7 +287,7 @@
                 </Button>
                 <Button Grid.Row="3"
                     x:Name="ShowManifestPreInstallButton"
-                    Margin="30,2"
+                    Margin="2,2"
                     FontSize="20"
                     Style="{StaticResource LargeButtonStyle}"
                     ToolTip="Open an explicit listing of all archives this modlist contains">

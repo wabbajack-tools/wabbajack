@@ -38,6 +38,7 @@ using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.CLI.Verbs;
 using Wabbajack.VFS;
+using Wabbajack.Compiler;
 
 namespace Wabbajack;
 
@@ -134,12 +135,16 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     
     [Reactive]
     public bool ShowNSFWSlides { get; set; }
-    
+
+    [Reactive]
+    public bool UnrecognisedFilesPresent { get; set; }
+
+    [Reactive]
+    public bool IsShiftKeyPressed { get; set; }
+
     public LogStream LoggerProvider { get; }
 
     private AbsolutePath LastInstallPath { get; set; }
-
-    [Reactive] public bool OverwriteFiles { get; set; }
     
     
     // Command properties
@@ -155,7 +160,12 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     public ReactiveCommand<Unit, Unit> BeginCommand { get; }
     
     public ReactiveCommand<Unit, Unit> VerifyCommand { get; }
-    
+
+
+    private string UnrecognisedFilesFoundErrorMessage = "Files found in the install folder, please choose a different folder, or if you are CERTAIN you want to install here " +
+                                                    Environment.NewLine + " then hold down shift to enable the button. This will delete any unrecognised files in the folder!";
+
+
     public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
         Wabbajack.Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins,
@@ -235,9 +245,6 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             UIUtils.OpenFolder(Installer.Location.TargetPath);
         });
 
-        this.WhenAnyValue(x => x.OverwriteFiles)
-            .Subscribe(x => ConfirmOverwrite());
-
         MessageBus.Current.Listen<LoadModlistForInstalling>()
             .Subscribe(msg => LoadModlistFromGallery(msg.Path, msg.Metadata).FireAndForget())
             .DisposeWith(CompositeDisposable);
@@ -271,8 +278,35 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                         .Where(t => t.Failed)
                         .Concat(Validate())
                         .ToArray();
-                    if (!errors.Any()) return ErrorResponse.Success;
-                    return ErrorResponse.Fail(string.Join("\n", errors.Select(e => e.Reason)));
+                    if (errors.Length == 0)
+                    {
+                        UnrecognisedFilesPresent = false;
+                        return ErrorResponse.Success;
+                    } 
+                    else
+                    {
+                        if(errors.Length == 1)
+                        {
+                            if(errors[0].Reason == UnrecognisedFilesFoundErrorMessage)
+                            {
+                                UnrecognisedFilesPresent = true;
+                            } 
+                            else
+                            {
+                                UnrecognisedFilesPresent = false;
+                                if (errors[0].Succeeded)
+                                {
+                                    return ErrorResponse.Succeed(errors[0].Reason);
+                                }
+                            }
+                        } 
+                        else
+                        {
+                            //other errors too, not just this one particular error we want to handle for
+                            UnrecognisedFilesPresent = false;
+                        }
+                        return ErrorResponse.Fail(string.Join("\n", errors.Select(e => e.Reason)));
+                    }
                 })
                 .BindTo(this, vm => vm.ErrorState)
                 .DisposeWith(disposables);
@@ -287,13 +321,18 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
 
         var downloadPath = Installer.DownloadLocation.TargetPath;
         if (downloadPath.Depth <= 1)
+        {
             yield return ErrorResponse.Fail("Download path isn't set to a folder");
-        
+        }
         var installPath = Installer.Location.TargetPath;
         if (installPath.Depth <= 1)
+        {
             yield return ErrorResponse.Fail("Install path isn't set to a folder");
+        }
         if (installPath.InFolder(KnownFolders.Windows))
+        {
             yield return ErrorResponse.Fail("Don't install modlists into your Windows folder");
+        }
         if( installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && installPath == downloadPath)
         {
             yield return ErrorResponse.Fail("Can't have identical install and download folders");
@@ -301,6 +340,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && KnownFolders.IsSubDirectoryOf(installPath.ToString(), downloadPath.ToString()))
         {
             yield return ErrorResponse.Fail("Can't put the install folder inside the download folder");
+        }
+        if (installPath.ToString().Length > 0 && Path.GetFileName(installPath.ToString().TrimEnd(Path.DirectorySeparatorChar)) == "downloads")
+        {
+            yield return ErrorResponse.Fail("You've selected a folder called 'downloads' as install folder, please check your paths");
         }
         foreach (var game in GameRegistry.Games)
         {
@@ -325,25 +368,41 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         { 
             yield return ErrorResponse.Fail("Installing in this folder may overwrite Wabbajack");
         }
+        bool onlyDownloadFolderPresent = false;
+        bool updatingExisting = false;
+        if (installPath.ToString().Length != 0 && AreThereFilesInInstallFolder(installPath)){
+            if (downloadPath.ToString().Length > 0)
+            {
+                if (IsSelectedDownloadFolderTheOnlyThingThere(installPath, downloadPath))
+                {
+                    onlyDownloadFolderPresent = true;
+                }
+            }
+            if (onlyDownloadFolderPresent == false)
+            {
+                var listname = IsAModListDirectory(installPath);
+                if (listname == ModList.Name)
+                {
+                    updatingExisting = true;
+                    yield return ErrorResponse.Succeed("Existing install of this modlist found, installing to this folder will reset the modlist to its default state");
+                }
+                else
+                {
+                    UnrecognisedFilesPresent = true;
+                    yield return ErrorResponse.Fail(UnrecognisedFilesFoundErrorMessage);
+                }
+            }
 
-        if (installPath.ToString().Length != 0 && installPath != LastInstallPath && !OverwriteFiles &&
-            Directory.EnumerateFileSystemEntries(installPath.ToString()).Any())
-        {
-            yield return ErrorResponse.Fail("There are files in the install folder, please tick 'Overwrite Installation' to confirm you want to install to this folder " + Environment.NewLine + 
-                 "if you are updating an existing modlist, then this is expected and can be overwritten.");
         }
-
         if (KnownFolders.IsInSpecialFolder(installPath) || KnownFolders.IsInSpecialFolder(downloadPath))
         {
             yield return ErrorResponse.Fail("Can't install into Windows locations such as Documents etc, please make a new folder for the modlist - C:\\ModList\\ for example.");
         }
-        // Disabled Because it was causing issues for people trying to update lists.
-        //if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && !HasEnoughSpace(installPath, downloadPath)){
-        //    yield return ErrorResponse.Fail("Can't install modlist due to lack of free hard drive space, please read the modlist Readme to learn more.");
-        //}
+        if (!updatingExisting && !onlyDownloadFolderPresent && installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && !HasEnoughSpace(installPath, downloadPath)){
+            yield return ErrorResponse.Fail("Can't install modlist due to lack of free hard drive space, please read the modlist Readme to learn more.");
+        }
     }
     
-    /*
     private bool HasEnoughSpace(AbsolutePath inpath, AbsolutePath downpath)
     {      
         string driveLetterInPath = inpath.ToString().Substring(0,1);
@@ -362,7 +421,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                 return false;
             }
 
-        } else
+        } 
+        else
         {
             if( spaceInstRemaining < spaceRequiredforInstall || spaceDownRemaining < spaceRequiredforDownload)
             {
@@ -370,8 +430,79 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             }
         }
         return true;
+    }
 
-    }*/
+    private string IsAModListDirectory(AbsolutePath InstallPath)
+    {
+
+        var allFilenames = Directory.EnumerateFiles(InstallPath.ToString()).Select(p => Path.GetFileName(p));
+
+
+        var candidates = allFilenames.Where(fn => Path.GetExtension(fn) == ".compiler_settings")
+                                     .Select(fn => Path.GetFileName(fn));
+
+        CompilerSettings settings;
+        string jsonString = "";
+        foreach (string x in candidates)
+        {
+            var path = InstallPath.Combine(x);
+            try
+            {
+                jsonString = File.ReadAllText(path.ToString());
+            }
+            catch(IOException ex)
+            {
+                _logger.LogError(ex, "Trying to open existing compiler_settings file to find modlist in chosen folder, but can't open path: " + path);
+                return string.Empty;
+            }
+            finally
+            {
+                settings = _dtos.Deserialize<CompilerSettings>(jsonString);
+            }
+            return settings.ModListName;
+        }
+        return string.Empty;
+    }
+
+    private static bool AreThereFilesInInstallFolder(AbsolutePath InstallPath)
+    {
+        return Directory.EnumerateFileSystemEntries(InstallPath.ToString()).Any();
+    }
+
+    private bool IsSelectedDownloadFolderTheOnlyThingThere(AbsolutePath InstallPath, AbsolutePath DownloadPath)
+    {
+        //when parsing the install directory for things already there, if the thing thats already there
+        // is the download path we already want then dont count that as a thing thats already there!
+        List<string> dirs = new List<string>(Directory.EnumerateDirectories(InstallPath.ToString()));
+        string[] files = Directory.GetFiles(InstallPath.ToString(), "*.*", SearchOption.TopDirectoryOnly);
+        if (files.Length > 0)
+        {
+            return false;
+        }
+        bool DownloadFolderFound = false;
+        bool TempFolderFound = true;
+        foreach (string x in dirs)
+        {
+            if (x == DownloadPath.ToString())
+            {
+                DownloadFolderFound = true;
+            }
+            if(x == "__temp__")
+            {
+                TempFolderFound = true;
+            }
+        }
+        int DirectoryCount = Directory.GetDirectories(InstallPath.ToString()).Length;
+        if (DownloadFolderFound || TempFolderFound)
+        {
+            
+            if ((DirectoryCount == 2 && DownloadFolderFound && TempFolderFound) || DirectoryCount == 1)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private async Task BeginSlideShow(CancellationToken token)
     {
@@ -453,13 +584,6 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             _logger.LogError(ex, "While loading modlist");
             ll.Fail();
         }
-    }
-
-    private void ConfirmOverwrite()
-    {
-        AbsolutePath prev = Installer.Location.TargetPath;
-        Installer.Location.TargetPath = "".ToAbsolutePath();
-        Installer.Location.TargetPath = prev;
     }
 
     private async Task Verify()

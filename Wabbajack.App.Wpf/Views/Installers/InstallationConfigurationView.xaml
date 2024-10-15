@@ -14,23 +14,23 @@
     <Grid Background="{StaticResource WindowBackgroundBrush}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="10" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0"
-            Margin="5"
-            VerticalAlignment="Center"
+            Margin="2"
+            VerticalAlignment="Top"
             Background="Transparent">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="5" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="1" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" MinWidth="120" />
+                <ColumnDefinition Width="50" MinWidth="120" />
                 <ColumnDefinition Width="20" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="5*" />
             </Grid.ColumnDefinitions>
             <Rectangle x:Name="InstallConfigSpacer" Grid.Row="0" />
             <TextBlock Grid.Row="1" Grid.Column="0"
@@ -40,12 +40,14 @@
                 Text="Target Modlist"
                 TextAlignment="Center" />
             <TextBlock x:Name="errorTextBox"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
                 Grid.Row="3"
-                FontFamily="Verdana" FontSize="10" FontWeight="ExtraBold"
+                FontFamily="Verdana" FontSize="11" FontWeight="ExtraBold"
                 Background="{StaticResource WindowBackgroundBrush}"
                 Foreground="Red"
                 Text=""
-                TextAlignment="Left" Margin="0,79,0,-45" Grid.ColumnSpan="3" />
+                TextAlignment="Left" Margin="0,79,0,-45" Grid.ColumnSpan="5" />
             <local:FilePicker Grid.Row="1" Grid.Column="2"
                 x:Name="ModListLocationPicker"
                 Height="30"
@@ -104,24 +106,6 @@
                 VerticalAlignment="Top"
                 Foreground="{StaticResource WarningBrush}"
                 Kind="ExclamationTriangleSolid" />
-            <CheckBox Grid.Row="2" Grid.Column="2"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Bottom"
-                      x:Name="OverwriteCheckBox"
-                      Content="Overwrite Installation"
-                      IsChecked="False"
-                      ToolTip="Confirm to overwrite files in install folder.">
-                <CheckBox.Style>
-                    <Style TargetType="CheckBox">
-                        <Setter Property="Opacity" Value="0.6" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True">
-                                <Setter Property="Opacity" Value="1" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </CheckBox.Style>
-            </CheckBox>
             <Button Grid.Row="3" Grid.Column="2"
                       HorizontalAlignment="Center"
                       VerticalAlignment="Bottom"
