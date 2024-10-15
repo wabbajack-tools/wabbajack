@@ -27,8 +27,6 @@
     UseLayoutRounding="True"
     WindowTitleBrush="{StaticResource BackgroundBrush}"
     mc:Ignorable="d">
-
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="54" />
@@ -92,12 +90,12 @@
                 <ic:SymbolIcon Symbol="Dismiss" FontSize="18"/>
             </Button>
         </Grid>
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Visibility="{Binding NavigationVisibility}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="115" />
+                <ColumnDefinition Width="115" x:Name="NavigationColumn" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <local:NavigationView Grid.Column="0" ViewModel="{Binding NavigationVM}" x:Name="Navigation" />
+            <local:NavigationView Grid.Column="0" ViewModel="{Binding NavigationVM}" />
             <Border Grid.Column="1" Margin="0" Background="{StaticResource ComplementaryBackgroundBrush}" x:Name="MainContent" Padding="18" CornerRadius="8">
                 <ContentPresenter Content="{Binding ActivePane}" VerticalAlignment="Stretch">
                     <ContentPresenter.Resources>

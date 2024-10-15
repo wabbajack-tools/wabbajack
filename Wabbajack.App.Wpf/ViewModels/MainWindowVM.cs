@@ -81,6 +81,9 @@ public class MainWindowVM : ViewModel
     [Reactive]
     public bool UpdateAvailable { get; private set; }
 
+    [Reactive]
+    public bool NavigationVisible { get; private set; } = true;
+
     public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
         IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
         InstallerVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM)
@@ -119,6 +122,16 @@ public class MainWindowVM : ViewModel
         MessageBus.Current.Listen<SpawnBrowserWindow>()
             .ObserveOnGuiThread()
             .Subscribe(HandleSpawnBrowserWindow)
+            .DisposeWith(CompositeDisposable);
+
+        MessageBus.Current.Listen<ShowNavigation>()
+            .ObserveOnGuiThread()
+            .Subscribe((_) => NavigationVisible = true)
+            .DisposeWith(CompositeDisposable);
+
+        MessageBus.Current.Listen<HideNavigation>()
+            .ObserveOnGuiThread()
+            .Subscribe((_) => NavigationVisible = false)
             .DisposeWith(CompositeDisposable);
 
         _resourceMonitor.Updates

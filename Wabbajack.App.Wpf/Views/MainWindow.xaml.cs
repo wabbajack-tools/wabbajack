@@ -175,6 +175,9 @@ public partial class MainWindow : MetroWindow
             vm.WhenAnyValue(vm => vm.CloseCommand)
                 .BindTo(this, view => view.CloseButton.Command);
 
+            vm.WhenAnyValue(vm => vm.NavigationVisible)
+                .Subscribe(v => NavigationColumn.Width = v ? new GridLength(115, GridUnitType.Pixel) : new GridLength(0, GridUnitType.Pixel));
+
             /*
             ((MainWindowVM)DataContext).WhenAnyValue(vm => vm.Installer.InstallState)
                 .ObserveOn(RxApp.MainThreadScheduler)

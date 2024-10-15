@@ -76,6 +76,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
         {
             if (State != CompilerState.Compiling)
             {
+                ShowNavigation.Send();
                 ConfigurationText = "Modlist Details";
                 ProgressText = "Compilation";
                 ProgressPercent = Percent.Zero;
@@ -133,6 +134,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
         {
             try
             {
+                HideNavigation.Send();
                 await SaveSettings();
                 var token = CancellationTokenSource.Token;
                 RxApp.MainThreadScheduler.Schedule(_logger, (Func<System.Reactive.Concurrency.IScheduler, ILogger<BaseCompilerVM>, IDisposable>)((_, _) =>
@@ -178,6 +180,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
 
                 RxApp.MainThreadScheduler.Schedule(_logger, (Func<System.Reactive.Concurrency.IScheduler, ILogger<BaseCompilerVM>, IDisposable>)((_, _) =>
                 {
+                    ShowNavigation.Send();
                     ProgressText = "Compiled";
                     ProgressPercent = Percent.One;
                     State = CompilerState.Completed;
@@ -192,6 +195,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
             {
                 RxApp.MainThreadScheduler.Schedule(_logger, (Func<System.Reactive.Concurrency.IScheduler, ILogger<BaseCompilerVM>, IDisposable>)((_, _) =>
                 {
+                    ShowNavigation.Send();
                     if (Cancelling)
                     {
                         this.ProgressText = "Compilation Cancelled";
