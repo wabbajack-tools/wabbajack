@@ -9,8 +9,8 @@
     x:TypeArguments="local:ViewModel"
     ClipToBounds="True"
     mc:Ignorable="d">
-    <Border x:Name="Button">
-        <Grid Margin="12">
+    <Button x:Name="Button">
+        <Grid Margin="16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto" />
@@ -21,8 +21,7 @@
             </Grid.RowDefinitions>
             <TextBlock x:Name="ButtonTitleBlock" Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Get Started" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
             <ic:SymbolIcon x:Name="ButtonSymbolIcon" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="ImageTable" FontSize="28" />
-            <TextBlock x:Name="ButtonDescriptionBlock" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
-            </TextBlock>
+            <TextBlock x:Name="ButtonDescriptionBlock" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center" />
         </Grid>
-    </Border>
+    </Button>
 </local:UserControlRx>

@@ -21,59 +21,17 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="3*" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-
-<!--
-            <Border Grid.Column="0" Margin="0, 0, 16, 16" x:Name="NewModListBorder" Style="{StaticResource BigButtonStyle}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Column="0" Grid.Row="0" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4">Compile a new list</TextBlock>
-                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="Add" FontSize="28" />
-                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" FontSize="13" LineHeight="20" VerticalAlignment="Center">
-                    Import the modlist.txt file to set up a new modlist export
-                    </TextBlock>
-                </Grid>
-            </Border>
-            -->
-
-            <local:BigButton x:Name="NewModlistButton" ButtonStyle="Color" Title="Compile a new list" Description="Import the modlist.txt file to set up a new Wabbajack modlist export" Icon="Add" Margin="0, 0, 16, 16"/>
-
-
-            <local:BigButton x:Name="LoadSettingsButton" ButtonStyle="Color" Grid.Column="1" Title="Load compiler settings" Description="Continue the export of an existing modlist or push an update" Icon="ArrowImport" Margin="0, 0, 0, 16"/>
-            <!--
-            <Border Grid.Column="1" Margin="0, 0, 16, 16" x:Name="LoadSettingsBorder" Style="{StaticResource BigButtonStyle}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Column="0" Grid.Row="0" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4">Load compiler settings</TextBlock>
-                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="ArrowImport" FontSize="28" />
-                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" FontSize="13" LineHeight="20" VerticalAlignment="Center">
-                    Continue the export of an existing modlist or push an update
-                    </TextBlock>
-                </Grid>
-            </Border>
-            -->
+            <local:BigButton x:Name="NewModlistButton" Title="Compile a new list" Description="Import the modlist.txt file to set up a new Wabbajack modlist export" Icon="Add" Margin="0, 0, 16, 16" Command="{Binding NewModlistCommand}"/>
+            <local:BigButton x:Name="LoadSettingsButton" Grid.Column="1" Title="Load compiler settings" Description="Continue the export of an existing modlist or push an update" Icon="ArrowImport" Margin="0, 0, 0, 16"/>
         </Grid>
-        <Grid Grid.Row="1" Margin="0, 10, 0, 10">
+        <Grid Grid.Row="1" Margin="0, 16, 0, 16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="6*"/>
@@ -87,7 +45,7 @@
                 <RowDefinition Height="3*"/>
             </Grid.RowDefinitions>
 
-            <TextBlock LineHeight="24" FontSize="24" VerticalAlignment="Top" HorizontalAlignment="Center" FontWeight="Bold" Margin="0, 0, 0, 20">
+            <TextBlock LineHeight="24" FontSize="28" VerticalAlignment="Top" HorizontalAlignment="Center" FontWeight="Bold" Margin="0, 0, 0, 32">
             Recently Compiled Modlists
             </TextBlock>
 

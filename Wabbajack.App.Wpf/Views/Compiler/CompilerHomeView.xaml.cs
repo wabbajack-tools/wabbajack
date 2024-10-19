@@ -25,15 +25,15 @@ public partial class CompilerHomeView : ReactiveUserControl<CompilerHomeVM>
 
         this.WhenActivated(dispose =>
         {
-            this.WhenAny(x => x.ViewModel.CompiledModLists)
+            this.WhenAnyValue(x => x.ViewModel.CompiledModLists)
                 .BindToStrict(this, x => x.CompiledModListsControl.ItemsSource)
                 .DisposeWith(dispose);
 
-            this.WhenAny(x => x.ViewModel.NewModlistCommand)
+            this.WhenAnyValue(x => x.ViewModel.NewModlistCommand)
                 .BindToStrict(this, x => x.NewModlistButton.Command)
                 .DisposeWith(dispose);
 
-            this.WhenAny(x => x.ViewModel.LoadSettingsCommand)
+            this.WhenAnyValue(x => x.ViewModel.LoadSettingsCommand)
                 .BindToStrict(this, x => x.LoadSettingsButton.Command)
                 .DisposeWith(dispose);
         });

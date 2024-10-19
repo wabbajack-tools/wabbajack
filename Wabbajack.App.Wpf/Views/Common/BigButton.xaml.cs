@@ -76,9 +76,8 @@ public partial class BigButton : UserControlRx<ViewModel>
                 .BindToStrict(this, x => x.ButtonSymbolIcon.Symbol)
                 .DisposeWith(dispose);
 
-            Button.Events().MouseDown
-                .Select(args => Unit.Default)
-                .InvokeCommand(this, x => x.Command)
+            this.WhenAny(x => x.Command)
+                .BindToStrict(this, x => x.Button.Command)
                 .DisposeWith(dispose);
 
             this.WhenAny(x => x.ButtonStyle)
