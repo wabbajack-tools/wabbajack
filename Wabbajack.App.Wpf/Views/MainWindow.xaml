@@ -32,7 +32,7 @@
             <RowDefinition Height="54" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0">
+        <Grid x:Name="TitleBar" Grid.Row="0" Background="{StaticResource BackgroundBrush}" Panel.ZIndex="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
@@ -95,45 +95,57 @@
                 <ColumnDefinition Width="115" x:Name="NavigationColumn" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <local:NavigationView Grid.Column="0" ViewModel="{Binding NavigationVM}" />
-            <Border Grid.Column="1" Margin="0" Background="{StaticResource ComplementaryBackgroundBrush}" x:Name="MainContent" Padding="18" CornerRadius="8">
-                <ContentPresenter Content="{Binding ActivePane}" VerticalAlignment="Stretch">
-                    <ContentPresenter.Resources>
-                        <DataTemplate DataType="{x:Type local:HomeVM}">
-                            <local:HomeView ViewModel="{Binding}" />
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
-                            <local:ModListGalleryView ViewModel="{Binding}" />
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type local:CompilerHomeVM}">
-                            <local:CompilerHomeView ViewModel="{Binding}" />
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type local:CompilerDetailsVM}">
-                            <local:CompilerDetailsView ViewModel="{Binding}" />
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type local:CompilerFileManagerVM}">
-                            <local:CompilerFileManagerView ViewModel="{Binding}" />
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type local:CompilerMainVM}">
-                            <local:CompilerMainView ViewModel="{Binding}" />
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type local:InstallerVM}">
-                            <local:InstallationView ViewModel="{Binding}" />
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type local:WebBrowserVM}">
-                            <local:WebBrowserView />
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type local:SettingsVM}">
-                            <local:SettingsView ViewModel="{Binding}" />
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type viewModels:ModListContentsVM}">
-                            <local:ModListContentsView ViewModel="{Binding}" />
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type local:InfoVM}">
-                            <local:InfoView ViewModel="{Binding}" />
-                        </DataTemplate>
-                    </ContentPresenter.Resources>
-                </ContentPresenter>
+            <local:NavigationView Grid.Column="0" ViewModel="{Binding NavigationVM}" Panel.ZIndex="1" />
+            <Border Grid.Column="1" Margin="0" Background="{StaticResource ComplementaryBackgroundBrush}" x:Name="MainContent" CornerRadius="8">
+                <Grid>
+                    <Viewbox Stretch="Uniform" Panel.ZIndex="0">
+                        <Image HorizontalAlignment="Right" Source="{StaticResource WabbajackLogoBackground}" Width="{Binding ActualWidth, ElementName=MainContent}" Height="{Binding ActualHeight, ElementName=MainContent}" RenderTransformOrigin="0.5, 0.5">
+                            <Image.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform ScaleX="1.7" ScaleY="1.7" />
+                                    <RotateTransform Angle="15" />
+                                </TransformGroup>
+                            </Image.RenderTransform>
+                        </Image>
+                    </Viewbox>
+                    <ContentPresenter Content="{Binding ActivePane}" VerticalAlignment="Stretch" Margin="16">
+                        <ContentPresenter.Resources>
+                            <DataTemplate DataType="{x:Type local:HomeVM}">
+                                <local:HomeView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
+                                <local:ModListGalleryView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:CompilerHomeVM}">
+                                <local:CompilerHomeView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:CompilerDetailsVM}">
+                                <local:CompilerDetailsView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:CompilerFileManagerVM}">
+                                <local:CompilerFileManagerView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:CompilerMainVM}">
+                                <local:CompilerMainView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:InstallerVM}">
+                                <local:InstallationView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:WebBrowserVM}">
+                                <local:WebBrowserView />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:SettingsVM}">
+                                <local:SettingsView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type viewModels:ModListContentsVM}">
+                                <local:ModListContentsView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:InfoVM}">
+                                <local:InfoView ViewModel="{Binding}" />
+                            </DataTemplate>
+                        </ContentPresenter.Resources>
+                    </ContentPresenter>
+                </Grid>
             </Border>
         </Grid>
 

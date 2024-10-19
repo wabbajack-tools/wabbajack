@@ -5,7 +5,6 @@ using System.Reactive.Linq;
 using System.Windows;
 using System;
 using System.Windows.Input;
-using ReactiveMarbles.ObservableEvents;
 using System.Reactive;
 
 namespace Wabbajack;

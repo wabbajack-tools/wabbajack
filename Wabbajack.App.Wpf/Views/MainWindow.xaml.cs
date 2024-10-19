@@ -15,6 +15,8 @@ using Wabbajack.Common;
 using Wabbajack.Messages;
 using Wabbajack.Paths.IO;
 using Wabbajack.Util;
+using ReactiveMarbles.ObservableEvents;
+using System.Reactive;
 
 namespace Wabbajack;
 
@@ -177,6 +179,9 @@ public partial class MainWindow : MetroWindow
 
             vm.WhenAnyValue(vm => vm.NavigationVisible)
                 .Subscribe(v => NavigationColumn.Width = v ? new GridLength(115, GridUnitType.Pixel) : new GridLength(0, GridUnitType.Pixel));
+
+            TitleBar.Events().MouseDown
+                .Subscribe(x => UIElement_OnMouseDown(this, x));
 
             /*
             ((MainWindowVM)DataContext).WhenAnyValue(vm => vm.Installer.InstallState)
