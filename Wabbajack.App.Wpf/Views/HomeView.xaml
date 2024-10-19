@@ -132,39 +132,8 @@
             </Grid.ColumnDefinitions>
             <Border Grid.Column="1" Background="{StaticResource DarkSecondaryBrush}" BorderBrush="{StaticResource DarkSecondaryBrush}" BorderThickness="2" CornerRadius="4" />
         </Grid>
-        <Border x:Name="GetStartedButton" Grid.Row="4" Grid.Column="0" CornerRadius="16" BorderThickness="3" Margin="0, 16, 16, 16" Height="108">
-            <Border.Style>
-                <Style TargetType="Border">
-                    <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
-                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}" />
-                            <Setter Property="BorderBrush" Value="{StaticResource MouseOverButtonBackground}" />
-                        </Trigger>
-                    </Style.Triggers>
-                    <Style.Resources>
-                        <Style TargetType="ic:SymbolIcon">
-                            <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
-                                    <Setter Property="IsFilled" Value="True"/>
-                                    <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
-                                    <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Style.Resources>
-                </Style>
-            </Border.Style>
-            <Grid Margin="12" VerticalAlignment="Center">
+        <Border x:Name="GetStartedButton" Grid.Row="4" Grid.Column="0" Margin="0, 16, 16, 16" Style="{StaticResource BigButtonStyle}" MinHeight="108">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto" />
@@ -173,8 +142,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Get Started" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4">
-                </TextBlock>
+                <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Get Started" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
                 <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="ImageTable" FontSize="28" />
                 <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
                         Browse the gallery and find yourself a modlist to play

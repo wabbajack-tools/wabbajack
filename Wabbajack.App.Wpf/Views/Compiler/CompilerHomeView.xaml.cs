@@ -10,6 +10,7 @@ using System.Windows;
 using Wabbajack.Common;
 using ReactiveMarbles.ObservableEvents;
 using System.Reactive;
+using System.Windows.Automation.Peers;
 
 namespace Wabbajack;
 
@@ -28,17 +29,13 @@ public partial class CompilerHomeView : ReactiveUserControl<CompilerHomeVM>
                 .BindToStrict(this, x => x.CompiledModListsControl.ItemsSource)
                 .DisposeWith(dispose);
 
-            NewModListBorder
-            .Events().MouseDown
-            .Select(args => Unit.Default)
-            .InvokeCommand(this, x => x.ViewModel.NewModListCommand)
-            .DisposeWith(dispose);
+            this.WhenAny(x => x.ViewModel.NewModlistCommand)
+                .BindToStrict(this, x => x.NewModlistButton.Command)
+                .DisposeWith(dispose);
 
-            LoadSettingsBorder
-            .Events().MouseDown
-            .Select(args => Unit.Default)
-            .InvokeCommand(this, x => x.ViewModel.LoadSettingsCommand)
-            .DisposeWith(dispose);
+            this.WhenAny(x => x.ViewModel.LoadSettingsCommand)
+                .BindToStrict(this, x => x.LoadSettingsButton.Command)
+                .DisposeWith(dispose);
         });
     }
 }

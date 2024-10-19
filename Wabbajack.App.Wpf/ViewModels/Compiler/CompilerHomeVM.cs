@@ -31,7 +31,7 @@ public class CompilerHomeVM : ViewModel
     private readonly DTOSerializer _dtos;
     private readonly CompilerSettingsInferencer _inferencer;
 
-    public ICommand NewModListCommand { get; set; }
+    public ICommand NewModlistCommand { get; set; }
     public ICommand LoadSettingsCommand { get; set; }
 
     [Reactive]
@@ -69,7 +69,7 @@ public class CompilerHomeVM : ViewModel
             new CommonFileDialogFilter("Compiler Settings File", "*" + Ext.CompilerSettings)
         ]);
 
-        NewModListCommand = ReactiveCommand.CreateFromTask(async () => {
+        NewModlistCommand = ReactiveCommand.CreateFromTask(async () => {
             NewModlistPicker.SetTargetPathCommand.Execute(null);
             if(NewModlistPicker.TargetPath != default)
             {

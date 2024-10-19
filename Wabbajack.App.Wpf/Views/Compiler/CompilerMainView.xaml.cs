@@ -30,7 +30,7 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
 
                     if(success)
                     {
-                        BigImage.Image = DetailImage.Image = x.img;
+                        CompiledImage.Image = DetailImage.Image = x.img;
                     }
                 })
                 .DisposeWith(disposables);
@@ -41,6 +41,14 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
 
             ViewModel.WhenAny(vm => vm.Settings.ModListAuthor)
                 .BindToStrict(this, view => view.DetailImage.Author)
+                .DisposeWith(disposables);
+
+            ViewModel.WhenAny(vm => vm.Settings.ModListName)
+                .BindToStrict(this, view => view.CompiledImage.Title)
+                .DisposeWith(disposables);
+
+            ViewModel.WhenAny(vm => vm.Settings.ModListAuthor)
+                .BindToStrict(this, view => view.CompiledImage.Author)
                 .DisposeWith(disposables);
 
             ViewModel.WhenAny(vm => vm.State)
@@ -85,7 +93,7 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
 
             ViewModel.WhenAny(vm => vm.State)
                      .Select(s => s == CompilerState.Completed ? Visibility.Visible : Visibility.Hidden)
-                     .BindToStrict(this, view => view.BigImage.Visibility)
+                     .BindToStrict(this, view => view.CompiledImage.Visibility)
                      .DisposeWith(disposables);
 
             ViewModel.WhenAny(vm => vm.State)

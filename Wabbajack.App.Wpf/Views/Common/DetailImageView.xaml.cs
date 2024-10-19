@@ -57,6 +57,7 @@ public partial class DetailImageView : UserControlRx<ViewModel>
         this.WhenActivated(dispose =>
         {
             // Update textboxes
+            /*
             var authorVisible = this.WhenAny(x => x.Author)
                 .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)
                 .Replay(1)
@@ -64,10 +65,12 @@ public partial class DetailImageView : UserControlRx<ViewModel>
             authorVisible
                 .BindToStrict(this, x => x.AuthorTextBlock.Visibility)
                 .DisposeWith(dispose);
+            */
             this.WhenAny(x => x.Author)
                 .BindToStrict(this, x => x.AuthorTextRun.Text)
                 .DisposeWith(dispose);
 
+            /*
             var titleVisible = this.WhenAny(x => x.Title)
                 .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)
                 .Replay(1)
@@ -75,6 +78,7 @@ public partial class DetailImageView : UserControlRx<ViewModel>
             titleVisible
                 .BindToStrict(this, x => x.TitleTextBlock.Visibility)
                 .DisposeWith(dispose);
+            */
             this.WhenAny(x => x.Title)
                 .BindToStrict(this, x => x.TitleTextBlock.Text)
                 .DisposeWith(dispose);
