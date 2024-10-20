@@ -16,7 +16,7 @@
     mc:Ignorable="d">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="270" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Border Grid.Column="1"
@@ -78,8 +78,7 @@
             ShadowMargin="False" />-->
         <Grid Grid.Row="0"
             HorizontalAlignment="Left"
-            VerticalAlignment="Stretch"
-            Height="Auto">
+            VerticalAlignment="Stretch">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -94,13 +93,13 @@
                 <TextBox
                 x:Name="SearchBox"
                 mahapps:TextBoxHelper.Watermark="Search for a modlist..." />
-                <Border BorderThickness="0" Width="30" Background="{StaticResource ComplementaryPrimary08Brush}" HorizontalAlignment="Right">
-                    <ic:SymbolIcon Symbol="Search" HorizontalAlignment="Center" IsFilled="True"/>
+                <Border BorderThickness="0" CornerRadius="8" Width="30" Background="{StaticResource ComplementaryPrimary08Brush}" HorizontalAlignment="Right">
+                    <ic:SymbolIcon Symbol="Search" HorizontalAlignment="Center" IsFilled="True" Foreground="{StaticResource PrimaryBrush}"/>
                 </Border>
             </Grid>
             <ComboBox
                 Grid.Row="1"
-                Margin="0, 10, 0, 0"
+                Margin="0, 12, 0, 0"
                 VerticalAlignment="Center"
                 ItemsSource="{Binding GameTypeEntries, Mode=TwoWay}"
                 SelectedItem="{Binding SelectedGameTypeEntry, Mode=TwoWay}"
@@ -123,7 +122,7 @@
             <CheckBox
                 x:Name="ShowUnofficialLists"
                 Grid.Row="2"
-                Margin="0, 25, 0, 0"
+                Margin="0, 24, 0, 0"
                 VerticalAlignment="Center"
                 Foreground="{StaticResource ForegroundBrush}"
                 ToolTip="Show modlists from external repositories">
@@ -132,7 +131,7 @@
 
             <CheckBox
                 Grid.Row="3"
-                Margin="0, 10, 0, 0"
+                Margin="0, 12, 0, 0"
                 x:Name="ShowNSFW"
                 VerticalAlignment="Center"
                 Foreground="{StaticResource ForegroundBrush}"
@@ -143,14 +142,14 @@
             <CheckBox
                 Grid.Row="4"
                 x:Name="OnlyInstalledCheckbox"
-                Margin="0, 10, 0, 0"
+                Margin="0, 12, 0, 0"
                 VerticalAlignment="Center"
                 Foreground="{StaticResource ForegroundBrush}"
                 ToolTip="Show only modlists for games you have installed on your PC">
                 <TextBlock Grid.Column="1" Text="Show only modlists for installed games" FontSize="10" VerticalAlignment="Center" />
             </CheckBox>
 
-            <Grid Grid.Row="5" Margin="0, 25, 0, 0">
+            <Grid Grid.Row="5" Margin="0, 24, 0, 0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -160,28 +159,24 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <TextBlock Grid.ColumnSpan="2" FontSize="13" Text="Total modlist size"/>
-                <mahapps:RangeSlider Grid.ColumnSpan="2" Grid.Row="1" Margin="0, 10, 0, 0" x:Name="SizeSliderFilter" MinRangeWidth="3" AutoToolTipPlacement="TopLeft" AutoToolTipPrecision="1" mahapps:SliderHelper.TrackValueFillBrush="{StaticResource PrimaryVariantBrush}" mahapps:SliderHelper.ThumbFillBrush="{StaticResource PrimaryVariantBrush}" mahapps:SliderHelper.ThumbFillHoverBrush="{StaticResource PrimaryBrush}" mahapps:SliderHelper.ThumbFillPressedBrush="{StaticResource PrimaryBrush}"/>
-                <TextBlock Grid.Row="2" Text="{Binding ElementName=SizeSliderFilter, Path=Minimum, Converter={StaticResource MathConverter}, ConverterParameter='Round(x,1)', StringFormat={}{0} GB}" Foreground="{StaticResource PrimaryVariantBrush}"/>
-                <TextBlock Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right" Text="{Binding ElementName=SizeSliderFilter, Path=Maximum, Converter={StaticResource MathConverter}, ConverterParameter='Round(x,1)', StringFormat={}{0} GB}" Foreground="{StaticResource PrimaryVariantBrush}"/>
+                <TextBlock Grid.ColumnSpan="2" FontSize="13" Text="Total Modlist Size"/>
+                <mahapps:RangeSlider Grid.ColumnSpan="2" Grid.Row="1" Margin="0, 10, 0, 0" x:Name="SizeSliderFilter" MinRangeWidth="3" AutoToolTipPlacement="TopLeft" AutoToolTipPrecision="1" mahapps:SliderHelper.TrackValueFillBrush="{StaticResource PrimaryBrush}" mahapps:SliderHelper.ThumbFillBrush="{StaticResource PrimaryBrush}" mahapps:SliderHelper.ThumbFillHoverBrush="{StaticResource PrimaryBrush}" mahapps:SliderHelper.ThumbFillPressedBrush="{StaticResource PrimaryBrush}"/>
+                <TextBlock Grid.Row="2" Text="{Binding ElementName=SizeSliderFilter, Path=Minimum, Converter={StaticResource MathConverter}, ConverterParameter='Round(x,1)', StringFormat={}{0} GB}" Foreground="{StaticResource ComplementaryWhite25Brush}" Margin="0, 4, 0, 0"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right" Text="{Binding ElementName=SizeSliderFilter, Path=Maximum, Converter={StaticResource MathConverter}, ConverterParameter='Round(x,1)', StringFormat={}{0} GB}" Foreground="{StaticResource ComplementaryWhite25Brush}" Margin="0, 4, 0, 0"/>
             </Grid>
 
-            <Button
+            <local:WizardButton
                 x:Name="ClearFiltersButton"
                 Grid.Row="6"
-                Style="{StaticResource LargeButtonStyle}"
                 ToolTip="Reset filters to the default options"
                 VerticalAlignment="Bottom"
                 HorizontalAlignment="Stretch"
                 HorizontalContentAlignment="Center"
-                FontSize="13">
-                <Button.Content>
-                    <StackPanel Orientation="Horizontal">
-                        <ic:SymbolIcon Symbol="FilterDismiss" />
-                        <TextBlock Margin="10, 0, 0, 0">Reset filters</TextBlock>
-                    </StackPanel>
-                </Button.Content>
-            </Button>
+                Icon="FilterDismiss"
+                Text="Reset filters"
+                Width="Auto"
+                >
+            </local:WizardButton>
         </Grid>
     </Grid>
 </rxui:ReactiveUserControl>
