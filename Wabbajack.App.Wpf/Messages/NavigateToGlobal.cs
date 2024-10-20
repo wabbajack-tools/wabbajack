@@ -10,7 +10,7 @@ public enum ScreenType
     Settings,
     CompilerHome,
     CompilerMain,
-    ModListContents,
+    ModListDetails,
     WebBrowser,
     Info
 }

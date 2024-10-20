@@ -6,18 +6,19 @@ using System.Text.RegularExpressions;
 using DynamicData;
 using DynamicData.Binding;
 using Microsoft.Extensions.Logging;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.ServerResponses;
+using Wabbajack.Messages;
 
-namespace Wabbajack.ViewModels;
+namespace Wabbajack;
 
-public class ModListContentsVM : BackNavigatingVM
+public class ModListDetailsVM : BackNavigatingVM
 {
-    private MainWindowVM _mwvm;
     [Reactive]
-    public string Name { get; set; }
+    public BaseModListMetadataVM MetadataVM { get; set; }
 
     [Reactive]
     public ObservableCollection<DetailedStatusItem> Status { get; set; }
@@ -29,13 +30,18 @@ public class ModListContentsVM : BackNavigatingVM
     public ReadOnlyObservableCollection<ModListArchive> Archives => _archives;
 
     private static readonly Regex NameMatcher = new(@"(?<=\.)[^\.]+(?=\+State)", RegexOptions.Compiled);
-    private readonly ILogger<ModListContentsVM> _logger;
+    private readonly ILogger<ModListDetailsVM> _logger;
 
-    public ModListContentsVM(ILogger<ModListContentsVM> logger, MainWindowVM mwvm) : base(logger)
+    public ModListDetailsVM(ILogger<ModListDetailsVM> logger) : base(logger)
     {
         _logger = logger;
-        _mwvm = mwvm;
         Status = new ObservableCollectionExtended<DetailedStatusItem>();
+
+        MessageBus.Current.Listen<LoadModlistForDetails>()
+            .Subscribe(msg => MetadataVM = msg.MetadataVM)
+            .DisposeWith(CompositeDisposable);
+
+        BackCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.ModListGallery));
         
         string TransformClassName(Archive a)
         {

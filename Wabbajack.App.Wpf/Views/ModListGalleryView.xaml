@@ -19,63 +19,6 @@
             <ColumnDefinition Width="270" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Border Grid.Column="1"
-            BorderBrush="Transparent"
-            BorderThickness="0">
-            <ScrollViewer Background="Transparent"  VerticalScrollBarVisibility="Auto">
-                <ItemsControl
-                    x:Name="ModListGalleryControl"
-                    HorizontalAlignment="Center"
-                    ScrollViewer.VerticalScrollBarVisibility="Visible">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <local:ModListTileView ViewModel="{Binding}" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-        </Border>
-        <mahapps:ProgressRing Grid.Column="1"
-            x:Name="LoadingRing"
-            Visibility="Collapsed" />
-        <StackPanel Grid.Column="1"
-            x:Name="NoneFound"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Orientation="Vertical"
-            Visibility="Collapsed">
-            <ic:SymbolIcon
-                Grid.Column="1"
-                Foreground="{StaticResource Triadic2Brush}"
-                VerticalAlignment="Top"
-                Symbol="DismissCircle"
-                IsFilled="False"
-                FontSize="72"
-            />
-            <TextBlock
-                FontSize="24"
-                Margin="0, 10, 0, 0"
-                Foreground="{StaticResource ForegroundBrush}"
-                Text="No modlists matching specified criteria" />
-        </StackPanel>
-        <iconPacks:PackIconControl Grid.Row="1"
-            x:Name="ErrorIcon"
-            Width="55"
-            Height="55"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Foreground="{StaticResource ErrorBrush}"
-            Kind="{x:Static iconPacks:PackIconMaterialKind.AlertCircle}"
-            ToolTip="Error loading modlist gallery"
-            Visibility="Collapsed" />
-        <!--<local:TopProgressView Grid.Row="0" Grid.RowSpan="2"
-            Title="Browsing Modlists"
-            ShadowMargin="False" />-->
         <Grid Grid.Row="0"
             HorizontalAlignment="Left"
             VerticalAlignment="Stretch">
@@ -178,5 +121,59 @@
                 >
             </local:WizardButton>
         </Grid>
+        <Border Grid.Column="1"
+            BorderBrush="Transparent"
+            BorderThickness="0">
+            <ScrollViewer Background="Transparent"  VerticalScrollBarVisibility="Auto">
+                <ItemsControl
+                    x:Name="ModListGalleryControl"
+                    HorizontalAlignment="Center"
+                    ScrollViewer.VerticalScrollBarVisibility="Visible">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <local:ModListTileView ViewModel="{Binding}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+        <mahapps:ProgressRing Grid.Column="1"
+            x:Name="LoadingRing"
+            Visibility="Collapsed" />
+        <StackPanel Grid.Column="1"
+            x:Name="NoneFound"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Orientation="Vertical"
+            Visibility="Collapsed">
+            <ic:SymbolIcon
+                Grid.Column="1"
+                Foreground="{StaticResource Triadic2Brush}"
+                VerticalAlignment="Top"
+                Symbol="DismissCircle"
+                IsFilled="False"
+                FontSize="72"
+            />
+            <TextBlock
+                FontSize="24"
+                Margin="0, 10, 0, 0"
+                Foreground="{StaticResource ForegroundBrush}"
+                Text="No modlists matching specified criteria" />
+        </StackPanel>
+        <iconPacks:PackIconControl Grid.Row="1"
+            x:Name="ErrorIcon"
+            Width="55"
+            Height="55"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Foreground="{StaticResource ErrorBrush}"
+            Kind="{x:Static iconPacks:PackIconMaterialKind.AlertCircle}"
+            ToolTip="Error loading modlist gallery"
+            Visibility="Collapsed" />
     </Grid>
 </rxui:ReactiveUserControl>

@@ -53,7 +53,7 @@ public class MainWindowVM : ViewModel
     public readonly ModListGalleryVM GalleryVM;
     public readonly HomeVM HomeVM;
     public readonly WebBrowserVM WebBrowserVM;
-    public readonly Lazy<ModListContentsVM> ModListContentsVM;
+    public readonly ModListDetailsVM ModListDetailsVM;
     public readonly InfoVM InfoVM;
     public readonly UserInterventionHandlers UserInterventionHandlers;
     private readonly Client _wjClient;
@@ -86,7 +86,7 @@ public class MainWindowVM : ViewModel
 
     public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
         IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-        InstallerVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM)
+        InstallerVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM)
     {
         _logger = logger;
         _wjClient = wjClient;
@@ -103,7 +103,7 @@ public class MainWindowVM : ViewModel
         HomeVM = homeVM;
         WebBrowserVM = webBrowserVM;
         NavigationVM = navigationVM;
-        ModListContentsVM = new Lazy<ModListContentsVM>(() => new ModListContentsVM(serviceProvider.GetRequiredService<ILogger<ModListContentsVM>>(), this));
+        ModListDetailsVM = modlistDetailsVM;
         InfoVM = infoVM;
         UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetRequiredService<ILogger<UserInterventionHandlers>>(), this);
 
@@ -263,6 +263,7 @@ public class MainWindowVM : ViewModel
             ScreenType.Installer => InstallerVM,
             ScreenType.CompilerHome => CompilerHomeVM,
             ScreenType.CompilerMain => CompilerMainVM,
+            ScreenType.ModListDetails => ModListDetailsVM,
             ScreenType.Settings => SettingsPaneVM,
             ScreenType.Info => InfoVM,
             _ => ActivePane

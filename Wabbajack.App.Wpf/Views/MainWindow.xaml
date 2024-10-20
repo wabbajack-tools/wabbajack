@@ -137,8 +137,8 @@
                             <DataTemplate DataType="{x:Type local:SettingsVM}">
                                 <local:SettingsView ViewModel="{Binding}" />
                             </DataTemplate>
-                            <DataTemplate DataType="{x:Type viewModels:ModListContentsVM}">
-                                <local:ModListContentsView ViewModel="{Binding}" />
+                            <DataTemplate DataType="{x:Type local:ModListDetailsVM}">
+                                <local:ModListDetailsView ViewModel="{Binding}" />
                             </DataTemplate>
                             <DataTemplate DataType="{x:Type local:InfoVM}">
                                 <local:InfoView ViewModel="{Binding}" />

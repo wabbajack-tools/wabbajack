@@ -33,6 +33,9 @@ public partial class ModListTileView : ReactiveUserControl<GalleryModListMetadat
                 .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
                 .BindToStrict(this, view => view.Overlay.Visibility)
                 .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.DetailsCommand, v => v.ModlistButton)
+                .DisposeWith(disposables);
         });
     }
 }

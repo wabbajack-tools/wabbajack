@@ -2,10 +2,12 @@
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.DTOs;
 using Wabbajack.Extensions;
+using Wabbajack.Messages;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Services.OSIntegrated.Services;
 
@@ -17,6 +19,11 @@ public class GalleryModListMetadataVM : BaseModListMetadataVM
 
     private readonly ObservableAsPropertyHelper<bool> _Exists;
     public bool Exists => _Exists.Value;
+
+    public ICommand DetailsCommand { get; set; }
+    public ICommand OpenWebsiteCommand { get; }
+    public ICommand InstallCommand { get; }
+    public ICommand ModListContentsCommend { get; }
 
     public GalleryModListMetadataVM(ILogger logger, ModListGalleryVM parent, ModlistMetadata metadata,
         ModListDownloadMaintainer maintainer, Client wjClient, CancellationToken cancellationToken) : base(logger, metadata, maintainer, wjClient, cancellationToken)
@@ -38,5 +45,33 @@ public class GalleryModListMetadataVM : BaseModListMetadataVM
                 }
             })
             .ToGuiProperty(this, nameof(Exists));
+
+        // https://www.wabbajack.org/modlist/wj-featured/aldrnari
+        DetailsCommand = ReactiveCommand.Create(() => {
+            LoadModlistForDetails.Send(this);
+            NavigateToGlobal.Send(ScreenType.ModListDetails);
+        });
+        OpenWebsiteCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/modlist/{Metadata.NamespacedName}")));
+
+        ModListContentsCommend = ReactiveCommand.Create(async () =>
+        {
+            UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/search/{Metadata.NamespacedName}"));
+        }, IsLoadingIdle.StartWith(true));
+        
+        InstallCommand = ReactiveCommand.CreateFromTask(async () =>
+        {
+            if (await _maintainer.HaveModList(Metadata))
+            {
+                LoadModlistForInstalling.Send(_maintainer.ModListPath(Metadata), Metadata);
+                NavigateToGlobal.Send(ScreenType.Installer);
+            }
+            else
+            {
+                await Download();
+            }
+        }, LoadingLock.WhenAnyValue(ll => ll.IsLoading)
+            .CombineLatest(this.WhenAnyValue(vm => vm.IsBroken))
+            .Select(v => !v.First && !v.Second));
+
     }
 }

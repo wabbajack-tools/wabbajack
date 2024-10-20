@@ -1,0 +1,105 @@
+<rxui:ReactiveUserControl
+    x:Class="Wabbajack.ModListDetailsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Wabbajack"
+             xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+             xmlns:rxui="http://reactiveui.net"
+             xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
+             x:TypeArguments="local:ModListDetailsVM"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance local:ModListDetailsVM}"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="16" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="1.4*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <local:DetailImageView x:Name="DetailImage" Margin="0, 0, 0, 8" Background="{StaticResource BackgroundBrush}" />
+            <StackPanel Grid.Row="1">
+                <DockPanel>
+                    <TextBlock Text="{Binding MetadataVM.Metadata.Title}" FontSize="32" FontWeight="Bold"/>
+                    <ic:SymbolIcon Symbol="CheckmarkStarburst" FontSize="28" HorizontalAlignment="Right" IsFilled="True" Foreground="{StaticResource PrimaryBrush}"/>
+                </DockPanel>
+                <DockPanel Margin="0, 0, 0, 4">
+                    <TextBlock FontSize="17.5">
+                        <Run Text="version" Foreground="#80FFFFFF" />
+                        <Run Text="{Binding MetadataVM.Metadata.Version}" />
+                        <Run Text="by" Foreground="#80FFFFFF"/>
+                        <Run Text="{Binding MetadataVM.Metadata.Author}" />
+                    </TextBlock>
+                </DockPanel>
+                <DockPanel Margin="0, 0, 0, 4">
+                    <!-- Tags -->
+                </DockPanel>
+                <DockPanel Margin="0, 0, 0, 32">
+                    <TextBlock Text="{Binding MetadataVM.Metadata.Description}" TextWrapping="Wrap" LineHeight="18" />
+                </DockPanel>
+            </StackPanel>
+            <Grid Grid.Row="2" VerticalAlignment="Bottom">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="16"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <local:WizardButton Grid.Column="0" Text="Readme" Icon="DocumentOnePageMultiple" Width="Auto" />
+                <local:WizardButton Grid.Column="2" Text="Website" Icon="Globe" Width="Auto" />
+                <local:WizardButton Grid.Column="4" Text="Discord" Icon="PeopleChat" Width="Auto" />
+
+                <local:WizardButton Grid.Row="2" Grid.ColumnSpan="5" Text="Download &amp; Install" Icon="ArrowDownload" ButtonStyle="Color" Width="Auto" />
+            </Grid>
+        </Grid>
+        <Grid x:Name="ArchivesGrid" Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid>
+                <TextBox
+                x:Name="SearchBox"
+                mahapps:TextBoxHelper.Watermark="Search for a mod..."
+                Width="{Binding ActualWidth, ElementName=ArchivesGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/2}"
+                HorizontalAlignment="Left" 
+                Margin="0, 0, 0, 16" />
+                <Border BorderThickness="0" CornerRadius="8" HorizontalAlignment="Left" Width="{Binding ActualWidth, ElementName=SearchBox}" Height="{Binding ActualHeight, ElementName=SearchBox}" Margin="0, 0, 0, 16">
+                    <Border HorizontalAlignment="Right" CornerRadius="8" Background="{StaticResource ComplementaryPrimary08Brush}" Padding="8, 0, 8, 0">
+                        <ic:SymbolIcon Symbol="Search" IsFilled="True" Foreground="{StaticResource PrimaryBrush}"/>
+                    </Border>
+                </Border>
+            </Grid>
+
+            <Button x:Name="BackButton" Style="{StaticResource MainButtonStyle}" Background="Transparent" BorderThickness="0" HorizontalAlignment="Right" Padding="24, 12, 0, 12" Margin="0">
+                <ic:SymbolIcon Symbol="Dismiss" FontSize="28"/>
+            </Button>
+
+            <DataGrid Grid.Row="1" x:Name="ArchiveGrid" AutoGenerateColumns="False" FontSize="13">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Metadata.Title}" IsReadOnly="True"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Downloader" Binding="{Binding Downloader}" IsReadOnly="True"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Size" Binding="{Binding Size, Converter={StaticResource FileSizeConverter}}" IsReadOnly="True"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Hash" Binding="{Binding Hash}" IsReadOnly="True"></DataGridTextColumn>
+                    <DataGridHyperlinkColumn Header="Link" Binding="{Binding Url}" IsReadOnly="True"></DataGridHyperlinkColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+        </Grid>
+    </Grid>
+</rxui:ReactiveUserControl>

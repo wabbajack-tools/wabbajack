@@ -36,66 +36,61 @@ public class BaseModListMetadataVM : ViewModel
 {
     public ModlistMetadata Metadata { get; }
 
-    public ICommand OpenWebsiteCommand { get; }
-    public ICommand ExecuteCommand { get; }
-    
-    public ICommand ModListContentsCommend { get; }
-
     public AbsolutePath Location { get; }
 
     public LoadingLock LoadingImageLock { get; } = new();
 
     [Reactive]
-    public List<ModListTag> ModListTagList { get; private set; }
+    public List<ModListTag> ModListTagList { get; protected set; }
 
     [Reactive]
-    public Percent ProgressPercent { get; private set; }
+    public Percent ProgressPercent { get; protected set; }
 
     [Reactive]
-    public bool IsBroken { get; private set; }
+    public bool IsBroken { get; protected set; }
     
     [Reactive]
     public ModListStatus Status { get; set; }
     
     [Reactive]
-    public bool IsDownloading { get; private set; }
+    public bool IsDownloading { get; protected set; }
 
     [Reactive]
-    public string DownloadSizeText { get; private set; }
+    public string DownloadSizeText { get; protected set; }
 
     [Reactive]
-    public string InstallSizeText { get; private set; }
+    public string InstallSizeText { get; protected set; }
     
     [Reactive]
-    public string TotalSizeRequirementText { get; private set; }
+    public string TotalSizeRequirementText { get; protected set; }
     
     [Reactive]
-    public string VersionText { get; private set; }
+    public string VersionText { get; protected set; }
 
     [Reactive]
-    public bool ImageContainsTitle { get; private set; }
+    public bool ImageContainsTitle { get; protected set; }
 
     [Reactive]
-    public GameMetaData GameMetaData { get; private set; }
+    public GameMetaData GameMetaData { get; protected set; }
 
     [Reactive]
 
-    public bool DisplayVersionOnlyInInstallerView { get; private set; }
+    public bool DisplayVersionOnlyInInstallerView { get; protected set; }
 
     [Reactive]
-    public IErrorResponse Error { get; private set; }
+    public IErrorResponse Error { get; protected set; }
 
-    private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
+    protected readonly ObservableAsPropertyHelper<BitmapImage> _Image;
     public BitmapImage Image => _Image.Value;
 
-    private readonly ObservableAsPropertyHelper<bool> _LoadingImage;
+    protected readonly ObservableAsPropertyHelper<bool> _LoadingImage;
     public bool LoadingImage => _LoadingImage.Value;
 
-    private Subject<bool> IsLoadingIdle;
-    private readonly ILogger _logger;
-    private readonly ModListDownloadMaintainer _maintainer;
-    private readonly Client _wjClient;
-    private readonly CancellationToken _cancellationToken;
+    protected Subject<bool> IsLoadingIdle;
+    protected readonly ILogger _logger;
+    protected readonly ModListDownloadMaintainer _maintainer;
+    protected readonly Client _wjClient;
+    protected readonly CancellationToken _cancellationToken;
 
     public BaseModListMetadataVM(ILogger logger, ModlistMetadata metadata,
         ModListDownloadMaintainer maintainer, Client wjClient, CancellationToken cancellationToken)
@@ -125,31 +120,9 @@ public class BaseModListMetadataVM : ViewModel
         ImageContainsTitle = Metadata.ImageContainsTitle;
         DisplayVersionOnlyInInstallerView = Metadata.DisplayVersionOnlyInInstallerView;
         IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;
-        // https://www.wabbajack.org/modlist/wj-featured/aldrnari
-        OpenWebsiteCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/modlist/{Metadata.NamespacedName}")));
 
         IsLoadingIdle = new Subject<bool>();
         
-        ModListContentsCommend = ReactiveCommand.Create(async () =>
-        {
-            UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/search/{Metadata.NamespacedName}"));
-        }, IsLoadingIdle.StartWith(true));
-        
-        ExecuteCommand = ReactiveCommand.CreateFromTask(async () =>
-        {
-            if (await _maintainer.HaveModList(Metadata))
-            {
-                LoadModlistForInstalling.Send(_maintainer.ModListPath(Metadata), Metadata);
-                NavigateToGlobal.Send(ScreenType.Installer);
-            }
-            else
-            {
-                await Download();
-            }
-        }, LoadingLock.WhenAnyValue(ll => ll.IsLoading)
-            .CombineLatest(this.WhenAnyValue(vm => vm.IsBroken))
-            .Select(v => !v.First && !v.Second));
-
         var modlistImageSource = Metadata.ValidationSummary?.SmallImage?.ToString() ?? Metadata.Links.ImageUri;
         var imageObs = Observable.Return(modlistImageSource)
             .DownloadBitmapImage((ex) => _logger.LogError("Error downloading modlist image {Title} from {ImageUri}: {Exception}", Metadata.Title, modlistImageSource, ex.Message), LoadingImageLock);

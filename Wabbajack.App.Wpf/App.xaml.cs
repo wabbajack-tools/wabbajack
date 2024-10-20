@@ -178,6 +178,7 @@ public partial class App
         services.AddTransient<SettingsVM>();
         services.AddTransient<WebBrowserVM>();
         services.AddTransient<InfoVM>();
+        services.AddTransient<ModListDetailsVM>();
 
         // Login Handlers
         services.AddTransient<VectorPlexusLoginHandler>();
