@@ -24,7 +24,7 @@ public class ModVM : ViewModel
 
         ImageObservable = Observable.Return(State.ImageURL?.ToString())
             .ObserveOn(RxApp.TaskpoolScheduler)
-            .DownloadBitmapImage(ex => _logger.LogError(ex, "Skipping slide for mod {Name}", State.Name), LoadingLock)
+            .DownloadBitmapImage(ex => _logger.LogWarning(ex, "Skipping slide for mod {Name}", State.Name), LoadingLock)
             .Replay(1)
             .RefCount(TimeSpan.FromMilliseconds(5000));
     }

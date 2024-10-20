@@ -150,17 +150,10 @@ namespace Wabbajack
                         // System.Windows.Media.Imaging does not include WebP support by default, it falls back onto Windows Imaging Components (WIC) if it's a format that's not supported.
                         // Only the latest Windows versions seem to include a new version of WIC that has WebP support, so fallback on libwebp to support all Windows installations
                         // Also the Nexus image CDN has files ending with PNG/JPEG but they're actually encoded as WebP, so use this method for Nexus aswell
-                        bool isWebp = url.EndsWith("webp", StringComparison.InvariantCultureIgnoreCase) || url.Contains("staticdelivery.nexusmods.com");
-                        try
-                        {
-                            return BitmapImageFromStream(memStream);
-                        }
-                        catch(NotSupportedException)
-                        {
-                            if (isWebp)
-                                return BitmapImageFromWebp(memStream);
-                            throw;
-                        }
+                        bool isWebp = url.EndsWith("webp", StringComparison.InvariantCultureIgnoreCase) || url.StartsWith("https://staticdelivery.nexusmods.com");
+                        if (isWebp) return BitmapImageFromWebp(memStream);
+
+                        return BitmapImageFromStream(memStream);
                     }
                     catch (Exception ex)
                     {

@@ -113,13 +113,6 @@ public class ModListGalleryVM : BackNavigatingVM
                 SelectedGameTypeEntry = GameTypeEntries.FirstOrDefault();
             });
 
-        BackCommand = ReactiveCommand.Create(
-            () =>
-            {
-                NavigateToGlobal.Send(ScreenType.Home);
-            });
-
-
         this.WhenActivated(disposables =>
         {
             LoadModLists().FireAndForget();
@@ -214,7 +207,7 @@ public class ModListGalleryVM : BackNavigatingVM
                     {
                         var previousGameType = GameType;
                         SelectedGameTypeEntry = null;
-                        GameTypeEntries = new(GetGameTypeEntries());
+                        GameTypeEntries = GetGameTypeEntries();
                         var nextEntry = GameTypeEntries.FirstOrDefault(gte => previousGameType == gte.GameIdentifier);
                         SelectedGameTypeEntry = nextEntry != default ? nextEntry : GameTypeEntries.FirstOrDefault(gte => GameType == ALL_GAME_IDENTIFIER);
                     }
@@ -269,8 +262,21 @@ public class ModListGalleryVM : BackNavigatingVM
                 e.AddOrUpdate(modLists.Select(m =>
                     new GalleryModListMetadataVM(_logger, this, m, _maintainer, _wjClient, _cancellationToken)));
             });
-            SmallestSizedModlist = _modLists.Items.Any() ? _modLists.Items.MinBy(ml => ml.Metadata.DownloadMetadata.TotalSize) : null;
-            LargestSizedModlist = _modLists.Items.Any() ? _modLists.Items.MaxBy(ml => ml.Metadata.DownloadMetadata.TotalSize) : null;
+            SmallestSizedModlist = null;
+            LargestSizedModlist = null;
+            foreach(var item in _modLists.Items)
+            {
+                if (SmallestSizedModlist == null) SmallestSizedModlist = item;
+                if (LargestSizedModlist == null) LargestSizedModlist = item;
+
+                var itemTotalSize = item.Metadata.DownloadMetadata.TotalSize;
+                var smallestSize = SmallestSizedModlist.Metadata.DownloadMetadata.TotalSize;
+                var largestSize = LargestSizedModlist.Metadata.DownloadMetadata.TotalSize;
+
+                if (itemTotalSize < smallestSize) SmallestSizedModlist = item;
+
+                if (itemTotalSize > largestSize) LargestSizedModlist = item;
+            }
             MinModlistSize = SmallestSizedModlist.Metadata.DownloadMetadata.TotalSize;
             MaxModlistSize = LargestSizedModlist.Metadata.DownloadMetadata.TotalSize;
         }

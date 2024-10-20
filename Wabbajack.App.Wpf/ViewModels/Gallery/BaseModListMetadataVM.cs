@@ -118,10 +118,10 @@ public class BaseModListMetadataVM : ViewModel
         });
         ModListTagList.Add(new ModListTag(GameMetaData.HumanFriendlyGameName));
 
-        DownloadSizeText = "Download size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
-        InstallSizeText = "Installation size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
+        DownloadSizeText = "Download size: " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
+        InstallSizeText = "Installation size: " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
         TotalSizeRequirementText =  "Total size requirement: " + UIUtils.FormatBytes( Metadata.DownloadMetadata.TotalSize );
-        VersionText = "Modlist version : " + Metadata.Version;
+        VersionText = "Modlist version: " + Metadata.Version;
         ImageContainsTitle = Metadata.ImageContainsTitle;
         DisplayVersionOnlyInInstallerView = Metadata.DisplayVersionOnlyInInstallerView;
         IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;
@@ -162,8 +162,6 @@ public class BaseModListMetadataVM : ViewModel
             .StartWith(true)
             .ToGuiProperty(this, nameof(LoadingImage));
     }
-
-
 
     protected async Task Download()
     {
