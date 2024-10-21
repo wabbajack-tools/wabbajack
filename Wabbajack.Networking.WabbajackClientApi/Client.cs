@@ -161,10 +161,10 @@ public class Client
             _dtos.Options) ?? Array.Empty<ModListSummary>();
     }
 
-    public async Task<ValidatedModList> GetDetailedStatus(string machineURL)
+    public async Task<ValidatedModList> GetDetailedStatus(string repository, string machineURL)
     {
         return (await _client.GetFromJsonAsync<ValidatedModList>(
-            $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{machineURL}/status.json",
+            $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{repository}/{machineURL}/status.json",
             _dtos.Options))!;
     }
 

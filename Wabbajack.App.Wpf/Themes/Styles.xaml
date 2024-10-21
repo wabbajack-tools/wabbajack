@@ -26,6 +26,7 @@
     <local:FileSizeConverter x:Key="FileSizeConverter"/>
     <local:WidthHeightRectConverter x:Key="WidthHeightRectConverter" />
     <math:MathConverter x:Key="MathConverter" />
+    <local:NexusArchiveStateConverter x:Key="NexusArchiveStateConverter" />
 
     <!--  Colors  -->
     <Color x:Key="WindowBackgroundColor">#222531</Color>
@@ -247,12 +248,12 @@
     <SolidColorBrush x:Key="SubMenuHoverRepeatButtonBrush" Color="#7F7F7F" />
     <SolidColorBrush x:Key="MenuSeparatorBrush" Color="#4C4C4C" />
 
-    <SolidColorBrush x:Key="DataGridBackgroundBrush" Color="{StaticResource DarkBackgroundColor}" />
-    <SolidColorBrush x:Key="DataGridHeaderBackgroundBrush" Color="{StaticResource DarkBackgroundColor}" />
+    <SolidColorBrush x:Key="DataGridBackgroundBrush" Color="{StaticResource ComplementaryPrimary08}" />
+    <SolidColorBrush x:Key="DataGridHeaderBackgroundBrush" Color="{StaticResource ComplementaryPrimary08}" />
     <SolidColorBrush x:Key="DataGridHeaderMouseOverBrush" Color="#AAAAAA" />
     <SolidColorBrush x:Key="DataGridHeaderBorderBrush" Color="{StaticResource DisabledBackgroundColor}" />
     <SolidColorBrush x:Key="DataGridRowBorderBrush" Color="{StaticResource DisabledBackgroundColor}" />
-    <SolidColorBrush x:Key="DataGridRowBackgroundBrush" Color="{StaticResource DarkBackgroundColor}" />
+    <SolidColorBrush x:Key="DataGridRowBackgroundBrush" Color="{StaticResource ComplementaryPrimary08}" />
     <SolidColorBrush x:Key="DataGridRowSelectedBrush" Color="{StaticResource HighlightColor}" />
     <SolidColorBrush x:Key="GridLinesBrush" Color="Transparent" />
     <SolidColorBrush x:Key="{x:Static DataGrid.FocusBorderBrushKey}" Color="Red" />
@@ -3773,13 +3774,14 @@
 
     <!--  DataGrid  -->
     <Style TargetType="{x:Type DataGrid}">
-        <Setter Property="RowHeight" Value="22" />
+        <Setter Property="ColumnHeaderHeight" Value="42"/>
+        <Setter Property="RowHeight" Value="36" />
         <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource GridLinesBrush}" />
         <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource GridLinesBrush}" />
         <Setter Property="Background" Value="{DynamicResource DataGridBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource DataGridHeaderBorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
         <Setter Property="RowDetailsVisibilityMode" Value="VisibleWhenSelected" />
         <Setter Property="ScrollViewer.CanContentScroll" Value="true" />
         <Setter Property="ScrollViewer.PanningMode" Value="Both" />
@@ -3792,6 +3794,7 @@
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="8"
                         SnapsToDevicePixels="True">
                         <ScrollViewer x:Name="DG_ScrollViewer" Focusable="false">
                             <ScrollViewer.Template>
@@ -3805,15 +3808,7 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="*" />
-                                            <RowDefinition Height="Auto" />
                                         </Grid.RowDefinitions>
-                                        <Button
-                                            Width="{Binding CellsPanelHorizontalOffset, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
-                                            Command="{x:Static DataGrid.SelectAllCommand}"
-                                            Focusable="false"
-                                            Style="{DynamicResource {ComponentResourceKey ResourceId=DataGridSelectAllButtonStyle,
-                                                                                          TypeInTargetAssembly={x:Type DataGrid}}}"
-                                            Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.All}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
                                         <DataGridColumnHeadersPresenter Grid.Column="1"
                                             x:Name="PART_ColumnHeadersPresenter"
                                             Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Column}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
@@ -3828,6 +3823,7 @@
                                             ViewportSize="{TemplateBinding ViewportHeight}"
                                             Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
                                             Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />
+                                            <!--
                                         <Grid Grid.Row="2" Grid.Column="1">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="{Binding NonFrozenColumnsViewportHorizontalOffset, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
@@ -3842,6 +3838,7 @@
                                                 Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"
                                                 Value="{Binding HorizontalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />
                                         </Grid>
+                                        -->
                                     </Grid>
                                 </ControlTemplate>
                             </ScrollViewer.Template>

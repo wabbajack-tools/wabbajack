@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Windows.Data;
 using Wabbajack.Common;
@@ -10,14 +10,13 @@ namespace Wabbajack
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var strParameter = parameter.ToString();
             if(value is Nexus nexus)
             {
                 var nexusType = value.GetType();
-                var nexusProperty =nexusType.GetProperty(parameter);
-                return nexus;
+                var nexusProperty = nexusType.GetProperty(parameter.ToString());
+                return nexusProperty.GetValue(nexus);
             }
-            return new Nexus();
+            return "";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
