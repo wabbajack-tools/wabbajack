@@ -18,10 +18,6 @@ public partial class ModListDetailsView
 
             this.BindCommand(ViewModel, x => x.BackCommand, x => x.BackButton)
                 .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(vm => vm.MetadataVM.Image)
-                     .BindToStrict(this, v => v.DetailImage.Image)
-                     .DisposeWith(disposables);
         });
     }
 }

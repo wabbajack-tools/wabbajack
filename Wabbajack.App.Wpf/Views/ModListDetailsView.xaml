@@ -14,18 +14,22 @@
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" MinWidth="320" />
             <ColumnDefinition Width="16" />
             <ColumnDefinition Width="2*" />
         </Grid.ColumnDefinitions>
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="1.4*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <local:DetailImageView x:Name="DetailImage" Margin="0, 0, 0, 8" Background="{StaticResource BackgroundBrush}" />
+            <Border x:Name="ImageBorder" VerticalAlignment="Top" Margin="0, 0, 0, 8" BorderBrush="Transparent" CornerRadius="8" Height="{Binding ActualWidth, ElementName=ImageBorder, Converter={StaticResource MathConverter}, ConverterParameter=x/(16/9)}">
+                <Border.Background>
+                    <ImageBrush ImageSource="{Binding MetadataVM.Image}" Stretch="UniformToFill"  />
+                </Border.Background>
+            </Border>
             <StackPanel Grid.Row="1">
                 <DockPanel>
                     <TextBlock Text="{Binding MetadataVM.Metadata.Title}" FontSize="32" FontWeight="Bold"/>
