@@ -27,6 +27,7 @@
     <local:WidthHeightRectConverter x:Key="WidthHeightRectConverter" />
     <math:MathConverter x:Key="MathConverter" />
     <local:NexusArchiveStateConverter x:Key="NexusArchiveStateConverter" />
+    <local:IsNexusArchiveConverter x:Key="IsNexusArchiveConverter" />
 
     <!--  Colors  -->
     <Color x:Key="WindowBackgroundColor">#222531</Color>
@@ -56,6 +57,7 @@
     <Color x:Key="BackgroundPrimary08">#303141</Color>
     <!-- PrimaryColor mixed with ComplementaryBackgroundColor, number indicates opacity of primary color -->
     <Color x:Key="ComplementaryPrimary08">#383750</Color>
+    <Color x:Key="ComplementaryPrimary12">#3f3c57</Color>
     <Color x:Key="ComplementaryPrimary16">#46425F</Color>
     <Color x:Key="ComplementaryPrimary50">#81739d</Color>
     <Color x:Key="ComplementaryWhite02">#2d2e45</Color>
@@ -147,6 +149,7 @@
     <SolidColorBrush x:Key="BackgroundPrimary08Brush" Color="{StaticResource BackgroundPrimary08}" />
     <SolidColorBrush x:Key="ComplementaryPrimary50Brush" Color="{StaticResource ComplementaryPrimary50}" />
     <SolidColorBrush x:Key="ComplementaryPrimary16Brush" Color="{StaticResource ComplementaryPrimary16}" />
+    <SolidColorBrush x:Key="ComplementaryPrimary12Brush" Color="{StaticResource ComplementaryPrimary12}" />
     <SolidColorBrush x:Key="ComplementaryPrimary08Brush" Color="{StaticResource ComplementaryPrimary08}" />
     <SolidColorBrush x:Key="ComplementaryWhite02Brush" Color="{StaticResource ComplementaryWhite02}" />
     <SolidColorBrush x:Key="ComplementaryWhite25Brush" Color="{StaticResource ComplementaryWhite25}" />
@@ -250,8 +253,8 @@
 
     <SolidColorBrush x:Key="DataGridBackgroundBrush" Color="{StaticResource ComplementaryPrimary08}" />
     <SolidColorBrush x:Key="DataGridHeaderBackgroundBrush" Color="{StaticResource ComplementaryPrimary08}" />
-    <SolidColorBrush x:Key="DataGridHeaderMouseOverBrush" Color="#AAAAAA" />
-    <SolidColorBrush x:Key="DataGridHeaderBorderBrush" Color="{StaticResource DisabledBackgroundColor}" />
+    <SolidColorBrush x:Key="DataGridHeaderMouseOverBrush" Color="{StaticResource Primary}" />
+    <SolidColorBrush x:Key="DataGridHeaderBorderBrush" Color="Transparent" />
     <SolidColorBrush x:Key="DataGridRowBorderBrush" Color="{StaticResource DisabledBackgroundColor}" />
     <SolidColorBrush x:Key="DataGridRowBackgroundBrush" Color="{StaticResource ComplementaryPrimary08}" />
     <SolidColorBrush x:Key="DataGridRowSelectedBrush" Color="{StaticResource HighlightColor}" />
@@ -3917,12 +3920,13 @@
     </Style>
 
     <!--  DataGridRow  -->
-    <Style TargetType="{x:Type DataGridRow}">
+    <Style x:Key="DataGridRowStyle" TargetType="{x:Type DataGridRow}">
         <Setter Property="Background" Value="{DynamicResource DataGridRowBackgroundBrush}" />
         <Setter Property="SnapsToDevicePixels" Value="true" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="Border.CornerRadius" Value="3" />
+        <Setter Property="Border.CornerRadius" Value="0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Validation.ErrorTemplate" Value="{x:Null}" />
         <Setter Property="ValidationErrorTemplate">
             <Setter.Value>
@@ -3993,11 +3997,11 @@
     </Style>
 
     <!--  DataGridCell  -->
-    <Style TargetType="{x:Type DataGridCell}">
+    <Style x:Key="DataGridCellStyle" TargetType="{x:Type DataGridCell}">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="5,0,5,0" />
+        <Setter Property="Padding" Value="0" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type DataGridCell}">
