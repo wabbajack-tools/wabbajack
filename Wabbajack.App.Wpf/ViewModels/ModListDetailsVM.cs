@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using Microsoft.Extensions.Logging;
@@ -42,6 +44,9 @@ public class ModListDetailsVM : BackNavigatingVM
 
     private readonly ILogger<ModListDetailsVM> _logger;
 
+    public ICommand OpenWebsiteCommand { get; set; }
+    public ICommand OpenDiscordCommand { get; set; }
+
     public ModListDetailsVM(ILogger<ModListDetailsVM> logger, Client wjClient) : base(logger)
     {
         _logger = logger;
@@ -51,10 +56,13 @@ public class ModListDetailsVM : BackNavigatingVM
             .Subscribe(msg => MetadataVM = msg.MetadataVM)
             .DisposeWith(CompositeDisposable);
 
-        BackCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.ModListGallery));
+        OpenWebsiteCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(MetadataVM.Metadata.Links.WebsiteURL) { UseShellExecute = true }));
+        OpenDiscordCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(MetadataVM.Metadata.Links.DiscordURL) { UseShellExecute = true }));
 
+        BackCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.ModListGallery));
         this.WhenActivated(disposables =>
         {
+
             LoadArchives(MetadataVM.Metadata.RepositoryName, MetadataVM.Metadata.Links.MachineURL).FireAndForget();
 
             var searchThrottle = TimeSpan.FromSeconds(0.5);

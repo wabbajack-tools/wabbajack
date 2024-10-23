@@ -15,7 +15,7 @@
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" MinWidth="360" />
+            <ColumnDefinition Width="*" MinWidth="280" />
             <ColumnDefinition Width="16" />
             <ColumnDefinition Width="2*" />
         </Grid.ColumnDefinitions>
@@ -56,8 +56,6 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="16" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -65,9 +63,8 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <local:WizardButton Grid.Column="0" Text="Readme" Icon="DocumentOnePageMultiple" Width="Auto" />
-                <local:WizardButton Grid.Column="2" Text="Website" Icon="Globe" Width="Auto" />
-                <local:WizardButton Grid.Column="4" Text="Discord" Icon="PeopleChat" Width="Auto" />
+                <local:WizardButton x:Name="WebsiteButton" Command="{Binding OpenWebsiteCommand}" Grid.Column="0" Text="Website" Icon="Globe" Width="Auto" />
+                <local:WizardButton x:Name="DiscordButton" Command="{Binding OpenDiscordCommand}" Grid.Column="2" Text="Discord" Icon="PeopleChat" Width="Auto" />
 
                 <local:WizardButton Grid.Row="2" Grid.ColumnSpan="5" Text="Download &amp; Install" Icon="ArrowDownload" ButtonStyle="Color" Width="Auto" />
             </Grid>
@@ -166,21 +163,21 @@
                     <DataGridTemplateColumn Header="Name" IsReadOnly="True" Width="3*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding State, Converter={StaticResource NexusArchiveStateConverter}, ConverterParameter=Name}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock x:Name="StateCell" Text="{Binding State, Converter={StaticResource NexusArchiveStateConverter}, ConverterParameter=Name}" TextTrimming="CharacterEllipsis" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                     <DataGridTemplateColumn Header="Archive" IsReadOnly="True"  Width="4*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock x:Name="NameCell" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                     <DataGridTemplateColumn Header="Size" IsReadOnly="True" Width="60">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Size, Converter={StaticResource FileSizeConverter}}" />
+                                <TextBlock x:Name="SizeCell" Text="{Binding Size, Converter={StaticResource FileSizeConverter}}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
