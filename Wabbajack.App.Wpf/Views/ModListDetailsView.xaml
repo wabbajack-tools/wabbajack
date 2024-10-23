@@ -15,7 +15,7 @@
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" MinWidth="320" />
+            <ColumnDefinition Width="*" MinWidth="360" />
             <ColumnDefinition Width="16" />
             <ColumnDefinition Width="2*" />
         </Grid.ColumnDefinitions>
@@ -34,7 +34,7 @@
             <StackPanel Grid.Row="1">
                 <DockPanel>
                     <TextBlock Text="{Binding MetadataVM.Metadata.Title}" FontSize="32" FontWeight="Bold"/>
-                    <ic:SymbolIcon Symbol="CheckmarkStarburst" FontSize="28" HorizontalAlignment="Right" IsFilled="True" Foreground="{StaticResource PrimaryBrush}"/>
+                    <ic:SymbolIcon Symbol="CheckmarkStarburst" FontSize="28" HorizontalAlignment="Right" IsFilled="True" Foreground="{StaticResource PrimaryBrush}" Visibility="{Binding MetadataVM.Metadata.Official, Converter={StaticResource bool2VisibilityConverter}}" ToolTip="This modlist has been tested to deliver a solid experience with official support channels. More info about featured modlists can be found on the Wabbajack wiki."/>
                 </DockPanel>
                 <DockPanel Margin="0, 0, 0, 4">
                     <TextBlock FontSize="17.5">
@@ -148,9 +148,6 @@
                                         <MultiDataTrigger>
                                             <MultiDataTrigger.Conditions>
                                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="true" />
-                                                <!--<Condition Property="IsSelected" Value="false" />-->
-                                                <!--<Condition Property="IsMouseOver" Value="true" />
-                                                <Condition Property="IsSelected" Value="false" />-->
                                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=Item, Converter={StaticResource IsNexusArchiveConverter}}" Value="True" />
                                             </MultiDataTrigger.Conditions>
                                             <Setter Property="Cursor" Value="Hand" />
