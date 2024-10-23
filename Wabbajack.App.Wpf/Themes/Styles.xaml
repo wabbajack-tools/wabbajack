@@ -587,6 +587,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="TrianglePath" Property="Fill" Value="{StaticResource ScrollBarHotThumb}" />
+                            <Setter Property="Cursor" Value="Hand" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="TrianglePath" Property="Fill" Value="{StaticResource ScrollBarSelectedThumb}" />
@@ -651,6 +652,7 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Cursor" Value="Hand" />
                             <Setter TargetName="BottomTrianglePath" Property="Fill" Value="{StaticResource ScrollBarHotThumb}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
@@ -1432,6 +1434,13 @@
                 <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
                 <Setter Property="Background" Value="{StaticResource DisabledButtonBackground}" />
             </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsMouseOver" Value="True" />
+                    <Condition Property="IsEnabled" Value="True" />
+                </MultiTrigger.Conditions>
+                <Setter Property="Cursor" Value="Hand" />
+            </MultiTrigger>
         </Style.Triggers>
     </Style>
 
@@ -4245,11 +4254,11 @@
                                 Height="{DynamicResource MahApps.Sizes.Slider.HorizontalThumb.Height}"
                                 Background="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.ThumbFillBrush)}"
                                 BorderThickness="4 0 0 0"
-                                Cursor="Arrow"
+                                Cursor="Hand"
                                 Style="{DynamicResource MahApps.Styles.Thumb.Slider}" />
                             <mahapps:MetroThumb x:Name="PART_MiddleThumb"
                                 MinWidth="{TemplateBinding MinRangeWidth}"
-                                Cursor="Hand"
+                                Cursor="SizeAll"
                                 Foreground="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackValueFillBrush)}"
                                 Style="{DynamicResource MahApps.Styles.MetroThumb.RangeSlider.Horizontal.Middle}" />
                             <mahapps:MetroThumb x:Name="PART_RightThumb"
@@ -4257,7 +4266,7 @@
                                 Height="{DynamicResource MahApps.Sizes.Slider.HorizontalThumb.Height}"
                                 Background="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.ThumbFillBrush)}"
                                 BorderThickness="0 0 4 0"
-                                Cursor="Arrow"
+                                Cursor="Hand"
                                 Style="{DynamicResource MahApps.Styles.Thumb.Slider}" />
 
                             <RepeatButton x:Name="PART_RightEdge"
@@ -4278,6 +4287,7 @@
                         </Trigger>
 
                         <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Cursor" Value="Hand" />
                             <Setter TargetName="PART_LeftEdge" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackFillHoverBrush)}" />
                             <Setter TargetName="PART_LeftThumb" Property="Background" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.ThumbFillHoverBrush)}" />
                             <Setter TargetName="PART_MiddleThumb" Property="Foreground" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(mahapps:SliderHelper.TrackValueFillHoverBrush)}" />
