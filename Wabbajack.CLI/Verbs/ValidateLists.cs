@@ -268,7 +268,7 @@ public class ValidateLists
             var height = standardWidth * image.Height / image.Width;
             image.Mutate(x => x
                 .Resize(standardWidth, height));
-            largeImage = validatedList.RepositoryName.ToRelativePath().Combine(hash.ToHex()+"_large").WithExtension(Ext.Webp);
+            largeImage = validatedList.RepositoryName.ToRelativePath().Combine(validatedList.Links.MachineURL + "_large").WithExtension(Ext.Webp);
             await image.SaveAsync(largeImage.RelativeTo(reports).ToString(), new WebpEncoder {Quality = 85}, cancellationToken: token);
         }
 
@@ -280,7 +280,7 @@ public class ValidateLists
             var height = standardWidth * image.Height / image.Width;
             image.Mutate(x => x
                 .Resize(standardWidth, height));
-            smallImage = validatedList.RepositoryName.ToRelativePath().Combine(hash.ToHex()+"_small").WithExtension(Ext.Webp);
+            smallImage = validatedList.RepositoryName.ToRelativePath().Combine(validatedList.Links.MachineURL + "_small").WithExtension(Ext.Webp);
             await image.SaveAsync(smallImage.RelativeTo(reports).ToString(), new WebpEncoder {Quality = 75}, cancellationToken: token);
         }
 
