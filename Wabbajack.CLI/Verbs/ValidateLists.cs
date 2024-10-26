@@ -126,13 +126,6 @@ public class ValidateLists
                 Version = modList.Version
             };
 
-            if (modList.ForceDown)
-            {
-                _logger.LogWarning("List is ForceDown, skipping");
-                validatedList.Status = ListStatus.ForcedDown;
-                return validatedList;
-            }
-
             using var scope = _logger.BeginScope("MachineURL: {MachineUrl}", modList.NamespacedName);
             _logger.LogInformation("Verifying {MachineUrl} - {Title}", modList.NamespacedName, modList.Title);
             //await DownloadModList(modList, archiveManager, CancellationToken.None);
@@ -153,9 +146,29 @@ public class ValidateLists
                 validatedList.Status = ListStatus.ForcedDown;
                 return validatedList;
             }
+
+            try
+            {
+                var (smallImage, largeImage) = await ProcessModlistImage(reports, modList, token);
+                validatedList.SmallImage =
+                    new Uri(
+                        $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{smallImage.ToString().Replace("\\", "/")}");
+                validatedList.LargeImage =
+                    new Uri(
+                        $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{largeImage.ToString().Replace("\\", "/")}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "While processing modlist images for {MachineURL}", modList.NamespacedName);
+            }
+
+            if (modList.ForceDown)
+            {
+                _logger.LogWarning("List is ForceDown, skipping archive verificiation");
+                validatedList.Status = ListStatus.ForcedDown;
+                return validatedList;
+            }
             
-
-
             _logger.LogInformation("Verifying {Count} archives from {Name}", modListData.Archives.Length, modList.NamespacedName);
 
             var archives = await modListData.Archives.PMapAll(async archive =>
@@ -208,21 +221,6 @@ public class ValidateLists
             validatedList.Status = archives.Any(a => a.Status == ArchiveStatus.InValid)
                 ? ListStatus.Failed
                 : ListStatus.Available;
-
-            try
-            {
-                var (smallImage, largeImage) = await ProcessModlistImage(reports, modList, token);
-                validatedList.SmallImage =
-                    new Uri(
-                        $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{smallImage.ToString().Replace("\\", "/")}");
-                validatedList.LargeImage =
-                    new Uri(
-                        $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{largeImage.ToString().Replace("\\", "/")}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "While processing modlist images for {MachineURL}", modList.NamespacedName);
-            }
 
             return validatedList;
         }).ToArray();
