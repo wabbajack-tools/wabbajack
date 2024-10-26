@@ -264,7 +264,7 @@ public class ModListGalleryVM : BackNavigatingVM
                 e.Clear();
                 e.AddOrUpdate(modLists.Select(m =>
                     new GalleryModListMetadataVM(_logger, this, m, _maintainer, _wjClient, _cancellationToken,
-                        _serviceProvider.GetService<HttpClient>())));
+                        _serviceProvider.GetService<HttpClient>(), _serviceProvider.GetService<ImageCacheManager>())));
             });
             SmallestSizedModlist = null;
             LargestSizedModlist = null;

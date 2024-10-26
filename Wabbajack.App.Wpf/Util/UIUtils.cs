@@ -1,6 +1,7 @@
 ﻿using ReactiveUI;
 using System;
 using System.Diagnostics;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Net.Http;
 using System.Reactive.Linq;
@@ -16,6 +17,7 @@ using Wabbajack.Paths.IO;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using Wabbajack.DTOs;
+using Exception = System.Exception;
 using SharpImage = SixLabors.ImageSharp.Image;
 
 namespace Wabbajack;
@@ -83,84 +85,37 @@ public static class UIUtils
     }
 
     public static IObservable<BitmapImage> DownloadBitmapImage(this IObservable<string> obs, Action<Exception> exceptionHandler,
-        LoadingLock loadingLock, HttpClient client)
+        LoadingLock loadingLock, HttpClient client, ImageCacheManager icm)
     {
         return obs
             .ObserveOn(RxApp.TaskpoolScheduler)
             .SelectTask(async url =>
             {
-                var ll = loadingLock.WithLoading();
+                using var ll = loadingLock.WithLoading();
                 try
                 {
-                    var (found, mStream) = await FindCachedImage(url);
-                    if (found) return (ll, mStream);
+                    var (cached, cachedImg) = await icm.Get(url);
+                    if (cached) return cachedImg;
 
                     await using var stream = await client.GetStreamAsync(url);
 
-                    var pngStream = new MemoryStream();
-                    using (SharpImage img = await SharpImage.LoadAsync(stream))
+                    using var pngStream = new MemoryStream();
+                    using (var sharpImg = await SharpImage.LoadAsync(stream))
                     {
-                        await img.SaveAsPngAsync(pngStream);
+                        await sharpImg.SaveAsPngAsync(pngStream);
                     }
 
-                    await WriteCachedImage(url, pngStream);
-                        
-                    return (ll, pngStream);
-                }
-                catch (Exception ex)
-                {
-                    exceptionHandler(ex);
-                    return (ll, default);
-                }
-            })
-            .Select(x =>
-            {
-                var (ll, memStream) = x;
-                if (memStream == null) return default;
-                try
-                {
-                    return BitmapImageFromStream(memStream);
+                    var img = BitmapImageFromStream(pngStream);
+                    await icm.Add(url, img);
+                    return img;
                 }
                 catch (Exception ex)
                 {
                     exceptionHandler(ex);
                     return default;
                 }
-                finally
-                {
-                    ll.Dispose();
-                    memStream.Dispose();
-                }
             })
             .ObserveOnGuiThread();
-    }
-
-    private static async Task WriteCachedImage(string url, MemoryStream ms)
-    {
-        var folder = KnownFolders.WabbajackAppLocal.Combine("ModListImages");
-        if (!folder.DirectoryExists()) folder.CreateDirectory();
-
-        var path = folder.Combine((await Encoding.UTF8.GetBytes(url).Hash()).ToHex());
-            
-        await using (var fs = new FileStream(path.ToString(), FileMode.Create, FileAccess.Write)) {
-            ms.WriteTo(fs);
-        }
-    }
-
-    private static async Task<(bool, MemoryStream)> FindCachedImage(string uri)
-    {
-        var folder = KnownFolders.WabbajackAppLocal.Combine("ModListImages");
-        if (!folder.DirectoryExists()) folder.CreateDirectory();
-
-        var path = folder.Combine((await Encoding.UTF8.GetBytes(uri).Hash()).ToHex());
-        if(!path.FileExists()) return (false, default);
-        
-        var ms = new MemoryStream();
-        await using (FileStream fs = new FileStream(path.ToString(), FileMode.Open, FileAccess.Read))
-        {
-            await fs.CopyToAsync(ms);
-        }
-        return (true, ms);
     }
 
     /// <summary>

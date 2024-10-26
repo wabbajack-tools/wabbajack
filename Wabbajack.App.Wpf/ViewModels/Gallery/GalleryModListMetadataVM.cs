@@ -27,7 +27,7 @@ public class GalleryModListMetadataVM : BaseModListMetadataVM
     public ICommand ModListContentsCommend { get; }
 
     public GalleryModListMetadataVM(ILogger logger, ModListGalleryVM parent, ModlistMetadata metadata,
-        ModListDownloadMaintainer maintainer, Client wjClient, CancellationToken cancellationToken, HttpClient client) : base(logger, metadata, maintainer, wjClient, cancellationToken, client)
+        ModListDownloadMaintainer maintainer, Client wjClient, CancellationToken cancellationToken, HttpClient client, ImageCacheManager icm) : base(logger, metadata, maintainer, wjClient, cancellationToken, client, icm)
     {
         _parent = parent;
         _Exists = Observable.Interval(TimeSpan.FromSeconds(0.5))

@@ -92,9 +92,10 @@ public class BaseModListMetadataVM : ViewModel
     protected readonly Client _wjClient;
     protected readonly CancellationToken _cancellationToken;
     protected readonly ServiceProvider _serviceProvider;
+    protected readonly ImageCacheManager _icm;
 
     public BaseModListMetadataVM(ILogger logger, ModlistMetadata metadata,
-        ModListDownloadMaintainer maintainer, Client wjClient, CancellationToken cancellationToken, HttpClient client)
+        ModListDownloadMaintainer maintainer, Client wjClient, CancellationToken cancellationToken, HttpClient client, ImageCacheManager icm)
     {
         _logger = logger;
         _maintainer = maintainer;
@@ -123,25 +124,22 @@ public class BaseModListMetadataVM : ViewModel
         IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;
 
         IsLoadingIdle = new Subject<bool>();
-        
-        this.WhenActivated(disposables =>
-        {
-            var modlistImageSource = UIUtils.GetSmallImageUri(metadata);
-            var imageObs = Observable.Return(modlistImageSource)
-                .DownloadBitmapImage(
-                    (ex) => _logger.LogError("Error downloading modlist image {Title} from {ImageUri}: {Exception}",
-                        Metadata.Title, modlistImageSource, ex.Message), LoadingImageLock, client);
+
+        var smallImageUri = UIUtils.GetSmallImageUri(metadata);
+        var imageObs = Observable.Return(smallImageUri)
+            .DownloadBitmapImage(
+                (ex) => _logger.LogError("Error downloading modlist image {Title} from {ImageUri}: {Exception}",
+                    Metadata.Title, smallImageUri, ex.ToString()), LoadingImageLock, client, icm);
 
             _Image = imageObs
                 .ToGuiProperty(this, nameof(Image))
-                .DisposeWith(disposables);
+                .DisposeWith(CompositeDisposable);
 
             _LoadingImage = imageObs
                 .Select(x => false)
                 .StartWith(true)
                 .ToGuiProperty(this, nameof(LoadingImage))
-                .DisposeWith(disposables);
-        });
+                .DisposeWith(CompositeDisposable);
     }
 
     protected async Task Download()

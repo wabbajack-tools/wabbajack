@@ -157,8 +157,9 @@ public partial class App
         services.AddSingleton<IApplicationRegistrationService>(new ApplicationRegistrationService());
 
         services.AddSingleton<CefService>();
-        services.AddSingleton<IUserInterventionHandler, UserIntreventionHandler>();
-
+        services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
+        services.AddSingleton<ImageCacheManager>();
+        
         services.AddTransient<MainWindow>();
         services.AddTransient<MainWindowVM>();
         services.AddTransient<NavigationVM>();

@@ -74,8 +74,7 @@ public class ModListDetailsVM : BackNavigatingVM
                 .Select<string, Func<Archive, bool>>(txt =>
                 {
                     if (string.IsNullOrWhiteSpace(txt)) return _ => true;
-                    return item => item.State is Nexus ? ((Nexus)item.State).Name.ContainsCaseInsensitive(txt) : false ||
-                                   item.Name.ContainsCaseInsensitive(txt);
+                    return item => item.State is Nexus nexus ? nexus.Name.ContainsCaseInsensitive(txt) : item.Name.ContainsCaseInsensitive(txt);
                 });
 
             var searchSorter = this.WhenValueChanged(vm => vm.Search)
