@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Windows;
 using ReactiveUI;
+using static System.Windows.Visibility;
 
 namespace Wabbajack;
 
@@ -32,14 +32,14 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                 .DisposeWith(dispose);
 
             this.WhenAny(x => x.ViewModel.LoadingLock.IsLoading)
-                .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
-                .StartWith(Visibility.Collapsed)
+                .Select(x => x ? Visible : Collapsed)
+                .StartWith(Collapsed)
                 .BindTo(this, x => x.LoadingRing.Visibility)
                 .DisposeWith(dispose);
             
             this.WhenAny(x => x.ViewModel.LoadingLock.ErrorState)
-                .Select(e => (e?.Succeeded ?? true) ? Visibility.Collapsed : Visibility.Visible)
-                .StartWith(Visibility.Collapsed)
+                .Select(e => (e?.Succeeded ?? true) ? Collapsed : Visible)
+                .StartWith(Collapsed)
                 .BindToStrict(this, x => x.ErrorIcon.Visibility)
                 .DisposeWith(dispose);
             
@@ -47,8 +47,8 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                 .CombineLatest(this.WhenAnyValue(x => x.ViewModel.LoadingLock.IsLoading))
                 .Select(x => x.First == 0 && !x.Second)
                 .DistinctUntilChanged()
-                .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
-                .StartWith(Visibility.Collapsed)
+                .Select(x => x ? Visible : Collapsed)
+                .StartWith(Collapsed)
                 .BindToStrict(this, x => x.NoneFound.Visibility)
                 .DisposeWith(dispose);
 
@@ -64,15 +64,15 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
             this.BindStrict(ViewModel,
                             vm => vm.MinModlistSize,
                             view => view.SizeSliderFilter.LowerValue,
-                            (double vmProp) => vmProp / Math.Pow(1024, 3),
-                            (double vProp) => vProp * Math.Pow(1024, 3))
+                            vmProp => vmProp / Math.Pow(1024, 3),
+                            vProp => vProp * Math.Pow(1024, 3))
                 .DisposeWith(dispose);
 
             this.BindStrict(ViewModel,
                             vm => vm.MaxModlistSize,
                             view => view.SizeSliderFilter.UpperValue,
-                            (double vmProp) => vmProp / Math.Pow(1024, 3),
-                            (double vProp) => vProp * Math.Pow(1024, 3))
+                            vmProp => vmProp / Math.Pow(1024, 3),
+                            vProp => vProp * Math.Pow(1024, 3))
                 .DisposeWith(dispose);
 
             this.WhenAny(x => x.ViewModel.ClearFiltersCommand)

@@ -102,7 +102,7 @@ public class ModListDetailsVM : BackNavigatingVM
         try
         {
             var validatedModlist = await _wjClient.GetDetailedStatus(repo, machineURL);
-            var archives = validatedModlist.Archives.Select(a => a.Original);
+            var archives = validatedModlist.Archives.Select(a => a.Original).ToList();
             _archives.Edit(a =>
             {
                 a.Clear();

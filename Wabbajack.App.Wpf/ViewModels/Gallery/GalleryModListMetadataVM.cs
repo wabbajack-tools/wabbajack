@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
@@ -26,7 +27,7 @@ public class GalleryModListMetadataVM : BaseModListMetadataVM
     public ICommand ModListContentsCommend { get; }
 
     public GalleryModListMetadataVM(ILogger logger, ModListGalleryVM parent, ModlistMetadata metadata,
-        ModListDownloadMaintainer maintainer, Client wjClient, CancellationToken cancellationToken) : base(logger, metadata, maintainer, wjClient, cancellationToken)
+        ModListDownloadMaintainer maintainer, Client wjClient, CancellationToken cancellationToken, HttpClient client) : base(logger, metadata, maintainer, wjClient, cancellationToken, client)
     {
         _parent = parent;
         _Exists = Observable.Interval(TimeSpan.FromSeconds(0.5))

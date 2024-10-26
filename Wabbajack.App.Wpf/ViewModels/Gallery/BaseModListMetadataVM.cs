@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Net.Http;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
-using Wabbajack.Messages;
 using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
@@ -80,10 +80,10 @@ public class BaseModListMetadataVM : ViewModel
     [Reactive]
     public IErrorResponse Error { get; protected set; }
 
-    protected readonly ObservableAsPropertyHelper<BitmapImage> _Image;
+    protected ObservableAsPropertyHelper<BitmapImage> _Image { get; set; }
     public BitmapImage Image => _Image.Value;
 
-    protected readonly ObservableAsPropertyHelper<bool> _LoadingImage;
+    protected ObservableAsPropertyHelper<bool> _LoadingImage { get; set; }
     public bool LoadingImage => _LoadingImage.Value;
 
     protected Subject<bool> IsLoadingIdle;
@@ -91,9 +91,10 @@ public class BaseModListMetadataVM : ViewModel
     protected readonly ModListDownloadMaintainer _maintainer;
     protected readonly Client _wjClient;
     protected readonly CancellationToken _cancellationToken;
+    protected readonly ServiceProvider _serviceProvider;
 
     public BaseModListMetadataVM(ILogger logger, ModlistMetadata metadata,
-        ModListDownloadMaintainer maintainer, Client wjClient, CancellationToken cancellationToken)
+        ModListDownloadMaintainer maintainer, Client wjClient, CancellationToken cancellationToken, HttpClient client)
     {
         _logger = logger;
         _maintainer = maintainer;
@@ -123,17 +124,24 @@ public class BaseModListMetadataVM : ViewModel
 
         IsLoadingIdle = new Subject<bool>();
         
-        var modlistImageSource = Metadata.ValidationSummary?.SmallImage?.ToString() ?? Metadata.Links.ImageUri;
-        var imageObs = Observable.Return(modlistImageSource)
-            .DownloadBitmapImage((ex) => _logger.LogError("Error downloading modlist image {Title} from {ImageUri}: {Exception}", Metadata.Title, modlistImageSource, ex.Message), LoadingImageLock);
+        this.WhenActivated(disposables =>
+        {
+            var modlistImageSource = UIUtils.GetSmallImageUri(metadata);
+            var imageObs = Observable.Return(modlistImageSource)
+                .DownloadBitmapImage(
+                    (ex) => _logger.LogError("Error downloading modlist image {Title} from {ImageUri}: {Exception}",
+                        Metadata.Title, modlistImageSource, ex.Message), LoadingImageLock, client);
 
-        _Image = imageObs
-            .ToGuiProperty(this, nameof(Image));
+            _Image = imageObs
+                .ToGuiProperty(this, nameof(Image))
+                .DisposeWith(disposables);
 
-        _LoadingImage = imageObs
-            .Select(x => false)
-            .StartWith(true)
-            .ToGuiProperty(this, nameof(LoadingImage));
+            _LoadingImage = imageObs
+                .Select(x => false)
+                .StartWith(true)
+                .ToGuiProperty(this, nameof(LoadingImage))
+                .DisposeWith(disposables);
+        });
     }
 
     protected async Task Download()

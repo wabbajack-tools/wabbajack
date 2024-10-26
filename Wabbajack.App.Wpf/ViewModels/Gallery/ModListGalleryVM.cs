@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.Http;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
@@ -9,13 +10,13 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
-using Wabbajack.Messages;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.Services;
@@ -68,7 +69,7 @@ public class ModListGalleryVM : BackNavigatingVM
         public static GameTypeEntry GetAllGamesEntry(int amount) => new(null, amount);
     }
 
-    [Reactive] public List<GameTypeEntry> GameTypeEntries { get; set; }
+    [Reactive] public ObservableCollection<GameTypeEntry> GameTypeEntries { get; set; }
     private bool _filteringOnGame;
     private GameTypeEntry _selectedGameTypeEntry = null;
 
@@ -88,11 +89,12 @@ public class ModListGalleryVM : BackNavigatingVM
     private readonly ModListDownloadMaintainer _maintainer;
     private readonly SettingsManager _settingsManager;
     private readonly CancellationToken _cancellationToken;
+    private readonly IServiceProvider _serviceProvider;
 
     public ICommand ClearFiltersCommand { get; set; }
 
     public ModListGalleryVM(ILogger<ModListGalleryVM> logger, Client wjClient, GameLocator locator,
-        SettingsManager settingsManager, ModListDownloadMaintainer maintainer, CancellationToken cancellationToken)
+        SettingsManager settingsManager, ModListDownloadMaintainer maintainer, CancellationToken cancellationToken, IServiceProvider serviceProvider)
         : base(logger)
     {
         var searchThrottle = TimeSpan.FromSeconds(0.5);
@@ -102,6 +104,7 @@ public class ModListGalleryVM : BackNavigatingVM
         _maintainer = maintainer;
         _settingsManager = settingsManager;
         _cancellationToken = cancellationToken;
+        _serviceProvider = serviceProvider;
 
         ClearFiltersCommand = ReactiveCommand.Create(
             () =>
@@ -201,7 +204,7 @@ public class ModListGalleryVM : BackNavigatingVM
                 .Sort(searchSorter)
                 .TreatMovesAsRemoveAdd()
                 .Bind(out _filteredModLists)
-                .Subscribe((_) =>
+                .Subscribe(_ =>
                 {
                     if (!_filteringOnGame)
                     {
@@ -260,7 +263,8 @@ public class ModListGalleryVM : BackNavigatingVM
             {
                 e.Clear();
                 e.AddOrUpdate(modLists.Select(m =>
-                    new GalleryModListMetadataVM(_logger, this, m, _maintainer, _wjClient, _cancellationToken)));
+                    new GalleryModListMetadataVM(_logger, this, m, _maintainer, _wjClient, _cancellationToken,
+                        _serviceProvider.GetService<HttpClient>())));
             });
             SmallestSizedModlist = null;
             LargestSizedModlist = null;
@@ -288,13 +292,13 @@ public class ModListGalleryVM : BackNavigatingVM
         ll.Succeed();
     }
 
-    private List<GameTypeEntry> GetGameTypeEntries()
+    private ObservableCollection<GameTypeEntry> GetGameTypeEntries()
     {
-        return ModLists.Select(fm => fm.Metadata)
-               .GroupBy(m => m.Game)
-               .Select(g => new GameTypeEntry(g.Key.MetaData(), g.Count()))
-               .OrderBy(gte => gte.GameMetaData.HumanFriendlyGameName)
-               .Prepend(GameTypeEntry.GetAllGamesEntry(ModLists.Count))
-               .ToList();
+        return new(ModLists.Select(fm => fm.Metadata)
+            .GroupBy(m => m.Game)
+            .Select(g => new GameTypeEntry(g.Key.MetaData(), g.Count()))
+            .OrderBy(gte => gte.GameMetaData.HumanFriendlyGameName)
+            .Prepend(GameTypeEntry.GetAllGamesEntry(ModLists.Count))
+            .ToList());
     }
 }
