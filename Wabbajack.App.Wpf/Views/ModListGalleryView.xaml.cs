@@ -56,9 +56,9 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                 .DisposeWith(dispose);
             this.BindStrict(ViewModel, vm => vm.OnlyInstalled, x => x.OnlyInstalledCheckbox.IsChecked)
                 .DisposeWith(dispose);
-            this.BindStrict(ViewModel, vm => vm.ShowNSFW, x => x.ShowNSFW.IsChecked)
+            this.BindStrict(ViewModel, vm => vm.IncludeNSFW, x => x.ShowNSFW.IsChecked)
                 .DisposeWith(dispose);
-            this.BindStrict(ViewModel, vm => vm.ShowUnofficialLists, x => x.ShowUnofficialLists.IsChecked)
+            this.BindStrict(ViewModel, vm => vm.IncludeUnofficial, x => x.ShowUnofficialLists.IsChecked)
                 .DisposeWith(dispose);
 
             this.BindStrict(ViewModel,

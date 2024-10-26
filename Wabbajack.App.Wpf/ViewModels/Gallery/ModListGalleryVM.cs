@@ -27,6 +27,7 @@ public class ModListGalleryVM : BackNavigatingVM
 {
     public MainWindowVM MWVM { get; }
 
+    private bool _savingSettings = false;
     private readonly SourceCache<GalleryModListMetadataVM, string> _modLists = new(x => x.Metadata.NamespacedName);
     public ReadOnlyObservableCollection<GalleryModListMetadataVM> _filteredModLists;
 
@@ -40,9 +41,9 @@ public class ModListGalleryVM : BackNavigatingVM
 
     [Reactive] public bool OnlyInstalled { get; set; }
 
-    [Reactive] public bool ShowNSFW { get; set; }
+    [Reactive] public bool IncludeNSFW { get; set; }
 
-    [Reactive] public bool ShowUnofficialLists { get; set; }
+    [Reactive] public bool IncludeUnofficial { get; set; }
 
     [Reactive] public string GameType { get; set; }
     [Reactive] public double MinModlistSize { get; set; }
@@ -110,8 +111,8 @@ public class ModListGalleryVM : BackNavigatingVM
             () =>
             {
                 OnlyInstalled = false;
-                ShowNSFW = false;
-                ShowUnofficialLists = false;
+                IncludeNSFW = false;
+                IncludeUnofficial = false;
                 Search = string.Empty;
                 SelectedGameTypeEntry = GameTypeEntries.FirstOrDefault();
             });
@@ -120,8 +121,9 @@ public class ModListGalleryVM : BackNavigatingVM
         {
             LoadModLists().FireAndForget();
             LoadSettings().FireAndForget();
-
-            Disposable.Create(() => SaveSettings().FireAndForget())
+            
+            this.WhenAnyValue(x => x.IncludeNSFW, x => x.IncludeUnofficial, x => x.OnlyInstalled, x => x.GameType)
+                .Subscribe(_ => SaveSettings().FireAndForget())
                 .DisposeWith(disposables);
 
             var searchTextPredicates = this.ObservableForProperty(vm => vm.Search)
@@ -145,7 +147,7 @@ public class ModListGalleryVM : BackNavigatingVM
                 })
                 .StartWith(_ => true);
 
-            var showUnofficial = this.ObservableForProperty(vm => vm.ShowUnofficialLists)
+            var showUnofficial = this.ObservableForProperty(vm => vm.IncludeUnofficial)
                 .Select(v => v.Value)
                 .StartWith(false)
                 .Select<bool, Func<GalleryModListMetadataVM, bool>>(unoffical =>
@@ -154,10 +156,14 @@ public class ModListGalleryVM : BackNavigatingVM
                     return x => x.Metadata.Official;
                 });
 
-            var showNSFWFilter = this.ObservableForProperty(vm => vm.ShowNSFW)
+            var showNSFWFilter = this.ObservableForProperty(vm => vm.IncludeNSFW)
                 .Select(v => v.Value)
-                .Select<bool, Func<GalleryModListMetadataVM, bool>>(showNsfw => { return item => item.Metadata.NSFW == showNsfw; })
-                .StartWith(item => item.Metadata.NSFW == false);
+                .StartWith(false)
+                .Select<bool, Func<GalleryModListMetadataVM, bool>>(showNsfw =>
+                {
+                    if (showNsfw) return x => true;
+                    return x => !x.Metadata.NSFW;
+                });
 
             var gameFilter = this.ObservableForProperty(vm => vm.GameType)
                 .Select(v => v.Value)
@@ -228,14 +234,17 @@ public class ModListGalleryVM : BackNavigatingVM
 
     private async Task SaveSettings()
     {
+        if (_savingSettings) return;
+
+        _savingSettings = true;
         await _settingsManager.Save("modlist_gallery", new GalleryFilterSettings
         {
             GameType = GameType,
-            ShowNSFW = ShowNSFW,
-            ShowUnofficialLists = ShowUnofficialLists,
-            Search = Search,
+            IncludeNSFW = IncludeNSFW,
+            IncludeUnofficial = IncludeUnofficial,
             OnlyInstalled = OnlyInstalled,
         });
+        _savingSettings = false;
     }
 
     private async Task LoadSettings()
@@ -245,9 +254,8 @@ public class ModListGalleryVM : BackNavigatingVM
             (_, s) =>
         {
             SelectedGameTypeEntry = GameTypeEntries?.FirstOrDefault(gte => gte.GameIdentifier.Equals(s.GameType));
-            ShowNSFW = s.ShowNSFW;
-            ShowUnofficialLists = s.ShowUnofficialLists;
-            Search = s.Search;
+            IncludeNSFW = s.IncludeNSFW;
+            IncludeUnofficial = s.IncludeUnofficial;
             OnlyInstalled = s.OnlyInstalled;
             return Disposable.Empty;
         });

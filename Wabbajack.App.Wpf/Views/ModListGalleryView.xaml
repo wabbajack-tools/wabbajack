@@ -70,7 +70,6 @@
                         Padding="0, 12, 0, 12">
                     <StackPanel Orientation="Vertical">
                         <CheckBox x:Name="ShowUnofficialLists"
-                                  IsThreeState="True"
                                   Margin="12, 0, 0, 12"
                                   VerticalAlignment="Center"
                                   Foreground="{StaticResource ForegroundBrush}"
