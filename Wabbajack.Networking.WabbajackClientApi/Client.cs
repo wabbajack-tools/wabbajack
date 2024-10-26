@@ -210,6 +210,7 @@ public class Client
     public async Task<ModlistMetadata[]> LoadLists()
     {
         var repos = LoadRepositories();
+        var featured = await LoadFeaturedLists();
 
         return await (await repos).PMapAll(async url =>
             {
@@ -220,7 +221,8 @@ public class Client
                         _dtos.Options))!.Select(meta =>
                     {
                         meta.RepositoryName = url.Key;
-                        meta.Official = meta.RepositoryName == "wj-featured";
+                        meta.Official = meta.RepositoryName == "wj-featured" ||
+                                        featured.Contains(meta.NamespacedName);
                         return meta;
                     });
                 }
