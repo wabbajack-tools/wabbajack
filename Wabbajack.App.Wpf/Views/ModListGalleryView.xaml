@@ -28,6 +28,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
@@ -64,7 +65,7 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
 
-            <StackPanel Grid.Row="3" Margin="0, 12, 0, 12" Orientation="Vertical">
+            <StackPanel Grid.Row="2" Margin="0, 12, 0, 12" Orientation="Vertical">
                 <Label Margin="0, 0, 0, 4">Include</Label>
                 <Border CornerRadius="8" Background="{StaticResource ComplementaryPrimary08Brush}"
                         Padding="0, 12, 0, 12">
@@ -89,18 +90,7 @@
                 </Border>
             </StackPanel>
 
-            <CheckBox
-                Grid.Row="4"
-                x:Name="OnlyInstalledCheckbox"
-                Margin="0, 12, 0, 0"
-                VerticalAlignment="Center"
-                Foreground="{StaticResource ForegroundBrush}"
-                ToolTip="Show only modlists for games you have installed on your PC">
-                <TextBlock Text="Show only modlists for installed games" FontSize="10"
-                           VerticalAlignment="Center" />
-            </CheckBox>
-
-            <Grid Grid.Row="2" Margin="0, 24, 0, 0">
+            <Grid Grid.Row="3" Margin="0, 12, 0, 0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
@@ -126,9 +116,29 @@
                            Foreground="{StaticResource ComplementaryWhite25Brush}" Margin="0, 4, 0, 0" />
             </Grid>
 
+            <CheckBox
+                Grid.Row="4"
+                x:Name="OnlyInstalledCheckbox"
+                Margin="0, 12, 0, 0"
+                VerticalAlignment="Center"
+                Foreground="{StaticResource ForegroundBrush}"
+                ToolTip="Show only modlists for games you have installed on your PC">
+                <TextBlock Text="Show only modlists for installed games" FontSize="10"
+                           VerticalAlignment="Center" />
+            </CheckBox>
+
+            <mahapps:MultiSelectionComboBox
+                x:Name="IncludesTagsFilter"
+                Grid.Row="5"
+                Margin="0, 12, 0, 0"
+                Style="{StaticResource TagsComboBox}"
+                mahapps:MultiSelectorHelper.SelectedItems="{Binding IncludedTags}"
+                ItemsSource="{Binding AllowedTags}">
+            </mahapps:MultiSelectionComboBox>
+
             <local:WizardButton
                 x:Name="ResetFiltersButton"
-                Grid.Row="5"
+                Grid.Row="7"
                 ToolTip="Reset filters to the default options"
                 VerticalAlignment="Bottom"
                 HorizontalAlignment="Stretch"

@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using DynamicData;
+using ReactiveMarbles.ObservableEvents;
 using ReactiveUI;
 using static System.Windows.Visibility;
 
@@ -74,6 +76,17 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                             vmProp => vmProp / Math.Pow(1024, 3),
                             vProp => vProp * Math.Pow(1024, 3))
                 .DisposeWith(dispose);
+            
+            /*
+            this.IncludesTagsFilter.Events().SelectionChanged
+                .Subscribe(args =>
+                {
+                    ViewModel.IncludedTags.AddRange(args.AddedItems.Cast<ModListGalleryVM.Tag>());
+                    foreach(var tag in args.RemovedItems.Cast<ModListGalleryVM.Tag>())
+                        ViewModel.IncludedTags.Remove(tag);
+                })
+                .DisposeWith(dispose);
+                */
         });
     }
 }

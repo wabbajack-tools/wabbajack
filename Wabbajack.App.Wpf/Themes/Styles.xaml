@@ -4338,6 +4338,23 @@
         <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}"/>
     </Style>
 
+    <Style x:Key="TagsComboBox" TargetType="{x:Type mahapps:MultiSelectionComboBox}" BasedOn="{StaticResource MahApps.Styles.MultiSelectionComboBox}">
+        <Setter Property="IsEditable" Value="False" />
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="ItemContainerStyle" Value="{StaticResource MahApps.Styles.MultiSelectionComboBoxItem}" />
+        <Setter Property="SelectedItemContainerStyle" Value="{StaticResource MahApps.Styles.MultiSelectionComboBoxSelectedItem.Removable}" />
+        <Setter Property="IsTextSearchEnabled" Value="True" />
+        <Setter Property="IsTextSearchCaseSensitive" Value="False" />
+        <Setter Property="Separator" Value=", " />
+        <Setter Property="ObjectToStringComparer" Value="{mahapps:DefaultObjectToStringComparer}" />
+        <Setter Property="StringToObjectParser" Value="{x:Static mahapps:DefaultStringToObjectParser.Instance}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="SelectedValuePath" Value="Name" />
+        <Setter Property="DisplayMemberPath" Value="Name" />
+    </Style>
+
 <DrawingImage x:Key="WabbajackLogoBackground">
   <DrawingImage.Drawing>
     <DrawingGroup ClipGeometry="M0,0 V1659 H1074 V0 H0 Z">

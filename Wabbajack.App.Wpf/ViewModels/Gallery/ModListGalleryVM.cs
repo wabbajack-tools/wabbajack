@@ -12,6 +12,7 @@ using DynamicData;
 using DynamicData.Binding;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ReactiveMarbles.ObservableEvents;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
@@ -22,9 +23,38 @@ using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.Services;
 
 namespace Wabbajack;
-
 public class ModListGalleryVM : BackNavigatingVM
 {
+
+    public class Tag
+    {
+        public Tag(string name)
+        {
+            Name = name;
+        }
+        public string Name { get; set; }
+        public override string ToString() => Name;
+    }
+
+    public class GameTypeEntry
+    {
+        public GameTypeEntry(GameMetaData gameMetaData, int amount)
+        {
+            GameMetaData = gameMetaData;
+            IsAllGamesEntry = gameMetaData == null;
+            GameIdentifier = IsAllGamesEntry ? ALL_GAME_IDENTIFIER : gameMetaData?.HumanFriendlyGameName;
+            Amount = amount;
+            FormattedName = IsAllGamesEntry ? $"{ALL_GAME_IDENTIFIER} ({Amount})" : $"{gameMetaData.HumanFriendlyGameName} ({Amount})";
+        }
+
+        public bool IsAllGamesEntry { get; set; }
+        public GameMetaData GameMetaData { get; private set; }
+        public int Amount { get; private set; }
+        public string FormattedName { get; private set; }
+        public string GameIdentifier { get; private set; }
+        public static GameTypeEntry GetAllGamesEntry(int amount) => new(null, amount);
+    }
+
     public MainWindowVM MWVM { get; }
 
     private bool _savingSettings = false;
@@ -48,27 +78,12 @@ public class ModListGalleryVM : BackNavigatingVM
     [Reactive] public string GameType { get; set; }
     [Reactive] public double MinModlistSize { get; set; }
     [Reactive] public double MaxModlistSize { get; set; }
+    [Reactive] public ObservableCollection<Tag> AllowedTags { get; set; }
+    [Reactive] public ObservableCollection<Tag> IncludedTags { get; set; } = new();
+    [Reactive] public ObservableCollection<Tag> ExcludedTags { get; set; } = new();
 
     [Reactive] public GalleryModListMetadataVM SmallestSizedModlist { get; set; }
     [Reactive] public GalleryModListMetadataVM LargestSizedModlist { get; set; }
-
-    public class GameTypeEntry
-    {
-        public GameTypeEntry(GameMetaData gameMetaData, int amount)
-        {
-            GameMetaData = gameMetaData;
-            IsAllGamesEntry = gameMetaData == null;
-            GameIdentifier = IsAllGamesEntry ? ALL_GAME_IDENTIFIER : gameMetaData?.HumanFriendlyGameName;
-            Amount = amount;
-            FormattedName = IsAllGamesEntry ? $"{ALL_GAME_IDENTIFIER} ({Amount})" : $"{gameMetaData.HumanFriendlyGameName} ({Amount})";
-        }
-        public bool IsAllGamesEntry { get; set; }
-        public GameMetaData GameMetaData { get; private set; }
-        public int Amount { get; private set; }
-        public string FormattedName { get; private set; }
-        public string GameIdentifier { get; private set; }
-        public static GameTypeEntry GetAllGamesEntry(int amount) => new(null, amount);
-    }
 
     [Reactive] public ObservableCollection<GameTypeEntry> GameTypeEntries { get; set; }
     private bool _filteringOnGame;
@@ -79,7 +94,7 @@ public class ModListGalleryVM : BackNavigatingVM
         get => _selectedGameTypeEntry;
         set
         {
-            RaiseAndSetIfChanged(ref _selectedGameTypeEntry, value == null ? GameTypeEntries?.FirstOrDefault(gte => gte.IsAllGamesEntry) : value);
+            RaiseAndSetIfChanged(ref _selectedGameTypeEntry, value ?? GameTypeEntries?.FirstOrDefault(gte => gte.IsAllGamesEntry));
             GameType = _selectedGameTypeEntry?.GameIdentifier;
         }
     }
@@ -190,6 +205,18 @@ public class ModListGalleryVM : BackNavigatingVM
                                  {
                                      return item => item.Metadata.DownloadMetadata.TotalSize <= maxModlistSize;
                                  });
+
+            var includedTagsFilter = IncludedTags.Events().CollectionChanged
+                .Throttle(TimeSpan.FromSeconds(0.05), RxApp.MainThreadScheduler)
+                .Select(v => v.NewItems?.Cast<Tag>())
+                .Select<IEnumerable<Tag>, Func<GalleryModListMetadataVM, bool>>(includedTags =>
+                {
+                    if(!includedTags?.Any() ?? true) return _ => true;
+                    
+                    var tags = includedTags.Select(x => x.Name).ToHashSet();
+                    return item => item.Metadata.Tags.Any(tag => tags.Contains(tag));
+                })
+                .StartWith(_ => true);
                                 
 
             var searchSorter = this.WhenValueChanged(vm => vm.Search)
@@ -207,6 +234,7 @@ public class ModListGalleryVM : BackNavigatingVM
                 .Filter(gameFilter)
                 .Filter(minModlistSizeFilter)
                 .Filter(maxModlistSizeFilter)
+                .Filter(includedTagsFilter)
                 .Sort(searchSorter)
                 .TreatMovesAsRemoveAdd()
                 .Bind(out _filteredModLists)
@@ -272,6 +300,7 @@ public class ModListGalleryVM : BackNavigatingVM
             {
                 modlist.Tags = modlist.Tags.Where(t => allowedTags.Contains(t)).ToList();
             }
+            AllowedTags = new(allowedTags.Select(t => new Tag(t)));
             var httpClient = _serviceProvider.GetRequiredService<HttpClient>();
             var cacheManager = _serviceProvider.GetRequiredService<ImageCacheManager>();
             _modLists.Edit(e =>
