@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Octokit;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
@@ -251,6 +252,15 @@ public class Client
             new HttpRequestMessage(HttpMethod.Get,
                 "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/repositories.json"), _dtos.Options);
         return repositories!;
+    }
+
+    public async Task<HashSet<string>> LoadAllowedTags()
+    {
+        var data = await _client.GetFromJsonAsync<string[]>(_limiter,
+            new HttpRequestMessage(HttpMethod.Get,
+                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/refs/heads/master/allowed_tags.json"),
+            _dtos.Options);
+        return data!.ToHashSet(StringComparer.CurrentCultureIgnoreCase);
     }
 
     public Uri GetPatchUrl(Hash upgradeHash, Hash archiveHash)

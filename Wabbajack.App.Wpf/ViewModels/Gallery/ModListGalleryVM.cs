@@ -98,7 +98,7 @@ public class ModListGalleryVM : BackNavigatingVM
         SettingsManager settingsManager, ModListDownloadMaintainer maintainer, CancellationToken cancellationToken, IServiceProvider serviceProvider)
         : base(logger)
     {
-        var searchThrottle = TimeSpan.FromSeconds(0.5);
+        var searchThrottle = TimeSpan.FromSeconds(0.35);
         _wjClient = wjClient;
         _logger = logger;
         _locator = locator;
@@ -147,18 +147,18 @@ public class ModListGalleryVM : BackNavigatingVM
                 })
                 .StartWith(_ => true);
 
-            var showUnofficial = this.ObservableForProperty(vm => vm.IncludeUnofficial)
+            var includeUnofficialFilter = this.ObservableForProperty(vm => vm.IncludeUnofficial)
                 .Select(v => v.Value)
-                .StartWith(false)
+                .StartWith(IncludeUnofficial)
                 .Select<bool, Func<GalleryModListMetadataVM, bool>>(unoffical =>
                 {
                     if (unoffical) return x => true;
                     return x => x.Metadata.Official;
                 });
 
-            var showNSFWFilter = this.ObservableForProperty(vm => vm.IncludeNSFW)
+            var includeNSFWFilter = this.ObservableForProperty(vm => vm.IncludeNSFW)
                 .Select(v => v.Value)
-                .StartWith(false)
+                .StartWith(IncludeNSFW)
                 .Select<bool, Func<GalleryModListMetadataVM, bool>>(showNsfw =>
                 {
                     if (showNsfw) return x => true;
@@ -202,8 +202,8 @@ public class ModListGalleryVM : BackNavigatingVM
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Filter(searchTextPredicates)
                 .Filter(onlyInstalledGamesFilter)
-                .Filter(showUnofficial)
-                .Filter(showNSFWFilter)
+                .Filter(includeUnofficialFilter)
+                .Filter(includeNSFWFilter)
                 .Filter(gameFilter)
                 .Filter(minModlistSizeFilter)
                 .Filter(maxModlistSizeFilter)
@@ -218,7 +218,7 @@ public class ModListGalleryVM : BackNavigatingVM
                         SelectedGameTypeEntry = null;
                         GameTypeEntries = GetGameTypeEntries();
                         var nextEntry = GameTypeEntries.FirstOrDefault(gte => previousGameType == gte.GameIdentifier);
-                        SelectedGameTypeEntry = nextEntry != default ? nextEntry : GameTypeEntries.FirstOrDefault(gte => GameType == ALL_GAME_IDENTIFIER);
+                        SelectedGameTypeEntry = nextEntry ?? GameTypeEntries.FirstOrDefault(gte => GameType == ALL_GAME_IDENTIFIER);
                     }
 
                     _filteringOnGame = false;
@@ -266,13 +266,20 @@ public class ModListGalleryVM : BackNavigatingVM
         using var ll = LoadingLock.WithLoading();
         try
         {
+            var allowedTags = await _wjClient.LoadAllowedTags();
             var modLists = await _wjClient.LoadLists();
+            foreach (var modlist in modLists)
+            {
+                modlist.Tags = modlist.Tags.Where(t => allowedTags.Contains(t)).ToList();
+            }
+            var httpClient = _serviceProvider.GetRequiredService<HttpClient>();
+            var cacheManager = _serviceProvider.GetRequiredService<ImageCacheManager>();
             _modLists.Edit(e =>
             {
                 e.Clear();
                 e.AddOrUpdate(modLists.Select(m =>
                     new GalleryModListMetadataVM(_logger, this, m, _maintainer, _wjClient, _cancellationToken,
-                        _serviceProvider.GetService<HttpClient>(), _serviceProvider.GetService<ImageCacheManager>())));
+                        httpClient, cacheManager)));
             });
             SmallestSizedModlist = null;
             LargestSizedModlist = null;
