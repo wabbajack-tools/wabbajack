@@ -92,7 +92,7 @@ public class ModListGalleryVM : BackNavigatingVM
     private readonly CancellationToken _cancellationToken;
     private readonly IServiceProvider _serviceProvider;
 
-    public ICommand ClearFiltersCommand { get; set; }
+    public ICommand ResetFiltersCommand { get; set; }
 
     public ModListGalleryVM(ILogger<ModListGalleryVM> logger, Client wjClient, GameLocator locator,
         SettingsManager settingsManager, ModListDownloadMaintainer maintainer, CancellationToken cancellationToken, IServiceProvider serviceProvider)
@@ -107,14 +107,14 @@ public class ModListGalleryVM : BackNavigatingVM
         _cancellationToken = cancellationToken;
         _serviceProvider = serviceProvider;
 
-        ClearFiltersCommand = ReactiveCommand.Create(
+        ResetFiltersCommand = ReactiveCommand.Create(
             () =>
             {
                 OnlyInstalled = false;
                 IncludeNSFW = false;
                 IncludeUnofficial = false;
                 Search = string.Empty;
-                SelectedGameTypeEntry = GameTypeEntries.FirstOrDefault();
+                SelectedGameTypeEntry = GameTypeEntries?.FirstOrDefault();
             });
 
         this.WhenActivated(disposables =>

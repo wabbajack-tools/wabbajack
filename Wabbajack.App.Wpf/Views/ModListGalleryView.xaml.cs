@@ -74,10 +74,6 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                             vmProp => vmProp / Math.Pow(1024, 3),
                             vProp => vProp * Math.Pow(1024, 3))
                 .DisposeWith(dispose);
-
-            this.WhenAny(x => x.ViewModel.ClearFiltersCommand)
-                .BindToStrict(this, x => x.ClearFiltersButton.Command)
-                .DisposeWith(dispose);
         });
     }
 }

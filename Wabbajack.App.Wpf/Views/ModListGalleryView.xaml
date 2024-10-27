@@ -15,15 +15,11 @@
     x:TypeArguments="local:ModListGalleryVM"
     mc:Ignorable="d">
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition />
-            <RowDefinition />
-        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="270" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Grid Grid.Row="0"
+        <Grid
               HorizontalAlignment="Left"
               VerticalAlignment="Stretch">
             <Grid.RowDefinitions>
@@ -35,7 +31,7 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <Grid Grid.Row="0">
+            <Grid>
                 <TextBox
                     x:Name="SearchBox"
                     mahapps:TextBoxHelper.Watermark="Search for a modlist..." />
@@ -131,7 +127,7 @@
             </Grid>
 
             <local:WizardButton
-                x:Name="ClearFiltersButton"
+                x:Name="ResetFiltersButton"
                 Grid.Row="5"
                 ToolTip="Reset filters to the default options"
                 VerticalAlignment="Bottom"
@@ -139,10 +135,11 @@
                 HorizontalContentAlignment="Center"
                 Icon="FilterDismiss"
                 Text="Reset filters"
-                Width="Auto">
+                Width="Auto"
+                Command="{Binding ResetFiltersCommand}">
             </local:WizardButton>
         </Grid>
-        <Border Grid.Row="0" Grid.Column="1"
+        <Border Grid.Column="1"
                 BorderBrush="Transparent"
                 BorderThickness="0">
             <ScrollViewer Background="Transparent" VerticalScrollBarVisibility="Auto">
