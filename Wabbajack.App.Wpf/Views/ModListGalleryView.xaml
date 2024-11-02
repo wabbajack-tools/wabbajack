@@ -10,6 +10,7 @@
     xmlns:rxui="http://reactiveui.net"
     xmlns:system="clr-namespace:System;assembly=mscorlib"
     xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
+    xmlns:sdl="http://schemas.sdl.com/xaml"
     d:DesignHeight="450"
     d:DesignWidth="900"
     x:TypeArguments="local:ModListGalleryVM"
@@ -117,9 +118,9 @@
             </Grid>
 
             <CheckBox
-                Grid.Row="4"
+                Grid.Row="5"
                 x:Name="OnlyInstalledCheckbox"
-                Margin="0, 12, 0, 0"
+                Margin="0, 24, 0, 0"
                 VerticalAlignment="Center"
                 Foreground="{StaticResource ForegroundBrush}"
                 ToolTip="Show only modlists for games you have installed on your PC">
@@ -127,6 +128,7 @@
                            VerticalAlignment="Center" />
             </CheckBox>
 
+            <!--
             <mahapps:MultiSelectionComboBox
                 x:Name="IncludesTagsFilter"
                 Grid.Row="5"
@@ -135,6 +137,23 @@
                 mahapps:MultiSelectorHelper.SelectedItems="{Binding IncludedTags}"
                 ItemsSource="{Binding AllowedTags}">
             </mahapps:MultiSelectionComboBox>
+            -->
+            <StackPanel Grid.Row="4" Orientation="Vertical" Margin="0, 24, 0, 0">
+                <TextBlock Text="Has tag(s)" />
+                <sdl:MultiSelectComboBox
+                x:Name="IncludesTagsFilter"
+                Margin="0, 12, 0, 0"
+                ItemsSource="{Binding AllowedTags}"
+                IsEditable="True"
+                SelectionMode="Multiple"
+                sdl:SelectedItemsChangedBehaviour.SelectedItemsChanged="{Binding IncludedTagsChangedCommand}"
+                BorderThickness="0"
+                BorderBrush="Transparent"
+                Background="{StaticResource ComplementaryPrimary08Brush}"
+                Style="{StaticResource TagsBox}"
+                >
+                </sdl:MultiSelectComboBox>
+            </StackPanel>
 
             <local:WizardButton
                 x:Name="ResetFiltersButton"
