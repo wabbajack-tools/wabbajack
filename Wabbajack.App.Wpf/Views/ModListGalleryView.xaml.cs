@@ -80,9 +80,7 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
             this.HasTagsFilter.Events().SelectedItemsChanged
                 .Subscribe(args =>
                 {
-                    ViewModel.HasTags.AddRange(args.Added.Cast<ModListTag>());
-                    foreach(var tag in args.Removed.Cast<ModListTag>())
-                        ViewModel.HasTags.Remove(tag);
+                    ViewModel.HasTags = new(HasTagsFilter.SelectedItems.Cast<ModListTag>());
                 })
                 .DisposeWith(dispose);
             
