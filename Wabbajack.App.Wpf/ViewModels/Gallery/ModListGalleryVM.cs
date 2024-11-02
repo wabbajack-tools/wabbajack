@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Disposables;
@@ -25,17 +26,6 @@ using Wabbajack.Services.OSIntegrated.Services;
 namespace Wabbajack;
 public class ModListGalleryVM : BackNavigatingVM
 {
-
-    public class Tag
-    {
-        public Tag(string name)
-        {
-            Name = name;
-        }
-        public string Name { get; set; }
-        public override string ToString() => Name;
-    }
-
     public class GameTypeEntry
     {
         public GameTypeEntry(GameMetaData gameMetaData, int amount)
@@ -78,9 +68,8 @@ public class ModListGalleryVM : BackNavigatingVM
     [Reactive] public string GameType { get; set; }
     [Reactive] public double MinModlistSize { get; set; }
     [Reactive] public double MaxModlistSize { get; set; }
-    [Reactive] public ObservableCollection<Tag> AllowedTags { get; set; }
-    [Reactive] public ObservableCollection<Tag> IncludedTags { get; set; } = new();
-    [Reactive] public ObservableCollection<Tag> ExcludedTags { get; set; } = new();
+    [Reactive] public ObservableCollection<ModListTag> AllTags { get; set; }
+    [Reactive] public ObservableCollection<ModListTag> HasTags { get; set; } = new();
 
     [Reactive] public GalleryModListMetadataVM SmallestSizedModlist { get; set; }
     [Reactive] public GalleryModListMetadataVM LargestSizedModlist { get; set; }
@@ -108,7 +97,6 @@ public class ModListGalleryVM : BackNavigatingVM
     private readonly IServiceProvider _serviceProvider;
 
     public ICommand ResetFiltersCommand { get; set; }
-    public ICommand HasTagsChangedCommand { get; set; }
 
     public ModListGalleryVM(ILogger<ModListGalleryVM> logger, Client wjClient, GameLocator locator,
         SettingsManager settingsManager, ModListDownloadMaintainer maintainer, CancellationToken cancellationToken, IServiceProvider serviceProvider)
@@ -207,15 +195,18 @@ public class ModListGalleryVM : BackNavigatingVM
                                      return item => item.Metadata.DownloadMetadata.TotalSize <= maxModlistSize;
                                  });
 
-            var includedTagsFilter = IncludedTags.Events().CollectionChanged
-                .Throttle(TimeSpan.FromSeconds(0.05), RxApp.MainThreadScheduler)
-                .Select(v => v.NewItems?.Cast<Tag>())
-                .Select<IEnumerable<Tag>, Func<GalleryModListMetadataVM, bool>>(includedTags =>
+            var includedTagsFilter = HasTags.Events().CollectionChanged
+                .Select<NotifyCollectionChangedEventArgs, Func<GalleryModListMetadataVM, bool>>(args =>
                 {
-                    if(!includedTags?.Any() ?? true) return _ => true;
+                    var oldItems = args.OldItems?.Cast<ModListTag>().ToList() ?? new List<ModListTag>();
+                    var newItems = args.NewItems?.Cast<ModListTag>().ToList() ?? new List<ModListTag>();
+                    if (args.Action == NotifyCollectionChangedAction.Remove && oldItems.Count == 1)
+                        return _ => true;
+
+                    var filteredTags = oldItems.Concat(newItems).Select(x => x.Name).ToHashSet();
+                    if(!filteredTags?.Any() ?? true) return _ => true;
                     
-                    var tags = includedTags.Select(x => x.Name).ToHashSet();
-                    return item => item.Metadata.Tags.Any(tag => tags.Contains(tag));
+                    return item => filteredTags.All(tag => item.Metadata.Tags.Contains(tag));
                 })
                 .StartWith(_ => true);
                                 
@@ -296,14 +287,16 @@ public class ModListGalleryVM : BackNavigatingVM
         try
         {
             var allowedTags = await _wjClient.LoadAllowedTags();
+            allowedTags.Add("NSFW");
+            AllTags = new(allowedTags.Select(t => new ModListTag(t)));
             var modLists = await _wjClient.LoadLists();
-            foreach (var modlist in modLists)
-            {
-                modlist.Tags = modlist.Tags.Where(t => allowedTags.Contains(t)).ToList();
-            }
-            AllowedTags = new(allowedTags.Select(t => new Tag(t)));
             var httpClient = _serviceProvider.GetRequiredService<HttpClient>();
             var cacheManager = _serviceProvider.GetRequiredService<ImageCacheManager>();
+            foreach (var modlist in modLists)
+            {
+                modlist.Tags = modlist.Tags.Where(allowedTags.Contains).ToList();
+                if (modlist.NSFW) modlist.Tags.Add("NSFW");
+            }
             _modLists.Edit(e =>
             {
                 e.Clear();

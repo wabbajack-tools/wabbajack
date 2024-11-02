@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -30,6 +31,7 @@ public struct ModListTag
     }
 
     public string Name { get; }
+    public override string ToString() => Name;
 }
 
 public class BaseModListMetadataVM : ViewModel
@@ -41,7 +43,7 @@ public class BaseModListMetadataVM : ViewModel
     public LoadingLock LoadingImageLock { get; } = new();
 
     [Reactive]
-    public List<ModListTag> ModListTagList { get; protected set; }
+    public HashSet<ModListTag> ModListTagList { get; protected set; }
 
     [Reactive]
     public Percent ProgressPercent { get; protected set; }
@@ -105,14 +107,10 @@ public class BaseModListMetadataVM : ViewModel
 
         GameMetaData = Metadata.Game.MetaData();
         Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.NamespacedName).WithExtension(Ext.Wabbajack);
-        ModListTagList = new List<ModListTag>();
         
         UpdateStatus().FireAndForget();
 
-        Metadata.Tags.ForEach(tag =>
-        {
-            ModListTagList.Add(new ModListTag(tag));
-        });
+        ModListTagList = Metadata.Tags?.Select(tag => new ModListTag(tag)).ToHashSet();
         ModListTagList.Add(new ModListTag(GameMetaData.HumanFriendlyGameName));
 
         DownloadSizeText = "Download size: " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
