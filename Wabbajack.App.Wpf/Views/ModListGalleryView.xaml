@@ -141,18 +141,16 @@
             <StackPanel Grid.Row="4" Orientation="Vertical" Margin="0, 24, 0, 0">
                 <TextBlock Text="Has tag(s)" />
                 <sdl:MultiSelectComboBox
-                x:Name="IncludesTagsFilter"
+                x:Name="HasTagsFilter"
                 Margin="0, 12, 0, 0"
                 ItemsSource="{Binding AllowedTags}"
                 IsEditable="True"
                 SelectionMode="Multiple"
-                sdl:SelectedItemsChangedBehaviour.SelectedItemsChanged="{Binding IncludedTagsChangedCommand}"
                 BorderThickness="0"
                 BorderBrush="Transparent"
                 Background="{StaticResource ComplementaryPrimary08Brush}"
                 Style="{StaticResource TagsBox}"
-                >
-                </sdl:MultiSelectComboBox>
+                />
             </StackPanel>
 
             <local:WizardButton

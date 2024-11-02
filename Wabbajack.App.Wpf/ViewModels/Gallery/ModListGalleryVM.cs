@@ -108,6 +108,7 @@ public class ModListGalleryVM : BackNavigatingVM
     private readonly IServiceProvider _serviceProvider;
 
     public ICommand ResetFiltersCommand { get; set; }
+    public ICommand HasTagsChangedCommand { get; set; }
 
     public ModListGalleryVM(ILogger<ModListGalleryVM> logger, Client wjClient, GameLocator locator,
         SettingsManager settingsManager, ModListDownloadMaintainer maintainer, CancellationToken cancellationToken, IServiceProvider serviceProvider)

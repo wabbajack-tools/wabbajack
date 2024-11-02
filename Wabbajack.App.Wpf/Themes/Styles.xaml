@@ -4621,7 +4621,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ContentControl">
-                    <Border x:Name="Bd" TextBlock.Foreground="{StaticResource ForegroundBrush}" BorderThickness="0" CornerRadius="8" Margin="2" BorderBrush="{StaticResource MultiSelectComboBox.SelectedItem.Border}" Background="{StaticResource BackgroundBrush}">
+                    <Border x:Name="Bd" TextBlock.Foreground="{StaticResource ForegroundBrush}" BorderThickness="0" CornerRadius="8" Margin="2" BorderBrush="{StaticResource MultiSelectComboBox.SelectedItem.Border}">
                         <StackPanel Orientation="Horizontal">
                             <ContentControl Content="{Binding}" Margin="8, 0, 8, 0" ContentTemplateSelector="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type generic:MultiSelectComboBox}}, Path=SelectedItemTemplateSelector}"/>
 

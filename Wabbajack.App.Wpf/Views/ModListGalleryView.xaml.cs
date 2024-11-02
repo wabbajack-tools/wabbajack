@@ -76,6 +76,15 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                             vmProp => vmProp / Math.Pow(1024, 3),
                             vProp => vProp * Math.Pow(1024, 3))
                 .DisposeWith(dispose);
+
+            this.HasTagsFilter.Events().SelectedItemsChanged
+                .Subscribe(args =>
+                {
+                    ViewModel.IncludedTags.AddRange(args.Added.Cast<ModListGalleryVM.Tag>());
+                    foreach(var tag in args.Removed.Cast<ModListGalleryVM.Tag>())
+                        ViewModel.IncludedTags.Remove(tag);
+                })
+                .DisposeWith(dispose);
             
             /*
             this.IncludesTagsFilter.Events().SelectionChanged
