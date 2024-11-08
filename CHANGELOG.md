@@ -3,6 +3,8 @@
 #### Version - 3.7.4.1 - TBD
 * Add support for the upcoming Nexus game ID change (thanks to [@JonathanFeenstra](https://github.com/JonathanFeenstra))
 * Wabbajack will now put modfile Titles, Description and Version into the `.meta` file.
+* Fix for CLI not working on certain commands due to required assemblies being removed on publish
+* Improved Wabbajack CLI inline-report: now automatically tries to open the report in the browser on running the command
 
 #### Version - 3.7.4.0 - 10/15/2024
 * Fix for gallery not properly showing lists that are in maintenance.
