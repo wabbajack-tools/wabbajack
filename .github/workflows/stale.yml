@@ -23,5 +23,6 @@ jobs:
           close-issue-message: "Closed due to inactivity. Please create a new issue if this problem has come up again and no dev has reopened this issue after a week of it being marked as closed."
           close-pr-message: "Closed due to inactivity."
           days-before-stale: 90
+          days-before-close: -1
           operations-per-run: 100
           exempt-all-assignees: true

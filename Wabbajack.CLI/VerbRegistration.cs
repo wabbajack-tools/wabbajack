@@ -1,4 +1,4 @@
-
+﻿
 using Microsoft.Extensions.DependencyInjection;
 namespace Wabbajack.CLI;
 using Wabbajack.CLI.Verbs;
@@ -27,6 +27,8 @@ CommandLineBuilder.RegisterCommand<HashFile>(HashFile.Definition, c => ((HashFil
 services.AddSingleton<HashFile>();
 CommandLineBuilder.RegisterCommand<HashUrlString>(HashUrlString.Definition, c => ((HashUrlString)c).Run);
 services.AddSingleton<HashUrlString>();
+CommandLineBuilder.RegisterCommand<IndexNexusMod>(IndexNexusMod.Definition, c => ((IndexNexusMod)c).Run);
+services.AddSingleton<IndexNexusMod>();
 CommandLineBuilder.RegisterCommand<Install>(Install.Definition, c => ((Install)c).Run);
 services.AddSingleton<Install>();
 CommandLineBuilder.RegisterCommand<InstallCompileInstallVerify>(InstallCompileInstallVerify.Definition, c => ((InstallCompileInstallVerify)c).Run);

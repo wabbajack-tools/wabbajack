@@ -324,8 +324,22 @@ public abstract class AInstaller<T>
 
         _logger.LogInformation("Downloading validation data");
         var validationData = await _wjClient.LoadDownloadAllowList();
+        var mirrors = (await _wjClient.LoadMirrors()).ToLookup(m => m.Hash);
 
         _logger.LogInformation("Validating Archives");
+
+        foreach (var archive in missing)
+        {
+            var matches = mirrors[archive.Hash].ToArray();
+            if (!matches.Any()) continue;
+            
+            archive.State = matches.First().State;
+            _ = _wjClient.SendMetric("rerouted", archive.Hash.ToString());
+            _logger.LogInformation("Rerouted {Archive} to {Mirror}", archive.Name,
+                matches.First().State.PrimaryKeyString);
+        }
+        
+        
         foreach (var archive in missing.Where(archive =>
                      !_downloadDispatcher.Downloader(archive).IsAllowed(validationData, archive.State)))
         {
@@ -358,7 +372,7 @@ public abstract class AInstaller<T>
         }
         
         await missing
-            .OrderBy(a => a.Size)
+            .Shuffle()
             .Where(a => a.State is not Manual)
             .PDoAll(async archive =>
             {

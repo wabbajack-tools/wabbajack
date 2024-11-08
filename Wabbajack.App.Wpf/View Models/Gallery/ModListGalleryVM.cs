@@ -232,11 +232,12 @@ namespace Wabbajack
             try
             {
                 var modLists = await _wjClient.LoadLists();
+                var modlistSummaries = await _wjClient.GetListStatuses();
                 _modLists.Edit(e =>
                 {
                     e.Clear();
                     e.AddOrUpdate(modLists.Select(m =>
-                        new ModListMetadataVM(_logger, this, m, _maintainer, _wjClient, _cancellationToken)));
+                        new ModListMetadataVM(_logger, this, m, _maintainer, modlistSummaries, _wjClient, _cancellationToken)));
                 });
             }
             catch (Exception ex)

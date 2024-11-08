@@ -15,6 +15,9 @@ public class Configuration
 
     public Uri ServerAllowList { get; set; } =
         new("https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml");
+    
+    public Uri MirrorList { get; set; } =
+        new("https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/mirrors.json");
 
     public Uri MirrorAllowList { get; set; } =
         new("https://raw.githubusercontent.com/wabbajack-tools/allow-lists/main/allowed-mirrors.yaml");

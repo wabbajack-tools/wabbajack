@@ -103,12 +103,15 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
             !string.IsNullOrWhiteSpace(gameName) &&
             !string.IsNullOrWhiteSpace(modId) &&
             !string.IsNullOrWhiteSpace(fileId))
+        {
+            var gameMetaData = GameRegistry.GetByMO2ArchiveName(gameName) ?? GameRegistry.GetByNexusName(gameName);
             return new Nexus
             {
-                Game = GameRegistry.GetByMO2ArchiveName(gameName)!.Game,
+                Game = gameMetaData!.Game,
                 ModID = long.Parse(modId),
                 FileID = long.Parse(fileId)
             };
+        }
 
         return null;
     }
