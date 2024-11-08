@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 3.7.4.0 - TBD
+#### Version - 3.7.4.0 - 10/15/2024
 * Fix for gallery not properly showing lists that are in maintenance.
 * Fix typo for a typo in with the error logging (thanks to [@code-syl](https://github.com/code-syl))
 * Add support for the upcoming Nexus game ID change (thanks to [@https://github.com/JonathanFeenstra](https://github.com/JonathanFeenstra))
