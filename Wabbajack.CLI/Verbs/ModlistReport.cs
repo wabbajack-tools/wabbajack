@@ -35,7 +35,8 @@ public class ModlistReport
     public static VerbDefinition Definition = new("modlist-report",
         "Generates a usage report for a Modlist file", new[]
         {
-            new OptionDefinition(typeof(AbsolutePath), "i", "input", "Wabbajack file from which to generate a report")
+            new OptionDefinition(typeof(AbsolutePath), "i", "input", "Wabbajack file from which to generate a report"),
+            new OptionDefinition(typeof(bool), "b", "browser", "Open report in browser after generating it (default true)")
         });
     
     private static async Task<string> ReportTemplate(object o)
@@ -45,10 +46,10 @@ public class ModlistReport
         return await func(o, CancellationToken.None);
     }
 
-    public async Task<int> Run(AbsolutePath input)
+    public async Task<int> Run(AbsolutePath input, bool browser = true)
     {
 
-        _logger.LogInformation("Loading Modlist");
+        _logger.LogInformation("Loading modlist...");
         var modlist = await StandardInstaller.LoadFromFile(_dtos, input);
 
         Dictionary<string, long> patchSizes;
@@ -104,8 +105,11 @@ public class ModlistReport
             WabbajackSize = input.Size().ToFileSizeString()
         });
 
-        await input.WithExtension(Ext.Html).WriteAllTextAsync(data);
-        
+        var path = input.WithExtension(Ext.Html);
+        await path.WriteAllTextAsync(data);
+        _logger.LogInformation($"Exported modlist report to {path}");
+
+        if(browser) System.Diagnostics.Process.Start("explorer", path.ToString());
         return 0;
     }
 }

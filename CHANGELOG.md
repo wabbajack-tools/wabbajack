@@ -1,5 +1,8 @@
 ### Changelog
 
+### Version - ? - Unreleased
+* Fix for CLI not working on certain commands due to required assemblies being removed on publish
+* Improved Wabbajack CLI inline-report: now automatically tries to open the report in the browser on running the command
 #### Version - 3.7.4.0 - 10/15/2024
 * Fix for gallery not properly showing lists that are in maintenance.
 * Fix typo for a typo in with the error logging (thanks to [@code-syl](https://github.com/code-syl))
