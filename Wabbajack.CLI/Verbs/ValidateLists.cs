@@ -38,6 +38,13 @@ using Wabbajack.Server.Lib.TokenProviders;
 
 namespace Wabbajack.CLI.Verbs;
 
+public struct SearchIndexJson
+{
+
+    public HashSet<string> SearchIndex { get; set; }
+    public Dictionary<string, HashSet<string>> PerListSearchIndex { get; set; }
+}
+
 public class ValidateLists
 {
     private static readonly Uri MirrorPrefix = new("https://mirror.wabbajack.org");
@@ -58,8 +65,7 @@ public class ValidateLists
     private readonly AsyncLock _imageProcessLock;
 
     private readonly ConcurrentBag<(Uri, Hash)> _proxyableFiles = new();
-
-
+    
     public ValidateLists(ILogger<ValidateLists> logger, Networking.WabbajackClientApi.Client wjClient,
         Client gitHubClient, TemporaryFileManager temporaryFileManager,
         DownloadDispatcher dispatcher, DTOSerializer dtos, ParallelOptions parallelOptions,
@@ -116,6 +122,11 @@ public class ValidateLists
             _logger.LogInformation("Validating {MachineUrl} - {Version}", list.NamespacedName, list.Version);
         }
 
+        // MachineURL - HashSet of mods per list
+        ConcurrentDictionary<string, HashSet<string>> PerModListSearchIndex = new();
+        // HashSet of all searchable mods
+        HashSet<string> ModListSearchIndex = new();
+
         var validatedLists = await listData.PMapAll(async modList =>
         {
             var validatedList = new ValidatedModList
@@ -160,6 +171,25 @@ public class ValidateLists
             catch (Exception ex)
             {
                 _logger.LogError(ex, "While processing modlist images for {MachineURL}", modList.NamespacedName);
+            }
+
+            try
+            {
+                _logger.LogInformation("Populating search index with contents of {MachineURL}", modList.NamespacedName);
+                HashSet<string> modListSearchableMods = new();
+                foreach (var archive in modListData.Archives)
+                {
+                    if (archive.State is not Nexus n) continue;
+                    if (string.IsNullOrWhiteSpace(n.Name)) continue;
+                    ModListSearchIndex.Add(n.Name);
+                    modListSearchableMods.Add(n.Name);
+                }
+
+                PerModListSearchIndex.TryAdd(modList.Links.MachineURL, modListSearchableMods);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "While populating search index for {MachineURL}", modList.NamespacedName);
             }
 
             if (modList.ForceDown)
@@ -224,6 +254,13 @@ public class ValidateLists
 
             return validatedList;
         }).ToArray();
+        
+        // Save search index to file
+        {
+            await using var searchIndexFileName = reports.Combine("searchIndex.json")
+                .Open(FileMode.Create, FileAccess.Write, FileShare.None);
+            await _dtos.Serialize(new SearchIndexJson { SearchIndex = ModListSearchIndex, PerListSearchIndex = PerModListSearchIndex.ToDictionary() }, searchIndexFileName, true);
+        }
 
         var allArchives = validatedLists.SelectMany(l => l.Archives).ToList();
         _logger.LogInformation("Validated {Count} lists in {Elapsed}", validatedLists.Length, stopWatch.Elapsed);
