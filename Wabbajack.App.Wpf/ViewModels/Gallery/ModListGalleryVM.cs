@@ -8,6 +8,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms.VisualStyles;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
@@ -69,10 +70,14 @@ public class ModListGalleryVM : BackNavigatingVM
     [Reactive] public double MinModlistSize { get; set; }
     [Reactive] public double MaxModlistSize { get; set; }
 
-    [Reactive] public ObservableCollection<ModListTag> AllTags { get; set; }
+    [Reactive] public ObservableCollection<ModListTag> AllTags { get; set; } = new();
     [Reactive] public ObservableCollection<ModListTag> HasTags { get; set; } = new();
-
-    [Reactive] public HashSet<string> AllModNames { get; set; } = new();
+    
+    
+    [Reactive] public HashSet<ModListMod> AllMods { get; set; } = new();
+    [Reactive] public ObservableCollection<ModListMod> AllModsOE { get; set; } = new();
+    [Reactive] public ObservableCollection<ModListMod> HasMods { get; set; } = new();
+    [Reactive] public Dictionary<string, HashSet<string>> ModsPerList { get; set; } = new();
 
     [Reactive] public GalleryModListMetadataVM SmallestSizedModlist { get; set; }
     [Reactive] public GalleryModListMetadataVM LargestSizedModlist { get; set; }
@@ -207,6 +212,17 @@ public class ModListGalleryVM : BackNavigatingVM
                     return item => filteredTags.All(tag => item.Metadata.Tags.Contains(tag.Name));
                 })
                 .StartWith(_ => true);
+            
+            var includedModsFilter = this.ObservableForProperty(vm => vm.HasMods)
+                .Select(v => v.Value)
+                .Select<ObservableCollection<ModListMod>, Func<GalleryModListMetadataVM, bool>>(filteredMods =>
+                {
+                    if(!filteredMods?.Any() ?? true) return _ => true;
+
+                    return item =>
+                        ModsPerList.TryGetValue(item.Metadata.Links.MachineURL, out var mods) && filteredMods.All(mod => mods.Contains(mod.Name));
+                })
+                .StartWith(_ => true);
                                 
 
             var searchSorter = this.WhenValueChanged(vm => vm.Search)
@@ -225,6 +241,7 @@ public class ModListGalleryVM : BackNavigatingVM
                 .Filter(minModlistSizeFilter)
                 .Filter(maxModlistSizeFilter)
                 .Filter(includedTagsFilter)
+                .Filter(includedModsFilter)
                 .Sort(searchSorter)
                 .TreatMovesAsRemoveAdd()
                 .Bind(out _filteredModLists)
@@ -286,8 +303,12 @@ public class ModListGalleryVM : BackNavigatingVM
         {
             var allowedTags = await _wjClient.LoadAllowedTags();
             AllTags = new(allowedTags.Select(t => new ModListTag(t)).OrderBy(t => t.Name).Prepend(new ModListTag("NSFW")).Prepend(new ModListTag("Featured")));
+            var searchIndex = await _wjClient.LoadSearchIndex();
+            ModsPerList = searchIndex.ModsPerList;
+            AllMods = searchIndex.AllMods.Select(mod => new ModListMod(mod)).ToHashSet();
+            AllModsOE = new ObservableCollection<ModListMod>(AllMods);
             var modLists = await _wjClient.LoadLists();
-            var modlistSummaries = (await _wjClient.GetListStatuses())?.ToDictionary(summary => summary.MachineURL) ?? new();
+            var modlistSummaries = (await _wjClient.GetListStatuses()).ToDictionary(summary => summary.MachineURL);
             var httpClient = _serviceProvider.GetRequiredService<HttpClient>();
             var cacheManager = _serviceProvider.GetRequiredService<ImageCacheManager>();
             foreach (var modlist in modLists)

@@ -31,6 +31,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
@@ -118,28 +119,22 @@
                            Foreground="{StaticResource ComplementaryWhite25Brush}" Margin="0, 4, 0, 0" />
                 </Grid>
 
-                <CheckBox
-                Grid.Row="5"
-                x:Name="OnlyInstalledCheckbox"
-                Margin="0, 24, 0, 0"
-                VerticalAlignment="Center"
-                Foreground="{StaticResource ForegroundBrush}"
-                ToolTip="Show only modlists for games you have installed on your PC">
-                    <TextBlock Text="Show only modlists for installed games" FontSize="10"
-                           VerticalAlignment="Center" />
-                </CheckBox>
-
-                <!--
-            <mahapps:MultiSelectionComboBox
-                x:Name="IncludesTagsFilter"
-                Grid.Row="5"
-                Margin="0, 12, 0, 0"
-                Style="{StaticResource TagsComboBox}"
-                mahapps:MultiSelectorHelper.SelectedItems="{Binding IncludedTags}"
-                ItemsSource="{Binding AllTags}">
-            </mahapps:MultiSelectionComboBox>
-            -->
                 <StackPanel Grid.Row="4" Orientation="Vertical" Margin="0, 24, 0, 0">
+                    <TextBlock Text="Has mod(s)" />
+                    <sdl:MultiSelectComboBox
+                x:Name="HasModsFilter"
+                Margin="0, 12, 0, 0"
+                ItemsSource="{Binding AllModsOE}"
+                IsEditable="True"
+                SelectionMode="Multiple"
+                BorderThickness="0"
+                BorderBrush="Transparent"
+                Background="{StaticResource ComplementaryPrimary08Brush}"
+                Style="{StaticResource TagsBox}"
+                />
+                    
+                </StackPanel>
+                <StackPanel Grid.Row="5" Orientation="Vertical" Margin="0, 24, 0, 0">
                     <TextBlock Text="Has tag(s)" />
                     <sdl:MultiSelectComboBox
                 x:Name="HasTagsFilter"
@@ -153,6 +148,17 @@
                 Style="{StaticResource TagsBox}"
                 />
                 </StackPanel>
+
+                <CheckBox
+                Grid.Row="6"
+                x:Name="OnlyInstalledCheckbox"
+                Margin="0, 24, 0, 0"
+                VerticalAlignment="Center"
+                Foreground="{StaticResource ForegroundBrush}"
+                ToolTip="Show only modlists for games you have installed on your PC">
+                    <TextBlock Text="Show only modlists for installed games" FontSize="10"
+                           VerticalAlignment="Center" />
+                </CheckBox>
 
                 <local:WizardButton
                 x:Name="ResetFiltersButton"

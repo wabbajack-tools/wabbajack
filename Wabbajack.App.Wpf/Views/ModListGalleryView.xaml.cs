@@ -77,10 +77,17 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                             vProp => vProp * Math.Pow(1024, 3))
                 .DisposeWith(dispose);
 
-            this.HasTagsFilter.Events().SelectedItemsChanged
-                .Subscribe(args =>
+            HasTagsFilter.Events().SelectedItemsChanged
+                .Subscribe(_ =>
                 {
                     ViewModel.HasTags = new(HasTagsFilter.SelectedItems.Cast<ModListTag>());
+                })
+                .DisposeWith(dispose);
+            
+            HasModsFilter.Events().SelectedItemsChanged
+                .Subscribe(_ =>
+                {
+                    ViewModel.HasMods = new(HasModsFilter.SelectedItems.Cast<ModListMod>());
                 })
                 .DisposeWith(dispose);
             

@@ -25,64 +25,37 @@ using Wabbajack.Services.OSIntegrated.Services;
 namespace Wabbajack;
 
 
-public struct ModListTag
+public struct ModListTag(string name)
 {
-    public ModListTag(string name)
-    {
-        Name = name;
-    }
+    public string Name { get; } = name;
+    public override string ToString() => Name;
+}
 
-    public string Name { get; }
+public struct ModListMod(string name)
+{
+    public string Name { get; } = name;
     public override string ToString() => Name;
 }
 
 public class BaseModListMetadataVM : ViewModel
 {
     public ModlistMetadata Metadata { get; }
-
     public AbsolutePath Location { get; }
-
     public LoadingLock LoadingImageLock { get; } = new();
+    [Reactive] public HashSet<ModListTag> ModListTagList { get; protected set; }
+    [Reactive] public Percent ProgressPercent { get; protected set; }
+    [Reactive] public bool IsBroken { get; protected set; }
+    [Reactive] public ModListStatus Status { get; set; }
+    [Reactive] public bool IsDownloading { get; protected set; }
+    [Reactive] public string DownloadSizeText { get; protected set; }
+    [Reactive] public string InstallSizeText { get; protected set; }
+    [Reactive] public string TotalSizeRequirementText { get; protected set; }
+    [Reactive] public string VersionText { get; protected set; }
+    [Reactive] public bool ImageContainsTitle { get; protected set; }
+    [Reactive] public GameMetaData GameMetaData { get; protected set; }
+    [Reactive] public bool DisplayVersionOnlyInInstallerView { get; protected set; }
 
-    [Reactive]
-    public HashSet<ModListTag> ModListTagList { get; protected set; }
-
-    [Reactive]
-    public Percent ProgressPercent { get; protected set; }
-
-    [Reactive]
-    public bool IsBroken { get; protected set; }
-    
-    [Reactive]
-    public ModListStatus Status { get; set; }
-    
-    [Reactive]
-    public bool IsDownloading { get; protected set; }
-
-    [Reactive]
-    public string DownloadSizeText { get; protected set; }
-
-    [Reactive]
-    public string InstallSizeText { get; protected set; }
-    
-    [Reactive]
-    public string TotalSizeRequirementText { get; protected set; }
-    
-    [Reactive]
-    public string VersionText { get; protected set; }
-
-    [Reactive]
-    public bool ImageContainsTitle { get; protected set; }
-
-    [Reactive]
-    public GameMetaData GameMetaData { get; protected set; }
-
-    [Reactive]
-
-    public bool DisplayVersionOnlyInInstallerView { get; protected set; }
-
-    [Reactive]
-    public IErrorResponse Error { get; protected set; }
+    [Reactive] public IErrorResponse Error { get; protected set; }
 
     protected ObservableAsPropertyHelper<BitmapImage> _Image { get; set; }
     public BitmapImage Image => _Image.Value;
