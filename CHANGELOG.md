@@ -1,6 +1,43 @@
 ### Changelog
 
-#### Version - 3.6.2.0 - TBD
+#### Version - 3.7.4.1 - TBD
+* Add support for the upcoming Nexus game ID change (thanks to [@JonathanFeenstra](https://github.com/JonathanFeenstra))
+* Wabbajack will now put modfile Titles, Description and Version into the `.meta` file.
+* Fix for CLI not working on certain commands due to required assemblies being removed on publish
+* Improved Wabbajack CLI inline-report: now automatically tries to open the report in the browser on running the command
+
+#### Version - 3.7.4.0 - 10/15/2024
+* Fix for gallery not properly showing lists that are in maintenance.
+* Fix logging typo (thanks to [@code-syl](https://github.com/code-syl))
+
+#### Version - 3.7.3.0 - 9/19/2024
+* Downloads now start in a random order, to reduce the amount of lag in the UI when initially starting
+* Wabbajack may now redirect some downloads to mirrors hosted on Nexus Mods (by request of the mod authors)
+
+
+#### Version - 3.7.2.1 - 9/1/2024
+* Fixed a bug with the html reports when in a folder with a space in the name
+
+#### Version - 3.7.2.0 - 8/25/2024
+* Added a new button to the installer configuration window for verifying installs. This runs the same code as the verify CLI command, now it's in the UI for easier access. The output of this command
+is written to a `.html` file and opened in the default browser.
+* When a modlist install fails due to one or more missing non-nexus files, the installer will now write a `.html` file with all the links and instructions, and open it with the default browser. This data was
+previsoously only written to the log file.
+
+#### Version - 3.7.1.1 - 8/13/2024
+* HOTFIX: buggy release pipeline caused some corruption in the files of 3.7.1.0
+
+#### Version - 3.7.1.0 - 8/13/2024
+* Fixed file paths with special characters corrupting when packed into BSAs
+  * This issue only affected Fallout 3, Fallout NV and Skyrim LE
+* Added logging to determine which downloaded files cannot be hashed
+  * This could occur in the downloading phase when installing a modlist when there are broken/corrupted files in the downloads folder
+* Fixed Wabbajack crashing when double-clicking the browser window titlebar or URL
+* Fixed Wabbajack always using explorer.exe instead of the default file browser
+
+#### Version - 3.7.0.0 - 6/21/2024
+* Added Starfield support
+    * Note: Hashes were added earlier, but the earlier version was not fully compatible due to Wabbajack extracting the BA2 archives incorrectly. This has been fixed.
 * Updated GameFinder dependency
 * Updated WebView dependency
 * Updated other dependencies

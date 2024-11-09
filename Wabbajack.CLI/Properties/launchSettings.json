@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Wabbajack.CLI": {
-      "commandName": "Project",
-      "commandLineArgs": "extract -i \""
+      "commandName": "Project"
     }
   }
 }

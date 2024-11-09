@@ -1,5 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,11 +27,12 @@ public class VerifyModlistInstall
     private readonly DTOSerializer _dtos;
     private readonly ILogger<VerifyModlistInstall> _logger;
     
-    public VerifyModlistInstall(ILogger<VerifyModlistInstall> logger, DTOSerializer dtos, IResource<FileHashCache> limiter)
+    public VerifyModlistInstall(ILogger<VerifyModlistInstall> logger, DTOSerializer dtos, IResource<FileHashCache> limiter, TemporaryFileManager temporaryFileManager)
     {
         _limiter = limiter;
         _logger = logger;
         _dtos = dtos;
+        _temporaryFileManager = temporaryFileManager;
     }
     
     public static VerbDefinition Definition = new("verify-modlist-install", "Verify a modlist installed correctly",
@@ -42,6 +44,7 @@ public class VerifyModlistInstall
         });
 
     private readonly IResource<FileHashCache> _limiter;
+    private readonly TemporaryFileManager _temporaryFileManager;
 
 
     public async Task<int> Run(AbsolutePath modlistLocation, AbsolutePath installFolder, CancellationToken token)
@@ -52,7 +55,9 @@ public class VerifyModlistInstall
         _logger.LogInformation("Indexing files");
         var byTo = list.Directives.ToDictionary(d => d.To);
 
+        var reportFile = _temporaryFileManager.CreateFile(Ext.Html);
 
+        
         _logger.LogInformation("Scanning files");
         var errors = await list.Directives.PMapAllBatchedAsync(_limiter, async directive => 
             {
@@ -68,7 +73,7 @@ public class VerifyModlistInstall
                     return new Result
                     {
                         Path = directive.To,
-                        Message = $"File does not exist directive {directive.GetType()}"
+                        Message = $"File does not exist"
                     };
                 }
 
@@ -112,10 +117,29 @@ public class VerifyModlistInstall
         _logger.LogInformation("Found {Count} errors", errors.Count);
 
 
-        foreach (var error in errors)
+
         {
-            _logger.LogError("{File} | {Message}", error.Path, error.Message);
+            await using var stream = new StreamWriter(reportFile.Path.Open(FileMode.Create, FileAccess.Write));
+            await stream.WriteLineAsync(
+                "<html><head></head><body>");
+            await stream.WriteLineAsync($"<h1>Verification Report for {modlistLocation}</h1>");
+
+            foreach (var error in errors)
+            {
+                if (error == null) continue;
+                await stream.WriteLineAsync($"<div class=\"error\">{error.Message} | {error.Path}</div>");
+                _logger.LogError("{File} | {Message}", error.Path, error.Message);
+            }
+
+            await stream.WriteLineAsync("</body></html>");
         }
+
+        _logger.LogInformation("Report written to {Report}", reportFile.Path);
+        
+        Process.Start(new ProcessStartInfo("cmd.exe", $"start /c \"{reportFile.Path}\"")
+        {
+            CreateNoWindow = true,
+        });
 
 
         return 0;

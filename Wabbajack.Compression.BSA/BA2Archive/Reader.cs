@@ -7,7 +7,7 @@ using Wabbajack.Compression.BSA.Interfaces;
 using Wabbajack.DTOs.BSA.ArchiveStates;
 using Wabbajack.DTOs.Streams;
 
-namespace Wabbajack.Compression.BSA.FO4Archive;
+namespace Wabbajack.Compression.BSA.BA2Archive;
 
 public class Reader : IReader
 {
@@ -15,9 +15,17 @@ public class Reader : IReader
     internal string _headerMagic;
     internal ulong _nameTableOffset;
     internal uint _numFiles;
+    internal uint _unknown1;
+    internal uint _unknown2;
+    internal uint _compression;
     internal BinaryReader _rdr;
     public IStreamFactory _streamFactory;
     internal BA2EntryType _type;
+
+    /// <summary>
+    /// Fallout 4 - Version 1, 7 or 8
+    /// Starfield - Version 2 or 3
+    /// </summary>
     internal uint _version;
 
     private Reader(Stream stream)
@@ -37,7 +45,10 @@ public class Reader : IReader
         Version = _version,
         HeaderMagic = _headerMagic,
         Type = _type,
-        HasNameTable = HasNameTable
+        HasNameTable = HasNameTable,
+        Unknown1 = _unknown1,
+        Unknown2 = _unknown2,
+        Compression = _compression,
     };
 
 
@@ -66,6 +77,10 @@ public class Reader : IReader
 
         _numFiles = _rdr.ReadUInt32();
         _nameTableOffset = _rdr.ReadUInt64();
+
+        _unknown1 = (_version == 2 || _version == 3) ? _rdr.ReadUInt32() : 0;
+        _unknown2 = (_version == 2 || _version == 3) ? _rdr.ReadUInt32() : 0;
+        _compression = (_version == 3) ? _rdr.ReadUInt32() : 0;
 
         var files = new List<IBA2FileEntry>();
         for (var idx = 0; idx < _numFiles; idx += 1)

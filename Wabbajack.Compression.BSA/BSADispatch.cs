@@ -22,7 +22,7 @@ public static class BSADispatch
         {
             FileType.TES3 => await Reader.Load(new NativeFileStreamFactory(filename)),
             FileType.BSA => await TES5Archive.Reader.Load(new NativeFileStreamFactory(filename)),
-            FileType.BA2 => await FO4Archive.Reader.Load(new NativeFileStreamFactory(filename)),
+            FileType.BA2 => await BA2Archive.Reader.Load(new NativeFileStreamFactory(filename)),
             _ => throw new InvalidDataException("Filename is not a .bsa or .ba2")
         };
     }
@@ -34,7 +34,7 @@ public static class BSADispatch
         {
             FileType.TES3 => await Reader.Load(factory),
             FileType.BSA => await TES5Archive.Reader.Load(factory),
-            FileType.BA2 => await FO4Archive.Reader.Load(factory),
+            FileType.BA2 => await BA2Archive.Reader.Load(factory),
             _ => throw new InvalidDataException("Filename is not a .bsa or .ba2")
         };
     }
@@ -46,7 +46,7 @@ public static class BSADispatch
         {
             FileType.TES3 => await Reader.Load(factory),
             FileType.BSA => await TES5Archive.Reader.Load(factory),
-            FileType.BA2 => await FO4Archive.Reader.Load(factory),
+            FileType.BA2 => await BA2Archive.Reader.Load(factory),
             _ => throw new InvalidDataException("Filename is not a .bsa or .ba2")
         };
     }
@@ -57,7 +57,7 @@ public static class BSADispatch
         {
             TES3State tes3 => new Builder(tes3),
             BSAState bsa => TES5Archive.Builder.Create(bsa, manager),
-            BA2State ba2 => FO4Archive.Builder.Create(ba2, manager),
+            BA2State ba2 => BA2Archive.Builder.Create(ba2, manager),
             _ => throw new NotImplementedException()
         };
     }

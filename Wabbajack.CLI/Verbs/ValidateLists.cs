@@ -38,6 +38,13 @@ using Wabbajack.Server.Lib.TokenProviders;
 
 namespace Wabbajack.CLI.Verbs;
 
+public struct SearchIndexJson
+{
+
+    public HashSet<string> SearchIndex { get; set; }
+    public Dictionary<string, HashSet<string>> PerListSearchIndex { get; set; }
+}
+
 public class ValidateLists
 {
     private static readonly Uri MirrorPrefix = new("https://mirror.wabbajack.org");
@@ -58,8 +65,7 @@ public class ValidateLists
     private readonly AsyncLock _imageProcessLock;
 
     private readonly ConcurrentBag<(Uri, Hash)> _proxyableFiles = new();
-
-
+    
     public ValidateLists(ILogger<ValidateLists> logger, Networking.WabbajackClientApi.Client wjClient,
         Client gitHubClient, TemporaryFileManager temporaryFileManager,
         DownloadDispatcher dispatcher, DTOSerializer dtos, ParallelOptions parallelOptions,
@@ -116,6 +122,11 @@ public class ValidateLists
             _logger.LogInformation("Validating {MachineUrl} - {Version}", list.NamespacedName, list.Version);
         }
 
+        // MachineURL - HashSet of mods per list
+        ConcurrentDictionary<string, HashSet<string>> PerModListSearchIndex = new();
+        // HashSet of all searchable mods
+        HashSet<string> ModListSearchIndex = new();
+
         var validatedLists = await listData.PMapAll(async modList =>
         {
             var validatedList = new ValidatedModList
@@ -125,13 +136,6 @@ public class ValidateLists
                 MachineURL = modList.NamespacedName,
                 Version = modList.Version
             };
-
-            if (modList.ForceDown)
-            {
-                _logger.LogWarning("List is ForceDown, skipping");
-                validatedList.Status = ListStatus.ForcedDown;
-                return validatedList;
-            }
 
             using var scope = _logger.BeginScope("MachineURL: {MachineUrl}", modList.NamespacedName);
             _logger.LogInformation("Verifying {MachineUrl} - {Title}", modList.NamespacedName, modList.Title);
@@ -153,9 +157,48 @@ public class ValidateLists
                 validatedList.Status = ListStatus.ForcedDown;
                 return validatedList;
             }
+
+            try
+            {
+                var (smallImage, largeImage) = await ProcessModlistImage(reports, modList, token);
+                validatedList.SmallImage =
+                    new Uri(
+                        $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{smallImage.ToString().Replace("\\", "/")}");
+                validatedList.LargeImage =
+                    new Uri(
+                        $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{largeImage.ToString().Replace("\\", "/")}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "While processing modlist images for {MachineURL}", modList.NamespacedName);
+            }
+
+            try
+            {
+                _logger.LogInformation("Populating search index with contents of {MachineURL}", modList.NamespacedName);
+                HashSet<string> modListSearchableMods = new();
+                foreach (var archive in modListData.Archives)
+                {
+                    if (archive.State is not Nexus n) continue;
+                    if (string.IsNullOrWhiteSpace(n.Name)) continue;
+                    ModListSearchIndex.Add(n.Name);
+                    modListSearchableMods.Add(n.Name);
+                }
+
+                PerModListSearchIndex.TryAdd(modList.Links.MachineURL, modListSearchableMods);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "While populating search index for {MachineURL}", modList.NamespacedName);
+            }
+
+            if (modList.ForceDown)
+            {
+                _logger.LogWarning("List is ForceDown, skipping archive verificiation");
+                validatedList.Status = ListStatus.ForcedDown;
+                return validatedList;
+            }
             
-
-
             _logger.LogInformation("Verifying {Count} archives from {Name}", modListData.Archives.Length, modList.NamespacedName);
 
             var archives = await modListData.Archives.PMapAll(async archive =>
@@ -209,23 +252,15 @@ public class ValidateLists
                 ? ListStatus.Failed
                 : ListStatus.Available;
 
-            try
-            {
-                var (smallImage, largeImage) = await ProcessModlistImage(reports, modList, token);
-                validatedList.SmallImage =
-                    new Uri(
-                        $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{smallImage.ToString().Replace("\\", "/")}");
-                validatedList.LargeImage =
-                    new Uri(
-                        $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{largeImage.ToString().Replace("\\", "/")}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "While processing modlist images for {MachineURL}", modList.NamespacedName);
-            }
-
             return validatedList;
         }).ToArray();
+        
+        // Save search index to file
+        {
+            await using var searchIndexFileName = reports.Combine("searchIndex.json")
+                .Open(FileMode.Create, FileAccess.Write, FileShare.None);
+            await _dtos.Serialize(new SearchIndexJson { SearchIndex = ModListSearchIndex, PerListSearchIndex = PerModListSearchIndex.ToDictionary() }, searchIndexFileName, true);
+        }
 
         var allArchives = validatedLists.SelectMany(l => l.Archives).ToList();
         _logger.LogInformation("Validated {Count} lists in {Elapsed}", validatedLists.Length, stopWatch.Elapsed);
@@ -268,7 +303,7 @@ public class ValidateLists
             var height = standardWidth * image.Height / image.Width;
             image.Mutate(x => x
                 .Resize(standardWidth, height));
-            largeImage = validatedList.RepositoryName.ToRelativePath().Combine(hash.ToHex()+"_large").WithExtension(Ext.Webp);
+            largeImage = validatedList.RepositoryName.ToRelativePath().Combine(validatedList.Links.MachineURL + "_large").WithExtension(Ext.Webp);
             await image.SaveAsync(largeImage.RelativeTo(reports).ToString(), new WebpEncoder {Quality = 85}, cancellationToken: token);
         }
 
@@ -280,7 +315,7 @@ public class ValidateLists
             var height = standardWidth * image.Height / image.Width;
             image.Mutate(x => x
                 .Resize(standardWidth, height));
-            smallImage = validatedList.RepositoryName.ToRelativePath().Combine(hash.ToHex()+"_small").WithExtension(Ext.Webp);
+            smallImage = validatedList.RepositoryName.ToRelativePath().Combine(validatedList.Links.MachineURL + "_small").WithExtension(Ext.Webp);
             await image.SaveAsync(smallImage.RelativeTo(reports).ToString(), new WebpEncoder {Quality = 75}, cancellationToken: token);
         }
 

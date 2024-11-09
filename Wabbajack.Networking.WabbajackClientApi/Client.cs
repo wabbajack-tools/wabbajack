@@ -107,6 +107,12 @@ public class Client
         return d.Deserialize<ServerAllowList>(str);
     }
 
+    public async Task<Archive[]> LoadMirrors()
+    {
+        var str = await _client.GetStringAsync(_configuration.MirrorList);
+        return JsonSerializer.Deserialize<Archive[]>(str, _dtos.Options) ?? [];
+    }
+
     public async Task<ServerAllowList> LoadMirrorAllowList()
     {
         var str = await _client.GetStringAsync(_configuration.MirrorAllowList);

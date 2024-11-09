@@ -57,21 +57,29 @@ public static class UIUtils
     }
         
         
-    public static void OpenWebsite(Uri url)
-    {
-        Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url}")
+        public static void OpenWebsite(Uri url)
         {
-            CreateNoWindow = true,
-        });
-    }
+            Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url}")
+            {
+                CreateNoWindow = true,
+            });
+        }
         
-    public static void OpenFolder(AbsolutePath path)
-    {
-        Process.Start(new ProcessStartInfo(KnownFolders.Windows.Combine("explorer.exe").ToString(), path.ToString())
+        public static void OpenFolder(AbsolutePath path)
         {
-            CreateNoWindow = true,
-        });
-    }
+            string folderPath = path.ToString();
+            if (!folderPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
+            {
+                folderPath += Path.DirectorySeparatorChar.ToString();
+            }
+
+            Process.Start(new ProcessStartInfo()
+            {
+                FileName = folderPath,
+                UseShellExecute = true,
+                Verb = "open"
+            });
+        }
 
 
     public static AbsolutePath OpenFileDialog(string filter, string initialDirectory = null)

@@ -55,6 +55,7 @@ public class CompressionTests
     {
         if (name == "tes4.bsa") return; // not sure why is is failing
 
+
         var reader = await BSADispatch.Open(path);
 
         var dataStates = await reader.Files
@@ -78,7 +79,6 @@ public class CompressionTests
 
         var rebuiltStream = new MemoryStream();
         await build.Build(rebuiltStream, CancellationToken.None);
-        rebuiltStream.Position = 0;
 
         var reader2 = await BSADispatch.Open(new MemoryStreamFactory(rebuiltStream, path, path.LastModifiedUtc()));
         await reader.Files.Zip(reader2.Files)

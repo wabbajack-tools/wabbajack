@@ -41,6 +41,7 @@ internal class Program
                 services.AddSingleton<Client>();
                 services.AddSingleton<Networking.WabbajackClientApi.Client>();
                 services.AddSingleton(s => new GitHubClient(new ProductHeaderValue("wabbajack")));
+                services.AddSingleton<TemporaryFileManager>();
 
                 services.AddOSIntegrated();
                 services.AddServerLib();

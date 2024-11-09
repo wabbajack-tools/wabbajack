@@ -17,4 +17,7 @@ public class BA2State : IArchive
     public BA2EntryType Type { get; set; }
     public string HeaderMagic { get; set; }
     public uint Version { get; set; }
+    public uint Unknown1 { get; set; }
+    public uint Unknown2 { get; set; }
+    public uint Compression { get; set; }
 }
