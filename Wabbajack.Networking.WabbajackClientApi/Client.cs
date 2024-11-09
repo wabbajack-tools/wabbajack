@@ -259,6 +259,14 @@ public class Client
         return repositories!;
     }
 
+    public async Task<SearchIndex> LoadSearchIndex()
+    {
+        return await _client.GetFromJsonAsync<SearchIndex>(_limiter,
+            new HttpRequestMessage(HttpMethod.Get, 
+                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/refs/heads/master/reports/searchIndex.json"),
+                _dtos.Options);
+    }
+    
     public Uri GetPatchUrl(Hash upgradeHash, Hash archiveHash)
     {
         return new Uri($"{_configuration.PatchBaseAddress}{upgradeHash.ToHex()}_{archiveHash.ToHex()}");
