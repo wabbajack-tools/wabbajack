@@ -68,8 +68,11 @@ public class ModListGalleryVM : BackNavigatingVM
     [Reactive] public string GameType { get; set; }
     [Reactive] public double MinModlistSize { get; set; }
     [Reactive] public double MaxModlistSize { get; set; }
+
     [Reactive] public ObservableCollection<ModListTag> AllTags { get; set; }
     [Reactive] public ObservableCollection<ModListTag> HasTags { get; set; } = new();
+
+    [Reactive] public HashSet<string> AllModNames { get; set; } = new();
 
     [Reactive] public GalleryModListMetadataVM SmallestSizedModlist { get; set; }
     [Reactive] public GalleryModListMetadataVM LargestSizedModlist { get; set; }
@@ -299,23 +302,7 @@ public class ModListGalleryVM : BackNavigatingVM
                     new GalleryModListMetadataVM(_logger, this, m, _maintainer, _wjClient, _cancellationToken,
                         httpClient, cacheManager)));
             });
-            SmallestSizedModlist = null;
-            LargestSizedModlist = null;
-            foreach(var item in _modLists.Items)
-            {
-                if (SmallestSizedModlist == null) SmallestSizedModlist = item;
-                if (LargestSizedModlist == null) LargestSizedModlist = item;
-
-                var itemTotalSize = item.Metadata.DownloadMetadata.TotalSize;
-                var smallestSize = SmallestSizedModlist.Metadata.DownloadMetadata.TotalSize;
-                var largestSize = LargestSizedModlist.Metadata.DownloadMetadata.TotalSize;
-
-                if (itemTotalSize < smallestSize) SmallestSizedModlist = item;
-
-                if (itemTotalSize > largestSize) LargestSizedModlist = item;
-            }
-            MinModlistSize = SmallestSizedModlist.Metadata.DownloadMetadata.TotalSize;
-            MaxModlistSize = LargestSizedModlist.Metadata.DownloadMetadata.TotalSize;
+            DetermineListSizeRange();
         }
         catch (Exception ex)
         {
@@ -323,6 +310,27 @@ public class ModListGalleryVM : BackNavigatingVM
             ll.Fail();
         }
         ll.Succeed();
+    }
+
+    private void DetermineListSizeRange()
+    {
+        SmallestSizedModlist = null;
+        LargestSizedModlist = null;
+        foreach(var item in _modLists.Items)
+        {
+            if (SmallestSizedModlist == null) SmallestSizedModlist = item;
+            if (LargestSizedModlist == null) LargestSizedModlist = item;
+
+            var itemTotalSize = item.Metadata.DownloadMetadata.TotalSize;
+            var smallestSize = SmallestSizedModlist.Metadata.DownloadMetadata.TotalSize;
+            var largestSize = LargestSizedModlist.Metadata.DownloadMetadata.TotalSize;
+
+            if (itemTotalSize < smallestSize) SmallestSizedModlist = item;
+
+            if (itemTotalSize > largestSize) LargestSizedModlist = item;
+        }
+        MinModlistSize = SmallestSizedModlist.Metadata.DownloadMetadata.TotalSize;
+        MaxModlistSize = LargestSizedModlist.Metadata.DownloadMetadata.TotalSize;
     }
 
     private ObservableCollection<GameTypeEntry> GetGameTypeEntries()

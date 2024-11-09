@@ -87,15 +87,15 @@
     <Color x:Key="Triadic2">#FCBB86</Color>
 
     <!--  Mahapps overrides  -->
-    <Color x:Key="MahApps.Colors.AccentBase">#FF3700B3</Color>
+    <Color x:Key="MahApps.Colors.AccentBase">#FF222531</Color>
     <!--  80%  -->
-    <Color x:Key="MahApps.Colors.Accent">#CC868CFC</Color>
+    <Color x:Key="MahApps.Colors.Accent">#CCD8BAF8</Color>
     <!--  60%  -->
-    <Color x:Key="MahApps.Colors.Accent2">#99868CFC</Color>
+    <Color x:Key="MahApps.Colors.Accent2">#99D8BAF8</Color>
     <!--  40%  -->
-    <Color x:Key="MahApps.Colors.Accent3">#66868CFC</Color>
+    <Color x:Key="MahApps.Colors.Accent3">#66D8BAF8</Color>
     <!--  20%  -->
-    <Color x:Key="MahApps.Colors.Accent4">#33868CFC</Color>
+    <Color x:Key="MahApps.Colors.Accent4">#33D8BAF8</Color>
     <SolidColorBrush
         x:Key="MahApps.Brushes.Highlight"
         options:Freeze="True"
@@ -1833,8 +1833,6 @@
     </Style>
 
     <!--  Expander  -->
-
-
     <Style x:Key="ExpanderRightHeaderStyle" TargetType="{x:Type ToggleButton}">
         <Setter Property="Template">
             <Setter.Value>
@@ -2201,7 +2199,6 @@
 
     <!--  CheckBox  -->
 
-
     <Style x:Key="EmptyCheckBoxFocusVisual">
         <Setter Property="Control.Template">
             <Setter.Value>
@@ -2361,6 +2358,27 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <!-- TabControl -->
+    <!--
+    <Style x:Key="TabControlStyle" TargetType="{x:Type TabControl}" BasedOn="{DynamicResource MahApps.Styles.TabControl.Animated}">
+        <Setter Property="Background" Value="{DynamicResource MahApps.Brushes.ThemeBackground}" />
+        <Setter Property="BorderBrush" Value="{x:Null}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="UIElement.SnapsToDevicePixels" Value="True" />
+        <Setter Property="mahapps:TabControlHelper.Transition" Value="Left" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="mahapps:HeaderedControlHelper.HeaderBackground" Value="{Binding RelativeSource={RelativeSource Self}, Path=Background, FallbackValue={x:Static Brushes.Transparent}}" />
+        <Setter Property="mahapps:HeaderedControlHelper.HeaderFontSize" Value="{DynamicResource MahApps.Font.Size.TabItem}" />
+        <Setter Property="mahapps:HeaderedControlHelper.HeaderForeground" Value="{DynamicResource MahApps.Brushes.Gray}" />
+        <Setter Property="mahapps:HeaderedControlHelper.HeaderMargin" Value="6 2" />
+        <Setter Property="mahapps:TabControlHelper.UnderlineBrush" Value="{DynamicResource MahApps.Brushes.Gray}" />
+        <Setter Property="mahapps:TabControlHelper.UnderlineMouseOverBrush" Value="{DynamicResource MahApps.Brushes.Gray.MouseOver}" />
+        <Setter Property="mahapps:TabControlHelper.UnderlineMouseOverSelectedBrush" Value="{DynamicResource MahApps.Brushes.Highlight}" />
+        <Setter Property="mahapps:TabControlHelper.UnderlineSelectedBrush" Value="{DynamicResource MahApps.Brushes.Accent}" />
+
+    </Style>
+    -->
 
     <!--  ListView  -->
     <Style TargetType="{x:Type ListView}">
@@ -4734,7 +4752,6 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type generic:MultiSelectComboBox}">
-
                     <Grid x:Name="PART_MultiSelectComboBox" MaxWidth="{TemplateBinding ActualWidth}" Style="{StaticResource MultiSelectComboBox.Style}">
                         <ToggleButton KeyboardNavigation.TabNavigation="None" IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" IsTabStop="False" Width="Auto">
                             <ToggleButton.Template>

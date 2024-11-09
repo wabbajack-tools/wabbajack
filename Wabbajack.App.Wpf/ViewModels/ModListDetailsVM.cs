@@ -62,9 +62,9 @@ public class ModListDetailsVM : BackNavigatingVM
         BackCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.ModListGallery));
         this.WhenActivated(disposables =>
         {
-
+            
             LoadArchives(MetadataVM.Metadata.RepositoryName, MetadataVM.Metadata.Links.MachineURL).FireAndForget();
-
+            
             var searchThrottle = TimeSpan.FromSeconds(0.5);
 
             var searchTextPredicates = this.ObservableForProperty(vm => vm.Search)

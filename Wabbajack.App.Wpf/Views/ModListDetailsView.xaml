@@ -75,13 +75,33 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid>
+                <!--
+                <TabControl
+                    Margin="0, 0, 0, 16"
+                    HorizontalAlignment="Left"
+                    Width="{Binding ActualWidth, ElementName=ArchivesGrid}"
+                    Style="{DynamicResource MahApps.Styles.TabControl.Animated}"
+                    Background="Transparent"
+                    mahapps:HeaderedControlHelper.HeaderMargin="16, 16, 24, 16"
+                    mahapps:HeaderedControlHelper.HeaderFontSize="13"
+                    mahapps:HeaderedControlHelper.HeaderBackground="{StaticResource BackgroundBrush}"
+                    >
+                    <mahapps:MetroTabItem Header="Readme">
+                        <TextBlock Text="test"/>
+                    </mahapps:MetroTabItem>
+                    <mahapps:MetroTabItem Header="Mods">
+                        <TextBlock Text="test2"/>
+                    </mahapps:MetroTabItem>
+                </TabControl>
+                -->
+                    
                 <TextBox
                 x:Name="SearchBox"
                 mahapps:TextBoxHelper.Watermark="Search for a mod..."
-                Width="{Binding ActualWidth, ElementName=ArchivesGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/2}"
-                HorizontalAlignment="Left" 
-                Margin="0, 0, 0, 16" />
-                <Border BorderThickness="0" CornerRadius="8" HorizontalAlignment="Left" Width="{Binding ActualWidth, ElementName=SearchBox}" Height="{Binding ActualHeight, ElementName=SearchBox}" Margin="0, 0, 0, 16">
+                Width="{Binding ActualWidth, ElementName=ArchivesGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/3}"
+                HorizontalAlignment="Right" 
+                Margin="0, 0, 48, 16" />
+                <Border BorderThickness="0" CornerRadius="8" HorizontalAlignment="Right" Width="{Binding ActualWidth, ElementName=SearchBox}" Height="{Binding ActualHeight, ElementName=SearchBox}" Margin="0, 0, 48, 16">
                     <Border HorizontalAlignment="Right" CornerRadius="8" Background="{StaticResource ComplementaryPrimary08Brush}" Padding="8, 0, 8, 0">
                         <ic:SymbolIcon Symbol="Search" IsFilled="True" Foreground="{StaticResource PrimaryBrush}"/>
                     </Border>

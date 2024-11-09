@@ -262,7 +262,7 @@ public class Client
             _dtos.Options);
         return data!.ToHashSet(StringComparer.CurrentCultureIgnoreCase);
     }
-
+    
     public Uri GetPatchUrl(Hash upgradeHash, Hash archiveHash)
     {
         return new Uri($"{_configuration.PatchBaseAddress}{upgradeHash.ToHex()}_{archiveHash.ToHex()}");
