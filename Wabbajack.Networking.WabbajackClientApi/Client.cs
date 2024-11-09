@@ -269,9 +269,9 @@ public class Client
         return data!.ToHashSet(StringComparer.CurrentCultureIgnoreCase);
     }
 
-    public async Task<SearchIndexJson> LoadSearchIndex()
+    public async Task<SearchIndex> LoadSearchIndex()
     {
-        return await _client.GetFromJsonAsync<SearchIndexJson>(_limiter,
+        return await _client.GetFromJsonAsync<SearchIndex>(_limiter,
             new HttpRequestMessage(HttpMethod.Get,
                 "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/refs/heads/master/reports/searchIndex.json"),
             _dtos.Options);
