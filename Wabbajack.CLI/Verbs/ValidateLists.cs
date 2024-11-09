@@ -507,7 +507,10 @@ public class ValidateLists
 
             try
             {
-                var oldSummary = await _wjClient.GetDetailedStatus(validatedList.MachineURL);
+                var namespacedName = validatedList.MachineURL.Split('/');
+                var machineURL = namespacedName[0];
+                var repository = namespacedName[1];
+                var oldSummary = await _wjClient.GetDetailedStatus(repository, machineURL);
 
                 if (oldSummary.ModListHash != validatedList.ModListHash)
                 {

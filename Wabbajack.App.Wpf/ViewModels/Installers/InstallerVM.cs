@@ -33,6 +33,9 @@ using Wabbajack.RateLimiter;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Util;
+using Wabbajack.CLI.Verbs;
+using Microsoft.Extensions.DependencyInjection;
+using Wabbajack.VFS;
 
 namespace Wabbajack;
 
@@ -148,6 +151,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     public ReactiveCommand<Unit, Unit> OpenLogsCommand { get; }
     public ReactiveCommand<Unit, Unit> GoToInstallCommand { get; }
     public ReactiveCommand<Unit, Unit> BeginCommand { get; }
+    public ReactiveCommand<Unit, Unit> VerifyCommand { get; }
     
     public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
@@ -451,6 +455,36 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         AbsolutePath prev = Installer.Location.TargetPath;
         Installer.Location.TargetPath = "".ToAbsolutePath();
         Installer.Location.TargetPath = prev;
+    }
+
+    private async Task Verify()
+    {
+        await Task.Run(async () =>
+        {
+            InstallState = InstallState.Installing;
+
+            StatusText = $"Verifying {ModList.Name}";
+
+
+            var cmd = new VerifyModlistInstall(_serviceProvider.GetRequiredService<ILogger<VerifyModlistInstall>>(), _dtos,
+                _serviceProvider.GetRequiredService<IResource<FileHashCache>>(),
+                _serviceProvider.GetRequiredService<TemporaryFileManager>());
+
+            var result = await cmd.Run(ModListLocation.TargetPath, Installer.Location.TargetPath, _cancellationToken);
+
+            if (result != 0)
+            {
+                TaskBarUpdate.Send($"Error during verification of {ModList.Name}", TaskbarItemProgressState.Error);
+                InstallState = InstallState.Failure;
+                StatusText = $"Error during install of {ModList.Name}";
+                StatusProgress = Percent.Zero;
+            }
+            else
+            {
+                TaskBarUpdate.Send($"Finished verification of {ModList.Name}", TaskbarItemProgressState.Normal);
+                InstallState = InstallState.Success;
+            }
+        });
     }
 
     private async Task BeginInstall()

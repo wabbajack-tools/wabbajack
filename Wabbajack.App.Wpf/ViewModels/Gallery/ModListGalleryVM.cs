@@ -287,6 +287,7 @@ public class ModListGalleryVM : BackNavigatingVM
             var allowedTags = await _wjClient.LoadAllowedTags();
             AllTags = new(allowedTags.Select(t => new ModListTag(t)).OrderBy(t => t.Name).Prepend(new ModListTag("NSFW")).Prepend(new ModListTag("Featured")));
             var modLists = await _wjClient.LoadLists();
+            var modlistSummaries = (await _wjClient.GetListStatuses())?.ToDictionary(summary => summary.MachineURL) ?? new();
             var httpClient = _serviceProvider.GetRequiredService<HttpClient>();
             var cacheManager = _serviceProvider.GetRequiredService<ImageCacheManager>();
             foreach (var modlist in modLists)
@@ -299,7 +300,7 @@ public class ModListGalleryVM : BackNavigatingVM
             {
                 e.Clear();
                 e.AddOrUpdate(modLists.Select(m =>
-                    new GalleryModListMetadataVM(_logger, this, m, _maintainer, _wjClient, _cancellationToken,
+                    new GalleryModListMetadataVM(_logger, this, m, _maintainer, modlistSummaries.ContainsKey(m.Links.MachineURL) ? modlistSummaries[m.Links.MachineURL] : null, _wjClient, _cancellationToken,
                         httpClient, cacheManager)));
             });
             DetermineListSizeRange();

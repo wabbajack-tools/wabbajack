@@ -90,6 +90,8 @@ public class BaseModListMetadataVM : ViewModel
     protected ObservableAsPropertyHelper<bool> _LoadingImage { get; set; }
     public bool LoadingImage => _LoadingImage.Value;
 
+    public ModListSummary? Summary { get; set; }
+
     protected Subject<bool> IsLoadingIdle;
     protected readonly ILogger _logger;
     protected readonly ModListDownloadMaintainer _maintainer;
@@ -99,11 +101,12 @@ public class BaseModListMetadataVM : ViewModel
     protected readonly ImageCacheManager _icm;
 
     public BaseModListMetadataVM(ILogger logger, ModlistMetadata metadata,
-        ModListDownloadMaintainer maintainer, Client wjClient, CancellationToken cancellationToken, HttpClient client, ImageCacheManager icm)
+        ModListDownloadMaintainer maintainer, ModListSummary? summary, Client wjClient, CancellationToken cancellationToken, HttpClient client, ImageCacheManager icm)
     {
         _logger = logger;
         _maintainer = maintainer;
         Metadata = metadata;
+        Summary = summary;
         _wjClient = wjClient;
         _cancellationToken = cancellationToken;
 
@@ -121,7 +124,7 @@ public class BaseModListMetadataVM : ViewModel
         VersionText = "Modlist version: " + Metadata.Version;
         ImageContainsTitle = Metadata.ImageContainsTitle;
         DisplayVersionOnlyInInstallerView = Metadata.DisplayVersionOnlyInInstallerView;
-        IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;
+        IsBroken = (Summary?.HasFailures ?? false) || metadata.ForceDown;
 
         IsLoadingIdle = new Subject<bool>();
 
