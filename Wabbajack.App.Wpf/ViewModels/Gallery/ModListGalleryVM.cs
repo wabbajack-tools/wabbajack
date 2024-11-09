@@ -300,7 +300,7 @@ public class ModListGalleryVM : BackNavigatingVM
             {
                 e.Clear();
                 e.AddOrUpdate(modLists.Select(m =>
-                    new GalleryModListMetadataVM(_logger, this, m, _maintainer, modlistSummaries.ContainsKey(m.Links.MachineURL) ? modlistSummaries[m.Links.MachineURL] : null, _wjClient, _cancellationToken,
+                    new GalleryModListMetadataVM(_logger, this, m, _maintainer, modlistSummaries.TryGetValue(m.Links.MachineURL, out var summary) ? summary : null, _wjClient, _cancellationToken,
                         httpClient, cacheManager)));
             });
             DetermineListSizeRange();
