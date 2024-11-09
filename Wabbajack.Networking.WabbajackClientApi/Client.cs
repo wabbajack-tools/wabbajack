@@ -268,6 +268,14 @@ public class Client
             _dtos.Options);
         return data!.ToHashSet(StringComparer.CurrentCultureIgnoreCase);
     }
+
+    public async Task<SearchIndexJson> LoadSearchIndex()
+    {
+        return await _client.GetFromJsonAsync<SearchIndexJson>(_limiter,
+            new HttpRequestMessage(HttpMethod.Get,
+                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/refs/heads/master/reports/searchIndex.json"),
+            _dtos.Options);
+    }
     
     public Uri GetPatchUrl(Hash upgradeHash, Hash archiveHash)
     {

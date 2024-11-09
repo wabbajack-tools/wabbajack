@@ -38,13 +38,6 @@ using Wabbajack.Server.Lib.TokenProviders;
 
 namespace Wabbajack.CLI.Verbs;
 
-public struct SearchIndexJson
-{
-
-    public HashSet<string> SearchIndex { get; set; }
-    public Dictionary<string, HashSet<string>> PerListSearchIndex { get; set; }
-}
-
 public class ValidateLists
 {
     private static readonly Uri MirrorPrefix = new("https://mirror.wabbajack.org");
@@ -122,10 +115,8 @@ public class ValidateLists
             _logger.LogInformation("Validating {MachineUrl} - {Version}", list.NamespacedName, list.Version);
         }
 
-        // MachineURL - HashSet of mods per list
-        ConcurrentDictionary<string, HashSet<string>> PerModListSearchIndex = new();
-        // HashSet of all searchable mods
-        HashSet<string> ModListSearchIndex = new();
+        ConcurrentDictionary<string, HashSet<string>> modsPerList = new();
+        HashSet<string> allMods = new();
 
         var validatedLists = await listData.PMapAll(async modList =>
         {
@@ -181,11 +172,11 @@ public class ValidateLists
                 {
                     if (archive.State is not Nexus n) continue;
                     if (string.IsNullOrWhiteSpace(n.Name)) continue;
-                    ModListSearchIndex.Add(n.Name);
+                    allMods.Add(n.Name);
                     modListSearchableMods.Add(n.Name);
                 }
 
-                PerModListSearchIndex.TryAdd(modList.Links.MachineURL, modListSearchableMods);
+                modsPerList.TryAdd(modList.Links.MachineURL, modListSearchableMods);
             }
             catch (Exception ex)
             {
@@ -259,7 +250,7 @@ public class ValidateLists
         {
             await using var searchIndexFileName = reports.Combine("searchIndex.json")
                 .Open(FileMode.Create, FileAccess.Write, FileShare.None);
-            await _dtos.Serialize(new SearchIndexJson { SearchIndex = ModListSearchIndex, PerListSearchIndex = PerModListSearchIndex.ToDictionary() }, searchIndexFileName, true);
+            await _dtos.Serialize(new SearchIndex() { AllMods = allMods, ModsPerList = modsPerList.ToDictionary() }, searchIndexFileName, true);
         }
 
         var allArchives = validatedLists.SelectMany(l => l.Archives).ToList();
