@@ -122,31 +122,23 @@
                 <StackPanel Grid.Row="4" Orientation="Vertical" Margin="0, 24, 0, 0">
                     <TextBlock Text="Has mod(s)" />
                     <sdl:MultiSelectComboBox
-                x:Name="HasModsFilter"
-                Margin="0, 12, 0, 0"
-                ItemsSource="{Binding AllModsOE}"
-                IsEditable="True"
-                SelectionMode="Multiple"
-                BorderThickness="0"
-                BorderBrush="Transparent"
-                Background="{StaticResource ComplementaryPrimary08Brush}"
-                Style="{StaticResource TagsBox}"
-                />
-                    
+                        x:Name="HasModsFilter"
+                        Margin="0, 12, 0, 0"
+                        IsEditable="True"
+                        SelectionMode="Multiple"
+                        Background="{StaticResource ComplementaryPrimary08Brush}"
+                        Style="{StaticResource TagsBox}" />
                 </StackPanel>
+                
                 <StackPanel Grid.Row="5" Orientation="Vertical" Margin="0, 24, 0, 0">
                     <TextBlock Text="Has tag(s)" />
                     <sdl:MultiSelectComboBox
-                x:Name="HasTagsFilter"
-                Margin="0, 12, 0, 0"
-                ItemsSource="{Binding AllTags}"
-                IsEditable="True"
-                SelectionMode="Multiple"
-                BorderThickness="0"
-                BorderBrush="Transparent"
-                Background="{StaticResource ComplementaryPrimary08Brush}"
-                Style="{StaticResource TagsBox}"
-                />
+                        x:Name="HasTagsFilter"
+                        Margin="0, 12, 0, 0"
+                        IsEditable="True"
+                        SelectionMode="Multiple"
+                        Background="{StaticResource ComplementaryPrimary08Brush}"
+                        Style="{StaticResource TagsBox}" />
                 </StackPanel>
 
                 <CheckBox

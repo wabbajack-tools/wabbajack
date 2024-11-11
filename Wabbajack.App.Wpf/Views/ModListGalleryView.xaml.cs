@@ -76,11 +76,27 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                     vmProp => vmProp / Math.Pow(1024, 3),
                     vProp => vProp * Math.Pow(1024, 3))
                 .DisposeWith(dispose);
+            
+            this.BindStrict(ViewModel,
+                vm => vm.HasMods,
+                v => v.HasModsFilter.SelectedItems)
+                .DisposeWith(dispose);
+            
+            this.BindStrict(ViewModel,
+                vm => vm.HasTags,
+                v => v.HasTagsFilter.SelectedItems)
+                .DisposeWith(dispose);
 
             this.OneWayBindStrict(ViewModel,
                 vm => vm.AllMods,
                 v => v.HasModsFilter.ItemsSource,
                 mods => new ObservableCollection<ModListMod>(mods))
+                .DisposeWith(dispose);
+            
+            this.OneWayBindStrict(ViewModel,
+                vm => vm.AllTags,
+                v => v.HasTagsFilter.ItemsSource,
+                tags => new ObservableCollection<ModListTag>(tags))
                 .DisposeWith(dispose);
 
             HasTagsFilter.Events().SelectedItemsChanged

@@ -70,7 +70,7 @@ public class ModListGalleryVM : BackNavigatingVM
     [Reactive] public double MinModlistSize { get; set; }
     [Reactive] public double MaxModlistSize { get; set; }
 
-    [Reactive] public ObservableCollection<ModListTag> AllTags { get; set; } = new();
+    [Reactive] public HashSet<ModListTag> AllTags { get; set; } = new();
     [Reactive] public ObservableCollection<ModListTag> HasTags { get; set; } = new();
     
     
@@ -126,6 +126,8 @@ public class ModListGalleryVM : BackNavigatingVM
                 IncludeUnofficial = false;
                 Search = string.Empty;
                 SelectedGameTypeEntry = GameTypeEntries?.FirstOrDefault();
+                HasTags = new ObservableCollection<ModListTag>();
+                HasMods = new ObservableCollection<ModListMod>();
             });
 
         this.WhenActivated(disposables =>
@@ -301,7 +303,11 @@ public class ModListGalleryVM : BackNavigatingVM
         try
         {
             var allowedTags = await _wjClient.LoadAllowedTags();
-            AllTags = new(allowedTags.Select(t => new ModListTag(t)).OrderBy(t => t.Name).Prepend(new ModListTag("NSFW")).Prepend(new ModListTag("Featured")));
+            AllTags = allowedTags.Select(t => new ModListTag(t))
+                                 .OrderBy(t => t.Name)
+                                 .Prepend(new ModListTag("NSFW"))
+                                 .Prepend(new ModListTag("Featured"))
+                                 .ToHashSet();
             var searchIndex = await _wjClient.LoadSearchIndex();
             ModsPerList = searchIndex.ModsPerList;
             AllMods = searchIndex.AllMods.Select(mod => new ModListMod(mod)).ToHashSet();
