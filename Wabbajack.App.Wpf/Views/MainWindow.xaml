@@ -156,15 +156,6 @@
             <mahapps:WindowCommands.Resources>
                 <Style BasedOn="{StaticResource IconBareButtonStyle}" TargetType="Button" />
             </mahapps:WindowCommands.Resources>
-
-            <Button
-                Margin="5,0"
-                Command="{Binding CopyVersionCommand}"
-                Content="{Binding VersionDisplay}">
-                <Button.ToolTip>
-                    <ToolTip Content="Wabbajack Version&#x0a;Click to copy to clipboard" />
-                </Button.ToolTip>
-            </Button>
             <Button Grid.Column="1"
                     Style="{StaticResource IconBareButtonStyle}"
                     Command="{Binding MinimizeCommand}">

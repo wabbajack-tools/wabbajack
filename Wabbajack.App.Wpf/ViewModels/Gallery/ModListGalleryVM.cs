@@ -75,7 +75,6 @@ public class ModListGalleryVM : BackNavigatingVM
     
     
     [Reactive] public HashSet<ModListMod> AllMods { get; set; } = new();
-    [Reactive] public ObservableCollection<ModListMod> AllModsOE { get; set; } = new();
     [Reactive] public ObservableCollection<ModListMod> HasMods { get; set; } = new();
     [Reactive] public Dictionary<string, HashSet<string>> ModsPerList { get; set; } = new();
 
@@ -306,7 +305,6 @@ public class ModListGalleryVM : BackNavigatingVM
             var searchIndex = await _wjClient.LoadSearchIndex();
             ModsPerList = searchIndex.ModsPerList;
             AllMods = searchIndex.AllMods.Select(mod => new ModListMod(mod)).ToHashSet();
-            AllModsOE = new ObservableCollection<ModListMod>(AllMods);
             var modLists = await _wjClient.LoadLists();
             var modlistSummaries = (await _wjClient.GetListStatuses()).ToDictionary(summary => summary.MachineURL);
             var httpClient = _serviceProvider.GetRequiredService<HttpClient>();

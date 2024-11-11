@@ -4737,8 +4737,8 @@
         </Border>
     </DataTemplate>
 
-    <DataTemplate x:Key="MultiSelectComboBox.Dropdown.ListBox.Header.Template" DataType="api:IItemGroup">
-        <TextBlock Text="{Binding Path=Name}" TextTrimming="CharacterEllipsis"  Padding="7, 5" Margin="0,0,0,2" FontWeight="Bold" FontFamily="{StaticResource MultiSelectComboBox.Text.FontFamily}" Foreground="{StaticResource MultiSelectComboBox.DropDown.ListBox.GroupHeader.Foreground}" Background="{StaticResource MultiSelectComboBox.DropDown.ListBox.GroupHeader.Background}" />
+    <DataTemplate x:Key="MultiSelectComboBox.Dropdown.ListBox.Header.Template">
+        <TextBlock Text="{Binding Path=Name}" TextTrimming="CharacterEllipsis" Padding="7, 5" Margin="0,0,0,2" FontWeight="Bold" FontFamily="{StaticResource MultiSelectComboBox.Text.FontFamily}" Foreground="{StaticResource MultiSelectComboBox.DropDown.ListBox.GroupHeader.Foreground}" Background="{StaticResource MultiSelectComboBox.DropDown.ListBox.GroupHeader.Background}" />
     </DataTemplate>
 
     <Style x:Key="TagsBox" TargetType="{x:Type generic:MultiSelectComboBox}">

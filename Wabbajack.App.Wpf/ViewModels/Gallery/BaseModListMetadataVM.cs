@@ -25,13 +25,13 @@ using Wabbajack.Services.OSIntegrated.Services;
 namespace Wabbajack;
 
 
-public struct ModListTag(string name)
+public readonly record struct ModListTag(string name)
 {
     public string Name { get; } = name;
     public override string ToString() => Name;
 }
 
-public struct ModListMod(string name)
+public readonly record struct ModListMod(string name)
 {
     public string Name { get; } = name;
     public override string ToString() => Name;
