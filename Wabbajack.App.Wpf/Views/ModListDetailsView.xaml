@@ -1,18 +1,19 @@
 <rxui:ReactiveUserControl
     x:Class="Wabbajack.ModListDetailsView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:Wabbajack"
-             xmlns:dtoStates="clr-namespace:Wabbajack.DTOs.DownloadStates;assembly=Wabbajack.DTOs"
-             xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
-             xmlns:rxui="http://reactiveui.net"
-             xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
-             x:TypeArguments="local:ModListDetailsVM"
-             mc:Ignorable="d"
-             d:DataContext="{d:DesignInstance local:ModListDetailsVM}"
-             d:DesignHeight="300" d:DesignWidth="300">
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:dtoStates="clr-namespace:Wabbajack.DTOs.DownloadStates;assembly=Wabbajack.DTOs"
+    xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    xmlns:rxui="http://reactiveui.net"
+    xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
+    xmlns:wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+    x:TypeArguments="local:ModListDetailsVM"
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance local:ModListDetailsVM}"
+    d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" MinWidth="280" />
@@ -26,21 +27,26 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <Border x:Name="ImageBorder" VerticalAlignment="Top" Margin="0, 0, 0, 8" BorderBrush="Transparent" CornerRadius="8" Height="{Binding ActualWidth, ElementName=ImageBorder, Converter={StaticResource MathConverter}, ConverterParameter=x/(16/9)}">
+            <Border x:Name="ImageBorder" VerticalAlignment="Top" Margin="0, 0, 0, 8" BorderBrush="Transparent"
+                    CornerRadius="8"
+                    Height="{Binding ActualWidth, ElementName=ImageBorder, Converter={StaticResource MathConverter}, ConverterParameter=x/(16/9)}">
                 <Border.Background>
                     <ImageBrush ImageSource="{Binding MetadataVM.Image}" Stretch="UniformToFill" />
                 </Border.Background>
             </Border>
             <StackPanel Grid.Row="1">
                 <DockPanel>
-                    <TextBlock Text="{Binding MetadataVM.Metadata.Title}" FontSize="32" FontWeight="Bold"/>
-                    <ic:SymbolIcon Symbol="CheckmarkStarburst" FontSize="28" HorizontalAlignment="Right" IsFilled="True" Foreground="{StaticResource PrimaryBrush}" Visibility="{Binding MetadataVM.Metadata.Official, Converter={StaticResource bool2VisibilityConverter}}" ToolTip="This modlist has been tested and provides a stable experience with official support channels. More info about featured modlists is available on the Wabbajack wiki."/>
+                    <TextBlock Text="{Binding MetadataVM.Metadata.Title}" FontSize="32" FontWeight="Bold" />
+                    <ic:SymbolIcon Symbol="CheckmarkStarburst" FontSize="28" HorizontalAlignment="Right"
+                                   IsFilled="True" Foreground="{StaticResource PrimaryBrush}"
+                                   Visibility="{Binding MetadataVM.Metadata.Official, Converter={StaticResource bool2VisibilityConverter}}"
+                                   ToolTip="This modlist has been tested and provides a stable experience with official support channels. More info about featured modlists is available on the Wabbajack wiki." />
                 </DockPanel>
                 <DockPanel Margin="0, 0, 0, 4">
                     <TextBlock FontSize="17.5">
                         <Run Text="version" Foreground="#80FFFFFF" />
                         <Run Text="{Binding MetadataVM.Metadata.Version}" />
-                        <Run Text="by" Foreground="#80FFFFFF"/>
+                        <Run Text="by" Foreground="#80FFFFFF" />
                         <Run Text="{Binding MetadataVM.Metadata.Author}" />
                     </TextBlock>
                 </DockPanel>
@@ -58,15 +64,18 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="16"/>
-                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="16" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <local:WizardButton x:Name="WebsiteButton" Command="{Binding OpenWebsiteCommand}" Grid.Column="0" Text="Website" Icon="Globe" Width="Auto" />
-                <local:WizardButton x:Name="DiscordButton" Command="{Binding OpenDiscordCommand}" Grid.Column="2" Text="Discord" Icon="PeopleChat" Width="Auto" />
+                <local:WizardButton x:Name="WebsiteButton" Command="{Binding OpenWebsiteCommand}" Grid.Column="0"
+                                    Text="Website" Icon="Globe" Width="Auto" />
+                <local:WizardButton x:Name="DiscordButton" Command="{Binding OpenDiscordCommand}" Grid.Column="2"
+                                    Text="Discord" Icon="PeopleChat" Width="Auto" />
 
-                <local:WizardButton Grid.Row="2" Grid.ColumnSpan="5" Text="Download &amp; Install" Icon="ArrowDownload" ButtonStyle="Color" Width="Auto" />
+                <local:WizardButton Grid.Row="2" Grid.ColumnSpan="5" Text="Download &amp; Install" Icon="ArrowDownload"
+                                    ButtonStyle="Color" Width="Auto" />
             </Grid>
         </Grid>
         <Grid x:Name="ArchivesGrid" Grid.Column="2">
@@ -75,56 +84,64 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid>
-                <!--
-                <TabControl
-                    Margin="0, 0, 0, 16"
+
+                <Border
                     HorizontalAlignment="Left"
-                    Width="{Binding ActualWidth, ElementName=ArchivesGrid}"
-                    Style="{DynamicResource MahApps.Styles.TabControl.Animated}"
-                    Background="Transparent"
-                    mahapps:HeaderedControlHelper.HeaderMargin="16, 16, 24, 16"
-                    mahapps:HeaderedControlHelper.HeaderFontSize="13"
-                    mahapps:HeaderedControlHelper.HeaderBackground="{StaticResource BackgroundBrush}"
+                    Background="{StaticResource ToggleButtonBackground}"
+                    CornerRadius="8"
+                    Margin="0, 0, 0, 16"
                     >
-                    <mahapps:MetroTabItem Header="Readme">
-                        <TextBlock Text="test"/>
-                    </mahapps:MetroTabItem>
-                    <mahapps:MetroTabItem Header="Mods">
-                        <TextBlock Text="test2"/>
-                    </mahapps:MetroTabItem>
-                </TabControl>
-                -->
-                    
+                    <StackPanel Orientation="Horizontal">
+                        <ToggleButton
+                            x:Name="ArchivesButton"
+                            IsChecked="True"
+                            Width="{Binding ActualWidth, ElementName=ArchivesGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/8}">Archives</ToggleButton>
+
+                        <ToggleButton
+                            x:Name="ReadmeButton"
+                            Width="{Binding ActualWidth, ElementName=ArchivesGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/8}" >Readme</ToggleButton>
+                    </StackPanel>
+                </Border>
+
                 <TextBox
-                x:Name="SearchBox"
-                mahapps:TextBoxHelper.Watermark="Search for a mod..."
-                Width="{Binding ActualWidth, ElementName=ArchivesGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/3}"
-                HorizontalAlignment="Right" 
-                Margin="0, 0, 48, 16" />
-                <Border BorderThickness="0" CornerRadius="8" HorizontalAlignment="Right" Width="{Binding ActualWidth, ElementName=SearchBox}" Height="{Binding ActualHeight, ElementName=SearchBox}" Margin="0, 0, 48, 16">
-                    <Border HorizontalAlignment="Right" CornerRadius="8" Background="{StaticResource ComplementaryPrimary08Brush}" Padding="8, 0, 8, 0">
-                        <ic:SymbolIcon Symbol="Search" IsFilled="True" Foreground="{StaticResource PrimaryBrush}"/>
+                    x:Name="SearchBox"
+                    mahapps:TextBoxHelper.Watermark="Search for a mod..."
+                    Width="{Binding ActualWidth, ElementName=ArchivesGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/3}"
+                    HorizontalAlignment="Right"
+                    Margin="0, 0, 48, 16" />
+                
+                <Border BorderThickness="0" CornerRadius="8" HorizontalAlignment="Right"
+                        Width="{Binding ActualWidth, ElementName=SearchBox}"
+                        Height="{Binding ActualHeight, ElementName=SearchBox}" Margin="0, 0, 48, 16">
+                    <Border HorizontalAlignment="Right" CornerRadius="8"
+                            Background="{StaticResource ComplementaryPrimary08Brush}" Padding="8, 0, 8, 0">
+                        <ic:SymbolIcon Symbol="Search" IsFilled="True" Foreground="{StaticResource PrimaryBrush}" />
                     </Border>
                 </Border>
+                
             </Grid>
 
-            <Button x:Name="BackButton" Style="{StaticResource MainButtonStyle}" Background="Transparent" BorderThickness="0" HorizontalAlignment="Right" Padding="16, 8, 0, 16" VerticalAlignment="Center">
-                <ic:SymbolIcon Symbol="Dismiss" FontSize="28" VerticalAlignment="Center"/>
+            <Button x:Name="BackButton" Style="{StaticResource MainButtonStyle}" Background="Transparent"
+                    BorderThickness="0" HorizontalAlignment="Right" Padding="16, 0, 0, 16" VerticalAlignment="Center">
+                <ic:SymbolIcon Symbol="Dismiss" FontSize="28" VerticalAlignment="Center" />
             </Button>
 
-            <DataGrid Grid.Row="1" x:Name="ArchiveGrid" AutoGenerateColumns="False" FontSize="13" CanUserDeleteRows="False" CanUserSortColumns="True" CanUserAddRows="False" SnapsToDevicePixels="False" AlternatingRowBackground="{StaticResource ComplementaryPrimary12Brush}">
+            <DataGrid Grid.Row="1" x:Name="ArchivesDataGrid" AutoGenerateColumns="False" FontSize="13"
+                      CanUserDeleteRows="False" CanUserSortColumns="True" CanUserAddRows="False"
+                      SnapsToDevicePixels="False"
+                      AlternatingRowBackground="{StaticResource ComplementaryPrimary12Brush}">
                 <DataGrid.ColumnHeaderStyle>
                     <Style TargetType="DataGridColumnHeader">
-                        <Setter Property="Margin" Value="8, 0, 0, 0"/>
-                        <Setter Property="VerticalAlignment" Value="Center"/>
+                        <Setter Property="Margin" Value="8, 0, 0, 0" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
                         <Setter Property="FontWeight" Value="Bold" />
-                        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}"/>
+                        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
                     </Style>
                 </DataGrid.ColumnHeaderStyle>
                 <DataGrid.CellStyle>
                     <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
                         <Style.Triggers>
-                            
+
                         </Style.Triggers>
                     </Style>
                 </DataGrid.CellStyle>
@@ -135,12 +152,12 @@
                             <Setter.Value>
                                 <ControlTemplate TargetType="{x:Type DataGridRow}">
                                     <Border
-                        x:Name="DGR_Border"
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="0"
-                        CornerRadius="{TemplateBinding Border.CornerRadius}"
-                        SnapsToDevicePixels="True">
+                                        x:Name="DGR_Border"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="0"
+                                        CornerRadius="{TemplateBinding Border.CornerRadius}"
+                                        SnapsToDevicePixels="True">
                                         <SelectiveScrollingGrid>
                                             <SelectiveScrollingGrid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
@@ -151,27 +168,34 @@
                                                 <RowDefinition Height="Auto" />
                                             </SelectiveScrollingGrid.RowDefinitions>
                                             <DataGridCellsPresenter Grid.Column="1"
-                                ItemsPanel="{TemplateBinding ItemsPanel}"
-                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Margin="8, 0, 8, 0" />
+                                                                    ItemsPanel="{TemplateBinding ItemsPanel}"
+                                                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                                                    Margin="8, 0, 8, 0" />
                                             <DataGridDetailsPresenter Grid.Row="1" Grid.Column="1"
-                                SelectiveScrollingGrid.SelectiveScrollingOrientation="{Binding AreRowDetailsFrozen, ConverterParameter={x:Static SelectiveScrollingOrientation.Vertical}, Converter={x:Static DataGrid.RowDetailsScrollingConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
-                                Visibility="{TemplateBinding DetailsVisibility}" />
+                                                                      SelectiveScrollingGrid.SelectiveScrollingOrientation="{Binding AreRowDetailsFrozen, ConverterParameter={x:Static SelectiveScrollingOrientation.Vertical}, Converter={x:Static DataGrid.RowDetailsScrollingConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                                                                      Visibility="{TemplateBinding DetailsVisibility}" />
                                             <DataGridRowHeader Grid.RowSpan="2"
-                                SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical"
-                                Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Row}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
+                                                               SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical"
+                                                               Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Row}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
                                         </SelectiveScrollingGrid>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <MultiDataTrigger>
                                             <MultiDataTrigger.Conditions>
-                                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="true" />
-                                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=Item, Converter={StaticResource IsNexusArchiveConverter}}" Value="True" />
+                                                <Condition
+                                                    Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}"
+                                                    Value="true" />
+                                                <Condition
+                                                    Binding="{Binding RelativeSource={RelativeSource Self}, Path=Item, Converter={StaticResource IsNexusArchiveConverter}}"
+                                                    Value="True" />
                                             </MultiDataTrigger.Conditions>
                                             <Setter Property="Cursor" Value="Hand" />
-                                            <Setter TargetName="DGR_Border" Property="Background" Value="{StaticResource MouseOverListItem}" />
+                                            <Setter TargetName="DGR_Border" Property="Background"
+                                                    Value="{StaticResource MouseOverListItem}" />
                                         </MultiDataTrigger>
                                         <Trigger Property="IsSelected" Value="True">
-                                            <Setter TargetName="DGR_Border" Property="Background" Value="{StaticResource DataGridRowSelectedBrush}" />
+                                            <Setter TargetName="DGR_Border" Property="Background"
+                                                    Value="{StaticResource DataGridRowSelectedBrush}" />
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -183,11 +207,13 @@
                     <DataGridTemplateColumn Header="Name" IsReadOnly="True" Width="3*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock x:Name="StateCell" Text="{Binding State, Converter={StaticResource NexusArchiveStateConverter}, ConverterParameter=Name}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock x:Name="StateCell"
+                                           Text="{Binding State, Converter={StaticResource NexusArchiveStateConverter}, ConverterParameter=Name}"
+                                           TextTrimming="CharacterEllipsis" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Archive" IsReadOnly="True"  Width="4*">
+                    <DataGridTemplateColumn Header="Archive" IsReadOnly="True" Width="4*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock x:Name="NameCell" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
@@ -197,13 +223,15 @@
                     <DataGridTemplateColumn Header="Size" IsReadOnly="True" Width="60">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock x:Name="SizeCell" Text="{Binding Size, Converter={StaticResource FileSizeConverter}}" />
+                                <TextBlock x:Name="SizeCell"
+                                           Text="{Binding Size, Converter={StaticResource FileSizeConverter}}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
 
+            <!-- WebView Browser, added by code behind -->
         </Grid>
     </Grid>
 </rxui:ReactiveUserControl>

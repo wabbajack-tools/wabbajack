@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Web.WebView2.Wpf;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
@@ -47,10 +49,14 @@ public class ModListDetailsVM : BackNavigatingVM
     public ICommand OpenWebsiteCommand { get; set; }
     public ICommand OpenDiscordCommand { get; set; }
 
-    public ModListDetailsVM(ILogger<ModListDetailsVM> logger, Client wjClient) : base(logger)
+    public WebView2 Browser { get; set; }
+
+    public ModListDetailsVM(ILogger<ModListDetailsVM> logger, IServiceProvider serviceProvider, Client wjClient) : base(logger)
     {
         _logger = logger;
         _wjClient = wjClient;
+
+        Browser = serviceProvider.GetRequiredService<WebView2>();
 
         MessageBus.Current.Listen<LoadModlistForDetails>()
             .Subscribe(msg => MetadataVM = msg.MetadataVM)
@@ -80,9 +86,9 @@ public class ModListDetailsVM : BackNavigatingVM
             var searchSorter = this.WhenValueChanged(vm => vm.Search)
                                     .Throttle(searchThrottle, RxApp.MainThreadScheduler)
                                     .Select(s => SortExpressionComparer<Archive>
-                                                 .Descending(a => a.State is Nexus ? ((Nexus)a.State).Name.StartsWith(s ?? "", StringComparison.InvariantCultureIgnoreCase) : false)
-                                                 .ThenByDescending(a => a.Name.StartsWith(s ?? "", StringComparison.InvariantCultureIgnoreCase))
-                                                 .ThenByDescending(a => a.Name.Contains(s ?? "", StringComparison.InvariantCultureIgnoreCase)));
+                                                 .Descending(a => a.State is Nexus ? ((Nexus)a.State).Name?.StartsWith(s ?? "", StringComparison.InvariantCultureIgnoreCase) : false)
+                                                 .ThenByDescending(a => a.Name?.StartsWith(s ?? "", StringComparison.InvariantCultureIgnoreCase))
+                                                 .ThenByDescending(a => a.Name?.Contains(s ?? "", StringComparison.InvariantCultureIgnoreCase)));
 
             _archives.Connect()
                     .ObserveOn(RxApp.MainThreadScheduler)

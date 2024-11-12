@@ -64,6 +64,8 @@
     <Color x:Key="ComplementaryPrimary50">#81739d</Color>
     <Color x:Key="ComplementaryWhite02">#2d2e45</Color>
     <Color x:Key="ComplementaryWhite25">#5f6071</Color>
+    <!-- ComplementaryBackgroundColor mixed with BackgroundColor, number indicates opacity of primary color -->
+    <Color x:Key="ComplementaryBGBackground08">#313146</Color>
 
 
     <Color x:Key="PrimaryVariant">#8866ad</Color>
@@ -206,14 +208,25 @@
 
     <SolidColorBrush x:Key="ButtonForeground" Color="{StaticResource ForegroundColor}" />
     <SolidColorBrush x:Key="MouseOverButtonForeground" Color="White" />
-    <SolidColorBrush x:Key="ButtonBackground" Color="{StaticResource LightBackgroundColor}" />
+    <SolidColorBrush x:Key="ButtonBackground" Color="{StaticResource BackgroundColor}" />
     <SolidColorBrush x:Key="ButtonBorder" Color="{StaticResource ComplementaryPrimary08}" />
     <SolidColorBrush x:Key="PressedButtonBackground" Color="{StaticResource PressedBackgroundColor}" />
+    <SolidColorBrush x:Key="PressedButtonForeground" Color="{StaticResource Primary}" />
     <SolidColorBrush x:Key="MouseOverButtonBackground" Color="{StaticResource LightBackgroundColor}" />
     <SolidColorBrush x:Key="DisabledButtonBackground" Color="{StaticResource ComplementaryPrimary16}" />
     <SolidColorBrush x:Key="DisabledButtonForeground" Color="{StaticResource DisabledForegroundColor}" />
     <SolidColorBrush x:Key="MouseOverDangerButtonBackground" Color="{StaticResource RedDark}" />
     <SolidColorBrush x:Key="MouseOverDangerButtonForeground" Color="#ebe5e5" />
+
+    <SolidColorBrush x:Key="ToggleButtonBackground" Color="{StaticResource BackgroundColor}" />
+    <SolidColorBrush x:Key="ToggleButtonForeground" Color="{StaticResource ForegroundColor}" />
+    <SolidColorBrush x:Key="ToggleButtonBorder" Color="Transparent" />
+    <SolidColorBrush x:Key="MouseOverToggleButtonBackground" Color="{StaticResource ComplementaryPrimary08}" />
+    <SolidColorBrush x:Key="MouseOverToggleButtonForeground" Color="{StaticResource ForegroundColor}" />
+    <SolidColorBrush x:Key="PressedToggleButtonBackground" Color="{StaticResource ComplementaryPrimary08}" />
+    <SolidColorBrush x:Key="PressedToggleButtonForeground" Color="{StaticResource Primary}" />
+    <SolidColorBrush x:Key="DisabledToggleButtonBackground" Color="{StaticResource ComplementaryPrimary08}" />
+    <SolidColorBrush x:Key="DisabledToggleButtonForeground" Color="{StaticResource DisabledForegroundColor}" />
 
     <SolidColorBrush x:Key="Expander.Background" Color="{StaticResource LightBackgroundColor}" />
     <SolidColorBrush x:Key="Expander.MouseOver.Arrow.Stroke" Color="{StaticResource Primary}" />
@@ -1468,12 +1481,12 @@
                         <Trigger Property="IsMouseOver" Value="true">
                             <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
                             <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
-                            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource PressedButtonForeground}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
                             <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
                             <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
-                            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource PressedButtonForeground}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
                             <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
@@ -1782,14 +1795,12 @@
 
     <!--  ToggleButton  -->
     <Style TargetType="{x:Type ToggleButton}">
-        <Setter Property="FocusVisualStyle" Value="{StaticResource ButtonFocusVisual}" />
-        <Setter Property="Background" Value="{StaticResource ButtonBackground}" />
-        <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
-        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource ToggleButtonFocusVisual}" />
+        <Setter Property="Background" Value="{StaticResource ToggleButtonBackground}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ToggleButtonBorder}" />
         <Setter Property="Foreground" Value="{StaticResource ButtonForeground}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
-        <Setter Property="Padding" Value="1" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ToggleButton}">
@@ -1797,7 +1808,7 @@
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="4"
+                        CornerRadius="8"
                         SnapsToDevicePixels="true">
                         <ContentPresenter
                             Margin="{TemplateBinding Padding}"
@@ -1814,16 +1825,16 @@
                             </MultiTrigger.Conditions>
                         </MultiTrigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}" />
-                            <Setter Property="Foreground" Value="{StaticResource MouseOverButtonForeground}" />
+                            <Setter Property="Background" Value="{StaticResource MouseOverToggleButtonBackground}" />
+                            <Setter Property="Foreground" Value="{StaticResource MouseOverToggleButtonForeground}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
-                            <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
-                            <Setter Property="Background" Value="{StaticResource DisabledButtonBackground}" />
+                            <Setter Property="Foreground" Value="{StaticResource DisabledToggleButtonForeground}" />
+                            <Setter Property="Background" Value="{StaticResource DisabledToggleButtonBackground}" />
                         </Trigger>
                         <Trigger Property="IsChecked" Value="true">
-                            <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
-                            <Setter Property="Foreground" Value="{StaticResource ButtonForeground}" />
+                            <Setter Property="Background" Value="{StaticResource PressedToggleButtonBackground}" />
+                            <Setter Property="Foreground" Value="{StaticResource PressedToggleButtonForeground}" />
                         </Trigger>
 
                     </ControlTemplate.Triggers>
