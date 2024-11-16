@@ -34,6 +34,13 @@ public partial class WizardButton : UserControlRx<ViewModel>
     }
     public static readonly DependencyProperty IconProperty = DependencyProperty.Register(nameof(Icon), typeof(Symbol), typeof(WizardButton), new FrameworkPropertyMetadata(default(Symbol)));
 
+    public double IconSize
+    {
+        get => (double)GetValue(IconSizeProperty);
+        set => SetValue(IconSizeProperty, value);
+    }
+    public static readonly DependencyProperty IconSizeProperty = DependencyProperty.Register(nameof(IconSize), typeof(double), typeof(WizardButton), new FrameworkPropertyMetadata(24D));
+
     public FlowDirection Direction
     {
         get => (FlowDirection)GetValue(DirectionProperty);
@@ -74,6 +81,10 @@ public partial class WizardButton : UserControlRx<ViewModel>
 
             this.WhenAny(x => x.Command)
                 .BindToStrict(this, x => x.Button.Command)
+                .DisposeWith(dispose);
+
+            this.WhenAny(x => x.IconSize)
+                .BindToStrict(this, x => x.ButtonSymbolIcon.FontSize)
                 .DisposeWith(dispose);
 
             this.WhenAny(x => x.ButtonStyle)
