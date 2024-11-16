@@ -50,7 +50,7 @@ public class GalleryModListMetadataVM : BaseModListMetadataVM
         // https://www.wabbajack.org/modlist/wj-featured/aldrnari
         DetailsCommand = ReactiveCommand.Create(() => {
             LoadModlistForDetails.Send(this);
-            NavigateToGlobal.Send(ScreenType.ModListDetails);
+            ShowFloatingWindow.Send(FloatingScreenType.ModListDetails);
         });
         OpenWebsiteCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/modlist/{Metadata.NamespacedName}")));
 

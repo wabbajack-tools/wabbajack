@@ -17,6 +17,7 @@ using Wabbajack.Paths.IO;
 using Wabbajack.Util;
 using ReactiveMarbles.ObservableEvents;
 using System.Reactive;
+using System.Diagnostics;
 
 namespace Wabbajack;
 
@@ -28,6 +29,7 @@ public partial class MainWindow : MetroWindow
     private MainWindowVM _mwvm;
     private readonly ILogger<MainWindow> _logger;
     private readonly SystemParametersConstructor _systemParams;
+    private readonly Stopwatch _mousePressedTimer;
 
     public MainWindow(ILogger<MainWindow> logger, SystemParametersConstructor systemParams, LauncherUpdater updater, MainWindowVM vm)
     {
@@ -36,6 +38,8 @@ public partial class MainWindow : MetroWindow
         DataContext = vm;
         _logger = logger;
         _systemParams = systemParams;
+        _mousePressedTimer = new Stopwatch();
+
         try
         {
             // Wire any unhandled crashing exceptions to log before exiting
@@ -181,14 +185,15 @@ public partial class MainWindow : MetroWindow
                 .Subscribe(v => NavigationColumn.Width = v ? new GridLength(115, GridUnitType.Pixel) : new GridLength(0, GridUnitType.Pixel));
 
             TitleBar.Events().MouseDown
-                .Subscribe(x => UIElement_OnMouseDown(this, x));
+                .Subscribe(x => TitleBar_OnMouseDown(this, x));
 
-            /*
-            ((MainWindowVM)DataContext).WhenAnyValue(vm => vm.Installer.InstallState)
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Select(v => v == InstallState.Installing ? Visibility.Collapsed : Visibility.Visible)
-                .BindTo(this, view => view.SettingsButton.Visibility);
-            */
+            FloatingWindowBackground.Events().MouseDown
+                .Subscribe(x => FloatingWindowBackground_OnMouseDown(this, x));
+
+            vm.WhenAnyValue(vm => vm.ActiveFloatingPane)
+                .Select(x => x == null ? Visibility.Hidden : Visibility.Visible)
+                .BindTo(this, view => view.FloatingWindow.Visibility);
+
 
         }
         catch (Exception ex)
@@ -197,10 +202,6 @@ public partial class MainWindow : MetroWindow
             Environment.Exit(-1);
         }
 
-        /*
-        vm.WhenAnyValue(vm => vm.ResourceStatus)
-            .BindToStrict(this, view => view.ResourceUsage.Text);
-        */
         vm.WhenAnyValue(vm => vm.WindowTitle)
             .BindToStrict(this, view => view.AppName.Text);
 
@@ -211,9 +212,26 @@ public partial class MainWindow : MetroWindow
         _mwvm.ShutdownApplication().Wait();
     }
 
-    private void UIElement_OnMouseDown(object sender, MouseButtonEventArgs e)
+    private void TitleBar_OnMouseDown(object sender, MouseButtonEventArgs e)
     {
-        this.DragMove();
+        DragMove();
+    }
+
+    private void FloatingWindowBackground_OnMouseDown(object sender, MouseButtonEventArgs x)
+    {
+        if (x.ButtonState == MouseButtonState.Pressed)
+        {
+            _mousePressedTimer.Restart();
+            DragMove();
+        }
+        if(x.ButtonState == MouseButtonState.Released)
+        {
+            if(_mousePressedTimer.Elapsed < TimeSpan.FromSeconds(0.2))
+            {
+                ShowFloatingWindow.Send(FloatingScreenType.None);
+            }
+            _mousePressedTimer.Stop();
+        }
     }
 
 }

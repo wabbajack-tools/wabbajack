@@ -40,6 +40,9 @@ public class MainWindowVM : ViewModel
     public ViewModel ActivePane { get; private set; }
 
     [Reactive]
+    public ViewModel? ActiveFloatingPane { get; private set; } = null;
+
+    [Reactive]
     public NavigationVM NavigationVM { get; private set; }
 
     public ObservableCollectionExtended<IStatusMessage> Log { get; } = new ObservableCollectionExtended<IStatusMessage>();
@@ -132,6 +135,10 @@ public class MainWindowVM : ViewModel
         MessageBus.Current.Listen<HideNavigation>()
             .ObserveOnGuiThread()
             .Subscribe((_) => NavigationVisible = false)
+            .DisposeWith(CompositeDisposable);
+
+        MessageBus.Current.Listen<ShowFloatingWindow>()
+            .Subscribe(m => HandleShowFloatingWindow(m.Screen))
             .DisposeWith(CompositeDisposable);
 
         _resourceMonitor.Updates
@@ -267,6 +274,15 @@ public class MainWindowVM : ViewModel
             ScreenType.Settings => SettingsPaneVM,
             ScreenType.Info => InfoVM,
             _ => ActivePane
+        };
+    }
+    private void HandleShowFloatingWindow(FloatingScreenType s)
+    {
+        ActiveFloatingPane = s switch
+        {
+            FloatingScreenType.None => null,
+            FloatingScreenType.ModListDetails => ModListDetailsVM,
+            _ => ActiveFloatingPane
         };
     }
 

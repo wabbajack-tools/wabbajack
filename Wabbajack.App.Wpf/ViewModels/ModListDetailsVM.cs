@@ -65,7 +65,7 @@ public class ModListDetailsVM : BackNavigatingVM
         OpenWebsiteCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(MetadataVM.Metadata.Links.WebsiteURL) { UseShellExecute = true }), this.WhenAnyValue(x => x.MetadataVM.Metadata.Links.WebsiteURL, x => !string.IsNullOrEmpty(x)).ObserveOnGuiThread());
         OpenDiscordCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(MetadataVM.Metadata.Links.DiscordURL) { UseShellExecute = true }), this.WhenAnyValue(x => x.MetadataVM.Metadata.Links.DiscordURL, x => !string.IsNullOrEmpty(x)).ObserveOnGuiThread());
 
-        BackCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.ModListGallery));
+        BackCommand = ReactiveCommand.Create(() => ShowFloatingWindow.Send(FloatingScreenType.None));
         this.WhenActivated(disposables =>
         {
             
