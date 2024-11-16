@@ -237,22 +237,21 @@ public class NexusApi
             var info = await AuthInfo.Get();
             if (info!.OAuth != null)
             {
-                if (info.OAuth.IsExpired)
-                    try
-                    {
-                        info = await RefreshToken(info, CancellationToken.None);
-                        return (false, info.OAuth!.AccessToken!);
-                    }
-                    catch (HttpRequestException requestException)
-                    {
-                        _logger.LogError(requestException, "Failed to refresh token");
-                        _logger.LogInformation("Triggering login process");
-                        //TODO: Open Login Manager Window Here
-                        var newInfo = await AuthInfo.Get();
-                        var newToken = newInfo!.OAuth!.AccessToken!;
-                        return (false, newToken);
-                    }
-                    
+                if (!info.OAuth.IsExpired) return (false, info!.OAuth!.AccessToken!);
+                try
+                {
+                    info = await RefreshToken(info, CancellationToken.None);
+                        
+                }
+                catch (HttpRequestException requestException)
+                {
+                    _logger.LogError(requestException, "Failed to refresh token");
+                    _logger.LogInformation("Triggering login process");
+                    //TODO: Open Login Manager Window Here
+                    info = await AuthInfo.Get();
+
+                }
+                return (false, info!.OAuth!.AccessToken!);
             }
             if (!string.IsNullOrWhiteSpace(info.ApiKey))
             {
