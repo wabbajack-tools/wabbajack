@@ -237,9 +237,22 @@ public class NexusApi
             var info = await AuthInfo.Get();
             if (info!.OAuth != null)
             {
-                if (info!.OAuth.IsExpired)
-                    info = await RefreshToken(info, CancellationToken.None);
-                return (false, info.OAuth!.AccessToken!);
+                if (info.OAuth.IsExpired)
+                    try
+                    {
+                        info = await RefreshToken(info, CancellationToken.None);
+                        return (false, info.OAuth!.AccessToken!);
+                    }
+                    catch (HttpRequestException requestException)
+                    {
+                        _logger.LogError(requestException, "Failed to refresh token");
+                        _logger.LogInformation("Triggering login process");
+                        //TODO: Open Login Manager Window Here
+                        var newInfo = await AuthInfo.Get();
+                        var newToken = newInfo!.OAuth!.AccessToken!;
+                        return (false, newToken);
+                    }
+                    
             }
             if (!string.IsNullOrWhiteSpace(info.ApiKey))
             {
@@ -270,6 +283,7 @@ public class NexusApi
         var content = new FormUrlEncodedContent(request);
 
         var response = await _client.PostAsync($"https://users.nexusmods.com/oauth/token", content, cancel);
+        response.EnsureSuccessStatusCode();
         var responseString = await response.Content.ReadAsStringAsync(cancel);
         var newJwt = JsonSerializer.Deserialize<JwtTokenReply>(responseString);
         if (newJwt != null) 
