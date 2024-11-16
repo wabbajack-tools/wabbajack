@@ -52,6 +52,21 @@ public partial class ModListDetailsView
                 .BindToStrict(this, x => x.ViewModel.Browser.Visibility)
                 .DisposeWith(disposables);
 
+            this.WhenAnyValue(x => x.ArchivesButton.IsChecked)
+                .Select(x => x ?? false ? Visibility.Visible : Visibility.Hidden)
+                .BindToStrict(this, x => x.SearchBox.Visibility)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.ArchivesButton.IsChecked)
+                .Select(x => x ?? false ? Visibility.Visible : Visibility.Hidden)
+                .BindToStrict(this, x => x.SearchBoxBackground.Visibility)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.ReadmeButton.IsChecked)
+                .Select(x => x ?? false ? Visibility.Visible : Visibility.Hidden)
+                .BindToStrict(this, x => x.OpenReadmeButton.Visibility)
+                .DisposeWith(disposables);
+
             this.WhenAnyValue(x => x.ViewModel.MetadataVM.Metadata.Links.Readme)
                 .Select(readme =>
                 {

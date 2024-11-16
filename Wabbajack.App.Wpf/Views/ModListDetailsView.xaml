@@ -110,7 +110,8 @@
                     HorizontalAlignment="Right"
                     Margin="0, 0, 48, 16" />
                 
-                <Border BorderThickness="0" CornerRadius="8" HorizontalAlignment="Right"
+                <Border x:Name="SearchBoxBackground"
+                    BorderThickness="0" CornerRadius="8" HorizontalAlignment="Right"
                         Width="{Binding ActualWidth, ElementName=SearchBox}"
                         Height="{Binding ActualHeight, ElementName=SearchBox}" Margin="0, 0, 48, 16">
                     <Border HorizontalAlignment="Right" CornerRadius="8"
@@ -118,7 +119,17 @@
                         <ic:SymbolIcon Symbol="Search" IsFilled="True" Foreground="{StaticResource PrimaryBrush}" />
                     </Border>
                 </Border>
-                
+
+                <local:WizardButton x:Name="OpenReadmeButton"
+                                    ButtonStyle="Mono"
+                                    Text="Open in browser"
+                                    Icon="WindowNew"
+                                    Command="{Binding OpenReadmeCommand}"
+                                    Margin="0, 0, 48, 16"
+                                    Width="{Binding ActualWidth, ElementName=SearchBox, Converter={StaticResource MathConverter}, ConverterParameter=x/1.5}"
+                                    Height="{Binding ActualHeight, ElementName=SearchBox}"
+                                    HorizontalAlignment="Right" />
+
             </Grid>
 
             <Button x:Name="BackButton" Style="{StaticResource MainButtonStyle}" Background="Transparent"

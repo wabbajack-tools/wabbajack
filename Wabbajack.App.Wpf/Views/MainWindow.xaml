@@ -34,7 +34,7 @@
         </Grid.RowDefinitions>
         <Grid x:Name="FloatingWindow" Grid.Row="0" Grid.RowSpan="2" Panel.ZIndex="2">
             <Rectangle x:Name="FloatingWindowBackground" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Fill="{StaticResource BackgroundBrush}" Opacity="0.75"/>
-            <Border CornerRadius="8" Margin="24" Background="{StaticResource ComplementaryBackgroundBrush}">
+            <Border CornerRadius="8" Margin="32" Background="{StaticResource ComplementaryBackgroundBrush}">
                 <ContentPresenter Content="{Binding ActiveFloatingPane}" VerticalAlignment="Stretch" Margin="16">
                     <ContentPresenter.Resources>
                         <DataTemplate DataType="{x:Type local:ModListDetailsVM}">

@@ -48,6 +48,7 @@ public class ModListDetailsVM : BackNavigatingVM
 
     public ICommand OpenWebsiteCommand { get; set; }
     public ICommand OpenDiscordCommand { get; set; }
+    public ICommand OpenReadmeCommand { get; set; }
 
     public WebView2 Browser { get; set; }
 
@@ -62,8 +63,12 @@ public class ModListDetailsVM : BackNavigatingVM
             .Subscribe(msg => MetadataVM = msg.MetadataVM)
             .DisposeWith(CompositeDisposable);
 
-        OpenWebsiteCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(MetadataVM.Metadata.Links.WebsiteURL) { UseShellExecute = true }), this.WhenAnyValue(x => x.MetadataVM.Metadata.Links.WebsiteURL, x => !string.IsNullOrEmpty(x)).ObserveOnGuiThread());
-        OpenDiscordCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(MetadataVM.Metadata.Links.DiscordURL) { UseShellExecute = true }), this.WhenAnyValue(x => x.MetadataVM.Metadata.Links.DiscordURL, x => !string.IsNullOrEmpty(x)).ObserveOnGuiThread());
+        OpenWebsiteCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(MetadataVM.Metadata.Links.WebsiteURL) { UseShellExecute = true }),
+            this.WhenAnyValue(x => x.MetadataVM.Metadata.Links.WebsiteURL, x => !string.IsNullOrEmpty(x)).ObserveOnGuiThread());
+        OpenDiscordCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(MetadataVM.Metadata.Links.DiscordURL) { UseShellExecute = true }),
+            this.WhenAnyValue(x => x.MetadataVM.Metadata.Links.DiscordURL, x => !string.IsNullOrEmpty(x)).ObserveOnGuiThread());
+        OpenReadmeCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(MetadataVM.Metadata.Links.Readme) { UseShellExecute = true }),
+            this.WhenAnyValue(x => x.MetadataVM.Metadata.Links.Readme, x => !string.IsNullOrEmpty(x)).ObserveOnGuiThread());
 
         BackCommand = ReactiveCommand.Create(() => ShowFloatingWindow.Send(FloatingScreenType.None));
         this.WhenActivated(disposables =>
