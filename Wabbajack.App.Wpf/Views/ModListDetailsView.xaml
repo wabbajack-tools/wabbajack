@@ -126,7 +126,7 @@
                                     Icon="WindowNew"
                                     Command="{Binding OpenReadmeCommand}"
                                     Margin="0, 0, 48, 16"
-                                    Width="{Binding ActualWidth, ElementName=SearchBox, Converter={StaticResource MathConverter}, ConverterParameter=x/1.5}"
+                                    Width="{Binding ActualWidth, ElementName=SearchBox, Converter={StaticResource MathConverter}, ConverterParameter=x/1.8}"
                                     Height="{Binding ActualHeight, ElementName=SearchBox}"
                                     HorizontalAlignment="Right" />
 
