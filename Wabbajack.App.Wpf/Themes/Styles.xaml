@@ -1808,7 +1808,7 @@
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="8"
+                        CornerRadius="4"
                         SnapsToDevicePixels="true">
                         <ContentPresenter
                             Margin="{TemplateBinding Padding}"

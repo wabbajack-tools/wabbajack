@@ -34,8 +34,13 @@
                     <ImageBrush ImageSource="{Binding MetadataVM.Image}" Stretch="UniformToFill" />
                 </Border.Background>
             </Border>
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Background="Transparent" HorizontalScrollBarVisibility="Disabled">
-                <StackPanel>
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="4" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0">
                     <DockPanel>
                         <TextBlock Text="{Binding MetadataVM.Metadata.Title}" FontSize="32" FontWeight="Bold" />
                         <ic:SymbolIcon Symbol="CheckmarkStarburst" FontSize="28" HorizontalAlignment="Right"
@@ -54,11 +59,11 @@
                     <DockPanel Margin="0, 0, 0, 4">
                         <!-- Tags -->
                     </DockPanel>
-                    <DockPanel>
-                        <TextBlock Text="{Binding MetadataVM.Metadata.Description}" TextWrapping="Wrap" LineHeight="18" />
-                    </DockPanel>
                 </StackPanel>
-            </ScrollViewer>
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Background="Transparent" HorizontalScrollBarVisibility="Disabled">
+                    <TextBlock Text="{Binding MetadataVM.Metadata.Description}" TextWrapping="Wrap" LineHeight="18" Margin="0, 0, 4, 0" />
+                </ScrollViewer>
+            </Grid>
             <Grid Grid.Row="2" VerticalAlignment="Bottom" Margin="0, 16, 0, 0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -93,7 +98,7 @@
                     CornerRadius="8"
                     Margin="0, 0, 0, 16"
                     >
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" Margin="4">
                         <ToggleButton
                             x:Name="ArchivesButton"
                             IsChecked="True"
