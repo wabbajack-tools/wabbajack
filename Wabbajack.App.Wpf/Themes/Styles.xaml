@@ -189,10 +189,10 @@
     <SolidColorBrush x:Key="ScrollViewerBackground" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="VerticalScrollBarBackground" Color="{StaticResource BackgroundColor}" />
     <SolidColorBrush x:Key="HorizontalScrollBarBackground" Color="{StaticResource BackgroundColor}" />
-    <SolidColorBrush x:Key="VerticalScrollBarThumb" Color="{StaticResource Primary}" />
+    <SolidColorBrush x:Key="VerticalScrollBarThumb" Color="{StaticResource ComplementaryPrimary16}" />
     <SolidColorBrush x:Key="ScrollBarDisabledBackground" Color="{StaticResource BackgroundColor}" />
-    <SolidColorBrush x:Key="ScrollBarHotThumb" Color="{StaticResource Primary}" />
-    <SolidColorBrush x:Key="ScrollBarSelectedThumb" Color="{StaticResource PrimaryVariant}" />
+    <SolidColorBrush x:Key="ScrollBarMouseOverThumb" Color="{StaticResource ComplementaryPrimary50}" />
+    <SolidColorBrush x:Key="ScrollBarSelectedThumb" Color="{StaticResource Primary}" />
     <SolidColorBrush x:Key="CornerBorder" Color="{StaticResource DarkBackgroundColor}" />
 
     <SolidColorBrush x:Key="TextBoxBorder" Color="{StaticResource ComplementaryPrimary08}" />
@@ -224,7 +224,7 @@
     <SolidColorBrush x:Key="MouseOverToggleButtonBackground" Color="{StaticResource ComplementaryPrimary08}" />
     <SolidColorBrush x:Key="MouseOverToggleButtonForeground" Color="{StaticResource ForegroundColor}" />
     <SolidColorBrush x:Key="PressedToggleButtonBackground" Color="{StaticResource ComplementaryPrimary08}" />
-    <SolidColorBrush x:Key="PressedToggleButtonForeground" Color="{StaticResource Primary}" />
+    <SolidColorBrush x:Key="PressedToggleButtonForeground" Color="{StaticResource ForegroundColor}" />
     <SolidColorBrush x:Key="DisabledToggleButtonBackground" Color="{StaticResource ComplementaryPrimary08}" />
     <SolidColorBrush x:Key="DisabledToggleButtonForeground" Color="{StaticResource DisabledForegroundColor}" />
 
@@ -601,7 +601,7 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="TrianglePath" Property="Fill" Value="{StaticResource ScrollBarHotThumb}" />
+                            <Setter TargetName="TrianglePath" Property="Fill" Value="{StaticResource ScrollBarMouseOverThumb}" />
                             <Setter Property="Cursor" Value="Hand" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
@@ -621,17 +621,24 @@
                     <Grid>
                         <Rectangle
                             x:Name="VerticalThumb"
-                            Width="14"
+                            Width="8"
                             Fill="{StaticResource VerticalScrollBarThumb}"
-                            RadiusX="7"
-                            RadiusY="7" />
+                            RadiusX="4"
+                            RadiusY="4"
+                            />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="VerticalThumb" Property="Fill" Value="{StaticResource ScrollBarHotThumb}" />
+                            <Setter TargetName="VerticalThumb" Property="Fill" Value="{StaticResource ScrollBarMouseOverThumb}" />
+                            <Setter TargetName="VerticalThumb" Property="Width" Value="16" />
+                            <Setter TargetName="VerticalThumb" Property="RadiusX" Value="8" />
+                            <Setter TargetName="VerticalThumb" Property="RadiusY" Value="8" />
                         </Trigger>
                         <Trigger Property="IsDragging" Value="True">
                             <Setter TargetName="VerticalThumb" Property="Fill" Value="{StaticResource ScrollBarSelectedThumb}" />
+                            <Setter TargetName="VerticalThumb" Property="Width" Value="16" />
+                            <Setter TargetName="VerticalThumb" Property="RadiusX" Value="8" />
+                            <Setter TargetName="VerticalThumb" Property="RadiusY" Value="8" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -668,7 +675,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Cursor" Value="Hand" />
-                            <Setter TargetName="BottomTrianglePath" Property="Fill" Value="{StaticResource ScrollBarHotThumb}" />
+                            <Setter TargetName="BottomTrianglePath" Property="Fill" Value="{StaticResource ScrollBarMouseOverThumb}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="BottomTrianglePath" Property="Fill" Value="{StaticResource ScrollBarSelectedThumb}" />
@@ -723,7 +730,7 @@
                     <Grid
                     x:Name="Bg"
                     SnapsToDevicePixels="true" Width="{DynamicResource {x:Static SystemParameters.VerticalScrollBarWidthKey}}">
-                        <Rectangle Width="9" RadiusX="3" RadiusY="3" Fill="{StaticResource VerticalScrollBarBackground}" HorizontalAlignment="Center"/>
+                        <Rectangle x:Name="PART_TrackBg" Width="8" RadiusX="8" RadiusY="8" Fill="Transparent" HorizontalAlignment="Center"/>
                         <Track
                         x:Name="PART_Track"
                         IsDirectionReversed="true"
@@ -731,13 +738,19 @@
                         HorizontalAlignment="Center"
                         >
                             <Track.Thumb>
-                                <Thumb Style="{StaticResource ScrollBarThumb}" />
+                                <Thumb x:Name="PART_Thumb" Style="{StaticResource ScrollBarThumb}" />
                             </Track.Thumb>
                         </Track>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsEnabled" Value="false">
                             <Setter TargetName="Bg" Property="Background" Value="{StaticResource ScrollBarDisabledBackground}" />
+                        </Trigger>
+                        <Trigger SourceName="PART_Thumb" Property="IsMouseOver" Value="True">
+                            <Setter TargetName="PART_TrackBg" Property="Fill" Value="{StaticResource VerticalScrollBarBackground}" />
+                        </Trigger>
+                        <Trigger SourceName="PART_Thumb" Property="IsDragging" Value="True">
+                            <Setter TargetName="PART_TrackBg" Property="Fill" Value="{StaticResource VerticalScrollBarBackground}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -880,7 +893,7 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="VerticalThumb" Property="Fill" Value="{StaticResource ScrollBarHotThumb}" />
+                            <Setter TargetName="VerticalThumb" Property="Fill" Value="{StaticResource ScrollBarMouseOverThumb}" />
                         </Trigger>
                         <Trigger Property="IsDragging" Value="True">
                             <Setter TargetName="VerticalThumb" Property="Fill" Value="{StaticResource ScrollBarSelectedThumb}" />
@@ -917,7 +930,7 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="TrianglePath" Property="Fill" Value="{StaticResource ScrollBarHotThumb}" />
+                            <Setter TargetName="TrianglePath" Property="Fill" Value="{StaticResource ScrollBarMouseOverThumb}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="TrianglePath" Property="Fill" Value="{StaticResource ScrollBarSelectedThumb}" />
@@ -964,7 +977,7 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="TrianglePath" Property="Fill" Value="{StaticResource ScrollBarHotThumb}" />
+                            <Setter TargetName="TrianglePath" Property="Fill" Value="{StaticResource ScrollBarMouseOverThumb}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="TrianglePath" Property="Fill" Value="{StaticResource ScrollBarSelectedThumb}" />
