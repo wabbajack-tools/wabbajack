@@ -45,8 +45,7 @@ public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
         ClearLogin = ReactiveCommand.CreateFromTask(async () =>
         {
             _logger.LogInformation("Deleting Login information for {SiteName}", SiteName);
-            await _token.Delete();
-            RefreshTokenState();
+            ClearLoginToken();
         }, this.WhenAnyValue(v => v.HaveLogin));
 
         Icon = BitmapFrame.Create(
@@ -60,7 +59,13 @@ public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
         }, this.WhenAnyValue(v => v.HaveLogin).Select(v => !v));
     }
 
-    private void StartLogin()
+    public async void ClearLoginToken()
+    {
+        await _token.Delete();
+        RefreshTokenState();
+    }
+
+    public void StartLogin()
     {
         var view = new BrowserWindow(_serviceProvider);
         view.Closed += (sender, args) => { RefreshTokenState(); };

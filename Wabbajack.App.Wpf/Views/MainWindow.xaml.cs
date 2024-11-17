@@ -3,14 +3,18 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using DynamicData.Binding;
 using MahApps.Metro.Controls;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.Common;
+using Wabbajack.LoginManagers;
 using Wabbajack.Messages;
+using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths.IO;
 using Wabbajack.Util;
 
@@ -24,16 +28,21 @@ namespace Wabbajack
         private MainWindowVM _mwvm;
         private readonly ILogger<MainWindow> _logger;
         private readonly SystemParametersConstructor _systemParams;
+        private readonly NexusApi _nexusApi;
+        private readonly IServiceProvider _serviceProvider;
 
         private ObservableCollection<ViewModel> TabVMs = new ObservableCollectionExtended<ViewModel>();
 
-        public MainWindow(ILogger<MainWindow> logger, SystemParametersConstructor systemParams, LauncherUpdater updater, MainWindowVM vm)
+        public MainWindow(ILogger<MainWindow> logger, SystemParametersConstructor systemParams, LauncherUpdater updater
+            , MainWindowVM vm, NexusApi nexusApi, IServiceProvider serviceProvider)
         {
             InitializeComponent();
             _mwvm = vm;
             DataContext = vm;
             _logger = logger;
             _systemParams = systemParams;
+            _nexusApi = nexusApi;
+            _serviceProvider = serviceProvider;
             try
             {
                 // Wire any unhandled crashing exceptions to log before exiting
@@ -122,6 +131,20 @@ namespace Wabbajack
                     .ObserveOn(RxApp.MainThreadScheduler)
                     .Select(v => v == InstallState.Installing ? Visibility.Collapsed : Visibility.Visible)
                     .BindTo(this, view => view.SettingsButton.Visibility);
+                
+                //Checking for Existing NexusMods login
+                try
+                {
+                    Task.Run(() => _nexusApi.Validate());
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Failed to refresh OAuth token");
+                    _logger.LogInformation("Opening Nexus Login");
+                    var nexusLoginManager = _serviceProvider.GetService<NexusLoginManager>();
+                    nexusLoginManager.ClearLoginToken();
+                    nexusLoginManager.StartLogin();
+                }
 
             }
             catch (Exception ex)
