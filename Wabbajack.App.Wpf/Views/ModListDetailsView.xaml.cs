@@ -97,8 +97,7 @@ public partial class ModListDetailsView
                 {
                     ((Panel)ViewModel.Browser.Parent).Children.Remove(ViewModel.Browser);
                 }
-                ArchivesGrid.Children.Add(ViewModel.Browser);
-                Grid.SetRow(ViewModel.Browser, 1);
+                MainContentGrid.Children.Add(ViewModel.Browser);
             });
 
         });
