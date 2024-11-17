@@ -237,9 +237,9 @@ public class NexusApi
             var info = await AuthInfo.Get();
             if (info!.OAuth != null)
             {
-                if (!info.OAuth.IsExpired)
+                if (info.OAuth.IsExpired)
                     info = await RefreshToken(info, CancellationToken.None);
-                return (false, info!.OAuth!.AccessToken!);
+                return (false, info.OAuth!.AccessToken!);
             }
             if (!string.IsNullOrWhiteSpace(info.ApiKey))
             {
