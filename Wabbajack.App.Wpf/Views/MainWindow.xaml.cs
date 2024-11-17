@@ -194,6 +194,8 @@ public partial class MainWindow : MetroWindow
                 .Select(x => x == null ? Visibility.Hidden : Visibility.Visible)
                 .BindTo(this, view => view.FloatingWindow.Visibility);
 
+            this.Events().KeyDown
+                .Subscribe(x => HandleKeyDown(this, x));
 
         }
         catch (Exception ex)
@@ -231,6 +233,15 @@ public partial class MainWindow : MetroWindow
                 ShowFloatingWindow.Send(FloatingScreenType.None);
             }
             _mousePressedTimer.Stop();
+        }
+    }
+
+    private void HandleKeyDown(MainWindow mainWindow, KeyEventArgs x)
+    {
+        if(x.Key == Key.Escape)
+        {
+            if (((MainWindowVM)DataContext).ActiveFloatingPane != null)
+                ShowFloatingWindow.Send(FloatingScreenType.None);
         }
     }
 

@@ -8,10 +8,10 @@
     xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
     x:TypeArguments="local:ViewModel"
     ClipToBounds="True"
-    d:DesignHeight="48"
+    d:DesignHeight="38"
     d:DesignWidth="200"
     Width="200"
-    Height="48"
+    Height="38"
     mc:Ignorable="d">
     <Button x:Name="Button">
         <Grid Width="{Binding ElementName=Button, Path=ActualWidth}">
@@ -19,7 +19,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <TextBlock x:Name="ButtonTextBlock" VerticalAlignment="Center" Margin="16, 0, 0, 0" />
-            <ic:SymbolIcon x:Name="ButtonSymbolIcon" FontSize="24" VerticalAlignment="Center" Margin="0, 0, 16, 0" />
+            <ic:SymbolIcon x:Name="ButtonSymbolIcon" FontSize="18" VerticalAlignment="Center" Margin="0, 0, 16, 0" />
         </Grid>
     </Button>
 </local:UserControlRx>
