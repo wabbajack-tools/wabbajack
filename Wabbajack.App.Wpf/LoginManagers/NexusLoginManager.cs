@@ -58,13 +58,13 @@ public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
         }, this.WhenAnyValue(v => v.HaveLogin).Select(v => !v));
     }
 
-    public async Task ClearLoginToken()
+    private async Task ClearLoginToken()
     {
         await _token.Delete();
         await RefreshTokenState();
     }
 
-    public void StartLogin()
+    private void StartLogin()
     {
         var view = new BrowserWindow(_serviceProvider);
         view.Closed += async (sender, args) => { await RefreshTokenState(); };
