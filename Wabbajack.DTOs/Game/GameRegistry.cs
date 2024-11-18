@@ -612,7 +612,7 @@ public static class GameRegistry
                     @"End\Binaries\Win64\ff7remake_.exe".ToRelativePath(),
                     @"ff7remake_.exe".ToRelativePath()
                 },
-                MainExecutable = @"End\Binaries\Win64\ff7remake_.exe".ToRelativePath()
+                MainExecutable = @"End\Binaries\Win64\ff7remake_.exe".ToRelativePath(),
             }
         },
         {
@@ -630,7 +630,9 @@ public static class GameRegistry
                 {
                     @"bin/bg3.exe".ToRelativePath()
                 },
-                MainExecutable = @"bin/bg3.exe".ToRelativePath()
+                MainExecutable = @"bin/bg3.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/cdb3fcd3d3fde62fe3b549a90793467e.png"
+
             }
         },
         {
@@ -646,7 +648,8 @@ public static class GameRegistry
                 {
                     @"Starfield.exe".ToRelativePath()
                 },
-                MainExecutable = @"Starfield.exe".ToRelativePath()
+                MainExecutable = @"Starfield.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/1a495bc86abe171f690e27192ea6c367.png"
             }
         },
         {

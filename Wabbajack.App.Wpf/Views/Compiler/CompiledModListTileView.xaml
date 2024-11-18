@@ -26,7 +26,7 @@
                     <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True">
-                            <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
+                            <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}" />
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>

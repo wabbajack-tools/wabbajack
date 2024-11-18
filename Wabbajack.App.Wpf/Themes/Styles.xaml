@@ -249,7 +249,7 @@
 
     <SolidColorBrush x:Key="ListBorder" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="ListBackground" Color="{StaticResource ComplementaryPrimary08}" />
-    <SolidColorBrush x:Key="SelectedListItem" Color="{StaticResource HighlightColor}" />
+    <SolidColorBrush x:Key="SelectedListItem" Color="{StaticResource ComplementaryPrimary16}" />
     <SolidColorBrush x:Key="SelectedListItemForeground" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="MouseOverListItem" Color="{StaticResource ComplementaryPrimary16}" />
 
@@ -1379,7 +1379,7 @@
     <Style x:Key="ComboBoxItemStyle" TargetType="{x:Type ComboBoxItem}">
         <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
         <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
-        <Setter Property="Padding" Value="3,0,3,0" />
+        <Setter Property="Padding" Value="4,0,4,0" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Template">
             <Setter.Value>
