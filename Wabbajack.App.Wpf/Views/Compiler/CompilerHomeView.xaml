@@ -29,7 +29,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <local:BigButton x:Name="NewModlistButton" Title="Compile a new list" Description="Import the modlist.txt file to set up a new Wabbajack modlist export" Icon="Add" Margin="0, 0, 16, 16" Command="{Binding NewModlistCommand}"/>
-            <local:BigButton x:Name="LoadSettingsButton" Grid.Column="1" Title="Load compiler settings" Description="Continue the export of an existing modlist or push an update" Icon="ArrowImport" Margin="0, 0, 0, 16"/>
+            <local:BigButton x:Name="LoadSettingsButton" Grid.Column="1" Title="Load compiler settings" Description="Continue the export of an existing modlist or push an update" Icon="ArrowImport" Margin="0, 0, 0, 16" Command="{Binding LoadSettingsCommand}"/>
         </Grid>
         <Grid Grid.Row="1" Margin="0, 16, 0, 16">
             <Grid.ColumnDefinitions>
@@ -42,7 +42,7 @@
         <Grid Grid.Row="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="3*"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
             <TextBlock LineHeight="24" FontSize="28" VerticalAlignment="Top" HorizontalAlignment="Center" FontWeight="Bold" Margin="0, 0, 0, 32">

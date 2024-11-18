@@ -31,8 +31,8 @@ public class CompilerHomeVM : ViewModel
     private readonly DTOSerializer _dtos;
     private readonly CompilerSettingsInferencer _inferencer;
 
-    public ICommand NewModlistCommand { get; set; }
-    public ICommand LoadSettingsCommand { get; set; }
+    [Reactive] public ICommand NewModlistCommand { get; set; }
+    [Reactive] public ICommand LoadSettingsCommand { get; set; }
 
     [Reactive]
     public ObservableCollection<CompiledModListTileVM> CompiledModLists { get; set; }
