@@ -1,6 +1,6 @@
 using System;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -10,7 +10,6 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs.Logins;
-using Wabbajack.Messages;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.UserIntervention;
 
@@ -40,12 +39,12 @@ public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
         _logger = logger;
         _token = token;
         _serviceProvider = serviceProvider;
-        RefreshTokenState();
+        Task.Run(async () => await RefreshTokenState());
         
         ClearLogin = ReactiveCommand.CreateFromTask(async () =>
         {
             _logger.LogInformation("Deleting Login information for {SiteName}", SiteName);
-            ClearLoginToken();
+            await ClearLoginToken();
         }, this.WhenAnyValue(v => v.HaveLogin));
 
         Icon = BitmapFrame.Create(
@@ -59,23 +58,25 @@ public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
         }, this.WhenAnyValue(v => v.HaveLogin).Select(v => !v));
     }
 
-    public async void ClearLoginToken()
+    public async Task ClearLoginToken()
     {
         await _token.Delete();
-        RefreshTokenState();
+        await RefreshTokenState();
     }
 
     public void StartLogin()
     {
         var view = new BrowserWindow(_serviceProvider);
-        view.Closed += (sender, args) => { RefreshTokenState(); };
+        view.Closed += async (sender, args) => { await RefreshTokenState(); };
         var provider = _serviceProvider.GetRequiredService<NexusLoginHandler>();
         view.DataContext = provider;
         view.Show();
     }
 
-    private void RefreshTokenState()
+    private async Task RefreshTokenState()
     {
-        HaveLogin = _token.HaveToken();
+        var token = await _token.Get();
+            
+        HaveLogin = _token.HaveToken() && !(token?.OAuth?.IsExpired ?? true);
     }
 }

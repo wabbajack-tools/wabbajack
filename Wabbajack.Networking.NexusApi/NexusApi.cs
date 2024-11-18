@@ -270,7 +270,10 @@ public class NexusApi
         var content = new FormUrlEncodedContent(request);
 
         var response = await _client.PostAsync($"https://users.nexusmods.com/oauth/token", content, cancel);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode) 
+            _logger.LogError("Nexus OAuth Token refresh failed: {ResponseReasonPhrase}", response.ReasonPhrase);
+        
         var responseString = await response.Content.ReadAsStringAsync(cancel);
         var newJwt = JsonSerializer.Deserialize<JwtTokenReply>(responseString);
         if (newJwt != null) 
