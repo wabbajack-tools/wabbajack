@@ -7,6 +7,7 @@
 * Improved Wabbajack CLI inline-report: now automatically tries to open the report in the browser on running the command
 * Removed Vector Plexus Login from the UI cause with the only file being used from the having an official off-site mirror it isn't needed.
 * Fix for Wabbajack trying to work with an expired OAuth token.
+* Added pre-compile login check.
 
 #### Version - 3.7.4.0 - 10/15/2024
 * Fix for gallery not properly showing lists that are in maintenance.
