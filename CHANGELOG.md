@@ -1,11 +1,13 @@
 ### Changelog
 
-#### Version - 3.7.4.1 - TBD
+#### Version - 3.7.4.1 - 11/21/2024
 * Add support for the upcoming Nexus game ID change (thanks to [@JonathanFeenstra](https://github.com/JonathanFeenstra))
 * Wabbajack will now put modfile Titles, Description and Version into the `.meta` file.
 * Fix for CLI not working on certain commands due to required assemblies being removed on publish
 * Improved Wabbajack CLI inline-report: now automatically tries to open the report in the browser on running the command
 * Removed Vector Plexus Login from the UI cause with the only file being used from the having an official off-site mirror it isn't needed.
+* Figured out why codesigning was borked with the latest certs. Fixed it.
+* Updated to .NET 9
 
 #### Version - 3.7.4.0 - 10/15/2024
 * Fix for gallery not properly showing lists that are in maintenance.
