@@ -18,6 +18,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
+using Wabbajack.Downloaders;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
@@ -51,7 +52,9 @@ namespace Wabbajack
         private readonly ResourceMonitor _resourceMonitor;
         private readonly CompilerSettingsInferencer _inferencer;
         private readonly IEnumerable<INeedsLogin> _logins;
+        private readonly DownloadDispatcher _downloadDispatcher;
         private readonly Client _wjClient;
+        private AsyncLock _waitForLoginLock = new ();
 
         [Reactive] public string StatusText { get; set; }
         [Reactive] public Percent StatusProgress { get; set; }
@@ -105,7 +108,7 @@ namespace Wabbajack
 
         public CompilerVM(ILogger<CompilerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
             IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor,
-            CompilerSettingsInferencer inferencer, Client wjClient, IEnumerable<INeedsLogin> logins) : base(logger)
+            CompilerSettingsInferencer inferencer, Client wjClient, IEnumerable<INeedsLogin> logins, DownloadDispatcher downloadDispatcher) : base(logger)
         {
             _logger = logger;
             _dtos = dtos;
@@ -116,6 +119,7 @@ namespace Wabbajack
             _inferencer = inferencer;
             _wjClient = wjClient;
             _logins = logins;
+            _downloadDispatcher = downloadDispatcher;
 
             StatusText = "Compiler Settings";
             StatusProgress = Percent.Zero;
@@ -283,23 +287,34 @@ namespace Wabbajack
                     var token = CancellationToken.None;
                     State = CompilerState.Compiling;
 
-                    var downloadStateNexus = new Nexus();
-                    
-                    var manager = _logins
-                        .FirstOrDefault(l => l.LoginFor() == downloadStateNexus.GetType());
-                    if (manager == null)
+                    foreach (var downloader in await _downloadDispatcher.AllDownloaders([new Nexus()]))
                     {
-                        _logger.LogError("Cannot compile, could not prepare {Name} for verifying",
-                            downloadStateNexus.GetType().Name);
-                        throw new Exception($"No way to prepare {downloadStateNexus}");
+                        _logger.LogInformation("Preparing {Name}", downloader.GetType().Name);
+                        if (await downloader.Prepare())
+                            continue;
+
+                        var manager = _logins
+                            .FirstOrDefault(l => l.LoginFor() == downloader.GetType());
+                        if (manager == null)
+                        {
+                            _logger.LogError("Cannot install, could not prepare {Name} for downloading",
+                                downloader.GetType().Name);
+                            throw new Exception($"No way to prepare {downloader}");
+                        }
+
+                        RxApp.MainThreadScheduler.Schedule(manager, (_, _) =>
+                        {
+                            manager.TriggerLogin.Execute(null);
+                            return Disposable.Empty;
+                        });
+
+                        while (true)
+                        {
+                            if (await downloader.Prepare())
+                                break;
+                            await Task.Delay(1000);
+                        }
                     }
-
-                    RxApp.MainThreadScheduler.Schedule(manager, (_, _) =>
-                    {
-                        manager.TriggerLogin.Execute(null);
-                        return Disposable.Empty;
-                    });
-
 
                     var mo2Settings = GetSettings();
                     mo2Settings.UseGamePaths = true;
