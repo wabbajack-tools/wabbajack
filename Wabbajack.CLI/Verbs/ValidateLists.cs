@@ -635,6 +635,8 @@ public class ValidateLists
                 return (ArchiveStatus.Valid, archive);
             case Nexus:
                 return (ArchiveStatus.Valid, archive);
+            case MediaFire:
+                return (ArchiveStatus.Valid, archive);
             case VectorPlexus:
                 return (ArchiveStatus.InValid, archive);
         }
