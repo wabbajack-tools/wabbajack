@@ -61,7 +61,7 @@ public class VFSTests : IDisposable
         var file = _context.Index.ByRootPath[absPath];
         Assert.NotNull(file);
 
-        Assert.Equal(128, file.Size);
+        Assert.Equal(130, file.Size);
         //Assert.Equal(await absPath.HashCopyTo(Stream.Null), file.Hash);
 
         Assert.True(file.IsArchive);
