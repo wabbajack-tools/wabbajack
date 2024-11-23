@@ -3,6 +3,8 @@
 #### Version - 3.7.5.0 - TBD
 * Fix for Wabbajack trying to work with an expired OAuth token.
 * Added pre-compile login check.
+* Disabled automated validation for Mediafire due to too many falsely flagged down mods.
+  * There are plans to create some manually maintained `source_down` index to replace this in the future.
 
 #### Version - 3.7.4.1 - 11/21/2024
 * Add support for the upcoming Nexus game ID change (thanks to [@JonathanFeenstra](https://github.com/JonathanFeenstra))
