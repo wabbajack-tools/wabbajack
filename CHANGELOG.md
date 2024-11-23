@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 3.7.5.0 - TBD
+* Fix for Wabbajack trying to work with an expired OAuth token.
+* Added pre-compile login check.
+
 #### Version - 3.7.4.1 - 11/21/2024
 * Add support for the upcoming Nexus game ID change (thanks to [@JonathanFeenstra](https://github.com/JonathanFeenstra))
 * Wabbajack will now put modfile Titles, Description and Version into the `.meta` file.

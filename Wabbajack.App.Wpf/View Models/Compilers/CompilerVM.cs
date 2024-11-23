@@ -19,9 +19,11 @@ using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Extensions;
 using Wabbajack.Installer;
+using Wabbajack.LoginManagers;
 using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
@@ -31,8 +33,6 @@ using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack
 {
-    
-    
     public enum CompilerState
     {
         Configuration,
@@ -40,6 +40,7 @@ namespace Wabbajack
         Completed,
         Errored
     }
+
     public class CompilerVM : BackNavigatingVM, ICpuStatusVM
     {
         private const string LastSavedCompilerSettings = "last-saved-compiler-settings";
@@ -49,24 +50,23 @@ namespace Wabbajack
         private readonly ILogger<CompilerVM> _logger;
         private readonly ResourceMonitor _resourceMonitor;
         private readonly CompilerSettingsInferencer _inferencer;
+        private readonly IEnumerable<INeedsLogin> _logins;
         private readonly Client _wjClient;
-        
+
         [Reactive] public string StatusText { get; set; }
         [Reactive] public Percent StatusProgress { get; set; }
 
-        [Reactive]
-        public CompilerState State { get; set; }
-        
-        [Reactive]
-        public MO2CompilerVM SubCompilerVM { get; set; }
-        
+        [Reactive] public CompilerState State { get; set; }
+
+        [Reactive] public MO2CompilerVM SubCompilerVM { get; set; }
+
         // Paths 
         public FilePickerVM ModlistLocation { get; }
         public FilePickerVM DownloadLocation { get; }
         public FilePickerVM OutputLocation { get; }
-        
+
         // Modlist Settings
-        
+
         [Reactive] public string ModListName { get; set; }
         [Reactive] public string Version { get; set; }
         [Reactive] public string Author { get; set; }
@@ -87,26 +87,25 @@ namespace Wabbajack
         [Reactive] public RelativePath[] NoMatchInclude { get; set; } = Array.Empty<RelativePath>();
         [Reactive] public RelativePath[] Include { get; set; } = Array.Empty<RelativePath>();
         [Reactive] public RelativePath[] Ignore { get; set; } = Array.Empty<RelativePath>();
-        
+
         [Reactive] public string[] OtherProfiles { get; set; } = Array.Empty<string>();
-        
+
         [Reactive] public AbsolutePath Source { get; set; }
-        
+
         public AbsolutePath SettingsOutputLocation => Source.Combine(ModListName).WithExtension(Ext.CompilerSettings);
-        
-        
+
+
         public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
         public ReactiveCommand<Unit, Unit> ReInferSettingsCommand { get; set; }
 
         public LogStream LoggerProvider { get; }
         public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
-        
-        [Reactive]
-        public ErrorResponse ErrorState { get; private set; }
-        
+
+        [Reactive] public ErrorResponse ErrorState { get; private set; }
+
         public CompilerVM(ILogger<CompilerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
-            IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
-            CompilerSettingsInferencer inferencer, Client wjClient) : base(logger)
+            IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor,
+            CompilerSettingsInferencer inferencer, Client wjClient, IEnumerable<INeedsLogin> logins) : base(logger)
         {
             _logger = logger;
             _dtos = dtos;
@@ -116,6 +115,7 @@ namespace Wabbajack
             _resourceMonitor = resourceMonitor;
             _inferencer = inferencer;
             _wjClient = wjClient;
+            _logins = logins;
 
             StatusText = "Compiler Settings";
             StatusProgress = Percent.Zero;
@@ -126,7 +126,7 @@ namespace Wabbajack
                     await SaveSettingsFile();
                     NavigateToGlobal.Send(NavigateToGlobal.ScreenType.ModeSelectionView);
                 });
-            
+
             SubCompilerVM = new MO2CompilerVM(this);
 
             ExecuteCommand = ReactiveCommand.CreateFromTask(async () => await StartCompilation());
@@ -152,7 +152,7 @@ namespace Wabbajack
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Location where the downloads for this list are stored"
             };
-            
+
             OutputLocation = new FilePickerVM
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.Off,
@@ -160,13 +160,13 @@ namespace Wabbajack
                 PromptTitle = "Location where the compiled modlist will be stored"
             };
 
-            ModlistLocation.Filters.AddRange(new []
+            ModlistLocation.Filters.AddRange(new[]
             {
                 new CommonFileDialogFilter("MO2 Modlist", "*" + Ext.Txt),
                 new CommonFileDialogFilter("Compiler Settings File", "*" + Ext.CompilerSettings)
             });
 
-            
+
             this.WhenActivated(disposables =>
             {
                 State = CompilerState.Configuration;
@@ -188,11 +188,10 @@ namespace Wabbajack
                     .Select(_ => Validate())
                     .BindToStrict(this, vm => vm.ErrorState)
                     .DisposeWith(disposables);
-                
+
                 LoadLastSavedSettings().FireAndForget();
             });
         }
-
 
 
         private async Task ReInferSettings()
@@ -205,7 +204,7 @@ namespace Wabbajack
                 _logger.LogError("Cannot infer settings");
                 return;
             }
-            
+
             Include = newSettings.Include;
             Ignore = newSettings.Ignore;
             AlwaysEnabled = newSettings.AlwaysEnabled;
@@ -252,7 +251,7 @@ namespace Wabbajack
             Website = settings.ModListWebsite?.ToString() ?? "";
             Readme = settings.ModListReadme?.ToString() ?? "";
             IsNSFW = settings.ModlistIsNSFW;
-            
+
             Source = settings.Source;
             DownloadLocation.TargetPath = settings.Downloads;
             if (settings.OutputFile.Extension == Ext.Wabbajack)
@@ -280,10 +279,27 @@ namespace Wabbajack
             {
                 try
                 {
-
                     await SaveSettingsFile();
                     var token = CancellationToken.None;
                     State = CompilerState.Compiling;
+
+                    var downloadStateNexus = new Nexus();
+                    
+                    var manager = _logins
+                        .FirstOrDefault(l => l.LoginFor() == downloadStateNexus.GetType());
+                    if (manager == null)
+                    {
+                        _logger.LogError("Cannot compile, could not prepare {Name} for verifying",
+                            downloadStateNexus.GetType().Name);
+                        throw new Exception($"No way to prepare {downloadStateNexus}");
+                    }
+
+                    RxApp.MainThreadScheduler.Schedule(manager, (_, _) =>
+                    {
+                        manager.TriggerLogin.Execute(null);
+                        return Disposable.Empty;
+                    });
+
 
                     var mo2Settings = GetSettings();
                     mo2Settings.UseGamePaths = true;
@@ -326,20 +342,21 @@ namespace Wabbajack
                     {
                         _logger.LogInformation("Publishing List");
                         var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
-                            await mo2Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
-                        await _wjClient.PublishModlist(MachineUrl, System.Version.Parse(Version), mo2Settings.OutputFile, downloadMetadata);
+                            await mo2Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json)
+                                .ReadAllTextAsync())!;
+                        await _wjClient.PublishModlist(MachineUrl, System.Version.Parse(Version),
+                            mo2Settings.OutputFile, downloadMetadata);
                     }
+
                     _logger.LogInformation("Compiler Finished");
-                    
+
                     RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
                     {
                         StatusText = "Compilation Completed";
                         StatusProgress = Percent.Zero;
                         State = CompilerState.Completed;
-                        return Disposable.Empty; 
+                        return Disposable.Empty;
                     });
-                    
-
                 }
                 catch (Exception ex)
                 {
@@ -388,17 +405,17 @@ namespace Wabbajack
         private async Task LoadLastSavedSettings()
         {
             var lastPath = await _settingsManager.Load<AbsolutePath>(LastSavedCompilerSettings);
-            if (lastPath == default || !lastPath.FileExists() || lastPath.FileName.Extension != Ext.CompilerSettings) return;
+            if (lastPath == default || !lastPath.FileExists() ||
+                lastPath.FileName.Extension != Ext.CompilerSettings) return;
             ModlistLocation.TargetPath = lastPath;
         }
 
-                    
+
         private CompilerSettings GetSettings()
         {
-
             System.Version.TryParse(Version, out var pversion);
             Uri.TryCreate(Website, UriKind.Absolute, out var websiteUri);
-            
+
             return new CompilerSettings
             {
                 ModListName = ModListName,
@@ -436,7 +453,7 @@ namespace Wabbajack
         {
             OtherProfiles = OtherProfiles.Where(p => p != profile).ToArray();
         }
-        
+
         public void AddAlwaysEnabled(RelativePath path)
         {
             AlwaysEnabled = (AlwaysEnabled ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
@@ -446,7 +463,7 @@ namespace Wabbajack
         {
             AlwaysEnabled = AlwaysEnabled.Where(p => p != path).ToArray();
         }
-        
+
         public void AddNoMatchInclude(RelativePath path)
         {
             NoMatchInclude = (NoMatchInclude ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
@@ -456,7 +473,7 @@ namespace Wabbajack
         {
             NoMatchInclude = NoMatchInclude.Where(p => p != path).ToArray();
         }
-        
+
         public void AddInclude(RelativePath path)
         {
             Include = (Include ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
@@ -467,7 +484,7 @@ namespace Wabbajack
             Include = Include.Where(p => p != path).ToArray();
         }
 
-        
+
         public void AddIgnore(RelativePath path)
         {
             Ignore = (Ignore ?? Array.Empty<RelativePath>()).Append(path).Distinct().ToArray();
