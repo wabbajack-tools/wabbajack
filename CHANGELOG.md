@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 3.7.5.0 - TBD
+#### Version - 3.7.5.0 - 11/23/2024
 * Fix for Wabbajack trying to work with an expired OAuth token.
 * Added pre-compile login check.
 * Disabled automated validation for Mediafire due to too many falsely flagged down mods.
