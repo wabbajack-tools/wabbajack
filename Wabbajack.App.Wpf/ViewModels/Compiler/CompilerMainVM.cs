@@ -38,8 +38,6 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
     private readonly IEnumerable<INeedsLogin> _logins;
     private readonly DownloadDispatcher _downloadDispatcher;
 
-    private AsyncLock _waitForLoginLock = new();
-
     public CompilerDetailsVM CompilerDetailsVM { get; set; }
     public CompilerFileManagerVM CompilerFileManagerVM { get; set; }
 
