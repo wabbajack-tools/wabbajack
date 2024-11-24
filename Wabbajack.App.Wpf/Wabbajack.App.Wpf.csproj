@@ -126,6 +126,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Wabbajack.CLI.Builder\Wabbajack.CLI.Builder.csproj" />
     <ProjectReference Include="..\Wabbajack.CLI\Wabbajack.CLI.csproj" />
+    <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj" />
     <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
   </ItemGroup>
 

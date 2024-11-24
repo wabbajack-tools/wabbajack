@@ -25,6 +25,9 @@ using Wabbajack.Installer;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
+using Wabbajack.LoginManagers;
+using Wabbajack.Downloaders;
+using Wabbajack.DTOs.DownloadStates;
 
 namespace Wabbajack;
 
@@ -32,6 +35,10 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ResourceMonitor _resourceMonitor;
+    private readonly IEnumerable<INeedsLogin> _logins;
+    private readonly DownloadDispatcher _downloadDispatcher;
+
+    private AsyncLock _waitForLoginLock = new();
 
     public CompilerDetailsVM CompilerDetailsVM { get; set; }
     public CompilerFileManagerVM CompilerFileManagerVM { get; set; }
@@ -53,10 +60,11 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
 
     public CompilerMainVM(ILogger<CompilerMainVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
         LogStream loggerProvider, Client wjClient, IServiceProvider serviceProvider, ResourceMonitor resourceMonitor,
-        CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM) : base(dtos, settingsManager, logger, wjClient)
+        CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, IEnumerable<INeedsLogin> logins) : base(dtos, settingsManager, logger, wjClient)
     {
         _serviceProvider = serviceProvider;
         _resourceMonitor = resourceMonitor;
+        _logins = logins;
 
         LoggerProvider = loggerProvider;
         CompilerDetailsVM = compilerDetailsVM;
@@ -130,22 +138,25 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
 
     private async Task StartCompilation()
     {
-        var tsk = Task.Run((Func<Task>)(async () =>
+        var tsk = Task.Run(async () =>
         {
             try
             {
                 HideNavigation.Send();
                 await SaveSettings();
                 var token = CancellationTokenSource.Token;
-                RxApp.MainThreadScheduler.Schedule(_logger, (Func<System.Reactive.Concurrency.IScheduler, ILogger<BaseCompilerVM>, IDisposable>)((_, _) =>
+
+                await EnsureLoggedIntoNexus();
+
+                RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
                 {
-                    this.ProgressText = "Compiling...";
+                    ProgressText = "Compiling...";
                     State = CompilerState.Compiling;
                     CurrentStep = Step.Busy;
                     ProgressText = "Compiling...";
                     ProgressState = ProgressState.Normal;
                     return Disposable.Empty;
-                }));
+                });
 
                 Settings.UseGamePaths = true;
                 if (Settings.OutputFile.DirectoryExists())
@@ -216,9 +227,37 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
                     }
                 }));
             }
-        }));
+        });
 
         await tsk;
+    }
+
+    private async Task EnsureLoggedIntoNexus()
+    {
+        var nexusDownloadState = new Nexus();
+        foreach (var downloader in await _downloadDispatcher.AllDownloaders([nexusDownloadState]))
+        {
+
+            var manager = _logins.FirstOrDefault(l => l.LoginFor() == typeof(Nexus));
+            if (manager == null)
+            {
+                _logger.LogError("Cannot compile, could not prepare Nexus for verifying");
+                throw new Exception($"No way to prepare {nexusDownloadState}");
+            }
+
+            RxApp.MainThreadScheduler.Schedule(manager, (_, _) =>
+            {
+                manager.TriggerLogin.Execute(null);
+                return Disposable.Empty;
+            });
+
+            while (true)
+            {
+                if (await downloader.Prepare())
+                    break;
+                await Task.Delay(1000);
+            }
+        }
     }
 
     private async Task CancelCompilation()

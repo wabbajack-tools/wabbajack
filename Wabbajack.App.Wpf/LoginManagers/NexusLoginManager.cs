@@ -39,7 +39,7 @@ public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
         _logger = logger;
         _token = token;
         _serviceProvider = serviceProvider;
-        Task.Run(async () => await RefreshTokenState());
+        Task.Run(RefreshTokenState);
         
         ClearLogin = ReactiveCommand.CreateFromTask(async () =>
         {
