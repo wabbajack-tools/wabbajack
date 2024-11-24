@@ -15,7 +15,7 @@ public enum ProgressState
     Error         // Operation failed, progress bar gets highlighted
 }
 
-public interface IWizardVM
+public interface IProgressVM
 {
     public Step CurrentStep { get; set; }
     public ProgressState ProgressState { get; set; }

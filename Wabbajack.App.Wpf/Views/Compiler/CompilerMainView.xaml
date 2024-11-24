@@ -35,7 +35,7 @@
 
         <local:CompilerFileManagerView x:Name="FileManager" ViewModel="{Binding CompilerFileManagerVM}" Grid.Column="1" Grid.RowSpan="2" Margin="16, 0, 0, 0" />
         <DockPanel x:Name="ConfigurationButtons" Grid.Row="2" Grid.Column="1" Margin="0, 16, 0, 0">
-            <local:WizardButton x:Name="StartButton" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="Compile List" Icon="Box" Command="{Binding StartCommand}" ButtonStyle="Color" />
+            <local:WJButton x:Name="StartButton" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="Compile List" Icon="Box" Command="{Binding StartCommand}" ButtonStyle="Color" />
         </DockPanel>
 
         <!-- Compilation -->
@@ -45,9 +45,9 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <local:WizardButton x:Name="CancelButton" Text="Cancel" Icon="Dismiss" Command="{Binding CancelCommand}" ButtonStyle="Danger" Grid.Column="0" Width="Auto" Margin="16, 0, 0, 0"/>
-            <local:WizardButton Text="Open in File Explorer" Icon="Folder" IsEnabled="False" Grid.Column="1" Width="Auto" Margin="16, 0, 0, 0" />
-            <local:WizardButton Text="Publish Modlist" Icon="CloudArrowUp" IsEnabled="False" Grid.Column="2" Width="Auto" Margin="16, 0, 0, 0" />
+            <local:WJButton x:Name="CancelButton" Text="Cancel" Icon="Dismiss" Command="{Binding CancelCommand}" ButtonStyle="Danger" Grid.Column="0" Width="Auto" Margin="16, 0, 0, 0"/>
+            <local:WJButton Text="Open in File Explorer" Icon="Folder" IsEnabled="False" Grid.Column="1" Width="Auto" Margin="16, 0, 0, 0" />
+            <local:WJButton Text="Publish Modlist" Icon="CloudArrowUp" IsEnabled="False" Grid.Column="2" Width="Auto" Margin="16, 0, 0, 0" />
         </Grid>
 
         <local:CpuView x:Name="CpuView" Grid.Row="1" Grid.RowSpan="2" ViewModel="{Binding}" Visibility="Hidden" Margin="0, 0, 0, 0" />
@@ -64,9 +64,9 @@
                 <ColumnDefinition Width="16" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <local:WizardButton x:Name="OpenLogButton" Text="Open Log" Icon="DocumentText" Command="{Binding OpenLogCommand}" HorizontalAlignment="Left" />
-            <local:WizardButton x:Name="OpenFolderButton" Text="Open in File Explorer" Icon="Folder" Command="{Binding OpenFolderCommand}" HorizontalAlignment="Right" Grid.Column="2" ButtonStyle="Color" />
-            <local:WizardButton x:Name="PublishButton" Text="Publish Modlist" Icon="CloudArrowUp" Command="{Binding PublishCommand}" HorizontalAlignment="Right" Grid.Column="4" ButtonStyle="Color" />
+            <local:WJButton x:Name="OpenLogButton" Text="Open Log" Icon="DocumentText" Command="{Binding OpenLogCommand}" HorizontalAlignment="Left" />
+            <local:WJButton x:Name="OpenFolderButton" Text="Open in File Explorer" Icon="Folder" Command="{Binding OpenFolderCommand}" HorizontalAlignment="Right" Grid.Column="2" ButtonStyle="Color" />
+            <local:WJButton x:Name="PublishButton" Text="Publish Modlist" Icon="CloudArrowUp" Command="{Binding PublishCommand}" HorizontalAlignment="Right" Grid.Column="4" ButtonStyle="Color" />
         </Grid>
     </Grid>
 </rxui:ReactiveUserControl>

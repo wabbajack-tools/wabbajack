@@ -3,7 +3,7 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack;
 
-public abstract class WizardViewModel : ViewModel, IWizardVM
+public abstract class ProgressViewModel : ViewModel, IProgressVM
 {
     [Reactive] public Step CurrentStep { get; set; }
     [Reactive] public ProgressState ProgressState { get; set; }

@@ -16,7 +16,7 @@ using Wabbajack.Messages;
 
 namespace Wabbajack;
 
-public abstract class BaseCompilerVM : WizardViewModel
+public abstract class BaseCompilerVM : ProgressViewModel
 {
     protected readonly DTOSerializer _dtos;
     protected readonly SettingsManager _settingsManager;

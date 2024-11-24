@@ -153,7 +153,7 @@
                                VerticalAlignment="Center" />
                 </CheckBox>
 
-                <local:WizardButton
+                <local:WJButton
                     x:Name="ResetFiltersButton"
                     Margin="0, 24, 0, 0"
                     Grid.Row="7"
@@ -165,7 +165,7 @@
                     Text="Reset filters"
                     Width="Auto"
                     Command="{Binding ResetFiltersCommand}">
-                </local:WizardButton>
+                </local:WJButton>
             </Grid>
         </ScrollViewer>
         <Border Grid.Column="1"

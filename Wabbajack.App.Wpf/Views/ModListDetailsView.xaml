@@ -80,12 +80,12 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <local:WizardButton x:Name="WebsiteButton" Command="{Binding OpenWebsiteCommand}" Grid.Column="0"
+                <local:WJButton x:Name="WebsiteButton" Command="{Binding OpenWebsiteCommand}" Grid.Column="0"
                                     Text="Website" Icon="Globe" Width="Auto" />
-                <local:WizardButton x:Name="DiscordButton" Command="{Binding OpenDiscordCommand}" Grid.Column="2"
+                <local:WJButton x:Name="DiscordButton" Command="{Binding OpenDiscordCommand}" Grid.Column="2"
                                     Text="Discord" Icon="PeopleChat" Width="Auto" />
 
-                <local:WizardButton Grid.Row="2" Grid.ColumnSpan="5" Text="Download &amp; Install" Icon="ArrowDownload"
+                <local:WJButton Grid.Row="2" Grid.ColumnSpan="5" Text="Download &amp; Install" Icon="ArrowDownload"
                                     ButtonStyle="Color" Width="Auto" />
             </Grid>
         </Grid>
@@ -131,7 +131,7 @@
                     </Border>
                 </Border>
 
-                <local:WizardButton x:Name="OpenReadmeButton"
+                <local:WJButton x:Name="OpenReadmeButton"
                                     ButtonStyle="Mono"
                                     Text="Open in browser"
                                     Icon="WindowNew"

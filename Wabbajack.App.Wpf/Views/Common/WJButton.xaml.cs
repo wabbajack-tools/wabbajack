@@ -9,7 +9,7 @@ using System.Windows.Input;
 namespace Wabbajack;
 
 /// <summary>
-/// Interaction logic for WizardButton.xaml
+/// Interaction logic for WJButton.xaml
 /// </summary>
 public enum ButtonStyle
 {
@@ -17,14 +17,14 @@ public enum ButtonStyle
     Color,
     Danger
 }
-public partial class WizardButton : UserControlRx<ViewModel>
+public partial class WJButton : UserControlRx<ViewModel>
 {
     public string Text
     {
         get => (string)GetValue(TextProperty);
         set => SetValue(TextProperty, value);
     }
-    public static readonly DependencyProperty TextProperty = DependencyProperty.Register(nameof(Text), typeof(string), typeof(WizardButton),
+    public static readonly DependencyProperty TextProperty = DependencyProperty.Register(nameof(Text), typeof(string), typeof(WJButton),
          new FrameworkPropertyMetadata(default(string)));
 
     public Symbol Icon
@@ -32,37 +32,37 @@ public partial class WizardButton : UserControlRx<ViewModel>
         get => (Symbol)GetValue(IconProperty);
         set => SetValue(IconProperty, value);
     }
-    public static readonly DependencyProperty IconProperty = DependencyProperty.Register(nameof(Icon), typeof(Symbol), typeof(WizardButton), new FrameworkPropertyMetadata(default(Symbol)));
+    public static readonly DependencyProperty IconProperty = DependencyProperty.Register(nameof(Icon), typeof(Symbol), typeof(WJButton), new FrameworkPropertyMetadata(default(Symbol)));
 
     public double IconSize
     {
         get => (double)GetValue(IconSizeProperty);
         set => SetValue(IconSizeProperty, value);
     }
-    public static readonly DependencyProperty IconSizeProperty = DependencyProperty.Register(nameof(IconSize), typeof(double), typeof(WizardButton), new FrameworkPropertyMetadata(24D));
+    public static readonly DependencyProperty IconSizeProperty = DependencyProperty.Register(nameof(IconSize), typeof(double), typeof(WJButton), new FrameworkPropertyMetadata(24D));
 
     public FlowDirection Direction
     {
         get => (FlowDirection)GetValue(DirectionProperty);
         set => SetValue(DirectionProperty, value);
     }
-    public static readonly DependencyProperty DirectionProperty = DependencyProperty.Register(nameof(Direction), typeof(FlowDirection), typeof(WizardButton), new PropertyMetadata(FlowDirection.LeftToRight));
+    public static readonly DependencyProperty DirectionProperty = DependencyProperty.Register(nameof(Direction), typeof(FlowDirection), typeof(WJButton), new PropertyMetadata(FlowDirection.LeftToRight));
 
     public ICommand Command
     {
         get => (ICommand)GetValue(CommandProperty);
         set => SetValue(CommandProperty, value);
     }
-    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(WizardButton), new PropertyMetadata(default(ReactiveCommand)));
+    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(WJButton), new PropertyMetadata(default(ReactiveCommand)));
 
     public ButtonStyle ButtonStyle
     {
         get => (ButtonStyle)GetValue(ButtonStyleProperty);
         set => SetValue(ButtonStyleProperty, value);
     }
-    public static readonly DependencyProperty ButtonStyleProperty = DependencyProperty.Register(nameof(ButtonStyle), typeof(ButtonStyle), typeof(WizardButton), new PropertyMetadata(ButtonStyle.Mono));
+    public static readonly DependencyProperty ButtonStyleProperty = DependencyProperty.Register(nameof(ButtonStyle), typeof(ButtonStyle), typeof(WJButton), new PropertyMetadata(ButtonStyle.Mono));
 
-    public WizardButton()
+    public WJButton()
     {
         InitializeComponent();
         this.WhenActivated(dispose =>
@@ -90,10 +90,10 @@ public partial class WizardButton : UserControlRx<ViewModel>
             this.WhenAny(x => x.ButtonStyle)
                 .Subscribe(x => Button.Style = x switch
                 {
-                    ButtonStyle.Mono => (Style)Application.Current.Resources["WizardButtonStyle"],
-                    ButtonStyle.Color => (Style)Application.Current.Resources["WizardColorButtonStyle"],
-                    ButtonStyle.Danger => (Style)Application.Current.Resources["WizardDangerButtonStyle"],
-                    _ => (Style)Application.Current.Resources["WizardButtonStyle"],
+                    ButtonStyle.Mono => (Style)Application.Current.Resources["WJButtonStyle"],
+                    ButtonStyle.Color => (Style)Application.Current.Resources["WJColorButtonStyle"],
+                    ButtonStyle.Danger => (Style)Application.Current.Resources["WJDangerButtonStyle"],
+                    _ => (Style)Application.Current.Resources["WJButtonStyle"],
                 })
                 .DisposeWith(dispose);
 

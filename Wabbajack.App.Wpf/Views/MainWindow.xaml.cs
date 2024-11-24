@@ -120,13 +120,13 @@ public partial class MainWindow : MetroWindow
             };
 
             vm.WhenAnyValue(vm => vm.ActivePane)
-                .Subscribe(pane => WizardSteps.Visibility = (pane is IWizardVM) ? Visibility.Visible : Visibility.Collapsed);
+                .Subscribe(pane => WizardSteps.Visibility = (pane is IProgressVM) ? Visibility.Visible : Visibility.Collapsed);
 
             vm.WhenAnyValue(vm => vm.ActivePane)
-              .Where(pane => pane is IWizardVM)
+              .Where(pane => pane is IProgressVM)
               .Subscribe(pane =>
               {
-                  var wizardVM = (WizardViewModel)pane;
+                  var wizardVM = (ProgressViewModel)pane;
 
                   wizardVM.WhenAnyValue(x => x.ConfigurationText)
                           .BindTo(this, view => view.ConfigurationText.Text)
