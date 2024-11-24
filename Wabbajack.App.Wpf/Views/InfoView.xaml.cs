@@ -1,4 +1,5 @@
 ﻿using ReactiveUI;
+using System.Reactive.Disposables;
 
 namespace Wabbajack;
 
@@ -11,5 +12,10 @@ public partial class InfoView : ReactiveUserControl<InfoVM>
     {
         InitializeComponent();
         var vm = ViewModel;
+        this.WhenActivated(dispose =>
+        {
+            this.BindCommand(ViewModel, x => x.BackCommand, x => x.PrevButton)
+                .DisposeWith(dispose);
+        });
     }
 }

@@ -118,17 +118,15 @@ public class ModListGalleryVM : BackNavigatingVM
         _cancellationToken = cancellationToken;
         _serviceProvider = serviceProvider;
 
-        ResetFiltersCommand = ReactiveCommand.Create(
-            () =>
-            {
-                OnlyInstalled = false;
-                IncludeNSFW = false;
-                IncludeUnofficial = false;
-                Search = string.Empty;
-                SelectedGameTypeEntry = GameTypeEntries?.FirstOrDefault();
-                HasTags = new ObservableCollection<ModListTag>();
-                HasMods = new ObservableCollection<ModListMod>();
-            });
+        ResetFiltersCommand = ReactiveCommand.Create(() => {
+            OnlyInstalled = false;
+            IncludeNSFW = false;
+            IncludeUnofficial = false;
+            Search = string.Empty;
+            SelectedGameTypeEntry = GameTypeEntries?.FirstOrDefault();
+            HasTags = new ObservableCollection<ModListTag>();
+            HasMods = new ObservableCollection<ModListMod>();
+        });
 
         this.WhenActivated(disposables =>
         {

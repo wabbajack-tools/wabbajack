@@ -112,17 +112,9 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                     ViewModel.HasMods = new ObservableCollection<ModListMod>(HasModsFilter.SelectedItems.Cast<ModListMod>());
                 })
                 .DisposeWith(dispose);
-            
-            /*
-            this.IncludesTagsFilter.Events().SelectionChanged
-                .Subscribe(args =>
-                {
-                    ViewModel.IncludedTags.AddRange(args.AddedItems.Cast<ModListGalleryVM.Tag>());
-                    foreach(var tag in args.RemovedItems.Cast<ModListGalleryVM.Tag>())
-                        ViewModel.IncludedTags.Remove(tag);
-                })
+
+            this.BindCommand(ViewModel, x => x.ResetFiltersCommand, x => x.ResetFiltersButton)
                 .DisposeWith(dispose);
-                */
         });
     }
 }

@@ -100,6 +100,21 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
                     .Select(s => s == CompilerState.Completed ? Visibility.Visible : Visibility.Hidden)
                     .BindToStrict(this, view => view.CompletedButtons.Visibility)
                     .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, x => x.StartCommand, x => x.StartButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, x => x.CancelCommand, x => x.CancelButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, x => x.OpenLogCommand, x => x.OpenLogButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, x => x.OpenFolderCommand, x => x.OpenFolderButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, x => x.PublishCommand, x => x.PublishButton)
+                .DisposeWith(disposables);
         });
     }
 }

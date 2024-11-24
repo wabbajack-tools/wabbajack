@@ -13,6 +13,8 @@ using System.Reactive.Concurrency;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Web.WebView2.Wpf;
 using System.Windows.Controls;
+using Wabbajack.RateLimiter;
+using ModListStatus = Wabbajack.BaseModListMetadataVM.ModListStatus;
 
 namespace Wabbajack;
 
@@ -89,6 +91,28 @@ public partial class ModListDetailsView
                     }
                 })
                 .BindToStrict(this, x => x.ViewModel.Browser.Source)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.ViewModel.MetadataVM.ProgressPercent)
+                .Select(x => x == Percent.Zero ? Percent.One : x)
+                .BindToStrict(this, x => x.InstallButton.ProgressPercentage)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.ViewModel.MetadataVM.Status)
+                .Select(x => x == ModListStatus.NotDownloaded ? "Download & Install" : x == ModListStatus.Downloading ? "Downloading..." : "Install")
+                .BindToStrict(this, x => x.InstallButton.Text)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, x => x.OpenReadmeCommand, x => x.OpenReadmeButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, x => x.OpenWebsiteCommand, x => x.WebsiteButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, x => x.OpenDiscordCommand, x => x.DiscordButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, x => x.MetadataVM.InstallCommand, x => x.InstallButton)
                 .DisposeWith(disposables);
 
             RxApp.MainThreadScheduler.Schedule(() =>

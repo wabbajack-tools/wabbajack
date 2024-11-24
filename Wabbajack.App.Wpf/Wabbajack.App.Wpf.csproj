@@ -86,13 +86,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DynamicData" Version="8.1.1" />
+    <PackageReference Include="DynamicData" Version="9.0.4" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.5.1">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
     <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
     <PackageReference Include="FluentIcons.WPF" Version="1.1.223" />
-    <PackageReference Include="Fody" Version="6.8.0">
+    <PackageReference Include="Fody" Version="6.9.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -112,13 +112,13 @@
     <PackageReference Include="Orc.FileAssociation" Version="5.0.0" />
     <PackageReference Include="PInvoke.User32" Version="0.7.124" />
     <PackageReference Include="ReactiveMarbles.ObservableEvents.SourceGenerator" Version="1.3.1" />
-    <PackageReference Include="ReactiveUI" Version="19.5.1" />
-    <PackageReference Include="ReactiveUI.Fody" Version="19.5.1" />
-    <PackageReference Include="ReactiveUI.WPF" Version="19.5.1" />
+    <PackageReference Include="ReactiveUI" Version="20.1.63" />
+    <PackageReference Include="ReactiveUI.Fody" Version="19.5.41" />
+    <PackageReference Include="ReactiveUI.WPF" Version="20.1.63" />
     <PackageReference Include="Sdl.MultiSelectComboBox" Version="1.0.103" />
     <PackageReference Include="Silk.NET.DXGI" Version="2.21.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
-    <PackageReference Include="System.Reactive" Version="6.0.1-preview.1" />
+    <PackageReference Include="System.Reactive" Version="6.0.1" />
     <PackageReference Include="WPF-UI" Version="3.0.0-preview.9" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
   </ItemGroup>

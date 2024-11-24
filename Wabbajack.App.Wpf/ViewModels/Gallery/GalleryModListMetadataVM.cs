@@ -23,7 +23,6 @@ public class GalleryModListMetadataVM : BaseModListMetadataVM
 
     public ICommand DetailsCommand { get; set; }
     public ICommand OpenWebsiteCommand { get; }
-    public ICommand InstallCommand { get; }
     public ICommand ModListContentsCommend { get; }
 
     public GalleryModListMetadataVM(ILogger logger, ModListGalleryVM parent, ModlistMetadata metadata,
@@ -59,20 +58,6 @@ public class GalleryModListMetadataVM : BaseModListMetadataVM
             UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/search/{Metadata.NamespacedName}"));
         }, IsLoadingIdle.StartWith(true));
         
-        InstallCommand = ReactiveCommand.CreateFromTask(async () =>
-        {
-            if (await _maintainer.HaveModList(Metadata))
-            {
-                LoadModlistForInstalling.Send(_maintainer.ModListPath(Metadata), Metadata);
-                NavigateToGlobal.Send(ScreenType.Installer);
-            }
-            else
-            {
-                await Download();
-            }
-        }, LoadingLock.WhenAnyValue(ll => ll.IsLoading)
-            .CombineLatest(this.WhenAnyValue(vm => vm.IsBroken))
-            .Select(v => !v.First && !v.Second));
 
     }
 }

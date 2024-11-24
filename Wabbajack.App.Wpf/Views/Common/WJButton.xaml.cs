@@ -5,6 +5,11 @@ using System.Reactive.Linq;
 using System.Windows;
 using System;
 using System.Windows.Input;
+using Wabbajack.RateLimiter;
+using System.Windows.Media;
+using ReactiveUI.Fody.Helpers;
+using System.Windows.Controls;
+using System.ComponentModel;
 
 namespace Wabbajack;
 
@@ -15,88 +20,74 @@ public enum ButtonStyle
 {
     Mono,
     Color,
-    Danger
+    Danger,
+    Progress
 }
-public partial class WJButton : UserControlRx<ViewModel>
+public partial class WJButtonVM : ViewModel
 {
+}
+
+public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject
+{
+    private string _text;
+
+    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangingEventHandler PropertyChanging;
+
     public string Text
     {
-        get => (string)GetValue(TextProperty);
-        set => SetValue(TextProperty, value);
+        get => _text;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _text, value);
+            RaisePropertyChanged(new PropertyChangedEventArgs(nameof(Content)));
+        }
     }
-    public static readonly DependencyProperty TextProperty = DependencyProperty.Register(nameof(Text), typeof(string), typeof(WJButton),
-         new FrameworkPropertyMetadata(default(string)));
-
-    public Symbol Icon
-    {
-        get => (Symbol)GetValue(IconProperty);
-        set => SetValue(IconProperty, value);
-    }
-    public static readonly DependencyProperty IconProperty = DependencyProperty.Register(nameof(Icon), typeof(Symbol), typeof(WJButton), new FrameworkPropertyMetadata(default(Symbol)));
-
-    public double IconSize
-    {
-        get => (double)GetValue(IconSizeProperty);
-        set => SetValue(IconSizeProperty, value);
-    }
-    public static readonly DependencyProperty IconSizeProperty = DependencyProperty.Register(nameof(IconSize), typeof(double), typeof(WJButton), new FrameworkPropertyMetadata(24D));
-
-    public FlowDirection Direction
-    {
-        get => (FlowDirection)GetValue(DirectionProperty);
-        set => SetValue(DirectionProperty, value);
-    }
-    public static readonly DependencyProperty DirectionProperty = DependencyProperty.Register(nameof(Direction), typeof(FlowDirection), typeof(WJButton), new PropertyMetadata(FlowDirection.LeftToRight));
-
-    public ICommand Command
-    {
-        get => (ICommand)GetValue(CommandProperty);
-        set => SetValue(CommandProperty, value);
-    }
-    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(WJButton), new PropertyMetadata(default(ReactiveCommand)));
-
-    public ButtonStyle ButtonStyle
-    {
-        get => (ButtonStyle)GetValue(ButtonStyleProperty);
-        set => SetValue(ButtonStyleProperty, value);
-    }
-    public static readonly DependencyProperty ButtonStyleProperty = DependencyProperty.Register(nameof(ButtonStyle), typeof(ButtonStyle), typeof(WJButton), new PropertyMetadata(ButtonStyle.Mono));
+    [Reactive] public Symbol Icon { get; set; }
+    [Reactive] public double IconSize { get; set; } = 24D;
+    [Reactive] public FlowDirection Direction { get; set; }
+    [Reactive] public ButtonStyle ButtonStyle { get; set; }
+    [Reactive] public Percent ProgressPercentage { get; set; } = Percent.One;
+    public WJButtonVM ViewModel { get; set; }
+    object IViewFor.ViewModel { get => ViewModel; set => ViewModel = (WJButtonVM)value; }
 
     public WJButton()
     {
         InitializeComponent();
         this.WhenActivated(dispose =>
         {
-            this.WhenAny(x => x.Text)
+            this.WhenAnyValue(x => x.Text)
                 .BindToStrict(this, x => x.ButtonTextBlock.Text)
                 .DisposeWith(dispose);
 
-            this.WhenAny(x => x.Icon)
+            this.WhenAnyValue(x => x.Icon)
                 .BindToStrict(this, x => x.ButtonSymbolIcon.Symbol)
                 .DisposeWith(dispose);
 
-            this.WhenAny(x => x.Direction)
+            this.WhenAnyValue(x => x.Direction)
                 .Subscribe(x => SetDirection(x))
                 .DisposeWith(dispose);
 
-            this.WhenAny(x => x.Command)
-                .BindToStrict(this, x => x.Button.Command)
-                .DisposeWith(dispose);
-
-            this.WhenAny(x => x.IconSize)
+            this.WhenAnyValue(x => x.IconSize)
                 .BindToStrict(this, x => x.ButtonSymbolIcon.FontSize)
                 .DisposeWith(dispose);
 
-            this.WhenAny(x => x.ButtonStyle)
-                .Subscribe(x => Button.Style = x switch
+            this.WhenAnyValue(x => x.ButtonStyle)
+                .Subscribe(x => Style = x switch
                 {
                     ButtonStyle.Mono => (Style)Application.Current.Resources["WJButtonStyle"],
                     ButtonStyle.Color => (Style)Application.Current.Resources["WJColorButtonStyle"],
                     ButtonStyle.Danger => (Style)Application.Current.Resources["WJDangerButtonStyle"],
+                    ButtonStyle.Progress => (Style)Application.Current.Resources["WJProgressButtonStyle"],
                     _ => (Style)Application.Current.Resources["WJButtonStyle"],
                 })
                 .DisposeWith(dispose);
 
+            this.WhenAnyValue(x => x.ProgressPercentage)
+            .Subscribe(x =>
+            {
+                int i = 0;
+            }).DisposeWith(dispose);
         });
 
     }
@@ -116,5 +107,15 @@ public partial class WJButton : UserControlRx<ViewModel>
             ButtonSymbolIcon.Margin = new Thickness(16, 0, 0, 0);
             ButtonSymbolIcon.HorizontalAlignment = HorizontalAlignment.Left;
         }
+    }
+
+    public void RaisePropertyChanging(PropertyChangingEventArgs args)
+    {
+        PropertyChanging?.Invoke(this, args);
+    }
+
+    public void RaisePropertyChanged(PropertyChangedEventArgs args)
+    {
+        PropertyChanged?.Invoke(this, args);
     }
 }

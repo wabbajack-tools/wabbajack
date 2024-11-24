@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -16,6 +17,7 @@ using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.ModListValidation;
+using Wabbajack.Messages;
 using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
@@ -43,7 +45,7 @@ public class BaseModListMetadataVM : ViewModel
     public AbsolutePath Location { get; }
     public LoadingLock LoadingImageLock { get; } = new();
     [Reactive] public HashSet<ModListTag> ModListTagList { get; protected set; }
-    [Reactive] public Percent ProgressPercent { get; protected set; }
+    [Reactive] public Percent ProgressPercent { get; set; }
     [Reactive] public bool IsBroken { get; protected set; }
     [Reactive] public ModListStatus Status { get; set; }
     [Reactive] public bool IsDownloading { get; protected set; }
@@ -54,6 +56,7 @@ public class BaseModListMetadataVM : ViewModel
     [Reactive] public bool ImageContainsTitle { get; protected set; }
     [Reactive] public GameMetaData GameMetaData { get; protected set; }
     [Reactive] public bool DisplayVersionOnlyInInstallerView { get; protected set; }
+    [Reactive] public ICommand InstallCommand { get; set; }
 
     [Reactive] public IErrorResponse Error { get; protected set; }
 
@@ -116,6 +119,22 @@ public class BaseModListMetadataVM : ViewModel
                 .StartWith(true)
                 .ToGuiProperty(this, nameof(LoadingImage))
                 .DisposeWith(CompositeDisposable);
+
+        InstallCommand = ReactiveCommand.CreateFromTask(async () =>
+        {
+            if (await _maintainer.HaveModList(Metadata))
+            {
+                LoadModlistForInstalling.Send(_maintainer.ModListPath(Metadata), Metadata);
+                NavigateToGlobal.Send(ScreenType.Installer);
+                ShowFloatingWindow.Send(FloatingScreenType.None);
+            }
+            else
+            {
+                await Download();
+            }
+        }, LoadingLock.WhenAnyValue(ll => ll.IsLoading)
+            .CombineLatest(this.WhenAnyValue(vm => vm.IsBroken))
+            .Select(v => !v.First && !v.Second));
     }
 
     protected async Task Download()
