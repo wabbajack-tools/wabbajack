@@ -189,7 +189,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
 
                 _logger.LogInformation("Compiler Finished");
 
-                RxApp.MainThreadScheduler.Schedule(_logger, (Func<System.Reactive.Concurrency.IScheduler, ILogger<BaseCompilerVM>, IDisposable>)((_, _) =>
+                RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
                 {
                     ShowNavigation.Send();
                     ProgressText = "Compiled";
@@ -198,13 +198,13 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
                     CurrentStep = Step.Done;
                     ProgressState = ProgressState.Success;
                     return Disposable.Empty;
-                }));
+                });
 
 
             }
             catch (Exception ex)
             {
-                RxApp.MainThreadScheduler.Schedule(_logger, (Func<System.Reactive.Concurrency.IScheduler, ILogger<BaseCompilerVM>, IDisposable>)((_, _) =>
+                RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
                 {
                     ShowNavigation.Send();
                     if (Cancelling)
@@ -225,7 +225,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
                         _logger.LogInformation(ex, "Failed Compilation : {Message}", ex.Message);
                         return Disposable.Empty;
                     }
-                }));
+                });
             }
         });
 
