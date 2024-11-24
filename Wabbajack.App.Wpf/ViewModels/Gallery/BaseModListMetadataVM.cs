@@ -45,7 +45,7 @@ public class BaseModListMetadataVM : ViewModel
     public AbsolutePath Location { get; }
     public LoadingLock LoadingImageLock { get; } = new();
     [Reactive] public HashSet<ModListTag> ModListTagList { get; protected set; }
-    [Reactive] public Percent ProgressPercent { get; set; }
+    [Reactive] public Percent ProgressPercent { get; protected set; }
     [Reactive] public bool IsBroken { get; protected set; }
     [Reactive] public ModListStatus Status { get; set; }
     [Reactive] public bool IsDownloading { get; protected set; }
@@ -56,7 +56,7 @@ public class BaseModListMetadataVM : ViewModel
     [Reactive] public bool ImageContainsTitle { get; protected set; }
     [Reactive] public GameMetaData GameMetaData { get; protected set; }
     [Reactive] public bool DisplayVersionOnlyInInstallerView { get; protected set; }
-    [Reactive] public ICommand InstallCommand { get; set; }
+    [Reactive] public ICommand InstallCommand { get; protected set; }
 
     [Reactive] public IErrorResponse Error { get; protected set; }
 
@@ -124,17 +124,23 @@ public class BaseModListMetadataVM : ViewModel
         {
             if (await _maintainer.HaveModList(Metadata))
             {
-                LoadModlistForInstalling.Send(_maintainer.ModListPath(Metadata), Metadata);
-                NavigateToGlobal.Send(ScreenType.Installer);
-                ShowFloatingWindow.Send(FloatingScreenType.None);
+                Install();
             }
             else
             {
                 await Download();
+                Install();
             }
         }, LoadingLock.WhenAnyValue(ll => ll.IsLoading)
             .CombineLatest(this.WhenAnyValue(vm => vm.IsBroken))
             .Select(v => !v.First && !v.Second));
+    }
+
+    private void Install()
+    {
+        LoadModlistForInstalling.Send(_maintainer.ModListPath(Metadata), Metadata);
+        NavigateToGlobal.Send(ScreenType.Installer);
+        ShowFloatingWindow.Send(FloatingScreenType.None);
     }
 
     protected async Task Download()
