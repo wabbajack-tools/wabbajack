@@ -636,13 +636,17 @@ public class ValidateLists
                 return (ArchiveStatus.Valid, archive);
             case Nexus:
                 return (ArchiveStatus.Valid, archive);
+            case MediaFire:
+                return (ArchiveStatus.Valid, archive);
             case VectorPlexus:
                 return (ArchiveStatus.InValid, archive);
         }
 
         if (archive.State is Http http && (http.Url.Host.EndsWith("github.com")
                                            //TODO: Find a better solution for the list validation of LoversLab files.
-                                           || http.Url.Host.EndsWith("loverslab.com")))
+                                           || http.Url.Host.EndsWith("loverslab.com")
+                                           //TODO: Find a better solution for the list validation of Mediafire files.
+                                           || http.Url.Host.EndsWith("mediafire.com")))
             return (ArchiveStatus.Valid, archive);
         
         try

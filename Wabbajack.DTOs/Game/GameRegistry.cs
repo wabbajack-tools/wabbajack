@@ -653,6 +653,23 @@ public static class GameRegistry
             }
         },
         {
+            Game.SevenDaysToDie, new GameMetaData
+            {
+                Game = Game.SevenDaysToDie,
+                MO2Name = "7 Days to Die",
+                NexusName = "7daystodie",
+                NexusGameId = 1059,
+                MO2ArchiveName = "7daystodie",
+                SteamIDs = [251570],
+                RequiredFiles = new []
+                {
+                    @"7DaysToDie.exe".ToRelativePath(),
+                    @"7dLauncher.exe".ToRelativePath(),
+                },
+                MainExecutable = @"7dLauncher.exe".ToRelativePath()
+            }
+        },
+        {
             Game.ModdingTools, new GameMetaData
             {
                 Game = Game.ModdingTools,

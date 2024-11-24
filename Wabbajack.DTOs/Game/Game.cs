@@ -55,5 +55,6 @@ public enum Game
 
     [Description("Final Fantasy VII Remake")] FinalFantasy7Remake,
     [Description("Baldur's Gate 3")] BaldursGate3,
-    [Description("Starfield")] Starfield
+    [Description("Starfield")] Starfield,
+    [Description("7 Days to Die")] SevenDaysToDie,
 }

@@ -237,7 +237,7 @@ public class NexusApi
             var info = await AuthInfo.Get();
             if (info!.OAuth != null)
             {
-                if (info!.OAuth.IsExpired)
+                if (info.OAuth.IsExpired)
                     info = await RefreshToken(info, CancellationToken.None);
                 return (false, info.OAuth!.AccessToken!);
             }
@@ -270,6 +270,10 @@ public class NexusApi
         var content = new FormUrlEncodedContent(request);
 
         var response = await _client.PostAsync($"https://users.nexusmods.com/oauth/token", content, cancel);
+
+        if (!response.IsSuccessStatusCode) 
+            _logger.LogError("Nexus OAuth Token refresh failed: {ResponseReasonPhrase}", response.ReasonPhrase);
+        
         var responseString = await response.Content.ReadAsStringAsync(cancel);
         var newJwt = JsonSerializer.Deserialize<JwtTokenReply>(responseString);
         if (newJwt != null) 
