@@ -39,11 +39,6 @@ using Wabbajack.VFS;
 
 namespace Wabbajack;
 
-public enum ModManager
-{
-    Standard
-}
-
 public enum InstallState
 {
     Configuration,
@@ -52,27 +47,18 @@ public enum InstallState
     Failure
 }
 
-public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
+public class InstallerVM : ProgressViewModel
 {
     private const string LastLoadedModlist = "last-loaded-modlist";
     private const string InstallSettingsPrefix = "install-settings-";
-    private Random _random = new();
+    private readonly Random _random = new();
     
-    
-    [Reactive]
-    public Percent StatusProgress { get; set; }
-
-    [Reactive]
-    public string StatusText { get; set; }
     
     [Reactive]
     public ModList ModList { get; set; }
     
     [Reactive]
     public ModlistMetadata ModlistMetadata { get; set; }
-    
-    [Reactive]
-    public ErrorResponse? Completed { get; set; }
 
     [Reactive]
     public FilePickerVM ModListLocation { get; set; }
@@ -90,12 +76,6 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
 
     [Reactive]
     public InstallState InstallState { get; set; }
-    
-    [Reactive]
-    protected ErrorResponse[] Errors { get; private set; }
-    
-    [Reactive]
-    public ErrorResponse Error { get; private set; }
 
     /// <summary>
     ///  Slideshow Data
@@ -156,7 +136,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
         Wabbajack.Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins,
-        CancellationToken cancellationToken) : base(logger)
+        CancellationToken cancellationToken)
     {
         _logger = logger;
         _configuration = configuration;
@@ -173,9 +153,10 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         _cancellationToken = cancellationToken;
 
         Installer = new MO2InstallerVM(this);
-        
-        BackCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.Home));
 
+        ConfigurationText = "Installation Setup";
+        ProgressText = "Installing...";
+        
         BeginCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget());
 
         OpenReadmeCommand = ReactiveCommand.Create(() =>
@@ -270,6 +251,26 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                     return ErrorResponse.Fail(string.Join("\n", errors.Select(e => e.Reason)));
                 })
                 .BindTo(this, vm => vm.ErrorState)
+                .DisposeWith(disposables);
+
+            this.WhenAny(vm => vm.InstallState)
+                .Subscribe(state =>
+                    {
+                        CurrentStep = state switch
+                        {
+                            InstallState.Configuration => Step.Configuration,
+                            InstallState.Installing => Step.Busy,
+                            InstallState.Failure => Step.Configuration,
+                            InstallState.Success => Step.Done,
+                            _ => Step.Configuration
+                        };
+                        ProgressState = state switch
+                        {
+                            InstallState.Success => ProgressState.Success,
+                            InstallState.Failure => ProgressState.Error,
+                            _ => ProgressState.Normal
+                        };
+                    })
                 .DisposeWith(disposables);
         });
 
@@ -409,7 +410,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                 UIUtils.OpenWebsite(new Uri(ModList.Readme));
 
 
-            StatusText = $"Install configuration for {ModList.Name}";
+            ConfigurationText = $"Installation Setup for {ModList.Name}";
+            ProgressText = $"Install";
             TaskBarUpdate.Send($"Loaded {ModList.Name}", TaskbarItemProgressState.Normal);
             
             var hex = (await ModListLocation.TargetPath.ToString().Hash()).ToHex();
@@ -463,7 +465,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
         {
             InstallState = InstallState.Installing;
 
-            StatusText = $"Verifying {ModList.Name}";
+            ProgressText = $"Verifying {ModList.Name}";
 
 
             var cmd = new VerifyModlistInstall(_serviceProvider.GetRequiredService<ILogger<VerifyModlistInstall>>(), _dtos,
@@ -476,8 +478,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
             {
                 TaskBarUpdate.Send($"Error during verification of {ModList.Name}", TaskbarItemProgressState.Error);
                 InstallState = InstallState.Failure;
-                StatusText = $"Error during install of {ModList.Name}";
-                StatusProgress = Percent.Zero;
+                ProgressText = $"Error during install of {ModList.Name}";
+                ProgressPercent = Percent.Zero;
             }
             else
             {
@@ -549,8 +551,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
 
                 installer.OnStatusUpdate = update =>
                 {
-                    StatusText = update.StatusText;
-                    StatusProgress = update.StepsProgress;
+                    ProgressText = update.StatusText;
+                    ProgressPercent = update.StepsProgress;
 
                     TaskBarUpdate.Send(update.StatusText, TaskbarItemProgressState.Indeterminate,
                         update.StepsProgress.Value);
@@ -560,8 +562,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                 {
                     TaskBarUpdate.Send($"Error during install of {ModList.Name}", TaskbarItemProgressState.Error);
                     InstallState = InstallState.Failure;
-                    StatusText = $"Error during install of {ModList.Name}";
-                    StatusProgress = Percent.Zero;
+                    ProgressText = $"Error during install of {ModList.Name}";
+                    ProgressPercent = Percent.Zero;
                 }
                 else
                 {
@@ -578,8 +580,8 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
                 TaskBarUpdate.Send($"Error during install of {ModList.Name}", TaskbarItemProgressState.Error);
                 _logger.LogError(ex, ex.Message);
                 InstallState = InstallState.Failure;
-                StatusText = $"Error during install of {ModList.Name}";
-                StatusProgress = Percent.Zero;
+                ProgressText = $"Error during install of {ModList.Name}";
+                ProgressPercent = Percent.Zero;
             }
         });
 

@@ -94,7 +94,6 @@ public partial class ModListDetailsView
                 .DisposeWith(disposables);
 
             this.WhenAnyValue(x => x.ViewModel.MetadataVM.ProgressPercent)
-                .Select(x => x == Percent.Zero ? Percent.One : x)
                 .BindToStrict(this, x => x.InstallButton.ProgressPercentage)
                 .DisposeWith(disposables);
 

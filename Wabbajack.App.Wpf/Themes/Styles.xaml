@@ -1767,7 +1767,7 @@
     <Style x:Key="WJButtonStyle" BasedOn="{StaticResource MainButtonStyle}" TargetType="{x:Type Button}">
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}"/>
-        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -1794,18 +1794,6 @@
     <Style x:Key="WJColorButtonStyle" BasedOn="{StaticResource WJButtonStyle}" TargetType="{x:Type Button}">
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
         <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}"/>
-    </Style>
-
-    <Style x:Key="WJProgressButtonStyle" BasedOn="{StaticResource WJButtonStyle}" TargetType="{x:Type Button}">
-        <Setter Property="Background">
-            <Setter.Value>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                    <GradientStop Color="{StaticResource Primary}" Offset="{Binding ProgressPercentage}" />
-                    <GradientStop Color="{StaticResource ComplementaryPrimary08}" Offset="{Binding ProgressPercentage, Converter={StaticResource MathConverter}, ConverterParameter='Min(x + 0.0001, 1.00)'}" />
-                    <GradientStop Color="{StaticResource ComplementaryPrimary08}" Offset="1.00" />
-                </LinearGradientBrush>
-            </Setter.Value>
-        </Setter>
     </Style>
 
     <Style x:Key="WJDangerButtonStyle" BasedOn="{StaticResource WJButtonStyle}" TargetType="{x:Type Button}">

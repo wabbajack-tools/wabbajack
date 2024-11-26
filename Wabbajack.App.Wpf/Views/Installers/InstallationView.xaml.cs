@@ -34,10 +34,6 @@ public partial class InstallationView : ReactiveUserControl<InstallerVM>
                 .BindToStrict(this, view => view.InstallComplete.Visibility)
                 .DisposeWith(disposables);
 
-            ViewModel.WhenAnyValue(vm => vm.BackCommand)
-                .BindToStrict(this, view => view.BackButton.Command)
-                .DisposeWith(disposables);
-
             ViewModel.WhenAnyValue(vm => vm.InstallState)
                 .Select(v => v == InstallState.Installing ? Visibility.Collapsed : Visibility.Visible)
                 .BindToStrict(this, view => view.BackButton.Visibility)
@@ -73,12 +69,12 @@ public partial class InstallationView : ReactiveUserControl<InstallerVM>
                 .DisposeWith(disposables);
             
             // Status
-            ViewModel.WhenAnyValue(vm => vm.StatusText)
+            ViewModel.WhenAnyValue(vm => vm.ProgressText)
                 .ObserveOnGuiThread()
                 .BindToStrict(this, view => view.TopProgressBar.Title)
                 .DisposeWith(disposables);
 
-            ViewModel.WhenAnyValue(vm => vm.StatusProgress)
+            ViewModel.WhenAnyValue(vm => vm.ProgressPercent)
                 .ObserveOnGuiThread()
                 .Select(p => p.Value)
                 .BindToStrict(this, view => view.TopProgressBar.ProgressPercent)

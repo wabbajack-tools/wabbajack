@@ -45,7 +45,7 @@ public class BaseModListMetadataVM : ViewModel
     public AbsolutePath Location { get; }
     public LoadingLock LoadingImageLock { get; } = new();
     [Reactive] public HashSet<ModListTag> ModListTagList { get; protected set; }
-    [Reactive] public Percent ProgressPercent { get; protected set; }
+    [Reactive] public Percent ProgressPercent { get; set; }
     [Reactive] public bool IsBroken { get; protected set; }
     [Reactive] public ModListStatus Status { get; set; }
     [Reactive] public bool IsDownloading { get; protected set; }
