@@ -22,6 +22,7 @@ using Wabbajack.DTOs.ServerResponses;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Messages;
 using Wabbajack.Networking.WabbajackClientApi;
+using Wabbajack.RateLimiter;
 
 namespace Wabbajack;
 
@@ -103,6 +104,8 @@ public class ModListDetailsVM : BackNavigatingVM
                     .Bind(out _filteredArchives)
                     .Subscribe()
                     .DisposeWith(disposables);
+
+            MetadataVM.ProgressPercent = Percent.One;
         });
     }
 

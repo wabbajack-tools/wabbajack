@@ -47,7 +47,17 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject
     [Reactive] public double IconSize { get; set; } = 24D;
     [Reactive] public FlowDirection Direction { get; set; }
     [Reactive] public ButtonStyle ButtonStyle { get; set; }
-    [Reactive] public Percent ProgressPercentage { get; set; } = Percent.One;
+
+    private Percent _progressPercentage = Percent.One;
+    public Percent ProgressPercentage
+    {
+        get => _progressPercentage;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _progressPercentage, value);
+        }
+    }
+
     public WJButtonVM ViewModel { get; set; }
     object IViewFor.ViewModel { get => ViewModel; set => ViewModel = (WJButtonVM)value; }
 
@@ -78,15 +88,66 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject
                     ButtonStyle.Mono => (Style)Application.Current.Resources["WJButtonStyle"],
                     ButtonStyle.Color => (Style)Application.Current.Resources["WJColorButtonStyle"],
                     ButtonStyle.Danger => (Style)Application.Current.Resources["WJDangerButtonStyle"],
-                    ButtonStyle.Progress => (Style)Application.Current.Resources["WJProgressButtonStyle"],
+                    ButtonStyle.Progress => (Style)Application.Current.Resources["WJColorButtonStyle"],
                     _ => (Style)Application.Current.Resources["WJButtonStyle"],
                 })
                 .DisposeWith(dispose);
 
             this.WhenAnyValue(x => x.ProgressPercentage)
-            .Subscribe(x =>
+            .Subscribe(percent =>
             {
-                int i = 0;
+                if(ButtonStyle == ButtonStyle.Progress)
+                {
+                    if (percent == Percent.One)
+                    {
+                        Background = new SolidColorBrush((Color)Application.Current.Resources["Primary"]);
+                        Foreground = new SolidColorBrush((Color)Application.Current.Resources["BackgroundColor"]);
+                    }
+                    else if (percent == Percent.Zero)
+                    {
+                        Background = new SolidColorBrush((Color)Application.Current.Resources["ComplementaryPrimary08"]);
+                        Foreground = new SolidColorBrush((Color)Application.Current.Resources["ForegroundColor"]);
+                    }
+                    else
+                    {
+                        var bgBrush = new LinearGradientBrush();
+
+                        bgBrush.StartPoint = new Point(0, 0);
+                        bgBrush.EndPoint = new Point(1, 0);
+                        bgBrush.GradientStops.Add(new GradientStop((Color)Application.Current.Resources["Primary"], 0.0));
+                        bgBrush.GradientStops.Add(new GradientStop((Color)Application.Current.Resources["Primary"], percent.Value));
+                        bgBrush.GradientStops.Add(new GradientStop((Color)Application.Current.Resources["ComplementaryPrimary08"], percent.Value + 0.001));
+                        bgBrush.GradientStops.Add(new GradientStop((Color)Application.Current.Resources["ComplementaryPrimary08"], 1.0));
+                        Background = bgBrush;
+
+                        var textBrush = new LinearGradientBrush();
+                        var textStartPercent = 1 - (ActualWidth - ButtonTextBlock.Margin.Left) / ActualWidth;
+                        var textModifier = ActualWidth / (ActualWidth - ButtonTextBlock.Margin.Left); 
+                        var textPercent = percent.Value < textStartPercent ? 0 : (percent.Value - textStartPercent) * textModifier;
+                        // Since the text has a smaller width compared to the background of the whole button, we need to scale the gradient to the same bounds
+                        textBrush.RelativeTransform = new ScaleTransform(ActualWidth / ButtonTextBlock.ActualWidth, 1);
+                        textBrush.StartPoint = new Point(0, 0);
+                        textBrush.EndPoint = new Point(1, 0);
+                        textBrush.GradientStops.Add(new GradientStop((Color)Application.Current.Resources["BackgroundColor"], 0.0));
+                        textBrush.GradientStops.Add(new GradientStop((Color)Application.Current.Resources["BackgroundColor"], textPercent));
+                        textBrush.GradientStops.Add(new GradientStop((Color)Application.Current.Resources["DisabledForegroundColor"], textPercent + 0.001));
+                        textBrush.GradientStops.Add(new GradientStop((Color)Application.Current.Resources["DisabledForegroundColor"], 1.0));
+                        ButtonTextBlock.Foreground = textBrush;
+
+                        var iconBrush = new LinearGradientBrush();
+                        var iconStartPercent = (ActualWidth - ButtonSymbolIcon.ActualWidth - ButtonSymbolIcon.Margin.Right) / ActualWidth;
+                        var iconModifier = ActualWidth / (ActualWidth - ButtonSymbolIcon.ActualWidth - ButtonSymbolIcon.Margin.Right); 
+                        var iconPercent = percent.Value < iconStartPercent ? 0 : (percent.Value - iconStartPercent) * iconModifier;
+                        iconBrush.RelativeTransform = new ScaleTransform(ActualWidth / ButtonSymbolIcon.ActualWidth, 1);
+                        iconBrush.StartPoint = new Point(0, 0);
+                        iconBrush.EndPoint = new Point(1, 0);
+                        iconBrush.GradientStops.Add(new GradientStop((Color)Application.Current.Resources["BackgroundColor"], 0.0));
+                        iconBrush.GradientStops.Add(new GradientStop((Color)Application.Current.Resources["BackgroundColor"], iconPercent));
+                        iconBrush.GradientStops.Add(new GradientStop((Color)Application.Current.Resources["DisabledForegroundColor"], iconPercent + 0.001));
+                        iconBrush.GradientStops.Add(new GradientStop((Color)Application.Current.Resources["DisabledForegroundColor"], 1.0));
+                        ButtonSymbolIcon.Foreground = iconBrush;
+                    }
+                }
             }).DisposeWith(dispose);
         });
 
