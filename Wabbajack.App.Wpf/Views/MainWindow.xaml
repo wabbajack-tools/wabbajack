@@ -140,7 +140,7 @@
                             <DataTemplate DataType="{x:Type local:CompilerMainVM}">
                                 <local:CompilerMainView ViewModel="{Binding}" />
                             </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:InstallerVM}">
+                            <DataTemplate DataType="{x:Type local:InstallationVM}">
                                 <local:InstallationView ViewModel="{Binding}" />
                             </DataTemplate>
                             <DataTemplate DataType="{x:Type local:WebBrowserVM}">

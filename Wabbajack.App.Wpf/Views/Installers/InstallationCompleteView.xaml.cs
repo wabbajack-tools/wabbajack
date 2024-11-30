@@ -8,7 +8,7 @@ namespace Wabbajack;
 /// <summary>
 /// Interaction logic for InstallationCompleteView.xaml
 /// </summary>
-public partial class InstallationCompleteView : ReactiveUserControl<InstallerVM>
+public partial class InstallationCompleteView : ReactiveUserControl<InstallationVM>
 {
     public InstallationCompleteView()
     {

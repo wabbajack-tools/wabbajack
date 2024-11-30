@@ -12,7 +12,7 @@ namespace Wabbajack;
 
 public class MO2InstallerVM : ViewModel, ISubInstallerVM
 {
-    public InstallerVM Parent { get; }
+    public InstallationVM Parent { get; }
 
     [Reactive]
     public ErrorResponse CanInstall { get; set; }
@@ -34,7 +34,7 @@ public class MO2InstallerVM : ViewModel, ISubInstallerVM
 
     public int ConfigVisualVerticalOffset => 25;
 
-    public MO2InstallerVM(InstallerVM installerVM)
+    public MO2InstallerVM(InstallationVM installerVM)
     {
         Parent = installerVM;
 

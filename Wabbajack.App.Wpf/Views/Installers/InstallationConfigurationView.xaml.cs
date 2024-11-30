@@ -8,7 +8,7 @@ namespace Wabbajack;
 /// <summary>
 /// Interaction logic for InstallationConfigurationView.xaml
 /// </summary>
-public partial class InstallationConfigurationView : ReactiveUserControl<InstallerVM>
+public partial class InstallationConfigurationView : ReactiveUserControl<InstallationVM>
 {
     public InstallationConfigurationView()
     {
@@ -19,7 +19,7 @@ public partial class InstallationConfigurationView : ReactiveUserControl<Install
                 .Select(i => (double)i)
                 .BindToStrict(this, x => x.InstallConfigSpacer.Height)
                 .DisposeWith(dispose);
-            this.WhenAny(x => x.ViewModel.ModListLocation)
+            this.WhenAny(x => x.ViewModel.WabbajackFileLocation)
                 .BindToStrict(this, x => x.ModListLocationPicker.PickerVM)
                 .DisposeWith(dispose);
             this.WhenAny(x => x.ViewModel.Installer)

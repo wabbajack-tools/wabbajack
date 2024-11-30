@@ -47,7 +47,7 @@ public enum InstallState
     Failure
 }
 
-public class InstallerVM : ProgressViewModel
+public class InstallationVM : ProgressViewModel
 {
     private const string LastLoadedModlist = "last-loaded-modlist";
     private const string InstallSettingsPrefix = "install-settings-";
@@ -61,7 +61,7 @@ public class InstallerVM : ProgressViewModel
     public ModlistMetadata ModlistMetadata { get; set; }
 
     [Reactive]
-    public FilePickerVM ModListLocation { get; set; }
+    public FilePickerVM WabbajackFileLocation { get; set; }
     
     [Reactive]
     public MO2InstallerVM Installer { get; set; }
@@ -91,7 +91,7 @@ public class InstallerVM : ProgressViewModel
 
 
     private readonly DTOSerializer _dtos;
-    private readonly ILogger<InstallerVM> _logger;
+    private readonly ILogger<InstallationVM> _logger;
     private readonly SettingsManager _settingsManager;
     private readonly IServiceProvider _serviceProvider;
     private readonly SystemParametersConstructor _parametersConstructor;
@@ -133,7 +133,7 @@ public class InstallerVM : ProgressViewModel
     public ReactiveCommand<Unit, Unit> BeginCommand { get; }
     public ReactiveCommand<Unit, Unit> VerifyCommand { get; }
     
-    public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
+    public InstallationVM(ILogger<InstallationVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
         Wabbajack.Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins,
         CancellationToken cancellationToken)
@@ -178,13 +178,13 @@ public class InstallerVM : ProgressViewModel
             UIUtils.OpenWebsite(ModList!.Website);
         }, LoadingLock.IsNotLoadingObservable);
         
-        ModListLocation = new FilePickerVM
+        WabbajackFileLocation = new FilePickerVM
         {
             ExistCheckOption = FilePickerVM.CheckOptions.On,
             PathType = FilePickerVM.PathTypeOptions.File,
             PromptTitle = "Select a ModList to install"
         };
-        ModListLocation.Filters.Add(new CommonFileDialogFilter("Wabbajack Modlist", "*.wabbajack"));
+        WabbajackFileLocation.Filters.Add(new CommonFileDialogFilter("Wabbajack Modlist", "*.wabbajack"));
         
         OpenLogsCommand = ReactiveCommand.Create(() =>
         {
@@ -230,7 +230,7 @@ public class InstallerVM : ProgressViewModel
 
         this.WhenActivated(disposables =>
         {
-            ModListLocation.WhenAnyValue(l => l.TargetPath)
+            WabbajackFileLocation.WhenAnyValue(l => l.TargetPath)
                 .Subscribe(p => LoadModlist(p, null).FireAndForget())
                 .DisposeWith(disposables);
 
@@ -239,10 +239,10 @@ public class InstallerVM : ProgressViewModel
             Disposable.Create(() => token.Cancel())
                 .DisposeWith(disposables);
             
-            this.WhenAny(vm => vm.ModListLocation.ErrorState)
+            this.WhenAny(vm => vm.WabbajackFileLocation.ErrorState)
                 .CombineLatest(this.WhenAny(vm => vm.Installer.DownloadLocation.ErrorState),
                     this.WhenAny(vm => vm.Installer.Location.ErrorState),
-                    this.WhenAny(vm => vm.ModListLocation.TargetPath),
+                    this.WhenAny(vm => vm.WabbajackFileLocation.TargetPath),
                     this.WhenAny(vm => vm.Installer.Location.TargetPath),
                     this.WhenAny(vm => vm.Installer.DownloadLocation.TargetPath))
                 .Select(t =>
@@ -282,7 +282,7 @@ public class InstallerVM : ProgressViewModel
 
     private IEnumerable<ErrorResponse> Validate()
     {
-        if (!ModListLocation.TargetPath.FileExists())
+        if (!WabbajackFileLocation.TargetPath.FileExists())
             yield return ErrorResponse.Fail("Mod list source does not exist");
 
         var downloadPath = Installer.DownloadLocation.TargetPath;
@@ -326,7 +326,7 @@ public class InstallerVM : ProgressViewModel
             yield return ErrorResponse.Fail("Installing in this folder may overwrite Wabbajack");
         }
 
-        if (installPath.ToString().Length != 0 && installPath != LastInstallPath && !OverwriteFiles &&
+        if (installPath.ToString().Length != 0 && installPath != LastInstallPath && !OverwriteFiles && installPath.DirectoryExists() &&
             Directory.EnumerateFileSystemEntries(installPath.ToString()).Any())
         {
             yield return ErrorResponse.Fail("There are files in the install folder, please tick 'Overwrite Installation' to confirm you want to install to this folder " + Environment.NewLine + 
@@ -390,13 +390,13 @@ public class InstallerVM : ProgressViewModel
         var lst = await _settingsManager.Load<AbsolutePath>(LastLoadedModlist);
         if (lst.FileExists())
         {
-            ModListLocation.TargetPath = lst;
+            WabbajackFileLocation.TargetPath = lst;
         }
     }
 
     private async Task LoadModlistFromGallery(AbsolutePath path, ModlistMetadata metadata)
     {
-        ModListLocation.TargetPath = path;
+        WabbajackFileLocation.TargetPath = path;
         ModlistMetadata = metadata;
     }
 
@@ -404,7 +404,7 @@ public class InstallerVM : ProgressViewModel
     {
         using var ll = LoadingLock.WithLoading();
         InstallState = InstallState.Configuration;
-        ModListLocation.TargetPath = path;
+        WabbajackFileLocation.TargetPath = path;
         try
         {
             ModList = await StandardInstaller.LoadFromFile(_dtos, path);
@@ -418,7 +418,7 @@ public class InstallerVM : ProgressViewModel
             ProgressText = $"Installation";
             TaskBarUpdate.Send($"Loaded {ModList.Name}", TaskbarItemProgressState.Normal);
             
-            var hex = (await ModListLocation.TargetPath.ToString().Hash()).ToHex();
+            var hex = (await WabbajackFileLocation.TargetPath.ToString().Hash()).ToHex();
             var prevSettings = await _settingsManager.Load<SavedInstallSettings>(InstallSettingsPrefix + hex);
 
             if (path.WithExtension(Ext.MetaData).FileExists())
@@ -437,7 +437,7 @@ public class InstallerVM : ProgressViewModel
 
             if (prevSettings.ModListLocation == path)
             {
-                ModListLocation.TargetPath = prevSettings.ModListLocation;
+                WabbajackFileLocation.TargetPath = prevSettings.ModListLocation;
                 LastInstallPath = prevSettings.InstallLocation;
                 Installer.Location.TargetPath = prevSettings.InstallLocation;
                 Installer.DownloadLocation.TargetPath = prevSettings.DownloadLoadction;
@@ -476,7 +476,7 @@ public class InstallerVM : ProgressViewModel
                 _serviceProvider.GetRequiredService<IResource<FileHashCache>>(),
                 _serviceProvider.GetRequiredService<TemporaryFileManager>());
 
-            var result = await cmd.Run(ModListLocation.TargetPath, Installer.Location.TargetPath, _cancellationToken);
+            var result = await cmd.Run(WabbajackFileLocation.TargetPath, Installer.Location.TargetPath, _cancellationToken);
 
             if (result != 0)
             {
@@ -529,15 +529,15 @@ public class InstallerVM : ProgressViewModel
             }
             
             
-            var postfix = (await ModListLocation.TargetPath.ToString().Hash()).ToHex();
+            var postfix = (await WabbajackFileLocation.TargetPath.ToString().Hash()).ToHex();
             await _settingsManager.Save(InstallSettingsPrefix + postfix, new SavedInstallSettings
             {
-                ModListLocation = ModListLocation.TargetPath,
+                ModListLocation = WabbajackFileLocation.TargetPath,
                 InstallLocation = Installer.Location.TargetPath,
                 DownloadLoadction = Installer.DownloadLocation.TargetPath,
                 Metadata = ModlistMetadata
             });
-            await _settingsManager.Save(LastLoadedModlist, ModListLocation.TargetPath);
+            await _settingsManager.Save(LastLoadedModlist, WabbajackFileLocation.TargetPath);
 
             try
             {
@@ -547,7 +547,7 @@ public class InstallerVM : ProgressViewModel
                     Downloads = Installer.DownloadLocation.TargetPath,
                     Install = Installer.Location.TargetPath,
                     ModList = ModList,
-                    ModlistArchive = ModListLocation.TargetPath,
+                    ModlistArchive = WabbajackFileLocation.TargetPath,
                     SystemParameters = _parametersConstructor.Create(),
                     GameFolder = _gameLocator.GameLocation(ModList.GameType)
                 });

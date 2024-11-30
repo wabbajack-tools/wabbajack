@@ -10,13 +10,16 @@ using System.Linq;
 using Microsoft.VisualBasic.Devices;
 using System.Management;
 using System.Text.RegularExpressions;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
+using System.Threading.Tasks;
 
 namespace Wabbajack;
 
 /// <summary>
 /// Interaction logic for InstallationView.xaml
 /// </summary>
-public partial class InstallationView : ReactiveUserControl<InstallerVM>
+public partial class InstallationView : ReactiveUserControl<InstallationVM>
 {
     public InstallationView()
     {
@@ -27,7 +30,11 @@ public partial class InstallationView : ReactiveUserControl<InstallerVM>
             //LogView.Visibility = Visibility.Collapsed;
             //CpuView.Visibility = Visibility.Collapsed;
 
+            this.Bind(ViewModel, vm => vm.Installer.Location, view => view.InstallationLocationPicker.PickerVM)
+                .DisposeWith(disposables);
+
             ViewModel.WhenAnyValue(vm => vm.ModlistMetadata.Title)
+                    .ObserveOn(RxApp.TaskpoolScheduler)
                     .Select(x =>
                     {
                         // Ignore everything after a dash
@@ -45,8 +52,22 @@ public partial class InstallationView : ReactiveUserControl<InstallerVM>
 
                         return $"{preferredPartition.Name}Modlists\\{folderName.Trim()}\\";
                     })
-                    .BindToStrict(this, v => v.InstallationLocationPicker.Watermark)
+                    .ObserveOnGuiThread()
+                    .Subscribe(x => {
+                        InstallationLocationPicker.Watermark = x;
+                        if (ViewModel?.Installer?.Location != null)
+                            ViewModel.Installer.Location.TargetPath = (AbsolutePath)x;
+                    })
                     .DisposeWith(disposables);
+
+
+            /*
+            ViewModel.WhenAnyValue(vm => vm.Installer)
+                     .Subscribe(x => {
+                         x.Location.TargetPath = (AbsolutePath)InstallationLocationPicker.Watermark;
+                         })
+                     .DisposeWith(disposables);
+            */
 
             /*
             ViewModel.WhenAnyValue(vm => vm.InstallState)

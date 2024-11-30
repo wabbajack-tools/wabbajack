@@ -51,7 +51,7 @@ public class MainWindowVM : ViewModel
     public readonly CompilerDetailsVM CompilerDetailsVM;
     public readonly CompilerFileManagerVM CompilerFileManagerVM;
     public readonly CompilerMainVM CompilerMainVM;
-    public readonly InstallerVM InstallerVM;
+    public readonly InstallationVM InstallerVM;
     public readonly SettingsVM SettingsPaneVM;
     public readonly ModListGalleryVM GalleryVM;
     public readonly HomeVM HomeVM;
@@ -89,7 +89,7 @@ public class MainWindowVM : ViewModel
 
     public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
         IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-        InstallerVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM)
+        InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM)
     {
         _logger = logger;
         _wjClient = wjClient;

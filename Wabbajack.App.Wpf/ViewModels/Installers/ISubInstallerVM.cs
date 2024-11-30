@@ -6,7 +6,7 @@ namespace Wabbajack;
 
 public interface ISubInstallerVM
 {
-    InstallerVM Parent { get; }
+    InstallationVM Parent { get; }
     IInstaller ActiveInstallation { get; }
     void Unload();
     bool SupportsAfterInstallNavigation { get; }
