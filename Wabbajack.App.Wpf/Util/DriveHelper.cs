@@ -51,11 +51,12 @@ public static class DriveHelper
         return Partitions[root[0]].MediaType;
     }
 
-    public static DriveInfo? GetPreferredInstallationDrive()
+    public static DriveInfo? GetPreferredInstallationDrive(long modlistSize)
     {
         return DriveInfo.GetDrives()
                         .Where(d => d.IsReady && d.DriveType == DriveType.Fixed)
-                        .OrderByDescending(d => Partitions[d.RootDirectory.Name[0]].MediaType == MediaType.SSD)
+                        .OrderByDescending(d => d.AvailableFreeSpace > modlistSize)
+                        .ThenByDescending(d => Partitions[d.RootDirectory.Name[0]].MediaType == MediaType.SSD)
                         .ThenByDescending(d => d.AvailableFreeSpace)
                         .FirstOrDefault();
     }

@@ -33,22 +33,20 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             this.Bind(ViewModel, vm => vm.Installer.Location, view => view.InstallationLocationPicker.PickerVM)
                 .DisposeWith(disposables);
 
-            ViewModel.WhenAnyValue(vm => vm.ModlistMetadata.Title)
+            ViewModel.WhenAnyValue(vm => vm.ModlistMetadata)
                     .ObserveOn(RxApp.TaskpoolScheduler)
                     .Select(x =>
                     {
+                        var folderName = x.Title;
                         // Ignore everything after a dash
-                        x = x.Split('-')[0];
+                        folderName = folderName.Split('-')[0];
                         // Remove all special characters
-                        x = Regex.Replace(x, "[^a-zA-Z0-9_.]+", "");
-                        var preferredPartition = DriveHelper.GetPreferredInstallationDrive();
-                        string folderName;
-                        var words = x.Split(' ');
-                        // Abbreviate the list name if it's too long
-                        if (words.Length >= 3)
-                            folderName = string.Join("", Array.ConvertAll(words, word => word[0].ToString().ToUpper()));
-                        else
-                            folderName = x.Pascalize();
+                        folderName = Regex.Replace(folderName, "[^a-zA-Z0-9_.]+", "");
+                        // Get preferred installation drive (SSD with enough space)
+                        var preferredPartition = DriveHelper.GetPreferredInstallationDrive(x.DownloadMetadata.SizeOfInstalledFiles);
+                        var words = folderName.Split(' ');
+                        // Abbreviate the list name if it's too long, otherwise convert it to PascalCase
+                        folderName = words.Length >= 3 ? string.Join("", words.Select(w => w[0])).ToUpper() : folderName.Pascalize();
 
                         return $"{preferredPartition.Name}Modlists\\{folderName.Trim()}\\";
                     })
