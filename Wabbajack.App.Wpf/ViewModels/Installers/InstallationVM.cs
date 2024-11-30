@@ -36,6 +36,8 @@ using Wabbajack.Util;
 using Wabbajack.CLI.Verbs;
 using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.VFS;
+using Humanizer;
+using System.Text.RegularExpressions;
 
 namespace Wabbajack;
 
@@ -88,6 +90,12 @@ public class InstallationVM : ProgressViewModel
     
     [Reactive]
     public string SlideShowDescription { get; set; }
+
+    [Reactive]
+    public string SuggestedInstallFolder { get; set; }
+
+    [Reactive]
+    public string SuggestedDownloadFolder { get; set; }
 
 
     private readonly DTOSerializer _dtos;
@@ -233,6 +241,30 @@ public class InstallationVM : ProgressViewModel
             WabbajackFileLocation.WhenAnyValue(l => l.TargetPath)
                 .Subscribe(p => LoadModlist(p, null).FireAndForget())
                 .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.ModlistMetadata)
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .Select(x =>
+                {
+                    var folderName = x.Title;
+                    // Ignore everything after a dash
+                    folderName = folderName.Split('-')[0];
+                    // Remove all special characters
+                    folderName = Regex.Replace(folderName, "[^a-zA-Z0-9_ .]+", "");
+                    // Get preferred installation drive (SSD with enough space)
+                    var preferredPartition = DriveHelper.GetPreferredInstallationDrive(x.DownloadMetadata.SizeOfInstalledFiles);
+                    var words = folderName.Split(' ');
+                    // Abbreviate the list name if it's too long, otherwise convert it to PascalCase
+                    folderName = words.Length >= 3 ? string.Join("", words.Select(w => w[0])).ToUpper() : folderName.Pascalize();
+
+                    return $"{preferredPartition.Name}Modlists\\{folderName.Trim()}\\";
+                })
+                .Subscribe(x => {
+                    SuggestedInstallFolder = x;
+                    SuggestedDownloadFolder = $"{x}\\Downloads\\";
+                })
+                .DisposeWith(disposables);
+                           
 
             var token = new CancellationTokenSource();
             BeginSlideShow(token.Token).FireAndForget();

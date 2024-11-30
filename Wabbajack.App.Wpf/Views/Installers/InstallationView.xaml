@@ -37,6 +37,9 @@
         <Style x:Key="PickerStyle" BasedOn="{StaticResource MainFilePickerStyle}" TargetType="local:FilePicker">
             <Setter Property="Margin" Value="0, 0, 0, 8" />
         </Style>
+        <Style x:Key="Panel" TargetType="StackPanel">
+            <Setter Property="Margin" Value="0, 0, 0, 8" />
+        </Style>
     </UserControl.Resources>
     <Grid>
         <Grid x:Name="SetupGrid">
@@ -49,11 +52,30 @@
                 <ColumnDefinition Width="16" />
                 <ColumnDefinition Width="3.5*" />
             </Grid.ColumnDefinitions>
-            <StackPanel x:Name="InstallationLocationPanel">
-                <TextBlock Style="{StaticResource TitleStyle}" Text="Installation Location" />
-                <TextBlock Style="{StaticResource DescriptionStyle}" Text="The folder where the list will be installed into. Choose a folder outside Windows-protected areas. Using an SSD is highly recommended for optimal performance." />
-                <local:FilePicker x:Name="InstallationLocationPicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the folder where the list will be installed to" />
-            </StackPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <StackPanel x:Name="InstallationLocationPanel" Style="{StaticResource Panel}">
+                    <TextBlock Style="{StaticResource TitleStyle}" Text="Installation Location" />
+                    <TextBlock Style="{StaticResource DescriptionStyle}">
+                        The folder where the list will be installed into.<LineBreak />
+                        Choose an empty folder outside Windows-protected areas.
+                        Using an SSD is highly recommended for optimal performance.
+                    </TextBlock>
+                    <local:FilePicker x:Name="InstallationLocationPicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the folder where the list will be installed to" />
+                </StackPanel>
+                <StackPanel x:Name="DownloadLocationPanel" Grid.Row="1" Style="{StaticResource Panel}">
+                    <TextBlock Style="{StaticResource TitleStyle}" Text="Downloads Location" />
+                    <TextBlock Style="{StaticResource DescriptionStyle}">
+                        The folder where the downloads will be stored.<LineBreak />
+                        By default these are stored in a subdirectory of the installation folder, but you can also use a shared folder so previous downloads are reused.
+                        Downloads can be deleted after installation.
+                    </TextBlock>
+                    <local:FilePicker x:Name="DownloadLocationPicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the folder where the mod archives will be downloaded to" />
+                </StackPanel>
+            </Grid>
         </Grid>
     </Grid>
         <!--

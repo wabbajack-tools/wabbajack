@@ -33,29 +33,27 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             this.Bind(ViewModel, vm => vm.Installer.Location, view => view.InstallationLocationPicker.PickerVM)
                 .DisposeWith(disposables);
 
-            ViewModel.WhenAnyValue(vm => vm.ModlistMetadata)
-                    .ObserveOn(RxApp.TaskpoolScheduler)
-                    .Select(x =>
-                    {
-                        var folderName = x.Title;
-                        // Ignore everything after a dash
-                        folderName = folderName.Split('-')[0];
-                        // Remove all special characters
-                        folderName = Regex.Replace(folderName, "[^a-zA-Z0-9_ .]+", "");
-                        // Get preferred installation drive (SSD with enough space)
-                        var preferredPartition = DriveHelper.GetPreferredInstallationDrive(x.DownloadMetadata.SizeOfInstalledFiles);
-                        var words = folderName.Split(' ');
-                        // Abbreviate the list name if it's too long, otherwise convert it to PascalCase
-                        folderName = words.Length >= 3 ? string.Join("", words.Select(w => w[0])).ToUpper() : folderName.Pascalize();
+            this.Bind(ViewModel, vm => vm.Installer.DownloadLocation, view => view.DownloadLocationPicker.PickerVM)
+                .DisposeWith(disposables);
 
-                        return $"{preferredPartition.Name}Modlists\\{folderName.Trim()}\\";
-                    })
-                    .ObserveOnGuiThread()
-                    .Subscribe(x => {
-                        InstallationLocationPicker.Watermark = x;
-                        if (ViewModel?.Installer?.Location != null)
-                            ViewModel.Installer.Location.TargetPath = (AbsolutePath)x;
-                    })
+            ViewModel.WhenAnyValue(vm => vm.SuggestedInstallFolder)
+                     .ObserveOnGuiThread()
+                     .Subscribe(x =>
+                     {
+                         InstallationLocationPicker.Watermark = x;
+                         if (ViewModel?.Installer?.Location != null)
+                             ViewModel.Installer.Location.TargetPath = (AbsolutePath)x;
+                     })
+                    .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.SuggestedDownloadFolder)
+                     .ObserveOnGuiThread()
+                     .Subscribe(x =>
+                     {
+                         DownloadLocationPicker.Watermark = x;
+                         if (ViewModel?.Installer?.Location != null)
+                             ViewModel.Installer.DownloadLocation.TargetPath = (AbsolutePath)x;
+                     })
                     .DisposeWith(disposables);
 
 
