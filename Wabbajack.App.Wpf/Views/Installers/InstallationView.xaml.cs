@@ -41,7 +41,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                         // Ignore everything after a dash
                         folderName = folderName.Split('-')[0];
                         // Remove all special characters
-                        folderName = Regex.Replace(folderName, "[^a-zA-Z0-9_.]+", "");
+                        folderName = Regex.Replace(folderName, "[^a-zA-Z0-9_ .]+", "");
                         // Get preferred installation drive (SSD with enough space)
                         var preferredPartition = DriveHelper.GetPreferredInstallationDrive(x.DownloadMetadata.SizeOfInstalledFiles);
                         var words = folderName.Split(' ');
