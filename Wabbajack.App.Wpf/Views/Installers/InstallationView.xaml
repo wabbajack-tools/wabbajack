@@ -52,7 +52,7 @@
             <StackPanel x:Name="InstallationLocationPanel">
                 <TextBlock Style="{StaticResource TitleStyle}" Text="Installation Location" />
                 <TextBlock Style="{StaticResource DescriptionStyle}" Text="The folder where the list will be installed into. Choose a folder outside Windows-protected areas. Using an SSD is highly recommended for optimal performance." />
-                <local:FilePicker x:Name="InstallationLocationPicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to th efolder where the list will be installed to" />
+                <local:FilePicker x:Name="InstallationLocationPicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the folder where the list will be installed to" />
             </StackPanel>
         </Grid>
     </Grid>

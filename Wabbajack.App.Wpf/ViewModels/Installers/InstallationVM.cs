@@ -409,10 +409,6 @@ public class InstallationVM : ProgressViewModel
         {
             ModList = await StandardInstaller.LoadFromFile(_dtos, path);
             ModListImage = BitmapFrame.Create(await StandardInstaller.ModListImageStream(path));
-            
-            if (!string.IsNullOrWhiteSpace(ModList.Readme)) 
-                UIUtils.OpenWebsite(new Uri(ModList.Readme));
-
 
             ConfigurationText = $"Setup - {ModlistMetadata.Title}";
             ProgressText = $"Installation";
