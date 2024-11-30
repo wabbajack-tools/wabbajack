@@ -101,6 +101,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Humanizer" Version="2.14.1" />
     <PackageReference Include="MahApps.Metro" Version="3.0.0-alpha0476" />
     <PackageReference Include="MahApps.Metro.IconPacks" Version="4.11.0" />
     <PackageReference Include="MathConverter" Version="2.2.1" />

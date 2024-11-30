@@ -152,10 +152,14 @@ public class InstallerVM : ProgressViewModel
         _logins = logins;
         _cancellationToken = cancellationToken;
 
-        Installer = new MO2InstallerVM(this);
+        ConfigurationText = $"Setup";
+        ProgressText = $"Installation";
 
+        Installer = new MO2InstallerVM(this);
+/*
         ConfigurationText = "Installation Setup";
         ProgressText = "Installing...";
+        */
         
         BeginCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget());
 
@@ -410,8 +414,8 @@ public class InstallerVM : ProgressViewModel
                 UIUtils.OpenWebsite(new Uri(ModList.Readme));
 
 
-            ConfigurationText = $"Installation Setup for {ModList.Name}";
-            ProgressText = $"Install";
+            ConfigurationText = $"Setup - {ModlistMetadata.Title}";
+            ProgressText = $"Installation";
             TaskBarUpdate.Send($"Loaded {ModList.Name}", TaskbarItemProgressState.Normal);
             
             var hex = (await ModListLocation.TargetPath.ToString().Hash()).ToHex();

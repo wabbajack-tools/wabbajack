@@ -21,6 +21,7 @@
         <Grid>
             <Grid.Resources>
                 <Thickness x:Key="TitleMargin" Top="8" Bottom="8" />
+                <Thickness x:Key="TextPanelMargin" Bottom="16" />
                 <Style x:Key="ValueStyle" BasedOn="{StaticResource MainTextBoxStyle}" TargetType="TextBox">
                     <Setter Property="MaxLength" Value="150" />
                     <Setter Property="AcceptsTab" Value="False" />
@@ -49,22 +50,22 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <StackPanel Margin="0, 0, 16, 0">
+            <StackPanel Margin="{StaticResource TextPanelMargin}">
                 <DockPanel HorizontalAlignment="Stretch">
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
                 </DockPanel>
                 <TextBox x:Name="AuthorNameSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="Author name(s)..." />
             </StackPanel>
-            <StackPanel Grid.Column="1" Margin="0, 0, 16, 0">
+            <StackPanel Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Version" />
                 <TextBox x:Name="VersionSetting" MaxLength="9" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="1.0.0..." />
             </StackPanel>
 
-            <StackPanel Grid.Row="1" Margin="0, 0, 16, 0">
+            <StackPanel Grid.Row="1" Margin="{StaticResource TextPanelMargin}">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Title" />
                 <TextBox x:Name="ModListNameSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="Modlist name..." />
             </StackPanel>
-            <StackPanel Grid.Row="1" Grid.Column="1" Margin="0, 0, 16, 0">
+            <StackPanel Grid.Row="1" Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Selected MO2 Profile" />
                 <ComboBox x:Name="ProfileSetting" IsSynchronizedWithCurrentItem="True">
                     <ComboBox.ItemTemplate>
@@ -76,47 +77,47 @@
             </StackPanel>
             <!-- Selected MO2 Profile -->
 
-            <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0, 0, 16, 0">
+            <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
                 <TextBox x:Name="DescriptionSetting" Height="135" VerticalContentAlignment="Top" mahapps:TextBoxHelper.Watermark="A comprehensive overhaul of..." AcceptsReturn="True" AcceptsTab="False" MaxLength="380" Style="{StaticResource ValueStyle}" TextWrapping="Wrap" />
             </StackPanel>
-            <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="0, 0, 16, 0">
+            <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Image" />
                 <local:FilePicker x:Name="ImageFilePicker" Style="{StaticResource PickerStyle}" Icon="DocumentImage" ToolTip="Path to an image to display for the modlist." Watermark="C:\...\Thumbnail-1600x900.webp" />
             </StackPanel>
-            <StackPanel Grid.Row="4" Margin="0, 0, 16, 0">
+            <StackPanel Grid.Row="4" Margin="{StaticResource TextPanelMargin}">
                 <DockPanel>
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Documentation (Readme)" ToolTip="Link to the documentation." mahapps:TextBoxHelper.Watermark="https://www..."/>
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
                 </DockPanel>
                 <TextBox x:Name="ReadmeSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="https://www..." />
             </StackPanel>
-            <StackPanel Grid.Row="4" Grid.Column="1" Margin="0, 0, 16, 0">
+            <StackPanel Grid.Row="4" Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
                 <DockPanel>
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
                 </DockPanel>
                 <TextBox x:Name="WebsiteSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="https://www..." />
             </StackPanel>
-            <StackPanel Grid.Row="5" Margin="0, 0, 16, 0">
+            <StackPanel Grid.Row="5" Margin="{StaticResource TextPanelMargin}">
                 <DockPanel>
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Community" />
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
                 </DockPanel>
                 <TextBox x:Name="CommunitySetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="https://discord.gg/..." />
             </StackPanel>
-            <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Vertical" Margin="0, 0, 16, 0">
+            <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Vertical" Margin="{StaticResource TextPanelMargin}">
                 <DockPanel>
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Machine URL" ToolTip="Unique text string for this modlist prefixed with its GitHub repository name." />
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
                 </DockPanel>
                 <TextBox x:Name="MachineUrl" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="modlistRepository/ModlistName" />
             </StackPanel>
-            <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Margin="0, 0, 16, 0">
+            <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Export destination" />
                 <local:FilePicker x:Name="OutputFilePicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the folder where the list installer will be saved to on completion" Watermark="C:\...\Exported" />
             </StackPanel>
-            <StackPanel Grid.Row="7" Margin="0, 0, 16, 0">
+            <StackPanel Grid.Row="7" Margin="{StaticResource TextPanelMargin}">
                 <CheckBox
                     x:Name="NSFWSetting"
                     Margin="{StaticResource TitleMargin}"
@@ -125,7 +126,7 @@
                 </CheckBox>
             </StackPanel>
 
-            <StackPanel Grid.Row="7" Grid.Column="1" Margin="0, 0, 16, 0">
+            <StackPanel Grid.Row="7" Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
                 <CheckBox
                     x:Name="TextureRecompressionSetting"
                     Margin="{StaticResource TitleMargin}"
@@ -134,7 +135,7 @@
                 </CheckBox>
             </StackPanel>
 
-            <StackPanel Grid.Row="8" Grid.ColumnSpan="2" Margin="0, 0, 16, 0" ToolTip="Wabbajack will include these profiles as part of the modlist alongside your main selected MO2 profile.">
+            <StackPanel Grid.Row="8" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}" ToolTip="Wabbajack will include these profiles as part of the modlist alongside your main selected MO2 profile.">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Additional profile(s)"/>
                 <ListBox SelectionMode="Multiple" x:Name="AdditionalProfilesSetting">
                     <ListBox.ItemTemplate>

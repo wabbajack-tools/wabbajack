@@ -2,6 +2,14 @@
 using System.Reactive.Linq;
 using ReactiveUI;
 using System.Windows;
+using Microsoft.Toolkit.HighPerformance;
+using Humanizer;
+using System;
+using System.IO;
+using System.Linq;
+using Microsoft.VisualBasic.Devices;
+using System.Management;
+using System.Text.RegularExpressions;
 
 namespace Wabbajack;
 
@@ -19,6 +27,28 @@ public partial class InstallationView : ReactiveUserControl<InstallerVM>
             //LogView.Visibility = Visibility.Collapsed;
             //CpuView.Visibility = Visibility.Collapsed;
 
+            ViewModel.WhenAnyValue(vm => vm.ModlistMetadata.Title)
+                    .Select(x =>
+                    {
+                        // Ignore everything after a dash
+                        x = x.Split('-')[0];
+                        // Remove all special characters
+                        x = Regex.Replace(x, "[^a-zA-Z0-9_.]+", "");
+                        var preferredPartition = DriveHelper.GetPreferredInstallationDrive();
+                        string folderName;
+                        var words = x.Split(' ');
+                        // Abbreviate the list name if it's too long
+                        if (words.Length >= 3)
+                            folderName = string.Join("", Array.ConvertAll(words, word => word[0].ToString().ToUpper()));
+                        else
+                            folderName = x.Pascalize();
+
+                        return $"{preferredPartition.Name}Modlists\\{folderName.Trim()}\\";
+                    })
+                    .BindToStrict(this, v => v.InstallationLocationPicker.Watermark)
+                    .DisposeWith(disposables);
+
+            /*
             ViewModel.WhenAnyValue(vm => vm.InstallState)
                 .Select(v => v != InstallState.Configuration ? Visibility.Visible : Visibility.Collapsed)
                 .BindToStrict(this, view => view.MidInstallDisplayGrid.Visibility)
@@ -93,6 +123,7 @@ public partial class InstallationView : ReactiveUserControl<InstallerVM>
             ViewModel.WhenAnyValue(vm => vm.SlideShowImage)
                 .BindToStrict(this, view => view.DetailImage.Image)
                 .DisposeWith(disposables);
+            */
 
         });
     }
