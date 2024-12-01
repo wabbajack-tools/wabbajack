@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 
 namespace Wabbajack;
 
@@ -68,14 +69,24 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      })
                     .DisposeWith(disposables);
 
-
-            /*
-            ViewModel.WhenAnyValue(vm => vm.Installer)
-                     .Subscribe(x => {
-                         x.Location.TargetPath = (AbsolutePath)InstallationLocationPicker.Watermark;
-                         })
+            ViewModel.WhenAny(vm => vm.ModListImage)
+                     .Where(x => x != null)
+                     .ObserveOn(RxApp.TaskpoolScheduler)
+                     .Select(x => UIUtils.BitmapImageFromStream(x))
+                     .BindToStrict(this, v => v.DetailImage.Image)
                      .DisposeWith(disposables);
-            */
+
+            ViewModel.WhenAny(vm => vm.ModlistMetadata.Author)
+                     .BindToStrict(this, v => v.DetailImage.Author)
+                     .DisposeWith(disposables);
+
+            ViewModel.WhenAny(vm => vm.ModlistMetadata.Title)
+                     .BindToStrict(this, v => v.DetailImage.Title)
+                     .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.ModlistMetadata.Version)
+                     .BindToStrict(this, v => v.DetailImage.Version)
+                     .DisposeWith(disposables);
 
             /*
             ViewModel.WhenAnyValue(vm => vm.InstallState)

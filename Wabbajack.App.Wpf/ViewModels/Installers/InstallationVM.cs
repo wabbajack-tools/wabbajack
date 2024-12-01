@@ -69,7 +69,7 @@ public class InstallationVM : ProgressViewModel
     public MO2InstallerVM Installer { get; set; }
     
     [Reactive]
-    public BitmapFrame ModListImage { get; set; }
+    public Stream ModListImage { get; set; }
     
     [Reactive]
     
@@ -201,7 +201,7 @@ public class InstallationVM : ProgressViewModel
         {
             // TODO: Open modlist archives in modal dialog
             UIUtils.OpenWebsite(new Uri("https://www.wabbajack.org/search/" + ModlistMetadata.NamespacedName));
-        }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
+        }, this.WhenAnyValue(x => x.LoadingLock.IsNotLoading));
 
         CloseWhenCompleteCommand = ReactiveCommand.Create(() =>
         {
@@ -430,9 +430,9 @@ public class InstallationVM : ProgressViewModel
         try
         {
             ModList = await StandardInstaller.LoadFromFile(_dtos, path);
-            ModListImage = BitmapFrame.Create(await StandardInstaller.ModListImageStream(path));
+            ModListImage = await StandardInstaller.ModListImageStream(path);
 
-            ConfigurationText = $"Setup - {ModlistMetadata.Title}";
+            ConfigurationText = $"Preparing to install {ModlistMetadata.Title}";
             ProgressText = $"Installation";
             TaskBarUpdate.Send($"Loaded {ModList.Name}", TaskbarItemProgressState.Normal);
             
@@ -621,6 +621,8 @@ public class InstallationVM : ProgressViewModel
 
     private void PopulateSlideShow(ModList modList)
     {
+        return;
+
         if (ModlistMetadata.ImageContainsTitle && ModlistMetadata.DisplayVersionOnlyInInstallerView)
         {
             SlideShowTitle = "v" + ModlistMetadata.Version.ToString();
@@ -631,7 +633,7 @@ public class InstallationVM : ProgressViewModel
         }
         SlideShowAuthor = modList.Author;
         SlideShowDescription = modList.Description;
-        SlideShowImage = ModListImage;
+        //SlideShowImage = ModListImage;
     }
 
 

@@ -48,10 +48,6 @@
     </UserControl.Resources>
     <Grid>
         <Grid x:Name="SetupGrid">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="16" />
@@ -62,9 +58,6 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
@@ -88,10 +81,22 @@
                     <local:FilePicker x:Name="DownloadLocationPicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the folder where the mod archives will be downloaded to" />
                 </StackPanel>
 
-                <local:WJButton x:Name="DocumentationButton" Text="Documentation" Icon="Document" Grid.Row="3" Margin="{StaticResource InstallMargin}" Width="Auto" />
-                <local:WJButton x:Name="WebsiteButton" Text="Website" Icon="Globe" Grid.Row="4" Margin="{StaticResource InstallMargin}" Width="Auto" />
-                <local:WJButton x:Name="DiscordButton" Text="Discord" Icon="PeopleChat" Grid.Row="5" Margin="{StaticResource InstallMargin}" Width="Auto" />
-                <local:WJButton x:Name="ManifestButton" Text="Archives" Icon="ArchiveMultiple" Grid.Row="6" Width="Auto" />
+                <Grid Grid.Row="3">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <local:WJButton x:Name="DocumentationButton" Text="Documentation" Icon="Document" Grid.Row="0" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                    <local:WJButton x:Name="WebsiteButton" Text="Website" Icon="Globe" Grid.Row="1" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                    <local:WJButton x:Name="DiscordButton" Text="Discord" Icon="PeopleChat" Grid.Row="2" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                    <local:WJButton x:Name="ManifestButton" Text="Archives" Icon="ArchiveMultiple" Grid.Row="3" Width="Auto" />
+                </Grid>
+
+            </Grid>
+            <Grid Grid.Column="2">
+                <local:DetailImageView x:Name="DetailImage" TitleFontSize="64" AuthorFontSize="28" Grid.Column="2" Margin="0, 0, 0, 16" />
             </Grid>
         </Grid>
     </Grid>

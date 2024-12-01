@@ -142,6 +142,7 @@
     <SolidColorBrush x:Key="LightBackgroundBrush" Color="{StaticResource LightBackgroundColor}" />
     <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
     <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}" />
+    <SolidColorBrush x:Key="OpaqueForegroundBrush" Color="{StaticResource ForegroundColor}" Opacity="0.66" />
     <SolidColorBrush x:Key="DimForegroundBrush" Color="{StaticResource DimForegroundColor}" />
     <SolidColorBrush x:Key="MouseOverForegroundBrush" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}" />

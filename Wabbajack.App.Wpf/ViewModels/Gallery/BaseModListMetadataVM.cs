@@ -56,6 +56,8 @@ public class BaseModListMetadataVM : ViewModel
     [Reactive] public bool ImageContainsTitle { get; protected set; }
     [Reactive] public GameMetaData GameMetaData { get; protected set; }
     [Reactive] public bool DisplayVersionOnlyInInstallerView { get; protected set; }
+
+    [Reactive] public ICommand DetailsCommand { get; set; }
     [Reactive] public ICommand InstallCommand { get; protected set; }
 
     [Reactive] public IErrorResponse Error { get; protected set; }
@@ -134,6 +136,11 @@ public class BaseModListMetadataVM : ViewModel
         }, LoadingLock.WhenAnyValue(ll => ll.IsLoading)
             .CombineLatest(this.WhenAnyValue(vm => vm.IsBroken))
             .Select(v => !v.First && !v.Second));
+
+        DetailsCommand = ReactiveCommand.Create(() => {
+            LoadModlistForDetails.Send(this);
+            ShowFloatingWindow.Send(FloatingScreenType.ModListDetails);
+        });
     }
 
     private void Install()

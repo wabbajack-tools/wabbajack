@@ -66,8 +66,10 @@
             FontWeight="Bold"
             TextWrapping="WrapWithOverflow">
                 </TextBlock>
-                <TextBlock Grid.Row="3" Grid.Column="0" x:Name="AuthorTextBlock" Margin="16,0,0,16" FontFamily="{StaticResource PrimaryFont}" FontWeight="Bold" TextWrapping="Wrap">
-                    <Run Text="by" FontWeight="Normal" />
+                <TextBlock Grid.Row="3" Grid.Column="0" x:Name="AuthorTextBlock" Margin="16, 0, 0, 16" FontFamily="{StaticResource PrimaryFont}" TextWrapping="Wrap">
+                    <Run x:Name="VersionPrefixRun" Foreground="{StaticResource OpaqueForegroundBrush}" />
+                    <Run x:Name="VersionTextRun" />
+                    <Run Text="by" Foreground="{StaticResource OpaqueForegroundBrush}" />
                     <Run x:Name="AuthorTextRun" />
                 </TextBlock>
             </Grid>

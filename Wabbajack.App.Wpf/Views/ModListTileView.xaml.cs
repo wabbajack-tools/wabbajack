@@ -8,7 +8,7 @@ namespace Wabbajack;
 /// <summary>
 /// Interaction logic for ModListTileView.xaml
 /// </summary>
-public partial class ModListTileView : ReactiveUserControl<GalleryModListMetadataVM>
+public partial class ModListTileView : ReactiveUserControl<BaseModListMetadataVM>
 {
     public ModListTileView()
     {

@@ -20,8 +20,6 @@ public class GalleryModListMetadataVM : BaseModListMetadataVM
 
     private readonly ObservableAsPropertyHelper<bool> _Exists;
     public bool Exists => _Exists.Value;
-
-    public ICommand DetailsCommand { get; set; }
     public ICommand OpenWebsiteCommand { get; }
     public ICommand ModListContentsCommend { get; }
 
@@ -46,11 +44,6 @@ public class GalleryModListMetadataVM : BaseModListMetadataVM
             })
             .ToGuiProperty(this, nameof(Exists));
 
-        // https://www.wabbajack.org/modlist/wj-featured/aldrnari
-        DetailsCommand = ReactiveCommand.Create(() => {
-            LoadModlistForDetails.Send(this);
-            ShowFloatingWindow.Send(FloatingScreenType.ModListDetails);
-        });
         OpenWebsiteCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/modlist/{Metadata.NamespacedName}")));
 
         ModListContentsCommend = ReactiveCommand.Create(async () =>

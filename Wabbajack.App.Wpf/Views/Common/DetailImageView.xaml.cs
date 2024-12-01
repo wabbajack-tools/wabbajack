@@ -1,4 +1,5 @@
 ﻿using ReactiveUI;
+using System;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -48,6 +49,12 @@ public partial class DetailImageView : UserControlRx<ViewModel>
         set => SetValue(AuthorFontSizeProperty, value);
     }
     public static readonly DependencyProperty AuthorFontSizeProperty = DependencyProperty.Register(nameof(AuthorFontSize), typeof(double), typeof(DetailImageView), new FrameworkPropertyMetadata(default(double), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
+    public Version? Version
+    {
+        get => (Version?)GetValue(VersionProperty);
+        set => SetValue(VersionProperty, value);
+    }
+    public static readonly DependencyProperty VersionProperty = DependencyProperty.Register(nameof(Version), typeof(Version), typeof(DetailImageView), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
 
     public DetailImageView()
@@ -77,6 +84,25 @@ public partial class DetailImageView : UserControlRx<ViewModel>
                 .DisposeWith(dispose);
             this.WhenAny(x => x.Title)
                 .BindToStrict(this, x => x.TitleTextBlock.Text)
+                .DisposeWith(dispose);
+
+            /*
+            var versionVisible = this.WhenAny(x => x.Version)
+                .Select(x => x?.ToString() ?? string.Empty)
+                .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Hidden : Visibility.Visible)
+                .Replay(1)
+                .RefCount();
+            versionVisible
+                .BindToStrict(this, x => x.VersionTextRun.Visibility)
+                .DisposeWith(dispose);
+            */
+            this.WhenAny(x => x.Version)
+                .Select(x => x != null ? x.ToString() : string.Empty)
+                .BindToStrict(this, x => x.VersionTextRun.Text)
+                .DisposeWith(dispose);
+
+            this.WhenAny(x => x.Version)
+                .Subscribe(x => VersionPrefixRun.Text = x != null ? "version" : string.Empty)
                 .DisposeWith(dispose);
 
             this.WhenAny(x => x.Image)
