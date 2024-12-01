@@ -129,11 +129,11 @@ public class InstallationVM : ProgressViewModel
     
     
     // Command properties
-    public ReactiveCommand<Unit, Unit> ShowManifestCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenManifestCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenReadmeCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenWikiCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenDiscordButton { get; }
-    public ReactiveCommand<Unit, Unit> VisitModListWebsiteCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenWebsiteCommand { get; }
         
     public ReactiveCommand<Unit, Unit> CloseWhenCompleteCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenLogsCommand { get; }
@@ -164,35 +164,27 @@ public class InstallationVM : ProgressViewModel
         ProgressText = $"Installation";
 
         Installer = new MO2InstallerVM(this);
-/*
-        ConfigurationText = "Installation Setup";
-        ProgressText = "Installing...";
-        */
         
         BeginCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget());
 
         OpenReadmeCommand = ReactiveCommand.Create(() =>
         {
-            UIUtils.OpenWebsite(new Uri(ModList!.Readme));
+            UIUtils.OpenWebsite(ModList!.Readme);
         }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModList.Readme, (isNotLoading, readme) => isNotLoading && !string.IsNullOrWhiteSpace(readme)));
 
-        OpenWikiCommand = ReactiveCommand.Create(() =>
+        OpenWebsiteCommand = ReactiveCommand.Create(() =>
         {
-            UIUtils.OpenWebsite(new Uri("https://wiki.wabbajack.org/index.html"));
-        }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
-
-        VisitModListWebsiteCommand = ReactiveCommand.Create(() =>
-        {
-            UIUtils.OpenWebsite(ModList!.Website);
-        }, LoadingLock.IsNotLoadingObservable);
+            UIUtils.OpenWebsite(ModlistMetadata.Links.WebsiteURL);
+        }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModlistMetadata,
+        (isNotLoading, metadata) => isNotLoading && !string.IsNullOrWhiteSpace(metadata?.Links.WebsiteURL)));
         
         WabbajackFileLocation = new FilePickerVM
         {
             ExistCheckOption = FilePickerVM.CheckOptions.On,
             PathType = FilePickerVM.PathTypeOptions.File,
-            PromptTitle = "Select a ModList to install"
+            PromptTitle = "Select a modlist to install"
         };
-        WabbajackFileLocation.Filters.Add(new CommonFileDialogFilter("Wabbajack Modlist", "*.wabbajack"));
+        WabbajackFileLocation.Filters.Add(new CommonFileDialogFilter("Wabbajack modlist", "*.wabbajack"));
         
         OpenLogsCommand = ReactiveCommand.Create(() =>
         {
@@ -202,16 +194,14 @@ public class InstallationVM : ProgressViewModel
         OpenDiscordButton = ReactiveCommand.Create(() =>
         {
             UIUtils.OpenWebsite(new Uri(ModlistMetadata.Links.DiscordURL));
-        }, this.WhenAnyValue(x => x.ModlistMetadata)
-            .WhereNotNull()
-            .Select(md => !string.IsNullOrWhiteSpace(md.Links.DiscordURL)));
-        
-        ShowManifestCommand = ReactiveCommand.Create(() =>
+        }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModlistMetadata,
+        (isNotLoading, metadata) => isNotLoading && !string.IsNullOrWhiteSpace(metadata?.Links?.DiscordURL)));
+
+        OpenManifestCommand = ReactiveCommand.Create(() =>
         {
+            // TODO: Open modlist archives in modal dialog
             UIUtils.OpenWebsite(new Uri("https://www.wabbajack.org/search/" + ModlistMetadata.NamespacedName));
-        }, this.WhenAnyValue(x => x.ModlistMetadata)
-            .WhereNotNull()
-            .Select(md => !string.IsNullOrWhiteSpace(md.Links.MachineURL)));
+        }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
 
         CloseWhenCompleteCommand = ReactiveCommand.Create(() =>
         {

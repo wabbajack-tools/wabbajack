@@ -64,6 +64,14 @@ public static class UIUtils
                 CreateNoWindow = true,
             });
         }
+
+        public static void OpenWebsite(string url)
+        {
+            Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url}")
+            {
+                CreateNoWindow = true,
+            });
+        }
         
         public static void OpenFolder(AbsolutePath path)
         {

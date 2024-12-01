@@ -36,6 +36,18 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             this.Bind(ViewModel, vm => vm.Installer.DownloadLocation, view => view.DownloadLocationPicker.PickerVM)
                 .DisposeWith(disposables);
 
+            this.BindCommand(ViewModel, vm => vm.OpenReadmeCommand, v => v.DocumentationButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.OpenWebsiteCommand, v => v.WebsiteButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.OpenDiscordButton, v => v.DiscordButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.OpenManifestCommand, v => v.ManifestButton)
+                .DisposeWith(disposables);
+
             ViewModel.WhenAnyValue(vm => vm.SuggestedInstallFolder)
                      .ObserveOnGuiThread()
                      .Subscribe(x =>

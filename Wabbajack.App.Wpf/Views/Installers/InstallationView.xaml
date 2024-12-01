@@ -17,6 +17,7 @@
     x:TypeArguments="local:InstallationVM"
     mc:Ignorable="d">
     <UserControl.Resources>
+        <Thickness x:Key="InstallMargin" Bottom="8" />
         <Style
             x:Key="SlideshowButton"
             BasedOn="{StaticResource CircleButtonStyle}"
@@ -40,6 +41,10 @@
         <Style x:Key="Panel" TargetType="StackPanel">
             <Setter Property="Margin" Value="0, 0, 0, 8" />
         </Style>
+        <Style x:Key="InstallButtonStyle" BasedOn="{StaticResource WJButtonStyle}" TargetType="{x:Type Button}">
+            <Setter Property="Margin" Value="{StaticResource InstallMargin}" />
+            <Setter Property="Width" Value="Auto" />
+        </Style>
     </UserControl.Resources>
     <Grid>
         <Grid x:Name="SetupGrid">
@@ -56,7 +61,13 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
+
                 <StackPanel x:Name="InstallationLocationPanel" Style="{StaticResource Panel}">
                     <TextBlock Style="{StaticResource TitleStyle}" Text="Installation Location" />
                     <TextBlock Style="{StaticResource DescriptionStyle}">
@@ -66,6 +77,7 @@
                     </TextBlock>
                     <local:FilePicker x:Name="InstallationLocationPicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the folder where the list will be installed to" />
                 </StackPanel>
+
                 <StackPanel x:Name="DownloadLocationPanel" Grid.Row="1" Style="{StaticResource Panel}">
                     <TextBlock Style="{StaticResource TitleStyle}" Text="Downloads Location" />
                     <TextBlock Style="{StaticResource DescriptionStyle}">
@@ -75,6 +87,11 @@
                     </TextBlock>
                     <local:FilePicker x:Name="DownloadLocationPicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the folder where the mod archives will be downloaded to" />
                 </StackPanel>
+
+                <local:WJButton x:Name="DocumentationButton" Text="Documentation" Icon="Document" Grid.Row="3" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                <local:WJButton x:Name="WebsiteButton" Text="Website" Icon="Globe" Grid.Row="4" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                <local:WJButton x:Name="DiscordButton" Text="Discord" Icon="PeopleChat" Grid.Row="5" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                <local:WJButton x:Name="ManifestButton" Text="Archives" Icon="ArchiveMultiple" Grid.Row="6" Width="Auto" />
             </Grid>
         </Grid>
     </Grid>
