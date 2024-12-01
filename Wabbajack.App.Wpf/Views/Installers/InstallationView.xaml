@@ -101,8 +101,14 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <local:DetailImageView x:Name="DetailImage" TitleFontSize="48" AuthorFontSize="24" Margin="0, 0, 0, 16" />
-                <local:WJButton x:Name="InstallButton" Grid.Row="1" HorizontalAlignment="Right" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown" />
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <local:WJButton x:Name="CancelButton" ButtonStyle="Danger" Text="Cancel" Icon="Dismiss" Margin="0, 0, 16, 0" />
+                    <local:WJButton x:Name="InstallButton" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown" />
+                </StackPanel>
             </Grid>
+        </Grid>
+        <Grid x:Name="InstallationGrid" Visibility="Collapsed">
+            <TextBlock Text="Installing!"/>
         </Grid>
     </Grid>
         <!--

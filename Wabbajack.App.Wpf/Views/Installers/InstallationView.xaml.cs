@@ -49,6 +49,21 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             this.BindCommand(ViewModel, vm => vm.OpenManifestCommand, v => v.ManifestButton)
                 .DisposeWith(disposables);
 
+            this.BindCommand(ViewModel, vm => vm.CancelCommand, v => v.CancelButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.InstallCommand, v => v.InstallButton)
+                .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.InstallState)
+                     .ObserveOnGuiThread()
+                     .Subscribe(x =>
+                     {
+                         SetupGrid.Visibility = x == InstallState.Configuration ? Visibility.Visible : Visibility.Collapsed;
+                         InstallationGrid.Visibility = x == InstallState.Installing ? Visibility.Visible : Visibility.Collapsed;
+                     })
+                     .DisposeWith(disposables);
+
             ViewModel.WhenAnyValue(vm => vm.SuggestedInstallFolder)
                      .ObserveOnGuiThread()
                      .Subscribe(x =>

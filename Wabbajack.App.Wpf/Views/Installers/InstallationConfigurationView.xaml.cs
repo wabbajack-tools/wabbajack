@@ -25,7 +25,7 @@ public partial class InstallationConfigurationView : ReactiveUserControl<Install
             this.WhenAny(x => x.ViewModel.Installer)
                 .BindToStrict(this, x => x.InstallerCustomizationContent.Content)
                 .DisposeWith(dispose);
-            this.WhenAny(x => x.ViewModel.BeginCommand)
+            this.WhenAny(x => x.ViewModel.InstallCommand)
                 .BindToStrict(this, x => x.BeginButton.Command)
                 .DisposeWith(dispose);
             this.BindStrict(ViewModel, vm => vm.OverwriteFiles, x => x.OverwriteCheckBox.IsChecked)

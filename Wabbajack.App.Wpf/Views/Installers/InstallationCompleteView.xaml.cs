@@ -24,7 +24,7 @@ public partial class InstallationCompleteView : ReactiveUserControl<Installation
                 .Select(failed => $"Installation {(failed ? "Failed" : "Complete")}")
                 .BindToStrict(this, x => x.TitleText.Text)
                 .DisposeWith(dispose);
-            this.WhenAny(x => x.ViewModel.GoToInstallCommand)
+            this.WhenAny(x => x.ViewModel.OpenInstallFolderCommand)
                 .BindToStrict(this, x => x.GoToInstallButton.Command)
                 .DisposeWith(dispose);
             this.WhenAny(x => x.ViewModel.OpenReadmeCommand)

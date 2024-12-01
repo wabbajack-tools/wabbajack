@@ -38,6 +38,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.VFS;
 using Humanizer;
 using System.Text.RegularExpressions;
+using System.Windows.Input;
 
 namespace Wabbajack;
 
@@ -109,7 +110,7 @@ public class InstallationVM : ProgressViewModel
     private readonly HttpClient _client;
     private readonly DownloadDispatcher _downloadDispatcher;
     private readonly IEnumerable<INeedsLogin> _logins;
-    private readonly CancellationToken _cancellationToken;
+    private readonly CancellationTokenSource _cancellationTokenSource;
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
 
     [Reactive]
@@ -129,22 +130,23 @@ public class InstallationVM : ProgressViewModel
     
     
     // Command properties
-    public ReactiveCommand<Unit, Unit> OpenManifestCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenReadmeCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenWikiCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenDiscordButton { get; }
-    public ReactiveCommand<Unit, Unit> OpenWebsiteCommand { get; }
+    public ICommand OpenManifestCommand { get; }
+    public ICommand OpenReadmeCommand { get; }
+    public ICommand OpenWikiCommand { get; }
+    public ICommand OpenDiscordButton { get; }
+    public ICommand OpenWebsiteCommand { get; }
         
-    public ReactiveCommand<Unit, Unit> CloseWhenCompleteCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenLogsCommand { get; }
-    public ReactiveCommand<Unit, Unit> GoToInstallCommand { get; }
-    public ReactiveCommand<Unit, Unit> BeginCommand { get; }
-    public ReactiveCommand<Unit, Unit> VerifyCommand { get; }
+    public ICommand CloseWhenCompleteCommand { get; }
+    public ICommand OpenLogsCommand { get; }
+    public ICommand OpenInstallFolderCommand { get; }
+    public ICommand InstallCommand { get; }
+    public ICommand CancelCommand { get; }
+    public ICommand VerifyCommand { get; }
     
     public InstallationVM(ILogger<InstallationVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
         Wabbajack.Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins,
-        CancellationToken cancellationToken)
+        CancellationTokenSource cancellationTokenSource)
     {
         _logger = logger;
         _configuration = configuration;
@@ -158,14 +160,15 @@ public class InstallationVM : ProgressViewModel
         _client = client;
         _downloadDispatcher = dispatcher;
         _logins = logins;
-        _cancellationToken = cancellationToken;
+        _cancellationTokenSource = cancellationTokenSource;
 
         ConfigurationText = $"Loading... Please wait";
         ProgressText = $"Installation";
 
         Installer = new MO2InstallerVM(this);
-        
-        BeginCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget());
+
+        CancelCommand = ReactiveCommand.Create(CancelInstall);
+        InstallCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget());
 
         OpenReadmeCommand = ReactiveCommand.Create(() =>
         {
@@ -208,7 +211,7 @@ public class InstallationVM : ProgressViewModel
             Environment.Exit(0);
         });
         
-        GoToInstallCommand = ReactiveCommand.Create(() =>
+        OpenInstallFolderCommand = ReactiveCommand.Create(() =>
         {
             UIUtils.OpenFolder(Installer.Location.TargetPath);
         });
@@ -300,6 +303,25 @@ public class InstallationVM : ProgressViewModel
                 .DisposeWith(disposables);
         });
 
+    }
+
+    private async void CancelInstall()
+    {
+        switch(InstallState)
+        {
+            case InstallState.Configuration:
+                NavigateToGlobal.Send(ScreenType.ModListGallery);
+                break;
+
+            case InstallState.Installing:
+                // TODO - Cancel installation
+                await _cancellationTokenSource.CancelAsync();
+                _cancellationTokenSource.TryReset();
+                break;
+
+            default:
+                break;
+        }
     }
 
     private IEnumerable<ErrorResponse> Validate()
@@ -495,7 +517,7 @@ public class InstallationVM : ProgressViewModel
                 _serviceProvider.GetRequiredService<IResource<FileHashCache>>(),
                 _serviceProvider.GetRequiredService<TemporaryFileManager>());
 
-            var result = await cmd.Run(WabbajackFileLocation.TargetPath, Installer.Location.TargetPath, _cancellationToken);
+            var result = await cmd.Run(WabbajackFileLocation.TargetPath, Installer.Location.TargetPath, _cancellationTokenSource.Token);
 
             if (result != 0)
             {
@@ -581,16 +603,16 @@ public class InstallationVM : ProgressViewModel
                         update.StepsProgress.Value);
                 };
 
-                if (!await installer.Begin(_cancellationToken))
+                if (!await installer.Begin(_cancellationTokenSource.Token))
                 {
-                    TaskBarUpdate.Send($"Error during install of {ModList.Name}", TaskbarItemProgressState.Error);
+                    TaskBarUpdate.Send($"Error during installation of {ModList.Name}", TaskbarItemProgressState.Error);
                     InstallState = InstallState.Failure;
-                    ProgressText = $"Error during install of {ModList.Name}";
+                    ProgressText = $"Error during installation of {ModList.Name}";
                     ProgressPercent = Percent.Zero;
                 }
                 else
                 {
-                    TaskBarUpdate.Send($"Finished install of {ModList.Name}", TaskbarItemProgressState.Normal);
+                    TaskBarUpdate.Send($"Finished installing {ModList.Name}", TaskbarItemProgressState.Normal);
                     InstallState = InstallState.Success;
                     
                     if (!string.IsNullOrWhiteSpace(ModList.Readme)) 
