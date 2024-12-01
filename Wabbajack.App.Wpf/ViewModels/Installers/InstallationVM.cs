@@ -69,7 +69,7 @@ public class InstallationVM : ProgressViewModel
     public MO2InstallerVM Installer { get; set; }
     
     [Reactive]
-    public Stream ModListImage { get; set; }
+    public BitmapImage ModListImage { get; set; }
     
     [Reactive]
     
@@ -160,7 +160,7 @@ public class InstallationVM : ProgressViewModel
         _logins = logins;
         _cancellationToken = cancellationToken;
 
-        ConfigurationText = $"Setup";
+        ConfigurationText = $"Loading... Please wait";
         ProgressText = $"Installation";
 
         Installer = new MO2InstallerVM(this);
@@ -430,7 +430,8 @@ public class InstallationVM : ProgressViewModel
         try
         {
             ModList = await StandardInstaller.LoadFromFile(_dtos, path);
-            ModListImage = await StandardInstaller.ModListImageStream(path);
+            var stream = await StandardInstaller.ModListImageStream(path);
+            ModListImage = UIUtils.BitmapImageFromStream(stream);
 
             ConfigurationText = $"Preparing to install {ModlistMetadata.Title}";
             ProgressText = $"Installation";

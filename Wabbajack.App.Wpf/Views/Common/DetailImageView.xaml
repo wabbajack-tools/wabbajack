@@ -14,10 +14,6 @@
         <Grid>
             <Border Name="BorderMask" CornerRadius="8" Background="White" Margin="1"/>
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="5*" />
-                    <ColumnDefinition Width="3*" />
-                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -27,10 +23,9 @@
                 <Grid.OpacityMask>
                     <VisualBrush Visual="{Binding ElementName=BorderMask}" />
                 </Grid.OpacityMask>
-                <Rectangle Grid.ColumnSpan="2" Grid.RowSpan="4" Fill="{StaticResource ComplementaryPrimary08Brush}" Visibility="{Binding ElementName=ModlistImage, Path=Source, Converter={StaticResource IsNotNullVisibilityConverter}}"/>
-                <Rectangle Grid.ColumnSpan="2" Grid.RowSpan="4" Fill="Black"/>
+                <Rectangle Grid.RowSpan="4" Fill="{StaticResource ComplementaryPrimary08Brush}" Visibility="{Binding ElementName=ModlistImage, Path=Source, Converter={StaticResource IsNotNullVisibilityConverter}}"/>
+                <Rectangle Grid.RowSpan="4" Fill="Black"/>
                 <Viewbox 
-                        Grid.ColumnSpan="2"
                         Grid.RowSpan="4"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
@@ -57,7 +52,7 @@
                         </Rectangle.Effect>
                     </Rectangle>
                     -->
-                <TextBlock Grid.Row="2" Grid.Column="0"
+                <TextBlock Grid.Row="2"
             x:Name="TitleTextBlock"
             Margin="16, 0, 0, 0"
             HorizontalAlignment="Left"
@@ -66,7 +61,7 @@
             FontWeight="Bold"
             TextWrapping="WrapWithOverflow">
                 </TextBlock>
-                <TextBlock Grid.Row="3" Grid.Column="0" x:Name="AuthorTextBlock" Margin="16, 0, 0, 16" FontFamily="{StaticResource PrimaryFont}" TextWrapping="Wrap">
+                <TextBlock Grid.Row="3" x:Name="AuthorTextBlock" Margin="16, 0, 0, 16" FontFamily="{StaticResource PrimaryFont}" TextWrapping="Wrap">
                     <Run x:Name="VersionPrefixRun" Foreground="{StaticResource OpaqueForegroundBrush}" />
                     <Run x:Name="VersionTextRun" />
                     <Run Text="by" Foreground="{StaticResource OpaqueForegroundBrush}" />

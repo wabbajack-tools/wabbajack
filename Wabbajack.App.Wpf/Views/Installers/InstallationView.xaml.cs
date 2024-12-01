@@ -70,9 +70,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                     .DisposeWith(disposables);
 
             ViewModel.WhenAny(vm => vm.ModListImage)
-                     .Where(x => x != null)
-                     .ObserveOn(RxApp.TaskpoolScheduler)
-                     .Select(x => UIUtils.BitmapImageFromStream(x))
                      .BindToStrict(this, v => v.DetailImage.Image)
                      .DisposeWith(disposables);
 
