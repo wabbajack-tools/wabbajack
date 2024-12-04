@@ -58,11 +58,12 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
 
     public CompilerMainVM(ILogger<CompilerMainVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
         LogStream loggerProvider, Client wjClient, IServiceProvider serviceProvider, ResourceMonitor resourceMonitor,
-        CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, IEnumerable<INeedsLogin> logins) : base(dtos, settingsManager, logger, wjClient)
+        CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, IEnumerable<INeedsLogin> logins, DownloadDispatcher downloadDispatcher) : base(dtos, settingsManager, logger, wjClient)
     {
         _serviceProvider = serviceProvider;
         _resourceMonitor = resourceMonitor;
         _logins = logins;
+        _downloadDispatcher = downloadDispatcher;
 
         LoggerProvider = loggerProvider;
         CompilerDetailsVM = compilerDetailsVM;
@@ -235,12 +236,14 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
         var nexusDownloadState = new Nexus();
         foreach (var downloader in await _downloadDispatcher.AllDownloaders([nexusDownloadState]))
         {
-
-            var manager = _logins.FirstOrDefault(l => l.LoginFor() == typeof(Nexus));
-            if (manager == null)
+            _logger.LogInformation("Preparing {Name}", downloader.GetType().Name);
+            if (await downloader.Prepare())
+                continue;
+            var manager = _logins.FirstOrDefault(l => l.LoginFor() == downloader.GetType());
+            if(manager == null)
             {
-                _logger.LogError("Cannot compile, could not prepare Nexus for verifying");
-                throw new Exception($"No way to prepare {nexusDownloadState}");
+                _logger.LogError("Cannot install, could not prepare {Name} for downloading", downloader.GetType().Name);
+                throw new Exception($"No way to prepare {downloader}");
             }
 
             RxApp.MainThreadScheduler.Schedule(manager, (_, _) =>
