@@ -184,13 +184,13 @@ public abstract class AInstaller<T>
         }
     }
 
-    public static async Task<Stream> ModListImageStream(AbsolutePath path)
+    public static async Task<Stream?> ModListImageStream(AbsolutePath path)
     {
         await using var fs = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
         using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
         var entry = ar.GetEntry("modlist-image.png");
         if (entry == null)
-            throw new InvalidDataException("No modlist image found");
+            return null;
         return new MemoryStream(await entry.Open().ReadAllAsync());
     }
 

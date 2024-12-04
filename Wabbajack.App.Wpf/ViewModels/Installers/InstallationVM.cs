@@ -453,7 +453,7 @@ public class InstallationVM : ProgressViewModel
         {
             ModList = await StandardInstaller.LoadFromFile(_dtos, path);
             var stream = await StandardInstaller.ModListImageStream(path);
-            ModListImage = UIUtils.BitmapImageFromStream(stream);
+            if(stream != null) ModListImage = UIUtils.BitmapImageFromStream(stream);
 
             ConfigurationText = $"Preparing to install {ModlistMetadata.Title}";
             ProgressText = $"Installation";
@@ -494,6 +494,7 @@ public class InstallationVM : ProgressViewModel
         {
             _logger.LogError(ex, "While loading modlist");
             ll.Fail();
+            ProgressText = "Failed to load modlist";
         }
     }
 
