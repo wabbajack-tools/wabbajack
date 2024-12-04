@@ -167,8 +167,8 @@ public class InstallationVM : ProgressViewModel
 
         Installer = new MO2InstallerVM(this);
 
-        CancelCommand = ReactiveCommand.Create(CancelInstall);
-        InstallCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget());
+        CancelCommand = ReactiveCommand.Create(CancelInstall, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
+        InstallCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget(), this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
 
         OpenReadmeCommand = ReactiveCommand.Create(() =>
         {
@@ -235,44 +235,20 @@ public class InstallationVM : ProgressViewModel
                 .Subscribe(p => LoadModlist(p, null).FireAndForget())
                 .DisposeWith(disposables);
 
-            this.WhenAnyValue(x => x.ModlistMetadata)
-                .ObserveOn(RxApp.TaskpoolScheduler)
-                .Select(x =>
-                {
-                    var folderName = x.Title;
-                    // Ignore everything after a dash
-                    folderName = folderName.Split('-')[0];
-                    // Remove all special characters
-                    folderName = Regex.Replace(folderName, "[^a-zA-Z0-9_ .]+", "");
-                    // Get preferred installation drive (SSD with enough space)
-                    var preferredPartition = DriveHelper.GetPreferredInstallationDrive(x.DownloadMetadata.SizeOfInstalledFiles);
-                    var words = folderName.Split(' ');
-                    // Abbreviate the list name if it's too long, otherwise convert it to PascalCase
-                    folderName = words.Length >= 3 ? string.Join("", words.Select(w => w[0])).ToUpper() : folderName.Pascalize();
-
-                    return $"{preferredPartition.Name}Modlists\\{folderName.Trim()}\\";
-                })
-                .Subscribe(x => {
-                    SuggestedInstallFolder = x;
-                    SuggestedDownloadFolder = $"{x}\\Downloads\\";
-                })
-                .DisposeWith(disposables);
-                           
-
             var token = new CancellationTokenSource();
             BeginSlideShow(token.Token).FireAndForget();
             Disposable.Create(() => token.Cancel())
                 .DisposeWith(disposables);
             
             this.WhenAny(vm => vm.WabbajackFileLocation.ErrorState)
-                .CombineLatest(this.WhenAny(vm => vm.Installer.DownloadLocation.ErrorState),
+                .CombineLatest<ErrorResponse, ErrorResponse, ErrorResponse, AbsolutePath, AbsolutePath, AbsolutePath>(this.WhenAny(vm => vm.Installer.DownloadLocation.ErrorState),
                     this.WhenAny(vm => vm.Installer.Location.ErrorState),
                     this.WhenAny(vm => vm.WabbajackFileLocation.TargetPath),
                     this.WhenAny(vm => vm.Installer.Location.TargetPath),
                     this.WhenAny(vm => vm.Installer.DownloadLocation.TargetPath))
                 .Select(t =>
                 {
-                    var errors = new[] {t.First, t.Second, t.Third}
+                    var errors = (new[] { t.First, t.Second, t.Third})
                         .Where(t => t.Failed)
                         .Concat(Validate())
                         .ToArray();
@@ -303,6 +279,22 @@ public class InstallationVM : ProgressViewModel
                 .DisposeWith(disposables);
         });
 
+    }
+
+    private static string GetSuggestedInstallFolder(ModlistMetadata x)
+    {
+        var folderName = x.Title;
+        // Ignore everything after a dash
+        folderName = folderName.Split('-')[0];
+        // Remove all special characters
+        folderName = Regex.Replace(folderName, "[^a-zA-Z0-9_ .]+", "");
+        // Get preferred installation drive (SSD with enough space)
+        var preferredPartition = DriveHelper.GetPreferredInstallationDrive(x.DownloadMetadata.SizeOfInstalledFiles);
+        var words = folderName.Split(' ');
+        // Abbreviate the list name if it's too long, otherwise convert it to PascalCase
+        folderName = words.Length >= 3 ? string.Join("", words.Select(w => w[0])).ToUpper() : folderName.Pascalize();
+
+        return $"{preferredPartition.Name}Modlists\\{folderName.Trim()}\\";
     }
 
     private async void CancelInstall()
@@ -469,6 +461,8 @@ public class InstallationVM : ProgressViewModel
                     metadata = JsonSerializer.Deserialize<ModlistMetadata>(await path.WithExtension(Ext.MetaData)
                         .ReadAllTextAsync());
                     ModlistMetadata = metadata;
+                    SuggestedInstallFolder = GetSuggestedInstallFolder(metadata);
+                    SuggestedDownloadFolder = SuggestedInstallFolder + "\\downloads";
                 }
                 catch (Exception ex)
                 {
