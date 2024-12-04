@@ -101,6 +101,7 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <local:DetailImageView x:Name="DetailImage" TitleFontSize="48" AuthorFontSize="24" Margin="0, 0, 0, 16" />
+                <mahapps:ProgressRing x:Name="ModlistLoadingRing" />
                 <local:WJButton x:Name="CancelButton" Grid.Row="1" Text="Back to Gallery" Icon="ChevronLeft" Direction="RightToLeft" HorizontalAlignment="Left" />
                 <local:WJButton x:Name="InstallButton" Grid.Row="1" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown" HorizontalAlignment="Right" />
             </Grid>
@@ -133,7 +134,6 @@
             <Border BorderBrush="{StaticResource BorderInterestBrush}" BorderThickness="1,0,1,1">
                 <Grid>
                     <local:DetailImageView x:Name="DetailImage" />
-                    <mahapps:ProgressRing x:Name="ModlistLoadingRing" />
                 </Grid>
             </Border>
             <Grid

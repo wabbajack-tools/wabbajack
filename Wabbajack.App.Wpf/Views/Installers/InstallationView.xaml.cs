@@ -100,6 +100,11 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      .BindToStrict(this, v => v.DetailImage.Version)
                      .DisposeWith(disposables);
 
+            ViewModel.WhenAnyValue(vm => vm.LoadingLock.IsLoading)
+                .Select(loading => loading ? Visibility.Visible : Visibility.Collapsed)
+                .BindToStrict(this, v => v.ModlistLoadingRing.Visibility)
+                .DisposeWith(disposables);
+
             /*
             ViewModel.WhenAnyValue(vm => vm.InstallState)
                 .Select(v => v != InstallState.Configuration ? Visibility.Visible : Visibility.Collapsed)
@@ -139,11 +144,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             
             ViewModel.WhenAnyValue(vm => vm.ShowManifestCommand)
                 .BindToStrict(this, view => view.ShowManifestPreInstallButton.Command)
-                .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(vm => vm.LoadingLock.IsLoading)
-                .Select(loading => loading ? Visibility.Visible : Visibility.Collapsed)
-                .BindToStrict(this, view => view.ModlistLoadingRing.Visibility)
                 .DisposeWith(disposables);
             
             ViewModel.WhenAnyValue(vm => vm.BeginCommand)
