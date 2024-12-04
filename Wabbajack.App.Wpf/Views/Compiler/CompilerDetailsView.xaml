@@ -21,7 +21,7 @@
         <Grid>
             <Grid.Resources>
                 <Thickness x:Key="TitleMargin" Top="8" Bottom="8" />
-                <Thickness x:Key="TextPanelMargin" Bottom="16" />
+                <Thickness x:Key="TextPanelMargin" Right="16" />
                 <Style x:Key="ValueStyle" BasedOn="{StaticResource MainTextBoxStyle}" TargetType="TextBox">
                     <Setter Property="MaxLength" Value="150" />
                     <Setter Property="AcceptsTab" Value="False" />
