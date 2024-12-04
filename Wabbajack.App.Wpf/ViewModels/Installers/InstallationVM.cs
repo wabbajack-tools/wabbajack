@@ -277,6 +277,11 @@ public class InstallationVM : ProgressViewModel
                         };
                     })
                 .DisposeWith(disposables);
+
+            this.WhenAnyValue(vm => vm.Installer.Location.TargetPath)
+                .Select(x => x.PathParts.Any() ? x.Combine("downloads") : x)
+                .Subscribe(x => Installer.DownloadLocation.TargetPath = x)
+                .DisposeWith(disposables);
         });
 
     }
@@ -564,7 +569,6 @@ public class InstallationVM : ProgressViewModel
                 }
             }
             
-            
             var postfix = (await WabbajackFileLocation.TargetPath.ToString().Hash()).ToHex();
             await _settingsManager.Save(InstallSettingsPrefix + postfix, new SavedInstallSettings
             {
@@ -608,6 +612,7 @@ public class InstallationVM : ProgressViewModel
                 else
                 {
                     TaskBarUpdate.Send($"Finished installing {ModList.Name}", TaskbarItemProgressState.Normal);
+                    ProgressText = $"Finished installing {ModList.Name}";
                     InstallState = InstallState.Success;
                     
                     if (!string.IsNullOrWhiteSpace(ModList.Readme)) 
