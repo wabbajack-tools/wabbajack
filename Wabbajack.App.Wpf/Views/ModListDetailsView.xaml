@@ -126,7 +126,7 @@
                         Height="{Binding ActualHeight, ElementName=SearchBox}" Margin="0, 0, 48, 16">
                     <Border HorizontalAlignment="Right" CornerRadius="8"
                             Background="{StaticResource ComplementaryPrimary08Brush}" Padding="8, 0, 8, 0">
-                        <ic:SymbolIcon Symbol="Search" IconVariant="Filled" Foreground="{StaticResource PrimaryBrush}" />
+                        <ic:SymbolIcon Symbol="Search" IconVariant="Filled" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Right" FontSize="18" />
                     </Border>
                 </Border>
 
@@ -144,7 +144,7 @@
 
             <Button x:Name="BackButton" Style="{StaticResource MainButtonStyle}" Background="Transparent"
                     BorderThickness="0" HorizontalAlignment="Right" Padding="16, 0, 0, 16" VerticalAlignment="Center">
-                <ic:SymbolIcon Symbol="Dismiss" FontSize="28" VerticalAlignment="Center" />
+                <ic:SymbolIcon Symbol="Dismiss" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Right" />
             </Button>
 
             <Border x:Name="BorderMask2" Grid.Row="1" CornerRadius="8" Background="White">

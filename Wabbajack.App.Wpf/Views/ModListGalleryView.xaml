@@ -199,6 +199,7 @@
                     Visibility="Collapsed">
             <ic:SymbolIcon
                 Foreground="{StaticResource Triadic2Brush}"
+                HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 Symbol="DismissCircle"
                 IconVariant="Regular"
