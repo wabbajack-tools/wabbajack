@@ -20,6 +20,7 @@
     <ItemGroup>
         <PackageReference Include="F23.StringSimilarity" Version="5.1.0" />
         <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     </ItemGroup>
 
 </Project>

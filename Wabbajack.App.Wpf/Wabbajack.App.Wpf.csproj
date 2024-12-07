@@ -109,6 +109,7 @@
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.6" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2535.41" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="NLog.Extensions.Logging" Version="5.3.5" />
     <PackageReference Include="Orc.FileAssociation" Version="5.0.0" />
     <PackageReference Include="PInvoke.User32" Version="0.7.124" />
