@@ -9,7 +9,7 @@
     xmlns:options="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     xmlns:wj="clr-namespace:Wabbajack"
-    xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     xmlns:generic="http://schemas.sdl.com/xaml"
     xmlns:math="http://hexinnovation.com/math" xmlns:controls="http://schemas.sdl.com/xaml"
     mc:Ignorable="d">
@@ -1169,7 +1169,7 @@
                             HorizontalAlignment="Right"
                             Background="{DynamicResource ComboBoxButtonNormalBackground}"
                             CornerRadius="4">
-                            <ic:SymbolIcon x:Name="Arrow" Symbol="ChevronDown" FontSize="13" IsFilled="True" Foreground="{DynamicResource ButtonForeground}"/>
+                            <ic:SymbolIcon x:Name="Arrow" Symbol="ChevronDown" FontSize="13" IconVariant="Filled" Foreground="{DynamicResource ButtonForeground}"/>
                         </Border>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -1441,7 +1441,7 @@
             <Style TargetType="ic:SymbolIcon">
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=IsMouseOver}" Value="True">
-                        <Setter Property="IsFilled" Value="True"/>
+                        <Setter Property="IconVariant" Value="Filled"/>
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
@@ -1650,7 +1650,7 @@
         </Setter>
         <Style.Resources>
             <Style TargetType="ic:SymbolIcon">
-                <Setter Property="IsFilled" Value="True"/>
+                <Setter Property="IconVariant" Value="Filled"/>
             </Style>
         </Style.Resources>
     </Style>
@@ -1711,7 +1711,7 @@
             <Style TargetType="ic:SymbolIcon">
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button, AncestorLevel=1}, Path=IsMouseOver}" Value="True">
-                        <Setter Property="IsFilled" Value="True" />
+                        <Setter Property="IconVariant" Value="Filled" />
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
@@ -1743,7 +1743,7 @@
             <Style TargetType="ic:SymbolIcon">
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button, AncestorLevel=1}, Path=IsMouseOver}" Value="True">
-                        <Setter Property="IsFilled" Value="True" />
+                        <Setter Property="IconVariant" Value="Filled" />
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
@@ -2702,7 +2702,7 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="150" />
                                     </Grid.ColumnDefinitions>
-                                    <ic:SymbolIcon x:Name="Foreground" IsFilled="True" Symbol="{Binding Path=Header.Symbol, RelativeSource={RelativeSource TemplatedParent}}" Margin="0, 0, 4, 0" Foreground="{StaticResource PrimaryBrush}"/>
+                                    <ic:SymbolIcon x:Name="Foreground" IconVariant="Filled" Symbol="{Binding Path=Header.Symbol, RelativeSource={RelativeSource TemplatedParent}}" Margin="0, 0, 4, 0" Foreground="{StaticResource PrimaryBrush}"/>
                                     <TextBlock x:Name="PART_Header" Grid.Column="1" Text="{Binding Path=Header, RelativeSource={RelativeSource TemplatedParent}}" TextTrimming="CharacterEllipsis" Margin="4, 0, 4, 0" VerticalAlignment="Center" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
                                     <ComboBox Name="CompilerFileStateListbox" ItemsSource="{wj:EnumToItemsSource {x:Type wj:CompilerFileState}}" DisplayMemberPath="DisplayName" SelectedValue="{Binding Path=Header.CompilerFileState, RelativeSource={RelativeSource TemplatedParent}}" SelectedValuePath="Value" Grid.Column="2" BorderThickness="1" BorderBrush="{StaticResource PrimaryBrush}"/>
                                 </Grid>
@@ -4689,7 +4689,7 @@
     </Style>
 
     <DataTemplate x:Key="MultiSelectComboBox.SelectedItemsPanel.EditMode.Glyph.Template">
-        <ic:SymbolIcon x:Name="Arrow" Symbol="ChevronDown" FontSize="13" IsFilled="True" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource ForegroundBrush}"/>
+        <ic:SymbolIcon x:Name="Arrow" Symbol="ChevronDown" FontSize="13" IconVariant="Filled" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource ForegroundBrush}"/>
     </DataTemplate>
 
     <DataTemplate x:Key="MultiSelectComboBox.SelectedItemsPanel.Readonly.Glyph.Template">

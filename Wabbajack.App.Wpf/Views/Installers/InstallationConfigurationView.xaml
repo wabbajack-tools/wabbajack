@@ -88,6 +88,7 @@
                 x:Name="BeginButton"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center" />
+                <!--
             <icon:PackIconFontAwesome Grid.Row="2"
                 x:Name="ErrorSummaryIconGlow"
                 HorizontalAlignment="Center"
@@ -104,6 +105,7 @@
                 VerticalAlignment="Top"
                 Foreground="{StaticResource WarningBrush}"
                 Kind="ExclamationTriangleSolid" />
+                -->
             <CheckBox Grid.Row="2" Grid.Column="2"
                       HorizontalAlignment="Center"
                       VerticalAlignment="Bottom"

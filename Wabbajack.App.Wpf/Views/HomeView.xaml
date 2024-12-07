@@ -7,7 +7,7 @@
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
-    xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     d:DataContext="{d:DesignInstance local:HomeVM}"
     d:DesignHeight="700"
     d:DesignWidth="1000"
@@ -60,7 +60,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Find a modlist that suits you" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
-                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="CheckmarkStarburst" IsFilled="True" FontSize="28" Foreground="{StaticResource PrimaryBrush}" />
+                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="CheckmarkStarburst" IconVariant="Filled" FontSize="28" Foreground="{StaticResource PrimaryBrush}" />
                     <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
                     Go through a series of questions to find a modlist that works for you through our<LineBreak />
                      <Hyperlink Command="{Binding VisitModlistWizardCommand}">Wabbakinator quiz</Hyperlink>, or <Hyperlink Command="{Binding BrowseCommand}">navigate the gallery</Hyperlink> yourself and pick something fun.
@@ -78,7 +78,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Follow the install notes" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
-                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="DocumentOnePageMultiple" IsFilled="True" FontSize="28" Foreground="{StaticResource PrimaryBrush}" />
+                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="DocumentOnePageMultiple" IconVariant="Filled" FontSize="28" Foreground="{StaticResource PrimaryBrush}" />
                     <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
                         Some modlists have steps that you need to take before you install the list, some <LineBreak />
                         don't. Check your list's documentation to see how to get started.
@@ -96,7 +96,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Start downloading your chosen list" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
-                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="ArrowDownload" IsFilled="True" FontSize="28" Foreground="{StaticResource PrimaryBrush}"
+                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="ArrowDownload" IconVariant="Filled" FontSize="28" Foreground="{StaticResource PrimaryBrush}"
                     />
                     <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
                         Pick a destination with enough free space and click the download button. <LineBreak />
@@ -115,7 +115,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Ready to start playing!" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
-                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="Games" IsFilled="True" FontSize="28" Foreground="{StaticResource PrimaryBrush}"
+                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="Games" IconVariant="Filled" FontSize="28" Foreground="{StaticResource PrimaryBrush}"
                     />
                     <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
                         If your install completed successfully and you're done with the documentation as<LineBreak />

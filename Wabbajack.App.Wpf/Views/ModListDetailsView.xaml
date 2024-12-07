@@ -8,7 +8,7 @@
     xmlns:dtoStates="clr-namespace:Wabbajack.DTOs.DownloadStates;assembly=Wabbajack.DTOs"
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:rxui="http://reactiveui.net"
-    xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     xmlns:wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
     x:TypeArguments="local:ModListDetailsVM"
     mc:Ignorable="d"
@@ -48,7 +48,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="{Binding MetadataVM.Metadata.Title}" FontSize="32" FontWeight="Bold" TextWrapping="Wrap" Margin="0, 0, 8, 0" />
                         <ic:SymbolIcon Grid.Row="1" Symbol="CheckmarkStarburst" FontSize="28" HorizontalAlignment="Right"
-                                   IsFilled="True" Foreground="{StaticResource PrimaryBrush}"
+                                   IconVariant="Filled" Foreground="{StaticResource PrimaryBrush}"
                                    Visibility="{Binding MetadataVM.Metadata.Official, Converter={StaticResource bool2VisibilityConverter}}"
                                    ToolTip="This modlist has been tested and provides a stable experience with official support channels. More info about featured modlists is available on the Wabbajack wiki." />
                     </Grid>
@@ -126,7 +126,7 @@
                         Height="{Binding ActualHeight, ElementName=SearchBox}" Margin="0, 0, 48, 16">
                     <Border HorizontalAlignment="Right" CornerRadius="8"
                             Background="{StaticResource ComplementaryPrimary08Brush}" Padding="8, 0, 8, 0">
-                        <ic:SymbolIcon Symbol="Search" IsFilled="True" Foreground="{StaticResource PrimaryBrush}" />
+                        <ic:SymbolIcon Symbol="Search" IconVariant="Filled" Foreground="{StaticResource PrimaryBrush}" />
                     </Border>
                 </Border>
 

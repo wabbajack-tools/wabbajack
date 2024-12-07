@@ -9,7 +9,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
     xmlns:system="clr-namespace:System;assembly=mscorlib"
-    xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     xmlns:sdl="http://schemas.sdl.com/xaml"
     d:DesignHeight="450"
     d:DesignWidth="900"
@@ -41,7 +41,7 @@
                         mahapps:TextBoxHelper.Watermark="Search for a modlist..." />
                     <Border BorderThickness="0" CornerRadius="8" Width="30"
                             Background="{StaticResource ComplementaryPrimary08Brush}" HorizontalAlignment="Right">
-                        <ic:SymbolIcon Symbol="Search" HorizontalAlignment="Center" IsFilled="True"
+                        <ic:SymbolIcon Symbol="Search" HorizontalAlignment="Center" IconVariant="Filled"
                                        Foreground="{StaticResource PrimaryBrush}" />
                     </Border>
                 </Grid>
@@ -201,15 +201,15 @@
                 Foreground="{StaticResource Triadic2Brush}"
                 VerticalAlignment="Top"
                 Symbol="DismissCircle"
-                IsFilled="False"
+                IconVariant="Regular"
                 FontSize="72" />
             <TextBlock
                 FontSize="24"
-                Margin="0, 10, 0, 0"
+                Margin="0, 8, 0, 0"
                 Foreground="{StaticResource ForegroundBrush}"
                 Text="No modlists matching specified criteria" />
         </StackPanel>
-        <iconPacks:PackIconControl Grid.Row="1" Grid.Column="0"
+        <!--<iconPacks:PackIconControl Grid.Row="1" Grid.Column="0"
                                    x:Name="ErrorIcon"
                                    Width="55"
                                    Height="55"
@@ -218,6 +218,6 @@
                                    Foreground="{StaticResource ErrorBrush}"
                                    Kind="{x:Static iconPacks:PackIconMaterialKind.AlertCircle}"
                                    ToolTip="Error loading modlist gallery"
-                                   Visibility="Collapsed" />
+                                   Visibility="Collapsed" />-->
     </Grid>
 </rxui:ReactiveUserControl>

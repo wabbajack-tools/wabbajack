@@ -7,7 +7,7 @@
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
-    xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     d:DesignHeight="700"
     d:DesignWidth="1000"
     x:TypeArguments="local:InfoVM"
@@ -24,7 +24,7 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-            <ic:SymbolIcon Symbol="Info" FontSize="36" IsFilled="True" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0, 0, 8, 0"/>
+            <ic:SymbolIcon Symbol="Info" FontSize="36" IconVariant="Filled" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0, 0, 8, 0"/>
             <TextBlock Text="Info" FontSize="36" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="8, 0, 0, 0"/>
         </StackPanel>
         <TextBlock Text="{Binding Info}" FontSize="24" Grid.Column="1" Grid.Row="1" TextWrapping="Wrap" TextAlignment="Center" />

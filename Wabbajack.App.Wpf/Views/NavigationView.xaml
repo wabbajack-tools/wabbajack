@@ -7,7 +7,7 @@
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:rxui="http://reactiveui.net"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:ic="clr-namespace:FluentIcons.WPF;assembly=FluentIcons.WPF"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     x:TypeArguments="local:NavigationVM"
     mc:Ignorable="d">
     <Border BorderThickness="0">

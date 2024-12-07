@@ -43,6 +43,7 @@ public partial class InstallationConfigurationView : ReactiveUserControl<Install
                 .BindToStrict(this, view => view.errorTextBox.Text)
                 .DisposeWith(dispose);
 
+            /*
             this.WhenAnyValue(x => x.ViewModel.ErrorState)
                 .Select(v => v.Failed ? Visibility.Visible : Visibility.Hidden)
                 .BindToStrict(this, view => view.ErrorSummaryIcon.Visibility)
@@ -57,6 +58,7 @@ public partial class InstallationConfigurationView : ReactiveUserControl<Install
                 .Select(v => v.Reason)
                 .BindToStrict(this, view => view.ErrorSummaryIcon.ToolTip)
                 .DisposeWith(dispose);
+                */
         });
     }
 }

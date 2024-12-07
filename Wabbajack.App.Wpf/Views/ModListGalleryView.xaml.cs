@@ -39,12 +39,6 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                 .BindTo(this, x => x.LoadingRing.Visibility)
                 .DisposeWith(dispose);
             
-            this.WhenAny(x => x.ViewModel.LoadingLock.ErrorState)
-                .Select(e => (e?.Succeeded ?? true) ? Collapsed : Visible)
-                .StartWith(Collapsed)
-                .BindToStrict(this, x => x.ErrorIcon.Visibility)
-                .DisposeWith(dispose);
-            
             this.WhenAny(x => x.ViewModel.ModLists.Count)
                 .CombineLatest(this.WhenAnyValue(x => x.ViewModel.LoadingLock.IsLoading))
                 .Select(x => x.First == 0 && !x.Second)
