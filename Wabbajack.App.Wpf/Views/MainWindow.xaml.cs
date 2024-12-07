@@ -81,16 +81,6 @@ public partial class MainWindow : MetroWindow
                 Application.Current.Shutdown();
             };
 
-            MessageBus.Current.Listen<TaskBarUpdate>()
-                .ObserveOnGuiThread()
-                .Subscribe(u =>
-                {
-                    TaskbarItemInfoControl.Description = u.Description;
-                    TaskbarItemInfoControl.ProgressValue = u.ProgressValue;
-                    TaskbarItemInfoControl.ProgressState = u.State;
-                });
-
-
             _logger.LogInformation("Wabbajack Build - {Sha}",ThisAssembly.Git.Sha);
             _logger.LogInformation("Running in {EntryPoint}", KnownFolders.EntryPoint);
 

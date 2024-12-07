@@ -102,12 +102,50 @@
                 </Grid.RowDefinitions>
                 <local:DetailImageView x:Name="DetailImage" TitleFontSize="48" AuthorFontSize="24" Margin="0, 0, 0, 16" />
                 <mahapps:ProgressRing x:Name="ModlistLoadingRing" />
-                <local:WJButton x:Name="CancelButton" Grid.Row="1" Text="Back to Gallery" Icon="ChevronLeft" Direction="RightToLeft" HorizontalAlignment="Left" />
+                <local:WJButton x:Name="BackToGalleryButton" Grid.Row="1" Text="Back to Gallery" Icon="ChevronLeft" Direction="RightToLeft" HorizontalAlignment="Left" />
                 <local:WJButton x:Name="InstallButton" Grid.Row="1" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown" HorizontalAlignment="Right" />
             </Grid>
         </Grid>
         <Grid x:Name="InstallationGrid" Visibility="Collapsed">
-            <TextBlock Text="Installing!"/>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.35*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="3*" />
+            </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <local:DetailImageView x:Name="InstallDetailImage" TitleFontSize="36" AuthorFontSize="16" Margin="0, 0, 0, 16" Height="{Binding ActualWidth, ElementName=InstallDetailImage, Converter={StaticResource MathConverter}, ConverterParameter=x/(16/9)}" />
+                <local:CpuView x:Name="CpuView" Grid.Row="1" ViewModel="{Binding}" Margin="0" />
+
+                <Grid x:Name="WorkerIndicators" Grid.Row="2" Height="55">
+                <!--
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <local:WJButton x:Name="DocumentationButton" Text="Documentation" Icon="Document" Grid.Row="0" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                    <local:WJButton x:Name="WebsiteButton" Text="Website" Icon="Globe" Grid.Row="1" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                    <local:WJButton x:Name="DiscordButton" Text="Discord" Icon="PeopleChat" Grid.Row="2" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                    <local:WJButton x:Name="ManifestButton" Text="Archives" Icon="BoxSearch" Grid.Row="3" Width="Auto" />
+                    -->
+                </Grid>
+
+            </Grid>
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <local:LogView x:Name="LogView" Margin="0, 0, 0, 16"/>
+                <local:WJButton x:Name="CancelButton" ButtonStyle="Danger" Grid.Row="1" Text="Cancel" Icon="Dismiss" HorizontalAlignment="Right" />
+            </Grid>
         </Grid>
     </Grid>
         <!--

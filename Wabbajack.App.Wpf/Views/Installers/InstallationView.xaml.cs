@@ -14,6 +14,7 @@ using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using Wabbajack.Messages;
 
 namespace Wabbajack;
 
@@ -27,10 +28,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
         InitializeComponent();
         this.WhenActivated(disposables =>
         {
-            //MidInstallDisplayGrid.Visibility = Visibility.Collapsed;
-            //LogView.Visibility = Visibility.Collapsed;
-            //CpuView.Visibility = Visibility.Collapsed;
-
             this.Bind(ViewModel, vm => vm.Installer.Location, view => view.InstallationLocationPicker.PickerVM)
                 .DisposeWith(disposables);
 
@@ -61,6 +58,10 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      {
                          SetupGrid.Visibility = x == InstallState.Configuration ? Visibility.Visible : Visibility.Collapsed;
                          InstallationGrid.Visibility = x == InstallState.Installing ? Visibility.Visible : Visibility.Collapsed;
+                         if (x == InstallState.Installing)
+                             HideNavigation.Send();
+                         else
+                             ShowNavigation.Send();
                      })
                      .DisposeWith(disposables);
 
@@ -86,6 +87,10 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
 
             ViewModel.WhenAny(vm => vm.ModListImage)
                      .BindToStrict(this, v => v.DetailImage.Image)
+                     .DisposeWith(disposables);
+
+            ViewModel.WhenAny(vm => vm.ModListImage)
+                     .BindToStrict(this, v => v.InstallDetailImage.Image)
                      .DisposeWith(disposables);
 
             ViewModel.WhenAny(vm => vm.ModlistMetadata.Author)

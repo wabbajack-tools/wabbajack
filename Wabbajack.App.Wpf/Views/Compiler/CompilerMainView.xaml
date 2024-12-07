@@ -50,7 +50,7 @@
             <local:WJButton Text="Publish Modlist" Icon="CloudArrowUp" IsEnabled="False" Grid.Column="2" Width="Auto" Margin="16, 0, 0, 0" />
         </Grid>
 
-        <local:CpuView x:Name="CpuView" Grid.Row="1" Grid.RowSpan="2" ViewModel="{Binding}" Visibility="Hidden" Margin="0, 0, 0, 0" />
+        <local:CpuView x:Name="CpuView" Grid.Row="1" Grid.RowSpan="2" ViewModel="{Binding}" Visibility="Hidden" />
         <local:LogView x:Name="LogView" Grid.Column="1" Grid.RowSpan="2" Margin="16, 0, 0, 0" Visibility="Hidden" />
 
         <!-- Completion -->

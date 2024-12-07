@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -614,21 +614,16 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                 {
                     RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
                     {
-                        CurrentStep = Step.Configuration;
+                        CurentStep = Step.Configuration;
                         InstallState = InstallState.Failure;
                         ProgressText = $"Error during installation of {ModList.Name}";
                         ProgressPercent = Percent.Zero;
-                        return Disposable.Empty;
                     });
                 }
                 else
                 {
-                    RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
-                    {
-                        ProgressText = $"Finished installing {ModList.Name}";
-                        InstallState = InstallState.Success;
-                        return Disposable.Empty;
-                    });
+                    ProgressText = $"Finished installing {ModList.Name}";
+                    InstallState = InstallState.Success;
                     
                     if (!string.IsNullOrWhiteSpace(ModList.Readme)) 
                         UIUtils.OpenWebsite(new Uri(ModList.Readme));
@@ -638,13 +633,9 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
-                {
-                    InstallState = InstallState.Failure;
-                    ProgressText = $"Error during install of {ModList.Name}";
-                    ProgressPercent = Percent.Zero;
-                    return Disposable.Empty;
-                });
+                InstallState = InstallState.Failure;
+                ProgressText = $"Error during install of {ModList.Name}";
+                ProgressPercent = Percent.Zero;
             }
         });
 

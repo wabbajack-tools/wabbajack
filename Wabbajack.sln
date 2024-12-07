@@ -108,8 +108,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".solutionItems", ".solutionItems", "{109037C8-CF2F-4179-B064-A66147BC18C5}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
-		nuget.config = nuget.config
 		CHANGELOG.md = CHANGELOG.md
+		nuget.config = nuget.config
 		README.md = README.md
 	EndProjectSection
 EndProject
