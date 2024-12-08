@@ -169,9 +169,13 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
                     .ObserveOnGuiThread()
                     .Subscribe(update =>
                     {
-                        var s = update.EventArgs;
-                        ProgressText = $"{s.StatusText}";
-                        ProgressPercent = s.StepsProgress;
+                        RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+                        {
+                            var s = update.EventArgs;
+                            ProgressText = $"{s.StatusText}";
+                            ProgressPercent = s.StepsProgress;
+                            return Disposable.Empty;
+                        });
                     });
 
 
@@ -211,7 +215,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
                         this.ProgressText = "Compilation Cancelled";
                         ProgressPercent = Percent.Zero;
                         State = CompilerState.Configuration;
-                        _logger.LogInformation(ex, "Cancelled Compilation : {Message}", ex.Message);
+                        _logger.LogInformation(ex, "Cancelled compilation: {Message}", ex.Message);
                         Cancelling = false;
                         return Disposable.Empty;
                     }
@@ -221,7 +225,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
                         ProgressPercent = Percent.Zero;
 
                         State = CompilerState.Errored;
-                        _logger.LogInformation(ex, "Failed Compilation : {Message}", ex.Message);
+                        _logger.LogInformation(ex, "Failed compilation: {Message}", ex.Message);
                         return Disposable.Empty;
                     }
                 });

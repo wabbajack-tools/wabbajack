@@ -15,19 +15,19 @@ public partial class CpuLineView : ReactiveUserControl<CPUDisplayVM>
         InitializeComponent();
         this.WhenActivated(dispose =>
         {
-            this.WhenAny(x => x.ViewModel.ProgressPercent)
+            this.WhenAnyValue(x => x.ViewModel.ProgressPercent)
                 .Select(x => x.Value)
                 .BindToStrict(this, x => x.BackgroundProgressBar.Value)
                 .DisposeWith(dispose);
 
-            this.WhenAny(x => x.ViewModel.Msg)
+            this.WhenAnyValue(x => x.ViewModel.Msg)
                 .BindToStrict(this, x => x.Text.Text)
                 .DisposeWith(dispose);
-            this.WhenAny(x => x.ViewModel.Msg)
+            this.WhenAnyValue(x => x.ViewModel.Msg)
                 .BindToStrict(this, x => x.Text.ToolTip)
                 .DisposeWith(dispose);
 
-            this.WhenAny(x => x.ViewModel.ProgressPercent)
+            this.WhenAnyValue(x => x.ViewModel.ProgressPercent)
                 .Select(x => (int)(x.Value * 100) + "%")
                 .BindToStrict(this, x => x.Progress.Text)
                 .DisposeWith(dispose);

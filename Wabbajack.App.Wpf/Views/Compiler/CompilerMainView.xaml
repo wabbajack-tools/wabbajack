@@ -19,7 +19,7 @@
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -30,7 +30,7 @@
 
         <!-- Configuration -->
 
-        <local:DetailImageView x:Name="DetailImage" TitleFontSize="40" AuthorFontSize="18" Margin="0, 0, 0, 16" />
+        <local:DetailImageView x:Name="DetailImage" TitleFontSize="40" AuthorFontSize="18" Margin="0, 0, 0, 16" Height="{Binding ActualWidth, ElementName=DetailImage, Converter={StaticResource MathConverter}, ConverterParameter=x/(16/9)}" />
         <local:CompilerDetailsView x:Name="CompilerDetailsView" Grid.Row="1" Grid.RowSpan="2" ViewModel="{Binding CompilerDetailsVM}" />
 
         <local:CompilerFileManagerView x:Name="FileManager" ViewModel="{Binding CompilerFileManagerVM}" Grid.Column="1" Grid.RowSpan="2" Margin="16, 0, 0, 0" />
@@ -45,9 +45,9 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <local:WJButton x:Name="CancelButton" Text="Cancel" Icon="Dismiss" ButtonStyle="Danger" Grid.Column="0" Width="Auto" Margin="16, 0, 0, 0"/>
-            <local:WJButton Text="Open in File Explorer" Icon="Folder" IsEnabled="False" Grid.Column="1" Width="Auto" Margin="16, 0, 0, 0" />
-            <local:WJButton Text="Publish Modlist" Icon="CloudArrowUp" IsEnabled="False" Grid.Column="2" Width="Auto" Margin="16, 0, 0, 0" />
+            <local:WJButton x:Name="CancelButton" Text="Cancel" Icon="Dismiss" ButtonStyle="Danger" Grid.Column="0" Margin="16, 0, 0, 0"/>
+            <local:WJButton Text="Open in File Explorer" Icon="Folder" IsEnabled="False" Grid.Column="1" Margin="16, 0, 0, 0" />
+            <local:WJButton Text="Publish Modlist" Icon="CloudArrowUp" IsEnabled="False" Grid.Column="2" Margin="16, 0, 0, 0" />
         </Grid>
 
         <local:CpuView x:Name="CpuView" Grid.Row="1" Grid.RowSpan="2" ViewModel="{Binding}" Visibility="Hidden" />

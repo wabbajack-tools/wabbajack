@@ -7,6 +7,7 @@
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     d:DesignHeight="65"
     d:DesignWidth="400"
     x:TypeArguments="local:CPUDisplayVM"
@@ -14,7 +15,7 @@
     <Border x:Name="BorderMask2" CornerRadius="4" BorderThickness="0" Background="White">
         <Grid Margin="-1">
             <Border x:Name="BorderMask" CornerRadius="4" Background="White" Margin="1" />
-            <Grid Height="28" Background="{StaticResource WindowBackgroundBrush}">
+            <Grid Height="32" Background="{StaticResource ComplementaryPrimary08Brush}">
                 <Grid.OpacityMask>
                     <VisualBrush Visual="{Binding ElementName=BorderMask}"/>
                 </Grid.OpacityMask>
@@ -22,7 +23,8 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <mahapps:MetroProgressBar Grid.ColumnSpan="2" x:Name="BackgroundProgressBar" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ComplementaryPrimary08Brush}" Maximum="1" />
+                <mahapps:MetroProgressBar Grid.ColumnSpan="2" x:Name="BackgroundProgressBar" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ComplementaryPrimary16Brush}" Maximum="1" />
+                <ic:SymbolIcon x:Name="Icon" FontSize="18" Foreground="{StaticResource PrimaryBrush}" Margin="0, 0, 16, 0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Collapsed" />
                 <TextBlock x:Name="Text" Margin="8, 0, 0, 0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" TextWrapping="NoWrap" />
                 <TextBlock x:Name="Progress" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="NoWrap" Margin="0, 0, 8, 0" />
             </Grid>

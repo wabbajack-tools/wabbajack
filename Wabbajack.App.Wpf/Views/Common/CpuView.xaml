@@ -12,7 +12,7 @@
     <Grid x:Name="ControlGrid" Background="Transparent">
         <Rectangle x:Name="HeatedBorderRect" Fill="{StaticResource ProgressBrush}" />
         <Border BorderBrush="Transparent" BorderThickness="1" />
-        <Grid Background="{StaticResource ComplementaryPrimary08Brush}">
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
@@ -20,10 +20,13 @@
             <ListBox Grid.Row="0"
                 x:Name="CpuListControl"
                 HorizontalContentAlignment="Stretch"
-                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                Background="Transparent"
+                BorderBrush="Transparent"
+                BorderThickness="0">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <local:CpuLineView Margin="0, 4, 0, 0" ViewModel="{Binding}" />
+                        <local:CpuLineView Margin="0, 8, 0, 0" ViewModel="{Binding}" />
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
