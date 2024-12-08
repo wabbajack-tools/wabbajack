@@ -97,12 +97,24 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      .BindToStrict(this, v => v.DetailImage.Author)
                      .DisposeWith(disposables);
 
+            ViewModel.WhenAny(vm => vm.ModlistMetadata.Author)
+                     .BindToStrict(this, v => v.InstallDetailImage.Author)
+                     .DisposeWith(disposables);
+
             ViewModel.WhenAny(vm => vm.ModlistMetadata.Title)
                      .BindToStrict(this, v => v.DetailImage.Title)
                      .DisposeWith(disposables);
 
+            ViewModel.WhenAny(vm => vm.ModlistMetadata.Title)
+                     .BindToStrict(this, v => v.InstallDetailImage.Title)
+                     .DisposeWith(disposables);
+
             ViewModel.WhenAnyValue(vm => vm.ModlistMetadata.Version)
                      .BindToStrict(this, v => v.DetailImage.Version)
+                     .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.ModlistMetadata.Version)
+                     .BindToStrict(this, v => v.InstallDetailImage.Version)
                      .DisposeWith(disposables);
 
             ViewModel.WhenAnyValue(vm => vm.LoadingLock.IsLoading)

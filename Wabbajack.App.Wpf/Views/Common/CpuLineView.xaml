@@ -12,9 +12,9 @@
     d:DesignWidth="400"
     x:TypeArguments="local:CPUDisplayVM"
     mc:Ignorable="d">
-    <Border x:Name="BorderMask2" CornerRadius="4" BorderThickness="0" Background="White">
+    <Border x:Name="BorderMask2" CornerRadius="8" BorderThickness="0" Background="White">
         <Grid Margin="-1">
-            <Border x:Name="BorderMask" CornerRadius="4" Background="White" Margin="1" />
+            <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1" />
             <Grid Height="32" Background="{StaticResource ComplementaryPrimary08Brush}">
                 <Grid.OpacityMask>
                     <VisualBrush Visual="{Binding ElementName=BorderMask}"/>
