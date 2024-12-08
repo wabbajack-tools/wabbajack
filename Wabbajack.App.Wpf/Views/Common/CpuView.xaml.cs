@@ -16,7 +16,6 @@ public partial class CpuView : UserControlRx<ICpuStatusVM>
         InitializeComponent();
         this.WhenActivated(disposable =>
         {
-
             this.WhenAny(x => x.ViewModel.StatusList)
                 .BindToStrict(this, x => x.CpuListControl.ItemsSource)
                 .DisposeWith(disposable);

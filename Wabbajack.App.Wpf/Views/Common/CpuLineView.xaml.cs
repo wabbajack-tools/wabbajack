@@ -2,6 +2,7 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
+using System.Windows;
 
 namespace Wabbajack;
 
@@ -10,6 +11,9 @@ namespace Wabbajack;
 /// </summary>
 public partial class CpuLineView : ReactiveUserControl<CPUDisplayVM>
 {
+    private const string _ExtractingText = "Extracting";
+    private const string _DownloadingText = "Downloading";
+    private const string _HashingText = "Hashing";
     public CpuLineView()
     {
         InitializeComponent();
@@ -21,11 +25,33 @@ public partial class CpuLineView : ReactiveUserControl<CPUDisplayVM>
                 .DisposeWith(dispose);
 
             this.WhenAnyValue(x => x.ViewModel.Msg)
-                .BindToStrict(this, x => x.Text.Text)
-                .DisposeWith(dispose);
-            
-            this.WhenAnyValue(x => x.ViewModel.Msg)
-                .BindToStrict(this, x => x.Text.ToolTip)
+                .ObserveOnGuiThread()
+                .Subscribe(msg =>
+                {
+                    if (msg.StartsWith(_ExtractingText))
+                    {
+                        msg = msg.Substring(_ExtractingText.Length);
+                        Icon.Visibility = Visibility.Visible;
+                        Icon.Symbol = FluentIcons.Common.Symbol.Dock;
+                    }
+                    else if (msg.StartsWith(_DownloadingText))
+                    {
+                        msg = msg.Substring(_DownloadingText.Length);
+                        Icon.Visibility = Visibility.Visible;
+                        Icon.Symbol = FluentIcons.Common.Symbol.ArrowDownload;
+                    }
+                    else if (msg.StartsWith(_HashingText))
+                    {
+                        msg = msg.Substring(_HashingText.Length);
+                        Icon.Visibility = Visibility.Visible;
+                        Icon.Symbol = FluentIcons.Common.Symbol.NumberSymbol;
+                    }
+                    else
+                    {
+                        Icon.Visibility = Visibility.Collapsed;
+                    }
+                    Text.Text = msg;
+                })
                 .DisposeWith(dispose);
 
             this.WhenAnyValue(x => x.ViewModel.ProgressPercent)

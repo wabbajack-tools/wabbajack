@@ -22,22 +22,6 @@
             ItemsSource="{Binding LoggerProvider.MessageLog}"
             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
             AlternationCount="2">
-                    <!--
-            <ListBox.ItemContainerStyle>
-                <Style TargetType="ListBoxItem">
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ListBoxItem">
-                                <StackPanel>
-                                    <Rectangle Width="Auto" Height="1" Fill="{StaticResource PrimaryBrush}" Opacity="0.5" Margin="0, 4, 0, 8"></Rectangle>
-                                    <ContentPresenter />
-                                </StackPanel>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </ListBox.ItemContainerStyle>
-            -->
                     <ListBox.Resources>
                         <Style TargetType="{x:Type ListBoxItem}">
                             <Style.Triggers>
