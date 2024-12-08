@@ -10,26 +10,27 @@
     x:TypeArguments="local:ICpuStatusVM"
     mc:Ignorable="d">
     <Grid x:Name="ControlGrid" Background="Transparent">
-        <Rectangle x:Name="HeatedBorderRect" Fill="{StaticResource ProgressBrush}" />
         <Border BorderBrush="Transparent" BorderThickness="1" />
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <ItemsControl Grid.Row="0"
-                x:Name="CpuListControl"
-                HorizontalContentAlignment="Stretch"
-                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                Background="Transparent"
-                BorderBrush="Transparent"
-                BorderThickness="0">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <local:CpuLineView Margin="0, 0, 0, 8" ViewModel="{Binding}" />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl
+                              x:Name="CpuListControl"
+                              HorizontalContentAlignment="Stretch"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              Background="Transparent"
+                              BorderBrush="Transparent"
+                              BorderThickness="0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <local:CpuLineView Margin="0, 0, 0, 8" ViewModel="{Binding}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </local:UserControlRx>

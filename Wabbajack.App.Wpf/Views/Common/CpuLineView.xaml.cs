@@ -23,6 +23,7 @@ public partial class CpuLineView : ReactiveUserControl<CPUDisplayVM>
             this.WhenAnyValue(x => x.ViewModel.Msg)
                 .BindToStrict(this, x => x.Text.Text)
                 .DisposeWith(dispose);
+            
             this.WhenAnyValue(x => x.ViewModel.Msg)
                 .BindToStrict(this, x => x.Text.ToolTip)
                 .DisposeWith(dispose);
