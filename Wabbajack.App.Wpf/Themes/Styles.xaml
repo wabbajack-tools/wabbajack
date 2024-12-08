@@ -251,7 +251,7 @@
     <SolidColorBrush x:Key="ListBorder" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="ListBackground" Color="{StaticResource ComplementaryPrimary08}" />
     <SolidColorBrush x:Key="SelectedListItem" Color="{StaticResource ComplementaryPrimary16}" />
-    <SolidColorBrush x:Key="SelectedListItemForeground" Color="{StaticResource DarkBackgroundColor}" />
+    <SolidColorBrush x:Key="SelectedListItemForeground" Color="{StaticResource Primary}" />
     <SolidColorBrush x:Key="MouseOverListItem" Color="{StaticResource ComplementaryPrimary16}" />
 
     <SolidColorBrush x:Key="TreeViewBackground" Color="{StaticResource ComplementaryPrimary08}" />

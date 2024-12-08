@@ -17,19 +17,19 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <ListBox Grid.Row="0"
+            <ItemsControl Grid.Row="0"
                 x:Name="CpuListControl"
                 HorizontalContentAlignment="Stretch"
                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                 Background="Transparent"
                 BorderBrush="Transparent"
                 BorderThickness="0">
-                <ListBox.ItemTemplate>
+                <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <local:CpuLineView Margin="0, 8, 0, 0" ViewModel="{Binding}" />
+                        <local:CpuLineView Margin="0, 0, 0, 8" ViewModel="{Binding}" />
                     </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </Grid>
     </Grid>
 </local:UserControlRx>
