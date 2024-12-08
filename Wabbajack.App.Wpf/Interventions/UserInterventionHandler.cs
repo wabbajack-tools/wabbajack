@@ -1,6 +1,4 @@
 using System;
-using System.Reactive.Disposables;
-using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
@@ -10,12 +8,12 @@ using Wabbajack.UserIntervention;
 
 namespace Wabbajack.Interventions;
 
-public class UserIntreventionHandler : IUserInterventionHandler
+public class UserInterventionHandler : IUserInterventionHandler
 {
-    private readonly ILogger<UserIntreventionHandler> _logger;
+    private readonly ILogger<UserInterventionHandler> _logger;
     private readonly IServiceProvider _serviceProvider;
 
-    public UserIntreventionHandler(ILogger<UserIntreventionHandler> logger, IServiceProvider serviceProvider)
+    public UserInterventionHandler(ILogger<UserInterventionHandler> logger, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;

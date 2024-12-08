@@ -1,13 +1,8 @@
 using System;
-using System.Drawing;
 using System.Reactive.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
@@ -15,7 +10,6 @@ using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.IPS4OAuth2Downloader;
 using Wabbajack.DTOs.Logins;
-using Wabbajack.Messages;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.UserIntervention;
 

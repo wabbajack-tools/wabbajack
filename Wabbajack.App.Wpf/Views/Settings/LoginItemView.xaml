@@ -35,6 +35,6 @@
             Content="Logout" />
         <TextBlock Grid.Column="4"
             x:Name="MetaText"
-            FontSize="14" />
+            FontSize="13" />
     </Grid>
 </rxui:ReactiveUserControl>

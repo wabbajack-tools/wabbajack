@@ -6,15 +6,9 @@ using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
-using ReactiveUI;
 using Wabbajack.Common;
-using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
-using Wabbajack.Messages;
-using Wabbajack.Models;
-using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.UserIntervention;

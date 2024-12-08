@@ -1,0 +1,76 @@
+﻿<rxui:ReactiveUserControl
+    x:Class="Wabbajack.NavigationView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:rxui="http://reactiveui.net"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
+    x:TypeArguments="local:NavigationVM"
+    mc:Ignorable="d">
+    <Border BorderThickness="0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="8"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="8"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Button x:Name="HomeButton" Height="95" Margin="8, 0, 8, 0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Home" FontSize="36" />
+                    <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 8, 0, 0">
+                    Home
+                    </TextBlock>
+                </Grid>
+            </Button>
+            <Button x:Name="BrowseButton" Grid.Row="2" Height="95" Margin="8, 0, 8, 0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="CloudArrowDown" FontSize="36" />
+                    <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 8, 0, 0">
+                    Browse lists
+                    </TextBlock>
+                </Grid>
+            </Button>
+            <Button x:Name="CompileButton" Grid.Row="4" Height="95" Margin="8, 0, 8, 0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Toolbox" FontSize="36" />
+                    <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 8, 0, 0">
+                    Create a list
+                    </TextBlock>
+                </Grid>
+            </Button>
+            <Button x:Name="SettingsButton" Grid.Row="6" Padding="12" Height="95" Margin="8, 0, 8, 0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Settings" FontSize="36" />
+                    <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 8, 0, 0">
+                    Settings
+                    </TextBlock>
+                </Grid>
+            </Button>
+            <TextBlock x:Name="VersionTextBlock" Grid.Row="7" FontSize="12" HorizontalAlignment="Center" Margin="0, 10, 0, 10" Foreground="{StaticResource ForegroundBrush}" Opacity="0.66"/>
+        </Grid>
+    </Border>
+</rxui:ReactiveUserControl>

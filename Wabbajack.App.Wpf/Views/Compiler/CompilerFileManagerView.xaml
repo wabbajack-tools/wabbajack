@@ -1,0 +1,30 @@
+﻿<rxui:ReactiveUserControl
+    x:Class="Wabbajack.CompilerFileManagerView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lib="clr-namespace:Wabbajack;assembly=Wabbajack"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:rxui="http://reactiveui.net"
+    xmlns:wabbacommon="clr-namespace:Wabbajack.Common;assembly=Wabbajack.Common"
+    xmlns:controls1="clr-namespace:Wabbajack.ViewModels.Controls"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
+    d:DataContext="{d:DesignInstance local:CompilerFileManagerVM}"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:TypeArguments="local:CompilerFileManagerVM"
+    mc:Ignorable="d">
+    <Border Name="BorderMask2" CornerRadius="8" BorderThickness="0" Background="White">
+        <Grid Margin="-1">
+            <Grid.OpacityMask>
+                <VisualBrush Visual="{Binding ElementName=BorderMask}"/>
+            </Grid.OpacityMask>
+            <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1" />
+            <TreeView x:Name="FileTreeView" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+        </Grid>
+    </Border>
+
+</rxui:ReactiveUserControl>

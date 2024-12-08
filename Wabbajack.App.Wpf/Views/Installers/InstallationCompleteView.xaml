@@ -9,7 +9,7 @@
     xmlns:rxui="http://reactiveui.net"
     d:DesignHeight="450"
     d:DesignWidth="800"
-    x:TypeArguments="local:InstallerVM"
+    x:TypeArguments="local:InstallationVM"
     mc:Ignorable="d">
     <local:AttentionBorder x:Name="AttentionBorder" ClipToBounds="True">
         <Grid Margin="6">
@@ -29,7 +29,7 @@
                 x:Name="TitleText"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
-                FontFamily="Lucida Sans"
+                FontFamily="{StaticResource PrimaryFont}"
                 FontSize="22"
                 FontWeight="Black">
                 <TextBlock.Effect>
@@ -47,11 +47,11 @@
                     Width="50"
                     Height="50"
                     Style="{StaticResource CircleButtonStyle}">
-                    <icon:PackIconMaterial
+                    <!--<icon:PackIconMaterial
                         Width="25"
                         Height="25"
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        Kind="ArrowLeft" />
+                        Kind="ArrowLeft" />-->
                 </Button>
                 <TextBlock Grid.Row="1"
                     Margin="0,10,0,0"
@@ -70,11 +70,11 @@
                     Width="50"
                     Height="50"
                     Style="{StaticResource CircleButtonStyle}">
-                    <icon:PackIconMaterial
+                    <!--<icon:PackIconMaterial
                         Width="23"
                         Height="23"
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        Kind="FolderMove" />
+                        Kind="FolderMove" />-->
                 </Button>
                 <TextBlock Grid.Row="1"
                     Margin="0,10,0,0"
@@ -93,11 +93,11 @@
                     Width="50"
                     Height="50"
                     Style="{StaticResource CircleButtonStyle}">
-                    <icon:PackIconFontAwesome
+                    <!--<icon:PackIconFontAwesome
                         Width="25"
                         Height="25"
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        Kind="ListAltRegular" />
+                        Kind="ListAltRegular" />-->
                 </Button>
                 <TextBlock Grid.Row="1"
                            Margin="0,10,0,0"
@@ -116,11 +116,11 @@
                     Width="50"
                     Height="50"
                     Style="{StaticResource CircleButtonStyle}">
-                    <icon:PackIconFontAwesome
+                    <!--<icon:PackIconFontAwesome
                         Width="25"
                         Height="25"
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        Kind="ReadmeBrands" />
+                        Kind="ReadmeBrands" />-->
                 </Button>
                 <TextBlock Grid.Row="1"
                     Margin="0,10,0,0"
@@ -139,11 +139,11 @@
                     Width="50"
                     Height="50"
                     Style="{StaticResource CircleButtonStyle}">
-                    <icon:PackIconFontAwesome
+                    <!--<icon:PackIconFontAwesome
                         Width="25"
                         Height="25"
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        Kind="QuestionSolid" />
+                        Kind="QuestionSolid" />-->
                 </Button>
                 <TextBlock Grid.Row="1"
                     Margin="0,10,0,0"
@@ -162,11 +162,11 @@
                     Width="50"
                     Height="50"
                     Style="{StaticResource CircleButtonStyle}">
-                    <icon:PackIconMaterial
+                    <!--<icon:PackIconMaterial
                         Width="25"
                         Height="25"
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        Kind="Check" />
+                        Kind="Check" />-->
                 </Button>
                 <TextBlock Grid.Row="1"
                     Margin="0,10,0,0"

@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ReactiveUI;
 using Wabbajack.DTOs.Interventions;
 
 namespace Wabbajack.Messages;

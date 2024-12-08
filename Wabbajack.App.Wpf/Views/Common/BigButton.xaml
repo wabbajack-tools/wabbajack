@@ -1,0 +1,27 @@
+<local:UserControlRx
+    x:Class="Wabbajack.BigButton"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
+    x:TypeArguments="local:ViewModel"
+    ClipToBounds="True"
+    mc:Ignorable="d">
+    <Button x:Name="Button">
+        <Grid Margin="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock x:Name="ButtonTitleBlock" Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Get Started" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
+            <ic:SymbolIcon x:Name="ButtonSymbolIcon" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="ImageTable" FontSize="28" />
+            <TextBlock x:Name="ButtonDescriptionBlock" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center" />
+        </Grid>
+    </Button>
+</local:UserControlRx>

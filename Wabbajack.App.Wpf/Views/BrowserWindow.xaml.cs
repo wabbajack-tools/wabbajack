@@ -1,9 +1,7 @@
 using System;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,7 +9,6 @@ using MahApps.Metro.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Web.WebView2.Wpf;
 using ReactiveUI;
-using Wabbajack.Common;
 
 namespace Wabbajack;
 

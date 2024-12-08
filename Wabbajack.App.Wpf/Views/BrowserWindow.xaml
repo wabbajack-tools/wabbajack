@@ -6,7 +6,7 @@
                  xmlns:local="clr-namespace:Wabbajack"
                  xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                 xmlns:viewModels="clr-namespace:Wabbajack.View_Models"
+                 xmlns:viewModels="clr-namespace:Wabbajack.ViewModels"
                  xmlns:wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
                  ShowTitleBar="False"
                  Title="Browser Window"
@@ -23,7 +23,7 @@
                  WindowTitleBrush="{StaticResource MahApps.Brushes.Accent}"
                  ContentRendered="BrowserWindow_OnActivated"
                  mc:Ignorable="d">
-    <Grid x:Name="MainGrid" Background="#121212" MouseDown="UIElement_OnMouseDown">
+    <Grid x:Name="MainGrid" Background="{StaticResource BackgroundBrush}" MouseDown="UIElement_OnMouseDown">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
@@ -36,14 +36,14 @@
             <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Row="0" Margin="4, 0, 0, 0"  Grid.ColumnSpan="3" FontSize="16" Name="Header"></TextBlock>
-        
+
         <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Margin="4" FontSize="20" FontWeight="Bold" Name="Instructions"></TextBlock>
-        
+
         <Button Grid.Row="2" Grid.Column="0" Margin="4" Name="BackButton">
-            <icon:PackIconModern Kind="NavigatePrevious"></icon:PackIconModern>
+            <!--<icon:PackIconModern Kind="NavigatePrevious"></icon:PackIconModern>-->
         </Button>
         <Button  Grid.Row="2" Grid.Column="1" Margin="4" Name="CopyButton">
-            <icon:PackIconModern Kind="PageCopy"></icon:PackIconModern>
+            <!--<icon:PackIconModern Kind="PageCopy"></icon:PackIconModern>-->
         </Button>
         <TextBox  Grid.Row="2" Grid.Column="3" Margin="4" VerticalContentAlignment="Center" Name="AddressBar" IsEnabled="False"></TextBox>
     </Grid>

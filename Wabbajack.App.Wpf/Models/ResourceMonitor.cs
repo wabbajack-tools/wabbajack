@@ -14,7 +14,7 @@ namespace Wabbajack.Models;
 
 public class ResourceMonitor : IDisposable
 {
-    private readonly TimeSpan _pollInterval = TimeSpan.FromMilliseconds(250);
+    private readonly TimeSpan _pollInterval = TimeSpan.FromMilliseconds(1000);
     
     private readonly IResource[] _resources;
 

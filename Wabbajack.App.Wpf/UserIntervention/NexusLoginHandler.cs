@@ -1,26 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
-using Fizzler.Systems.HtmlAgilityPack;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.DTOs.OAuth;
-using Wabbajack.Messages;
-using Wabbajack.Models;
-using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Services.OSIntegrated;
-using Cookie = Wabbajack.DTOs.Logins.Cookie;
 
 namespace Wabbajack.UserIntervention;
 
