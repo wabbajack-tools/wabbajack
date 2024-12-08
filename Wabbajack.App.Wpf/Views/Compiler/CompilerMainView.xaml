@@ -42,12 +42,13 @@
         <Grid x:Name="CompilationButtons" Grid.Row="2" Grid.Column="1" Margin="0, 16, 0, 0" Visibility="Visible" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <local:WJButton x:Name="CancelButton" Text="Cancel" Icon="Dismiss" ButtonStyle="Danger" Grid.Column="0" Margin="16, 0, 0, 0"/>
-            <local:WJButton Text="Open in File Explorer" Icon="Folder" IsEnabled="False" Grid.Column="1" Margin="16, 0, 0, 0" />
-            <local:WJButton Text="Publish Modlist" Icon="CloudArrowUp" IsEnabled="False" Grid.Column="2" Margin="16, 0, 0, 0" />
+            <local:WJButton x:Name="CancelButton" Text="Cancel" Icon="DismissCircle" ButtonStyle="Danger" Grid.Column="1" Margin="16, 0, 0, 0" HorizontalAlignment="Right"/>
+            <local:WJButton Text="Open in File Explorer" Icon="Folder" IsEnabled="False" Grid.Column="2" Margin="16, 0, 0, 0" HorizontalAlignment="Right" />
+            <local:WJButton Text="Publish Modlist" Icon="CloudArrowUp" IsEnabled="False" Grid.Column="3" Margin="16, 0, 0, 0" HorizontalAlignment="Right" />
         </Grid>
 
         <local:CpuView x:Name="CpuView" Grid.Row="1" Grid.RowSpan="2" ViewModel="{Binding}" Visibility="Hidden" />
