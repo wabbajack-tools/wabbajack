@@ -11,7 +11,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
     xmlns:lib1="clr-namespace:Wabbajack"
-    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     d:DataContext="{d:DesignInstance local:InstallationVM}"
     d:DesignHeight="500"
     d:DesignWidth="800"
@@ -45,12 +44,6 @@
         <Style x:Key="InstallButtonStyle" BasedOn="{StaticResource WJButtonStyle}" TargetType="{x:Type Button}">
             <Setter Property="Margin" Value="{StaticResource InstallMargin}" />
             <Setter Property="Width" Value="Auto" />
-        </Style>
-        <Style x:Key="WorkerIndicatorBorder" TargetType="{x:Type Border}">
-            <Setter Property="BorderThickness" Value="2" />
-            <Setter Property="BorderBrush" Value="{StaticResource ComplementaryPrimary08Brush}" />
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Padding" Value="0, 8, 0, 8" />
         </Style>
     </UserControl.Resources>
     <Grid>
@@ -127,56 +120,18 @@
                 </Grid.RowDefinitions>
 
                 <local:DetailImageView x:Name="InstallDetailImage" TitleFontSize="36" AuthorFontSize="16" Margin="0, 0, 0, 16" Height="{Binding ActualWidth, ElementName=InstallDetailImage, Converter={StaticResource MathConverter}, ConverterParameter=x/(16/9)}" />
-                <local:CpuView x:Name="CpuView" Grid.Row="1" ViewModel="{Binding}" Margin="0, 0, 0, 16" />
+                <local:CpuView x:Name="CpuView" Grid.Row="1" ViewModel="{Binding}" Margin="0" />
 
-                <Grid x:Name="WorkerIndicators" Grid.Row="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="16" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="16" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource WorkerIndicatorBorder}">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ic:SymbolIcon Grid.Column="0" Symbol="NumberSymbol" HorizontalAlignment="Left" Foreground="{StaticResource PrimaryBrush}" FontSize="18" Margin="8, 0, 0, 0" />
-                            <TextBlock Grid.Column="1" Margin="8, 0, 0, 0" Text="Hashing" />
-                            <TextBlock Grid.Column="3" x:Name="HashSpeedText" HorizontalAlignment="Right" Margin="0, 0, 8, 0" />
-                        </Grid>
-                    </Border>
-                    <Border Grid.Column="2" Style="{StaticResource WorkerIndicatorBorder}">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ic:SymbolIcon Grid.Column="0" Symbol="Dock" HorizontalAlignment="Left" Foreground="{StaticResource PrimaryBrush}" FontSize="18" Margin="8, 0, 0, 0" />
-                            <TextBlock Grid.Column="1" Margin="8, 0, 0, 0" Text="Extraction" />
-                            <TextBlock Grid.Column="3" x:Name="ExtractionSpeedText" HorizontalAlignment="Right" Margin="0, 0, 8, 0" />
-                        </Grid>
-                    </Border>
-                    <Border Grid.Column="4" Style="{StaticResource WorkerIndicatorBorder}">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ic:SymbolIcon Grid.Column="0" Symbol="ArrowDownload" HorizontalAlignment="Left" Foreground="{StaticResource PrimaryBrush}" FontSize="18" Margin="8, 0, 0, 0" />
-                            <TextBlock Grid.Column="1" Margin="8, 0, 0, 0" Text="Download" />
-                            <TextBlock Grid.Column="3" x:Name="DownloadSpeedText" HorizontalAlignment="Right" Margin="0, 0, 8, 0" />
-                        </Grid>
-                    </Border>
+                <Grid x:Name="WorkerIndicators" Grid.Row="2" Height="55">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
                 </Grid>
+                <TextBlock x:Name="HashSpeedText" Grid.Row="0" />
+                <TextBlock x:Name="ExtractionSpeedText" Grid.Row="1" />
+                <TextBlock x:Name="DownloadSpeedText" Grid.Row="2" />
             </Grid>
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>

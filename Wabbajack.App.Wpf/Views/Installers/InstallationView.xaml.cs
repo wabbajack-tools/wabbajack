@@ -52,6 +52,18 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             this.BindCommand(ViewModel, vm => vm.InstallCommand, v => v.InstallButton)
                 .DisposeWith(disposables);
 
+            this.WhenAnyValue(v => v.ViewModel.HashingSpeed)
+                .BindToStrict(this, v => v.HashSpeedText.Text)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(v => v.ViewModel.ExtractingSpeed)
+                .BindToStrict(this, v => v.ExtractionSpeedText.Text)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(v => v.ViewModel.DownloadingSpeed)
+                .BindToStrict(this, v => v.DownloadSpeedText.Text)
+                .DisposeWith(disposables);
+
             ViewModel.WhenAnyValue(vm => vm.InstallState)
                      .ObserveOnGuiThread()
                      .Subscribe(x =>

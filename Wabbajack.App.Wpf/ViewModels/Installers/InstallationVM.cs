@@ -127,6 +127,10 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     private AbsolutePath LastInstallPath { get; set; }
 
     [Reactive] public bool OverwriteFiles { get; set; }
+
+    [Reactive] public string HashingSpeed { get; set; }
+    [Reactive] public string ExtractingSpeed { get; set; }
+    [Reactive] public string DownloadingSpeed { get; set; }
     
     
     // Command properties
@@ -233,6 +237,27 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
         {
             WabbajackFileLocation.WhenAnyValue(l => l.TargetPath)
                 .Subscribe(p => LoadModlist(p, null).FireAndForget())
+                .DisposeWith(disposables);
+
+            _resourceMonitor.Updates
+                .Subscribe(updates =>
+                {
+                    foreach (var update in updates)
+                    {
+                        switch (update.Name)
+                        {
+                            case "Downloads":
+                                DownloadingSpeed = $"{update.Throughput.ToFileSizeString()}/s";
+                                break;
+                            case "File Hashing":
+                                HashingSpeed = $"{update.Throughput.ToFileSizeString()}/s";
+                                break;
+                            case "File Extractor":
+                                ExtractingSpeed = $"{update.Throughput.ToFileSizeString()}/s";
+                                break;
+                        }
+                    }
+                })
                 .DisposeWith(disposables);
 
             var token = new CancellationTokenSource();
