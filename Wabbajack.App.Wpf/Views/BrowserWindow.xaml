@@ -6,7 +6,6 @@
                  xmlns:local="clr-namespace:Wabbajack"
                  xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                 xmlns:viewModels="clr-namespace:Wabbajack.ViewModels"
                  xmlns:wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
                  ShowTitleBar="False"
                  Title="Browser Window"
@@ -39,12 +38,7 @@
 
         <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Margin="4" FontSize="20" FontWeight="Bold" Name="Instructions"></TextBlock>
 
-        <Button Grid.Row="2" Grid.Column="0" Margin="4" Name="BackButton">
-            <!--<icon:PackIconModern Kind="NavigatePrevious"></icon:PackIconModern>-->
-        </Button>
-        <Button  Grid.Row="2" Grid.Column="1" Margin="4" Name="CopyButton">
-            <!--<icon:PackIconModern Kind="PageCopy"></icon:PackIconModern>-->
-        </Button>
-        <TextBox  Grid.Row="2" Grid.Column="3" Margin="4" VerticalContentAlignment="Center" Name="AddressBar" IsEnabled="False"></TextBox>
+		<local:WJButton Grid.Row="2" Grid.Column="0" x:Name="BackButton" Icon="ChevronLeft" Width="60" HorizontalAlignment="Center" Style="{StaticResource TransparentBackgroundButtonStyle}" />
+        <TextBox Grid.Row="2" Grid.Column="3" Margin="4" VerticalContentAlignment="Center" Name="AddressBar" IsEnabled="True" IsReadOnly="True"></TextBox>
     </Grid>
 </mahapps:MetroWindow>

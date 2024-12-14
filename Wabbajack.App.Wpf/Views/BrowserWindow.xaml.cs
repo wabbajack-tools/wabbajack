@@ -62,11 +62,6 @@ public partial class BrowserWindow : MetroWindow
             .BindToStrict(this, view => view.AddressBar.Text)
             .DisposeWith(_disposable);
         
-        this.CopyButton.Command = ReactiveCommand.Create(() =>
-        {
-            Clipboard.SetText(vm.Address.ToString());
-        });
-        
         this.BackButton.Command = ReactiveCommand.Create(() =>
         {
             Browser.GoBack();
