@@ -165,4 +165,18 @@ public static class UIUtils
         var fileName = metadata.Links.MachineURL + "_small.webp";
         return $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/refs/heads/master/reports/{metadata.RepositoryName}/{fileName}";
     }
+
+    public static string GetHumanReadableReadmeLink(string uri)
+    {
+        if (uri.Contains("raw.githubusercontent.com") && uri.EndsWith(".md"))
+        {
+            var urlParts = uri.Split('/');
+            var user = urlParts[3];
+            var repository = urlParts[4];
+            var branch = urlParts[5];
+            var fileName = urlParts[6];
+            return $"https://github.com/{user}/{repository}/blob/{branch}/{fileName}#{repository}";
+        }
+        return uri;
+    }
 }

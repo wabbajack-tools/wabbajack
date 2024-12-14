@@ -96,9 +96,7 @@
             <Grid>
 
                 <Border
-                    HorizontalAlignment="Left"
-                    Background="{StaticResource ToggleButtonBackground}"
-                    CornerRadius="8"
+                    Style="{StaticResource ToggleButtonContainer}"
                     Margin="0, 0, 0, 16"
                     >
                     <StackPanel Orientation="Horizontal" Margin="4">

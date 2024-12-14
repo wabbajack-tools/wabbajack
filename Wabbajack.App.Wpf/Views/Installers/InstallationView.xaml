@@ -95,7 +95,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <local:WJButton x:Name="DocumentationButton" Text="Documentation" Icon="Document" Grid.Row="0" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                    <local:WJButton x:Name="DocumentationButton" Text="Readme" Icon="Document" Grid.Row="0" Margin="{StaticResource InstallMargin}" Width="Auto" />
                     <local:WJButton x:Name="WebsiteButton" Text="Website" Icon="Globe" Grid.Row="1" Margin="{StaticResource InstallMargin}" Width="Auto" />
                     <local:WJButton x:Name="DiscordButton" Text="Discord" Icon="PeopleChat" Grid.Row="2" Margin="{StaticResource InstallMargin}" Width="Auto" />
                     <local:WJButton x:Name="ManifestButton" Text="Archives" Icon="BoxSearch" Grid.Row="3" Width="Auto" />
@@ -150,6 +150,7 @@
                             <TextBlock Grid.Column="3" x:Name="HashSpeedText" HorizontalAlignment="Right" Margin="0, 0, 8, 0" />
                         </Grid>
                     </Border>
+
                     <Border Grid.Column="2" Style="{StaticResource WorkerIndicatorBorder}">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -163,6 +164,7 @@
                             <TextBlock Grid.Column="3" x:Name="ExtractionSpeedText" HorizontalAlignment="Right" Margin="0, 0, 8, 0" />
                         </Grid>
                     </Border>
+
                     <Border Grid.Column="4" Style="{StaticResource WorkerIndicatorBorder}">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -176,16 +178,50 @@
                             <TextBlock Grid.Column="3" x:Name="DownloadSpeedText" HorizontalAlignment="Right" Margin="0, 0, 8, 0" />
                         </Grid>
                     </Border>
+
                 </Grid>
             </Grid>
-            <Grid Grid.Column="2">
+
+            <Grid Grid.Column="2" x:Name="RightSideGrid">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <local:LogView x:Name="LogView" Margin="0, 0, 0, 16"/>
-                <local:WJButton x:Name="CancelButton" ButtonStyle="Danger" Grid.Row="1" Text="Cancel" Icon="Dismiss" HorizontalAlignment="Right" />
+                <Grid Grid.Row="0" Margin="0, 0, 0, 16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource ToggleButtonContainer}">
+                        <StackPanel Orientation="Horizontal" Margin="4">
+                            <ToggleButton
+                            x:Name="ReadmeToggleButton"
+                            IsChecked="True"
+                            MinWidth="80"
+                            Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/7}">Readme</ToggleButton>
+                            <ToggleButton
+                            x:Name="LogToggleButton"
+                            MinWidth="80"
+                            Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/7}">Log Viewer</ToggleButton>
+                        </StackPanel>
+                    </Border>
+                    <local:WJButton x:Name="OpenReadmeButton" 
+                                    Grid.Column="2"
+                                    ButtonStyle="Mono"
+                                    Text="Open in browser"
+                                    Icon="WindowNew"
+                                    IconSize="20"
+                                    MinWidth="160"
+                                    Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/4.5}"
+                                    HorizontalAlignment="Right" />
+                </Grid>
+                <Grid x:Name="ReadmeBrowserGrid" Grid.Row="1" Margin="0, 0, 0, 16"></Grid>
+                <local:LogView Grid.Row="1" x:Name="LogView" Margin="0, 0, 0, 16" Visibility="Collapsed" />
+                <local:WJButton x:Name="CancelButton" ButtonStyle="Danger" Grid.Row="2" Text="Cancel" Icon="Dismiss" HorizontalAlignment="Right" />
             </Grid>
+
         </Grid>
     </Grid>
         <!--

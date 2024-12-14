@@ -39,6 +39,7 @@ using Wabbajack.VFS;
 using Humanizer;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
+using Microsoft.Web.WebView2.Wpf;
 
 namespace Wabbajack;
 
@@ -98,6 +99,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     [Reactive]
     public string SuggestedDownloadFolder { get; set; }
 
+    public WebView2 ReadmeBrowser { get; set; }
 
     private readonly DTOSerializer _dtos;
     private readonly ILogger<InstallationVM> _logger;
@@ -170,6 +172,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
         ProgressText = $"Installation";
 
         Installer = new MO2InstallerVM(this);
+        ReadmeBrowser = serviceProvider.GetRequiredService<WebView2>();
 
         CancelCommand = ReactiveCommand.Create(CancelInstall, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
         InstallCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget(), this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
@@ -235,6 +238,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
         this.WhenActivated(disposables =>
         {
+
             WabbajackFileLocation.WhenAnyValue(l => l.TargetPath)
                 .Subscribe(p => LoadModlist(p, null).FireAndForget())
                 .DisposeWith(disposables);

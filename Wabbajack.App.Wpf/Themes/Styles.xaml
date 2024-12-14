@@ -1857,6 +1857,12 @@
         </Setter>
     </Style>
 
+    <Style x:Key="ToggleButtonContainer" TargetType="{x:Type Border}">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="Background" Value="{StaticResource ToggleButtonBackground}" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+
     <!--  Expander  -->
     <Style x:Key="ExpanderRightHeaderStyle" TargetType="{x:Type ToggleButton}">
         <Setter Property="Template">

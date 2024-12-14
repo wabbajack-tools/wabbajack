@@ -2,19 +2,14 @@
 using System.Reactive.Linq;
 using ReactiveUI;
 using System.Windows;
-using Microsoft.Toolkit.HighPerformance;
-using Humanizer;
 using System;
-using System.IO;
 using System.Linq;
-using Microsoft.VisualBasic.Devices;
-using System.Management;
-using System.Text.RegularExpressions;
 using Wabbajack.Paths;
-using Wabbajack.Paths.IO;
-using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
 using Wabbajack.Messages;
+using ReactiveMarbles.ObservableEvents;
+using System.Reactive;
+using System.Windows.Controls;
+using System.Reactive.Concurrency;
 
 namespace Wabbajack;
 
@@ -62,6 +57,14 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
 
             this.WhenAnyValue(v => v.ViewModel.DownloadingSpeed)
                 .BindToStrict(this, v => v.DownloadSpeedText.Text)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.OpenReadmeCommand, v => v.OpenReadmeButton)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.ReadmeToggleButton.IsChecked)
+                .Select(x => x ?? false ? Visibility.Visible : Visibility.Hidden)
+                .BindToStrict(this, x => x.OpenReadmeButton.Visibility)
                 .DisposeWith(disposables);
 
             ViewModel.WhenAnyValue(vm => vm.InstallState)
@@ -134,6 +137,51 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .BindToStrict(this, v => v.ModlistLoadingRing.Visibility)
                 .DisposeWith(disposables);
 
+            this.WhenAnyValue(x => x.ViewModel.ModList.Readme)
+                     .Select(x =>
+                     {
+                         var humanReadableReadme = UIUtils.GetHumanReadableReadmeLink(ViewModel.ModList.Readme);
+                         if (Uri.TryCreate(humanReadableReadme, UriKind.Absolute, out var uri))
+                         {
+                             return uri;
+                         }
+                         return default;
+                     })
+                     .BindToStrict(this, x => x.ViewModel.ReadmeBrowser.Source)
+                     .DisposeWith(disposables);
+
+            ReadmeToggleButton.Events().Checked
+                .ObserveOnGuiThread()
+                .Subscribe(_ =>
+                {
+                    LogToggleButton.IsChecked = false;
+                    LogView.Visibility = Visibility.Collapsed;
+                })
+                .DisposeWith(disposables);
+
+            LogToggleButton.Events().Checked
+                .ObserveOnGuiThread()
+                .Subscribe(_ =>
+                {
+                    ReadmeToggleButton.IsChecked = false;
+                    LogView.Visibility = Visibility.Visible;
+                    ViewModel.ReadmeBrowser.Visibility = Visibility.Collapsed;
+                })
+                .DisposeWith(disposables);
+
+            RxApp.MainThreadScheduler.Schedule(() =>
+            {
+                ViewModel.ReadmeBrowser.Margin = new Thickness(0, 0, 0, 16);
+                if (ViewModel.ReadmeBrowser.Parent != null)
+                {
+                    ((Panel)ViewModel.ReadmeBrowser.Parent).Children.Remove(ViewModel.ReadmeBrowser);
+                }
+                ViewModel.ReadmeBrowser.Width = double.NaN;
+                ViewModel.ReadmeBrowser.Height = double.NaN;
+                ViewModel.ReadmeBrowser.Visibility = Visibility.Visible;
+                ReadmeBrowserGrid.Children.Add(ViewModel.ReadmeBrowser);
+            });
+
             /*
             ViewModel.WhenAnyValue(vm => vm.InstallState)
                 .Select(v => v != InstallState.Configuration ? Visibility.Visible : Visibility.Collapsed)
@@ -205,7 +253,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .BindToStrict(this, view => view.DetailImage.Image)
                 .DisposeWith(disposables);
             */
-
         });
     }
 }

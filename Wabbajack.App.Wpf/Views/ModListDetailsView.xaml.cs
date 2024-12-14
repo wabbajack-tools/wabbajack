@@ -74,20 +74,15 @@ public partial class ModListDetailsView
                 {
                     try
                     {
-                        if(readme.Contains("raw.githubusercontent.com") && readme.EndsWith(".md"))
-                        {
-                            var urlParts = readme.Split('/');
-                            var user = urlParts[3];
-                            var repository = urlParts[4];
-                            var branch = urlParts[5];
-                            var fileName = urlParts[6];
-                            return new Uri($"https://github.com/{user}/{repository}/blob/{branch}/{fileName}#{repository}");
+                        var humanReadableReadme = UIUtils.GetHumanReadableReadmeLink(readme);
+                        if(Uri.TryCreate(humanReadableReadme, UriKind.Absolute, out var uri)) {
+                            return uri;
                         }
-                        return new Uri(readme);
-                    }
-                    catch (Exception)
-                    {
                         return default;
+                    }
+                    catch(Exception)
+                    {
+                        return new Uri(readme);
                     }
                 })
                 .BindToStrict(this, x => x.ViewModel.Browser.Source)
