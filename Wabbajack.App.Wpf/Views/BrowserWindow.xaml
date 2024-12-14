@@ -38,7 +38,7 @@
 
         <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Margin="4" FontSize="20" FontWeight="Bold" Name="Instructions"></TextBlock>
 
-		<local:WJButton Grid.Row="2" Grid.Column="0" x:Name="BackButton" Icon="ChevronLeft" Width="60" HorizontalAlignment="Center" Style="{StaticResource TransparentBackgroundButtonStyle}" />
-        <TextBox Grid.Row="2" Grid.Column="3" Margin="4" VerticalContentAlignment="Center" Name="AddressBar" IsEnabled="True" IsReadOnly="True"></TextBox>
+		<local:WJButton Grid.Row="2" Grid.Column="0" x:Name="BackButton" ButtonStyle="Transparent" Icon="ChevronLeft" Margin="8" Width="56" HorizontalAlignment="Center" />
+        <TextBox Grid.Row="2" Grid.Column="3" Margin="8" Foreground="{StaticResource DisabledButtonForeground}" VerticalContentAlignment="Center" Name="AddressBar" IsEnabled="True" IsReadOnly="True"></TextBox>
     </Grid>
 </mahapps:MetroWindow>
