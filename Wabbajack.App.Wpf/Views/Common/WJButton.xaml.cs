@@ -99,8 +99,7 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject
                 if (ButtonStyle != ButtonStyle.Progress) return;
                 if (percent == Percent.One)
                 {
-                    Background = new SolidColorBrush((Color)Application.Current.Resources["Primary"]);
-                    Foreground = new SolidColorBrush((Color)Application.Current.Resources["BackgroundColor"]);
+                    Style = (Style)Application.Current.Resources["WJColorButtonStyle"];
                 }
                 else if (percent == Percent.Zero)
                 {
