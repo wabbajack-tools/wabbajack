@@ -207,7 +207,7 @@ public partial class MainWindow : MetroWindow
                         @"<local:BrowserWindow ViewModel=""{Binding}"" />" +
                       @"</DataTemplate>";
                       var parser = new ParserContext();
-                      parser.XamlTypeMapper = new XamlTypeMapper(new string[0]);
+                      parser.XamlTypeMapper = new XamlTypeMapper([]);
                       parser.XamlTypeMapper.AddMappingProcessingInstruction("local", type.Namespace, type.Assembly.FullName);
                       parser.XmlnsDictionary.Add("", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
                       parser.XmlnsDictionary.Add("x", "http://schemas.microsoft.com/winfx/2006/xaml");

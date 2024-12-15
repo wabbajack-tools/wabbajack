@@ -9,13 +9,11 @@ using ReactiveMarbles.ObservableEvents;
 
 namespace Wabbajack;
 
-public partial class BrowserWindow : ReactiveUserControl<BrowserWindowViewModel>, IActivatableViewModel
+public partial class BrowserWindow : ReactiveUserControl<BrowserWindowViewModel>
 {
-    public ViewModelActivator Activator { get; }
     public BrowserWindow()
     {
         InitializeComponent();
-        Activator = new ViewModelActivator();
 
         this.WhenActivated(disposables =>
         {
@@ -24,7 +22,6 @@ public partial class BrowserWindow : ReactiveUserControl<BrowserWindowViewModel>
 
             this.BindCommand(ViewModel, vm => vm.CloseCommand, v => v.CloseButton)
                 .DisposeWith(disposables);
-
 
             this.WhenAnyValue(v => v.ViewModel.HeaderText)
                 .BindToStrict(this, view => view.Header.Text)

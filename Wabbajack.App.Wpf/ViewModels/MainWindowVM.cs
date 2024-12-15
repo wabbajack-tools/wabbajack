@@ -25,6 +25,7 @@ using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.UserIntervention;
 using Wabbajack.ViewModels;
+using System.Reactive.Concurrency;
 
 namespace Wabbajack;
 
@@ -263,10 +264,9 @@ public class MainWindowVM : ViewModel
     private void HandleShowBrowserWindow(ShowBrowserWindow msg)
     {
         var browserWindow = _serviceProvider.GetRequiredService<BrowserWindow>();
-        browserWindow.Activator.Activate();
         ActiveFloatingPane = browserWindow.ViewModel = msg.ViewModel;
         browserWindow.DataContext = ActiveFloatingPane;
-        browserWindow.Activator.Activate();
+        RxApp.MainThreadScheduler.Schedule(() => browserWindow.ViewModel.Activator.Activate());
         ((BrowserWindowViewModel)ActiveFloatingPane).Closed += (_, _) => ActiveFloatingPane.Activator.Deactivate();
     }
 
