@@ -4,8 +4,6 @@ using System.Reactive.Disposables;
 using System.Windows.Controls;
 using System.Windows;
 using ReactiveUI;
-using System.Threading;
-using ReactiveMarbles.ObservableEvents;
 
 namespace Wabbajack;
 
@@ -51,18 +49,6 @@ public partial class BrowserWindow : ReactiveUserControl<BrowserWindowViewModel>
                     });
                 })
                 .DisposeWith(disposables);
-            /*
-            RxApp.MainThreadScheduler.Schedule(() =>
-            {
-                var browser = ViewModel.Browser;
-                if (browser.Parent != null)
-                {
-                    ((Panel)browser.Parent).Children.Remove(browser);
-                }
-                ViewModel.Browser.Visibility = Visibility.Visible;
-                WebViewGrid.Children.Add(browser);
-            });
-            */
         });
     }
 }

@@ -191,49 +191,6 @@ public partial class MainWindow : MetroWindow
                 .Select(x => x == null ? Visibility.Hidden : Visibility.Visible)
                 .BindTo(this, view => view.FloatingWindow.Visibility);
 
-            vm.WhenAnyValue(vm => vm.ActiveFloatingPane)
-              .Where(vm => vm is BrowserWindowViewModel)
-              .Subscribe(vm =>
-              {
-                  RxApp.MainThreadScheduler.Schedule(() =>
-                  {
-                      int i = 0;
-                      DictionaryEntry? oldEntry = null;
-                      DictionaryEntry? newEntry = null;
-                      var bwvm = (BrowserWindowViewModel)vm;
-                      var type = vm.GetType();
-                      string xamlTemplate =
-                      @"<DataTemplate DataType=""{x:Type local:" + vm.GetType().Name + @"}"">" +
-                        @"<local:BrowserWindow ViewModel=""{Binding}"" />" +
-                      @"</DataTemplate>";
-                      var parser = new ParserContext();
-                      parser.XamlTypeMapper = new XamlTypeMapper([]);
-                      parser.XamlTypeMapper.AddMappingProcessingInstruction("local", type.Namespace, type.Assembly.FullName);
-                      parser.XmlnsDictionary.Add("", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
-                      parser.XmlnsDictionary.Add("x", "http://schemas.microsoft.com/winfx/2006/xaml");
-                      parser.XmlnsDictionary.Add("local", "local");
-
-                      foreach (var resource in FloatingContentPresenter.Resources.Cast<DictionaryEntry>())
-                      {
-                          var resourceKey = resource.Key;
-                          var dataTemplate = (DataTemplate)resource.Value;
-                          var dataType = (Type)dataTemplate.DataType;
-                          if (dataType.IsAssignableFrom(typeof(BrowserWindowViewModel)))
-                          {
-                              var newTemplate = (DataTemplate)XamlReader.Parse(xamlTemplate, parser);
-                              oldEntry = resource;
-                              newEntry = new DictionaryEntry(newTemplate.DataTemplateKey, newTemplate);
-                              break;
-                          }
-                          i++;
-                      }
-                      if (oldEntry.HasValue && newEntry.HasValue) {
-                          FloatingContentPresenter.Resources.Remove(oldEntry.Value.Key);
-                          FloatingContentPresenter.Resources[newEntry.Value.Key] = newEntry.Value.Value;
-                      }
-                  });
-              });
-
             this.Events().KeyDown
                 .Subscribe(x => HandleKeyDown(this, x));
 
