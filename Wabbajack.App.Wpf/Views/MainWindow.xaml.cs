@@ -18,6 +18,8 @@ using Wabbajack.Util;
 using ReactiveMarbles.ObservableEvents;
 using System.Reactive;
 using System.Diagnostics;
+using System.Linq;
+using System.Collections;
 
 namespace Wabbajack;
 
@@ -187,7 +189,6 @@ public partial class MainWindow : MetroWindow
 
             this.Events().KeyDown
                 .Subscribe(x => HandleKeyDown(this, x));
-
         }
         catch (Exception ex)
         {
@@ -196,7 +197,7 @@ public partial class MainWindow : MetroWindow
         }
 
         vm.WhenAnyValue(vm => vm.WindowTitle)
-            .BindToStrict(this, view => view.AppName.Text);
+          .BindToStrict(this, view => view.AppName.Text);
 
     }
 

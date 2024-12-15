@@ -10,6 +10,7 @@ using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.IPS4OAuth2Downloader;
 using Wabbajack.DTOs.Logins;
+using Wabbajack.Messages;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.UserIntervention;
 
@@ -60,11 +61,9 @@ public class LoversLabLoginManager : ViewModel, ILoginFor<LoversLabDownloader>
     
     private void StartLogin()
     {
-        var view = new BrowserWindow(_serviceProvider);
-        view.Closed += (sender, args) => { RefreshTokenState(); };
-        var provider = _serviceProvider.GetRequiredService<LoversLabLoginHandler>();
-        view.DataContext = provider;
-        view.Show();
+        var handler = _serviceProvider.GetRequiredService<LoversLabLoginHandler>();
+        handler.Closed += (sender, args) => { RefreshTokenState(); };
+        ShowBrowserWindow.Send(handler);
     }
 
     private void RefreshTokenState()

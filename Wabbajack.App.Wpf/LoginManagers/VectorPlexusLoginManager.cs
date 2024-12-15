@@ -10,6 +10,7 @@ using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.IPS4OAuth2Downloader;
 using Wabbajack.DTOs.Logins;
+using Wabbajack.Messages;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.UserIntervention;
 
@@ -61,11 +62,9 @@ public class VectorPlexusLoginManager : ViewModel, ILoginFor<LoversLabDownloader
         
     private void StartLogin()
     {
-        var view = new BrowserWindow(_serviceProvider);
-        view.Closed += (sender, args) => { RefreshTokenState(); };
-        var provider = _serviceProvider.GetRequiredService<VectorPlexusLoginHandler>();
-        view.DataContext = provider;
-        view.Show();
+        var browserView = _serviceProvider.GetRequiredService<BrowserWindow>();
+        browserView.ViewModel.Closed += (_, _) => RefreshTokenState();
+        ShowBrowserWindow.Send(_serviceProvider.GetRequiredService<VectorPlexusLoginHandler>());
     }
 
 

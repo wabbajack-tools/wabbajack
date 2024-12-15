@@ -6,26 +6,39 @@
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     x:TypeArguments="local:BrowserWindowViewModel"
-    ContentRendered="BrowserWindow_OnActivated"
     mc:Ignorable="d">
-    <Grid x:Name="MainGrid" Background="{StaticResource BackgroundBrush}" MouseDown="UIElement_OnMouseDown">
+    <Grid x:Name="MainGrid" Background="{StaticResource BackgroundBrush}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
-            <ColumnDefinition Width="*"></ColumnDefinition>
+			<ColumnDefinition Width="Auto" />
+			<ColumnDefinition Width="Auto" />
+			<ColumnDefinition Width="*" />
+			<ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Row="0" Margin="4, 0, 0, 0"  Grid.ColumnSpan="3" FontSize="16" Name="Header"></TextBlock>
-
         <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Margin="4" FontSize="20" FontWeight="Bold" Name="Instructions"></TextBlock>
-
 		<local:WJButton Grid.Row="2" Grid.Column="0" x:Name="BackButton" ButtonStyle="Transparent" Icon="ChevronLeft" Margin="8" Width="56" HorizontalAlignment="Center" />
         <TextBox Grid.Row="2" Grid.Column="3" Margin="8" Foreground="{StaticResource DisabledButtonForeground}" VerticalContentAlignment="Center" Name="AddressBar" IsEnabled="True" IsReadOnly="True"></TextBox>
+		<Button
+			x:Name="CloseButton"
+            Grid.Column="4"
+			Style="{StaticResource MainButtonStyle}"
+			Background="Transparent"
+			BorderThickness="0"
+			HorizontalAlignment="Right"
+            VerticalAlignment="Center"
+			Padding="8">
+			<ic:SymbolIcon Symbol="Dismiss" FontSize="24" HorizontalAlignment="Right" VerticalAlignment="Center" />
+		</Button>
+		<Grid x:Name="WebViewGrid" Background="Green" Grid.Row="3" Grid.ColumnSpan="4">
+		</Grid>
+
     </Grid>
 </rxui:ReactiveUserControl>

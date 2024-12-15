@@ -14,7 +14,7 @@ namespace Wabbajack;
 public interface IBackNavigatingVM : IReactiveObject
 {
     ViewModel NavigateBackTarget { get; set; }
-    ReactiveCommand<Unit, Unit> BackCommand { get; }
+    ReactiveCommand<Unit, Unit> CloseCommand { get; }
     
     Subject<bool> IsBackEnabledSubject { get; }
     IObservable<bool> IsBackEnabled { get; }
@@ -24,7 +24,7 @@ public class BackNavigatingVM : ViewModel, IBackNavigatingVM
 {
     [Reactive]
     public ViewModel NavigateBackTarget { get; set; }
-    public ReactiveCommand<Unit, Unit> BackCommand { get; protected set; }
+    public ReactiveCommand<Unit, Unit> CloseCommand { get; protected set; }
     
     [Reactive]
     public bool IsActive { get; set; }
@@ -35,7 +35,7 @@ public class BackNavigatingVM : ViewModel, IBackNavigatingVM
     public BackNavigatingVM(ILogger logger)
     {
         IsBackEnabled = IsBackEnabledSubject.StartWith(true);
-        BackCommand = ReactiveCommand.Create(
+        CloseCommand = ReactiveCommand.Create(
             execute: () => logger.CatchAndLog(() =>
             {
                 NavigateBack.Send();

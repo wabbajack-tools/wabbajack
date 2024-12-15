@@ -110,6 +110,15 @@ public class MainWindowVM : ViewModel
         InfoVM = infoVM;
         UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetRequiredService<ILogger<UserInterventionHandlers>>(), this);
 
+        this.WhenAnyValue(x => x.ActiveFloatingPane)
+            .Buffer(2, 1)
+            .Select(b => (Previous: b[0], Current: b[1]))
+            .Subscribe(x =>
+            {
+                x.Previous?.Activator.Deactivate();
+                x.Current?.Activator.Activate();
+            });
+
         MessageBus.Current.Listen<NavigateToGlobal>()
             .Subscribe(m => HandleNavigateTo(m.Screen))
             .DisposeWith(CompositeDisposable);
@@ -122,9 +131,9 @@ public class MainWindowVM : ViewModel
             .Subscribe(HandleNavigateBack)
             .DisposeWith(CompositeDisposable);
 
-        MessageBus.Current.Listen<SpawnBrowserWindow>()
+        MessageBus.Current.Listen<ShowBrowserWindow>()
             .ObserveOnGuiThread()
-            .Subscribe(HandleSpawnBrowserWindow)
+            .Subscribe(HandleShowBrowserWindow)
             .DisposeWith(CompositeDisposable);
 
         MessageBus.Current.Listen<ShowNavigation>()
@@ -251,11 +260,14 @@ public class MainWindowVM : ViewModel
         //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
     }
 
-    private void HandleSpawnBrowserWindow(SpawnBrowserWindow msg)
+    private void HandleShowBrowserWindow(ShowBrowserWindow msg)
     {
-        var window = _serviceProvider.GetRequiredService<BrowserWindow>();
-        window.DataContext = msg.Vm;
-        window.Show();
+        var browserWindow = _serviceProvider.GetRequiredService<BrowserWindow>();
+        browserWindow.Activator.Activate();
+        ActiveFloatingPane = browserWindow.ViewModel = msg.ViewModel;
+        browserWindow.DataContext = ActiveFloatingPane;
+        browserWindow.Activator.Activate();
+        ((BrowserWindowViewModel)ActiveFloatingPane).Closed += (_, _) => ActiveFloatingPane.Activator.Deactivate();
     }
 
     private void HandleNavigateTo(ScreenType s)

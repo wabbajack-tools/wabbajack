@@ -27,14 +27,14 @@ public class UserInterventionHandler : IUserInterventionHandler
             {
                 var provider = _serviceProvider.GetRequiredService<ManualDownloadHandler>();
                 provider.Intervention = md;
-                MessageBus.Current.SendMessage(new SpawnBrowserWindow(provider));
+                MessageBus.Current.SendMessage(new ShowBrowserWindow(provider));
                 break;
             }
             case ManualBlobDownload bd:
             {
                 var provider = _serviceProvider.GetRequiredService<ManualBlobDownloadHandler>();
                 provider.Intervention = bd;
-                MessageBus.Current.SendMessage(new SpawnBrowserWindow(provider));
+                MessageBus.Current.SendMessage(new ShowBrowserWindow(provider));
                 break;
             }
             default:

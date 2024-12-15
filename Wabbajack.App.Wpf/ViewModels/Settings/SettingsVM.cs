@@ -47,7 +47,7 @@ public class SettingsVM : BackNavigatingVM
             _settings,
             provider.GetRequiredService<IResource<DownloadDispatcher>>(),
             provider.GetRequiredService<SystemParametersConstructor>());
-        BackCommand = ReactiveCommand.Create(() =>
+        CloseCommand = ReactiveCommand.Create(() =>
         {
             NavigateBack.Send();
             Unload();

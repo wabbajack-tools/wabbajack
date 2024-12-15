@@ -24,7 +24,7 @@ public class WebBrowserVM : ViewModel, IBackNavigatingVM, IDisposable
     public ViewModel NavigateBackTarget { get; set; }
 
     [Reactive]
-    public ReactiveCommand<Unit, Unit> BackCommand { get; set; }
+    public ReactiveCommand<Unit, Unit> CloseCommand { get; set; }
 
     public Subject<bool> IsBackEnabledSubject { get; } = new Subject<bool>();
     public IObservable<bool> IsBackEnabled { get; }
@@ -36,7 +36,7 @@ public class WebBrowserVM : ViewModel, IBackNavigatingVM, IDisposable
         _cefService = cefService;
         Instructions = "Wabbajack Web Browser";
         
-        BackCommand = ReactiveCommand.Create(NavigateBack.Send);
+        CloseCommand = ReactiveCommand.Create(NavigateBack.Send);
         //Browser = cefService.CreateBrowser();
         //Driver = new CefSharpWrapper(_logger, Browser, cefService);
 

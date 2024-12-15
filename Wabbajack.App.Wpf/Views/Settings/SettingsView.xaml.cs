@@ -13,7 +13,7 @@ public partial class SettingsView : ReactiveUserControl<SettingsVM>
         InitializeComponent();
         this.WhenActivated(disposable =>
         {
-            this.OneWayBindStrict(this.ViewModel, x => x.BackCommand, x => x.BackButton.Command)
+            this.OneWayBindStrict(this.ViewModel, x => x.CloseCommand, x => x.BackButton.Command)
                 .DisposeWith(disposable);
             this.OneWayBindStrict(this.ViewModel, x => x.Login, x => x.LoginView.ViewModel)
                 .DisposeWith(disposable);

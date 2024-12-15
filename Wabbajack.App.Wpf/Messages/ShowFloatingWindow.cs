@@ -5,12 +5,11 @@ namespace Wabbajack.Messages;
 public enum FloatingScreenType
 {
     None,
-    ModListDetails,
+    ModListDetails
 }
 
 public class ShowFloatingWindow
 {
-
     public FloatingScreenType Screen { get; }
     
     private ShowFloatingWindow(FloatingScreenType screen)

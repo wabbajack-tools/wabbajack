@@ -1,29 +1,65 @@
 using System;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using System.Windows.Threading;
 using HtmlAgilityPack;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Web.WebView2.Core;
+using Microsoft.Web.WebView2.Wpf;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Messages;
 using Wabbajack.Paths;
 
 namespace Wabbajack;
 
 public abstract class BrowserWindowViewModel : ViewModel
 {
+    private IServiceProvider _serviceProvider { get; set; }
+    [Reactive] public WebView2 Browser { get; set; }
     [Reactive] public string HeaderText { get; set; }
-
     [Reactive] public string Instructions { get; set; }
-
     [Reactive] public string Address { get; set; }
+    [Reactive] public ICommand CloseCommand { get; set; }
+    [Reactive] public ICommand BackCommand { get; set; }
+    public event EventHandler Closed;
 
-    public BrowserWindow? Browser { get; set; }
+    public BrowserWindowViewModel(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+        BackCommand = ReactiveCommand.Create(() => Browser.GoBack());
+        CloseCommand = ReactiveCommand.Create(() => Close());
+        this.WhenActivated(disposable =>
+        {
+            Browser = _serviceProvider.GetRequiredService<WebView2>();
 
-    private Microsoft.Web.WebView2.Wpf.WebView2 _browser => Browser!.Browser;
+            RunWrapper(CancellationToken.None).ContinueWith((_) => Close());
+            Disposable.Empty.DisposeWith(disposable);
+        });
+    }
+
+    private void Close()
+    {
+        ShowFloatingWindow.Send(FloatingScreenType.None);
+        if(Closed != null)
+        {
+            foreach(var delegateMethod in Closed.GetInvocationList())
+            {
+                Closed -= delegateMethod as EventHandler;
+            }
+        }
+        Activator.Deactivate();
+    }
+
+    // Cheating a bit with MVVM principles here
+    public BrowserWindow? View { get; set; }
 
     public async Task RunWrapper(CancellationToken token)
     {
@@ -35,7 +71,7 @@ public abstract class BrowserWindowViewModel : ViewModel
 
     protected async Task WaitForReady()
     {
-        while (Browser?.Browser.CoreWebView2 == null)
+        while (Browser.CoreWebView2 == null)
         {
             await Task.Delay(250);
         }
@@ -65,15 +101,15 @@ public abstract class BrowserWindowViewModel : ViewModel
             }
         }
 
-        _browser.NavigationCompleted += Completed;
-        _browser.Source = uri;
+        Browser.NavigationCompleted += Completed;
+        Browser.Source = uri;
         await tcs.Task;
-        _browser.NavigationCompleted -= Completed;
+        Browser.NavigationCompleted -= Completed;
     }
 
     public async Task RunJavaScript(string script)
     {
-        await _browser.ExecuteScriptAsync(script);
+        await Browser.ExecuteScriptAsync(script);
     }
 
     public async Task<Cookie[]> GetCookies(string domainEnding, CancellationToken token)
@@ -83,7 +119,7 @@ public abstract class BrowserWindowViewModel : ViewModel
         {
             domainEnding = domainEnding[4..];
         }
-        var cookies = (await _browser.CoreWebView2.CookieManager.GetCookiesAsync(""))
+        var cookies = (await Browser.CoreWebView2.CookieManager.GetCookiesAsync(""))
             .Where(c => c.Domain.EndsWith(domainEnding));
         return cookies.Select(c => new Cookie
         {
@@ -96,7 +132,7 @@ public abstract class BrowserWindowViewModel : ViewModel
 
     public async Task<string> EvaluateJavaScript(string js)
     {
-        return await _browser.ExecuteScriptAsync(js);
+        return await Browser.ExecuteScriptAsync(js);
     }
 
     public async Task<HtmlDocument> GetDom(CancellationToken token)
@@ -111,8 +147,8 @@ public abstract class BrowserWindowViewModel : ViewModel
     public async Task<ManualDownload.BrowserDownloadState> WaitForDownloadUri(CancellationToken token, Func<Task>? whileWaiting)
     {
         var source = new TaskCompletionSource<Uri>();
-        var referer = _browser.Source;
-        while (_browser.CoreWebView2 == null)
+        var referer = Browser.Source;
+        while (Browser.CoreWebView2 == null)
             await Task.Delay(10, token);
 
         EventHandler<CoreWebView2DownloadStartingEventArgs> handler = null!;
@@ -122,19 +158,19 @@ public abstract class BrowserWindowViewModel : ViewModel
             try
             {
                 source.SetResult(new Uri(args.DownloadOperation.Uri));
-                _browser.CoreWebView2.DownloadStarting -= handler;
+                Browser.CoreWebView2.DownloadStarting -= handler;
             }
             catch (Exception)
             {
                 source.SetCanceled(token);
-                _browser.CoreWebView2.DownloadStarting -= handler;
+                Browser.CoreWebView2.DownloadStarting -= handler;
             }
 
             args.Cancel = true;
             args.Handled = true;
         };
 
-        _browser.CoreWebView2.DownloadStarting += handler;     
+        Browser.CoreWebView2.DownloadStarting += handler;     
             
         Uri uri;
 
@@ -160,17 +196,17 @@ public abstract class BrowserWindowViewModel : ViewModel
             {
                 ("Referer", referer?.ToString() ?? uri.ToString())
             },
-            _browser.CoreWebView2.Settings.UserAgent);
+            Browser.CoreWebView2.Settings.UserAgent);
     }
 
     public async Task<Hash> WaitForDownload(AbsolutePath path, CancellationToken token)
     {
         var source = new TaskCompletionSource();
-        var referer = _browser.Source;
-        while (_browser.CoreWebView2 == null)
+        var referer = Browser.Source;
+        while (Browser.CoreWebView2 == null)
             await Task.Delay(10, token);
 
-        _browser.CoreWebView2.DownloadStarting += (sender, args) =>
+        Browser.CoreWebView2.DownloadStarting += (sender, args) =>
         {
             try
             {

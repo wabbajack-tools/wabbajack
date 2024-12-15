@@ -71,7 +71,7 @@ public class ModListDetailsVM : BackNavigatingVM
         OpenReadmeCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(MetadataVM.Metadata.Links.Readme) { UseShellExecute = true }),
             this.WhenAnyValue(x => x.MetadataVM.Metadata.Links.Readme, x => !string.IsNullOrEmpty(x)).ObserveOnGuiThread());
 
-        BackCommand = ReactiveCommand.Create(() => ShowFloatingWindow.Send(FloatingScreenType.None));
+        CloseCommand = ReactiveCommand.Create(() => ShowFloatingWindow.Send(FloatingScreenType.None));
         this.WhenActivated(disposables =>
         {
             

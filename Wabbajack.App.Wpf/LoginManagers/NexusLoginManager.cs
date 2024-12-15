@@ -10,6 +10,7 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs.Logins;
+using Wabbajack.Messages;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.UserIntervention;
 
@@ -66,11 +67,9 @@ public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
 
     private void StartLogin()
     {
-        var view = new BrowserWindow(_serviceProvider);
-        view.Closed += async (sender, args) => { await RefreshTokenState(); };
-        var provider = _serviceProvider.GetRequiredService<NexusLoginHandler>();
-        view.DataContext = provider;
-        view.Show();
+        var handler = _serviceProvider.GetRequiredService<NexusLoginHandler>();
+        handler.Closed += async (sender, args) => { await RefreshTokenState(); };
+        ShowBrowserWindow.Send(handler);
     }
 
     private async Task RefreshTokenState()

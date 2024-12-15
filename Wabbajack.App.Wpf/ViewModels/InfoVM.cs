@@ -15,7 +15,7 @@ public class InfoVM : BackNavigatingVM
             .Subscribe(msg => {
                 Info = msg.Info;
                 NavigateBackTarget = msg.NavigateBackTarget;
-                BackCommand = ReactiveCommand.Create(() => NavigateTo.Send(NavigateBackTarget));
+                CloseCommand = ReactiveCommand.Create(() => NavigateTo.Send(NavigateBackTarget));
             })
             .DisposeWith(CompositeDisposable);
     }

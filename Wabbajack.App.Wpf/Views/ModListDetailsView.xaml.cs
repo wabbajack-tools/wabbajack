@@ -10,10 +10,7 @@ using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using System.Reactive.Linq;
 using System.Reactive.Concurrency;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Web.WebView2.Wpf;
 using System.Windows.Controls;
-using Wabbajack.RateLimiter;
 using ModListStatus = Wabbajack.BaseModListMetadataVM.ModListStatus;
 
 namespace Wabbajack;
@@ -31,7 +28,7 @@ public partial class ModListDetailsView
             this.BindStrict(ViewModel, x => x.Search, x => x.SearchBox.Text)
                 .DisposeWith(disposables);
 
-            this.BindCommand(ViewModel, x => x.BackCommand, x => x.BackButton)
+            this.BindCommand(ViewModel, x => x.CloseCommand, x => x.CloseButton)
                 .DisposeWith(disposables);
 
             this.WhenAnyValue(x => x.ArchivesButton.IsChecked)
@@ -129,6 +126,7 @@ public partial class ModListDetailsView
         {
             Process.Start(new ProcessStartInfo(nexusState.LinkUrl.ToString()) { UseShellExecute = true });
         }
+
         RxApp.MainThreadScheduler.Schedule(0, (_, _) =>
         {
             FocusManager.SetFocusedElement(FocusManager.GetFocusScope(presenter), null);

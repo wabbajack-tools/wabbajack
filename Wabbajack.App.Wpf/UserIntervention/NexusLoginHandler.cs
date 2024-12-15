@@ -26,20 +26,12 @@ public class NexusLoginHandler : BrowserWindowViewModel
     private readonly ILogger<NexusLoginHandler> _logger;
     private readonly HttpClient _client;
 
-    public NexusLoginHandler(ILogger<NexusLoginHandler> logger, HttpClient client, EncryptedJsonTokenProvider<NexusOAuthState> tokenProvider)
+    public NexusLoginHandler(ILogger<NexusLoginHandler> logger, HttpClient client, EncryptedJsonTokenProvider<NexusOAuthState> tokenProvider, IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _logger = logger;
         _client = client;
         HeaderText = "Nexus Login";
         _tokenProvider = tokenProvider;
-    }
-    
-    private string Base64Id()
-    {
-        var bytes = new byte[32];
-        using var rng = RandomNumberGenerator.Create();
-        rng.GetBytes(bytes);
-        return Convert.ToBase64String(bytes);
     }
 
     protected override async Task Run(CancellationToken token)
@@ -61,7 +53,7 @@ public class NexusLoginHandler : BrowserWindowViewModel
         await NavigateTo(new Uri("https://nexusmods.com"));
         var codeCompletionSource = new TaskCompletionSource<Dictionary<string, StringValues>>();
         
-        Browser!.Browser.CoreWebView2.NewWindowRequested += (sender, args) =>
+        Browser.CoreWebView2.NewWindowRequested += (sender, args) =>
         {
             var uri = new Uri(args.Uri);
             _logger.LogInformation("New Window Requested {Uri}", args.Uri);

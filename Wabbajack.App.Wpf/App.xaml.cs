@@ -164,6 +164,7 @@ public partial class App
         services.AddSingleton<LauncherUpdater>();
         services.AddSingleton<ResourceMonitor>();
         services.AddSingleton<WebView2>();
+        services.AddSingleton<BrowserWindow>();
         
         // ViewModels
         services.AddTransient<MainWindow>();

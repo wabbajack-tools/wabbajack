@@ -14,7 +14,7 @@ public partial class InfoView : ReactiveUserControl<InfoVM>
         var vm = ViewModel;
         this.WhenActivated(dispose =>
         {
-            this.BindCommand(ViewModel, x => x.BackCommand, x => x.PrevButton)
+            this.BindCommand(ViewModel, x => x.CloseCommand, x => x.PrevButton)
                 .DisposeWith(dispose);
         });
     }

@@ -31,7 +31,7 @@ public class UserInterventionHandlers
         
         // TODO: FIX using var vm = await WebBrowserVM.GetNew(_logger);
         NavigateTo.Send(vm);
-        vm.BackCommand = ReactiveCommand.Create(() =>
+        vm.CloseCommand = ReactiveCommand.Create(() =>
         {
             cancel.Cancel();
             NavigateTo.Send(oldPane);
