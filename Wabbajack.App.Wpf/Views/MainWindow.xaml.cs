@@ -23,6 +23,7 @@ using System.Collections;
 using System.Windows.Data;
 using System.Reactive.Concurrency;
 using System.Windows.Controls;
+using System.Windows.Markup;
 
 namespace Wabbajack;
 
@@ -196,11 +197,22 @@ public partial class MainWindow : MetroWindow
               {
                   RxApp.MainThreadScheduler.Schedule(() =>
                   {
-
                       int i = 0;
                       DictionaryEntry? oldEntry = null;
                       DictionaryEntry? newEntry = null;
                       var bwvm = (BrowserWindowViewModel)vm;
+                      var type = vm.GetType();
+                      string xamlTemplate =
+                      @"<DataTemplate DataType=""{x:Type local:" + vm.GetType().Name + @"}"">" +
+                        @"<local:BrowserWindow ViewModel=""{Binding}"" />" +
+                      @"</DataTemplate>";
+                      var parser = new ParserContext();
+                      parser.XamlTypeMapper = new XamlTypeMapper(new string[0]);
+                      parser.XamlTypeMapper.AddMappingProcessingInstruction("local", type.Namespace, type.Assembly.FullName);
+                      parser.XmlnsDictionary.Add("", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
+                      parser.XmlnsDictionary.Add("x", "http://schemas.microsoft.com/winfx/2006/xaml");
+                      parser.XmlnsDictionary.Add("local", "local");
+
                       foreach (var resource in FloatingContentPresenter.Resources.Cast<DictionaryEntry>())
                       {
                           var resourceKey = resource.Key;
@@ -208,12 +220,8 @@ public partial class MainWindow : MetroWindow
                           var dataType = (Type)dataTemplate.DataType;
                           if (dataType.IsAssignableFrom(typeof(BrowserWindowViewModel)))
                           {
+                              var newTemplate = (DataTemplate)XamlReader.Parse(xamlTemplate, parser);
                               oldEntry = resource;
-                              var type = vm.GetType();
-                              var newTemplate = new DataTemplate(type);
-                              var factory = new FrameworkElementFactory(typeof(BrowserWindow));
-                              factory.SetBinding(BrowserWindow.ViewModelProperty, new Binding());
-                              newTemplate.VisualTree = factory;
                               newEntry = new DictionaryEntry(newTemplate.DataTemplateKey, newTemplate);
                               break;
                           }
@@ -223,8 +231,6 @@ public partial class MainWindow : MetroWindow
                           FloatingContentPresenter.Resources.Remove(oldEntry.Value.Key);
                           FloatingContentPresenter.Resources[newEntry.Value.Key] = newEntry.Value.Value;
                       }
-                      
-
                   });
               });
 
