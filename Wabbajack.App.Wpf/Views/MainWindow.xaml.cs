@@ -20,6 +20,9 @@ using System.Reactive;
 using System.Diagnostics;
 using System.Linq;
 using System.Collections;
+using System.Windows.Data;
+using System.Reactive.Concurrency;
+using System.Windows.Controls;
 
 namespace Wabbajack;
 
@@ -187,8 +190,47 @@ public partial class MainWindow : MetroWindow
                 .Select(x => x == null ? Visibility.Hidden : Visibility.Visible)
                 .BindTo(this, view => view.FloatingWindow.Visibility);
 
+            vm.WhenAnyValue(vm => vm.ActiveFloatingPane)
+              .Where(vm => vm is BrowserWindowViewModel)
+              .Subscribe(vm =>
+              {
+                  RxApp.MainThreadScheduler.Schedule(() =>
+                  {
+
+                      int i = 0;
+                      DictionaryEntry? oldEntry = null;
+                      DictionaryEntry? newEntry = null;
+                      var bwvm = (BrowserWindowViewModel)vm;
+                      foreach (var resource in FloatingContentPresenter.Resources.Cast<DictionaryEntry>())
+                      {
+                          var resourceKey = resource.Key;
+                          var dataTemplate = (DataTemplate)resource.Value;
+                          var dataType = (Type)dataTemplate.DataType;
+                          if (dataType.IsAssignableFrom(typeof(BrowserWindowViewModel)))
+                          {
+                              oldEntry = resource;
+                              var type = vm.GetType();
+                              var newTemplate = new DataTemplate(type);
+                              var factory = new FrameworkElementFactory(typeof(BrowserWindow));
+                              factory.SetBinding(BrowserWindow.ViewModelProperty, new Binding());
+                              newTemplate.VisualTree = factory;
+                              newEntry = new DictionaryEntry(newTemplate.DataTemplateKey, newTemplate);
+                              break;
+                          }
+                          i++;
+                      }
+                      if (oldEntry.HasValue && newEntry.HasValue) {
+                          FloatingContentPresenter.Resources.Remove(oldEntry.Value.Key);
+                          FloatingContentPresenter.Resources[newEntry.Value.Key] = newEntry.Value.Value;
+                      }
+                      
+
+                  });
+              });
+
             this.Events().KeyDown
                 .Subscribe(x => HandleKeyDown(this, x));
+
         }
         catch (Exception ex)
         {
@@ -198,7 +240,6 @@ public partial class MainWindow : MetroWindow
 
         vm.WhenAnyValue(vm => vm.WindowTitle)
           .BindToStrict(this, view => view.AppName.Text);
-
     }
 
     private void Window_Closing(object sender, CancelEventArgs e)
