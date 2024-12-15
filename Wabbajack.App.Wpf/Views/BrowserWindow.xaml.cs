@@ -2,7 +2,6 @@ using System;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Threading;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using MahApps.Metro.Controls;
@@ -12,7 +11,7 @@ using ReactiveUI;
 
 namespace Wabbajack;
 
-public partial class BrowserWindow : MetroWindow
+public partial class BrowserWindow : ReactiveUserControl<BrowserWindowViewModel>
 {
     private readonly CompositeDisposable _disposable;
     private readonly IServiceProvider _serviceProvider;
@@ -47,27 +46,26 @@ public partial class BrowserWindow : MetroWindow
 
     private void BrowserWindow_OnActivated(object sender, EventArgs e)
     {
-        var vm = ((BrowserWindowViewModel) DataContext);
-        vm.Browser = this;
+        ViewModel.Browser = this;
 
-        vm.WhenAnyValue(vm => vm.HeaderText)
+        ViewModel.WhenAnyValue(vm => vm.HeaderText)
             .BindToStrict(this, view => view.Header.Text)
             .DisposeWith(_disposable);
         
-        vm.WhenAnyValue(vm => vm.Instructions)
+        ViewModel.WhenAnyValue(vm => vm.Instructions)
             .BindToStrict(this, view => view.Instructions.Text)
             .DisposeWith(_disposable);
         
-        vm.WhenAnyValue(vm => vm.Address)
+        ViewModel.WhenAnyValue(vm => vm.Address)
             .BindToStrict(this, view => view.AddressBar.Text)
             .DisposeWith(_disposable);
         
-        this.BackButton.Command = ReactiveCommand.Create(() =>
+        BackButton.Command = ReactiveCommand.Create(() =>
         {
             Browser.GoBack();
         });
         
-        vm.RunWrapper(CancellationToken.None)
+        ViewModel.RunWrapper(CancellationToken.None)
             .ContinueWith(_ => Dispatcher.Invoke(() =>
             {
                 Close();

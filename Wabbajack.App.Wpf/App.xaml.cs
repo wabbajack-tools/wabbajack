@@ -156,19 +156,19 @@ public partial class App
         // Orc.FileAssociation
         services.AddSingleton<IApplicationRegistrationService>(new ApplicationRegistrationService());
 
+        // Singletons
         services.AddSingleton<CefService>();
         services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
         services.AddSingleton<ImageCacheManager>();
-        
-        services.AddTransient<MainWindow>();
-        services.AddTransient<MainWindowVM>();
-        services.AddTransient<NavigationVM>();
-        services.AddTransient<BrowserWindow>();
         services.AddSingleton<SystemParametersConstructor>();
         services.AddSingleton<LauncherUpdater>();
         services.AddSingleton<ResourceMonitor>();
         services.AddSingleton<WebView2>();
-
+        
+        // ViewModels
+        services.AddTransient<MainWindow>();
+        services.AddTransient<MainWindowVM>();
+        services.AddTransient<NavigationVM>();
         services.AddTransient<HomeVM>();
         services.AddTransient<ModListGalleryVM>();
         services.AddTransient<CompilerHomeVM>();
