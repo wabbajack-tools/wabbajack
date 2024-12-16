@@ -156,6 +156,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 {
                     LogToggleButton.IsChecked = false;
                     LogView.Visibility = Visibility.Collapsed;
+                    ViewModel.ReadmeBrowser.Visibility = Visibility.Visible;
                 })
                 .DisposeWith(disposables);
 
