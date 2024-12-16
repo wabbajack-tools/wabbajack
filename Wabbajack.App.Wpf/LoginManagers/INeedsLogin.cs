@@ -1,9 +1,6 @@
-
 using System;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
-using ReactiveUI;
 using Wabbajack.Downloaders.Interfaces;
 
 namespace Wabbajack.LoginManagers;

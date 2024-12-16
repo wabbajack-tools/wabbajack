@@ -11,12 +11,14 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
     xmlns:lib1="clr-namespace:Wabbajack"
-    d:DataContext="{d:DesignInstance local:InstallerVM}"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
+    d:DataContext="{d:DesignInstance local:InstallationVM}"
     d:DesignHeight="500"
     d:DesignWidth="800"
-    x:TypeArguments="local:InstallerVM"
+    x:TypeArguments="local:InstallationVM"
     mc:Ignorable="d">
     <UserControl.Resources>
+        <Thickness x:Key="InstallMargin" Bottom="8" />
         <Style
             x:Key="SlideshowButton"
             BasedOn="{StaticResource CircleButtonStyle}"
@@ -25,7 +27,204 @@
             <Setter Property="Height" Value="40" />
             <Setter Property="Margin" Value="4" />
         </Style>
+        <Style x:Key="TitleStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0, 0, 0, 8" />
+        </Style>
+        <Style x:Key="DescriptionStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0, 0, 0, 8" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="Opacity" Value="0.66"/>
+        </Style>
+        <Style x:Key="PickerStyle" BasedOn="{StaticResource MainFilePickerStyle}" TargetType="local:FilePicker">
+            <Setter Property="Margin" Value="0, 0, 0, 8" />
+        </Style>
+        <Style x:Key="Panel" TargetType="StackPanel">
+            <Setter Property="Margin" Value="0, 0, 0, 8" />
+        </Style>
+        <Style x:Key="InstallButtonStyle" BasedOn="{StaticResource WJButtonStyle}" TargetType="{x:Type Button}">
+            <Setter Property="Margin" Value="{StaticResource InstallMargin}" />
+            <Setter Property="Width" Value="Auto" />
+        </Style>
+        <Style x:Key="WorkerIndicatorBorder" TargetType="{x:Type Border}">
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="{StaticResource ComplementaryPrimary08Brush}" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="0, 8, 0, 8" />
+        </Style>
     </UserControl.Resources>
+    <Grid>
+        <Grid x:Name="SetupGrid">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="3.5*" />
+            </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel x:Name="InstallationLocationPanel" Style="{StaticResource Panel}">
+                    <TextBlock Style="{StaticResource TitleStyle}" Text="Installation Location" />
+                    <TextBlock Style="{StaticResource DescriptionStyle}">
+                        The folder where the list will be installed into.<LineBreak />
+                        Choose an empty folder outside Windows-protected areas.
+                        Using an SSD is highly recommended for optimal performance.
+                    </TextBlock>
+                    <local:FilePicker x:Name="InstallationLocationPicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the folder where the list will be installed to" />
+                </StackPanel>
+
+                <StackPanel x:Name="DownloadLocationPanel" Grid.Row="1" Style="{StaticResource Panel}">
+                    <TextBlock Style="{StaticResource TitleStyle}" Text="Downloads Location" />
+                    <TextBlock Style="{StaticResource DescriptionStyle}">
+                        The folder where the downloads will be stored.<LineBreak />
+                        By default these are stored in a subdirectory of the installation folder, but you can also use a shared folder so previous downloads are reused.
+                        Downloads can be deleted after installation.
+                    </TextBlock>
+                    <local:FilePicker x:Name="DownloadLocationPicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the folder where the mod archives will be downloaded to" />
+                </StackPanel>
+
+                <Grid Grid.Row="3">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <local:WJButton x:Name="DocumentationButton" Text="Readme" Icon="Document" Grid.Row="0" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                    <local:WJButton x:Name="WebsiteButton" Text="Website" Icon="Globe" Grid.Row="1" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                    <local:WJButton x:Name="DiscordButton" Text="Discord" Icon="PeopleChat" Grid.Row="2" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                    <local:WJButton x:Name="ManifestButton" Text="Archives" Icon="BoxSearch" Grid.Row="3" Width="Auto" />
+                </Grid>
+
+            </Grid>
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <local:DetailImageView x:Name="DetailImage" TitleFontSize="48" AuthorFontSize="24" Margin="0, 0, 0, 16" />
+                <mahapps:ProgressRing x:Name="ModlistLoadingRing" />
+                <local:WJButton x:Name="BackToGalleryButton" Grid.Row="1" Text="Back to Gallery" Icon="ChevronLeft" Direction="RightToLeft" HorizontalAlignment="Left" />
+                <local:WJButton x:Name="InstallButton" Grid.Row="1" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown" HorizontalAlignment="Right" />
+            </Grid>
+        </Grid>
+        <Grid x:Name="InstallationGrid" Visibility="Collapsed">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.35*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="3*" />
+            </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <local:DetailImageView x:Name="InstallDetailImage" TitleFontSize="36" AuthorFontSize="16" Margin="0, 0, 0, 16" Height="{Binding ActualWidth, ElementName=InstallDetailImage, Converter={StaticResource MathConverter}, ConverterParameter=x/(16/9)}" />
+                <local:CpuView x:Name="CpuView" Grid.Row="1" ViewModel="{Binding}" Margin="0, 0, 0, 16" />
+
+                <Grid x:Name="WorkerIndicators" Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource WorkerIndicatorBorder}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ic:SymbolIcon Grid.Column="0" Symbol="NumberSymbol" HorizontalAlignment="Left" Foreground="{StaticResource PrimaryBrush}" FontSize="18" Margin="8, 0, 0, 0" />
+                            <TextBlock Grid.Column="1" Margin="8, 0, 0, 0" Text="Hashing" />
+                            <TextBlock Grid.Column="3" x:Name="HashSpeedText" HorizontalAlignment="Right" Margin="0, 0, 8, 0" />
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Column="2" Style="{StaticResource WorkerIndicatorBorder}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ic:SymbolIcon Grid.Column="0" Symbol="Dock" HorizontalAlignment="Left" Foreground="{StaticResource PrimaryBrush}" FontSize="18" Margin="8, 0, 0, 0" />
+                            <TextBlock Grid.Column="1" Margin="8, 0, 0, 0" Text="Extraction" />
+                            <TextBlock Grid.Column="3" x:Name="ExtractionSpeedText" HorizontalAlignment="Right" Margin="0, 0, 8, 0" />
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Column="4" Style="{StaticResource WorkerIndicatorBorder}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ic:SymbolIcon Grid.Column="0" Symbol="ArrowDownload" HorizontalAlignment="Left" Foreground="{StaticResource PrimaryBrush}" FontSize="18" Margin="8, 0, 0, 0" />
+                            <TextBlock Grid.Column="1" Margin="8, 0, 0, 0" Text="Download" />
+                            <TextBlock Grid.Column="3" x:Name="DownloadSpeedText" HorizontalAlignment="Right" Margin="0, 0, 8, 0" />
+                        </Grid>
+                    </Border>
+
+                </Grid>
+            </Grid>
+
+            <Grid Grid.Column="2" x:Name="RightSideGrid">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Margin="0, 0, 0, 16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource ToggleButtonContainer}">
+                        <StackPanel Orientation="Horizontal" Margin="4">
+                            <ToggleButton
+                            x:Name="ReadmeToggleButton"
+                            IsChecked="True"
+                            MinWidth="80"
+                            Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/7}">Readme</ToggleButton>
+                            <ToggleButton
+                            x:Name="LogToggleButton"
+                            MinWidth="80"
+                            Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/7}">Log Viewer</ToggleButton>
+                        </StackPanel>
+                    </Border>
+                    <local:WJButton x:Name="OpenReadmeButton" 
+                                    Grid.Column="2"
+                                    ButtonStyle="Mono"
+                                    Text="Open in browser"
+                                    Icon="WindowNew"
+                                    IconSize="20"
+                                    MinWidth="160"
+                                    Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/4.5}"
+                                    HorizontalAlignment="Right" />
+                </Grid>
+                <Grid x:Name="ReadmeBrowserGrid" Grid.Row="1" Margin="0, 0, 0, 16"></Grid>
+                <local:LogView Grid.Row="1" x:Name="LogView" Margin="0, 0, 0, 16" Visibility="Collapsed" />
+                <local:WJButton x:Name="CancelButton" ButtonStyle="Danger" Grid.Row="2" Text="Cancel" Icon="Dismiss" HorizontalAlignment="Right" />
+            </Grid>
+
+        </Grid>
+    </Grid>
+        <!--
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="47" />
@@ -49,7 +248,6 @@
             <Border BorderBrush="{StaticResource BorderInterestBrush}" BorderThickness="1,0,1,1">
                 <Grid>
                     <local:DetailImageView x:Name="DetailImage" />
-                    <mahapps:ProgressRing x:Name="ModlistLoadingRing" />
                 </Grid>
             </Border>
             <Grid
@@ -152,7 +350,7 @@
                             Margin="4"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            FontFamily="Lucida Sans"
+                            FontFamily="{StaticResource PrimaryFont}"
                             FontSize="9"
                             FontWeight="Bold"
                             Text="NSFW" />
@@ -168,9 +366,10 @@
                 </ToggleButton>
             </Grid>
         </Grid>
+        -->
         <!--  Comes after slideshow control, so that any effects/overlap goes on top  -->
-        <local:TopProgressView Grid.Row="0" Grid.RowSpan="2"
-            x:Name="TopProgressBar">
+        <!-- <local:TopProgressView Grid.Row="0" Grid.RowSpan="2" -->
+            <!-- x:Name="TopProgressBar"> -->
             <!--  Readd when Pause/Stop implementations added  -->
             <!--<Button Grid.Column="2"
                     ToolTip="Pause Installation"
@@ -190,7 +389,8 @@
                     Height="25"
                     Kind="TimesCircleSolid" />
             </Button>-->
-        </local:TopProgressView>
+        <!-- </local:TopProgressView> -->
+        <!--
         <Button Grid.Row="0" Grid.RowSpan="2"
             x:Name="BackButton"
             Width="30"
@@ -202,7 +402,9 @@
             ToolTip="Back to main menu">
             <icon:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
         </Button>
+        -->
         <!--  Bottom Area  -->
+        <!--
         <Grid Grid.Row="2"
             x:Name="BottomButtonInputGrid"
             Margin="5,0,5,5"
@@ -312,6 +514,7 @@
                 x:Name="InstallationConfigurationView"
                 ViewModel="{Binding}" />
         </Grid>
+        
         <Grid Grid.Row="2"
             x:Name="MidInstallDisplayGrid"
             Margin="5,0,5,5">
@@ -329,4 +532,5 @@
                 ViewModel="{Binding}" />
         </Grid>
     </Grid>
+    -->
 </rxui:ReactiveUserControl>

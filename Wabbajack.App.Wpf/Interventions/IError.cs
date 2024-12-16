@@ -1,6 +1,5 @@
-﻿namespace Wabbajack.Interventions
+﻿namespace Wabbajack.Interventions;
+
+public interface IError : IStatusMessage
 {
-    public interface IError : IStatusMessage
-    {
-    }
 }

@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace Wabbajack.Interventions
+namespace Wabbajack.Interventions;
+
+public interface IStatusMessage
 {
-    public interface IStatusMessage
-    {
-        DateTime Timestamp { get; }
-        string ShortDescription { get; }
-        string ExtendedDescription { get; }
-    }
+    DateTime Timestamp { get; }
+    string ShortDescription { get; }
+    string ExtendedDescription { get; }
 }

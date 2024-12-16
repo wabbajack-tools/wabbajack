@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using Microsoft.Extensions.Logging;
 using PInvoke;
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
-using Wabbajack.Common;
 using Wabbajack.Installer;
-using Wabbajack;
 using static PInvoke.User32;
 using UnmanagedType = System.Runtime.InteropServices.UnmanagedType;
 

@@ -13,7 +13,7 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <Style TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Lucida Sans" />
+            <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="FontSize" Value="12" />
         </Style>
@@ -35,7 +35,7 @@
             VerticalAlignment="Top"
             Style="{StaticResource IconCircleButtonStyle}"
             ToolTip="Back to main menu">
-            <iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
+            <!--<iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />-->
         </Button>
         <ScrollViewer Grid.Row="1"
             Focusable="False"

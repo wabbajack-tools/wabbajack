@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.DTOs.DownloadStates;
@@ -8,6 +9,8 @@ namespace Wabbajack.UserIntervention;
 public class ManualBlobDownloadHandler : BrowserWindowViewModel
 {
     public ManualBlobDownload Intervention { get; set; }
+
+    public ManualBlobDownloadHandler(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
     protected override async Task Run(CancellationToken token)
     {

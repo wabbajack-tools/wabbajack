@@ -9,7 +9,7 @@
     xmlns:rxui="http://reactiveui.net"
     d:DesignHeight="450"
     d:DesignWidth="800"
-    x:TypeArguments="local:InstallerVM"
+    x:TypeArguments="local:InstallationVM"
     mc:Ignorable="d">
     <Grid Background="{StaticResource WindowBackgroundBrush}">
         <Grid.ColumnDefinitions>
@@ -36,12 +36,12 @@
             <TextBlock Grid.Row="1" Grid.Column="0"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
-                FontSize="14"
+                FontSize="13"
                 Text="Target Modlist"
                 TextAlignment="Center" />
             <TextBlock x:Name="errorTextBox"
                 Grid.Row="3"
-                FontFamily="Verdana" FontSize="10" FontWeight="ExtraBold"
+                FontFamily="{StaticResource PrimaryFont}" FontSize="10" FontWeight="ExtraBold"
                 Background="{StaticResource WindowBackgroundBrush}"
                 Foreground="Red"
                 Text=""
@@ -50,7 +50,7 @@
                 x:Name="ModListLocationPicker"
                 Height="30"
                 VerticalAlignment="Center"
-                FontSize="14" />
+                FontSize="13" />
             <ContentPresenter Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3"
                 x:Name="InstallerCustomizationContent"
                 VerticalAlignment="Top">
@@ -88,6 +88,7 @@
                 x:Name="BeginButton"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center" />
+                <!--
             <icon:PackIconFontAwesome Grid.Row="2"
                 x:Name="ErrorSummaryIconGlow"
                 HorizontalAlignment="Center"
@@ -104,6 +105,7 @@
                 VerticalAlignment="Top"
                 Foreground="{StaticResource WarningBrush}"
                 Kind="ExclamationTriangleSolid" />
+                -->
             <CheckBox Grid.Row="2" Grid.Column="2"
                       HorizontalAlignment="Center"
                       VerticalAlignment="Bottom"
