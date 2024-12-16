@@ -156,7 +156,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 {
                     LogToggleButton.IsChecked = false;
                     LogView.Visibility = Visibility.Collapsed;
-                    ViewModel.ReadmeBrowser.Visibility = Visibility.Visible;
+                    ReadmeBrowserGrid.Visibility = Visibility.Visible;
                 })
                 .DisposeWith(disposables);
 
@@ -166,22 +166,30 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 {
                     ReadmeToggleButton.IsChecked = false;
                     LogView.Visibility = Visibility.Visible;
-                    ViewModel.ReadmeBrowser.Visibility = Visibility.Collapsed;
+                    ReadmeBrowserGrid.Visibility = Visibility.Collapsed;
                 })
                 .DisposeWith(disposables);
 
-            RxApp.MainThreadScheduler.Schedule(() =>
-            {
-                ViewModel.ReadmeBrowser.Margin = new Thickness(0, 0, 0, 16);
-                if (ViewModel.ReadmeBrowser.Parent != null)
+
+            this.WhenAnyValue(x => x.ReadmeBrowserGrid.Visibility)
+                .Where(x => x == Visibility.Visible)
+                .Subscribe(x =>
                 {
-                    ((Panel)ViewModel.ReadmeBrowser.Parent).Children.Remove(ViewModel.ReadmeBrowser);
-                }
-                ViewModel.ReadmeBrowser.Width = double.NaN;
-                ViewModel.ReadmeBrowser.Height = double.NaN;
-                ViewModel.ReadmeBrowser.Visibility = Visibility.Visible;
-                ReadmeBrowserGrid.Children.Add(ViewModel.ReadmeBrowser);
-            });
+                    if (x == Visibility.Visible)
+                        TakeWebViewOwnershipForReadme();
+                })
+                .DisposeWith(disposables);
+
+            // Initially, readme tab should be visible
+            ReadmeToggleButton.IsChecked = true;
+
+            MessageBus.Current.Listen<ShowFloatingWindow>()
+                              .Subscribe(msg =>
+                              {
+                                  if (msg.Screen == FloatingScreenType.None && ReadmeBrowserGrid.Visibility == Visibility.Visible)
+                                      TakeWebViewOwnershipForReadme();
+                              })
+                              .DisposeWith(disposables);
 
             /*
             ViewModel.WhenAnyValue(vm => vm.InstallState)
@@ -254,6 +262,24 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .BindToStrict(this, view => view.DetailImage.Image)
                 .DisposeWith(disposables);
             */
+        });
+    }
+
+    private void TakeWebViewOwnershipForReadme()
+    {
+        RxApp.MainThreadScheduler.Schedule(() =>
+        {
+            ViewModel.ReadmeBrowser.Margin = new Thickness(0, 0, 0, 16);
+            if (ViewModel.ReadmeBrowser.Parent != null)
+            {
+                ((Panel)ViewModel.ReadmeBrowser.Parent).Children.Remove(ViewModel.ReadmeBrowser);
+            }
+            ViewModel.ReadmeBrowser.Width = double.NaN;
+            ViewModel.ReadmeBrowser.Height = double.NaN;
+            ViewModel.ReadmeBrowser.Visibility = Visibility.Visible;
+            if(ViewModel?.ModList?.Readme != null)
+                ViewModel.ReadmeBrowser.Source = new Uri(UIUtils.GetHumanReadableReadmeLink(ViewModel.ModList.Readme));
+            ReadmeBrowserGrid.Children.Add(ViewModel.ReadmeBrowser);
         });
     }
 }
