@@ -9,7 +9,7 @@
     xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     x:TypeArguments="local:BrowserWindowViewModel"
     mc:Ignorable="d">
-    <Grid x:Name="MainGrid" Background="{StaticResource BackgroundBrush}">
+    <Grid x:Name="MainGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -22,23 +22,22 @@
 			<ColumnDefinition Width="*" />
 			<ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <TextBlock Grid.Row="0" Margin="4, 0, 0, 0"  Grid.ColumnSpan="3" FontSize="16" Name="Header"></TextBlock>
-        <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Margin="4" FontSize="20" FontWeight="Bold" Name="Instructions"></TextBlock>
-		<local:WJButton Grid.Row="2" Grid.Column="0" x:Name="BackButton" ButtonStyle="Transparent" Icon="ChevronLeft" Margin="8" Width="56" HorizontalAlignment="Center" />
-        <TextBox Grid.Row="2" Grid.Column="3" Margin="8" Foreground="{StaticResource DisabledButtonForeground}" VerticalContentAlignment="Center" Name="AddressBar" IsEnabled="True" IsReadOnly="True"></TextBox>
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="3" FontSize="18" Name="Header"></TextBlock>
+        <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Name="Instructions"></TextBlock>
+		<local:WJButton Grid.Row="2" Grid.Column="0" x:Name="BackButton" ButtonStyle="Transparent" Icon="ChevronLeft" Margin="0, 0, 4, 0" Width="56" HorizontalAlignment="Center" />
+        <TextBox Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Margin="0, 8, 0, 8" Foreground="{StaticResource DisabledButtonForeground}" VerticalContentAlignment="Center" Name="AddressBar" IsEnabled="True" IsReadOnly="True"></TextBox>
 		<Button
 			x:Name="CloseButton"
-            Grid.Column="4"
+            Grid.Column="3"
 			Style="{StaticResource MainButtonStyle}"
 			Background="Transparent"
 			BorderThickness="0"
 			HorizontalAlignment="Right"
             VerticalAlignment="Center"
-			Padding="8">
+			Padding="0, 4, 0, 8">
 			<ic:SymbolIcon Symbol="Dismiss" FontSize="24" HorizontalAlignment="Right" VerticalAlignment="Center" />
 		</Button>
-		<Grid x:Name="WebViewGrid" Background="Green" Grid.Row="3" Grid.ColumnSpan="4">
-		</Grid>
+		<Grid x:Name="WebViewGrid" Grid.Row="3" Grid.ColumnSpan="4" Margin="0, 0, 0, -16" />
 
     </Grid>
 </rxui:ReactiveUserControl>

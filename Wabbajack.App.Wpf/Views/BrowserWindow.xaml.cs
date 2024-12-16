@@ -45,6 +45,8 @@ public partial class BrowserWindow : ReactiveUserControl<BrowserWindowViewModel>
                             ((Panel)browser.Parent).Children.Remove(browser);
                         }
                         ViewModel.Browser.Visibility = Visibility.Visible;
+                        ViewModel.Browser.Width = double.NaN;
+                        ViewModel.Browser.Height = double.NaN;
                         WebViewGrid.Children.Add(browser);
                     });
                 })
