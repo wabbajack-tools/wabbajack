@@ -1,0 +1,1801 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Wabbajack.Common</name>
+    </assembly>
+    <members>
+        <member name="M:Wabbajack.Common.BSDiff.Create(System.Byte[],System.Byte[],System.IO.Stream)">
+            <summary>
+                Creates a binary patch (in <a href="http://www.daemonology.net/bsdiff/">bsdiff</a> format) that can be used
+                (by <see cref="M:Wabbajack.Common.BSDiff.Apply(System.IO.Stream,System.Func{System.IO.Stream},System.IO.Stream)" />) to transform <paramref name="oldData" /> into <paramref name="newData" />.
+            </summary>
+            <param name="oldData">The original binary data.</param>
+            <param name="newData">The new binary data.</param>
+            <param name="output">A <see cref="T:System.IO.Stream" /> to which the patch will be written.</param>
+        </member>
+        <member name="M:Wabbajack.Common.BSDiff.Apply(System.IO.Stream,System.Func{System.IO.Stream},System.IO.Stream)">
+            <summary>
+                Applies a binary patch (in <a href="http://www.daemonology.net/bsdiff/">bsdiff</a> format) to the data in
+                <paramref name="input" /> and writes the results of patching to <paramref name="output" />.
+            </summary>
+            <param name="input">A <see cref="T:System.IO.Stream" /> containing the input data.</param>
+            <param name="openPatchStream">
+                A func that can open a <see cref="T:System.IO.Stream" /> positioned at the start of the patch data.
+                This stream must support reading and seeking, and <paramref name="openPatchStream" /> must allow multiple streams
+                on
+                the patch to be opened concurrently.
+            </param>
+            <param name="output">A <see cref="T:System.IO.Stream" /> to which the patched data is written.</param>
+        </member>
+        <member name="M:Wabbajack.Common.BSDiff.ReadExactly(System.IO.Stream,System.Int32)">
+            <summary>
+                Reads exactly <paramref name="count" /> bytes from <paramref name="stream" />.
+            </summary>
+            <param name="stream">The stream to read from.</param>
+            <param name="count">The count of bytes to read.</param>
+            <returns>A new byte array containing the data read from the stream.</returns>
+        </member>
+        <member name="M:Wabbajack.Common.BSDiff.ReadExactly(System.IO.Stream,System.Byte[],System.Int32,System.Int32)">
+            <summary>
+                Reads exactly <paramref name="count" /> bytes from <paramref name="stream" /> into
+                <paramref name="buffer" />, starting at the byte given by <paramref name="offset" />.
+            </summary>
+            <param name="stream">The stream to read from.</param>
+            <param name="buffer">The buffer to read data into.</param>
+            <param name="offset">The offset within the buffer at which data is first written.</param>
+            <param name="count">The count of bytes to read.</param>
+        </member>
+        <member name="T:Wabbajack.Common.ChildProcessTracker">
+            <summary>
+                Allows processes to be automatically killed if this parent process unexpectedly quits.
+                This feature requires Windows 8 or greater. On Windows 7, nothing is done.
+            </summary>
+            <remarks>
+                References:
+                https://stackoverflow.com/a/4657392/386091
+                https://stackoverflow.com/a/9164742/386091
+            </remarks>
+        </member>
+        <member name="M:Wabbajack.Common.ChildProcessTracker.AddProcess(System.Diagnostics.Process)">
+            <summary>
+                Add the process to be tracked. If our current process is killed, the child processes
+                that we are tracking will be automatically killed, too. If the child process terminates
+                first, that's fine, too.
+            </summary>
+            <param name="process"></param>
+        </member>
+        <member name="M:Wabbajack.Common.CLIOld.ParseOptions(System.String[])">
+            <summary>
+            Parses the argument and sets the properties of <see cref="T:Wabbajack.Common.CLIArguments"/>
+            </summary>
+            <param name="args"><see cref="M:System.Environment.GetCommandLineArgs"/></param>
+        </member>
+        <member name="P:Wabbajack.Common.GameMetaData.CanSourceFrom">
+            <summary>
+             Other games this game can pull source files from (if the game is installed on the user's machine)
+            </summary>
+        </member>
+        <member name="M:Wabbajack.Common.GameRegistry.GetByFuzzyName(System.String)">
+            <summary>
+            Parse game data from an arbitrary string. Tries first via parsing as a game Enum, then by Nexus name.
+            <param nambe="someName">Name to query</param>
+            <returns>GameMetaData found</returns>
+            <exception cref="T:System.ArgumentNullException">If string could not be translated to a game</exception>
+            </summary>
+        </member>
+        <member name="M:Wabbajack.Common.GameRegistry.TryGetByFuzzyName(System.String)">
+            <summary>
+            Tries to parse game data from an arbitrary string. Tries first via parsing as a game Enum, then by Nexus name.
+            <param nambe="someName">Name to query</param>
+            <returns>GameMetaData if found, otherwise null</returns>
+            </summary>
+        </member>
+        <member name="T:Wabbajack.Common.Hash">
+            <summary>
+            Struct representing a xxHash64 value. It's a struct with a ulong in it, but wrapped so we don't confuse
+            it with other longs in the system.
+            </summary>
+        </member>
+        <member name="M:Wabbajack.Common.IAsyncEnumerableExtensions.SelectAsync``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Threading.Tasks.ValueTask{``1}})">
+            <summary>
+            Same as .Select but expects a function that returns an async result
+            </summary>
+            <param name="coll"></param>
+            <param name="mapFn"></param>
+            <typeparam name="TIn"></typeparam>
+            <typeparam name="TOut"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Wabbajack.Common.IAsyncEnumerableExtensions.DoAsync``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Threading.Tasks.ValueTask{``1}})">
+            <summary>
+            Same as .Select but expects a function that returns an async result
+            </summary>
+            <param name="coll"></param>
+            <param name="mapFn"></param>
+            <typeparam name="TIn"></typeparam>
+            <typeparam name="TOut"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Wabbajack.Common.Utils.ToBase64(System.Byte[])">
+            <summary>
+                Returns a Base64 encoding of these bytes
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Wabbajack.Common.Utils.FromBase64(System.String)">
+            <summary>
+                Returns data from a base64 stream
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Wabbajack.Common.Utils.Do``1(System.Collections.Generic.IEnumerable{``0},System.Action{``0})">
+            <summary>
+                Executes the action for every item in coll
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="coll"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Wabbajack.Common.Utils.DoAsync``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Threading.Tasks.Task})">
+            <summary>
+                Executes the action for every item in coll
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="coll"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Wabbajack.Common.Utils.LoadIniFile(Wabbajack.Common.AbsolutePath)">
+            <summary>
+                Loads INI data from the given filename and returns a dynamic type that
+                can use . operators to navigate the INI.
+            </summary>
+            <param name="file"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Wabbajack.Common.Utils.LoadIniString(System.String)">
+            <summary>
+            Loads a INI from the given string
+            </summary>
+            <param name="file"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Wabbajack.Common.Utils.BZip2String(System.String)">
+            <summary>
+                Returns the string compressed via BZip2
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Wabbajack.Common.Utils.BZip2String(System.Byte[])">
+            <summary>
+                Returns the string compressed via BZip2
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Wabbajack.Common.Utils.Keep``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1})">
+            <summary>
+            A combination of .Select(func).Where(v => v != default). So select and filter default values.
+            </summary>
+            <typeparam name="TIn"></typeparam>
+            <typeparam name="TOut"></typeparam>
+            <param name="coll"></param>
+            <param name="func"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Wabbajack.Common.Utils.ViaJSON``1(``0)">
+            <summary>
+            Roundtrips the value through the JSON routines
+            </summary>
+        </member>
+        <member name="M:Wabbajack.Common.Utils.IsFilePathValid(System.String)">
+            https://stackoverflow.com/questions/422090/in-c-sharp-check-that-filename-is-possibly-valid-not-that-it-exists
+        </member>
+        <member name="M:Wabbajack.Common.Utils.DeleteDirectory(Wabbajack.Common.AbsolutePath)">
+            <summary>
+            Both AlphaFS and C#'s Directory.Delete sometimes fail when certain files are read-only
+            or have other weird attributes. This is the only 100% reliable way I've found to completely
+            delete a folder. If you don't like this code, it's unlikely to change without a ton of testing.
+            </summary>
+            <param name="path"></param>
+        </member>
+        <member name="M:Wabbajack.Common.Utils.ToEcryptedJson``1(``0,System.String)">
+            <summary>
+            Writes a file to JSON but in an encrypted format in the user's app local directory.
+            The data will be encrypted so that it can only be read by this machine and this user.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="key"></param>
+            <param name="data"></param>
+        </member>
+        <member name="T:Wabbajack.Common.IO.KnownFolder">
+            <summary>
+            Represents a special Windows directory and provides methods to retrieve information about it.
+            </summary>
+        </member>
+        <member name="M:Wabbajack.Common.IO.KnownFolder.#ctor(Wabbajack.Common.IO.KnownFolderType)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Wabbajack.Common.IO.KnownFolder"/> class for the folder of the given type. It
+            provides the values for the current user.
+            </summary>
+            <param name="type">The <see cref="T:Wabbajack.Common.IO.KnownFolderType"/> of the known folder to represent.</param>
+        </member>
+        <member name="M:Wabbajack.Common.IO.KnownFolder.#ctor(Wabbajack.Common.IO.KnownFolderType,System.Security.Principal.WindowsIdentity)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Wabbajack.Common.IO.KnownFolder"/> class for the folder of the given type. It
+            provides the values for the given impersonated user.
+            </summary>
+            <param name="type">The <see cref="T:Wabbajack.Common.IO.KnownFolderType"/> of the known folder to represent.</param>
+            <param name="identity">The <see cref="T:System.Security.Principal.WindowsIdentity"/> of the impersonated user which values will be
+            provided.</param>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolder.Type">
+            <summary>
+            Gets the type of the known folder which is represented.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolder.Identity">
+            <summary>
+            Gets the <see cref="T:System.Security.Principal.WindowsIdentity"/> of the user whose folder values are provided.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolder.DefaultPath">
+            <summary>
+            Gets the default path of the folder. This does not require the folder to be existent.
+            </summary>
+            <exception cref="T:System.Runtime.InteropServices.ExternalException">The known folder could not be retrieved.</exception>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolder.Path">
+            <summary>
+            Gets or sets the path as currently configured. This does not require the folder to be existent.
+            </summary>
+            <exception cref="T:System.Runtime.InteropServices.ExternalException">The known folder could not be retrieved.</exception>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolder.ExpandedPath">
+            <summary>
+            Gets or sets the path as currently configured, with all environment variables expanded.
+            This does not require the folder to be existent.
+            </summary>
+            <exception cref="T:System.Runtime.InteropServices.ExternalException">The known folder could not be retrieved.</exception>
+        </member>
+        <member name="M:Wabbajack.Common.IO.KnownFolder.Create">
+            <summary>
+            Creates the folder using its Desktop.ini settings.
+            </summary>
+            <exception cref="T:System.Runtime.InteropServices.ExternalException">The known folder could not be retrieved.</exception>
+        </member>
+        <member name="M:Wabbajack.Common.IO.KnownFolder.SHGetKnownFolderPath(System.Guid,System.UInt32,System.IntPtr,System.IntPtr@)">
+            <summary>
+            Retrieves the full path of a known folder identified by the folder's known folder ID.
+            </summary>
+            <param name="rfid">A known folder ID that identifies the folder.</param>
+            <param name="dwFlags">Flags that specify special retrieval options. This value can be 0; otherwise, one or
+            more of the <see cref="T:Wabbajack.Common.IO.KnownFolder.KnownFolderFlags"/> values.</param>
+            <param name="hToken">An access token that represents a particular user. If this parameter is NULL, which is
+            the most common usage, the function requests the known folder for the current user. Assigning a value of -1
+            indicates the Default User. The default user profile is duplicated when any new user account is created.
+            Note that access to the Default User folders requires administrator privileges.</param>
+            <param name="ppszPath">When this method returns, contains the address of a string that specifies the path of
+            the known folder. The returned path does not include a trailing backslash.</param>
+            <returns>Returns S_OK if successful, or an error value otherwise.</returns>
+            <msdn-id>bb762188</msdn-id>
+        </member>
+        <member name="M:Wabbajack.Common.IO.KnownFolder.SHSetKnownFolderPath(System.Guid,System.UInt32,System.IntPtr,System.String)">
+            <summary>
+            Redirects a known folder to a new location.
+            </summary>
+            <param name="rfid">A <see cref="T:System.Guid"/> that identifies the known folder.</param>
+            <param name="dwFlags">Either 0 or <see cref="F:Wabbajack.Common.IO.KnownFolder.KnownFolderFlags.DontUnexpand"/>.</param>
+            <param name="hToken"></param>
+            <param name="pszPath"></param>
+            <returns></returns>
+            <msdn-id>bb762249</msdn-id>
+        </member>
+        <member name="T:Wabbajack.Common.IO.KnownFolder.KnownFolderFlags">
+            <summary>
+            Represents the retrieval options for known folders.
+            </summary>
+            <msdn-id>dd378447</msdn-id>
+        </member>
+        <member name="T:Wabbajack.Common.IO.KnownFolders">
+            <summary>
+            A collection of properties to retrieve specific file system paths for the current user.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.AccountPictures">
+            <summary>
+            The per-user Account Pictures folder. Introduced in Windows 8.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\AccountPictures&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.AdminTools">
+            <summary>
+            The per-user Administrative Tools folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Start Menu\Programs\Administrative Tools&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.AppDataDesktop">
+            <summary>
+            The per-user app desktop folder, used internally by .NET applications to perform cross-platform app
+            functionality. Introduced in Windows 10.
+            Defaults to &quot;%LOCALAPPDATA%\Desktop&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.AppDataDocuments">
+            <summary>
+            The per-user app documents folder, used internally by .NET applications to perform cross-platform app
+            functionality. Introduced in Windows 10.
+            Defaults to &quot;%LOCALAPPDATA%\Documents&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.AppDataFavorites">
+            <summary>
+            The per-user app favorites folder, used internally by .NET applications to perform cross-platform app
+            functionality. Introduced in Windows 10.
+            Defaults to &quot;%LOCALAPPDATA%\Favorites&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.AppDataProgramData">
+            <summary>
+            The per-user app program data folder, used internally by .NET applications to perform cross-platform app
+            functionality. Introduced in Windows 10.
+            Defaults to &quot;%LOCALAPPDATA%\ProgramData&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.ApplicationShortcuts">
+            <summary>
+            The per-user Application Shortcuts folder. Introduced in Windows 8.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\Application Shortcuts&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.CameraRoll">
+            <summary>
+            The per-user Camera Roll folder. Introduced in Windows 8.1.
+            Defaults to &quot;.%USERPROFILE%\Pictures\Camera Roll&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.CDBurning">
+            <summary>
+            The per-user Temporary Burn Folder.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\Burn\Burn&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.CommonAdminTools">
+            <summary>
+            The common Administrative Tools folder.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\Start Menu\Programs\Administrative Tools&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.CommonOemLinks">
+            <summary>
+            The common OEM Links folder.
+            Defaults to &quot;%ALLUSERSPROFILE%\OEM Links&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.CommonPrograms">
+            <summary>
+            The common Programs folder.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\Start Menu\Programs&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.CommonStartMenu">
+            <summary>
+            The common Start Menu folder.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\Start Menu&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.CommonStartup">
+            <summary>
+            The common Startup folder.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\Start Menu\Programs\StartUp&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.CommonTemplates">
+            <summary>
+            The common Templates folder.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\Templates&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Contacts">
+            <summary>
+            The per-user Contacts folder. Introduced in Windows Vista.
+            Defaults to &quot;%USERPROFILE%\Contacts&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Cookies">
+            <summary>
+            The per-user Cookies folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Cookies&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Desktop">
+            <summary>
+            The per-user Desktop folder.
+            Defaults to &quot;%USERPROFILE%\Desktop&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.DeviceMetadataStore">
+            <summary>
+            The common DeviceMetadataStore folder. Introduced in Windows 7.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\DeviceMetadataStore&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Documents">
+            <summary>
+            The per-user Documents folder.
+            Defaults to &quot;%USERPROFILE%\Documents&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.DocumentsLibrary">
+            <summary>
+            The per-user Documents library. Introduced in Windows 7.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Libraries\Documents.library-ms&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.DocumentsLocalized">
+            <summary>
+            The per-user localized Documents folder.
+            Defaults to &quot;%USERPROFILE%\Documents&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Downloads">
+            <summary>
+            The per-user Downloads folder.
+            Defaults to &quot;%USERPROFILE%\Downloads&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.DownloadsLocalized">
+            <summary>
+            The per-user localized Downloads folder.
+            Defaults to &quot;%USERPROFILE%\Downloads&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Favorites">
+            <summary>
+            The per-user Favorites folder.
+            Defaults to &quot;%USERPROFILE%\Favorites&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Fonts">
+            <summary>
+            The fixed Fonts folder.
+            Points to &quot;%WINDIR%\Fonts&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.GameTasks">
+            <summary>
+            The per-user GameExplorer folder. Introduced in Windows Vista.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\GameExplorer&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.History">
+            <summary>
+            The per-user History folder.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\History&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.ImplicitAppShortcuts">
+            <summary>
+            The per-user ImplicitAppShortcuts folder. Introduced in Windows 7.
+            Defaults to &quot;%APPDATA%\Microsoft\Internet Explorer\Quick Launch\User Pinned\ImplicitAppShortcuts&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.InternetCache">
+            <summary>
+            The per-user Temporary Internet Files folder.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\Temporary Internet Files&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Libraries">
+            <summary>
+            The per-user Libraries folder. Introduced in Windows 7.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Libraries&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Links">
+            <summary>
+            The per-user Links folder.
+            Defaults to &quot;%USERPROFILE%\Links&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.LocalAppData">
+            <summary>
+            The per-user Local folder.
+            Defaults to &quot;%LOCALAPPDATA%&quot; (&quot;%USERPROFILE%\AppData\Local&quot;)&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.LocalAppDataLow">
+            <summary>
+            The per-user LocalLow folder.
+            Defaults to &quot;%USERPROFILE%\AppData\LocalLow&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.LocalizedResourcesDir">
+            <summary>
+            The fixed LocalizedResourcesDir folder.
+            Points to &quot;%WINDIR%\resources\0409&quot; (code page).
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Music">
+            <summary>
+            The per-user Music folder.
+            Defaults to &quot;%USERPROFILE%\Music&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.MusicLibrary">
+            <summary>
+            The per-user Music library. Introduced in Windows 7.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Libraries\Music.library-ms&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.MusicLocalized">
+            <summary>
+            The per-user localized Music folder.
+            Defaults to &quot;%USERPROFILE%\Music&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.NetHood">
+            <summary>
+            The per-user Network Shortcuts folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Network Shortcuts&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Objects3D">
+            <summary>
+            The per-user 3D Objects folder. Introduced in Windows 10.
+            Defaults to &quot;%USERPROFILE%\3D Objects&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.OriginalImages">
+            <summary>
+            The per-user Original Images folder. Introduced in Windows Vista.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows Photo Gallery\Original Images&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.PhotoAlbums">
+            <summary>
+            The per-user Slide Shows folder. Introduced in Windows Vista.
+            Defaults to &quot;%USERPROFILE%\Pictures\Slide Shows&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Pictures">
+            <summary>
+            The per-user Pictures folder.
+            Defaults to &quot;%USERPROFILE%\Pictures&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.PicturesLibrary">
+            <summary>
+            The per-user Pictures library. Introduced in Windows 7.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Libraries\Pictures.library-ms&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.PicturesLocalized">
+            <summary>
+            The per-user localized Pictures folder.
+            Defaults to &quot;%USERPROFILE%\Pictures&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Playlists">
+            <summary>
+            The per-user Playlists folder.
+            Defaults to &quot;%USERPROFILE%\Music\Playlists&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.PrintHood">
+            <summary>
+            The per-user Printer Shortcuts folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Printer Shortcuts&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Profile">
+            <summary>
+            The fixed user profile folder.
+            Defaults to &quot;%USERPROFILE%&quot; (&quot;%SYSTEMDRIVE%\USERS\%USERNAME%&quot;)&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.ProgramData">
+            <summary>
+            The fixed ProgramData folder.
+            Points to &quot;%ALLUSERSPROFILE%&quot; (&quot;%PROGRAMDATA%&quot;, &quot;%SYSTEMDRIVE%\ProgramData&quot;).
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.ProgramFiles">
+            <summary>
+            The fixed Program Files folder.
+            This is the same as the <see cref="P:Wabbajack.Common.IO.KnownFolders.ProgramFilesX86"/> known folder in 32-bit applications or the
+            <see cref="P:Wabbajack.Common.IO.KnownFolders.ProgramFilesX64"/> known folder in 64-bit applications.
+            Points to %SYSTEMDRIVE%\Program Files on a 32-bit operating system or in 64-bit applications on a 64-bit
+            operating system and to %SYSTEMDRIVE%\Program Files (x86) in 32-bit applications on a 64-bit operating
+            system.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.ProgramFilesX64">
+            <summary>
+            The fixed Program Files folder (64-bit forced).
+            This known folder is unsupported in 32-bit applications.
+            Points to %SYSTEMDRIVE%\Program Files.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.ProgramFilesX86">
+            <summary>
+            The fixed Program Files folder (32-bit forced).
+            This is the same as the <see cref="P:Wabbajack.Common.IO.KnownFolders.ProgramFiles"/> known folder in 32-bit applications.
+            Points to &quot;%SYSTEMDRIVE%\Program Files&quot; on a 32-bit operating system and to
+            &quot;%SYSTEMDRIVE%\Program Files (x86)&quot; on a 64-bit operating system.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.ProgramFilesCommon">
+            <summary>
+            The fixed Common Files folder.
+            This is the same as the <see cref="P:Wabbajack.Common.IO.KnownFolders.ProgramFilesCommonX86"/> known folder in 32-bit applications or the
+            <see cref="P:Wabbajack.Common.IO.KnownFolders.ProgramFilesCommonX64"/> known folder in 64-bit applications.
+            Points to&quot; %PROGRAMFILES%\Common Files&quot; on a 32-bit operating system or in 64-bit applications on
+            a 64-bit operating system and to &quot;%PROGRAMFILES(X86)%\Common Files&quot; in 32-bit applications on a
+            64-bit operating system.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.ProgramFilesCommonX64">
+            <summary>
+            The fixed Common Files folder (64-bit forced).
+            This known folder is unsupported in 32-bit applications.
+            Points to &quot;%PROGRAMFILES%\Common Files&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.ProgramFilesCommonX86">
+            <summary>
+            The fixed Common Files folder (32-bit forced).
+            This is the same as the <see cref="P:Wabbajack.Common.IO.KnownFolders.ProgramFilesCommon"/> known folder in 32-bit applications.
+            Points to &quot;%PROGRAMFILES%\Common Files&quot; on a 32-bit operating system and to
+            &quot;%PROGRAMFILES(X86)%\Common Files&quot; on a 64-bit operating system.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Programs">
+            <summary>
+            The per-user Programs folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Start Menu\Programs&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Public">
+            <summary>
+            The fixed Public folder. Introduced in Windows Vista.
+            Defaults to &quot;%PUBLIC%&quot; (&quot;%SYSTEMDRIVE%\Users\Public)&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.PublicDesktop">
+            <summary>
+            The common Public Desktop folder.
+            Defaults to &quot;%PUBLIC%\Desktop&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.PublicDocuments">
+            <summary>
+            The common Public Documents folder.
+            Defaults to &quot;%PUBLIC%\Documents&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.PublicDownloads">
+            <summary>
+            The common Public Downloads folder. Introduced in Windows Vista.
+            Defaults to &quot;%PUBLIC%\Downloads&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.PublicGameTasks">
+            <summary>
+            The common GameExplorer folder. Introduced in Windows Vista.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\GameExplorer&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.PublicLibraries">
+            <summary>
+            The common Libraries folder. Introduced in Windows 7.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\Libraries&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.PublicMusic">
+            <summary>
+            The common Public Music folder.
+            Defaults to &quot;%PUBLIC%\Music&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.PublicPictures">
+            <summary>
+            The common Public Pictures folder.
+            Defaults to &quot;%PUBLIC%\Pictures&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.PublicRingtones">
+            <summary>
+            The common Ringtones folder. Introduced in Windows 7.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\Ringtones&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.PublicUserTiles">
+            <summary>
+            The common Public Account Pictures folder. Introduced in Windows 8.
+            Defaults to &quot;%PUBLIC%\AccountPictures&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.PublicVideos">
+            <summary>
+            The common Public Videos folder.
+            Defaults to &quot;%PUBLIC%\Videos&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.QuickLaunch">
+            <summary>
+            The per-user Quick Launch folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Internet Explorer\Quick Launch&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Recent">
+            <summary>
+            The per-user Recent Items folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Recent&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.RecordedTVLibrary">
+            <summary>
+            The common Recorded TV library. Introduced in Windows 7.
+            Defaults to &quot;%PUBLIC%\RecordedTV.library-ms&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.ResourceDir">
+            <summary>
+            The fixed Resources folder.
+            Points to &quot;%WINDIR%\Resources&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Ringtones">
+            <summary>
+            The per-user Ringtones folder. Introduced in Windows 7.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\Ringtones&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.RoamingAppData">
+            <summary>
+            The per-user Roaming folder.
+            Defaults to &quot;%APPDATA%&quot; (&quot;%USERPROFILE%\AppData\Roaming&quot;).
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.RoamedTileImages">
+            <summary>
+            The per-user RoamedTileImages folder. Introduced in Windows 8.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\RoamedTileImages&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.RoamingTiles">
+            <summary>
+            The per-user RoamingTiles folder. Introduced in Windows 8.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\RoamingTiles&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SampleMusic">
+            <summary>
+            The common Sample Music folder.
+            Defaults to &quot;%PUBLIC%\Music\Sample Music&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SamplePictures">
+            <summary>
+            The common Sample Pictures folder.
+            Defaults to &quot;%PUBLIC%\Pictures\Sample Pictures&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SamplePlaylists">
+            <summary>
+            The common Sample Playlists folder. Introduced in Windows Vista.
+            Defaults to &quot;%PUBLIC%\Music\Sample Playlists&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SampleVideos">
+            <summary>
+            The common Sample Videos folder.
+            Defaults to &quot;%PUBLIC%\Videos\Sample Videos&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SavedGames">
+            <summary>
+            The per-user Saved Games folder. Introduced in Windows Vista.
+            Defaults to &quot;%USERPROFILE%\Saved Games&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SavedSearches">
+            <summary>
+            The per-user Searches folder.
+            Defaults to &quot;%USERPROFILE%\Searches&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Screenshots">
+            <summary>
+            The per-user Screenshots folder. Introduced in Windows 8.
+            Defaults to &quot;%USERPROFILE%\Pictures\Screenshots&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SearchHistory">
+            <summary>
+            The per-user History folder. Introduced in Windows 8.1.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\ConnectedSearch\History&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SearchTemplates">
+            <summary>
+            The per-user Templates folder. Introduced in Windows 8.1.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\ConnectedSearch\Templates&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SendTo">
+            <summary>
+            The per-user SendTo folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\SendTo&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SidebarDefaultParts">
+            <summary>
+            The common Gadgets folder. Introduced in Windows 7.
+            Defaults to &quot;%ProgramFiles%\Windows Sidebar\Gadgets&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SidebarParts">
+            <summary>
+            The per-user Gadgets folder. Introduced in Windows 7.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows Sidebar\Gadgets&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SkyDrive">
+            <summary>
+            The per-user OneDrive folder. Introduced in Windows 8.1.
+            Defaults to &quot;%USERPROFILE%\OneDrive&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SkyDriveCameraRoll">
+            <summary>
+            The per-user OneDrive Camera Roll folder. Introduced in Windows 8.1.
+            Defaults to &quot;%USERPROFILE%\OneDrive\Pictures\Camera Roll&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SkyDriveDocuments">
+            <summary>
+            The per-user OneDrive Documents folder. Introduced in Windows 8.1.
+            Defaults to &quot;%USERPROFILE%\OneDrive\Documents&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SkyDrivePictures">
+            <summary>
+            The per-user OneDrive Pictures folder. Introduced in Windows 8.1.
+            Defaults to &quot;%USERPROFILE%\OneDrive\Pictures&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.StartMenu">
+            <summary>
+            The per-user Start Menu folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Start Menu&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Startup">
+            <summary>
+            The per-user Startup folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Start Menu\Programs\StartUp&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.System">
+            <summary>
+            The fixed System32 folder.
+            This is the same as the <see cref="P:Wabbajack.Common.IO.KnownFolders.SystemX86"/> known folder in 32-bit applications.
+            Points to &quot;%WINDIR%\system32&quot; on 32-bit operating systems or in 64-bit applications on a 64-bit
+            operating system and to &quot;%WINDIR%\syswow64&quot; in 32-bit applications on a 64-bit operating system.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.SystemX86">
+            <summary>
+            The fixed System32 folder (32-bit forced).
+            This is the same as the <see cref="P:Wabbajack.Common.IO.KnownFolders.System"/> known folder in 32-bit applications.
+            Points to &quot;%WINDIR%\syswow64&quot; in 64-bit applications or in 32-bit applications on a 64-bit
+            operating system and to &quot;%WINDIR%\system32&quot; on 32-bit operating systems.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Templates">
+            <summary>
+            The per-user Templates folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Templates&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.UserPinned">
+            <summary>
+            The per-user User Pinned folder. Introduced in Windows 7.
+            Defaults to &quot;%APPDATA%\Microsoft\Internet Explorer\Quick Launch\User Pinned&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.UserProfiles">
+            <summary>
+            The fixed Users folder. Introduced in Windows Vista.
+            Points to &quot;%SYSTEMDRIVE%\Users&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.UserProgramFiles">
+            <summary>
+            The per-user Programs folder. Introduced in Windows 7.
+            Defaults to &quot;%LOCALAPPDATA%\Programs.&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.UserProgramFilesCommon">
+            <summary>
+            The per-user common Programs folder. INtroduced in Windows 7.
+            Defaults to &quot;%LOCALAPPDATA%\Programs\Common&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Videos">
+            <summary>
+            The per-user Videos folder.
+            Defaults to &quot;%USERPROFILE%\Videos&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.VideosLibrary">
+            <summary>
+            The per-user Videos library. Introduced in Windows 7.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Libraries\Videos.library-ms&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.VideosLocalized">
+            <summary>
+            The per-user localized Videos folder.
+            Defaults to &quot;%USERPROFILE%\Videos&quot;.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolders.Windows">
+            <summary>
+            The fixed Windows folder.
+            Points to &quot;%WINDIR%&quot;.
+            </summary>
+        </member>
+        <member name="T:Wabbajack.Common.IO.KnownFolderType">
+            <summary>
+            Represents the list of standard folders registered with the system. These folders are installed with Windows
+            Vista and later operating systems, and a computer will have only folders appropriate to it installed.
+            </summary>
+            <msdn-id>dd378457</msdn-id>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.AccountPictures">
+            <summary>
+            The per-user Account Pictures folder. Introduced in Windows 8.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\AccountPictures&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.AdminTools">
+            <summary>
+            The per-user Administrative Tools folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Start Menu\Programs\Administrative Tools&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.AppDataDesktop">
+            <summary>
+            The per-user app desktop folder, used internally by .NET applications to perform cross-platform app
+            functionality. Introduced in Windows 10.
+            Defaults to &quot;%LOCALAPPDATA%\Desktop&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.AppDataDocuments">
+            <summary>
+            The per-user app documents folder, used internally by .NET applications to perform cross-platform app
+            functionality. Introduced in Windows 10.
+            Defaults to &quot;%LOCALAPPDATA%\Documents&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.AppDataFavorites">
+            <summary>
+            The per-user app favorites folder, used internally by .NET applications to perform cross-platform app
+            functionality. Introduced in Windows 10.
+            Defaults to &quot;%LOCALAPPDATA%\Favorites&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.AppDataProgramData">
+            <summary>
+            The per-user app program data folder, used internally by .NET applications to perform cross-platform app
+            functionality. Introduced in Windows 10.
+            Defaults to &quot;%LOCALAPPDATA%\ProgramData&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.ApplicationShortcuts">
+            <summary>
+            The per-user Application Shortcuts folder. Introduced in Windows 8.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\Application Shortcuts&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.CameraRoll">
+            <summary>
+            The per-user Camera Roll folder. Introduced in Windows 8.1.
+            Defaults to &quot;.%USERPROFILE%\Pictures\Camera Roll&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.CDBurning">
+            <summary>
+            The per-user Temporary Burn Folder.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\Burn\Burn&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.CommonAdminTools">
+            <summary>
+            The common Administrative Tools folder.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\Start Menu\Programs\Administrative Tools&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.CommonOemLinks">
+            <summary>
+            The common OEM Links folder.
+            Defaults to &quot;%ALLUSERSPROFILE%\OEM Links&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.CommonPrograms">
+            <summary>
+            The common Programs folder.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\Start Menu\Programs&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.CommonStartMenu">
+            <summary>
+            The common Start Menu folder.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\Start Menu&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.CommonStartup">
+            <summary>
+            The common Startup folder.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\Start Menu\Programs\StartUp&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.CommonTemplates">
+            <summary>
+            The common Templates folder.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\Templates&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Contacts">
+            <summary>
+            The per-user Contacts folder. Introduced in Windows Vista.
+            Defaults to &quot;%USERPROFILE%\Contacts&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Cookies">
+            <summary>
+            The per-user Cookies folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Cookies&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Desktop">
+            <summary>
+            The per-user Desktop folder.
+            Defaults to &quot;%USERPROFILE%\Desktop&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.DeviceMetadataStore">
+            <summary>
+            The common DeviceMetadataStore folder. Introduced in Windows 7.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\DeviceMetadataStore&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Documents">
+            <summary>
+            The per-user Documents folder.
+            Defaults to &quot;%USERPROFILE%\Documents&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.DocumentsLibrary">
+            <summary>
+            The per-user Documents library. Introduced in Windows 7.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Libraries\Documents.library-ms&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.DocumentsLocalized">
+            <summary>
+            The per-user localized Documents folder.
+            Defaults to &quot;%USERPROFILE%\Documents&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Downloads">
+            <summary>
+            The per-user Downloads folder.
+            Defaults to &quot;%USERPROFILE%\Downloads&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.DownloadsLocalized">
+            <summary>
+            The per-user localized Downloads folder.
+            Defaults to &quot;%USERPROFILE%\Downloads&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Favorites">
+            <summary>
+            The per-user Favorites folder.
+            Defaults to &quot;%USERPROFILE%\Favorites&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Fonts">
+            <summary>
+            The fixed Fonts folder.
+            Points to &quot;%WINDIR%\Fonts&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.GameTasks">
+            <summary>
+            The per-user GameExplorer folder. Introduced in Windows Vista.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\GameExplorer&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.History">
+            <summary>
+            The per-user History folder.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\History&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.ImplicitAppShortcuts">
+            <summary>
+            The per-user ImplicitAppShortcuts folder. Introduced in Windows 7.
+            Defaults to &quot;%APPDATA%\Microsoft\Internet Explorer\Quick Launch\User Pinned\ImplicitAppShortcuts&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.InternetCache">
+            <summary>
+            The per-user Temporary Internet Files folder.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\Temporary Internet Files&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Libraries">
+            <summary>
+            The per-user Libraries folder. Introduced in Windows 7.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Libraries&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Links">
+            <summary>
+            The per-user Links folder.
+            Defaults to &quot;%USERPROFILE%\Links&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.LocalAppData">
+            <summary>
+            The per-user Local folder.
+            Defaults to &quot;%LOCALAPPDATA%&quot; (&quot;%USERPROFILE%\AppData\Local&quot;)&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.LocalAppDataLow">
+            <summary>
+            The per-user LocalLow folder.
+            Defaults to &quot;%USERPROFILE%\AppData\LocalLow&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.LocalizedResourcesDir">
+            <summary>
+            The fixed LocalizedResourcesDir folder.
+            Points to &quot;%WINDIR%\resources\0409&quot; (code page).
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Music">
+            <summary>
+            The per-user Music folder.
+            Defaults to &quot;%USERPROFILE%\Music&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.MusicLibrary">
+            <summary>
+            The per-user Music library. Introduced in Windows 7.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Libraries\Music.library-ms&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.MusicLocalized">
+            <summary>
+            The per-user localized Music folder.
+            Defaults to &quot;%USERPROFILE%\Music&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.NetHood">
+            <summary>
+            The per-user Network Shortcuts folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Network Shortcuts&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Objects3D">
+            <summary>
+            The per-user 3D Objects folder. Introduced in Windows 10.
+            Defaults to &quot;%USERPROFILE%\3D Objects&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.OriginalImages">
+            <summary>
+            The per-user Original Images folder. Introduced in Windows Vista.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows Photo Gallery\Original Images&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.PhotoAlbums">
+            <summary>
+            The per-user Slide Shows folder. Introduced in Windows Vista.
+            Defaults to &quot;%USERPROFILE%\Pictures\Slide Shows&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.PicturesLibrary">
+            <summary>
+            The per-user Pictures library. Introduced in Windows 7.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Libraries\Pictures.library-ms&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Pictures">
+            <summary>
+            The per-user Pictures folder.
+            Defaults to &quot;%USERPROFILE%\Pictures&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.PicturesLocalized">
+            <summary>
+            The per-user localized Pictures folder.
+            Defaults to &quot;%USERPROFILE%\Pictures&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Playlists">
+            <summary>
+            The per-user Playlists folder.
+            Defaults to &quot;%USERPROFILE%\Music\Playlists&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.PrintHood">
+            <summary>
+            The per-user Printer Shortcuts folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Printer Shortcuts&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Profile">
+            <summary>
+            The fixed user profile folder.
+            Defaults to &quot;%USERPROFILE%&quot; (&quot;%SYSTEMDRIVE%\USERS\%USERNAME%&quot;)&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.ProgramData">
+            <summary>
+            The fixed ProgramData folder.
+            Points to &quot;%ALLUSERSPROFILE%&quot; (&quot;%PROGRAMDATA%&quot;,
+            &quot;%SYSTEMDRIVE%\ProgramData&quot;).
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.ProgramFiles">
+            <summary>
+            The fixed Program Files folder.
+            This is the same as the <see cref="F:Wabbajack.Common.IO.KnownFolderType.ProgramFilesX86"/> known folder in 32-bit applications or the
+            <see cref="F:Wabbajack.Common.IO.KnownFolderType.ProgramFilesX64"/> known folder in 64-bit applications.
+            Points to %SYSTEMDRIVE%\Program Files on a 32-bit operating system or in 64-bit applications on a 64-bit
+            operating system and to %SYSTEMDRIVE%\Program Files (x86) in 32-bit applications on a 64-bit operating
+            system.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.ProgramFilesX64">
+            <summary>
+            The fixed Program Files folder (64-bit forced).
+            This known folder is unsupported in 32-bit applications.
+            Points to %SYSTEMDRIVE%\Program Files.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.ProgramFilesX86">
+            <summary>
+            The fixed Program Files folder (32-bit forced).
+            This is the same as the <see cref="F:Wabbajack.Common.IO.KnownFolderType.ProgramFiles"/> known folder in 32-bit applications.
+            Points to &quot;%SYSTEMDRIVE%\Program Files&quot; on a 32-bit operating system and to
+            &quot;%SYSTEMDRIVE%\Program Files (x86)&quot; on a 64-bit operating system.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.ProgramFilesCommon">
+            <summary>
+            The fixed Common Files folder.
+            This is the same as the <see cref="F:Wabbajack.Common.IO.KnownFolderType.ProgramFilesCommonX86"/> known folder in 32-bit applications or the
+            <see cref="F:Wabbajack.Common.IO.KnownFolderType.ProgramFilesCommonX64"/> known folder in 64-bit applications.
+            Points to&quot; %PROGRAMFILES%\Common Files&quot; on a 32-bit operating system or in 64-bit applications on
+            a 64-bit operating system and to &quot;%PROGRAMFILES(X86)%\Common Files&quot; in 32-bit applications on a
+            64-bit operating system.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.ProgramFilesCommonX64">
+            <summary>
+            The fixed Common Files folder (64-bit forced).
+            This known folder is unsupported in 32-bit applications.
+            Points to &quot;%PROGRAMFILES%\Common Files&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.ProgramFilesCommonX86">
+            <summary>
+            The fixed Common Files folder (32-bit forced).
+            This is the same as the <see cref="F:Wabbajack.Common.IO.KnownFolderType.ProgramFilesCommon"/> known folder in 32-bit applications.
+            Points to &quot;%PROGRAMFILES%\Common Files&quot; on a 32-bit operating system and to
+            &quot;%PROGRAMFILES(X86)%\Common Files&quot; on a 64-bit operating system.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Programs">
+            <summary>
+            The per-user Programs folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Start Menu\Programs&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Public">
+            <summary>
+            The fixed Public folder. Introduced in Windows Vista.
+            Defaults to &quot;%PUBLIC%&quot; (&quot;%SYSTEMDRIVE%\Users\Public)&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.PublicDesktop">
+            <summary>
+            The common Public Desktop folder.
+            Defaults to &quot;%PUBLIC%\Desktop&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.PublicDocuments">
+            <summary>
+            The common Public Documents folder.
+            Defaults to &quot;%PUBLIC%\Documents&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.PublicDownloads">
+            <summary>
+            The common Public Downloads folder. Introduced in Windows Vista.
+            Defaults to &quot;%PUBLIC%\Downloads&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.PublicGameTasks">
+            <summary>
+            The common GameExplorer folder. Introduced in Windows Vista.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\GameExplorer&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.PublicLibraries">
+            <summary>
+            The common Libraries folder. Introduced in Windows 7.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\Libraries&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.PublicMusic">
+            <summary>
+            The common Public Music folder.
+            Defaults to &quot;%PUBLIC%\Music&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.PublicPictures">
+            <summary>
+            The common Public Pictures folder.
+            Defaults to &quot;%PUBLIC%\Pictures&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.PublicRingtones">
+            <summary>
+            The common Ringtones folder. Introduced in Windows 7.
+            Defaults to &quot;%ALLUSERSPROFILE%\Microsoft\Windows\Ringtones&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.PublicUserTiles">
+            <summary>
+            The common Public Account Pictures folder. Introduced in Windows 8.
+            Defaults to &quot;%PUBLIC%\AccountPictures&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.PublicVideos">
+            <summary>
+            The common Public Videos folder.
+            Defaults to &quot;%PUBLIC%\Videos&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.QuickLaunch">
+            <summary>
+            The per-user Quick Launch folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Internet Explorer\Quick Launch&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Recent">
+            <summary>
+            The per-user Recent Items folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Recent&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.RecordedTVLibrary">
+            <summary>
+            The common Recorded TV library. Introduced in Windows 7.
+            Defaults to &quot;%PUBLIC%\RecordedTV.library-ms&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.ResourceDir">
+            <summary>
+            The fixed Resources folder.
+            Points to &quot;%WINDIR%\Resources&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Ringtones">
+            <summary>
+            The per-user Ringtones folder. Introduced in Windows 7.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\Ringtones&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.RoamingAppData">
+            <summary>
+            The per-user Roaming folder.
+            Defaults to &quot;%APPDATA%&quot; (&quot;%USERPROFILE%\AppData\Roaming&quot;).
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.RoamedTileImages">
+            <summary>
+            The per-user RoamedTileImages folder. Introduced in Windows 8.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\RoamedTileImages&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.RoamingTiles">
+            <summary>
+            The per-user RoamingTiles folder. Introduced in Windows 8.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\RoamingTiles&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SampleMusic">
+            <summary>
+            The common Sample Music folder.
+            Defaults to &quot;%PUBLIC%\Music\Sample Music&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SamplePictures">
+            <summary>
+            The common Sample Pictures folder.
+            Defaults to &quot;%PUBLIC%\Pictures\Sample Pictures&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SamplePlaylists">
+            <summary>
+            The common Sample Playlists folder. Introduced in Windows Vista.
+            Defaults to &quot;%PUBLIC%\Music\Sample Playlists&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SampleVideos">
+            <summary>
+            The common Sample Videos folder.
+            Defaults to &quot;%PUBLIC%\Videos\Sample Videos&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SavedGames">
+            <summary>
+            The per-user Saved Games folder. Introduced in Windows Vista.
+            Defaults to &quot;%USERPROFILE%\Saved Games&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SavedSearches">
+            <summary>
+            The per-user Searches folder.
+            Defaults to &quot;%USERPROFILE%\Searches&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Screenshots">
+            <summary>
+            The per-user Screenshots folder. Introduced in Windows 8.
+            Defaults to &quot;%USERPROFILE%\Pictures\Screenshots&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SearchHistory">
+            <summary>
+            The per-user History folder. Introduced in Windows 8.1.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\ConnectedSearch\History&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SearchTemplates">
+            <summary>
+            The per-user Templates folder. Introduced in Windows 8.1.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows\ConnectedSearch\Templates&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SendTo">
+            <summary>
+            The per-user SendTo folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\SendTo&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SidebarDefaultParts">
+            <summary>
+            The common Gadgets folder. Introduced in Windows 7.
+            Defaults to &quot;%ProgramFiles%\Windows Sidebar\Gadgets&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SidebarParts">
+            <summary>
+            The per-user Gadgets folder. Introduced in Windows 7.
+            Defaults to &quot;%LOCALAPPDATA%\Microsoft\Windows Sidebar\Gadgets&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SkyDrive">
+            <summary>
+            The per-user OneDrive folder. Introduced in Windows 8.1.
+            Defaults to &quot;%USERPROFILE%\OneDrive&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SkyDriveCameraRoll">
+            <summary>
+            The per-user OneDrive Camera Roll folder. Introduced in Windows 8.1.
+            Defaults to &quot;%USERPROFILE%\OneDrive\Pictures\Camera Roll&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SkyDriveDocuments">
+            <summary>
+            The per-user OneDrive Documents folder. Introduced in Windows 8.1.
+            Defaults to &quot;%USERPROFILE%\OneDrive\Documents&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SkyDrivePictures">
+            <summary>
+            The per-user OneDrive Pictures folder. Introduced in Windows 8.1.
+            Defaults to &quot;%USERPROFILE%\OneDrive\Pictures&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.StartMenu">
+            <summary>
+            The per-user Start Menu folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Start Menu&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Startup">
+            <summary>
+            The per-user Startup folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Start Menu\Programs\StartUp&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.System">
+            <summary>
+            The fixed System32 folder.
+            This is the same as the <see cref="F:Wabbajack.Common.IO.KnownFolderType.SystemX86"/> known folder in 32-bit applications.
+            Points to &quot;%WINDIR%\system32&quot; on 32-bit operating systems or in 64-bit applications on a 64-bit
+            operating system and to &quot;%WINDIR%\syswow64&quot; in 32-bit applications on a 64-bit operating system.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.SystemX86">
+            <summary>
+            The fixed System32 folder (32-bit forced).
+            This is the same as the <see cref="F:Wabbajack.Common.IO.KnownFolderType.System"/> known folder in 32-bit applications.
+            Points to &quot;%WINDIR%\syswow64&quot; in 64-bit applications or in 32-bit applications on a 64-bit
+            operating system and to &quot;%WINDIR%\system32&quot; on 32-bit operating systems.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Templates">
+            <summary>
+            The per-user Templates folder.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Templates&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.UserPinned">
+            <summary>
+            The per-user User Pinned folder. Introduced in Windows 7.
+            Defaults to &quot;%APPDATA%\Microsoft\Internet Explorer\Quick Launch\User Pinned&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.UserProfiles">
+            <summary>
+            The fixed Users folder. Introduced in Windows Vista.
+            Points to &quot;%SYSTEMDRIVE%\Users&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.UserProgramFiles">
+            <summary>
+            The per-user Programs folder. Introduced in Windows 7.
+            Defaults to &quot;%LOCALAPPDATA%\Programs.&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.UserProgramFilesCommon">
+            <summary>
+            The per-user common Programs folder. INtroduced in Windows 7.
+            Defaults to &quot;%LOCALAPPDATA%\Programs\Common&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Videos">
+            <summary>
+            The per-user Videos folder.
+            Defaults to &quot;%USERPROFILE%\Videos&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.VideosLibrary">
+            <summary>
+            The per-user Videos library. Introduced in Windows 7.
+            Defaults to &quot;%APPDATA%\Microsoft\Windows\Libraries\Videos.library-ms&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.VideosLocalized">
+            <summary>
+            The per-user localized Videos folder.
+            Defaults to &quot;%USERPROFILE%\Videos&quot;.
+            </summary>
+        </member>
+        <member name="F:Wabbajack.Common.IO.KnownFolderType.Windows">
+            <summary>
+            The fixed Windows folder.
+            Points to &quot;%WINDIR%&quot;.
+            </summary>
+        </member>
+        <member name="T:Wabbajack.Common.IO.KnownFolderTypeExtensions">
+            <summary>
+            Represents extension methods for the <see cref="T:Wabbajack.Common.IO.KnownFolderType"/> type.
+            </summary>
+        </member>
+        <member name="M:Wabbajack.Common.IO.KnownFolderTypeExtensions.GetGuid(Wabbajack.Common.IO.KnownFolderType)">
+            <summary>
+            Gets the <see cref="T:System.Guid"/> with which the <see cref="T:Wabbajack.Common.IO.KnownFolderType"/> enumeration member has been
+            decorated.
+            </summary>
+            <param name="value">The decorated <see cref="T:Wabbajack.Common.IO.KnownFolderType"/> enumeration member.</param>
+            <returns>The <see cref="T:System.Guid"/> of the <see cref="T:Wabbajack.Common.IO.KnownFolderType"/>.</returns>
+        </member>
+        <member name="T:Wabbajack.Common.IO.KnownFolderGuidAttribute">
+            <summary>
+            Represents an attribute to decorate the members of the <see cref="T:Wabbajack.Common.IO.KnownFolderType"/> enumeration with their
+            corresponding <see cref="P:Wabbajack.Common.IO.KnownFolderGuidAttribute.Guid"/> on the Windows system.
+            </summary>
+        </member>
+        <member name="M:Wabbajack.Common.IO.KnownFolderGuidAttribute.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Wabbajack.Common.IO.KnownFolderGuidAttribute"/> class with the given string
+            representing the GUID of the <see cref="T:Wabbajack.Common.IO.KnownFolderType"/>.
+            </summary>
+            <param name="guid">The GUID string of the <see cref="T:Wabbajack.Common.IO.KnownFolderType"/>.</param>
+        </member>
+        <member name="P:Wabbajack.Common.IO.KnownFolderGuidAttribute.Guid">
+            <summary>
+            Gets the <see cref="P:Wabbajack.Common.IO.KnownFolderGuidAttribute.Guid"/> for the <see cref="T:Wabbajack.Common.IO.KnownFolderType"/> enumeration member.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Common.AbsolutePath.EntryPoint">
+            <summary>
+            Returns the full path the folder that contains Wabbajack.Common. This will almost always be
+            where all the binaries for the project reside.
+            </summary>
+            <exception cref="T:System.ArgumentException"></exception>
+        </member>
+        <member name="P:Wabbajack.Common.AbsolutePath.WindowsFolder">
+            <summary>
+            Returns the path to the Windows folder, most often c:\Windows
+            </summary>
+        </member>
+        <member name="M:Wabbajack.Common.AbsolutePath.MoveToAsync(Wabbajack.Common.AbsolutePath,System.Boolean)">
+            <summary>
+                Moves this file to the specified location, will use Copy if required
+            </summary>
+            <param name="otherPath"></param>
+            <param name="overwrite">Replace the destination file if it exists</param>
+        </member>
+        <member name="M:Wabbajack.Common.AbsolutePath.EnumerateFiles(System.Boolean,System.String)">
+            <summary>
+                Assuming the path is a folder, enumerate all the files in the folder
+            </summary>
+            <param name="recursive">if true, also returns files in sub-folders</param>
+            <param name="pattern">pattern to match against</param>
+            <returns></returns>
+        </member>
+        <member name="M:Wabbajack.Common.FullPath.InSameFolder(Wabbajack.Common.RelativePath)">
+            <summary>
+            Creates a new full path, with relativePath combined with the deepest leaf in the full path
+            </summary>
+            <param name="relativePath"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Wabbajack.Common.IPath.FileName">
+            <summary>
+                Get the final file name, for c:\bar\baz this is `baz` for c:\bar.zip this is `bar.zip`
+                for `bar.zip` this is `bar.zip`
+            </summary>
+        </member>
+        <member name="T:Wabbajack.Common.Serialization.Json.JsonNameAttribute">
+            <summary>
+            Defines the polymorphic name of this type when serialized via Json. This value will
+            be stored in the "_wjType" field. 
+            </summary>
+        </member>
+        <member name="M:Wabbajack.Common.StatusUpdateTracker.OverAllStatus(Wabbajack.Common.Percent)">
+            <summary>
+            Converts a percent that's within the scope of a single step
+            to the overall percent when all steps are considered
+            </summary>
+            <param name="singleStepPercent">Percent progress of the current single step</param>
+            <returns>Overall progress in relation to all steps</returns>
+        </member>
+        <member name="T:Wabbajack.Common.DiskSlabAllocator">
+            <summary>
+            Memory allocator that stores data via memory mapping to a on-disk file. Disposing of this object
+            deletes the memory mapped file
+            </summary>
+        </member>
+        <member name="M:Wabbajack.Common.TempFolder.Warmup">
+            <summary>
+            Starts the initialization in a background task
+            </summary>
+        </member>
+        <member name="M:Wabbajack.Common.WorkQueue.#ctor(System.Nullable{System.Int32})">
+            <summary>
+            Creates a WorkQueue with the given number of threads
+            </summary>
+            <param name="threadCount">Number of threads for the WorkQueue to have.  Null represents default, which is the Processor count of the machine.</param>
+        </member>
+        <member name="M:Wabbajack.Common.WorkQueue.#ctor(System.IObservable{System.Int32})">
+            <summary>
+            Creates a WorkQueue whos number of threads is determined by the given observable
+            </summary>
+            <param name="numThreads">Driving observable that determines how many threads should be actively pulling jobs from the queue</param>
+        </member>
+        <member name="M:Wabbajack.Common.WorkQueue.SetActiveThreadsObservable(System.IObservable{System.Int32})">
+            <summary>
+            Sets the driving observable that determines how many threads should be actively pulling jobs from the queue
+            </summary>
+            <param name="numThreads">Driving observable that determines how many threads should be actively pulling jobs from the queue</param>
+        </member>
+        <member name="M:Wabbajack.DictionaryExt.Add``2(System.Collections.Generic.IDictionary{``0,``1},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{``0,``1}})">
+            <summary>
+            Adds the given values to the dictionary.  If a key already exists, it will throw an exception
+            </summary>
+        </member>
+        <member name="M:Wabbajack.DictionaryExt.Set``2(System.Collections.Generic.IDictionary{``0,``1},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{``0,``1}})">
+            <summary>
+            Adds the given values to the dictionary.  If a key already exists, it will be replaced
+            </summary>
+        </member>
+        <member name="M:Wabbajack.DictionaryExt.SetTo``2(System.Collections.Generic.IDictionary{``0,``1},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{``0,``1}})">
+            <summary>
+            Clears the dictionary and adds the given values
+            </summary>
+        </member>
+        <member name="M:Wabbajack.EnumerableExt.Shuffle``1(System.Collections.Generic.IEnumerable{``0},System.Random)">
+            https://stackoverflow.com/questions/5807128/an-extension-method-on-ienumerable-needed-for-shuffling
+        </member>
+        <member name="M:Wabbajack.EnumerableExt.NotNull``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Converts and filters a nullable enumerable to a non-nullable enumerable
+            </summary>
+        </member>
+        <member name="M:Wabbajack.EnumerableExt.WhereCastable``2(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Selects items that are castable to the desired type
+            </summary>
+            <typeparam name="T">Type of the original enumerable to cast from</typeparam>
+            <typeparam name="R">Type to attempt casting to</typeparam>
+            <param name="e">Enumerable to process</param>
+            <returns>Enumerable with only objects that were castable</returns>
+        </member>
+        <member name="M:Wabbajack.RxExt.NotNull``1(System.IObservable{``0})">
+            <summary>
+            Convenience function that discards events that are null
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="source"></param>
+            <returns>Source events that are not null</returns>
+        </member>
+        <member name="M:Wabbajack.RxExt.Unit``1(System.IObservable{``0})">
+            <summary>
+            Converts any observable to type Unit.  Useful for when you care that a signal occurred,
+            but don't care about what its value is downstream.
+            </summary>
+            <returns>An observable that returns Unit anytime the source signal fires an event.</returns>
+        </member>
+        <member name="M:Wabbajack.RxExt.FlowSwitch``1(System.IObservable{``0},System.IObservable{System.Boolean})">
+            <summary>
+            Convenience operator to subscribe to the source observable, only when a second "switch" observable is on.
+            When the switch is on, the source will be subscribed to, and its updates passed through.
+            When the switch is off, the subscription to the source observable will be stopped, and no signal will be published.
+            </summary>
+            <param name="source">Source observable to subscribe to if on</param>
+            <param name="filterSwitch">On/Off signal of whether to subscribe to source observable</param>
+            <returns>Observable that publishes data from source, if the switch is on.</returns>
+        </member>
+        <member name="M:Wabbajack.RxExt.FlowSwitch``1(System.IObservable{``0},System.IObservable{System.Boolean},``0)">
+            <summary>
+            Convenience operator to subscribe to the source observable, only when a second "switch" observable is on.
+            When the switch is on, the source will be subscribed to, and its updates passed through.
+            When the switch is off, the subscription to the source observable will be stopped, and no signal will be published.
+            </summary>
+        </member>
+        <member name="M:Wabbajack.RxExt.Debounce``1(System.IObservable{``0},System.TimeSpan,System.Reactive.Concurrency.IScheduler)">
+            Inspiration:
+            http://reactivex.io/documentation/operators/debounce.html
+            https://stackoverflow.com/questions/20034476/how-can-i-use-reactive-extensions-to-throttle-events-using-a-max-window-size
+        </member>
+        <member name="M:Wabbajack.TaskExt.TimeoutButContinue(System.Threading.Tasks.Task,System.TimeSpan,System.Action)">
+            <summary>
+            returns a Task that will await the input task, but fire an action if it takes longer than a given time
+            </summary>
+        </member>
+        <member name="M:Wabbajack.TaskExt.TimeoutButContinue``1(System.Threading.Tasks.Task{``0},System.TimeSpan,System.Action)">
+            <summary>
+            returns a Task that will await the input task, but fire an action if it takes longer than a given time
+            </summary>
+        </member>
+    </members>
+</doc>

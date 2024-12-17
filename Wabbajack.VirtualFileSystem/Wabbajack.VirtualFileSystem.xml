@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Wabbajack.VirtualFileSystem</name>
+    </assembly>
+    <members>
+        <member name="P:Wabbajack.VirtualFileSystem.Context.ProgressUpdates">
+            <summary>
+            A stream of tuples of ("Update Title", 0.25) which represent the name of the current task
+            and the current progress.
+            </summary>
+        </member>
+        <member name="M:Wabbajack.VirtualFileSystem.Context.Extract(Wabbajack.Common.WorkQueue,System.Collections.Generic.HashSet{Wabbajack.VirtualFileSystem.VirtualFile},System.Func{Wabbajack.VirtualFileSystem.VirtualFile,Wabbajack.VirtualFileSystem.ExtractedFiles.IExtractedFile,System.Threading.Tasks.ValueTask},System.Nullable{Wabbajack.Common.AbsolutePath},Wabbajack.Common.StatusUpdateTracker)">
+            <summary>
+            Extracts a file
+            </summary>
+            <param name="queue">Work queue to use when required by some formats</param>
+            <param name="files">Predefined list of files to extract, all others will be skipped</param>
+            <param name="callback">Func called for each file extracted</param>
+            <param name="tempFolder">Optional: folder to use for temporary storage</param>
+            <param name="updateTracker">Optional: Status update tracker</param>
+            <returns></returns>
+            <exception cref="T:System.Exception"></exception>
+        </member>
+        <member name="M:Wabbajack.VirtualFileSystem.ExtractedFiles.IExtractedFile.Move(Wabbajack.Common.AbsolutePath)">
+            <summary>
+            Possibly destructive move operation. Should greatly optimize file copies when the file
+            exists on the same disk as the newPath. Performs a copy if a move is not possible.
+            </summary>
+            <param name="newPath">destination to move the entry to</param>
+            <returns></returns>
+        </member>
+        <member name="P:Wabbajack.VirtualFileSystem.FileExtractor2.FavorPerfOverRAM">
+            <summary>
+            When true, will allow 7z to use multiple threads and cache more data in memory, potentially
+            using many GB of RAM during extraction but vastly reducing extraction times in the process.
+            </summary>
+        </member>
+        <member name="M:Wabbajack.VirtualFileSystem.FileExtractor2.CompressFiles(Wabbajack.Common.AbsolutePath,Wabbajack.Common.AbsolutePath[],System.Action{System.String})">
+            <summary>
+            Compresses all the files with 7zip
+            </summary>
+            <param name="to"></param>
+            <param name="filesAndFolders"></param>
+        </member>
+        <member name="T:Wabbajack.VirtualFileSystem.IndexedVirtualFile">
+            <summary>
+            Response from the Build server for a indexed file
+            </summary>
+        </member>
+        <member name="P:Wabbajack.VirtualFileSystem.VirtualFile.NestingFactor">
+            <summary>
+                Returns the nesting factor for this file. Native files will have a nesting of 1, the factor
+                goes up for each nesting of a file in an archive.
+            </summary>
+        </member>
+        <member name="P:Wabbajack.VirtualFileSystem.VirtualFile.FilesInFullPath">
+            <summary>
+                Returns all the virtual files in the path to this file, starting from the root file.
+            </summary>
+        </member>
+    </members>
+</doc>
