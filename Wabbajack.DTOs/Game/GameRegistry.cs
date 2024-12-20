@@ -633,7 +633,7 @@ public static class GameRegistry
                     @"7DaysToDie.exe".ToRelativePath(),
                     @"7dLauncher.exe".ToRelativePath(),
                 },
-                MainExecutable = @"7dLauncher.exe".ToRelativePath()
+                MainExecutable = @"7DaysToDie.exe".ToRelativePath()
             }
         },
         {
