@@ -64,9 +64,15 @@ public class ResourceMonitor : IDisposable
             var now = DateTime.Now;
             foreach (var resource in _resources)
             {
-                foreach (var job in resource.Jobs.Where(j => j.Current > 0))
+                foreach (var job in resource.Jobs)
                 {
-                    used.Add(job.ID);
+                    // Delete
+                    if(job.Current <= 0)
+                    {
+                        l.Remove(job.ID);
+                        continue;
+                    }
+
                     var tsk = l.Lookup(job.ID);
                     var jobProgress = job.Size == 0 ? Percent.Zero : Percent.FactoryPutInRange(job.Current, (long)job.Size);
                     // Update
@@ -93,10 +99,6 @@ public class ResourceMonitor : IDisposable
                     }
                 }
             }
-            
-            // Delete
-            foreach (var itm in l.Items.Where(v => !used.Contains(v.ID)))
-                l.Remove(itm);
         });
         _lastMeasuredDateTime = DateTime.Now;
     }
