@@ -55,11 +55,8 @@ public abstract class BrowserWindowViewModel : ViewModel
                 Closed -= delegateMethod as EventHandler;
             }
         }
-        Activator.Deactivate();
+        //Activator.Deactivate();
     }
-
-    // Cheating a bit with MVVM principles here
-    public BrowserWindow? View { get; set; }
 
     public async Task RunWrapper(CancellationToken token)
     {

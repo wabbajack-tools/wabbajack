@@ -148,6 +148,7 @@ public class MainWindowVM : ViewModel
             .DisposeWith(CompositeDisposable);
 
         MessageBus.Current.Listen<ShowFloatingWindow>()
+            .ObserveOnGuiThread()
             .Subscribe(m => HandleShowFloatingWindow(m.Screen))
             .DisposeWith(CompositeDisposable);
 
