@@ -3,6 +3,8 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
 using System.Windows;
+using Wabbajack.Paths;
+using System.IO;
 
 namespace Wabbajack;
 
@@ -31,6 +33,12 @@ public partial class CpuLineView : ReactiveUserControl<CPUDisplayVM>
                     if (msg.StartsWith(_ExtractingText))
                     {
                         msg = msg.Substring(_ExtractingText.Length);
+                        // Assuming it's a path here, show the file name instead of the entire path
+                        try
+                        {
+                            msg = Path.GetFileName(msg);
+                        }
+                        catch(Exception ) { }
                         Icon.Visibility = Visibility.Visible;
                         Icon.Symbol = FluentIcons.Common.Symbol.Dock;
                     }
