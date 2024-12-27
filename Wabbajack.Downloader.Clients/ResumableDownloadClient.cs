@@ -10,7 +10,7 @@ using Wabbajack.RateLimiter;
 using Wabbajack.Networking.Http;
 using Wabbajack.Downloaders.Interfaces;
 
-namespace Wabbajack.Downloader.Clients;
+namespace Wabbajack.Downloader.Services;
 
 internal class ResumableDownloadClient(HttpRequestMessage _msg, AbsolutePath _outputPath, IJob _job, PerformanceSettings _performanceSettings, ILogger<ResumableDownloadClient> _logger) : IDownloadClient
 {
@@ -18,7 +18,7 @@ internal class ResumableDownloadClient(HttpRequestMessage _msg, AbsolutePath _ou
     private Exception? _error;
     private AbsolutePath _packagePath = _outputPath.WithExtension(Extension.FromPath(".download_package"));
 
-    public async Task<Hash> Download(CancellationToken token, int retry = 0)
+    public async Task<Hash> Download(CancellationToken token)
     {
         _token = token;
 
@@ -71,7 +71,7 @@ internal class ResumableDownloadClient(HttpRequestMessage _msg, AbsolutePath _ou
                 DeletePackage();
             }
         }
-        
+
         if (!_outputPath.FileExists())
         {
             return new Hash();
@@ -93,7 +93,7 @@ internal class ResumableDownloadClient(HttpRequestMessage _msg, AbsolutePath _ou
             {
                 Headers = message.Headers.ToWebHeaderCollection(),
                 ProtocolVersion = message.Version,
-                UserAgent =  message.Headers.UserAgent.ToString()
+                UserAgent = message.Headers.UserAgent.ToString()
             }
         };
 

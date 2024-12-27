@@ -4,7 +4,7 @@ using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
 
-namespace Wabbajack.Downloader.Clients;
+namespace Wabbajack.Downloader.Services;
 
 public interface IDownloadClientFactory
 {

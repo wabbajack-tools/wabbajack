@@ -6,5 +6,5 @@ namespace Wabbajack.Downloaders.Interfaces;
 
 public interface IDownloadClient
 {
-    public Task<Hash> Download(CancellationToken token, int retry = 0);
+    public Task<Hash> Download(CancellationToken token);
 }
