@@ -1,10 +1,5 @@
-﻿using System;
-using System.ComponentModel;
-using System.IO;
-using System.Net.Http;
+﻿using System.ComponentModel;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Downloader;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Configuration;
@@ -12,32 +7,18 @@ using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
+using Wabbajack.Networking.Http;
+using Wabbajack.Downloaders.Interfaces;
 
-namespace Wabbajack.Networking.Http;
+namespace Wabbajack.Downloader.Clients;
 
-internal class ResumableDownloader
+internal class ResumableDownloadClient(HttpRequestMessage _msg, AbsolutePath _outputPath, IJob _job, PerformanceSettings _performanceSettings, ILogger<ResumableDownloadClient> _logger) : IDownloadClient
 {
-    private readonly IJob _job;
-    private readonly HttpRequestMessage _msg;
-    private readonly AbsolutePath _outputPath;
-    private readonly AbsolutePath _packagePath;
-    private readonly PerformanceSettings _performanceSettings;
-    private readonly ILogger<SingleThreadedDownloader> _logger;
     private CancellationToken _token;
     private Exception? _error;
+    private AbsolutePath _packagePath = _outputPath.WithExtension(Extension.FromPath(".download_package"));
 
-
-    public ResumableDownloader(HttpRequestMessage msg, AbsolutePath outputPath, IJob job, PerformanceSettings performanceSettings, ILogger<SingleThreadedDownloader> logger)
-    {
-        _job = job;
-        _msg = msg;
-        _outputPath = outputPath;
-        _packagePath = outputPath.WithExtension(Extension.FromPath(".download_package"));
-        _performanceSettings = performanceSettings;
-        _logger = logger;
-    }
-
-    public async Task<Hash> Download(CancellationToken token)
+    public async Task<Hash> Download(CancellationToken token, int retry = 0)
     {
         _token = token;
 
@@ -80,17 +61,17 @@ internal class ResumableDownloader
             }
             else
             {
-                _logger.LogError(_error,"Download for '{name}' encountered error. Throwing...", _outputPath.FileName.ToString());
+                _logger.LogError(_error, "Download for '{name}' encountered error. Throwing...", _outputPath.FileName.ToString());
             }
 
             throw _error;
-        }
 
-        if (downloader.Status == DownloadStatus.Completed)
-        {
-            DeletePackage();
+            if (downloader.Status == DownloadStatus.Completed)
+            {
+                DeletePackage();
+            }
         }
-
+        
         if (!_outputPath.FileExists())
         {
             return new Hash();

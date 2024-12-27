@@ -52,15 +52,15 @@ internal class Program
                 
                 services.AddSingleton<SettingsManager>();
                 services.AddSingleton<ResourceSettingsManager>();
-                services.AddSingleton<MainSettings>(s => GetAppSettings(s, MainSettings.SettingsFileName));
+                services.AddSingleton(s => GetAppSettings(s, MainSettings.SettingsFileName));
                 
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddSingleton<HttpClient>();
                 services.AddSingleton<ITokenProvider<NexusOAuthState>, NexusApiTokenProvider>();
-                services.AddSingleton<HttpDownloader>();
+                services.AddSingleton<Downloaders.Http.HttpDownloader>();
                 services.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", 4));
-                services.AddAllSingleton<IHttpDownloader, SingleThreadedDownloader>();
-                
+                services.AddHttpDownloader();
+
                 var version =
                     $"{ThisAssembly.Git.SemVer.Major}.{ThisAssembly.Git.SemVer.Major}.{ThisAssembly.Git.SemVer.Patch}{ThisAssembly.Git.SemVer.DashLabel}";
                 services.AddSingleton(s => new ApplicationInfo

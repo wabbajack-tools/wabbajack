@@ -1,7 +1,6 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.IO;
-using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,14 +10,13 @@ using NLog.Extensions.Logging;
 using NLog.Targets;
 using Octokit;
 using Wabbajack.DTOs.Interventions;
-using Wabbajack.Networking.Http;
-using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Paths.IO;
 using Wabbajack.Server.Lib;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.VFS;
 using Client = Wabbajack.Networking.GitHub.Client;
 using Wabbajack.CLI.Builder;
+using Wabbajack.Downloader.Clients;
 
 namespace Wabbajack.CLI;
 
@@ -31,8 +29,7 @@ internal class Program
             .ConfigureServices((host, services) =>
             {
                 services.AddSingleton(new JsonSerializerOptions());
-                services.AddSingleton<HttpClient, HttpClient>();
-                services.AddSingleton<IHttpDownloader, SingleThreadedDownloader>();
+                services.AddDownloaderService();
                 services.AddSingleton<IConsole, SystemConsole>();
                 services.AddSingleton<CommandLineBuilder, CommandLineBuilder>();
                 services.AddSingleton<TemporaryFileManager>();

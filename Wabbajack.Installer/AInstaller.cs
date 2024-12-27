@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing.Text;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Downloader;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
@@ -25,6 +27,7 @@ using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.VFS;
+using YamlDotNet.Core.Tokens;
 
 namespace Wabbajack.Installer;
 
@@ -370,29 +373,32 @@ public abstract class AInstaller<T>
                 UpdateProgress(1);
             }
         }
-        
+
         await missing
-            .Shuffle()
             .Where(a => a.State is not Manual)
+            .Shuffle()
             .PDoAll(async archive =>
             {
-                _logger.LogInformation("Downloading {Archive}", archive.Name);
-                var outputPath = _configuration.Downloads.Combine(archive.Name);
-                var downloadPackagePath = outputPath.WithExtension(Ext.DownloadPackage);
-
-                if (download)
-                    if (outputPath.FileExists() && !downloadPackagePath.FileExists())
-                    {
-                        var origName = Path.GetFileNameWithoutExtension(archive.Name);
-                        var ext = Path.GetExtension(archive.Name);
-                        var uniqueKey = archive.State.PrimaryKeyString.StringSha256Hex();
-                        outputPath = _configuration.Downloads.Combine(origName + "_" + uniqueKey + "_" + ext);
-                        outputPath.Delete();
-                    }
-
-                var hash = await DownloadArchive(archive, download, token, outputPath);
+                await DownloadArchiveAsync(archive, token, download);
                 UpdateProgress(1);
             });
+    }
+
+    private async Task DownloadArchiveAsync(Archive archive, CancellationToken token, bool download)
+    {
+        _logger.LogInformation("Downloading {Archive}", archive.Name);
+        var outputPath = _configuration.Downloads.Combine(archive.Name);
+        var downloadPackagePath = outputPath.WithExtension(Ext.DownloadPackage);
+        //if (download)
+            //if (outputPath.FileExists() && !downloadPackagePath.FileExists())
+            //{
+            //    var origName = Path.GetFileNameWithoutExtension(archive.Name);
+            //    var ext = Path.GetExtension(archive.Name);
+            //    var uniqueKey = archive.State.PrimaryKeyString.StringSha256Hex();
+            //    outputPath = _configuration.Downloads.Combine(origName + "_" + uniqueKey + "_" + ext);
+            //    outputPath.Delete();
+            //}
+        var hash = await DownloadArchive(archive, download, token, outputPath);
     }
 
     private async Task SendDownloadMetrics(List<Archive> missing)
