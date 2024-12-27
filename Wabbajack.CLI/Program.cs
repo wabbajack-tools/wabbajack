@@ -16,7 +16,7 @@ using Wabbajack.Services.OSIntegrated;
 using Wabbajack.VFS;
 using Client = Wabbajack.Networking.GitHub.Client;
 using Wabbajack.CLI.Builder;
-using Wabbajack.Downloader.Clients;
+using Wabbajack.Downloader.Services;
 
 namespace Wabbajack.CLI;
 

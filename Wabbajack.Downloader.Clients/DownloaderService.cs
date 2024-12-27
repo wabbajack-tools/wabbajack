@@ -4,12 +4,11 @@ using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
 
-namespace Wabbajack.Downloader.Clients;
+namespace Wabbajack.Downloader.Services;
 
 public class DownloaderService(ILogger<DownloaderService> _logger, IDownloadClientFactory _httpDownloaderFactory) : IHttpDownloader
 {
-    public async Task<Hash> Download(HttpRequestMessage message, AbsolutePath outputPath, IJob job,
-        CancellationToken token)
+    public async Task<Hash> Download(HttpRequestMessage message, AbsolutePath outputPath, IJob job, CancellationToken token)
     {
         Exception downloadError = null!;
 
@@ -19,7 +18,7 @@ public class DownloaderService(ILogger<DownloaderService> _logger, IDownloadClie
         {
             try
             {
-                return await downloader.Download(token, 3);
+                return await downloader.Download(token);
             }
             catch (Exception ex)
             {
@@ -29,8 +28,7 @@ public class DownloaderService(ILogger<DownloaderService> _logger, IDownloadClie
         }
 
         _logger.LogError(downloadError, "Failed to download '{name}' after 3 tries.", outputPath.FileName.ToString());
+
         return new Hash();
-
-
     }
 }

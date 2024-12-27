@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.Configuration;
 using Wabbajack.Networking.Http.Interfaces;
 
-namespace Wabbajack.Downloader.Clients;
+namespace Wabbajack.Downloader.Services;
 
 public static class ServiceExtensions
 {

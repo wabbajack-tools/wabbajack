@@ -4,11 +4,11 @@ using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
-namespace Wabbajack.Downloader.Clients;
+namespace Wabbajack.Downloader.Services;
 
 internal class NonResumableDownloadClient(HttpRequestMessage _msg, AbsolutePath _outputPath, ILogger<NonResumableDownloadClient> _logger, IHttpClientFactory _httpClientFactory) : IDownloadClient
 {
-    public async Task<Hash> Download(CancellationToken token, int retry = 3)
+    public async Task<Hash> Download(CancellationToken token)
     {
         Stream? fileStream;
 
@@ -35,13 +35,6 @@ internal class NonResumableDownloadClient(HttpRequestMessage _msg, AbsolutePath 
         }
         catch (Exception ex)
         {
-            if (retry <= 3)
-            {
-                _logger.LogError(ex, "Download for '{name}' encountered error. Retrying...", _outputPath.FileName.ToString());
-
-                return await Download(token, retry--);
-            }
-
             _logger.LogError(ex, "Download for '{name}' encountered error. Throwing...", _outputPath.FileName.ToString());
 
             throw;
