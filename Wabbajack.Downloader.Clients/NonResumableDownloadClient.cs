@@ -10,26 +10,53 @@ internal class NonResumableDownloadClient(HttpRequestMessage _msg, AbsolutePath 
 {
     public async Task<Hash> Download(CancellationToken token, int retry = 3)
     {
+        Stream? fileStream;
+
         try
         {
+            fileStream = _outputPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Could not open file path '{filePath}'. Throwing...", _outputPath.FileName.ToString());
+
+            throw;
+        }
+
+        try
+        {
+            _logger.LogDebug("Download for '{name}' is starting from scratch...", _outputPath.FileName.ToString());
+
             var httpClient = _httpClientFactory.CreateClient("SmallFilesClient");
             var response = await httpClient.GetStreamAsync(_msg.RequestUri!.ToString());
-            await using var fileStream = _outputPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
             await response.CopyToAsync(fileStream, token);
             fileStream.Close();
+
+        }
+        catch (Exception ex)
+        {
+            if (retry <= 3)
+            {
+                _logger.LogError(ex, "Download for '{name}' encountered error. Retrying...", _outputPath.FileName.ToString());
+
+                return await Download(token, retry--);
+            }
+
+            _logger.LogError(ex, "Download for '{name}' encountered error. Throwing...", _outputPath.FileName.ToString());
+
+            throw;
+        }
+
+        try
+        {
             await using var file = _outputPath.Open(FileMode.Open);
             return await file.Hash(token);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to download '{name}' after 3 tries.", _outputPath.FileName.ToString());
+            _logger.LogError(ex, "Could not hash file '{filePath}'. Throwing...", _outputPath.FileName.ToString());
 
-            if (retry <= 3)
-            {
-                return await Download(token, retry--);
-            }
-
-            return new Hash();
+            throw;
         }
     }
 }
