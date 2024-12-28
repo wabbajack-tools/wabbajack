@@ -169,7 +169,8 @@
         </ScrollViewer>
         <Border Grid.Column="1"
                 BorderBrush="Transparent"
-                BorderThickness="0">
+                BorderThickness="0"
+                Margin="0, 0, 0, -16">
             <ScrollViewer Background="Transparent" VerticalScrollBarVisibility="Auto">
                 <ItemsControl
                     x:Name="ModListGalleryControl"
