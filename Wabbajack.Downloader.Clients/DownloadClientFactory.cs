@@ -20,7 +20,7 @@ public class DownloadClientFactory(MainSettings _settings, ILoggerFactory _logge
 
     public IDownloadClient GetDownloader(HttpRequestMessage msg, AbsolutePath outputPath, IJob job)
     {
-        if (job.Size >= _settings.MinimumFileSizeForResumableDownloadMB)
+        if (job.Size >= _settings.MinimumFileSizeForResumableDownloadMB * 1024 * 1024)
         {
             return new ResumableDownloadClient(msg, outputPath, job, _settings.MaximumMemoryPerDownloadThreadInMB, _resumableDownloaderLogger);
         }
