@@ -18,8 +18,8 @@ namespace Wabbajack
     public class PerformanceSettingsViewModel : ViewModel
     {
         private readonly Configuration.MainSettings _settings;
-        private readonly int _defaultMaximumMemoryPerDownloadThreadMb;
-        private readonly long _defaultMinimumFileSizeForResumableDownload;
+        private readonly int _defaultMaximumMemoryPerDownloadThreadMB;
+        private readonly long _defaultMinimumFileSizeForResumableDownloadMB;
 
         public PerformanceSettingsViewModel(Configuration.MainSettings settings, IResource<DownloadDispatcher> downloadResources, SystemParametersConstructor systemParams)
         {
@@ -27,10 +27,10 @@ namespace Wabbajack
 
             _settings = settings;
             // Split half of available memory among download threads
-            _defaultMaximumMemoryPerDownloadThreadMb = (int)(p.SystemMemorySize / downloadResources.MaxTasks / 1024 / 1024) / 2;
-            _defaultMinimumFileSizeForResumableDownload = long.MaxValue;
-            _maximumMemoryPerDownloadThreadMb = settings.MaximumMemoryPerDownloadThreadInMB;
-            _minimumFileSizeForResumableDownload = settings.MinimumFileSizeForResumableDownloadMB;
+            _defaultMaximumMemoryPerDownloadThreadMB = (int)(p.SystemMemorySize / downloadResources.MaxTasks / 1024 / 1024) / 2;
+            _defaultMinimumFileSizeForResumableDownloadMB = long.MaxValue;
+            _maximumMemoryPerDownloadThreadMB = settings.MaximumMemoryPerDownloadThreadInMB;
+            _minimumFileSizeForResumableDownloadMB = settings.MinimumFileSizeForResumableDownloadMB;
 
             if (MaximumMemoryPerDownloadThreadMb < 0)
             {
@@ -43,37 +43,37 @@ namespace Wabbajack
             }
         }
 
-        private int _maximumMemoryPerDownloadThreadMb;
-        private long _minimumFileSizeForResumableDownload;
+        private int _maximumMemoryPerDownloadThreadMB;
+        private long _minimumFileSizeForResumableDownloadMB;
 
         public int MaximumMemoryPerDownloadThreadMb
         {
-            get => _maximumMemoryPerDownloadThreadMb;
+            get => _maximumMemoryPerDownloadThreadMB;
             set
             {
-                RaiseAndSetIfChanged(ref _maximumMemoryPerDownloadThreadMb, value);
+                RaiseAndSetIfChanged(ref _maximumMemoryPerDownloadThreadMB, value);
                 _settings.MaximumMemoryPerDownloadThreadInMB = value;
             }
         }
 
         public long MinimumFileSizeForResumableDownload
         {
-            get => _minimumFileSizeForResumableDownload;
+            get => _minimumFileSizeForResumableDownloadMB;
             set
             {
-                RaiseAndSetIfChanged(ref _minimumFileSizeForResumableDownload, value);
+                RaiseAndSetIfChanged(ref _minimumFileSizeForResumableDownloadMB, value);
                 _settings.MinimumFileSizeForResumableDownloadMB = value;
             }
         }
 
         public void ResetMaximumMemoryPerDownloadThreadMb()
         {
-            MaximumMemoryPerDownloadThreadMb = _defaultMaximumMemoryPerDownloadThreadMb;
+            MaximumMemoryPerDownloadThreadMb = _defaultMaximumMemoryPerDownloadThreadMB;
         }
 
         public void ResetMinimumFileSizeForResumableDownload()
         {
-            MinimumFileSizeForResumableDownload = _defaultMinimumFileSizeForResumableDownload;
+            MinimumFileSizeForResumableDownload = _defaultMinimumFileSizeForResumableDownloadMB;
         }
     }
 }
