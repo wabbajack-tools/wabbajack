@@ -21,15 +21,28 @@ namespace Wabbajack
                         x => x.MaximumMemoryPerDownloadThreadMb,
                         x => x.MaximumMemoryPerDownloadThreadIntegerUpDown.Value)
                     .DisposeWith(disposable);
+
+                this.BindStrict(
+                        ViewModel,
+                        x => x.MinimumFileSizeForResumableDownload,
+                        x => x.MinimumFileSizeForResumableDownloadIntegerUpDown.Value)
+                    .DisposeWith(disposable);
+
                 this.EditResourceSettings.Command = ReactiveCommand.Create(() =>
                 {
                     UIUtils.OpenFile(
                         KnownFolders.WabbajackAppLocal.Combine("saved_settings", "resource_settings.json"));
                     Environment.Exit(0);
                 });
+
                 ResetMaximumMemoryPerDownloadThread.Command = ReactiveCommand.Create(() =>
                 {
                     ViewModel.ResetMaximumMemoryPerDownloadThreadMb();
+                });
+
+                ResetMinimumFileSizeForResumableDownload.Command = ReactiveCommand.Create(() =>
+                {
+                    ViewModel.ResetMinimumFileSizeForResumableDownload();
                 });
             });
         }
