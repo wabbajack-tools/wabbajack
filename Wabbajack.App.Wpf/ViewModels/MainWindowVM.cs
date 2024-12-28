@@ -71,7 +71,7 @@ public class MainWindowVM : ViewModel
     public ICommand ShowLoginManagerVM { get; }
     public ICommand InfoCommand { get; }
     public ICommand MinimizeCommand { get; }
-    public ICommand MaximizeCommand { get; }
+    public ICommand ToggleMaximizedCommand { get; }
     public ICommand CloseCommand { get; }
 
     public string VersionDisplay { get; }
@@ -211,7 +211,7 @@ public class MainWindowVM : ViewModel
         });
         InfoCommand = ReactiveCommand.Create(ShowInfo);
         MinimizeCommand = ReactiveCommand.Create(Minimize);
-        MaximizeCommand = ReactiveCommand.Create(Maximize);
+        ToggleMaximizedCommand = ReactiveCommand.Create(ToggleMaximized);
         CloseCommand = ReactiveCommand.Create(Close);
     }
 
@@ -224,12 +224,17 @@ public class MainWindowVM : ViewModel
     {
         var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
         mainWindow.WindowState = WindowState.Minimized;
+        Application.Current.MainWindow.WindowState = WindowState.Minimized;
     }
 
-    private void Maximize()
+    private void ToggleMaximized()
     {
+        var currentWindowState = Application.Current.MainWindow.WindowState;
+        var desiredWindowState = currentWindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
         var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-        mainWindow.WindowState = WindowState.Maximized;
+        mainWindow.WindowState = desiredWindowState;
+        Application.Current.MainWindow.WindowState = desiredWindowState;
     }
 
     private void Close()

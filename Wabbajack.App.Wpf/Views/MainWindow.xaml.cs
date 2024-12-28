@@ -172,7 +172,7 @@ public partial class MainWindow : MetroWindow
             vm.WhenAnyValue(vm => vm.MinimizeCommand)
                 .BindTo(this, view => view.MinimizeButton.Command);
 
-            vm.WhenAnyValue(vm => vm.MaximizeCommand)
+            vm.WhenAnyValue(vm => vm.ToggleMaximizedCommand)
                 .BindTo(this, view => view.MaximizeButton.Command);
 
             vm.WhenAnyValue(vm => vm.CloseCommand)
@@ -212,6 +212,9 @@ public partial class MainWindow : MetroWindow
 
     private void TitleBar_OnMouseDown(object sender, MouseButtonEventArgs e)
     {
+        if (Application.Current.MainWindow.WindowState == WindowState.Maximized)
+            Application.Current.MainWindow.WindowState = WindowState.Normal;
+
         DragMove();
     }
 
