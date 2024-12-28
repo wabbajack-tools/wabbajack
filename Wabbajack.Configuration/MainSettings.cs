@@ -11,13 +11,13 @@ public class MainSettings
 
     public int MaximumMemoryPerDownloadThreadInMB
     {
-        get => Performance.MaximumMemoryPerDownloadThreadMb;
-        set => Performance.MaximumMemoryPerDownloadThreadMb = value;
+        get => Performance.MaximumMemoryPerDownloadThreadMB;
+        set => Performance.MaximumMemoryPerDownloadThreadMB = value;
     }
 
     public long MinimumFileSizeForResumableDownloadMB {
-        get => Performance.MinimumFileSizeForResumableDownload;
-        set => Performance.MinimumFileSizeForResumableDownload = value;
+        get => Performance.MinimumFileSizeForResumableDownloadMB;
+        set => Performance.MinimumFileSizeForResumableDownloadMB = value;
     }
 
     private const int SettingsVersion = 1;
@@ -36,7 +36,7 @@ public class MainSettings
 
         if (CurrentSettingsVersion < 1)
         {
-            Performance.MaximumMemoryPerDownloadThreadMb = -1;
+            Performance.MaximumMemoryPerDownloadThreadMB = -1;
         }
 
         CurrentSettingsVersion = SettingsVersion;
@@ -45,7 +45,7 @@ public class MainSettings
 
     internal class PerformanceSettings
     {
-        public int MaximumMemoryPerDownloadThreadMb { get; set; } = -1;
-        public long MinimumFileSizeForResumableDownload { get; set; } = -1;
+        public int MaximumMemoryPerDownloadThreadMB { get; set; } = -1;
+        public long MinimumFileSizeForResumableDownloadMB { get; set; } = -1;
     }
 }
