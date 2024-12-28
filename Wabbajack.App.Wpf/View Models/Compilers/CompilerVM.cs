@@ -46,7 +46,7 @@ namespace Wabbajack
     {
         private const string LastSavedCompilerSettings = "last-saved-compiler-settings";
         private readonly DTOSerializer _dtos;
-        private readonly SettingsManager _settingsManager;
+        private readonly ISettingsManager _settingsManager;
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<CompilerVM> _logger;
         private readonly ResourceMonitor _resourceMonitor;
@@ -106,7 +106,7 @@ namespace Wabbajack
 
         [Reactive] public ErrorResponse ErrorState { get; private set; }
 
-        public CompilerVM(ILogger<CompilerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
+        public CompilerVM(ILogger<CompilerVM> logger, DTOSerializer dtos, ISettingsManager settingsManager,
             IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor,
             CompilerSettingsInferencer inferencer, Client wjClient, IEnumerable<INeedsLogin> logins, DownloadDispatcher downloadDispatcher) : base(logger)
         {

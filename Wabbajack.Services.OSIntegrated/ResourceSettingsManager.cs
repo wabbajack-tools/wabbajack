@@ -7,10 +7,10 @@ namespace Wabbajack.Services.OSIntegrated;
 
 public class ResourceSettingsManager
 {
-    private readonly SettingsManager _manager;
+    private readonly ISettingsManager _manager;
     private Dictionary<string,ResourceSetting>? _settings;
 
-    public ResourceSettingsManager(SettingsManager manager)
+    public ResourceSettingsManager(ISettingsManager manager)
     {
         _manager = manager;
     }

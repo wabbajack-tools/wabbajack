@@ -15,7 +15,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Shell;
-using System.Windows.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Wabbajack.Common;
@@ -34,7 +33,6 @@ using Wabbajack.RateLimiter;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Util;
-using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.CLI.Verbs;
 using Wabbajack.VFS;
@@ -114,7 +112,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
 
     private readonly DTOSerializer _dtos;
     private readonly ILogger<InstallerVM> _logger;
-    private readonly SettingsManager _settingsManager;
+    private readonly ISettingsManager _settingsManager;
     private readonly IServiceProvider _serviceProvider;
     private readonly SystemParametersConstructor _parametersConstructor;
     private readonly IGameLocator _gameLocator;
@@ -156,7 +154,7 @@ public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     
     public ReactiveCommand<Unit, Unit> VerifyCommand { get; }
     
-    public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
+    public InstallerVM(ILogger<InstallerVM> logger, DTOSerializer dtos, ISettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
         Wabbajack.Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins,
         CancellationToken cancellationToken) : base(logger)

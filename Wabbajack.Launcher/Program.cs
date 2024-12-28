@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.ReactiveUI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Wabbajack.Configuration;
 using Wabbajack.Downloaders.Http;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
@@ -14,8 +12,6 @@ using Wabbajack.DTOs.Logins;
 using Wabbajack.Launcher.ViewModels;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi;
-using Wabbajack.Paths;
-using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
@@ -38,36 +34,17 @@ internal class Program
                 services.AddDTOConverters();
                 services.AddDTOSerializer();
                 services.AddSettings();
-
-                services.AddSingleton(s => new Services.OSIntegrated.Configuration
-                {
-                    EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
-                    ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
-                    SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings"),
-                    LogLocation = KnownFolders.LauncherAwarePath.Combine("logs"),
-                    ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
-                });
+                services.AddKnownFoldersConfiguration();
 
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddSingleton<HttpClient>();
                 services.AddSingleton<ITokenProvider<NexusOAuthState>, NexusApiTokenProvider>();
-                services.AddSingleton<Downloaders.Http.HttpDownloader>();
+                services.AddSingleton<HttpDownloader>();
                 services.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", 4));
                 services.AddHttpDownloader();
 
-                var version =
-                    $"{ThisAssembly.Git.SemVer.Major}.{ThisAssembly.Git.SemVer.Major}.{ThisAssembly.Git.SemVer.Patch}{ThisAssembly.Git.SemVer.DashLabel}";
-                services.AddSingleton(s => new ApplicationInfo
-                {
-                    ApplicationSlug = "Wabbajack",
-                    ApplicationName = Environment.ProcessPath?.ToAbsolutePath().FileName.ToString() ?? "Wabbajack",
-                    ApplicationSha = ThisAssembly.Git.Sha,
-                    Platform = RuntimeInformation.ProcessArchitecture.ToString(),
-                    OperatingSystemDescription = RuntimeInformation.OSDescription,
-                    RuntimeIdentifier = RuntimeInformation.RuntimeIdentifier,
-                    OSVersion = Environment.OSVersion.VersionString,
-                    Version = version
-                });
+                var version = services.AddApplicationInfo();
+
             }).Build();
         Services = host.Services;
         

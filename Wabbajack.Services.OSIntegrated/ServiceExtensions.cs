@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
@@ -8,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ProtoBuf.Meta;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.Configuration;
@@ -112,15 +114,7 @@ public static class ServiceExtensions
 
         // Settings
 
-        service.AddSingleton(s => new Configuration
-        {
-            EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
-            ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
-            SavedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings"),
-            LogLocation = KnownFolders.LauncherAwarePath.Combine("logs"),
-            ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
-        });
-
+        service.AddKnownFoldersConfiguration();
         service.AddSettings();
 
         // Resources
@@ -208,10 +202,16 @@ public static class ServiceExtensions
         service.AddScoped<MO2Compiler>();
         service.AddSingleton<CompilerSettingsInferencer>();
 
-        // Application Info
+        var version = service.AddApplicationInfo();
+
+        return service;
+    }
+
+    public static string AddApplicationInfo(this IServiceCollection services)
+    {
         var version =
             $"{ThisAssembly.Git.SemVer.Major}.{ThisAssembly.Git.SemVer.Major}.{ThisAssembly.Git.SemVer.Patch}{ThisAssembly.Git.SemVer.DashLabel}";
-        service.AddSingleton(s => new ApplicationInfo
+        services.AddSingleton(s => new ApplicationInfo
         {
             ApplicationSlug = "Wabbajack",
             ApplicationName = Environment.ProcessPath?.ToAbsolutePath().FileName.ToString() ?? "Wabbajack",
@@ -223,14 +223,30 @@ public static class ServiceExtensions
             Version = version
         });
 
-
-
-        return service;
+        return version;
     }
-    
+
+    public static IServiceCollection AddKnownFoldersConfiguration(this IServiceCollection services)
+    {
+        var savedSettingsLocation = KnownFolders.WabbajackAppLocal.Combine("saved_settings");
+        savedSettingsLocation.CreateDirectory();
+
+        services.AddSingleton(s => new Configuration
+        {
+            EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
+            ModListsDownloadLocation = KnownFolders.EntryPoint.Combine("downloaded_mod_lists"),
+            SavedSettingsLocation = savedSettingsLocation,
+            LogLocation = KnownFolders.LauncherAwarePath.Combine("logs"),
+            ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
+        });          
+
+        return services;
+    }
+
     public static IServiceCollection AddSettings(this IServiceCollection services)
     {
-        services.AddSingleton(s => s.GetRequiredService<SettingsManager>().GetAppSettings(s, MainSettings.SettingsFileName));
+        services.AddSingleton<ISettingsManager, SettingsManager>();
+        services.AddSingleton(s => s.GetRequiredService<ISettingsManager>().GetAppSettings(s, MainSettings.SettingsFileName));
         services.AddSingleton<ResourceSettingsManager>();
         return services;
     }
