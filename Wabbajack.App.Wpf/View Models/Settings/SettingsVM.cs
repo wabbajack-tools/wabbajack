@@ -24,7 +24,7 @@ namespace Wabbajack
     public class SettingsVM : BackNavigatingVM
     {
         private readonly Configuration.MainSettings _settings;
-        private readonly SettingsManager _settingsManager;
+        private readonly ISettingsManager _settingsManager;
 
         public LoginManagerVM Login { get; }
         public PerformanceSettingsViewModel Performance { get; }
@@ -36,7 +36,7 @@ namespace Wabbajack
             : base(logger)
         {
             _settings = provider.GetRequiredService<Configuration.MainSettings>();
-            _settingsManager = provider.GetRequiredService<SettingsManager>();
+            _settingsManager = provider.GetRequiredService<ISettingsManager>();
 
             Login = new LoginManagerVM(provider.GetRequiredService<ILogger<LoginManagerVM>>(), this,
                 provider.GetRequiredService<IEnumerable<INeedsLogin>>());

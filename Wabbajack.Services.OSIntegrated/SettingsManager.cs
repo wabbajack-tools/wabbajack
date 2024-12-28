@@ -3,7 +3,6 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Configuration;
@@ -13,20 +12,15 @@ using Wabbajack.Paths.IO;
 
 namespace Wabbajack.Services.OSIntegrated;
 
-public class SettingsManager
+public interface ISettingsManager
 {
-    private readonly Configuration _configuration;
-    private readonly DTOSerializer _dtos;
-    private readonly ILogger<SettingsManager> _logger;
+    Task Save<T>(string key, T value);
+    Task<T> Load<T>(string key) where T : new();
+    MainSettings GetAppSettings(IServiceProvider provider, string name);
+}
 
-    public SettingsManager(ILogger<SettingsManager> logger, Configuration configuration, DTOSerializer dtos)
-    {
-        _logger = logger;
-        _dtos = dtos;
-        _configuration = configuration;
-        _configuration.SavedSettingsLocation.CreateDirectory();
-    }
-
+internal class SettingsManager(ILogger<SettingsManager> _logger, Configuration _configuration, DTOSerializer _dtos) : ISettingsManager
+{
     private AbsolutePath GetPath(string key)
     {
         return _configuration.SavedSettingsLocation.Combine(key).WithExtension(Ext.Json);

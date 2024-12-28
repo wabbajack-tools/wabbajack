@@ -1,6 +1,4 @@
-﻿
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -77,13 +75,13 @@ namespace Wabbajack
         private readonly ILogger<ModListGalleryVM> _logger;
         private readonly GameLocator _locator;
         private readonly ModListDownloadMaintainer _maintainer;
-        private readonly SettingsManager _settingsManager;
+        private readonly ISettingsManager _settingsManager;
         private readonly CancellationToken _cancellationToken;
 
         public ICommand ClearFiltersCommand { get; set; }
 
         public ModListGalleryVM(ILogger<ModListGalleryVM> logger, Client wjClient, GameLocator locator,
-            SettingsManager settingsManager, ModListDownloadMaintainer maintainer, CancellationToken cancellationToken)
+            ISettingsManager settingsManager, ModListDownloadMaintainer maintainer, CancellationToken cancellationToken)
             : base(logger)
         {
             _wjClient = wjClient;
