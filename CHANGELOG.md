@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - TBD - TBD
+* Fixes for 7Days2Die support.
+
 #### Version - 3.7.5.1 - 11/23/2024
 * Reverted "Wabbajack will now put modfile Titles, Description and Version into the `.meta` file." as it didn't account for formatting in descriptions that could confuse the iniparser
 * Fix a coding error in the login check for compiling that prevents compiles from starting
