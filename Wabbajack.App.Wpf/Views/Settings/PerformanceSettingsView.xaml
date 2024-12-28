@@ -71,6 +71,30 @@
                 HorizontalAlignment="Left">
                 <TextBlock FontSize="14">Reset</TextBlock>
             </Button>
+            <TextBlock
+                Grid.Row="6"
+                FontSize="14"
+                Foreground="{StaticResource ForegroundBrush}"
+                Text="Minimum File Size for Fast Download (MB)"
+                ToolTip="Defines the file size at which a slower but more robust download process will be used. If you have slow or unreliable internet this should be kept at zero." />
+            <xwpf:LongUpDown
+                x:Name="MinimumFileSizeForResumableDownloadIntegerUpDown"
+                Grid.Row="6"
+                Grid.Column="2"
+                Width="80"
+                HorizontalAlignment="Left"
+                Foreground="{StaticResource ForegroundBrush}"
+                Maximum="1000000000"
+                Minimum="0" />
+            <Button
+                x:Name="ResetMinimumFileSizeForResumableDownload"
+                Grid.Row="6"
+                Grid.Column="3"
+                Margin="20,0,0,0"
+                Padding="10,0"
+                HorizontalAlignment="Left">
+                <TextBlock FontSize="14">Reset</TextBlock>
+            </Button>
         </Grid>
     </Border>
 </rxui:ReactiveUserControl>
