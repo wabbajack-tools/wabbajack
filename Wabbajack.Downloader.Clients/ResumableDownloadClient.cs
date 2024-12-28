@@ -12,7 +12,7 @@ using Wabbajack.Downloaders.Interfaces;
 
 namespace Wabbajack.Downloader.Services;
 
-internal class ResumableDownloadClient(HttpRequestMessage _msg, AbsolutePath _outputPath, IJob _job, PerformanceSettings _performanceSettings, ILogger<ResumableDownloadClient> _logger) : IDownloadClient
+internal class ResumableDownloadClient(HttpRequestMessage _msg, AbsolutePath _outputPath, IJob _job, int _maxMemoryPerDownloadThread, ILogger<ResumableDownloadClient> _logger) : IDownloadClient
 {
     private CancellationToken _token;
     private Exception? _error;
@@ -83,10 +83,10 @@ internal class ResumableDownloadClient(HttpRequestMessage _msg, AbsolutePath _ou
 
     private DownloadConfiguration CreateConfiguration(HttpRequestMessage message)
     {
-        var maximumMemoryPerDownloadThreadMb = Math.Max(0, _performanceSettings.MaximumMemoryPerDownloadThreadMb);
+        var maximumMemoryPerDownloadThreadMb = Math.Max(0, _maxMemoryPerDownloadThread);
         var configuration = new DownloadConfiguration
         {
-            MaximumMemoryBufferBytes = maximumMemoryPerDownloadThreadMb * 1024 * 1024,
+            MaximumMemoryBufferBytes = maximumMemoryPerDownloadThreadMb,
             Timeout = (int)TimeSpan.FromSeconds(120).TotalMilliseconds,
             ReserveStorageSpaceBeforeStartingDownload = true,
             RequestConfiguration = new RequestConfiguration

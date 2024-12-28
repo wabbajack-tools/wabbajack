@@ -8,7 +8,7 @@ namespace Wabbajack
     /// <summary>
     /// Interaction logic for PerformanceSettingsView.xaml
     /// </summary>
-    public partial class PerformanceSettingsView : ReactiveUserControl<PerformanceSettings>
+    public partial class PerformanceSettingsView : ReactiveUserControl<PerformanceSettingsViewModel>
     {
         public PerformanceSettingsView()
         {
