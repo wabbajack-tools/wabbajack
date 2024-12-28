@@ -370,11 +370,16 @@ public abstract class AInstaller<T>
                 UpdateProgress(1);
             }
         }
-        
-        await missing
-            .Shuffle()
+
+        var missingBatches = missing
             .Where(a => a.State is not Manual)
-            .PDoAll(async archive =>
+            .Batch(100)
+            .ToList();
+
+        List<Task> batchTasks = [];
+        foreach (var batch in missingBatches)
+        {
+            batchTasks.Add(batch.PDoAll(async archive =>
             {
                 _logger.LogInformation("Downloading {Archive}", archive.Name);
                 var outputPath = _configuration.Downloads.Combine(archive.Name);
@@ -392,7 +397,12 @@ public abstract class AInstaller<T>
 
                 var hash = await DownloadArchive(archive, download, token, outputPath);
                 UpdateProgress(1);
-            });
+            }));
+
+            await Task.Delay(TimeSpan.FromSeconds(10)); // Hitting a Nexus API limit when spinning these downloads up too fast. Need to slow this down.
+        }
+
+        await Task.WhenAll(batchTasks);
     }
 
     private async Task SendDownloadMetrics(List<Archive> missing)

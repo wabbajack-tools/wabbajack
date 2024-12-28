@@ -3,8 +3,10 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
+using Wabbajack.Configuration;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -28,6 +30,17 @@ public class SettingsManager
     private AbsolutePath GetPath(string key)
     {
         return _configuration.SavedSettingsLocation.Combine(key).WithExtension(Ext.Json);
+    }
+
+    public MainSettings GetAppSettings(IServiceProvider provider, string name)
+    {
+        var settings = Task.Run(() => Load<MainSettings>(name)).Result;
+        if (settings.Upgrade())
+        {
+            Save(MainSettings.SettingsFileName, settings).FireAndForget();
+        }
+
+        return settings;
     }
 
     public async Task Save<T>(string key, T value)

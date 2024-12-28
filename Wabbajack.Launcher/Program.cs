@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Net.Http;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.ReactiveUI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Wabbajack.Common;
 using Wabbajack.Configuration;
 using Wabbajack.Downloaders.Http;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Launcher.ViewModels;
-using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths;
@@ -40,7 +37,8 @@ internal class Program
                 services.AddNexusApi();
                 services.AddDTOConverters();
                 services.AddDTOSerializer();
-                
+                services.AddSettings();
+
                 services.AddSingleton(s => new Services.OSIntegrated.Configuration
                 {
                     EncryptedDataLocation = KnownFolders.WabbajackAppLocal.Combine("encrypted"),
@@ -49,11 +47,7 @@ internal class Program
                     LogLocation = KnownFolders.LauncherAwarePath.Combine("logs"),
                     ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
                 });
-                
-                services.AddSingleton<SettingsManager>();
-                services.AddSingleton<ResourceSettingsManager>();
-                services.AddSingleton(s => GetAppSettings(s, MainSettings.SettingsFileName));
-                
+
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddSingleton<HttpClient>();
                 services.AddSingleton<ITokenProvider<NexusOAuthState>, NexusApiTokenProvider>();
@@ -79,18 +73,6 @@ internal class Program
         
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
-    }
-
-    private static MainSettings GetAppSettings(IServiceProvider provider, string name)
-    {
-        var settingsManager = provider.GetRequiredService<SettingsManager>();
-        var settings = Task.Run(() => settingsManager.Load<MainSettings>(name)).Result;
-        if (settings.Upgrade())
-        {
-            settingsManager.Save(MainSettings.SettingsFileName, settings).FireAndForget();
-        }
-
-        return settings;
     }
 
     public static IServiceProvider Services { get; set; }

@@ -11,7 +11,7 @@ public interface IDownloadClientFactory
     public IDownloadClient GetDownloader(HttpRequestMessage msg, AbsolutePath outputPath, IJob job);
 }
 
-public class DownloadClientFactory(PerformanceSettings _performanceSettings, ILoggerFactory _loggerFactory, IHttpClientFactory _httpClientFactory) : IDownloadClientFactory
+public class DownloadClientFactory(MainSettings _settings, ILoggerFactory _loggerFactory, IHttpClientFactory _httpClientFactory) : IDownloadClientFactory
 {
     private readonly ILogger<NonResumableDownloadClient> _nonResuableDownloaderLogger = _loggerFactory.CreateLogger<NonResumableDownloadClient>();
     private readonly ILogger<ResumableDownloadClient> _resumableDownloaderLogger = _loggerFactory.CreateLogger<ResumableDownloadClient>();
@@ -20,9 +20,9 @@ public class DownloadClientFactory(PerformanceSettings _performanceSettings, ILo
 
     public IDownloadClient GetDownloader(HttpRequestMessage msg, AbsolutePath outputPath, IJob job)
     {
-        if (job.Size >= _performanceSettings.MinimumFileSizeForResumableDownload)
+        if (job.Size >= _settings.MinimumFileSizeForResumableDownloadMB)
         {
-            return new ResumableDownloadClient(msg, outputPath, job, _performanceSettings, _resumableDownloaderLogger);
+            return new ResumableDownloadClient(msg, outputPath, job, _settings.MaximumMemoryPerDownloadThreadInMB, _resumableDownloaderLogger);
         }
         else
         {

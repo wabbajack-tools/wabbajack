@@ -121,9 +121,7 @@ public static class ServiceExtensions
             ImageCacheLocation = KnownFolders.WabbajackAppLocal.Combine("image_cache")
         });
 
-        service.AddSingleton<SettingsManager>();
-        service.AddSingleton<ResourceSettingsManager>();
-        service.AddSingleton<MainSettings>(s => GetAppSettings(s, MainSettings.SettingsFileName));
+        service.AddSettings();
 
         // Resources
 
@@ -230,16 +228,11 @@ public static class ServiceExtensions
         return service;
     }
     
-    public static MainSettings GetAppSettings(IServiceProvider provider, string name)
+    public static IServiceCollection AddSettings(this IServiceCollection services)
     {
-        var settingsManager = provider.GetRequiredService<SettingsManager>();
-        var settings = Task.Run(() => settingsManager.Load<MainSettings>(name)).Result;
-        if (settings.Upgrade())
-        {
-            settingsManager.Save(MainSettings.SettingsFileName, settings).FireAndForget();
-        }
-
-        return settings;
+        services.AddSingleton(s => s.GetRequiredService<SettingsManager>().GetAppSettings(s, MainSettings.SettingsFileName));
+        services.AddSingleton<ResourceSettingsManager>();
+        return services;
     }
 
     private static void CleanAllTempData(AbsolutePath path)

@@ -15,13 +15,13 @@ namespace Wabbajack
         public bool AutomaticallyOverrideExistingInstall { get; set; }
     }
 
-    public class PerformanceSettings : ViewModel
+    public class PerformanceSettingsViewModel : ViewModel
     {
         private readonly Configuration.MainSettings _settings;
         private readonly int _defaultMaximumMemoryPerDownloadThreadMb;
         private readonly long _defaultMinimumFileSizeForResumableDownload;
 
-        public PerformanceSettings(Configuration.MainSettings settings, IResource<DownloadDispatcher> downloadResources, SystemParametersConstructor systemParams)
+        public PerformanceSettingsViewModel(Configuration.MainSettings settings, IResource<DownloadDispatcher> downloadResources, SystemParametersConstructor systemParams)
         {
             var p = systemParams.Create();
 
@@ -29,15 +29,15 @@ namespace Wabbajack
             // Split half of available memory among download threads
             _defaultMaximumMemoryPerDownloadThreadMb = (int)(p.SystemMemorySize / downloadResources.MaxTasks / 1024 / 1024) / 2;
             _defaultMinimumFileSizeForResumableDownload = long.MaxValue;
-            _maximumMemoryPerDownloadThreadMb = settings.PerformanceSettings.MaximumMemoryPerDownloadThreadMb;
-            _minimumFileSizeForResumableDownload = settings.PerformanceSettings.MinimumFileSizeForResumableDownload;
+            _maximumMemoryPerDownloadThreadMb = settings.MaximumMemoryPerDownloadThreadInMB;
+            _minimumFileSizeForResumableDownload = settings.MinimumFileSizeForResumableDownloadMB;
 
             if (MaximumMemoryPerDownloadThreadMb < 0)
             {
                 ResetMaximumMemoryPerDownloadThreadMb();
             }
 
-            if (settings.PerformanceSettings.MinimumFileSizeForResumableDownload < 0)
+            if (settings.MinimumFileSizeForResumableDownloadMB < 0)
             {
                 ResetMinimumFileSizeForResumableDownload();
             }
@@ -52,7 +52,7 @@ namespace Wabbajack
             set
             {
                 RaiseAndSetIfChanged(ref _maximumMemoryPerDownloadThreadMb, value);
-                _settings.PerformanceSettings.MaximumMemoryPerDownloadThreadMb = value;
+                _settings.MaximumMemoryPerDownloadThreadInMB = value;
             }
         }
 
@@ -62,7 +62,7 @@ namespace Wabbajack
             set
             {
                 RaiseAndSetIfChanged(ref _minimumFileSizeForResumableDownload, value);
-                _settings.PerformanceSettings.MinimumFileSizeForResumableDownload = value;
+                _settings.MinimumFileSizeForResumableDownloadMB = value;
             }
         }
 
