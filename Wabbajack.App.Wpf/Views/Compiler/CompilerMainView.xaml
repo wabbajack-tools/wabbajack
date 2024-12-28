@@ -56,7 +56,7 @@
 
         <!-- Completion -->
 
-        <local:DetailImageView x:Name="CompiledImage" TitleFontSize="80" AuthorFontSize="36" Grid.ColumnSpan="2" Grid.RowSpan="2" Visibility="Hidden"/>
+        <local:DetailImageView x:Name="CompiledImage" TitleFontSize="80" AuthorFontSize="36" Grid.ColumnSpan="2" Grid.RowSpan="2" Visibility="Collapsed"/>
         <Grid x:Name="CompletedButtons" Grid.Row="3" Grid.ColumnSpan="2" Margin="0, 16, 0, 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />

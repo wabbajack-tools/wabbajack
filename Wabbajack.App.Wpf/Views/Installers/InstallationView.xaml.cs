@@ -73,6 +73,8 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      {
                          SetupGrid.Visibility = x == InstallState.Configuration ? Visibility.Visible : Visibility.Collapsed;
                          InstallationGrid.Visibility = x == InstallState.Installing ? Visibility.Visible : Visibility.Collapsed;
+                         CompletedInstallationGrid.Visibility = x == InstallState.Success ? Visibility.Visible : Visibility.Collapsed;
+
                          if (x == InstallState.Installing)
                              HideNavigation.Send();
                          else
@@ -108,12 +110,20 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      .BindToStrict(this, v => v.InstallDetailImage.Image)
                      .DisposeWith(disposables);
 
+            ViewModel.WhenAny(vm => vm.ModListImage)
+                     .BindToStrict(this, v => v.CompletedImage.Image)
+                     .DisposeWith(disposables);
+
             ViewModel.WhenAny(vm => vm.ModlistMetadata.Author)
                      .BindToStrict(this, v => v.DetailImage.Author)
                      .DisposeWith(disposables);
 
             ViewModel.WhenAny(vm => vm.ModlistMetadata.Author)
                      .BindToStrict(this, v => v.InstallDetailImage.Author)
+                     .DisposeWith(disposables);
+
+            ViewModel.WhenAny(vm => vm.ModlistMetadata.Author)
+                     .BindToStrict(this, v => v.CompletedImage.Author)
                      .DisposeWith(disposables);
 
             ViewModel.WhenAny(vm => vm.ModlistMetadata.Title)
@@ -124,12 +134,20 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      .BindToStrict(this, v => v.InstallDetailImage.Title)
                      .DisposeWith(disposables);
 
+            ViewModel.WhenAny(vm => vm.ModlistMetadata.Title)
+                     .BindToStrict(this, v => v.CompletedImage.Title)
+                     .DisposeWith(disposables);
+
             ViewModel.WhenAnyValue(vm => vm.ModlistMetadata.Version)
                      .BindToStrict(this, v => v.DetailImage.Version)
                      .DisposeWith(disposables);
 
             ViewModel.WhenAnyValue(vm => vm.ModlistMetadata.Version)
                      .BindToStrict(this, v => v.InstallDetailImage.Version)
+                     .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.ModlistMetadata.Version)
+                     .BindToStrict(this, v => v.CompletedImage.Version)
                      .DisposeWith(disposables);
 
             ViewModel.WhenAnyValue(vm => vm.LoadingLock.IsLoading)
@@ -179,6 +197,16 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                         TakeWebViewOwnershipForReadme();
                 })
                 .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.OpenReadmeCommand, v => v.ReadmeButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.OpenInstallFolderCommand, v => v.OpenFolderButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.PlayCommand, v => v.PlayButton)
+                .DisposeWith(disposables);
+
 
             // Initially, readme tab should be visible
             ReadmeToggleButton.IsChecked = true;

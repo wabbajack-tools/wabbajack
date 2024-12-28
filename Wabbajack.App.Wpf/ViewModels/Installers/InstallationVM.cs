@@ -40,6 +40,7 @@ using Humanizer;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
 using Microsoft.Web.WebView2.Wpf;
+using System.Diagnostics;
 
 namespace Wabbajack;
 
@@ -148,6 +149,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     public ICommand InstallCommand { get; }
     public ICommand CancelCommand { get; }
     public ICommand VerifyCommand { get; }
+    public ICommand PlayCommand { get; }
     
     public InstallationVM(ILogger<InstallationVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
@@ -222,6 +224,12 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
         {
             UIUtils.OpenFolder(Installer.Location.TargetPath);
         });
+
+        PlayCommand = ReactiveCommand.Create(() =>
+        {
+            Process.Start(new ProcessStartInfo(Installer.Location.TargetPath.Combine("ModOrganizer.exe").ToString()) { UseShellExecute = true });
+        }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.InstallState,
+        (isNotLoading, installState) => isNotLoading && installState == InstallState.Success));
 
         this.WhenAnyValue(x => x.OverwriteFiles)
             .Subscribe(x => ConfirmOverwrite());

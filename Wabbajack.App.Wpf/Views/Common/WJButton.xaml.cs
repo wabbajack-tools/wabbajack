@@ -44,10 +44,31 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject
             RaisePropertyChanged(new PropertyChangedEventArgs(nameof(Content)));
         }
     }
-    [Reactive] public Symbol Icon { get; set; }
-    [Reactive] public double IconSize { get; set; } = 24D;
-    [Reactive] public FlowDirection Direction { get; set; }
-    [Reactive] public ButtonStyle ButtonStyle { get; set; }
+    public Symbol Icon
+    {
+        get => (Symbol)GetValue(IconProperty);
+        set => SetValue(IconProperty, value);
+    }
+    public static readonly DependencyProperty IconProperty = DependencyProperty.Register(nameof(Icon), typeof(Symbol), typeof(WJButton), new FrameworkPropertyMetadata(default(Symbol), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
+
+    public double IconSize
+    {
+        get => (double)GetValue(IconSizeProperty);
+        set => SetValue(IconSizeProperty, value);
+    }
+    public static readonly DependencyProperty IconSizeProperty = DependencyProperty.Register(nameof(IconSize), typeof(double), typeof(WJButton), new FrameworkPropertyMetadata(24D, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
+    public FlowDirection Direction
+    {
+        get => (FlowDirection)GetValue(DirectionProperty);
+        set => SetValue(DirectionProperty, value);
+    }
+    public static readonly DependencyProperty DirectionProperty = DependencyProperty.Register(nameof(Direction), typeof(FlowDirection), typeof(WJButton), new FrameworkPropertyMetadata(default(FlowDirection), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
+    public ButtonStyle ButtonStyle
+    {
+        get => (ButtonStyle)GetValue(ButtonStyleProperty);
+        set => SetValue(ButtonStyleProperty, value);
+    }
+    public static readonly DependencyProperty ButtonStyleProperty = DependencyProperty.Register(nameof(ButtonStyle), typeof(ButtonStyle), typeof(WJButton), new FrameworkPropertyMetadata(default(ButtonStyle), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
     private Percent _progressPercentage = Percent.One;
     public Percent ProgressPercentage
@@ -178,5 +199,10 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject
     public void RaisePropertyChanged(PropertyChangedEventArgs args)
     {
         PropertyChanged?.Invoke(this, args);
+    }
+    private static void WireNotifyPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (Equals(e.OldValue, e.NewValue)) return;
+        ((WJButton)d).RaisePropertyChanged(e.Property.Name);
     }
 }

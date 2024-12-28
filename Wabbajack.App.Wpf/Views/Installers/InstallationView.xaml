@@ -109,7 +109,6 @@
                 </Grid.RowDefinitions>
                 <local:DetailImageView x:Name="DetailImage" TitleFontSize="48" AuthorFontSize="24" Margin="0, 0, 0, 16" />
                 <mahapps:ProgressRing x:Name="ModlistLoadingRing" />
-                <local:WJButton x:Name="BackToGalleryButton" Grid.Row="1" Text="Back to Gallery" Icon="ChevronLeft" Direction="RightToLeft" HorizontalAlignment="Left" />
                 <local:WJButton x:Name="InstallButton" Grid.Row="1" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown" HorizontalAlignment="Right" />
             </Grid>
         </Grid>
@@ -222,6 +221,29 @@
                 <local:WJButton x:Name="CancelButton" ButtonStyle="Danger" Grid.Row="2" Text="Cancel" Icon="Dismiss" HorizontalAlignment="Right" />
             </Grid>
 
+        </Grid>
+        <Grid x:Name="CompletedInstallationGrid" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="16" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <local:DetailImageView x:Name="CompletedImage" TitleFontSize="60" AuthorFontSize="27" />
+            <Grid x:Name="CompletedButtons" Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <local:WJButton x:Name="BackToGalleryButton" Grid.Row="1" Text="Back to Gallery" Icon="ChevronLeft" Direction="RightToLeft" HorizontalAlignment="Left" />
+                <local:WJButton x:Name="ReadmeButton" Grid.Column="2" Text="Open Readme" Icon="WindowNew" HorizontalAlignment="Right" ButtonStyle="Mono" />
+                <local:WJButton x:Name="OpenFolderButton" Grid.Column="4" Text="Open in File Explorer" Icon="Folder" HorizontalAlignment="Right" ButtonStyle="Mono" />
+                <local:WJButton x:Name="PlayButton" Grid.Column="6" Text="Play" Icon="PlayCircle" HorizontalAlignment="Right" ButtonStyle="Color" />
+            </Grid>
         </Grid>
     </Grid>
         <!--
