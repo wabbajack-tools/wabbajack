@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing.Text;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Downloader;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
@@ -27,7 +25,6 @@ using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.VFS;
-using YamlDotNet.Core.Tokens;
 
 namespace Wabbajack.Installer;
 
@@ -226,7 +223,7 @@ public abstract class AInstaller<T>
         NextStep(Consts.StepInstalling, "Installing files", ModList.Directives.Sum(d => d.Size), x => x.ToFileSizeString());
         var grouped = ModList.Directives
             .OfType<FromArchive>()
-            .Select(a => new {VF = _vfs.Index.FileForArchiveHashPath(a.ArchiveHashPath), Directive = a})
+            .Select(a => new { VF = _vfs.Index.FileForArchiveHashPath(a.ArchiveHashPath), Directive = a })
             .GroupBy(a => a.VF)
             .ToDictionary(a => a.Key);
 
@@ -247,27 +244,27 @@ public abstract class AInstaller<T>
                 switch (file)
                 {
                     case PatchedFromArchive pfa:
-                    {
-                        await using var s = await sf.GetStream();
-                        s.Position = 0;
-                        await using var patchDataStream = await InlinedFileStream(pfa.PatchID);
                         {
-                            await using var os = destPath.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-                            var hash = await BinaryPatching.ApplyPatch(s, patchDataStream, os);
-                            ThrowOnNonMatchingHash(file, hash);
+                            await using var s = await sf.GetStream();
+                            s.Position = 0;
+                            await using var patchDataStream = await InlinedFileStream(pfa.PatchID);
+                            {
+                                await using var os = destPath.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+                                var hash = await BinaryPatching.ApplyPatch(s, patchDataStream, os);
+                                ThrowOnNonMatchingHash(file, hash);
+                            }
                         }
-                    }
                         break;
 
 
                     case TransformedTexture tt:
-                    {
-                        await using var s = await sf.GetStream();
-                        await using var of = destPath.Open(FileMode.Create, FileAccess.Write);
-                        _logger.LogInformation("Recompressing {Filename}", tt.To.FileName);
-                        await ImageLoader.Recompress(s, tt.ImageState.Width, tt.ImageState.Height, tt.ImageState.MipLevels, tt.ImageState.Format,
-                            of, token);
-                    }
+                        {
+                            await using var s = await sf.GetStream();
+                            await using var of = destPath.Open(FileMode.Create, FileAccess.Write);
+                            _logger.LogInformation("Recompressing {Filename}", tt.To.FileName);
+                            await ImageLoader.Recompress(s, tt.ImageState.Width, tt.ImageState.Height, tt.ImageState.MipLevels, tt.ImageState.Format,
+                                of, token);
+                        }
                         break;
 
 
@@ -290,7 +287,7 @@ public abstract class AInstaller<T>
                 }
                 await FileHashCache.FileHashWriteCache(destPath, file.Hash);
 
-                await job.Report((int) directive.VF.Size, token);
+                await job.Report((int)directive.VF.Size, token);
             }
         }, token);
     }
@@ -305,8 +302,8 @@ public abstract class AInstaller<T>
         _logger.LogError("Hashes for {Path} did not match, expected {Expected} got {Got}", file.To, file.Hash, gotHash);
         throw new Exception($"Hashes for {file.To} did not match, expected {file.Hash} got {gotHash}");
     }
-    
-    
+
+
     protected void ThrowOnNonMatchingHash(CreateBSA bsa, Directive directive, AFile state, Hash hash)
     {
         if (hash == directive.Hash) return;
@@ -335,14 +332,14 @@ public abstract class AInstaller<T>
         {
             var matches = mirrors[archive.Hash].ToArray();
             if (!matches.Any()) continue;
-            
+
             archive.State = matches.First().State;
             _ = _wjClient.SendMetric("rerouted", archive.Hash.ToString());
             _logger.LogInformation("Rerouted {Archive} to {Mirror}", archive.Name,
                 matches.First().State.PrimaryKeyString);
         }
-        
-        
+
+
         foreach (var archive in missing.Where(archive =>
                      !_downloadDispatcher.Downloader(archive).IsAllowed(validationData, archive.State)))
         {
@@ -375,13 +372,14 @@ public abstract class AInstaller<T>
         }
 
         await missing
-            .Where(a => a.State is not Manual)
             .Shuffle()
+            .Where(a => a.State is not Manual)
             .PDoAll(async archive =>
             {
                 _logger.LogInformation("Downloading {Archive}", archive.Name);
                 var outputPath = _configuration.Downloads.Combine(archive.Name);
                 var downloadPackagePath = outputPath.WithExtension(Ext.DownloadPackage);
+
                 if (download)
                     if (outputPath.FileExists() && !downloadPackagePath.FileExists())
                     {
@@ -391,7 +389,9 @@ public abstract class AInstaller<T>
                         outputPath = _configuration.Downloads.Combine(origName + "_" + uniqueKey + "_" + ext);
                         outputPath.Delete();
                     }
-                var hash = await DownloadArchive(archive, download, token, outputPath); UpdateProgress(1);
+
+                var hash = await DownloadArchive(archive, download, token, outputPath);
+                UpdateProgress(1);
             });
     }
 
@@ -502,7 +502,7 @@ public abstract class AInstaller<T>
         _logger.LogInformation("Optimizing ModList directives");
         UnoptimizedArchives = ModList.Archives;
         UnoptimizedDirectives = ModList.Directives;
-        
+
         var indexed = ModList.Directives.ToDictionary(d => d.To);
 
         var bsasToBuild = await ModList.Directives
@@ -537,11 +537,11 @@ public abstract class AInstaller<T>
 
 
         var profileFolder = _configuration.Install.Combine("profiles");
-        var savePath = (RelativePath) "saves";
+        var savePath = (RelativePath)"saves";
 
         NextStep(Consts.StepPreparing, "Looking for files to delete", 0);
         await _configuration.Install.EnumerateFiles()
-            .PMapAllBatched(_limiter,  f =>
+            .PMapAllBatched(_limiter, f =>
             {
                 var relativeTo = f.RelativeTo(_configuration.Install);
                 if (indexed.ContainsKey(relativeTo) || f.InFolder(_configuration.Downloads))
@@ -570,7 +570,7 @@ public abstract class AInstaller<T>
             {
                 // Get all the folders and all the folder parents
                 // so for foo\bar\baz\qux.txt this emits ["foo", "foo\\bar", "foo\\bar\\baz"]
-                var split = ((string) path.RelativeTo(_configuration.Install)).Split('\\');
+                var split = ((string)path.RelativeTo(_configuration.Install)).Split('\\');
                 return Enumerable.Range(1, split.Length - 1).Select(t => string.Join("\\", split.Take(t)));
             })
             .Distinct()
@@ -598,15 +598,15 @@ public abstract class AInstaller<T>
 
         NextStep(Consts.StepPreparing, "Looking for unmodified files", 0);
         await indexed.Values.PMapAllBatchedAsync(_limiter, async d =>
-            {
-                // Bit backwards, but we want to return null for 
-                // all files we *want* installed. We return the files
-                // to remove from the install list.
-                var path = _configuration.Install.Combine(d.To);
-                if (!existingfiles.Contains(path)) return null;
+        {
+            // Bit backwards, but we want to return null for 
+            // all files we *want* installed. We return the files
+            // to remove from the install list.
+            var path = _configuration.Install.Combine(d.To);
+            if (!existingfiles.Contains(path)) return null;
 
-                return await FileHashCache.FileHashCachedAsync(path, token) == d.Hash ? d : null;
-            })
+            return await FileHashCache.FileHashCachedAsync(path, token) == d.Hash ? d : null;
+        })
             .Do(d =>
             {
                 if (d != null)
@@ -621,7 +621,7 @@ public abstract class AInstaller<T>
             .GroupBy(d => d.ArchiveHashPath.Hash)
             .Select(d => d.Key)
             .ToHashSet();
-        
+
         ModList.Archives = ModList.Archives.Where(a => requiredArchives.Contains(a.Hash)).ToArray();
         ModList.Directives = indexed.Values.ToArray();
     }
