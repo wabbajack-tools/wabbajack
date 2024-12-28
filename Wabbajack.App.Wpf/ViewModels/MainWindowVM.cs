@@ -232,8 +232,10 @@ public class MainWindowVM : ViewModel
         var currentWindowState = Application.Current.MainWindow.WindowState;
         var desiredWindowState = currentWindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
 
+        /*
         var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
         mainWindow.WindowState = desiredWindowState;
+        */
         Application.Current.MainWindow.WindowState = desiredWindowState;
     }
 
