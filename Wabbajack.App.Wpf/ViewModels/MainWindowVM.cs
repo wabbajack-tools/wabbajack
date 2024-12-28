@@ -222,8 +222,6 @@ public class MainWindowVM : ViewModel
 
     private void Minimize()
     {
-        var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-        mainWindow.WindowState = WindowState.Minimized;
         Application.Current.MainWindow.WindowState = WindowState.Minimized;
     }
 
