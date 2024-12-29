@@ -6,15 +6,9 @@ using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
-using ReactiveUI;
 using Wabbajack.Common;
-using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
-using Wabbajack.Messages;
-using Wabbajack.Models;
-using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.UserIntervention;
@@ -27,7 +21,7 @@ public abstract class OAuth2LoginHandler<TLoginType> : BrowserWindowViewModel
     private readonly ILogger _logger;
 
     public OAuth2LoginHandler(ILogger logger, HttpClient httpClient,
-        EncryptedJsonTokenProvider<TLoginType> tokenProvider)
+        EncryptedJsonTokenProvider<TLoginType> tokenProvider, IServiceProvider serviceProvider) : base(serviceProvider)
     {
         var tlogin = new TLoginType();
         HeaderText = $"{tlogin.SiteName} Login";
@@ -43,8 +37,8 @@ public abstract class OAuth2LoginHandler<TLoginType> : BrowserWindowViewModel
         var tcs = new TaskCompletionSource<Uri>();
         await NavigateTo(tlogin.AuthorizationEndpoint);
 
-        Browser!.Browser.CoreWebView2.Settings.UserAgent = "Wabbajack";
-        Browser!.Browser.NavigationStarting += (sender, args) =>
+        Browser.CoreWebView2.Settings.UserAgent = "Wabbajack";
+        Browser.NavigationStarting += (sender, args) =>
         {
             var uri = new Uri(args.Uri);
             if (uri.Scheme == "wabbajack")

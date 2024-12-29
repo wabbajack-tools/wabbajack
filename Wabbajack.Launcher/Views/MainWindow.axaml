@@ -7,7 +7,7 @@
         Icon="/Assets/wabbajack.ico"
 
         Title="Wabbajack Launcher" Height="320" Width="600"
-        Background="#121212"
+        Background="#222531"
         BorderThickness="0"
         WindowStartupLocation="CenterScreen"
         ExtendClientAreaToDecorationsHint="True"

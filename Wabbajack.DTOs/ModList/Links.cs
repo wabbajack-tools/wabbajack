@@ -15,4 +15,5 @@ public class LinksObject
     [JsonPropertyName("machineURL")] public string MachineURL { get; set; } = string.Empty;
     
     [JsonPropertyName("discordURL")] public string DiscordURL { get; set; } = string.Empty;
+    [JsonPropertyName("websiteURL")] public string WebsiteURL { get; set; } = string.Empty;
 }

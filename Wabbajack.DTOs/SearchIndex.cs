@@ -4,6 +4,7 @@ namespace Wabbajack.DTOs;
 
 public class SearchIndex
 {
+    
     /// <summary>
     /// All unique mods across all modlists
     /// </summary>

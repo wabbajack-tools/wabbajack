@@ -27,4 +27,5 @@ public static class Ext
     public static Extension Txt = new(".txt");
     public static Extension Webp = new(".webp");
     public static Extension Png = new(".png");
+    public static Extension Jpg = new (".jpg");
 }
