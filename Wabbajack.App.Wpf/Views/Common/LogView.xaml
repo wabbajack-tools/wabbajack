@@ -14,7 +14,7 @@
             local:AutoScrollBehavior.ScrollOnNewItem="True"
             BorderBrush="Transparent"
             BorderThickness="1"
-            ItemsSource="{Binding LoggerProvider.MessageLog}"
+            ItemsSource="{Binding Source={StaticResource FilteredItems}}"
             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListBox.ItemTemplate>
                 <DataTemplate>
@@ -22,5 +22,10 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
+        <Grid.Resources>
+            <CollectionViewSource x:Key="FilteredItems" 
+                        Source="{Binding LoggerProvider.MessageLog}"
+                        Filter="FilteredItems_OnFilter" />
+        </Grid.Resources>
     </Grid>
 </UserControl>

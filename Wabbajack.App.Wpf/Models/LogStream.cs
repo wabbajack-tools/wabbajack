@@ -68,6 +68,7 @@ public class LogStream : TargetWithLayout
         string ShortMessage { get; }
         DateTime TimeStamp { get; }
         string LongMessage { get; }
+        LogLevel Level { get; }
     }
 
     private record LogMessage(LogEventInfo info) : ILogMessage
@@ -76,6 +77,7 @@ public class LogStream : TargetWithLayout
         public string ShortMessage => info.FormattedMessage;
         public DateTime TimeStamp => info.TimeStamp;
         public string LongMessage => info.FormattedMessage;
+        public LogLevel Level => info.Level;
     }
     
 }
