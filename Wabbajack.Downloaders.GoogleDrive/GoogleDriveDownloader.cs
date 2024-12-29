@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
@@ -21,11 +23,22 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Downloaders.GoogleDrive;
 
-public class GoogleDriveDownloader(ILogger<GoogleDriveDownloader> _logger, HttpClient _client,
-        IHttpDownloader _downloader) : ADownloader<DTOs.DownloadStates.GoogleDrive>, IUrlDownloader, IProxyable
+public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive>, IUrlDownloader, IProxyable
 {
     private static readonly Regex GDriveRegex = new("((?<=id=)[a-zA-Z0-9_-]*)|(?<=\\/file\\/d\\/)[a-zA-Z0-9_-]*",
         RegexOptions.Compiled);
+
+    private readonly HttpClient _client;
+    private readonly IHttpDownloader _downloader;
+    private readonly ILogger<GoogleDriveDownloader> _logger;
+
+    public GoogleDriveDownloader(ILogger<GoogleDriveDownloader> logger, HttpClient client,
+        IHttpDownloader downloader)
+    {
+        _logger = logger;
+        _client = client;
+        _downloader = downloader;
+    }
 
     public override Task<bool> Prepare()
     {
@@ -34,7 +47,7 @@ public class GoogleDriveDownloader(ILogger<GoogleDriveDownloader> _logger, HttpC
 
     public override bool IsAllowed(ServerAllowList allowList, IDownloadState state)
     {
-        return allowList.GoogleIDs.Contains(((DTOs.DownloadStates.GoogleDrive) state).Id);
+        return allowList.GoogleIDs.Contains(((DTOs.DownloadStates.GoogleDrive)state).Id);
     }
 
     public IDownloadState? Parse(Uri uri)
@@ -42,7 +55,7 @@ public class GoogleDriveDownloader(ILogger<GoogleDriveDownloader> _logger, HttpC
         if (uri.Host != "drive.google.com") return null;
         var match = GDriveRegex.Match(uri.ToString());
         if (match.Success)
-            return new DTOs.DownloadStates.GoogleDrive {Id = match.ToString()};
+            return new DTOs.DownloadStates.GoogleDrive { Id = match.ToString() };
         _logger.LogWarning($"Tried to parse drive.google.com Url but couldn't get an id from: {uri}");
         return null;
     }
@@ -89,7 +102,7 @@ public class GoogleDriveDownloader(ILogger<GoogleDriveDownloader> _logger, HttpC
 
     public override IEnumerable<string> MetaIni(Archive a, DTOs.DownloadStates.GoogleDrive state)
     {
-        return new[] {$"directURL=https://drive.google.com/uc?id={state.Id}&export=download"};
+        return new[] { $"directURL=https://drive.google.com/uc?id={state.Id}&export=download" };
     }
 
     private async Task<HttpRequestMessage?> ToMessage(DTOs.DownloadStates.GoogleDrive state, bool download,
