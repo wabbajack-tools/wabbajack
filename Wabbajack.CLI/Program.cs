@@ -32,7 +32,7 @@ internal class Program
             {
                 services.AddSingleton(new JsonSerializerOptions());
                 services.AddSingleton<HttpClient, HttpClient>();
-                services.AddSingleton<IHttpDownloader, SingleThreadedDownloader>();
+                services.AddSingleton<IHttpDownloader, ResumableDownloader>();
                 services.AddSingleton<IConsole, SystemConsole>();
                 services.AddSingleton<CommandLineBuilder, CommandLineBuilder>();
                 services.AddSingleton<TemporaryFileManager>();

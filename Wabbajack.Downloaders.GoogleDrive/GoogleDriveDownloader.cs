@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
@@ -23,22 +21,11 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Downloaders.GoogleDrive;
 
-public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive>, IUrlDownloader, IProxyable
+public class GoogleDriveDownloader(ILogger<GoogleDriveDownloader> _logger, HttpClient _client,
+        IHttpDownloader _downloader) : ADownloader<DTOs.DownloadStates.GoogleDrive>, IUrlDownloader, IProxyable
 {
     private static readonly Regex GDriveRegex = new("((?<=id=)[a-zA-Z0-9_-]*)|(?<=\\/file\\/d\\/)[a-zA-Z0-9_-]*",
         RegexOptions.Compiled);
-
-    private readonly HttpClient _client;
-    private readonly IHttpDownloader _downloader;
-    private readonly ILogger<GoogleDriveDownloader> _logger;
-
-    public GoogleDriveDownloader(ILogger<GoogleDriveDownloader> logger, HttpClient client,
-        IHttpDownloader downloader)
-    {
-        _logger = logger;
-        _client = client;
-        _downloader = downloader;
-    }
 
     public override Task<bool> Prepare()
     {

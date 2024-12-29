@@ -1,187 +1,78 @@
-﻿using System;
-using System.ComponentModel;
+﻿using Microsoft.Extensions.Logging;
 using System.IO;
 using System.Net.Http;
-using System.Text.Json;
-using System.Threading;
+using System;
+using System.Net.Http.Headers;
+using System.Net.Sockets;
 using System.Threading.Tasks;
-using Downloader;
-using Microsoft.Extensions.Logging;
-using Wabbajack.Configuration;
+using System.Threading;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
+using Wabbajack.Networking.Http.Interfaces;
 
 namespace Wabbajack.Networking.Http;
 
-internal class ResumableDownloader
+public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClientFactory _httpClientFactory) : IHttpDownloader
 {
-    private readonly IJob _job;
-    private readonly HttpRequestMessage _msg;
-    private readonly AbsolutePath _outputPath;
-    private readonly AbsolutePath _packagePath;
-    private readonly PerformanceSettings _performanceSettings;
-    private readonly ILogger<SingleThreadedDownloader> _logger;
-    private CancellationToken _token;
-    private Exception? _error;
-
-
-    public ResumableDownloader(HttpRequestMessage msg, AbsolutePath outputPath, IJob job, PerformanceSettings performanceSettings, ILogger<SingleThreadedDownloader> logger)
+    public async Task<Hash> Download(HttpRequestMessage _msg, AbsolutePath _outputPath, IJob job, CancellationToken token)
     {
-        _job = job;
-        _msg = msg;
-        _outputPath = outputPath;
-        _packagePath = outputPath.WithExtension(Extension.FromPath(".download_package"));
-        _performanceSettings = performanceSettings;
-        _logger = logger;
-    }
-
-    public async Task<Hash> Download(CancellationToken token)
-    {
-        _token = token;
-
-        var downloader = new DownloadService(CreateConfiguration(_msg));
-        downloader.DownloadStarted += OnDownloadStarted;
-        downloader.DownloadProgressChanged += OnDownloadProgressChanged;
-        downloader.DownloadFileCompleted += OnDownloadFileCompleted;
-
-        // Attempt to resume previous download
-        var downloadPackage = LoadPackage();
-        if (downloadPackage != null)
+        if (_msg.RequestUri == null)
         {
-            // Resume with different Uri in case old one is no longer valid
-            downloadPackage.Address = _msg.RequestUri!.AbsoluteUri;
-
-            _logger.LogDebug("Download for {name} is resuming...", _outputPath.FileName.ToString());
-            await downloader.DownloadFileTaskAsync(downloadPackage, token);
-        }
-        else
-        {
-            _logger.LogDebug("Download for '{name}' is starting from scratch...", _outputPath.FileName.ToString());
-            _outputPath.Delete();
-            await downloader.DownloadFileTaskAsync(_msg.RequestUri!.AbsoluteUri, _outputPath.ToString(), token);
-        }
-
-        // Save progress if download isn't completed yet
-        if (downloader.Status is DownloadStatus.Stopped or DownloadStatus.Failed)
-        {
-            _logger.LogDebug("Download for '{name}' stopped before completion. Saving package...", _outputPath.FileName.ToString());
-            SavePackage(downloader.Package);
-            if (_error == null || _error.GetType() == typeof(TaskCanceledException))
-            {
-                return new Hash();
-            }
-
-            if (_error.GetType() == typeof(NotSupportedException))
-            {
-                _logger.LogWarning("Download for '{name}' doesn't support resuming. Deleting package...", _outputPath.FileName.ToString());
-                DeletePackage();
-            }
-            else
-            {
-                _logger.LogError(_error,"Download for '{name}' encountered error. Throwing...", _outputPath.FileName.ToString());
-            }
-
-            throw _error;
-        }
-
-        if (downloader.Status == DownloadStatus.Completed)
-        {
-            DeletePackage();
-        }
-
-        if (!_outputPath.FileExists())
-        {
-            return new Hash();
-        }
-
-        await using var file = _outputPath.Open(FileMode.Open);
-        return await file.Hash(token);
-    }
-
-    private DownloadConfiguration CreateConfiguration(HttpRequestMessage message)
-    {
-        var maximumMemoryPerDownloadThreadMb = Math.Max(0, _performanceSettings.MaximumMemoryPerDownloadThreadMb);
-        var configuration = new DownloadConfiguration
-        {
-            MaximumMemoryBufferBytes = maximumMemoryPerDownloadThreadMb * 1024 * 1024,
-            Timeout = (int)TimeSpan.FromSeconds(120).TotalMilliseconds,
-            ReserveStorageSpaceBeforeStartingDownload = true,
-            RequestConfiguration = new RequestConfiguration
-            {
-                Headers = message.Headers.ToWebHeaderCollection(),
-                ProtocolVersion = message.Version,
-                UserAgent =  message.Headers.UserAgent.ToString()
-            }
-        };
-
-        return configuration;
-    }
-
-    private void OnDownloadFileCompleted(object? sender, AsyncCompletedEventArgs e)
-    {
-        _error = e.Error;
-    }
-
-    private async void OnDownloadProgressChanged(object? sender, DownloadProgressChangedEventArgs e)
-    {
-        var processedSize = e.ProgressedByteSize;
-        if (_job.Current == 0)
-        {
-            // Set current to total in case this download resumes from a previous one
-            processedSize = e.ReceivedBytesSize;
-        }
-
-        await _job.Report(processedSize, _token);
-        if (_job.Current > _job.Size)
-        {
-            // Increase job size so progress doesn't appear stalled
-            _job.Size = (long)Math.Floor(_job.Current * 1.1);
-        }
-    }
-
-    private void OnDownloadStarted(object? sender, DownloadStartedEventArgs e)
-    {
-        _job.ResetProgress();
-
-        if (_job.Size < e.TotalBytesToReceive)
-        {
-            _job.Size = e.TotalBytesToReceive;
-        }
-
-        // Get rid of package, since we can't use it to resume anymore
-        DeletePackage();
-    }
-
-    private void DeletePackage()
-    {
-        _packagePath.Delete();
-    }
-
-    private DownloadPackage? LoadPackage()
-    {
-        if (!_packagePath.FileExists())
-        {
-            return null;
+            throw new ArgumentException("Request URI is null");
         }
 
         try
         {
-            var packageJson = _packagePath.ReadAllText();
-            return JsonSerializer.Deserialize<DownloadPackage>(packageJson);
+            return await DownloadStreamDirectlyToFile(_msg.RequestUri, token, _outputPath, 5);
         }
-        catch (JsonException ex)
+        catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Package for '{name}' couldn't be parsed. Deleting package and starting from scratch...", _outputPath.FileName.ToString());
-            DeletePackage();
-            return null;
+            _logger.LogError(ex, "Failed to download '{name}'", _outputPath.FileName.ToString());
+
+            throw;
         }
     }
 
-    private void SavePackage(DownloadPackage package)
+    private async Task<Hash> DownloadStreamDirectlyToFile(Uri rquestURI, CancellationToken token, AbsolutePath filePath, int retry = 5)
     {
-        var packageJson = JsonSerializer.Serialize(package);
-        _packagePath.WriteAllText(packageJson);
+        try
+        {
+            var httpClient = _httpClientFactory.CreateClient("SmallFilesClient");
+            using Stream fileStream = GetFileStream(filePath);
+            var startingPosition = fileStream.Length;
+
+            _logger.LogDebug("Download for '{name}' is starting from {position}...", filePath.FileName.ToString(), startingPosition);
+            httpClient.DefaultRequestHeaders.Range = new RangeHeaderValue(startingPosition, null); //GetStreamAsync does not accept a HttpRequestMessage so we have to set headers on the client itself
+
+            var response = await httpClient.GetStreamAsync(rquestURI, token);
+            await response.CopyToAsync(fileStream, token);
+
+            return await fileStream.Hash(token);
+        }
+        catch (Exception ex) when (ex is SocketException || ex is IOException)
+        {
+            _logger.LogWarning(ex, "Failed to download '{name}' due to network error. Retrying...", filePath.FileName.ToString());
+
+            if (retry == 0)
+            {
+                throw;
+            }
+
+            return await DownloadStreamDirectlyToFile(rquestURI, token, filePath, retry--);
+        }
+    }
+
+    private Stream GetFileStream(AbsolutePath filePath)
+    {
+        if (filePath.FileExists())
+        {
+            return filePath.Open(FileMode.Append, FileAccess.Write, FileShare.None);
+        }
+        else
+        {
+            return filePath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+        }
     }
 }
