@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Net.Http.Headers;
+using System.Net.Sockets;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
@@ -10,46 +12,61 @@ internal class NonResumableDownloadClient(HttpRequestMessage _msg, AbsolutePath 
 {
     public async Task<Hash> Download(CancellationToken token)
     {
-        Stream? fileStream;
+        if (_msg.RequestUri == null)
+        {
+            throw new ArgumentException("Request URI is null");
+        }
 
         try
         {
-            fileStream = _outputPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+            return await DownloadStreamDirectlyToFile(_msg.RequestUri, token, _outputPath, 5);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Could not open file path '{filePath}'. Throwing...", _outputPath.FileName.ToString());
+            _logger.LogError(ex, "Failed to download '{name}'", _outputPath.FileName.ToString());
 
             throw;
         }
+    }
 
+    private async Task<Hash> DownloadStreamDirectlyToFile(Uri rquestURI, CancellationToken token, AbsolutePath filePath, int retry = 5)
+    {
         try
         {
-            _logger.LogDebug("Download for '{name}' is starting from scratch...", _outputPath.FileName.ToString());
-
             var httpClient = _httpClientFactory.CreateClient("SmallFilesClient");
-            var response = await httpClient.GetStreamAsync(_msg.RequestUri!.ToString());
+            using Stream fileStream = GetFileStream(filePath);
+            var startingPosition = fileStream.Length;
+
+            _logger.LogDebug("Download for '{name}' is starting from {position}...", _outputPath.FileName.ToString(), startingPosition);
+            httpClient.DefaultRequestHeaders.Range = new RangeHeaderValue(startingPosition, null); //GetStreamAsync does not accept a HttpRequestMessage so we have to set headers on the client itself
+
+            var response = await httpClient.GetStreamAsync(rquestURI, token);
             await response.CopyToAsync(fileStream, token);
-            fileStream.Close();
 
+            return await fileStream.Hash(token);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is SocketException || ex is IOException)
         {
-            _logger.LogError(ex, "Download for '{name}' encountered error. Throwing...", _outputPath.FileName.ToString());
+            _logger.LogWarning(ex, "Failed to download '{name}' due to network error. Retrying...", _outputPath.FileName.ToString());
 
-            throw;
+            if(retry == 0)
+            {
+                throw;
+            }
+
+            return await DownloadStreamDirectlyToFile(rquestURI, token, _outputPath, retry--);
         }
+    }
 
-        try
+    private Stream GetFileStream(AbsolutePath filePath)
+    {
+        if (filePath.FileExists())
         {
-            await using var file = _outputPath.Open(FileMode.Open);
-            return await file.Hash(token);
+            return filePath.Open(FileMode.Append, FileAccess.Write, FileShare.None);
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, "Could not hash file '{filePath}'. Throwing...", _outputPath.FileName.ToString());
-
-            throw;
+            return filePath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
         }
     }
 }
