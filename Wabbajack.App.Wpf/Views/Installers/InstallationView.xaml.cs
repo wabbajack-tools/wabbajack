@@ -72,7 +72,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      .Subscribe(x =>
                      {
                          SetupGrid.Visibility = x == InstallState.Configuration ? Visibility.Visible : Visibility.Collapsed;
-                         InstallationGrid.Visibility = x == InstallState.Installing ? Visibility.Visible : Visibility.Collapsed;
+                         InstallationGrid.Visibility = x == InstallState.Installing || x == InstallState.Failure ? Visibility.Visible : Visibility.Collapsed;
                          CompletedInstallationGrid.Visibility = x == InstallState.Success ? Visibility.Visible : Visibility.Collapsed;
 
                          if (x == InstallState.Installing)
