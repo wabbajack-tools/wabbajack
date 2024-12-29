@@ -25,7 +25,7 @@ public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClie
 
         try
         {
-            return await DownloadStreamDirectlyToFile(_msg.RequestUri, token, _outputPath, 5);
+            return await DownloadAndHash(_msg, _outputPath, job, token, 5);
         }
         catch (Exception ex)
         {
@@ -35,21 +35,18 @@ public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClie
         }
     }
 
-    private async Task<Hash> DownloadStreamDirectlyToFile(Uri rquestURI, CancellationToken token, AbsolutePath filePath, int retry = 5)
+    private async Task<Hash> DownloadAndHash(HttpRequestMessage msg, AbsolutePath filePath, IJob job, CancellationToken token, int retry = 5, bool reset = false)
     {
         try
         {
-            var httpClient = _httpClientFactory.CreateClient("SmallFilesClient");
-            using Stream fileStream = GetFileStream(filePath);
-            var startingPosition = fileStream.Length;
+            if (reset)
+            {
+                filePath.Delete();
+            }
 
-            _logger.LogDebug("Download for '{name}' is starting from {position}...", filePath.FileName.ToString(), startingPosition);
-            httpClient.DefaultRequestHeaders.Range = new RangeHeaderValue(startingPosition, null); //GetStreamAsync does not accept a HttpRequestMessage so we have to set headers on the client itself
+            var downloadedFilePath = await DownloadStreamDirectlyToFile(msg, filePath, job, token);
 
-            var response = await httpClient.GetStreamAsync(rquestURI, token);
-            await response.CopyToAsync(fileStream, token);
-
-            return await fileStream.Hash(token);
+            return await HashFile(downloadedFilePath, token);
         }
         catch (Exception ex) when (ex is SocketException || ex is IOException)
         {
@@ -60,11 +57,82 @@ public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClie
                 throw;
             }
 
-            return await DownloadStreamDirectlyToFile(rquestURI, token, filePath, retry--);
+            return await DownloadAndHash(msg, filePath, job, token, retry--);
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.RequestedRangeNotSatisfiable)
+        {
+            _logger.LogWarning(ex, "Failed to download '{name}' due to requested range not being satisfiable. Retrying from beginning...", filePath.FileName.ToString());
+
+            if (retry == 0)
+            {
+                throw;
+            }
+
+            return await DownloadAndHash(msg, filePath, job, token, retry--, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to download '{name}'", filePath.FileName.ToString());
+
+            throw;
         }
     }
 
-    private Stream GetFileStream(AbsolutePath filePath)
+    private async Task<AbsolutePath> DownloadStreamDirectlyToFile(HttpRequestMessage message, AbsolutePath filePath, IJob job, CancellationToken token)
+    {
+        if(job.Size == null) throw new ArgumentException("Job size must be set before downloading");
+
+        using Stream fileStream = GetDownloadFileStream(filePath);
+
+        var startingPosition = fileStream.Length;
+
+        _logger.LogDebug("Download for '{name}' is starting from {position}...", filePath.FileName.ToString(), startingPosition);
+
+        var httpClient = _httpClientFactory.CreateClient("ResumableClient");
+
+        message.Headers.Range = new RangeHeaderValue(startingPosition, null);
+        using var response = await httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, token);
+
+        var responseContentLength = response.Content.Headers.ContentLength;
+
+        if (responseContentLength != null && responseContentLength > fileStream.Length)
+        {
+            fileStream.SetLength(responseContentLength.Value);
+        }
+
+        var responseStream = await response.Content.ReadAsStreamAsync(token);
+
+        long reportProgressThreshold = 100 * 1024 * 1024; // Report progress every 100MB
+        bool shoudlReportProgress = job.Size > reportProgressThreshold; // Reporting progress on small files just generates strain on the UI
+
+        int reportEveryXBytesProcessed = (int) job.Size / 100; // Report progress every 1% of the file
+        long bytesProcessed = startingPosition;
+
+        var buffer = new byte[128 * 1024];
+        int bytesRead;
+        while ((bytesRead = await responseStream.ReadAsync(buffer, token)) > 0)
+        {
+            await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), token);
+            bytesProcessed += bytesRead;
+
+            if (shoudlReportProgress && bytesProcessed >= reportEveryXBytesProcessed)
+            {
+                job.ReportNoWait((int)bytesProcessed);
+                bytesProcessed = 0;
+            }
+        }
+
+        return filePath;
+    }
+
+    private static async Task<Hash> HashFile(AbsolutePath filePath, CancellationToken token)
+    {
+        using var fileStream = filePath.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+
+        return await fileStream.Hash(token);
+    }
+
+    private static Stream GetDownloadFileStream(AbsolutePath filePath)
     {
         if (filePath.FileExists())
         {

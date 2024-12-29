@@ -370,29 +370,28 @@ public abstract class AInstaller<T>
                 UpdateProgress(1);
             }
         }
-        
-        await missing
-            .Shuffle()
-            .Where(a => a.State is not Manual)
-            .PDoAll(async archive =>
-            {
-                _logger.LogInformation("Downloading {Archive}", archive.Name);
-                var outputPath = _configuration.Downloads.Combine(archive.Name);
-                var downloadPackagePath = outputPath.WithExtension(Ext.DownloadPackage);
 
-                if (download)
-                    if (outputPath.FileExists() && !downloadPackagePath.FileExists())
-                    {
-                        var origName = Path.GetFileNameWithoutExtension(archive.Name);
-                        var ext = Path.GetExtension(archive.Name);
-                        var uniqueKey = archive.State.PrimaryKeyString.StringSha256Hex();
-                        outputPath = _configuration.Downloads.Combine(origName + "_" + uniqueKey + "_" + ext);
-                        outputPath.Delete();
-                    }
+        var missingBatches = missing.Batch(100).ToList();
 
-                var hash = await DownloadArchive(archive, download, token, outputPath);
-                UpdateProgress(1);
-            });
+        List<Task> downloadBatches = [];
+
+        foreach (var batch in missingBatches)
+        {
+            downloadBatches.Add(batch
+                .Shuffle()
+                .Where(a => a.State is not Manual)
+                .PDoAll(async archive =>
+                {
+                    _logger.LogInformation("Downloading {Archive}", archive.Name);
+                    var outputPath = _configuration.Downloads.Combine(archive.Name);
+                    var hash = await DownloadArchive(archive, download, token, outputPath);
+                    UpdateProgress(1);
+                }));
+
+            await Task.Delay(TimeSpan.FromSeconds(10)); //If we spin these up too fast we can hit nexus ddos protection regardless of remaining api limit so we slow it down a bit
+        }
+
+        await Task.WhenAll(downloadBatches);
     }
 
     private async Task SendDownloadMetrics(List<Archive> missing)
