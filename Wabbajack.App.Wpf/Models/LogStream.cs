@@ -59,8 +59,6 @@ public class LogStream : TargetWithLayout
 
     protected override void Write(LogEventInfo logEvent)
     {
-        if(logEvent.Level < LogLevel.Error)
-            return;
         _messages.OnNext(new LogMessage(logEvent));
     }
     public interface ILogMessage

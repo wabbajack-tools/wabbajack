@@ -371,27 +371,16 @@ public abstract class AInstaller<T>
             }
         }
 
-        var missingBatches = missing.Batch(100).ToList();
-
-        List<Task> downloadBatches = [];
-
-        foreach (var batch in missingBatches)
-        {
-            downloadBatches.Add(batch
-                .Shuffle()
-                .Where(a => a.State is not Manual)
-                .PDoAll(async archive =>
-                {
-                    _logger.LogInformation("Downloading {Archive}", archive.Name);
-                    var outputPath = _configuration.Downloads.Combine(archive.Name);
-                    var hash = await DownloadArchive(archive, download, token, outputPath);
-                    UpdateProgress(1);
-                }));
-
-            await Task.Delay(TimeSpan.FromSeconds(10)); //If we spin these up too fast we can hit nexus ddos protection regardless of remaining api limit so we slow it down a bit
-        }
-
-        await Task.WhenAll(downloadBatches);
+        await missing
+            .Shuffle()
+            .Where(a => a.State is not Manual)
+            .PDoAll(async archive =>
+            {
+                _logger.LogInformation("Downloading {Archive}", archive.Name);
+                var outputPath = _configuration.Downloads.Combine(archive.Name);
+                var hash = await DownloadArchive(archive, download, token, outputPath);
+                UpdateProgress(1);
+            });
     }
 
     private async Task SendDownloadMetrics(List<Archive> missing)

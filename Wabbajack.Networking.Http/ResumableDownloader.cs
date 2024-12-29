@@ -54,6 +54,8 @@ public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClie
 
             if (retry == 0)
             {
+                _logger.LogError(ex, "Failed to download '{name}'", filePath.FileName.ToString());
+
                 throw;
             }
 
@@ -65,6 +67,8 @@ public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClie
 
             if (retry == 0)
             {
+                _logger.LogError(ex, "Failed to download '{name}'", filePath.FileName.ToString());
+
                 throw;
             }
 
@@ -102,8 +106,8 @@ public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClie
 
         var responseStream = await response.Content.ReadAsStreamAsync(token);
 
-        long reportProgressThreshold = 100 * 1024 * 1024; // Report progress every 100MB
-        bool shoudlReportProgress = job.Size > reportProgressThreshold; // Reporting progress on small files just generates strain on the UI
+        long reportProgressThreshold = 10 * 1024 * 1024; // Report progress every 100MB
+        bool shouldReportProgress = job.Size > reportProgressThreshold; // Reporting progress on small files just generates strain on the UI
 
         int reportEveryXBytesProcessed = (int) job.Size / 100; // Report progress every 1% of the file
         long bytesProcessed = startingPosition;
@@ -115,7 +119,7 @@ public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClie
             await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), token);
             bytesProcessed += bytesRead;
 
-            if (shoudlReportProgress && bytesProcessed >= reportEveryXBytesProcessed)
+            if (shouldReportProgress && bytesProcessed >= reportEveryXBytesProcessed)
             {
                 job.ReportNoWait((int)bytesProcessed);
                 bytesProcessed = 0;
