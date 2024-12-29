@@ -157,7 +157,7 @@ public static class ServiceExtensions
 
         // Networking
         service.AddSingleton<HttpClient>();
-        service.AddAllSingleton<IHttpDownloader, SingleThreadedDownloader>();
+        service.AddResumableHttpDownloader();
 
         service.AddSteam();
 

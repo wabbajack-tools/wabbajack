@@ -47,7 +47,7 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
 
     public override bool IsAllowed(ServerAllowList allowList, IDownloadState state)
     {
-        return allowList.GoogleIDs.Contains(((DTOs.DownloadStates.GoogleDrive) state).Id);
+        return allowList.GoogleIDs.Contains(((DTOs.DownloadStates.GoogleDrive)state).Id);
     }
 
     public IDownloadState? Parse(Uri uri)
@@ -55,7 +55,7 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
         if (uri.Host != "drive.google.com") return null;
         var match = GDriveRegex.Match(uri.ToString());
         if (match.Success)
-            return new DTOs.DownloadStates.GoogleDrive {Id = match.ToString()};
+            return new DTOs.DownloadStates.GoogleDrive { Id = match.ToString() };
         _logger.LogWarning($"Tried to parse drive.google.com Url but couldn't get an id from: {uri}");
         return null;
     }
@@ -102,7 +102,7 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
 
     public override IEnumerable<string> MetaIni(Archive a, DTOs.DownloadStates.GoogleDrive state)
     {
-        return new[] {$"directURL=https://drive.google.com/uc?id={state.Id}&export=download"};
+        return new[] { $"directURL=https://drive.google.com/uc?id={state.Id}&export=download" };
     }
 
     private async Task<HttpRequestMessage?> ToMessage(DTOs.DownloadStates.GoogleDrive state, bool download,
