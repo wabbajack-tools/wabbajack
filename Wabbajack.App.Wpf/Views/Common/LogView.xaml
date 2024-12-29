@@ -9,6 +9,11 @@
     d:DesignWidth="800"
     mc:Ignorable="d">
     <Grid>
+        <Grid.Resources>
+            <CollectionViewSource x:Key="FilteredItems" 
+                        Source="{Binding LoggerProvider.MessageLog}"
+                        Filter="FilteredItems_OnFilter" />
+        </Grid.Resources>
         <Rectangle Fill="{StaticResource HeatedBorderBrush}" Opacity="{Binding ProgressPercent, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
         <ListBox
             local:AutoScrollBehavior.ScrollOnNewItem="True"
@@ -22,10 +27,5 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <Grid.Resources>
-            <CollectionViewSource x:Key="FilteredItems" 
-                        Source="{Binding LoggerProvider.MessageLog}"
-                        Filter="FilteredItems_OnFilter" />
-        </Grid.Resources>
     </Grid>
 </UserControl>

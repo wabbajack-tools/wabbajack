@@ -22,7 +22,7 @@ namespace Wabbajack
         private void FilteredItems_OnFilter(object sender, FilterEventArgs e)
         {
             var item = e.Item as ILogMessage;
-            e.Accepted = item.Level.Ordinal > 4;
+            e.Accepted = item.Level.Ordinal > 3;
         }
 
         public LogView()
