@@ -22,7 +22,8 @@ public enum ButtonStyle
     Color,
     Danger,
     Progress,
-    Transparent
+    Transparent,
+    SemiTransparent
 }
 public partial class WJButtonVM : ViewModel
 {
@@ -112,6 +113,7 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject
                     ButtonStyle.Danger => (Style)Application.Current.Resources["WJDangerButtonStyle"],
                     ButtonStyle.Progress => (Style)Application.Current.Resources["WJColorButtonStyle"],
                     ButtonStyle.Transparent => (Style)Application.Current.Resources["TransparentBackgroundButtonStyle"],
+                    ButtonStyle.SemiTransparent => (Style)Application.Current.Resources["WJSemiTransparentButtonStyle"],
                     _ => (Style)Application.Current.Resources["WJButtonStyle"],
                 })
                 .DisposeWith(dispose);

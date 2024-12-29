@@ -75,6 +75,14 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                          InstallationGrid.Visibility = x == InstallState.Installing || x == InstallState.Failure ? Visibility.Visible : Visibility.Collapsed;
                          CompletedInstallationGrid.Visibility = x == InstallState.Success ? Visibility.Visible : Visibility.Collapsed;
 
+                         // Change install grid a little on failure state
+                         CpuView.Visibility = x == InstallState.Installing ? Visibility.Visible : Visibility.Collapsed;
+                         InstallationRightColumn.Width = x == InstallState.Installing ? new GridLength(3, GridUnitType.Star) : new GridLength(4, GridUnitType.Star);
+                         CancelButton.Visibility = x == InstallState.Installing ? Visibility.Visible : Visibility.Collapsed;
+                         WorkerIndicators.Visibility = x == InstallState.Installing ? Visibility.Visible : Visibility.Collapsed;
+                         ErrorMessage.Visibility = x == InstallState.Failure ? Visibility.Visible : Visibility.Collapsed;
+
+
                          if (x == InstallState.Installing)
                              HideNavigation.Send();
                          else
@@ -205,6 +213,9 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.PlayCommand, v => v.PlayButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.OpenInstallFolderCommand, v => v.FailureOpenFolderButton)
                 .DisposeWith(disposables);
 
 

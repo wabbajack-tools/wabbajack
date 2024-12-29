@@ -12,6 +12,7 @@
     xmlns:rxui="http://reactiveui.net"
     xmlns:lib1="clr-namespace:Wabbajack"
     xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
+    xmlns:math="http://hexinnovation.com/math" xmlns:controls="http://schemas.sdl.com/xaml"
     d:DataContext="{d:DesignInstance local:InstallationVM}"
     d:DesignHeight="500"
     d:DesignWidth="800"
@@ -114,9 +115,9 @@
         </Grid>
         <Grid x:Name="InstallationGrid" Visibility="Collapsed">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2.35*" />
+                <ColumnDefinition x:Name="InstallationLeftColumn" Width="2.35*" />
                 <ColumnDefinition Width="16" />
-                <ColumnDefinition Width="3*" />
+                <ColumnDefinition x:Name="InstallationRightColumn" Width="3*" />
             </Grid.ColumnDefinitions>
             <Grid>
                 <Grid.RowDefinitions>
@@ -126,6 +127,8 @@
                 </Grid.RowDefinitions>
 
                 <local:DetailImageView x:Name="InstallDetailImage" TitleFontSize="36" AuthorFontSize="16" Margin="0, 0, 0, 16" Height="{Binding ActualWidth, ElementName=InstallDetailImage, Converter={StaticResource MathConverter}, ConverterParameter=x/(16/9)}" />
+
+                <!-- Installing state -->
                 <local:CpuView x:Name="CpuView" Grid.Row="1" ViewModel="{Binding}" Margin="0, 0, 0, 16" />
 
                 <Grid x:Name="WorkerIndicators" Grid.Row="2">
@@ -179,8 +182,54 @@
                     </Border>
 
                 </Grid>
-            </Grid>
 
+                <!-- Failure state -->
+
+                <Grid Grid.Row="1" Grid.RowSpan="2" x:Name="ErrorMessage">
+                    <Border CornerRadius="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{StaticResource ErrorBrush}">
+                        <StackPanel Orientation="Horizontal">
+                            <!-- Using a rectangle to push the icon to the side -->
+                            <Rectangle Width="{math:Convert '(x-(y/1.5))',
+                                x={Binding ActualWidth, ElementName=ErrorMessage},
+                                y={Binding ActualWidth, ElementName=ErrorIcon}}" />
+
+                            <ic:SymbolIcon
+                            x:Name="ErrorIcon"
+                            IconVariant="Filled"
+                            Symbol="ErrorCircle"
+                            HorizontalAlignment="Center"
+                            FontSize="{Binding ElementName=ErrorMessage, Path=ActualHeight, Converter={StaticResource MathConverter}, ConverterParameter=x*1.5}"
+                            Foreground="{StaticResource Transparent04PrimaryBrush}"
+                            />
+                        </StackPanel>
+                    </Border>
+                    <Border
+                    Grid.Row="1"
+                    Grid.RowSpan="2"
+                    Grid.ColumnSpan="2"
+                    CornerRadius="8"
+                    Padding="32"
+                    >
+                        <Grid VerticalAlignment="Center">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Text="Installation failed" FontSize="18" Foreground="{StaticResource Transparent66ForegroundBrush}" />
+                            <TextBlock x:Name="ErrorTitle" FontWeight="SemiBold" Grid.Row="1" FontSize="40" Text="Not enough space" Margin="0, -4, 0, 4" />
+                            <TextBlock x:Name="ErrorDescription" Grid.Row="2" FontSize="14" TextWrapping="Wrap">
+                            The modlist installation has failed because your installation or downloads directory has run out of space.
+                            Please make sure enough space is available on the disk and try again.
+                            </TextBlock>
+                            <local:WJButton x:Name="FailureOpenFolderButton" Margin="0, 16, 0, 0" HorizontalAlignment="Left" Grid.Row="3" Text="Open File Explorer" Icon="FolderOpen" ButtonStyle="SemiTransparent" />
+                        </Grid>
+                    </Border>
+                </Grid>
+
+            </Grid>
             <Grid Grid.Column="2" x:Name="RightSideGrid">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -241,7 +290,7 @@
                 </Grid.ColumnDefinitions>
                 <local:WJButton x:Name="BackToGalleryButton" Grid.Row="1" Text="Back to Gallery" Icon="ChevronLeft" Direction="RightToLeft" HorizontalAlignment="Left" />
                 <local:WJButton x:Name="ReadmeButton" Grid.Column="2" Text="Open Readme" Icon="WindowNew" HorizontalAlignment="Right" ButtonStyle="Mono" />
-                <local:WJButton x:Name="OpenFolderButton" Grid.Column="4" Text="Open in File Explorer" Icon="Folder" HorizontalAlignment="Right" ButtonStyle="Mono" />
+                <local:WJButton x:Name="OpenFolderButton" Grid.Column="4" Text="Open in File Explorer" Icon="FolderOpen" HorizontalAlignment="Right" ButtonStyle="Mono" />
                 <local:WJButton x:Name="PlayButton" Grid.Column="6" Text="Play" Icon="PlayCircle" HorizontalAlignment="Right" ButtonStyle="Color" />
             </Grid>
         </Grid>

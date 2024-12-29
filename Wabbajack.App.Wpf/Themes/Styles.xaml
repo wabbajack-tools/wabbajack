@@ -41,7 +41,7 @@
     <Color x:Key="HeatedBorderColor">#514c6b</Color>
 
     <Color x:Key="ForegroundColor">#E5E5E8</Color>
-    <Color x:Key="DisabledForegroundColor">#40FFFFFF</Color>
+    <Color x:Key="DisabledForegroundColor">#40E5E5E8</Color>
 
     <Color x:Key="DimForegroundColor">#3b3c50</Color>
 
@@ -142,7 +142,8 @@
     <SolidColorBrush x:Key="LightBackgroundBrush" Color="{StaticResource LightBackgroundColor}" />
     <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
     <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}" />
-    <SolidColorBrush x:Key="OpaqueForegroundBrush" Color="{StaticResource ForegroundColor}" Opacity="0.66" />
+    <SolidColorBrush x:Key="Transparent88ForegroundBrush" Color="{StaticResource ForegroundColor}" Opacity="0.88" />
+    <SolidColorBrush x:Key="Transparent66ForegroundBrush" Color="{StaticResource ForegroundColor}" Opacity="0.66" />
     <SolidColorBrush x:Key="DimForegroundBrush" Color="{StaticResource DimForegroundColor}" />
     <SolidColorBrush x:Key="MouseOverForegroundBrush" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}" />
@@ -160,6 +161,9 @@
     <SolidColorBrush x:Key="ComplementaryWhite25Brush" Color="{StaticResource ComplementaryWhite25}" />
     <SolidColorBrush x:Key="DarkPrimaryAltBrush" Color="{StaticResource DarkPrimaryAlt}" />
     <SolidColorBrush x:Key="PrimaryVariantBrush" Color="{StaticResource PrimaryVariant}" />
+    <SolidColorBrush x:Key="Transparent04PrimaryBrush" Color="{StaticResource Primary}" Opacity="0.04" />
+    <SolidColorBrush x:Key="Transparent08PrimaryBrush" Color="{StaticResource Primary}" Opacity="0.08" />
+    <SolidColorBrush x:Key="Transparent16PrimaryBrush" Color="{StaticResource Primary}" Opacity="0.16" />
     <SolidColorBrush x:Key="DarkPrimaryVariantBrush" Color="{StaticResource DarkPrimaryVariant}" />
     <SolidColorBrush x:Key="DarkerPrimaryVariantBrush" Color="{StaticResource DarkerPrimaryVariant}" />
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}" />
@@ -1439,6 +1443,9 @@
 
         <Style.Resources>
             <Style TargetType="ic:SymbolIcon">
+                <Style.Setters>
+                    <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                </Style.Setters>
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=IsMouseOver}" Value="True">
                         <Setter Property="IconVariant" Value="Filled"/>
@@ -1790,11 +1797,32 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Resources>
+            <Style TargetType="ic:SymbolIcon">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button, AncestorLevel=1}, Path=IsEnabled}" Value="False">
+                        <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Style.Resources>
     </Style>
 
     <Style x:Key="WJColorButtonStyle" BasedOn="{StaticResource WJButtonStyle}" TargetType="{x:Type Button}">
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
         <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}"/>
+        <Style.Resources>
+            <Style TargetType="ic:SymbolIcon">
+                <Style.Setters>
+                    <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}" />
+                </Style.Setters>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button, AncestorLevel=1}, Path=IsMouseOver}" Value="True">
+                        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Style.Resources>
     </Style>
 
     <Style x:Key="WJDangerButtonStyle" BasedOn="{StaticResource WJButtonStyle}" TargetType="{x:Type Button}">
@@ -1803,6 +1831,16 @@
                 <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Transparent}" />
                 <Setter Property="Background" Value="{StaticResource MouseOverDangerButtonBackground}" />
                 <Setter Property="Foreground" Value="{StaticResource MouseOverDangerButtonForeground}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="WJSemiTransparentButtonStyle" BasedOn="{StaticResource WJButtonStyle}" TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{StaticResource Transparent08PrimaryBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource Transparent16PrimaryBrush}" />
             </Trigger>
         </Style.Triggers>
     </Style>
