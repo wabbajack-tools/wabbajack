@@ -4,7 +4,6 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main ]
 
 env:
   VERSION: 3.7.5.1
@@ -14,12 +13,6 @@ jobs:
     
     name: Test ${{ matrix.project }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-
-    env:
-      NEXUS_API_KEY: ${{ secrets.NEXUS_API_KEY }}
-      NEXUS_LOGIN: ${{ secrets.NEXUS_LOGIN }}
-      VECTOR_PLEXUS: ${{ secrets.VECTOR_PLEXUS }}
-      LOVERS_LAB: ${{ secrets.LOVERS_LAB }}
     
     strategy:
       matrix:
@@ -39,7 +32,7 @@ jobs:
           include-prerelease: true
           
       - name: Test
-        run: dotnet test /p:EnableWindowsTargeting=true --filter "Category!=FlakeyNetwork"
+        run: dotnet test /p:EnableWindowsTargeting=true
         
       #- name: Upload Test Folder on Failure
       #  if: ${{ failure() }}
