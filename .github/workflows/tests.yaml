@@ -30,9 +30,14 @@ jobs:
         with:
           dotnet-version: '9.0.x'
           include-prerelease: true
-          
+
+        if: ${{ github.ref == 'refs/heads/main' }}
       - name: Test
         run: dotnet test /p:EnableWindowsTargeting=true
+
+        if: ${{ github.ref != 'refs/heads/main' }}
+      - name: Test
+        run: dotnet test /p:EnableWindowsTargeting=true --filter "Category!=RequiresOAuth"
         
       #- name: Upload Test Folder on Failure
       #  if: ${{ failure() }}
