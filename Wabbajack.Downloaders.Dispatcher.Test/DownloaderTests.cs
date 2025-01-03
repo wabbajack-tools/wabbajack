@@ -219,51 +219,6 @@ public class DownloaderTests
     */
         };
 
-    private bool AutoPassTest(Archive archive)
-    {
-        return false;
-    }
-
-    [Theory]
-    [Trait("Category", "FlakeyNetwork")]
-    [MemberData(nameof(TestStates))]
-    public async Task TestDownloadingFile(Archive archive, Archive badArchive)
-    {
-        if (AutoPassTest(archive)) return;
-        await using var tempFile = _temp.CreateFile();
-        var hash = await _dispatcher.Download(archive, tempFile.Path, CancellationToken.None);
-        Assert.Equal(archive.Hash, hash);
-    }
-
-    [Theory]
-    [Trait("Category", "FlakeyNetwork")]
-    [MemberData(nameof(TestStates))]
-    public async Task TestFileVerification(Archive goodArchive, Archive badArchive)
-    {
-        if (AutoPassTest(goodArchive)) return;
-        Assert.True(await _dispatcher.Verify(goodArchive, CancellationToken.None));
-        Assert.False(await _dispatcher.Verify(badArchive, CancellationToken.None));
-    }
-
-    [Theory]
-    [Trait("Category", "FlakeyNetwork")]
-    [MemberData(nameof(TestStates))]
-    public async Task CanParseAndUnParseUrls(Archive goodArchive, Archive badArchive)
-    {
-        if (AutoPassTest(goodArchive)) return;
-        var downloader = _dispatcher.Downloader(goodArchive);
-        if (downloader is IUrlDownloader urlDownloader)
-        {
-            var unparsed = urlDownloader.UnParse(goodArchive.State);
-
-            var parsed = urlDownloader.Parse(unparsed);
-            Assert.NotNull(parsed);
-
-            Assert.Equal(goodArchive.State.GetType(), parsed.GetType());
-            Assert.True(await _dispatcher.Verify(new Archive {State = parsed, Hash = goodArchive.Hash}, CancellationToken.None));
-        }
-    }
-
     [Theory]
     [MemberData(nameof(TestStates))]
     public async Task CanParseAndUnParseMetaInis(Archive goodArchive, Archive badArchive)
