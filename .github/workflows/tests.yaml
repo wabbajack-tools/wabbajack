@@ -2,7 +2,9 @@ name: Tests
 
 on:
   push:
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 env:
   VERSION: 3.7.5.1
