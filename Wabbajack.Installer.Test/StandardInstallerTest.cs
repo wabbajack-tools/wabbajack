@@ -53,7 +53,7 @@ public class StandardInstallerTest
         };
 
         var installer = _provider.GetService<StandardInstaller>();
-        Assert.True(await installer.Begin(CancellationToken.None));
+        Assert.True(await installer.Begin(CancellationToken.None) == InstallResult.Succeeded);
 
         Assert.True("ModOrganizer.exe".ToRelativePath().RelativeTo(installFolder).FileExists());
     }

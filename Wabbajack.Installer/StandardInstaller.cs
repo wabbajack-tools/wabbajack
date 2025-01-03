@@ -66,9 +66,9 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             provider.GetRequiredService<IImageLoader>());
     }
 
-    public override async Task<bool> Begin(CancellationToken token)
+    public override async Task<InstallResult> Begin(CancellationToken token)
     {
-        if (token.IsCancellationRequested) return false;
+        if (token.IsCancellationRequested) return InstallResult.Cancelled;
         _logger.LogInformation("Installing: {Name} - {Version}", _configuration.ModList.Name, _configuration.ModList.Version);
         await _wjClient.SendMetric(MetricNames.BeginInstall, ModList.Name);
         NextStep(Consts.StepPreparing, "Configuring Installer", 0);
@@ -82,23 +82,25 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             var otherGame = _configuration.Game.MetaData().CommonlyConfusedWith
                 .Where(g => _gameLocator.IsInstalled(g)).Select(g => g.MetaData()).FirstOrDefault();
             if (otherGame != null)
+            {
                 _logger.LogError(
                     "In order to do a proper install Wabbajack needs to know where your {lookingFor} folder resides. However this game doesn't seem to be installed, we did however find an installed " +
                     "copy of {otherGame}, did you install the wrong game?",
                     _configuration.Game.MetaData().HumanFriendlyGameName, otherGame.HumanFriendlyGameName);
+            }
             else
                 _logger.LogError(
                     "In order to do a proper install Wabbajack needs to know where your {lookingFor} folder resides. However this game doesn't seem to be installed.",
                     _configuration.Game.MetaData().HumanFriendlyGameName);
 
-            return false;
+            return InstallResult.GameMissing;
         }
 
         if (!_configuration.GameFolder.DirectoryExists())
         {
             _logger.LogError("Located game {game} at \"{gameFolder}\" but the folder does not exist!",
                 _configuration.Game, _configuration.GameFolder);
-            return false;
+            return InstallResult.GameInvalid;
         }
 
 
@@ -111,55 +113,56 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         _configuration.Downloads.CreateDirectory();
 
         await OptimizeModlist(token);
-        if (token.IsCancellationRequested) return false;
+        if (token.IsCancellationRequested) return InstallResult.Cancelled;
 
         await HashArchives(token);
-        if (token.IsCancellationRequested) return false;
+        if (token.IsCancellationRequested) return InstallResult.Cancelled;
 
         await DownloadArchives(token);
-        if (token.IsCancellationRequested) return false;
+        if (token.IsCancellationRequested) return InstallResult.Cancelled;
 
         await HashArchives(token);
-        if (token.IsCancellationRequested) return false;
+        if (token.IsCancellationRequested) return InstallResult.Cancelled;
 
         var missing = ModList.Archives.Where(a => !HashedArchives.ContainsKey(a.Hash)).ToList();
         if (missing.Count > 0)
         {
-            if (missing.Any(m => m.State is not Nexus))
-            {
-                ShowMissingManualReport(missing.Where(m => m.State is not Nexus).ToArray());
-                return false;
-            }
-
             foreach (var a in missing)
                 _logger.LogCritical("Unable to download {name} ({primaryKeyString})", a.Name,
                     a.State.PrimaryKeyString);
             _logger.LogCritical("Cannot continue, was unable to download one or more archives");
-            return false;
+
+            if (missing.Any(m => m.State is not Nexus))
+            {
+                ShowMissingManualReport(missing.Where(m => m.State is not Nexus).ToArray());
+                return InstallResult.DownloadFailed;
+            }
+
+            return InstallResult.DownloadFailed;
         }
 
         await ExtractModlist(token);
-        if (token.IsCancellationRequested) return false;
+        if (token.IsCancellationRequested) return InstallResult.Cancelled;
 
         await PrimeVFS();
 
         await BuildFolderStructure();
 
         await InstallArchives(token);
-        if (token.IsCancellationRequested) return false;
+        if (token.IsCancellationRequested) return InstallResult.Cancelled;
 
         await InstallIncludedFiles(token);
-        if (token.IsCancellationRequested) return false;
+        if (token.IsCancellationRequested) return InstallResult.Cancelled;
 
         await WriteMetaFiles(token);
-        if (token.IsCancellationRequested) return false;
+        if (token.IsCancellationRequested) return InstallResult.Cancelled;
 
         await BuildBSAs(token);
-        if (token.IsCancellationRequested) return false;
+        if (token.IsCancellationRequested) return InstallResult.Cancelled;
 
         // TODO: Port this
         await GenerateZEditMerges(token);
-        if (token.IsCancellationRequested) return false;
+        if (token.IsCancellationRequested) return InstallResult.Cancelled;
 
         await ForcePortable();
         await RemapMO2File();
@@ -173,7 +176,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
         NextStep(Consts.StepFinished, "Finished", 1);
         _logger.LogInformation("Finished Installation");
-        return true;
+        return InstallResult.Succeeded;
     }
 
     private void ShowMissingManualReport(Archive[] toArray)

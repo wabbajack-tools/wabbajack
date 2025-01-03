@@ -185,20 +185,20 @@
 
                 <!-- Failure state -->
 
-                <Grid Grid.Row="1" Grid.RowSpan="2" x:Name="ErrorMessage">
-                    <Border CornerRadius="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{StaticResource ErrorBrush}">
+                <Grid Grid.Row="1" Grid.RowSpan="2" x:Name="StoppedMessage">
+                    <Border x:Name="StoppedBorder" CornerRadius="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{StaticResource SuccessBrush}">
                         <StackPanel Orientation="Horizontal">
                             <!-- Using a rectangle to push the icon to the side -->
                             <Rectangle Width="{math:Convert '(x-(y/1.5))',
-                                x={Binding ActualWidth, ElementName=ErrorMessage},
-                                y={Binding ActualWidth, ElementName=ErrorIcon}}" />
+                                x={Binding ActualWidth, ElementName=StoppedMessage},
+                                y={Binding ActualWidth, ElementName=StoppedIcon}}" />
 
                             <ic:SymbolIcon
-                            x:Name="ErrorIcon"
+                            x:Name="StoppedIcon"
                             IconVariant="Filled"
                             Symbol="ErrorCircle"
                             HorizontalAlignment="Center"
-                            FontSize="{Binding ElementName=ErrorMessage, Path=ActualHeight, Converter={StaticResource MathConverter}, ConverterParameter=x*1.5}"
+                            FontSize="{Binding ElementName=StoppedMessage, Path=ActualHeight, Converter={StaticResource MathConverter}, ConverterParameter=x*1.5}"
                             Foreground="{StaticResource Transparent04PrimaryBrush}"
                             />
                         </StackPanel>
@@ -218,9 +218,9 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <TextBlock Grid.Row="0" Text="Installation failed" FontSize="18" Foreground="{StaticResource Transparent66ForegroundBrush}" />
-                            <TextBlock x:Name="ErrorTitle" FontWeight="SemiBold" Grid.Row="1" FontSize="40" Text="Not enough space" Margin="0, -4, 0, 4" />
-                            <TextBlock x:Name="ErrorDescription" Grid.Row="2" FontSize="14" TextWrapping="Wrap">
+                            <TextBlock x:Name="StoppedInstallMsg" Grid.Row="0" Text="Installation failed" FontSize="18" Foreground="{StaticResource Transparent66ForegroundBrush}" />
+                            <TextBlock x:Name="StoppedTitle" FontWeight="SemiBold" Grid.Row="1" FontSize="40" Text="Not enough space" Margin="0, -4, 0, 4" />
+                            <TextBlock x:Name="StoppedDescription" Grid.Row="2" FontSize="14" TextWrapping="Wrap">
                             The modlist installation has failed because your installation or downloads directory has run out of space.
                             Please make sure enough space is available on the disk and try again.
                             </TextBlock>

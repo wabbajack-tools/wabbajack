@@ -7,9 +7,10 @@ using System.Linq;
 using Wabbajack.Paths;
 using Wabbajack.Messages;
 using ReactiveMarbles.ObservableEvents;
-using System.Reactive;
 using System.Windows.Controls;
 using System.Reactive.Concurrency;
+using System.Windows.Media;
+using Symbol = FluentIcons.Common.Symbol;
 
 namespace Wabbajack;
 
@@ -80,7 +81,15 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                          InstallationRightColumn.Width = x == InstallState.Installing ? new GridLength(3, GridUnitType.Star) : new GridLength(4, GridUnitType.Star);
                          CancelButton.Visibility = x == InstallState.Installing ? Visibility.Visible : Visibility.Collapsed;
                          WorkerIndicators.Visibility = x == InstallState.Installing ? Visibility.Visible : Visibility.Collapsed;
-                         ErrorMessage.Visibility = x == InstallState.Failure ? Visibility.Visible : Visibility.Collapsed;
+                         StoppedMessage.Visibility = x == InstallState.Failure ? Visibility.Visible : Visibility.Collapsed;
+                         StoppedBorder.Background = x == InstallState.Failure ? (Brush)Application.Current.Resources["ErrorBrush"] : (Brush)Application.Current.Resources["SuccessBrush"];
+                         StoppedIcon.Symbol = x == InstallState.Failure ? Symbol.ErrorCircle : Symbol.CheckmarkCircle;
+                         StoppedInstallMsg.Text = x == InstallState.Failure ? "Installation failed" : "Installation succeeded";
+
+                         // Short error message
+                         StoppedTitle.Text = ViewModel.InstallResult?.GetTitle() ?? string.Empty;
+                         // Long error message
+                         StoppedDescription.Text = ViewModel.InstallResult?.GetDescription();
 
 
                          if (x == InstallState.Installing)

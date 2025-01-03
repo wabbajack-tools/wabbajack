@@ -131,10 +131,8 @@
     <sys:Double x:Key="MahApps.Sizes.Slider.HorizontalThumb.Width">12</sys:Double>
 
     <!--  Brushes  -->
-    <SolidColorBrush x:Key="YellowBrush" Color="{StaticResource Yellow}" />
-    <SolidColorBrush x:Key="GreenBrush" Color="{StaticResource Green}" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Green}" />
     <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Yellow}" />
-    <SolidColorBrush x:Key="WarningDarkBrush" Color="{StaticResource YellowDark}" />
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource RedDark}" />
 
     <SolidColorBrush x:Key="DarkBackgroundBrush" Color="{StaticResource DarkBackgroundColor}" />

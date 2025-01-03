@@ -41,6 +41,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Input;
 using Microsoft.Web.WebView2.Wpf;
 using System.Diagnostics;
+using System.Reactive.Concurrency;
 
 namespace Wabbajack;
 
@@ -59,46 +60,24 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     private readonly Random _random = new();
     
     
-    [Reactive]
-    public ModList ModList { get; set; }
-    
-    [Reactive]
-    public ModlistMetadata ModlistMetadata { get; set; }
+    [Reactive] public ModList ModList { get; set; }
+    [Reactive] public ModlistMetadata ModlistMetadata { get; set; }
+    [Reactive] public FilePickerVM WabbajackFileLocation { get; set; }
+    [Reactive] public MO2InstallerVM Installer { get; set; }
+    [Reactive] public BitmapImage ModListImage { get; set; }
 
-    [Reactive]
-    public FilePickerVM WabbajackFileLocation { get; set; }
-    
-    [Reactive]
-    public MO2InstallerVM Installer { get; set; }
-    
-    [Reactive]
-    public BitmapImage ModListImage { get; set; }
-    
-    [Reactive]
-    
-    public BitmapFrame SlideShowImage { get; set; }
-
-
-    [Reactive]
-    public InstallState InstallState { get; set; }
+    [Reactive] public InstallState InstallState { get; set; }
+    [Reactive] public InstallResult? InstallResult { get; set; } = null;
 
     /// <summary>
     ///  Slideshow Data
     /// </summary>
-    [Reactive]
-    public string SlideShowTitle { get; set; }
-    
-    [Reactive]
-    public string SlideShowAuthor { get; set; }
-    
-    [Reactive]
-    public string SlideShowDescription { get; set; }
-
-    [Reactive]
-    public string SuggestedInstallFolder { get; set; }
-
-    [Reactive]
-    public string SuggestedDownloadFolder { get; set; }
+    [Reactive] public BitmapFrame SlideShowImage { get; set; }
+    [Reactive] public string SlideShowTitle { get; set; } 
+    [Reactive] public string SlideShowAuthor { get; set; }
+    [Reactive] public string SlideShowDescription { get; set; }
+    [Reactive] public string SuggestedInstallFolder { get; set; }
+    [Reactive] public string SuggestedDownloadFolder { get; set; }
 
     public WebView2 ReadmeBrowser { get; set; }
 
@@ -116,14 +95,11 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     private readonly CancellationTokenSource _cancellationTokenSource;
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
 
-    [Reactive]
-    public bool Installing { get; set; }
+    [Reactive] public bool Installing { get; set; }
     
-    [Reactive]
-    public ErrorResponse ErrorState { get; set; }
+    [Reactive] public ErrorResponse ErrorState { get; set; }
     
-    [Reactive]
-    public bool ShowNSFWSlides { get; set; }
+    [Reactive] public bool ShowNSFWSlides { get; set; }
     
     public LogStream LoggerProvider { get; }
 
@@ -417,7 +393,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
         }
         // Disabled Because it was causing issues for people trying to update lists.
         //if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && !HasEnoughSpace(installPath, downloadPath)){
-        //    yield return ErrorResponse.Fail("Can't install modlist due to lack of free hard drive space, please read the modlist Readme to learn more.");
+        //    yield return InstallResponse.Fail("Can't install modlist due to lack of free hard drive space, please read the modlist Readme to learn more.");
         //}
     }
     
@@ -516,7 +492,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                 WabbajackFileLocation.TargetPath = prevSettings.ModListLocation;
                 LastInstallPath = prevSettings.InstallLocation;
                 Installer.Location.TargetPath = prevSettings.InstallLocation;
-                Installer.DownloadLocation.TargetPath = prevSettings.DownloadLoadction;
+                Installer.DownloadLocation.TargetPath = prevSettings.DownloadLocation;
                 ModlistMetadata = metadata ?? prevSettings.Metadata;
             }
             
@@ -574,51 +550,23 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     {
         await Task.Run(async () =>
         {
-            RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+            RxApp.MainThreadScheduler.Schedule(() =>
             {
                 ConfigurationText = "Preparation";
                 ProgressText = $"Installing {ModList.Name}";
                 CurrentStep = Step.Busy;
                 InstallState = InstallState.Installing;
                 ProgressState = ProgressState.Normal;
-                return Disposable.Empty;
             });
 
-            foreach (var downloader in await _downloadDispatcher.AllDownloaders(ModList.Archives.Select(a => a.State)))
-            {
-                _logger.LogInformation("Preparing {Name}", downloader.GetType().Name);
-                if (await downloader.Prepare())
-                    continue;
+            await PrepareDownloaders();
 
-                var manager = _logins
-                    .FirstOrDefault(l => l.LoginFor() == downloader.GetType());
-                if (manager == null)
-                {
-                    _logger.LogError("Cannot install, could not prepare {Name} for downloading",
-                        downloader.GetType().Name);
-                    throw new Exception($"No way to prepare {downloader}");
-                }
-
-                RxApp.MainThreadScheduler.Schedule(manager, (_, _) =>
-                {
-                    manager.TriggerLogin.Execute(null);
-                    return Disposable.Empty;
-                });
-
-                while (true)
-                {
-                    if (await downloader.Prepare())
-                        break;
-                    await Task.Delay(1000);
-                }
-            }
-            
             var postfix = (await WabbajackFileLocation.TargetPath.ToString().Hash()).ToHex();
             await _settingsManager.Save(InstallSettingsPrefix + postfix, new SavedInstallSettings
             {
                 ModListLocation = WabbajackFileLocation.TargetPath,
                 InstallLocation = Installer.Location.TargetPath,
-                DownloadLoadction = Installer.DownloadLocation.TargetPath,
+                DownloadLocation = Installer.DownloadLocation.TargetPath,
                 Metadata = ModlistMetadata
             });
             await _settingsManager.Save(LastLoadedModlist, WabbajackFileLocation.TargetPath);
@@ -639,60 +587,88 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
                 installer.OnStatusUpdate = update =>
                 {
-                    RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+                    RxApp.MainThreadScheduler.Schedule(() =>
                     {
                         ProgressText = update.StatusText;
                         ProgressPercent = update.StepsProgress;
-                        return Disposable.Empty;
                     });
                 };
 
-                if (!await installer.Begin(_cancellationTokenSource.Token))
+                var result = await installer.Begin(_cancellationTokenSource.Token);
+                if (result == Wabbajack.Installer.InstallResult.Succeeded)
                 {
-                    RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+                    RxApp.MainThreadScheduler.Schedule(() =>
                     {
-                        CurrentStep = Step.Configuration;
-                        InstallState = InstallState.Failure;
-                        ProgressText = $"Error during installation of {ModList.Name}";
-                        ProgressPercent = Percent.Zero;
-                        return Disposable.Empty;
+                        InstallResult = result;
+                        ProgressText = $"Finished installing {ModList.Name}";
+                        InstallState = InstallState.Success;
                     });
                 }
                 else
                 {
-                    RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+                    RxApp.MainThreadScheduler.Schedule(() =>
                     {
-                        ProgressText = $"Finished installing {ModList.Name}";
-                        InstallState = InstallState.Success;
-                        return Disposable.Empty;
+                        InstallResult = result;
+                        InstallState = InstallState.Failure;
+                        ProgressText = $"Error during installation of {ModList.Name}";
+                        ProgressPercent = Percent.Zero;
+                        ProgressState = ProgressState.Error;
                     });
-                    
-                    if (!string.IsNullOrWhiteSpace(ModList.Readme)) 
-                        UIUtils.OpenWebsite(new Uri(ModList.Readme));
-
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+                RxApp.MainThreadScheduler.Schedule(() =>
                 {
                     InstallState = InstallState.Failure;
-                    ProgressText = $"Error during install of {ModList.Name}";
+                    ProgressText = $"Error during installation of {ModList.Name}";
                     ProgressPercent = Percent.Zero;
-                    return Disposable.Empty;
+                    ProgressState = ProgressState.Error;
+                    InstallResult = Wabbajack.Installer.InstallResult.Errored;
                 });
             }
         });
 
     }
 
+    private async Task PrepareDownloaders()
+    {
+        foreach (var downloader in await _downloadDispatcher.AllDownloaders(ModList.Archives.Select(a => a.State)))
+        {
+            _logger.LogInformation("Preparing {Name}", downloader.GetType().Name);
+            if (await downloader.Prepare())
+                continue;
+
+            var manager = _logins
+                .FirstOrDefault(l => l.LoginFor() == downloader.GetType());
+            if (manager == null)
+            {
+                _logger.LogError("Cannot install, could not prepare {Name} for downloading",
+                    downloader.GetType().Name);
+                throw new Exception($"No way to prepare {downloader}");
+            }
+
+            RxApp.MainThreadScheduler.Schedule(manager, (_, _) =>
+            {
+                manager.TriggerLogin.Execute(null);
+                return Disposable.Empty;
+            });
+
+            while (true)
+            {
+                if (await downloader.Prepare())
+                    break;
+                await Task.Delay(1000);
+            }
+        }
+    }
 
     class SavedInstallSettings
     {
         public AbsolutePath ModListLocation { get; set; }
         public AbsolutePath InstallLocation { get; set; }
-        public AbsolutePath DownloadLoadction { get; set; }
+        public AbsolutePath DownloadLocation { get; set; }
         
         public ModlistMetadata Metadata { get; set; }
     }

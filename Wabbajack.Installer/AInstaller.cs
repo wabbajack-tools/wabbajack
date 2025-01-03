@@ -131,7 +131,7 @@ public abstract class AInstaller<T>
             Percent.FactoryPutInRange(_currentStepProgress, MaxStepProgress), _currentStep));
     }
 
-    public abstract Task<bool> Begin(CancellationToken token);
+    public abstract Task<InstallResult> Begin(CancellationToken token);
 
     protected async Task ExtractModlist(CancellationToken token)
     {
