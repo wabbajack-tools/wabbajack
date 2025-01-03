@@ -89,7 +89,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                          // Short error message
                          StoppedTitle.Text = ViewModel.InstallResult?.GetTitle() ?? string.Empty;
                          // Long error message
-                         StoppedDescription.Text = ViewModel.InstallResult?.GetDescription();
+                         StoppedDescription.Text = ViewModel.InstallResult?.GetDescription() ?? string.Empty;
 
 
                          if (x == InstallState.Installing)
