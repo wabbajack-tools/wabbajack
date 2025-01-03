@@ -32,7 +32,7 @@ jobs:
           include-prerelease: true
           
       - name: Test
-        run: dotnet test /p:EnableWindowsTargeting=true --filter "Category!=FlakeyNetwork"
+        run: dotnet test /p:EnableWindowsTargeting=true
         
       #- name: Upload Test Folder on Failure
       #  if: ${{ failure() }}
