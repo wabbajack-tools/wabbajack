@@ -33,9 +33,6 @@ public partial class InstallationCompleteView : ReactiveUserControl<Installation
             this.WhenAny(x => x.ViewModel.OpenWikiCommand)
                 .BindToStrict(this, x => x.OpenWikiButton.Command)
                 .DisposeWith(dispose);
-            this.WhenAny(x => x.ViewModel.CloseWhenCompleteCommand)
-                .BindToStrict(this, x => x.CloseButton.Command)
-                .DisposeWith(dispose);
             this.WhenAny(x => x.ViewModel.OpenLogsCommand)
                 .BindToStrict(this, x => x.OpenLogsButton.Command)
                 .DisposeWith(dispose);

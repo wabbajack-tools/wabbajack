@@ -55,40 +55,44 @@ public static class UIUtils
             return false;
         }
     }
-        
-        
-        public static void OpenWebsite(Uri url)
+
+
+    public static void OpenWebsite(Uri url)
+    {
+        Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url}")
         {
-            Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url}")
-            {
-                CreateNoWindow = true,
-            });
+            CreateNoWindow = true,
+        });
+    }
+
+    public static void OpenWebsite(string url)
+    {
+        Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url}")
+        {
+            CreateNoWindow = true,
+        });
+    }
+
+    public static void OpenFolder(AbsolutePath path)
+    {
+        string folderPath = path.ToString();
+        if (!folderPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
+        {
+            folderPath += Path.DirectorySeparatorChar.ToString();
         }
 
-        public static void OpenWebsite(string url)
+        Process.Start(new ProcessStartInfo()
         {
-            Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url}")
-            {
-                CreateNoWindow = true,
-            });
-        }
-        
-        public static void OpenFolder(AbsolutePath path)
-        {
-            string folderPath = path.ToString();
-            if (!folderPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
-            {
-                folderPath += Path.DirectorySeparatorChar.ToString();
-            }
+            FileName = folderPath,
+            UseShellExecute = true,
+            Verb = "open"
+        });
+    }
 
-            Process.Start(new ProcessStartInfo()
-            {
-                FileName = folderPath,
-                UseShellExecute = true,
-                Verb = "open"
-            });
-        }
-
+    public static void OpenFolderAndSelectFile(AbsolutePath pathToFile)
+    {
+        Process.Start(new ProcessStartInfo() { FileName = "explorer.exe ", Arguments = $"/select, \"{pathToFile}\"" });
+    }
 
     public static AbsolutePath OpenFileDialog(string filter, string initialDirectory = null)
     {

@@ -131,7 +131,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
         await _wjClient.PublishModlist(Settings.MachineUrl, Version.Parse(Settings.Version), Settings.OutputFile, downloadMetadata);
     }
 
-    private void OpenFolder() => Process.Start(new ProcessStartInfo() { FileName = "explorer.exe ", Arguments = $"/select, \"{Settings.OutputFile}\"" });
+    private void OpenFolder() => UIUtils.OpenFolderAndSelectFile(Settings.OutputFile);
 
     private void Info() => Process.Start(new ProcessStartInfo("https://wiki.wabbajack.org/modlist_author_documentation/Compilation.html") { UseShellExecute = true });
 

@@ -50,6 +50,9 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             this.BindCommand(ViewModel, vm => vm.InstallCommand, v => v.InstallButton)
                 .DisposeWith(disposables);
 
+            this.BindCommand(ViewModel, vm => vm.BackToGalleryCommand, v => v.BackToGalleryButton)
+                .DisposeWith(disposables);
+
             this.WhenAnyValue(v => v.ViewModel.HashingSpeed)
                 .BindToStrict(this, v => v.HashSpeedText.Text)
                 .DisposeWith(disposables);
@@ -64,6 +67,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
 
             this.BindCommand(ViewModel, vm => vm.OpenReadmeCommand, v => v.OpenReadmeButton)
                 .DisposeWith(disposables);
+
 
             this.WhenAnyValue(x => x.ReadmeToggleButton.IsChecked)
                 .Select(x => x ?? false ? Visibility.Visible : Visibility.Hidden)
