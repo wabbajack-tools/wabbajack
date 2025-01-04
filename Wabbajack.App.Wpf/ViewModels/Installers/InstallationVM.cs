@@ -722,10 +722,10 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                                 writer.Write(@$"<p><a href=""steam://run/2722710"">Click here to install it via Steam.</a></p>");
                             }
                         }
-                        else if(ModList.GameType == Game.SkyrimSpecialEdition && (archive.Name.Equals("Data_ccbgssse037-curios.esl", StringComparison.OrdinalIgnoreCase) || archive.Name.Equals("ccbgssse037-curios.bsa", StringComparison.OrdinalIgnoreCase)))
+                        else if(ModList.GameType == Game.SkyrimSpecialEdition && archive.Name.Contains("curios", StringComparison.OrdinalIgnoreCase))
                         {
                             writer.Write("<p>This is a game file that commonly causes issues.</p>");
-                            writer.Write(@"<p><a href=""https://wiki.wabbajack.org/user_documentation/Troubleshooting%20FAQ.html#unable-to-download-curios-files"">Click here for more information on how to resolve the issue.</a></p>");
+                            writer.Write(@"<p><a target=""blank"" href=""https://wiki.wabbajack.org/user_documentation/Troubleshooting%20FAQ.html#unable-to-download-curios-files"">Click here for more information on how to resolve the issue.</a></p>");
                         }
                         else if(ModList.GameType == Game.SkyrimSpecialEdition && archive.Name.StartsWith("Data_cc", StringComparison.OrdinalIgnoreCase))
                         {

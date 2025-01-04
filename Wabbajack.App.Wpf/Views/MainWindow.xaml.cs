@@ -172,7 +172,7 @@ public partial class MainWindow : MetroWindow
             vm.WhenAnyValue(vm => vm.MinimizeCommand)
                 .BindTo(this, view => view.MinimizeButton.Command);
 
-            vm.WhenAnyValue(vm => vm.ToggleMaximizedCommand)
+            vm.WhenAnyValue(vm => vm.MaximizeCommand)
                 .BindTo(this, view => view.MaximizeButton.Command);
 
             vm.WhenAnyValue(vm => vm.CloseCommand)

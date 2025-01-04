@@ -71,7 +71,7 @@ public class MainWindowVM : ViewModel
     public ICommand ShowLoginManagerVM { get; }
     public ICommand InfoCommand { get; }
     public ICommand MinimizeCommand { get; }
-    public ICommand ToggleMaximizedCommand { get; }
+    public ICommand MaximizeCommand { get; }
     public ICommand CloseCommand { get; }
 
     public string VersionDisplay { get; }
@@ -211,7 +211,7 @@ public class MainWindowVM : ViewModel
         });
         InfoCommand = ReactiveCommand.Create(ShowInfo);
         MinimizeCommand = ReactiveCommand.Create(Minimize);
-        ToggleMaximizedCommand = ReactiveCommand.Create(ToggleMaximized);
+        MaximizeCommand = ReactiveCommand.Create(ToggleMaximized);
         CloseCommand = ReactiveCommand.Create(Close);
     }
 

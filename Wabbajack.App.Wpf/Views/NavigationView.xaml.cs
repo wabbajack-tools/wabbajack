@@ -22,7 +22,7 @@ public partial class NavigationView : ReactiveUserControl<NavigationVM>
         InitializeComponent();
         ButtonScreensDictionary = new() {
             { HomeButton, [ScreenType.Home] },
-            { BrowseButton, [ScreenType.ModListGallery] },
+            { BrowseButton, [ScreenType.ModListGallery, ScreenType.Installer] },
             { CompileButton, [ScreenType.CompilerHome, ScreenType.CompilerMain] },
             { SettingsButton, [ScreenType.Settings] },
         };
