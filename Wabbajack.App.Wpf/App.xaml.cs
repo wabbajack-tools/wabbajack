@@ -59,6 +59,13 @@ public partial class App
             })
             .Build();
 
+        var webview2 = _host.Services.GetRequiredService<WebView2>();
+        var currentDir = (AbsolutePath)Directory.GetCurrentDirectory();
+        if(currentDir.Combine("webview2").DirectoryExists())
+        {
+            webview2.CreationProperties = new CoreWebView2CreationProperties() { BrowserExecutableFolder = currentDir.Combine("webview2").ToString() };
+        }
+
         var args = e.Args;
 
         RxApp.MainThreadScheduler.Schedule(0, (_, _) =>
@@ -163,6 +170,9 @@ public partial class App
         services.AddSingleton<SystemParametersConstructor>();
         services.AddSingleton<LauncherUpdater>();
         services.AddSingleton<ResourceMonitor>();
+
+        var currentDir = (AbsolutePath)Directory.GetCurrentDirectory();
+        var webViewDir = currentDir.Combine("webview2");
         services.AddSingleton<WebView2>();
         services.AddSingleton<BrowserWindow>();
         
