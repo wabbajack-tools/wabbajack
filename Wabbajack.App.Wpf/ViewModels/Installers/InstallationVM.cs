@@ -64,10 +64,24 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     [Reactive] public ModlistMetadata ModlistMetadata { get; set; }
     [Reactive] public FilePickerVM WabbajackFileLocation { get; set; }
     [Reactive] public MO2InstallerVM Installer { get; set; }
+    [Reactive] public StandardInstaller StandardInstaller { get; set; }
     [Reactive] public BitmapImage ModListImage { get; set; }
-
     [Reactive] public InstallState InstallState { get; set; }
-    public InstallResult? InstallResult { get; set; } = null;
+
+    /// <summary>
+    /// Don't use the Reactive attribute on nullable enum values
+    /// This causes InvalidProgramExceptions on requesting this service via DependencyInjection 
+    /// </summary>
+    private InstallResult? _installResult = null;
+    public InstallResult? InstallResult
+    {
+        get => _installResult;
+        set
+        {
+            RaiseAndSetIfChanged(ref _installResult, value);
+            _installResult = value;
+        }
+    }
 
     /// <summary>
     ///  Slideshow Data
@@ -118,6 +132,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     public ICommand OpenWikiCommand { get; }
     public ICommand OpenDiscordButton { get; }
     public ICommand OpenWebsiteCommand { get; }
+    public ICommand OpenMissingArchivesCommand { get; }
         
     public ICommand CloseWhenCompleteCommand { get; }
     public ICommand OpenLogsCommand { get; }
@@ -199,6 +214,12 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
         OpenInstallFolderCommand = ReactiveCommand.Create(() =>
         {
             UIUtils.OpenFolder(Installer.Location.TargetPath);
+        });
+
+        OpenMissingArchivesCommand = ReactiveCommand.Create(() =>
+        {
+            var missing = ModList.Archives.Where(a => !StandardInstaller.HashedArchives.ContainsKey(a.Hash)).ToArray();
+            ShowMissingManualReport(missing);
         });
 
         PlayCommand = ReactiveCommand.Create(() =>
@@ -573,7 +594,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
             try
             {
-                var installer = StandardInstaller.Create(_serviceProvider, new InstallerConfiguration
+                StandardInstaller = StandardInstaller.Create(_serviceProvider, new InstallerConfiguration
                 {
                     Game = ModList.GameType,
                     Downloads = Installer.DownloadLocation.TargetPath,
@@ -585,7 +606,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                 });
 
 
-                installer.OnStatusUpdate = update =>
+                StandardInstaller.OnStatusUpdate = update =>
                 {
                     RxApp.MainThreadScheduler.Schedule(() =>
                     {
@@ -594,7 +615,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                     });
                 };
 
-                var result = await installer.Begin(_cancellationTokenSource.Token);
+                var result = await StandardInstaller.Begin(_cancellationTokenSource.Token);
                 if (result == Wabbajack.Installer.InstallResult.Succeeded)
                 {
                     RxApp.MainThreadScheduler.Schedule(() =>
@@ -662,6 +683,46 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                 await Task.Delay(1000);
             }
         }
+    }
+
+    private void ShowMissingManualReport(Archive[] toArray)
+    {
+        _logger.LogError("Writing Manual helper report");
+        var report = Installer.DownloadLocation.TargetPath.Combine("MissingManuals.html");
+        {
+            using var writer = new StreamWriter(report.Open(FileMode.Create, FileAccess.Write, FileShare.None));
+            writer.Write("<html><head><title>Missing Manual Downloads</title></head><body>");
+            writer.Write("<h1>Missing Manual Downloads</h1>");
+            writer.Write(
+                "<p>Wabbajack was unable to download the following archives automatically. Please download them manually and place them in the downloads folder you chose during the install setup.</p>");
+            foreach (var archive in toArray)
+            {
+                switch (archive.State)
+                {
+                    case Manual manual:
+                        writer.Write($"<h3>{archive.Name}</h1>");
+                        writer.Write($"<p>{manual.Prompt}</p>");
+                        writer.Write($"<p>Download URL: <a href=\"{manual.Url}\">{manual.Url}</a></p>");
+                        break;
+                    case MediaFire mediaFire:
+                        writer.Write($"<h3>{archive.Name}</h1>");
+                        writer.Write($"<p>Download URL: <a href=\"{mediaFire.Url}\">{mediaFire.Url}</a></p>");
+                        break;
+                    default:
+                        writer.Write($"<h3>{archive.Name}</h1>");
+                        writer.Write($"<p>Unknown download type</p>");
+                        writer.Write($"<p>Primary Key (may not be helpful): <a href=\"{archive.State.PrimaryKeyString}\">{archive.State.PrimaryKeyString}</a></p>");
+                        break;
+                }
+            }
+
+            writer.Write("</body></html>");
+        }
+        
+        Process.Start(new ProcessStartInfo("cmd.exe", $"start /c \"{report}\"")
+        {
+            CreateNoWindow = true,
+        });
     }
 
     class SavedInstallSettings

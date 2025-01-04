@@ -11,6 +11,8 @@ using System.Windows.Controls;
 using System.Reactive.Concurrency;
 using System.Windows.Media;
 using Symbol = FluentIcons.Common.Symbol;
+using Wabbajack.Installer;
+using Wabbajack.DTOs.DownloadStates;
 
 namespace Wabbajack;
 
@@ -68,6 +70,36 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .BindToStrict(this, x => x.OpenReadmeButton.Visibility)
                 .DisposeWith(disposables);
 
+            ViewModel.WhenAnyValue(vm => vm.InstallResult)
+                     .ObserveOnGuiThread()
+                     .Subscribe(result =>
+                     {
+                         StoppedTitle.Text = result?.GetTitle() ?? string.Empty;
+                         StoppedDescription.Text = result?.GetDescription() ?? string.Empty;
+                         switch(result)
+                         {
+                             case InstallResult.DownloadFailed:
+                                 /*
+                                 this.BindCommand(ViewModel, vm => vm.OpenInstallFolderCommand, v => v.StoppedButton)
+                                     .DisposeWith(disposables);
+                                 */
+                                 StoppedButton.Command = ViewModel.OpenMissingArchivesCommand;
+                                 StoppedButton.Icon = Symbol.DocumentGlobe;
+                                 StoppedButton.Text = "Show Missing Archives";
+                                 break;
+
+                             default:
+                                 StoppedButton.Command = ViewModel.OpenInstallFolderCommand;
+                                 StoppedButton.Icon = Symbol.FolderOpen;
+                                 StoppedButton.Text = "Open File Explorer";
+                                 break;
+                         }
+                         if(result == InstallResult.DownloadFailed)
+                         {
+                         }
+                     })
+                     .DisposeWith(disposables);
+
             ViewModel.WhenAnyValue(vm => vm.InstallState)
                      .ObserveOnGuiThread()
                      .Subscribe(x =>
@@ -86,10 +118,8 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                          StoppedIcon.Symbol = x == InstallState.Failure ? Symbol.ErrorCircle : Symbol.CheckmarkCircle;
                          StoppedInstallMsg.Text = x == InstallState.Failure ? "Installation failed" : "Installation succeeded";
 
-                         // Short error message
-                         StoppedTitle.Text = ViewModel.InstallResult?.GetTitle() ?? string.Empty;
-                         // Long error message
-                         StoppedDescription.Text = ViewModel.InstallResult?.GetDescription() ?? string.Empty;
+                         if (x == InstallState.Failure || x == InstallState.Success)
+                             LogToggleButton.IsChecked = true;
 
 
                          if (x == InstallState.Installing)
@@ -222,9 +252,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.PlayCommand, v => v.PlayButton)
-                .DisposeWith(disposables);
-
-            this.BindCommand(ViewModel, vm => vm.OpenInstallFolderCommand, v => v.FailureOpenFolderButton)
                 .DisposeWith(disposables);
 
 

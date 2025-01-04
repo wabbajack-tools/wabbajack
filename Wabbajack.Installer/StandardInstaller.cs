@@ -132,12 +132,6 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                     a.State.PrimaryKeyString);
             _logger.LogCritical("Cannot continue, was unable to download one or more archives");
 
-            if (missing.Any(m => m.State is not Nexus))
-            {
-                ShowMissingManualReport(missing.Where(m => m.State is not Nexus).ToArray());
-                return InstallResult.DownloadFailed;
-            }
-
             return InstallResult.DownloadFailed;
         }
 
@@ -179,45 +173,6 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         return InstallResult.Succeeded;
     }
 
-    private void ShowMissingManualReport(Archive[] toArray)
-    {
-        _logger.LogError("Writing Manual helper report");
-        var report = _configuration.Downloads.Combine("MissingManuals.html");
-        {
-            using var writer = new StreamWriter(report.Open(FileMode.Create, FileAccess.Write, FileShare.None));
-            writer.Write("<html><head><title>Missing Manual Downloads</title></head><body>");
-            writer.Write("<h1>Missing Manual Downloads</h1>");
-            writer.Write(
-                "<p>Wabbajack was unable to download the following archives automatically. Please download them manually and place them in the downloads folder you chose during the install setup.</p>");
-            foreach (var archive in toArray)
-            {
-                switch (archive.State)
-                {
-                    case Manual manual:
-                        writer.Write($"<h3>{archive.Name}</h1>");
-                        writer.Write($"<p>{manual.Prompt}</p>");
-                        writer.Write($"<p>Download URL: <a href=\"{manual.Url}\">{manual.Url}</a></p>");
-                        break;
-                    case MediaFire mediaFire:
-                        writer.Write($"<h3>{archive.Name}</h1>");
-                        writer.Write($"<p>Download URL: <a href=\"{mediaFire.Url}\">{mediaFire.Url}</a></p>");
-                        break;
-                    default:
-                        writer.Write($"<h3>{archive.Name}</h1>");
-                        writer.Write($"<p>Unknown download type</p>");
-                        writer.Write($"<p>Primary Key (may not be helpful): <a href=\"{archive.State.PrimaryKeyString}\">{archive.State.PrimaryKeyString}</a></p>");
-                        break;
-                }
-            }
-
-            writer.Write("</body></html>");
-        }
-        
-        Process.Start(new ProcessStartInfo("cmd.exe", $"start /c \"{report}\"")
-        {
-            CreateNoWindow = true,
-        });
-    }
 
     private Task RemapMO2File()
     {
