@@ -67,7 +67,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     [Reactive] public BitmapImage ModListImage { get; set; }
 
     [Reactive] public InstallState InstallState { get; set; }
-    [Reactive] public InstallResult? InstallResult { get; set; } = null;
+    public InstallResult? InstallResult { get; set; } = null;
 
     /// <summary>
     ///  Slideshow Data
