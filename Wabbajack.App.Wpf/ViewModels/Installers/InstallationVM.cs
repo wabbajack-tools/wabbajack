@@ -138,6 +138,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     public ICommand OpenInstallFolderCommand { get; }
     public ICommand InstallCommand { get; }
     public ICommand CancelCommand { get; }
+    public ICommand EditInstallDetailsCommand { get; }
     public ICommand VerifyCommand { get; }
     public ICommand PlayCommand { get; }
     
@@ -167,6 +168,15 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
         ReadmeBrowser = serviceProvider.GetRequiredService<WebView2>();
 
         CancelCommand = ReactiveCommand.Create(CancelInstall, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
+        EditInstallDetailsCommand = ReactiveCommand.Create(() =>
+        {
+            ConfigurationText = "Preparation";
+            ProgressText = $"Installation";
+            CurrentStep = Step.Configuration;
+            InstallState = InstallState.Configuration;
+            ProgressState = ProgressState.Normal;
+            this.Activator.Activate();
+        });
         InstallCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget(), this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
 
         OpenReadmeCommand = ReactiveCommand.Create(() =>

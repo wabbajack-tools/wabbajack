@@ -267,7 +267,17 @@
                 </Grid>
                 <Grid x:Name="ReadmeBrowserGrid" Grid.Row="1" Margin="0, 0, 0, 16"></Grid>
                 <local:LogView Grid.Row="1" x:Name="LogView" Margin="0, 0, 0, 16" Visibility="Collapsed" />
-                <local:WJButton x:Name="CancelButton" ButtonStyle="Danger" Grid.Row="2" Text="Cancel" Icon="Dismiss" HorizontalAlignment="Right" />
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <local:WJButton x:Name="CancelButton" Grid.Column="2" ButtonStyle="Danger" Text="Cancel" Icon="Dismiss" HorizontalAlignment="Right" />
+
+                    <local:WJButton x:Name="EditInstallDetailsButton" Grid.Column="1" ButtonStyle="Mono" Text="Edit Installation Details" Icon="TextBulletListSquareSettings" HorizontalAlignment="Right" Visibility="Visible" Margin="0, 0, 16, 0" />
+                    <local:WJButton x:Name="RetryButton" Grid.Column="2" ButtonStyle="Color" Text="Retry" Icon="ArrowCounterclockwise" HorizontalAlignment="Right" />
+                </Grid>
             </Grid>
 
         </Grid>

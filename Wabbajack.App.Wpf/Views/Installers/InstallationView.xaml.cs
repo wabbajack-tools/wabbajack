@@ -12,7 +12,6 @@ using System.Reactive.Concurrency;
 using System.Windows.Media;
 using Symbol = FluentIcons.Common.Symbol;
 using Wabbajack.Installer;
-using Wabbajack.DTOs.DownloadStates;
 
 namespace Wabbajack;
 
@@ -45,6 +44,12 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.CancelCommand, v => v.CancelButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.EditInstallDetailsCommand, v => v.EditInstallDetailsButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.InstallCommand, v => v.RetryButton)
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.InstallCommand, v => v.InstallButton)
@@ -112,15 +117,18 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                          InstallationGrid.Visibility = x == InstallState.Installing || x == InstallState.Failure ? Visibility.Visible : Visibility.Collapsed;
                          CompletedInstallationGrid.Visibility = x == InstallState.Success ? Visibility.Visible : Visibility.Collapsed;
 
-                         // Change install grid a little on failure state
                          CpuView.Visibility = x == InstallState.Installing ? Visibility.Visible : Visibility.Collapsed;
                          InstallationRightColumn.Width = x == InstallState.Installing ? new GridLength(3, GridUnitType.Star) : new GridLength(4, GridUnitType.Star);
-                         CancelButton.Visibility = x == InstallState.Installing ? Visibility.Visible : Visibility.Collapsed;
                          WorkerIndicators.Visibility = x == InstallState.Installing ? Visibility.Visible : Visibility.Collapsed;
                          StoppedMessage.Visibility = x == InstallState.Failure ? Visibility.Visible : Visibility.Collapsed;
                          StoppedBorder.Background = x == InstallState.Failure ? (Brush)Application.Current.Resources["ErrorBrush"] : (Brush)Application.Current.Resources["SuccessBrush"];
                          StoppedIcon.Symbol = x == InstallState.Failure ? Symbol.ErrorCircle : Symbol.CheckmarkCircle;
                          StoppedInstallMsg.Text = x == InstallState.Failure ? "Installation failed" : "Installation succeeded";
+
+                         CancelButton.Visibility = x == InstallState.Installing ? Visibility.Visible : Visibility.Collapsed;
+                         EditInstallDetailsButton.Visibility = x == InstallState.Failure ? Visibility.Visible : Visibility.Collapsed;
+                         RetryButton.Visibility = x == InstallState.Failure ? Visibility.Visible : Visibility.Collapsed;
+
 
                          if (x == InstallState.Failure || x == InstallState.Success)
                              LogToggleButton.IsChecked = true;
