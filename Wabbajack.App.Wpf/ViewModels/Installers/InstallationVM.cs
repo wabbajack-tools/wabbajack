@@ -687,14 +687,14 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
     private void ShowMissingManualReport(Archive[] toArray)
     {
-        _logger.LogError("Writing Manual helper report");
+        _logger.LogInformation("Writing Manual helper report");
         var report = Installer.DownloadLocation.TargetPath.Combine("MissingManuals.html");
         {
             using var writer = new StreamWriter(report.Open(FileMode.Create, FileAccess.Write, FileShare.None));
-            writer.Write("<html><head><title>Missing Manual Downloads</title></head><body>");
-            writer.Write("<h1>Missing Manual Downloads</h1>");
+            writer.Write("<html><head><title>Missing Files</title></head><body>");
+            writer.Write("<h1>Missing Files</h1>");
             writer.Write(
-                "<p>Wabbajack was unable to download the following archives automatically. Please download them manually and place them in the downloads folder you chose during the install setup.</p>");
+                "<p>Wabbajack was unable to download the following files automatically. Please download them manually and place them in the downloads folder you chose during the install configuration.</p>");
             foreach (var archive in toArray)
             {
                 switch (archive.State)
@@ -708,6 +708,35 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                         writer.Write($"<h3>{archive.Name}</h1>");
                         writer.Write($"<p>Download URL: <a href=\"{mediaFire.Url}\">{mediaFire.Url}</a></p>");
                         break;
+                    case GameFileSource gameFile:
+                        writer.Write($"<h3>{archive.Name}</h3>");
+                        if(archive.Name.Contains("CreationKit"))
+                        {
+                            writer.Write($"<p>This modlist requires the Creation Kit to function.</p>");
+                            if (ModList.GameType == Game.SkyrimSpecialEdition || ModList.GameType == Game.SkyrimVR)
+                            {
+                                writer.Write(@$"<p><a href=""steam://run/1946180"">Click here to install it via Steam.</a></p>");
+                            }
+                            else if(ModList.GameType == Game.Fallout4 || ModList.GameType == Game.Fallout4VR)
+                            {
+                                writer.Write(@$"<p><a href=""steam://run/1946160"">Click here to install it via Steam.</a></p>");
+                            }
+                            else if(ModList.GameType == Game.Starfield)
+                            {
+                                writer.Write(@$"<p><a href=""steam://run/2722710"">Click here to install it via Steam.</a></p>");
+                            }
+                        }
+                        else if(archive.Name.Equals("Data_ccbgssse037-curios.esl"))
+                        {
+                            writer.Write("<p>This is a game file that commonly causes issues.</p>");
+                            writer.Write(@"<p><a href="""">Click here for more information on how to resolve the issue.</a></p>");
+                        }
+                        else
+                        {
+                            writer.Write("This is a game file that could not be found. Validate the game is installed properly in the same language as that of the modlist author.");
+                        }
+                        break;
+
                     default:
                         writer.Write($"<h3>{archive.Name}</h1>");
                         writer.Write($"<p>Unknown download type</p>");
