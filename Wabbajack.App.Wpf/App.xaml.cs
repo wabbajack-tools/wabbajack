@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Runtime.InteropServices;
@@ -61,9 +62,12 @@ public partial class App
 
         var webview2 = _host.Services.GetRequiredService<WebView2>();
         var currentDir = (AbsolutePath)Directory.GetCurrentDirectory();
-        if(currentDir.Combine("webview2").DirectoryExists())
+        var webViewDir = currentDir.Combine("WebView2");
+        if(webViewDir.DirectoryExists())
         {
-            webview2.CreationProperties = new CoreWebView2CreationProperties() { BrowserExecutableFolder = currentDir.Combine("webview2").ToString() };
+            var logger = _host.Services.GetRequiredService<ILogger<App>>();
+            logger.LogInformation("Local WebView2 executable folder found. Using folder {0} instead of system binaries!", currentDir.Combine("WebView2"));
+            webview2.CreationProperties = new CoreWebView2CreationProperties() { BrowserExecutableFolder = currentDir.Combine("WebView2").ToString() };
         }
 
         var args = e.Args;
