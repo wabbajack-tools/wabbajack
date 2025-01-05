@@ -14,6 +14,7 @@ public class NexusApiTests
     }
 
     [Fact]
+    [Trait("Category", "RequiresOAuth")]
     public async Task CanValidateUser()
     {
         var (info, headers) = await _api.Validate();
@@ -21,6 +22,7 @@ public class NexusApiTests
     }
 
     [Fact]
+    [Trait("Category", "RequiresOAuth")]
     public async Task CanGetModInfo()
     {
         var (_, originalHeaders) = await _api.Validate();

@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Xunit;
@@ -51,6 +52,9 @@ public class StandardInstallerTest
             SystemPageSize = 8L * 1024 * 1024 * 1024,
             VideoMemorySize = 8L * 1024 * 1024 * 1024
         };
+
+        var configuration = _provider.GetService<Client>();
+        configuration.IgnoreMirrorList = true;
 
         var installer = _provider.GetService<StandardInstaller>();
         Assert.True(await installer.Begin(CancellationToken.None));
