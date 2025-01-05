@@ -98,6 +98,24 @@ public partial class MainWindow : MetroWindow
                 "System settings - ({MemorySize} RAM) ({PageSize} Page), Display: {ScreenWidth} x {ScreenHeight} ({Vram} VRAM - VideoMemorySizeMb={ENBVRam})",
                 p.SystemMemorySize.ToFileSizeString(), p.SystemPageSize.ToFileSizeString(), p.ScreenWidth, p.ScreenHeight, p.VideoMemorySize.ToFileSizeString(), p.EnbLEVRAMSize);
 
+            try
+            {
+                var drives = DriveHelper.Drives;
+                var partitions = DriveHelper.Partitions;
+                foreach (var drive in drives)
+                {
+                    if (!drive.IsReady || drive.DriveType != DriveType.Fixed) continue;
+                    var driveType = partitions[drive.RootDirectory.Name[0]].MediaType.ToString();
+                    var rootDir = drive.RootDirectory.ToString();
+                    var freeSpace = drive.AvailableFreeSpace.ToFileSizeString();
+                    _logger.LogInformation("Detected drive {RootDirectory} - Type: {DriveType}, Free Space: {FreeSpace}", rootDir, driveType, freeSpace);
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("Failed to retrieve drive information. Exception {ex}", ex.ToString());
+            }
+
             if (p.SystemPageSize == 0)
                 _logger.LogInformation("Pagefile is disabled! This will cause issues such as crashing with Wabbajack and other applications!");
 

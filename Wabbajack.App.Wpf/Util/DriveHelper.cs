@@ -8,8 +8,9 @@ using System.Management;
 namespace Wabbajack;
 public static class DriveHelper
 {
-    private static Dictionary<string, PhysicalDisk> _diskCache = new Dictionary<string, PhysicalDisk>();
-    private static Dictionary<char, PhysicalDisk> _partCache = new Dictionary<char, PhysicalDisk>();
+    private static Dictionary<string, PhysicalDisk> _cachedDisks = new Dictionary<string, PhysicalDisk>();
+    private static Dictionary<char, PhysicalDisk> _cachedPartitions = new Dictionary<char, PhysicalDisk>();
+    private static DriveInfo[]? _cachedDrives = null;
 
     /// <summary>
     /// All the physical disks by disk number
@@ -18,9 +19,9 @@ public static class DriveHelper
     {
         get
         {
-            if (_diskCache.Count == 0)
-                _diskCache = GetPhysicalDisks();
-            return _diskCache;
+            if (_cachedDisks.Count == 0)
+                _cachedDisks = GetPhysicalDisks();
+            return _cachedDisks;
         }
     }
 
@@ -31,17 +32,27 @@ public static class DriveHelper
     {
         get
         {
-            if (_partCache.Count == 0)
-                _partCache = GetPartitions();
-            return _partCache;
+            if (_cachedPartitions.Count == 0)
+                _cachedPartitions = GetPartitions();
+            return _cachedPartitions;
+        }
+    }
+
+    public static DriveInfo[] Drives
+    {
+        get
+        {
+            if (_cachedDrives == null)
+                _cachedDrives = DriveInfo.GetDrives();
+            return _cachedDrives;
         }
     }
 
     public static void ReloadPhysicalDisks()
     {
-        if (_diskCache.Count > 0)
-            _diskCache.Clear();
-        _diskCache = GetPhysicalDisks();
+        if (_cachedDisks.Count > 0)
+            _cachedDisks.Clear();
+        _cachedDisks = GetPhysicalDisks();
     }
 
     public static MediaType GetMediaTypeForPath(string path)
