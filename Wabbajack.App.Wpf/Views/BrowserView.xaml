@@ -22,10 +22,10 @@
         </Grid.RowDefinitions>
         
         <Button Grid.Row="0" Grid.Column="0">
-            <iconPacks:PackIconModern Kind="NavigatePrevious"></iconPacks:PackIconModern>
+            <!--<iconPacks:PackIconModern Kind="NavigatePrevious"></iconPacks:PackIconModern>-->
         </Button>
         <Button  Grid.Row="0" Grid.Column="1">
-            <iconPacks:PackIconModern Kind="Home"></iconPacks:PackIconModern>
+            <!--<iconPacks:PackIconModern Kind="Home"></iconPacks:PackIconModern>-->
         </Button>
         <TextBox  Grid.Row="0" Grid.Column="3" VerticalContentAlignment="Center"></TextBox>
         <wpf:WebView2  Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" x:Name="Browser"></wpf:WebView2>

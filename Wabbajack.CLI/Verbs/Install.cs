@@ -71,7 +71,7 @@ public class Install
 
         var result = await installer.Begin(token);
 
-        return result ? 0 : 2;
+        return result == InstallResult.Succeeded ? 0 : 2;
     }
 
     private async Task<bool> DownloadMachineUrl(string machineUrl, AbsolutePath wabbajack, CancellationToken token)

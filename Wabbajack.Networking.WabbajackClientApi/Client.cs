@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Octokit;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
@@ -171,10 +172,10 @@ public class Client
             _dtos.Options) ?? Array.Empty<ModListSummary>();
     }
 
-    public async Task<ValidatedModList> GetDetailedStatus(string machineURL)
+    public async Task<ValidatedModList> GetDetailedStatus(string repository, string machineURL)
     {
         return (await _client.GetFromJsonAsync<ValidatedModList>(
-            $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{machineURL}/status.json",
+            $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{repository}/{machineURL}/status.json",
             _dtos.Options))!;
     }
 
@@ -231,14 +232,14 @@ public class Client
                         _dtos.Options))!.Select(meta =>
                     {
                         meta.RepositoryName = url.Key;
-                        meta.Official = (meta.RepositoryName == "wj-featured" ||
-                                         featured.Contains(meta.NamespacedName));
+                        meta.Official = meta.RepositoryName == "wj-featured" ||
+                                        featured.Contains(meta.NamespacedName);
                         return meta;
                     });
                 }
                 catch (JsonException ex)
                 {
-                    _logger.LogError(ex, "While loading {List} from {Url}", url.Key, url.Value);
+                    _logger.LogError(ex, "Failed loading json for repository {List} from {Url}", url.Key, url.Value);
                     return Enumerable.Empty<ModlistMetadata>();
                 }
             })
@@ -263,12 +264,21 @@ public class Client
         return repositories!;
     }
 
+    public async Task<HashSet<string>> LoadAllowedTags()
+    {
+        var data = await _client.GetFromJsonAsync<string[]>(_limiter,
+            new HttpRequestMessage(HttpMethod.Get,
+                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/refs/heads/master/allowed_tags.json"),
+            _dtos.Options);
+        return data!.ToHashSet(StringComparer.CurrentCultureIgnoreCase);
+    }
+
     public async Task<SearchIndex> LoadSearchIndex()
     {
         return await _client.GetFromJsonAsync<SearchIndex>(_limiter,
-            new HttpRequestMessage(HttpMethod.Get, 
+            new HttpRequestMessage(HttpMethod.Get,
                 "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/refs/heads/master/reports/searchIndex.json"),
-                _dtos.Options);
+            _dtos.Options);
     }
     
     public Uri GetPatchUrl(Hash upgradeHash, Hash archiveHash)

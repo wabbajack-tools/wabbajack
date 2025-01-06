@@ -4,7 +4,10 @@ namespace Wabbajack.RateLimiter;
 
 public readonly struct Percent : IComparable, IEquatable<Percent>
 {
+    // 100%
     public static readonly Percent One = new(1d);
+
+    // 0%
     public static readonly Percent Zero = new(0d);
 
     public readonly double Value;

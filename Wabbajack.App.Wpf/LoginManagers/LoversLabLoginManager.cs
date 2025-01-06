@@ -1,13 +1,8 @@
 using System;
-using System.Drawing;
 using System.Reactive.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
@@ -66,11 +61,9 @@ public class LoversLabLoginManager : ViewModel, ILoginFor<LoversLabDownloader>
     
     private void StartLogin()
     {
-        var view = new BrowserWindow(_serviceProvider);
-        view.Closed += (sender, args) => { RefreshTokenState(); };
-        var provider = _serviceProvider.GetRequiredService<LoversLabLoginHandler>();
-        view.DataContext = provider;
-        view.Show();
+        var handler = _serviceProvider.GetRequiredService<LoversLabLoginHandler>();
+        handler.Closed += (sender, args) => { RefreshTokenState(); };
+        ShowBrowserWindow.Send(handler);
     }
 
     private void RefreshTokenState()

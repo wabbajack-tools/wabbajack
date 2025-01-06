@@ -79,7 +79,7 @@ public class InstallCompileInstallVerify
                 GameFolder = _gameLocator.GameLocation(modlist.GameType)
             });
 
-            var result = await installer.Begin(token);
+            var result = await installer.Begin(token) == InstallResult.Succeeded;
             if (!result)
             {
                 _logger.LogInformation("Error installing {MachineUrl}", machineUrl);
@@ -101,7 +101,7 @@ public class InstallCompileInstallVerify
             var compiler = MO2Compiler.Create(_serviceProvider, inferredSettings);
             result = await compiler.Begin(token);
             if (!result)
-                return result ? 0 : 3;
+                return 3;
             
             
             var installPath2 = outputs.Combine("verify_list");
@@ -122,7 +122,7 @@ public class InstallCompileInstallVerify
                 GameFolder = _gameLocator.GameLocation(modlist2.GameType)
             });
 
-            result = await installer2.Begin(token);
+            result = await installer2.Begin(token) == InstallResult.Succeeded;
             if (!result)
             {
                 _logger.LogInformation("Error installing recompiled {MachineUrl}", machineUrl);

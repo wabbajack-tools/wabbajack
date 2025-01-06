@@ -1,32 +1,29 @@
-﻿using System;
-using System.Reactive.Disposables;
-using System.Windows.Forms;
+﻿using System.Reactive.Disposables;
 using ReactiveUI;
 
-namespace Wabbajack
+namespace Wabbajack;
+
+public partial class LoginItemView : IViewFor<LoginTargetVM>
 {
-    public partial class LoginItemView : IViewFor<LoginTargetVM>
+    public LoginItemView()
     {
-        public LoginItemView()
+        InitializeComponent();
+        this.WhenActivated(disposable =>
         {
-            InitializeComponent();
-            this.WhenActivated(disposable =>
-            {
-                ViewModel.WhenAny(x => x.Login.Icon)
-                    .BindToStrict(this, view => view.Favicon.Source)
-                    .DisposeWith(disposable);
+            ViewModel.WhenAny(x => x.Login.Icon)
+                .BindToStrict(this, view => view.Favicon.Source)
+                .DisposeWith(disposable);
 
-                ViewModel.WhenAnyValue(vm => vm.Login.SiteName)
-                    .BindToStrict(this, view => view.SiteNameText.Text)
-                    .DisposeWith(disposable);
+            ViewModel.WhenAnyValue(vm => vm.Login.SiteName)
+                .BindToStrict(this, view => view.SiteNameText.Text)
+                .DisposeWith(disposable);
 
-                this.BindCommand(ViewModel, vm => vm.Login.TriggerLogin, view => view.LoginButton)
-                    .DisposeWith(disposable);
-                
-                this.BindCommand(ViewModel, vm => vm.Login.ClearLogin, view => view.LogoutButton)
-                    .DisposeWith(disposable);
+            this.BindCommand(ViewModel, vm => vm.Login.TriggerLogin, view => view.LoginButton)
+                .DisposeWith(disposable);
+            
+            this.BindCommand(ViewModel, vm => vm.Login.ClearLogin, view => view.LogoutButton)
+                .DisposeWith(disposable);
 
-            });
-        }
+        });
     }
 }

@@ -304,6 +304,7 @@ public class MO2Compiler : ACompiler
             new IgnoreFilename(this, ".refcache".ToRelativePath()),
             //Include custom categories / splash screens
             new IncludeRegex(this, @"categories\.dat$"),
+            new IncludeRegex(this, @"nexuscatmap\.dat$"),
             new IncludeRegex(this, @"splash\.png"),
 
             new IncludeAllConfigs(this),

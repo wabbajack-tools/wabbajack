@@ -1,9 +1,5 @@
 using System;
-using System.Drawing;
 using System.Reactive.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -66,11 +62,9 @@ public class VectorPlexusLoginManager : ViewModel, ILoginFor<LoversLabDownloader
         
     private void StartLogin()
     {
-        var view = new BrowserWindow(_serviceProvider);
-        view.Closed += (sender, args) => { RefreshTokenState(); };
-        var provider = _serviceProvider.GetRequiredService<VectorPlexusLoginHandler>();
-        view.DataContext = provider;
-        view.Show();
+        var browserView = _serviceProvider.GetRequiredService<BrowserWindow>();
+        browserView.ViewModel.Closed += (_, _) => RefreshTokenState();
+        ShowBrowserWindow.Send(_serviceProvider.GetRequiredService<VectorPlexusLoginHandler>());
     }
 
 
