@@ -80,7 +80,7 @@
 
             <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
-                <TextBox x:Name="DescriptionSetting" Height="135" VerticalContentAlignment="Top" mahapps:TextBoxHelper.Watermark="A comprehensive overhaul of..." AcceptsReturn="True" AcceptsTab="False" MaxLength="380" Style="{StaticResource ValueStyle}" TextWrapping="Wrap" />
+                <TextBox x:Name="DescriptionSetting" Height="135" VerticalContentAlignment="Top" mahapps:TextBoxHelper.Watermark="A comprehensive overhaul of..." AcceptsReturn="True" AcceptsTab="False" MaxLength="999" Style="{StaticResource ValueStyle}" TextWrapping="Wrap" />
             </StackPanel>
 
             <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
