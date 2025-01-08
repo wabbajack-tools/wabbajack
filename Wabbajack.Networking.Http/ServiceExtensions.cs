@@ -1,12 +1,14 @@
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using Wabbajack.Networking.Http.Interfaces;
 
 namespace Wabbajack.Networking.Http;
 
 public static class ServiceExtensions
 {
-    public static void AddHttpDownloader(this IServiceCollection services)
+    public static void AddResumableHttpDownloader(this IServiceCollection services)
     {
-        services.AddSingleton<IHttpDownloader, SingleThreadedDownloader>();
+        services.AddHttpClient("ResumableClient").ConfigureHttpClient(c => c.Timeout = TimeSpan.FromMinutes(5));
+        services.AddSingleton<IHttpDownloader, ResumableDownloader>();
     }
 }
