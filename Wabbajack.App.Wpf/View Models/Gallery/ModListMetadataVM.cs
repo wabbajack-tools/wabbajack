@@ -133,7 +133,7 @@ namespace Wabbajack
             ImageContainsTitle = Metadata.ImageContainsTitle;
             DisplayVersionOnlyInInstallerView = Metadata.DisplayVersionOnlyInInstallerView;
             var modListSummary = GetModListSummaryForModlist(modlistSummaries, metadata.NamespacedName);
-            IsBroken = modListSummary.HasFailures || metadata.ForceDown;
+            IsBroken = (modListSummary?.HasFailures ?? false) || metadata.ForceDown;
             // https://www.wabbajack.org/modlist/wj-featured/aldrnari
             OpenWebsiteCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/modlist/{Metadata.NamespacedName}")));
 
