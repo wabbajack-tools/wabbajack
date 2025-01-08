@@ -59,8 +59,8 @@ internal class Program
                 services.AddSingleton<ITokenProvider<NexusOAuthState>, NexusApiTokenProvider>();
                 services.AddSingleton<HttpDownloader>();
                 services.AddAllSingleton<IResource, IResource<HttpClient>>(s => new Resource<HttpClient>("Web Requests", 4));
-                services.AddAllSingleton<IHttpDownloader, SingleThreadedDownloader>();
-                
+                services.AddResumableHttpDownloader();
+
                 var version =
                     $"{ThisAssembly.Git.SemVer.Major}.{ThisAssembly.Git.SemVer.Major}.{ThisAssembly.Git.SemVer.Patch}{ThisAssembly.Git.SemVer.DashLabel}";
                 services.AddSingleton(s => new ApplicationInfo
