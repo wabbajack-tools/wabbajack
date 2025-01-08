@@ -25,11 +25,28 @@ public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>, IProxya
         _interventionHandler = interventionHandler;
         _downloader = downloader;
     }
-    
-    public override async Task<Hash> Download(Archive archive, DTOs.DownloadStates.Manual state, AbsolutePath destination, IJob job, CancellationToken token)
+
+    public override Task<Hash> Download(Archive archive, DTOs.DownloadStates.Manual state, AbsolutePath destination, IJob job, CancellationToken token)
     {
         _logger.LogInformation("Starting manual download of {Url}", state.Url);
 
+        if (ShouldUseBlobDownload(state.Url))
+        {
+            return DoManualBlobDownload(archive, destination, token);
+        }
+        else
+        {
+            return DoManualDownload(archive, destination, job, token);
+        }
+    }
+
+    private bool ShouldUseBlobDownload(Uri url)
+    {
+        return url.Host == "loverslab.com";
+    }
+
+    private async Task<Hash> DoManualDownload(Archive archive, AbsolutePath destination, IJob job, CancellationToken token)
+    {
         var intervention = new ManualDownload(archive);
         _interventionHandler.Raise(intervention);
         var browserState = await intervention.Task;
@@ -38,6 +55,15 @@ public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>, IProxya
         return await _downloader.Download(msg, destination, job, token);
     }
 
+    private async Task<Hash> DoManualBlobDownload(Archive archive, AbsolutePath destination, CancellationToken token)
+    {
+        var intervention = new ManualBlobDownload(archive, destination);
+        _interventionHandler.Raise(intervention);
+        await intervention.Task;
+
+        await using var file = destination.Open(FileMode.Open);
+        return await file.Hash(token);
+    }
 
     public override Task<bool> Prepare()
     {
@@ -46,7 +72,7 @@ public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>, IProxya
 
     public override bool IsAllowed(ServerAllowList allowList, IDownloadState state)
     {
-        return allowList.AllowedPrefixes.Any(p => ((DTOs.DownloadStates.Manual) state).Url.ToString().StartsWith(p));
+        return allowList.AllowedPrefixes.Any(p => ((DTOs.DownloadStates.Manual)state).Url.ToString().StartsWith(p));
     }
 
     public override IDownloadState? Resolve(IReadOnlyDictionary<string, string> iniData)
@@ -54,7 +80,7 @@ public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>, IProxya
         if (iniData.ContainsKey("manualURL") && Uri.TryCreate(iniData["manualURL"].CleanIniString(), UriKind.Absolute, out var uri))
         {
             iniData.TryGetValue("prompt", out var prompt);
-            
+
             var state = new DTOs.DownloadStates.Manual
             {
                 Url = uri,
@@ -76,12 +102,12 @@ public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>, IProxya
     public override IEnumerable<string> MetaIni(Archive a, DTOs.DownloadStates.Manual state)
     {
 
-        return new[] {$"manualURL={state.Url}", $"prompt={state.Prompt}"};
+        return new[] { $"manualURL={state.Url}", $"prompt={state.Prompt}" };
     }
 
     public IDownloadState? Parse(Uri uri)
     {
-        return new DTOs.DownloadStates.Manual() {Url = uri};
+        return new DTOs.DownloadStates.Manual() { Url = uri };
     }
 
     public Uri UnParse(IDownloadState state)
