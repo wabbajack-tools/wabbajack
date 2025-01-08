@@ -42,7 +42,7 @@ public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>, IProxya
 
     private bool ShouldUseBlobDownload(Uri url)
     {
-        return url.Host == "loverslab.com";
+        return url.Host.EndsWith("loverslab.com");
     }
 
     private async Task<Hash> DoManualDownload(Archive archive, AbsolutePath destination, IJob job, CancellationToken token)
