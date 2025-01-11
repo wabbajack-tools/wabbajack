@@ -28,6 +28,7 @@ using Wabbajack.RateLimiter;
 using Wabbajack.LoginManagers;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs.DownloadStates;
+using System.Reactive.Concurrency;
 
 namespace Wabbajack;
 
@@ -159,8 +160,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
 
                 Settings.UseGamePaths = true;
                 if (Settings.OutputFile.DirectoryExists())
-                    Settings.OutputFile = Settings.OutputFile.Combine(Settings.ModListName.ToRelativePath()
-                        .WithExtension(Ext.Wabbajack));
+                    RxApp.MainThreadScheduler.Schedule(() => Settings.OutputFile = Settings.OutputFile.Combine(Settings.ModListName.ToRelativePath().WithExtension(Ext.Wabbajack)));
 
                 var compiler = MO2Compiler.Create(_serviceProvider, Settings.ToCompilerSettings());
 
