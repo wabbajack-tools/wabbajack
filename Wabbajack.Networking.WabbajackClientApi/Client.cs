@@ -51,6 +51,7 @@ public class Client
     private readonly ITokenProvider<WabbajackApiState> _token;
     private bool _inited;
 
+    public bool IgnoreMirrorList { get; set; } = false;
 
     public Client(ILogger<Client> logger, HttpClient client, ITokenProvider<WabbajackApiState> token,
         DTOSerializer dtos,
@@ -109,6 +110,9 @@ public class Client
 
     public async Task<Archive[]> LoadMirrors()
     {
+        if (IgnoreMirrorList)
+            return Array.Empty<Archive>();
+
         var str = await _client.GetStringAsync(_configuration.MirrorList);
         return JsonSerializer.Deserialize<Archive[]>(str, _dtos.Options) ?? [];
     }

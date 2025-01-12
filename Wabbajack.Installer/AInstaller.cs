@@ -370,7 +370,7 @@ public abstract class AInstaller<T>
                 UpdateProgress(1);
             }
         }
-        
+
         await missing
             .Shuffle()
             .Where(a => a.State is not Manual)
@@ -378,18 +378,6 @@ public abstract class AInstaller<T>
             {
                 _logger.LogInformation("Downloading {Archive}", archive.Name);
                 var outputPath = _configuration.Downloads.Combine(archive.Name);
-                var downloadPackagePath = outputPath.WithExtension(Ext.DownloadPackage);
-
-                if (download)
-                    if (outputPath.FileExists() && !downloadPackagePath.FileExists())
-                    {
-                        var origName = Path.GetFileNameWithoutExtension(archive.Name);
-                        var ext = Path.GetExtension(archive.Name);
-                        var uniqueKey = archive.State.PrimaryKeyString.StringSha256Hex();
-                        outputPath = _configuration.Downloads.Combine(origName + "_" + uniqueKey + "_" + ext);
-                        outputPath.Delete();
-                    }
-
                 var hash = await DownloadArchive(archive, download, token, outputPath);
                 UpdateProgress(1);
             });
