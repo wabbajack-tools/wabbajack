@@ -1,7 +1,7 @@
 ### Changelog
 
 
-#### Version 
+#### Version - 3.7.5.2 - 1/12/2025 
 * Fix for Wabbajack not fully utilizing saturating network speed because a download library added for resumable downloads was poorly optimized. Thanks to Thamous ([@AlexDickerson](https://github.com/AlexDickerson)).
 * Fix for situations where Wabbajack might send an excessive amount of OAuth requests resulting in hitting Nexus rate limits, causing a temporary ban. Thanks to Thamous ([@AlexDickerson](https://github.com/AlexDickerson)).
 * Fix for the Wabbajack gallery going down after a new repository is added because the gallery was accidentally dependent on the tests running the validation report.
