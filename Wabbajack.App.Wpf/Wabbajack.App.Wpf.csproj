@@ -48,7 +48,7 @@
         </Reference>
     </ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
     <None Remove="Readme.md" />
     <None Remove="Resources\Fonts\Atkinson-Hyperlegible-Italic-102.ttf" />
     <None Remove="Resources\Fonts\Atkinson-Hyperlegible-Regular-102.ttf" />
@@ -106,6 +106,7 @@
     <PackageReference Include="MathConverter" Version="2.2.1" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
