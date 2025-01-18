@@ -29,6 +29,9 @@ namespace Wabbajack
             On
         }
 
+        public delegate AbsolutePath TransformPath(AbsolutePath targetPath);
+        public TransformPath PathTransformer { get; set; }
+
         public object Parent { get; }
 
         [Reactive]
@@ -270,7 +273,9 @@ namespace Wabbajack
                         dlg.Filters.Add(filter);
                     }
                     if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
-                    TargetPath = (AbsolutePath)dlg.FileName;
+
+                    var path = (AbsolutePath)dlg.FileName;
+                    TargetPath = PathTransformer(path);
                 }, canExecute: canExecute);
         }
     }

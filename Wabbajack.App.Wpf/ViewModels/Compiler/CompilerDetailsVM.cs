@@ -110,7 +110,8 @@ public class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.Off,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
-                PromptTitle = "Location where the compiled modlist will be stored"
+                PromptTitle = "Location where the compiled modlist will be stored",
+                PathTransformer = (folder) => folder.DirectoryExists() ? folder.Combine(!string.IsNullOrWhiteSpace(Settings?.ModListName) ? Settings.ModListName : "Default").WithExtension(Ext.Wabbajack) : folder
             };
 
             ModListImageLocation = new FilePickerVM

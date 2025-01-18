@@ -159,8 +159,6 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
                 });
 
                 Settings.UseGamePaths = true;
-                if (Settings.OutputFile.DirectoryExists())
-                    RxApp.MainThreadScheduler.Schedule(() => Settings.OutputFile = Settings.OutputFile.Combine(Settings.ModListName.ToRelativePath().WithExtension(Ext.Wabbajack)));
 
                 var compiler = MO2Compiler.Create(_serviceProvider, Settings.ToCompilerSettings());
 
