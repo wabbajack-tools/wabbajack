@@ -73,7 +73,20 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
         CancellationTokenSource = new CancellationTokenSource();
 
         InfoCommand = ReactiveCommand.Create(Info);
-        StartCommand = ReactiveCommand.Create(StartCompilation);
+        StartCommand = ReactiveCommand.Create(StartCompilation,
+            this.WhenAnyValue(vm => vm.Settings.ModListName,
+                              vm => vm.Settings.ModListAuthor,
+                              vm => vm.Settings.ModListDescription,
+                              vm => vm.Settings.ModListImage,
+                              vm => vm.Settings.OutputFile,
+                              vm => vm.Settings.Version, (name, author, desc, img, output, version) => 
+                              !string.IsNullOrWhiteSpace(name) &&
+                              !string.IsNullOrWhiteSpace(author) &&
+                              !string.IsNullOrWhiteSpace(desc) &&
+                              img.FileExists() &&
+                              !string.IsNullOrWhiteSpace(output.ToString()) &&
+                              Version.TryParse(version, out _)));
+
         CancelCommand = ReactiveCommand.Create(CancelCompilation);
         OpenLogCommand = ReactiveCommand.Create(OpenLog);
         OpenFolderCommand = ReactiveCommand.Create(OpenFolder);

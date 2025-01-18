@@ -103,9 +103,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                                  StoppedButton.Text = "Open File Explorer";
                                  break;
                          }
-                         if(result == InstallResult.DownloadFailed)
-                         {
-                         }
                      })
                      .DisposeWith(disposables);
 
@@ -132,7 +129,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
 
                          if (x == InstallState.Failure || x == InstallState.Success)
                              LogToggleButton.IsChecked = true;
-
 
                          if (x == InstallState.Installing)
                              HideNavigation.Send();

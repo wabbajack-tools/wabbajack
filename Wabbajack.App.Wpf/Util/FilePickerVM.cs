@@ -275,7 +275,8 @@ namespace Wabbajack
                     if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
 
                     var path = (AbsolutePath)dlg.FileName;
-                    TargetPath = PathTransformer(path);
+                    TargetPath = PathTransformer == null ? path : PathTransformer(path);
+
                 }, canExecute: canExecute);
         }
     }

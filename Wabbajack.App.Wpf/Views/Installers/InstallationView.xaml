@@ -139,7 +139,7 @@
                         <ColumnDefinition Width="16" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource WorkerIndicatorBorder}">
+                    <Border Grid.Column="0" Style="{StaticResource WorkerIndicatorBorder}" ToolTip="An indicator representing the speed at which Wabbajack is validating the integrity of your installation by hashing required files. Speed is largely determined by disk read speeds and CPU power.">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -148,12 +148,12 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <ic:SymbolIcon Grid.Column="0" Symbol="NumberSymbol" HorizontalAlignment="Left" Foreground="{StaticResource PrimaryBrush}" FontSize="18" Margin="8, 0, 0, 0" />
-                            <TextBlock Grid.Column="1" Margin="8, 0, 0, 0" Text="Hashing" />
+                            <TextBlock Grid.Column="1" Margin="8, 0, 0, 0" Text="Validation" />
                             <TextBlock Grid.Column="3" x:Name="HashSpeedText" HorizontalAlignment="Right" Margin="0, 0, 8, 0" />
                         </Grid>
                     </Border>
 
-                    <Border Grid.Column="2" Style="{StaticResource WorkerIndicatorBorder}">
+                    <Border Grid.Column="2" Style="{StaticResource WorkerIndicatorBorder}" ToolTip="An indicator representing the speed at which Wabbajack is extracting downloaded files to your installation location. Speed is largely determined by disk read-write speeds and CPU power.">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -167,7 +167,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Grid.Column="4" Style="{StaticResource WorkerIndicatorBorder}">
+                    <Border Grid.Column="4" Style="{StaticResource WorkerIndicatorBorder}" ToolTip="An indicator representing the speed at which Wabbajack is downloading required files. Speed is largely determined by your internet connection and disk speed.">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
