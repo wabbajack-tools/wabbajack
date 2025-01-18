@@ -237,6 +237,7 @@ public class DownloadDispatcher
     {
         try
         {
+            _logger.LogInformation("Downloading {archiveName} from mirror, hash {archiveHash}", archive.Name, archive.Hash)
             var url = _wjClient.GetMirrorUrl(archive.Hash);
             if (url == null) return default;
 
