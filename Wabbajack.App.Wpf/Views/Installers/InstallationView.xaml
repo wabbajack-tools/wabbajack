@@ -264,6 +264,16 @@
                                     MinWidth="160"
                                     Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/4.5}"
                                     HorizontalAlignment="Right" />
+
+                    <local:WJButton x:Name="OpenLogFolderButton" 
+                                    Grid.Column="2"
+                                    ButtonStyle="Mono"
+                                    Text="Open log file"
+                                    Icon="WindowNew"
+                                    IconSize="20"
+                                    MinWidth="160"
+                                    Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/4.5}"
+                                    HorizontalAlignment="Right" />
                 </Grid>
                 <Grid x:Name="ReadmeBrowserGrid" Grid.Row="1" Margin="0, 0, 0, 16"></Grid>
                 <local:LogView Grid.Row="1" x:Name="LogView" Margin="0, 0, 0, 16" Visibility="Collapsed" />

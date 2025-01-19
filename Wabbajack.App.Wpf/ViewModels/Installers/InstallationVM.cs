@@ -134,7 +134,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     public ICommand OpenWebsiteCommand { get; }
     public ICommand OpenMissingArchivesCommand { get; }
     public ICommand BackToGalleryCommand { get; }
-    public ICommand OpenLogsCommand { get; }
+    public ICommand OpenLogFolderCommand { get; }
     public ICommand OpenInstallFolderCommand { get; }
     public ICommand InstallCommand { get; }
     public ICommand CancelCommand { get; }
@@ -198,9 +198,9 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
         };
         WabbajackFileLocation.Filters.Add(new CommonFileDialogFilter("Wabbajack modlist", "*.wabbajack"));
         
-        OpenLogsCommand = ReactiveCommand.Create(() =>
+        OpenLogFolderCommand = ReactiveCommand.Create(() =>
         {
-            UIUtils.OpenFolder(_configuration.LogLocation);
+            UIUtils.OpenFolderAndSelectFile(_configuration.LogLocation.Combine("Wabbajack.current.log"));
         });
 
         OpenDiscordButton = ReactiveCommand.Create(() =>
