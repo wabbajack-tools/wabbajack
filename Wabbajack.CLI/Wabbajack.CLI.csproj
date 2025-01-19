@@ -32,8 +32,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.CLI.Builder\Wabbajack.CLI.Builder.csproj" />
-        <ProjectReference Include="..\Wabbajack.Downloaders.Bethesda\Wabbajack.Downloaders.Bethesda.csproj" />
-        <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders\Wabbajack.Downloads.csproj" />
         <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.Discord\Wabbajack.Networking.Discord.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.GitHub\Wabbajack.Networking.GitHub.csproj" />

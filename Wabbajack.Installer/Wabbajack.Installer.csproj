@@ -12,8 +12,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj" />
-        <ProjectReference Include="..\Wabbajack.Downloaders.GameFile\Wabbajack.Downloaders.GameFile.csproj" />
+        <ProjectReference Include="..\Wabbajack.Downloaders\Wabbajack.Downloads.csproj" />
         <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
         <ProjectReference Include="..\Wabbajack.FileExtractor\Wabbajack.FileExtractor.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.WabbajackClientApi\Wabbajack.Networking.WabbajackClientApi.csproj" />

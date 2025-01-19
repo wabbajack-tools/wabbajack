@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NoWarn>CS8600,CS8601,CS8618,CS8604</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Wabbajack.Networking.Http.Interfaces\Wabbajack.Networking.Http.Interfaces.csproj" />
+    <ProjectReference Include="..\Wabbajack.Networking.BethesdaNet\Wabbajack.Networking.BethesdaNet.csproj" />
+    <ProjectReference Include="..\Wabbajack.Networking.Http\Wabbajack.Networking.Http.csproj" />
+    <ProjectReference Include="..\Wabbajack.VFS\Wabbajack.VFS.csproj" />
+    <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
+    <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
+    <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
+    <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj" />
+    <ProjectReference Include="..\Wabbajack.Networking.NexusApi\Wabbajack.Networking.NexusApi.csproj" />
+    <ProjectReference Include="..\Wabbajack.RateLimiter\Wabbajack.RateLimiter.csproj" />
+    <ProjectReference Include="..\Wabbajack.Compression.Zip\Wabbajack.Compression.Zip.csproj" />
+    <ProjectReference Include="..\Wabbajack.Networking.WabbajackClientApi\Wabbajack.Networking.WabbajackClientApi.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="LibAES-CTR" Version="1.0.0" />
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
+    <PackageReference Include="F23.StringSimilarity" Version="5.1.0" />
+    <PackageReference Include="MegaApiClient" Version="1.10.3" />
+    <PackageReference Include="GameFinder.StoreHandlers.EADesktop" Version="4.2.2" />
+    <PackageReference Include="GameFinder.StoreHandlers.EGS" Version="4.2.2" />
+    <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="4.2.2" />
+    <PackageReference Include="GameFinder.StoreHandlers.Origin" Version="4.2.2" />
+    <PackageReference Include="GameFinder.StoreHandlers.Steam" Version="4.2.2" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Toolkit.HighPerformance" Version="7.1.2" />
+    <PackageReference Include="Stub.System.Data.SQLite.Core.NetStandard" Version="1.0.118" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
+      <HintPath>..\..\..\Program Files\dotnet\packs\Microsoft.AspNetCore.App.Ref\6.0.0-preview.6.21355.2\ref\net6.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

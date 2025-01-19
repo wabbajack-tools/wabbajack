@@ -35,8 +35,6 @@
         <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Wabbajack.Downloaders.Http\Wabbajack.Downloaders.Http.csproj" />
-        <ProjectReference Include="..\Wabbajack.Downloaders.Nexus\Wabbajack.Downloaders.Nexus.csproj" />
         <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
         <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj" />
         <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />

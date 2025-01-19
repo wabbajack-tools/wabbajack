@@ -15,7 +15,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.Configuration\Wabbajack.Configuration.csproj" />
-        <ProjectReference Include="..\Wabbajack.Downloaders.Interfaces\Wabbajack.Downloaders.Interfaces.csproj" />
         <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.Http.Interfaces\Wabbajack.Networking.Http.Interfaces.csproj" />
         <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />

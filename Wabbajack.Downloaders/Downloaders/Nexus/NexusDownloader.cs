@@ -176,7 +176,7 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
             Hash = archive.Hash,
             Meta = archive.Meta,
             Size = archive.Size,
-            State = new Manual
+            State = new DTOs.DownloadStates.Manual
             {
                 Prompt = "Click Download - Buy Nexus Premium to automate this process",
                 Url = new Uri($"https://www.nexusmods.com/{state.Game.MetaData().NexusName}/mods/{state.ModID}?tab=files&file_id={state.FileID}")
