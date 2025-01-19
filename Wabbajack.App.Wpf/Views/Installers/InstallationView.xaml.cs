@@ -88,10 +88,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                          switch(result)
                          {
                              case InstallResult.DownloadFailed:
-                                 /*
-                                 this.BindCommand(ViewModel, vm => vm.OpenInstallFolderCommand, v => v.StoppedButton)
-                                     .DisposeWith(disposables);
-                                 */
                                  StoppedButton.Command = ViewModel.OpenMissingArchivesCommand;
                                  StoppedButton.Icon = Symbol.DocumentGlobe;
                                  StoppedButton.Text = "Show Missing Archives";
@@ -142,7 +138,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      .Subscribe(x =>
                      {
                          InstallationLocationPicker.Watermark = x;
-                         if (ViewModel?.Installer?.Location != null)
+                         if (string.IsNullOrEmpty(ViewModel?.Installer?.Location?.TargetPath.ToString()))
                              ViewModel.Installer.Location.TargetPath = (AbsolutePath)x;
                      })
                     .DisposeWith(disposables);
@@ -152,7 +148,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      .Subscribe(x =>
                      {
                          DownloadLocationPicker.Watermark = x;
-                         if (ViewModel?.Installer?.Location != null)
+                         if (string.IsNullOrEmpty(ViewModel?.Installer?.Location?.TargetPath.ToString()))
                              ViewModel.Installer.DownloadLocation.TargetPath = (AbsolutePath)x;
                      })
                     .DisposeWith(disposables);

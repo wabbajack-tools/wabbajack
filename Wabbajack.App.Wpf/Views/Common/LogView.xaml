@@ -8,6 +8,11 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
+    <UserControl.Resources>
+        <CollectionViewSource x:Key="FilteredRows"
+                              Source="{Binding LoggerProvider.MessageLog}"
+                              Filter="CollectionViewSource_Filter" />
+    </UserControl.Resources>
     <Border x:Name="BorderMask2" CornerRadius="8" BorderThickness="0" Background="White">
         <Grid Margin="-1">
             <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1" />
@@ -19,7 +24,7 @@
             local:AutoScrollBehavior.ScrollOnNewItem="True"
             BorderBrush="Transparent"
             BorderThickness="0"
-            ItemsSource="{Binding LoggerProvider.MessageLog}"
+            ItemsSource="{Binding Source={StaticResource FilteredRows}}"
             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
             AlternationCount="2">
                     <ListBox.Resources>

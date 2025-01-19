@@ -1,5 +1,5 @@
-﻿using System.Windows;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
+using static Wabbajack.Models.LogStream;
 
 namespace Wabbajack;
 
@@ -8,9 +8,14 @@ namespace Wabbajack;
 /// </summary>
 public partial class LogView : UserControl
 {
-
     public LogView()
     {
         InitializeComponent();
+    }
+
+    private void CollectionViewSource_Filter(object sender, System.Windows.Data.FilterEventArgs e)
+    {
+        var row = e.Item as ILogMessage;
+        e.Accepted = row.Level.Ordinal >= 2;
     }
 }

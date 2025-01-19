@@ -156,6 +156,7 @@ public partial class App
         config.AddRuleForAllLevels(uiTarget);
 
         loggingBuilder.ClearProviders();
+        loggingBuilder.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
         loggingBuilder.SetMinimumLevel(LogLevel.Information);
         loggingBuilder.AddNLog(config);
     }
