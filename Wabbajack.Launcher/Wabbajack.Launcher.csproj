@@ -19,22 +19,25 @@
         <TargetFramework>net9.0-windows</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.1" />
-        <PackageReference Include="GitInfo" Version="3.3.3">
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+        <PackageReference Include="GitInfo" Version="3.5.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Avalonia" Version="11.2.1" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.2.1" />
-        <PackageReference Include="Avalonia.Diagnostics" Version="11.2.1" />
-        <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.1" />
-        <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
-        <PackageReference Include="MessageBox.Avalonia" Version="3.1.5.1" />
+        <PackageReference Include="Avalonia" Version="11.2.3" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.2.3" />
+        <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.3" />
+        <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
+        <PackageReference Include="MessageBox.Avalonia" Version="3.2.0" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="ReactiveUI.Fody" Version="19.5.41" />
-        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
+        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.1" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.Downloaders.Http\Wabbajack.Downloaders.Http.csproj" />

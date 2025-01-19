@@ -11,7 +11,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using SteamKit2.GC.Dota.Internal;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.DTOs.JsonConverters;

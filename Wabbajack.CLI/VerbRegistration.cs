@@ -45,12 +45,6 @@ CommandLineBuilder.RegisterCommand<MirrorFile>(MirrorFile.Definition, c => ((Mir
 services.AddSingleton<MirrorFile>();
 CommandLineBuilder.RegisterCommand<ModlistReport>(ModlistReport.Definition, c => ((ModlistReport)c).Run);
 services.AddSingleton<ModlistReport>();
-CommandLineBuilder.RegisterCommand<SteamDownloadFile>(SteamDownloadFile.Definition, c => ((SteamDownloadFile)c).Run);
-services.AddSingleton<SteamDownloadFile>();
-CommandLineBuilder.RegisterCommand<SteamDumpAppInfo>(SteamDumpAppInfo.Definition, c => ((SteamDumpAppInfo)c).Run);
-services.AddSingleton<SteamDumpAppInfo>();
-CommandLineBuilder.RegisterCommand<SteamLogin>(SteamLogin.Definition, c => ((SteamLogin)c).Run);
-services.AddSingleton<SteamLogin>();
 CommandLineBuilder.RegisterCommand<UploadToNexus>(UploadToNexus.Definition, c => ((UploadToNexus)c).Run);
 services.AddSingleton<UploadToNexus>();
 CommandLineBuilder.RegisterCommand<ValidateLists>(ValidateLists.Definition, c => ((ValidateLists)c).Run);

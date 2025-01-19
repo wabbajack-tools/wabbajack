@@ -26,7 +26,6 @@ using Wabbajack.Networking.Discord;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi;
-using Wabbajack.Networking.Steam;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -159,8 +158,6 @@ public static class ServiceExtensions
         service.AddSingleton<HttpClient>();
         service.AddResumableHttpDownloader();
 
-        service.AddSteam();
-
         service.AddSingleton<Client>();
         service.AddSingleton<WriteOnlyClient>();
         service.AddBethesdaNet();
@@ -176,10 +173,6 @@ public static class ServiceExtensions
         service
             .AddAllSingleton<ITokenProvider<VectorPlexusLoginState>, EncryptedJsonTokenProvider<VectorPlexusLoginState>,
                 VectorPlexusTokenProvider>();
-
-        service
-            .AddAllSingleton<ITokenProvider<SteamLoginState>, EncryptedJsonTokenProvider<SteamLoginState>,
-                SteamTokenProvider>();
 
         service.AddAllSingleton<ITokenProvider<WabbajackApiState>, WabbajackApiTokenProvider>();
 

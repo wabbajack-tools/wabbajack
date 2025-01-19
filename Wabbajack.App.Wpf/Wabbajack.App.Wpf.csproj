@@ -91,7 +91,7 @@
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
     <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
-    <PackageReference Include="FluentIcons.Wpf" Version="1.1.266" />
+    <PackageReference Include="FluentIcons.Wpf" Version="1.1.271" />
     <PackageReference Include="Fody" Version="6.9.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -105,9 +105,9 @@
     <PackageReference Include="MahApps.Metro" Version="3.0.0-alpha0476" />
     <PackageReference Include="MathConverter" Version="2.2.1" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLog.Extensions.Logging" Version="5.3.15" />
