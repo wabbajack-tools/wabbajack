@@ -148,7 +148,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      .Subscribe(x =>
                      {
                          DownloadLocationPicker.Watermark = x;
-                         if (string.IsNullOrEmpty(ViewModel?.Installer?.Location?.TargetPath.ToString()))
+                         if (string.IsNullOrEmpty(ViewModel?.Installer?.DownloadLocation?.TargetPath.ToString()))
                              ViewModel.Installer.DownloadLocation.TargetPath = (AbsolutePath)x;
                      })
                     .DisposeWith(disposables);
