@@ -76,7 +76,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             this.BindCommand(ViewModel, vm => vm.OpenLogFolderCommand, v => v.OpenLogFolderButton)
                 .DisposeWith(disposables);
 
-
             this.WhenAnyValue(x => x.ReadmeToggleButton.IsChecked)
                 .Select(x => x ?? false ? Visibility.Visible : Visibility.Hidden)
                 .BindToStrict(this, x => x.OpenReadmeButton.Visibility)

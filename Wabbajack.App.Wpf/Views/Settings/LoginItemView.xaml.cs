@@ -21,9 +21,11 @@ public partial class LoginItemView : IViewFor<LoginTargetVM>
             this.BindCommand(ViewModel, vm => vm.Login.TriggerLogin, view => view.LoginButton)
                 .DisposeWith(disposable);
             
+            /*
             this.BindCommand(ViewModel, vm => vm.Login.ClearLogin, view => view.LogoutButton)
                 .DisposeWith(disposable);
 
+            */
         });
     }
 }

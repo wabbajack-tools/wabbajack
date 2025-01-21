@@ -1,6 +1,7 @@
 using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -48,8 +49,7 @@ public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
             await ClearLoginToken();
         }, this.WhenAnyValue(v => v.HaveLogin));
 
-        Icon = BitmapFrame.Create(
-            typeof(NexusLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.nexus.png")!);
+        Icon = (DrawingImage)Application.Current.Resources["NexusLogo"];
         
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
         {

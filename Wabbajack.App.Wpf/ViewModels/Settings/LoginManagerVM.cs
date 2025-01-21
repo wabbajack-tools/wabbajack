@@ -5,7 +5,6 @@ using Wabbajack.LoginManagers;
 
 namespace Wabbajack;
 
-
 public class LoginManagerVM : BackNavigatingVM
 {
     public LoginTargetVM[] Logins { get; }

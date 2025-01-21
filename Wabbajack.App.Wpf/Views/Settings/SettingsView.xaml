@@ -20,23 +20,8 @@
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="47" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <local:TopProgressView Grid.Row="0" Grid.RowSpan="2"
-            Title="Settings"
-            ShadowMargin="False" />
-        <Button Grid.Row="0"
-            x:Name="BackButton"
-            Width="30"
-            Height="30"
-            Margin="7,5,0,0"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Style="{StaticResource IconCircleButtonStyle}"
-            ToolTip="Back to main menu">
-            <!--<iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />-->
-        </Button>
         <ScrollViewer Grid.Row="1"
             Focusable="False"
             VerticalScrollBarVisibility="Auto">
