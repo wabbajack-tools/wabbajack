@@ -1,5 +1,7 @@
 ### Changelog
 
+#### Version -
+* Compilation failures are now logged as an ERR type instead of INFO. Thanks to Thamous ([@AlexDickerson](https://github.com/AlexDickerson))
 
 #### Version - 3.7.5.2 - 1/12/2025 
 * Fix for Wabbajack not fully utilizing saturating network speed because a download library added for resumable downloads was poorly optimized. Thanks to Thamous ([@AlexDickerson](https://github.com/AlexDickerson)).
