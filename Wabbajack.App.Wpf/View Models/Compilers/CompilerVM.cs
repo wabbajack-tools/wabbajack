@@ -381,7 +381,7 @@ namespace Wabbajack
                         StatusProgress = Percent.Zero;
 
                         State = CompilerState.Errored;
-                        _logger.LogInformation(ex, "Failed Compilation : {Message}", ex.Message);
+                        _logger.LogError(ex, "Failed Compilation : {Message}", ex.Message);
                         return Disposable.Empty;
                     });
                 }
