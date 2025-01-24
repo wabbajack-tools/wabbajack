@@ -231,7 +231,6 @@ public class ModListGalleryVM : BackNavigatingVM
                                                  .ThenByDescending(m => m.Metadata.Title.Contains(s ?? "", StringComparison.InvariantCultureIgnoreCase))
                                                  .ThenByDescending(m => !m.IsBroken));
             _modLists.Connect()
-                .ObserveOn(RxApp.MainThreadScheduler)
                 .Filter(searchTextPredicates)
                 .Filter(onlyInstalledGamesFilter)
                 .Filter(includeUnofficialFilter)
@@ -241,9 +240,7 @@ public class ModListGalleryVM : BackNavigatingVM
                 .Filter(maxModlistSizeFilter)
                 .Filter(includedTagsFilter)
                 .Filter(includedModsFilter)
-                .Sort(searchSorter)
-                .TreatMovesAsRemoveAdd()
-                .Bind(out _filteredModLists)
+                .SortAndBind(out _filteredModLists, searchSorter)
                 .Subscribe(_ =>
                 {
                     if (!_filteringOnGame)
