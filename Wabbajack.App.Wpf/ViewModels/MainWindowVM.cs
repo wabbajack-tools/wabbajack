@@ -273,7 +273,7 @@ public class MainWindowVM : ViewModel
         ActiveFloatingPane = browserWindow.ViewModel = msg.ViewModel;
         browserWindow.DataContext = ActiveFloatingPane;
         RxApp.MainThreadScheduler.Schedule(() => browserWindow.ViewModel.Activator.Activate());
-        ((BrowserWindowViewModel)ActiveFloatingPane).Closed += (_, _) => ActiveFloatingPane.Activator.Deactivate();
+        if(ActiveFloatingPane != null) ((BrowserWindowViewModel)ActiveFloatingPane).Closed += (_, _) => ActiveFloatingPane?.Activator.Deactivate();
     }
 
     private void HandleNavigateTo(ScreenType s)

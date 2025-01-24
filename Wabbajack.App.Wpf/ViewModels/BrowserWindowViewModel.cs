@@ -52,6 +52,7 @@ public abstract class BrowserWindowViewModel : ViewModel
         {
             foreach(var delegateMethod in Closed.GetInvocationList())
             {
+                delegateMethod.DynamicInvoke(this, null);
                 Closed -= delegateMethod as EventHandler;
             }
         }

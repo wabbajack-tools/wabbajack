@@ -53,7 +53,7 @@ public partial class MainWindow : MetroWindow
             {
                 // Don't do any special logging side effects
                 _logger.LogError((Exception)e.ExceptionObject, "Uncaught error");
-                Environment.Exit(-1);
+                throw (Exception)e.ExceptionObject;
             };
 
             Closed += (s, e) =>
