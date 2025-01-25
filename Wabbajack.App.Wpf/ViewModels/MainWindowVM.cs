@@ -26,6 +26,8 @@ using Wabbajack.Paths.IO;
 using Wabbajack.UserIntervention;
 using Wabbajack.ViewModels;
 using System.Reactive.Concurrency;
+using Wabbajack.Util;
+using System.IO;
 
 namespace Wabbajack;
 
@@ -63,6 +65,7 @@ public class MainWindowVM : ViewModel
     private readonly Client _wjClient;
     private readonly ILogger<MainWindowVM> _logger;
     private readonly ResourceMonitor _resourceMonitor;
+    private readonly SystemParametersConstructor _systemParams;
 
     private List<ViewModel> PreviousPanes = new();
     private readonly IServiceProvider _serviceProvider;
@@ -90,12 +93,13 @@ public class MainWindowVM : ViewModel
 
     public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
         IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-        InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM)
+        InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM, SystemParametersConstructor systemParams)
     {
         _logger = logger;
         _wjClient = wjClient;
         _resourceMonitor = resourceMonitor;
         _serviceProvider = serviceProvider;
+        _systemParams = systemParams;
         ConverterRegistration.Register();
         InstallerVM = installerVM;
         CompilerHomeVM = compilerHomeVM;
@@ -175,18 +179,56 @@ public class MainWindowVM : ViewModel
             var assemblyLocation = assembly.Location;
             var processLocation = Process.GetCurrentProcess().MainModule?.FileName ?? throw new Exception("Process location is unavailable!");
 
-            _logger.LogInformation("Assembly Location: {AssemblyLocation}", assemblyLocation);
-            _logger.LogInformation("Process Location: {ProcessLocation}", processLocation);
-
             var fvi = FileVersionInfo.GetVersionInfo(string.IsNullOrWhiteSpace(assemblyLocation) ? processLocation : assemblyLocation);
             Consts.CurrentMinimumWabbajackVersion = Version.Parse(fvi.FileVersion);
+
+            _logger.LogInformation("Wabbajack information:");
+            _logger.LogInformation("    Version: {FileVersion}", fvi.FileVersion);
+            _logger.LogInformation("    Build: {Sha}", ThisAssembly.Git.Sha);
+            _logger.LogInformation("    Entry point: {EntryPoint}", KnownFolders.EntryPoint);
+            _logger.LogInformation("    Assembly Location: {AssemblyLocation}", assemblyLocation);
+            _logger.LogInformation("    Process Location: {ProcessLocation}", processLocation);
+
             WindowTitle = Consts.AppName;
-            _logger.LogInformation("Wabbajack Version: {FileVersion}", fvi.FileVersion);
+
+            _logger.LogInformation("General information:");
+            _logger.LogInformation("    Windows version: {Version}", Environment.OSVersion.VersionString);
+
+            var p = _systemParams.Create();
+
+            _logger.LogInformation("System information: ");
+            _logger.LogInformation("    GPU: {GpuName} ({VRAM})", p.GpuName, p.VideoMemorySize.ToFileSizeString());
+            _logger.LogInformation("    RAM: {MemorySize}", p.SystemMemorySize.ToFileSizeString());
+            _logger.LogInformation("    Primary display resolution: {ScreenWidth}x{ScreenHeight}", p.ScreenWidth, p.ScreenHeight);
+            _logger.LogInformation("    Pagefile: {PageSize}", p.SystemPageSize.ToFileSizeString());
+            _logger.LogInformation("    VideoMemorySizeMb (ENB): {EnbLEVRAMSize}", p.EnbLEVRAMSize.ToString());
+
+            try
+            {
+                _logger.LogInformation("System partitions: ");
+                var drives = DriveHelper.Drives;
+                var partitions = DriveHelper.Partitions;
+                foreach (var drive in drives)
+                {
+                    if (!drive.IsReady || drive.DriveType != DriveType.Fixed) continue;
+                    var driveType = partitions[drive.RootDirectory.Name[0]].MediaType.ToString();
+                    var rootDir = drive.RootDirectory.ToString();
+                    var freeSpace = drive.AvailableFreeSpace.ToFileSizeString();
+                    _logger.LogInformation("    {RootDir} ({DriveType}): {FreeSpace} free", rootDir, driveType, freeSpace);
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("Failed to retrieve drive information. Exception: {ex}", ex.ToString());
+            }
+
+            if (p.SystemPageSize == 0)
+                _logger.LogWarning("Pagefile is disabled! This will cause issues such as crashing with Wabbajack and other applications!");
+
 
             Task.Run(() => _wjClient.SendMetric("started_wabbajack", fvi.FileVersion)).FireAndForget();
-            Task.Run(() => _wjClient.SendMetric("started_sha", ThisAssembly.Git.Sha));
+            Task.Run(() => _wjClient.SendMetric("started_sha", ThisAssembly.Git.Sha)).FireAndForget();
 
-            // setup file association
             try
             {
                 var applicationRegistrationService = _serviceProvider.GetRequiredService<IApplicationRegistrationService>();

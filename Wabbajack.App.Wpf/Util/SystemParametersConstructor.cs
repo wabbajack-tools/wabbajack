@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Management;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using PInvoke;
@@ -109,16 +110,42 @@ namespace Wabbajack.Util
             }
             
             var memory = GetMemoryStatus();
+            var gpuName = GetGPUName();
             return new SystemParameters
             {
                 ScreenWidth = width,
                 ScreenHeight = height,
                 VideoMemorySize = (long)dxgiMemory,
                 SystemMemorySize = (long)memory.ullTotalPhys,
-                SystemPageSize = (long)memory.ullTotalPageFile - (long)memory.ullTotalPhys
+                SystemPageSize = (long)memory.ullTotalPageFile - (long)memory.ullTotalPhys,
+                GpuName = gpuName
             };
         }
-        
+
+        private string GetGPUName()
+        {
+            string gpuName = "";
+            try
+            {
+                ManagementObjectSearcher videoControllers = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
+
+                uint gpuRefreshRate = 0;
+
+                foreach (ManagementObject obj in videoControllers.Get())
+                {
+                    var currentRefreshRate = (uint)obj["CurrentRefreshRate"];
+                    if (currentRefreshRate > gpuRefreshRate)
+                        gpuName = obj["Description"].ToString();
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("Failed to get GPU information: {ex}", ex.ToString());
+            }
+
+            return gpuName;
+        }
+
         [return: MarshalAs(UnmanagedType.Bool)]
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         static extern bool GlobalMemoryStatusEx([In, Out] MEMORYSTATUSEX lpBuffer);

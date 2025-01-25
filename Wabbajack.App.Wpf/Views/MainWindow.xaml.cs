@@ -34,16 +34,14 @@ public partial class MainWindow : MetroWindow
 {
     private MainWindowVM _mwvm;
     private readonly ILogger<MainWindow> _logger;
-    private readonly SystemParametersConstructor _systemParams;
     private readonly Stopwatch _mousePressedTimer;
 
-    public MainWindow(ILogger<MainWindow> logger, SystemParametersConstructor systemParams, LauncherUpdater updater, MainWindowVM vm)
+    public MainWindow(ILogger<MainWindow> logger, LauncherUpdater updater, MainWindowVM vm)
     {
         InitializeComponent();
         _mwvm = vm;
         DataContext = vm;
         _logger = logger;
-        _systemParams = systemParams;
         _mousePressedTimer = new Stopwatch();
 
         try
@@ -86,38 +84,6 @@ public partial class MainWindow : MetroWindow
                 
                 Application.Current.Shutdown();
             };
-
-            _logger.LogInformation("Wabbajack Build - {Sha}",ThisAssembly.Git.Sha);
-            _logger.LogInformation("Running in {EntryPoint}", KnownFolders.EntryPoint);
-
-            var p = _systemParams.Create();
-
-            _logger.LogInformation("Detected Windows Version: {Version}", Environment.OSVersion.VersionString);
-
-            _logger.LogInformation(
-                "System settings - ({MemorySize} RAM) ({PageSize} Page), Display: {ScreenWidth} x {ScreenHeight} ({Vram} VRAM - VideoMemorySizeMb={ENBVRam})",
-                p.SystemMemorySize.ToFileSizeString(), p.SystemPageSize.ToFileSizeString(), p.ScreenWidth, p.ScreenHeight, p.VideoMemorySize.ToFileSizeString(), p.EnbLEVRAMSize);
-
-            try
-            {
-                var drives = DriveHelper.Drives;
-                var partitions = DriveHelper.Partitions;
-                foreach (var drive in drives)
-                {
-                    if (!drive.IsReady || drive.DriveType != DriveType.Fixed) continue;
-                    var driveType = partitions[drive.RootDirectory.Name[0]].MediaType.ToString();
-                    var rootDir = drive.RootDirectory.ToString();
-                    var freeSpace = drive.AvailableFreeSpace.ToFileSizeString();
-                    _logger.LogInformation("Detected drive {RootDirectory} - Type: {DriveType}, Free Space: {FreeSpace}", rootDir, driveType, freeSpace);
-                }
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError("Failed to retrieve drive information. Exception {ex}", ex.ToString());
-            }
-
-            if (p.SystemPageSize == 0)
-                _logger.LogInformation("Pagefile is disabled! This will cause issues such as crashing with Wabbajack and other applications!");
 
             var _ = updater.Run();
 

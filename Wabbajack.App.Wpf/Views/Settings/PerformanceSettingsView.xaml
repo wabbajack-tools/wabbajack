@@ -18,7 +18,7 @@
         Background="{StaticResource BackgroundBrush}"
         BorderBrush="{StaticResource ButtonNormalBorder}"
         BorderThickness="1">
-        <Grid Margin="15,10">
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="10" />
