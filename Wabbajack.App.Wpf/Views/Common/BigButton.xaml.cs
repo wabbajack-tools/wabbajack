@@ -20,7 +20,7 @@ public partial class BigButton : UserControlRx<ViewModel>
         set => SetValue(TitleProperty, value);
     }
     public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(nameof(Title), typeof(string), typeof(BigButton),
-         new FrameworkPropertyMetadata(default(string)));
+         new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
     public string Description
     {
@@ -28,35 +28,35 @@ public partial class BigButton : UserControlRx<ViewModel>
         set => SetValue(DescriptionProperty, value);
     }
     public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(nameof(Description), typeof(string), typeof(BigButton),
-         new FrameworkPropertyMetadata(default(string)));
+         new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
     public Symbol Icon
     {
         get => (Symbol)GetValue(IconProperty);
         set => SetValue(IconProperty, value);
     }
-    public static readonly DependencyProperty IconProperty = DependencyProperty.Register(nameof(Icon), typeof(Symbol), typeof(BigButton), new FrameworkPropertyMetadata(default(Symbol)));
+    public static readonly DependencyProperty IconProperty = DependencyProperty.Register(nameof(Icon), typeof(Symbol), typeof(BigButton), new FrameworkPropertyMetadata(default(Symbol), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
     public FlowDirection Direction
     {
         get => (FlowDirection)GetValue(DirectionProperty);
         set => SetValue(DirectionProperty, value);
     }
-    public static readonly DependencyProperty DirectionProperty = DependencyProperty.Register(nameof(Direction), typeof(FlowDirection), typeof(BigButton), new PropertyMetadata(FlowDirection.LeftToRight));
+    public static readonly DependencyProperty DirectionProperty = DependencyProperty.Register(nameof(Direction), typeof(FlowDirection), typeof(BigButton), new FrameworkPropertyMetadata(FlowDirection.LeftToRight, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
     public ICommand Command
     {
         get => (ICommand)GetValue(CommandProperty);
         set => SetValue(CommandProperty, value);
     }
-    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(BigButton), new PropertyMetadata(default(ReactiveCommand)));
+    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(BigButton), new FrameworkPropertyMetadata(default(ReactiveCommand), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
     public ButtonStyle ButtonStyle
     {
         get => (ButtonStyle)GetValue(ButtonStyleProperty);
         set => SetValue(ButtonStyleProperty, value);
     }
-    public static readonly DependencyProperty ButtonStyleProperty = DependencyProperty.Register(nameof(ButtonStyle), typeof(ButtonStyle), typeof(BigButton), new PropertyMetadata(ButtonStyle.Mono));
+    public static readonly DependencyProperty ButtonStyleProperty = DependencyProperty.Register(nameof(ButtonStyle), typeof(ButtonStyle), typeof(BigButton), new FrameworkPropertyMetadata(ButtonStyle.Mono, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
     public BigButton()
     {

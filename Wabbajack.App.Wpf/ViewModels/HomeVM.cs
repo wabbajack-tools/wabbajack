@@ -42,12 +42,12 @@ public class HomeVM : ViewModel, IHasInfoVM
         ll.Succeed();
     }
 
-    public ICommand VisitModlistWizardCommand { get; }
-    public ICommand BrowseCommand { get; }
-    public ReactiveCommand<Unit, Unit> UpdateCommand { get; }
+    public ICommand VisitModlistWizardCommand { get; set; }
+    public ICommand BrowseCommand { get; set; }
+    public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
 
     [Reactive]
     public ModlistMetadata[] Modlists { get; private set; }
 
-    public ICommand InfoCommand { get; }
+    public ICommand InfoCommand { get; set; }
 }

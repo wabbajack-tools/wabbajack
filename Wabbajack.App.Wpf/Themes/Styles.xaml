@@ -4422,6 +4422,18 @@
     <Style x:Key="BigColorButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource BigButtonStyle}" >
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}"/>
+        <Style.Resources>
+            <Style TargetType="ic:SymbolIcon">
+                <Style.Setters>
+                    <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}" />
+                </Style.Setters>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button, AncestorLevel=1}, Path=IsMouseOver}" Value="True">
+                        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Style.Resources>
     </Style>
 
     <Style x:Key="TagsComboBox" TargetType="{x:Type mahapps:MultiSelectionComboBox}" BasedOn="{StaticResource MahApps.Styles.MultiSelectionComboBox}">

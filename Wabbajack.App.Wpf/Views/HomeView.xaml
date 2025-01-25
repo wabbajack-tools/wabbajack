@@ -133,6 +133,6 @@
             </Grid.ColumnDefinitions>
             <Border Grid.Column="1" Background="{StaticResource DarkSecondaryBrush}" BorderBrush="{StaticResource DarkSecondaryBrush}" BorderThickness="2" CornerRadius="4" />
         </Grid>
-        <local:BigButton x:Name="GetStartedButton" ButtonStyle="Color" Grid.Row="4" Grid.Column="0" Margin="0, 16, 16, 16" MinHeight="108" Title="Get Started" Description="Browse the gallery and find yourself a modlist to play" Icon="ImageTable" Command="{Binding BrowseCommand}"/>
+        <local:BigButton x:Name="GetStartedButton" ButtonStyle="Color" Grid.Row="4" Grid.Column="0" Margin="0, 16, 16, 16" MinHeight="108" Title="Get Started" Description="Browse the gallery and find yourself a modlist to play" Icon="ChevronRight" Command="{Binding BrowseCommand}"/>
     </Grid>
 </rxui:ReactiveUserControl>
