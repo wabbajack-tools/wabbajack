@@ -52,6 +52,13 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject
     }
     public static readonly DependencyProperty IconProperty = DependencyProperty.Register(nameof(Icon), typeof(Symbol), typeof(WJButton), new FrameworkPropertyMetadata(default(Symbol), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
+    public IconVariant? IconVariant
+    {
+        get => (IconVariant?)GetValue(IconVariantProperty);
+        set => SetValue(IconVariantProperty, value);
+    }
+    public static readonly DependencyProperty IconVariantProperty = DependencyProperty.Register(nameof(IconVariant), typeof(IconVariant?), typeof(WJButton), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
+
     public double IconSize
     {
         get => (double)GetValue(IconSizeProperty);
@@ -95,6 +102,17 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject
 
             this.WhenAnyValue(x => x.Icon)
                 .BindToStrict(this, x => x.ButtonSymbolIcon.Symbol)
+                .DisposeWith(dispose);
+
+            this.WhenAnyValue(x => x.IconVariant)
+                .ObserveOnGuiThread()
+                .Subscribe((variant) =>
+                {
+                    if(variant != null)
+                    {
+                        ButtonSymbolIcon.IconVariant = (IconVariant)variant;
+                    }
+                })
                 .DisposeWith(dispose);
 
             this.WhenAnyValue(x => x.Direction)

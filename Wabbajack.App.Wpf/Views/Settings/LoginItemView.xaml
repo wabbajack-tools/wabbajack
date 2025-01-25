@@ -20,8 +20,7 @@
 
         <Image Grid.Column="0" x:Name="Favicon" Height="24" Margin="0, 0, 8, 0" VerticalAlignment="Center" />
         <TextBlock Grid.Column="1" x:Name="SiteNameText" VerticalAlignment="Center" />
-        <local:WJButton Grid.Column="2" x:Name="LoginButton" Text="Login" Icon="DesktopSignal" />
-        <local:WJButton Grid.Column="2" x:Name="LogoutButton" ButtonStyle="Color" Text="Logged in" Icon="SignOut" Visibility="Collapsed" />
+        <local:WJButton Grid.Column="2" x:Name="LoginButton" Text="Login" Icon="PersonArrowRight" />
         <TextBlock Grid.Column="3" x:Name="MetaText" />
 
     </Grid>

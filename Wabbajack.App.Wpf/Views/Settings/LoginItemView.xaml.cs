@@ -32,11 +32,15 @@ public partial class LoginItemView : IViewFor<LoginTargetVM>
                          if (loggedIn)
                          {
                              LoginButton.Text = "Logged in";
+                             LoginButton.Icon = FluentIcons.Common.Symbol.PersonAvailable;
+                             LoginButton.IconVariant = FluentIcons.Common.IconVariant.Filled;
                              LoginButton.ButtonStyle = ButtonStyle.Color;
                          }
                          else
                          {
                              LoginButton.Text = "Log in";
+                             LoginButton.Icon = FluentIcons.Common.Symbol.PersonArrowRight;
+                             LoginButton.IconVariant = FluentIcons.Common.IconVariant.Regular;
                              LoginButton.ButtonStyle = ButtonStyle.Mono;
                          }
                      })
@@ -49,7 +53,8 @@ public partial class LoginItemView : IViewFor<LoginTargetVM>
                     if (ViewModel.Login.LoggedIn)
                     {
                         LoginButton.Text = "Log out";
-                        LoginButton.Icon = FluentIcons.Common.Symbol.SignOut;
+                        LoginButton.Icon = FluentIcons.Common.Symbol.PersonArrowLeft;
+                        LoginButton.IconVariant = FluentIcons.Common.IconVariant.Regular;
                     }
                 })
                 .DisposeWith(disposable);
@@ -61,6 +66,8 @@ public partial class LoginItemView : IViewFor<LoginTargetVM>
                     if (ViewModel.Login.LoggedIn)
                     {
                         LoginButton.Text = "Logged in";
+                        LoginButton.Icon = FluentIcons.Common.Symbol.PersonAvailable;
+                        LoginButton.IconVariant = FluentIcons.Common.IconVariant.Filled;
                     }
                 })
                 .DisposeWith(disposable);
