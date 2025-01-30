@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version -
+#### Version - 3.7.5.3 - 1/29/2025
 * Compilation failures are now logged as an ERR type instead of INFO. Thanks to Thamous ([@AlexDickerson](https://github.com/AlexDickerson))
 * Fix for the Wabbajack CDN not downloading parts correctly anymore after it switched to chunked HTTP responses. Suspected change by Cloudflare.
 
