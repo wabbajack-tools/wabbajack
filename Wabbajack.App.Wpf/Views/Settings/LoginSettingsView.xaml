@@ -16,18 +16,18 @@
         BorderBrush="{StaticResource ButtonNormalBorder}"
         BorderThickness="0"
         CornerRadius="8">
-        <Grid Margin="12">
+        <Grid Margin="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <TextBlock
-                Margin="0, 0, 16, 0"
+                Margin="0, 0, 0, 8"
                 FontFamily="{StaticResource PrimaryFont}"
                 FontSize="20"
                 FontWeight="Bold"
                 Text="Logins" />
-            <ItemsControl Grid.Row="1" x:Name="DownloadersList" >
+            <ItemsControl Grid.Row="1" x:Name="DownloadersList">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <local:LoginItemView ViewModel="{Binding}" />

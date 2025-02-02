@@ -12,12 +12,11 @@
     mc:Ignorable="d">
     <Border
         x:Name="PerformanceView"
-        MinWidth="280"
-        Margin="5"
         Background="{StaticResource BackgroundBrush}"
         BorderBrush="{StaticResource ButtonNormalBorder}"
-        BorderThickness="1">
-        <Grid Margin="15,10">
+        BorderThickness="0"
+        CornerRadius="8">
+        <Grid Margin="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="10" />

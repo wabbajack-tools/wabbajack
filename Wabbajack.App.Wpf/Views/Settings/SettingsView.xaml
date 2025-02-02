@@ -26,8 +26,8 @@
             Focusable="False"
             VerticalScrollBarVisibility="Auto">
             <WrapPanel>
-                <local:LoginSettingsView x:Name="LoginView" />
-                <local:PerformanceSettingsView x:Name="PerformanceView" />
+                <local:LoginSettingsView x:Name="LoginView" Margin="0, 0, 16, 0" />
+                <local:PerformanceSettingsView x:Name="PerformanceView" Margin="0, 0, 16, 0" />
                 <local:MiscSettingsView x:Name="MiscGalleryView" />
                 <local:AuthorFilesView x:Name="AuthorFilesView" />
             </WrapPanel>

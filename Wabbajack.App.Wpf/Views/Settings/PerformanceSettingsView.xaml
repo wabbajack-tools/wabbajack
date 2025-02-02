@@ -9,34 +9,50 @@
     xmlns:xwpf="http://schemas.xceed.com/wpf/xaml/toolkit"
     d:DesignHeight="450"
     d:DesignWidth="800"
-    x:TypeArguments="local:PerformanceSettings"
+    x:TypeArguments="local:PerformanceSettingsVM"
     mc:Ignorable="d">
     <Border
         x:Name="PerformanceView"
-        MinWidth="280"
-        Margin="5"
         Background="{StaticResource BackgroundBrush}"
         BorderBrush="{StaticResource ButtonNormalBorder}"
-        BorderThickness="1">
-        <Grid>
+        BorderThickness="0"
+        CornerRadius="8">
+        <Grid MinWidth="280" Margin="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="10" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="25" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="25" />
-                <RowDefinition Height="25" />
-                <RowDefinition Height="25" />
-                <RowDefinition Height="25" />
-                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="5" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Row="0" Margin="0, 0, 0, 8">
+                <TextBlock Text="Performance" FontSize="20" FontWeight="Bold" />
+            </StackPanel>
+            <TextBlock Grid.Row="1" FontWeight="Normal" Margin="0, 0, 0, 8" LineHeight="18" TextWrapping="Wrap">
+                <Run Text="Specify the maximum number of asynchronous tasks per" /><LineBreak />
+                <Run Text="resource type. Recommended to leave at default settings" /><LineBreak />
+                <Run Text="for maximum performance (" /><Run x:Name="MaxThreadsText" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" /><Run Text=" threads)."/>
+            </TextBlock>
+            <ScrollViewer Grid.Row="2" Background="Transparent" VerticalScrollBarVisibility="Auto">
+                <ItemsControl x:Name="SettingsControl" ScrollViewer.VerticalScrollBarVisibility="Auto" >
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0, 0, 0, 8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="{Binding HumanName}" FontWeight="Normal" VerticalAlignment="Center" />
+                                <TextBox Grid.Column="2" Text="{Binding MaxTasks, Mode=TwoWay}" PreviewTextInput="TextBox_PreviewTextInput" TextAlignment="Center" Width="32" Height="32" />
+
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+        <!--
+        <Grid Margin="12">
             <TextBlock
                 Grid.Column="0"
                 Grid.ColumnSpan="3"
@@ -48,5 +64,6 @@
                 <TextBlock FontSize="13" FontWeight="Bold">Edit Resource Usage Settings and Close Wabbajack</TextBlock>
             </Button>
         </Grid>
+        -->
     </Border>
 </rxui:ReactiveUserControl>

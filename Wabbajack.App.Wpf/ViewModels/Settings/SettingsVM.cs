@@ -27,7 +27,7 @@ public class SettingsVM : BackNavigatingVM
     private readonly SettingsManager _settingsManager;
 
     public LoginManagerVM Login { get; }
-    public PerformanceSettings Performance { get; }
+    public PerformanceSettingsVM Performance { get; }
     public AuthorFilesVM AuthorFile { get; }
 
     public ICommand OpenTerminalCommand { get; }
@@ -43,10 +43,11 @@ public class SettingsVM : BackNavigatingVM
         AuthorFile = new AuthorFilesVM(provider.GetRequiredService<ILogger<AuthorFilesVM>>()!,
             provider.GetRequiredService<WabbajackApiTokenProvider>()!, provider.GetRequiredService<Client>()!, this);
         OpenTerminalCommand = ReactiveCommand.CreateFromTask(OpenTerminal);
-        Performance = new PerformanceSettings(
+        Performance = new PerformanceSettingsVM(
             _settings,
             provider.GetRequiredService<IResource<DownloadDispatcher>>(),
-            provider.GetRequiredService<SystemParametersConstructor>());
+            provider.GetRequiredService<SystemParametersConstructor>(),
+            provider.GetRequiredService<ResourceSettingsManager>());
         CloseCommand = ReactiveCommand.Create(() =>
         {
             NavigateBack.Send();

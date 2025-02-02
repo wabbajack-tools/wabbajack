@@ -8,7 +8,7 @@ namespace Wabbajack.Services.OSIntegrated;
 public class ResourceSettingsManager
 {
     private readonly SettingsManager _manager;
-    private Dictionary<string,ResourceSetting>? _settings;
+    private Dictionary<string,ResourceSetting>? _settings = null;
 
     public ResourceSettingsManager(SettingsManager manager)
     {
@@ -17,7 +17,7 @@ public class ResourceSettingsManager
 
     private SemaphoreSlim _lock = new(1);
 
-    public async Task<ResourceSetting> GetSettings(string name)
+    public async Task<ResourceSetting> GetSetting(string name)
     {
 
         await _lock.WaitAsync();
@@ -43,7 +43,12 @@ public class ResourceSettingsManager
         {
             _lock.Release();
         }
+    }
 
+    public async Task<Dictionary<string, ResourceSetting>> GetSettings()
+    {
+        _settings ??= await _manager.Load<Dictionary<string, ResourceSetting>>("resource_settings");
+        return _settings;
     }
 
     public class ResourceSetting

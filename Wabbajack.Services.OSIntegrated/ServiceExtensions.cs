@@ -104,7 +104,7 @@ public static class ServiceExtensions
         {
             return async () =>
             {
-                var s = await provider.GetService<ResourceSettingsManager>()!.GetSettings(name);
+                var s = await provider.GetService<ResourceSettingsManager>()!.GetSetting(name);
                 return ((int) s.MaxTasks, s.MaxThroughput);
             };
         }

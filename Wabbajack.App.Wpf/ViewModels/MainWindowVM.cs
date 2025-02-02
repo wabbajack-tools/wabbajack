@@ -28,6 +28,7 @@ using Wabbajack.ViewModels;
 using System.Reactive.Concurrency;
 using Wabbajack.Util;
 using System.IO;
+using System.Net.Http;
 
 namespace Wabbajack;
 
@@ -93,7 +94,7 @@ public class MainWindowVM : ViewModel
 
     public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
         IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-        InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM, SystemParametersConstructor systemParams)
+        InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM, SystemParametersConstructor systemParams, HttpClient httpClient)
     {
         _logger = logger;
         _wjClient = wjClient;
@@ -220,6 +221,20 @@ public class MainWindowVM : ViewModel
             catch(Exception ex)
             {
                 _logger.LogError("Failed to retrieve drive information. Exception: {ex}", ex.ToString());
+            }
+
+            try
+            {
+                Task.Run(async () =>
+                {
+                    var response = await httpClient.GetAsync("https://www.howsmyssl.com/a/check");
+                    var content = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation("TLS Information: {content}", content);
+                });
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("An error occurred while retrieving TLS information: {ex}", ex.ToString());
             }
 
             if (p.SystemPageSize == 0)
