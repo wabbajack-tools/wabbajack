@@ -26,21 +26,21 @@ public class Mo2ModlistInstallationSettings
     public bool AutomaticallyOverrideExistingInstall { get; set; }
 }
 
+public class PerformanceSettingVM : ViewModel
+{
+    [Reactive] public string HumanName { get; set; }
+    [Reactive] public long MaxTasks { get; set; }
+    [Reactive] public long MaxThroughput { get; set; }
+}
+
 public class PerformanceSettingsVM : ViewModel
 {
-    public class PerformanceSetting
-    {
-        [Reactive] public string HumanName { get; set; }
-        [Reactive] public long MaxTasks { get; set; }
-        [Reactive] public long MaxThroughput { get; set; }
-    }
 
     private readonly Configuration.MainSettings _mainSettings;
     private readonly ResourceSettingsManager _settingsManager;
 
-    private readonly ReadOnlyObservableCollection<PerformanceSetting> _settings;
-    public ReadOnlyObservableCollection<PerformanceSetting> Settings => _settings;
-    public ObservableCollectionExtended<PerformanceSetting> SourceSettings { get; private set; }
+    public SourceList<PerformanceSettingVM> _settings = new();
+    public IObservableCollection<PerformanceSettingVM> Settings { get; } = new ObservableCollectionExtended<PerformanceSettingVM>();
     [Reactive] public int MaxThreads { get; set; }
 
     public PerformanceSettingsVM(Configuration.MainSettings mainSettings, IResource<DownloadDispatcher> downloadResources, SystemParametersConstructor systemParams, ResourceSettingsManager manager)
@@ -53,17 +53,39 @@ public class PerformanceSettingsVM : ViewModel
 
         this.WhenActivated(async disposables =>
         {
-            SourceSettings = new ObservableCollectionExtended<PerformanceSetting>((await _settingsManager.GetSettings()).Select((kv) =>
-            {
-                return new PerformanceSetting()
-                {
-                    HumanName = kv.Key,
-                    MaxTasks = kv.Value.MaxTasks,
-                    MaxThroughput = kv.Value.MaxThroughput
-                };
-            }));
+           var settings = (await _settingsManager.GetSettings()).Select((kv) =>
+           {
+               return new PerformanceSettingVM()
+               {
+                   HumanName = kv.Key,
+                   MaxTasks = kv.Value.MaxTasks,
+                   MaxThroughput = kv.Value.MaxThroughput
+               };
+           });
 
-            Disposable.Empty.DisposeWith(disposables);
+            _settings.Edit(s =>
+            {
+                s.Clear();
+                s.AddRange(settings);
+            });
+
+            _settings.Connect()
+            .Bind(Settings)
+            .WhenAnyPropertyChanged(nameof(PerformanceSettingVM.MaxTasks))
+            .Subscribe(s =>
+            {
+                Dictionary<string, ResourceSettingsManager.ResourceSetting> settingsDictionary = new();
+                foreach (var setting in Settings)
+                {
+                    settingsDictionary[setting.HumanName] = new ResourceSettingsManager.ResourceSetting()
+                    {
+                        MaxTasks = setting.MaxTasks,
+                        MaxThroughput = setting.MaxThroughput
+                    };
+                }
+                Task.Run(async () => await _settingsManager.SaveSettings(settingsDictionary));
+            })
+            .DisposeWith(disposables);
         });
     }
 

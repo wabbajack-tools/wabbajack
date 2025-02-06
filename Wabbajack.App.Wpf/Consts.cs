@@ -15,6 +15,7 @@ public static class Consts
     public static Uri WabbajackDiscordUri => new("https://discord.gg/wabbajack");
     public static Uri WabbajackPatreonUri => new("https://www.patreon.com/user?u=11907933");
     public static Uri WabbajackWikiUri => new("https://wiki.wabbajack.org");
+    public static Uri TlsInfoUri => new("https://www.howsmyssl.com/a/check");
     public static Version CurrentMinimumWabbajackVersion { get; set; } = Version.Parse("2.3.0.0");
     public static bool UseNetworkWorkaroundMode { get; set; } = false;
     public static AbsolutePath CefCacheLocation { get; } = KnownFolders.WabbajackAppLocal.Combine("Cef");

@@ -220,14 +220,14 @@ public class MainWindowVM : ViewModel
             }
             catch(Exception ex)
             {
-                _logger.LogError("Failed to retrieve drive information. Exception: {ex}", ex.ToString());
+                _logger.LogWarning("Failed to retrieve drive information. Exception: {ex}", ex.ToString());
             }
 
             try
             {
                 Task.Run(async () =>
                 {
-                    var response = await httpClient.GetAsync("https://www.howsmyssl.com/a/check");
+                    var response = await httpClient.GetAsync(Consts.TlsInfoUri);
                     var content = await response.Content.ReadAsStringAsync();
                     _logger.LogInformation("TLS Information: {content}", content);
                 });
