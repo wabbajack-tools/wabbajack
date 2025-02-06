@@ -223,7 +223,17 @@ public abstract class AInstaller<T>
         NextStep(Consts.StepInstalling, "Installing files", ModList.Directives.Sum(d => d.Size), x => x.ToFileSizeString());
         var grouped = ModList.Directives
             .OfType<FromArchive>()
-            .Select(a => new {VF = _vfs.Index.FileForArchiveHashPath(a.ArchiveHashPath), Directive = a})
+            .Select(a => {
+                try
+                {
+                    return new { VF = _vfs.Index.FileForArchiveHashPath(a.ArchiveHashPath), Directive = a };
+                }
+                catch(Exception)
+                {
+                    _logger.LogError("Failed to look up file {file} by hash {hash}", a.To.FileName.ToString(), a.Hash.ToString());
+                    throw;
+                }
+            })
             .GroupBy(a => a.VF)
             .ToDictionary(a => a.Key);
 
