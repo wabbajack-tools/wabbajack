@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
@@ -223,7 +224,19 @@ public abstract class AInstaller<T>
         NextStep(Consts.StepInstalling, "Installing files", ModList.Directives.Sum(d => d.Size), x => x.ToFileSizeString());
         var grouped = ModList.Directives
             .OfType<FromArchive>()
-            .Select(a => new {VF = _vfs.Index.FileForArchiveHashPath(a.ArchiveHashPath), Directive = a})
+            .Select(a => {
+                try
+                {
+                    return new { VF = _vfs.Index.FileForArchiveHashPath(a.ArchiveHashPath), Directive = a };
+                }
+                catch(Exception)
+                {
+                    _logger.LogError("Failed to look up extracted file by hash for archive hash path for archive hash path! Object: {archive}", JsonConvert.SerializeObject(a));
+                    _logger.LogError("VFS Name Lookup: {vfsIndex}", JsonConvert.SerializeObject(_vfs.Index.ByName));
+                    _logger.LogError("VFS Hash Lookup: {vfsIndex}", JsonConvert.SerializeObject(_vfs.Index.ByHash));
+                    throw;
+                }
+            })
             .GroupBy(a => a.VF)
             .ToDictionary(a => a.Key);
 
