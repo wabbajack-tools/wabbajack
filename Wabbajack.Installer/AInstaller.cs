@@ -231,7 +231,7 @@ public abstract class AInstaller<T>
                 }
                 catch(Exception)
                 {
-                    _logger.LogError("Failed to look up extracted file by hash for archive hash path for archive hash path! Object: {archive}", JsonConvert.SerializeObject(a));
+                    _logger.LogError("Failed to look up extracted file (file name: {fileName}) by hash {hash}", a.ArchiveHashPath.FileName.ToString(), a.ArchiveHashPath.Hash.ToString());
                     _logger.LogError("VFS Name Lookup: {vfsIndex}", JsonConvert.SerializeObject(_vfs.Index.ByName));
                     _logger.LogError("VFS Hash Lookup: {vfsIndex}", JsonConvert.SerializeObject(_vfs.Index.ByHash));
                     throw;
