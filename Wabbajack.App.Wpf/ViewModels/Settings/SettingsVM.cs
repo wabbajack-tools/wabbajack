@@ -13,6 +13,7 @@ using Wabbajack.Downloaders;
 using Wabbajack.LoginManagers;
 using Wabbajack.Messages;
 using Wabbajack.Networking.WabbajackClientApi;
+using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
@@ -23,6 +24,7 @@ namespace Wabbajack;
 
 public class SettingsVM : BackNavigatingVM
 {
+    private readonly ILogger<SettingsVM> _logger;
     private readonly Configuration.MainSettings _settings;
     private readonly SettingsManager _settingsManager;
 
@@ -35,6 +37,7 @@ public class SettingsVM : BackNavigatingVM
     public SettingsVM(ILogger<SettingsVM> logger, IServiceProvider provider)
         : base(logger)
     {
+        _logger = logger;
         _settings = provider.GetRequiredService<Configuration.MainSettings>();
         _settingsManager = provider.GetRequiredService<SettingsManager>();
 
@@ -63,11 +66,22 @@ public class SettingsVM : BackNavigatingVM
 
     private async Task OpenTerminal()
     {
-        var process = new ProcessStartInfo
+        try
         {
-            FileName = "cmd.exe",
-            WorkingDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location)!
-        };
-        Process.Start(process);
+            var currentPath = Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location);
+            var cliDir = Path.Combine(currentPath, "cli");
+            string workingDir = Directory.Exists(cliDir) ? cliDir : currentPath;
+            var process = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                WorkingDirectory = workingDir,
+                Arguments = $"/k \"wabbajack-cli.exe -h\"",
+            };
+            Process.Start(process);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error while launching Wabbajack CLI: {ex}", ex);
+        }
     }
 }
