@@ -28,26 +28,44 @@ public class Mo2ModlistInstallationSettings
 
 public class PerformanceSettingVM : ViewModel
 {
+    private readonly ResourceSettingsManager _manager;
     [Reactive] public string HumanName { get; set; }
     [Reactive] public long MaxTasks { get; set; }
     [Reactive] public long MaxThroughput { get; set; }
+    public PerformanceSettingVM(ResourceSettingsManager manager) {
+        _manager = manager;
+
+        this.WhenActivated(disposables =>
+        {
+            this.WhenAnyValue(x => x.MaxTasks, x => x.MaxThroughput)
+                .Throttle(TimeSpan.FromSeconds(0.5))
+                .Subscribe(async mt =>
+                {
+                    var setting = new ResourceSettingsManager.ResourceSetting()
+                    {
+                        MaxTasks = mt.Item1,
+                        MaxThroughput = mt.Item2
+                    };
+                    await manager.SetSetting(HumanName, setting);
+                })
+                .DisposeWith(disposables);
+        });
+    }
 }
 
 public class PerformanceSettingsVM : ViewModel
 {
 
-    private readonly Configuration.MainSettings _mainSettings;
     private readonly ResourceSettingsManager _settingsManager;
 
     public SourceList<PerformanceSettingVM> _settings = new();
-    public IObservableCollection<PerformanceSettingVM> Settings { get; } = new ObservableCollectionExtended<PerformanceSettingVM>();
+    public ReadOnlyObservableCollection<PerformanceSettingVM> Settings;
     [Reactive] public int MaxThreads { get; set; }
 
-    public PerformanceSettingsVM(Configuration.MainSettings mainSettings, IResource<DownloadDispatcher> downloadResources, SystemParametersConstructor systemParams, ResourceSettingsManager manager)
+    public PerformanceSettingsVM(IResource<DownloadDispatcher> downloadResources, SystemParametersConstructor systemParams, ResourceSettingsManager manager)
     {
         var p = systemParams.Create();
 
-        _mainSettings = mainSettings;
         _settingsManager = manager;
         MaxThreads = Environment.ProcessorCount;
 
@@ -55,7 +73,7 @@ public class PerformanceSettingsVM : ViewModel
         {
            var settings = (await _settingsManager.GetSettings()).Select((kv) =>
            {
-               return new PerformanceSettingVM()
+               return new PerformanceSettingVM(manager)
                {
                    HumanName = kv.Key,
                    MaxTasks = kv.Value.MaxTasks,
@@ -70,22 +88,11 @@ public class PerformanceSettingsVM : ViewModel
             });
 
             _settings.Connect()
-            .Bind(Settings)
-            .WhenAnyPropertyChanged(nameof(PerformanceSettingVM.MaxTasks))
-            .Subscribe(s =>
-            {
-                Dictionary<string, ResourceSettingsManager.ResourceSetting> settingsDictionary = new();
-                foreach (var setting in Settings)
-                {
-                    settingsDictionary[setting.HumanName] = new ResourceSettingsManager.ResourceSetting()
-                    {
-                        MaxTasks = setting.MaxTasks,
-                        MaxThroughput = setting.MaxThroughput
-                    };
-                }
-                Task.Run(async () => await _settingsManager.SaveSettings(settingsDictionary));
-            })
-            .DisposeWith(disposables);
+                     .Bind(out Settings)
+                     .Subscribe()
+                     .DisposeWith(disposables);
+
+
         });
     }
 

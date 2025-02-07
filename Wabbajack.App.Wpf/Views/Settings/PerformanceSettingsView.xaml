@@ -17,7 +17,7 @@
         BorderBrush="{StaticResource ButtonNormalBorder}"
         BorderThickness="0"
         CornerRadius="8">
-        <Grid MinWidth="280" Margin="16">
+        <Grid Width="280" Margin="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -27,25 +27,15 @@
                 <TextBlock Text="Performance" FontSize="20" FontWeight="Bold" />
             </StackPanel>
             <TextBlock Grid.Row="1" FontWeight="Normal" Margin="0, 0, 0, 8" LineHeight="18" TextWrapping="Wrap">
-                <Run Text="Specify the maximum number of asynchronous tasks per" /><LineBreak />
-                <Run Text="resource type. Recommended to leave at default settings" /><LineBreak />
+                <Run Text="Specify the maximum number of asynchronous tasks per" />
+                <Run Text="resource type. Recommended to leave at default settings" />
                 <Run Text="for maximum performance (" /><Run x:Name="MaxThreadsText" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" /><Run Text=" threads)."/>
             </TextBlock>
             <ScrollViewer Grid.Row="2" Background="Transparent" VerticalScrollBarVisibility="Auto">
                 <ItemsControl x:Name="SettingsControl" ScrollViewer.VerticalScrollBarVisibility="Auto" >
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Grid Margin="0, 0, 0, 8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-
-                                <TextBlock Text="{Binding HumanName}" FontWeight="Normal" VerticalAlignment="Center" />
-                                <TextBox Grid.Column="2" Text="{Binding MaxTasks, Mode=TwoWay}" PreviewTextInput="TextBox_PreviewTextInput" TextAlignment="Center" Width="32" Height="32" />
-
-                            </Grid>
+                            <local:PerformanceSettingView ViewModel="{Binding}" />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

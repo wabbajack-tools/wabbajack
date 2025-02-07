@@ -19,7 +19,6 @@ public class ResourceSettingsManager
 
     public async Task<ResourceSetting> GetSetting(string name)
     {
-
         await _lock.WaitAsync();
         try
         {
@@ -38,6 +37,20 @@ public class ResourceSettingsManager
 
             var setting = _settings[name];
             return setting;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+    public async Task SetSetting(string name, ResourceSetting setting)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            _settings ??= await _manager.Load<Dictionary<string, ResourceSetting>>("resource_settings");
+            _settings[name] = setting;
+            await SaveSettings(_settings);
         }
         finally
         {

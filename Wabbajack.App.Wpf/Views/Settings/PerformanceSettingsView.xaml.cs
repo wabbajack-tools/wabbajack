@@ -2,6 +2,7 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
+using DynamicData.Binding;
 using ReactiveUI;
 using Wabbajack.Paths.IO;
 
@@ -28,10 +29,5 @@ public partial class PerformanceSettingsView : ReactiveUserControl<PerformanceSe
                      .DisposeWith(disposables);
 
         });
-    }
-
-    private void TextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
-    {
-        e.Handled = !new Regex("^[0-9]*$").IsMatch(e.Text);
     }
 }

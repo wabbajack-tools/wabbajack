@@ -44,7 +44,6 @@ public class SettingsVM : BackNavigatingVM
             provider.GetRequiredService<WabbajackApiTokenProvider>()!, provider.GetRequiredService<Client>()!, this);
         OpenTerminalCommand = ReactiveCommand.CreateFromTask(OpenTerminal);
         Performance = new PerformanceSettingsVM(
-            _settings,
             provider.GetRequiredService<IResource<DownloadDispatcher>>(),
             provider.GetRequiredService<SystemParametersConstructor>(),
             provider.GetRequiredService<ResourceSettingsManager>());
