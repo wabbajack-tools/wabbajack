@@ -17,8 +17,10 @@ public partial class SettingsView : ReactiveUserControl<SettingsVM>
                 .DisposeWith(disposable);
             this.OneWayBindStrict(this.ViewModel, x => x.Performance, x => x.PerformanceView.ViewModel)
                 .DisposeWith(disposable);
+            /*
             this.OneWayBindStrict(this.ViewModel, x => x.AuthorFile, x => x.AuthorFilesView.ViewModel)
                 .DisposeWith(disposable);
+            */
             this.MiscGalleryView.ViewModel = this.ViewModel;
         });
     }
