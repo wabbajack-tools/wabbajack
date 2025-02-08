@@ -39,7 +39,8 @@
                 <local:WJButton
                     x:Name="ResetButton"
                     Icon="ArrowReset"
-                    Text="Reset Wabbajack" />
+                    Text="Reset Wabbajack"
+                    ButtonStyle="Danger" />
             </StackPanel>
         </Grid>
     </Border>
