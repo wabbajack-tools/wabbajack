@@ -117,8 +117,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Downloaders.GameF
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Launcher", "Wabbajack.Launcher\Wabbajack.Launcher.csproj", "{23D49FCC-A6CB-4873-879B-F90DA1871AA3}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{18E36813-CB53-4172-8FF3-EFE3B9B30A5F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Networking.Http.Test", "Wabbajack.Networking.Http.Test\Wabbajack.Networking.Http.Test.csproj", "{34FC755D-24F0-456A-B5C1-5BA7F12DC233}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Compression.Zip", "Wabbajack.Compression.Zip\Wabbajack.Compression.Zip.csproj", "{10165025-D30B-44B7-A764-50E15603AE56}"

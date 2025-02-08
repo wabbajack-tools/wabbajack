@@ -532,6 +532,17 @@
         <Setter Property="Focusable" Value="False" />
     </Style>
 
+    <Style TargetType="{x:Type Hyperlink}">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="TextDecorations" Value="None" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="true">
+                <Setter Property="Foreground" Value="{StaticResource ComplementaryPrimary50Brush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <!--  ScrollBar  -->
     <Style TargetType="{x:Type ScrollViewer}">
         <Setter Property="Background" Value="Transparent" />

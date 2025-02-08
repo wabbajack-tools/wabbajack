@@ -1,5 +1,7 @@
-﻿using System.Reactive.Disposables;
+﻿using System.Windows;
+using System.Reactive.Disposables;
 using ReactiveUI;
+using System.Reactive.Linq;
 
 namespace Wabbajack;
 
@@ -17,10 +19,13 @@ public partial class SettingsView : ReactiveUserControl<SettingsVM>
                 .DisposeWith(disposable);
             this.OneWayBindStrict(this.ViewModel, x => x.Performance, x => x.PerformanceView.ViewModel)
                 .DisposeWith(disposable);
-            /*
-            this.OneWayBindStrict(this.ViewModel, x => x.AuthorFile, x => x.AuthorFilesView.ViewModel)
-                .DisposeWith(disposable);
-            */
+
+            ViewModel.WhenAnyValue(vm => vm.ApiToken)
+                     .Select(token => !string.IsNullOrEmpty(token?.AuthorKey) ? Visibility.Visible : Visibility.Collapsed)
+                     .BindToStrict(this, v => v.FileUploadSettingsView.Visibility)
+                     .DisposeWith(disposable);
+
+            this.FileUploadSettingsView.ViewModel = this.ViewModel;
             this.MiscGalleryView.ViewModel = this.ViewModel;
         });
     }

@@ -1,4 +1,6 @@
-﻿using System.Reactive.Disposables;
+﻿using System.Windows;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using ReactiveUI;
 
 namespace Wabbajack;
@@ -14,8 +16,7 @@ public partial class MiscSettingsView : ReactiveUserControl<SettingsVM>
 
         this.WhenActivated(disposable =>
         {
-            // Bind Values
-            this.WhenAnyValue(x => x.ViewModel.OpenTerminalCommand)
+            this.WhenAnyValue(x => x.ViewModel.LaunchCLICommand)
                 .BindToStrict(this, x => x.OpenTerminalButton.Command)
                 .DisposeWith(disposable);
 

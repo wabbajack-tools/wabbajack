@@ -141,7 +141,7 @@
             </Grid>
 
             <Button x:Name="CloseButton" Style="{StaticResource MainButtonStyle}" Background="Transparent"
-                    BorderThickness="0" HorizontalAlignment="Right" Padding="16, 0, 0, 16" VerticalAlignment="Center">
+                    BorderThickness="0" HorizontalAlignment="Right" Padding="16" Margin="-16, -16, -16, 0" VerticalAlignment="Center">
                 <ic:SymbolIcon Symbol="Dismiss" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Right" />
             </Button>
 

@@ -5,7 +5,8 @@ namespace Wabbajack.Messages;
 public enum FloatingScreenType
 {
     None,
-    ModListDetails
+    ModListDetails,
+    FileUpload
 }
 
 public class ShowFloatingWindow

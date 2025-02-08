@@ -43,6 +43,9 @@
                         <DataTemplate DataType="{x:Type local:BrowserWindowViewModel}">
                             <local:BrowserWindow ViewModel="{Binding}" />
                         </DataTemplate>
+                        <DataTemplate DataType="{x:Type local:FileUploadVM}">
+                            <local:FileUploadView ViewModel="{Binding}" />
+                        </DataTemplate>
                     </ContentPresenter.Resources>
                 </ContentPresenter>
             </Border>

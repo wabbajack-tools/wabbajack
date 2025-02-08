@@ -4,27 +4,24 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
+using Wabbajack.DTOs.Logins;
 using Wabbajack.LoginManagers;
 using Wabbajack.Messages;
-using Wabbajack.Networking.WabbajackClientApi;
-using Wabbajack.Paths;
-using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 using Wabbajack.Util;
-using Wabbajack.ViewModels.Settings;
 
 namespace Wabbajack;
 
-public class SettingsVM : BackNavigatingVM
+public class SettingsVM : ViewModel
 {
     private readonly ILogger<SettingsVM> _logger;
     private readonly Configuration.MainSettings _settings;
@@ -32,34 +29,40 @@ public class SettingsVM : BackNavigatingVM
 
     public LoginManagerVM Login { get; }
     public PerformanceSettingsVM Performance { get; }
-    public AuthorFilesVM AuthorFile { get; }
 
-    public ICommand OpenTerminalCommand { get; }
+    public ICommand LaunchCLICommand { get; }
     public ICommand ResetCommand { get; }
+    public ICommand OpenFileUploadCommand { get; }
+    public ICommand BrowseUploadsCommand { get; private set; }
+    [Reactive] public WabbajackApiState ApiToken { get; private set; }
 
     public SettingsVM(ILogger<SettingsVM> logger, IServiceProvider provider)
-        : base(logger)
     {
         _logger = logger;
         _settings = provider.GetRequiredService<Configuration.MainSettings>();
         _settingsManager = provider.GetRequiredService<SettingsManager>();
+        Task.Run(async () =>
+        {
+            ApiToken = await provider.GetRequiredService<WabbajackApiTokenProvider>().Get();
+            BrowseUploadsCommand = ReactiveCommand.Create(async () =>
+            {
+                var authorApiKey = ApiToken?.AuthorKey;
+                UIUtils.OpenWebsite(new Uri($"{Consts.WabbajackBuildServerUri}author_controls/login/{authorApiKey}"));
+            });
+        });
 
         Login = new LoginManagerVM(provider.GetRequiredService<ILogger<LoginManagerVM>>(), this,
             provider.GetRequiredService<IEnumerable<INeedsLogin>>());
-        AuthorFile = new AuthorFilesVM(provider.GetRequiredService<ILogger<AuthorFilesVM>>()!,
-            provider.GetRequiredService<WabbajackApiTokenProvider>()!, provider.GetRequiredService<Client>()!, this);
-        OpenTerminalCommand = ReactiveCommand.CreateFromTask(OpenTerminal);
+        LaunchCLICommand = ReactiveCommand.CreateFromTask(LaunchCLI);
         ResetCommand = ReactiveCommand.Create(Reset);
+        OpenFileUploadCommand = ReactiveCommand.Create(OpenFileUpload);
         Performance = new PerformanceSettingsVM(
             provider.GetRequiredService<IResource<DownloadDispatcher>>(),
             provider.GetRequiredService<SystemParametersConstructor>(),
             provider.GetRequiredService<ResourceSettingsManager>());
-        CloseCommand = ReactiveCommand.Create(() =>
-        {
-            NavigateBack.Send();
-            Unload();
-        });
     }
+
+    private void OpenFileUpload() => ShowFloatingWindow.Send(FloatingScreenType.FileUpload);
 
     private void Reset()
     {
@@ -81,14 +84,7 @@ public class SettingsVM : BackNavigatingVM
         }
     }
 
-    public override void Unload()
-    {
-        _settingsManager.Save(Configuration.MainSettings.SettingsFileName, _settings).FireAndForget();
-
-        base.Unload();
-    }
-
-    private async Task OpenTerminal()
+    private async Task LaunchCLI()
     {
         try
         {

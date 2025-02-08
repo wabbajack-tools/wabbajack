@@ -62,6 +62,7 @@ public class MainWindowVM : ViewModel
     public readonly WebBrowserVM WebBrowserVM;
     public readonly ModListDetailsVM ModListDetailsVM;
     public readonly InfoVM InfoVM;
+    public readonly FileUploadVM FileUploadVM;
     public readonly UserInterventionHandlers UserInterventionHandlers;
     private readonly Client _wjClient;
     private readonly ILogger<MainWindowVM> _logger;
@@ -94,7 +95,7 @@ public class MainWindowVM : ViewModel
 
     public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
         IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-        InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM, SystemParametersConstructor systemParams, HttpClient httpClient)
+        InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM, FileUploadVM fileUploadVM, SystemParametersConstructor systemParams, HttpClient httpClient)
     {
         _logger = logger;
         _wjClient = wjClient;
@@ -112,8 +113,9 @@ public class MainWindowVM : ViewModel
         HomeVM = homeVM;
         WebBrowserVM = webBrowserVM;
         NavigationVM = navigationVM;
-        ModListDetailsVM = modlistDetailsVM;
         InfoVM = infoVM;
+        ModListDetailsVM = modlistDetailsVM;
+        FileUploadVM = fileUploadVM;
         UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetRequiredService<ILogger<UserInterventionHandlers>>(), this);
 
         this.WhenAnyValue(x => x.ActiveFloatingPane)
@@ -220,7 +222,7 @@ public class MainWindowVM : ViewModel
             }
             catch(Exception ex)
             {
-                _logger.LogWarning("Failed to retrieve drive information. Exception: {ex}", ex.ToString());
+                _logger.LogWarning("Failed to retrieve drive information: {ex}", ex.ToString());
             }
 
             try
@@ -351,16 +353,17 @@ public class MainWindowVM : ViewModel
             _ => ActivePane
         };
     }
+
     private void HandleShowFloatingWindow(FloatingScreenType s)
     {
         ActiveFloatingPane = s switch
         {
             FloatingScreenType.None => null,
             FloatingScreenType.ModListDetails => ModListDetailsVM,
+            FloatingScreenType.FileUpload => FileUploadVM,
             _ => ActiveFloatingPane
         };
     }
-
 
     private static bool IsStartingFromModlist(out AbsolutePath modlistPath)
     {
@@ -378,7 +381,6 @@ public class MainWindowVM : ViewModel
         modlistPath = default;
         return false;
     }
-
     public void CancelRunningTasks(TimeSpan timeout)
     {
         var endTime = DateTime.Now.Add(timeout);
@@ -395,8 +397,8 @@ public class MainWindowVM : ViewModel
 
     public async Task ShutdownApplication()
     {
-        /*
         Dispose();
+        /*
         Settings.PosX = MainWindow.Left;
         Settings.PosY = MainWindow.Top;
         Settings.Width = MainWindow.Width;
