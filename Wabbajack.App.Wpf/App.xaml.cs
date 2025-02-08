@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -101,6 +102,11 @@ public partial class App
 
             return Disposable.Empty;
         });
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        base.OnExit(e);
     }
 
     private static bool IsAdmin()

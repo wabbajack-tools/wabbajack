@@ -70,10 +70,7 @@
             </Border.Style>
             <Grid>
                 <Border x:Name="MaskBorder" BorderThickness="0" BorderBrush="Transparent" Background="{StaticResource DarkSecondaryBrush}" CornerRadius="10" Width="300" Height="169"/>
-                <Grid
-            Width="300"
-            Height="169"
-            Background="Transparent" ClipToBounds="True">
+                <Grid Width="300" Height="169" Background="Transparent" ClipToBounds="True">
                     <Grid.OpacityMask>
                         <VisualBrush Visual="{Binding ElementName=MaskBorder}"/>
                     </Grid.OpacityMask>

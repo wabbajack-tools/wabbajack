@@ -16,7 +16,11 @@ public partial class MiscSettingsView : ReactiveUserControl<SettingsVM>
         {
             // Bind Values
             this.WhenAnyValue(x => x.ViewModel.OpenTerminalCommand)
-                .BindToStrict(this, x => x.OpenTerminal.Command)
+                .BindToStrict(this, x => x.OpenTerminalButton.Command)
+                .DisposeWith(disposable);
+
+            this.WhenAnyValue(x => x.ViewModel.ResetCommand)
+                .BindToStrict(this, x => x.ResetButton.Command)
                 .DisposeWith(disposable);
         });
     }

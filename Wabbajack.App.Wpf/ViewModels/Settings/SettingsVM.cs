@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -14,6 +15,7 @@ using Wabbajack.LoginManagers;
 using Wabbajack.Messages;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
@@ -33,6 +35,7 @@ public class SettingsVM : BackNavigatingVM
     public AuthorFilesVM AuthorFile { get; }
 
     public ICommand OpenTerminalCommand { get; }
+    public ICommand ResetCommand { get; }
 
     public SettingsVM(ILogger<SettingsVM> logger, IServiceProvider provider)
         : base(logger)
@@ -46,6 +49,7 @@ public class SettingsVM : BackNavigatingVM
         AuthorFile = new AuthorFilesVM(provider.GetRequiredService<ILogger<AuthorFilesVM>>()!,
             provider.GetRequiredService<WabbajackApiTokenProvider>()!, provider.GetRequiredService<Client>()!, this);
         OpenTerminalCommand = ReactiveCommand.CreateFromTask(OpenTerminal);
+        ResetCommand = ReactiveCommand.Create(Reset);
         Performance = new PerformanceSettingsVM(
             provider.GetRequiredService<IResource<DownloadDispatcher>>(),
             provider.GetRequiredService<SystemParametersConstructor>(),
@@ -55,6 +59,26 @@ public class SettingsVM : BackNavigatingVM
             NavigateBack.Send();
             Unload();
         });
+    }
+
+    private void Reset()
+    {
+        try
+        {
+            var currentPath = Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location);
+            var cliDir = Path.Combine(currentPath, "cli");
+            string workingDir = Directory.Exists(cliDir) ? cliDir : currentPath;
+            Process.Start(new ProcessStartInfo()
+            {
+                FileName = "wabbajack-cli.exe",
+                Arguments = "reset",
+                CreateNoWindow = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Failed to reset Wabbajack: {ex}", ex);
+        }
     }
 
     public override void Unload()

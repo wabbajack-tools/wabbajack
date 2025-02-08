@@ -29,13 +29,18 @@
                 FontWeight="Bold"
                 Text="Miscellaneous" />
 
-            <local:WJButton
-                    x:Name="OpenTerminal"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
-                    Grid.Row="2"
+            <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <local:WJButton
+                    x:Name="OpenTerminalButton"
                     Icon="WindowConsole"
-                    Text="Launch Wabbajack CLI" />
+                    Text="Launch Wabbajack CLI"
+                    Margin="0, 0, 16, 0"/>
+
+                <local:WJButton
+                    x:Name="ResetButton"
+                    Icon="ArrowReset"
+                    Text="Reset Wabbajack" />
+            </StackPanel>
         </Grid>
     </Border>
 </rxui:ReactiveUserControl>

@@ -183,7 +183,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <local:ModListTileView ViewModel="{Binding}" />
+                            <local:ModListTileView ViewModel="{Binding}"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
