@@ -41,6 +41,7 @@
                 <local:LoginSettingsView x:Name="LoginView" Grid.Column="0" Grid.Row="0" />
                 <local:PerformanceSettingsView x:Name="PerformanceView" Grid.Column="2" Grid.Row="0" />
                 <local:MiscSettingsView x:Name="MiscGalleryView" Grid.Row="2" Grid.ColumnSpan="3" />
+                <local:AboutView x:Name="AboutView" Grid.Row="0" Grid.Column="4" />
                 <local:FileUploadSettingsView x:Name="FileUploadSettingsView" Grid.Column="4" Grid.Row="2" />
             </Grid>
         </ScrollViewer>

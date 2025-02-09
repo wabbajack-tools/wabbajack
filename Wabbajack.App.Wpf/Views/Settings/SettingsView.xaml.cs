@@ -15,9 +15,11 @@ public partial class SettingsView : ReactiveUserControl<SettingsVM>
         InitializeComponent();
         this.WhenActivated(disposable =>
         {
-            this.OneWayBindStrict(this.ViewModel, x => x.Login, x => x.LoginView.ViewModel)
+            this.OneWayBindStrict(this.ViewModel, x => x.LoginVM, x => x.LoginView.ViewModel)
                 .DisposeWith(disposable);
-            this.OneWayBindStrict(this.ViewModel, x => x.Performance, x => x.PerformanceView.ViewModel)
+            this.OneWayBindStrict(this.ViewModel, x => x.PerformanceVM, x => x.PerformanceView.ViewModel)
+                .DisposeWith(disposable);
+            this.OneWayBindStrict(this.ViewModel, x => x.AboutVM, x => x.AboutView.ViewModel)
                 .DisposeWith(disposable);
 
             ViewModel.WhenAnyValue(vm => vm.ApiToken)

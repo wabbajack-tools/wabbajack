@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Web.WebView2.Wpf;
 using NLog.Extensions.Logging;
 using NLog.Targets;
+using Octokit;
 using Orc.FileAssociation;
 using ReactiveUI;
 using Wabbajack.CLI.Builder;
@@ -181,6 +182,8 @@ public partial class App
         services.AddSingleton<SystemParametersConstructor>();
         services.AddSingleton<LauncherUpdater>();
         services.AddSingleton<ResourceMonitor>();
+        services.AddSingleton<Networking.GitHub.Client>();
+        services.AddSingleton(s => new GitHubClient(new ProductHeaderValue("wabbajack")));
 
         var currentDir = (AbsolutePath)Directory.GetCurrentDirectory();
         var webViewDir = currentDir.Combine("webview2");
@@ -203,6 +206,7 @@ public partial class App
         services.AddTransient<InfoVM>();
         services.AddTransient<ModListDetailsVM>();
         services.AddTransient<FileUploadVM>();
+        services.AddTransient<AboutVM>();
 
         // Login Handlers
         services.AddTransient<VectorPlexusLoginHandler>();

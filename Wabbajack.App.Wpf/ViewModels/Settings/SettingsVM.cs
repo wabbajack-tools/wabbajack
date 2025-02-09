@@ -27,8 +27,9 @@ public class SettingsVM : ViewModel
     private readonly Configuration.MainSettings _settings;
     private readonly SettingsManager _settingsManager;
 
-    public LoginManagerVM Login { get; }
-    public PerformanceSettingsVM Performance { get; }
+    public LoginManagerVM LoginVM { get; }
+    public PerformanceSettingsVM PerformanceVM { get; }
+    public AboutVM AboutVM { get; }
 
     public ICommand LaunchCLICommand { get; }
     public ICommand ResetCommand { get; }
@@ -51,15 +52,16 @@ public class SettingsVM : ViewModel
             });
         });
 
-        Login = new LoginManagerVM(provider.GetRequiredService<ILogger<LoginManagerVM>>(), this,
+        LoginVM = new LoginManagerVM(provider.GetRequiredService<ILogger<LoginManagerVM>>(), this,
             provider.GetRequiredService<IEnumerable<INeedsLogin>>());
         LaunchCLICommand = ReactiveCommand.CreateFromTask(LaunchCLI);
         ResetCommand = ReactiveCommand.Create(Reset);
         OpenFileUploadCommand = ReactiveCommand.Create(OpenFileUpload);
-        Performance = new PerformanceSettingsVM(
+        PerformanceVM = new PerformanceSettingsVM(
             provider.GetRequiredService<IResource<DownloadDispatcher>>(),
             provider.GetRequiredService<SystemParametersConstructor>(),
             provider.GetRequiredService<ResourceSettingsManager>());
+        AboutVM = provider.GetRequiredService<AboutVM>();
     }
 
     private void OpenFileUpload() => ShowFloatingWindow.Send(FloatingScreenType.FileUpload);

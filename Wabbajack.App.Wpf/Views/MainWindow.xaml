@@ -61,7 +61,7 @@
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Border BorderThickness="0" Margin="16, 0, 8, 0" >
-                <Image Grid.Column="0" Width="18" Height="18" Source="{StaticResource WabbajackLogo}"/>
+                <Image Grid.Column="0" Width="24" Height="24" Source="{StaticResource WabbajackLegacyLogo}"/>
             </Border>
             <TextBlock Grid.Column="1" FontSize="13" Name="AppName" VerticalAlignment="Center"></TextBlock>
             <DockPanel x:Name="WizardSteps" Grid.Column="0" Grid.ColumnSpan="7" HorizontalAlignment="Center" Margin="0, 10, 0, 10">
