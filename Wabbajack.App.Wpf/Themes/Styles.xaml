@@ -1749,7 +1749,7 @@
     </Style>
 
     <Style
-        x:Key="TransparentBackgroundButtonStyle"
+        x:Key="TransparentButtonStyle"
         BasedOn="{StaticResource MainButtonStyle}"
         TargetType="{x:Type Button}">
         <Setter Property="Focusable" Value="False" />
@@ -1777,6 +1777,32 @@
             <Trigger Property="IsPressed" Value="True">
                 <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
                 <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="TransparentButtonStyleWithoutMouseOverBackground"
+        BasedOn="{StaticResource MainButtonStyle}"
+        TargetType="{x:Type Button}">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Style.Resources>
+            <Style TargetType="ic:SymbolIcon">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button, AncestorLevel=1}, Path=IsMouseOver}" Value="True">
+                        <Setter Property="IconVariant" Value="Filled" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Style.Resources>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
             </Trigger>
         </Style.Triggers>
     </Style>

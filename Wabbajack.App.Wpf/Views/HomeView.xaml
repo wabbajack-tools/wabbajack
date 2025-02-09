@@ -26,10 +26,10 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Label Grid.Row="0" Grid.Column="0" FontWeight="Bold" Padding="0" Margin="0">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Grid.Row="0" Grid.Column="0" FontSize="87" FontWeight="Bold" Foreground="{StaticResource ForegroundBrush}" Text="Welcome to " />
-                <TextBlock Foreground="{StaticResource PrimaryBrush}" Text="Wabbajack" FontSize="87" />
-            </StackPanel>
+            <TextBlock FontSize="87" FontWeight="Bold">
+                <Run Foreground="{StaticResource ForegroundBrush}" Text="Welcome to" />
+                <Run Foreground="{StaticResource PrimaryBrush}" Text="Wabbajack" />
+            </TextBlock>
         </Label>
         <Label Grid.Row="1" Foreground="{StaticResource ForegroundBrush}" Margin="0">
             <StackPanel Orientation="Horizontal">
