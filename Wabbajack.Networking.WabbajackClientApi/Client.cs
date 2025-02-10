@@ -239,7 +239,12 @@ public class Client
                 }
                 catch (JsonException ex)
                 {
-                    _logger.LogError(ex, "Failed loading json for repository {List} from {Url}", url.Key, url.Value);
+                    _logger.LogError(ex, "Failed loading JSON for repository {repo} from {url} - Exception: {ex}", url.Key, url.Value, ex.ToString());
+                    return Enumerable.Empty<ModlistMetadata>();
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError(ex, "Failed loading lists from repository {repo}: {url} - Exception: {ex}", url.Key, url.Value, ex.ToString());
                     return Enumerable.Empty<ModlistMetadata>();
                 }
             })
@@ -260,7 +265,7 @@ public class Client
     {
         var repositories = await _client.GetFromJsonAsync<Dictionary<string, Uri>>(_limiter,
             new HttpRequestMessage(HttpMethod.Get,
-                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/repositories.json"), _dtos.Options);
+                "https://raw.githubusercontent.com/tr4wzified/mod-lists/master/repositories.json"), _dtos.Options);
         return repositories!;
     }
 
@@ -268,7 +273,7 @@ public class Client
     {
         var data = await _client.GetFromJsonAsync<string[]>(_limiter,
             new HttpRequestMessage(HttpMethod.Get,
-                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/refs/heads/master/allowed_tags.json"),
+                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/allowed_tags.json"),
             _dtos.Options);
         return data!.ToHashSet(StringComparer.CurrentCultureIgnoreCase);
     }
