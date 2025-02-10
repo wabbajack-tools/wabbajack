@@ -265,7 +265,7 @@ public class Client
     {
         var repositories = await _client.GetFromJsonAsync<Dictionary<string, Uri>>(_limiter,
             new HttpRequestMessage(HttpMethod.Get,
-                "https://raw.githubusercontent.com/tr4wzified/mod-lists/master/repositories.json"), _dtos.Options);
+                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/repositories.json"), _dtos.Options);
         return repositories!;
     }
 
