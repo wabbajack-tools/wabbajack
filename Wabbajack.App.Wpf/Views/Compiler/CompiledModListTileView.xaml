@@ -26,9 +26,15 @@
                 <Style TargetType="StackPanel">
                     <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}"/>
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True">
-                            <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}" />
-                        </DataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True" />
+                                <Condition Binding="{Binding IsMouseOver, ElementName=DeleteButton}" Value="False" />
+                            </MultiDataTrigger.Conditions>
+                            <MultiDataTrigger.Setters>
+                                <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}" />
+                            </MultiDataTrigger.Setters>
+                        </MultiDataTrigger>
                     </Style.Triggers>
                 </Style>
             </StackPanel.Style>
@@ -43,9 +49,15 @@
                         <Style TargetType="Border">
                             <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True">
-                                    <Setter Property="BorderBrush" Value="{StaticResource BorderInterestBrush}" />
-                                </DataTrigger>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True" />
+                                        <Condition Binding="{Binding IsMouseOver, ElementName=DeleteButton}" Value="False" />
+                                    </MultiDataTrigger.Conditions>
+                                    <MultiDataTrigger.Setters>
+                                        <Setter Property="BorderBrush" Value="{StaticResource BorderInterestBrush}" />
+                                    </MultiDataTrigger.Setters>
+                                </MultiDataTrigger>
                             </Style.Triggers>
                         </Style>
                     </Border.Style>
@@ -69,22 +81,26 @@
                                     <Rectangle.Style>
                                         <Style TargetType="Rectangle">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True">
-                                                    <DataTrigger.EnterActions>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True" />
+                                                        <Condition Binding="{Binding IsMouseOver, ElementName=DeleteButton}" Value="False" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <MultiDataTrigger.EnterActions>
                                                         <BeginStoryboard>
                                                             <Storyboard>
                                                                 <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0.2" Duration="0:0:0.08" />
                                                             </Storyboard>
                                                         </BeginStoryboard>
-                                                    </DataTrigger.EnterActions>
-                                                    <DataTrigger.ExitActions>
+                                                    </MultiDataTrigger.EnterActions>
+                                                    <MultiDataTrigger.ExitActions>
                                                         <BeginStoryboard>
                                                             <Storyboard>
                                                                 <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0.15" Duration="0:0:0.08" />
                                                             </Storyboard>
                                                         </BeginStoryboard>
-                                                    </DataTrigger.ExitActions>
-                                                </DataTrigger>
+                                                    </MultiDataTrigger.ExitActions>
+                                                </MultiDataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Rectangle.Style>
@@ -96,8 +112,12 @@
                                     <Rectangle.Style>
                                         <Style TargetType="Rectangle">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True">
-                                                    <DataTrigger.EnterActions>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True" />
+                                                        <Condition Binding="{Binding IsMouseOver, ElementName=DeleteButton}" Value="False" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <MultiDataTrigger.EnterActions>
                                                         <BeginStoryboard>
                                                             <Storyboard>
                                                                 <DoubleAnimation
@@ -106,15 +126,15 @@
                                                         Duration="0:0:0.08" />
                                                             </Storyboard>
                                                         </BeginStoryboard>
-                                                    </DataTrigger.EnterActions>
-                                                    <DataTrigger.ExitActions>
+                                                    </MultiDataTrigger.EnterActions>
+                                                    <MultiDataTrigger.ExitActions>
                                                         <BeginStoryboard>
                                                             <Storyboard>
                                                                 <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0.15" Duration="0:0:0.08" />
                                                             </Storyboard>
                                                         </BeginStoryboard>
-                                                    </DataTrigger.ExitActions>
-                                                </DataTrigger>
+                                                    </MultiDataTrigger.ExitActions>
+                                                </MultiDataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Rectangle.Style>
@@ -123,22 +143,26 @@
                                     <Label.Style>
                                         <Style TargetType="Label">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True">
-                                                    <DataTrigger.EnterActions>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True" />
+                                                        <Condition Binding="{Binding IsMouseOver, ElementName=DeleteButton}" Value="False" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <MultiDataTrigger.EnterActions>
                                                         <BeginStoryboard>
                                                             <Storyboard>
                                                                 <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" />
                                                             </Storyboard>
                                                         </BeginStoryboard>
-                                                    </DataTrigger.EnterActions>
-                                                    <DataTrigger.ExitActions>
+                                                    </MultiDataTrigger.EnterActions>
+                                                    <MultiDataTrigger.ExitActions>
                                                         <BeginStoryboard>
                                                             <Storyboard>
                                                                 <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.08" />
                                                             </Storyboard>
                                                         </BeginStoryboard>
-                                                    </DataTrigger.ExitActions>
-                                                </DataTrigger>
+                                                    </MultiDataTrigger.ExitActions>
+                                                </MultiDataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Label.Style>
@@ -163,9 +187,15 @@
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True">
-                                    <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
-                                </DataTrigger>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True" />
+                                        <Condition Binding="{Binding IsMouseOver, ElementName=DeleteButton}" Value="False" />
+                                    </MultiDataTrigger.Conditions>
+                                    <MultiDataTrigger.Setters>
+                                        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                                    </MultiDataTrigger.Setters>
+                                </MultiDataTrigger>
                             </Style.Triggers>
                         </Style>
                     </TextBlock.Style>
@@ -175,32 +205,28 @@
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True">
-                                    <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
-                                </DataTrigger>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsMouseOver, ElementName=CompiledModListTile}" Value="True" />
+                                        <Condition Binding="{Binding IsMouseOver, ElementName=DeleteButton}" Value="False" />
+                                    </MultiDataTrigger.Conditions>
+                                    <MultiDataTrigger.Setters>
+                                        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                                    </MultiDataTrigger.Setters>
+                                </MultiDataTrigger>
                             </Style.Triggers>
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
 
-<!--
                 <Button
+                    x:Name="DeleteButton"
+                    Style="{StaticResource TransparentButtonStyleDanger}"
                     Width="32"
                     Height="32"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Margin="0"
+                    Margin="0, 4, 0, 0"
                     Grid.Column="2">
-                    <ic:SymbolIcon Symbol="MoreHorizontal" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Button>
-                -->
-                <Button
-                    Style="{StaticResource TransparentButtonStyleWithoutMouseOverBackground}"
-                    Width="32"
-                    Height="32"
-                    Margin="0"
-                    Grid.Column="2">
-                    <ic:SymbolIcon Symbol="MoreHorizontal" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <ic:SymbolIcon Symbol="DismissCircle" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Button>
             </Grid>
         </StackPanel>

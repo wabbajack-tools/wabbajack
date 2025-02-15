@@ -33,6 +33,9 @@ public partial class CompiledModListTileView : ReactiveUserControl<CompiledModLi
                 .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
                 .BindToStrict(this, x => x.LoadingProgress.Visibility)
                 .DisposeWith(dispose);
+
+            this.BindCommand(ViewModel, vm => vm.DeleteModListCommand, v => v.DeleteButton)
+                .DisposeWith(dispose);
         });
     }
 }

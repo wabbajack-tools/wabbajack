@@ -7,10 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
+using DynamicData.Binding;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Wabbajack.CLI.Verbs;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.DTOs.JsonConverters;
@@ -33,8 +35,7 @@ public class CompilerHomeVM : ViewModel
     [Reactive] public ICommand NewModlistCommand { get; set; }
     [Reactive] public ICommand LoadSettingsCommand { get; set; }
 
-    [Reactive]
-    public ObservableCollection<CompiledModListTileVM> CompiledModLists { get; set; }
+    [Reactive] public ObservableCollection<CompiledModListTileVM> CompiledModLists { get; set; }
 
     public FilePickerVM CompilerSettingsPicker { get; private set; }
     public FilePickerVM NewModlistPicker { get; private set; }
@@ -47,6 +48,10 @@ public class CompilerHomeVM : ViewModel
         _serviceProvider = serviceProvider;
         _dtos = dtos;
         _inferencer = inferencer;
+
+        MessageBus.Current.Listen<ReloadCompiledModLists>()
+            .Subscribe(m => LoadAllCompilerSettings().FireAndForget())
+            .DisposeWith(CompositeDisposable);
 
         NewModlistPicker = new FilePickerVM
         {
@@ -117,7 +122,7 @@ public class CompilerHomeVM : ViewModel
         {
             await using var fs = settingsPath.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
             var settings = (await _dtos.DeserializeAsync<CompilerSettings>(fs))!;
-            CompiledModLists.Add(new CompiledModListTileVM(_logger, settings));
+            CompiledModLists.Add(new CompiledModListTileVM(_logger, _settingsManager, settings));
         }
     }
 }
