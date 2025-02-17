@@ -12,6 +12,7 @@ using System.Windows.Forms.VisualStyles;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
+using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveMarbles.ObservableEvents;
@@ -70,6 +71,7 @@ public class ModListGalleryVM : BackNavigatingVM
     [Reactive] public double MinModlistSize { get; set; }
     [Reactive] public double MaxModlistSize { get; set; }
 
+    public Dictionary<string, string> CommonlyWrongFormattedTags { get; set; } = new();
     [Reactive] public HashSet<ModListTag> AllTags { get; set; } = new();
     [Reactive] public ObservableCollection<ModListTag> HasTags { get; set; } = new();
     
@@ -247,7 +249,7 @@ public class ModListGalleryVM : BackNavigatingVM
                     {
                         var previousGameType = GameType;
                         SelectedGameTypeEntry = null;
-                        GameTypeEntries = GetGameTypeEntries();
+                        LoadGameTypeEntries();
                         var nextEntry = GameTypeEntries.FirstOrDefault(gte => previousGameType == gte.GameIdentifier);
                         SelectedGameTypeEntry = nextEntry ?? GameTypeEntries.FirstOrDefault(gte => GameType == ALL_GAME_IDENTIFIER);
                     }
@@ -298,6 +300,8 @@ public class ModListGalleryVM : BackNavigatingVM
         try
         {
             var allowedTags = await _wjClient.LoadAllowedTags();
+            var tagMappings = await _wjClient.LoadTagMappings();
+
             AllTags = allowedTags.Select(t => new ModListTag(t))
                                  .OrderBy(t => t.Name)
                                  .Prepend(new ModListTag("NSFW"))
@@ -308,14 +312,25 @@ public class ModListGalleryVM : BackNavigatingVM
             AllMods = searchIndex.AllMods.Select(mod => new ModListMod(mod)).ToHashSet();
             var modLists = await _wjClient.LoadLists();
             var modlistSummaries = (await _wjClient.GetListStatuses()).ToDictionary(summary => summary.MachineURL);
-            var httpClient = _serviceProvider.GetRequiredService<HttpClient>();
-            var cacheManager = _serviceProvider.GetRequiredService<ImageCacheManager>();
             foreach (var modlist in modLists)
             {
-                modlist.Tags = modlist.Tags.Where(allowedTags.Contains).ToList();
-                if (modlist.NSFW) modlist.Tags.Add("NSFW");
-                if (modlist.Official) modlist.Tags.Add("Featured");
+                var modlistTags = new List<string>();
+                foreach(var tag in modlist.Tags)
+                {
+                    string? allowedTag = null;
+                    tagMappings.TryGetValue(tag, out allowedTag);
+
+                    if (allowedTags.TryGetValue(tag, out allowedTag))
+                        modlistTags.Add(allowedTag);
+                }
+                if (modlist.NSFW) modlistTags.Insert(0, "NSFW");
+                if (modlist.Official) modlistTags.Insert(0, "Featured");
+
+                modlist.Tags = modlistTags;
             }
+
+            var httpClient = _serviceProvider.GetRequiredService<HttpClient>();
+            var cacheManager = _serviceProvider.GetRequiredService<ImageCacheManager>();
             _modLists.Edit(e =>
             {
                 e.Clear();
@@ -354,9 +369,9 @@ public class ModListGalleryVM : BackNavigatingVM
         MaxModlistSize = LargestSizedModlist.Metadata.DownloadMetadata.TotalSize;
     }
 
-    private ObservableCollection<GameTypeEntry> GetGameTypeEntries()
+    private void LoadGameTypeEntries()
     {
-        return new(ModLists.Select(fm => fm.Metadata)
+        GameTypeEntries = new(ModLists.Select(m => m.Metadata)
             .GroupBy(m => m.Game)
             .Select(g => new GameTypeEntry(g.Key.MetaData(), g.Count()))
             .OrderBy(gte => gte.GameMetaData.HumanFriendlyGameName)

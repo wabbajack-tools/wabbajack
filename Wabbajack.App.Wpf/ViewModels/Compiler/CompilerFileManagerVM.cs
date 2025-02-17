@@ -166,8 +166,16 @@ public class CompilerFileManagerVM : BaseCompilerVM
 
     private IEnumerable<FileSystemInfo> GetDirectoryContents(DirectoryInfo dir)
     {
-        var directories = dir.EnumerateDirectories();
-        var items = dir.EnumerateFiles();
-        return directories.OrderBy(x => x.Name).Concat<FileSystemInfo>(items.OrderBy(y => y.Name));
+        try
+        {
+            var directories = dir.EnumerateDirectories();
+            var items = dir.EnumerateFiles();
+            return directories.OrderBy(x => x.Name).Concat<FileSystemInfo>(items.OrderBy(y => y.Name));
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError("While loading compiler settings path for directory {dir}: {ex}", dir.FullName, ex.ToString());
+            throw;
+        }
     }
 }

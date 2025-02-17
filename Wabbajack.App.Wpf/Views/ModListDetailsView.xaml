@@ -60,8 +60,81 @@
                             <Run Text="{Binding MetadataVM.Metadata.Author}" />
                         </TextBlock>
                     </DockPanel>
-                    <DockPanel Margin="0, 0, 0, 4">
-                        <!-- Tags -->
+                    <DockPanel Margin="-4, 8, 0, 8">
+                        <ItemsControl x:Name="TagsControl">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <StackPanel.Resources>
+                                            <Style TargetType="{x:Type Border}">
+                                                <Setter Property="Margin" Value="8, 0, 0, 0" />
+                                            </Style>
+                                        </StackPanel.Resources>
+                                    </StackPanel>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border
+                                        CornerRadius="4"
+                                        Padding="8"
+                                        Margin="4, 0, 0, 0"
+                                        >
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Name}" Value="NSFW">
+                                                        <Setter Property="Background" Value="#81131B" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Name}" Value="Featured">
+                                                        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                                <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <ic:SymbolIcon>
+                                                <ic:SymbolIcon.Style>
+                                                    <Style TargetType="ic:SymbolIcon">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Name}" Value="Featured">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                <Setter Property="Symbol" Value="Checkmark" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Name}" Value="NSFW">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                <Setter Property="Symbol" Value="Warning" />
+                                                                <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                        <Setter Property="Foreground" Value="{StaticResource ComplementaryBrush}" />
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Setter Property="VerticalAlignment" Value="Center" />
+                                                        <Setter Property="FontSize" Value="13" />
+                                                        <Setter Property="Margin" Value="0, 0, 4, 0" />
+                                                        <Setter Property="IconVariant" Value="Filled" />
+                                                    </Style>
+                                                </ic:SymbolIcon.Style>
+                                            </ic:SymbolIcon>
+                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Name}" Value="Featured">
+                                                                <Setter Property="Foreground" Value="{StaticResource ComplementaryBrush}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </DockPanel>
                 </StackPanel>
                 <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Background="Transparent" HorizontalScrollBarVisibility="Disabled">

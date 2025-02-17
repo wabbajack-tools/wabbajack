@@ -275,7 +275,15 @@ public class Client
             new HttpRequestMessage(HttpMethod.Get,
                 "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/allowed_tags.json"),
             _dtos.Options);
-        return data!.ToHashSet(StringComparer.CurrentCultureIgnoreCase);
+        return data!.ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+    public async Task<Dictionary<string, string>> LoadTagMappings()
+    {
+        var data = await _client.GetFromJsonAsync<Dictionary<string, string>>(_limiter,
+            new HttpRequestMessage(HttpMethod.Get,
+                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/tag_mappings.json"),
+            _dtos.Options);
+        return data!;
     }
 
     public async Task<SearchIndex> LoadSearchIndex()

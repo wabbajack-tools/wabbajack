@@ -12,6 +12,7 @@ using System.Reactive.Linq;
 using System.Reactive.Concurrency;
 using System.Windows.Controls;
 using ModListStatus = Wabbajack.BaseModListMetadataVM.ModListStatus;
+using System.Linq;
 
 namespace Wabbajack;
 
@@ -92,6 +93,10 @@ public partial class ModListDetailsView
             this.WhenAnyValue(x => x.ViewModel.MetadataVM.Status)
                 .Select(x => x == ModListStatus.NotDownloaded ? "Download & Install" : x == ModListStatus.Downloading ? "Downloading..." : "Install")
                 .BindToStrict(this, x => x.InstallButton.Text)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.ViewModel.MetadataVM.ModListTagList)
+                .BindToStrict(this, v => v.TagsControl.ItemsSource)
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, x => x.OpenReadmeCommand, x => x.OpenReadmeButton)
