@@ -236,7 +236,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
                         ProgressPercent = Percent.Zero;
 
                         State = CompilerState.Errored;
-                        _logger.LogInformation(ex, "Failed compilation: {Message}", ex.Message);
+                        _logger.LogError(ex, "Failed compilation: {Message}", ex.Message);
                         return Disposable.Empty;
                     }
                 });

@@ -135,6 +135,7 @@ public class Client
     public async Task<Archive[]> GetGameArchives(Game game, string version)
     {
         var url = $"https://raw.githubusercontent.com/wabbajack-tools/indexed-game-files/master/{game}/{version}.json";
+        _logger.LogInformation("Fetching game archives for {game} from {url}", game.ToString(), url);
         return await _client.GetFromJsonAsync<Archive[]>(url, _dtos.Options) ?? Array.Empty<Archive>();
     }
 
