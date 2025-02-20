@@ -747,6 +747,12 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                         }
                         break;
 
+                    case Mega mega:
+                        writer.Write($"<h3>MEGA: {archive.Name}</h3>");
+                        writer.Write($"<p>Please <a href='{mega.Url.ToString()}'>click here to download this file</a>, then manually place it inside the Wabbajack downloads directory.</p>");
+                        break;
+
+
                     default:
                         writer.Write($"<h3>{archive.Name}</h1>");
                         writer.Write($"<p>Unknown download type</p>");
