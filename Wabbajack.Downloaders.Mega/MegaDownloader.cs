@@ -84,8 +84,11 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
             }
             else
             {
+                _logger.LogWarning("This modlist requires MEGA downloads but the user is not signed in. MEGA downloads will fail!");
+                /*
                 _logger.LogInformation("Logging into Mega without credentials");
                 await _apiClient.LoginAsync();
+                */
             }
         }
     }

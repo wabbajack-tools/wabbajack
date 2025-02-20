@@ -181,26 +181,64 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         _logger.LogError("Writing Manual helper report");
         var report = _configuration.Downloads.Combine("MissingManuals.html");
         {
-            using var writer = new StreamWriter(report.Open(FileMode.Create, FileAccess.Write, FileShare.None));
-            writer.Write("<html><head><title>Missing Manual Downloads</title></head><body>");
-            writer.Write("<h1>Missing Manual Downloads</h1>");
+                        using var writer = new StreamWriter(report.Open(FileMode.Create, FileAccess.Write, FileShare.None));
+            writer.Write("<html><head><title>Missing Files</title></head><body>");
+            writer.Write("<h1>Missing Files</h1>");
             writer.Write(
-                "<p>Wabbajack was unable to download the following archives automatically. Please download them manually and place them in the downloads folder you chose during the install setup.</p>");
+                "<p>Wabbajack was unable to download the following files automatically. Please download them manually and place them in the downloads folder you chose during the install configuration.</p>");
             foreach (var archive in toArray)
             {
                 switch (archive.State)
                 {
                     case Manual manual:
-                        writer.Write($"<h3>{archive.Name}</h1>");
+                        writer.Write($"<h3>{archive.Name}</h3>");
                         writer.Write($"<p>{manual.Prompt}</p>");
                         writer.Write($"<p>Download URL: <a href=\"{manual.Url}\">{manual.Url}</a></p>");
                         break;
                     case MediaFire mediaFire:
-                        writer.Write($"<h3>{archive.Name}</h1>");
+                        writer.Write($"<h3>{archive.Name}</h3>");
                         writer.Write($"<p>Download URL: <a href=\"{mediaFire.Url}\">{mediaFire.Url}</a></p>");
                         break;
+                    case GameFileSource gameFile:
+                        writer.Write($"<h3>{archive.Name}</h3>");
+                        if (archive.Name.Contains("CreationKit"))
+                        {
+                            writer.Write($"<p>This modlist requires the Creation Kit to function.</p>");
+                            if (ModList.GameType == Game.SkyrimSpecialEdition || ModList.GameType == Game.SkyrimVR)
+                            {
+                                writer.Write(@$"<p><a href=""steam://run/1946180"">Click here to install it via Steam.</a></p>");
+                            }
+                            else if (ModList.GameType == Game.Fallout4 || ModList.GameType == Game.Fallout4VR)
+                            {
+                                writer.Write(@$"<p><a href=""steam://run/1946160"">Click here to install it via Steam.</a></p>");
+                            }
+                            else if (ModList.GameType == Game.Starfield)
+                            {
+                                writer.Write(@$"<p><a href=""steam://run/2722710"">Click here to install it via Steam.</a></p>");
+                            }
+                        }
+                        else if (ModList.GameType == Game.SkyrimSpecialEdition && archive.Name.Contains("curios", StringComparison.OrdinalIgnoreCase))
+                        {
+                            writer.Write("<p>This is a game file that commonly causes issues.</p>");
+                            writer.Write(@"<p><a target=""blank"" href=""https://wiki.wabbajack.org/user_documentation/Troubleshooting%20FAQ.html#unable-to-download-curios-files"">Click here for more information on how to resolve the issue.</a></p>");
+                        }
+                        else if (ModList.GameType == Game.SkyrimSpecialEdition && archive.Name.StartsWith("Data_cc", StringComparison.OrdinalIgnoreCase))
+                        {
+                            writer.Write("<p>This is a Creation Club file that could not be found. Check if the Anniversary Edition DLC is installed before installing this modlist.</p>");
+                        }
+                        else
+                        {
+                            writer.Write("<p>This is a game file that could not be found. Validate the game is installed properly in the same language as that of the modlist author.</p>");
+                        }
+                        break;
+
+                    case Mega mega:
+                        writer.Write($"<h3>MEGA: {archive.Name}</h3>");
+                        writer.Write($"<p>Please <a href='{mega.Url.ToString()}'>click here to download this file</a>, then manually place it inside the Wabbajack downloads directory.</p>");
+                        break;
+
                     default:
-                        writer.Write($"<h3>{archive.Name}</h1>");
+                        writer.Write($"<h3>{archive.Name}</h3>");
                         writer.Write($"<p>Unknown download type</p>");
                         writer.Write($"<p>Primary Key (may not be helpful): <a href=\"{archive.State.PrimaryKeyString}\">{archive.State.PrimaryKeyString}</a></p>");
                         break;
@@ -208,8 +246,9 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             }
 
             writer.Write("</body></html>");
+
         }
-        
+
         Process.Start(new ProcessStartInfo("cmd.exe", $"start /c \"{report}\"")
         {
             CreateNoWindow = true,
