@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Windows;
 using System.Windows.Threading;
@@ -96,7 +99,53 @@ public partial class App
             }
             else
             {
-                var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+                MainWindow mainWindow = null;
+                try
+                {
+                    mainWindow = _host.Services.GetRequiredService<MainWindow>();
+                }
+                catch (Exception ex)
+                {
+                    bool handled = false;
+                    if(ex is SQLiteException sQLiteException)
+                    {
+                        if(sQLiteException.ResultCode == SQLiteErrorCode.CantOpen)
+                        {
+                            // Attempt to clear read-only flag off Wabbajack directory
+                            try
+                            {
+                                if (KnownFolders.WabbajackAppLocal.DirectoryExists())
+                                {
+                                    var dir = new DirectoryInfo(KnownFolders.WabbajackAppLocal.ToString());
+                                    var dirSecurity = dir.GetAccessControl();
+                                    var deniedUserGroups = new List<IdentityReference>();
+                                    AuthorizationRuleCollection rules = dirSecurity.GetAccessRules(true, true, typeof(NTAccount));
+                                    foreach(FileSystemAccessRule rule in rules)
+                                    {
+                                        if(rule.AccessControlType == AccessControlType.Deny)
+                                        {
+                                            dirSecurity.RemoveAccessRule(rule);
+                                            deniedUserGroups.Add(rule.IdentityReference);
+                                            dirSecurity.AddAccessRule(new FileSystemAccessRule(rule.IdentityReference, FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow));
+                                            dir.SetAccessControl(dirSecurity);
+                                        }
+                                    }
+                                    mainWindow = _host.Services.GetRequiredService<MainWindow>();
+                                    if (mainWindow != null) handled = true;
+                                }
+                            }
+                            catch(Exception ex2)
+                            {
+                                int i = 0;
+                            }
+                        }
+                    }
+                    if (!handled)
+                    {
+                        MessageBox.Show($"Wabbajack failed to start! Full exception: {ex}", "Failed to start Wabbajack", MessageBoxButton.OK, MessageBoxImage.Error);
+                        throw;
+                    }
+                }
                 mainWindow!.Show();
                 return Disposable.Empty;
             }
@@ -189,7 +238,7 @@ public partial class App
         var webViewDir = currentDir.Combine("webview2");
         services.AddSingleton<WebView2>();
         services.AddSingleton<BrowserWindow>();
-        
+
         // ViewModels
         services.AddTransient<MainWindow>();
         services.AddTransient<MainWindowVM>();
@@ -226,7 +275,6 @@ public partial class App
         // Verbs
         services.AddSingleton<CommandLineBuilder>();
         services.AddCLIVerbs();
-
         return services;
     }
 }
