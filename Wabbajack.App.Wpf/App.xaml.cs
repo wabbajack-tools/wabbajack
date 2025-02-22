@@ -106,41 +106,22 @@ public partial class App
                 }
                 catch (Exception ex)
                 {
-                    bool handled = false;
                     if(ex is SQLiteException sQLiteException)
                     {
+                        // Attempt to clear read-only flag off Wabbajack directory
                         if(sQLiteException.ResultCode == SQLiteErrorCode.CantOpen)
-                        {
-                            // Attempt to clear read-only flag off Wabbajack directory
-                            try
-                            {
-                                if (KnownFolders.WabbajackAppLocal.DirectoryExists())
-                                {
-                                    var dir = new DirectoryInfo(KnownFolders.WabbajackAppLocal.ToString());
-                                    var dirSecurity = dir.GetAccessControl();
-                                    var deniedUserGroups = new List<IdentityReference>();
-                                    AuthorizationRuleCollection rules = dirSecurity.GetAccessRules(true, true, typeof(NTAccount));
-                                    foreach(FileSystemAccessRule rule in rules)
-                                    {
-                                        if(rule.AccessControlType == AccessControlType.Deny)
-                                        {
-                                            dirSecurity.RemoveAccessRule(rule);
-                                            deniedUserGroups.Add(rule.IdentityReference);
-                                            dirSecurity.AddAccessRule(new FileSystemAccessRule(rule.IdentityReference, FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow));
-                                            dir.SetAccessControl(dirSecurity);
-                                        }
-                                    }
-                                    mainWindow = _host.Services.GetRequiredService<MainWindow>();
-                                    if (mainWindow != null) handled = true;
-                                }
-                            }
-                            catch(Exception ex2)
-                            {
-                                int i = 0;
-                            }
-                        }
+                            GrantFullControlOverDir(KnownFolders.WabbajackAppLocal);
                     }
-                    if (!handled)
+
+                    try
+                    {
+                        mainWindow = _host.Services.GetRequiredService<MainWindow>();
+                    }
+                    catch (Exception) {
+                        mainWindow = null;
+                    }
+
+                    if (mainWindow == null)
                     {
                         MessageBox.Show($"Wabbajack failed to start! Full exception: {ex}", "Failed to start Wabbajack", MessageBoxButton.OK, MessageBoxImage.Error);
                         throw;
@@ -152,6 +133,33 @@ public partial class App
 
             return Disposable.Empty;
         });
+    }
+
+    private bool GrantFullControlOverDir(AbsolutePath path)
+    {
+        try
+        {
+            if (path.DirectoryExists())
+            {
+                var dir = new DirectoryInfo(path.ToString());
+                var dirSecurity = dir.GetAccessControl();
+                AuthorizationRuleCollection rules = dirSecurity.GetAccessRules(true, true, typeof(NTAccount));
+                foreach (FileSystemAccessRule rule in rules)
+                {
+                    if (rule.AccessControlType != AccessControlType.Deny) continue;
+
+                    dirSecurity.RemoveAccessRule(rule);
+                    dirSecurity.AddAccessRule(new FileSystemAccessRule(rule.IdentityReference, FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow));
+                    dir.SetAccessControl(dirSecurity);
+                }
+                return true;
+            }
+            return false;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)
