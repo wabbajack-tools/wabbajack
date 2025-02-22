@@ -5,9 +5,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
@@ -106,19 +109,20 @@ public partial class App
                 }
                 catch (Exception ex)
                 {
-                    if(ex is SQLiteException sQLiteException)
+                    if(ex is SQLiteException sqlException)
                     {
                         // Attempt to clear read-only flag off Wabbajack directory
-                        if(sQLiteException.ResultCode == SQLiteErrorCode.CantOpen)
-                            GrantFullControlOverDir(KnownFolders.WabbajackAppLocal);
-                    }
-
-                    try
-                    {
-                        mainWindow = _host.Services.GetRequiredService<MainWindow>();
-                    }
-                    catch (Exception) {
-                        mainWindow = null;
+                        if(sqlException.ResultCode == SQLiteErrorCode.CantOpen)
+                        {
+                            // First MessageBox in App.OnStartup does not trigger: https://github.com/dotnet/wpf/issues/10067
+                            MessageBox.Show("");
+                            var result = MessageBox.Show($"Wabbajack cannot read or write to settings files inside %localappdata%/Wabbajack! Let Wabbajack adjust permissions?", "Failed to start Wabbajack", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                            if (result == MessageBoxResult.Yes)
+                            {
+                                GrantFullControlOverDir(KnownFolders.WabbajackAppLocal);
+                                Restart();
+                            }
+                        }
                     }
 
                     if (mainWindow == null)
@@ -133,6 +137,25 @@ public partial class App
 
             return Disposable.Empty;
         });
+    }
+
+    private static void Restart()
+    {
+        try
+        {
+            var currentPath = Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location);
+            var cliDir = Path.Combine(currentPath, "cli");
+            string workingDir = Directory.Exists(cliDir) ? cliDir : currentPath;
+            Process.Start(new ProcessStartInfo()
+            {
+                FileName = "wabbajack-cli.exe",
+                Arguments = "restart",
+                CreateNoWindow = true
+            });
+        }
+        catch (Exception ex)
+        {
+        }
     }
 
     private bool GrantFullControlOverDir(AbsolutePath path)

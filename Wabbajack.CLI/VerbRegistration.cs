@@ -49,6 +49,8 @@ public static class CommandLineBuilderExtensions
         services.AddSingleton<ModlistReport>();
         CommandLineBuilder.RegisterCommand<Reset>(Reset.Definition, c => ((Reset)c).Run);
         services.AddSingleton<Reset>();
+        CommandLineBuilder.RegisterCommand<Restart>(Restart.Definition, c => ((Restart)c).Run);
+        services.AddSingleton<Restart>();
         CommandLineBuilder.RegisterCommand<UploadToNexus>(UploadToNexus.Definition, c => ((UploadToNexus)c).Run);
         services.AddSingleton<UploadToNexus>();
         CommandLineBuilder.RegisterCommand<ValidateLists>(ValidateLists.Definition, c => ((ValidateLists)c).Run);
