@@ -75,7 +75,8 @@ public class MainWindowVM : ViewModel
 
     public ICommand CopyVersionCommand { get; }
     public ICommand ShowLoginManagerVM { get; }
-    public ICommand InfoCommand { get; }
+    public ICommand GetHelpCommand { get; }
+    public ICommand LoadLocalFileCommand { get; }
     public ICommand MinimizeCommand { get; }
     public ICommand MaximizeCommand { get; }
     public ICommand CloseCommand { get; }
@@ -169,8 +170,7 @@ public class MainWindowVM : ViewModel
 
         if (IsStartingFromModlist(out var path))
         {
-            LoadModlistForInstalling.Send(path, null);
-            NavigateToGlobal.Send(ScreenType.Installer);
+            LoadModlist(path);
         }
         else
         {
@@ -270,15 +270,27 @@ public class MainWindowVM : ViewModel
         {
             Clipboard.SetText($"Wabbajack {VersionDisplay}\n{ThisAssembly.Git.Sha}");
         });
-        InfoCommand = ReactiveCommand.Create(ShowInfo);
+        GetHelpCommand = ReactiveCommand.Create(GetHelp);
+        LoadLocalFileCommand = ReactiveCommand.Create(LoadLocalFile);
         MinimizeCommand = ReactiveCommand.Create(Minimize);
         MaximizeCommand = ReactiveCommand.Create(ToggleMaximized);
         CloseCommand = ReactiveCommand.Create(Close);
     }
 
-    private void ShowInfo()
+    public void LoadModlist(AbsolutePath path)
     {
-        if (ActivePane is IHasInfoVM) ((IHasInfoVM)ActivePane).InfoCommand.Execute(null);
+        LoadModlistForInstalling.Send(path, null);
+        NavigateToGlobal.Send(ScreenType.Installer);
+    }
+
+    private void GetHelp()
+    {
+        if (ActivePane is ICanGetHelpVM) ((ICanGetHelpVM)ActivePane).GetHelpCommand.Execute(null);
+    }
+
+    private void LoadLocalFile()
+    {
+        if (ActivePane is ICanLoadLocalFileVM) ((ICanLoadLocalFileVM)ActivePane).LoadLocalFileCommand.Execute(null);
     }
 
     private void Minimize()

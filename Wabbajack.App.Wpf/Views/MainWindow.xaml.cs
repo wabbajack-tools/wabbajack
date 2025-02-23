@@ -149,9 +149,14 @@ public partial class MainWindow : MetroWindow
               });
 
             vm.WhenAnyValue(vm => vm.ActivePane)
-                .Subscribe(pane => InfoButton.Visibility = (pane is IHasInfoVM) ? Visibility.Visible : Visibility.Collapsed);
-            vm.WhenAnyValue(vm => vm.InfoCommand)
-                .BindTo(this, view => view.InfoButton.Command);
+                .Subscribe(pane => GetHelpButton.Visibility = (pane is ICanGetHelpVM) ? Visibility.Visible : Visibility.Collapsed);
+            vm.WhenAnyValue(vm => vm.GetHelpCommand)
+                .BindTo(this, view => view.GetHelpButton.Command);
+
+            vm.WhenAnyValue(vm => vm.ActivePane)
+                .Subscribe(pane => LoadLocalFileButton.Visibility = (pane is ICanLoadLocalFileVM) ? Visibility.Visible : Visibility.Collapsed);
+            vm.WhenAnyValue(vm => vm.LoadLocalFileCommand)
+                .BindTo(this, view => view.LoadLocalFileButton.Command);
 
             vm.WhenAnyValue(vm => vm.MinimizeCommand)
                 .BindTo(this, view => view.MinimizeButton.Command);

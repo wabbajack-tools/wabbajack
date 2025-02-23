@@ -87,8 +87,7 @@ public partial class App
                 var arg = args[0].ToAbsolutePath();
                 if (arg.FileExists() && arg.Extension == Ext.Wabbajack)
                 {
-                    var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-                    mainWindow!.Show();
+                    OpenUI();
                     return Disposable.Empty;
                 }
             } else if (args.Length > 0)
@@ -102,41 +101,46 @@ public partial class App
             }
             else
             {
-                MainWindow mainWindow = null;
-                try
-                {
-                    mainWindow = _host.Services.GetRequiredService<MainWindow>();
-                }
-                catch (Exception ex)
-                {
-                    if(ex is SQLiteException sqlException)
-                    {
-                        // Attempt to clear read-only flag off Wabbajack directory
-                        if(sqlException.ResultCode == SQLiteErrorCode.CantOpen)
-                        {
-                            // First MessageBox in App.OnStartup does not trigger: https://github.com/dotnet/wpf/issues/10067
-                            MessageBox.Show("");
-                            var result = MessageBox.Show($"Wabbajack cannot read or write to settings files inside %localappdata%/Wabbajack! Let Wabbajack adjust permissions?", "Failed to start Wabbajack", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                            if (result == MessageBoxResult.Yes)
-                            {
-                                GrantFullControlOverDir(KnownFolders.WabbajackAppLocal);
-                                Restart();
-                            }
-                        }
-                    }
-
-                    if (mainWindow == null)
-                    {
-                        MessageBox.Show($"Wabbajack failed to start! Full exception: {ex}", "Failed to start Wabbajack", MessageBoxButton.OK, MessageBoxImage.Error);
-                        throw;
-                    }
-                }
-                mainWindow!.Show();
+                OpenUI();
                 return Disposable.Empty;
             }
 
             return Disposable.Empty;
         });
+    }
+
+    private void OpenUI()
+    {
+        MainWindow mainWindow = null;
+        try
+        {
+            mainWindow = _host.Services.GetRequiredService<MainWindow>();
+        }
+        catch (Exception ex)
+        {
+            if (ex is SQLiteException sqlException)
+            {
+                // Attempt to clear read-only flag off Wabbajack directory
+                if (sqlException.ResultCode == SQLiteErrorCode.CantOpen)
+                {
+                    // First MessageBox in App.OnStartup does not trigger: https://github.com/dotnet/wpf/issues/10067
+                    MessageBox.Show("");
+                    var result = MessageBox.Show($"Wabbajack cannot read or write to settings files inside %localappdata%/Wabbajack! Let Wabbajack adjust permissions?", "Failed to start Wabbajack", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        GrantFullControlOverDir(KnownFolders.WabbajackAppLocal);
+                        Restart();
+                    }
+                }
+            }
+
+            if (mainWindow == null)
+            {
+                MessageBox.Show($"Wabbajack failed to start! Full exception: {ex}", "Failed to start Wabbajack", MessageBoxButton.OK, MessageBoxImage.Error);
+                throw;
+            }
+        }
+        mainWindow!.Show();
     }
 
     private static void Restart()

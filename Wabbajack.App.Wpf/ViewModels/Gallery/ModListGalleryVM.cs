@@ -15,18 +15,21 @@ using DynamicData.Binding;
 using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveMarbles.ObservableEvents;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
+using Wabbajack.Messages;
 using Wabbajack.Networking.WabbajackClientApi;
+using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.Services;
 
 namespace Wabbajack;
-public class ModListGalleryVM : BackNavigatingVM
+public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 {
     public class GameTypeEntry
     {
@@ -107,6 +110,9 @@ public class ModListGalleryVM : BackNavigatingVM
 
     public ICommand ResetFiltersCommand { get; set; }
 
+    public FilePickerVM LocalFilePicker { get; set; }
+    public ICommand LoadLocalFileCommand { get; set; }
+
     public ModListGalleryVM(ILogger<ModListGalleryVM> logger, Client wjClient, GameLocator locator,
         SettingsManager settingsManager, ModListDownloadMaintainer maintainer, CancellationToken cancellationToken, IServiceProvider serviceProvider)
         : base(logger)
@@ -120,6 +126,14 @@ public class ModListGalleryVM : BackNavigatingVM
         _cancellationToken = cancellationToken;
         _serviceProvider = serviceProvider;
 
+        LocalFilePicker = new FilePickerVM(this);
+        LocalFilePicker.ExistCheckOption = FilePickerVM.CheckOptions.On;
+        LocalFilePicker.PathType = FilePickerVM.PathTypeOptions.File;
+        LocalFilePicker.Filters.AddRange(new[]
+        {
+            new CommonFileDialogFilter("Wabbajack Modlist", "*" + Ext.Wabbajack),
+        });
+
         ResetFiltersCommand = ReactiveCommand.Create(() => {
             OnlyInstalled = false;
             IncludeNSFW = false;
@@ -128,6 +142,16 @@ public class ModListGalleryVM : BackNavigatingVM
             SelectedGameTypeEntry = GameTypeEntries?.FirstOrDefault();
             HasTags = new ObservableCollection<ModListTag>();
             HasMods = new ObservableCollection<ModListMod>();
+        });
+
+        LoadLocalFileCommand = ReactiveCommand.Create(() =>
+        {
+            LocalFilePicker.ConstructTypicalPickerCommand().Execute(null);
+            if (LocalFilePicker.TargetPath.FileExists())
+            {
+                LoadModlistForInstalling.Send(LocalFilePicker.TargetPath, null);
+                NavigateToGlobal.Send(ScreenType.Installer);
+            }
         });
 
         this.WhenActivated(disposables =>

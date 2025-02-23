@@ -95,12 +95,24 @@
                 </Border>
             </DockPanel>
             <!--<TextBlock Grid.Column="2" FontSize="13" Padding="8, 8" Name="ResourceUsage" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>-->
-            <Button Grid.Column="3" Style="{StaticResource MainButtonStyleLessRounded}" Background="{StaticResource BackgroundPrimary08Brush}" Name="InfoButton" Padding="12, 0" Margin="0, 10, 12, 10">
-                <DockPanel>
-                    <TextBlock FontSize="13" Text="Get Help" VerticalAlignment="Center" Margin="0, 0, 8, 0" />
-                    <ic:SymbolIcon FontSize="18" Symbol="QuestionCircle" VerticalAlignment="Center"/>
-                </DockPanel>
-            </Button>
+            <Grid Grid.Column="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Style="{StaticResource MainButtonStyleLessRounded}" Background="{StaticResource BackgroundPrimary08Brush}" Name="LoadLocalFileButton" Padding="12, 0" Margin="0, 10, 12, 10">
+                    <DockPanel>
+                        <TextBlock FontSize="13" Text="Load local file" VerticalAlignment="Center" Margin="0, 0, 8, 0" />
+                        <ic:SymbolIcon FontSize="18" Symbol="ArrowUpload" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </Button>
+                <Button Grid.Column="1" Style="{StaticResource MainButtonStyleLessRounded}" Background="{StaticResource BackgroundPrimary08Brush}" Name="GetHelpButton" Padding="12, 0" Margin="0, 10, 12, 10">
+                    <DockPanel>
+                        <TextBlock FontSize="13" Text="Get Help" VerticalAlignment="Center" Margin="0, 0, 8, 0" />
+                        <ic:SymbolIcon FontSize="18" Symbol="QuestionCircle" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </Button>
+            </Grid>
             <Button Grid.Column="4" Style="{StaticResource IconBareButtonStyle}" Name="MinimizeButton" Padding="12">
                 <ic:SymbolIcon Symbol="Subtract" FontSize="18"/>
             </Button>

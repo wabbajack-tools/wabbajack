@@ -207,13 +207,13 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
         {
             UIUtils.OpenWebsite(new Uri(ModlistMetadata.Links.DiscordURL));
         }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModlistMetadata,
-        (isNotLoading, metadata) => isNotLoading && !string.IsNullOrWhiteSpace(metadata?.Links?.DiscordURL)));
+        (isNotLoading, metadata) => isNotLoading && !string.IsNullOrEmpty(metadata?.Links?.DiscordURL)));
 
         OpenManifestCommand = ReactiveCommand.Create(() =>
         {
             // TODO: Open modlist archives in modal dialog
             UIUtils.OpenWebsite(new Uri("https://www.wabbajack.org/search/" + ModlistMetadata.NamespacedName));
-        }, this.WhenAnyValue(x => x.LoadingLock.IsNotLoading));
+        }, this.WhenAnyValue(x => x.LoadingLock.IsNotLoading, vm => vm.ModlistMetadata, (isNotLoading, metadata) => isNotLoading && !string.IsNullOrEmpty(metadata?.NamespacedName)));
         
         OpenInstallFolderCommand = ReactiveCommand.Create(() =>
         {
@@ -492,7 +492,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
             var stream = await StandardInstaller.ModListImageStream(path);
             if(stream != null) ModListImage = UIUtils.BitmapImageFromStream(stream);
 
-            ConfigurationText = $"Preparing to install {ModlistMetadata.Title}";
+            ConfigurationText = $"Preparing to install {metadata?.Title ?? ModList.Name}";
             ProgressText = $"Installation";
             
             var hex = (await WabbajackFileLocation.TargetPath.ToString().Hash()).ToHex();
@@ -510,8 +510,12 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogInformation(ex, "Can't load metadata cached next to file");
+                    _logger.LogInformation(ex, "Can't load metadata next to file");
                 }
+            }
+            else
+            {
+                _logger.LogInformation("Modlist metadata not loaded, possibly using local install without metadata file");
             }
 
             if (prevSettings.ModListLocation == path)

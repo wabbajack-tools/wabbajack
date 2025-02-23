@@ -172,39 +172,39 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      .BindToStrict(this, v => v.CompletedImage.Image)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.ModlistMetadata.Author)
+            ViewModel.WhenAny(vm => vm.ModList.Author)
                      .BindToStrict(this, v => v.DetailImage.Author)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.ModlistMetadata.Author)
+            ViewModel.WhenAny(vm => vm.ModList.Author)
                      .BindToStrict(this, v => v.InstallDetailImage.Author)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.ModlistMetadata.Author)
+            ViewModel.WhenAny(vm => vm.ModList.Author)
                      .BindToStrict(this, v => v.CompletedImage.Author)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.ModlistMetadata.Title)
+            ViewModel.WhenAny(vm => vm.ModList.Name)
                      .BindToStrict(this, v => v.DetailImage.Title)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.ModlistMetadata.Title)
+            ViewModel.WhenAny(vm => vm.ModList.Name)
                      .BindToStrict(this, v => v.InstallDetailImage.Title)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.ModlistMetadata.Title)
+            ViewModel.WhenAny(vm => vm.ModList.Name)
                      .BindToStrict(this, v => v.CompletedImage.Title)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAnyValue(vm => vm.ModlistMetadata.Version)
+            ViewModel.WhenAnyValue(vm => vm.ModList.Version)
                      .BindToStrict(this, v => v.DetailImage.Version)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAnyValue(vm => vm.ModlistMetadata.Version)
+            ViewModel.WhenAnyValue(vm => vm.ModList.Version)
                      .BindToStrict(this, v => v.InstallDetailImage.Version)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAnyValue(vm => vm.ModlistMetadata.Version)
+            ViewModel.WhenAnyValue(vm => vm.ModList.Version)
                      .BindToStrict(this, v => v.CompletedImage.Version)
                      .DisposeWith(disposables);
 
@@ -278,63 +278,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                               .DisposeWith(disposables);
 
             /*
-            ViewModel.WhenAnyValue(vm => vm.InstallState)
-                .Select(v => v != InstallState.Configuration ? Visibility.Visible : Visibility.Collapsed)
-                .BindToStrict(this, view => view.MidInstallDisplayGrid.Visibility)
-                .DisposeWith(disposables);
-            
-            ViewModel.WhenAnyValue(vm => vm.InstallState)
-                .Select(v => v == InstallState.Configuration ? Visibility.Visible : Visibility.Collapsed)
-                .BindToStrict(this, view => view.BottomButtonInputGrid.Visibility)
-                .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(vm => vm.InstallState)
-                .Select(es => es is InstallState.Success or InstallState.Failure ? Visibility.Visible : Visibility.Collapsed)
-                .BindToStrict(this, view => view.InstallComplete.Visibility)
-                .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(vm => vm.InstallState)
-                .Select(v => v == InstallState.Installing ? Visibility.Collapsed : Visibility.Visible)
-                .BindToStrict(this, view => view.BackButton.Visibility)
-                .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(vm => vm.OpenReadmeCommand)
-                .BindToStrict(this, view => view.OpenReadmePreInstallButton.Command)
-                .DisposeWith(disposables);
-            
-            ViewModel.WhenAnyValue(vm => vm.OpenDiscordButton)
-                .BindToStrict(this, view => view.OpenDiscordPreInstallButton.Command)
-                .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(vm => vm.VisitModListWebsiteCommand)
-                .BindToStrict(this, view => view.OpenWebsite.Command)
-                .DisposeWith(disposables);
-            
-            ViewModel.WhenAnyValue(vm => vm.VisitModListWebsiteCommand)
-                .BindToStrict(this, view => view.VisitWebsitePreInstallButton.Command)
-                .DisposeWith(disposables);
-            
-            ViewModel.WhenAnyValue(vm => vm.ShowManifestCommand)
-                .BindToStrict(this, view => view.ShowManifestPreInstallButton.Command)
-                .DisposeWith(disposables);
-            
-            ViewModel.WhenAnyValue(vm => vm.BeginCommand)
-                .BindToStrict(this, view => view.InstallationConfigurationView.BeginButton.Command)
-                .DisposeWith(disposables);
-            
-            // Status
-            ViewModel.WhenAnyValue(vm => vm.ProgressText)
-                .ObserveOnGuiThread()
-                .BindToStrict(this, view => view.TopProgressBar.Title)
-                .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(vm => vm.ProgressPercent)
-                .ObserveOnGuiThread()
-                .Select(p => p.Value)
-                .BindToStrict(this, view => view.TopProgressBar.ProgressPercent)
-                .DisposeWith(disposables);
-
-
             // Slideshow
             ViewModel.WhenAnyValue(vm => vm.SlideShowTitle)
                 .Select(f => f)
@@ -363,7 +306,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             ViewModel.ReadmeBrowser.Width = double.NaN;
             ViewModel.ReadmeBrowser.Height = double.NaN;
             ViewModel.ReadmeBrowser.Visibility = Visibility.Visible;
-            if(ViewModel?.ModList?.Readme != null)
+            if(!string.IsNullOrEmpty(ViewModel?.ModList?.Readme))
                 ViewModel.ReadmeBrowser.Source = new Uri(UIUtils.GetHumanReadableReadmeLink(ViewModel.ModList.Readme));
             ReadmeBrowserGrid.Children.Add(ViewModel.ReadmeBrowser);
         });

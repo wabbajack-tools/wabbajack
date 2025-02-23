@@ -13,7 +13,7 @@ using System.Diagnostics;
 
 namespace Wabbajack;
 
-public class HomeVM : ViewModel, IHasInfoVM
+public class HomeVM : ViewModel, ICanGetHelpVM
 {
     private readonly ILogger<HomeVM> _logger;
     private readonly Client _wjClient;
@@ -23,7 +23,7 @@ public class HomeVM : ViewModel, IHasInfoVM
         _logger = logger;
         _wjClient = wjClient;
         BrowseCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.ModListGallery));
-        InfoCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo("https://wiki.wabbajack.org/") { UseShellExecute = true }));
+        GetHelpCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo("https://wiki.wabbajack.org/") { UseShellExecute = true }));
         VisitModlistWizardCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(Consts.WabbajackModlistWizardUri.ToString()) { UseShellExecute = true }));
         LoadModLists().FireAndForget();
     }
@@ -49,5 +49,5 @@ public class HomeVM : ViewModel, IHasInfoVM
     [Reactive]
     public ModlistMetadata[] Modlists { get; private set; }
 
-    public ICommand InfoCommand { get; set; }
+    public ICommand GetHelpCommand { get; set; }
 }

@@ -32,7 +32,7 @@ using System.Reactive.Concurrency;
 
 namespace Wabbajack;
 
-public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
+public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ResourceMonitor _resourceMonitor;
@@ -45,7 +45,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
     public LogStream LoggerProvider { get; }
     public CancellationTokenSource CancellationTokenSource { get; private set; }
 
-    public ICommand InfoCommand { get; }
+    public ICommand GetHelpCommand { get; }
     public ICommand StartCommand { get; }
     public ICommand CancelCommand { get; }
     public ICommand OpenLogCommand { get; }
@@ -72,7 +72,7 @@ public class CompilerMainVM : BaseCompilerVM, IHasInfoVM, ICpuStatusVM
 
         CancellationTokenSource = new CancellationTokenSource();
 
-        InfoCommand = ReactiveCommand.Create(Info);
+        GetHelpCommand = ReactiveCommand.Create(Info);
         StartCommand = ReactiveCommand.Create(StartCompilation,
             this.WhenAnyValue(vm => vm.Settings.ModListName,
                               vm => vm.Settings.ModListAuthor,
