@@ -63,6 +63,7 @@ public class MainWindowVM : ViewModel
     public readonly ModListDetailsVM ModListDetailsVM;
     public readonly InfoVM InfoVM;
     public readonly FileUploadVM FileUploadVM;
+    public readonly MegaLoginVM MegaLoginVM;
     public readonly UserInterventionHandlers UserInterventionHandlers;
     private readonly Client _wjClient;
     private readonly ILogger<MainWindowVM> _logger;
@@ -95,7 +96,7 @@ public class MainWindowVM : ViewModel
 
     public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
         IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-        InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM, FileUploadVM fileUploadVM, SystemParametersConstructor systemParams, HttpClient httpClient)
+        InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM, FileUploadVM fileUploadVM, MegaLoginVM megaLoginVM, SystemParametersConstructor systemParams, HttpClient httpClient)
     {
         _logger = logger;
         _wjClient = wjClient;
@@ -116,6 +117,7 @@ public class MainWindowVM : ViewModel
         InfoVM = infoVM;
         ModListDetailsVM = modlistDetailsVM;
         FileUploadVM = fileUploadVM;
+        MegaLoginVM = megaLoginVM;
         UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetRequiredService<ILogger<UserInterventionHandlers>>(), this);
 
         this.WhenAnyValue(x => x.ActiveFloatingPane)
@@ -361,6 +363,7 @@ public class MainWindowVM : ViewModel
             FloatingScreenType.None => null,
             FloatingScreenType.ModListDetails => ModListDetailsVM,
             FloatingScreenType.FileUpload => FileUploadVM,
+            FloatingScreenType.MegaLogin => MegaLoginVM,
             _ => ActiveFloatingPane
         };
     }

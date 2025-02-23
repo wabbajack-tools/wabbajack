@@ -30,7 +30,7 @@
             <ItemsControl Grid.Row="1" x:Name="DownloadersList">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <local:LoginItemView ViewModel="{Binding}" />
+                        <local:LoginItemView ViewModel="{Binding}" Margin="0, 0, 0, 8" />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

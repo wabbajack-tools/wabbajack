@@ -6,7 +6,8 @@ public enum FloatingScreenType
 {
     None,
     ModListDetails,
-    FileUpload
+    FileUpload,
+    MegaLogin
 }
 
 public class ShowFloatingWindow

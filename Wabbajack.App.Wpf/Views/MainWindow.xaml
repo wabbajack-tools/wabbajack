@@ -46,6 +46,9 @@
                         <DataTemplate DataType="{x:Type local:FileUploadVM}">
                             <local:FileUploadView ViewModel="{Binding}" />
                         </DataTemplate>
+                        <DataTemplate DataType="{x:Type local:MegaLoginVM}">
+                            <local:MegaLoginView ViewModel="{Binding}" />
+                        </DataTemplate>
                     </ContentPresenter.Resources>
                 </ContentPresenter>
             </Border>

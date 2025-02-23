@@ -17,7 +17,7 @@ using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 
-namespace Wabbajack.Downloaders.ModDB;
+namespace Wabbajack.Downloaders;
 
 public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
 {
@@ -79,8 +79,8 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
             if (_tokenProvider.HaveToken())
             {
                 var authInfo = await _tokenProvider.Get();
-                _logger.LogInformation("Logging into Mega with {Email}", authInfo!.Email);
-                await _apiClient.LoginAsync(authInfo!.Email, authInfo.Password);
+                _logger.LogInformation("Logging into Mega");
+                await _apiClient.LoginAsync(authInfo!.Login);
             }
             else
             {

@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Wabbajack.Downloaders.ModDB;
+using Wabbajack.Downloaders;
 using Wabbajack.DTOs.JsonConverters;
 
 namespace Wabbajack.Services.OSIntegrated.TokenProviders;

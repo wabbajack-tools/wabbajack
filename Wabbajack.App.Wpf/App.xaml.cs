@@ -286,6 +286,7 @@ public partial class App
         services.AddTransient<InfoVM>();
         services.AddTransient<ModListDetailsVM>();
         services.AddTransient<FileUploadVM>();
+        services.AddTransient<MegaLoginVM>();
         services.AddTransient<AboutVM>();
 
         // Login Handlers
@@ -298,6 +299,7 @@ public partial class App
         //Disabled LL because it is currently not used and broken due to the way LL butchers their API
         //services.AddAllSingleton<INeedsLogin, LoversLabLoginManager>();
         services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
+        services.AddAllSingleton<INeedsLogin, MegaLoginManager>();
         //Disabled VP due to frequent login issues & because the only file that really got downloaded there has a mirror
         //services.AddAllSingleton<INeedsLogin, VectorPlexusLoginManager>();
         services.AddSingleton<ManualDownloadHandler>();
