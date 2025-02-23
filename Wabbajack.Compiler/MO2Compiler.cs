@@ -324,7 +324,7 @@ public class MO2Compiler : ACompiler
 
         if (!_settings.UseTextureRecompression)
         {
-            _logger.LogInformation("Texture recompression disabled! Skipping MatchSimiliarTextures step.");
+            _logger.LogInformation("Texture recompression disabled! Removing MatchSimiliarTextures from the compilation stack.");
             steps = steps.Where(s => s is not MatchSimilarTextures).ToList();
         }
         else
