@@ -594,7 +594,7 @@ public static class GameRegistry
                     @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath() 
                 },
                 MainExecutable = @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath(),
-                IconSource = "https://cdn2.steamgriddb.com/icon/811cf46d61c9ae564bf7fa4b5ac639b.png"
+                IconSource = "https://cdn2.steamgriddb.com/icon/811cf46d61c9ae564bf7fa4b5abc639b.png"
             }
         },
         {
@@ -613,6 +613,7 @@ public static class GameRegistry
                     @"ff7remake_.exe".ToRelativePath()
                 },
                 MainExecutable = @"End\Binaries\Win64\ff7remake_.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/d9b47f916e531ac9ef2b0887ca72d698.png"
             }
         },
         {
@@ -666,7 +667,8 @@ public static class GameRegistry
                     @"7DaysToDie.exe".ToRelativePath(),
                     @"7dLauncher.exe".ToRelativePath(),
                 },
-                MainExecutable = @"7DaysToDie.exe".ToRelativePath()
+                MainExecutable = @"7DaysToDie.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/2b1f462a660e29c47acdcc25cb14d321.png", 
             }
         },
         {
