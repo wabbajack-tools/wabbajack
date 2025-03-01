@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Reactive.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using MsBox.Avalonia.Dto;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.Http;
@@ -40,9 +43,22 @@ public class MainWindowViewModel : ViewModelBase
         Status = "Checking for new versions";
         _downloader = downloader;
         _tokenProvider = tokenProvider;
+
+        this.WhenAnyValue(vm => vm.Status)
+            .Buffer(2, 1)
+            .Select(b => b[0])
+            .Subscribe(s => {
+                if (s.StartsWith("Extracting") || s.StartsWith("Downloading")) return;
+
+                if (StatusHistory.Count >= 3)
+                    StatusHistory.RemoveAt(0);
+
+                StatusHistory.Add(s);
+            });
         var tsk = CheckForUpdates();
     }
 
+    [Reactive] ObservableCollection<string> StatusHistory { get; set; } = new ObservableCollection<string>();
     [Reactive] public string Status { get; set; }
 
     private async Task CheckForUpdates()
