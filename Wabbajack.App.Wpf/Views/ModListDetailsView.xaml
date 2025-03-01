@@ -85,9 +85,11 @@
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Name}" Value="NSFW">
                                                         <Setter Property="Background" Value="#81131B" />
+                                                        <Setter Property="ToolTip" Value="This modlist contains Not Safe For Work content such as nudity and sex frameworks." />
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Name}" Value="Featured">
                                                         <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+                                                        <Setter Property="ToolTip" Value="This modlist has been tested and provides a stable experience with official support channels. More info about featured modlists is available on the Wabbajack wiki." />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                                 <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
