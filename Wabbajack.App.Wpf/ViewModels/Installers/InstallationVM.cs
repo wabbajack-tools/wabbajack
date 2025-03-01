@@ -606,7 +606,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
             try
             {
-                StandardInstaller = StandardInstaller.Create(_serviceProvider, new InstallerConfiguration
+                var cfg = new InstallerConfiguration
                 {
                     Game = ModList.GameType,
                     Downloads = Installer.DownloadLocation.TargetPath,
@@ -615,7 +615,8 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                     ModlistArchive = WabbajackFileLocation.TargetPath,
                     SystemParameters = _parametersConstructor.Create(),
                     GameFolder = _gameLocator.GameLocation(ModList.GameType)
-                });
+                };
+                StandardInstaller = StandardInstaller.Create(_serviceProvider, cfg);
 
 
                 StandardInstaller.OnStatusUpdate = update =>
@@ -626,6 +627,13 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                         ProgressPercent = update.StepsProgress;
                     });
                 };
+
+                _logger.LogInformation("Starting installation of {modlist} {version}:", cfg.ModList.Name, cfg.ModList.Version?.ToString() ?? "");
+                _logger.LogInformation("    Installation folder: {installFolder}", cfg.Install.ToString());
+                _logger.LogInformation("    Downloads folder: {downloadsFolder}", cfg.Downloads.ToString());
+                _logger.LogInformation("    Modlist file location: {wjFileLocation}", cfg.ModlistArchive.ToString());
+                _logger.LogInformation("    Game: {game}", cfg.Game.ToString());
+                _logger.LogInformation("    Game folder: {gameFolder}", cfg.GameFolder);
 
                 var result = await StandardInstaller.Begin(_cancellationTokenSource.Token);
                 if (result == Wabbajack.Installer.InstallResult.Succeeded)
