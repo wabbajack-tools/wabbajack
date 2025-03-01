@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reactive;
 using System.Reactive.Subjects;
+using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -23,8 +24,7 @@ public class WebBrowserVM : ViewModel, IBackNavigatingVM, IDisposable
     [Reactive]
     public ViewModel NavigateBackTarget { get; set; }
 
-    [Reactive]
-    public ReactiveCommand<Unit, Unit> CloseCommand { get; set; }
+    [Reactive] public ICommand CloseCommand { get; set; }
 
     public Subject<bool> IsBackEnabledSubject { get; } = new Subject<bool>();
     public IObservable<bool> IsBackEnabled { get; }

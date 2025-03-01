@@ -218,7 +218,10 @@ public partial class MainWindow : MetroWindow
         {
             if(_mousePressedTimer.Elapsed < TimeSpan.FromSeconds(0.2))
             {
-                ShowFloatingWindow.Send(FloatingScreenType.None);
+                if (((MainWindowVM)DataContext).ActiveFloatingPane is IClosableVM closingPane)
+                    closingPane.CloseCommand.Execute(null);
+                else
+                    ShowFloatingWindow.Send(FloatingScreenType.None);
             }
             _mousePressedTimer.Stop();
         }

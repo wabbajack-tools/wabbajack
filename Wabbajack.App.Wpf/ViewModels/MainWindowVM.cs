@@ -38,6 +38,7 @@ namespace Wabbajack;
 /// </summary>
 public class MainWindowVM : ViewModel
 {
+    private object _browserLocker = new object();
     public MainWindow MainWindow { get; }
 
     [Reactive]
@@ -70,7 +71,6 @@ public class MainWindowVM : ViewModel
     private readonly ResourceMonitor _resourceMonitor;
     private readonly SystemParametersConstructor _systemParams;
 
-    private List<ViewModel> PreviousPanes = new();
     private readonly IServiceProvider _serviceProvider;
 
     public ICommand CopyVersionCommand { get; }
@@ -136,10 +136,6 @@ public class MainWindowVM : ViewModel
 
         MessageBus.Current.Listen<NavigateTo>()
             .Subscribe(m => HandleNavigateTo(m.ViewModel))
-            .DisposeWith(CompositeDisposable);
-
-        MessageBus.Current.Listen<NavigateBack>()
-            .Subscribe(HandleNavigateBack)
             .DisposeWith(CompositeDisposable);
 
         MessageBus.Current.Listen<ShowBrowserWindow>()
@@ -320,12 +316,6 @@ public class MainWindowVM : ViewModel
         ActivePane = objViewModel;
     }
 
-    private void HandleNavigateBack(NavigateBack navigateBack)
-    {
-        ActivePane = PreviousPanes.Last();
-        PreviousPanes.RemoveAt(PreviousPanes.Count - 1);
-    }
-
     private void HandleManualDownload(ManualDownload manualDownload)
     {
         var handler = _serviceProvider.GetRequiredService<ManualDownloadHandler>();
@@ -340,20 +330,16 @@ public class MainWindowVM : ViewModel
         //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
     }
 
-    private void HandleShowBrowserWindow(ShowBrowserWindow msg)
+    private async void HandleShowBrowserWindow(ShowBrowserWindow msg)
     {
         var browserWindow = _serviceProvider.GetRequiredService<BrowserWindow>();
         ActiveFloatingPane = browserWindow.ViewModel = msg.ViewModel;
         browserWindow.DataContext = ActiveFloatingPane;
-        RxApp.MainThreadScheduler.Schedule(() => browserWindow.ViewModel.Activator.Activate());
-        if(ActiveFloatingPane != null) ((BrowserWindowViewModel)ActiveFloatingPane).Closed += (_, _) => ActiveFloatingPane?.Activator.Deactivate();
+        await browserWindow.ViewModel.RunBrowserOperation();
     }
 
     private void HandleNavigateTo(ScreenType s)
     {
-        if (s is ScreenType.Settings)
-            PreviousPanes.Add(ActivePane);
-
         ActivePane = s switch
         {
             ScreenType.Home => HomeVM,

@@ -17,12 +17,17 @@ using Wabbajack.DTOs.Logins;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Messages;
 using Wabbajack.Paths;
+using System.Reactive.Concurrency;
+using Microsoft.Extensions.Logging;
 
 namespace Wabbajack;
 
-public abstract class BrowserWindowViewModel : ViewModel
+public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
 {
-    private IServiceProvider _serviceProvider { get; set; }
+    private readonly ILogger<BrowserWindowViewModel> _logger;
+    private readonly IServiceProvider _serviceProvider;
+    private CancellationTokenSource _tokenSource;
+
     [Reactive] public WebView2 Browser { get; set; }
     [Reactive] public string HeaderText { get; set; }
     [Reactive] public string Instructions { get; set; }
@@ -34,19 +39,33 @@ public abstract class BrowserWindowViewModel : ViewModel
     public BrowserWindowViewModel(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
+        _logger = serviceProvider.GetRequiredService<ILogger<BrowserWindowViewModel>>();
         BackCommand = ReactiveCommand.Create(() => Browser.GoBack());
-        CloseCommand = ReactiveCommand.Create(() => Close());
-        this.WhenActivated(disposable =>
-        {
-            Browser = _serviceProvider.GetRequiredService<WebView2>();
+        CloseCommand = ReactiveCommand.Create(() => _tokenSource.Cancel());
+    }
 
-            RunWrapper(CancellationToken.None).ContinueWith((_) => Close());
-            Disposable.Empty.DisposeWith(disposable);
-        });
+    public async Task RunBrowserOperation()
+    {
+        Browser = _serviceProvider.GetRequiredService<WebView2>();
+
+        try
+        {
+            _tokenSource = new CancellationTokenSource();
+            await RunWrapper(_tokenSource.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("User manually cancelled browser operation!");
+        }
+        finally
+        {
+            Close();
+        }
     }
 
     private void Close()
     {
+        _tokenSource.Dispose();
         ShowFloatingWindow.Send(FloatingScreenType.None);
         if(Closed != null)
         {
@@ -56,13 +75,12 @@ public abstract class BrowserWindowViewModel : ViewModel
                 Closed -= delegateMethod as EventHandler;
             }
         }
-        //Activator.Deactivate();
+        Activator.Deactivate();
     }
 
     public async Task RunWrapper(CancellationToken token)
     {
         await Run(token);
-        //MessageBus.Current.SendMessage(new CloseBrowserTab(this));
     }
 
     protected abstract Task Run(CancellationToken token);

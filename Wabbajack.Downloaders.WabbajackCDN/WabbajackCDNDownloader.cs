@@ -78,6 +78,7 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader,
         CancellationToken token)
     {
         var definition = (await GetDefinition(state, token))!;
+        if (definition == null) return default;
         await using var fs = destination.Open(FileMode.Create, FileAccess.Write, FileShare.None);
 
         await definition.Parts.PMapAll<PartDefinition, (MemoryStream, PartDefinition)>(async part =>

@@ -3,6 +3,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -14,17 +15,17 @@ namespace Wabbajack;
 public interface IBackNavigatingVM : IReactiveObject
 {
     ViewModel NavigateBackTarget { get; set; }
-    ReactiveCommand<Unit, Unit> CloseCommand { get; }
+    ICommand CloseCommand { get; }
     
     Subject<bool> IsBackEnabledSubject { get; }
     IObservable<bool> IsBackEnabled { get; }
 }
 
-public class BackNavigatingVM : ViewModel, IBackNavigatingVM
+public class BackNavigatingVM : ViewModel, IBackNavigatingVM, IClosableVM
 {
     [Reactive]
     public ViewModel NavigateBackTarget { get; set; }
-    public ReactiveCommand<Unit, Unit> CloseCommand { get; protected set; }
+    public ICommand CloseCommand { get; protected set; }
     
     [Reactive]
     public bool IsActive { get; set; }

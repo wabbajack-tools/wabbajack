@@ -275,10 +275,12 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                 })
                 .DisposeWith(disposables);
 
+            /*
             var token = new CancellationTokenSource();
             BeginSlideShow(token.Token).FireAndForget();
             Disposable.Create(() => token.Cancel())
                 .DisposeWith(disposables);
+            */
             
             this.WhenAny(vm => vm.WabbajackFileLocation.ErrorState)
                 .CombineLatest<ErrorResponse, ErrorResponse, ErrorResponse, AbsolutePath, AbsolutePath, AbsolutePath>(this.WhenAny(vm => vm.Installer.DownloadLocation.ErrorState),
