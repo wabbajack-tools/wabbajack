@@ -34,8 +34,6 @@
 				</TransformGroup>
 			</Image.RenderTransform>
 		</Image>
-        <!--<Image Grid.Row="0" Source="/Assets/Wabba_Mouth_Small.png" />-->
-
 		<Label Grid.Row="1" Foreground="#7BFFFFFF" FontSize="16" Content="{Binding StatusHistory[0]}" />
 		<Label Grid.Row="2" Foreground="#7BFFFFFF" FontSize="16" Content="{Binding StatusHistory[1]}" />
 		<Label Grid.Row="3" Foreground="#7BFFFFFF" FontSize="16" Content="{Binding StatusHistory[2]}" />

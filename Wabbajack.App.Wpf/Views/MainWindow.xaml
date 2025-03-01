@@ -22,7 +22,7 @@
     RenderOptions.BitmapScalingMode="HighQuality"
     ResizeMode="CanResize"
     Style="{StaticResource {x:Type Window}}"
-    TitleBarHeight="64"
+    TitleBarHeight="54"
     UseLayoutRounding="True"
     WindowTitleBrush="{StaticResource BackgroundBrush}"
     mc:Ignorable="d"
@@ -94,7 +94,6 @@
                     </Grid>
                 </Border>
             </DockPanel>
-            <!--<TextBlock Grid.Column="2" FontSize="13" Padding="8, 8" Name="ResourceUsage" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>-->
             <Grid Grid.Column="3">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />

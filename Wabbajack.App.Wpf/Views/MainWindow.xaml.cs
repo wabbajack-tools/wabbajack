@@ -1,29 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Input;
-using DynamicData.Binding;
 using MahApps.Metro.Controls;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Messages;
-using Wabbajack.Paths.IO;
-using Wabbajack.Util;
 using ReactiveMarbles.ObservableEvents;
-using System.Reactive;
 using System.Diagnostics;
 using System.Linq;
-using System.Collections;
-using System.Windows.Data;
-using System.Reactive.Concurrency;
-using System.Windows.Controls;
-using System.Windows.Markup;
 
 namespace Wabbajack;
 
