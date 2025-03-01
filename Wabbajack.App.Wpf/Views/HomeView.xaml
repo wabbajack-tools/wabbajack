@@ -60,7 +60,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Find a modlist that suits you" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
-                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="CheckmarkStarburst" IconVariant="Filled" FontSize="28" Foreground="{StaticResource PrimaryBrush}" />
+                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="Search" IconVariant="Filled" FontSize="28" Foreground="{StaticResource PrimaryBrush}" />
                     <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
                     Go through a series of questions to find a modlist that works for you through our<LineBreak />
                      <Hyperlink Command="{Binding VisitModlistWizardCommand}">Wabbakinator quiz</Hyperlink>, or <Hyperlink Command="{Binding BrowseCommand}">navigate the gallery</Hyperlink> yourself and pick something fun.
