@@ -272,8 +272,10 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             MessageBus.Current.Listen<ShowFloatingWindow>()
                               .Subscribe(msg =>
                               {
-                                  if (msg.Screen == FloatingScreenType.None && ReadmeBrowserGrid.Visibility == Visibility.Visible)
-                                      TakeWebViewOwnershipForReadme();
+                                  if (msg.Screen == FloatingScreenType.None && (ReadmeToggleButton.IsChecked ?? false))
+                                      ReadmeBrowserGrid.Visibility = Visibility.Visible;
+                                  else
+                                      ReadmeBrowserGrid.Visibility = Visibility.Collapsed;
                               })
                               .DisposeWith(disposables);
 

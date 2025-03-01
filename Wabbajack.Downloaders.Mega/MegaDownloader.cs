@@ -91,11 +91,10 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
             }
             else
             {
-                _logger.LogWarning("This modlist requires MEGA downloads but the user is not signed in! MEGA downloads will fail!");
                 return false;
             }
         }
-        return false;
+        return true;
     }
 
     public override async Task<Hash> Download(Archive archive, Mega state, AbsolutePath destination, IJob job,
