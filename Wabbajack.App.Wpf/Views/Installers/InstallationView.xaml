@@ -198,7 +198,7 @@
                             IconVariant="Filled"
                             Symbol="ErrorCircle"
                             HorizontalAlignment="Center"
-                            FontSize="{Binding ElementName=StoppedMessage, Path=ActualHeight, Converter={StaticResource MathConverter}, ConverterParameter=x*1.5}"
+                            FontSize="{Binding ElementName=StoppedMessage, Path=ActualHeight, Converter={StaticResource MathConverter}, ConverterParameter=Round(x*1.5)}"
                             Foreground="{StaticResource Transparent04PrimaryBrush}"
                             />
                         </StackPanel>
