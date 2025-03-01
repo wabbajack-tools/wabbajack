@@ -8,6 +8,8 @@ using System.Windows;
 using System.IO;
 using Wabbajack.Paths;
 using System.Windows.Media;
+using Wabbajack.LoginManagers;
+using System.Windows.Media.Imaging;
 
 namespace Wabbajack;
 
@@ -17,8 +19,11 @@ public partial class MegaLoginView : ReactiveUserControl<MegaLoginVM>
     {
         InitializeComponent();
 
+        MegaImage.Source = BitmapFrame.Create(typeof(MegaLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.mega.png")!);
+
         this.WhenActivated(disposables =>
         {
+
             this.BindCommand(ViewModel, vm => vm.CloseCommand, v => v.CloseButton)
                 .DisposeWith(disposables);
 

@@ -34,7 +34,7 @@
                 <ic:SymbolIcon Symbol="Dismiss" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Right" />
             </Button>
 
-            <Image Grid.Row="2" Source="pack://application:,,,/LoginManagers/Icons/mega.png" Width="64" Height="64" />
+            <Image x:Name="MegaImage" Grid.Row="2" Source="pack://application:,,,/LoginManagers/Icons/mega.png" Width="64" Height="64" />
             <Grid Grid.Row="4" VerticalAlignment="Center" Width="{Binding Converter={StaticResource MathConverter}, ConverterParameter=x/3, ElementName=AuthorFiles, Path=ActualWidth}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
