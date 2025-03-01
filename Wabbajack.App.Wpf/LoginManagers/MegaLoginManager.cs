@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using CG.Web.MegaApiClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
@@ -24,7 +25,7 @@ public class MegaLoginManager : ViewModel, ILoginFor<MegaDownloader>
 {
     private readonly ILogger<MegaLoginManager> _logger;
     private readonly ITokenProvider<MegaToken> _token;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly MegaApiClient _apiClient;
 
     public string SiteName { get; } = "MEGA";
     public ICommand TriggerLogin { get; set; }
@@ -40,11 +41,11 @@ public class MegaLoginManager : ViewModel, ILoginFor<MegaDownloader>
     [Reactive]
     public bool LoggedIn { get; set; }
     
-    public MegaLoginManager(ILogger<MegaLoginManager> logger, ITokenProvider<MegaToken> token, IServiceProvider serviceProvider)
+    public MegaLoginManager(ILogger<MegaLoginManager> logger, ITokenProvider<MegaToken> token, MegaApiClient apiClient)
     {
         _logger = logger;
         _token = token;
-        _serviceProvider = serviceProvider;
+        _apiClient = apiClient;
         
         ClearLogin = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -76,6 +77,15 @@ public class MegaLoginManager : ViewModel, ILoginFor<MegaDownloader>
 
     private async Task ClearLoginToken()
     {
+        try
+        {
+            if(_apiClient.IsLoggedIn)
+                await _apiClient.LogoutAsync();
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError("Failed to log out of MEGA: {ex}", ex.ToString());
+        }
         await _token.Delete();
         LoggedIn = _token.HaveToken();
     }

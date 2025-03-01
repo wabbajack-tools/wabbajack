@@ -16,5 +16,7 @@ namespace Wabbajack
             UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Resources/MO2Button.png")).Stream));
         public static Lazy<BitmapImage> MiddleMouseButton { get; } = new Lazy<BitmapImage>(() =>
             UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Resources/middle_mouse_button.png")).Stream));
+        public static Lazy<BitmapImage> MegaLogo { get; } = new Lazy<BitmapImage>(() =>
+            UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/LoginManagers/Icons/mega.png")).Stream));
     }
 }

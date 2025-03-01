@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows;
 using System.IO;
 using Wabbajack.Paths;
+using System.Windows.Media;
 
 namespace Wabbajack;
 
@@ -20,6 +21,36 @@ public partial class MegaLoginView : ReactiveUserControl<MegaLoginVM>
         {
             this.BindCommand(ViewModel, vm => vm.CloseCommand, v => v.CloseButton)
                 .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.LoginCommand, v => v.LoginButton)
+                .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.LoginSuccessful)
+                     .Subscribe(success =>
+                     {
+                         if (success)
+                         {
+                             StatusBorder.Background = (SolidColorBrush)Application.Current.Resources["SuccessBrush"];
+                             StatusIcon.Symbol = FluentIcons.Common.Symbol.CheckmarkCircle;
+                             StatusIcon.Foreground = (SolidColorBrush)Application.Current.Resources["DarkBackgroundBrush"];
+                             StatusText.Text = "Login successful!";
+                             StatusText.Foreground = (SolidColorBrush)Application.Current.Resources["DarkBackgroundBrush"];
+                         }
+                         else
+                         {
+                             StatusBorder.Background = (SolidColorBrush)Application.Current.Resources["ErrorBrush"];
+                             StatusIcon.Symbol = FluentIcons.Common.Symbol.DismissCircle;
+                             StatusIcon.Foreground = (SolidColorBrush)Application.Current.Resources["ForegroundBrush"];
+                             StatusText.Text = "Login failed! Please try again.";
+                             StatusText.Foreground = (SolidColorBrush)Application.Current.Resources["ForegroundBrush"];
+                         }
+                     })
+                     .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.TriedLoggingIn)
+                     .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
+                     .BindToStrict(this, v => v.StatusBorder.Visibility)
+                     .DisposeWith(disposables);
         });
     }
 
