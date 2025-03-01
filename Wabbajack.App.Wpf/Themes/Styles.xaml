@@ -2036,7 +2036,6 @@
 
     <!--  ToggleButton  -->
     <Style TargetType="{x:Type ToggleButton}">
-        <Setter Property="FocusVisualStyle" Value="{StaticResource ToggleButtonFocusVisual}" />
         <Setter Property="Background" Value="{StaticResource ToggleButtonBackground}" />
         <Setter Property="BorderBrush" Value="{StaticResource ToggleButtonBorder}" />
         <Setter Property="Foreground" Value="{StaticResource ButtonForeground}" />
