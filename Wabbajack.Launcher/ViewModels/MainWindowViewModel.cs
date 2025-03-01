@@ -39,6 +39,20 @@ public class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel(NexusApi nexusApi, HttpDownloader downloader, ITokenProvider<NexusOAuthState> tokenProvider)
     {
+        AppDomain.CurrentDomain.UnhandledException += async (sender, e) =>
+        {
+            var msg = MsBox.Avalonia.MessageBoxManager
+                .GetMessageBoxStandard(new MessageBoxStandardParams()
+                {
+                    Topmost = true,
+                    ShowInCenter = true,
+                    ContentTitle = "Wabbajack Launcher: Uncaught error",
+                    ContentMessage =
+                        $"Uncaught exception! For help, please share this in the Wabbajack Discord. Exception: {((Exception)e.ExceptionObject).ToString()}"
+                });
+            var result = await msg.ShowAsync();
+        };
+
         _nexusApi = nexusApi;
         Status = "Checking for new versions";
         _downloader = downloader;
