@@ -122,7 +122,7 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader,
 
     private async Task<FileDefinition?> GetDefinition(WabbajackCDN state, CancellationToken token)
     {
-        _logger.LogInformation("Getting file definition for CDN download {primaryKeyString}, {url}", state.PrimaryKeyString, state.Url);
+        _logger.LogInformation("Getting file definition for CDN download {primaryKeyString}", state.PrimaryKeyString);
         var msg = MakeMessage(new Uri(state.Url + "/definition.json.gz"));
         using var data = await _client.SendAsync(msg, token);
         if (!data.IsSuccessStatusCode) return null;

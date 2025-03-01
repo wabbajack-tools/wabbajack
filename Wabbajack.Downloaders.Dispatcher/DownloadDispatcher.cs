@@ -165,11 +165,13 @@ public class DownloadDispatcher
 
         try
         {
+            _logger.LogWarning("Initial download of {archive} failed, trying mirror", archive.Name);
             downloadedHash = await DownloadFromMirror(archive, destination, token);
             if (downloadedHash != default) return (DownloadResult.Mirror, downloadedHash);
         }
         catch (NotSupportedException)
         {
+            _logger.LogInformation("Could not find archive {archive} on mirror", archive.Name);
             // Thrown if downloading from mirror is not supported for archive, keep original hash
         }
 

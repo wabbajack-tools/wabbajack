@@ -525,7 +525,7 @@ public class Client
 
     public async ValueTask<Uri?> MakeProxyUrl(Archive archive, Uri uri)
     {
-        if (archive.State is Manual && !await ProxyHas(uri))
+        if (!await ProxyHas(uri))
             return null;
 
         return new Uri(
