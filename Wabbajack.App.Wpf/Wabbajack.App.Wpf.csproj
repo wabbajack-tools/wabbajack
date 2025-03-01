@@ -61,12 +61,6 @@
     <None Remove="Resources\GameGridIcons\Fallout4.png" />
     <None Remove="Resources\GameGridIcons\SkyrimSpecialEdition.png" />
     <None Remove="Resources\Icons\middle_mouse_button.png" />
-    <None Remove="Resources\MO2Button.png" />
-    <None Remove="Resources\VortexButton.png" />
-    <None Remove="Resources\Wabba_Ded.png" />
-    <None Remove="Resources\Wabba_Mouth.png" />
-    <None Remove="Resources\Wabba_Mouth_No_Text.png" />
-    <None Remove="Resources\Wabba_Mouth_Small.png" />
     <Compile Remove="ViewModels\Compiler\VortexCompilerVM.cs" />
     <Compile Remove="ViewModels\Installers\VortexInstallerVM.cs" />
     <None Update="Resources\libwebp_x64.dll">
@@ -136,22 +130,12 @@
     <Resource Include="Resources\Fonts\Gabarito-VariableFont_wght-BF651cdf1f55e6c.ttf">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\middle_mouse_button.png" />
-    <Resource Include="Resources\MO2Button.png" />
-    <Resource Include="Resources\VortexButton.png" />
-    <Resource Include="Resources\Wabba_Ded.png" />
-    <Resource Include="Resources\Wabba_Mouth.png" />
-    <Resource Include="Resources\Wabba_Mouth_No_Text.png" />
     <None Remove="LoginManagers\Icons\lovers_lab.png" />
     <EmbeddedResource Include="LoginManagers\Icons\lovers_lab.png" />
     <None Remove="LoginManagers\Icons\vector_plexus.png" />
     <EmbeddedResource Include="LoginManagers\Icons\mega.png" />
     <EmbeddedResource Include="LoginManagers\Icons\vector_plexus.png" />
 
-  </ItemGroup>
-
-  <ItemGroup>
-    <SplashScreen Include="Resources\Wabba_Mouth_Small.png" />
   </ItemGroup>
 
 </Project>
