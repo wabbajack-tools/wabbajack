@@ -231,7 +231,9 @@ public partial class MainWindow : MetroWindow
     {
         if(x.Key == Key.Escape)
         {
-            if (((MainWindowVM)DataContext).ActiveFloatingPane != null)
+            if (((MainWindowVM)DataContext).ActiveFloatingPane is IClosableVM closingPane)
+                closingPane.CloseCommand.Execute(null);
+            else
                 ShowFloatingWindow.Send(FloatingScreenType.None);
         }
     }
