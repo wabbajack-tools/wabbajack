@@ -3919,7 +3919,7 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <Style TargetType="{x:Type ListBoxItem}">
+    <Style x:Key="ListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Template">
             <Setter.Value>
@@ -3957,7 +3957,7 @@
                             <Setter TargetName="Bd" Property="Background" Value="{StaticResource MouseOverListItem}" />
                         </MultiTrigger>
                         <Trigger Property="IsEnabled" Value="false">
-                            <Setter Property="Foreground" Value="{StaticResource DisabledMenuForeground}" />
+                            <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

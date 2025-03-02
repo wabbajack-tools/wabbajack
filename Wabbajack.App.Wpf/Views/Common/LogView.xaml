@@ -28,7 +28,7 @@
             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
             AlternationCount="2">
                     <ListBox.Resources>
-                        <Style TargetType="{x:Type ListBoxItem}">
+                        <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource ListBoxItemStyle}">
                             <Style.Triggers>
                                 <Trigger Property="ItemsControl.AlternationIndex" Value="0">
                                     <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}"/>

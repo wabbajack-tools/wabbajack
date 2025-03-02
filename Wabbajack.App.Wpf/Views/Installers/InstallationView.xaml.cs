@@ -160,39 +160,39 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      })
                     .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.ModListImage)
+            ViewModel.WhenAnyValue(vm => vm.ModListImage)
                      .BindToStrict(this, v => v.DetailImage.Image)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.ModListImage)
+            ViewModel.WhenAnyValue(vm => vm.ModListImage)
                      .BindToStrict(this, v => v.InstallDetailImage.Image)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.ModListImage)
+            ViewModel.WhenAnyValue(vm => vm.ModListImage)
                      .BindToStrict(this, v => v.CompletedImage.Image)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.ModList.Author)
+            ViewModel.WhenAnyValue(vm => vm.ModList.Author)
                      .BindToStrict(this, v => v.DetailImage.Author)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.ModList.Author)
+            ViewModel.WhenAnyValue(vm => vm.ModList.Author)
                      .BindToStrict(this, v => v.InstallDetailImage.Author)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.ModList.Author)
+            ViewModel.WhenAnyValue(vm => vm.ModList.Author)
                      .BindToStrict(this, v => v.CompletedImage.Author)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.ModList.Name)
+            ViewModel.WhenAnyValue(vm => vm.ModList.Name)
                      .BindToStrict(this, v => v.DetailImage.Title)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.ModList.Name)
+            ViewModel.WhenAnyValue(vm => vm.ModList.Name)
                      .BindToStrict(this, v => v.InstallDetailImage.Title)
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.ModList.Name)
+            ViewModel.WhenAnyValue(vm => vm.ModList.Name)
                      .BindToStrict(this, v => v.CompletedImage.Title)
                      .DisposeWith(disposables);
 
