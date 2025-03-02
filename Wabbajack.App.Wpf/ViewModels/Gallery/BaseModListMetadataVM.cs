@@ -106,7 +106,7 @@ public class BaseModListMetadataVM : ViewModel
 
         IsLoadingIdle = new Subject<bool>();
 
-        var smallImageUri = UIUtils.GetSmallImageUri(metadata);
+        var smallImageUri = UIUtils.GetLargeImageUri(metadata);
         var imageObs = Observable.Return(smallImageUri)
             .DownloadBitmapImage(
                 (ex) => _logger.LogError("Error downloading modlist image {Title} from {ImageUri}: {Exception}",

@@ -169,6 +169,11 @@ public static class UIUtils
         var fileName = metadata.Links.MachineURL + "_small.webp";
         return $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/refs/heads/master/reports/{metadata.RepositoryName}/{fileName}";
     }
+    public static string GetLargeImageUri(ModlistMetadata metadata)
+    {
+        var fileName = metadata.Links.MachineURL + "_large.webp";
+        return $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/refs/heads/master/reports/{metadata.RepositoryName}/{fileName}";
+    }
 
     public static string GetHumanReadableReadmeLink(string uri)
     {
