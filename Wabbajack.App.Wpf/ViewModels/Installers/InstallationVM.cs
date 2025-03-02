@@ -763,9 +763,23 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
                     case Mega mega:
                         writer.Write($"<h3>MEGA: {archive.Name}</h3>");
-                        writer.Write($"<p>Please <a href='{mega.Url.ToString()}'>click here to download this file</a>, then manually place it inside the Wabbajack downloads directory.</p>");
+                        writer.Write($"<p>Please <a href='{mega.Url.ToString()}' target='_blank'>click here to download this file</a>, then manually place it inside the Wabbajack downloads directory.</p>");
                         break;
 
+                    case IPS4OAuth2 ips4:
+                        writer.Write($"<h3>IPS4OAuth2: {ips4.Name}</h3>");
+                        writer.Write($"<p>Please <a href='{ips4.LinkUrl.ToString()}' target='_blank'>click here to download this file</a>, then manually place it inside the Wabbajack downloads directory.</p>");
+                        break;
+
+                    case GoogleDrive gd:
+                        writer.Write($"<h3>Google Drive ID: {gd.Id}</h3>");
+                        writer.Write($"<p>Please <a href='{gd.GetUri().ToString()}' target='_blank'>click here to download this file</a>, then manually place it inside the Wabbajack downloads directory.</p>");
+                        break;
+
+                    case Http http:
+                        writer.Write($"<h3>Direct download: {http.PrimaryKeyString}</h3>");
+                        writer.Write($"<p>Please <a href='{http.Url.ToString()}' target='_blank'>click here to download this file</a>, then manually place it inside the Wabbajack downloads directory.</p>");
+                        break;
 
                     default:
                         writer.Write($"<h3>{archive.Name}</h1>");
