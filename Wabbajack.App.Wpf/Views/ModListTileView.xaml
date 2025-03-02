@@ -75,20 +75,46 @@
                     </Grid.OpacityMask>
                     <Grid ClipToBounds="True">
                         <mahapps:ProgressRing x:Name="LoadingProgress" />
-                        <TextBlock
-                        Text="{Binding Metadata.Title}"
-                        FontSize="16"
-                        VerticalAlignment="Bottom"
-                        Margin="10, 0, 0, 10"
-                        Panel.ZIndex="1">
-                            <TextBlock.Visibility>
+
+                        <Grid Margin="8, 0, 0, 8" Panel.ZIndex="1">
+                            <Grid.Visibility>
                                 <MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="Or(!x, y) ? `Visible` : `Collapsed`">
-                                    <Binding Path="Metadata.ImageContainsTitle" />
+                                    <Binding Path="ImageContainsTitle" />
                                     <Binding ElementName="ModListTile" Path="IsMouseOver" />
                                 </MultiBinding>
-                            </TextBlock.Visibility>
-                        </TextBlock>
-                        <Grid Margin="4, 4, 0, 0" VerticalAlignment="Top" HorizontalAlignment="Stretch" Panel.ZIndex="1">
+                            </Grid.Visibility>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Margin="0, 0, 0, 2"
+                                FontWeight="Bold"
+                                FontSize="24">
+                                <Run Text="{Binding Metadata.Title}" BaselineAlignment="Center" />
+                            </TextBlock>
+
+                            <TextBlock 
+                                Grid.Row="2"
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                FontSize="13">
+                                <Run Text="by" Foreground="{StaticResource Transparent66ForegroundBrush}" />
+                                <Run Text="{Binding Metadata.Author}" />
+                            </TextBlock>
+
+                        </Grid>
+
+                        <Grid Margin="8, 8, 0, 0" VerticalAlignment="Top" HorizontalAlignment="Stretch" Panel.ZIndex="1">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
@@ -98,11 +124,11 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="4" />
+                                <ColumnDefinition Width="8" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <Border x:Name="GameIcon" Grid.Column="0" Width="24" Height="24" CornerRadius="6">
+                            <Border x:Name="GameIcon" Grid.Column="0" Width="26" Height="26" CornerRadius="6">
                                 <Border.Background>
                                     <ImageBrush Stretch="Fill" ImageSource="{Binding GameMetaData.IconSource}"/>
                                 </Border.Background>
@@ -115,7 +141,7 @@
                                        VerticalAlignment="Center"
                                        Opacity="0.85"
                                        Panel.ZIndex="2"/>
-                                <Border Background="{StaticResource WindowBackgroundBrush}" Opacity="0.66" Width="{Binding ElementName=GameName, Path=ActualWidth,Converter={StaticResource MathConverter}, ConverterParameter=x+10}" Height="{Binding ElementName=GameIcon, Path=ActualHeight}" CornerRadius="4"/>
+                                <Border Background="{StaticResource WindowBackgroundBrush}" Opacity="0.66" Width="{Binding ElementName=GameName, Path=ActualWidth,Converter={StaticResource MathConverter}, ConverterParameter=x+16}" Height="{Binding ElementName=GameIcon, Path=ActualHeight}" CornerRadius="4"/>
                             </Grid>
 
                             <Grid x:Name="NSFWTagGrid" Grid.Column="4" HorizontalAlignment="Right">
@@ -136,10 +162,10 @@
                                        VerticalAlignment="Center"
                                        Opacity="0.85"
                                        Panel.ZIndex="2"/>
-                                <Border Background="{StaticResource NSFWBrush}" Width="{Binding ElementName=NSFW, Path=ActualWidth,Converter={StaticResource MathConverter}, ConverterParameter=x+10}" Height="{Binding ElementName=GameIcon, Path=ActualHeight}" CornerRadius="4">
+                                <Border Background="{StaticResource NSFWBrush}" Width="{Binding ElementName=NSFW, Path=ActualWidth,Converter={StaticResource MathConverter}, ConverterParameter=x+16}" Height="{Binding ElementName=GameIcon, Path=ActualHeight}" CornerRadius="4">
                                 </Border>
                             </Grid>
-                            <Grid Grid.Column="6" Margin="0, 0, 4, 0" HorizontalAlignment="Right">
+                            <Grid Grid.Column="6" Margin="0, 0, 8, 0" HorizontalAlignment="Right">
                                 <Grid.Visibility>
                                     <MultiBinding Converter="{StaticResource MultiBoolToVisibilityConverter}">
                                         <Binding Path="IsBroken" />
@@ -157,7 +183,7 @@
                                        VerticalAlignment="Center"
                                        Opacity="0.85"
                                        Panel.ZIndex="2"/>
-                                <Border Background="{StaticResource UnavailableBrush}" Width="{Binding ElementName=Unavailable, Path=ActualWidth, Converter={StaticResource MathConverter}, ConverterParameter=x+10}" Height="{Binding ElementName=GameIcon, Path=ActualHeight}" CornerRadius="4">
+                                <Border Background="{StaticResource UnavailableBrush}" Width="{Binding ElementName=Unavailable, Path=ActualWidth, Converter={StaticResource MathConverter}, ConverterParameter=x+16}" Height="{Binding ElementName=GameIcon, Path=ActualHeight}" CornerRadius="4">
                                 </Border>
                             </Grid>
                         </Grid>
@@ -208,10 +234,10 @@
                         </Border>
                         <Rectangle
                         Height="120"
-                        Margin="-80, -75, -80, 0"
+                        Margin="-80, -95, -80, 0"
                         VerticalAlignment="Top"
                         Fill="White"
-                        Opacity="0.15">
+                        Opacity="0.05">
                             <Rectangle.Effect>
                                 <BlurEffect Radius="100" />
                             </Rectangle.Effect>
@@ -234,7 +260,7 @@
                                                     <Storyboard>
                                                         <DoubleAnimation
                                                         Storyboard.TargetProperty="Opacity"
-                                                        To="0.15"
+                                                        To="0.05"
                                                         Duration="0:0:0.08" />
                                                     </Storyboard>
                                                 </BeginStoryboard>
@@ -249,41 +275,59 @@
                         Margin="-80, 0, -80, -75"
                         VerticalAlignment="Bottom"
                         Fill="Black"
-                        Opacity="0.4">
+                        Opacity="0"
+                        Visibility="{Binding ImageContainsTitle, Converter={StaticResource bool2VisibilityConverter}}">
                             <Rectangle.Effect>
                                 <BlurEffect Radius="100" />
                             </Rectangle.Effect>
                             <Rectangle.Style>
                                 <Style TargetType="Rectangle">
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
-                                            <DataTrigger.EnterActions>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True" />
+                                            </MultiDataTrigger.Conditions>
+                                            <MultiDataTrigger.EnterActions>
                                                 <BeginStoryboard>
                                                     <Storyboard>
                                                         <DoubleAnimation
                                                         Storyboard.TargetProperty="Opacity"
-                                                        To="0.7"
+                                                        To="0.75"
                                                         Duration="0:0:0.08" />
                                                     </Storyboard>
                                                 </BeginStoryboard>
-                                            </DataTrigger.EnterActions>
-                                            <DataTrigger.ExitActions>
+                                            </MultiDataTrigger.EnterActions>
+                                            <MultiDataTrigger.ExitActions>
                                                 <BeginStoryboard>
                                                     <Storyboard>
                                                         <DoubleAnimation
                                                         Storyboard.TargetProperty="Opacity"
-                                                        To="0.4"
+                                                        To="0.0"
                                                         Duration="0:0:0.08" />
                                                     </Storyboard>
                                                 </BeginStoryboard>
-                                            </DataTrigger.ExitActions>
-                                        </DataTrigger>
+                                            </MultiDataTrigger.ExitActions>
+                                        </MultiDataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </Rectangle.Style>
                         </Rectangle>
+
+                        <Rectangle
+                        Height="120"
+                        Margin="-80, 0, -80, -75"
+                        VerticalAlignment="Bottom"
+                        Fill="Black"
+                        Opacity="0.75"
+                        Visibility="{Binding ImageContainsTitle, Converter={StaticResource bool2VisibilityHiddenConverter}}">
+                            <Rectangle.Effect>
+                                <BlurEffect Radius="100" />
+                            </Rectangle.Effect>
+                        </Rectangle>
+
                         <TextBlock
                            Margin="16"
+                           FontSize="16"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Center"
                            TextAlignment="Left"
@@ -299,41 +343,6 @@
                                 <DropShadowEffect ShadowDepth="3" BlurRadius="10" Opacity="0.5" Color="{StaticResource BackgroundColor}" />
                             </TextBlock.Effect>
                         </TextBlock>
-                        <Label
-                        Margin="10,242,0,0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        Content="{Binding VersionText}"
-                        Opacity="0">
-                            <Label.Style>
-                                <Style TargetType="Label">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
-                                            <DataTrigger.EnterActions>
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <DoubleAnimation
-                                                        Storyboard.TargetProperty="Opacity"
-                                                        To="1"
-                                                        Duration="0:0:0.08" />
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </DataTrigger.EnterActions>
-                                            <DataTrigger.ExitActions>
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <DoubleAnimation
-                                                        Storyboard.TargetProperty="Opacity"
-                                                        To="0"
-                                                        Duration="0:0:0.08" />
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </DataTrigger.ExitActions>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Label.Style>
-                        </Label>
                         <Label
                         Margin="10,257,0,0"
                         HorizontalAlignment="Left"
@@ -440,128 +449,6 @@
                             </Label.Style>
                         </Label>
                     </Grid>
-                    <!--
-                    <local:UnderMaintenanceOverlay Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                    x:Name="Overlay"
-                    Visibility="Collapsed"
-                    ClipToBounds="True" />
-                    -->
-                    <!--
-            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                x:Name="ModListTitleShadow"
-                Margin="5"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Bottom"
-                FontFamily="{StaticResource PrimaryFont}"
-                FontSize="30"
-                FontWeight="Bold"
-                Style="{StaticResource BackgroundBlurStyle}"
-                TextWrapping="Wrap">
-                <TextBlock.Effect>
-                    <BlurEffect Radius="25" />
-                </TextBlock.Effect>
-            </TextBlock>
-            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                x:Name="ModListTitle"
-                Margin="5"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Bottom"
-                FontFamily="{StaticResource PrimaryFont}"
-                FontSize="30"
-                FontWeight="Bold"
-                TextWrapping="Wrap">
-                <TextBlock.Effect>
-                    <DropShadowEffect />
-                </TextBlock.Effect>
-            </TextBlock>
-            <mahapps:MetroProgressBar Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                x:Name="DownloadProgressBar"
-                Height="3"
-                VerticalAlignment="Bottom"
-                Background="{StaticResource BackgroundBrush}"
-                Foreground="{StaticResource SecondaryBrush}"
-                Maximum="1"
-                Visibility="{Binding IsEnabled, ElementName=ExecuteButton, Converter={StaticResource bool2VisibilityHiddenConverter}, ConverterParameter=False}" />
-            <ScrollViewer Grid.Row="1" Grid.Column="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <TextBlock
-                       x:Name="MetadataDescription"
-                       Margin="8,5"
-                       VerticalAlignment="Center"
-                       FontSize="13"
-                       TextWrapping="Wrap" />
-            </ScrollViewer>
-            <ItemsControl Grid.Row="2" Name="TagsList">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Grid.Row="0" Grid.ColumnSpan="2"
-                                    Margin="5,5,0,5"
-                                    Background="{StaticResource Analogous1Brush}"
-                                    BorderThickness="1"
-                                    CornerRadius="7,7,7,7"
-                                    VerticalAlignment="Center"
-                                    Opacity="0.90">
-                                    <TextBlock
-                                        Margin="5,5,5,5"
-                                        FontSize="15"
-                                        Text="{Binding Name}" />
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-            <Grid Grid.Row="1" Grid.Column="1" Grid.RowSpan="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <Button Grid.Row="0"
-                        x:Name="OpenWebsiteButton"
-                        Width="40"
-                        Height="40"
-                        Margin="5,0"
-                        VerticalAlignment="Center"
-                        Style="{StaticResource IconBareButtonStyle}"
-                        ToolTip="View modlist website in browser">
-                    <iconPacks:Material
-                        Width="20"
-                        Height="20"
-                        Kind="Web" />
-                </Button>
-                <Button Grid.Row="1"
-                        x:Name="ModListContentsButton"
-                        Width="40"
-                        Height="40"
-                        Margin="5,0"
-                        VerticalAlignment="Center"
-                        Style="{StaticResource IconBareButtonStyle}"
-                        ToolTip="View modlist archives in browser">
-                    <iconPacks:Material
-                        Width="20"
-                        Height="20"
-                        Kind="TableSearch" />
-                </Button>
-                <Button Grid.Row="2"
-                    x:Name="ExecuteButton"
-                    Width="40"
-                    Height="40"
-                    Margin="5,0"
-                    VerticalAlignment="Center"
-                    ToolTip="Download modlist">
-                    <StackPanel x:Name="IconContainer">
-                        <iconPacks:Material
-                            x:Name="ErrorIcon"
-                            Width="20"
-                            Height="20"
-                            Kind="Exclamation" />
-                    </StackPanel>
-                </Button>
-            </Grid>
--->
                 </Grid>
             </Grid>
         </Border>

@@ -52,7 +52,7 @@ public class BaseModListMetadataVM : ViewModel
     [Reactive] public string DownloadSizeText { get; protected set; }
     [Reactive] public string InstallSizeText { get; protected set; }
     [Reactive] public string TotalSizeRequirementText { get; protected set; }
-    [Reactive] public string VersionText { get; protected set; }
+    [Reactive] public string VersionText { get; set; }
     [Reactive] public bool ImageContainsTitle { get; protected set; }
     [Reactive] public GameMetaData GameMetaData { get; protected set; }
     [Reactive] public bool DisplayVersionOnlyInInstallerView { get; protected set; }
@@ -99,7 +99,7 @@ public class BaseModListMetadataVM : ViewModel
         DownloadSizeText = "Download size: " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
         InstallSizeText = "Installation size: " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
         TotalSizeRequirementText =  "Total size requirement: " + UIUtils.FormatBytes( Metadata.DownloadMetadata.TotalSize );
-        VersionText = "Modlist version: " + Metadata.Version;
+        VersionText = "v" + Metadata.Version;
         ImageContainsTitle = Metadata.ImageContainsTitle;
         DisplayVersionOnlyInInstallerView = Metadata.DisplayVersionOnlyInInstallerView;
         IsBroken = (Summary?.HasFailures ?? false) || metadata.ForceDown;

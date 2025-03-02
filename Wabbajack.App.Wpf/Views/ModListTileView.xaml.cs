@@ -29,13 +29,6 @@ public partial class ModListTileView : ReactiveUserControl<BaseModListMetadataVM
                 .BindToStrict(this, x => x.LoadingProgress.Visibility)
                 .DisposeWith(disposables);
 
-            /*
-            ViewModel.WhenAnyValue(x => x.IsBroken)
-                .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
-                .BindToStrict(this, view => view.Overlay.Visibility)
-                .DisposeWith(disposables);
-            */
-
             this.BindCommand(ViewModel, vm => vm.DetailsCommand, v => v.ModlistButton)
                 .DisposeWith(disposables);
         });
