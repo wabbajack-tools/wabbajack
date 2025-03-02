@@ -22,22 +22,8 @@
         </LinearGradientBrush>
     </UserControl.Resources>
     <Grid Background="{StaticResource TransparentBrush}" x:Name="MaintenanceGrid">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <Rectangle Grid.Row="0"
-            Height="10"
-            Fill="{StaticResource LinesBrush}">
-            <Rectangle.Effect>
-                <DropShadowEffect
-                    BlurRadius="15"
-                    Opacity="0.3"
-                    ShadowDepth="10" />
-            </Rectangle.Effect>
-        </Rectangle>
-        <Grid Grid.Row="1"
-            Margin="10"
+        <Grid
+            Margin="12"
             Visibility="{Binding ElementName=MaintenanceGrid,Path=IsMouseOver, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=True}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -49,15 +35,14 @@
                 FontSize="24"
                 FontWeight="Bold"
                 Foreground="{StaticResource YellowBrush}"
-                Text="UNDER MAINTENANCE" />
+                Text="Unavailable" />
             <TextBlock Grid.Row="1"
                 FontFamily="{StaticResource PrimaryFont}"
-                FontSize="13"
                 Foreground="{StaticResource YellowBrush}"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Center"
-                TextAlignment="Center"
-                Text="A game or mod update caused Wabbajack to not be able to resolve all required files to install this modlist. This modlist requires an update from the author before it is installable."
+                TextAlignment="Left"
+                Text="A game or mod update has made the list unavailable for installation. The modlist requires an update from its author before it is installable. Contact the author(s) for more information."
                 TextWrapping="WrapWithOverflow" />
         </Grid>
         <Viewbox Grid.Row="1"
@@ -78,26 +63,7 @@
                     FontSize="100"
                     FontWeight="Bold"
                     Foreground="{StaticResource YellowBrush}"
-                    Text="UNDER">
-                    <TextBlock.Effect>
-                        <DropShadowEffect
-                            BlurRadius="15"
-                            Opacity="0.7"
-                            ShadowDepth="10" />
-                    </TextBlock.Effect>
-                </TextBlock>
-                <TextBlock Grid.Row="1"
-                    FontFamily="{StaticResource PrimaryFont}"
-                    FontSize="100"
-                    FontWeight="Bold"
-                    Foreground="{StaticResource YellowBrush}"
-                    Text="MAINTENANCE">
-                    <TextBlock.Effect>
-                        <DropShadowEffect
-                            BlurRadius="15"
-                            Opacity="0.7"
-                            ShadowDepth="10" />
-                    </TextBlock.Effect>
+                    Text="Unavailable">
                 </TextBlock>
             </Grid>
         </Viewbox>

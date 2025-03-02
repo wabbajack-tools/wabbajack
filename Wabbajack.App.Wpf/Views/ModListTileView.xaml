@@ -49,8 +49,7 @@
     <Button x:Name="ModlistButton" Style="{StaticResource MainButtonStyle}" Background="Transparent" Foreground="{StaticResource ForegroundBrush}" BorderThickness="0">
         <Border
         x:Name="ModListTile"
-        Margin="10, 0, 10, 16"
-        Background="Transparent"
+        Margin="8, 0, 8, 16"
         BorderThickness="0">
             <Border.Effect>
                 <DropShadowEffect
@@ -89,44 +88,123 @@
                                 </MultiBinding>
                             </TextBlock.Visibility>
                         </TextBlock>
-                        <StackPanel Orientation="Horizontal" Margin="5, 5, 0, 0" VerticalAlignment="Top" HorizontalAlignment="Left" Panel.ZIndex="1">
-                            <Border x:Name="GameIcon" Width="24" Height="24" CornerRadius="6">
+                        <Grid Margin="4, 4, 0, 0" VerticalAlignment="Top" HorizontalAlignment="Stretch" Panel.ZIndex="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="4" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="4" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border x:Name="GameIcon" Grid.Column="0" Width="24" Height="24" CornerRadius="6">
                                 <Border.Background>
                                     <ImageBrush Stretch="Fill" ImageSource="{Binding GameMetaData.IconSource}"/>
                                 </Border.Background>
                             </Border>
-                            <Grid Margin="5, 0, 0, 0"
-                              Visibility="{Binding ElementName=ModListTile, Path=IsMouseOver, Converter={StaticResource bool2VisibilityConverter}}">
+                            <Grid Grid.Column="2"
+                                  Visibility="{Binding ElementName=ModListTile, Path=IsMouseOver, Converter={StaticResource bool2VisibilityConverter}}">
                                 <TextBlock x:Name="GameName"
                                        Text="{Binding GameMetaData.HumanFriendlyGameName}"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
                                        Opacity="0.85"
                                        Panel.ZIndex="2"/>
-                                <Border Background="{StaticResource WindowBackgroundBrush}" Opacity="0.4" Width="{Binding ElementName=GameName, Path=ActualWidth,Converter={StaticResource MathConverter}, ConverterParameter=x+10}" Height="{Binding ElementName=GameIcon, Path=ActualHeight}" CornerRadius="6">
+                                <Border Background="{StaticResource WindowBackgroundBrush}" Opacity="0.66" Width="{Binding ElementName=GameName, Path=ActualWidth,Converter={StaticResource MathConverter}, ConverterParameter=x+10}" Height="{Binding ElementName=GameIcon, Path=ActualHeight}" CornerRadius="4"/>
+                            </Grid>
+
+                            <Grid x:Name="NSFWTagGrid" Grid.Column="4" HorizontalAlignment="Right">
+                                <Grid.Visibility>
+                                    <MultiBinding Converter="{StaticResource MultiBoolToVisibilityConverter}">
+                                        <Binding Path="Metadata.NSFW" />
+                                    </MultiBinding>
+                                </Grid.Visibility>
+                                <Grid>
+                                    <Grid.Effect>
+                                        <BlurEffect Radius="30" />
+                                    </Grid.Effect>
+                                    <Rectangle Margin="-4" Fill="{StaticResource NSFWBrush}" Width="{Binding ElementName=NSFW, Path=ActualWidth}" Height="{Binding ElementName=NSFW, Path=ActualHeight}" />
+                                </Grid>
+                                <TextBlock x:Name="NSFW"
+                                       Text="NSFW"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Opacity="0.85"
+                                       Panel.ZIndex="2"/>
+                                <Border Background="{StaticResource NSFWBrush}" Width="{Binding ElementName=NSFW, Path=ActualWidth,Converter={StaticResource MathConverter}, ConverterParameter=x+10}" Height="{Binding ElementName=GameIcon, Path=ActualHeight}" CornerRadius="4">
                                 </Border>
                             </Grid>
-                        </StackPanel>
+                            <Grid Grid.Column="6" Margin="0, 0, 4, 0" HorizontalAlignment="Right">
+                                <Grid.Visibility>
+                                    <MultiBinding Converter="{StaticResource MultiBoolToVisibilityConverter}">
+                                        <Binding Path="IsBroken" />
+                                    </MultiBinding>
+                                </Grid.Visibility>
+                                <Grid>
+                                    <Grid.Effect>
+                                        <BlurEffect Radius="30" />
+                                    </Grid.Effect>
+                                    <Rectangle Margin="-4" Fill="{StaticResource UnavailableBrush}" Width="{Binding ElementName=Unavailable, Path=ActualWidth}" Height="{Binding ElementName=Unavailable, Path=ActualHeight}" />
+                                </Grid>
+                                <TextBlock x:Name="Unavailable"
+                                       Text="Unavailable"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Opacity="0.85"
+                                       Panel.ZIndex="2"/>
+                                <Border Background="{StaticResource UnavailableBrush}" Width="{Binding ElementName=Unavailable, Path=ActualWidth, Converter={StaticResource MathConverter}, ConverterParameter=x+10}" Height="{Binding ElementName=GameIcon, Path=ActualHeight}" CornerRadius="4">
+                                </Border>
+                            </Grid>
+                        </Grid>
                         <Border
                         BorderThickness="0"
                         HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch">
+                        VerticalAlignment="Stretch"
+                            >
                             <Border.Background>
                                 <ImageBrush x:Name="ModlistImage" Stretch="UniformToFill"/>
                             </Border.Background>
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsBroken}" Value="True">
-                                            <Setter Property="Effect">
-                                                <Setter.Value>
-                                                    <BlurEffect Radius="35" />
-                                                </Setter.Value>
-                                            </Setter>
-                                        </DataTrigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding ElementName=ModListTile, Path=IsMouseOver}" Value="True" />
+                                                <Condition Binding="{Binding IsBroken}" Value="True" />
+                                            </MultiDataTrigger.Conditions>
+                                            <MultiDataTrigger.Setters>
+                                                <Setter Property="Effect">
+                                                    <Setter.Value>
+                                                        <BlurEffect Radius="25" />
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </MultiDataTrigger.Setters>
+                                        </MultiDataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </Border.Style>
+                            <Grid Opacity="0.75">
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ElementName=ModListTile, Path=IsMouseOver}" Value="True" />
+                                                    <Condition Binding="{Binding IsBroken}" Value="True" />
+                                                </MultiDataTrigger.Conditions>
+                                                <MultiDataTrigger.Setters>
+                                                    <Setter Property="Background" Value="{StaticResource UnavailableDarkBrush}" />
+                                                </MultiDataTrigger.Setters>
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
+                            </Grid>
                         </Border>
                         <Rectangle
                         Height="120"
@@ -204,6 +282,23 @@
                                 </Style>
                             </Rectangle.Style>
                         </Rectangle>
+                        <TextBlock
+                           Margin="16"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Left"
+                           Text="A game or mod update has made the list unavailable for installation. The modlist requires an update from its author before it is installable. Contact the author(s) for more information."
+                           TextWrapping="WrapWithOverflow">
+                            <TextBlock.Visibility>
+                                <MultiBinding Converter="{StaticResource MultiBoolToVisibilityConverter}">
+                                    <Binding Path="IsBroken" />
+                                    <Binding Path="IsMouseOver" ElementName="ModListTile" />
+                                </MultiBinding>
+                            </TextBlock.Visibility>
+                            <TextBlock.Effect>
+                                <DropShadowEffect ShadowDepth="3" BlurRadius="10" Opacity="0.5" Color="{StaticResource BackgroundColor}" />
+                            </TextBlock.Effect>
+                        </TextBlock>
                         <Label
                         Margin="10,242,0,0"
                         HorizontalAlignment="Left"
@@ -345,10 +440,12 @@
                             </Label.Style>
                         </Label>
                     </Grid>
+                    <!--
                     <local:UnderMaintenanceOverlay Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                     x:Name="Overlay"
                     Visibility="Collapsed"
                     ClipToBounds="True" />
+                    -->
                     <!--
             <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                 x:Name="ModListTitleShadow"

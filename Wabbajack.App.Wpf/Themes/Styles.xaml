@@ -29,6 +29,7 @@
     <math:MathConverter x:Key="MathConverter" />
     <local:NexusArchiveStateConverter x:Key="NexusArchiveStateConverter" />
     <local:IsNexusArchiveConverter x:Key="IsNexusArchiveConverter" />
+    <local:MultiBoolToVisibilityConverter x:Key="MultiBoolToVisibilityConverter"/>
     <!--  Colors  -->
     <Color x:Key="WindowBackgroundColor">#222531</Color>
     <Color x:Key="WindowHoverBackgroundColor">#2A2B41</Color>
@@ -52,6 +53,9 @@
     <Color x:Key="RedDark">#5e2c2b</Color>
     <Color x:Key="Green">#5fad56</Color>
     <Color x:Key="YellowDark">#967400</Color>
+    <Color x:Key="NSFW">#ABA70000</Color>
+    <Color x:Key="Unavailable">#ABB17405</Color>
+    <Color x:Key="UnavailableDark">#AB6D4F23</Color>
 
     <Color x:Key="Primary">#D8BAF8</Color>
 
@@ -132,8 +136,13 @@
 
     <!--  Brushes  -->
     <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Green}" />
+    <SolidColorBrush x:Key="MaintenanceBrush" Color="{StaticResource Yellow}" />
     <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Yellow}" />
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource RedDark}" />
+    <SolidColorBrush x:Key="NSFWBrush" Color="{StaticResource NSFW}" />
+    <SolidColorBrush x:Key="UnavailableBrush" Color="{StaticResource Unavailable}" />
+    <SolidColorBrush x:Key="UnavailableDarkBrush" Color="{StaticResource UnavailableDark}" />
+
 
     <SolidColorBrush x:Key="DarkBackgroundBrush" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="DarkHoverBackgroundBrush" Color="{StaticResource DarkHoverBackgroundColor}" />

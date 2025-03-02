@@ -89,7 +89,7 @@
                                             <Style TargetType="Border">
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Name}" Value="NSFW">
-                                                        <Setter Property="Background" Value="#81131B" />
+                                                        <Setter Property="Background" Value="{StaticResource NSFWBrush}" />
                                                         <Setter Property="ToolTip" Value="This modlist contains Not Safe For Work content such as nudity and sex frameworks." />
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Name}" Value="Featured">

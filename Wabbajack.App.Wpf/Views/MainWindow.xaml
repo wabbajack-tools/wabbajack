@@ -101,7 +101,7 @@
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0" Style="{StaticResource MainButtonStyleLessRounded}" Background="{StaticResource BackgroundPrimary08Brush}" Name="LoadLocalFileButton" Padding="12, 0" Margin="0, 10, 12, 10">
                     <DockPanel>
-                        <TextBlock FontSize="13" Text="Load local file" VerticalAlignment="Center" Margin="0, 0, 8, 0" />
+                        <TextBlock FontSize="13" Text="Install from disk" VerticalAlignment="Center" Margin="0, 0, 8, 0" />
                         <ic:SymbolIcon FontSize="18" Symbol="ArrowUpload" VerticalAlignment="Center"/>
                     </DockPanel>
                 </Button>
