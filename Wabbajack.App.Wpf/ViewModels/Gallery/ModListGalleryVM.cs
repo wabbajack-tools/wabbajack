@@ -330,6 +330,7 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                                  .OrderBy(t => t.Name)
                                  .Prepend(new ModListTag("NSFW"))
                                  .Prepend(new ModListTag("Featured"))
+                                 .Prepend(new ModListTag("Unavailable"))
                                  .ToHashSet();
             var searchIndex = await _wjClient.LoadSearchIndex();
             ModsPerList = searchIndex.ModsPerList;
@@ -349,6 +350,7 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                 }
                 if (modlist.NSFW) modlistTags.Insert(0, "NSFW");
                 if (modlist.Official) modlistTags.Insert(0, "Featured");
+                if ((modlist.ValidationSummary?.HasFailures ?? false) || modlist.ForceDown) modlistTags.Insert(0, "Unavailable");
 
                 modlist.Tags = modlistTags;
             }

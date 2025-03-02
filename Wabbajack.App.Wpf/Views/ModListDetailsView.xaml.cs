@@ -95,6 +95,16 @@ public partial class ModListDetailsView
                 .BindToStrict(this, x => x.InstallButton.Text)
                 .DisposeWith(disposables);
 
+            this.WhenAnyValue(x => x.ViewModel.MetadataVM.IsBroken)
+                .Select(x => x ? Visibility.Collapsed : Visibility.Visible)
+                .BindToStrict(this, x => x.InstallButton.Visibility)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.ViewModel.MetadataVM.IsBroken)
+                .Select(x => x ? Visibility.Collapsed : Visibility.Visible)
+                .BindToStrict(this, x => x.UnavailableDescription.Visibility)
+                .DisposeWith(disposables);
+
             this.WhenAnyValue(x => x.ViewModel.MetadataVM.ModListTagList)
                 .BindToStrict(this, v => v.TagsControl.ItemsSource)
                 .DisposeWith(disposables);
