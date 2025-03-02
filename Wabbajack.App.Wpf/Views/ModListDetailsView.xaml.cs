@@ -101,7 +101,7 @@ public partial class ModListDetailsView
                 .DisposeWith(disposables);
 
             this.WhenAnyValue(x => x.ViewModel.MetadataVM.IsBroken)
-                .Select(x => x ? Visibility.Collapsed : Visibility.Visible)
+                .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
                 .BindToStrict(this, x => x.UnavailableDescription.Visibility)
                 .DisposeWith(disposables);
 
