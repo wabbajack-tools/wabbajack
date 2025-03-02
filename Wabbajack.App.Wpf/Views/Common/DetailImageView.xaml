@@ -57,16 +57,24 @@
             Margin="16, 0, 0, 0"
             HorizontalAlignment="Left"
             VerticalAlignment="Bottom"
-            FontFamily="{StaticResource PrimaryFont}"
             FontWeight="Bold"
             TextWrapping="WrapWithOverflow">
                 </TextBlock>
-                <TextBlock Grid.Row="3" x:Name="AuthorTextBlock" Margin="8, 0, 0, 16" FontFamily="{StaticResource PrimaryFont}" TextWrapping="Wrap">
-                    <Run x:Name="VersionPrefixRun" Foreground="{StaticResource Transparent66ForegroundBrush}" />
-                    <Run x:Name="VersionTextRun" />
-                    <Run Text="by" Foreground="{StaticResource Transparent66ForegroundBrush}" />
-                    <Run x:Name="AuthorTextRun" />
-                </TextBlock>
+                <StackPanel Grid.Row="3" Margin="16, 0, 0, 16" Orientation="Horizontal">
+                    <StackPanel.Resources>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="Margin">
+                                <Setter.Value>
+                                    <Thickness Left="0" Top="0" Right="8" Bottom="0" />
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </StackPanel.Resources>
+                    <TextBlock x:Name="VersionPrefixText" Text="version" Foreground="{StaticResource Transparent66ForegroundBrush}" />
+                    <TextBlock x:Name="VersionText" />
+                    <TextBlock x:Name="AuthorPrefixText" Text="by" Foreground="{StaticResource Transparent66ForegroundBrush}" />
+                    <TextBlock x:Name="AuthorText" />
+                </StackPanel>
             </Grid>
         </Grid>
     </Border>

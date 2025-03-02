@@ -64,61 +64,72 @@ public partial class DetailImageView : UserControlRx<ViewModel>
         this.WhenActivated(dispose =>
         {
             // Update textboxes
-            var authorVisible = this.WhenAny(x => x.Author)
+            var authorVisible = this.WhenAnyValue(x => x.Author)
                 .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)
                 .Replay(1)
                 .RefCount();
             authorVisible
-                .BindToStrict(this, x => x.AuthorTextBlock.Visibility)
+                .BindToStrict(this, x => x.AuthorText.Visibility)
                 .DisposeWith(dispose);
-            this.WhenAny(x => x.Author)
-                .BindToStrict(this, x => x.AuthorTextRun.Text)
+            authorVisible
+                .BindToStrict(this, x => x.AuthorPrefixText.Visibility)
+                .DisposeWith(dispose);
+            this.WhenAnyValue(x => x.Author)
+                .BindToStrict(this, x => x.AuthorText.Text)
                 .DisposeWith(dispose);
 
-            var titleVisible = this.WhenAny(x => x.Title)
+            var titleVisible = this.WhenAnyValue(x => x.Title)
                 .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)
                 .Replay(1)
                 .RefCount();
             titleVisible
                 .BindToStrict(this, x => x.TitleTextBlock.Visibility)
                 .DisposeWith(dispose);
-            this.WhenAny(x => x.Title)
+            this.WhenAnyValue(x => x.Title)
                 .BindToStrict(this, x => x.TitleTextBlock.Text)
                 .DisposeWith(dispose);
 
-            /*
             var versionVisible = this.WhenAny(x => x.Version)
-                .Select(x => x?.ToString() ?? string.Empty)
-                .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Hidden : Visibility.Visible)
+                .Select(x => x?.ToString())
+                .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)
                 .Replay(1)
                 .RefCount();
             versionVisible
-                .BindToStrict(this, x => x.VersionTextRun.Visibility)
+                .BindToStrict(this, x => x.VersionText.Visibility)
                 .DisposeWith(dispose);
-            */
-            this.WhenAny(x => x.Version)
+            versionVisible
+                .BindToStrict(this, x => x.VersionPrefixText.Visibility)
+                .DisposeWith(dispose);
+
+            this.WhenAnyValue(x => x.Version)
                 .Select(x => x != null ? x.ToString() : string.Empty)
-                .BindToStrict(this, x => x.VersionTextRun.Text)
+                .BindToStrict(this, x => x.VersionText.Text)
                 .DisposeWith(dispose);
 
-            this.WhenAny(x => x.Version)
-                .Subscribe(x => VersionPrefixRun.Text = x != null ? "version" : string.Empty)
-                .DisposeWith(dispose);
-
-            this.WhenAny(x => x.Image)
+            this.WhenAnyValue(x => x.Image)
                 .Select(f => f)
                 .BindToStrict(this, x => x.ModlistImage.Source)
                 .DisposeWith(dispose);
-            this.WhenAny(x => x.Image)
+            this.WhenAnyValue(x => x.Image)
                 .Select(img => img == null ? Visibility.Hidden : Visibility.Visible)
                 .BindToStrict(this, x => x.ModlistImage.Visibility)
                 .DisposeWith(dispose);
 
-            this.WhenAny(x => x.TitleFontSize)
+            this.WhenAnyValue(x => x.TitleFontSize)
                 .BindToStrict(this, x => x.TitleTextBlock.FontSize)
                 .DisposeWith(dispose);
-            this.WhenAny(x => x.AuthorFontSize)
-                .BindToStrict(this, x => x.AuthorTextBlock.FontSize)
+
+            this.WhenAnyValue(x => x.AuthorFontSize)
+                .BindToStrict(this, x => x.VersionPrefixText.FontSize)
+                .DisposeWith(dispose);
+            this.WhenAnyValue(x => x.AuthorFontSize)
+                .BindToStrict(this, x => x.VersionText.FontSize)
+                .DisposeWith(dispose);
+            this.WhenAnyValue(x => x.AuthorFontSize)
+                .BindToStrict(this, x => x.AuthorPrefixText.FontSize)
+                .DisposeWith(dispose);
+            this.WhenAnyValue(x => x.AuthorFontSize)
+                .BindToStrict(this, x => x.AuthorText.FontSize)
                 .DisposeWith(dispose);
         });
     }
