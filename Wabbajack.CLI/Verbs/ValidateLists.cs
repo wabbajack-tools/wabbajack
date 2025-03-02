@@ -185,9 +185,8 @@ public class ValidateLists
 
             if (modList.ForceDown)
             {
-                _logger.LogWarning("List is ForceDown, skipping archive verificiation");
+                _logger.LogWarning("List is forced down");
                 validatedList.Status = ListStatus.ForcedDown;
-                return validatedList;
             }
             
             _logger.LogInformation("Verifying {Count} archives from {Name}", modListData.Archives.Length, modList.NamespacedName);
