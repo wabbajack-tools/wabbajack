@@ -17,7 +17,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <TextBlock x:Name="ButtonTextBlock" VerticalAlignment="Center" Margin="16, 0, 0, 0" />
-        <ic:SymbolIcon x:Name="ButtonSymbolIcon" FontSize="18" VerticalAlignment="Center" Margin="0, 0, 16, 0" />
+        <TextBlock x:Name="ButtonTextBlock" VerticalAlignment="Center" Margin="10, 4, 10, 4" />
+        <ic:SymbolIcon x:Name="ButtonSymbolIcon" FontSize="18" VerticalAlignment="Center" Margin="10, 4, 10, 4" />
     </Grid>
 </Button>
