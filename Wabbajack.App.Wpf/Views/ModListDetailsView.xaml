@@ -255,120 +255,128 @@
                     <ic:SymbolIcon Symbol="Dismiss" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Right" />
                 </Button>
 
-                <Border x:Name="BorderMask2" Grid.Row="1" CornerRadius="8" Background="White">
-                    <Grid Margin="-1">
-                        <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1"/>
-                        <Grid x:Name="MainContentGrid">
-                            <Grid.OpacityMask>
-                                <VisualBrush Visual="{Binding ElementName=BorderMask}"/>
-                            </Grid.OpacityMask>
-                            <DataGrid x:Name="ArchivesDataGrid" AutoGenerateColumns="False" FontSize="13"
-                      CanUserDeleteRows="False" CanUserSortColumns="True" CanUserAddRows="False"
-                      SnapsToDevicePixels="False"
-                      AlternatingRowBackground="{StaticResource ComplementaryPrimary12Brush}">
-                                <DataGrid.ColumnHeaderStyle>
-                                    <Style TargetType="DataGridColumnHeader">
-                                        <Setter Property="Margin" Value="8, 0, 0, 0" />
-                                        <Setter Property="VerticalAlignment" Value="Center" />
-                                        <Setter Property="FontWeight" Value="Bold" />
-                                        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
-                                    </Style>
-                                </DataGrid.ColumnHeaderStyle>
-                                <DataGrid.CellStyle>
-                                    <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
-                                        <Style.Triggers>
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    
+                    <Border x:Name="BorderMask2" Grid.Row="0" CornerRadius="8" Background="White">
+                        <Grid Margin="-1">
+                            <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1"/>
+                            <Grid x:Name="MainContentGrid">
+                                <Grid.OpacityMask>
+                                    <VisualBrush Visual="{Binding ElementName=BorderMask}"/>
+                                </Grid.OpacityMask>
+                                <DataGrid x:Name="ArchivesDataGrid" AutoGenerateColumns="False" FontSize="13"
+                          CanUserDeleteRows="False" CanUserSortColumns="True" CanUserAddRows="False"
+                          SnapsToDevicePixels="False"
+                          AlternatingRowBackground="{StaticResource ComplementaryPrimary12Brush}">
+                                    <DataGrid.ColumnHeaderStyle>
+                                        <Style TargetType="DataGridColumnHeader">
+                                            <Setter Property="Margin" Value="8, 0, 0, 0" />
+                                            <Setter Property="VerticalAlignment" Value="Center" />
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                            <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+                                        </Style>
+                                    </DataGrid.ColumnHeaderStyle>
+                                    <DataGrid.CellStyle>
+                                        <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
+                                            <Style.Triggers>
 
-                                        </Style.Triggers>
-                                    </Style>
-                                </DataGrid.CellStyle>
-                                <DataGrid.ItemContainerStyle>
-                                    <Style TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}">
-                                        <EventSetter Event="GotFocus" Handler="DataGridRow_GotFocus" />
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="{x:Type DataGridRow}">
-                                                    <Border
-                                        x:Name="DGR_Border"
-                                        Background="{TemplateBinding Background}"
-                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                        BorderThickness="0"
-                                        CornerRadius="{TemplateBinding Border.CornerRadius}"
-                                        SnapsToDevicePixels="True">
-                                                        <SelectiveScrollingGrid>
-                                                            <SelectiveScrollingGrid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="Auto" />
-                                                                <ColumnDefinition Width="*" />
-                                                            </SelectiveScrollingGrid.ColumnDefinitions>
-                                                            <SelectiveScrollingGrid.RowDefinitions>
-                                                                <RowDefinition Height="*" />
-                                                                <RowDefinition Height="Auto" />
-                                                            </SelectiveScrollingGrid.RowDefinitions>
-                                                            <DataGridCellsPresenter Grid.Column="1"
-                                                                    ItemsPanel="{TemplateBinding ItemsPanel}"
-                                                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                                                                    Margin="8, 0, 8, 0" />
-                                                            <DataGridDetailsPresenter Grid.Row="1" Grid.Column="1"
-                                                                      SelectiveScrollingGrid.SelectiveScrollingOrientation="{Binding AreRowDetailsFrozen, ConverterParameter={x:Static SelectiveScrollingOrientation.Vertical}, Converter={x:Static DataGrid.RowDetailsScrollingConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
-                                                                      Visibility="{TemplateBinding DetailsVisibility}" />
-                                                            <DataGridRowHeader Grid.RowSpan="2"
-                                                               SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical"
-                                                               Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Row}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
-                                                        </SelectiveScrollingGrid>
-                                                    </Border>
-                                                    <ControlTemplate.Triggers>
-                                                        <MultiDataTrigger>
-                                                            <MultiDataTrigger.Conditions>
-                                                                <Condition
-                                                    Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}"
-                                                    Value="true" />
-                                                                <Condition
-                                                    Binding="{Binding RelativeSource={RelativeSource Self}, Path=Item, Converter={StaticResource IsNexusArchiveConverter}}"
-                                                    Value="True" />
-                                                            </MultiDataTrigger.Conditions>
-                                                            <Setter Property="Cursor" Value="Hand" />
-                                                            <Setter TargetName="DGR_Border" Property="Background"
-                                                    Value="{StaticResource MouseOverListItem}" />
-                                                        </MultiDataTrigger>
-                                                        <Trigger Property="IsSelected" Value="True">
-                                                            <Setter TargetName="DGR_Border" Property="Background"
-                                                    Value="{StaticResource DataGridRowSelectedBrush}" />
-                                                        </Trigger>
-                                                    </ControlTemplate.Triggers>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </DataGrid.ItemContainerStyle>
-                                <DataGrid.Columns>
-                                    <DataGridTemplateColumn Header="Name" IsReadOnly="True" Width="3*">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock x:Name="StateCell"
-                                           Text="{Binding State, Converter={StaticResource NexusArchiveStateConverter}, ConverterParameter=Name}"
-                                           TextTrimming="CharacterEllipsis" />
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                    <DataGridTemplateColumn Header="Archive" IsReadOnly="True" Width="4*">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock x:Name="NameCell" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                    <DataGridTemplateColumn Header="Size" IsReadOnly="True" Width="60">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock x:Name="SizeCell"
-                                           Text="{Binding Size, Converter={StaticResource FileSizeConverter}}" />
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                </DataGrid.Columns>
-                            </DataGrid>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGrid.CellStyle>
+                                    <DataGrid.ItemContainerStyle>
+                                        <Style TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}">
+                                            <EventSetter Event="GotFocus" Handler="DataGridRow_GotFocus" />
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="{x:Type DataGridRow}">
+                                                        <Border
+                                            x:Name="DGR_Border"
+                                            Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="0"
+                                            CornerRadius="{TemplateBinding Border.CornerRadius}"
+                                            SnapsToDevicePixels="True">
+                                                            <SelectiveScrollingGrid>
+                                                                <SelectiveScrollingGrid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                    <ColumnDefinition Width="*" />
+                                                                </SelectiveScrollingGrid.ColumnDefinitions>
+                                                                <SelectiveScrollingGrid.RowDefinitions>
+                                                                    <RowDefinition Height="*" />
+                                                                    <RowDefinition Height="Auto" />
+                                                                </SelectiveScrollingGrid.RowDefinitions>
+                                                                <DataGridCellsPresenter Grid.Column="1"
+                                                                        ItemsPanel="{TemplateBinding ItemsPanel}"
+                                                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                                                        Margin="8, 0, 8, 0" />
+                                                                <DataGridDetailsPresenter Grid.Row="1" Grid.Column="1"
+                                                                          SelectiveScrollingGrid.SelectiveScrollingOrientation="{Binding AreRowDetailsFrozen, ConverterParameter={x:Static SelectiveScrollingOrientation.Vertical}, Converter={x:Static DataGrid.RowDetailsScrollingConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                                                                          Visibility="{TemplateBinding DetailsVisibility}" />
+                                                                <DataGridRowHeader Grid.RowSpan="2"
+                                                                   SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical"
+                                                                   Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Row}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
+                                                            </SelectiveScrollingGrid>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition
+                                                        Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}"
+                                                        Value="true" />
+                                                                    <Condition
+                                                        Binding="{Binding RelativeSource={RelativeSource Self}, Path=Item, Converter={StaticResource IsNexusArchiveConverter}}"
+                                                        Value="True" />
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Cursor" Value="Hand" />
+                                                                <Setter TargetName="DGR_Border" Property="Background"
+                                                        Value="{StaticResource MouseOverListItem}" />
+                                                            </MultiDataTrigger>
+                                                            <Trigger Property="IsSelected" Value="True">
+                                                                <Setter TargetName="DGR_Border" Property="Background"
+                                                        Value="{StaticResource DataGridRowSelectedBrush}" />
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </DataGrid.ItemContainerStyle>
+                                    <DataGrid.Columns>
+                                        <DataGridTemplateColumn Header="Name" IsReadOnly="True" Width="3*">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock x:Name="StateCell"
+                                               Text="{Binding State, Converter={StaticResource NexusArchiveStateConverter}, ConverterParameter=Name}"
+                                               TextTrimming="CharacterEllipsis" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTemplateColumn Header="Archive" IsReadOnly="True" Width="4*">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock x:Name="NameCell" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTemplateColumn Header="Size" IsReadOnly="True" Width="60">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock x:Name="SizeCell"
+                                               Text="{Binding Size, Converter={StaticResource FileSizeConverter}}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
                         </Grid>
-                    </Grid>
-                </Border>
+                    </Border>
+                </Grid>
+                    
 
                 <!-- WebView Browser, added by code behind -->
             </Grid>

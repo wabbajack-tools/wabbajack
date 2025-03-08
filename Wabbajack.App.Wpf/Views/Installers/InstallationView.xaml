@@ -76,7 +76,11 @@
                         Choose an empty folder outside Windows-protected areas.
                         Using an SSD is highly recommended for optimal performance.
                     </TextBlock>
-                    <local:FilePicker x:Name="InstallationLocationPicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the folder where the list will be installed to" />
+                    <local:FilePicker x:Name="InstallationLocationPicker"
+                                      Style="{StaticResource PickerStyle}"
+                                      Icon="Folder"
+                                      ToolTip="Path to the folder where the list will be installed to"
+                                      IsEnabled="{Binding LoadingLock.IsNotLoading}"/>
                 </StackPanel>
 
                 <StackPanel x:Name="DownloadLocationPanel" Grid.Row="1" Style="{StaticResource Panel}">
@@ -86,7 +90,11 @@
                         By default these are stored in a subdirectory of the installation folder, but you can also use a shared folder so previous downloads are reused.
                         Downloads can be deleted after installation.
                     </TextBlock>
-                    <local:FilePicker x:Name="DownloadLocationPicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the folder where the mod archives will be downloaded to" />
+                    <local:FilePicker x:Name="DownloadLocationPicker"
+                                      Style="{StaticResource PickerStyle}"
+                                      Icon="Folder"
+                                      ToolTip="Path to the folder where the mod archives will be downloaded to"
+                                      IsEnabled="{Binding LoadingLock.IsNotLoading}" />
                 </StackPanel>
 
                 <Grid Grid.Row="3">

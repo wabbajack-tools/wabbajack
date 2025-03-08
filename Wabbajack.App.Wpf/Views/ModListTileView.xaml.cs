@@ -1,4 +1,5 @@
-﻿using System.Reactive.Disposables;
+﻿using System;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows;
 using ReactiveUI;
@@ -28,6 +29,23 @@ public partial class ModListTileView : ReactiveUserControl<BaseModListMetadataVM
                 .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
                 .BindToStrict(this, x => x.LoadingProgress.Visibility)
                 .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(x => x.Metadata.DownloadMetadata.SizeOfArchives)
+                     .Select(x => UIUtils.FormatBytes(x, round: true))
+                     .BindToStrict(this, v => v.DownloadSizeRun.Text)
+                     .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(x => x.Metadata.DownloadMetadata.SizeOfInstalledFiles)
+                     .Select(x => UIUtils.FormatBytes(x, round: true))
+                     .BindToStrict(this, v => v.InstallSizeRun.Text)
+                     .DisposeWith(disposables);
+
+            /*
+            ViewModel.WhenAnyValue(x => x.Metadata.DownloadMetadata.TotalSize)
+                     .Select(x => UIUtils.FormatBytes(x, round: true))
+                     .BindToStrict(this, v => v.TotalSizeRun.Text)
+                     .DisposeWith(disposables);
+            */
 
             this.BindCommand(ViewModel, vm => vm.DetailsCommand, v => v.ModlistButton)
                 .DisposeWith(disposables);

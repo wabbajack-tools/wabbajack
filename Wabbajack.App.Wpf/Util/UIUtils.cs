@@ -143,7 +143,7 @@ public static class UIUtils
     /// </summary>
     /// <param name="bytes">number of bytes</param>
     /// <returns></returns>
-    public static string FormatBytes(long bytes)
+    public static string FormatBytes(long bytes, bool round = false)
     {
         string[] Suffix = { "B", "KB", "MB", "GB", "TB" };
         int i;
@@ -153,7 +153,7 @@ public static class UIUtils
             dblSByte = bytes / 1024.0;
         }
 
-        return String.Format("{0:0.##} {1}", dblSByte, Suffix[i]);
+        return String.Format("{0:0.##} {1}", round ? Math.Ceiling(dblSByte) : dblSByte, Suffix[i]);
     }
 
     public static void OpenFile(AbsolutePath file)
