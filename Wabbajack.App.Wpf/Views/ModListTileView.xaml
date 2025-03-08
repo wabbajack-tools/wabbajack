@@ -68,7 +68,7 @@
                 </Style>
             </Border.Style>
             <Grid>
-                <Border x:Name="MaskBorder" BorderThickness="0" BorderBrush="Transparent" Background="{StaticResource DarkSecondaryBrush}" CornerRadius="10" Width="{Binding ElementName=MainGrid, Path=ActualWidth}" Height="{Binding ElementName=MainGrid, Path=ActualHeight}"/>
+                <Border x:Name="MaskBorder" BorderThickness="0" BorderBrush="Transparent" Background="{StaticResource DarkSecondaryBrush}" CornerRadius="8" Width="{Binding ElementName=MainGrid, Path=ActualWidth}" Height="{Binding ElementName=MainGrid, Path=ActualHeight}"/>
                 <Grid x:Name="MainGrid" Width="478" Height="{Binding ElementName=MainGrid, Path=ActualWidth, Converter={StaticResource MathConverter}, ConverterParameter=x*9/16}" Background="Transparent" ClipToBounds="True">
                     <Grid.OpacityMask>
                         <VisualBrush Visual="{Binding ElementName=MaskBorder}"/>
@@ -90,7 +90,7 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="400" />
+                                <ColumnDefinition Width="Auto" MaxWidth="400" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
@@ -98,76 +98,64 @@
                             <TextBlock
                                 Grid.Column="0"
                                 Grid.Row="1"
-                                VerticalAlignment="Center"
-                                Margin="0, 0, 0, 2"
+                                VerticalAlignment="Top"
                                 FontWeight="Bold"
                                 TextWrapping="Wrap"
-                                FontSize="24">
-                                <Run Text="{Binding Metadata.Title}" BaselineAlignment="Center" />
-                            </TextBlock>
+                                FontSize="24"
+                                Margin="0, 0, 0, 2"
+                                Text="{Binding Metadata.Title}"
+                                MaxWidth="400" />
 
                             <TextBlock 
                                 Grid.Column="0"
                                 Grid.Row="2"
-                                VerticalAlignment="Center"
+                                VerticalAlignment="Bottom"
                                 TextWrapping="Wrap"
                                 FontSize="13">
                                 <Run Text="by" Foreground="{StaticResource Transparent66ForegroundBrush}" />
                                 <Run Text="{Binding Metadata.Author}" />
                             </TextBlock>
 
-                            <Grid Grid.Row="1"
-                                  Grid.RowSpan="2"
+                            <StackPanel 
+                                  Orientation="Horizontal"
+                                  Grid.Row="2"
                                   Grid.Column="2"
-                                  Margin="0, 0, 8, 0"
-                                  VerticalAlignment="Bottom">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="2" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-
+                                  VerticalAlignment="Bottom"
+                                  HorizontalAlignment="Right">
                                 <ic:SymbolIcon x:Name="DownloadSizeIcon"
                                                Grid.Column="0"
-                                               Grid.Row="0"
-                                               Height="16"
+                                               Height="14"
+                                               Margin="0, 0, 4, 0"
                                                VerticalAlignment="Bottom"
                                                Foreground="{StaticResource Transparent66ForegroundBrush}"
-                                               FontSize="14"
+                                               FontSize="13"
                                                Symbol="ArrowDownload"
                                                IconVariant="Filled" />
                                 <TextBlock x:Name="DownloadSizeRun"
                                            Grid.Column="1"
-                                           Grid.Row="0"
-                                           Height="16"
-                                           Margin="4, 0, 0, 0"
+                                           Height="14"
+                                           Margin="0, 0, 8, 0"
                                            VerticalAlignment="Bottom"
                                            Foreground="{StaticResource Transparent66ForegroundBrush}"
-                                           FontSize="13"
-                                           TextWrapping="Wrap" />
+                                           FontSize="13"/>
 
                                 <ic:SymbolIcon x:Name="InstallSizeIcon"
-                                               Grid.Column="0"
-                                               Grid.Row="2"
-                                               Height="16"
+                                               Grid.Column="3"
+                                               Height="14"
+                                               Margin="0, 0, 4, 0"
                                                VerticalAlignment="Bottom"
                                                Foreground="{StaticResource Transparent66ForegroundBrush}"
-                                               FontSize="14"
+                                               FontSize="13"
                                                Symbol="Games"
                                                IconVariant="Filled" />
                                 <TextBlock x:Name="InstallSizeRun"
-                                           Grid.Column="1"
-                                           Grid.Row="2"
-                                           Height="16"
-                                           Margin="4, 0, 0, 0"
+                                           Grid.Column="4"
+                                           Height="14"
+                                           Margin="0, 0, 8, 0"
                                            VerticalAlignment="Bottom"
                                            Foreground="{StaticResource Transparent66ForegroundBrush}"
                                            FontSize="13"
-                                           TextWrapping="Wrap" />
+                                           />
 
 <!--
                                 <ic:SymbolIcon x:Name="TotalSizeIcon"
@@ -187,7 +175,7 @@
                                            FontSize="13"
                                            TextWrapping="Wrap" />
                                            -->
-                            </Grid>
+                            </StackPanel>
                         </Grid>
 
                         <Grid Margin="8, 8, 0, 0" VerticalAlignment="Top" HorizontalAlignment="Stretch" Panel.ZIndex="1">
