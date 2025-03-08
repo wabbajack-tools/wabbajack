@@ -136,6 +136,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
 
     private async Task Publish()
     {
+        _logger.LogInformation("Running preflight checks before publishing list");
         bool readyForPublish = await RunPreflightChecks(CancellationToken.None);
         if (!readyForPublish) return;
 
@@ -287,7 +288,17 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
 
     private async Task<bool> RunPreflightChecks(CancellationToken token)
     {
-        var lists = await _wjClient.GetMyModlists(token);
+        IReadOnlyList<string> lists;
+        try
+        {
+            lists = await _wjClient.GetMyModlists(token);
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError("Publish failed; failed to get modlists! Exception: {ex}", ex.ToString());
+            return false;
+        }
+
         if (!lists.Any(x => x.Equals(Settings.MachineUrl, StringComparison.InvariantCultureIgnoreCase)))
         {
             _logger.LogError("Preflight Check failed, list {MachineUrl} not found in any repository", Settings.MachineUrl);
