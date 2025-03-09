@@ -106,7 +106,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     private readonly HttpClient _client;
     private readonly DownloadDispatcher _downloadDispatcher;
     private readonly IEnumerable<INeedsLogin> _logins;
-    private readonly CancellationTokenSource _cancellationTokenSource;
+    private CancellationTokenSource _cancellationTokenSource;
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
 
     [Reactive] public bool Installing { get; set; }
@@ -144,8 +144,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     
     public InstallationVM(ILogger<InstallationVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
-        Wabbajack.Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins,
-        CancellationTokenSource cancellationTokenSource)
+        Wabbajack.Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins)
     {
         _logger = logger;
         _configuration = configuration;
@@ -159,7 +158,6 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
         _client = client;
         _downloadDispatcher = dispatcher;
         _logins = logins;
-        _cancellationTokenSource = cancellationTokenSource;
 
         ConfigurationText = $"Loading... Please wait";
         ProgressText = $"Installation";
@@ -354,8 +352,19 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
             case InstallState.Installing:
                 // TODO - Cancel installation
-                await _cancellationTokenSource.CancelAsync();
-                _cancellationTokenSource.TryReset();
+                if (_cancellationTokenSource != null && !_cancellationTokenSource.IsCancellationRequested)
+                {
+                    _logger.LogInformation("Cancellation was requested, cancelling installation of modlist!");
+                    try
+                    {
+                        await _cancellationTokenSource.CancelAsync();
+                    }
+                    catch(ObjectDisposedException ex)
+                    {
+                        _logger.LogError("Token source was already disposed while attempting cancellation! Exception: {ex}", ex.ToString());
+                    }
+                }
+
                 break;
 
             default:
@@ -635,7 +644,11 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                 _logger.LogInformation("    Game: {game}", cfg.Game.ToString());
                 _logger.LogInformation("    Game folder: {gameFolder}", cfg.GameFolder);
 
-                var result = await StandardInstaller.Begin(_cancellationTokenSource.Token);
+                InstallResult result;
+                using (_cancellationTokenSource = new CancellationTokenSource())
+                {
+                    result = await StandardInstaller.Begin(_cancellationTokenSource.Token);
+                }
                 if (result == Wabbajack.Installer.InstallResult.Succeeded)
                 {
                     RxApp.MainThreadScheduler.Schedule(() =>

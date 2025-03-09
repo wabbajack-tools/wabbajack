@@ -70,8 +70,6 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
         CompilerDetailsVM = compilerDetailsVM;
         CompilerFileManagerVM = compilerFileManagerVM;
 
-        CancellationTokenSource = new CancellationTokenSource();
-
         GetHelpCommand = ReactiveCommand.Create(Info);
         StartCommand = ReactiveCommand.Create(StartCompilation,
             this.WhenAnyValue(vm => vm.Settings.ModListName,
@@ -160,7 +158,6 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
             {
                 HideNavigation.Send();
                 await SaveSettings();
-                var token = CancellationTokenSource.Token;
 
                 await EnsureLoggedIntoNexus();
 
@@ -195,13 +192,15 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
 
                 try
                 {
-                    var result = await compiler.Begin(token);
+                    CancellationTokenSource = new CancellationTokenSource();
+                    bool result = await compiler.Begin(CancellationTokenSource.Token);
                     if (!result)
                         throw new Exception("Compilation Failed");
                 }
                 finally
                 {
                     events.Dispose();
+                    CancellationTokenSource.Dispose();
                 }
 
                 _logger.LogInformation("Compiler Finished");
@@ -284,8 +283,14 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
         if (State != CompilerState.Compiling) return;
         Cancelling = true;
         _logger.LogInformation("Cancel pressed, cancelling compilation...");
-        await CancellationTokenSource.CancelAsync();
-        CancellationTokenSource = new CancellationTokenSource();
+        try
+        {
+            await CancellationTokenSource.CancelAsync();
+        }
+        catch(ObjectDisposedException ex)
+        {
+            _logger.LogError("Could not cancel compilation, cancellation token was disposed! Exception: {ex}", ex.ToString());
+        }
     }
 
     private async Task<bool> RunPreflightChecks(CancellationToken token)
