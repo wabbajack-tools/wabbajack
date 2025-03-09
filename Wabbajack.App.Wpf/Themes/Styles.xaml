@@ -1976,6 +1976,9 @@
                     <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button, AncestorLevel=1}, Path=IsMouseOver}" Value="True">
                         <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
                     </DataTrigger>
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button, AncestorLevel=1}, Path=IsEnabled}" Value="False">
+                        <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+                    </DataTrigger>
                 </Style.Triggers>
             </Style>
         </Style.Resources>
