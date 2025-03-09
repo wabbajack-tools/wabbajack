@@ -35,7 +35,7 @@
 
         <local:CompilerFileManagerView x:Name="FileManager" ViewModel="{Binding CompilerFileManagerVM}" Grid.Column="1" Grid.RowSpan="2" Margin="16, 0, 0, 0" />
         <DockPanel x:Name="ConfigurationButtons" Grid.Row="2" Grid.Column="1" Margin="0, 16, 0, 0">
-            <local:WJButton x:Name="StartButton" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="Compile List" Icon="Box" ButtonStyle="Color" />
+            <local:WJButton x:Name="StartButton" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="Compile List" Icon="Box" ButtonStyle="Color" ToolTipService.ShowOnDisabled="True"/>
         </DockPanel>
 
         <!-- Compilation -->

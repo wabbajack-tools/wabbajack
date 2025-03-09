@@ -6,7 +6,9 @@ using Wabbajack.Paths.IO;
 using System.Windows;
 using System.Reactive.Disposables;
 using System;
+using ReactiveMarbles.ObservableEvents;
 using System.Windows.Media.Imaging;
+using System.Collections.Generic;
 
 namespace Wabbajack;
 
@@ -102,6 +104,17 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
                     .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, x => x.StartCommand, x => x.StartButton)
+                .DisposeWith(disposables);
+
+            ViewModel.StartCommand.Events().CanExecuteChanged
+                .Subscribe(x =>
+                {
+                    if (!ViewModel.StartCommand.CanExecute(null))
+                    {
+                        StartButton.ToolTip = $"Cannot start compilation, not all required fields have been filled out.";
+                    }
+                    else StartButton.ToolTip = null;
+                })
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, x => x.CancelCommand, x => x.CancelButton)
