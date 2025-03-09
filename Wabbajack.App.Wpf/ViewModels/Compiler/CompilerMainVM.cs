@@ -78,21 +78,23 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                               vm => vm.Settings.ModListAuthor,
                               vm => vm.Settings.ModListDescription,
                               vm => vm.Settings.ModListImage,
+                              vm => vm.Settings.Downloads,
                               vm => vm.Settings.OutputFile,
-                              vm => vm.Settings.Version, (name, author, desc, img, output, version) => 
+                              vm => vm.Settings.Version, (name, author, desc, img, downloads, output, version) => 
                               !string.IsNullOrWhiteSpace(name) &&
                               !string.IsNullOrWhiteSpace(author) &&
                               !string.IsNullOrWhiteSpace(desc) &&
                               img.FileExists() &&
-                              !string.IsNullOrWhiteSpace(output.ToString()) &&
+                              !string.IsNullOrEmpty(downloads.ToString()) &&
+                              !string.IsNullOrEmpty(output.ToString()) && output.Extension == Ext.Wabbajack &&
                               Version.TryParse(version, out _)));
 
         CancelCommand = ReactiveCommand.Create(CancelCompilation);
         OpenLogCommand = ReactiveCommand.Create(OpenLog);
         OpenFolderCommand = ReactiveCommand.Create(OpenFolder);
         PublishCommand = ReactiveCommand.Create(Publish); 
-
         ProgressPercent = Percent.Zero;
+
         this.WhenActivated(disposables =>
         {
             if (State != CompilerState.Compiling)

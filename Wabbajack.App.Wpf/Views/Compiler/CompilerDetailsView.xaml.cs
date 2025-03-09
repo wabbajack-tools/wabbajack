@@ -69,9 +69,13 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
             this.Bind(ViewModel, vm => vm.Settings.MachineUrl, view => view.MachineUrl.Text)
                 .DisposeWith(disposables);
 
-            this.Bind(ViewModel, vm => vm.OutputLocation, view => view.OutputFilePicker.PickerVM)
+            this.Bind(ViewModel, vm => vm.DownloadLocation, view => view.DownloadsPicker.PickerVM)
+                .DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.Settings.Downloads, view => view.DownloadsPicker.PickerVM.TargetPath)
                 .DisposeWith(disposables);
 
+            this.Bind(ViewModel, vm => vm.OutputLocation, view => view.OutputFilePicker.PickerVM)
+                .DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.Settings.OutputFile, view => view.OutputFilePicker.PickerVM.TargetPath)
                 .DisposeWith(disposables);
         });

@@ -48,6 +48,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <StackPanel Margin="{StaticResource TextPanelMargin}">
@@ -88,39 +89,44 @@
                 <local:FilePicker x:Name="ImageFilePicker" Style="{StaticResource PickerStyle}" Icon="DocumentImage" ToolTip="Path to an image to display for the modlist." Watermark="C:\...\Thumbnail-1600x900.webp" />
             </StackPanel>
 
-            <StackPanel Grid.Row="4" Margin="{StaticResource TextPanelMargin}">
+            <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Downloads folder" />
+                <local:FilePicker x:Name="DownloadsPicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the folder where the downloaded archives of your modlist are stored" Watermark="C:\...\downloads" />
+            </StackPanel>
+            <StackPanel Grid.Row="5" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Export destination" />
+                <local:FilePicker x:Name="OutputFilePicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the file where the list installer will be saved to on completion" Watermark="C:\...\Modlist.wabbajack" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="6" Margin="{StaticResource TextPanelMargin}">
                 <DockPanel>
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Documentation (Readme)" ToolTip="Link to the documentation." mahapps:TextBoxHelper.Watermark="https://www..."/>
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
                 </DockPanel>
                 <TextBox x:Name="ReadmeSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="https://www..." />
             </StackPanel>
-            <StackPanel Grid.Row="4" Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
+            <StackPanel Grid.Row="6" Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
                 <DockPanel>
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
                 </DockPanel>
                 <TextBox x:Name="WebsiteSetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="https://www..." />
             </StackPanel>
-            <StackPanel Grid.Row="5" Margin="{StaticResource TextPanelMargin}">
+            <StackPanel Grid.Row="7" Margin="{StaticResource TextPanelMargin}">
                 <DockPanel>
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Community" />
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
                 </DockPanel>
                 <TextBox x:Name="CommunitySetting" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="https://discord.gg/..." />
             </StackPanel>
-            <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Vertical" Margin="{StaticResource TextPanelMargin}">
+            <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Vertical" Margin="{StaticResource TextPanelMargin}">
                 <DockPanel>
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Machine URL" ToolTip="Unique text string for this modlist prefixed with its GitHub repository name." />
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
                 </DockPanel>
                 <TextBox x:Name="MachineUrl" Style="{StaticResource ValueStyle}" mahapps:TextBoxHelper.Watermark="modlistRepository/ModlistName" />
             </StackPanel>
-            <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
-                <TextBlock Margin="{StaticResource TitleMargin}" Text="Export destination" />
-                <local:FilePicker x:Name="OutputFilePicker" Style="{StaticResource PickerStyle}" Icon="Folder" ToolTip="Path to the folder where the list installer will be saved to on completion" Watermark="C:\...\Exported" />
-            </StackPanel>
-            <StackPanel Grid.Row="7" Margin="{StaticResource TextPanelMargin}">
+            <StackPanel Grid.Row="8" Margin="{StaticResource TextPanelMargin}">
                 <CheckBox
                     x:Name="NSFWSetting"
                     Margin="{StaticResource TitleMargin}"
@@ -129,7 +135,7 @@
                 </CheckBox>
             </StackPanel>
 
-            <StackPanel Grid.Row="7" Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
+            <StackPanel Grid.Row="8" Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
                 <CheckBox
                     x:Name="TextureRecompressionSetting"
                     Margin="{StaticResource TitleMargin}"
@@ -138,12 +144,30 @@
                 </CheckBox>
             </StackPanel>
 
-            <StackPanel Grid.Row="8" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}" ToolTip="Wabbajack will include these profiles as part of the modlist alongside your main selected MO2 profile.">
+            <StackPanel Grid.Row="9" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}" ToolTip="Wabbajack will include selected profiles as part of the modlist alongside your main selected MO2 profile.">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Additional profile(s)"/>
                 <ListBox SelectionMode="Multiple" x:Name="AdditionalProfilesSetting">
+                    <ListBox.Resources>
+                        <Style TargetType="ListBoxItem" BasedOn="{StaticResource ListBoxItemStyle}">
+                            <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+                        </Style>
+                    </ListBox.Resources>
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Padding="2, 8, 0, 8" Text="{Binding}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <ic:SymbolIcon
+                                    Grid.Column="0"
+                                    FontSize="13"
+                                    Symbol="Checkmark"
+                                    Visibility="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}, Converter={StaticResource bool2VisibilityConverter}}"
+                                    Margin="0, 0, 0, 0" />
+                                <TextBlock Grid.Column="2" Padding="4, 8, 0, 8" Text="{Binding}" />
+                            </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
