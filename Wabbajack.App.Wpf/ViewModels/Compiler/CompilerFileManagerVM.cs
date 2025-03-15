@@ -24,19 +24,10 @@ namespace Wabbajack;
 
 public class CompilerFileManagerVM : BaseCompilerVM
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ResourceMonitor _resourceMonitor;
-    private readonly CompilerSettingsInferencer _inferencer;
-    
     public ObservableCollection<FileTreeViewItem> Files { get; set; }
 
-    public CompilerFileManagerVM(ILogger<CompilerFileManagerVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
-        IServiceProvider serviceProvider, ResourceMonitor resourceMonitor, 
-        CompilerSettingsInferencer inferencer, Client wjClient) : base(dtos, settingsManager, logger, wjClient)
+    public CompilerFileManagerVM(ILogger<CompilerFileManagerVM> logger, DTOSerializer dtos, SettingsManager settingsManager, Client wjClient) : base(dtos, settingsManager, logger, wjClient)
     {
-        _serviceProvider = serviceProvider;
-        _resourceMonitor = resourceMonitor;
-        _inferencer = inferencer;
         this.WhenActivated(disposables =>
         {
             if (Settings.Source != default)
@@ -84,10 +75,10 @@ public class CompilerFileManagerVM : BaseCompilerVM
     {
         var header = item.Header;
         header.PathRelativeToRoot = ((AbsolutePath)header.Info.FullName).RelativeTo(Settings.Source);
-        if (Settings.NoMatchInclude.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.NoMatchInclude; }
-        else if (Settings.Include.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.Include; }
-        else if (Settings.Ignore.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.Ignore; }
-        else if (Settings.AlwaysEnabled.Contains(header.PathRelativeToRoot)) { header.CompilerFileState = CompilerFileState.AlwaysEnabled; }
+        if (Settings.NoMatchInclude.Contains(header.PathRelativeToRoot)) header.CompilerFileState |= CompilerFileState.NoMatchInclude;
+        if (Settings.Include.Contains(header.PathRelativeToRoot)) header.CompilerFileState |= CompilerFileState.Include;
+        if (Settings.Ignore.Contains(header.PathRelativeToRoot)) header.CompilerFileState |= CompilerFileState.Ignore;
+        if (Settings.AlwaysEnabled.Contains(header.PathRelativeToRoot)) header.CompilerFileState |= CompilerFileState.AlwaysEnabled;
         SetContainedStates(header);
         header.PropertyChanged += Header_PropertyChanged;
     }
@@ -111,21 +102,22 @@ public class CompilerFileManagerVM : BaseCompilerVM
             Settings.Ignore.Remove(updatedItem.PathRelativeToRoot);
             Settings.AlwaysEnabled.Remove(updatedItem.PathRelativeToRoot);
 
-            switch(updatedItem.CompilerFileState)
+            if(updatedItem.CompilerFileState.HasFlag(CompilerFileState.NoMatchInclude))
             {
-                case CompilerFileState.NoMatchInclude:
-                    Settings.NoMatchInclude.Add(updatedItem.PathRelativeToRoot);
-                    break;
-                case CompilerFileState.Include:
-                    Settings.Include.Add(updatedItem.PathRelativeToRoot);
-                    break;
-                case CompilerFileState.Ignore:
-                    Settings.Ignore.Add(updatedItem.PathRelativeToRoot);
-                    break;
-                case CompilerFileState.AlwaysEnabled:
-                    Settings.AlwaysEnabled.Add(updatedItem.PathRelativeToRoot);
-                    break;
-            };
+                Settings.NoMatchInclude.Add(updatedItem.PathRelativeToRoot);
+            }
+            if(updatedItem.CompilerFileState.HasFlag(CompilerFileState.Include))
+            {
+                Settings.Include.Add(updatedItem.PathRelativeToRoot);
+            }
+            if(updatedItem.CompilerFileState.HasFlag(CompilerFileState.Ignore))
+            {
+                Settings.Ignore.Add(updatedItem.PathRelativeToRoot);
+            }
+            if(updatedItem.CompilerFileState.HasFlag(CompilerFileState.AlwaysEnabled))
+            {
+                Settings.AlwaysEnabled.Add(updatedItem.PathRelativeToRoot);
+            }
 
             // Update contained states of parents upon changing compiler state on child (ContainsIgnores, ContainsIncludes)
             if (updatedItem.PathRelativeToRoot.Depth > 1)

@@ -12,18 +12,19 @@ using Wabbajack.Paths;
 
 namespace Wabbajack;
 
+[Flags]
 public enum CompilerFileState
 {
     [Description("Auto Match")]
-    AutoMatch,
+    AutoMatch = 1,
     [Description("No Match Include")]
-    NoMatchInclude,
-    [Description("Force Include")]
-    Include,
-    [Description("Force Ignore")]
-    Ignore,
+    NoMatchInclude = 2,
+    [Description("Include")]
+    Include = 4,
+    [Description("Ignore")]
+    Ignore = 8,
     [Description("Always Enabled")]
-    AlwaysEnabled
+    AlwaysEnabled = 16
 }
 
 public class FileTreeViewItem : TreeViewItem
