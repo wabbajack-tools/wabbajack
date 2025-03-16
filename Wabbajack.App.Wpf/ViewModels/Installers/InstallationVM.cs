@@ -771,7 +771,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                         }
                         else if(ModList.GameType == Game.SkyrimSpecialEdition && archive.Name.StartsWith("Data_cc", StringComparison.OrdinalIgnoreCase))
                         {
-                            writer.Write("<p>This is a Creation Club file that could not be found. Check if the Anniversary Edition DLC is installed before installing this modlist, and validate you have the same version as the one the modlist author has. You will generally find info about this in the readme or in the modlists Discord server.</p>");
+                            writer.Write("<p>This is a Creation Club file that could not be found. Check if the Anniversary Edition DLC is installed before installing this modlist, and validate you have the same version as the one the modlist author has.</p>");
                         }
                         else
                         {
