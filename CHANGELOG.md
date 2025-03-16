@@ -1,5 +1,35 @@
 ### Changelog
 
+#### Version - 4.0.0.0 - 3/16/2025?
+* The entire UI has been overhauled to hopefully better guide users during installation/compilation and such.
+  * Major thanks to [@CritLoren](https://www.github.com/CritLoren) for coming up with a lot of ideas behind the redesign and creating [Figma mock-ups](https://www.figma.com/design/SylohOBwdYAtPbOj5VMQ25/Wabbajack-v4).
+  * This changelog won't go into detail into every bit, as I ([@tr4wzified](https://www.github.com/tr4wzified)) have been working on this for over a year now and I don't think anyone is going to be reading all of the changes anyway.
+  * For some comparison shots, scroll to the bottom of the changelog for this version!
+  * Good to know; despite the major version number increase, modlists from 3.7.5.3 are fully compatible with 4.0.0.0 and do not need to be recompiled by the modlist author.
+* The tag system has been overhauled. Only tags on [the whitelist](https://github.com/wabbajack-tools/mod-lists/blob/master/allowed_tags.json) will show up on modlists.
+  * This was done to standardize tags and make tag search more meaningful. The website has not been updated for this yet.
+* You can now search by tag within Wabbajack.
+* You can now search modlists by mod within Wabbajack. This is currently limited to mods from the Nexus.
+* Wabbajack now automatically suggests installation and downloads folders. Click here for an overview of how this algorithm works.
+* The readme is now readable within Wabbajack itself, during installation and when previewing the modlist (when clicking on it in the gallery).
+* Fixed issues with non-featured / NSFW toggles not resetting properly in some cases.
+* Fixed issues with (gallery) images not loading on certain Windows installations without the Webp Image Extensions installed.
+* The gallery has been optimized to use smaller thumbnail images, saving on memory and loading times.
+* Search functions in the gallery have been improved to sort by best matching result.
+  * For example, searching for 'Ro' previously could show the 'Tahrovin' list first, simply because it also contained the word 'Ro'.
+* A total modlist size filter has been added to the gallery.
+* Installation and compilation cancel buttons have been added - for when things are taking too long and you just want to play games with your friends ;)
+* Modlist authors: texture recompression is now disabled by default due to it causing issues on specific FNV setups. You can optionally toggle it back on to try and shave some space off a compiled modlist.
+* Modlist authors: a websiteURL can now be added to your modlist JSON entry (modlists.json), it's a separate button available before installation.
+* The missing manual report document now properly links to download URLs and provides additional information on resolving issues with specific game files.
+* Fixed the Google Drive downloader not working properly, should be fully automated once again.
+* A MEGA login is now required for modlists requiring MEGA downloads.
+  * This is due to MEGA implementing additional security measures to block bots. Once I have some time I will investigate further and see if anonymous logins can be brought back.
+* Improved logging of system specifications (drive layout) & installation details
+* Fixed issue where Wabbajack could get stuck doing nothing when pressing install immediately after loading a list for installation
+* Fonts are now shipped within the application. No more ugly serif fonts for Linux WINE users, I see you!
+
+
 #### Version - 3.7.5.3 - 1/29/2025
 * Compilation failures are now logged as an ERR type instead of INFO. Thanks to Thamous ([@AlexDickerson](https://github.com/AlexDickerson))
 * Fix for the Wabbajack CDN not downloading parts correctly anymore after it switched to chunked HTTP responses. Suspected change by Cloudflare.
