@@ -70,7 +70,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
         CompilerDetailsVM = compilerDetailsVM;
         CompilerFileManagerVM = compilerFileManagerVM;
 
-        GetHelpCommand = ReactiveCommand.Create(Info);
+        GetHelpCommand = ReactiveCommand.Create(GetHelp);
         StartCommand = ReactiveCommand.Create(StartCompilation,
             this.WhenAnyValue(vm => vm.Settings.ModListName,
                               vm => vm.Settings.ModListAuthor,
@@ -78,7 +78,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                               vm => vm.Settings.ModListImage,
                               vm => vm.Settings.Downloads,
                               vm => vm.Settings.OutputFile,
-                              vm => vm.Settings.Version, (name, author, desc, img, downloads, output, version) => 
+                              vm => vm.Settings.ModlistVersion, (name, author, desc, img, downloads, output, version) => 
                               !string.IsNullOrWhiteSpace(name) &&
                               !string.IsNullOrWhiteSpace(author) &&
                               !string.IsNullOrWhiteSpace(desc) &&
@@ -143,12 +143,12 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
         _logger.LogInformation("Publishing List");
         var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
             await Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
-        await _wjClient.PublishModlist(Settings.MachineUrl, Version.Parse(Settings.Version), Settings.OutputFile, downloadMetadata);
+        await _wjClient.PublishModlist(Settings.MachineUrl, Version.Parse(Settings.ModlistVersion), Settings.OutputFile, downloadMetadata);
     }
 
     private void OpenFolder() => UIUtils.OpenFolderAndSelectFile(Settings.OutputFile);
 
-    private void Info() => Process.Start(new ProcessStartInfo("https://wiki.wabbajack.org/modlist_author_documentation/Compilation.html") { UseShellExecute = true });
+    private void GetHelp() => Process.Start(new ProcessStartInfo("https://wiki.wabbajack.org/modlist_author_documentation/Compilation.html") { UseShellExecute = true });
 
     private async Task StartCompilation()
     {
@@ -312,9 +312,9 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
             return false;
         }
 
-        if (!Version.TryParse(Settings.Version, out var version))
+        if (!Version.TryParse(Settings.ModlistVersion, out var version))
         {
-            _logger.LogError("Preflight Check failed, version {Version} was not valid", Settings.Version);
+            _logger.LogError("Preflight Check failed, version {Version} was not valid", Settings.ModlistVersion);
             return false;
         }
 
