@@ -1,8 +1,15 @@
 ### Changelog
 
-#### Version
-- Fix for Wabbajack not fully utilizing saturating network speed because a download library added for resumable downloads was poorly optimized. Thanks to Thamous (@AlexDickerson).
-- Fix for situations where Wabbajack might send an excessive amount of OAuth requests resulting in hitting Nexus rate limits, causing a temporary ban. Thanks to Thamous (@AlexDickerson).
+#### Version - 3.7.5.3 - 1/29/2025
+* Compilation failures are now logged as an ERR type instead of INFO. Thanks to Thamous ([@AlexDickerson](https://github.com/AlexDickerson))
+* Fix for the Wabbajack CDN not downloading parts correctly anymore after it switched to chunked HTTP responses. Suspected change by Cloudflare.
+
+#### Version - 3.7.5.2 - 1/12/2025 
+* Fix for Wabbajack not fully utilizing saturating network speed because a download library added for resumable downloads was poorly optimized. Thanks to Thamous ([@AlexDickerson](https://github.com/AlexDickerson)).
+* Fix for situations where Wabbajack might send an excessive amount of OAuth requests resulting in hitting Nexus rate limits, causing a temporary ban. Thanks to Thamous ([@AlexDickerson](https://github.com/AlexDickerson)).
+* Fix for the Wabbajack gallery going down after a new repository is added because the gallery was accidentally dependent on the tests running the validation report.
+* Fix 7 Days to Die support not working properly. Thanks to [@JanuarySnow][https://github.com/JanuarySnow).
+
 
 #### Version - 3.7.5.1 - 11/23/2024
 * Reverted "Wabbajack will now put modfile Titles, Description and Version into the `.meta` file." as it didn't account for formatting in descriptions that could confuse the iniparser
