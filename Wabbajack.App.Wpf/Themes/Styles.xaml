@@ -66,6 +66,7 @@
     <Color x:Key="ComplementaryPrimary08">#383750</Color>
     <Color x:Key="ComplementaryPrimary12">#3f3c57</Color>
     <Color x:Key="ComplementaryPrimary16">#46425F</Color>
+    <Color x:Key="ComplementaryPrimary32">#62597C</Color>
     <Color x:Key="ComplementaryPrimary50">#81739d</Color>
     <Color x:Key="ComplementaryWhite02">#2d2e45</Color>
     <Color x:Key="ComplementaryWhite25">#5f6071</Color>
@@ -162,6 +163,7 @@
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
     <SolidColorBrush x:Key="BackgroundPrimary08Brush" Color="{StaticResource BackgroundPrimary08}" />
     <SolidColorBrush x:Key="ComplementaryPrimary50Brush" Color="{StaticResource ComplementaryPrimary50}" />
+    <SolidColorBrush x:Key="ComplementaryPrimary32Brush" Color="{StaticResource ComplementaryPrimary32}" />
     <SolidColorBrush x:Key="ComplementaryPrimary16Brush" Color="{StaticResource ComplementaryPrimary16}" />
     <SolidColorBrush x:Key="ComplementaryPrimary12Brush" Color="{StaticResource ComplementaryPrimary12}" />
     <SolidColorBrush x:Key="ComplementaryPrimary08Brush" Color="{StaticResource ComplementaryPrimary08}" />
@@ -3488,7 +3490,7 @@
                         </MultiDataTrigger>
 
                         <DataTrigger Binding="{Binding Path=Header.CompilerFileState, RelativeSource={RelativeSource Self}, Converter={StaticResource IsNullToBoolConverter}}" Value="False">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimaryVariantBrush}" />
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource ComplementaryPrimary32Brush}" />
                         </DataTrigger>
 
                         <Trigger Property="IsExpanded" Value="false">

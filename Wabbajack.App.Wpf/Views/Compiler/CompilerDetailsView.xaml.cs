@@ -29,7 +29,7 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
             this.Bind(ViewModel, vm => vm.Settings.ModListAuthor, view => view.AuthorNameSetting.Text)
                 .DisposeWith(disposables);
             
-            this.Bind(ViewModel, vm => vm.Settings.ModlistVersion, view => view.VersionSetting.Text)
+            this.Bind(ViewModel, vm => vm.Settings.Version, view => view.VersionSetting.Text)
                 .DisposeWith(disposables);
 
             this.Bind(ViewModel, vm => vm.Settings.ModListDescription, view => view.DescriptionSetting.Text)

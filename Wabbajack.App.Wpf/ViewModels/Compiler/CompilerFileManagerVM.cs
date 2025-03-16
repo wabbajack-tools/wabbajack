@@ -75,13 +75,25 @@ public class CompilerFileManagerVM : BaseCompilerVM
     {
         var header = item.Header;
         header.PathRelativeToRoot = ((AbsolutePath)header.Info.FullName).RelativeTo(Settings.Source);
-        if (Settings.NoMatchInclude.Contains(header.PathRelativeToRoot)) header.CompilerFileState |= CompilerFileState.NoMatchInclude;
-        if (Settings.Include.Contains(header.PathRelativeToRoot)) header.CompilerFileState |= CompilerFileState.Include;
-        if (Settings.Ignore.Contains(header.PathRelativeToRoot)) header.CompilerFileState |= CompilerFileState.Ignore;
-        if (Settings.AlwaysEnabled.Contains(header.PathRelativeToRoot)) header.CompilerFileState |= CompilerFileState.AlwaysEnabled;
 
-        if(header.CompilerFileState != null)
-            header.CompilerFileStates = new(Enum.GetValues(typeof(CompilerFileState)).Cast<CompilerFileState>().Where(x => header.CompilerFileState.Value.HasFlag(x)));
+        if (Settings.NoMatchInclude.Contains(header.PathRelativeToRoot))
+        {
+            header.CompilerFileStates.Add(CompilerFileState.NoMatchInclude);
+        }
+        if (Settings.Include.Contains(header.PathRelativeToRoot))
+        {
+            header.CompilerFileStates.Add(CompilerFileState.Include);
+        }
+        if (Settings.Ignore.Contains(header.PathRelativeToRoot))
+        {
+            header.CompilerFileStates.Add(CompilerFileState.Ignore);
+        }
+        if (Settings.AlwaysEnabled.Contains(header.PathRelativeToRoot))
+        {
+            header.CompilerFileStates.Add(CompilerFileState.AlwaysEnabled);
+        }
+
+        header.CompilerFileState = header.CompilerFileStates.Any() ? header.CompilerFileStates.Aggregate((CompilerFileState)0, (a, b) => a | b) : null;
 
         SetContainedStates(header);
         header.PropertyChanged += Header_PropertyChanged;
@@ -90,10 +102,10 @@ public class CompilerFileManagerVM : BaseCompilerVM
     private void SetContainedStates(FileTreeItemVM header)
     {
         if (!header.IsDirectory) return;
-        header.ContainsNoMatchIncludes = Settings.NoMatchInclude.Any(p => p.InFolder(header.PathRelativeToRoot));
-        header.ContainsIncludes = Settings.Include.Any(p => p.InFolder(header.PathRelativeToRoot));
-        header.ContainsIgnores = Settings.Ignore.Any(p => p.InFolder(header.PathRelativeToRoot));
-        header.ContainsAlwaysEnableds = Settings.AlwaysEnabled.Any(p => p.InFolder(header.PathRelativeToRoot));
+        header.ContainsNoMatchIncludes = Settings.NoMatchInclude.Any(p => p.InFolder(header.PathRelativeToRoot)) && !Settings.NoMatchInclude.Contains(header.PathRelativeToRoot);
+        header.ContainsIncludes = Settings.Include.Any(p => p.InFolder(header.PathRelativeToRoot)) && !Settings.Include.Contains(header.PathRelativeToRoot);
+        header.ContainsIgnores = Settings.Ignore.Any(p => p.InFolder(header.PathRelativeToRoot)) && !Settings.Ignore.Contains(header.PathRelativeToRoot);
+        header.ContainsAlwaysEnableds = Settings.AlwaysEnabled.Any(p => p.InFolder(header.PathRelativeToRoot)) && !Settings.AlwaysEnabled.Contains(header.PathRelativeToRoot);
     }
 
     private async void Header_PropertyChanged(object sender, PropertyChangedEventArgs e)

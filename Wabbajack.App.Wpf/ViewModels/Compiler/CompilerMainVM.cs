@@ -78,7 +78,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                               vm => vm.Settings.ModListImage,
                               vm => vm.Settings.Downloads,
                               vm => vm.Settings.OutputFile,
-                              vm => vm.Settings.ModlistVersion, (name, author, desc, img, downloads, output, version) => 
+                              vm => vm.Settings.Version, (name, author, desc, img, downloads, output, version) => 
                               !string.IsNullOrWhiteSpace(name) &&
                               !string.IsNullOrWhiteSpace(author) &&
                               !string.IsNullOrWhiteSpace(desc) &&
@@ -140,10 +140,10 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
         bool readyForPublish = await RunPreflightChecks(CancellationToken.None);
         if (!readyForPublish) return;
 
-        _logger.LogInformation("Publishing List");
+        _logger.LogInformation("Publishing list with machineURL {machineURL}, version {version}, output {output}", Settings.MachineUrl, Settings.Version, Settings.OutputFile);
         var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
             await Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
-        await _wjClient.PublishModlist(Settings.MachineUrl, Version.Parse(Settings.ModlistVersion), Settings.OutputFile, downloadMetadata);
+        await _wjClient.PublishModlist(Settings.MachineUrl, Version.Parse(Settings.Version), Settings.OutputFile, downloadMetadata);
     }
 
     private void OpenFolder() => UIUtils.OpenFolderAndSelectFile(Settings.OutputFile);
@@ -312,9 +312,9 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
             return false;
         }
 
-        if (!Version.TryParse(Settings.ModlistVersion, out var version))
+        if (!Version.TryParse(Settings.Version, out var version))
         {
-            _logger.LogError("Preflight Check failed, version {Version} was not valid", Settings.ModlistVersion);
+            _logger.LogError("Preflight Check failed, version {Version} was not valid", Settings.Version);
             return false;
         }
 

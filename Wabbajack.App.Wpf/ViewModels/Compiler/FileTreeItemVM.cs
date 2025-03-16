@@ -15,7 +15,7 @@ using Wabbajack.Paths;
 namespace Wabbajack;
 
 [Flags]
-public enum CompilerFileState
+public enum CompilerFileState : uint
 {
     [Description("No Match Include")]
     NoMatchInclude = 1,
@@ -65,23 +65,13 @@ public class FileTreeItemVM : ReactiveObject, IDisposable
         IsDirectory = true;
         Symbol = Symbol.Folder;
 
-        this.CompilerFileStates.Events().CollectionChanged
-            .Subscribe(s =>
-            {
-                if (!CompilerFileStates.Any())
-                {
-                    CompilerFileState = null;
-                    return;
-                }
-
-                // Merge array back into flag enum
-                CompilerFileState = CompilerFileStates.Aggregate((CompilerFileState)0, (a, b) => a | b);
-            })
+        this.WhenAnyValue(x => x.CompilerFileState)
+            .Subscribe(_ => UpdateCompilerFileStates())
             .DisposeWith(_disposable);
-    }
 
-    private void CompilerFileStates_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-    {
+        this.CompilerFileStates.Events().CollectionChanged
+            .Subscribe(_ => UpdateCompilerFileStates())
+            .DisposeWith(_disposable);
     }
 
     public FileTreeItemVM(FileInfo info)
@@ -104,20 +94,27 @@ public class FileTreeItemVM : ReactiveObject, IDisposable
             _ => Symbol.Document
         };
 
-        this.CompilerFileStates.Events().CollectionChanged
-            .Subscribe(s =>
-            {
-                if (!CompilerFileStates.Any())
-                {
-                    CompilerFileState = null;
-                    return;
-                }
+        this.WhenAnyValue(x => x.CompilerFileState)
+            .Subscribe(_ => UpdateCompilerFileStates())
+            .DisposeWith(_disposable);
 
-                // Merge array back into flag enum
-                CompilerFileState = CompilerFileStates.Aggregate((CompilerFileState)0, (a, b) => a | b);
-            })
+        this.CompilerFileStates.Events().CollectionChanged
+            .Subscribe(s => UpdateCompilerFileStates())
             .DisposeWith(_disposable);
     }
+
+    private void UpdateCompilerFileStates()
+    {
+        if (!CompilerFileStates.Any())
+        {
+            CompilerFileState = null;
+            return;
+        }
+
+        // Merge array back into flag enum
+        CompilerFileState = CompilerFileStates.Aggregate((CompilerFileState)0, (a, b) => a | b);
+    }
+
     public override string ToString() => Info.Name;
     public void Dispose()
     {
