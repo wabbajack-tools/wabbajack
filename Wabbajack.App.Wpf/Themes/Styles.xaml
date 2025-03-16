@@ -2775,7 +2775,7 @@
         <Setter Property="Control.VerticalContentAlignment" Value="Center"/>
         <Setter Property="TextWrapping" Value="NoWrap"/>
         <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-        <Setter Property="Padding" Value="0, 4, 0, 4"/>
+        <Setter Property="Padding" Value="0"/>
         <Setter Property="Margin" Value="0"/>
         <Setter Property="Foreground" Value="{StaticResource MultiSelectComboBox.Text.Foreground}"/>
         <Setter Property="TextAlignment" Value="Left"/>
@@ -2855,7 +2855,7 @@
 
     <Style x:Key="MultiSelectComboBox.Dropdown.ListBox.ItemContainerStyle" TargetType="{x:Type controls:ExtendedListBoxItem}">
         <Setter Property="SnapsToDevicePixels" Value="True"/>
-        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Padding" Value="4"/>
         <Setter Property="Margin" Value="0"/>
         <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
         <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
