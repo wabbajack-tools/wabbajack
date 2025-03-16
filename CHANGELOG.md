@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 4.0.0.0 - 3/16/2025?
+#### Version - 4.0.0.0 - 3/17/2025?
 * The entire UI has been overhauled to hopefully better guide users during installation/compilation and such.
   * Major thanks to [@CritLoren](https://www.github.com/CritLoren) for coming up with a lot of ideas behind the redesign and creating [Figma mock-ups](https://www.figma.com/design/SylohOBwdYAtPbOj5VMQ25/Wabbajack-v4).
   * This changelog won't go into detail into every bit, as I ([@tr4wzified](https://www.github.com/tr4wzified)) have been working on this for over a year now and I don't think anyone is going to be reading all of the changes anyway.
