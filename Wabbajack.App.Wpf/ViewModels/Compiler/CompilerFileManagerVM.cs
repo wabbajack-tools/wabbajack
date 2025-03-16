@@ -102,21 +102,24 @@ public class CompilerFileManagerVM : BaseCompilerVM
             Settings.Ignore.Remove(updatedItem.PathRelativeToRoot);
             Settings.AlwaysEnabled.Remove(updatedItem.PathRelativeToRoot);
 
-            if(updatedItem.CompilerFileState.HasFlag(CompilerFileState.NoMatchInclude))
+            if (updatedItem.CompilerFileState.HasValue)
             {
-                Settings.NoMatchInclude.Add(updatedItem.PathRelativeToRoot);
-            }
-            if(updatedItem.CompilerFileState.HasFlag(CompilerFileState.Include))
-            {
-                Settings.Include.Add(updatedItem.PathRelativeToRoot);
-            }
-            if(updatedItem.CompilerFileState.HasFlag(CompilerFileState.Ignore))
-            {
-                Settings.Ignore.Add(updatedItem.PathRelativeToRoot);
-            }
-            if(updatedItem.CompilerFileState.HasFlag(CompilerFileState.AlwaysEnabled))
-            {
-                Settings.AlwaysEnabled.Add(updatedItem.PathRelativeToRoot);
+                if (updatedItem.CompilerFileState.Value.HasFlag(CompilerFileState.NoMatchInclude))
+                {
+                    Settings.NoMatchInclude.Add(updatedItem.PathRelativeToRoot);
+                }
+                if (updatedItem.CompilerFileState.Value.HasFlag(CompilerFileState.Include))
+                {
+                    Settings.Include.Add(updatedItem.PathRelativeToRoot);
+                }
+                if (updatedItem.CompilerFileState.Value.HasFlag(CompilerFileState.Ignore))
+                {
+                    Settings.Ignore.Add(updatedItem.PathRelativeToRoot);
+                }
+                if (updatedItem.CompilerFileState.Value.HasFlag(CompilerFileState.AlwaysEnabled))
+                {
+                    Settings.AlwaysEnabled.Add(updatedItem.PathRelativeToRoot);
+                }
             }
 
             // Update contained states of parents upon changing compiler state on child (ContainsIgnores, ContainsIncludes)

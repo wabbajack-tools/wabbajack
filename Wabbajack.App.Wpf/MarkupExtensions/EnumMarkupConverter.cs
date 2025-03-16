@@ -32,6 +32,8 @@ public class EnumToItemsSource : MarkupExtension
     {
         return Enum.GetValues(_type)
             .Cast<Enum>()
+            .ToList();
+            /*
             .Select(e =>
             {
                 return new
@@ -40,5 +42,6 @@ public class EnumToItemsSource : MarkupExtension
                     DisplayName = GetEnumDescription((Enum)e)
                 };
             });
+    */
     }
 }

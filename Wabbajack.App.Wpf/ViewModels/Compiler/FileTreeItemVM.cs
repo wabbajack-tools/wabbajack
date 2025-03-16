@@ -2,10 +2,12 @@
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
+using ReactiveMarbles.ObservableEvents;
 using System.Reactive.Linq;
 using System.Windows.Controls;
 using Wabbajack.Paths;
@@ -15,16 +17,14 @@ namespace Wabbajack;
 [Flags]
 public enum CompilerFileState
 {
-    [Description("Auto Match")]
-    AutoMatch = 1,
     [Description("No Match Include")]
-    NoMatchInclude = 2,
+    NoMatchInclude = 1,
     [Description("Include")]
-    Include = 4,
+    Include = 2,
     [Description("Ignore")]
-    Ignore = 8,
+    Ignore = 4,
     [Description("Always Enabled")]
-    AlwaysEnabled = 16
+    AlwaysEnabled = 8
 }
 
 public class FileTreeViewItem : TreeViewItem
@@ -50,10 +50,10 @@ public class FileTreeItemVM : ReactiveObject, IDisposable
     public FileSystemInfo Info { get; set; }
     public bool IsDirectory { get; set; }
     public Symbol Symbol { get; set; }
-    [Reactive] public CompilerFileState CompilerFileState { get; set; }
+    [Reactive] public CompilerFileState? CompilerFileState { get; set; }
+    [Reactive] public ObservableCollection<CompilerFileState> CompilerFileStates { get; set; } = new ObservableCollection<CompilerFileState>();
 
     public RelativePath PathRelativeToRoot { get; set; }
-    [Reactive] public bool SpecialFileState { get; set; }
     [Reactive] public bool ContainsNoMatchIncludes { get; set; }
     [Reactive] public bool ContainsIncludes { get; set; }
     [Reactive] public bool ContainsIgnores { get; set; }
@@ -64,11 +64,26 @@ public class FileTreeItemVM : ReactiveObject, IDisposable
         Info = info;
         IsDirectory = true;
         Symbol = Symbol.Folder;
-        this.WhenAnyValue(f => f.CompilerFileState)
-            .Select((x) => x != CompilerFileState.AutoMatch)
-            .BindToStrict(this, fti => fti.SpecialFileState)
+
+        this.CompilerFileStates.Events().CollectionChanged
+            .Subscribe(s =>
+            {
+                if (!CompilerFileStates.Any())
+                {
+                    CompilerFileState = null;
+                    return;
+                }
+
+                // Merge array back into flag enum
+                CompilerFileState = CompilerFileStates.Aggregate((CompilerFileState)0, (a, b) => a | b);
+            })
             .DisposeWith(_disposable);
     }
+
+    private void CompilerFileStates_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+    }
+
     public FileTreeItemVM(FileInfo info)
     {
         Info = info;
@@ -88,10 +103,19 @@ public class FileTreeItemVM : ReactiveObject, IDisposable
             ".esp" or ".esl" or ".esm" or ".archive" => Symbol.DocumentTable,
             _ => Symbol.Document
         };
-        SpecialFileState = CompilerFileState != CompilerFileState.AutoMatch;
-        this.WhenAnyValue(f => f.CompilerFileState)
-            .Select((x) => x != CompilerFileState.AutoMatch)
-            .BindToStrict(this, fti => fti.SpecialFileState)
+
+        this.CompilerFileStates.Events().CollectionChanged
+            .Subscribe(s =>
+            {
+                if (!CompilerFileStates.Any())
+                {
+                    CompilerFileState = null;
+                    return;
+                }
+
+                // Merge array back into flag enum
+                CompilerFileState = CompilerFileStates.Aggregate((CompilerFileState)0, (a, b) => a | b);
+            })
             .DisposeWith(_disposable);
     }
     public override string ToString() => Info.Name;

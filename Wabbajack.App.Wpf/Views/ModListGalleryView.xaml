@@ -127,8 +127,7 @@
                         Margin="0, 12, 0, 0"
                         IsEditable="True"
                         SelectionMode="Multiple"
-                        Background="{StaticResource ComplementaryPrimary08Brush}"
-                        Style="{StaticResource TagsBox}" />
+                        Background="{StaticResource ComplementaryPrimary08Brush}" />
                 </StackPanel>
 
                 <StackPanel Grid.Row="5" Orientation="Vertical" Margin="0, 24, 0, 0">
@@ -138,8 +137,7 @@
                         Margin="0, 12, 0, 0"
                         IsEditable="True"
                         SelectionMode="Multiple"
-                        Background="{StaticResource ComplementaryPrimary08Brush}"
-                        Style="{StaticResource TagsBox}" />
+                        Background="{StaticResource ComplementaryPrimary08Brush}" />
                 </StackPanel>
 
                 <CheckBox
