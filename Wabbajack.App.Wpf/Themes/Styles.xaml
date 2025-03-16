@@ -3024,7 +3024,7 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="38"/>
+                    <ColumnDefinition Width="32"/>
                 </Grid.ColumnDefinitions>
 
                 <Border Grid.Column="0" BorderThickness="0" CornerRadius="4">
@@ -3033,7 +3033,7 @@
                             Style="{StaticResource MultiSelectComboBox.SelectedItemsPanel.WrapableItemsSource.Style}">
                         <controls:ContentItemsControl.Resources>
                             <DataTemplate x:Key="MultiSelectComboBox.SelectedItems.ItemTemplate">
-                                <TextBlock Text="{Binding}" Style="{StaticResource MultiSelectComboBox.DefaultTextBlock.Style}" Margin="2,0" />
+                                <TextBlock Text="{Binding}" Style="{StaticResource MultiSelectComboBox.DefaultTextBlock.Style}" />
                             </DataTemplate>
                             <DataTemplate x:Key="MultiSelectComboBox.SelectedItems.Searchable.ItemTemplate">
                                 <StackPanel Name="TextBoxContainer" Orientation="Horizontal">
