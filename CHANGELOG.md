@@ -41,7 +41,35 @@
 * Last but not least, fonts are now shipped within the application. No more ugly serif fonts for Linux WINE users, I see you!
 
 ##### Comparison images between Wabbajack 3.7.5.3 and Wabbajack 4.0.0.0
-Home screen
+* Home screen
+![image](https://github.com/user-attachments/assets/ca35d16e-2edf-4e78-9a8d-fb69c9f2c1f7)
+
+* Modlist Gallery
+![image](https://github.com/user-attachments/assets/01518433-b81c-44ca-be42-1a8c58e70522)
+![image](https://github.com/user-attachments/assets/a76e0a59-2660-4132-9bd8-02cb4587b95a)
+
+* Modlist installation
+  ![image](https://github.com/user-attachments/assets/bce2d7c9-8714-47a3-b03c-4e0fb62897eb)
+  ![image](https://github.com/user-attachments/assets/47781591-0e5c-4339-af99-f296f581d02e)
+  ![image](https://github.com/user-attachments/assets/1006b091-dbcd-46ff-8a33-c2da21c7e327)
+  ![image](https://github.com/user-attachments/assets/1d5ff8c6-9a1b-4fc5-808d-bf896b5af397)
+
+
+
+* Compile modlists
+![image](https://github.com/user-attachments/assets/266fcd6f-f95c-48c9-9d44-9a9568f26921)
+![image](https://github.com/user-attachments/assets/5a8dc0b8-0145-4d3f-b5ba-8ee855e59aa0)
+![image](https://github.com/user-attachments/assets/8296993d-a368-428f-972a-b70c05867316)
+![image](https://github.com/user-attachments/assets/1f32543c-a8a4-4629-93db-a478fa95967e)
+
+* Settings
+![image](https://github.com/user-attachments/assets/9a813a45-3903-4c28-8a48-a278a403c36d)
+
+
+
+
+
+
 
 
 #### Version - 3.7.5.3 - 1/29/2025
