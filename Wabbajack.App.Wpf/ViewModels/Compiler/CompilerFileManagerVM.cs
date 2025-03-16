@@ -79,6 +79,10 @@ public class CompilerFileManagerVM : BaseCompilerVM
         if (Settings.Include.Contains(header.PathRelativeToRoot)) header.CompilerFileState |= CompilerFileState.Include;
         if (Settings.Ignore.Contains(header.PathRelativeToRoot)) header.CompilerFileState |= CompilerFileState.Ignore;
         if (Settings.AlwaysEnabled.Contains(header.PathRelativeToRoot)) header.CompilerFileState |= CompilerFileState.AlwaysEnabled;
+
+        if(header.CompilerFileState != null)
+            header.CompilerFileStates = new(Enum.GetValues(typeof(CompilerFileState)).Cast<CompilerFileState>().Where(x => header.CompilerFileState.Value.HasFlag(x)));
+
         SetContainedStates(header);
         header.PropertyChanged += Header_PropertyChanged;
     }
