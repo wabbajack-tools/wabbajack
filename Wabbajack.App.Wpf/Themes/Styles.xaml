@@ -2775,7 +2775,7 @@
         <Setter Property="Control.VerticalContentAlignment" Value="Center"/>
         <Setter Property="TextWrapping" Value="NoWrap"/>
         <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-        <Setter Property="Padding" Value="4"/>
+        <Setter Property="Padding" Value="4, 8, 4, 8"/>
         <Setter Property="Margin" Value="0"/>
         <Setter Property="Foreground" Value="{StaticResource MultiSelectComboBox.Text.Foreground}"/>
         <Setter Property="TextAlignment" Value="Left"/>
