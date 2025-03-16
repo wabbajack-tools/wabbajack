@@ -3037,10 +3037,10 @@
                             </DataTemplate>
                             <DataTemplate x:Key="MultiSelectComboBox.SelectedItems.Searchable.ItemTemplate">
                                 <StackPanel Name="TextBoxContainer" Orientation="Horizontal">
-                                    <TextBox x:Name="PART_MultiSelectComboBox_SelectedItemsPanel_Filter_TextBox" IsEnabled="{Binding IsEditMode, RelativeSource={RelativeSource AncestorType=sdl:MultiSelectComboBox}}" 
-                                         Focusable="True" IsTabStop="False" Margin="0" ForceCursor="True" BorderThickness="0" BorderBrush="Transparent" Background="Transparent" Padding="1" TextWrapping="NoWrap"/>
-                                    <TextBox x:Name="PART_MultiSelectComboBox_SelectedItemsPanel_Filter_AutoComplete_TextBox" IsReadOnly="True"
-                                         Focusable="False" IsTabStop="False" Margin="-2, 0, 0, 0" BorderThickness="0" BorderBrush="Transparent" Background="Transparent" Padding="-3,1,0,1" TextWrapping="NoWrap"/>
+                                    <TextBox x:Name="PART_MultiSelectComboBox_SelectedItemsPanel_Filter_TextBox" Visibility="Collapsed" IsEnabled="{Binding IsEditMode, RelativeSource={RelativeSource AncestorType=sdl:MultiSelectComboBox}}" 
+                                         Focusable="True" IsTabStop="False" Margin="0" ForceCursor="True" BorderThickness="0" BorderBrush="Transparent" Background="Transparent" TextWrapping="NoWrap"/>
+                                    <TextBox x:Name="PART_MultiSelectComboBox_SelectedItemsPanel_Filter_AutoComplete_TextBox" Visibility="Collapsed" IsReadOnly="True"
+                                         Focusable="False" IsTabStop="False" BorderThickness="0" BorderBrush="Transparent" Background="Transparent" TextWrapping="NoWrap"/>
                                 </StackPanel>
                                 <DataTemplate.Triggers>
                                     <MultiDataTrigger>
@@ -3084,7 +3084,7 @@
     </DataTemplate>
 
     <DataTemplate x:Key="MultiSelectComboBox.Dropdown.ListBox.Header.Template">
-        <TextBlock Text="{Binding Path=Name}" TextTrimming="CharacterEllipsis" Padding="7, 5" Margin="0,0,0,2" FontWeight="Bold" FontFamily="{StaticResource MultiSelectComboBox.Text.FontFamily}" Foreground="{StaticResource MultiSelectComboBox.DropDown.ListBox.GroupHeader.Foreground}" Background="{StaticResource MultiSelectComboBox.DropDown.ListBox.GroupHeader.Background}" />
+        <TextBlock Text="{Binding Path=Name}" TextTrimming="CharacterEllipsis" FontWeight="Bold" FontFamily="{StaticResource MultiSelectComboBox.Text.FontFamily}" Foreground="{StaticResource MultiSelectComboBox.DropDown.ListBox.GroupHeader.Foreground}" Background="{StaticResource MultiSelectComboBox.DropDown.ListBox.GroupHeader.Background}" />
     </DataTemplate>
 
     <Style TargetType="{x:Type sdl:MultiSelectComboBox}">
