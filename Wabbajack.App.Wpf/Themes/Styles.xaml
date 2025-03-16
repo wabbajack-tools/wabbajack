@@ -2783,6 +2783,9 @@
             <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}}" Value="False">
                 <Setter Property="Foreground" Value="{StaticResource MultiSelectComboBox.Text.Disabled.Foreground}" />
             </DataTrigger>
+            <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType={x:Type controls:ExtendedListBoxItem}}}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+            </DataTrigger>
         </Style.Triggers>
     </Style>
 
@@ -3133,7 +3136,10 @@
                                             </controls:ExtendedListBox.GroupStyle>
                                             <controls:ExtendedListBox.Resources>
                                                 <DataTemplate x:Key="MultiSelectComboBox.Dropdown.ListBox.ItemTemplate">
-                                                    <TextBlock Text="{Binding}" Style="{StaticResource MultiSelectComboBox.DefaultTextBlock.Style}"/>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <ic:SymbolIcon Symbol="Checkmark" FontSize="13" Width="13" Height="13" Foreground="{StaticResource PrimaryBrush}" Margin="4, 0, 2, 0" Visibility="{Binding Path=IsChecked, RelativeSource={RelativeSource AncestorType={x:Type controls:ExtendedListBoxItem}}, Converter={StaticResource bool2VisibilityConverter}}" />
+                                                        <TextBlock Text="{Binding}" Style="{StaticResource MultiSelectComboBox.DefaultTextBlock.Style}"/>
+                                                    </StackPanel>
                                                 </DataTemplate>
                                             </controls:ExtendedListBox.Resources>
                                         </controls:ExtendedListBox>
