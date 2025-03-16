@@ -386,7 +386,10 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
             yield return ErrorResponse.Fail("Install path isn't set to a folder");
         if (installPath.InFolder(KnownFolders.Windows))
             yield return ErrorResponse.Fail("Don't install modlists into your Windows folder");
-        if( installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && installPath == downloadPath)
+        if (installPath.InFolder(KnownFolders.EntryPoint))
+            yield return ErrorResponse.Fail("Don't install modlists into the Wabbajack folder");
+
+        if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && installPath == downloadPath)
         {
             yield return ErrorResponse.Fail("Can't have identical install and download folders");
         }
@@ -727,7 +730,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
             writer.Write("<html><head><title>Missing Files</title></head><body>");
             writer.Write("<h1>Missing Files</h1>");
             writer.Write(
-                "<p>Wabbajack was unable to download the following files automatically. Please download them manually and place them in the downloads folder you chose during the install configuration.</p>");
+                "<p>Wabbajack was unable to download the following files automatically. Please take manual action on the following files. You might find more information on these files in the modlist readme and/or Discord server.</p>");
             foreach (var archive in toArray)
             {
                 switch (archive.State)
@@ -735,10 +738,12 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                     case Manual manual:
                         writer.Write($"<h3>{archive.Name}</h1>");
                         writer.Write($"<p>{manual.Prompt}</p>");
+                        writer.Write($"<p>Put this file inside your Wabbajack downloads folder.</p>");
                         writer.Write($"<p>Download URL: <a href=\"{manual.Url}\">{manual.Url}</a></p>");
                         break;
                     case MediaFire mediaFire:
                         writer.Write($"<h3>{archive.Name}</h1>");
+                        writer.Write($"<p>Put this file inside your Wabbajack downloads folder.</p>");
                         writer.Write($"<p>Download URL: <a href=\"{mediaFire.Url}\">{mediaFire.Url}</a></p>");
                         break;
                     case GameFileSource gameFile:
@@ -762,11 +767,11 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                         else if(ModList.GameType == Game.SkyrimSpecialEdition && archive.Name.Contains("curios", StringComparison.OrdinalIgnoreCase))
                         {
                             writer.Write("<p>This is a game file that commonly causes issues.</p>");
-                            writer.Write(@"<p><a target=""blank"" href=""https://wiki.wabbajack.org/user_documentation/Troubleshooting%20FAQ.html#unable-to-download-curios-files"">Click here for more information on how to resolve the issue.</a></p>");
+                            writer.Write(@"<p><a target='_blank' href='https://wiki.wabbajack.org/user_documentation/Troubleshooting%20FAQ.html#unable-to-download-curios-files'>Click here for more information on how to resolve the issue.</a></p>");
                         }
                         else if(ModList.GameType == Game.SkyrimSpecialEdition && archive.Name.StartsWith("Data_cc", StringComparison.OrdinalIgnoreCase))
                         {
-                            writer.Write("<p>This is a Creation Club file that could not be found. Check if the Anniversary Edition DLC is installed before installing this modlist.</p>");
+                            writer.Write("<p>This is a Creation Club file that could not be found. Check if the Anniversary Edition DLC is installed before installing this modlist, and validate you have the same version as the one the modlist author has. You will generally find info about this in the readme or in the modlists Discord server.</p>");
                         }
                         else
                         {
