@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 4.0.0.0 - 3/16/2025?
+#### Version - 4.0.0.0 - 3/17/2025?
 * The entire UI has been overhauled to hopefully better guide users during installation/compilation and such.
   * Major thanks to [@CritLoren](https://www.github.com/CritLoren) for coming up with a lot of ideas behind the redesign and creating [Figma mock-ups](https://www.figma.com/design/SylohOBwdYAtPbOj5VMQ25/Wabbajack-v4).
   * This changelog won't go into detail into every bit, as I ([@tr4wzified](https://www.github.com/tr4wzified)) have been working on this for over a year now and I don't think anyone is going to be reading all of the changes anyway.
@@ -10,7 +10,7 @@
   * This was done to standardize tags and make tag search more meaningful. The website has not been updated for this yet.
 * You can now search by tag within Wabbajack.
 * You can now search modlists by mod within Wabbajack. This is currently limited to mods from the Nexus.
-* Wabbajack now automatically suggests installation and downloads folders. Click here for an overview of how this algorithm works.
+* Wabbajack now automatically suggests installation and downloads folders. [Click here](https://github.com/user-attachments/assets/84029c2a-396d-42bb-8736-eeef9cf66b18) for an overview of how this algorithm works!
 * The readme is now readable within Wabbajack itself, during installation and when previewing the modlist (when clicking on it in the gallery).
 * Fixed issues with non-featured / NSFW toggles not resetting properly in some cases.
 * Fixed issues with (gallery) images not loading on certain Windows installations without the Webp Image Extensions installed.
@@ -19,15 +19,57 @@
   * For example, searching for 'Ro' previously could show the 'Tahrovin' list first, simply because it also contained the word 'Ro'.
 * A total modlist size filter has been added to the gallery.
 * Installation and compilation cancel buttons have been added - for when things are taking too long and you just want to play games with your friends ;)
+* The settings menu has been overhauled as well adding some neat features!
+  * Resource settings can now be edited within the app without the need to open an external text editor with a settings json file, saves immediately after being changed
+  * New drag & drop upload features for the CDN
+  * A reset button is now available in-app that will delete **all** Wabbajack settings and restart the application.
 * Modlist authors: texture recompression is now disabled by default due to it causing issues on specific FNV setups. You can optionally toggle it back on to try and shave some space off a compiled modlist.
 * Modlist authors: a websiteURL can now be added to your modlist JSON entry (modlists.json), it's a separate button available before installation.
+* Modlist authors: Managing multiple modlists is now easier with the compilation overview menu, showing other previously compiled modlists and being able to swap between them easily.
 * The missing manual report document now properly links to download URLs and provides additional information on resolving issues with specific game files.
 * Fixed the Google Drive downloader not working properly, should be fully automated once again.
 * A MEGA login is now required for modlists requiring MEGA downloads.
   * This is due to MEGA implementing additional security measures to block bots. Once I have some time I will investigate further and see if anonymous logins can be brought back.
-* Improved logging of system specifications (drive layout) & installation details
-* Fixed issue where Wabbajack could get stuck doing nothing when pressing install immediately after loading a list for installation
-* Fonts are now shipped within the application. No more ugly serif fonts for Linux WINE users, I see you!
+* Improved logging in various places, a few examples below:
+  * Drives are now logged including details about available free space and the drive type (SSD, HDD etc).
+  * System specifications are now logged more extensively, including GPU
+  * Installation and downloads folders are now logged when starting a Wabbajack installation
+* Fixed issue where Wabbajack could get stuck doing nothing when pressing install immediately after loading a list for installation.
+* Extra logging has been added that should cause message boxes with descriptive errors to pop up for people that are having issues launching Wabbajack instead of silent failures.
+* Wabbajack will now ignore trailing commas and comments within JSON files. However, I ask you do not try this out, stick to normal JSON conventions please ;)
+* When one modlist repository breaks (for example, due to invalid JSON), this will no longer cause the entire Wabbajack gallery to go down. Only the lists on broken repositories will no longer show up.
+* Last but not least, fonts are now shipped within the application. No more ugly serif fonts for Linux WINE users, I see you!
+
+##### Comparison images between Wabbajack 3.7.5.3 and Wabbajack 4.0.0.0
+* Home screen
+![image](https://github.com/user-attachments/assets/ca35d16e-2edf-4e78-9a8d-fb69c9f2c1f7)
+
+* Modlist Gallery
+![image](https://github.com/user-attachments/assets/01518433-b81c-44ca-be42-1a8c58e70522)
+![image](https://github.com/user-attachments/assets/a76e0a59-2660-4132-9bd8-02cb4587b95a)
+
+* Modlist installation
+  ![image](https://github.com/user-attachments/assets/bce2d7c9-8714-47a3-b03c-4e0fb62897eb)
+  ![image](https://github.com/user-attachments/assets/47781591-0e5c-4339-af99-f296f581d02e)
+  ![image](https://github.com/user-attachments/assets/1006b091-dbcd-46ff-8a33-c2da21c7e327)
+  ![image](https://github.com/user-attachments/assets/1d5ff8c6-9a1b-4fc5-808d-bf896b5af397)
+
+
+
+* Compile modlists
+![image](https://github.com/user-attachments/assets/266fcd6f-f95c-48c9-9d44-9a9568f26921)
+![image](https://github.com/user-attachments/assets/5a8dc0b8-0145-4d3f-b5ba-8ee855e59aa0)
+![image](https://github.com/user-attachments/assets/8296993d-a368-428f-972a-b70c05867316)
+![image](https://github.com/user-attachments/assets/1f32543c-a8a4-4629-93db-a478fa95967e)
+
+* Settings
+![image](https://github.com/user-attachments/assets/9a813a45-3903-4c28-8a48-a278a403c36d)
+
+
+
+
+
+
 
 
 #### Version - 3.7.5.3 - 1/29/2025
