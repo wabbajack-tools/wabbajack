@@ -40,7 +40,6 @@ public class DownloadDispatcher
         _limiter = limiter;
         _useProxyCache = useProxyCache;
         _verificationCache = verificationCache;
-        
     }
 
     public bool UseProxy { get; set; } = false;

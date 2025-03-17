@@ -14,6 +14,7 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection service)
     {
+        service.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
         service.AddOSIntegrated(o =>
         {
             o.UseLocalCache = true;
