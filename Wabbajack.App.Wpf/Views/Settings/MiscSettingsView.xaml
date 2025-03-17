@@ -12,56 +12,36 @@
     mc:Ignorable="d">
     <Border
         x:Name="PerformanceView"
-        MinWidth="280"
-        Margin="5"
         Background="{StaticResource BackgroundBrush}"
         BorderBrush="{StaticResource ButtonNormalBorder}"
-        BorderThickness="1">
-        <Grid Margin="15,10">
+        BorderThickness="0"
+        CornerRadius="8">
+        <Grid Margin="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="10" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="25" />
-                <RowDefinition Height="25" />
+                <RowDefinition Height="16" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="5" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
             <TextBlock
                 Grid.Column="0"
-                Grid.ColumnSpan="2"
-                FontFamily="Lucida Sans"
+                FontFamily="{StaticResource PrimaryFont}"
                 FontSize="20"
                 FontWeight="Bold"
-                Text="Misc Settings" />
-            <Grid
-                Grid.Row="2"
-                Grid.Column="0"
-                Grid.ColumnSpan="3">
-                <Grid.RowDefinitions>
-                    <RowDefinition />
-                </Grid.RowDefinitions>
-                <Grid.Resources>
-                    <Style BasedOn="{StaticResource MainButtonStyle}" TargetType="Button">
-                        <Style.Triggers>
-                            <Trigger Property="IsEnabled" Value="false">
-                                <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-                                <Setter Property="Background" Value="{StaticResource SecondaryBackgroundBrush}" />
-                                <Setter Property="BorderBrush" Value="{StaticResource DarkSecondaryBrush}" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </Grid.Resources>
-                <Button
-                    Name="OpenTerminal"
-                    Grid.Row="0"
-                    Margin="0,5,0,0"
-                    Content="Launch Wabbajack CLI" />
-            </Grid>
+                Text="Miscellaneous" />
+
+            <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <local:WJButton
+                    x:Name="OpenTerminalButton"
+                    Icon="WindowConsole"
+                    Text="Launch Wabbajack CLI"
+                    Margin="0, 0, 16, 0"/>
+
+                <local:WJButton
+                    x:Name="ResetButton"
+                    Icon="ArrowReset"
+                    Text="Reset Wabbajack"
+                    ButtonStyle="Danger" />
+            </StackPanel>
         </Grid>
     </Border>
 </rxui:ReactiveUserControl>

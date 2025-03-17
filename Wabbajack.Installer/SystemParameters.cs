@@ -13,6 +13,7 @@ public class SystemParameters
     public long SystemPageSize { get; set; }
 
 
+    public string GpuName { get; set; }
     public long EnbLEVRAMSize => Math.Min(ToMB(SystemMemorySize) + ToMB(VideoMemorySize), 10240);
 
     private static long ToMB(long input)

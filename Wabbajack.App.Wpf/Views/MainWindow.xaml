@@ -7,56 +7,161 @@
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModels="clr-namespace:Wabbajack.View_Models"
     xmlns:views="clr-namespace:Wabbajack.Views"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     ShowTitleBar="False"
-    Title="WABBAJACK"
-    Width="1280"
-    Height="960"
-    MinWidth="850"
-    MinHeight="650"
+    ShowCloseButton="False"
+    ShowMinButton="False"
+    ShowMaxRestoreButton="False"
+    Title="Wabbajack"
+    Width="1441"
+    Height="695"
+    MinWidth="1100"
+    MinHeight="500"
     Closing="Window_Closing"
     RenderOptions.BitmapScalingMode="HighQuality"
     ResizeMode="CanResize"
     Style="{StaticResource {x:Type Window}}"
-    TitleBarHeight="25"
+    TitleBarHeight="54"
     UseLayoutRounding="True"
-    WindowTitleBrush="{StaticResource MahApps.Brushes.Accent}"
-    mc:Ignorable="d">
-
-
-               <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"></RowDefinition>
-                        <RowDefinition Height="*"></RowDefinition>
-                        <RowDefinition Height="Auto"></RowDefinition>
-                    </Grid.RowDefinitions>
-                   <Grid Grid.Row="0" Margin="5">
-                       <Grid.ColumnDefinitions>
-                           <ColumnDefinition Width="Auto"></ColumnDefinition>
-                           <ColumnDefinition Width="*"></ColumnDefinition>
-                           <ColumnDefinition Width="Auto"></ColumnDefinition>
-                           <ColumnDefinition Width="140"></ColumnDefinition>
-                       </Grid.ColumnDefinitions>
-                       <TextBlock Grid.Column="0" FontSize="16" Margin="0, 0, 8, 0" Name="AppName"></TextBlock>
-                       <TextBlock Grid.Column="1" FontSize="16" Margin="5, 0" Name="ResourceUsage" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
-                       <Button Grid.Column="2" Name="SettingsButton" ToolTip="Open Wabbajack settings">
-                           <icon:Material Kind="Cog"></icon:Material>
-                       </Button>
-                   </Grid>
-                    <ContentPresenter Grid.Row="1" Content="{Binding ActivePane}">
+    WindowTitleBrush="{StaticResource BackgroundBrush}"
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance Type=local:MainWindowVM}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="54" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid x:Name="FloatingWindow" Grid.Row="0" Grid.RowSpan="2" Panel.ZIndex="2">
+            <Rectangle x:Name="FloatingWindowBackground" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Fill="{StaticResource BackgroundBrush}" Opacity="0.75"/>
+            <Border CornerRadius="8" Margin="32" Background="{StaticResource ComplementaryBackgroundBrush}">
+                <ContentPresenter x:Name="FloatingContentPresenter" Content="{Binding ActiveFloatingPane}" VerticalAlignment="Stretch" Margin="16">
+                    <ContentPresenter.Resources>
+                        <DataTemplate DataType="{x:Type local:ModListDetailsVM}">
+                            <local:ModListDetailsView ViewModel="{Binding}" />
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type local:BrowserWindowViewModel}">
+                            <local:BrowserWindow ViewModel="{Binding}" />
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type local:FileUploadVM}">
+                            <local:FileUploadView ViewModel="{Binding}" />
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type local:MegaLoginVM}">
+                            <local:MegaLoginView ViewModel="{Binding}" />
+                        </DataTemplate>
+                    </ContentPresenter.Resources>
+                </ContentPresenter>
+            </Border>
+        </Grid>
+        <Grid x:Name="TitleBar" Grid.Row="0" Background="{StaticResource BackgroundBrush}" Panel.ZIndex="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Border BorderThickness="0" Margin="16, 0, 8, 0" >
+                <Image Grid.Column="0" Width="18" Height="18" Source="{StaticResource WabbajackLegacyLogo}"/>
+            </Border>
+            <TextBlock Grid.Column="1" FontSize="13" Name="AppName" VerticalAlignment="Center"></TextBlock>
+            <DockPanel x:Name="WizardSteps" Grid.Column="0" Grid.ColumnSpan="7" HorizontalAlignment="Center" Margin="0, 10, 0, 10">
+                <Border x:Name="ConfigurationBorderMask2" CornerRadius="8" BorderThickness="0" Background="White" Margin="12, 1, 0, 1">
+                    <Grid Margin="-1">
+                        <Border x:Name="ConfigurationBorderMask" CornerRadius="8" Background="White" Margin="1" />
+                        <Grid>
+                            <Grid.OpacityMask>
+                                <VisualBrush Visual="{Binding ElementName=ConfigurationBorderMask}"/>
+                            </Grid.OpacityMask>
+                            <mahapps:MetroProgressBar x:Name="WizardConfiguration" Background="{StaticResource ComplementaryBackgroundBrush}" BorderThickness="0" Foreground="{StaticResource ComplementaryPrimary16Brush}" Maximum="1" Value="1" Width="{Binding ElementName=ConfigurationText, Path=ActualWidth}" />
+                            <TextBlock x:Name="ConfigurationText" Padding="12, 0, 12, 0" VerticalAlignment="Center" />
+                        </Grid>
+                    </Grid>
+                </Border>
+                <Border x:Name="BorderMask2" CornerRadius="8" BorderThickness="0" Background="White" Margin="12, 1, 0, 1">
+                    <Grid Margin="-1">
+                        <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1" />
+                        <Grid>
+                            <Grid.OpacityMask>
+                                <VisualBrush Visual="{Binding ElementName=BorderMask}"/>
+                            </Grid.OpacityMask>
+                            <mahapps:MetroProgressBar x:Name="WizardProgress" Background="{StaticResource ComplementaryBackgroundBrush}" BorderThickness="0" Foreground="{StaticResource ComplementaryPrimary16Brush}" Width="{Binding ElementName=ProgressText, Path=ActualWidth}" Maximum="1" />
+                            <TextBlock x:Name="ProgressText" Padding="12, 0, 12, 0" VerticalAlignment="Center" />
+                            <TextBlock x:Name="ProgressPercentage" Padding="0, 0, 12, 0" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                        </Grid>
+                    </Grid>
+                </Border>
+            </DockPanel>
+            <Grid Grid.Column="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Style="{StaticResource MainButtonStyleLessRounded}" Background="{StaticResource BackgroundPrimary08Brush}" Name="LoadLocalFileButton" Padding="12, 0" Margin="0, 10, 12, 10">
+                    <DockPanel>
+                        <TextBlock FontSize="13" Text="Install from disk" VerticalAlignment="Center" Margin="0, 0, 8, 0" />
+                        <ic:SymbolIcon FontSize="18" Symbol="ArrowUpload" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </Button>
+                <Button Grid.Column="1" Style="{StaticResource MainButtonStyleLessRounded}" Background="{StaticResource BackgroundPrimary08Brush}" Name="GetHelpButton" Padding="12, 0" Margin="0, 10, 12, 10">
+                    <DockPanel>
+                        <TextBlock FontSize="13" Text="Get Help" VerticalAlignment="Center" Margin="0, 0, 8, 0" />
+                        <ic:SymbolIcon FontSize="18" Symbol="QuestionCircle" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </Button>
+            </Grid>
+            <Button Grid.Column="4" Style="{StaticResource IconBareButtonStyle}" Name="MinimizeButton" Padding="12">
+                <ic:SymbolIcon Symbol="Subtract" FontSize="18"/>
+            </Button>
+            <Button Grid.Column="5" Style="{StaticResource IconBareButtonStyle}" Name="MaximizeButton" Padding="12">
+                <ic:SymbolIcon Symbol="Maximize" FontSize="18"/>
+            </Button>
+            <Button Grid.Column="6" Style="{StaticResource IconBareButtonStyle}" Name="CloseButton" Padding="12">
+                <ic:SymbolIcon Symbol="Dismiss" FontSize="18"/>
+            </Button>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="115" x:Name="NavigationColumn" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <local:NavigationView Grid.Column="0" ViewModel="{Binding NavigationVM}" Panel.ZIndex="1" />
+            <Border Grid.Column="1" Margin="0" Background="{StaticResource ComplementaryBackgroundBrush}" x:Name="MainContent" CornerRadius="8">
+                <Grid>
+                    <Viewbox Stretch="Uniform" Panel.ZIndex="0">
+                        <Image HorizontalAlignment="Right" Source="{StaticResource WabbajackLogoBackground}" Width="{Binding ActualWidth, ElementName=MainContent}" Height="{Binding ActualHeight, ElementName=MainContent}" RenderTransformOrigin="0.5, 0.5">
+                            <Image.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform ScaleX="1.7" ScaleY="1.7" />
+                                    <RotateTransform Angle="15" />
+                                </TransformGroup>
+                            </Image.RenderTransform>
+                        </Image>
+                    </Viewbox>
+                    <ContentPresenter Content="{Binding ActivePane}" VerticalAlignment="Stretch" Margin="16">
                         <ContentPresenter.Resources>
-                            <DataTemplate DataType="{x:Type local:CompilerVM}">
-                                <local:CompilerView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:InstallerVM}">
-                                <local:InstallationView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
-                                <local:ModeSelectionView ViewModel="{Binding}" />
+                            <DataTemplate DataType="{x:Type local:HomeVM}">
+                                <local:HomeView ViewModel="{Binding}" />
                             </DataTemplate>
                             <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
                                 <local:ModListGalleryView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:CompilerHomeVM}">
+                                <local:CompilerHomeView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:CompilerDetailsVM}">
+                                <local:CompilerDetailsView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:CompilerFileManagerVM}">
+                                <local:CompilerFileManagerView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:CompilerMainVM}">
+                                <local:CompilerMainView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:InstallationVM}">
+                                <local:InstallationView ViewModel="{Binding}" />
                             </DataTemplate>
                             <DataTemplate DataType="{x:Type local:WebBrowserVM}">
                                 <local:WebBrowserView />
@@ -64,35 +169,38 @@
                             <DataTemplate DataType="{x:Type local:SettingsVM}">
                                 <local:SettingsView ViewModel="{Binding}" />
                             </DataTemplate>
-                            <DataTemplate DataType="{x:Type viewModels:ModListContentsVM}">
-                                <local:ModListContentsView ViewModel="{Binding}" />
+                            <DataTemplate DataType="{x:Type local:ModListDetailsVM}">
+                                <local:ModListDetailsView ViewModel="{Binding}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:InfoVM}">
+                                <local:InfoView ViewModel="{Binding}" />
                             </DataTemplate>
                         </ContentPresenter.Resources>
                     </ContentPresenter>
-
                 </Grid>
+            </Border>
+        </Grid>
+    </Grid>
 
     <mahapps:MetroWindow.RightWindowCommands>
         <mahapps:WindowCommands>
             <mahapps:WindowCommands.Resources>
                 <Style BasedOn="{StaticResource IconBareButtonStyle}" TargetType="Button" />
             </mahapps:WindowCommands.Resources>
-
-            <Button
-                Margin="5,0"
-                Command="{Binding CopyVersionCommand}"
-                Content="{Binding VersionDisplay}">
-                <Button.ToolTip>
-                    <ToolTip Content="Wabbajack Version&#x0a;Click to copy to clipboard" />
-                </Button.ToolTip>
+            <Button Grid.Column="1"
+                    Style="{StaticResource IconBareButtonStyle}"
+                    Command="{Binding MinimizeCommand}">
+                <ic:SymbolIcon Symbol="Subtract" FontSize="17"/>
             </Button>
             <Button Grid.Column="1"
-                    Margin="5,0"
-                    Command="{Binding OpenSettingsCommand}">
-                <icon:PackIconMaterial
-                    Width="17"
-                    Height="17"
-                    Kind="Cog" />
+                    Style="{StaticResource IconBareButtonStyle}"
+                    Command="{Binding MaximizeCommand}">
+                <ic:SymbolIcon Symbol="Maximize" FontSize="17"/>
+            </Button>
+            <Button Grid.Column="1"
+                    Style="{StaticResource IconBareButtonStyle}"
+                    Command="{Binding CloseCommand}">
+                <ic:SymbolIcon Symbol="ArrowExit" FontSize="17"/>
             </Button>
         </mahapps:WindowCommands>
     </mahapps:MetroWindow.RightWindowCommands>

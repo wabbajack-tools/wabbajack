@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
-using Wabbajack;
 using Wabbajack.Extensions;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -29,6 +28,9 @@ namespace Wabbajack
             IfPathNotEmpty,
             On
         }
+
+        public delegate AbsolutePath TransformPath(AbsolutePath targetPath);
+        public TransformPath PathTransformer { get; set; }
 
         public object Parent { get; }
 
@@ -271,7 +273,10 @@ namespace Wabbajack
                         dlg.Filters.Add(filter);
                     }
                     if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
-                    TargetPath = (AbsolutePath)dlg.FileName;
+
+                    var path = (AbsolutePath)dlg.FileName;
+                    TargetPath = PathTransformer == null ? path : PathTransformer(path);
+
                 }, canExecute: canExecute);
         }
     }

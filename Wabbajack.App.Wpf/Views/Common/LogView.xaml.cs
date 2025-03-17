@@ -1,24 +1,21 @@
-﻿using System.Windows;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
+using static Wabbajack.Models.LogStream;
 
-namespace Wabbajack
+namespace Wabbajack;
+
+/// <summary>
+/// Interaction logic for LogView.xaml
+/// </summary>
+public partial class LogView : UserControl
 {
-    /// <summary>
-    /// Interaction logic for LogView.xaml
-    /// </summary>
-    public partial class LogView : UserControl
+    public LogView()
     {
-        public double ProgressPercent
-        {
-            get => (double)GetValue(ProgressPercentProperty);
-            set => SetValue(ProgressPercentProperty, value);
-        }
-        public static readonly DependencyProperty ProgressPercentProperty = DependencyProperty.Register(nameof(ProgressPercent), typeof(double), typeof(LogView),
-             new FrameworkPropertyMetadata(default(double)));
+        InitializeComponent();
+    }
 
-        public LogView()
-        {
-            InitializeComponent();
-        }
+    private void CollectionViewSource_Filter(object sender, System.Windows.Data.FilterEventArgs e)
+    {
+        var row = e.Item as ILogMessage;
+        e.Accepted = row.Level.Ordinal >= 2;
     }
 }

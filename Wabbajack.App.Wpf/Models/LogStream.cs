@@ -1,18 +1,13 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Text;
-using System.Windows.Data;
 using DynamicData;
-using DynamicData.Binding;
-using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Targets;
 using ReactiveUI;
-using Wabbajack.Extensions;
-using LogLevel = NLog.LogLevel;
 
 namespace Wabbajack.Models;
 
@@ -66,8 +61,9 @@ public class LogStream : TargetWithLayout
         long MessageId { get; }
 
         string ShortMessage { get; }
-        DateTime TimeStamp { get; }
         string LongMessage { get; }
+        DateTime TimeStamp { get; }
+        LogLevel Level { get; }
     }
 
     private record LogMessage(LogEventInfo info) : ILogMessage
@@ -75,7 +71,8 @@ public class LogStream : TargetWithLayout
         public long MessageId => info.SequenceID;
         public string ShortMessage => info.FormattedMessage;
         public DateTime TimeStamp => info.TimeStamp;
-        public string LongMessage => info.FormattedMessage;
+        public LogLevel Level => info.Level;
+        public string LongMessage => $"[{TimeStamp.ToString("HH:mm:ss")} {info.Level.ToString().ToUpper()}] {info.FormattedMessage}";
     }
     
 }

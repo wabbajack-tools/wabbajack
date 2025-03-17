@@ -15,6 +15,8 @@ public class DTOSerializer
     {
         Options = new JsonSerializerOptions();
         Options.NumberHandling = JsonNumberHandling.AllowReadingFromString;
+        Options.ReadCommentHandling = JsonCommentHandling.Skip;
+        Options.AllowTrailingCommas = true;
         foreach (var c in converters) Options.Converters.Add(c);
     }
 

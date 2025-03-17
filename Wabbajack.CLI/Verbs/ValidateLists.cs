@@ -115,9 +115,7 @@ public class ValidateLists
             _logger.LogInformation("Validating {MachineUrl} - {Version}", list.NamespacedName, list.Version);
         }
 
-        // MachineURL - HashSet of mods per list
         ConcurrentDictionary<string, HashSet<string>> modsPerList = new();
-        // HashSet of all searchable mods
         HashSet<string> allMods = new();
 
         var validatedLists = await listData.PMapAll(async modList =>
@@ -187,9 +185,8 @@ public class ValidateLists
 
             if (modList.ForceDown)
             {
-                _logger.LogWarning("List is ForceDown, skipping archive verificiation");
+                _logger.LogWarning("List is forced down");
                 validatedList.Status = ListStatus.ForcedDown;
-                return validatedList;
             }
             
             _logger.LogInformation("Verifying {Count} archives from {Name}", modListData.Archives.Length, modList.NamespacedName);
@@ -500,7 +497,10 @@ public class ValidateLists
 
             try
             {
-                var oldSummary = await _wjClient.GetDetailedStatus(validatedList.MachineURL);
+                var namespacedName = validatedList.MachineURL.Split('/');
+                var machineURL = namespacedName[0];
+                var repository = namespacedName[1];
+                var oldSummary = await _wjClient.GetDetailedStatus(repository, machineURL);
 
                 if (oldSummary.ModListHash != validatedList.ModListHash)
                 {
@@ -718,4 +718,4 @@ public class ValidateLists
         await archiveManager.Ingest(tempFile.Path, token);
         return hash;
     }
-}
+} 

@@ -54,7 +54,7 @@ public class CompilerSettingsInferencer
                 cs.ModListName = selectedProfile;
                 cs.Profile = selectedProfile;
 
-                cs.OutputFile = cs.Source.Parent;
+                cs.OutputFile = cs.Source.Parent.Combine(cs.ModListName).WithExtension(Ext.Wabbajack);
                 
                 var settings = iniData["Settings"];
                 cs.Downloads = settings["download_directory"].FromMO2Ini().ToAbsolutePath();
@@ -139,8 +139,6 @@ public class CompilerSettingsInferencer
                 {
                     cs.AdditionalProfiles = await otherProfilesFile.ReadAllLinesAsync().ToArray();
                 }
-
-                cs.OutputFile = cs.Source.Parent.Combine(cs.Profile).WithExtension(Ext.Wabbajack);
             }
 
             return cs;

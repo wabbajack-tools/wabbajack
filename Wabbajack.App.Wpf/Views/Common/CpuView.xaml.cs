@@ -4,37 +4,21 @@ using ReactiveUI;
 using System.Reactive.Linq;
 using Wabbajack.RateLimiter;
 
-namespace Wabbajack
+namespace Wabbajack;
+
+/// <summary>
+/// Interaction logic for CpuView.xaml
+/// </summary>
+public partial class CpuView : UserControlRx<ICpuStatusVM>
 {
-    /// <summary>
-    /// Interaction logic for CpuView.xaml
-    /// </summary>
-    public partial class CpuView : UserControlRx<ICpuStatusVM>
+    public CpuView()
     {
-        public Percent ProgressPercent
+        InitializeComponent();
+        this.WhenActivated(disposable =>
         {
-            get => (Percent)GetValue(ProgressPercentProperty);
-            set => SetValue(ProgressPercentProperty, value);
-        }
-        public static readonly DependencyProperty ProgressPercentProperty = DependencyProperty.Register(nameof(ProgressPercent), typeof(Percent), typeof(CpuView),
-             new FrameworkPropertyMetadata(default(Percent), WireNotifyPropertyChanged));
-
-        public CpuView()
-        {
-            InitializeComponent();
-            this.WhenActivated(disposable =>
-            {
-
-                this.WhenAny(x => x.ViewModel.StatusList)
-                    .BindToStrict(this, x => x.CpuListControl.ItemsSource)
-                    .DisposeWith(disposable);
-
-                // Progress
-                this.WhenAny(x => x.ProgressPercent)
-                    .Select(p => p.Value)
-                    .BindToStrict(this, x => x.HeatedBorderRect.Opacity)
-                    .DisposeWith(disposable);
-            });
-        }
+            this.WhenAny(x => x.ViewModel.StatusList)
+                .BindToStrict(this, x => x.CpuListControl.ItemsSource)
+                .DisposeWith(disposable);
+        });
     }
 }

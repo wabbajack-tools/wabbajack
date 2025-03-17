@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Octokit;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
@@ -134,7 +135,7 @@ public class Client
     public async Task<Archive[]> GetGameArchives(Game game, string version)
     {
         var url = $"https://raw.githubusercontent.com/wabbajack-tools/indexed-game-files/master/{game}/{version}.json";
-        _logger.LogInformation($"The URL for retrieving game file hashes is : {url}");
+        _logger.LogInformation("Fetching game archives for {game} from {url}", game.ToString(), url);
         return await _client.GetFromJsonAsync<Archive[]>(url, _dtos.Options) ?? Array.Empty<Archive>();
     }
 
@@ -172,10 +173,10 @@ public class Client
             _dtos.Options) ?? Array.Empty<ModListSummary>();
     }
 
-    public async Task<ValidatedModList> GetDetailedStatus(string machineURL)
+    public async Task<ValidatedModList> GetDetailedStatus(string repository, string machineURL)
     {
         return (await _client.GetFromJsonAsync<ValidatedModList>(
-            $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{machineURL}/status.json",
+            $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{repository}/{machineURL}/status.json",
             _dtos.Options))!;
     }
 
@@ -232,14 +233,19 @@ public class Client
                         _dtos.Options))!.Select(meta =>
                     {
                         meta.RepositoryName = url.Key;
-                        meta.Official = (meta.RepositoryName == "wj-featured" ||
-                                         featured.Contains(meta.NamespacedName));
+                        meta.Official = meta.RepositoryName == "wj-featured" ||
+                                        featured.Contains(meta.NamespacedName);
                         return meta;
                     });
                 }
                 catch (JsonException ex)
                 {
-                    _logger.LogError(ex, "While loading {List} from {Url}", url.Key, url.Value);
+                    _logger.LogError(ex, "Failed loading JSON for repository {repo} from {url} - Exception: {ex}", url.Key, url.Value, ex.ToString());
+                    return Enumerable.Empty<ModlistMetadata>();
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError(ex, "Failed loading lists from repository {repo}: {url} - Exception: {ex}", url.Key, url.Value, ex.ToString());
                     return Enumerable.Empty<ModlistMetadata>();
                 }
             })
@@ -264,12 +270,29 @@ public class Client
         return repositories!;
     }
 
+    public async Task<HashSet<string>> LoadAllowedTags()
+    {
+        var data = await _client.GetFromJsonAsync<string[]>(_limiter,
+            new HttpRequestMessage(HttpMethod.Get,
+                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/allowed_tags.json"),
+            _dtos.Options);
+        return data!.ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+    public async Task<Dictionary<string, string>> LoadTagMappings()
+    {
+        var data = await _client.GetFromJsonAsync<Dictionary<string, string>>(_limiter,
+            new HttpRequestMessage(HttpMethod.Get,
+                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/tag_mappings.json"),
+            _dtos.Options);
+        return data!;
+    }
+
     public async Task<SearchIndex> LoadSearchIndex()
     {
         return await _client.GetFromJsonAsync<SearchIndex>(_limiter,
-            new HttpRequestMessage(HttpMethod.Get, 
+            new HttpRequestMessage(HttpMethod.Get,
                 "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/refs/heads/master/reports/searchIndex.json"),
-                _dtos.Options);
+            _dtos.Options);
     }
     
     public Uri GetPatchUrl(Hash upgradeHash, Hash archiveHash)
@@ -502,7 +525,7 @@ public class Client
 
     public async ValueTask<Uri?> MakeProxyUrl(Archive archive, Uri uri)
     {
-        if (archive.State is Manual && !await ProxyHas(uri))
+        if (!await ProxyHas(uri))
             return null;
 
         return new Uri(

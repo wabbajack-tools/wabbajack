@@ -40,7 +40,6 @@ public class DownloadDispatcher
         _limiter = limiter;
         _useProxyCache = useProxyCache;
         _verificationCache = verificationCache;
-        
     }
 
     public bool UseProxy { get; set; } = false;
@@ -165,11 +164,13 @@ public class DownloadDispatcher
 
         try
         {
+            _logger.LogWarning("Initial download of {archive} failed, trying mirror", archive.Name);
             downloadedHash = await DownloadFromMirror(archive, destination, token);
             if (downloadedHash != default) return (DownloadResult.Mirror, downloadedHash);
         }
         catch (NotSupportedException)
         {
+            _logger.LogInformation("Could not find archive {archive} on mirror", archive.Name);
             // Thrown if downloading from mirror is not supported for archive, keep original hash
         }
 
@@ -237,6 +238,7 @@ public class DownloadDispatcher
     {
         try
         {
+            _logger.LogInformation("Downloading {archiveName} from mirror, hash {archiveHash}", archive.Name, archive.Hash);
             var url = _wjClient.GetMirrorUrl(archive.Hash);
             if (url == null) return default;
 

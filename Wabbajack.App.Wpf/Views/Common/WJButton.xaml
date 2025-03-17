@@ -1,0 +1,23 @@
+<Button
+    x:Name="WJButtonElement"
+    x:Class="Wabbajack.WJButton"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
+    ClipToBounds="True"
+    d:DesignHeight="38"
+    d:DesignWidth="200"
+    Width="200"
+    Height="38"
+    mc:Ignorable="d">
+    <Grid Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <TextBlock x:Name="ButtonTextBlock" VerticalAlignment="Center" Margin="10, 4, 10, 4" />
+        <ic:SymbolIcon x:Name="ButtonSymbolIcon" FontSize="18" VerticalAlignment="Center" Margin="10, 4, 10, 4" />
+    </Grid>
+</Button>

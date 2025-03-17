@@ -1,0 +1,24 @@
+<reactiveUi:ReactiveUserControl x:Class="Wabbajack.ViewModels.Controls.RemovableItemView"
+                                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                                xmlns:local="clr-namespace:Wabbajack.ViewModels.Controls"
+                                
+                                x:TypeArguments="controls:RemovableItemViewModel"
+                                xmlns:reactiveUi="http://reactiveui.net"
+                                xmlns:controls="clr-namespace:Wabbajack.ViewModels.Controls"
+                                xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+                                mc:Ignorable="d"
+                                d:DesignHeight="28" d:DesignWidth="300">
+    <Grid Margin="4">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="20"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Button Grid.Column="0" Name="DeleteButton">
+            <!--<iconPacks:Material Kind="Delete"></iconPacks:Material>-->
+        </Button>
+        <TextBlock Margin="10, 0, 0, 0" Grid.Column="1" Name="DisplayText" VerticalAlignment="Center"></TextBlock>
+    </Grid>
+</reactiveUi:ReactiveUserControl>

@@ -12,39 +12,25 @@
     mc:Ignorable="d">
     <Border
         x:Name="LoginView"
-        Margin="5"
         Background="{StaticResource BackgroundBrush}"
         BorderBrush="{StaticResource ButtonNormalBorder}"
-        BorderThickness="1">
-        <Grid Margin="10">
+        BorderThickness="0"
+        CornerRadius="8">
+        <Grid Margin="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Grid.Resources>
-                <Style BasedOn="{StaticResource MainButtonStyle}" TargetType="Button">
-                    <Style.Triggers>
-                        <Trigger Property="IsEnabled" Value="false">
-                            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-                            <Setter Property="Background" Value="{StaticResource SecondaryBackgroundBrush}" />
-                            <Setter Property="BorderBrush" Value="{StaticResource DarkSecondaryBrush}" />
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </Grid.Resources>
             <TextBlock
-                Margin="5,0"
-                FontFamily="Lucida Sans"
+                Margin="0, 0, 0, 8"
+                FontFamily="{StaticResource PrimaryFont}"
                 FontSize="20"
                 FontWeight="Bold"
                 Text="Logins" />
-            <ItemsControl Grid.Row="1"
-                x:Name="DownloadersList"
-                Margin="5"
-                Background="{StaticResource BackgroundBrush}">
+            <ItemsControl Grid.Row="1" x:Name="DownloadersList">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <local:LoginItemView ViewModel="{Binding}" />
+                        <local:LoginItemView ViewModel="{Binding}" Margin="0, 0, 0, 8" />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

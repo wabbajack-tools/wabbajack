@@ -21,7 +21,7 @@ namespace Wabbajack
             {
                 compareTo = false;
             }
-            return ((bool)value) == compareTo ? Visibility.Visible : Visibility.Hidden;
+            return ((bool)value) == compareTo ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

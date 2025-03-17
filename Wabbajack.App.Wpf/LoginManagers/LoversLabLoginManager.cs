@@ -1,13 +1,8 @@
 using System;
-using System.Drawing;
 using System.Reactive.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
@@ -30,6 +25,7 @@ public class LoversLabLoginManager : ViewModel, ILoginFor<LoversLabDownloader>
     public string SiteName { get; } = "Lovers Lab";
     public ICommand TriggerLogin { get; set; }
     public ICommand ClearLogin { get; set; }
+    public ICommand ToggleLogin { get; set; }
     
     public ImageSource Icon { get; set; }
     public Type LoginFor()
@@ -38,7 +34,7 @@ public class LoversLabLoginManager : ViewModel, ILoginFor<LoversLabDownloader>
     }
 
     [Reactive]
-    public bool HaveLogin { get; set; }
+    public bool LoggedIn { get; set; }
     
     public LoversLabLoginManager(ILogger<LoversLabLoginManager> logger, ITokenProvider<LoversLabLoginState> token, IServiceProvider serviceProvider)
     {
@@ -52,7 +48,7 @@ public class LoversLabLoginManager : ViewModel, ILoginFor<LoversLabDownloader>
             _logger.LogInformation("Deleting Login information for {SiteName}", SiteName);
             await _token.Delete();
             RefreshTokenState();
-        }, this.WhenAnyValue(v => v.HaveLogin));
+        }, this.WhenAnyValue(v => v.LoggedIn));
 
         Icon = BitmapFrame.Create(
             typeof(LoversLabLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.lovers_lab.png")!);
@@ -61,20 +57,24 @@ public class LoversLabLoginManager : ViewModel, ILoginFor<LoversLabDownloader>
         {
             _logger.LogInformation("Logging into {SiteName}", SiteName);
             StartLogin();
-        }, this.WhenAnyValue(v => v.HaveLogin).Select(v => !v));
+        }, this.WhenAnyValue(v => v.LoggedIn).Select(v => !v));
+
+        ToggleLogin = ReactiveCommand.Create(() =>
+        {
+            if (LoggedIn) ClearLogin.Execute(null);
+            else TriggerLogin.Execute(null);
+        });
     }
     
     private void StartLogin()
     {
-        var view = new BrowserWindow(_serviceProvider);
-        view.Closed += (sender, args) => { RefreshTokenState(); };
-        var provider = _serviceProvider.GetRequiredService<LoversLabLoginHandler>();
-        view.DataContext = provider;
-        view.Show();
+        var handler = _serviceProvider.GetRequiredService<LoversLabLoginHandler>();
+        handler.Closed += (sender, args) => { RefreshTokenState(); };
+        ShowBrowserWindow.Send(handler);
     }
 
     private void RefreshTokenState()
     {
-        HaveLogin = _token.HaveToken();
+        LoggedIn = _token.HaveToken();
     }
 }

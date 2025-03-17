@@ -14,11 +14,11 @@ namespace Wabbajack.Models;
 
 public class ResourceMonitor : IDisposable
 {
-    private readonly TimeSpan _pollInterval = TimeSpan.FromMilliseconds(250);
+    private readonly TimeSpan _pollInterval = TimeSpan.FromMilliseconds(1000);
     
     private readonly IResource[] _resources;
 
-    private readonly Subject<(string Name, long Througput)[]> _updates = new ();
+    private readonly Subject<(string Name, long Throughput)[]> _updates = new ();
     private (string Name, long Throughput)[] _prev;
     public IObservable<(string Name, long Throughput)[]> Updates => _updates;
 
@@ -27,18 +27,17 @@ public class ResourceMonitor : IDisposable
     public readonly ReadOnlyObservableCollection<CPUDisplayVM> _tasksFiltered;
     private readonly CompositeDisposable _compositeDisposable;
     private readonly ILogger<ResourceMonitor> _logger;
+    private DateTime _lastMeasuredDateTime;
     public ReadOnlyObservableCollection<CPUDisplayVM> Tasks => _tasksFiltered;
-    
-    
-
 
     public ResourceMonitor(ILogger<ResourceMonitor> logger, IEnumerable<IResource> resources)
     {
         _logger = logger;
         _compositeDisposable = new CompositeDisposable();
         _resources = resources.ToArray();
+        _lastMeasuredDateTime = DateTime.Now;
         _prev = _resources.Select(x => (x.Name, (long)0)).ToArray();
-        
+
         RxApp.MainThreadScheduler.ScheduleRecurringAction(_pollInterval, Elapsed)
             .DisposeWith(_compositeDisposable);
         
@@ -51,9 +50,10 @@ public class ResourceMonitor : IDisposable
 
     private void Elapsed()
     {
+        var elapsedTime = DateTime.Now - _lastMeasuredDateTime;
         var current = _resources.Select(x => (x.Name, x.StatusReport.Transferred)).ToArray();
         var diff = _prev.Zip(current)
-            .Select(t => (t.First.Name, (long)((t.Second.Transferred - t.First.Throughput) / _pollInterval.TotalSeconds)))
+            .Select(t => (t.First.Name, (long)((t.Second.Transferred - t.First.Throughput) / elapsedTime.TotalSeconds)))
             .ToArray();
         _prev = current;
         _updates.OnNext(diff);
@@ -61,18 +61,20 @@ public class ResourceMonitor : IDisposable
         _tasks.Edit(l =>
         {
             var used = new HashSet<ulong>();
+            var now = DateTime.Now;
             foreach (var resource in _resources)
             {
                 foreach (var job in resource.Jobs.Where(j => j.Current > 0))
                 {
                     used.Add(job.ID);
                     var tsk = l.Lookup(job.ID);
+                    var jobProgress = job.Size == 0 ? Percent.Zero : Percent.FactoryPutInRange(job.Current, (long)job.Size);
                     // Update
                     if (tsk != Optional<CPUDisplayVM>.None)
                     {
                         var t = tsk.Value;
                         t.Msg = job.Description;
-                        t.ProgressPercent = job.Size == 0 ? Percent.Zero : Percent.FactoryPutInRange(job.Current, (long)job.Size);
+                        t.ProgressPercent = jobProgress;
                         t.IsWorking = job.Current > 0;
                     }
 
@@ -82,9 +84,9 @@ public class ResourceMonitor : IDisposable
                         var vm = new CPUDisplayVM
                         {
                             ID = job.ID,
-                            StartTime = DateTime.Now,
+                            StartTime = now,
                             Msg = job.Description,
-                            ProgressPercent = job.Size == 0 ? Percent.Zero : Percent.FactoryPutInRange(job.Current, (long) job.Size),
+                            ProgressPercent = jobProgress,
                             IsWorking = job.Current > 0,
                         };
                         l.AddOrUpdate(vm);
@@ -96,6 +98,7 @@ public class ResourceMonitor : IDisposable
             foreach (var itm in l.Items.Where(v => !used.Contains(v.ID)))
                 l.Remove(itm);
         });
+        _lastMeasuredDateTime = DateTime.Now;
     }
 
     public void Dispose()

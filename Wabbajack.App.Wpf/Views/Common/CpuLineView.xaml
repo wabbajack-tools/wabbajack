@@ -7,29 +7,27 @@
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     d:DesignHeight="65"
     d:DesignWidth="400"
     x:TypeArguments="local:CPUDisplayVM"
     mc:Ignorable="d">
-    <Grid Background="{StaticResource WindowBackgroundBrush}">
-        <mahapps:MetroProgressBar
-            x:Name="BackgroundProgressBar"
-            Background="Transparent"
-            BorderThickness="0"
-            Foreground="{StaticResource DarkPrimaryVariantBrush}"
-            Maximum="1" />
-        <Grid Height="1" VerticalAlignment="Bottom">
-            <mahapps:MetroProgressBar
-                x:Name="ThinProgressBar"
-                Background="Transparent"
-                BorderThickness="0"
-                Foreground="{StaticResource DarkSecondaryBrush}"
-                Maximum="1" />
+    <Border x:Name="BorderMask2" CornerRadius="8" BorderThickness="0" Background="White">
+        <Grid Margin="-1">
+            <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1" />
+            <Grid Height="32" Background="{StaticResource ComplementaryPrimary08Brush}">
+                <Grid.OpacityMask>
+                    <VisualBrush Visual="{Binding ElementName=BorderMask}"/>
+                </Grid.OpacityMask>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <mahapps:MetroProgressBar Grid.ColumnSpan="2" x:Name="BackgroundProgressBar" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ComplementaryPrimary16Brush}" Maximum="1" />
+                <ic:SymbolIcon x:Name="Icon" FontSize="18" Foreground="{StaticResource PrimaryBrush}" Margin="8, 0, 0, 0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Collapsed" />
+                <TextBlock x:Name="Text" Margin="32, 0, 0, 0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" TextWrapping="NoWrap" />
+                <TextBlock x:Name="Progress" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="NoWrap" Margin="0, 0, 8, 0" />
+            </Grid>
         </Grid>
-        <TextBlock
-            x:Name="Text"
-            Margin="0,0,0,2"
-            TextTrimming="CharacterEllipsis"
-            TextWrapping="NoWrap" />
-    </Grid>
+    </Border>
 </rxui:ReactiveUserControl>

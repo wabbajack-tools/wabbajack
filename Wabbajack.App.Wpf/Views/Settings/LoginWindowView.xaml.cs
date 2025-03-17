@@ -1,22 +1,19 @@
-﻿
+﻿namespace Wabbajack;
 
-namespace Wabbajack
+public partial class LoginWindowView
 {
-    public partial class LoginWindowView
+    /*
+    public INeedsLoginCredentials Downloader { get; set; }
+
+    public LoginWindowView(INeedsLoginCredentials downloader)
     {
-        /*
-        public INeedsLoginCredentials Downloader { get; set; }
+        Downloader = downloader;
 
-        public LoginWindowView(INeedsLoginCredentials downloader)
-        {
-            Downloader = downloader;
+        InitializeComponent();
 
-            InitializeComponent();
+        var loginView = new CredentialsLoginView(downloader);
 
-            var loginView = new CredentialsLoginView(downloader);
-
-            Grid.Children.Add(loginView);
-        }
-        */
+        Grid.Children.Add(loginView);
     }
+    */
 }

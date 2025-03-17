@@ -1,9 +1,5 @@
 using System;
-using System.Drawing;
 using System.Reactive.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -29,6 +25,7 @@ public class VectorPlexusLoginManager : ViewModel, ILoginFor<LoversLabDownloader
     public string SiteName { get; } = "Vector Plexus";
     public ICommand TriggerLogin { get; set; }
     public ICommand ClearLogin { get; set; }
+    public ICommand ToggleLogin { get; set; }
     
     public ImageSource Icon { get; set; }
     public Type LoginFor()
@@ -37,7 +34,7 @@ public class VectorPlexusLoginManager : ViewModel, ILoginFor<LoversLabDownloader
     }
 
     [Reactive]
-    public bool HaveLogin { get; set; }
+    public bool LoggedIn { get; set; }
     
     public VectorPlexusLoginManager(ILogger<VectorPlexusLoginManager> logger, ITokenProvider<VectorPlexusLoginState> token, IServiceProvider serviceProvider)
     {
@@ -51,7 +48,7 @@ public class VectorPlexusLoginManager : ViewModel, ILoginFor<LoversLabDownloader
             _logger.LogInformation("Deleting Login information for {SiteName}", SiteName);
             await _token.Delete();
             RefreshTokenState();
-        }, this.WhenAnyValue(v => v.HaveLogin));
+        }, this.WhenAnyValue(v => v.LoggedIn));
 
         Icon = BitmapFrame.Create(
             typeof(VectorPlexusLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.vector_plexus.png")!);
@@ -60,22 +57,26 @@ public class VectorPlexusLoginManager : ViewModel, ILoginFor<LoversLabDownloader
         {
             _logger.LogInformation("Logging into {SiteName}", SiteName);
             StartLogin();
-        }, this.WhenAnyValue(v => v.HaveLogin).Select(v => !v));
+        }, this.WhenAnyValue(v => v.LoggedIn).Select(v => !v));
+
+        ToggleLogin = ReactiveCommand.Create(() =>
+        {
+            if (LoggedIn) ClearLogin.Execute(null);
+            else TriggerLogin.Execute(null);
+        });
     }
     
         
     private void StartLogin()
     {
-        var view = new BrowserWindow(_serviceProvider);
-        view.Closed += (sender, args) => { RefreshTokenState(); };
-        var provider = _serviceProvider.GetRequiredService<VectorPlexusLoginHandler>();
-        view.DataContext = provider;
-        view.Show();
+        var browserView = _serviceProvider.GetRequiredService<BrowserWindow>();
+        browserView.ViewModel.Closed += (_, _) => RefreshTokenState();
+        ShowBrowserWindow.Send(_serviceProvider.GetRequiredService<VectorPlexusLoginHandler>());
     }
 
 
     private void RefreshTokenState()
     {
-        HaveLogin = _token.HaveToken();
+        LoggedIn = _token.HaveToken();
     }
 }

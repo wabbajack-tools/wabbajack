@@ -185,7 +185,7 @@ public class MO2Compiler : ACompiler
             Readme = Settings.ModListReadme,
             Image = ModListImage != default ? ModListImage.FileName : default,
             Website = Settings.ModListWebsite,
-            Version = Settings.ModlistVersion,
+            Version = Settings.Version,
             IsNSFW = Settings.ModlistIsNSFW
         };
 
@@ -304,6 +304,7 @@ public class MO2Compiler : ACompiler
             new IgnoreFilename(this, ".refcache".ToRelativePath()),
             //Include custom categories / splash screens
             new IncludeRegex(this, @"categories\.dat$"),
+            new IncludeRegex(this, @"nexuscatmap\.dat$"),
             new IncludeRegex(this, @"splash\.png"),
 
             new IncludeAllConfigs(this),
@@ -322,7 +323,14 @@ public class MO2Compiler : ACompiler
         };
 
         if (!_settings.UseTextureRecompression)
+        {
+            _logger.LogInformation("Texture recompression disabled! Removing MatchSimiliarTextures from the compilation stack.");
             steps = steps.Where(s => s is not MatchSimilarTextures).ToList();
+        }
+        else
+        {
+            _logger.LogInformation("Texture recompression enabled!");
+        }
 
         return steps.Where(s => !s.Disabled);
     }

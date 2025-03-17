@@ -54,4 +54,8 @@ public class GameMetaData
     public Game[] CanSourceFrom { get; set; } = Array.Empty<Game>();
 
     public string HumanFriendlyGameName => Game.GetDescription();
+    /// <summary>
+    /// URI to an ICO / PNG, preferred size 32x32
+    /// </summary>
+    public string IconSource { get; set; } = @"Resources/Icons/wabbajack.ico";
 }

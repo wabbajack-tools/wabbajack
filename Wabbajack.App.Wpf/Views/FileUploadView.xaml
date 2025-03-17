@@ -1,0 +1,197 @@
+﻿<rxui:ReactiveUserControl
+    x:Class="Wabbajack.FileUploadView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:rxui="http://reactiveui.net"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:TypeArguments="local:FileUploadVM"
+    mc:Ignorable="d">
+    <Border
+        x:Name="AuthorFiles">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="16" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.ColumnSpan="3"
+                FontSize="20"
+                FontWeight="Bold"
+                Text="Upload file" />
+
+            <Button x:Name="CloseButton" Style="{StaticResource MainButtonStyle}" Background="Transparent"
+                    BorderThickness="0" HorizontalAlignment="Right" Padding="16" Margin="-16, -16, -16, 0" VerticalAlignment="Center">
+                <ic:SymbolIcon Symbol="Dismiss" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Right" />
+            </Button>
+
+            <Rectangle x:Name="UploadBackground"
+                       AllowDrop="True"
+                       Drop="OnDrop"
+                       Grid.Row="2"
+                       Fill="{StaticResource ComplementaryPrimary08Brush}"
+                       RadiusX="8" RadiusY="8" />
+
+            <Grid x:Name="StartUploadGrid"
+                  Grid.Row="2"
+                  VerticalAlignment="Center">
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="24" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="8" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <ic:SymbolIcon
+                    x:Name="StartUploadIcon"
+                    Foreground="{StaticResource PrimaryBrush}"
+                    Grid.Row="0"
+                    FontSize="108"
+                    Symbol="ArrowCircleDown" />
+
+                <TextBlock
+                    x:Name="DragToUploadText"
+                    Grid.Row="2"
+                    HorizontalAlignment="Center"
+                    FontSize="36">
+                    <Hyperlink x:Name="ChooseFileHyperlink">Choose a file</Hyperlink>
+                    <Run Text="or drag &amp; drop" />
+                </TextBlock>
+
+                <TextBlock
+                    x:Name="FairUseText"
+                    Grid.Row="4"
+                    HorizontalAlignment="Center"
+                    FontSize="13">
+                    Please only upload files in accordance with the CDN usage policy on the wiki.
+                </TextBlock>
+            </Grid>
+
+            <Grid x:Name="UploadingGrid"
+                  Grid.Row="2"
+                  VerticalAlignment="Center"
+                  Visibility="Collapsed">
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="24" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="8" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid x:Name="RotatingGrid"
+                      Grid.Row="0"
+                      RenderTransformOrigin="0.5, 0.5"
+                      >
+                        <ic:SymbolIcon
+                    x:Name="LoadingIcon"
+                    Foreground="{StaticResource PrimaryBrush}"
+                    FontSize="108"
+                    Symbol="ArrowClockwise">
+                        </ic:SymbolIcon>
+
+                        <Grid.RenderTransform>
+                            <RotateTransform x:Name="SpinTransform" Angle="0" />
+                        </Grid.RenderTransform>
+                        <Grid.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                    Storyboard.TargetName="SpinTransform"
+                        Storyboard.TargetProperty="(RotateTransform.Angle)"
+                        To="360" Duration="0:0:2" RepeatBehavior="Forever" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Grid.Triggers>
+                    </Grid>
+
+                    <TextBlock
+                    x:Name="UploadingTextBlock"
+                    Grid.Row="2"
+                    HorizontalAlignment="Center"
+                    FontSize="36">
+                    <Run x:Name="UploadingText" Text="Uploading..." />
+                    <Run x:Name="ProgressText" Text="0%" Foreground="{StaticResource PrimaryBrush}" />
+                    <Run x:Name="CompleteText" Text="complete" />
+                    </TextBlock>
+                </Grid>
+
+            <Grid x:Name="UploadCompletedGrid"
+                  Grid.Row="2"
+                  VerticalAlignment="Center"
+                  Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="16" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="8" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="16" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <ic:SymbolIcon
+                    x:Name="UploadCompletedIcon"
+                    Foreground="{StaticResource PrimaryBrush}"
+                    Grid.Row="0"
+                    FontSize="108"
+                    Symbol="CheckmarkCircle" />
+
+                <TextBlock
+                    x:Name="UploadCompleteText"
+                    Grid.Row="2"
+                    HorizontalAlignment="Center"
+                    FontSize="36">Upload complete!</TextBlock>
+
+                <TextBlock
+                    Grid.Row="4"
+                    HorizontalAlignment="Center"
+                    FontSize="13"
+                    TextAlignment="Center"
+                    VerticalAlignment="Center">
+                    <Run Text="Saved to" BaselineAlignment="Center" />
+                    <Hyperlink x:Name="FileUrlHyperlink">
+                        <Hyperlink.Inlines>
+                            <ic:SymbolIcon Symbol="ClipboardArrowRight" FontSize="20" Width="24" Height="20"/>
+                            <Run x:Name="FileUrlText" BaselineAlignment="Center" />
+                        </Hyperlink.Inlines>
+                    </Hyperlink>
+                </TextBlock>
+
+                <Grid HorizontalAlignment="Center" Grid.Row="6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <local:WJButton
+                    x:Name="BrowseUploadsButton"
+                    ButtonStyle="SemiTransparent"
+                    Grid.Column="0"
+                    HorizontalAlignment="Center"
+                    Icon="DocumentMultiple"
+                    Text="Browse uploads" />
+
+                    <local:WJButton
+                    x:Name="UploadMoreFilesButton"
+                    ButtonStyle="Color"
+                    Grid.Column="2"
+                    HorizontalAlignment="Center"
+                    Icon="DocumentArrowUp"
+                    Text="Upload more files" />
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</rxui:ReactiveUserControl>

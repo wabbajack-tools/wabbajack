@@ -1,4 +1,3 @@
-
 using ReactiveUI;
 
 namespace Wabbajack.Messages;

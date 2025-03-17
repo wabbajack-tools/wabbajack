@@ -127,7 +127,7 @@ public class ModListHarness
 
         var installer = scope.ServiceProvider.GetService<StandardInstaller>()!;
 
-        return await installer.Begin(CancellationToken.None);
+        return await installer.Begin(CancellationToken.None) == InstallResult.Succeeded;
     }
 
     public async Task AddManualDownload(AbsolutePath path)
