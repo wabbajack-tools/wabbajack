@@ -26,9 +26,7 @@ public class Reset
     }
 
     public static VerbDefinition Definition = new VerbDefinition("reset",
-        "Resets Wabbajack settings, restarts the application if open", new OptionDefinition[]
-        {
-        });
+        "Resets Wabbajack settings, restarts the application if open", []);
 
     public async Task<int> Run()
     {
@@ -40,7 +38,6 @@ public class Reset
             Console.WriteLine("Detected Wabbajack! Killing the process...");
             wabbajackProcess.Kill();
             await wabbajackProcess.WaitForExitAsync();
-            Thread.Sleep(500);
         }
         Console.WriteLine("Deleting %localappdata%\\Wabbajack...");
         KnownFolders.WabbajackAppLocal.DeleteDirectory();

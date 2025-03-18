@@ -70,14 +70,17 @@ public class SettingsVM : ViewModel
     {
         try
         {
+            _logger.LogInformation("Resetting Wabbajack!");
             var currentPath = Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location);
             var cliDir = Path.Combine(currentPath, "cli");
             string workingDir = Directory.Exists(cliDir) ? cliDir : currentPath;
+            _logger.LogInformation("Launching CLI from directory {workingDir}", workingDir);
             Process.Start(new ProcessStartInfo()
             {
-                FileName = "wabbajack-cli.exe",
+                FileName = Path.Combine(workingDir, "wabbajack-cli.exe"),
                 Arguments = "reset",
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                WorkingDirectory = workingDir
             });
         }
         catch (Exception ex)
