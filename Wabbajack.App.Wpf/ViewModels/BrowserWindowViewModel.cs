@@ -1,11 +1,9 @@
 using System;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Windows.Threading;
 using HtmlAgilityPack;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Web.WebView2.Core;
@@ -17,7 +15,6 @@ using Wabbajack.DTOs.Logins;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Messages;
 using Wabbajack.Paths;
-using System.Reactive.Concurrency;
 using Microsoft.Extensions.Logging;
 
 namespace Wabbajack;

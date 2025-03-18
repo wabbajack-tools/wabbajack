@@ -30,7 +30,6 @@ public class ManualDownloadHandler : BrowserWindowViewModel
             });
             await NavigateTo(md.Url);
             uri = await task;
-
         }
         finally
         {
