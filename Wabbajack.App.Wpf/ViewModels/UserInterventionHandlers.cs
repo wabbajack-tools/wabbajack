@@ -14,7 +14,6 @@ namespace Wabbajack;
 public class UserInterventionHandlers
 {
     public MainWindowVM MainWindow { get; }
-    private AsyncLock _browserLock = new();
     private readonly ILogger<UserInterventionHandlers> _logger;
 
     public UserInterventionHandlers(ILogger<UserInterventionHandlers> logger, MainWindowVM mvm)

@@ -38,7 +38,7 @@ namespace Wabbajack;
 /// </summary>
 public class MainWindowVM : ViewModel
 {
-    private object _browserLocker = new object();
+    private Common.AsyncLock _browserLocker = new();
     public MainWindow MainWindow { get; }
 
     [Reactive]
@@ -66,11 +66,11 @@ public class MainWindowVM : ViewModel
     public readonly FileUploadVM FileUploadVM;
     public readonly MegaLoginVM MegaLoginVM;
     public readonly UserInterventionHandlers UserInterventionHandlers;
+
     private readonly Client _wjClient;
     private readonly ILogger<MainWindowVM> _logger;
     private readonly ResourceMonitor _resourceMonitor;
     private readonly SystemParametersConstructor _systemParams;
-
     private readonly IServiceProvider _serviceProvider;
 
     public ICommand CopyVersionCommand { get; }
@@ -332,6 +332,7 @@ public class MainWindowVM : ViewModel
 
     private async void HandleShowBrowserWindow(ShowBrowserWindow msg)
     {
+        using var _ = await _browserLocker.WaitAsync();
         var browserWindow = _serviceProvider.GetRequiredService<BrowserWindow>();
         ActiveFloatingPane = browserWindow.ViewModel = msg.ViewModel;
         browserWindow.DataContext = ActiveFloatingPane;

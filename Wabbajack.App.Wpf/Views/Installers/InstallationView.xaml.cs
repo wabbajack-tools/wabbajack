@@ -270,6 +270,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             ReadmeToggleButton.IsChecked = true;
 
             MessageBus.Current.Listen<ShowFloatingWindow>()
+                              .ObserveOnGuiThread()
                               .Subscribe(msg =>
                               {
                                   if (msg.Screen == FloatingScreenType.None && (ReadmeToggleButton.IsChecked ?? false))
