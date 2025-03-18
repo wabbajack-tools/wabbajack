@@ -124,18 +124,27 @@ namespace Wabbajack.Util
 
         private string GetGPUName()
         {
+            HashSet<string> gpuManufacturers = ["amd", "intel", "nvidia"];
             string gpuName = "";
+            uint gpuRefreshRate = 0;
+            
             try
             {
                 ManagementObjectSearcher videoControllers = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
-
-                uint gpuRefreshRate = 0;
-
+            
                 foreach (ManagementObject obj in videoControllers.Get())
                 {
-                    var currentRefreshRate = (uint)obj["CurrentRefreshRate"];
-                    if (currentRefreshRate > gpuRefreshRate)
-                        gpuName = obj["Description"].ToString();
+                    if (obj["CurrentRefreshRate"] != null && obj["Description"] != null)
+                    {
+                        var currentRefreshRate = (uint)obj["CurrentRefreshRate"];
+                        var currentName = obj["Description"].ToString();
+                        
+                        if (gpuManufacturers.Any(s => currentName.Contains(s, StringComparison.OrdinalIgnoreCase)) && currentRefreshRate > gpuRefreshRate)
+                        {
+                            gpuName = currentName;
+                            gpuRefreshRate = currentRefreshRate;
+                        }
+                    }
                 }
             }
             catch(Exception ex)
