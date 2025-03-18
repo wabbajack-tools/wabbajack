@@ -39,6 +39,7 @@ public class Reset
         {
             Console.WriteLine("Detected Wabbajack! Killing the process...");
             wabbajackProcess.Kill();
+            await wabbajackProcess.WaitForExitAsync();
             Thread.Sleep(500);
         }
         Console.WriteLine("Deleting %localappdata%\\Wabbajack...");
