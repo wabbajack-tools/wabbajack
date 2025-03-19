@@ -1,5 +1,13 @@
 ### Changelog
 
+#### Version - 4.0.0.2 - 3/19/2025
+* Fixed an issue where previous installation paths might not be remembered correctly
+  * From this version onwards, Wabbajack will additionally remember previous installations by .wabbajack filename instead of only by the full install path being the same
+* Replaced Play button after installation completes with Open Install Folder
+* Added 'Create Desktop Shortcut' button after installation completes
+* 'Open File Explorer' after a failed installation has been renamed to 'Open Logs Folder' as it better describes what the button does
+* Octopus.Octodiff NuGet library has been updated from 2.0.547 to 2.0.548
+
 #### Version - 4.0.0.1 - 3/18/2025
 * Fixed an issue where manual downloads would get stuck after only a few browser pop-ups
 * Fixed the new Wabbajack reset working not working in some cases
