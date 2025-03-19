@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version - 4.0.0.2 - 3/19/2025
+* Fixed an issue where previous installation paths might not be remembered correctly
+* Replaced Play button after installation completes with Open Install Folder
+* Added 'Create Desktop Shortcut' button after installation completes
+
 #### Version - 4.0.0.1 - 3/18/2025
 * Fixed an issue where manual downloads would get stuck after only a few browser pop-ups
 * Fixed the new Wabbajack reset working not working in some cases
