@@ -2,6 +2,7 @@
 
 #### Version - 4.0.0.2 - 3/19/2025
 * Fixed an issue where previous installation paths might not be remembered correctly
+  * From this version onwards, Wabbajack will additionally remember previous installations by .wabbajack filename instead of only by the full install path being the same
 * Replaced Play button after installation completes with Open Install Folder
 * Added 'Create Desktop Shortcut' button after installation completes
 

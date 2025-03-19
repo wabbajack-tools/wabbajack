@@ -604,7 +604,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
             await PrepareDownloaders();
 
-            var postfix = (await WabbajackFileLocation.TargetPath.ToString().Hash()).ToHex();
+            var postfix = (await WabbajackFileLocation.TargetPath.FileName.ToString().Hash()).ToHex();
             await _settingsManager.Save(InstallSettingsPrefix + postfix, new SavedInstallSettings
             {
                 ModListLocation = WabbajackFileLocation.TargetPath,
