@@ -140,7 +140,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     public ICommand CancelCommand { get; }
     public ICommand EditInstallDetailsCommand { get; }
     public ICommand VerifyCommand { get; }
-    public ICommand PlayCommand { get; }
+    public ICommand CreateShortcutCommand { get; }
     
     public InstallationVM(ILogger<InstallationVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
@@ -226,11 +226,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
         BackToGalleryCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.ModListGallery));
 
-        PlayCommand = ReactiveCommand.Create(() =>
-        {
-            Process.Start(new ProcessStartInfo(Installer.Location.TargetPath.Combine("ModOrganizer.exe").ToString()) { UseShellExecute = true });
-        }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.InstallState,
-        (isNotLoading, installState) => isNotLoading && installState == InstallState.Success));
+        CreateShortcutCommand = ReactiveCommand.Create(() => CreateDesktopShortcut());
 
         this.WhenAnyValue(x => x.OverwriteFiles)
             .Subscribe(x => ConfirmOverwrite());
@@ -324,6 +320,20 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                 .DisposeWith(disposables);
         });
 
+    }
+
+    private void CreateDesktopShortcut()
+    {
+        string deskDir = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+
+        using StreamWriter writer = new StreamWriter(deskDir + "\\" + ModList.Name + ".url");
+
+        string path = Installer.Location.TargetPath.Combine("ModOrganizer.exe").ToString();
+        writer.WriteLine("[InternetShortcut]");
+        writer.WriteLine("URL=file:///" + path);
+        writer.WriteLine("IconIndex=0");
+        string icon = path.Replace('\\', '/');
+        writer.WriteLine("IconFile=" + icon);
     }
 
     private static string GetSuggestedInstallFolder(ModlistMetadata x)

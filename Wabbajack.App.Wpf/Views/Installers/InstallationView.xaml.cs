@@ -262,9 +262,8 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             this.BindCommand(ViewModel, vm => vm.OpenInstallFolderCommand, v => v.OpenFolderButton)
                 .DisposeWith(disposables);
 
-            this.BindCommand(ViewModel, vm => vm.PlayCommand, v => v.PlayButton)
+            this.BindCommand(ViewModel, vm => vm.CreateShortcutCommand, v => v.CreateShortcutButton)
                 .DisposeWith(disposables);
-
 
             // Initially, readme tab should be visible
             ReadmeToggleButton.IsChecked = true;

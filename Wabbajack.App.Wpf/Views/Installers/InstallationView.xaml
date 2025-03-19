@@ -319,8 +319,8 @@
                 </Grid.ColumnDefinitions>
                 <local:WJButton x:Name="BackToGalleryButton" Grid.Row="1" Text="Back to Gallery" Icon="ChevronLeft" Direction="RightToLeft" HorizontalAlignment="Left" />
                 <local:WJButton x:Name="ReadmeButton" Grid.Column="2" Text="Open Readme" Icon="WindowNew" HorizontalAlignment="Right" ButtonStyle="Mono" />
-                <local:WJButton x:Name="OpenFolderButton" Grid.Column="4" Text="Open in File Explorer" Icon="FolderOpen" HorizontalAlignment="Right" ButtonStyle="Mono" />
-                <local:WJButton x:Name="PlayButton" Grid.Column="6" Text="Play" Icon="PlayCircle" HorizontalAlignment="Right" ButtonStyle="Color" />
+                <local:WJButton x:Name="CreateShortcutButton" Grid.Column="4" Text="Create Desktop Shortcut" Icon="DesktopArrowRight" HorizontalAlignment="Right" ButtonStyle="Mono" />
+                <local:WJButton x:Name="OpenFolderButton" Grid.Column="6" Text="Open in File Explorer" Icon="FolderOpen" HorizontalAlignment="Right" ButtonStyle="Color" />
             </Grid>
         </Grid>
     </Grid>
