@@ -103,7 +103,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                              default:
                                  StoppedButton.Command = ViewModel.OpenInstallFolderCommand;
                                  StoppedButton.Icon = Symbol.FolderOpen;
-                                 StoppedButton.Text = "Open File Explorer";
+                                 StoppedButton.Text = "Open Logs Folder";
                                  break;
                          }
                      })
