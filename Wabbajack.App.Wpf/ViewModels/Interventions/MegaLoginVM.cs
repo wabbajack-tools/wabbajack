@@ -57,10 +57,9 @@ public class MegaLoginVM : ViewModel
         {
             TriedLoggingIn = true;
             LoggingIn = true;
-            // Since  the login task can gets stuck on a failed login, cancel the login task if it hasn't returned after 10s
+            // Since the login task can gets stuck on a failed login, cancel the login task if it hasn't returned after 10s
             using var tokenSource = new CancellationTokenSource();
-            tokenSource.Token.ThrowIfCancellationRequested();
-            tokenSource.CancelAfter(10000);
+            tokenSource.CancelAfter(TimeSpan.FromSeconds(30));
             Task<(AuthInfos Auth, LogonSessionToken Login)> loginTask = DoLogin(tokenSource.Token);
             try
             {
@@ -74,6 +73,9 @@ public class MegaLoginVM : ViewModel
             }
             catch (Exception ex)
             {
+                if (ex is OperationCanceledException)
+                    _logger.LogError("Request timed out, MEGA login cancelled!");
+
                 _logger.LogError("Failed to log into MEGA: {ex}", ex.ToString());
                 LoginSuccessful = false;
             }

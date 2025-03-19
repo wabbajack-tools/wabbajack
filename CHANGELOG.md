@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 4.0.0.1 - 3/18/2025
+* Fixed an issue where manual downloads would get stuck after only a few browser pop-ups
+* Fixed the new Wabbajack reset working not working in some cases
+* The MEGA login timeout has been increased to 30 seconds from 10 seconds to hopefully help with login errors.
+* GPU detection logic has been adjusted to account for virtual video controllers and video controllers without a reported refresh rate (thanks to [@kaeltis](https://www.github.com/kaeltis))
+
 #### Version - 4.0.0.0 - 3/17/2025
 * The entire UI has been overhauled to hopefully better guide users during installation/compilation and such.
   * Major thanks to [@CritLoren](https://www.github.com/CritLoren) for coming up with a lot of ideas behind the redesign and creating [Figma mock-ups](https://www.figma.com/design/SylohOBwdYAtPbOj5VMQ25/Wabbajack-v4).
