@@ -232,7 +232,7 @@
                             The modlist installation has failed because your installation or downloads directory has run out of space.
                             Please make sure enough space is available on the disk and try again.
                             </TextBlock>
-                            <local:WJButton x:Name="StoppedButton" Margin="0, 16, 0, 0" HorizontalAlignment="Left" Grid.Row="3" Text="Open File Explorer" Icon="FolderOpen" ButtonStyle="SemiTransparent" />
+                            <local:WJButton x:Name="StoppedButton" Margin="0, 16, 0, 0" HorizontalAlignment="Left" Grid.Row="3" Text="Open Logs Folder" Icon="FolderOpen" ButtonStyle="SemiTransparent" />
                         </Grid>
                     </Border>
                 </Grid>
