@@ -34,7 +34,7 @@
                 <ic:SymbolIcon Symbol="Dismiss" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Right" />
             </Button>
 
-            <Image x:Name="MegaImage" Grid.Row="2" Source="pack://application:,,,/LoginManagers/Icons/mega.png" Width="64" Height="64" />
+            <Image x:Name="MegaImage" Grid.Row="2" Source="pack://application:,,,/LoginManagers/Icons/mega-text.png" Width="Auto" Height="64" />
             <Grid Grid.Row="4" VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -56,6 +56,8 @@
                         <RowDefinition Height="16" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="16" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="8" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
@@ -85,13 +87,17 @@
                                VerticalAlignment="Center"/>
                         </Grid>
                     </Border>
+                    <TextBlock Grid.Row="12" Foreground="{StaticResource ForegroundBrush}" Opacity="0.66" >
+                        <ic:SymbolIcon Width="13" Height="13" FontSize="14" Symbol="Warning" VerticalAlignment="Center" Margin="0, 4, 2, 0" />
+                        <Run Text="Please note that 2FA logins will not work as they are currently unsupported." BaselineAlignment="Center" />
+                    </TextBlock>
                 </Grid>
 
                 <TextBlock Grid.Column="2" Padding="16, 0, 16, 0" FontSize="24" VerticalAlignment="Center" Text="or..." Foreground="{StaticResource DisabledButtonForeground}" />
 
                 <Grid Grid.Column="3" Width="{Binding Converter={StaticResource MathConverter}, ConverterParameter=x/3, ElementName=AuthorFiles, Path=ActualWidth}">
                     <!-- Normal login -->
-                    <local:WJButton x:Name="LoginAnonymouslyButton" Text="Login Anonymously" Icon="PersonArrowRight" Width="Auto" ButtonStyle="Mono" />
+                    <local:WJButton x:Name="LoginAnonymouslyButton" Text="Login anonymously" Icon="PersonArrowRight" Width="Auto" ButtonStyle="Color" />
                 </Grid>
             </Grid>
         </Grid>

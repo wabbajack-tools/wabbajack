@@ -19,7 +19,7 @@ public partial class MegaLoginView : ReactiveUserControl<MegaLoginVM>
     {
         InitializeComponent();
 
-        MegaImage.Source = BitmapFrame.Create(typeof(MegaLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.mega.png")!);
+        MegaImage.Source = BitmapFrame.Create(typeof(MegaLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.mega-text.png")!);
 
         this.WhenActivated(disposables =>
         {
