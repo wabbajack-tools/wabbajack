@@ -1,5 +1,16 @@
 ### Changelog
 
+#### Version - 4.0.0.3 - 3/20/2025
+* Fixed the open logs folder button not actually opening the logs folder on a failed installation
+* Fixed the missing manual report incorrectly listing Nexus files
+  * The missing manual report will now be generated with clickable links to the Wabbajack downloads folder
+* Added MEGA anonymous login feature
+  * This was previously available in older Wabbajack 3.7 versions, but it broke due to MEGA introducing a new security feature to protect against bots.
+  * I was looking at fixing this up so the anonymous login would work again, but to my surprise it worked straight away without making any changes.
+  * Thus, both the option to use an account and the option to use the anonymous login have now been made available within the MEGA login menu.
+* Adjusted wording of 'failed to download' to 'failed to source' in the description for a failed download installation error, since certain files (game files) aren't actually downloaded
+
+
 #### Version - 4.0.0.2 - 3/19/2025
 * Fixed an issue where previous installation paths might not be remembered correctly
   * From this version onwards, Wabbajack will additionally remember previous installations by .wabbajack filename instead of only by the full install path being the same

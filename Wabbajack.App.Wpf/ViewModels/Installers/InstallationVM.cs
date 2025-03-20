@@ -723,29 +723,30 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     {
         _logger.LogInformation("Writing Manual helper report");
         var report = Installer.DownloadLocation.TargetPath.Combine("MissingManuals.html");
+        var downloadsPath = Installer.DownloadLocation.TargetPath;
         {
             using var writer = new StreamWriter(report.Open(FileMode.Create, FileAccess.Write, FileShare.None));
             writer.Write("<html><head><title>Missing Files</title></head><body>");
             writer.Write("<h1>Missing Files</h1>");
             writer.Write(
-                "<p>Wabbajack was unable to download the following files automatically. Please take manual action on the following files. You might find more information on these files in the modlist readme and/or Discord server.</p>");
+                "<p>Wabbajack was unable to source the following files automatically. Please take manual action on the following files. You might find more information on these files in the modlist readme and/or Discord server.</p>");
             foreach (var archive in toArray)
             {
                 switch (archive.State)
                 {
                     case Manual manual:
-                        writer.Write($"<h3>{archive.Name}</h1>");
+                        writer.Write($"<h3>{archive.Name} (Manual)</h3>");
                         writer.Write($"<p>{manual.Prompt}</p>");
-                        writer.Write($"<p>Put this file inside your Wabbajack downloads folder.</p>");
+                        writer.Write($"<p>Put this file inside <a href='{Installer.DownloadLocation.TargetPath}'>your Wabbajack downloads folder.</a></p>");
                         writer.Write($"<p>Download URL: <a href=\"{manual.Url}\">{manual.Url}</a></p>");
                         break;
                     case MediaFire mediaFire:
-                        writer.Write($"<h3>{archive.Name}</h1>");
-                        writer.Write($"<p>Put this file inside your Wabbajack downloads folder.</p>");
+                        writer.Write($"<h3>{archive.Name} (MediaFire)</h3>");
+                        writer.Write($"<p>Put this file inside <a href='{Installer.DownloadLocation.TargetPath}'>your Wabbajack downloads folder.</a></p>");
                         writer.Write($"<p>Download URL: <a href=\"{mediaFire.Url}\">{mediaFire.Url}</a></p>");
                         break;
                     case GameFileSource gameFile:
-                        writer.Write($"<h3>{archive.Name}</h3>");
+                        writer.Write($"<h3>{archive.Name} (Game File)</h3>");
                         if(archive.Name.Contains("CreationKit"))
                         {
                             writer.Write($"<p>This modlist requires the Creation Kit to function.</p>");
@@ -778,23 +779,28 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                         break;
 
                     case Mega mega:
-                        writer.Write($"<h3>MEGA: {archive.Name}</h3>");
-                        writer.Write($"<p>Please <a href='{mega.Url.ToString()}' target='_blank'>click here to download this file</a>, then manually place it inside the Wabbajack downloads directory.</p>");
+                        writer.Write($"<h3>{archive.Name} (MEGA)</h3>");
+                        writer.Write($"<p>Please <a href='{mega.Url.ToString()}' target='_blank'>click here to download this file</a>, then manually place it inside <a href='{Installer.DownloadLocation.TargetPath}'>the Wabbajack downloads directory.</a></p>");
                         break;
 
                     case IPS4OAuth2 ips4:
-                        writer.Write($"<h3>IPS4OAuth2: {ips4.Name}</h3>");
-                        writer.Write($"<p>Please <a href='{ips4.LinkUrl.ToString()}' target='_blank'>click here to download this file</a>, then manually place it inside the Wabbajack downloads directory.</p>");
+                        writer.Write($"<h3>{ips4.Name} (IPS4OAuth2)</h3>");
+                        writer.Write($"<p>Please <a href='{ips4.LinkUrl.ToString()}' target='_blank'>click here to download this file</a>, then manually place it inside <a href='{Installer.DownloadLocation.TargetPath}'>the Wabbajack downloads directory.</a></p>");
                         break;
 
                     case GoogleDrive gd:
-                        writer.Write($"<h3>Google Drive ID: {gd.Id}</h3>");
-                        writer.Write($"<p>Please <a href='{gd.GetUri().ToString()}' target='_blank'>click here to download this file</a>, then manually place it inside the Wabbajack downloads directory.</p>");
+                        writer.Write($"<h3>Google Drive: {gd.Id}</h3>");
+                        writer.Write($"<p>Please <a href='{gd.GetUri().ToString()}' target='_blank'>click here to download this file</a>, then manually place it inside <a href='{Installer.DownloadLocation.TargetPath}'>the Wabbajack downloads directory.</a></p>");
                         break;
 
                     case Http http:
                         writer.Write($"<h3>Direct download: {http.PrimaryKeyString}</h3>");
-                        writer.Write($"<p>Please <a href='{http.Url.ToString()}' target='_blank'>click here to download this file</a>, then manually place it inside the Wabbajack downloads directory.</p>");
+                        writer.Write($"<p>Please <a href='{http.Url.ToString()}' target='_blank'>click here to download this file</a>, then manually place it inside <a href='{Installer.DownloadLocation.TargetPath}'>the Wabbajack downloads directory.</a></p>");
+                        break;
+
+                    case Nexus nexus:
+                        writer.Write($"<h3>{nexus.Description} (NexusMods)");
+                        writer.Write($"<p>Please <a href='{nexus.LinkUrl}' target='_blank'>click here to download this file</a>, then manually place it inside <a href='{Installer.DownloadLocation.TargetPath}'>the Wabbajack downloads directory.</a></p>");
                         break;
 
                     default:

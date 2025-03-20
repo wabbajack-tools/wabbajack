@@ -19,7 +19,7 @@ public partial class MegaLoginView : ReactiveUserControl<MegaLoginVM>
     {
         InitializeComponent();
 
-        MegaImage.Source = BitmapFrame.Create(typeof(MegaLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.mega.png")!);
+        MegaImage.Source = BitmapFrame.Create(typeof(MegaLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.mega-text.png")!);
 
         this.WhenActivated(disposables =>
         {
@@ -28,6 +28,9 @@ public partial class MegaLoginView : ReactiveUserControl<MegaLoginVM>
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.LoginCommand, v => v.LoginButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.LoginAnonymouslyCommand, v => v.LoginAnonymouslyButton)
                 .DisposeWith(disposables);
 
             ViewModel.WhenAnyValue(vm => vm.LoginSuccessful)

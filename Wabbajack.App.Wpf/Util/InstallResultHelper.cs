@@ -27,7 +27,7 @@ public static class InstallResultHelper
             InstallResult.Errored => "The modlist installation has failed because of an unknown error. Check the log for more information.",
             InstallResult.GameMissing => "The modlist installation has failed because the game could not be found. Please make sure a valid copy of the game is installed.",
             InstallResult.GameInvalid => "The modlist installation has failed because not all required game files could be found. Verify all game files are present and retry installation.",
-            InstallResult.DownloadFailed => "The modlist installation has failed because one or more required files could not be downloaded. Try manually placing these files in the downloads directory.",
+            InstallResult.DownloadFailed => "The modlist installation has failed because one or more required files could not be sourced. Try manually sourcing these files below.",
             InstallResult.NotEnoughSpace => "The modlist installation has failed because not enough free space was available on the disk. Please free up enough space and retry the installation.",
             _ => ""
         };

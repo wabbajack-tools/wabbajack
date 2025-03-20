@@ -46,6 +46,7 @@
     </ItemGroup>
 
 	<ItemGroup>
+    <None Remove="LoginManagers\Icons\mega-text.png" />
     <None Remove="LoginManagers\Icons\mega.png" />
     <None Remove="Readme.md" />
     <None Remove="Resources\Fonts\Atkinson-Hyperlegible-Italic-102.ttf" />
@@ -130,6 +131,7 @@
     <None Remove="LoginManagers\Icons\lovers_lab.png" />
     <EmbeddedResource Include="LoginManagers\Icons\lovers_lab.png" />
     <None Remove="LoginManagers\Icons\vector_plexus.png" />
+    <EmbeddedResource Include="LoginManagers\Icons\mega-text.png" />
     <EmbeddedResource Include="LoginManagers\Icons\mega.png" />
     <EmbeddedResource Include="LoginManagers\Icons\vector_plexus.png" />
 

@@ -69,7 +69,7 @@ public class MegaLoginManager : ViewModel, ILoginFor<MegaDownloader>
         });
 
         MessageBus.Current.Listen<LoggedIntoMega>()
-            .Subscribe(async (loggedIntoMega) => await UpdateToken(loggedIntoMega.Login))
+            .Subscribe(async (loggedIntoMega) => await UpdateToken(loggedIntoMega?.Login))
             .DisposeWith(CompositeDisposable);
 
         LoggedIn = _token.HaveToken();
@@ -97,7 +97,6 @@ public class MegaLoginManager : ViewModel, ILoginFor<MegaDownloader>
 
     private async Task UpdateToken(AuthInfos login)
     {
-        MegaToken token = null;
         try
         {
             await _token.SetToken(new MegaToken() { Login = login });
