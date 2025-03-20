@@ -29,6 +29,7 @@ public class MegaLoginVM : ViewModel
 
     public ICommand CloseCommand { get; }
     public ICommand LoginCommand { get; }
+    public ICommand LoginAnonymouslyCommand { get; }
 
     [Reactive] public double UploadProgress { get; set; }
     [Reactive] public string FileUrl { get; set; }
@@ -53,19 +54,26 @@ public class MegaLoginVM : ViewModel
             ShowFloatingWindow.Send(FloatingScreenType.None);
         });
 
-        LoginCommand = ReactiveCommand.Create(async () =>
+        LoginCommand = ReactiveCommand.Create(async (bool anonymous) =>
         {
             TriedLoggingIn = true;
             LoggingIn = true;
-            // Since the login task can gets stuck on a failed login, cancel the login task if it hasn't returned after 10s
+            // Since the login task can gets stuck on a failed login, cancel the login task if it hasn't returned after 30s
             using var tokenSource = new CancellationTokenSource();
             tokenSource.CancelAfter(TimeSpan.FromSeconds(30));
-            Task<(AuthInfos Auth, LogonSessionToken Login)> loginTask = DoLogin(tokenSource.Token);
             try
             {
-                var loginDetails = await loginTask;
+                if (anonymous)
+                {
+                    await DoLoginAnonymously(tokenSource.Token);
+                    LoggedIntoMega.Send(null);
+                }
+                else
+                {
+                    var (auth, loginToken) = await DoLogin(tokenSource.Token);
+                    LoggedIntoMega.Send(auth);
+                }
                 LoginSuccessful = true;
-                LoggedIntoMega.Send(loginDetails.Auth);
 
                 // To show the user they're logged in before closing
                 await Task.Delay(500);
@@ -85,6 +93,8 @@ public class MegaLoginVM : ViewModel
             }
         }, this.WhenAnyValue(vm => vm.LoggingIn, loggingIn => !loggingIn));
 
+        LoginAnonymouslyCommand = ReactiveCommand.Create(() => LoginCommand.Execute(true), this.WhenAnyValue(vm => vm.LoggingIn, loggingIn => !loggingIn));
+
         this.WhenActivated(disposables =>
         {
             TriedLoggingIn = false;
@@ -97,5 +107,9 @@ public class MegaLoginVM : ViewModel
     {
         var auth = await _apiClient.GenerateAuthInfosAsync(Email, Password).WaitAsync(token);
         return (auth, await _apiClient.LoginAsync(auth).WaitAsync(token));
+    }
+    private async Task DoLoginAnonymously(CancellationToken token)
+    {
+        await _apiClient.LoginAnonymousAsync().WaitAsync(token);
     }
 }

@@ -6,5 +6,5 @@ namespace Wabbajack.Downloaders;
 public class MegaToken
 {
     [JsonPropertyName("login")]
-    public required AuthInfos Login { get; set; }
+    public AuthInfos? Login { get; set; }
 }

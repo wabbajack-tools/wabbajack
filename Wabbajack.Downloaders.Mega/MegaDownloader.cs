@@ -80,7 +80,10 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
                 var authInfo = await _tokenProvider.Get();
                 try
                 {
-                    await _apiClient.LoginAsync(authInfo!.Login);
+                    if (authInfo!.Login == null)
+                        await _apiClient.LoginAnonymousAsync();
+                    else
+                        await _apiClient.LoginAsync(authInfo!.Login);
                 }
                 catch(Exception ex)
                 {

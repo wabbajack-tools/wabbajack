@@ -35,45 +35,64 @@
             </Button>
 
             <Image x:Name="MegaImage" Grid.Row="2" Source="pack://application:,,,/LoginManagers/Icons/mega.png" Width="64" Height="64" />
-            <Grid Grid.Row="4" VerticalAlignment="Center" Width="{Binding Converter={StaticResource MathConverter}, ConverterParameter=x/3, ElementName=AuthorFiles, Path=ActualWidth}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="4" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="16" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="4" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="16" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="16" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <TextBlock Text="E-mail" Grid.Row="0" />
-                <TextBox Grid.Row="2" mahapps:TextBoxHelper.Watermark="Enter e-mail..." Text="{Binding Email}" />
-                <TextBlock Text="Password" Grid.Row="4" />
-                <PasswordBox x:Name="PasswordBox" Grid.Row="6" PasswordChanged="PasswordBox_PasswordChanged" />
-                <local:WJButton x:Name="LoginButton" Grid.Row="8" Text="Login" Icon="PersonArrowRight" Width="Auto" ButtonStyle="Color" />
-                <Border x:Name="StatusBorder" Grid.Row="10" Padding="12" Background="{StaticResource PrimaryBrush}" CornerRadius="8">
-                    <Grid x:Name="StatusGrid">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <ic:SymbolIcon x:Name="StatusIcon"
+            <Grid Grid.Row="4" VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid Grid.Column="1" Width="{Binding Converter={StaticResource MathConverter}, ConverterParameter=x/3, ElementName=AuthorFiles, Path=ActualWidth}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="16" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="16" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="16" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Normal login -->
+                    <TextBlock Text="E-mail" Grid.Row="0" />
+                    <TextBox Grid.Row="2" mahapps:TextBoxHelper.Watermark="Enter e-mail..." Text="{Binding Email}" />
+                    <TextBlock Text="Password" Grid.Row="4" />
+                    <PasswordBox x:Name="PasswordBox" Grid.Row="6" PasswordChanged="PasswordBox_PasswordChanged" />
+                    <local:WJButton x:Name="LoginButton" Grid.Row="8" Text="Login" Icon="PersonArrowRight" Width="Auto" ButtonStyle="Color" />
+                    <Border x:Name="StatusBorder" Grid.Row="10" Padding="12" Background="{StaticResource PrimaryBrush}" CornerRadius="8">
+                        <Grid x:Name="StatusGrid">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ic:SymbolIcon x:Name="StatusIcon"
                                    Grid.Column="0"
                                    Symbol="ArrowCounterclockwise"
                                    FontSize="24"
                                    Foreground="{StaticResource DarkBackgroundBrush}"
                                    VerticalAlignment="Center" />
-                        <TextBlock x:Name="StatusText"
+                            <TextBlock x:Name="StatusText"
                                Grid.Column="2"
                                Text="Logging in..."
                                Foreground="{StaticResource DarkBackgroundBrush}"
                                VerticalAlignment="Center"/>
-                    </Grid>
-                </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <TextBlock Grid.Column="2" Padding="16, 0, 16, 0" FontSize="24" VerticalAlignment="Center" Text="or..." Foreground="{StaticResource DisabledButtonForeground}" />
+
+                <Grid Grid.Column="3" Width="{Binding Converter={StaticResource MathConverter}, ConverterParameter=x/3, ElementName=AuthorFiles, Path=ActualWidth}">
+                    <!-- Normal login -->
+                    <local:WJButton x:Name="LoginAnonymouslyButton" Text="Login Anonymously" Icon="PersonArrowRight" Width="Auto" ButtonStyle="Mono" />
+                </Grid>
             </Grid>
         </Grid>
     </Border>

@@ -30,6 +30,9 @@ public partial class MegaLoginView : ReactiveUserControl<MegaLoginVM>
             this.BindCommand(ViewModel, vm => vm.LoginCommand, v => v.LoginButton)
                 .DisposeWith(disposables);
 
+            this.BindCommand(ViewModel, vm => vm.LoginAnonymouslyCommand, v => v.LoginAnonymouslyButton)
+                .DisposeWith(disposables);
+
             ViewModel.WhenAnyValue(vm => vm.LoginSuccessful)
                      .Subscribe(success =>
                      {
