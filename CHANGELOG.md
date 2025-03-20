@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 4.0.0.3 - 3/20/2025
+* Fixed the open logs folder button not actually opening the logs folder on a failed installation
+
 #### Version - 4.0.0.2 - 3/19/2025
 * Fixed an issue where previous installation paths might not be remembered correctly
   * From this version onwards, Wabbajack will additionally remember previous installations by .wabbajack filename instead of only by the full install path being the same

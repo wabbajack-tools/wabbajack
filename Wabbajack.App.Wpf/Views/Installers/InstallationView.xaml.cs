@@ -101,7 +101,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                                  break;
 
                              default:
-                                 StoppedButton.Command = ViewModel.OpenInstallFolderCommand;
+                                 StoppedButton.Command = ViewModel.OpenLogFolderCommand;
                                  StoppedButton.Icon = Symbol.FolderOpen;
                                  StoppedButton.Text = "Open Logs Folder";
                                  break;
