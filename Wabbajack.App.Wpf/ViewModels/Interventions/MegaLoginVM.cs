@@ -97,7 +97,10 @@ public class MegaLoginVM : ViewModel
                     _logger.LogError("Request timed out, MEGA login cancelled!");
 
                 if (ex is ApiException apiEx && apiEx.ApiResultCode == ApiResultCode.TwoFactorAuthenticationError)
+                {
+                    _logger.LogInformation("Requesting MEGA 2FA login...");
                     TwoFactorLoginRequested = true;
+                }
                 else
                     _logger.LogError("Failed to log into MEGA: {ex}", ex.ToString());
                 LoginSuccessful = false;
@@ -114,6 +117,8 @@ public class MegaLoginVM : ViewModel
 
         this.WhenActivated(disposables =>
         {
+            _logger.LogInformation("User attempting to sign into MEGA");
+
             Email = "";
             Password = "";
             LoggingIn = false;
