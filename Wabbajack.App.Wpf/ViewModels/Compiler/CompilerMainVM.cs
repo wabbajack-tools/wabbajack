@@ -29,6 +29,7 @@ using Wabbajack.LoginManagers;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs.DownloadStates;
 using System.Reactive.Concurrency;
+using YamlDotNet.Core;
 
 namespace Wabbajack;
 
@@ -52,7 +53,15 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
     public ICommand OpenFolderCommand { get; }
     public ICommand PublishCommand { get; }
 
+    private bool _isPublishing;
+    public bool IsPublishing
+    {
+        get => _isPublishing;
+        set => this.RaiseAndSetIfChanged(ref _isPublishing, value);
+    }
+
     [Reactive] public CompilerState State { get; set; }
+
     public bool Cancelling { get; private set; }
 
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
@@ -85,7 +94,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                               img.FileExists() &&
                               !string.IsNullOrEmpty(downloads.ToString()) &&
                               !string.IsNullOrEmpty(output.ToString()) && output.Extension == Ext.Wabbajack &&
-                              Version.TryParse(version, out _)));
+                              System.Version.TryParse(version, out _)));
 
         CancelCommand = ReactiveCommand.Create(CancelCompilation);
         OpenLogCommand = ReactiveCommand.Create(OpenLog);
@@ -138,13 +147,65 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
     {
         _logger.LogInformation("Running preflight checks before publishing list");
         bool readyForPublish = await RunPreflightChecks(CancellationToken.None);
-        if (!readyForPublish) return;
+        if (!readyForPublish)
+            return;
 
-        _logger.LogInformation("Publishing list with machineURL {machineURL}, version {version}, output {output}", Settings.MachineUrl, Settings.Version, Settings.OutputFile);
+        _logger.LogInformation("Publishing list with machineURL {machineURL}, version {version}, output {output}",
+            Settings.MachineUrl, Settings.Version, Settings.OutputFile);
+
         var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
             await Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
-        await _wjClient.PublishModlist(Settings.MachineUrl, Version.Parse(Settings.Version), Settings.OutputFile, downloadMetadata);
+
+        await Task.Run(async () =>
+        {
+            RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+            {
+                ProgressText = "Publishing...";
+                ProgressState = ProgressState.Normal;
+                ProgressPercent = Percent.Zero;
+                return Disposable.Empty;
+            });
+
+            IsPublishing = true;
+            try
+            {
+                var (progress, publishTask) = await _wjClient.PublishModlist(
+                    Settings.MachineUrl, System.Version.Parse(Settings.Version), Settings.OutputFile, downloadMetadata);
+
+                var progressSubscription = progress
+                    .ObserveOn(RxApp.MainThreadScheduler)
+                    .Subscribe(p =>
+                    {
+                        RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+                        {
+                            ProgressPercent = p.PercentDone;
+                            ProgressText = p.Message;
+                            _logger.LogInformation("Progress update: {Message} at {PercentDone}", p.Message, p.PercentDone);
+                            return Disposable.Empty;
+                        });
+                    });
+
+                await Task.Yield();
+
+                await publishTask;
+                progressSubscription.Dispose();
+            }
+            finally
+            {
+                IsPublishing = false;
+                RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+                {
+                    ProgressText = "Published";
+                    ProgressState = ProgressState.Success;
+                    return Disposable.Empty;
+                });
+            }
+        });
     }
+
+
+
+
 
     private void OpenFolder() => UIUtils.OpenFolderAndSelectFile(Settings.OutputFile);
 
@@ -312,7 +373,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
             return false;
         }
 
-        if (!Version.TryParse(Settings.Version, out var version))
+        if (!System.Version.TryParse(Settings.Version, out var version))
         {
             _logger.LogError("Preflight Check failed, version {Version} was not valid", Settings.Version);
             return false;
