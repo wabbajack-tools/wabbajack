@@ -67,8 +67,7 @@
             </Grid.ColumnDefinitions>
             <local:WJButton x:Name="OpenLogButton" Text="Open Log" Icon="DocumentText" HorizontalAlignment="Left" />
             <local:WJButton x:Name="OpenFolderButton" Text="Open in File Explorer" Icon="Folder" HorizontalAlignment="Right" Grid.Column="2" ButtonStyle="Color" />
-            <local:WJButton x:Name="PublishButton" Text="Publish Modlist" Icon="CloudArrowUp" HorizontalAlignment="Right" Grid.Column="4" ButtonStyle="Progress" />
-
+            <local:WJButton x:Name="PublishButton" Text="Publish Modlist" Icon="CloudArrowUp" HorizontalAlignment="Right" Grid.Column="4" ButtonStyle="Color" />
         </Grid>
     </Grid>
 </rxui:ReactiveUserControl>
