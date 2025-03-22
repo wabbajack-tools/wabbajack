@@ -29,6 +29,7 @@ using Wabbajack.LoginManagers;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs.DownloadStates;
 using System.Reactive.Concurrency;
+using YamlDotNet.Core;
 
 namespace Wabbajack;
 
@@ -52,7 +53,12 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
     public ICommand OpenFolderCommand { get; }
     public ICommand PublishCommand { get; }
 
+    [Reactive]
+    public bool IsPublishing { get; set; }
+
+
     [Reactive] public CompilerState State { get; set; }
+
     public bool Cancelling { get; private set; }
 
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
@@ -85,7 +91,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                               img.FileExists() &&
                               !string.IsNullOrEmpty(downloads.ToString()) &&
                               !string.IsNullOrEmpty(output.ToString()) && output.Extension == Ext.Wabbajack &&
-                              Version.TryParse(version, out _)));
+                              System.Version.TryParse(version, out _)));
 
         CancelCommand = ReactiveCommand.Create(CancelCompilation);
         OpenLogCommand = ReactiveCommand.Create(OpenLog);
@@ -138,13 +144,60 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
     {
         _logger.LogInformation("Running preflight checks before publishing list");
         bool readyForPublish = await RunPreflightChecks(CancellationToken.None);
-        if (!readyForPublish) return;
+        if (!readyForPublish)
+            return;
 
-        _logger.LogInformation("Publishing list with machineURL {machineURL}, version {version}, output {output}", Settings.MachineUrl, Settings.Version, Settings.OutputFile);
+        _logger.LogInformation("Publishing list with machineURL {machineURL}, version {version}, output {output}",
+            Settings.MachineUrl, Settings.Version, Settings.OutputFile);
+
         var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
             await Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
-        await _wjClient.PublishModlist(Settings.MachineUrl, Version.Parse(Settings.Version), Settings.OutputFile, downloadMetadata);
+        _logger.LogInformation("Download metadata: {metadata}", downloadMetadata);
+        await Task.Run(async () =>
+        {
+            RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+            {
+                ProgressText = "Publishing...";
+                ProgressState = ProgressState.Normal;
+                ProgressPercent = Percent.Zero;
+                return Disposable.Empty;
+            });
+
+            IsPublishing = true;
+            try
+            {
+                var (progress, publishTask) = await _wjClient.PublishModlist(
+                    Settings.MachineUrl, System.Version.Parse(Settings.Version), Settings.OutputFile, downloadMetadata);
+
+                var progressSubscription = progress
+                    .ObserveOnGuiThread()
+                    .Subscribe(p =>
+                    {
+                        ProgressPercent = p.PercentDone;
+                        ProgressText = p.Message;
+                    });
+
+                await Task.Yield();
+
+                await publishTask;
+                progressSubscription.Dispose();
+            }
+            finally
+            {
+                IsPublishing = false;
+                RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
+                {
+                    ProgressText = "Published";
+                    ProgressState = ProgressState.Success;
+                    return Disposable.Empty;
+                });
+            }
+        });
     }
+
+
+
+
 
     private void OpenFolder() => UIUtils.OpenFolderAndSelectFile(Settings.OutputFile);
 
@@ -305,14 +358,13 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
             _logger.LogError("Publish failed; failed to get modlists! Exception: {ex}", ex.ToString());
             return false;
         }
-
         if (!lists.Any(x => x.Equals(Settings.MachineUrl, StringComparison.InvariantCultureIgnoreCase)))
         {
             _logger.LogError("Preflight Check failed, list {MachineUrl} not found in any repository", Settings.MachineUrl);
             return false;
         }
 
-        if (!Version.TryParse(Settings.Version, out var version))
+        if (!System.Version.TryParse(Settings.Version, out var version))
         {
             _logger.LogError("Preflight Check failed, version {Version} was not valid", Settings.Version);
             return false;

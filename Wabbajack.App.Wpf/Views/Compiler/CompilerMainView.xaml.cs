@@ -83,14 +83,17 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
                     .BindToStrict(this, view => view.CompilationButtons.Visibility)
                     .DisposeWith(disposables);
 
-            ViewModel.WhenAny(vm => vm.State)
-                    .Select(s => s == CompilerState.Completed)
-                    .BindToStrict(this, view => view.OpenFolderButton.IsEnabled)
+            ViewModel.WhenAnyValue(vm => vm.IsPublishing)
+                    .CombineLatest(
+                        ViewModel.WhenAnyValue(vm => vm.State),
+                        (isPublishing, state) => !isPublishing && state == CompilerState.Completed)
+                    .BindToStrict(this, view => view.PublishButton.IsEnabled)
                     .DisposeWith(disposables);
+
 
             ViewModel.WhenAny(vm => vm.State)
                     .Select(s => s == CompilerState.Completed)
-                    .BindToStrict(this, view => view.PublishButton.IsEnabled)
+                    .BindToStrict(this, view => view.OpenFolderButton.IsEnabled)
                     .DisposeWith(disposables);
 
             ViewModel.WhenAny(vm => vm.State)
