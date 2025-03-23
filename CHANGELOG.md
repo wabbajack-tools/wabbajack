@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 4.0.0.4 - Unreleased
+* Fixed subfolders of profiles showing up under additional profiles within compiler settings
+* Fixed Nexus login not taking cancellation token into account while waiting for authorization (closing the Nexus login prompt did not work)
+* Added 2FA support for MEGA login, added some extra logging for MEGA logins
+* Added a warning for when WebView is not loading
+
 #### Version - 4.0.0.3 - 3/20/2025
 * Fixed the open logs folder button not actually opening the logs folder on a failed installation
 * Fixed the missing manual report incorrectly listing Nexus files
