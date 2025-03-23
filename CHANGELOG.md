@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - TBD
+
+* Initial support for Knights of the Old republic 2
+
 #### Version - 4.0.0.3 - 3/20/2025
 * Fixed the open logs folder button not actually opening the logs folder on a failed installation
 * Fixed the missing manual report incorrectly listing Nexus files
