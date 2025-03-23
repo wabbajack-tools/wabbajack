@@ -22,6 +22,11 @@ namespace Wabbajack;
 
 public class MegaLoginVM : ViewModel
 {
+    private enum LoginType { 
+        Normal,
+        Anonymous,
+        TwoFactor
+    }
 
     private readonly ILogger<MegaLoginVM> _logger;
     private readonly MegaTokenProvider _tokenProvider;
@@ -30,11 +35,8 @@ public class MegaLoginVM : ViewModel
     public ICommand CloseCommand { get; }
     public ICommand LoginCommand { get; }
     public ICommand LoginAnonymouslyCommand { get; }
+    public ICommand TwoFactorLoginCommand { get; }
 
-    [Reactive] public double UploadProgress { get; set; }
-    [Reactive] public string FileUrl { get; set; }
-    public FilePickerVM Picker { get;}
-    
     [Reactive] public string Email { get; set; }
     [Reactive] public string Password { get; set; }
     [Reactive] public AuthInfos Login { get; private set; }
@@ -42,6 +44,10 @@ public class MegaLoginVM : ViewModel
     [Reactive] public bool LoggingIn { get; set; }
     [Reactive] public bool LoginSuccessful { get; set; }
     [Reactive] public bool TriedLoggingIn { get; set; }
+
+    [Reactive] public bool TriedLoggingInWithTwoFactor { get; set; }
+    [Reactive] public bool TwoFactorLoginRequested { get; set; }
+    [Reactive] public string TwoFactorKey { get; set; }
 
     public MegaLoginVM(ILogger<MegaLoginVM> logger, MegaTokenProvider tokenProvider, Client wjClient, SettingsVM vm, MegaApiClient apiClient)
     {
@@ -54,7 +60,7 @@ public class MegaLoginVM : ViewModel
             ShowFloatingWindow.Send(FloatingScreenType.None);
         });
 
-        LoginCommand = ReactiveCommand.Create(async (bool anonymous) =>
+        LoginCommand = ReactiveCommand.Create(async (LoginType loginType) =>
         {
             TriedLoggingIn = true;
             LoggingIn = true;
@@ -63,14 +69,20 @@ public class MegaLoginVM : ViewModel
             tokenSource.CancelAfter(TimeSpan.FromSeconds(30));
             try
             {
-                if (anonymous)
+                if (loginType == LoginType.Anonymous)
                 {
                     await DoLoginAnonymously(tokenSource.Token);
                     LoggedIntoMega.Send(null);
                 }
-                else
+                else if(loginType == LoginType.Normal)
                 {
                     var (auth, loginToken) = await DoLogin(tokenSource.Token);
+                    LoggedIntoMega.Send(auth);
+                }
+                else if(loginType == LoginType.TwoFactor)
+                {
+                    TriedLoggingInWithTwoFactor = true;
+                    var (auth, loginToken) = await DoTwoFactorLogin(tokenSource.Token);
                     LoggedIntoMega.Send(auth);
                 }
                 LoginSuccessful = true;
@@ -84,7 +96,13 @@ public class MegaLoginVM : ViewModel
                 if (ex is OperationCanceledException)
                     _logger.LogError("Request timed out, MEGA login cancelled!");
 
-                _logger.LogError("Failed to log into MEGA: {ex}", ex.ToString());
+                if (ex is ApiException apiEx && apiEx.ApiResultCode == ApiResultCode.TwoFactorAuthenticationError)
+                {
+                    _logger.LogInformation("Requesting MEGA 2FA login...");
+                    TwoFactorLoginRequested = true;
+                }
+                else
+                    _logger.LogError("Failed to log into MEGA: {ex}", ex.ToString());
                 LoginSuccessful = false;
             }
             finally
@@ -93,11 +111,23 @@ public class MegaLoginVM : ViewModel
             }
         }, this.WhenAnyValue(vm => vm.LoggingIn, loggingIn => !loggingIn));
 
-        LoginAnonymouslyCommand = ReactiveCommand.Create(() => LoginCommand.Execute(true), this.WhenAnyValue(vm => vm.LoggingIn, loggingIn => !loggingIn));
+        LoginAnonymouslyCommand = ReactiveCommand.Create(() => LoginCommand.Execute(LoginType.Anonymous), this.WhenAnyValue(vm => vm.LoggingIn, loggingIn => !loggingIn));
+
+        TwoFactorLoginCommand = ReactiveCommand.Create(() => LoginCommand.Execute(LoginType.TwoFactor), this.WhenAnyValue(vm => vm.LoggingIn, loggingIn => !loggingIn));
 
         this.WhenActivated(disposables =>
         {
+            _logger.LogInformation("User attempting to sign into MEGA");
+
+            Email = "";
+            Password = "";
+            LoggingIn = false;
+            LoginSuccessful = false;
             TriedLoggingIn = false;
+
+            TwoFactorKey = "";
+            TwoFactorLoginRequested = false;
+            TriedLoggingInWithTwoFactor = false;
 
             Disposable.Empty.DisposeWith(disposables);
         });
@@ -106,8 +136,17 @@ public class MegaLoginVM : ViewModel
     private async Task<(AuthInfos, LogonSessionToken)> DoLogin(CancellationToken token)
     {
         var auth = await _apiClient.GenerateAuthInfosAsync(Email, Password).WaitAsync(token);
-        return (auth, await _apiClient.LoginAsync(auth).WaitAsync(token));
+        var login = await _apiClient.LoginAsync(auth).WaitAsync(token);
+        return (auth, login);
     }
+
+    private async Task<(AuthInfos, LogonSessionToken)> DoTwoFactorLogin(CancellationToken token)
+    {
+        var auth = await _apiClient.GenerateAuthInfosAsync(Email, Password, TwoFactorKey).WaitAsync(token);
+        var login = await _apiClient.LoginAsync(auth).WaitAsync(token);
+        return (auth, login);
+    }
+
     private async Task DoLoginAnonymously(CancellationToken token)
     {
         await _apiClient.LoginAnonymousAsync().WaitAsync(token);

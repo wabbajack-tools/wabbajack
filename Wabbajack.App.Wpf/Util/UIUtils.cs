@@ -59,7 +59,7 @@ public static class UIUtils
 
     public static void OpenWebsite(Uri url)
     {
-        Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url}")
+        Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url.ToString().Replace(" ", "%20")}")
         {
             CreateNoWindow = true,
         });
