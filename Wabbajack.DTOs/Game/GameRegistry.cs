@@ -672,6 +672,24 @@ public static class GameRegistry
             }
         },
         {
+            Game.Kotor2, new GameMetaData
+            {
+                Game = Game.Kotor2,
+                MO2Name = "STAR WARS Knights of the Old Republic II The Sith Lords",
+                NexusName = "kotor2",
+                NexusGameId = 198,
+                MO2ArchiveName = "7daystodie",
+                SteamIDs = [208580],
+                GOGIDs = new long[] { 1421404581},
+                RequiredFiles = new []
+                {
+                    @"swkotor2.exe".ToRelativePath()
+                },
+                MainExecutable = @"swkotor2.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/thumb/d472c6afb984f36c3002b25bc2ffcc59.jpg",
+            }
+        },
+        {
             Game.ModdingTools, new GameMetaData
             {
                 Game = Game.ModdingTools,

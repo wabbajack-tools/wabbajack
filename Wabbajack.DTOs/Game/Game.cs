@@ -57,4 +57,5 @@ public enum Game
     [Description("Baldur's Gate 3")] BaldursGate3,
     [Description("Starfield")] Starfield,
     [Description("7 Days to Die")] SevenDaysToDie,
+    [Description("STAR WARS Knights of the Old Republic II The Sith Lords")] Kotor2,
 }
