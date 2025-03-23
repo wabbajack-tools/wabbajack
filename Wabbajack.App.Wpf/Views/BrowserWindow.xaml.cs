@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 using System.Windows.Controls;
 using System.Windows;
 using ReactiveUI;
+using System.Threading.Tasks;
 
 namespace Wabbajack;
 
@@ -15,6 +16,13 @@ public partial class BrowserWindow : ReactiveUserControl<BrowserWindowViewModel>
 
         this.WhenActivated(disposables =>
         {
+            RxApp.MainThreadScheduler.Schedule(async () =>
+            {
+                WebViewWarning.Visibility = Visibility.Collapsed;
+                await Task.Delay(TimeSpan.FromSeconds(2));
+                WebViewWarning.Visibility = Visibility.Visible;
+            });
+
             this.BindCommand(ViewModel, vm => vm.BackCommand, v => v.BackButton)
                 .DisposeWith(disposables);
 

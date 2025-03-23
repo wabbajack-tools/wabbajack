@@ -31,6 +31,7 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
     [Reactive] public string Address { get; set; }
     [Reactive] public ICommand CloseCommand { get; set; }
     [Reactive] public ICommand BackCommand { get; set; }
+    [Reactive] public ICommand OpenWebViewHelpCommand { get; set; }
     public event EventHandler Closed;
 
     public BrowserWindowViewModel(IServiceProvider serviceProvider)
@@ -39,6 +40,10 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
         _logger = serviceProvider.GetRequiredService<ILogger<BrowserWindowViewModel>>();
         BackCommand = ReactiveCommand.Create(() => Browser.GoBack());
         CloseCommand = ReactiveCommand.Create(() => _tokenSource.Cancel());
+        OpenWebViewHelpCommand = ReactiveCommand.Create(() => {
+            var uri = Consts.WabbajackWebViewWikiUri;
+            UIUtils.OpenWebsite(uri);
+        });
     }
 
     public async Task RunBrowserOperation()

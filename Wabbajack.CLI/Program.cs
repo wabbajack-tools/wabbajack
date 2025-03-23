@@ -44,6 +44,7 @@ internal class Program
                 services.AddSingleton(s => new GitHubClient(new ProductHeaderValue("wabbajack")));
                 services.AddSingleton<TemporaryFileManager>();
                 services.AddSingleton<MegaApiClient>();
+                services.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
 
                 services.AddOSIntegrated();
                 services.AddServerLib();

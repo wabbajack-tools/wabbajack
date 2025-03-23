@@ -66,7 +66,7 @@ public class NexusLoginHandler : BrowserWindowViewModel
         var uri = GenerateAuthorizeUrl(codeChallenge, state);
         await NavigateTo(uri);
 
-        var ctx = await codeCompletionSource.Task;
+        var ctx = await codeCompletionSource.Task.WaitAsync(token);
         
         if (ctx["state"].FirstOrDefault() != state)
         {
