@@ -148,7 +148,7 @@ public class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
             this.WhenAnyValue(x => x.Settings.Source)
                 .Subscribe(source =>
                 {
-                    AvailableProfiles = source.Combine("profiles").EnumerateDirectories().Select(dir => dir.FileName.ToString()).ToList();
+                    AvailableProfiles = source.Combine("profiles").EnumerateDirectories(recursive: false).Select(dir => dir.FileName.ToString()).ToList();
                 })
                 .DisposeWith(disposables);
 
