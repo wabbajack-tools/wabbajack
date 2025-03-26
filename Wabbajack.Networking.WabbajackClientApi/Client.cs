@@ -435,7 +435,7 @@ public class Client
         var apiKey = (await _token.Get())!.AuthorKey;
         var report = new Subject<(Percent PercentDone, string Message)>();
 
-        var tsk = Task.Run<Uri>(async () =>
+        var tsk = Task.Run(async () =>
         {
             report.OnNext((Percent.Zero, "Generating File Definition"));
             var definition = await GenerateFileDefinition(path);
@@ -480,7 +480,7 @@ public class Client
             });
 
             report.OnNext((Percent.Zero, "Finalizing upload"));
-            _logger.LogInformation("finalizing upload");
+            _logger.LogInformation("Finalizing upload");
             return await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
             {
                 var msg = await MakeMessage(HttpMethod.Put,
@@ -544,6 +544,8 @@ public class Client
 
     public async Task<IReadOnlyList<string>> GetMyModlists(CancellationToken token)
     {
+        return ["tr4wzified/trawzifieds_helper"];
+
         var msg = await MakeMessage(HttpMethod.Get, new Uri($"{_configuration.BuildServerUrl}author_controls/lists"));
         using var response = await _client.SendAsync(msg, token);
         HttpException.ThrowOnFailure(response);
@@ -563,22 +565,9 @@ public class Client
         var repoName = decomposed[2];
         var path = string.Join("/", decomposed[4..]);
 
-        var uploadProgress = new double();
         var (progress, uploadTask) = await UploadAuthorFile(modList);
         
-        var disposable = progress.Subscribe(m =>
-        {
-            if (m.PercentDone != Percent.Zero)
-            {
-                uploadProgress = (double)m.PercentDone;
-            }
-            _logger.LogInformation("Progress update: {Message} at {PercentDone}", m.Message, m.PercentDone);
-        });
-
-        await uploadTask;
-
-        disposable.Dispose();
-
+        // Usually the GitHub publish will take basically no time at all compared to the upload so just ignore progress percentage here
         var publishTask = Task.Run(async () =>
         {
             var downloadUrl = await uploadTask;

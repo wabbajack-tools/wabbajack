@@ -29,7 +29,6 @@ using Wabbajack.LoginManagers;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs.DownloadStates;
 using System.Reactive.Concurrency;
-using YamlDotNet.Core;
 
 namespace Wabbajack;
 
@@ -53,13 +52,8 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
     public ICommand OpenFolderCommand { get; }
     public ICommand PublishCommand { get; }
 
-    private bool _isPublishing;
-    public bool IsPublishing
-    {
-        get => _isPublishing;
-        set => this.RaiseAndSetIfChanged(ref _isPublishing, value);
-    }
-
+    [Reactive] public bool IsPublishing { get; set; }
+    [Reactive] public Percent PublishingPercentage { get; set; } = Percent.One;
     [Reactive] public CompilerState State { get; set; }
 
     public bool Cancelling { get; private set; }
@@ -94,12 +88,16 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                               img.FileExists() &&
                               !string.IsNullOrEmpty(downloads.ToString()) &&
                               !string.IsNullOrEmpty(output.ToString()) && output.Extension == Ext.Wabbajack &&
-                              System.Version.TryParse(version, out _)));
+                              Version.TryParse(version, out _)));
 
         CancelCommand = ReactiveCommand.Create(CancelCompilation);
         OpenLogCommand = ReactiveCommand.Create(OpenLog);
         OpenFolderCommand = ReactiveCommand.Create(OpenFolder);
-        PublishCommand = ReactiveCommand.Create(Publish); 
+        PublishCommand = ReactiveCommand.Create(Publish,
+            this.WhenAnyValue(vm => vm.State,
+                              vm => vm.IsPublishing,
+                              (state, isPublishing) => !isPublishing && state == CompilerState.Completed)); 
+
         ProgressPercent = Percent.Zero;
 
         this.WhenActivated(disposables =>
@@ -145,67 +143,34 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
 
     private async Task Publish()
     {
-        _logger.LogInformation("Running preflight checks before publishing list");
-        bool readyForPublish = await RunPreflightChecks(CancellationToken.None);
-        if (!readyForPublish)
-            return;
-
-        _logger.LogInformation("Publishing list with machineURL {machineURL}, version {version}, output {output}",
-            Settings.MachineUrl, Settings.Version, Settings.OutputFile);
-
-        var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
-            await Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
-
-        await Task.Run(async () =>
+        try
         {
-            RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
-            {
-                ProgressText = "Publishing...";
-                ProgressState = ProgressState.Normal;
-                ProgressPercent = Percent.Zero;
-                return Disposable.Empty;
-            });
-
             IsPublishing = true;
-            try
-            {
-                var (progress, publishTask) = await _wjClient.PublishModlist(
-                    Settings.MachineUrl, System.Version.Parse(Settings.Version), Settings.OutputFile, downloadMetadata);
+            PublishingPercentage = Percent.Zero;
 
-                var progressSubscription = progress
-                    .ObserveOn(RxApp.MainThreadScheduler)
-                    .Subscribe(p =>
-                    {
-                        RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
-                        {
-                            ProgressPercent = p.PercentDone;
-                            ProgressText = p.Message;
-                            _logger.LogInformation("Progress update: {Message} at {PercentDone}", p.Message, p.PercentDone);
-                            return Disposable.Empty;
-                        });
-                    });
+            _logger.LogInformation("Running preflight checks before publishing list");
+            bool readyForPublish = await RunPreflightChecks(CancellationToken.None);
+            if (!readyForPublish) return;
 
-                await Task.Yield();
+            _logger.LogInformation("Publishing list with machineURL {machineURL}, version {version}, output {output}",
+                Settings.MachineUrl, Settings.Version, Settings.OutputFile);
 
-                await publishTask;
-                progressSubscription.Dispose();
-            }
-            finally
-            {
-                IsPublishing = false;
-                RxApp.MainThreadScheduler.Schedule(_logger, (_, _) =>
-                {
-                    ProgressText = "Published";
-                    ProgressState = ProgressState.Success;
-                    return Disposable.Empty;
-                });
-            }
-        });
+            var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
+                await Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
+            var (progress, publishTask) = await _wjClient.PublishModlist(Settings.MachineUrl, Version.Parse(Settings.Version), Settings.OutputFile, downloadMetadata);
+            using var progressSubscription = progress.Subscribe(p => PublishingPercentage = p.PercentDone);
+            await publishTask;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("While publishing: {ex}", ex);
+        }
+        finally
+        {
+            IsPublishing = false;
+            PublishingPercentage = Percent.One;
+        }
     }
-
-
-
-
 
     private void OpenFolder() => UIUtils.OpenFolderAndSelectFile(Settings.OutputFile);
 

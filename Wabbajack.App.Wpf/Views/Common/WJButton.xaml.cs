@@ -137,17 +137,13 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject
                 .DisposeWith(dispose);
 
             this.WhenAnyValue(x => x.ProgressPercentage)
+            .ObserveOnGuiThread()
             .Subscribe(percent =>
             {
                 if (ButtonStyle != ButtonStyle.Progress) return;
                 if (percent == Percent.One)
                 {
                     Style = (Style)Application.Current.Resources["WJColorButtonStyle"];
-                }
-                else if (percent == Percent.Zero)
-                {
-                    Background = new SolidColorBrush((Color)Application.Current.Resources["ComplementaryPrimary08"]);
-                    Foreground = new SolidColorBrush((Color)Application.Current.Resources["ForegroundColor"]);
                 }
                 else
                 {

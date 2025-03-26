@@ -83,13 +83,6 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
                     .BindToStrict(this, view => view.CompilationButtons.Visibility)
                     .DisposeWith(disposables);
 
-            ViewModel.WhenAnyValue(vm => vm.IsPublishing)
-                    .CombineLatest(
-                        ViewModel.WhenAnyValue(vm => vm.State),
-                        (isPublishing, state) => !isPublishing && state == CompilerState.Completed)
-                    .BindToStrict(this, view => view.PublishButton.IsEnabled)
-                    .DisposeWith(disposables);
-
 
             ViewModel.WhenAny(vm => vm.State)
                     .Select(s => s == CompilerState.Completed)
@@ -131,6 +124,16 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
 
             this.BindCommand(ViewModel, x => x.PublishCommand, x => x.PublishButton)
                 .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.PublishingPercentage)
+                .ObserveOnGuiThread()
+                .Subscribe(pct =>
+                {
+                    PublishButton.ProgressPercentage = pct;
+                    PublishButton.Text = (pct.Value >= 0 && pct.Value < 1) ? "Publishing..." : "Publish Modlist";
+                })
+                .DisposeWith(disposables);
+
         });
     }
 }

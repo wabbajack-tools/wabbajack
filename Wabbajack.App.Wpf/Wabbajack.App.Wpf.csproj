@@ -7,8 +7,8 @@
     <Platforms>x64</Platforms>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <Version>$(VERSION)</Version>
-    <AssemblyVersion>$(VERSION)</AssemblyVersion>
-    <FileVersion>$(VERSION)</FileVersion>
+    <AssemblyVersion>4.0.0.0</AssemblyVersion>
+    <FileVersion>4.0.0.0</FileVersion>
     <Copyright>Copyright © 2019-2024</Copyright>
     <Description>An automated ModList installer</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
