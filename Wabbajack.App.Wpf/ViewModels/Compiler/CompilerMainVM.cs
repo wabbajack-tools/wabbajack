@@ -52,7 +52,10 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
     public ICommand OpenFolderCommand { get; }
     public ICommand PublishCommand { get; }
 
+    [Reactive] public bool IsPublishing { get; set; }
+    [Reactive] public Percent PublishingPercentage { get; set; } = Percent.One;
     [Reactive] public CompilerState State { get; set; }
+
     public bool Cancelling { get; private set; }
 
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
@@ -90,7 +93,11 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
         CancelCommand = ReactiveCommand.Create(CancelCompilation);
         OpenLogCommand = ReactiveCommand.Create(OpenLog);
         OpenFolderCommand = ReactiveCommand.Create(OpenFolder);
-        PublishCommand = ReactiveCommand.Create(Publish); 
+        PublishCommand = ReactiveCommand.Create(Publish,
+            this.WhenAnyValue(vm => vm.State,
+                              vm => vm.IsPublishing,
+                              (state, isPublishing) => !isPublishing && state == CompilerState.Completed)); 
+
         ProgressPercent = Percent.Zero;
 
         this.WhenActivated(disposables =>
@@ -136,14 +143,33 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
 
     private async Task Publish()
     {
-        _logger.LogInformation("Running preflight checks before publishing list");
-        bool readyForPublish = await RunPreflightChecks(CancellationToken.None);
-        if (!readyForPublish) return;
+        try
+        {
+            IsPublishing = true;
+            PublishingPercentage = Percent.Zero;
 
-        _logger.LogInformation("Publishing list with machineURL {machineURL}, version {version}, output {output}", Settings.MachineUrl, Settings.Version, Settings.OutputFile);
-        var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
-            await Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
-        await _wjClient.PublishModlist(Settings.MachineUrl, Version.Parse(Settings.Version), Settings.OutputFile, downloadMetadata);
+            _logger.LogInformation("Running preflight checks before publishing list");
+            bool readyForPublish = await RunPreflightChecks(CancellationToken.None);
+            if (!readyForPublish) return;
+
+            _logger.LogInformation("Publishing list with machineURL {machineURL}, version {version}, output {output}",
+                Settings.MachineUrl, Settings.Version, Settings.OutputFile);
+
+            var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
+                await Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
+            var (progress, publishTask) = await _wjClient.PublishModlist(Settings.MachineUrl, Version.Parse(Settings.Version), Settings.OutputFile, downloadMetadata);
+            using var progressSubscription = progress.Subscribe(p => PublishingPercentage = p.PercentDone);
+            await publishTask;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("While publishing: {ex}", ex);
+        }
+        finally
+        {
+            IsPublishing = false;
+            PublishingPercentage = Percent.One;
+        }
     }
 
     private void OpenFolder() => UIUtils.OpenFolderAndSelectFile(Settings.OutputFile);
@@ -312,7 +338,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
             return false;
         }
 
-        if (!Version.TryParse(Settings.Version, out var version))
+        if (!System.Version.TryParse(Settings.Version, out var version))
         {
             _logger.LogError("Preflight Check failed, version {Version} was not valid", Settings.Version);
             return false;
