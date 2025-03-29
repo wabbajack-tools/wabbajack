@@ -678,7 +678,7 @@ public static class GameRegistry
                 MO2Name = "STAR WARS Knights of the Old Republic II The Sith Lords",
                 NexusName = "kotor2",
                 NexusGameId = 198,
-                MO2ArchiveName = "7daystodie",
+                MO2ArchiveName = "kotor2",
                 SteamIDs = [208580],
                 GOGIDs = new long[] { 1421404581},
                 RequiredFiles = new []
