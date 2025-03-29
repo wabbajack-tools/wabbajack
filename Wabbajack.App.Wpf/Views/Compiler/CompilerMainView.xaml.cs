@@ -17,12 +17,15 @@ namespace Wabbajack;
 /// </summary>
 public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
 {
+    private bool _ClickedPublish = false;
+
     public CompilerMainView()
     {
         InitializeComponent();
 
         this.WhenActivated(disposables =>
         {
+            _ClickedPublish = false;
             ViewModel.WhenAny(vm => vm.Settings.ModListImage)
                 .Where(i => i.FileExists())
                 .Select(i => (UIUtils.TryGetBitmapImageFromFile(i, out var img), img))
@@ -128,8 +131,9 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
                 .ObserveOnGuiThread()
                 .Subscribe(pct =>
                 {
+                    if (pct != RateLimiter.Percent.One) _ClickedPublish = true;
                     PublishButton.ProgressPercentage = pct;
-                    PublishButton.Text = (pct.Value >= 0 && pct.Value < 1) ? "Publishing..." : "Publish Modlist";
+                    PublishButton.Text = (pct.Value >= 0 && pct.Value < 1) ? "Publishing..." : _ClickedPublish ? "Publish Completed" : "Publish Modlist";
                 })
                 .DisposeWith(disposables);
 
