@@ -4,10 +4,8 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows;
 using System;
-using System.Windows.Input;
 using Wabbajack.RateLimiter;
 using System.Windows.Media;
-using ReactiveUI.Fody.Helpers;
 using System.Windows.Controls;
 using System.ComponentModel;
 
@@ -137,17 +135,16 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject
                 .DisposeWith(dispose);
 
             this.WhenAnyValue(x => x.ProgressPercentage)
+            .ObserveOnGuiThread()
             .Subscribe(percent =>
             {
                 if (ButtonStyle != ButtonStyle.Progress) return;
                 if (percent == Percent.One)
                 {
+                    this.ClearValue(BackgroundProperty);
+                    ButtonTextBlock.ClearValue(ForegroundProperty);
+                    ButtonSymbolIcon.ClearValue(ForegroundProperty);
                     Style = (Style)Application.Current.Resources["WJColorButtonStyle"];
-                }
-                else if (percent == Percent.Zero)
-                {
-                    Background = new SolidColorBrush((Color)Application.Current.Resources["ComplementaryPrimary08"]);
-                    Foreground = new SolidColorBrush((Color)Application.Current.Resources["ForegroundColor"]);
                 }
                 else
                 {

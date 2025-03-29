@@ -17,12 +17,15 @@ namespace Wabbajack;
 /// </summary>
 public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
 {
+    private bool _ClickedPublish = false;
+
     public CompilerMainView()
     {
         InitializeComponent();
 
         this.WhenActivated(disposables =>
         {
+            _ClickedPublish = false;
             ViewModel.WhenAny(vm => vm.Settings.ModListImage)
                 .Where(i => i.FileExists())
                 .Select(i => (UIUtils.TryGetBitmapImageFromFile(i, out var img), img))
@@ -89,11 +92,6 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
                     .DisposeWith(disposables);
 
             ViewModel.WhenAny(vm => vm.State)
-                    .Select(s => s == CompilerState.Completed)
-                    .BindToStrict(this, view => view.PublishButton.IsEnabled)
-                    .DisposeWith(disposables);
-
-            ViewModel.WhenAny(vm => vm.State)
                      .Select(s => s == CompilerState.Completed ? Visibility.Visible : Visibility.Hidden)
                      .BindToStrict(this, view => view.CompiledImage.Visibility)
                      .DisposeWith(disposables);
@@ -128,6 +126,17 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
 
             this.BindCommand(ViewModel, x => x.PublishCommand, x => x.PublishButton)
                 .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.PublishingPercentage)
+                .ObserveOnGuiThread()
+                .Subscribe(pct =>
+                {
+                    if (pct != RateLimiter.Percent.One) _ClickedPublish = true;
+                    PublishButton.ProgressPercentage = pct;
+                    PublishButton.Text = (pct.Value >= 0 && pct.Value < 1) ? "Publishing..." : _ClickedPublish ? "Publish Completed" : "Publish Modlist";
+                })
+                .DisposeWith(disposables);
+
         });
     }
 }
