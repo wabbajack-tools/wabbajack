@@ -401,7 +401,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
         if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && installPath == downloadPath)
         {
-            yield return ErrorResponse.Fail("Can't have identical install and download folders");
+            yield return ErrorResponse.Fail("Installation and download locations cannot be identical.");
         }
         if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && KnownFolders.IsSubDirectoryOf(installPath.ToString(), downloadPath.ToString()))
         {
@@ -431,9 +431,13 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
             yield return ErrorResponse.Fail("Installing in this folder may overwrite Wabbajack");
         }
 
-        if (KnownFolders.IsInSpecialFolder(installPath) || KnownFolders.IsInSpecialFolder(downloadPath))
+        if (KnownFolders.IsInSpecialFolder(installPath, out var specialFolder) )
         {
-            yield return ErrorResponse.Fail($"Can't install into Windows locations such as Documents etc, please make a new folder for the modlist - {DriveHelper.GetPreferredInstallationDrive(0).Name}Modlists\\ for example.");
+            yield return ErrorResponse.Fail($"Can't install into special folders! Detected install folder: {specialFolder}. Please make a new folder for the modlist - {DriveHelper.GetPreferredInstallationDrive(0).Name}Modlists\\{ModList.Name} for example.");
+        }
+        if(KnownFolders.IsInSpecialFolder(downloadPath, out var specialDownloadsFolder))
+        {
+            yield return ErrorResponse.Fail($"Can't download into special folders! Detected downloads folder: {specialFolder}. Please make a new folder for the modlist downloads - {DriveHelper.GetPreferredInstallationDrive(0).Name}Modlists\\{ModList.Name}\\downloads for example.");
         }
         // Disabled Because it was causing issues for people trying to update lists.
         //if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && !HasEnoughSpace(installPath, downloadPath)){

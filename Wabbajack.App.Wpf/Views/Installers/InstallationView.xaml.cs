@@ -31,6 +31,22 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             this.Bind(ViewModel, vm => vm.Installer.DownloadLocation, view => view.DownloadLocationPicker.PickerVM)
                 .DisposeWith(disposables);
 
+            ViewModel.WhenAnyValue(vm => vm.ErrorState)
+                     .Subscribe(es =>
+                     {
+                         if (es.Succeeded)
+                         {
+                             ErrorStateBorder.Visibility = Visibility.Collapsed;
+                             InstallButton.IsEnabled = true;
+                         }
+                         else
+                         {
+                             InstallButton.IsEnabled = false;
+                             ErrorStateBorder.Visibility = Visibility.Visible;
+                             ErrorStateReasonText.Text = es.Reason;
+                         }
+                     });
+
             this.BindCommand(ViewModel, vm => vm.OpenReadmeCommand, v => v.DocumentationButton)
                 .DisposeWith(disposables);
 
