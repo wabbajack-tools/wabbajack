@@ -23,8 +23,10 @@ public class MO2InstallerVM : ViewModel, ISubInstallerVM
     [Reactive]
     public Mo2ModlistInstallationSettings CurrentSettings { get; set; }
 
+    [Reactive]
     public FilePickerVM Location { get; }
 
+    [Reactive]
     public FilePickerVM DownloadLocation { get; }
 
     public bool SupportsAfterInstallNavigation => true;
