@@ -8,11 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BCnEncoder.Net.ImageSharp" Version="1.1.1" />
+        <PackageReference Include="BCnEncoder.Net.ImageSharp" Version="1.1.2" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.1" />
         <PackageReference Include="Shipwreck.Phash" Version="0.5.0" />
-        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
     </ItemGroup>
 
     <ItemGroup>
