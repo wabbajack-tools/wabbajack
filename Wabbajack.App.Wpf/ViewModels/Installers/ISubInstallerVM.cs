@@ -12,7 +12,7 @@ public interface ISubInstallerVM
     bool SupportsAfterInstallNavigation { get; }
     void AfterInstallNavigation();
     int ConfigVisualVerticalOffset { get; }
-    ErrorResponse CanInstall { get; }
+    ValidationResult CanInstall { get; }
     Task<bool> Install();
     IUserIntervention InterventionConverter(IUserIntervention intervention);
 }

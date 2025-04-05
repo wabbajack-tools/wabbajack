@@ -16,7 +16,7 @@ public class MO2InstallerVM : ViewModel, ISubInstallerVM
     public InstallationVM Parent { get; }
 
     [Reactive]
-    public ErrorResponse CanInstall { get; set; }
+    public ValidationResult CanInstall { get; set; }
 
     [Reactive]
     public IInstaller ActiveInstallation { get; private set; }

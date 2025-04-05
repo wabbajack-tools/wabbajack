@@ -53,13 +53,13 @@ namespace Wabbajack
         public CheckOptions FilterCheckOption { get; set; } = CheckOptions.IfPathNotEmpty;
 
         [Reactive]
-        public IObservable<IErrorResponse> AdditionalError { get; set; }
+        public IObservable<IValidationResult> AdditionalError { get; set; }
 
         private readonly ObservableAsPropertyHelper<bool> _exists;
         public bool Exists => _exists.Value;
 
-        private readonly ObservableAsPropertyHelper<ErrorResponse> _errorState;
-        public ErrorResponse ErrorState => _errorState.Value;
+        private readonly ObservableAsPropertyHelper<ValidationResult> _validationResult;
+        public ValidationResult ValidationResult => _validationResult.Value;
 
         private readonly ObservableAsPropertyHelper<bool> _inError;
         public bool InError => _inError.Value;
@@ -196,31 +196,32 @@ namespace Wabbajack
                 .StartWith(true)
                 .Select(passed =>
                 {
-                    if (passed) return ErrorResponse.Success;
-                    return ErrorResponse.Fail(DoesNotPassFiltersText);
+                    if (passed) return ValidationResult.Success;
+                    return ValidationResult.Fail(DoesNotPassFiltersText);
                 })
                 .Replay(1)
                 .RefCount();
 
-            _errorState = Observable.CombineLatest(
+            _validationResult = Observable.CombineLatest(
                     Observable.CombineLatest(
                             this.WhenAny(x => x.Exists),
                             doExistsCheck,
                             resultSelector: (exists, doExists) => !doExists || exists)
-                        .Select(exists => ErrorResponse.Create(successful: exists, exists ? default(string) : PathDoesNotExistText)),
+                        .Select(exists => ValidationResult.Create(successful: exists, exists ? default(string) : PathDoesNotExistText)),
                     passesFilters,
                     this.WhenAny(x => x.AdditionalError)
-                        .Select(x => x ?? Observable.Return<IErrorResponse>(ErrorResponse.Success))
+                        .Select(x => x ?? Observable.Return<IValidationResult>(ValidationResult.Success))
                         .Switch(),
                     resultSelector: (existCheck, filter, err) =>
                     {
                         if (existCheck.Failed) return existCheck;
                         if (filter.Failed) return filter;
-                        return ErrorResponse.Convert(err);
+                        var result = ValidationResult.Convert(err);
+                        return result;
                     })
-                .ToGuiProperty(this, nameof(ErrorState));
+                .ToGuiProperty(this, nameof(ValidationResult));
 
-            _inError = this.WhenAny(x => x.ErrorState)
+            _inError = this.WhenAny(x => x.ValidationResult)
                 .Select(x => !x.Succeeded)
                 .ToGuiProperty(this, nameof(InError));
 
@@ -235,7 +236,7 @@ namespace Wabbajack
                     passesFilters
                         .Select(x => x.Reason),
                     this.WhenAny(x => x.AdditionalError)
-                        .Select(x => x ?? Observable.Return<IErrorResponse>(ErrorResponse.Success))
+                        .Select(x => x ?? Observable.Return<IValidationResult>(ValidationResult.Success))
                         .Switch(),
                     resultSelector: (exists, filters, err) =>
                     {
