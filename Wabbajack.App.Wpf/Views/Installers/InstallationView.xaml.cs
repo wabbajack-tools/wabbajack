@@ -31,13 +31,14 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             this.Bind(ViewModel, vm => vm.Installer.DownloadLocation, view => view.DownloadLocationPicker.PickerVM)
                 .DisposeWith(disposables);
 
-            ViewModel.WhenAnyValue(vm => vm.ValidationResult)
+            InstallationLocationPicker.PickerVM.AdditionalError = ViewModel.WhenAnyValue(vm => vm.ValidationResult).Where(vr => vr is InstallPathValidationResult);
+            DownloadLocationPicker.PickerVM.AdditionalError = ViewModel.WhenAnyValue(vm => vm.ValidationResult).Where(vr => vr is DownloadsPathValidationResult);
+            /*
                      .Subscribe(vr =>
                      {
-                         /*
                          if(vr.Succeeded)
                          {
-
+                             InstallationLocationPicker.PickerVM.
                          }
                          if(vr is InstallPathValidationResult ipvr)
                          {
@@ -47,7 +48,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                          {
 
                          }
-                         */
                          /*
                          if (es.Succeeded)
                          {
@@ -60,8 +60,8 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                              ErrorStateBorder.Visibility = Visibility.Visible;
                              ErrorStateReasonText.Text = es.Reason;
                          }
-                         */
-                     });
+            */
+                     //});
 
             this.BindCommand(ViewModel, vm => vm.OpenReadmeCommand, v => v.DocumentationButton)
                 .DisposeWith(disposables);

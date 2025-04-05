@@ -124,6 +124,7 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
+                    <!--
                     <Border
                         x:Name="ErrorStateBorder"
                         Grid.Column="0"
@@ -145,10 +146,11 @@
                                 Margin="16, 0, 0, 0"/>
                             <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="0, 0, 16, 0">
                                 <Run Text="Cannot start installation!" FontWeight="Bold" />
-                                <Run x:Name="ErrorStateReasonText" Text="Downloads folder location is invalid!" />
+                                <Run x:Name="ErrorStateReasonText" Text="Placeholder reason." />
                             </TextBlock>
                         </Grid>
                     </Border>
+                    -->
                     <local:WJButton x:Name="InstallButton" Grid.Column="2" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown" HorizontalAlignment="Right" />
                 </Grid>
             </Grid>

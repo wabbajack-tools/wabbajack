@@ -172,13 +172,8 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
             this.Activator.Activate();
         });
         InstallCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget(), this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading,
-                                                                                                        vm => vm.Installer.Location.TargetPath,
-                                                                                                        vm => vm.Installer.DownloadLocation.TargetPath,
-                                                                                                        (notLoading, location, downloadLocation) =>
-                                                                                                        {
-                                                                                                            bool downloadsInsideInstallFolder = location == downloadLocation;
-                                                                                                            return notLoading && !downloadsInsideInstallFolder;
-                                                                                                        }));
+                                                                                                        vm => vm.ValidationResult,
+                                                                                                        (notLoading, validationResult) => notLoading && (validationResult?.Succeeded ?? true)));
 
         OpenReadmeCommand = ReactiveCommand.Create(() =>
         {

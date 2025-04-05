@@ -216,13 +216,12 @@ namespace Wabbajack
                     {
                         if (existCheck.Failed) return existCheck;
                         if (filter.Failed) return filter;
-                        var result = ValidationResult.Convert(err);
-                        return result;
+                        return ValidationResult.Convert(err);
                     })
                 .ToGuiProperty(this, nameof(ValidationResult));
 
             _inError = this.WhenAny(x => x.ValidationResult)
-                .Select(x => !x.Succeeded)
+                .Select(x => x != null && !x.Succeeded)
                 .ToGuiProperty(this, nameof(InError));
 
             // Doesn't derive from ErrorState, as we want to bubble non-empty tooltips,
