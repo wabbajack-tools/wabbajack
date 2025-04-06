@@ -60,7 +60,7 @@ public class BaseModListMetadataVM : ViewModel
     [Reactive] public ICommand DetailsCommand { get; set; }
     [Reactive] public ICommand InstallCommand { get; protected set; }
 
-    [Reactive] public IErrorResponse Error { get; protected set; }
+    [Reactive] public IValidationResult Error { get; protected set; }
 
     protected ObservableAsPropertyHelper<BitmapImage> _Image { get; set; }
     public BitmapImage Image => _Image.Value;

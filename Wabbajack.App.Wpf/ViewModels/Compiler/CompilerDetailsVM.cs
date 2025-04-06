@@ -65,7 +65,7 @@ public class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
     
     [Reactive]
-    public ErrorResponse ErrorState { get; private set; }
+    public ValidationResult ErrorState { get; private set; }
     
     public CompilerDetailsVM(ILogger<CompilerDetailsVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
         IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
@@ -139,9 +139,9 @@ public class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
             this.WhenAnyValue(x => x.DownloadLocation.TargetPath)
                 .CombineLatest(this.WhenAnyValue(x => x.ModlistLocation.TargetPath),
                     this.WhenAnyValue(x => x.OutputLocation.TargetPath),
-                    this.WhenAnyValue(x => x.DownloadLocation.ErrorState),
-                    this.WhenAnyValue(x => x.ModlistLocation.ErrorState),
-                    this.WhenAnyValue(x => x.OutputLocation.ErrorState))
+                    this.WhenAnyValue(x => x.DownloadLocation.ValidationResult),
+                    this.WhenAnyValue(x => x.ModlistLocation.ValidationResult),
+                    this.WhenAnyValue(x => x.OutputLocation.ValidationResult))
                 .Select(_ => Validate())
                 .BindToStrict(this, vm => vm.ErrorState)
                 .DisposeWith(disposables);
@@ -181,15 +181,15 @@ public class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
         Settings.AdditionalProfiles = newSettings.AdditionalProfiles;
     }
 
-    private ErrorResponse Validate()
+    private ValidationResult Validate()
     {
-        var errors = new List<ErrorResponse>
+        var errors = new List<ValidationResult>
         {
-            DownloadLocation.ErrorState,
-            ModlistLocation.ErrorState,
-            OutputLocation.ErrorState
+            DownloadLocation.ValidationResult,
+            ModlistLocation.ValidationResult,
+            OutputLocation.ValidationResult
         };
-        return ErrorResponse.Combine(errors);
+        return ValidationResult.Combine(errors);
     }
 
     private async Task<CompilerSettings> InferModListFromLocation(AbsolutePath path)

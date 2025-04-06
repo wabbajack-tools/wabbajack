@@ -60,7 +60,7 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 
     private const string ALL_GAME_IDENTIFIER = "All games";
 
-    [Reactive] public IErrorResponse Error { get; set; }
+    [Reactive] public IValidationResult Error { get; set; }
 
     [Reactive] public string Search { get; set; }
 
