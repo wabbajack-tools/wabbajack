@@ -118,7 +118,39 @@
                 </Grid.RowDefinitions>
                 <local:DetailImageView x:Name="DetailImage" TitleFontSize="48" AuthorFontSize="24" Margin="0, 0, 0, 16" />
                 <mahapps:ProgressRing x:Name="ModlistLoadingRing" />
-                <local:WJButton x:Name="InstallButton" Grid.Row="1" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown" HorizontalAlignment="Right" />
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border
+                        x:Name="ErrorStateBorder"
+                        Grid.Column="0"
+                        Background="{StaticResource ErrorBrush}"
+                        Margin="0, 0, 16, 0"
+                        CornerRadius="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ic:SymbolIcon
+                                Grid.Column="0"
+                                Symbol="Warning"
+                                FontSize="18"
+                                Width="18"
+                                Height="18"
+                                Margin="16, 0, 0, 0"/>
+                            <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="0, 0, 16, 0">
+                                <Run Text="Cannot start installation!" FontWeight="Bold" />
+                                <Run x:Name="ErrorStateReasonText" Text="Placeholder reason." />
+                            </TextBlock>
+                        </Grid>
+                    </Border>
+                    <local:WJButton x:Name="InstallButton" Grid.Column="2" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown" HorizontalAlignment="Right" />
+                </Grid>
             </Grid>
         </Grid>
         <Grid x:Name="InstallationGrid" Visibility="Collapsed">

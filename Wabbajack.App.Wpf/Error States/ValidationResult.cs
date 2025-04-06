@@ -4,14 +4,14 @@ using System.Linq;
 
 namespace Wabbajack
 {
-    public struct ErrorResponse : IErrorResponse
+    public class ValidationResult : IValidationResult
     {
-        public static readonly ErrorResponse Success = Succeed();
-        public static readonly ErrorResponse Failure = new();
+        public static readonly ValidationResult Success = Succeed();
+        public static readonly ValidationResult Failure = new();
 
         public bool Succeeded { get; }
         public Exception? Exception { get; }
-        private readonly string _reason;
+        protected readonly string _reason;
 
         public bool Failed => !Succeeded;
         public string Reason
@@ -33,10 +33,11 @@ namespace Wabbajack
             }
         }
 
-        bool IErrorResponse.Succeeded => Succeeded;
-        Exception? IErrorResponse.Exception => Exception;
+        bool IValidationResult.Succeeded => Succeeded;
+        Exception? IValidationResult.Exception => Exception;
 
-        private ErrorResponse(
+        protected ValidationResult() { }
+        protected ValidationResult(
             bool succeeded,
             string? reason = null,
             Exception? ex = null)
@@ -52,53 +53,53 @@ namespace Wabbajack
         }
 
         #region Factories
-        public static ErrorResponse Succeed()
+        public static ValidationResult Succeed()
         {
-            return new ErrorResponse(true);
+            return new ValidationResult(true);
         }
 
-        public static ErrorResponse Succeed(string reason)
+        public static ValidationResult Succeed(string reason)
         {
-            return new ErrorResponse(true, reason);
+            return new ValidationResult(true, reason);
         }
 
-        public static ErrorResponse Fail(string reason, Exception? ex = null)
+        public static ValidationResult Fail(string reason, Exception? ex = null)
         {
-            return new ErrorResponse(false, reason: reason, ex: ex);
+            return new ValidationResult(false, reason: reason, ex: ex);
         }
 
-        public static ErrorResponse Fail(Exception ex)
+        public static ValidationResult Fail(Exception ex)
         {
-            return new ErrorResponse(false, ex: ex);
+            return new ValidationResult(false, ex: ex);
         }
 
-        public static ErrorResponse Fail()
+        public static ValidationResult Fail()
         {
-            return new ErrorResponse(false);
+            return new ValidationResult(false);
         }
 
-        public static ErrorResponse Create(bool successful, string? reason = null)
+        public static ValidationResult Create(bool successful, string? reason = null)
         {
-            return new ErrorResponse(successful, reason);
+            return new ValidationResult(successful, reason);
         }
         #endregion
 
-        public static ErrorResponse Convert(IErrorResponse err, bool nullIsSuccess = true)
+        public static ValidationResult Convert(IValidationResult err, bool nullIsSuccess = true)
         {
             if (err == null) return Create(nullIsSuccess);
-            return new ErrorResponse(err.Succeeded, err.Reason, err.Exception);
+            return new ValidationResult(err.Succeeded, err.Reason, err.Exception);
         }
 
-        public static ErrorResponse FirstFail(params ErrorResponse[] responses)
+        public static ValidationResult FirstFail(params ValidationResult[] responses)
         {
             foreach (var resp in responses)
             {
                 if (resp.Failed) return resp;
             }
-            return ErrorResponse.Success;
+            return ValidationResult.Success;
         }
 
-        public static ErrorResponse Combine(List<ErrorResponse> errors)
+        public static ValidationResult Combine(List<ValidationResult> errors)
         {
             if (errors.All(e => e.Succeeded) || !errors.Any())
                 return Success;
@@ -106,7 +107,7 @@ namespace Wabbajack
         }
     }
 
-    public interface IErrorResponse
+    public interface IValidationResult
     {
         bool Succeeded { get; }
         Exception? Exception { get; }

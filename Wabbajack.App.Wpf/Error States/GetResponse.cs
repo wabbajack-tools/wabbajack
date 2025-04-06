@@ -2,7 +2,7 @@
 
 namespace Wabbajack
 {
-    public struct GetResponse<T> : IEquatable<GetResponse<T>>, IErrorResponse
+    public struct GetResponse<T> : IEquatable<GetResponse<T>>, IValidationResult
     {
         public static readonly GetResponse<T> Failure = new GetResponse<T>();
 
@@ -24,8 +24,8 @@ namespace Wabbajack
             }
         }
 
-        bool IErrorResponse.Succeeded => Succeeded;
-        Exception? IErrorResponse.Exception => Exception;
+        bool IValidationResult.Succeeded => Succeeded;
+        Exception? IValidationResult.Exception => Exception;
 
         private GetResponse(
             bool succeeded,

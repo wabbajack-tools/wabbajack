@@ -544,8 +544,6 @@ public class Client
 
     public async Task<IReadOnlyList<string>> GetMyModlists(CancellationToken token)
     {
-        return ["tr4wzified/trawzifieds_helper"];
-
         var msg = await MakeMessage(HttpMethod.Get, new Uri($"{_configuration.BuildServerUrl}author_controls/lists"));
         using var response = await _client.SendAsync(msg, token);
         HttpException.ThrowOnFailure(response);

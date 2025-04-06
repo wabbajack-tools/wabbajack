@@ -44,17 +44,19 @@ public static class KnownFolders
         }
     }
 
-    public static bool IsInSpecialFolder(this AbsolutePath candidate)
+    public static bool IsInSpecialFolder(this AbsolutePath candidate, out Environment.SpecialFolder? specialFolder)
     {
-        foreach (var val in Enum.GetValues(typeof(Environment.SpecialFolder)))
+        foreach (var val in Enum.GetValues<Environment.SpecialFolder>())
         {
-            AbsolutePath specialPath = Environment.GetFolderPath((Environment.SpecialFolder)val).ToAbsolutePath();
+            specialFolder = val;
+            AbsolutePath specialPath = Environment.GetFolderPath(val).ToAbsolutePath();
             if ((candidate.ToString().Length > 0 && candidate == specialPath)
                 || KnownFolders.IsSubDirectoryOf(candidate.ToString(), specialPath.ToString()))
             {
                 return true;
             }
         }
+        specialFolder = null;
         return false;
     }
     public static bool IsSubDirectoryOf(this string candidate, string other)

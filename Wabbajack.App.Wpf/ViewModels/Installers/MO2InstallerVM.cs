@@ -7,6 +7,7 @@ using ReactiveUI.Fody.Helpers;
 using Wabbajack.Installer;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.Paths;
+using System.Reactive.Linq;
 
 namespace Wabbajack;
 
@@ -15,7 +16,7 @@ public class MO2InstallerVM : ViewModel, ISubInstallerVM
     public InstallationVM Parent { get; }
 
     [Reactive]
-    public ErrorResponse CanInstall { get; set; }
+    public ValidationResult CanInstall { get; set; }
 
     [Reactive]
     public IInstaller ActiveInstallation { get; private set; }
@@ -42,7 +43,7 @@ public class MO2InstallerVM : ViewModel, ISubInstallerVM
         {
             ExistCheckOption = FilePickerVM.CheckOptions.Off,
             PathType = FilePickerVM.PathTypeOptions.Folder,
-            PromptTitle = "Select Installation Directory",
+            PromptTitle = "Select a location to install Mod Organizer 2 to.",
         };
         Location.WhenAnyValue(t => t.TargetPath)
             .Subscribe(newPath =>
@@ -57,7 +58,7 @@ public class MO2InstallerVM : ViewModel, ISubInstallerVM
         {
             ExistCheckOption = FilePickerVM.CheckOptions.Off,
             PathType = FilePickerVM.PathTypeOptions.Folder,
-            PromptTitle = "Select a location for MO2 downloads",
+            PromptTitle = "Select a location to store downloaded mod archives.",
         };
     }
 
