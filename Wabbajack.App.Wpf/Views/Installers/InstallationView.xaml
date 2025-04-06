@@ -124,7 +124,6 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <!--
                     <Border
                         x:Name="ErrorStateBorder"
                         Grid.Column="0"
@@ -150,7 +149,6 @@
                             </TextBlock>
                         </Grid>
                     </Border>
-                    -->
                     <local:WJButton x:Name="InstallButton" Grid.Column="2" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown" HorizontalAlignment="Right" />
                 </Grid>
             </Grid>

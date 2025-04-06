@@ -33,23 +33,10 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
 
             InstallationLocationPicker.PickerVM.AdditionalError = ViewModel.WhenAnyValue(vm => vm.ValidationResult).Where(vr => vr is InstallPathValidationResult);
             DownloadLocationPicker.PickerVM.AdditionalError = ViewModel.WhenAnyValue(vm => vm.ValidationResult).Where(vr => vr is DownloadsPathValidationResult);
-            /*
+            ViewModel.WhenAnyValue(vm => vm.ValidationResult)
                      .Subscribe(vr =>
                      {
-                         if(vr.Succeeded)
-                         {
-                             InstallationLocationPicker.PickerVM.
-                         }
-                         if(vr is InstallPathValidationResult ipvr)
-                         {
-
-                         } 
-                         else if(vr is DownloadsPathValidationResult dpvr)
-                         {
-
-                         }
-                         /*
-                         if (es.Succeeded)
+                         if (vr.Succeeded)
                          {
                              ErrorStateBorder.Visibility = Visibility.Collapsed;
                              InstallButton.IsEnabled = true;
@@ -58,10 +45,10 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                          {
                              InstallButton.IsEnabled = false;
                              ErrorStateBorder.Visibility = Visibility.Visible;
-                             ErrorStateReasonText.Text = es.Reason;
+                             ErrorStateReasonText.Text = vr.Reason;
                          }
-            */
-                     //});
+                     })
+                     .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.OpenReadmeCommand, v => v.DocumentationButton)
                 .DisposeWith(disposables);
