@@ -8,7 +8,7 @@
 * Added a warning for when WebView is not loading
 * Add progress indicator to the publish button after compilation (thanks to [@JanuarySnow](https://www.github.com/JanuarySnow))
 * Improve validation before being able to install, should avoid users installing to important folders/the Wabbajack installation directory
-* Adjusted the in-app log viewer to not constantly queue updates but to update it periodically instead (thanks to [@JanuarySnow](https://www.github.com/JanuarySnow))
+* Adjusted the in-app log viewer to not constantly queue updates but to update it periodically instead to avoid freezes when too many log rows are queued (thanks to [@JanuarySnow](https://www.github.com/JanuarySnow))
 
 #### Version - 4.0.0.3 - 3/20/2025
 * Fixed the open logs folder button not actually opening the logs folder on a failed installation
