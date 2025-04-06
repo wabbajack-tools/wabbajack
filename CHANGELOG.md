@@ -6,7 +6,8 @@
 * Added 2FA support for MEGA login, added some extra logging for MEGA logins
   * Special thanks to [@erri120](https://www.github.com/erri120) who originally implemented part of this in Wabbajack and the MegaApiClient library 4 years ago, which made the change rather easy
 * Added a warning for when WebView is not loading
-* Addd progress indicator to the publish button after compilation (thanks to [@JanuarySnow](https://www.github.com/JanuarySnow)))
+* Add progress indicator to the publish button after compilation (thanks to [@JanuarySnow](https://www.github.com/JanuarySnow)))
+* Improve validation before being able to install, should avoid users installing to important folders/the Wabbajack installation directory
 
 #### Version - 4.0.0.3 - 3/20/2025
 * Fixed the open logs folder button not actually opening the logs folder on a failed installation
