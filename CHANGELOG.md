@@ -7,7 +7,9 @@
   * Special thanks to [@erri120](https://www.github.com/erri120) who originally implemented part of this in Wabbajack and the MegaApiClient library 4 years ago, which made the change rather easy
 * Added a warning for when WebView is not loading
 * Initial support for Knights of the Old republic 2
-* Addd progress indicator to the publish button after compilation (thanks to [@JanuarySnow](https://www.github.com/JanuarySnow)))
+* Add progress indicator to the publish button after compilation (thanks to [@JanuarySnow](https://www.github.com/JanuarySnow))
+* Improve validation before being able to install, should avoid users installing to important folders/the Wabbajack installation directory
+* Adjusted the in-app log viewer to not constantly queue updates but to update it periodically instead to avoid freezes when too many log rows are queued (thanks to [@JanuarySnow](https://www.github.com/JanuarySnow))
 
 
 #### Version - 4.0.0.3 - 3/20/2025

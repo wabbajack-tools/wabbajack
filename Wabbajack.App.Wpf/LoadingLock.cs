@@ -11,7 +11,7 @@ public class LoadingLock : ReactiveObject, IDisposable
     private readonly CompositeDisposable _disposable;
     
     [Reactive]
-    public ErrorResponse? ErrorState { get; set; }
+    public ValidationResult? ErrorState { get; set; }
 
     public LoadingLock()
     {
@@ -64,13 +64,13 @@ public class LoadingLock : ReactiveObject, IDisposable
 
         public void Succeed()
         {
-            _parent.ErrorState = ErrorResponse.Success;
+            _parent.ErrorState = ValidationResult.Success;
             Dispose();
         }
 
         public void Fail()
         {
-            _parent.ErrorState = ErrorResponse.Failure;
+            _parent.ErrorState = ValidationResult.Failure;
             Dispose();
         }
 

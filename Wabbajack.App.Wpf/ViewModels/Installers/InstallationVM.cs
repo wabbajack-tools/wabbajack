@@ -111,7 +111,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
     [Reactive] public bool Installing { get; set; }
     
-    [Reactive] public ErrorResponse ErrorState { get; set; }
+    [Reactive] public ValidationResult ValidationResult { get; set; }
     
     [Reactive] public bool ShowNSFWSlides { get; set; }
     
@@ -171,7 +171,9 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
             ProgressState = ProgressState.Normal;
             this.Activator.Activate();
         });
-        InstallCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget(), this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
+        InstallCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget(), this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading,
+                                                                                                        vm => vm.ValidationResult,
+                                                                                                        (notLoading, validationResult) => notLoading && (validationResult?.Succeeded ?? true)));
 
         OpenReadmeCommand = ReactiveCommand.Create(() =>
         {
@@ -269,9 +271,9 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                 .DisposeWith(disposables);
             */
             
-            this.WhenAny(vm => vm.WabbajackFileLocation.ErrorState)
-                .CombineLatest<ErrorResponse, ErrorResponse, ErrorResponse, AbsolutePath, AbsolutePath, AbsolutePath>(this.WhenAny(vm => vm.Installer.DownloadLocation.ErrorState),
-                    this.WhenAny(vm => vm.Installer.Location.ErrorState),
+            this.WhenAny(vm => vm.WabbajackFileLocation.ValidationResult)
+                .CombineLatest<ValidationResult, ValidationResult, ValidationResult, AbsolutePath, AbsolutePath, AbsolutePath>(this.WhenAny(vm => vm.Installer.DownloadLocation.ValidationResult),
+                    this.WhenAny(vm => vm.Installer.Location.ValidationResult),
                     this.WhenAny(vm => vm.WabbajackFileLocation.TargetPath),
                     this.WhenAny(vm => vm.Installer.Location.TargetPath),
                     this.WhenAny(vm => vm.Installer.DownloadLocation.TargetPath))
@@ -281,10 +283,10 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                         .Where(t => t.Failed)
                         .Concat(Validate())
                         .ToArray();
-                    if (!errors.Any()) return ErrorResponse.Success;
-                    return ErrorResponse.Fail(string.Join("\n", errors.Select(e => e.Reason)));
+                    if (!errors.Any()) return ValidationResult.Success;
+                    return ValidationResult.Fail(string.Join("\n", errors.Select(e => e.Reason)));
                 })
-                .BindTo(this, vm => vm.ErrorState)
+                .BindTo(this, vm => vm.ValidationResult)
                 .DisposeWith(disposables);
 
             this.WhenAny(vm => vm.InstallState)
@@ -375,30 +377,28 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
         }
     }
 
-    private IEnumerable<ErrorResponse> Validate()
+    private IEnumerable<ValidationResult> Validate()
     {
         if (!WabbajackFileLocation.TargetPath.FileExists())
-            yield return ErrorResponse.Fail("Mod list source does not exist");
+            yield return ValidationResult.Fail("Wabbajack modlist file does not exist");
 
         var downloadPath = Installer.DownloadLocation.TargetPath;
         if (downloadPath.Depth <= 1)
-            yield return ErrorResponse.Fail("Download path isn't set to a folder");
+            yield return DownloadsPathValidationResult.Fail("Please specify a download location");
         
         var installPath = Installer.Location.TargetPath;
         if (installPath.Depth <= 1)
-            yield return ErrorResponse.Fail("Install path isn't set to a folder");
+            yield return InstallPathValidationResult.Fail("Please specify an installation location");
         if (installPath.InFolder(KnownFolders.Windows))
-            yield return ErrorResponse.Fail("Don't install modlists into your Windows folder");
-        if (installPath.InFolder(KnownFolders.EntryPoint))
-            yield return ErrorResponse.Fail("Don't install modlists into the Wabbajack folder");
+            yield return InstallPathValidationResult.Fail("Can't install modlist to Windows folder");
 
         if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && installPath == downloadPath)
         {
-            yield return ErrorResponse.Fail("Can't have identical install and download folders");
+            yield return DownloadsPathValidationResult.Fail("Installation and download locations cannot be identical");
         }
         if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && KnownFolders.IsSubDirectoryOf(installPath.ToString(), downloadPath.ToString()))
         {
-            yield return ErrorResponse.Fail("Can't put the install folder inside the download folder");
+            yield return InstallPathValidationResult.Fail("Can't install to folder within downloads folder");
         }
         foreach (var game in GameRegistry.Games)
         {
@@ -406,27 +406,31 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                 continue;
             
             if (installPath.InFolder(location))
-                yield return ErrorResponse.Fail("Can't install a modlist into a game folder");
+                yield return InstallPathValidationResult.Fail("Can't install modlist into a game folder");
 
             if (location.ThisAndAllParents().Any(path => installPath == path))
             {
-                yield return ErrorResponse.Fail(
-                    "Can't install in this path, installed files may overwrite important game files");
+                yield return InstallPathValidationResult.Fail(
+                    "Can't install to path, installed files may overwrite game files");
             }
         }
         
         if (installPath.InFolder(KnownFolders.EntryPoint))
-            yield return ErrorResponse.Fail("Can't install a modlist into the Wabbajack.exe path");
+            yield return InstallPathValidationResult.Fail("Can't install a modlist into the Wabbajack folder");
         if (downloadPath.InFolder(KnownFolders.EntryPoint))
-            yield return ErrorResponse.Fail("Can't download a modlist into the Wabbajack.exe path");
+            yield return DownloadsPathValidationResult.Fail("Can't download a modlist into the Wabbajack folder");
         if (KnownFolders.EntryPoint.ThisAndAllParents().Any(path => installPath == path))
         { 
-            yield return ErrorResponse.Fail("Installing in this folder may overwrite Wabbajack");
+            yield return InstallPathValidationResult.Fail("Can't install into the Wabbajack folder");
         }
 
-        if (KnownFolders.IsInSpecialFolder(installPath) || KnownFolders.IsInSpecialFolder(downloadPath))
+        if (KnownFolders.IsInSpecialFolder(installPath, out var specialFolder) )
         {
-            yield return ErrorResponse.Fail($"Can't install into Windows locations such as Documents etc, please make a new folder for the modlist - {DriveHelper.GetPreferredInstallationDrive(0).Name}Modlists\\ for example.");
+            yield return InstallPathValidationResult.Fail($"Can't install into special folder ({specialFolder})");
+        }
+        if(KnownFolders.IsInSpecialFolder(downloadPath, out var specialDownloadsFolder))
+        {
+            yield return DownloadsPathValidationResult.Fail($"Can't download into special folder ({specialDownloadsFolder})");
         }
         // Disabled Because it was causing issues for people trying to update lists.
         //if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && !HasEnoughSpace(installPath, downloadPath)){

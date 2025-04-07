@@ -84,12 +84,15 @@ namespace Wabbajack
         {
             private readonly INotifyCollectionChanged _incc;
             private readonly ListBox _listBox;
+            private DateTime _lastScrollTime = DateTime.MinValue;
+            private readonly TimeSpan _throttleInterval = TimeSpan.FromMilliseconds(100);
 
             public Capture(ListBox listBox)
             {
-                this._listBox = listBox;
+                _listBox = listBox;
                 _incc = listBox.ItemsSource as INotifyCollectionChanged;
-                if (_incc != null) _incc.CollectionChanged += incc_CollectionChanged;
+                if (_incc != null)
+                    _incc.CollectionChanged += incc_CollectionChanged;
             }
 
             public void Dispose()
@@ -100,15 +103,47 @@ namespace Wabbajack
 
             private void incc_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
             {
-                if (e.Action == NotifyCollectionChangedAction.Add)
+                if (e.Action != NotifyCollectionChangedAction.Add || e.NewItems == null || e.NewItems.Count == 0)
+                    return;
+
+                // Throttle to avoid layout storms
+                var now = DateTime.Now;
+                if (now - _lastScrollTime < _throttleInterval)
+                    return;
+
+                _lastScrollTime = now;
+
+                // Defer to Dispatcher to ensure layout has completed
+                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
+                    var item = e.NewItems[0];
+
+                    // Avoid triggering if item is already in view
+                    if (IsItemVisible(_listBox, item))
+                        return;
+
                     try
                     {
-                        _listBox.ScrollIntoView(e.NewItems[0]);
-                        _listBox.SelectedItem = e.NewItems[0];
+                        _listBox.ScrollIntoView(item);
+                        _listBox.SelectedItem = item;
                     }
-                    catch (ArgumentOutOfRangeException) { }
-                }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        // Safe fallback
+                    }
+                }), System.Windows.Threading.DispatcherPriority.Background);
+            }
+
+            private static bool IsItemVisible(ListBox listBox, object item)
+            {
+                var container = listBox.ItemContainerGenerator.ContainerFromItem(item) as FrameworkElement;
+                if (container == null)
+                    return false;
+
+                var bounds = container.TransformToAncestor(listBox)
+                                      .TransformBounds(new Rect(0, 0, container.ActualWidth, container.ActualHeight));
+                var viewport = new Rect(0, 0, listBox.ActualWidth, listBox.ActualHeight);
+                return viewport.Contains(bounds.TopLeft) || viewport.Contains(bounds.BottomRight);
             }
         }
     }

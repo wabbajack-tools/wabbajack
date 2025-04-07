@@ -33,17 +33,22 @@ public class LogStream : TargetWithLayout
             .DisposeWith(_disposables);
 
         Messages
-            .Subscribe(m =>
+            .Buffer(TimeSpan.FromMilliseconds(100))
+            .Where(batch => batch.Count > 0)
+            .Subscribe(batch =>
             {
-                RxApp.MainThreadScheduler.Schedule(m, (_, message) =>
+                RxApp.MainThreadScheduler.Schedule(batch, (scheduler, messages) =>
                 {
-                    _messageLog.AddOrUpdate(message);
+                    _messageLog.Edit(innerCache =>
+                    {
+                        foreach (var message in messages)
+                            innerCache.AddOrUpdate(message);
+                    });
+
                     return Disposable.Empty;
                 });
             })
             .DisposeWith(_disposables);
-
-        _messages.DisposeWith(_disposables);
     }
 
     protected override void Dispose(bool disposing)
