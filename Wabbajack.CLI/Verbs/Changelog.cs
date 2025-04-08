@@ -12,6 +12,7 @@ using Markdig.Syntax;
 using Wabbajack.Installer;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.DownloadStates;
+using System.Text;
 
 namespace Wabbajack.CLI.Verbs;
 
@@ -31,6 +32,7 @@ public class Changelog
         [
             new OptionDefinition(typeof(AbsolutePath), "or", "original", "Original Wabbajack file"),
             new OptionDefinition(typeof(AbsolutePath), "u", "updated", "Updated Wabbajack file")
+            // TODO: add output option
         ]);
 
     internal async Task<int> Run(AbsolutePath original, AbsolutePath updated)
@@ -82,13 +84,13 @@ public class Changelog
         }
 
         var MarkdownText =
-                $"## {UpdatedModlist.Version.ToString()}\n\n"
+                $"## {UpdatedModlist.Version}\n\n";
 
                 // iAmMe: download & install size data not exposed in WJ 4.0.
 
-        //"**Info**:\n\n" +
-        //$"- Download Size change: {downloadSizeChanges.ToFileSizeString()} (Total: {update.DownloadSize.ToFileSizeString()})\n" +
-        //$"- Install Size change: {installSizeChanges.ToFileSizeString()} (Total: {update.InstallSize.ToFileSizeString()})\n\n";
+                //"**Info**:\n\n" +
+                //$"- Download Size change: {downloadSizeChanges.ToFileSizeString()} (Total: {update.DownloadSize.ToFileSizeString()})\n" +
+                //$"- Install Size change: {installSizeChanges.ToFileSizeString()} (Total: {update.InstallSize.ToFileSizeString()})\n\n";
 
         #region Download Changes
 
@@ -173,7 +175,7 @@ public class Changelog
 
             if (lines.All(markdown.Contains))
             {
-                _logger.LogInformation("The output file is already up - to - date");
+                _logger.LogInformation("The output file is already up to date");
                 return 0;
             }
 
@@ -236,6 +238,14 @@ public class Changelog
         _logger.LogInformation($"Output file {Output} written\n");
 
         return 0;
+    }
+
+    private static string GetTextFileFromModlist(string archive, ModList modlist, string sourceID)
+    {
+        //var installer = new MO2Installer(archive, modlist, "", "", null);
+        //byte[] bytes = installer.LoadBytesFromPath(sourceID);
+        //return Encoding.Default.GetString(bytes);
+        return string.Empty;
     }
 
     private static string ToTocLink(string header)
