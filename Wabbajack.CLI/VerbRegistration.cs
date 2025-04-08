@@ -9,6 +9,8 @@ public static class CommandLineBuilderExtensions
 
     public static void AddCLIVerbs(this IServiceCollection services)
     {
+        CommandLineBuilder.RegisterCommand<Changelog>(Changelog.Definition, c => ((Changelog)c).Run);
+        services.AddSingleton<Changelog>();
         CommandLineBuilder.RegisterCommand<Compile>(Compile.Definition, c => ((Compile)c).Run);
         services.AddSingleton<Compile>();
         CommandLineBuilder.RegisterCommand<Decrypt>(Decrypt.Definition, c => ((Decrypt)c).Run);
