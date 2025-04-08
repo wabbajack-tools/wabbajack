@@ -1,28 +1,17 @@
 using System;
-using System.CommandLine;
-using System.CommandLine.Invocation;
-using System.CommandLine.NamingConventionBinder;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Builder;
 using Wabbajack.Common;
-using Wabbajack.Compression.Zip;
-using Wabbajack.Downloaders;
 using Wabbajack.DTOs;
 using Wabbajack.Paths;
-using Wabbajack.Paths.IO;
 using Markdig;
 using Markdig.Syntax;
 using Wabbajack.Installer;
 using Wabbajack.DTOs.JsonConverters;
-using System.Text.RegularExpressions;
 using Wabbajack.DTOs.DownloadStates;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using YamlDotNet.Core;
-using Wabbajack.Hashing.xxHash64;
 
 namespace Wabbajack.CLI.Verbs;
 
@@ -94,12 +83,14 @@ public class Changelog
 
         var MarkdownText =
                 $"## {UpdatedModlist.Version.ToString()}\n\n"
-                
+
                 // iAmMe: download & install size data not exposed in WJ 4.0.
 
-                //"**Info**:\n\n" +
-                //$"- Download Size change: {downloadSizeChanges.ToFileSizeString()} (Total: {update.DownloadSize.ToFileSizeString()})\n" +
-                //$"- Install Size change: {installSizeChanges.ToFileSizeString()} (Total: {update.InstallSize.ToFileSizeString()})\n\n";
+        //"**Info**:\n\n" +
+        //$"- Download Size change: {downloadSizeChanges.ToFileSizeString()} (Total: {update.DownloadSize.ToFileSizeString()})\n" +
+        //$"- Install Size change: {installSizeChanges.ToFileSizeString()} (Total: {update.InstallSize.ToFileSizeString()})\n\n";
+
+        #region Download Changes
 
         var UpdatedArchives = UpdatedModlist.Archives
             .Where(a => OriginalModlist.Archives.All(x => x.Name != a.Name))
@@ -141,7 +132,7 @@ public class Changelog
             .Where(a => UpdatedArchives.All(x => x != a))
             .ToList();
 
-        if (NewArchives.Any() || RemovedArchives.Any())
+        if (NewArchives.Count != 0 || RemovedArchives.Count != 0)
             MarkdownText += "**Download Changes**:\n\n";
 
         UpdatedArchives.Do(a =>
@@ -161,7 +152,15 @@ public class Changelog
 
         MarkdownText += "\n";
 
-        // Other report stuff goes here, to be added
+        #endregion
+
+        #region Load Order Changes
+        // Not implemented. Need to find a way of getting modlist.txt from an installed modlist using the AInstaller/StandardInstaller LoadBytesFromPath method.
+        #endregion
+
+        #region Mod Changes
+        // Not implemented. Need to find a way of getting modlist.txt from an installed modlist using the AInstaller/StandardInstaller LoadBytesFromPath method.
+        #endregion
 
         var Output = "changelog.md";
 
