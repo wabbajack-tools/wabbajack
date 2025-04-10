@@ -10,14 +10,10 @@ using Wabbajack.DTOs;
 using Wabbajack.Paths;
 using Markdig;
 using Markdig.Syntax;
-using Wabbajack.Downloaders;
-using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.Installer;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.DownloadStates;
-using Wabbajack.Networking.WabbajackClientApi;
-using Wabbajack.VFS;
 
 namespace Wabbajack.CLI.Verbs;
 
