@@ -25,22 +25,13 @@ public class Changelog
 {
     private readonly ILogger<Changelog> _logger;
     private readonly DTOSerializer _dtos;
-    private readonly Client _wjClient;
-    private readonly DownloadDispatcher _dispatcher;
     private readonly IServiceProvider _serviceProvider;
-    private readonly FileHashCache _cache;
-    private readonly GameLocator _gameLocator;
 
-    public Changelog(ILogger<Changelog> logger, Client wjClient, DownloadDispatcher dispatcher, DTOSerializer dtos, 
-        FileHashCache cache, GameLocator gameLocator, IServiceProvider serviceProvider)
+    public Changelog(ILogger<Changelog> logger, DTOSerializer dtos, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _dtos = dtos;
-        _wjClient = wjClient;
-        _dispatcher = dispatcher;
         _serviceProvider = serviceProvider;
-        _cache = cache;
-        _gameLocator = gameLocator;
     }
 
     public static VerbDefinition Definition = new("changelog",
@@ -189,10 +180,9 @@ public class Changelog
             .Cast<InlineFile>()
             .First();
 
-        var OriginalLoadOrder =
-            GetTextFileFromModlist(original, OriginalModlist, AbsolutePath.Empty, AbsolutePath.Empty, OriginalLoadOrderFile.SourceDataID);
+        var OriginalLoadOrder = GetTextFileFromModlist(original, OriginalModlist, OriginalLoadOrderFile.SourceDataID).ToString();
         
-        var UpdatedLoadOrder = GetTextFileFromModlist(updated, UpdatedModlist, AbsolutePath.Empty, AbsolutePath.Empty, UpdatedLoadOrderFile.SourceDataID);
+        var UpdatedLoadOrder = GetTextFileFromModlist(updated, UpdatedModlist, UpdatedLoadOrderFile.SourceDataID).ToString();
 
         var AddedPlugins = UpdatedLoadOrder
             .Where(p => OriginalLoadOrder.All(x => p != x))
@@ -204,7 +194,7 @@ public class Changelog
         
         if (AddedPlugins.Count != 0 || RemovedPlugins.Count != 0)
             MarkdownText += "**Load Order Changes**:\n\n";
-        
+
         AddedPlugins.Do(p =>
         {
             MarkdownText += $"- Added {p}\n";
@@ -299,24 +289,15 @@ public class Changelog
         return 0;
     }
 
-    private string GetTextFileFromModlist(AbsolutePath archive, ModList modlist, AbsolutePath output, AbsolutePath downloads, RelativePath sourceID)
+    private async Task<string> GetTextFileFromModlist(AbsolutePath archive, ModList modlist, RelativePath sourceId)
     {
-        //var installer = new MO2Installer(archive, modlist, "", "", null);
-        //byte[] bytes = installer.LoadBytesFromPath(sourceID);
-        //return Encoding.Default.GetString(bytes);
-
         var installer = StandardInstaller.Create(_serviceProvider, new InstallerConfiguration
         {
-            Downloads = downloads,
-            Install = output,
             ModList = modlist,
-            Game = modlist.GameType,
             ModlistArchive = archive,
-            GameFolder = _gameLocator.GameLocation(modlist.GameType)
         });
 
-        var bytes = installer.LoadBytesFromPath(sourceID);
-        return Encoding.Default.GetString(bytes);
+        return Encoding.Default.GetString(await installer.LoadBytesFromPath(sourceId));
     }
 
     private static string ToTocLink(string header)
