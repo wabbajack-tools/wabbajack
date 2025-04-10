@@ -12,7 +12,6 @@ using Markdig.Syntax;
 using Wabbajack.Installer;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.DownloadStates;
-using System.Text;
 
 namespace Wabbajack.CLI.Verbs;
 
@@ -20,7 +19,7 @@ public class Changelog
 {
     private readonly ILogger<Changelog> _logger;
     private readonly DTOSerializer _dtos;
-
+    
     public Changelog(ILogger<Changelog> logger, DTOSerializer dtos)
     {
         _logger = logger;
@@ -38,6 +37,8 @@ public class Changelog
     internal async Task<int> Run(AbsolutePath original, AbsolutePath updated)
     {
         _logger.LogInformation("Loading modlists...");
+        
+        // TODO: add better handling of the file path checks
         if (original == AbsolutePath.Empty)
         {
             _logger.LogError("Original Wabbajack file not specified or path is incorrect/inaccessible");
@@ -170,7 +171,7 @@ public class Changelog
         {
             _logger.LogInformation($"Output file {Output} already exists and is a markdown file. It will be updated with the newest version");
 
-            var markdown = File.ReadAllLines(Output).ToList();
+            var markdown = (await File.ReadAllLinesAsync(Output)).ToList();
             var lines = MarkdownText.Split("\n");
 
             if (lines.All(markdown.Contains))
@@ -179,7 +180,7 @@ public class Changelog
                 return 0;
             }
 
-            var doc = Markdown.Parse(File.ReadAllText(Output));
+            var doc = Markdown.Parse(await File.ReadAllTextAsync(Output));
 
             var hasToc = false;
             var tocLine = 0;
@@ -225,7 +226,7 @@ public class Changelog
 
             markdown.InsertRange(line + 1, lines);
 
-            File.WriteAllLines(Output, markdown);
+            await File.WriteAllLinesAsync(Output, markdown);
 
             return 0;
         }
@@ -234,7 +235,7 @@ public class Changelog
         $"- [{UpdatedModlist.Version}](#{ToTocLink(UpdatedModlist.Version.ToString())})\n\n" +
         $"{MarkdownText}";
 
-        File.WriteAllText(Output, text);
+        await File.WriteAllTextAsync(Output, text);
         _logger.LogInformation($"Output file {Output} written\n");
 
         return 0;
@@ -245,6 +246,7 @@ public class Changelog
         //var installer = new MO2Installer(archive, modlist, "", "", null);
         //byte[] bytes = installer.LoadBytesFromPath(sourceID);
         //return Encoding.Default.GetString(bytes);
+
         return string.Empty;
     }
 
