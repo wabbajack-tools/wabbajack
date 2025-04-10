@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Builder;
@@ -9,9 +10,14 @@ using Wabbajack.DTOs;
 using Wabbajack.Paths;
 using Markdig;
 using Markdig.Syntax;
+using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.GameFile;
+using Wabbajack.DTOs.Directives;
 using Wabbajack.Installer;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.Networking.WabbajackClientApi;
+using Wabbajack.VFS;
 
 namespace Wabbajack.CLI.Verbs;
 
@@ -19,11 +25,22 @@ public class Changelog
 {
     private readonly ILogger<Changelog> _logger;
     private readonly DTOSerializer _dtos;
-    
-    public Changelog(ILogger<Changelog> logger, DTOSerializer dtos)
+    private readonly Client _wjClient;
+    private readonly DownloadDispatcher _dispatcher;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly FileHashCache _cache;
+    private readonly GameLocator _gameLocator;
+
+    public Changelog(ILogger<Changelog> logger, Client wjClient, DownloadDispatcher dispatcher, DTOSerializer dtos, 
+        FileHashCache cache, GameLocator gameLocator, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _dtos = dtos;
+        _wjClient = wjClient;
+        _dispatcher = dispatcher;
+        _serviceProvider = serviceProvider;
+        _cache = cache;
+        _gameLocator = gameLocator;
     }
 
     public static VerbDefinition Definition = new("changelog",
@@ -31,7 +48,7 @@ public class Changelog
         [
             new OptionDefinition(typeof(AbsolutePath), "or", "original", "Original Wabbajack file"),
             new OptionDefinition(typeof(AbsolutePath), "u", "updated", "Updated Wabbajack file")
-            // TODO: add output option
+            // TODO: add an output file option here
         ]);
 
     internal async Task<int> Run(AbsolutePath original, AbsolutePath updated)
@@ -159,6 +176,47 @@ public class Changelog
 
         #region Load Order Changes
         // Not implemented. Need to find a way of getting modlist.txt from an installed modlist using the AInstaller/StandardInstaller LoadBytesFromPath method.
+
+        var OriginalLoadOrderFile = OriginalModlist.Directives
+            .Where(d => d is InlineFile)
+            .Where(d => d.To.EndsWith("loadorder.txt"))
+            .Cast<InlineFile>()
+            .First();
+        
+        var UpdatedLoadOrderFile = UpdatedModlist.Directives
+            .Where(d => d is InlineFile)
+            .Where(d => d.To.EndsWith("loadorder.txt"))
+            .Cast<InlineFile>()
+            .First();
+
+        var OriginalLoadOrder =
+            GetTextFileFromModlist(original, OriginalModlist, AbsolutePath.Empty, AbsolutePath.Empty, OriginalLoadOrderFile.SourceDataID);
+        
+        var UpdatedLoadOrder = GetTextFileFromModlist(updated, UpdatedModlist, AbsolutePath.Empty, AbsolutePath.Empty, UpdatedLoadOrderFile.SourceDataID);
+
+        var AddedPlugins = UpdatedLoadOrder
+            .Where(p => OriginalLoadOrder.All(x => p != x))
+            .ToList();
+        
+        var RemovedPlugins = OriginalLoadOrder
+            .Where(p => UpdatedLoadOrder.All(x => p != x))
+            .ToList();
+        
+        if (AddedPlugins.Count != 0 || RemovedPlugins.Count != 0)
+            MarkdownText += "**Load Order Changes**:\n\n";
+        
+        AddedPlugins.Do(p =>
+        {
+            MarkdownText += $"- Added {p}\n";
+        });
+        
+        RemovedPlugins.Do(p =>
+        {
+            MarkdownText += $"- Removed {p}\n";
+        });
+        
+        MarkdownText += "\n";
+        
         #endregion
 
         #region Mod Changes
@@ -241,13 +299,24 @@ public class Changelog
         return 0;
     }
 
-    private static string GetTextFileFromModlist(string archive, ModList modlist, string sourceID)
+    private string GetTextFileFromModlist(AbsolutePath archive, ModList modlist, AbsolutePath output, AbsolutePath downloads, RelativePath sourceID)
     {
         //var installer = new MO2Installer(archive, modlist, "", "", null);
         //byte[] bytes = installer.LoadBytesFromPath(sourceID);
         //return Encoding.Default.GetString(bytes);
 
-        return string.Empty;
+        var installer = StandardInstaller.Create(_serviceProvider, new InstallerConfiguration
+        {
+            Downloads = downloads,
+            Install = output,
+            ModList = modlist,
+            Game = modlist.GameType,
+            ModlistArchive = archive,
+            GameFolder = _gameLocator.GameLocation(modlist.GameType)
+        });
+
+        var bytes = installer.LoadBytesFromPath(sourceID);
+        return Encoding.Default.GetString(bytes);
     }
 
     private static string ToTocLink(string header)
