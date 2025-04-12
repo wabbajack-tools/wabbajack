@@ -10,8 +10,6 @@ using Wabbajack.DTOs;
 using Wabbajack.Paths;
 using Markdig;
 using Markdig.Syntax;
-using Microsoft.Win32.SafeHandles;
-using Wabbajack.DTOs.Directives;
 using Wabbajack.Installer;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.DownloadStates;
