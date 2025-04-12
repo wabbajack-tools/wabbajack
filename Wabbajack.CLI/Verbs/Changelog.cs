@@ -144,17 +144,17 @@ public class Changelog
 
         UpdatedArchives.Do(a =>
         {
-            MarkdownText += $"- Updated {GetModName(a)}\n";
+            MarkdownText += $"- Updated [{GetModName(a)}]({GetManifestURL(a)})\n";
         });
 
         RemovedArchives.Do(a =>
         {
-            MarkdownText += $"- Removed {GetModName(a)}\n";
+            MarkdownText += $"- Removed [{GetModName(a)}]({GetManifestURL(a)})\n";
         });
 
         NewArchives.Do(a =>
         {
-            MarkdownText += $"- Added {GetModName(a)}\n";
+            MarkdownText += $"- Added [{GetModName(a)}]({GetManifestURL(a)})\n";
         });
 
         MarkdownText += "\n";
@@ -163,7 +163,7 @@ public class Changelog
 
         #region Load Order Changes
         // Not implemented. Need to find a way of getting modlist.txt from an installed modlist using the AInstaller/StandardInstaller LoadBytesFromPath method.
-
+        /*
         var OriginalLoadOrderFile = OriginalModlist.Directives
             .Where(d => d is InlineFile)
             .Where(d => d.To.EndsWith("loadorder.txt"))
@@ -202,7 +202,7 @@ public class Changelog
         });
         
         MarkdownText += "\n";
-        
+        */
         #endregion
 
         #region Mod Changes
@@ -301,7 +301,7 @@ public class Changelog
         return header.Trim().Replace(" ", "").Replace(".", "");
     }
 
-    private static string GetModName(Archive a)
+    private static string? GetModName(Archive a)
     {
         var result = a.Name;
 
@@ -311,5 +311,20 @@ public class Changelog
         }
 
         return result;
+    }
+
+    private static Uri? GetManifestURL(Archive a)
+    {
+        var result = new Uri("about:blank");
+
+        return a.State switch
+        {
+            IMetaState metaState => metaState.LinkUrl,
+            Manual manual => manual.Url,
+            Http http => http.Url,
+            Mega mega => mega.Url,
+            MediaFire mediaFire => mediaFire.Url,
+            _ => result
+        };
     }
 }
