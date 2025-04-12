@@ -144,7 +144,7 @@ public class Changelog
 
         UpdatedArchives.Do(a =>
         {
-            MarkdownText += $"- Updated [{GetModName(a)}]({GetManifestURL(a)})\n";
+            MarkdownText += $"- Updated [{GetModName(a)} to{GetModVersion(a)}]({GetManifestURL(a)})\n";
         });
 
         RemovedArchives.Do(a =>
@@ -154,7 +154,7 @@ public class Changelog
 
         NewArchives.Do(a =>
         {
-            MarkdownText += $"- Added [{GetModName(a)}]({GetManifestURL(a)})\n";
+            MarkdownText += $"- Added [{GetModName(a)}{GetModVersion(a)}]({GetManifestURL(a)})\n";
         });
 
         MarkdownText += "\n";
@@ -315,7 +315,7 @@ public class Changelog
 
     private static Uri? GetManifestURL(Archive a)
     {
-        var result = new Uri("about:blank");
+        var defaultUri = new Uri("about:blank");
 
         return a.State switch
         {
@@ -324,7 +324,20 @@ public class Changelog
             Http http => http.Url,
             Mega mega => mega.Url,
             MediaFire mediaFire => mediaFire.Url,
-            _ => result
+            _ => defaultUri
         };
+    }
+
+    private static string? GetModVersion(Archive a)
+    {
+        var result = string.Empty;
+        
+        if (a.State is IMetaState metaState)
+            result = metaState.Version;
+        
+        if (string.IsNullOrEmpty(result))
+            return null;
+        else
+            return " v" + result;
     }
 }
