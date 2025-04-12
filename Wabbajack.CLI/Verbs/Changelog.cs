@@ -33,11 +33,11 @@ public class Changelog
         "Generates a changelog, formatted in Markdown, when given 2 Wabbajack files.",
         [
             new OptionDefinition(typeof(AbsolutePath), "or", "original", "Original Wabbajack file"),
-            new OptionDefinition(typeof(AbsolutePath), "u", "updated", "Updated Wabbajack file")
-            // TODO: add an output file option here
+            new OptionDefinition(typeof(AbsolutePath), "u", "updated", "Updated Wabbajack file"),
+            new OptionDefinition(typeof(AbsolutePath), "o", "output", "Output path for the Changelog file")
         ]);
 
-    internal async Task<int> Run(AbsolutePath original, AbsolutePath updated)
+    internal async Task<int> Run(AbsolutePath original, AbsolutePath updated, AbsolutePath output)
     {
         _logger.LogInformation("Loading modlists...");
         
@@ -80,13 +80,13 @@ public class Changelog
 
         //var downloadSizeChanges = original.DownloadSize - update.DownloadSize;
         //var installSizeChanges = original.InstallSize - update.InstallSize;
-
+        
         if (!(OriginalModlist.Version < UpdatedModlist.Version))
         {
             _logger.LogError("Updated modlist is not newer than the original modlist");
             return -1;
         }
-        
+
         var MarkdownText =
             $"## {UpdatedModlist.Version}\n\n" +
             $"**Build at:** `{File.GetLastWriteTime(updated.ToString())}`\n\n";
@@ -142,19 +142,19 @@ public class Changelog
         if (NewArchives.Count != 0 || RemovedArchives.Count != 0)
             MarkdownText += "**Download Changes**:\n\n";
 
+        NewArchives.Do(a =>
+        {
+            MarkdownText += $"- Added [{GetModName(a)}{GetModVersion(a)}]({GetManifestURL(a)})\n";
+        });
+        
         UpdatedArchives.Do(a =>
         {
             MarkdownText += $"- Updated [{GetModName(a)} to{GetModVersion(a)}]({GetManifestURL(a)})\n";
         });
-
+        
         RemovedArchives.Do(a =>
         {
             MarkdownText += $"- Removed [{GetModName(a)}]({GetManifestURL(a)})\n";
-        });
-
-        NewArchives.Do(a =>
-        {
-            MarkdownText += $"- Added [{GetModName(a)}{GetModVersion(a)}]({GetManifestURL(a)})\n";
         });
 
         MarkdownText += "\n";
@@ -209,7 +209,14 @@ public class Changelog
         // Not implemented. Need to find a way of getting modlist.txt from an installed modlist using the AInstaller/StandardInstaller LoadBytesFromPath method.
         #endregion
 
-        var Output = "changelog.md";
+        // TODO: add better error checking here
+        if (output == AbsolutePath.Empty)
+        {
+            _logger.LogError("Updated modlist is not newer than the original modlist");
+            return -1;
+        }
+
+        var Output = Path.Combine(output.ToString(), "changelog.md");
 
         if (File.Exists(Output) && Output.EndsWith("md"))
         {
