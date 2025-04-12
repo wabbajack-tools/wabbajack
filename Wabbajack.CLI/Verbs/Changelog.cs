@@ -10,6 +10,7 @@ using Wabbajack.DTOs;
 using Wabbajack.Paths;
 using Markdig;
 using Markdig.Syntax;
+using Microsoft.Win32.SafeHandles;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.Installer;
 using Wabbajack.DTOs.JsonConverters;
@@ -87,9 +88,10 @@ public class Changelog
             _logger.LogError("Updated modlist is not newer than the original modlist");
             return -1;
         }
-
+        
         var MarkdownText =
-                $"## {UpdatedModlist.Version}\n\n";
+            $"## {UpdatedModlist.Version}\n\n" +
+            $"**Build at:** `{File.GetLastWriteTime(updated.ToString())}`\n\n";
 
                 // iAmMe: download & install size data not exposed in WJ 4.0.
 
