@@ -7,13 +7,14 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Builder;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.Directives;
 using Wabbajack.Paths;
 using Markdig;
 using Markdig.Syntax;
 using Wabbajack.Installer;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.DownloadStates;
-using YamlDotNet.Core;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack.CLI.Verbs;
 
@@ -77,8 +78,8 @@ public class Changelog
             return -1;
         }
 
-        // iAmMe: download & install size data not exposed in WJ 4.0. It's present in the *.wabbajack.meta file
-        // but this file isn't guaranteed to be present. We'll check for it and if it's not there, skip reporting
+        // iAmMe: download & install size data not exposed directly in WJ 4.0. It's present in the *.wabbajack.meta.json
+        // file but this file isn't guaranteed to be present. We'll check for it and if it's not there, skip reporting
         // the changes.
 
         DownloadMetadata? OriginalModlistMetadata = null;
@@ -189,8 +190,7 @@ public class Changelog
         #endregion
 
         #region Load Order Changes
-        // Not implemented. Need to find a way of getting modlist.txt from an installed modlist using the AInstaller/StandardInstaller LoadBytesFromPath method.
-        /*
+        
         var OriginalLoadOrderFile = OriginalModlist.Directives
             .Where(d => d is InlineFile)
             .Where(d => d.To.EndsWith("loadorder.txt"))
@@ -203,9 +203,11 @@ public class Changelog
             .Cast<InlineFile>()
             .First();
 
-        var OriginalLoadOrder = GetTextFileFromModlist(original, OriginalModlist, OriginalLoadOrderFile.SourceDataID).ToString();
-        
-        var UpdatedLoadOrder = GetTextFileFromModlist(updated, UpdatedModlist, UpdatedLoadOrderFile.SourceDataID).ToString();
+        var OriginalLoadOrder = 
+            GetTextFileFromModlist(original, OriginalModlist, OriginalLoadOrderFile.SourceDataID).Result;
+
+        var UpdatedLoadOrder =
+            GetTextFileFromModlist(updated, UpdatedModlist, UpdatedLoadOrderFile.SourceDataID).Result;
 
         var AddedPlugins = UpdatedLoadOrder
             .Where(p => OriginalLoadOrder.All(x => p != x))
@@ -229,19 +231,12 @@ public class Changelog
         });
         
         MarkdownText += "\n";
-        */
+
         #endregion
 
         #region Mod Changes
         // Not implemented. Need to find a way of getting modlist.txt from an installed modlist using the AInstaller/StandardInstaller LoadBytesFromPath method.
         #endregion
-
-        // TODO: add better error checking here
-        if (output == AbsolutePath.Empty)
-        {
-            _logger.LogError("Updated modlist is not newer than the original modlist");
-            return -1;
-        }
 
         var Output = Path.Combine(output.ToString(), "changelog.md");
 
@@ -326,8 +321,9 @@ public class Changelog
             ModList = modlist,
             ModlistArchive = archive,
         });
-
-        return Encoding.Default.GetString(await installer.LoadBytesFromPath(sourceId));
+        
+        var bytes = await installer.LoadBytesFromPath(sourceId);
+        return Encoding.Default.GetString(bytes);
     }
 
     private static string ToTocLink(string header)
