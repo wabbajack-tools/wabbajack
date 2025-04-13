@@ -14,7 +14,6 @@ using Markdig.Syntax;
 using Wabbajack.Installer;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.DownloadStates;
-using Wabbajack.Paths.IO;
 
 namespace Wabbajack.CLI.Verbs;
 
@@ -125,8 +124,6 @@ public class Changelog
                             $"- Install size change: {InstallSizeChange.ToFileSizeString()} (Total: {UpdatedModlistMetadata.SizeOfInstalledFiles.ToFileSizeString()})\n\n";
         }
 
-        #region Download Changes
-
         var UpdatedArchives = UpdatedModlist.Archives
             .Where(a => OriginalModlist.Archives.All(x => x.Name != a.Name))
             .Where(a =>
@@ -186,57 +183,6 @@ public class Changelog
         });
 
         MarkdownText += "\n";
-
-        #endregion
-
-        #region Load Order Changes
-        
-        var OriginalLoadOrderFile = OriginalModlist.Directives
-            .Where(d => d is InlineFile)
-            .Where(d => d.To.EndsWith("loadorder.txt"))
-            .Cast<InlineFile>()
-            .First();
-        
-        var UpdatedLoadOrderFile = UpdatedModlist.Directives
-            .Where(d => d is InlineFile)
-            .Where(d => d.To.EndsWith("loadorder.txt"))
-            .Cast<InlineFile>()
-            .First();
-
-        var OriginalLoadOrder = 
-            GetTextFileFromModlist(original, OriginalModlist, OriginalLoadOrderFile.SourceDataID).Result;
-
-        var UpdatedLoadOrder =
-            GetTextFileFromModlist(updated, UpdatedModlist, UpdatedLoadOrderFile.SourceDataID).Result;
-
-        var AddedPlugins = UpdatedLoadOrder
-            .Where(p => OriginalLoadOrder.All(x => p != x))
-            .ToList();
-        
-        var RemovedPlugins = OriginalLoadOrder
-            .Where(p => UpdatedLoadOrder.All(x => p != x))
-            .ToList();
-        
-        if (AddedPlugins.Count != 0 || RemovedPlugins.Count != 0)
-            MarkdownText += "**Load Order Changes**:\n\n";
-
-        AddedPlugins.Do(p =>
-        {
-            MarkdownText += $"- Added {p}\n";
-        });
-        
-        RemovedPlugins.Do(p =>
-        {
-            MarkdownText += $"- Removed {p}\n";
-        });
-        
-        MarkdownText += "\n";
-
-        #endregion
-
-        #region Mod Changes
-        // Not implemented. Need to find a way of getting modlist.txt from an installed modlist using the AInstaller/StandardInstaller LoadBytesFromPath method.
-        #endregion
 
         var Output = Path.Combine(output.ToString(), "changelog.md");
 
@@ -321,7 +267,7 @@ public class Changelog
             ModList = modlist,
             ModlistArchive = archive,
         });
-        
+
         var bytes = await installer.LoadBytesFromPath(sourceId);
         return Encoding.Default.GetString(bytes);
     }
