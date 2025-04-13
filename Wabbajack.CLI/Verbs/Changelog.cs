@@ -76,10 +76,29 @@ public class Changelog
             return -1;
         }
 
-        // iAmMe: download & install size data not exposed in WJ 4.0.
+        // iAmMe: download & install size data not exposed in WJ 4.0. It's present in the *.wabbajack.meta file
+        // but this file isn't guaranteed to be present. We'll check for it and if it's not there, skip reporting
+        // the changes.
 
-        //var downloadSizeChanges = original.DownloadSize - update.DownloadSize;
-        //var installSizeChanges = original.InstallSize - update.InstallSize;
+        try
+        {
+            var OriginalModlistMetadata =
+                await _dtos.DeserializeAsync<DownloadMetadata>(File.OpenRead(original + ".meta.json"));
+        }
+        catch (FileNotFoundException e)
+        {
+            _logger.LogWarning("Original modlist metadata file could not be found, skipping download/install size changes");
+        }
+
+        try
+        {
+            var UpdatedModlistMetadata =
+                await _dtos.DeserializeAsync<DownloadMetadata>(File.OpenRead(updated + ".meta.json"));
+        }
+        catch (FileNotFoundException e)
+        {
+            _logger.LogWarning("Updated modlist metadata file could not be found, skipping download/install size changes");
+        }
         
         if (!(OriginalModlist.Version < UpdatedModlist.Version))
         {
@@ -130,10 +149,10 @@ public class Changelog
             }).ToList();
 
         var NewArchives = UpdatedModlist.Archives
-        .Where(a => OriginalModlist.Archives.All(x => x.Name != a.Name))
-        .Where(a => UpdatedArchives.All(x => x != a))
-        .ToList();
-
+            .Where(a => OriginalModlist.Archives.All(x => x.Name != a.Name))
+            .Where(a => UpdatedArchives.All(x => x != a))
+            .ToList();
+        
         var RemovedArchives = OriginalModlist.Archives
             .Where(a => UpdatedModlist.Archives.All(x => x.Name != a.Name))
             .Where(a => UpdatedArchives.All(x => x != a))
