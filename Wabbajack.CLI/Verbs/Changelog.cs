@@ -13,6 +13,7 @@ using Markdig.Syntax;
 using Wabbajack.Installer;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.DownloadStates;
+using YamlDotNet.Core;
 
 namespace Wabbajack.CLI.Verbs;
 
@@ -80,9 +81,12 @@ public class Changelog
         // but this file isn't guaranteed to be present. We'll check for it and if it's not there, skip reporting
         // the changes.
 
+        DownloadMetadata? OriginalModlistMetadata = null;
+        DownloadMetadata? UpdatedModlistMetadata = null;
+
         try
         {
-            var OriginalModlistMetadata =
+            OriginalModlistMetadata =
                 await _dtos.DeserializeAsync<DownloadMetadata>(File.OpenRead(original + ".meta.json"));
         }
         catch (FileNotFoundException e)
@@ -92,7 +96,7 @@ public class Changelog
 
         try
         {
-            var UpdatedModlistMetadata =
+            UpdatedModlistMetadata =
                 await _dtos.DeserializeAsync<DownloadMetadata>(File.OpenRead(updated + ".meta.json"));
         }
         catch (FileNotFoundException e)
@@ -110,11 +114,15 @@ public class Changelog
             $"## {UpdatedModlist.Version}\n\n" +
             $"**Build at:** `{File.GetLastWriteTime(updated.ToString())}`\n\n";
 
-                // iAmMe: download & install size data not exposed in WJ 4.0.
-
-                //"**Info**:\n\n" +
-                //$"- Download Size change: {downloadSizeChanges.ToFileSizeString()} (Total: {update.DownloadSize.ToFileSizeString()})\n" +
-                //$"- Install Size change: {installSizeChanges.ToFileSizeString()} (Total: {update.InstallSize.ToFileSizeString()})\n\n";
+        if (OriginalModlistMetadata is not null && UpdatedModlistMetadata is not null)
+        {
+            var DownloadSizeChange = OriginalModlistMetadata.SizeOfArchives - UpdatedModlistMetadata.SizeOfArchives;
+            var InstallSizeChange = OriginalModlistMetadata.SizeOfInstalledFiles - UpdatedModlistMetadata.SizeOfInstalledFiles;
+            
+            MarkdownText += "**Info:**\n\n" +
+                            $"- Download size change: {DownloadSizeChange.ToFileSizeString()} (Total: {UpdatedModlistMetadata.SizeOfArchives.ToFileSizeString()})\n" +
+                            $"- Install size change: {InstallSizeChange.ToFileSizeString()} (Total: {UpdatedModlistMetadata.SizeOfInstalledFiles.ToFileSizeString()})\n\n";
+        }
 
         #region Download Changes
 
