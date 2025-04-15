@@ -672,6 +672,23 @@ public static class GameRegistry
             }
         },
         {
+            Game.SevenDaysToDie, new GameMetaData
+            {
+                Game = Game.VtMB,
+                MO2Name = "Vampire - The Masquerade: Bloodlines",
+                NexusName = "vampirebloodlines",
+                NexusGameId = 437,
+                MO2ArchiveName = "vampire",
+                SteamIDs = [2600],
+                RequiredFiles = new []
+                {
+                    @"vampire.exe".ToRelativePath(),
+                },
+                MainExecutable = @"vampire.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/grid/35c0435bac5b49fc667bd23a5c49fea1.jpg", 
+            }
+        },
+        {
             Game.ModdingTools, new GameMetaData
             {
                 Game = Game.ModdingTools,
