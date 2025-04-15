@@ -672,7 +672,7 @@ public static class GameRegistry
             }
         },
         {
-            Game.SevenDaysToDie, new GameMetaData
+            Game.VtMB, new GameMetaData
             {
                 Game = Game.VtMB,
                 MO2Name = "Vampire - The Masquerade: Bloodlines",
