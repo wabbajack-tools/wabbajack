@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Builder;
@@ -121,8 +120,8 @@ public class Changelog
             var installSizeChange = originalModlistMetadata.SizeOfInstalledFiles - updatedModlistMetadata.SizeOfInstalledFiles;
 
             markdownString.AppendLine("**Info:**");
-            markdownString.AppendLine($"- Download size change: {downloadSizeChange.ToFileSizeString()} (Total: {updatedModlistMetadata.SizeOfArchives.ToFileSizeString()}");
-            markdownString.AppendLine($"- Install size change: {installSizeChange.ToFileSizeString()} (Total: {updatedModlistMetadata.SizeOfInstalledFiles.ToFileSizeString()}");
+            markdownString.AppendLine($"- Download size change: {downloadSizeChange.ToFileSizeString()} (Total: {updatedModlistMetadata.SizeOfArchives.ToFileSizeString()})");
+            markdownString.AppendLine($"- Install size change: {installSizeChange.ToFileSizeString()} (Total: {updatedModlistMetadata.SizeOfInstalledFiles.ToFileSizeString()})");
             markdownString.AppendLine();
         }
 
@@ -197,8 +196,7 @@ public class Changelog
             _logger.LogInformation($"Output file {outputFile} already exists and is a markdown file. It will be updated with the newest version");
 
             var markdown = (await File.ReadAllLinesAsync(outputFile)).ToList();
-            var lines = Regex.Matches(markdownString.ToString(), Environment.NewLine).Count;
-
+            
             if (markdown.Contains(markdownString.ToString()))
             {
                 _logger.LogInformation("The output file is already up to date");
@@ -249,8 +247,7 @@ public class Changelog
                 line++;
             }
 
-            //markdown.InsertRange(line + 1, lines);
-            markdown.Insert(markdownString.Length + 1, markdownString.ToString());
+            markdown.Insert(markdown.Count, markdownString.ToString());
 
             await File.WriteAllLinesAsync(outputFile, markdown);
 
