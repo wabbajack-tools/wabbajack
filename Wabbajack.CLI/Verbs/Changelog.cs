@@ -55,11 +55,11 @@ public class Changelog
             return -1;
         }
 
-        ModList OriginalModlist, UpdatedModlist;
+        ModList originalModlist, updatedModlist;
 
         try
         {
-            OriginalModlist = await StandardInstaller.LoadFromFile(_dtos, original);
+            originalModlist = await StandardInstaller.LoadFromFile(_dtos, original);
         }
         catch (Exception e)
         {
@@ -69,7 +69,7 @@ public class Changelog
 
         try
         {
-            UpdatedModlist = await StandardInstaller.LoadFromFile(_dtos, updated);
+            updatedModlist = await StandardInstaller.LoadFromFile(_dtos, updated);
         }
         catch (Exception e)
         {
@@ -77,16 +77,16 @@ public class Changelog
             return -1;
         }
 
-        // iAmMe: download & install size data not exposed directly in WJ 4.0. It's present in the *.wabbajack.meta.json
+        // iAmMe: download and install size data not exposed directly in WJ 4.0. It's present in the *.wabbajack.meta.json
         // file but this file isn't guaranteed to be present. We'll check for it and if it's not there, skip reporting
         // the changes.
 
-        DownloadMetadata? OriginalModlistMetadata = null;
-        DownloadMetadata? UpdatedModlistMetadata = null;
+        DownloadMetadata? originalModlistMetadata = null;
+        DownloadMetadata? updatedModlistMetadata = null;
 
         try
         {
-            OriginalModlistMetadata =
+            originalModlistMetadata =
                 await _dtos.DeserializeAsync<DownloadMetadata>(File.OpenRead(original + ".meta.json"));
         }
         catch (FileNotFoundException e)
@@ -96,7 +96,7 @@ public class Changelog
 
         try
         {
-            UpdatedModlistMetadata =
+            updatedModlistMetadata =
                 await _dtos.DeserializeAsync<DownloadMetadata>(File.OpenRead(updated + ".meta.json"));
         }
         catch (FileNotFoundException e)
@@ -104,94 +104,94 @@ public class Changelog
             _logger.LogWarning("Updated modlist metadata file could not be found, skipping download/install size changes");
         }
         
-        if (!(OriginalModlist.Version < UpdatedModlist.Version))
+        if (!(originalModlist.Version < updatedModlist.Version))
         {
             _logger.LogError("Updated modlist is not newer than the original modlist");
             return -1;
         }
 
-        var MarkdownText =
-            $"## {UpdatedModlist.Version}\n\n" +
+        var markdownText =
+            $"## {updatedModlist.Version}\n\n" +
             $"**Build at:** `{File.GetLastWriteTime(updated.ToString())}`\n\n";
 
-        if (OriginalModlistMetadata is not null && UpdatedModlistMetadata is not null)
+        if (originalModlistMetadata is not null && updatedModlistMetadata is not null)
         {
-            var DownloadSizeChange = OriginalModlistMetadata.SizeOfArchives - UpdatedModlistMetadata.SizeOfArchives;
-            var InstallSizeChange = OriginalModlistMetadata.SizeOfInstalledFiles - UpdatedModlistMetadata.SizeOfInstalledFiles;
+            var downloadSizeChange = originalModlistMetadata.SizeOfArchives - updatedModlistMetadata.SizeOfArchives;
+            var installSizeChange = originalModlistMetadata.SizeOfInstalledFiles - updatedModlistMetadata.SizeOfInstalledFiles;
             
-            MarkdownText += "**Info:**\n\n" +
-                            $"- Download size change: {DownloadSizeChange.ToFileSizeString()} (Total: {UpdatedModlistMetadata.SizeOfArchives.ToFileSizeString()})\n" +
-                            $"- Install size change: {InstallSizeChange.ToFileSizeString()} (Total: {UpdatedModlistMetadata.SizeOfInstalledFiles.ToFileSizeString()})\n\n";
+            markdownText += "**Info:**\n\n" +
+                            $"- Download size change: {downloadSizeChange.ToFileSizeString()} (Total: {updatedModlistMetadata.SizeOfArchives.ToFileSizeString()})\n" +
+                            $"- Install size change: {installSizeChange.ToFileSizeString()} (Total: {updatedModlistMetadata.SizeOfInstalledFiles.ToFileSizeString()})\n\n";
         }
 
-        var UpdatedArchives = UpdatedModlist.Archives
-            .Where(a => OriginalModlist.Archives.All(x => x.Name != a.Name))
+        var updatedArchives = updatedModlist.Archives
+            .Where(a => originalModlist.Archives.All(x => x.Name != a.Name))
             .Where(a =>
             {
-                if (a.State is not Nexus NexusState)
+                if (a.State is not Nexus nexusState)
                     return false;
 
-                return OriginalModlist.Archives.Any(x =>
+                return originalModlist.Archives.Any(x =>
                 {
-                    if (x.State is not Nexus OriginalState)
+                    if (x.State is not Nexus originalState)
                         return false;
 
-                    if (NexusState.Name != OriginalState.Name)
+                    if (nexusState.Name != originalState.Name)
                         return false;
 
-                    if (NexusState.ModID != OriginalState.ModID)
+                    if (nexusState.ModID != originalState.ModID)
                         return false;
 
-                    if (!long.TryParse(NexusState.FileID.ToString(), out var CurrentFileId))
+                    if (!long.TryParse(nexusState.FileID.ToString(), out var currentFileId))
                         return true;
 
-                    if (!long.TryParse(OriginalState.FileID.ToString(), out var OriginalFileId))
+                    if (!long.TryParse(originalState.FileID.ToString(), out var originalFileId))
                     {
-                        return CurrentFileId > OriginalFileId;
+                        return currentFileId > originalFileId;
                     }
 
                     return true;
                 });
             }).ToList();
 
-        var NewArchives = UpdatedModlist.Archives
-            .Where(a => OriginalModlist.Archives.All(x => x.Name != a.Name))
-            .Where(a => UpdatedArchives.All(x => x != a))
+        var newArchives = updatedModlist.Archives
+            .Where(a => originalModlist.Archives.All(x => x.Name != a.Name))
+            .Where(a => updatedArchives.All(x => x != a))
             .ToList();
         
-        var RemovedArchives = OriginalModlist.Archives
-            .Where(a => UpdatedModlist.Archives.All(x => x.Name != a.Name))
-            .Where(a => UpdatedArchives.All(x => x != a))
+        var removedArchives = originalModlist.Archives
+            .Where(a => updatedModlist.Archives.All(x => x.Name != a.Name))
+            .Where(a => updatedArchives.All(x => x != a))
             .ToList();
 
-        if (NewArchives.Count != 0 || RemovedArchives.Count != 0)
-            MarkdownText += "**Download Changes**:\n\n";
+        if (newArchives.Count != 0 || removedArchives.Count != 0)
+            markdownText += "**Download Changes**:\n\n";
 
-        NewArchives.Do(a =>
+        newArchives.Do(a =>
         {
-            MarkdownText += $"- Added [{GetModName(a)}{GetModVersion(a)}]({GetManifestURL(a)})\n";
+            markdownText += $"- Added [{GetModName(a)}{GetModVersion(a)}]({GetManifestUrl(a)})\n";
         });
         
-        UpdatedArchives.Do(a =>
+        updatedArchives.Do(a =>
         {
-            MarkdownText += $"- Updated [{GetModName(a)} to{GetModVersion(a)}]({GetManifestURL(a)})\n";
+            markdownText += $"- Updated [{GetModName(a)} to{GetModVersion(a)}]({GetManifestUrl(a)})\n";
         });
         
-        RemovedArchives.Do(a =>
+        removedArchives.Do(a =>
         {
-            MarkdownText += $"- Removed [{GetModName(a)}]({GetManifestURL(a)})\n";
+            markdownText += $"- Removed [{GetModName(a)}]({GetManifestUrl(a)})\n";
         });
 
-        MarkdownText += "\n";
+        markdownText += "\n";
 
-        var Output = Path.Combine(output.ToString(), "changelog.md");
+        var outputFile = Path.Combine(output.ToString(), "changelog.md");
 
-        if (File.Exists(Output) && Output.EndsWith("md"))
+        if (File.Exists(outputFile) && outputFile.EndsWith("md"))
         {
-            _logger.LogInformation($"Output file {Output} already exists and is a markdown file. It will be updated with the newest version");
+            _logger.LogInformation($"Output file {outputFile} already exists and is a markdown file. It will be updated with the newest version");
 
-            var markdown = (await File.ReadAllLinesAsync(Output)).ToList();
-            var lines = MarkdownText.Split("\n");
+            var markdown = (await File.ReadAllLinesAsync(outputFile)).ToList();
+            var lines = markdownText.Split("\n");
 
             if (lines.All(markdown.Contains))
             {
@@ -199,7 +199,7 @@ public class Changelog
                 return 0;
             }
 
-            var doc = Markdown.Parse(await File.ReadAllTextAsync(Output));
+            var doc = Markdown.Parse(await File.ReadAllTextAsync(outputFile));
 
             var hasToc = false;
             var tocLine = 0;
@@ -239,23 +239,23 @@ public class Changelog
 
             if (hasToc)
             {
-                markdown.Insert(tocLine, $"- [{UpdatedModlist.Version}](#{ToTocLink(UpdatedModlist.Version.ToString())})");
+                markdown.Insert(tocLine, $"- [{updatedModlist.Version}](#{ToTocLink(updatedModlist.Version.ToString())})");
                 line++;
             }
 
             markdown.InsertRange(line + 1, lines);
 
-            await File.WriteAllLinesAsync(Output, markdown);
+            await File.WriteAllLinesAsync(outputFile, markdown);
 
             return 0;
         }
 
         var text = "# Changelog\n\n" +
-        $"- [{UpdatedModlist.Version}](#{ToTocLink(UpdatedModlist.Version.ToString())})\n\n" +
-        $"{MarkdownText}";
+        $"- [{updatedModlist.Version}](#{ToTocLink(updatedModlist.Version.ToString())})\n\n" +
+        $"{markdownText}";
 
-        await File.WriteAllTextAsync(Output, text);
-        _logger.LogInformation($"Output file {Output} written\n");
+        await File.WriteAllTextAsync(outputFile, text);
+        _logger.LogInformation($"Output file {outputFile} written\n");
 
         return 0;
     }
@@ -289,7 +289,7 @@ public class Changelog
         return result;
     }
 
-    private static Uri? GetManifestURL(Archive a)
+    private static Uri? GetManifestUrl(Archive a)
     {
         var defaultUri = new Uri("about:blank");
 
