@@ -2,12 +2,12 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Builder;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
-using Wabbajack.DTOs.Directives;
 using Wabbajack.Paths;
 using Markdig;
 using Markdig.Syntax;
@@ -109,19 +109,21 @@ public class Changelog
             _logger.LogError("Updated modlist is not newer than the original modlist");
             return -1;
         }
-
-        var markdownText =
-            $"## {updatedModlist.Version}\n\n" +
-            $"**Build at:** `{File.GetLastWriteTime(updated.ToString())}`\n\n";
-
+        
+        StringBuilder markdownString = new();
+        markdownString.AppendLine($"## {updatedModlist.Version}");
+        markdownString.AppendLine($"**Build at:** `{File.GetLastWriteTime(updated.ToString())}`");
+        markdownString.AppendLine();
+        
         if (originalModlistMetadata is not null && updatedModlistMetadata is not null)
         {
             var downloadSizeChange = originalModlistMetadata.SizeOfArchives - updatedModlistMetadata.SizeOfArchives;
             var installSizeChange = originalModlistMetadata.SizeOfInstalledFiles - updatedModlistMetadata.SizeOfInstalledFiles;
-            
-            markdownText += "**Info:**\n\n" +
-                            $"- Download size change: {downloadSizeChange.ToFileSizeString()} (Total: {updatedModlistMetadata.SizeOfArchives.ToFileSizeString()})\n" +
-                            $"- Install size change: {installSizeChange.ToFileSizeString()} (Total: {updatedModlistMetadata.SizeOfInstalledFiles.ToFileSizeString()})\n\n";
+
+            markdownString.AppendLine("**Info:**");
+            markdownString.AppendLine($"- Download size change: {downloadSizeChange.ToFileSizeString()} (Total: {updatedModlistMetadata.SizeOfArchives.ToFileSizeString()}");
+            markdownString.AppendLine($"- Install size change: {installSizeChange.ToFileSizeString()} (Total: {updatedModlistMetadata.SizeOfInstalledFiles.ToFileSizeString()}");
+            markdownString.AppendLine();
         }
 
         var updatedArchives = updatedModlist.Archives
@@ -165,24 +167,28 @@ public class Changelog
             .ToList();
 
         if (newArchives.Count != 0 || removedArchives.Count != 0)
-            markdownText += "**Download Changes**:\n\n";
+        {
+            markdownString.AppendLine("**Download Changes:**");
+            markdownString.AppendLine();
+        }
 
         newArchives.Do(a =>
         {
-            markdownText += $"- Added [{GetModName(a)}{GetModVersion(a)}]({GetManifestUrl(a)})\n";
+            markdownString.AppendLine($"- Added [{GetModName(a)}{GetModVersion(a)}]({GetManifestUrl(a)})");
         });
         
         updatedArchives.Do(a =>
         {
-            markdownText += $"- Updated [{GetModName(a)} to{GetModVersion(a)}]({GetManifestUrl(a)})\n";
+            markdownString.AppendLine($"- Updated [{GetModName(a)} to{GetModVersion(a)}]({GetManifestUrl(a)})");
         });
         
         removedArchives.Do(a =>
         {
-            markdownText += $"- Removed [{GetModName(a)}]({GetManifestUrl(a)})\n";
+            markdownString.AppendLine($"- Removed [{GetModName(a)}]({GetManifestUrl(a)})");
         });
-
-        markdownText += "\n";
+        
+        // Blank line for presentation
+        markdownString.AppendLine();
 
         var outputFile = Path.Combine(output.ToString(), "changelog.md");
 
@@ -191,9 +197,9 @@ public class Changelog
             _logger.LogInformation($"Output file {outputFile} already exists and is a markdown file. It will be updated with the newest version");
 
             var markdown = (await File.ReadAllLinesAsync(outputFile)).ToList();
-            var lines = markdownText.Split("\n");
+            var lines = Regex.Matches(markdownString.ToString(), Environment.NewLine).Count;
 
-            if (lines.All(markdown.Contains))
+            if (markdown.Contains(markdownString.ToString()))
             {
                 _logger.LogInformation("The output file is already up to date");
                 return 0;
@@ -243,7 +249,8 @@ public class Changelog
                 line++;
             }
 
-            markdown.InsertRange(line + 1, lines);
+            //markdown.InsertRange(line + 1, lines);
+            markdown.Insert(markdownString.Length + 1, markdownString.ToString());
 
             await File.WriteAllLinesAsync(outputFile, markdown);
 
@@ -252,7 +259,7 @@ public class Changelog
 
         var text = "# Changelog\n\n" +
         $"- [{updatedModlist.Version}](#{ToTocLink(updatedModlist.Version.ToString())})\n\n" +
-        $"{markdownText}";
+        $"{markdownString}";
 
         await File.WriteAllTextAsync(outputFile, text);
         _logger.LogInformation($"Output file {outputFile} written\n");
