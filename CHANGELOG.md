@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 4.0.1.0 - Unreleased
+#### Version - 4.0.1.0 - 4/18/2025
 * Fixed subfolders of profiles showing up under additional profiles within compiler settings
 * Fixed Nexus login not taking cancellation token into account while waiting for authorization (closing the Nexus login prompt did not work)
 * Added 2FA support for MEGA login, added some extra logging for MEGA logins
