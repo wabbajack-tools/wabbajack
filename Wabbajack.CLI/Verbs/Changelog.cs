@@ -246,8 +246,57 @@ public class Changelog
             
         }
         
+        // Blank line for presentation
+        mdBuilder.AppendLine();
+        
         #endregion
 
+        #region Mod File Changes
+        
+        var originalModlistFile = originalModlist.Directives
+            .OfType<InlineFile>()
+            .FirstOrDefault(d => d.To.EndsWith("modlist.txt"));
+        
+        var updateModlistFile = updatedModlist.Directives
+            .OfType<InlineFile>()
+            .FirstOrDefault(d => d.To.EndsWith("modlist.txt"));
+
+        // Make sure to only compare the modlist files if they are found
+        if (originalModlistFile != default && updateModlistFile != default)
+        {
+
+            using var originalModlistFileStream =
+                await GetInlinedFileStreamAsync(original, originalModlistFile.SourceDataID);
+            var originalModlistStr = await ReadStreamToStringAsync(originalModlistFileStream);
+            var originalModlistArr = originalModlistStr.Split("\n");
+
+            using var updatedModlistFileStream =
+                await GetInlinedFileStreamAsync(updated, updateModlistFile.SourceDataID);
+            var updatedModlistStr = await ReadStreamToStringAsync(updatedModlistFileStream);
+            var updatedModlistArr = updatedModlistStr.Split("\n");
+
+            var removedMods = originalModlistArr
+                .Where(m => m.StartsWith('+'))
+                .Where(m => updatedModlistArr.All(x => m != x))
+                .Select(m => m[1..])
+                .ToList();
+
+            var addedMods = updatedModlistArr
+                .Where(m => m.StartsWith('+'))
+                .Where(m => originalModlistArr.All(x => m != x))
+                .Select(m => m[1..])
+                .ToList();
+
+            if (removedMods.Count != 0 || addedMods.Count != 0)
+                mdBuilder.AppendLine("**Mod Changes:**");
+
+            addedMods.Do(p => { mdBuilder.Append($"- Added {p}"); });
+
+            removedMods.Do(p => { mdBuilder.Append($"- Removed {p}"); });
+        }
+
+        #endregion
+        
         var outputFile = output.Combine("changelog.md");
 
         if (outputFile.FileExists())
