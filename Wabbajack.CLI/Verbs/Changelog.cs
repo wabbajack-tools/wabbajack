@@ -387,6 +387,7 @@ public class Changelog
         }
         return text;
     }
+    
     private static string ToTocLink(string header)
     {
         return header.Trim().Replace(" ", "").Replace(".", "");
