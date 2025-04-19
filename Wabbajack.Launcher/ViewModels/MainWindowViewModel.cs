@@ -249,7 +249,7 @@ public class MainWindowViewModel : ViewModelBase
         try
         {
             var entryPoint = KnownFolders.EntryPoint;
-            if (KnownFolders.IsInSpecialFolder(entryPoint) || entryPoint.Depth <= 1)
+            if (KnownFolders.IsInSpecialFolder(entryPoint, out var _) || entryPoint.Depth <= 1)
             {
                 var msg = MsBox.Avalonia.MessageBoxManager
                     .GetMessageBoxStandard(new MessageBoxStandardParams()

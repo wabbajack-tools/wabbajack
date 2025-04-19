@@ -79,7 +79,9 @@ public class Changelog
             _logger.LogError(e, "Failed to load updated Wabbajack file");
             return -1;
         }
-
+        
+        #region File size changes
+        
         // iAmMe: download and install size data not exposed directly in WJ 4.0. It's present in the *.wabbajack.meta.json
         // file but this file isn't guaranteed to be present. We'll check for it and if it's not there, skip reporting
         // the changes.
@@ -128,7 +130,11 @@ public class Changelog
             mdBuilder.AppendLine($"- Install size change: {installSizeChange.ToFileSizeString()} (Total: {updatedModlistMetadata.SizeOfInstalledFiles.ToFileSizeString()})");
             mdBuilder.AppendLine();
         }
-
+        
+        #endregion
+        
+        #region Download Changes
+        
         var updatedArchives = updatedModlist.Archives
             .Where(a => originalModlist.Archives.All(x => x.Name != a.Name))
             .Where(a =>
@@ -187,21 +193,23 @@ public class Changelog
         
         removedArchives.Do(a =>
         {
-            mdBuilder.AppendLine($"- Removed [{GetModName(a)}]({GetManifestUrl(a)})");
+            mdBuilder.AppendLine($"- Removed [{GetModName(a)}{GetModVersion(a)}]({GetManifestUrl(a)})");
         });
 
         // Blank line for presentation
         mdBuilder.AppendLine();
         
+        #endregion
+        
+        #region Load Order Changes
+        
         var originalLoadOrderFile = originalModlist.Directives
             .OfType<InlineFile>()
-            .Where(d => d.To.EndsWith("loadorder.txt"))
-            .FirstOrDefault();
+            .FirstOrDefault(d => d.To.EndsWith("loadorder.txt"));
         
         var updatedLoadOrderFile = updatedModlist.Directives
             .OfType<InlineFile>()
-            .Where(d => d.To.EndsWith("loadorder.txt"))
-            .FirstOrDefault();
+            .FirstOrDefault(d => d.To.EndsWith("loadorder.txt"));
 
         // Make sure to only compare the load order files if they are found, not all games will have a load order
         if (originalLoadOrderFile != default && updatedLoadOrderFile != default)
@@ -209,21 +217,22 @@ public class Changelog
 
             using var originalLoadOrderStream = await GetInlinedFileStreamAsync(original, originalLoadOrderFile.SourceDataID);
             var originalLoadOrder = await ReadStreamToStringAsync(originalLoadOrderStream);
+            var originalLoadOrderArr = originalLoadOrder.Split("\n");
 
             using var updatedLoadOrderStream = await GetInlinedFileStreamAsync(updated, updatedLoadOrderFile.SourceDataID);
             var updatedLoadOrder = await ReadStreamToStringAsync(updatedLoadOrderStream);
-
-            /*
-            var addedPlugins = updatedLoadOrder
-                .Where(p => originalLoadOrder.All(x => p != x))
+            var updatedLoadOrderArr = updatedLoadOrder.Split("\n");
+            
+            var addedPlugins = updatedLoadOrderArr
+                .Where(p => originalLoadOrderArr.All(x => p != x))
                 .ToList();
 
-            var removedPlugins = originalLoadOrder
-                .Where(p => updatedLoadOrder.All(x => p != x))
+            var removedPlugins = originalLoadOrderArr
+                .Where(p => updatedLoadOrderArr.All(x => p != x))
                 .ToList();
 
             if (addedPlugins.Count != 0 || removedPlugins.Count != 0)
-                mdBuilder.AppendLine("** Load Order Changes:**");
+                mdBuilder.AppendLine("**Load Order Changes:**");
 
             addedPlugins.Do(p =>
             {
@@ -234,9 +243,60 @@ public class Changelog
             {
                 mdBuilder.Append($"- Removed {p}");
             });
-            */
+            
+        }
+        
+        // Blank line for presentation
+        mdBuilder.AppendLine();
+        
+        #endregion
+
+        #region Mod File Changes
+        
+        var originalModlistFile = originalModlist.Directives
+            .OfType<InlineFile>()
+            .FirstOrDefault(d => d.To.EndsWith("modlist.txt"));
+        
+        var updateModlistFile = updatedModlist.Directives
+            .OfType<InlineFile>()
+            .FirstOrDefault(d => d.To.EndsWith("modlist.txt"));
+
+        // Make sure to only compare the modlist files if they are found
+        if (originalModlistFile != default && updateModlistFile != default)
+        {
+
+            using var originalModlistFileStream =
+                await GetInlinedFileStreamAsync(original, originalModlistFile.SourceDataID);
+            var originalModlistStr = await ReadStreamToStringAsync(originalModlistFileStream);
+            var originalModlistArr = originalModlistStr.Split("\n");
+
+            using var updatedModlistFileStream =
+                await GetInlinedFileStreamAsync(updated, updateModlistFile.SourceDataID);
+            var updatedModlistStr = await ReadStreamToStringAsync(updatedModlistFileStream);
+            var updatedModlistArr = updatedModlistStr.Split("\n");
+
+            var removedMods = originalModlistArr
+                .Where(m => m.StartsWith('+'))
+                .Where(m => updatedModlistArr.All(x => m != x))
+                .Select(m => m[1..])
+                .ToList();
+
+            var addedMods = updatedModlistArr
+                .Where(m => m.StartsWith('+'))
+                .Where(m => originalModlistArr.All(x => m != x))
+                .Select(m => m[1..])
+                .ToList();
+
+            if (removedMods.Count != 0 || addedMods.Count != 0)
+                mdBuilder.AppendLine("**Mod Changes:**");
+
+            addedMods.Do(p => { mdBuilder.Append($"- Added {p}"); });
+
+            removedMods.Do(p => { mdBuilder.Append($"- Removed {p}"); });
         }
 
+        #endregion
+        
         var outputFile = output.Combine("changelog.md");
 
         if (outputFile.FileExists())
@@ -327,6 +387,7 @@ public class Changelog
         }
         return text;
     }
+    
     private static string ToTocLink(string header)
     {
         return header.Trim().Replace(" ", "").Replace(".", "");
