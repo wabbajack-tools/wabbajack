@@ -193,7 +193,7 @@ public class Changelog
         
         removedArchives.Do(a =>
         {
-            mdBuilder.AppendLine($"- Removed [{GetModName(a)}]({GetManifestUrl(a)})");
+            mdBuilder.AppendLine($"- Removed [{GetModName(a)}{GetModVersion(a)}]({GetManifestUrl(a)})");
         });
 
         // Blank line for presentation
