@@ -13,6 +13,7 @@ using Markdig.Syntax;
 using Wabbajack.Installer;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack.CLI.Verbs;
 
@@ -85,20 +86,20 @@ public class Changelog
 
         try
         {
-            originalModlistMetadata =
-                await _dtos.DeserializeAsync<DownloadMetadata>(File.OpenRead(original + ".meta.json"));
+            using var stream = File.OpenRead(original + ".meta.json");
+            originalModlistMetadata = await _dtos.DeserializeAsync<DownloadMetadata>(stream);
         }
-        catch (FileNotFoundException e)
+        catch (FileNotFoundException)
         {
             _logger.LogWarning("Original modlist metadata file could not be found, skipping download/install size changes");
         }
 
         try
         {
-            updatedModlistMetadata =
-                await _dtos.DeserializeAsync<DownloadMetadata>(File.OpenRead(updated + ".meta.json"));
+            using var stream = File.OpenRead(updated + ".meta.json");
+            updatedModlistMetadata = await _dtos.DeserializeAsync<DownloadMetadata>(stream);
         }
-        catch (FileNotFoundException e)
+        catch (FileNotFoundException)
         {
             _logger.LogWarning("Updated modlist metadata file could not be found, skipping download/install size changes");
         }
@@ -109,20 +110,20 @@ public class Changelog
             return -1;
         }
         
-        StringBuilder markdownString = new();
-        markdownString.AppendLine($"## {updatedModlist.Version}");
-        markdownString.AppendLine($"**Build at:** `{File.GetLastWriteTime(updated.ToString())}`");
-        markdownString.AppendLine();
+        StringBuilder mdBuilder = new();
+        mdBuilder.AppendLine($"## {updatedModlist.Version}");
+        mdBuilder.AppendLine($"**Built at:** `{File.GetLastWriteTime(updated.ToString())}`");
+        mdBuilder.AppendLine();
         
         if (originalModlistMetadata is not null && updatedModlistMetadata is not null)
         {
             var downloadSizeChange = originalModlistMetadata.SizeOfArchives - updatedModlistMetadata.SizeOfArchives;
             var installSizeChange = originalModlistMetadata.SizeOfInstalledFiles - updatedModlistMetadata.SizeOfInstalledFiles;
 
-            markdownString.AppendLine("**Info:**");
-            markdownString.AppendLine($"- Download size change: {downloadSizeChange.ToFileSizeString()} (Total: {updatedModlistMetadata.SizeOfArchives.ToFileSizeString()})");
-            markdownString.AppendLine($"- Install size change: {installSizeChange.ToFileSizeString()} (Total: {updatedModlistMetadata.SizeOfInstalledFiles.ToFileSizeString()})");
-            markdownString.AppendLine();
+            mdBuilder.AppendLine("**Info:**");
+            mdBuilder.AppendLine($"- Download size change: {downloadSizeChange.ToFileSizeString()} (Total: {updatedModlistMetadata.SizeOfArchives.ToFileSizeString()})");
+            mdBuilder.AppendLine($"- Install size change: {installSizeChange.ToFileSizeString()} (Total: {updatedModlistMetadata.SizeOfInstalledFiles.ToFileSizeString()})");
+            mdBuilder.AppendLine();
         }
 
         var updatedArchives = updatedModlist.Archives
@@ -167,43 +168,37 @@ public class Changelog
 
         if (newArchives.Count != 0 || removedArchives.Count != 0)
         {
-            markdownString.AppendLine("**Download Changes:**");
-            markdownString.AppendLine();
+            mdBuilder.AppendLine("**Download Changes:**");
+            mdBuilder.AppendLine();
         }
 
         newArchives.Do(a =>
         {
-            markdownString.AppendLine($"- Added [{GetModName(a)}{GetModVersion(a)}]({GetManifestUrl(a)})");
+            mdBuilder.AppendLine($"- Added [{GetModName(a)}{GetModVersion(a)}]({GetManifestUrl(a)})");
         });
         
         updatedArchives.Do(a =>
         {
-            markdownString.AppendLine($"- Updated [{GetModName(a)} to{GetModVersion(a)}]({GetManifestUrl(a)})");
+            mdBuilder.AppendLine($"- Updated [{GetModName(a)} to{GetModVersion(a)}]({GetManifestUrl(a)})");
         });
         
         removedArchives.Do(a =>
         {
-            markdownString.AppendLine($"- Removed [{GetModName(a)}]({GetManifestUrl(a)})");
+            mdBuilder.AppendLine($"- Removed [{GetModName(a)}]({GetManifestUrl(a)})");
         });
         
         // Blank line for presentation
-        markdownString.AppendLine();
+        mdBuilder.AppendLine();
 
-        var outputFile = Path.Combine(output.ToString(), "changelog.md");
+        var outputFile = output.Combine("Changelog.md");
 
-        if (File.Exists(outputFile) && outputFile.EndsWith("md"))
+        if (outputFile.FileExists())
         {
             _logger.LogInformation($"Output file {outputFile} already exists and is a markdown file. It will be updated with the newest version");
 
-            var markdown = (await File.ReadAllLinesAsync(outputFile)).ToList();
+            var markdown = await outputFile.ReadAllTextAsync();
             
-            if (markdown.Contains(markdownString.ToString()))
-            {
-                _logger.LogInformation("The output file is already up to date");
-                return 0;
-            }
-
-            var doc = Markdown.Parse(await File.ReadAllTextAsync(outputFile));
+            var doc = Markdown.Parse(markdown);
 
             var hasToc = false;
             var tocLine = 0;
@@ -247,18 +242,16 @@ public class Changelog
                 line++;
             }
 
-            markdown.Insert(markdown.Count, markdownString.ToString());
-
-            await File.WriteAllLinesAsync(outputFile, markdown);
+            await outputFile.WriteAllTextAsync(markdown);
 
             return 0;
         }
 
         var text = "# Changelog\n\n" +
         $"- [{updatedModlist.Version}](#{ToTocLink(updatedModlist.Version.ToString())})\n\n" +
-        $"{markdownString}";
+        $"{mdBuilder}";
 
-        await File.WriteAllTextAsync(outputFile, text);
+        await outputFile.WriteAllTextAsync(text);
         _logger.LogInformation($"Output file {outputFile} written\n");
 
         return 0;
