@@ -14,6 +14,9 @@ using Wabbajack.Installer;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Paths.IO;
+using Wabbajack.DTOs.Directives;
+using System.IO.Compression;
+using System.Threading;
 
 namespace Wabbajack.CLI.Verbs;
 
@@ -186,11 +189,55 @@ public class Changelog
         {
             mdBuilder.AppendLine($"- Removed [{GetModName(a)}]({GetManifestUrl(a)})");
         });
-        
+
         // Blank line for presentation
         mdBuilder.AppendLine();
+        
+        var originalLoadOrderFile = originalModlist.Directives
+            .OfType<InlineFile>()
+            .Where(d => d.To.EndsWith("loadorder.txt"))
+            .FirstOrDefault();
+        
+        var updatedLoadOrderFile = updatedModlist.Directives
+            .OfType<InlineFile>()
+            .Where(d => d.To.EndsWith("loadorder.txt"))
+            .FirstOrDefault();
 
-        var outputFile = output.Combine("Changelog.md");
+        // Make sure to only compare the load order files if they are found, not all games will have a load order
+        if (originalLoadOrderFile != default && updatedLoadOrderFile != default)
+        {
+
+            using var originalLoadOrderStream = await GetInlinedFileStreamAsync(original, originalLoadOrderFile.SourceDataID);
+            var originalLoadOrder = await ReadStreamToStringAsync(originalLoadOrderStream);
+
+            using var updatedLoadOrderStream = await GetInlinedFileStreamAsync(updated, updatedLoadOrderFile.SourceDataID);
+            var updatedLoadOrder = await ReadStreamToStringAsync(updatedLoadOrderStream);
+
+            /*
+            var addedPlugins = updatedLoadOrder
+                .Where(p => originalLoadOrder.All(x => p != x))
+                .ToList();
+
+            var removedPlugins = originalLoadOrder
+                .Where(p => updatedLoadOrder.All(x => p != x))
+                .ToList();
+
+            if (addedPlugins.Count != 0 || removedPlugins.Count != 0)
+                mdBuilder.AppendLine("** Load Order Changes:**");
+
+            addedPlugins.Do(p =>
+            {
+                mdBuilder.Append($"- Added {p}");
+            });
+
+            removedPlugins.Do(p =>
+            {
+                mdBuilder.Append($"- Removed {p}");
+            });
+            */
+        }
+
+        var outputFile = output.Combine("changelog.md");
 
         if (outputFile.FileExists())
         {
@@ -257,18 +304,29 @@ public class Changelog
         return 0;
     }
 
-    private async Task<string> GetTextFileFromModlist(AbsolutePath archive, ModList modlist, RelativePath sourceId)
+    private async Task<Stream?> GetInlinedFileStreamAsync(AbsolutePath modlistFile, RelativePath sourceId)
     {
-        var installer = StandardInstaller.Create(_serviceProvider, new InstallerConfiguration
-        {
-            ModList = modlist,
-            ModlistArchive = archive,
-        });
+        await using var stream = modlistFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+        using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
+        var entry = archive.Entries.FirstOrDefault(e => e.FullName == sourceId.ToString());
+        if (entry == null)
+            return null;
 
-        var bytes = await installer.LoadBytesFromPath(sourceId);
-        return Encoding.Default.GetString(bytes);
+        MemoryStream ms = new();
+        await entry.Open().CopyToAsync(ms);
+        return ms;
     }
 
+    private async Task<string> ReadStreamToStringAsync(Stream stream, CancellationToken? token = null)
+    {
+        stream.Seek(0, SeekOrigin.Begin);
+        string text = string.Empty;
+        using (var reader = new StreamReader(stream))
+        {
+            text = await reader.ReadToEndAsync(token.GetValueOrDefault(CancellationToken.None));
+        }
+        return text;
+    }
     private static string ToTocLink(string header)
     {
         return header.Trim().Replace(" ", "").Replace(".", "");
