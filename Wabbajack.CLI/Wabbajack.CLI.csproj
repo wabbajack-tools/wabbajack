@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -20,8 +20,8 @@
     <ItemGroup>
         <PackageReference Include="Markdig" Version="0.40.0" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.1" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.1" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.4" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1" />
         <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.1" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.1" />
