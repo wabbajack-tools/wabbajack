@@ -59,7 +59,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     private const string InstallSettingsPrefix = "install-settings-";
     private readonly Random _random = new();
     
-    
+
     [Reactive] public ModList ModList { get; set; }
     [Reactive] public ModlistMetadata ModlistMetadata { get; set; }
     [Reactive] public FilePickerVM WabbajackFileLocation { get; set; }
