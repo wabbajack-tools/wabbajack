@@ -78,6 +78,9 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
                 .DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.Settings.OutputFile, view => view.OutputFilePicker.PickerVM.TargetPath)
                 .DisposeWith(disposables);
+
+            this.Bind(ViewModel, vm => vm.Settings.ModListCommunity, view => view.CommunitySetting.Text)
+                .DisposeWith(disposables);
         });
 
     }

@@ -126,7 +126,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     public ICommand OpenManifestCommand { get; }
     public ICommand OpenReadmeCommand { get; }
     public ICommand OpenWikiCommand { get; }
-    public ICommand OpenDiscordButton { get; }
+    public ICommand OpenCommunityCommand { get; }
     public ICommand OpenWebsiteCommand { get; }
     public ICommand OpenMissingArchivesCommand { get; }
     public ICommand BackToGalleryCommand { get; }
@@ -177,14 +177,13 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
         OpenReadmeCommand = ReactiveCommand.Create(() =>
         {
-            UIUtils.OpenWebsite(ModList!.Readme);
+            UIUtils.OpenWebsite(ModList.Readme);
         }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModList.Readme, (isNotLoading, readme) => isNotLoading && !string.IsNullOrWhiteSpace(readme)));
 
         OpenWebsiteCommand = ReactiveCommand.Create(() =>
         {
-            UIUtils.OpenWebsite(ModlistMetadata.Links.WebsiteURL);
-        }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModlistMetadata,
-        (isNotLoading, metadata) => isNotLoading && !string.IsNullOrWhiteSpace(metadata?.Links.WebsiteURL)));
+            UIUtils.OpenWebsite(ModList.Website);
+        }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModList.Website, (isNotLoading, website) => isNotLoading && !string.IsNullOrWhiteSpace(website)));
         
         WabbajackFileLocation = new FilePickerVM
         {
@@ -199,9 +198,9 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
             UIUtils.OpenFolderAndSelectFile(_configuration.LogLocation.Combine("Wabbajack.current.log"));
         });
 
-        OpenDiscordButton = ReactiveCommand.Create(() =>
+        OpenCommunityCommand = ReactiveCommand.Create(() =>
         {
-            UIUtils.OpenWebsite(new Uri(ModlistMetadata.Links.DiscordURL));
+            UIUtils.OpenWebsite(new Uri(ModList.Community));
         }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModlistMetadata,
         (isNotLoading, metadata) => isNotLoading && !string.IsNullOrEmpty(metadata?.Links?.DiscordURL)));
 

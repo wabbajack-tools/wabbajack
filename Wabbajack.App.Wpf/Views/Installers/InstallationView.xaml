@@ -106,7 +106,7 @@
                     </Grid.RowDefinitions>
                     <local:WJButton x:Name="DocumentationButton" Text="Readme" Icon="Document" Grid.Row="0" Margin="{StaticResource InstallMargin}" Width="Auto" />
                     <local:WJButton x:Name="WebsiteButton" Text="Website" Icon="Globe" Grid.Row="1" Margin="{StaticResource InstallMargin}" Width="Auto" />
-                    <local:WJButton x:Name="DiscordButton" Text="Discord" Icon="PeopleChat" Grid.Row="2" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                    <local:WJButton x:Name="CommunityButton" Text="Community" Icon="PeopleChat" Grid.Row="2" Margin="{StaticResource InstallMargin}" Width="Auto" />
                     <local:WJButton x:Name="ManifestButton" Text="Archives" Icon="BoxSearch" Grid.Row="3" Width="Auto" />
                 </Grid>
 
