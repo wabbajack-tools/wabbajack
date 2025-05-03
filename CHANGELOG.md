@@ -2,6 +2,8 @@
 
 #### Version - 4.0.2.0 - Unreleased
 * Added back the changelog CLI command to allow for Wabbajack to create changelogs when given two different Wabbajack files.
+* Fixed the community URL not being saved in the compiler menu
+* Fixed the additional profiles not being read or saved in the compiler menu
 
 #### Version - 4.0.1.0 - 4/18/2025
 * Fixed subfolders of profiles showing up under additional profiles within compiler settings
