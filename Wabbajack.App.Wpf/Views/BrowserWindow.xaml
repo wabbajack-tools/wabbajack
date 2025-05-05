@@ -35,7 +35,8 @@
 			BorderThickness="0"
 			HorizontalAlignment="Right"
             VerticalAlignment="Center"
-			Padding="0, 4, 0, 8">
+            Margin="0, -4, -8, 0"
+			Padding="8, 8, 8, 8">
 			<ic:SymbolIcon
                 x:Name="PopoutIcon"
                 Symbol="WindowNew"
@@ -51,8 +52,13 @@
 			BorderThickness="0"
 			HorizontalAlignment="Right"
             VerticalAlignment="Center"
-			Padding="0, 4, 0, 8">
-			<ic:SymbolIcon Symbol="Dismiss" FontSize="24" HorizontalAlignment="Right" VerticalAlignment="Center" />
+            Margin="0, -4, -8, 0"
+			Padding="8, 8, 8, 8">
+			<ic:SymbolIcon
+                Symbol="Dismiss"
+                FontSize="24"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center" />
 		</Button>
         <Grid x:Name="WebViewGrid" Grid.Row="3" Grid.ColumnSpan="4" Margin="0, 0, 0, -16">
             <TextBlock
