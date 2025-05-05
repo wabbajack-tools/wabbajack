@@ -8,6 +8,7 @@
 * Reworked the manual file download report to be more readable
   * Archives are now grouped by downloader and shown in tables, except for game files
   * Adds support for auto light/dark mode depending on system, styled with PicoCSS
+* Add support for Oblivion Remastered ([@reyqune](https://www.github.com/reyqune))
 
 #### Version - 4.0.1.0 - 4/18/2025
 * Fixed subfolders of profiles showing up under additional profiles within compiler settings
