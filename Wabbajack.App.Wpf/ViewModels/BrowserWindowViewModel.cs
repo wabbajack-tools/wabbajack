@@ -47,22 +47,32 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
         CloseCommand = ReactiveCommand.Create(() => _tokenSource.Cancel());
         TogglePopoutCommand = ReactiveCommand.Create(() =>
         {
-            _popoutWindow?.Close();
             ShowFloatingWindow.Send(FloatingScreenType.None);
             if (!PoppedOut)
             {
                 _popoutWindow = new Window()
                 {
                     Owner = Application.Current.MainWindow,
-                    Content = _serviceProvider.GetRequiredService<BrowserWindow>()
+                    Content = _serviceProvider.GetRequiredService<BrowserWindow>(),
+                    Title = "Wabbajack Browser"
                 };
                 _popoutWindow.Show();
+                _popoutWindow.Closed += (_, _) =>
+                {
+                    if (PoppedOut)
+                    {
+                        ShowBrowserWindow.Send(this, openExistingOperation: true);
+                        PoppedOut = false;
+                    }
+                };
+                PoppedOut = true;
             }
             else
             {
+                PoppedOut = false;
+                _popoutWindow?.Close();
                 ShowBrowserWindow.Send(this, openExistingOperation: true);
             }
-            PoppedOut = !PoppedOut;
         });
 
         OpenWebViewHelpCommand = ReactiveCommand.Create(() => {
