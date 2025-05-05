@@ -21,14 +21,31 @@
 			<ColumnDefinition Width="Auto" />
 			<ColumnDefinition Width="*" />
 			<ColumnDefinition Width="Auto" />
+			<ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Row="0" Grid.ColumnSpan="3" FontSize="18" Name="Header"></TextBlock>
         <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Name="Instructions"></TextBlock>
 		<local:WJButton Grid.Row="2" Grid.Column="0" x:Name="BackButton" ButtonStyle="Transparent" Icon="ChevronLeft" Margin="0, 0, 4, 0" Width="56" HorizontalAlignment="Center" />
         <TextBox Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Margin="0, 8, 0, 8" Foreground="{StaticResource DisabledButtonForeground}" VerticalContentAlignment="Center" Name="AddressBar" IsEnabled="True" IsReadOnly="True"></TextBox>
 		<Button
-			x:Name="CloseButton"
+			x:Name="PopoutButton"
             Grid.Column="3"
+			Style="{StaticResource MainButtonStyle}"
+			Background="Transparent"
+			BorderThickness="0"
+			HorizontalAlignment="Right"
+            VerticalAlignment="Center"
+			Padding="0, 4, 0, 8">
+			<ic:SymbolIcon
+                x:Name="PopoutIcon"
+                Symbol="WindowNew"
+                FontSize="24"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center" />
+		</Button>
+		<Button
+			x:Name="CloseButton"
+            Grid.Column="4"
 			Style="{StaticResource MainButtonStyle}"
 			Background="Transparent"
 			BorderThickness="0"

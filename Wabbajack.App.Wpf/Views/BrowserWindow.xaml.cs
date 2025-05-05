@@ -29,6 +29,9 @@ public partial class BrowserWindow : ReactiveUserControl<BrowserWindowViewModel>
             this.BindCommand(ViewModel, vm => vm.CloseCommand, v => v.CloseButton)
                 .DisposeWith(disposables);
 
+            this.BindCommand(ViewModel, vm => vm.TogglePopoutCommand, v => v.PopoutButton)
+                .DisposeWith(disposables);
+
             this.WhenAnyValue(v => v.ViewModel.HeaderText)
                 .BindToStrict(this, view => view.Header.Text)
                 .DisposeWith(disposables);
@@ -59,6 +62,13 @@ public partial class BrowserWindow : ReactiveUserControl<BrowserWindowViewModel>
                     });
                 })
                 .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.PoppedOut)
+                     .Subscribe(poppedOut =>
+                     {
+                         PopoutIcon.Symbol = poppedOut ? FluentIcons.Common.Symbol.ContractDownLeft : FluentIcons.Common.Symbol.ContractUpRight;
+                     })
+                     .DisposeWith(disposables);
         });
     }
 }
