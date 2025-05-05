@@ -739,7 +739,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
             writer.Write("<h1>Missing Files</h1>");
             writer.Write($"<p>Wabbajack was unable to source all files automatically.<br>");
             writer.Write($"Files will need to be put inside the downloads folder{(archives.Any(a => a.State is GameFileSource) ? ", <b>except for game files!</b>" : ".")}<br>");
-            writer.Write($"You might find more information on these files in the <a href='{ModList.Readme}'>modlist documentation</a> and/or <a href='{ModList.Community}'>support channels.</a></p>");
+            writer.Write($"You might find more information on these files in the <a data-tooltip='{ModList.Readme}' href='{ModList.Readme}'>modlist documentation</a> and/or <a data-tooltip='{ModList.Community}' href='{ModList.Community}'>support channels.</a></p>");
 
             foreach (var group in archives.GroupBy(a => a.State.TypeName, a => (a, a.State)))
             {
