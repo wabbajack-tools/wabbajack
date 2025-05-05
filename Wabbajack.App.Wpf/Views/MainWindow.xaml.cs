@@ -193,7 +193,9 @@ public partial class MainWindow : MetroWindow
         if (Application.Current.MainWindow.WindowState == WindowState.Maximized)
             Application.Current.MainWindow.WindowState = WindowState.Normal;
 
-        DragMove();
+        if (e.LeftButton == MouseButtonState.Pressed) {
+            DragMove();
+        }
     }
 
     private void FloatingWindowBackground_OnMouseDown(object sender, MouseButtonEventArgs x)
