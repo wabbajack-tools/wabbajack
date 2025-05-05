@@ -4,6 +4,10 @@
 * Added back the changelog CLI command to allow for Wabbajack to create changelogs when given two different Wabbajack files.
 * Fixed the community URL not being saved in the compiler menu
 * Fixed the additional profiles not being read or saved in the compiler menu
+* Fixed a crash when double-clicking the compiler file manager to open a folder
+* Reworked the manual file download report to be more readable
+  * Archives are now grouped by downloader and shown in tables, except for game files
+  * Adds support for auto light/dark mode depending on system, styled with PicoCSS
 
 #### Version - 4.0.1.0 - 4/18/2025
 * Fixed subfolders of profiles showing up under additional profiles within compiler settings
