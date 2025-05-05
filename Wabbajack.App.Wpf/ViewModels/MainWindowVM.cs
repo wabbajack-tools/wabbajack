@@ -29,6 +29,7 @@ using System.Reactive.Concurrency;
 using Wabbajack.Util;
 using System.IO;
 using System.Net.Http;
+using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack;
 
@@ -71,6 +72,7 @@ public class MainWindowVM : ViewModel
     private readonly ILogger<MainWindowVM> _logger;
     private readonly ResourceMonitor _resourceMonitor;
     private readonly SystemParametersConstructor _systemParams;
+    private readonly SettingsManager _settingsManager;
     private readonly IServiceProvider _serviceProvider;
 
     public ICommand CopyVersionCommand { get; }
@@ -104,6 +106,7 @@ public class MainWindowVM : ViewModel
         _resourceMonitor = resourceMonitor;
         _serviceProvider = serviceProvider;
         _systemParams = systemParams;
+        _settingsManager = serviceProvider.GetRequiredService<SettingsManager>();
         ConverterRegistration.Register();
         InstallerVM = installerVM;
         CompilerHomeVM = compilerHomeVM;
@@ -339,6 +342,10 @@ public class MainWindowVM : ViewModel
             ActiveFloatingPane = browserWindow.ViewModel = msg.ViewModel;
             browserWindow.DataContext = ActiveFloatingPane;
             await browserWindow.ViewModel.RunBrowserOperation();
+
+            // Restore popped out state
+            var wasPoppedOut = await _settingsManager.Load<bool>("browser_popped_out");
+            if (wasPoppedOut) browserWindow.ViewModel.TogglePopoutCommand.Execute(null);
         }
         else
         {
