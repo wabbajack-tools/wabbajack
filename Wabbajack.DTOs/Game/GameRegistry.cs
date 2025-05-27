@@ -689,7 +689,7 @@ public static class GameRegistry
             }
         },
 	    	{
-            Game.darktide, new GameMetaData
+            Game.Warhammer40kDarktide, new GameMetaData
             {
                 Game = Game.Warhammer40kDarktide,
                 MO2Name = "Warhammer 40,000: Darktide",
