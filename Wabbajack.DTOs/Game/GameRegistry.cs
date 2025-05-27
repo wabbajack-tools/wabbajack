@@ -691,7 +691,7 @@ public static class GameRegistry
 	    	{
             Game.darktide, new GameMetaData
             {
-                Game = Game.darktide,
+                Game = Game.Warhammer40kDarktide,
                 MO2Name = "Warhammer 40,000: Darktide",
                 NexusName = "Warhammer 40,000: Darktide",
                 NexusGameId = 4943,
