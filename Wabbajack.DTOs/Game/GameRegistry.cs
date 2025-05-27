@@ -688,6 +688,23 @@ public static class GameRegistry
                 IconSource = "https://cdn2.steamgriddb.com/icon/599131ef8d092b1b8ffc3893b13a2064/32/32x32.png", 
             }
         },
+	    	{
+            Game.darktide, new GameMetaData
+            {
+                Game = Game.darktide,
+                MO2Name = "Warhammer 40,000: Darktide",
+                NexusName = "Warhammer 40,000: Darktide",
+                NexusGameId = 4943,
+                MO2ArchiveName = "darktide",
+                SteamIDs = [1361210],
+                RequiredFiles = new []
+                {
+                    @"Darktide.exe".ToRelativePath(),
+                },
+                MainExecutable = @"Darktide.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/3ec93a311493c6f2f7284487ed347446.ico", 
+            }
+	},
         {
             Game.ModdingTools, new GameMetaData
             {
