@@ -693,16 +693,16 @@ public static class GameRegistry
             {
                 Game = Game.Warhammer40kDarktide,
                 MO2Name = "Warhammer 40,000: Darktide",
-                NexusName = "Warhammer 40,000: Darktide",
+                NexusName = "warhammer40kdarktide",
                 NexusGameId = 4943,
-                MO2ArchiveName = "darktide",
+                MO2ArchiveName = "warhammer40kdarktide",
                 SteamIDs = [1361210],
                 RequiredFiles = new []
                 {
                     @"Darktide.exe".ToRelativePath(),
                 },
                 MainExecutable = @"Darktide.exe".ToRelativePath(),
-                IconSource = "https://cdn2.steamgriddb.com/icon/3ec93a311493c6f2f7284487ed347446.ico", 
+                IconSource = "https://cdn2.steamgriddb.com/icon/3ec93a311493c6f2f7284487ed347446/32/256x256.png", 
             }
 	},
         {
