@@ -58,4 +58,5 @@ public enum Game
     [Description("Starfield")] Starfield,
     [Description("7 Days to Die")] SevenDaysToDie,
     [Description("The Elder Scrolls IV: Oblivion Remastered")] oblivionremastered,
+    [Description("Warhammer 40,000: Darktide")] Warhammer40kDarktide,
 }
