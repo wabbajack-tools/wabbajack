@@ -144,6 +144,7 @@ public static class GameRegistry
                 },
                 MainExecutable = "Fallout4.exe".ToRelativePath(),
                 CommonlyConfusedWith = new[] {Game.Fallout4VR},
+                CanSourceFrom = new[] {Game.Fallout76},
                 IconSource = "https://cdn2.steamgriddb.com/icon/578d9dd532e0be0cdd050b5bec4967a1.png"
             }
         },
@@ -686,6 +687,24 @@ public static class GameRegistry
                 },
                 MainExecutable = @"OblivionRemastered.exe".ToRelativePath(),
                 IconSource = "https://cdn2.steamgriddb.com/icon/599131ef8d092b1b8ffc3893b13a2064/32/32x32.png", 
+            }
+        },
+        {
+            Game.Fallout76, new GameMetaData
+            {
+                Game = Game.Fallout76,
+                NexusName = "fallout76",
+                NexusGameId = 2590,
+                MO2Name = "Fallout 76",
+                MO2ArchiveName = "fallout76",
+                SteamIDs = new[] {1151340},
+                RequiredFiles = new[]
+                {
+                    "Fallout76.exe".ToRelativePath()
+                },
+                MainExecutable = "Fallout76.exe".ToRelativePath(),
+                CanSourceFrom = new[] {Game.Fallout4},
+                IconSource = "https://cdn2.steamgriddb.com/icon/b7196f5fd0fce35ccadc7001fd067588/32/96x96.png"
             }
         },
         {
