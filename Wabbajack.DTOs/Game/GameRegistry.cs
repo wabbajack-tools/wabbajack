@@ -689,6 +689,28 @@ public static class GameRegistry
             }
         },
         {
+            Game.Fallout4London, new GameMetaData
+            {
+                Game = Game.Fallout4London,
+                NexusName = "fallout4london",
+                NexusGameId = 6332,
+                MO2Name = "Fallout 4 London",
+                MO2ArchiveName = "Fallout4London",
+                GOGIDs = new long[] {
+                    1491728574, //Fallout: London : Game
+                    1897848199, //Fallout: London One-click Edition : One-Click Mod Install
+                },
+                RequiredFiles = new[]
+                {
+                    "Fallout4.exe".ToRelativePath()
+                },
+                MainExecutable = "Fallout4.exe".ToRelativePath(),
+                CommonlyConfusedWith = new[] {Game.Fallout4},
+                CanSourceFrom = new[] {Game.Fallout4},
+                IconSource = "https://cdn2.steamgriddb.com/icon_thumb/f4e46ba9669d3a459c71e93e431607b7.png"
+            }
+        },
+        {
             Game.ModdingTools, new GameMetaData
             {
                 Game = Game.ModdingTools,
