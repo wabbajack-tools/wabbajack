@@ -671,6 +671,23 @@ public static class GameRegistry
                 IconSource = "https://cdn2.steamgriddb.com/icon/2b1f462a660e29c47acdcc25cb14d321.png", 
             }
         },
+		{
+            Game.oblivionremastered, new GameMetaData
+            {
+                Game = Game.oblivionremastered,
+                MO2Name = "Oblivion Remastered",
+                NexusName = "oblivionremastered",
+                NexusGameId = 7587,
+                MO2ArchiveName = "oblivionremastered",
+                SteamIDs = [2623190],
+                RequiredFiles = new []
+                {
+                    @"OblivionRemastered.exe".ToRelativePath(),
+                },
+                MainExecutable = @"OblivionRemastered.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/599131ef8d092b1b8ffc3893b13a2064/32/32x32.png", 
+            }
+        },
         {
             Game.VtMB, new GameMetaData
             {

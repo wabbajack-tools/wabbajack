@@ -58,4 +58,5 @@ public enum Game
     [Description("Starfield")] Starfield,
     [Description("7 Days to Die")] SevenDaysToDie,
     [Description("Vampire: The Masquerade - Bloodlines")] VtMB,
+    [Description("The Elder Scrolls IV: Oblivion Remastered")] oblivionremastered,
 }
