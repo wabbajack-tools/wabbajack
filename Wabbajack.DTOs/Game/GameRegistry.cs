@@ -726,7 +726,7 @@ public static class GameRegistry
                 MainExecutable = "Fallout4.exe".ToRelativePath(),
                 CommonlyConfusedWith = new[] {Game.Fallout4},
                 CanSourceFrom = new[] {Game.Fallout4},
-                IconSource = "https://cdn2.steamgriddb.com/icon_thumb/f4e46ba9669d3a459c71e93e431607b7.png"
+                IconSource = "https://cdn2.steamgriddb.com/icon/2cb3742470f550f41aea34a0702e4d63.png"
             }
         },
         {
