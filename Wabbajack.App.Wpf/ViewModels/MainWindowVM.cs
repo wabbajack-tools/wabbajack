@@ -338,14 +338,14 @@ public class MainWindowVM : ViewModel
         if (!msg.OpenExistingOperation)
         {
             using var _ = await _browserLocker.WaitAsync();
+
             var browserWindow = _serviceProvider.GetRequiredService<BrowserWindow>();
             ActiveFloatingPane = browserWindow.ViewModel = msg.ViewModel;
             browserWindow.DataContext = ActiveFloatingPane;
-            await browserWindow.ViewModel.RunBrowserOperation();
 
             // Restore popped out state
             var wasPoppedOut = await _settingsManager.Load<bool>("browser_popped_out");
-            if (wasPoppedOut) browserWindow.ViewModel.TogglePopoutCommand.Execute(null);
+            await browserWindow.ViewModel.RunBrowserOperation(wasPoppedOut);
         }
         else
         {
