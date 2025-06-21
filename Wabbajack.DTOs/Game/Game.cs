@@ -42,5 +42,5 @@ public enum Game
     [Description("Starfield")] Starfield,
     [Description("7 Days to Die")] SevenDaysToDie,
     [Description("Oblivion Remastered")] OblivionRemastered,
-    [Description("Fallout 76")] Fallout76,
+    [Description("Fallout 4: London")] Fallout4London,
 }
