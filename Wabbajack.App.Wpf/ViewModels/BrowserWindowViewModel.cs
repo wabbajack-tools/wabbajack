@@ -17,19 +17,16 @@ using Wabbajack.Messages;
 using Wabbajack.Paths;
 using Microsoft.Extensions.Logging;
 using System.Windows;
-using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack;
 
 public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
 {
     private readonly ILogger<BrowserWindowViewModel> _logger;
-    private readonly SettingsManager _settingsManager;
     private readonly IServiceProvider _serviceProvider;
     private CancellationTokenSource _tokenSource;
     private Window? _popoutWindow { get; set; }
 
-    private bool _disablePoppedOutSave { get; set; }
     [Reactive] public bool PoppedOut { get; private set; }
 
     [Reactive] public WebView2 Browser { get; set; }
@@ -46,7 +43,6 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
     {
         _serviceProvider = serviceProvider;
         _logger = serviceProvider.GetRequiredService<ILogger<BrowserWindowViewModel>>();
-        _settingsManager = serviceProvider.GetRequiredService<SettingsManager>();
         BackCommand = ReactiveCommand.Create(() => Browser.GoBack());
         CloseCommand = ReactiveCommand.Create(() => _tokenSource.Cancel());
         TogglePopoutCommand = ReactiveCommand.Create(() =>
@@ -67,18 +63,15 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
                     {
                         ShowBrowserWindow.Send(this, openExistingOperation: true);
                         PoppedOut = false;
-                        if(!_disablePoppedOutSave) _ = Task.Run(() => _settingsManager.Save("browser_popped_out", PoppedOut));
                         Application.Current.MainWindow.WindowState = WindowState.Normal;
                         Application.Current.MainWindow.Focus();
                     }
                 };
                 PoppedOut = true;
-                if(!_disablePoppedOutSave) _ = Task.Run(() => _settingsManager.Save("browser_popped_out", PoppedOut));
             }
             else
             {
                 PoppedOut = false;
-                if(!_disablePoppedOutSave) _ = Task.Run(() => _settingsManager.Save("browser_popped_out", PoppedOut));
                 _popoutWindow?.Close();
                 ShowBrowserWindow.Send(this, openExistingOperation: true);
             }
@@ -112,9 +105,6 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
     private void Close()
     {
         _tokenSource.Dispose();
-        _disablePoppedOutSave = true;
-        _popoutWindow?.Close();
-        _disablePoppedOutSave = false;
         ShowFloatingWindow.Send(FloatingScreenType.None);
         if(Closed != null)
         {
