@@ -29,7 +29,7 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
     private CancellationTokenSource _tokenSource;
     private Window? _popoutWindow { get; set; }
 
-    private bool _popoutClosedByUser { get; set; }
+    private bool _disablePoppedOutSave { get; set; }
     [Reactive] public bool PoppedOut { get; private set; }
 
     [Reactive] public WebView2 Browser { get; set; }
@@ -49,41 +49,39 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
         _settingsManager = serviceProvider.GetRequiredService<SettingsManager>();
         BackCommand = ReactiveCommand.Create(() => Browser.GoBack());
         CloseCommand = ReactiveCommand.Create(() => _tokenSource.Cancel());
-        TogglePopoutCommand = ReactiveCommand.Create(async () =>
+        TogglePopoutCommand = ReactiveCommand.Create(() =>
         {
             ShowFloatingWindow.Send(FloatingScreenType.None);
             if (!PoppedOut)
             {
-                PoppedOut = true;
                 _popoutWindow = new Window()
                 {
                     Owner = Application.Current.MainWindow,
                     Content = _serviceProvider.GetRequiredService<BrowserWindow>(),
-                    Title = $"Wabbajack Browser - {HeaderText}"
+                    Title = "Wabbajack Browser"
                 };
-                _popoutWindow.Closed += async (_, _) =>
+                _popoutWindow.Show();
+                _popoutWindow.Closed += (_, _) =>
                 {
                     if (PoppedOut)
                     {
+                        ShowBrowserWindow.Send(this, openExistingOperation: true);
                         PoppedOut = false;
-                        if (_popoutClosedByUser)
-                        {
-                            await _settingsManager.Save("browser_popped_out", PoppedOut);
-                            ShowBrowserWindow.Send(this, openExistingOperation: true);
-                        }
+                        if(!_disablePoppedOutSave) _ = Task.Run(() => _settingsManager.Save("browser_popped_out", PoppedOut));
                         Application.Current.MainWindow.WindowState = WindowState.Normal;
                         Application.Current.MainWindow.Focus();
                     }
                 };
-                _popoutWindow.Show();
+                PoppedOut = true;
+                if(!_disablePoppedOutSave) _ = Task.Run(() => _settingsManager.Save("browser_popped_out", PoppedOut));
             }
             else
             {
                 PoppedOut = false;
+                if(!_disablePoppedOutSave) _ = Task.Run(() => _settingsManager.Save("browser_popped_out", PoppedOut));
                 _popoutWindow?.Close();
                 ShowBrowserWindow.Send(this, openExistingOperation: true);
             }
-            if (_popoutClosedByUser) await _settingsManager.Save("browser_popped_out", PoppedOut);
         });
 
         OpenWebViewHelpCommand = ReactiveCommand.Create(() => {
@@ -92,12 +90,9 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
         });
     }
 
-    public async Task RunBrowserOperation(bool popOut = false)
+    public async Task RunBrowserOperation()
     {
         Browser = _serviceProvider.GetRequiredService<WebView2>();
-
-        if (popOut)
-            TogglePopoutCommand.Execute(null);
 
         try
         {
@@ -117,9 +112,9 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
     private void Close()
     {
         _tokenSource.Dispose();
-        _popoutClosedByUser = false;
+        _disablePoppedOutSave = true;
         _popoutWindow?.Close();
-        _popoutClosedByUser = true;
+        _disablePoppedOutSave = false;
         ShowFloatingWindow.Send(FloatingScreenType.None);
         if(Closed != null)
         {

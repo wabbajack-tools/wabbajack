@@ -266,15 +266,14 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .DisposeWith(disposables);
 
 
-            /*
             this.WhenAnyValue(x => x.ReadmeBrowserGrid.Visibility)
+                .Where(x => x == Visibility.Visible)
                 .Subscribe(x =>
                 {
                     if (x == Visibility.Visible)
                         TakeWebViewOwnershipForReadme();
                 })
                 .DisposeWith(disposables);
-            */
 
             this.BindCommand(ViewModel, vm => vm.OpenReadmeCommand, v => v.ReadmeButton)
                 .DisposeWith(disposables);

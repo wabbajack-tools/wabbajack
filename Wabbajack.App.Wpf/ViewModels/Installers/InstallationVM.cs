@@ -237,6 +237,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
         this.WhenActivated(disposables =>
         {
+
             WabbajackFileLocation.WhenAnyValue(l => l.TargetPath)
                 .Subscribe(p => LoadModlist(p, null).FireAndForget())
                 .DisposeWith(disposables);
