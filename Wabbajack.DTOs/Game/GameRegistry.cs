@@ -704,7 +704,7 @@ public static class GameRegistry
                 },
                 MainExecutable = "Fallout76.exe".ToRelativePath(),
                 CanSourceFrom = new[] {Game.Fallout4},
-                IconSource = "https://cdn2.steamgriddb.com/icon/b7196f5fd0fce35ccadc7001fd067588/32/96x96.png"
+                IconSource = "https://cdn2.steamgriddb.com/icon/b7196f5fd0fce35ccadc7001fd067588/32/32x32.png"
             }
         },
         {
