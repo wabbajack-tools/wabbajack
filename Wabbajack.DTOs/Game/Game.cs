@@ -43,6 +43,6 @@ public enum Game
     [Description("7 Days to Die")] SevenDaysToDie,
     [Description("Oblivion Remastered")] OblivionRemastered,
     [Description("Fallout 76")] Fallout76,
-    [Description("Fallout: London")] FalloutLondon,
+    [Description("Fallout: London")] Fallout4London,
     [Description("Warhammer 40,000: Darktide")] Warhammer40kDarktide
 }

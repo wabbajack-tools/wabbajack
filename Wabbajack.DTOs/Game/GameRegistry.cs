@@ -381,7 +381,7 @@ public static class GameRegistry
                 EADesktopIDs = new [] // Possibly Wrong
                 {
                     "9df89a8e-b201-4507-8a8d-bd6799fedb18",
-                    "Origin.SFT.50.0000078", 
+                    "Origin.SFT.50.0000078",
                     "Origin.SFT.50.0000078",
                     "Origin.SFT.50.0000078",
                     "Origin.SFT.50.0000085",
@@ -592,7 +592,7 @@ public static class GameRegistry
                 IsGenericMO2Plugin = true,
                 RequiredFiles = new []
                 {
-                    @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath() 
+                    @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath()
                 },
                 MainExecutable = @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath(),
                 IconSource = "https://cdn2.steamgriddb.com/icon/811cf46d61c9ae564bf7fa4b5abc639b.png"
@@ -669,10 +669,10 @@ public static class GameRegistry
                     @"7dLauncher.exe".ToRelativePath(),
                 },
                 MainExecutable = @"7DaysToDie.exe".ToRelativePath(),
-                IconSource = "https://cdn2.steamgriddb.com/icon/2b1f462a660e29c47acdcc25cb14d321.png", 
+                IconSource = "https://cdn2.steamgriddb.com/icon/2b1f462a660e29c47acdcc25cb14d321.png",
             }
         },
-		{
+        {
             Game.OblivionRemastered, new GameMetaData
             {
                 Game = Game.OblivionRemastered,
@@ -686,7 +686,7 @@ public static class GameRegistry
                     @"OblivionRemastered.exe".ToRelativePath(),
                 },
                 MainExecutable = @"OblivionRemastered.exe".ToRelativePath(),
-                IconSource = "https://cdn2.steamgriddb.com/icon/0ee98f8910782a3277576e5839372116.png", 
+                IconSource = "https://cdn2.steamgriddb.com/icon/0ee98f8910782a3277576e5839372116.png",
             }
         },
         {
@@ -728,8 +728,8 @@ public static class GameRegistry
                 CanSourceFrom = new[] {Game.Fallout4},
                 IconSource = "https://cdn2.steamgriddb.com/icon/2cb3742470f550f41aea34a0702e4d63.png"
             }
-        },
-	    	{
+            },
+        {
             Game.Warhammer40kDarktide, new GameMetaData
             {
                 Game = Game.Warhammer40kDarktide,
@@ -743,9 +743,9 @@ public static class GameRegistry
                     @"Darktide.exe".ToRelativePath(),
                 },
                 MainExecutable = @"Darktide.exe".ToRelativePath(),
-                IconSource = "https://cdn2.steamgriddb.com/icon/3ec93a311493c6f2f7284487ed347446/32/256x256.png", 
+                IconSource = "https://cdn2.steamgriddb.com/icon/da81831bd5b381d45aa1fae29aeb242f.png",
             }
-	},
+        },
         {
             Game.ModdingTools, new GameMetaData
             {
@@ -757,7 +757,7 @@ public static class GameRegistry
                 IsGenericMO2Plugin = false,
             }
         }
-       
+
     };
 
     public static ILookup<string, GameMetaData> ByNexusName = Games.Values.ToLookup(g => g.NexusName ?? "");
