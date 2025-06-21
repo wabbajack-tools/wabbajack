@@ -63,8 +63,6 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
                     {
                         ShowBrowserWindow.Send(this, openExistingOperation: true);
                         PoppedOut = false;
-                        Application.Current.MainWindow.WindowState = WindowState.Normal;
-                        Application.Current.MainWindow.Focus();
                     }
                 };
                 PoppedOut = true;
