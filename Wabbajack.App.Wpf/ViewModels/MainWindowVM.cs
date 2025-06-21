@@ -332,20 +332,11 @@ public class MainWindowVM : ViewModel
 
     private async void HandleShowBrowserWindow(ShowBrowserWindow msg)
     {
-        if (!msg.OpenExistingOperation)
-        {
-            using var _ = await _browserLocker.WaitAsync();
-            var browserWindow = _serviceProvider.GetRequiredService<BrowserWindow>();
-            ActiveFloatingPane = browserWindow.ViewModel = msg.ViewModel;
-            browserWindow.DataContext = ActiveFloatingPane;
-            await browserWindow.ViewModel.RunBrowserOperation();
-        }
-        else
-        {
-            var browserWindow = _serviceProvider.GetRequiredService<BrowserWindow>();
-            ActiveFloatingPane = browserWindow.ViewModel = msg.ViewModel;
-            browserWindow.DataContext = ActiveFloatingPane;
-        }
+        using var _ = await _browserLocker.WaitAsync();
+        var browserWindow = _serviceProvider.GetRequiredService<BrowserWindow>();
+        ActiveFloatingPane = browserWindow.ViewModel = msg.ViewModel;
+        browserWindow.DataContext = ActiveFloatingPane;
+        await browserWindow.ViewModel.RunBrowserOperation();
     }
 
     private void HandleNavigateTo(ScreenType s)

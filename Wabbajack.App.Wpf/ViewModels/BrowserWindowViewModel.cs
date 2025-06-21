@@ -16,7 +16,6 @@ using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Messages;
 using Wabbajack.Paths;
 using Microsoft.Extensions.Logging;
-using System.Windows;
 
 namespace Wabbajack;
 
@@ -25,9 +24,6 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
     private readonly ILogger<BrowserWindowViewModel> _logger;
     private readonly IServiceProvider _serviceProvider;
     private CancellationTokenSource _tokenSource;
-    private Window? _popoutWindow { get; set; }
-
-    [Reactive] public bool PoppedOut { get; private set; }
 
     [Reactive] public WebView2 Browser { get; set; }
     [Reactive] public string HeaderText { get; set; }
@@ -35,7 +31,6 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
     [Reactive] public string Address { get; set; }
     [Reactive] public ICommand CloseCommand { get; set; }
     [Reactive] public ICommand BackCommand { get; set; }
-    [Reactive] public ICommand TogglePopoutCommand { get; set; }
     [Reactive] public ICommand OpenWebViewHelpCommand { get; set; }
     public event EventHandler Closed;
 
@@ -45,26 +40,6 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
         _logger = serviceProvider.GetRequiredService<ILogger<BrowserWindowViewModel>>();
         BackCommand = ReactiveCommand.Create(() => Browser.GoBack());
         CloseCommand = ReactiveCommand.Create(() => _tokenSource.Cancel());
-        TogglePopoutCommand = ReactiveCommand.Create(() =>
-        {
-            _popoutWindow?.Close();
-            ShowFloatingWindow.Send(FloatingScreenType.None);
-            if (!PoppedOut)
-            {
-                _popoutWindow = new Window()
-                {
-                    Owner = Application.Current.MainWindow,
-                    Content = _serviceProvider.GetRequiredService<BrowserWindow>()
-                };
-                _popoutWindow.Show();
-            }
-            else
-            {
-                ShowBrowserWindow.Send(this, openExistingOperation: true);
-            }
-            PoppedOut = !PoppedOut;
-        });
-
         OpenWebViewHelpCommand = ReactiveCommand.Create(() => {
             var uri = Consts.WabbajackWebViewWikiUri;
             UIUtils.OpenWebsite(uri);

@@ -5,14 +5,12 @@ namespace Wabbajack.Messages;
 public class ShowBrowserWindow
 {
     public BrowserWindowViewModel ViewModel { get; set; }
-    public bool OpenExistingOperation { get; set; } = false;
-    public ShowBrowserWindow(BrowserWindowViewModel viewModel, bool openExistingOperation = false)
+    public ShowBrowserWindow(BrowserWindowViewModel viewModel)
     {
         ViewModel = viewModel;
-        OpenExistingOperation = openExistingOperation;
     }
-    public static void Send(BrowserWindowViewModel viewModel, bool openExistingOperation = false)
+    public static void Send(BrowserWindowViewModel viewModel)
     {
-        MessageBus.Current.SendMessage(new ShowBrowserWindow(viewModel, openExistingOperation));
+        MessageBus.Current.SendMessage(new ShowBrowserWindow(viewModel));
     }
 }
