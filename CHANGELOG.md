@@ -8,7 +8,7 @@
   * Archives are now grouped by downloader and shown in tables, except for game files
   * Adds support for auto light/dark mode depending on system, styled with PicoCSS
 * Fixed a crash when right-clicking the title bar ([@TDarkShadow](https://www.github.com/TDarkShadow))
-* Added back the changelog CLI command to allow for Wabbajack to create changelogs when given two different Wabbajack files ([@iAmMe27](https://www.github.com/iAmMe27))))
+* Added back the changelog CLI command to allow for Wabbajack to create changelogs when given two different Wabbajack files ([@iAmMe27](https://www.github.com/iAmMe27))
 * Added experimental support for the following games
   * Oblivion Remastered ([@reyqune](https://www.github.com/reyqune))
   * Fallout 76 ([@TDarkShadow](https://www.github.com/TDarkShadow))
