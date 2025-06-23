@@ -185,6 +185,7 @@ public class MO2Compiler : ACompiler
             Readme = Settings.ModListReadme,
             Image = ModListImage != default ? ModListImage.FileName : default,
             Website = Settings.ModListWebsite,
+            Community = Settings.ModListCommunity,
             Version = Settings.Version,
             IsNSFW = Settings.ModlistIsNSFW
         };

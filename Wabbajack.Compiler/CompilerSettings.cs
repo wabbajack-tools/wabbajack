@@ -26,7 +26,8 @@ public class CompilerSettings
     public string ModListAuthor { get; set; } = "";
     public string ModListDescription { get; set; } = "";
     public string ModListReadme { get; set; } = "";
-    public Uri? ModListWebsite { get; set; }
+    public string ModListWebsite { get; set; } = "";
+    public string ModListCommunity { get; set; } = "";
     [Obsolete("Use Version instead")] public Version ModlistVersion { get; set; } = Version.Parse("0.0.1.0");
     public bool PublishUpdate { get; set; } = false;
     public string MachineUrl { get; set; } = "";

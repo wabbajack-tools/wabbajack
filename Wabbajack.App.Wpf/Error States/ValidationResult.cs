@@ -101,7 +101,7 @@ namespace Wabbajack
 
         public static ValidationResult Combine(List<ValidationResult> errors)
         {
-            if (errors.All(e => e.Succeeded) || !errors.Any())
+            if (errors.All(e => e?.Succeeded ?? true) || !errors.Any())
                 return Success;
             return Fail(string.Join("\n", errors.Where(e => e.Failed).Select(e => e.Reason)));
         }
