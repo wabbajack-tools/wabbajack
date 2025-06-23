@@ -755,13 +755,13 @@ public static class GameRegistry
                 NexusGameId = 198,
                 MO2ArchiveName = "kotor2",
                 SteamIDs = [208580],
-                GOGIDs = new long[] { 1421404581},
+                GOGIDs = new long[] { 1421404581 },
                 RequiredFiles = new []
                 {
                     @"swkotor2.exe".ToRelativePath()
                 },
                 MainExecutable = @"swkotor2.exe".ToRelativePath(),
-                IconSource = "https://cdn2.steamgriddb.com/thumb/d472c6afb984f36c3002b25bc2ffcc59.jpg",
+                IconSource = "https://cdn2.steamgriddb.com/icon/2d00f43f07911355d4151f13925ff292/24/32x32.png",
             }
         },
         {
