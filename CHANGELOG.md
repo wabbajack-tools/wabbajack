@@ -15,6 +15,7 @@
   * Fallout: London ([@TDarkShadow](https://www.github.com/TDarkShadow))
   * Warhammer 40,000: Darktide ([@LillyBird69](https://www.github.com/LillyBird69))
   * Knights of the Old Republic II - The Sith Lords ([@JanuarySnow](https://www.github.com/JanuarySnow))
+  * Vampire: The Masquerade - Bloodlines ([@daulvec](https://www.github.com/daulvec))
 
 #### Version - 4.0.1.0 - 4/18/2025
 * Fixed subfolders of profiles showing up under additional profiles within compiler settings
