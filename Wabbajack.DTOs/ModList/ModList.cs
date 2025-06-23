@@ -53,9 +53,14 @@ public class ModList
     public Version? WabbajackVersion { get; set; }
 
     /// <summary>
-    ///     Website of the ModList
+    ///     URL to the modlist website
     /// </summary>
-    public Uri? Website { get; set; }
+    public string Website { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     URL to the modlist community
+    /// </summary>
+    public string Community { get; set; } = string.Empty;
 
     /// <summary>
     ///     Current Version of the Modlist
@@ -80,6 +85,7 @@ public class ModList
             Website = Website,
             Version = Version,
             IsNSFW = IsNSFW,
+            Community = Community
         };
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -8,7 +9,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using Wabbajack.Common;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using System.Collections.Generic;
+using ReactiveMarbles.ObservableEvents;
 
 namespace Wabbajack;
 
@@ -17,6 +18,7 @@ namespace Wabbajack;
 /// </summary>
 public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM>
 {
+    private bool _UserChangingProfileSelection { get; set; }
     public CompilerDetailsView()
     {
         InitializeComponent();
@@ -66,6 +68,27 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
                      .BindToStrict(this, x => x.AdditionalProfilesSetting.ItemsSource)
                      .DisposeWith(disposables);
 
+            AdditionalProfilesSetting.Events().SelectionChanged
+                .Subscribe(args => {
+                    _UserChangingProfileSelection = true;
+                    ViewModel.Settings.AdditionalProfiles = AdditionalProfilesSetting.SelectedItems.OfType<string>().ToArray();
+                    foreach(string profile in AdditionalProfilesSetting.SelectedItems)
+                    {
+                        ViewModel.Settings.AdditionalProfiles.Add(profile);
+                    }
+                    _UserChangingProfileSelection = false;
+                })
+                .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.Settings.AdditionalProfiles)
+                     .Subscribe(profiles =>
+                     {
+                         if (_UserChangingProfileSelection) return;
+                         foreach (var profile in profiles)
+                             AdditionalProfilesSetting.SelectedItems.Add(profile);
+                     })
+                     .DisposeWith(disposables);
+
             this.Bind(ViewModel, vm => vm.Settings.MachineUrl, view => view.MachineUrl.Text)
                 .DisposeWith(disposables);
 
@@ -77,6 +100,9 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
             this.Bind(ViewModel, vm => vm.OutputLocation, view => view.OutputFilePicker.PickerVM)
                 .DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.Settings.OutputFile, view => view.OutputFilePicker.PickerVM.TargetPath)
+                .DisposeWith(disposables);
+
+            this.Bind(ViewModel, vm => vm.Settings.ModListCommunity, view => view.CommunitySetting.Text)
                 .DisposeWith(disposables);
         });
 
