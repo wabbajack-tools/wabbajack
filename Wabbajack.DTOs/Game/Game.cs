@@ -44,5 +44,6 @@ public enum Game
     [Description("Oblivion Remastered")] OblivionRemastered,
     [Description("Fallout 76")] Fallout76,
     [Description("Fallout: London")] Fallout4London,
-    [Description("Warhammer 40,000: Darktide")] Warhammer40kDarktide
+    [Description("Warhammer 40,000: Darktide")] Warhammer40kDarktide,
+    [Description("STAR WARS Knights of the Old Republic II")] Kotor2
 }
