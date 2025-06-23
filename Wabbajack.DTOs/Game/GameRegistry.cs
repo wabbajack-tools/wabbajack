@@ -778,7 +778,7 @@ public static class GameRegistry
                     @"vampire.exe".ToRelativePath(),
                 },
                 MainExecutable = @"vampire.exe".ToRelativePath(),
-                IconSource = "https://cdn2.steamgriddb.com/grid/35c0435bac5b49fc667bd23a5c49fea1.jpg", 
+                IconSource = "https://cdn2.steamgriddb.com/icon/d4ab2732ed8ac6a4b2d9734cf4c851d2/32/32x32.png", 
             }
         },
         {
