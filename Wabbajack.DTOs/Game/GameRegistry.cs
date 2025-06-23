@@ -765,6 +765,23 @@ public static class GameRegistry
             }
         },
         {
+            Game.VtMB, new GameMetaData
+            {
+                Game = Game.VtMB,
+                MO2Name = "Vampire - The Masquerade: Bloodlines",
+                NexusName = "vampirebloodlines",
+                NexusGameId = 437,
+                MO2ArchiveName = "vampire",
+                SteamIDs = [2600],
+                RequiredFiles = new []
+                {
+                    @"vampire.exe".ToRelativePath(),
+                },
+                MainExecutable = @"vampire.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/d4ab2732ed8ac6a4b2d9734cf4c851d2/32/32x32.png", 
+            }
+        },
+        {
             Game.ModdingTools, new GameMetaData
             {
                 Game = Game.ModdingTools,

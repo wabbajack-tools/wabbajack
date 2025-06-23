@@ -8,13 +8,14 @@
   * Archives are now grouped by downloader and shown in tables, except for game files
   * Adds support for auto light/dark mode depending on system, styled with PicoCSS
 * Fixed a crash when right-clicking the title bar ([@TDarkShadow](https://www.github.com/TDarkShadow))
-* Added back the changelog CLI command to allow for Wabbajack to create changelogs when given two different Wabbajack files ([@iAmMe27](https://www.github.com/iAmMe27))))
+* Added back the changelog CLI command to allow for Wabbajack to create changelogs when given two different Wabbajack files ([@iAmMe27](https://www.github.com/iAmMe27))
 * Added experimental support for the following games
   * Oblivion Remastered ([@reyqune](https://www.github.com/reyqune))
   * Fallout 76 ([@TDarkShadow](https://www.github.com/TDarkShadow))
   * Fallout: London ([@TDarkShadow](https://www.github.com/TDarkShadow))
   * Warhammer 40,000: Darktide ([@LillyBird69](https://www.github.com/LillyBird69))
   * Knights of the Old Republic II - The Sith Lords ([@JanuarySnow](https://www.github.com/JanuarySnow))
+  * Vampire: The Masquerade - Bloodlines ([@daulvec](https://www.github.com/daulvec))
 
 #### Version - 4.0.1.0 - 4/18/2025
 * Fixed subfolders of profiles showing up under additional profiles within compiler settings

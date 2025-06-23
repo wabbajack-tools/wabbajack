@@ -45,5 +45,6 @@ public enum Game
     [Description("Fallout 76")] Fallout76,
     [Description("Fallout: London")] Fallout4London,
     [Description("Warhammer 40,000: Darktide")] Warhammer40kDarktide,
-    [Description("STAR WARS Knights of the Old Republic II")] Kotor2
+    [Description("STAR WARS Knights of the Old Republic II")] Kotor2,
+    [Description("Vampire: The Masquerade - Bloodlines")] VtMB,
 }
