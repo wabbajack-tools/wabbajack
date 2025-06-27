@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Compression.BSA</name>
+    </assembly>
+    <members>
+        <member name="P:Compression.BSA.IBSAReader.Files">
+            <summary>
+            The files defined by the archive
+            </summary>
+        </member>
+        <member name="P:Compression.BSA.IFile.Path">
+            <summary>
+            The path of the file inside the archive
+            </summary>
+        </member>
+        <member name="P:Compression.BSA.IFile.Size">
+            <summary>
+            The uncompressed file size
+            </summary>
+        </member>
+        <member name="P:Compression.BSA.IFile.State">
+            <summary>
+            Get the metadata for the file.
+            </summary>
+        </member>
+        <member name="M:Compression.BSA.IFile.CopyDataTo(System.IO.Stream)">
+            <summary>
+            Copies this entry to the given stream. 100% thread safe, the .bsa will be opened multiple times
+            in order to maintain thread-safe access. 
+            </summary>
+            <param name="output"></param>
+        </member>
+        <member name="M:Compression.BSA.BSAUtils.ToBZString(Wabbajack.Common.RelativePath,Compression.BSA.VersionType)">
+            <summary>
+            Returns \0 terminated bytes for a string encoded with a given BSA version's encoding format
+            </summary>
+            <param name="val"></param>
+            <param name="version"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Compression.BSA.BSAUtils.ToBSString(Wabbajack.Common.RelativePath)">
+            <summary>
+                Returns bytes for unterminated string with a count at the start
+            </summary>
+            <param name="val"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Compression.BSA.BSAUtils.ToTermString(System.String,Compression.BSA.VersionType)">
+            <summary>
+            Returns bytes for a string with a length prefix, version is the BSA version
+            </summary>
+            <param name="val"></param>
+            <param name="version"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
