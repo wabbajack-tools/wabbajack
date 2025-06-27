@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  VERSION: 4.0.0.3
+  VERSION: 4.0.2.0
 
 jobs:
   build:
