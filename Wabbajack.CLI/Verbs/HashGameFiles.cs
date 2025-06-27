@@ -67,7 +67,7 @@ public class HashGameFiles
             return 1;
         }
 
-        var version = "Unknown";
+        var version = "0.0.0.0";
         if (gameMeta.MainExecutable == null)
         {
             _logger.LogError("Could not find Main Executable for {Game}", gameEnum);
