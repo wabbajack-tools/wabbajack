@@ -164,6 +164,7 @@ public class CompilerFileManagerVM : BaseCompilerVM
     private void LoadingItem_Expanded(object sender, System.Windows.RoutedEventArgs e)
     {
         var parent = (FileTreeViewItem)e.OriginalSource;
+        if (parent?.ItemsSource == null) return;
         foreach(var child in parent.ItemsSource)
         {
             if (child == FileTreeViewItem.Placeholder)

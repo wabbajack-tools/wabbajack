@@ -144,6 +144,7 @@ public static class GameRegistry
                 },
                 MainExecutable = "Fallout4.exe".ToRelativePath(),
                 CommonlyConfusedWith = new[] {Game.Fallout4VR},
+                CanSourceFrom = new[] {Game.Fallout76},
                 IconSource = "https://cdn2.steamgriddb.com/icon/578d9dd532e0be0cdd050b5bec4967a1.png"
             }
         },
@@ -380,7 +381,7 @@ public static class GameRegistry
                 EADesktopIDs = new [] // Possibly Wrong
                 {
                     "9df89a8e-b201-4507-8a8d-bd6799fedb18",
-                    "Origin.SFT.50.0000078", 
+                    "Origin.SFT.50.0000078",
                     "Origin.SFT.50.0000078",
                     "Origin.SFT.50.0000078",
                     "Origin.SFT.50.0000085",
@@ -591,7 +592,7 @@ public static class GameRegistry
                 IsGenericMO2Plugin = true,
                 RequiredFiles = new []
                 {
-                    @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath() 
+                    @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath()
                 },
                 MainExecutable = @"bin\Win64_Shipping_Client\Bannerlord.exe".ToRelativePath(),
                 IconSource = "https://cdn2.steamgriddb.com/icon/811cf46d61c9ae564bf7fa4b5abc639b.png"
@@ -668,13 +669,13 @@ public static class GameRegistry
                     @"7dLauncher.exe".ToRelativePath(),
                 },
                 MainExecutable = @"7DaysToDie.exe".ToRelativePath(),
-                IconSource = "https://cdn2.steamgriddb.com/icon/2b1f462a660e29c47acdcc25cb14d321.png", 
+                IconSource = "https://cdn2.steamgriddb.com/icon/2b1f462a660e29c47acdcc25cb14d321.png",
             }
         },
-		{
-            Game.oblivionremastered, new GameMetaData
+        {
+            Game.OblivionRemastered, new GameMetaData
             {
-                Game = Game.oblivionremastered,
+                Game = Game.OblivionRemastered,
                 MO2Name = "Oblivion Remastered",
                 NexusName = "oblivionremastered",
                 NexusGameId = 7587,
@@ -685,7 +686,99 @@ public static class GameRegistry
                     @"OblivionRemastered.exe".ToRelativePath(),
                 },
                 MainExecutable = @"OblivionRemastered.exe".ToRelativePath(),
-                IconSource = "https://cdn2.steamgriddb.com/icon/599131ef8d092b1b8ffc3893b13a2064/32/32x32.png", 
+                IconSource = "https://cdn2.steamgriddb.com/icon/0ee98f8910782a3277576e5839372116.png",
+            }
+        },
+        {
+            Game.Fallout76, new GameMetaData
+            {
+                Game = Game.Fallout76,
+                NexusName = "fallout76",
+                NexusGameId = 2590,
+                MO2Name = "Fallout 76",
+                MO2ArchiveName = "fallout76",
+                SteamIDs = new[] {1151340},
+                RequiredFiles = new[]
+                {
+                    "Fallout76.exe".ToRelativePath()
+                },
+                MainExecutable = "Fallout76.exe".ToRelativePath(),
+                CanSourceFrom = new[] {Game.Fallout4},
+                IconSource = "https://cdn2.steamgriddb.com/icon/b7196f5fd0fce35ccadc7001fd067588/32/32x32.png"
+            }
+        },
+        {
+            Game.Fallout4London, new GameMetaData
+            {
+                Game = Game.Fallout4London,
+                NexusName = "fallout4london",
+                NexusGameId = 6332,
+                MO2Name = "Fallout 4 London",
+                MO2ArchiveName = "Fallout4London",
+                GOGIDs = new long[] {
+                    1491728574, //Fallout: London : Game
+                    1897848199, //Fallout: London One-click Edition : One-Click Mod Install
+                },
+                RequiredFiles = new[]
+                {
+                    "Fallout4.exe".ToRelativePath()
+                },
+                MainExecutable = "Fallout4.exe".ToRelativePath(),
+                CommonlyConfusedWith = new[] {Game.Fallout4},
+                CanSourceFrom = new[] {Game.Fallout4},
+                IconSource = "https://cdn2.steamgriddb.com/icon/2cb3742470f550f41aea34a0702e4d63.png"
+            }
+            },
+        {
+            Game.Warhammer40kDarktide, new GameMetaData
+            {
+                Game = Game.Warhammer40kDarktide,
+                MO2Name = "Warhammer 40,000: Darktide",
+                NexusName = "warhammer40kdarktide",
+                NexusGameId = 4943,
+                MO2ArchiveName = "warhammer40kdarktide",
+                SteamIDs = [1361210],
+                RequiredFiles = new []
+                {
+                    @"Darktide.exe".ToRelativePath(),
+                },
+                MainExecutable = @"Darktide.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/da81831bd5b381d45aa1fae29aeb242f.png",
+            }
+        },
+        {
+            Game.Kotor2, new GameMetaData
+            {
+                Game = Game.Kotor2,
+                MO2Name = "STAR WARS Knights of the Old Republic II The Sith Lords",
+                NexusName = "kotor2",
+                NexusGameId = 198,
+                MO2ArchiveName = "kotor2",
+                SteamIDs = [208580],
+                GOGIDs = new long[] { 1421404581 },
+                RequiredFiles = new []
+                {
+                    @"swkotor2.exe".ToRelativePath()
+                },
+                MainExecutable = @"swkotor2.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/2d00f43f07911355d4151f13925ff292/24/32x32.png",
+            }
+        },
+        {
+            Game.VtMB, new GameMetaData
+            {
+                Game = Game.VtMB,
+                MO2Name = "Vampire - The Masquerade: Bloodlines",
+                NexusName = "vampirebloodlines",
+                NexusGameId = 437,
+                MO2ArchiveName = "vampire",
+                SteamIDs = [2600],
+                RequiredFiles = new []
+                {
+                    @"vampire.exe".ToRelativePath(),
+                },
+                MainExecutable = @"vampire.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/d4ab2732ed8ac6a4b2d9734cf4c851d2/32/32x32.png", 
             }
         },
         {
@@ -699,7 +792,7 @@ public static class GameRegistry
                 IsGenericMO2Plugin = false,
             }
         }
-       
+
     };
 
     public static ILookup<string, GameMetaData> ByNexusName = Games.Values.ToLookup(g => g.NexusName ?? "");

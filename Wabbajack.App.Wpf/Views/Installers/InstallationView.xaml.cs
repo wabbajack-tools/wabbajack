@@ -56,7 +56,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             this.BindCommand(ViewModel, vm => vm.OpenWebsiteCommand, v => v.WebsiteButton)
                 .DisposeWith(disposables);
 
-            this.BindCommand(ViewModel, vm => vm.OpenDiscordButton, v => v.DiscordButton)
+            this.BindCommand(ViewModel, vm => vm.OpenCommunityCommand, v => v.CommunityButton)
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.OpenManifestCommand, v => v.ManifestButton)
