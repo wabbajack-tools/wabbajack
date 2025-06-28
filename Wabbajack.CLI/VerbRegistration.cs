@@ -29,6 +29,8 @@ public static class CommandLineBuilderExtensions
         services.AddSingleton<ForceHeal>();
         CommandLineBuilder.RegisterCommand<HashFile>(HashFile.Definition, c => ((HashFile)c).Run);
         services.AddSingleton<HashFile>();
+        CommandLineBuilder.RegisterCommand<HashGameFiles>(HashGameFiles.Definition, c => ((HashGameFiles)c).Run);
+        services.AddSingleton<HashGameFiles>();
         CommandLineBuilder.RegisterCommand<HashUrlString>(HashUrlString.Definition, c => ((HashUrlString)c).Run);
         services.AddSingleton<HashUrlString>();
         CommandLineBuilder.RegisterCommand<IndexNexusMod>(IndexNexusMod.Definition, c => ((IndexNexusMod)c).Run);
