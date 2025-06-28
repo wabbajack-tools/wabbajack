@@ -91,7 +91,6 @@ jobs:
           - Wabbajack.Networking.Http
           - Wabbajack.Networking.Http.Interfaces
           - Wabbajack.Networking.NexusApi
-          - Wabbajack.Networking.Steam
           - Wabbajack.Networking.WabbajackClientApi
           - Wabbajack.Paths
           - Wabbajack.Paths.IO
