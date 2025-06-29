@@ -29,7 +29,7 @@ public class FileExtractor
         FileType.BA2,
         FileType.BTAR,
         FileType.ZIP,
-        //FileType.EXE,
+        FileType.EXE,
         FileType.RAR_OLD,
         FileType.RAR_NEW,
         FileType._7Z);
@@ -48,6 +48,7 @@ public class FileExtractor
         new Extension(".rar"),
         new Extension(".zip"),
         new Extension(".btar"),
+        new Extension(".exe"),
         OMODExtension,
         FOMODExtension
     };
@@ -122,6 +123,10 @@ public class FileExtractor
                     results = await GatheringExtractWithBSA(sFn, (FileType) sig, shouldExtract, mapfn, token);
                 else
                     throw new Exception($"Invalid file format {sFn.Name}");
+                break;
+            case FileType.EXE:
+                results = await GatheringExtractWithInnoExtract(sFn, shouldExtract,
+                    mapfn, onlyFiles, token, progressFunction);
                 break;
             default:
                 throw new Exception($"Invalid file format {sFn.Name}");
@@ -381,6 +386,146 @@ public class FileExtractor
                 .ToDictionary(d => d.Item1, d => d.Item2);
             
 
+            return results;
+        }
+        finally
+        {
+            job.Dispose();
+            
+            if (tmpFile != null) await tmpFile.Value.DisposeAsync();
+
+            if (spoolFile != null) await spoolFile.Value.DisposeAsync();
+        }
+    }
+    
+    public async Task<IDictionary<RelativePath, T>> GatheringExtractWithInnoExtract<T>(IStreamFactory sf,
+        Predicate<RelativePath> shouldExtract,
+        Func<RelativePath, IExtractedFile, ValueTask<T>> mapfn,
+        IReadOnlyCollection<RelativePath>? onlyFiles,
+        CancellationToken token,
+        Action<Percent>? progressFunction = null)
+    {
+        TemporaryPath? tmpFile = null;
+        await using var dest = _manager.CreateFolder();
+
+        TemporaryPath? spoolFile = null;
+        AbsolutePath source;
+        
+        var job = await _limiter.Begin($"Extracting {sf.Name}", 0, token);
+        try
+        {
+            if (sf.Name is AbsolutePath abs)
+            {
+                source = abs;
+            }
+            else
+            {
+                spoolFile = _manager.CreateFile(sf.Name.FileName.Extension);
+                await using var s = await sf.GetStream();
+                await spoolFile.Value.Path.WriteAllAsync(s, token);
+                source = spoolFile.Value.Path;
+            }
+
+            _logger.LogInformation("Extracting {Source}", source.FileName);
+
+
+            var initialPath = "";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                initialPath = @"Extractors\windows-x64\innoextract.exe";
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                initialPath = @"Extractors\linux-x64\innoextract";
+
+            var process = new ProcessHelper
+                {Path = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint)};
+
+            if (onlyFiles != null)
+            {
+                //It's stupid that we have to do this, but 7zip's file pattern matching isn't very fuzzy
+                //Yes I mostly copy pasted this and only tweaked a few bits from this.
+                IEnumerable<string> AllVariants(string input)
+                {
+                    var forward = input.Replace("\\", "/");
+                    yield return $"-I \"{input}\"";
+                    yield return $"-I \"\\{input}\"";
+                    yield return $"-I \"{forward}\"";
+                    yield return $"-I \"/{forward}\"";
+                }
+
+                tmpFile = _manager.CreateFile();
+                await tmpFile.Value.Path.WriteAllLinesAsync(onlyFiles.SelectMany(f => AllVariants((string) f)),
+                    token);
+                process.Arguments = new object[]
+                {
+                    "-e", "--collisions \"rename-all\"", $"-d \"{dest}\"", $"{tmpFile.Value.ToString()}", "--", $"\"{source}\""
+                };
+            }
+            else
+            {
+                process.Arguments = new object[] {"-e", "--collisions \"rename-all\"", $"-d \"{dest}\"", "--", $"\"{source}\""};
+            }
+
+            _logger.LogTrace("{prog} {args}", process.Path, process.Arguments);
+
+            var totalSize = source.Size();
+            var lastPercent = 0;
+            job.Size = totalSize;
+
+            var result = process.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
+                .ForEachAsync(p =>
+                {
+                    var (_, line) = p;
+                    if (line == null)
+                        return;
+                    
+                    _logger.LogDebug("{prog} {line}", process.Path, line);
+
+                    if (line.Length <= 4 || line[3] != '%') return;
+
+                    if (!int.TryParse(line[..3], out var percentInt)) return;
+
+                    var oldPosition = lastPercent == 0 ? 0 : totalSize / 100 * lastPercent;
+                    var newPosition = percentInt == 0 ? 0 : totalSize / 100 * percentInt;
+                    var throughput = newPosition - oldPosition;
+                    job.ReportNoWait((int) throughput);
+                    
+                    progressFunction?.Invoke(Percent.FactoryPutInRange(lastPercent, 100));
+                    
+                    lastPercent = percentInt;
+                }, token);
+            
+            var errorResult = process.Output.Where(d => d.Type == ProcessHelper.StreamType.Error)
+                .ForEachAsync(p =>
+                {
+                    var (_, line) = p;
+                    _logger.LogDebug("{prog} {line}", process.Path, line);
+                }, token);
+            
+            var exitCode = await process.Start();
+            
+            
+            if (exitCode != 0)
+            {
+                _logger.LogInformation($"Extracting {source.FileName} with Innoextract - failed. Exit code: {exitCode}");
+            }
+            else
+            {
+                _logger.LogInformation($"Extracting {source.FileName} - done");
+                
+            }
+            job.Dispose();
+            var results = await dest.Path.EnumerateFiles()
+                .SelectAsync(async f =>
+                {
+                    var path = f.RelativeTo(dest.Path);
+                    if (!shouldExtract(path)) return ((RelativePath, T)) default;
+                    var file = new ExtractedNativeFile(f);
+                    var mapResult = await mapfn(path, file);
+                    f.Delete();
+                    return (path, mapResult);
+                })
+                .Where(d => d.Item1 != default)
+                .ToDictionary(d => d.Item1, d => d.Item2);
+            
             return results;
         }
         finally
