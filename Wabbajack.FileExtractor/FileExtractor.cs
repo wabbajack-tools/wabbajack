@@ -435,9 +435,12 @@ public class FileExtractor
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 initialPath = @"Extractors\linux-x64\innoextract";
 
-            var process = new ProcessHelper
+            var processExtract = new ProcessHelper
                 {Path = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint)};
-
+            
+            //Commented out because that feature doesn't seem to work with innoextract,
+            //at least not in the same formatting used by 7zip 
+            /*
             if (onlyFiles != null)
             {
                 //It's stupid that we have to do this, but 7zip's file pattern matching isn't very fuzzy
@@ -454,64 +457,53 @@ public class FileExtractor
                 tmpFile = _manager.CreateFile();
                 await tmpFile.Value.Path.WriteAllLinesAsync(onlyFiles.SelectMany(f => AllVariants((string) f)),
                     token);
-                process.Arguments = new object[]
+
+                processExtract.Arguments = new object[]
                 {
-                    "-e", "--collisions \"rename-all\"", $"-d \"{dest}\"", $"{tmpFile.Value.ToString()}", "--", $"\"{source}\""
+                    $"\"{source}\"", "-e", "-m", "--collisions \"rename-all\"", $"-d \"{dest}\"", $"\"{tmpFile.Value.ToString().ReplaceLineEndings(" ")}\""
                 };
             }
             else
             {
-                process.Arguments = new object[] {"-e", "--collisions \"rename-all\"", $"-d \"{dest}\"", "--", $"\"{source}\""};
+                processExtract.Arguments = new object[] {$"\"{source}\"", "-e", "-m", "--collisions \"rename-all\"", $"-d \"{dest}\"" };
             }
+            */
+            
+            // This might not be the best way to do it since it forces a full extraction
+            // of the full .exe file but the other method was bugged.
+            processExtract.Arguments = new object[] {$"\"{source}\"", "-e", "-m", "--collisions \"rename-all\"", $"-d \"{dest}\"" };
 
-            _logger.LogTrace("{prog} {args}", process.Path, process.Arguments);
+            _logger.LogTrace("{prog} {args}", processExtract.Path, processExtract.Arguments);
 
-            var totalSize = source.Size();
-            var lastPercent = 0;
-            job.Size = totalSize;
-
-            var result = process.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
+            var extractResult = processExtract.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
                 .ForEachAsync(p =>
                 {
                     var (_, line) = p;
-                    if (line == null)
-                        return;
-                    
-                    _logger.LogDebug("{prog} {line}", process.Path, line);
+                    //This logs each extracted file as debug information
+                    _logger.LogDebug("{prog} {line}", processExtract.Path, line);
 
-                    if (line.Length <= 4 || line[3] != '%') return;
-
-                    if (!int.TryParse(line[..3], out var percentInt)) return;
-
-                    var oldPosition = lastPercent == 0 ? 0 : totalSize / 100 * lastPercent;
-                    var newPosition = percentInt == 0 ? 0 : totalSize / 100 * percentInt;
-                    var throughput = newPosition - oldPosition;
-                    job.ReportNoWait((int) throughput);
-                    
-                    progressFunction?.Invoke(Percent.FactoryPutInRange(lastPercent, 100));
-                    
-                    lastPercent = percentInt;
                 }, token);
             
-            var errorResult = process.Output.Where(d => d.Type == ProcessHelper.StreamType.Error)
+            var extractErrorResult = processExtract.Output.Where(d => d.Type == ProcessHelper.StreamType.Error)
                 .ForEachAsync(p =>
                 {
                     var (_, line) = p;
-                    _logger.LogDebug("{prog} {line}", process.Path, line);
+                    _logger.LogDebug("{prog} {FileName} {line}", processExtract.Path, source.FileName, line);
                 }, token);
             
-            var exitCode = await process.Start();
+            var exitCode = await processExtract.Start();
             
             
             if (exitCode != 0)
             {
-                _logger.LogInformation($"Extracting {source.FileName} with Innoextract - failed. Exit code: {exitCode}");
+                _logger.LogDebug($"Extracting {source.FileName} with Innoextract - failed. Exit code: {exitCode}");
             }
             else
             {
                 _logger.LogInformation($"Extracting {source.FileName} - done");
                 
             }
+            
             job.Dispose();
             var results = await dest.Path.EnumerateFiles()
                 .SelectAsync(async f =>
