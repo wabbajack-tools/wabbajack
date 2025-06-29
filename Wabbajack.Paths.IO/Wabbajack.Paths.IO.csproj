@@ -11,4 +11,8 @@
         <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="shortid" Version="4.0.0" />
+    </ItemGroup>
+
 </Project>
