@@ -426,14 +426,14 @@ public class FileExtractor
                 source = spoolFile.Value.Path;
             }
 
-            _logger.LogInformation("Extracting {Source}", source.FileName);
-
-
             var initialPath = "";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 initialPath = @"Extractors\windows-x64\innoextract.exe";
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 initialPath = @"Extractors\linux-x64\innoextract";
+
+            var processScan = new ProcessHelper
+            {Path = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint)};
 
             var processExtract = new ProcessHelper
                 {Path = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint)};
@@ -444,7 +444,7 @@ public class FileExtractor
             if (onlyFiles != null)
             {
                 //It's stupid that we have to do this, but 7zip's file pattern matching isn't very fuzzy
-                //Yes I mostly copy pasted this and only tweaked a few bits from this.
+                //Yes I mostly copied and pasted this and only tweaked a few bits from this.
                 IEnumerable<string> AllVariants(string input)
                 {
                     var forward = input.Replace("\\", "/");
@@ -470,10 +470,23 @@ public class FileExtractor
             */
             
             // This might not be the best way to do it since it forces a full extraction
-            // of the full .exe file but the other method was bugged.
-            processExtract.Arguments = new object[] {$"\"{source}\"", "-e", "-m", "--collisions \"rename-all\"", $"-d \"{dest}\"" };
+            // of the full .exe file, but the other method that would tell WJ to only extract specific files was bugged.
+            
+            //As mentioned in the Comments on the Pull request, this would be the pre-extraction analysis parameters.
+            processScan.Arguments = new object[] {$"\"{source}\"", "--list-sizes", "-m", "--collisions \"rename-all\""};
+            
+            processExtract.Arguments = new object[] {$"\"{source}\"", "-e", "-m", "--list-sizes", "--collisions \"rename-all\"", $"-d \"{dest}\"" };
 
             _logger.LogTrace("{prog} {args}", processExtract.Path, processExtract.Arguments);
+
+            var sizeExtractedInBytes = 0;
+
+            var scanResult = processScan.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
+                .ForEachAsync(p =>
+                {
+                    var (_, line) = p;
+                    //Logic to gather the extracted size pre-extraction.
+                });
 
             var extractResult = processExtract.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
                 .ForEachAsync(p =>
@@ -481,6 +494,8 @@ public class FileExtractor
                     var (_, line) = p;
                     //This logs each extracted file as debug information
                     _logger.LogDebug("{prog} {line}", processExtract.Path, line);
+                    
+                    //Logic for the progressbar and throughput "widget" based on gathered total extracted size.
 
                 }, token);
             
@@ -496,7 +511,8 @@ public class FileExtractor
             
             if (exitCode != 0)
             {
-                _logger.LogDebug($"Extracting {source.FileName} with Innoextract - failed. Exit code: {exitCode}");
+                //Commented out cause there are more .exe binaries in our average setups that this logging might confuse people more than it helps.
+                //_logger.LogDebug($"Can not extract {source.FileName} with Innoextract - Exit code: {exitCode}");
             }
             else
             {
