@@ -10,7 +10,7 @@
     <Version>$(VERSION)</Version>
     <AssemblyVersion>$(VERSION)</AssemblyVersion>
     <FileVersion>$(VERSION)</FileVersion>
-    <Copyright>Copyright © 2019-2024</Copyright>
+    <Copyright>Copyright © 2019-$([System.DateTime]::Now.ToString('yyyy'))</Copyright>
     <Description>An automated ModList installer</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
    <!-- <IncludeSymbolsInSingleFile>true</IncludeSymbolsInSingleFile> -->
