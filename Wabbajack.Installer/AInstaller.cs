@@ -131,7 +131,7 @@ public abstract class AInstaller<T>
             Percent.FactoryPutInRange(_currentStepProgress, MaxStepProgress), _currentStep));
     }
 
-    public abstract Task<bool> Begin(CancellationToken token);
+    public abstract Task<InstallResult> Begin(CancellationToken token);
 
     protected async Task ExtractModlist(CancellationToken token)
     {
@@ -184,13 +184,13 @@ public abstract class AInstaller<T>
         }
     }
 
-    public static async Task<Stream> ModListImageStream(AbsolutePath path)
+    public static async Task<Stream?> ModListImageStream(AbsolutePath path)
     {
         await using var fs = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
         using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
         var entry = ar.GetEntry("modlist-image.png");
         if (entry == null)
-            throw new InvalidDataException("No modlist image found");
+            return null;
         return new MemoryStream(await entry.Open().ReadAllAsync());
     }
 
@@ -223,7 +223,17 @@ public abstract class AInstaller<T>
         NextStep(Consts.StepInstalling, "Installing files", ModList.Directives.Sum(d => d.Size), x => x.ToFileSizeString());
         var grouped = ModList.Directives
             .OfType<FromArchive>()
-            .Select(a => new {VF = _vfs.Index.FileForArchiveHashPath(a.ArchiveHashPath), Directive = a})
+            .Select(a => {
+                try
+                {
+                    return new { VF = _vfs.Index.FileForArchiveHashPath(a.ArchiveHashPath), Directive = a };
+                }
+                catch(Exception)
+                {
+                    _logger.LogError("Failed to look up file {file} by hash {hash}", a.To.FileName.ToString(), a.Hash.ToString());
+                    throw;
+                }
+            })
             .GroupBy(a => a.VF)
             .ToDictionary(a => a.Key);
 

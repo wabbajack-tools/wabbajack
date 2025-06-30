@@ -8,19 +8,44 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <Grid>
-        <Rectangle Fill="{StaticResource HeatedBorderBrush}" Opacity="{Binding ProgressPercent, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
-        <ListBox
+    <UserControl.Resources>
+        <CollectionViewSource x:Key="FilteredRows"
+                              Source="{Binding LoggerProvider.MessageLog}"
+                              Filter="CollectionViewSource_Filter" />
+    </UserControl.Resources>
+    <Border x:Name="BorderMask2" CornerRadius="8" BorderThickness="0" Background="White">
+        <Grid Margin="-1">
+            <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1" />
+            <Grid>
+                <Grid.OpacityMask>
+                    <VisualBrush Visual="{Binding ElementName=BorderMask}"/>
+                </Grid.OpacityMask>
+                <ListBox
             local:AutoScrollBehavior.ScrollOnNewItem="True"
             BorderBrush="Transparent"
-            BorderThickness="1"
-            ItemsSource="{Binding LoggerProvider.MessageLog}"
-            ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding ShortMessage}" TextWrapping="WrapWithOverflow" />
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-    </Grid>
+            BorderThickness="0"
+            ItemsSource="{Binding Source={StaticResource FilteredRows}}"
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+            AlternationCount="2">
+                    <ListBox.Resources>
+                        <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource ListBoxItemStyle}">
+                            <Style.Triggers>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                    <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}"/>
+                                </Trigger>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                    <Setter Property="Background" Value="{StaticResource LogViewAlternateBrush}"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.Resources>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding ShortMessage}" FontSize="13" Margin="0, 2, 0, 2"  VerticalAlignment="Center" TextWrapping="WrapWithOverflow" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Grid>
+    </Border>
 </UserControl>

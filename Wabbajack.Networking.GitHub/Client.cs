@@ -89,4 +89,9 @@ public class Client
     {
         await _client.Repository.Content.UpdateFile(owner, repo, path, new UpdateFileRequest(message, content, oldSha));
     }
+
+    public async Task<IReadOnlyList<RepositoryContributor>> GetWabbajackContributors()
+    {
+        return await _client.Repository.GetAllContributors("wabbajack-tools", "wabbajack");
+    }
 }

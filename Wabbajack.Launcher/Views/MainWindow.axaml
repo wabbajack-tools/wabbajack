@@ -7,18 +7,36 @@
         Icon="/Assets/wabbajack.ico"
 
         Title="Wabbajack Launcher" Height="320" Width="600"
-        Background="#121212"
         BorderThickness="0"
         WindowStartupLocation="CenterScreen"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaTitleBarHeightHint="-1">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="275" />
-            <RowDefinition Height="45" />
+	<Window.Background>
+		<LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+			<GradientStop Color="#2A2B41" Offset="0.0"/>
+			<GradientStop Color="#1B1B2D" Offset="1.0"/>
+		</LinearGradientBrush>
+	</Window.Background>
+    <Grid x:Name="MainGrid" Margin="16">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Image Grid.Row="0" Source="/Assets/Wabba_Mouth_Small.png" />
-        <Label Grid.Row="1" Margin="4" Foreground="White" FontSize="20" Content="{Binding Status}" />
+		<Image Grid.Row="0" Grid.RowSpan="5" HorizontalAlignment="Right" Source="{StaticResource WabbajackLogoBackground}" Width="{Binding ActualWidth, ElementName=MainGrid}" Height="{Binding ActualHeight, ElementName=MainGrid}" Margin="0, 0, 90, 0">
+			<Image.RenderTransform>
+				<TransformGroup>
+					<ScaleTransform ScaleX="2.4" ScaleY="2.4" />
+					<RotateTransform Angle="15" />
+				</TransformGroup>
+			</Image.RenderTransform>
+		</Image>
+		<Label Grid.Row="1" Foreground="#7BFFFFFF" FontSize="16" Content="{Binding StatusHistory[0]}" />
+		<Label Grid.Row="2" Foreground="#7BFFFFFF" FontSize="16" Content="{Binding StatusHistory[1]}" />
+		<Label Grid.Row="3" Foreground="#7BFFFFFF" FontSize="16" Content="{Binding StatusHistory[2]}" />
+		<Label Grid.Row="4" Foreground="White" FontWeight="Bold" FontSize="24" Content="{Binding Status}" />
     </Grid>
 </Window>

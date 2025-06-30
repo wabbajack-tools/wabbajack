@@ -62,7 +62,7 @@
             Command="{Binding BackCommand}"
             Style="{StaticResource IconCircleButtonStyle}"
             ToolTip="Back to main menu">
-            <iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
+            <!--<iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />-->
         </Button>
         <!--  Do it this way so we can access the browser directly from the VM  -->
         <ContentControl Grid.Row="1" Content="{Binding Browser}" />

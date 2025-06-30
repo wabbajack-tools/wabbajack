@@ -11,7 +11,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj"/>
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
     </ItemGroup>
 
 </Project>

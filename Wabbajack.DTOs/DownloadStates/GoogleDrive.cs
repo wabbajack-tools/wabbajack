@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Serialization;
 using Wabbajack.DTOs.JsonConverters;
 
@@ -12,4 +13,5 @@ public class GoogleDrive : ADownloadState
     public override string TypeName => "GoogleDriveDownloader+State";
 
     [JsonIgnore] public override object[] PrimaryKey => new object[] {Id};
+    public Uri GetUri() => new Uri($"https://drive.usercontent.google.com/download?id={Id}");
 }

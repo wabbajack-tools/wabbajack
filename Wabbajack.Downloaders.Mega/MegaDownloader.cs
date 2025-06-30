@@ -17,7 +17,7 @@ using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 
-namespace Wabbajack.Downloaders.ModDB;
+namespace Wabbajack.Downloaders;
 
 public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
 {
@@ -36,8 +36,7 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
 
     public override async Task<bool> Prepare()
     {
-        await LoginIfNotLoggedIn();
-        return true;
+        return await LoginIfNotLoggedIn();
     }
 
     public override bool IsAllowed(ServerAllowList allowList, IDownloadState state)
@@ -72,22 +71,33 @@ public class MegaDownloader : ADownloader<Mega>, IUrlDownloader, IProxyable
         return await fn(ins);
     }
 
-    private async Task LoginIfNotLoggedIn()
+    private async Task<bool> LoginIfNotLoggedIn()
     {
         if (!_apiClient.IsLoggedIn)
         {
             if (_tokenProvider.HaveToken())
             {
                 var authInfo = await _tokenProvider.Get();
-                _logger.LogInformation("Logging into Mega with {Email}", authInfo!.Email);
-                await _apiClient.LoginAsync(authInfo!.Email, authInfo.Password);
+                try
+                {
+                    if (authInfo!.Login == null)
+                        await _apiClient.LoginAnonymousAsync();
+                    else
+                        await _apiClient.LoginAsync(authInfo!.Login);
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError("Failed to login to MEGA using provided credentials: {ex}", ex.ToString());
+                    return false;
+                }
+                return true;
             }
             else
             {
-                _logger.LogInformation("Logging into Mega without credentials");
-                await _apiClient.LoginAsync();
+                return false;
             }
         }
+        return true;
     }
 
     public override async Task<Hash> Download(Archive archive, Mega state, AbsolutePath destination, IJob job,

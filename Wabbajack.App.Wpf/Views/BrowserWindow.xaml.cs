@@ -1,84 +1,64 @@
 using System;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
-using MahApps.Metro.Controls;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Web.WebView2.Wpf;
+using System.Windows;
 using ReactiveUI;
-using Wabbajack.Common;
+using System.Threading.Tasks;
 
 namespace Wabbajack;
 
-public partial class BrowserWindow : MetroWindow
+public partial class BrowserWindow : ReactiveUserControl<BrowserWindowViewModel>
 {
-    private readonly CompositeDisposable _disposable;
-    private readonly IServiceProvider _serviceProvider;
-    public WebView2 Browser { get; set; }
-
-    public BrowserWindow(IServiceProvider serviceProvider)
+    public BrowserWindow()
     {
         InitializeComponent();
 
-        _disposable = new CompositeDisposable();
-        _serviceProvider = serviceProvider;
-        Browser = _serviceProvider.GetRequiredService<WebView2>();
-        RxApp.MainThreadScheduler.Schedule(() =>
+        this.WhenActivated(disposables =>
         {
-            if(Browser.Parent != null)
+            RxApp.MainThreadScheduler.Schedule(async () =>
             {
-                ((Panel)Browser.Parent).Children.Remove(Browser);
-            }
-            MainGrid.Children.Add(Browser);
-            Grid.SetRow(Browser, 3);
-            Grid.SetColumnSpan(Browser, 3);
-        });
-    }
+                WebViewWarning.Visibility = Visibility.Collapsed;
+                await Task.Delay(TimeSpan.FromSeconds(2));
+                WebViewWarning.Visibility = Visibility.Visible;
+            });
 
-    private void UIElement_OnMouseDown(object sender, MouseButtonEventArgs e)
-    {
-        if (e.LeftButton == MouseButtonState.Pressed)
-        {
-            base.DragMove();
-        }
-    }
+            this.BindCommand(ViewModel, vm => vm.BackCommand, v => v.BackButton)
+                .DisposeWith(disposables);
 
-    private void BrowserWindow_OnActivated(object sender, EventArgs e)
-    {
-        var vm = ((BrowserWindowViewModel) DataContext);
-        vm.Browser = this;
+            this.BindCommand(ViewModel, vm => vm.CloseCommand, v => v.CloseButton)
+                .DisposeWith(disposables);
 
-        vm.WhenAnyValue(vm => vm.HeaderText)
-            .BindToStrict(this, view => view.Header.Text)
-            .DisposeWith(_disposable);
-        
-        vm.WhenAnyValue(vm => vm.Instructions)
-            .BindToStrict(this, view => view.Instructions.Text)
-            .DisposeWith(_disposable);
-        
-        vm.WhenAnyValue(vm => vm.Address)
-            .BindToStrict(this, view => view.AddressBar.Text)
-            .DisposeWith(_disposable);
-        
-        this.CopyButton.Command = ReactiveCommand.Create(() =>
-        {
-            Clipboard.SetText(vm.Address.ToString());
+            this.WhenAnyValue(v => v.ViewModel.HeaderText)
+                .BindToStrict(this, view => view.Header.Text)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(v => v.ViewModel.Instructions)
+                .BindToStrict(this, view => view.Instructions.Text)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(v => v.ViewModel.Address)
+                .BindToStrict(this, view => view.AddressBar.Text)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.ViewModel.Browser)
+                .WhereNotNull()
+                .ObserveOnGuiThread()
+                .Subscribe(browser =>
+                {
+                    RxApp.MainThreadScheduler.Schedule(() =>
+                    {
+                        if (browser.Parent != null)
+                        {
+                            ((Panel)browser.Parent).Children.Remove(browser);
+                        }
+                        ViewModel.Browser.Visibility = Visibility.Visible;
+                        ViewModel.Browser.Width = double.NaN;
+                        ViewModel.Browser.Height = double.NaN;
+                        WebViewGrid.Children.Add(browser);
+                    });
+                })
+                .DisposeWith(disposables);
         });
-        
-        this.BackButton.Command = ReactiveCommand.Create(() =>
-        {
-            Browser.GoBack();
-        });
-        
-        vm.RunWrapper(CancellationToken.None)
-            .ContinueWith(_ => Dispatcher.Invoke(() =>
-            {
-                Close();
-            }));
     }
 }

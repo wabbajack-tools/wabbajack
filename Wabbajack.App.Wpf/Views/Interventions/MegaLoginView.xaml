@@ -1,0 +1,145 @@
+﻿<rxui:ReactiveUserControl
+    x:Class="Wabbajack.MegaLoginView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:rxui="http://reactiveui.net"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
+    xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:TypeArguments="local:MegaLoginVM"
+    mc:Ignorable="d">
+    <Border
+        x:Name="AuthorFiles">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="16" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <TextBlock
+                FontSize="20"
+                FontWeight="Bold"
+                Text="Login to MEGA" />
+
+            <Button x:Name="CloseButton" Style="{StaticResource MainButtonStyle}" Background="Transparent"
+                    BorderThickness="0" HorizontalAlignment="Right" Padding="16" Margin="-16, -16, -16, 0" VerticalAlignment="Center">
+                <ic:SymbolIcon Symbol="Dismiss" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Right" />
+            </Button>
+
+            <Image x:Name="MegaImage" Grid.Row="2" Source="pack://application:,,,/LoginManagers/Icons/mega-text.png" Width="Auto" Height="64" />
+            <Grid x:Name="LoginGrid" Grid.Row="4" VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid Grid.Column="1" Width="{Binding Converter={StaticResource MathConverter}, ConverterParameter=x/3, ElementName=AuthorFiles, Path=ActualWidth}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="16" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="16" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="16" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Normal login -->
+                    <TextBlock Text="E-mail" Grid.Row="0" />
+                    <TextBox x:Name="EmailTextBox"
+                             Grid.Row="2"
+                             mahapps:TextBoxHelper.Watermark="Enter e-mail..." />
+                    <TextBlock Text="Password" Grid.Row="4" />
+                    <PasswordBox x:Name="PasswordBox" Grid.Row="6" PasswordChanged="PasswordBox_PasswordChanged" />
+                    <local:WJButton x:Name="LoginButton" Grid.Row="8" Text="Login" Icon="PersonArrowRight" Width="Auto" ButtonStyle="Color" />
+                    <Border x:Name="StatusBorder" Grid.Row="10" Padding="12" Background="{StaticResource PrimaryBrush}" CornerRadius="8" Visibility="Collapsed">
+                        <Grid x:Name="StatusGrid">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ic:SymbolIcon x:Name="StatusIcon"
+                                   Grid.Column="0"
+                                   Symbol="ArrowCounterclockwise"
+                                   FontSize="24"
+                                   Foreground="{StaticResource DarkBackgroundBrush}"
+                                   VerticalAlignment="Center" />
+                            <TextBlock x:Name="StatusText"
+                               Grid.Column="2"
+                               Text="Logging in..."
+                               Foreground="{StaticResource DarkBackgroundBrush}"
+                               VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <TextBlock Grid.Column="2" Padding="16, 0, 16, 0" FontSize="24" VerticalAlignment="Center" Text="or..." Foreground="{StaticResource DisabledButtonForeground}" />
+
+                <Grid Grid.Column="3" Width="{Binding Converter={StaticResource MathConverter}, ConverterParameter=x/3, ElementName=AuthorFiles, Path=ActualWidth}">
+                    <!-- Normal login -->
+                    <local:WJButton x:Name="LoginAnonymouslyButton" Text="Login anonymously" Icon="PersonArrowRight" Width="Auto" ButtonStyle="Color" />
+                </Grid>
+            </Grid>
+            <Grid x:Name="TwoFactorLoginGrid"
+                  Grid.Row="4"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Width="{Binding Converter={StaticResource MathConverter}, ConverterParameter=x/3, ElementName=AuthorFiles, Path=ActualWidth}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="16" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="16" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="16" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="Please enter your 2FA code below to log in." />
+                <TextBox 
+                         x:Name="TwoFactorKeyTextBox"
+                         Grid.Row="2"
+                         mahapps:TextBoxHelper.Watermark="Enter 6-digit code..."
+                         Text="{Binding TwoFactorKey}" 
+                         PreviewTextInput="TwoFactor_PreviewTextInput"
+                         MaxLength="6" />
+                <local:WJButton x:Name="TwoFactorLoginButton" Grid.Row="4" Text="Login" Icon="PersonArrowRight" Width="Auto" ButtonStyle="Color" />
+                <Border x:Name="TwoFactorStatusBorder" Grid.Row="6" Padding="12" Background="{StaticResource PrimaryBrush}" CornerRadius="8" Visibility="Collapsed">
+                    <Grid x:Name="TwoFactorStatusGrid">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ic:SymbolIcon x:Name="TwoFactorStatusIcon"
+                                   Grid.Column="0"
+                                   Symbol="ArrowCounterclockwise"
+                                   FontSize="24"
+                                   Foreground="{StaticResource DarkBackgroundBrush}"
+                                   VerticalAlignment="Center" />
+                        <TextBlock x:Name="TwoFactorStatusText"
+                               Grid.Column="2"
+                               Text="Logging in..."
+                               Foreground="{StaticResource DarkBackgroundBrush}"
+                               VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</rxui:ReactiveUserControl>

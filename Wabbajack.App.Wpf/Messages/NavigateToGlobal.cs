@@ -2,18 +2,21 @@ using ReactiveUI;
 
 namespace Wabbajack.Messages;
 
+public enum ScreenType
+{
+    Home,
+    ModListGallery,
+    Installer,
+    Settings,
+    CompilerHome,
+    CompilerMain,
+    ModListDetails,
+    WebBrowser,
+    Info
+}
+
 public class NavigateToGlobal
 {
-    public enum ScreenType
-    {
-        ModeSelectionView,
-        ModListGallery,
-        Installer,
-        Settings,
-        Compiler,
-        ModListContents,
-        WebBrowser
-    }
 
     public ScreenType Screen { get; }
     

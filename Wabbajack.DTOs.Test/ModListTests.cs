@@ -83,7 +83,7 @@ public class ModListTests
             async status =>
             {
                 _logger.LogInformation("Loading {machineURL}", status.MachineURL);
-                var detailed = await _wjClient.GetDetailedStatus(status.MachineURL);
+                var detailed = await _wjClient.GetDetailedStatus(status.MachineURL.Split('/')[0], status.MachineURL.Split('/')[1]);
                 Assert.True(detailed.MachineURL == status.MachineURL);
             });
     }

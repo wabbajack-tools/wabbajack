@@ -21,47 +21,34 @@
             <GradientStop Offset="1" Color="{StaticResource YellowColor}" />
         </LinearGradientBrush>
     </UserControl.Resources>
-    <Grid Background="{StaticResource TransparentBrush}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="2*" />
-        </Grid.RowDefinitions>
-        <Rectangle Grid.Row="0"
-            Height="65"
-            Fill="{StaticResource LinesBrush}">
-            <Rectangle.Effect>
-                <DropShadowEffect
-                    BlurRadius="15"
-                    Opacity="0.7"
-                    ShadowDepth="10" />
-            </Rectangle.Effect>
-        </Rectangle>
-        <Grid Grid.Row="1"
-            Margin="30"
-            Visibility="{Binding ShowHelp, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityConverter}}">
+    <Grid Background="{StaticResource TransparentBrush}" x:Name="MaintenanceGrid">
+        <Grid
+            Margin="12"
+            Visibility="{Binding ElementName=MaintenanceGrid,Path=IsMouseOver, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=True}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <TextBlock Grid.Row="0"
                 Margin="0,0,0,10"
-                FontFamily="Lucida Sans"
-                FontSize="30"
+                FontFamily="{StaticResource PrimaryFont}"
+                FontSize="24"
                 FontWeight="Bold"
                 Foreground="{StaticResource YellowBrush}"
-                Text="UNDER MAINTENANCE" />
+                Text="Unavailable" />
             <TextBlock Grid.Row="1"
-                FontFamily="Lucida Sans"
-                FontSize="15"
-                FontWeight="Bold"
+                FontFamily="{StaticResource PrimaryFont}"
                 Foreground="{StaticResource YellowBrush}"
-                Text="When mods are updated and the old versions are taken down, Wabbajack can no longer install the modlist for you. &#x0a; &#x0a;Modlist authors need to download the new mod and confirm its correctness before the modlist can be made available again."
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                TextAlignment="Left"
+                Text="A game or mod update has made the list unavailable for installation. The modlist requires an update from its author before it is installable. Contact the author(s) for more information."
                 TextWrapping="WrapWithOverflow" />
         </Grid>
         <Viewbox Grid.Row="1"
             Margin="20"
             VerticalAlignment="Top"
-            Visibility="{Binding ShowHelp, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
+            Visibility="{Binding Path=IsMouseOver, ElementName=MaintenanceGrid, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -72,47 +59,11 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0"
-                    FontFamily="Lucida Sans"
+                    FontFamily="{StaticResource PrimaryFont}"
                     FontSize="100"
                     FontWeight="Bold"
                     Foreground="{StaticResource YellowBrush}"
-                    Text="UNDER">
-                    <TextBlock.Effect>
-                        <DropShadowEffect
-                            BlurRadius="15"
-                            Opacity="0.7"
-                            ShadowDepth="10" />
-                    </TextBlock.Effect>
-                </TextBlock>
-                <Button Grid.Row="0"
-                    Width="45"
-                    Height="45"
-                    Margin="0,10"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Click="Help_Click">
-                    <Button.Style>
-                        <Style BasedOn="{StaticResource IconBareButtonStyle}" TargetType="Button">
-                            <Setter Property="Foreground" Value="{StaticResource YellowBrush}" />
-                        </Style>
-                    </Button.Style>
-                    <icon:PackIconMaterial
-                        Width="35"
-                        Height="35"
-                        Kind="HelpCircle" />
-                </Button>
-                <TextBlock Grid.Row="1"
-                    FontFamily="Lucida Sans"
-                    FontSize="100"
-                    FontWeight="Bold"
-                    Foreground="{StaticResource YellowBrush}"
-                    Text="MAINTENANCE">
-                    <TextBlock.Effect>
-                        <DropShadowEffect
-                            BlurRadius="15"
-                            Opacity="0.7"
-                            ShadowDepth="10" />
-                    </TextBlock.Effect>
+                    Text="Unavailable">
                 </TextBlock>
             </Grid>
         </Viewbox>

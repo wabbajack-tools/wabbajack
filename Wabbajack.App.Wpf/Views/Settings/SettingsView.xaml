@@ -13,39 +13,37 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <Style TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Lucida Sans" />
+            <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="FontSize" Value="12" />
         </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="47" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <local:TopProgressView Grid.Row="0" Grid.RowSpan="2"
-            Title="Settings"
-            ShadowMargin="False" />
-        <Button Grid.Row="0"
-            x:Name="BackButton"
-            Width="30"
-            Height="30"
-            Margin="7,5,0,0"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Style="{StaticResource IconCircleButtonStyle}"
-            ToolTip="Back to main menu">
-            <iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
-        </Button>
         <ScrollViewer Grid.Row="1"
             Focusable="False"
             VerticalScrollBarVisibility="Auto">
-            <WrapPanel>
-                <local:LoginSettingsView x:Name="LoginView" />
-                <local:PerformanceSettingsView x:Name="PerformanceView" />
-                <local:MiscSettingsView x:Name="MiscGalleryView" />
-                <local:AuthorFilesView x:Name="AuthorFilesView" />
-            </WrapPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MinWidth="345" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" MinWidth="220" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="16"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <local:LoginSettingsView x:Name="LoginView" Grid.Column="0" Grid.Row="0" />
+                <local:PerformanceSettingsView x:Name="PerformanceView" Grid.Column="2" Grid.Row="0" />
+                <local:MiscSettingsView x:Name="MiscGalleryView" Grid.Row="2" Grid.ColumnSpan="3" />
+                <local:AboutView x:Name="AboutView" Grid.Row="0" Grid.Column="4" />
+                <local:FileUploadSettingsView x:Name="FileUploadSettingsView" Grid.Column="4" Grid.Row="2" />
+            </Grid>
         </ScrollViewer>
     </Grid>
 </rxui:ReactiveUserControl>

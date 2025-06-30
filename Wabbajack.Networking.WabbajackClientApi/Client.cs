@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
 using System.Text.Json;
@@ -13,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Octokit;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
@@ -134,6 +136,7 @@ public class Client
     public async Task<Archive[]> GetGameArchives(Game game, string version)
     {
         var url = $"https://raw.githubusercontent.com/wabbajack-tools/indexed-game-files/master/{game}/{version}.json";
+        _logger.LogInformation("Fetching game archives for {game} from {url}", game.ToString(), url);
         return await _client.GetFromJsonAsync<Archive[]>(url, _dtos.Options) ?? Array.Empty<Archive>();
     }
 
@@ -171,10 +174,10 @@ public class Client
             _dtos.Options) ?? Array.Empty<ModListSummary>();
     }
 
-    public async Task<ValidatedModList> GetDetailedStatus(string machineURL)
+    public async Task<ValidatedModList> GetDetailedStatus(string repository, string machineURL)
     {
         return (await _client.GetFromJsonAsync<ValidatedModList>(
-            $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{machineURL}/status.json",
+            $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{repository}/{machineURL}/status.json",
             _dtos.Options))!;
     }
 
@@ -231,14 +234,19 @@ public class Client
                         _dtos.Options))!.Select(meta =>
                     {
                         meta.RepositoryName = url.Key;
-                        meta.Official = (meta.RepositoryName == "wj-featured" ||
-                                         featured.Contains(meta.NamespacedName));
+                        meta.Official = meta.RepositoryName == "wj-featured" ||
+                                        featured.Contains(meta.NamespacedName);
                         return meta;
                     });
                 }
                 catch (JsonException ex)
                 {
-                    _logger.LogError(ex, "While loading {List} from {Url}", url.Key, url.Value);
+                    _logger.LogError(ex, "Failed loading JSON for repository {repo} from {url} - Exception: {ex}", url.Key, url.Value, ex.ToString());
+                    return Enumerable.Empty<ModlistMetadata>();
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError(ex, "Failed loading lists from repository {repo}: {url} - Exception: {ex}", url.Key, url.Value, ex.ToString());
                     return Enumerable.Empty<ModlistMetadata>();
                 }
             })
@@ -263,12 +271,29 @@ public class Client
         return repositories!;
     }
 
+    public async Task<HashSet<string>> LoadAllowedTags()
+    {
+        var data = await _client.GetFromJsonAsync<string[]>(_limiter,
+            new HttpRequestMessage(HttpMethod.Get,
+                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/allowed_tags.json"),
+            _dtos.Options);
+        return data!.ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+    public async Task<Dictionary<string, string>> LoadTagMappings()
+    {
+        var data = await _client.GetFromJsonAsync<Dictionary<string, string>>(_limiter,
+            new HttpRequestMessage(HttpMethod.Get,
+                "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/tag_mappings.json"),
+            _dtos.Options);
+        return data!;
+    }
+
     public async Task<SearchIndex> LoadSearchIndex()
     {
         return await _client.GetFromJsonAsync<SearchIndex>(_limiter,
-            new HttpRequestMessage(HttpMethod.Get, 
+            new HttpRequestMessage(HttpMethod.Get,
                 "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/refs/heads/master/reports/searchIndex.json"),
-                _dtos.Options);
+            _dtos.Options);
     }
     
     public Uri GetPatchUrl(Hash upgradeHash, Hash archiveHash)
@@ -410,7 +435,7 @@ public class Client
         var apiKey = (await _token.Get())!.AuthorKey;
         var report = new Subject<(Percent PercentDone, string Message)>();
 
-        var tsk = Task.Run<Uri>(async () =>
+        var tsk = Task.Run(async () =>
         {
             report.OnNext((Percent.Zero, "Generating File Definition"));
             var definition = await GenerateFileDefinition(path);
@@ -455,6 +480,7 @@ public class Client
             });
 
             report.OnNext((Percent.Zero, "Finalizing upload"));
+            _logger.LogInformation("Finalizing upload");
             return await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
             {
                 var msg = await MakeMessage(HttpMethod.Put,
@@ -501,7 +527,7 @@ public class Client
 
     public async ValueTask<Uri?> MakeProxyUrl(Archive archive, Uri uri)
     {
-        if (archive.State is Manual && !await ProxyHas(uri))
+        if (!await ProxyHas(uri))
             return null;
 
         return new Uri(
@@ -524,47 +550,54 @@ public class Client
         return (await _dtos.DeserializeAsync<string[]>(await response.Content.ReadAsStreamAsync(token), token))!;
     }
 
-    public async Task PublishModlist(string namespacedName, Version version,  AbsolutePath modList, DownloadMetadata metadata)
+    public async Task<(IObservable<(Percent PercentDone, string Message)> Progress, Task PublishTask)> PublishModlist(
+    string namespacedName, Version version, AbsolutePath modList, DownloadMetadata metadata)
     {
         var pair = namespacedName.Split("/");
         var wjRepoName = pair[0];
         var machineUrl = pair[1];
 
         var repoUrl = (await LoadRepositories())[wjRepoName];
-
         var decomposed = repoUrl.LocalPath.Split("/");
         var owner = decomposed[1];
         var repoName = decomposed[2];
         var path = string.Join("/", decomposed[4..]);
-        
-        _logger.LogInformation("Uploading modlist {MachineUrl}", namespacedName);
-        
+
         var (progress, uploadTask) = await UploadAuthorFile(modList);
-        progress.Subscribe(x => _logger.LogInformation(x.Message));
-        var downloadUrl = await uploadTask;
         
-        _logger.LogInformation("Publishing modlist {MachineUrl}", namespacedName);
+        // Usually the GitHub publish will take basically no time at all compared to the upload so just ignore progress percentage here
+        var publishTask = Task.Run(async () =>
+        {
+            var downloadUrl = await uploadTask;
 
-        var creds = new Credentials((await _token.Get())!.AuthorKey);
-        var ghClient = new GitHubClient(new ProductHeaderValue("wabbajack")) {Credentials = creds};
+            _logger.LogInformation("Publishing modlist {MachineUrl}", namespacedName);
 
-        var oldData =
-            (await ghClient.Repository.Content.GetAllContents(owner, repoName, path))
-            .First();
-        var oldContent = _dtos.Deserialize<ModlistMetadata[]>(oldData.Content);
-        var list = oldContent.First(c => c.Links.MachineURL == machineUrl);
-        list.Version = version;
-        list.DownloadMetadata = metadata;
-        list.Links.Download = downloadUrl.ToString();
-        list.DateUpdated = DateTime.UtcNow;
+            var creds = new Credentials((await _token.Get())!.AuthorKey);
+            var ghClient = new GitHubClient(new ProductHeaderValue("wabbajack"))
+            {
+                Credentials = creds
+            };
 
+            var oldData =
+                (await ghClient.Repository.Content.GetAllContents(owner, repoName, path))
+                .First();
+            var oldContent = _dtos.Deserialize<ModlistMetadata[]>(oldData.Content);
+            var list = oldContent.First(c => c.Links.MachineURL == machineUrl);
+            list.Version = version;
+            list.DownloadMetadata = metadata;
+            list.Links.Download = downloadUrl.ToString();
+            list.DateUpdated = DateTime.UtcNow;
 
-        var newContent = _dtos.Serialize(oldContent, true);
-        // the website requires all names be in lowercase;
-        newContent = GameRegistry.Games.Keys.Aggregate(newContent,
-            (current, g) => current.Replace($"\"game\": \"{g}\",", $"\"game\": \"{g.ToString().ToLower()}\","));
+            var newContent = _dtos.Serialize(oldContent, true);
+            // Ensure game names are lowercase
+            newContent = GameRegistry.Games.Keys.Aggregate(newContent,
+                (current, g) => current.Replace($"\"game\": \"{g}\",", $"\"game\": \"{g.ToString().ToLower()}\","));
 
-        var updateRequest = new UpdateFileRequest($"New release of {machineUrl}", newContent, oldData.Sha);
-        await ghClient.Repository.Content.UpdateFile(owner, repoName, path, updateRequest);
+            var updateRequest = new UpdateFileRequest($"New release of {machineUrl}", newContent, oldData.Sha);
+            await ghClient.Repository.Content.UpdateFile(owner, repoName, path, updateRequest);
+        });
+
+        return (progress, publishTask);
     }
+
 }

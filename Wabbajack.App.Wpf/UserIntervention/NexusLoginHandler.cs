@@ -1,26 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
-using Fizzler.Systems.HtmlAgilityPack;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.DTOs.OAuth;
-using Wabbajack.Messages;
-using Wabbajack.Models;
-using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Services.OSIntegrated;
-using Cookie = Wabbajack.DTOs.Logins.Cookie;
 
 namespace Wabbajack.UserIntervention;
 
@@ -34,20 +26,12 @@ public class NexusLoginHandler : BrowserWindowViewModel
     private readonly ILogger<NexusLoginHandler> _logger;
     private readonly HttpClient _client;
 
-    public NexusLoginHandler(ILogger<NexusLoginHandler> logger, HttpClient client, EncryptedJsonTokenProvider<NexusOAuthState> tokenProvider)
+    public NexusLoginHandler(ILogger<NexusLoginHandler> logger, HttpClient client, EncryptedJsonTokenProvider<NexusOAuthState> tokenProvider, IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _logger = logger;
         _client = client;
         HeaderText = "Nexus Login";
         _tokenProvider = tokenProvider;
-    }
-    
-    private string Base64Id()
-    {
-        var bytes = new byte[32];
-        using var rng = RandomNumberGenerator.Create();
-        rng.GetBytes(bytes);
-        return Convert.ToBase64String(bytes);
     }
 
     protected override async Task Run(CancellationToken token)
@@ -69,7 +53,7 @@ public class NexusLoginHandler : BrowserWindowViewModel
         await NavigateTo(new Uri("https://nexusmods.com"));
         var codeCompletionSource = new TaskCompletionSource<Dictionary<string, StringValues>>();
         
-        Browser!.Browser.CoreWebView2.NewWindowRequested += (sender, args) =>
+        Browser.CoreWebView2.NewWindowRequested += (sender, args) =>
         {
             var uri = new Uri(args.Uri);
             _logger.LogInformation("New Window Requested {Uri}", args.Uri);
@@ -82,7 +66,7 @@ public class NexusLoginHandler : BrowserWindowViewModel
         var uri = GenerateAuthorizeUrl(codeChallenge, state);
         await NavigateTo(uri);
 
-        var ctx = await codeCompletionSource.Task;
+        var ctx = await codeCompletionSource.Task.WaitAsync(token);
         
         if (ctx["state"].FirstOrDefault() != state)
         {

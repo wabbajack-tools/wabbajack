@@ -10,152 +10,72 @@
     x:TypeArguments="local:ViewModel"
     ClipToBounds="True"
     mc:Ignorable="d">
-    <UserControl.Resources>
-        <Color x:Key="TextBackgroundFill">#92000000</Color>
-        <SolidColorBrush x:Key="TextBackgroundFillBrush" Color="{StaticResource TextBackgroundFill}" />
-        <Color x:Key="TextBackgroundHoverFill">#DF000000</Color>
-        <Style x:Key="BackgroundBlurStyle" TargetType="TextBlock">
-            <Setter Property="Background" Value="{StaticResource TextBackgroundFillBrush}" />
-            <Setter Property="Foreground" Value="Transparent" />
-            <Setter Property="Visibility" Value="Visible" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IsMouseOver, ElementName=TextHoverTrigger}" Value="True">
-                    <DataTrigger.EnterActions>
-                        <BeginStoryboard>
-                            <Storyboard>
-                                <ColorAnimation
-                                    Storyboard.TargetProperty="(TextBlock.Background).(SolidColorBrush.Color)"
-                                    To="{StaticResource TextBackgroundHoverFill}"
-                                    Duration="0:0:0.06" />
-                            </Storyboard>
-                        </BeginStoryboard>
-                    </DataTrigger.EnterActions>
-                    <DataTrigger.ExitActions>
-                        <BeginStoryboard>
-                            <Storyboard>
-                                <ColorAnimation
-                                    Storyboard.TargetProperty="(TextBlock.Background).(SolidColorBrush.Color)"
-                                    To="{StaticResource TextBackgroundFill}"
-                                    Duration="0:0:0.06" />
-                            </Storyboard>
-                        </BeginStoryboard>
-                    </DataTrigger.ExitActions>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-    </UserControl.Resources>
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="5*" />
-            <ColumnDefinition Width="3*" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        <Rectangle Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="2"
-            Fill="{StaticResource WindowBackgroundBrush}" />
-        <Viewbox Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="2"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Stretch="UniformToFill">
-            <Image x:Name="ModlistImage" />
-        </Viewbox>
-        <Image Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="2"
-            x:Name="BadgeImage"
-            Width="60"
-            Height="60"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top" />
-        <TextBlock Grid.Row="2" Grid.Column="0"
-            x:Name="TitleTextShadow"
-            Margin="-20,5,-20,-20"
-            Padding="40,20"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Bottom"
-            FontFamily="Lucida Sans"
-            FontSize="65"
-            FontWeight="Bold"
-            Style="{StaticResource BackgroundBlurStyle}"
-            TextWrapping="WrapWithOverflow">
-            <TextBlock.Effect>
-                <BlurEffect Radius="85" />
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Grid.Row="3" Grid.Column="0"
-            x:Name="AuthorTextShadow"
-            Margin="35,-10,-10,10"
-            Padding="30,10"
-            HorizontalAlignment="Left"
-            FontFamily="Lucida Sans"
-            FontSize="30"
-            FontWeight="Bold"
-            Style="{StaticResource BackgroundBlurStyle}"
-            TextWrapping="WrapWithOverflow">
-            <TextBlock.Effect>
-                <BlurEffect Radius="55" />
-            </TextBlock.Effect>
-            <Run FontSize="15" Text="by" />
-            <Run x:Name="AuthorShadowTextRun" />
-        </TextBlock>
-        <TextBlock Grid.Row="2" Grid.Column="0"
+    <Border x:Name="BorderMask2" CornerRadius="8" BorderThickness="0" Background="White">
+        <Grid>
+            <Border Name="BorderMask" CornerRadius="8" Background="White" Margin="1"/>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.OpacityMask>
+                    <VisualBrush Visual="{Binding ElementName=BorderMask}" />
+                </Grid.OpacityMask>
+                <Rectangle Grid.RowSpan="4" Fill="{StaticResource ComplementaryPrimary08Brush}" Visibility="{Binding ElementName=ModlistImage, Path=Source, Converter={StaticResource IsNotNullVisibilityConverter}}"/>
+                <Rectangle Grid.RowSpan="4" Fill="Black"/>
+                <Viewbox 
+                        Grid.RowSpan="4"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Stretch="UniformToFill">
+                    <Image x:Name="ModlistImage">
+                        <Image.OpacityMask>
+                            <LinearGradientBrush StartPoint="0.5, 0" EndPoint="0.5, 1">
+                                <LinearGradientBrush.GradientStops>
+                                    <GradientStop Offset="0.5" Color="Black"/>
+                                    <GradientStop Offset="1.0" Color="Transparent"/>
+                                </LinearGradientBrush.GradientStops>
+                            </LinearGradientBrush>
+                        </Image.OpacityMask>
+                    </Image>
+                </Viewbox>
+                <!--
+                    <Rectangle
+                            Margin="-80, 0, -80, -75"
+                            VerticalAlignment="Bottom"
+                            Fill="Black"
+                            Opacity="0.7">
+                        <Rectangle.Effect>
+                            <BlurEffect Radius="100" />
+                        </Rectangle.Effect>
+                    </Rectangle>
+                    -->
+                <TextBlock Grid.Row="2"
             x:Name="TitleTextBlock"
-            Margin="20,25,20,0"
+            Margin="16, 0, 0, 0"
             HorizontalAlignment="Left"
             VerticalAlignment="Bottom"
-            FontFamily="Lucida Sans"
-            FontSize="65"
             FontWeight="Bold"
             TextWrapping="WrapWithOverflow">
-            <TextBlock.Effect>
-                <DropShadowEffect />
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Grid.Row="3" Grid.Column="0"
-            x:Name="AuthorTextBlock"
-            Margin="55,0,20,20"
-            FontFamily="Lucida Sans"
-            FontSize="30"
-            FontWeight="Bold"
-            TextWrapping="Wrap">
-            <TextBlock.Effect>
-                <DropShadowEffect />
-            </TextBlock.Effect>
-            <Run FontSize="15" Text="by" />
-            <Run x:Name="AuthorTextRun" />
-        </TextBlock>
-        <TextBlock Grid.Row="2" Grid.RowSpan="2" Grid.Column="1"
-            x:Name="DescriptionTextShadow"
-            Margin="-10,15,-5,15"
-            Padding="30,10"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom"
-            FontFamily="Lucida Sans"
-            FontSize="16"
-            Style="{StaticResource BackgroundBlurStyle}"
-            TextAlignment="Right"
-            TextWrapping="Wrap">
-            <TextBlock.Effect>
-                <BlurEffect Radius="55" />
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Grid.Row="2" Grid.RowSpan="2" Grid.Column="1"
-            x:Name="DescriptionTextBlock"
-            Margin="20,25,25,25"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom"
-            FontFamily="Lucida Sans"
-            FontSize="16"
-            TextAlignment="Right"
-            TextWrapping="Wrap">
-            <TextBlock.Effect>
-                <DropShadowEffect />
-            </TextBlock.Effect>
-        </TextBlock>
-        <Rectangle Grid.Row="2" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
-            x:Name="TextHoverTrigger"
-            Fill="Transparent" />
-    </Grid>
+                </TextBlock>
+                <StackPanel Grid.Row="3" Margin="16, 0, 0, 16" Orientation="Horizontal">
+                    <StackPanel.Resources>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="Margin">
+                                <Setter.Value>
+                                    <Thickness Left="0" Top="0" Right="8" Bottom="0" />
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </StackPanel.Resources>
+                    <TextBlock x:Name="VersionPrefixText" Text="version" Foreground="{StaticResource Transparent66ForegroundBrush}" />
+                    <TextBlock x:Name="VersionText" />
+                    <TextBlock x:Name="AuthorPrefixText" Text="by" Foreground="{StaticResource Transparent66ForegroundBrush}" />
+                    <TextBlock x:Name="AuthorText" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
 </local:UserControlRx>

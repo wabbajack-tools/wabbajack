@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Management;
 using System.Runtime.InteropServices;
-using System.Text;
 using Microsoft.Extensions.Logging;
 using PInvoke;
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
-using Wabbajack.Common;
 using Wabbajack.Installer;
-using Wabbajack;
 using static PInvoke.User32;
 using UnmanagedType = System.Runtime.InteropServices.UnmanagedType;
 
@@ -113,16 +110,51 @@ namespace Wabbajack.Util
             }
             
             var memory = GetMemoryStatus();
+            var gpuName = GetGPUName();
             return new SystemParameters
             {
                 ScreenWidth = width,
                 ScreenHeight = height,
                 VideoMemorySize = (long)dxgiMemory,
                 SystemMemorySize = (long)memory.ullTotalPhys,
-                SystemPageSize = (long)memory.ullTotalPageFile - (long)memory.ullTotalPhys
+                SystemPageSize = (long)memory.ullTotalPageFile - (long)memory.ullTotalPhys,
+                GpuName = gpuName
             };
         }
-        
+
+        private string GetGPUName()
+        {
+            HashSet<string> gpuManufacturers = ["amd", "intel", "nvidia"];
+            string gpuName = "";
+            uint gpuRefreshRate = 0;
+            
+            try
+            {
+                ManagementObjectSearcher videoControllers = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
+            
+                foreach (ManagementObject obj in videoControllers.Get())
+                {
+                    if (obj["CurrentRefreshRate"] != null && obj["Description"] != null)
+                    {
+                        var currentRefreshRate = (uint)obj["CurrentRefreshRate"];
+                        var currentName = obj["Description"].ToString();
+                        
+                        if (gpuManufacturers.Any(s => currentName.Contains(s, StringComparison.OrdinalIgnoreCase)) && currentRefreshRate > gpuRefreshRate)
+                        {
+                            gpuName = currentName;
+                            gpuRefreshRate = currentRefreshRate;
+                        }
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("Failed to get GPU information: {ex}", ex.ToString());
+            }
+
+            return gpuName;
+        }
+
         [return: MarshalAs(UnmanagedType.Bool)]
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         static extern bool GlobalMemoryStatusEx([In, Out] MEMORYSTATUSEX lpBuffer);

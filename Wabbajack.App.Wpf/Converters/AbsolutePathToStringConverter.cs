@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.Windows.Data;
 using ReactiveUI;
-using Wabbajack.Common;
 using Wabbajack.Paths;
 
 namespace Wabbajack

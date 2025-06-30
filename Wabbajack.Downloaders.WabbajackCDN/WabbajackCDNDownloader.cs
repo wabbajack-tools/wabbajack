@@ -78,6 +78,7 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader,
         CancellationToken token)
     {
         var definition = (await GetDefinition(state, token))!;
+        if (definition == null) return default;
         await using var fs = destination.Open(FileMode.Create, FileAccess.Write, FileShare.None);
 
         await definition.Parts.PMapAll<PartDefinition, (MemoryStream, PartDefinition)>(async part =>
@@ -91,11 +92,6 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader,
                 using var response = await _client.SendAsync(msg, HttpCompletionOption.ResponseHeadersRead, token);
                 if (!response.IsSuccessStatusCode)
                     throw new InvalidDataException($"Bad response for part request for part {part.Index}");
-
-                var length = response.Content.Headers.ContentLength;
-                if (length != part.Size)
-                    throw new InvalidDataException(
-                        $"Bad part size, expected {part.Size} got {length} for part {part.Index}");
 
                 await using var data = await response.Content.ReadAsStreamAsync(token);
 
@@ -126,6 +122,7 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader,
 
     private async Task<FileDefinition?> GetDefinition(WabbajackCDN state, CancellationToken token)
     {
+        _logger.LogInformation("Getting file definition for CDN download {primaryKeyString}", state.PrimaryKeyString);
         var msg = MakeMessage(new Uri(state.Url + "/definition.json.gz"));
         using var data = await _client.SendAsync(msg, token);
         if (!data.IsSuccessStatusCode) return null;
@@ -174,11 +171,6 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader,
         using var response = await _client.SendAsync(msg, HttpCompletionOption.ResponseHeadersRead, token);
         if (!response.IsSuccessStatusCode)
             throw new InvalidDataException($"Bad response for part request for part {part.Index}");
-
-        var length = response.Content.Headers.ContentLength;
-        if (length != part.Size)
-            throw new InvalidDataException(
-                $"Bad part size, expected {part.Size} got {length} for part {part.Index}");
 
         return await response.Content.ReadAsByteArrayAsync(token);
     }

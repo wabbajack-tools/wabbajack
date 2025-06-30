@@ -1,0 +1,138 @@
+﻿<rxui:ReactiveUserControl
+    x:Class="Wabbajack.HomeView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:rxui="http://reactiveui.net"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
+    d:DataContext="{d:DesignInstance local:HomeVM}"
+    d:DesignHeight="700"
+    d:DesignWidth="1000"
+    x:TypeArguments="local:HomeVM"
+    mc:Ignorable="d">
+    <Grid Margin="8, 0, 8, 0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0" Grid.Column="0" FontWeight="Bold" Padding="0" Margin="0">
+            <TextBlock FontSize="87" FontWeight="Bold">
+                <Run Foreground="{StaticResource ForegroundBrush}" Text="Welcome to" />
+                <Run Foreground="{StaticResource PrimaryBrush}" Text="Wabbajack" />
+            </TextBlock>
+        </Label>
+        <Label Grid.Row="1" Foreground="{StaticResource ForegroundBrush}" Margin="0">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="The home of " FontSize="24" />
+                <TextBlock x:Name="ModlistAmountTextBlock" Foreground="{StaticResource PrimaryBrush}" FontSize="24" />
+                <TextBlock Text=" ready-made modlists spanning " FontSize="24" />
+                <TextBlock x:Name="GameAmountTextBlock" Foreground="{StaticResource PrimaryBrush}" FontSize="24" />
+                <TextBlock Text=" games." FontSize="24" />
+            </StackPanel>
+        </Label>
+        <Grid Grid.Row="2" Margin="0, 16, 0, 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0" Grid.Column="0" BorderBrush="{StaticResource ComplementaryPrimary08Brush}" CornerRadius="16" BorderThickness="3" Margin="0, 0, 16, 16">
+                <Grid Margin="12" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Find a modlist that suits you" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
+                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="Search" IconVariant="Filled" FontSize="28" Foreground="{StaticResource PrimaryBrush}" />
+                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
+                    Go through a series of questions to find a modlist that works for you through our<LineBreak />
+                     <Hyperlink Command="{Binding VisitModlistWizardCommand}">Wabbakinator quiz</Hyperlink>, or <Hyperlink Command="{Binding BrowseCommand}">navigate the gallery</Hyperlink> yourself and pick something fun.
+                    </TextBlock>
+                </Grid>
+            </Border>
+            <Border Grid.Row="0" Grid.Column="1" BorderBrush="{StaticResource ComplementaryPrimary08Brush}" CornerRadius="16" BorderThickness="3" Margin="0, 0, 16, 16">
+                <Grid Margin="12" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Follow the install notes" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
+                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="DocumentOnePageMultiple" IconVariant="Filled" FontSize="28" Foreground="{StaticResource PrimaryBrush}" />
+                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
+                        Some modlists have steps that you need to take before you install the list, some <LineBreak />
+                        don't. Check your list's documentation to see how to get started.
+                    </TextBlock>
+                </Grid>
+            </Border>
+            <Border Grid.Row="1" Grid.Column="0" BorderBrush="{StaticResource ComplementaryPrimary08Brush}" CornerRadius="16" BorderThickness="3" Margin="0, 0, 16, 16">
+                <Grid Margin="12" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Start downloading your chosen list" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
+                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="ArrowDownload" IconVariant="Filled" FontSize="28" Foreground="{StaticResource PrimaryBrush}"
+                    />
+                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
+                        Pick a destination with enough free space and click the download button. <LineBreak />
+                        Heads up; for full automation of Nexus downloads, a premium account is required.
+                    </TextBlock>
+                </Grid>
+            </Border>
+            <Border Grid.Row="1" Grid.Column="1" BorderBrush="{StaticResource ComplementaryPrimary08Brush}" CornerRadius="16" BorderThickness="3" Margin="0, 0, 16, 16">
+                <Grid Margin="12" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Text="Ready to start playing!" FontWeight="DemiBold" FontSize="24" Margin="0, 0, 0, 4" />
+                    <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Symbol="Games" IconVariant="Filled" FontSize="28" Foreground="{StaticResource PrimaryBrush}"
+                    />
+                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" LineHeight="20" FontSize="13" VerticalAlignment="Center">
+                        If your install completed successfully and you're done with the documentation as<LineBreak />
+                        well, you're now ready to launch the modlist and play!
+                    </TextBlock>
+                </Grid>
+            </Border>
+        </Grid>
+        <local:LinksView Grid.Row="2" Grid.Column="1" Margin="0, 16, 0, 0"/>
+        <Grid Grid.Row="3" Margin="0, 16, 0, 16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="6*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="1" Background="{StaticResource DarkSecondaryBrush}" BorderBrush="{StaticResource DarkSecondaryBrush}" BorderThickness="2" CornerRadius="4" />
+        </Grid>
+        <local:BigButton x:Name="GetStartedButton" ButtonStyle="Color" Grid.Row="4" Grid.Column="0" Margin="0, 16, 16, 16" MinHeight="108" Title="Get Started" Description="Browse the gallery and find yourself a modlist to play" Icon="ChevronRight" Command="{Binding BrowseCommand}"/>
+    </Grid>
+</rxui:ReactiveUserControl>

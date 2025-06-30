@@ -9,31 +9,169 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
     xmlns:system="clr-namespace:System;assembly=mscorlib"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
+    xmlns:sdl="http://schemas.sdl.com/xaml"
     d:DesignHeight="450"
     d:DesignWidth="900"
     x:TypeArguments="local:ModListGalleryVM"
     mc:Ignorable="d">
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="47" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <Rectangle Grid.Row="1" Grid.RowSpan="3"
-            Margin="6,0">
-            <Rectangle.Fill>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Offset="0" Color="#123700B3" />
-                    <GradientStop Offset="1" Color="#00000000" />
-                </LinearGradientBrush>
-            </Rectangle.Fill>
-        </Rectangle>
-        <Border Grid.Row="1"
-            BorderBrush="Transparent"
-            BorderThickness="1,0,1,1">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="270" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <Grid
+                HorizontalAlignment="Left"
+                VerticalAlignment="Stretch">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid>
+                    <TextBox
+                        x:Name="SearchBox"
+                        mahapps:TextBoxHelper.Watermark="Search for a modlist..." />
+                    <Border BorderThickness="0" CornerRadius="8" Width="30"
+                            Background="{StaticResource ComplementaryPrimary08Brush}" HorizontalAlignment="Right">
+                        <ic:SymbolIcon Symbol="Search" HorizontalAlignment="Center" IconVariant="Filled"
+                                       Foreground="{StaticResource PrimaryBrush}" />
+                    </Border>
+                </Grid>
+                <ComboBox
+                    Grid.Row="1"
+                    Margin="0, 12, 0, 0"
+                    VerticalAlignment="Center"
+                    ItemsSource="{Binding GameTypeEntries, Mode=TwoWay}"
+                    SelectedItem="{Binding SelectedGameTypeEntry, Mode=TwoWay}"
+                    IsSynchronizedWithCurrentItem="True"
+                    ToolTip="Filter modlists on game">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0, 2, 0, 2">
+                                <Border Width="24" Height="24" BorderThickness="0" CornerRadius="4"
+                                        VerticalAlignment="Center">
+                                    <Border.Background>
+                                        <ImageBrush Stretch="Fill" ImageSource="{Binding GameMetaData.IconSource}" />
+                                    </Border.Background>
+                                </Border>
+                                <TextBlock Margin="10, 0, 0, 0" Text="{Binding FormattedName}"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <StackPanel Grid.Row="2" Margin="0, 12, 0, 12" Orientation="Vertical">
+                    <Label Margin="0, 0, 0, 4">Include</Label>
+                    <Border CornerRadius="8" Background="{StaticResource ComplementaryPrimary08Brush}"
+                            Padding="0, 12, 0, 12">
+                        <StackPanel Orientation="Vertical">
+                            <CheckBox x:Name="IncludeUnofficial"
+                                      Margin="12, 0, 0, 12"
+                                      VerticalAlignment="Center"
+                                      Foreground="{StaticResource ForegroundBrush}"
+                                      Background="{StaticResource BackgroundBrush}"
+                                      ToolTip="Show modlists that have not been tested to provide a stable experience with official support channels. More info about featured modlists is available on the Wabbajack wiki.">
+                                <TextBlock FontSize="10" Text="Non-featured" />
+                            </CheckBox>
+                            <CheckBox x:Name="IncludeNSFW"
+                                      Margin="12, 0, 0, 0"
+                                      VerticalAlignment="Center"
+                                      Foreground="{StaticResource ForegroundBrush}"
+                                      Background="{StaticResource BackgroundBrush}"
+                                      ToolTip="Show modlists that include NSFW frameworks.">
+                                <TextBlock FontSize="10" Text="NSFW" />
+                            </CheckBox>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <Grid Grid.Row="3" Margin="0, 12, 0, 0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.ColumnSpan="2" FontSize="13" Text="Total Modlist Size" />
+                    <mahapps:RangeSlider Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="1" Margin="0, 10, 0, 0"
+                                         x:Name="SizeSliderFilter"
+                                         MinRangeWidth="3" AutoToolTipPlacement="TopLeft" AutoToolTipPrecision="1"
+                                         mahapps:SliderHelper.TrackValueFillBrush="{StaticResource PrimaryBrush}"
+                                         mahapps:SliderHelper.ThumbFillBrush="{StaticResource PrimaryBrush}"
+                                         mahapps:SliderHelper.ThumbFillHoverBrush="{StaticResource PrimaryBrush}"
+                                         mahapps:SliderHelper.ThumbFillPressedBrush="{StaticResource PrimaryBrush}" />
+                    <TextBlock Grid.Row="2" Grid.Column="0"
+                               Text="{Binding ElementName=SizeSliderFilter, Path=Minimum, Converter={StaticResource MathConverter}, ConverterParameter='Round(x,1)', StringFormat={}{0} GB}"
+                               Foreground="{StaticResource ComplementaryWhite25Brush}" Margin="0, 4, 0, 0" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right"
+                               Text="{Binding ElementName=SizeSliderFilter, Path=Maximum, Converter={StaticResource MathConverter}, ConverterParameter='Round(x,1)', StringFormat={}{0} GB}"
+                               Foreground="{StaticResource ComplementaryWhite25Brush}" Margin="0, 4, 0, 0" />
+                </Grid>
+
+                <StackPanel Grid.Row="4" Orientation="Vertical" Margin="0, 24, 0, 0">
+                    <TextBlock Text="Has mod(s)" />
+                    <sdl:MultiSelectComboBox
+                        x:Name="HasModsFilter"
+                        Margin="0, 12, 0, 0"
+                        IsEditable="True"
+                        SelectionMode="Multiple"
+                        Background="{StaticResource ComplementaryPrimary08Brush}" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="5" Orientation="Vertical" Margin="0, 24, 0, 0">
+                    <TextBlock Text="Has tag(s)" />
+                    <sdl:MultiSelectComboBox
+                        x:Name="HasTagsFilter"
+                        Margin="0, 12, 0, 0"
+                        IsEditable="True"
+                        SelectionMode="Multiple"
+                        Background="{StaticResource ComplementaryPrimary08Brush}" />
+                </StackPanel>
+
+                <CheckBox
+                    Grid.Row="6"
+                    x:Name="OnlyInstalledCheckbox"
+                    Margin="0, 24, 0, 0"
+                    VerticalAlignment="Center"
+                    Foreground="{StaticResource ForegroundBrush}"
+                    ToolTip="Show only modlists for games you have installed on your PC">
+                    <TextBlock Text="Show only modlists for installed games" FontSize="10"
+                               VerticalAlignment="Center" />
+                </CheckBox>
+
+                <local:WJButton
+                    x:Name="ResetFiltersButton"
+                    Margin="0, 24, 0, 0"
+                    Grid.Row="7"
+                    ToolTip="Reset filters to the default options"
+                    VerticalAlignment="Bottom"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Icon="FilterDismiss"
+                    Text="Reset filters"
+                    Width="Auto">
+                </local:WJButton>
+            </Grid>
+        </ScrollViewer>
+        <Border Grid.Column="1"
+                BorderBrush="Transparent"
+                BorderThickness="0"
+                Margin="0, 0, 0, -16">
             <ScrollViewer Background="Transparent" VerticalScrollBarVisibility="Auto">
                 <ItemsControl
                     x:Name="ModListGalleryControl"
-                    Margin="0,10,0,0"
                     HorizontalAlignment="Center"
                     ScrollViewer.VerticalScrollBarVisibility="Visible">
                     <ItemsControl.ItemsPanel>
@@ -43,118 +181,43 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <local:ModListTileView ViewModel="{Binding}" />
+                            <local:ModListTileView ViewModel="{Binding}"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
         </Border>
-        <mahapps:ProgressRing Grid.Row="1"
-            x:Name="LoadingRing"
-            Visibility="Collapsed" />
-        <StackPanel Grid.Row="1"
-            x:Name="NoneFound"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Orientation="Vertical"
-            Visibility="Collapsed">
-            <iconPacks:PackIconControl
-                Width="50"
-                Height="50"
-                Margin="0,0,0,10"
-                HorizontalAlignment="Center"
+        <mahapps:ProgressRing Grid.Column="1"
+                              x:Name="LoadingRing"
+                              Visibility="Collapsed" />
+        <StackPanel Grid.Column="1"
+                    x:Name="NoneFound"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Orientation="Vertical"
+                    Visibility="Collapsed">
+            <ic:SymbolIcon
                 Foreground="{StaticResource Triadic2Brush}"
-                Kind="{x:Static iconPacks:PackIconMaterialKind.Cancel}" />
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Symbol="DismissCircle"
+                IconVariant="Regular"
+                FontSize="72" />
             <TextBlock
-                FontSize="14"
+                FontSize="24"
+                Margin="0, 8, 0, 0"
                 Foreground="{StaticResource ForegroundBrush}"
-                Text="No Matches" />
+                Text="No modlists matching specified criteria" />
         </StackPanel>
-        <iconPacks:PackIconControl Grid.Row="1"
-            x:Name="ErrorIcon"
-            Width="55"
-            Height="55"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Foreground="{StaticResource ErrorBrush}"
-            Kind="{x:Static iconPacks:PackIconMaterialKind.AlertCircle}"
-            ToolTip="Error loading modlist gallery"
-            Visibility="Collapsed" />
-        <local:TopProgressView Grid.Row="0" Grid.RowSpan="2"
-            Title="Browsing Modlists"
-            ShadowMargin="False" />
-        <WrapPanel Grid.Row="0"
-            Height="25"
-            Margin="5,5,5,10"
-            HorizontalAlignment="Right"
-            Orientation="Horizontal">
-            <Label
-                Margin="0,0,0,0"
-                VerticalAlignment="Center"
-                Content="Game"
-                ToolTip="Select a game" />
-            <ComboBox
-                Width="150"
-                Margin="0,0,10,0"
-                VerticalAlignment="Center"
-                Foreground="{StaticResource ForegroundBrush}"
-                ItemsSource="{Binding GameTypeEntries, Mode=TwoWay}"
-                SelectedItem="{Binding SelectedGameTypeEntry, Mode=TwoWay}"
-                DisplayMemberPath="FormattedName"
-                IsSynchronizedWithCurrentItem="True"
-                ToolTip="Select a game" />
-            <TextBlock
-                Margin="0,0,5,0"
-                VerticalAlignment="Center"
-                Foreground="{StaticResource ForegroundBrush}"
-                Text="Search" 
-                ToolTip="Search for a game" />
-            <TextBox
-                x:Name="SearchBox"
-                Width="95"
-                VerticalContentAlignment="Center"
-                ToolTip="Only show Not Safe For Work (NSFW) modlists" />
-            <CheckBox
-                x:Name="ShowNSFW"
-                Margin="10,0,10,0"
-                VerticalAlignment="Center"
-                Content="Show NSFW"
-                Foreground="{StaticResource ForegroundBrush}"
-                ToolTip="Only show Not Safe For Work (NSFW) modlists" />
-
-            <CheckBox
-                x:Name="ShowUnofficialLists"
-                Margin="10,0,10,0"
-                VerticalAlignment="Center"
-                Content="Show Unofficial Lists"
-                Foreground="{StaticResource ForegroundBrush}"
-                ToolTip="Show modlists from external repositories"/>
-
-            <CheckBox
-                x:Name="OnlyInstalledCheckbox"
-                Margin="10,0,10,0"
-                VerticalAlignment="Center"
-                Content="Only Installed"
-                Foreground="{StaticResource ForegroundBrush}" 
-                ToolTip="Only show modlists for games you have installed"/>
-            <Button
-                x:Name="ClearFiltersButton"
-                Margin="0,0,10,0"
-                Style="{StaticResource IconBareButtonStyle}"
-                ToolTip="Clear All Filters">
-                <iconPacks:Material Kind="FilterRemove" />
-            </Button>
-        </WrapPanel>
-        <Button Grid.Row="0"
-            x:Name="BackButton"
-            Width="30"
-            Height="30"
-            Margin="7,5,0,0"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Style="{StaticResource IconCircleButtonStyle}"
-            ToolTip="Back to main menu">
-            <iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
-        </Button>
+        <!--<iconPacks:PackIconControl Grid.Row="1" Grid.Column="0"
+                                   x:Name="ErrorIcon"
+                                   Width="55"
+                                   Height="55"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Foreground="{StaticResource ErrorBrush}"
+                                   Kind="{x:Static iconPacks:PackIconMaterialKind.AlertCircle}"
+                                   ToolTip="Error loading modlist gallery"
+                                   Visibility="Collapsed" />-->
     </Grid>
 </rxui:ReactiveUserControl>

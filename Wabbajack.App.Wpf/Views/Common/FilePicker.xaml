@@ -3,154 +3,101 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:local="clr-namespace:Wabbajack"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     d:DesignHeight="35"
     d:DesignWidth="400"
-    BorderBrush="{StaticResource DarkBackgroundBrush}"
     mc:Ignorable="d">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="36" />
-        </Grid.ColumnDefinitions>
-        <Rectangle Grid.Column="0" Grid.ColumnSpan="2"
+        <Grid Height="32">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Rectangle Grid.Column="0" Grid.ColumnSpan="2"
             x:Name="ErrorGlow"
             Fill="{StaticResource WarningBrush}"
             Opacity="0.3"
             Visibility="{Binding PickerVM.InError, Converter={StaticResource bool2VisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
-            <Rectangle.Effect>
-                <BlurEffect Radius="15" />
-            </Rectangle.Effect>
-            <Rectangle.Style>
-                <Style TargetType="Rectangle">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding PickerVM.InError, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="True">
-                            <DataTrigger.EnterActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ColorAnimation
-                                            AutoReverse="True"
-                                            RepeatBehavior="Forever"
-                                            Storyboard.TargetProperty="(Rectangle.Fill).(SolidColorBrush.Color)"
-                                            To="{StaticResource YellowDark}"
-                                            Duration="0:0:0.8" />
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </DataTrigger.EnterActions>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Rectangle.Style>
-        </Rectangle>
-        <Border Grid.Column="0" Grid.ColumnSpan="2"
-            x:Name="BackgroundCornerFillIn"
-            Margin="0,0,5,0"
-            Background="{StaticResource TextBoxBackground}"
-            CornerRadius="3" />
-        <TextBox Grid.Column="0"
-            Margin="5,1,-2,1"
-            VerticalContentAlignment="Center"
-            Background="{StaticResource DarkBackgroundBrush}"
-            Text="{Binding PickerVM.TargetPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource AbsolutePathToStringConverter}}"
-            Visibility="{Binding PickerVM.ShowTextBoxInput, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
-        <Grid Grid.Column="1"
-            HorizontalAlignment="Right"
-            ClipToBounds="True">
-            <Border
-                Margin="3,1,0,1"
-                HorizontalAlignment="Right"
-                Background="{StaticResource WarningBrush}"
-                CornerRadius="3"
-                ToolTip="{Binding PickerVM.ErrorTooltip, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Width" Value="25" />
+                <Rectangle.Effect>
+                    <BlurEffect Radius="15" />
+                </Rectangle.Effect>
+                <Rectangle.Style>
+                    <Style TargetType="Rectangle">
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding PickerVM.InError, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="True">
                                 <DataTrigger.EnterActions>
                                     <BeginStoryboard>
                                         <Storyboard>
-                                            <DoubleAnimation
-                                                Storyboard.TargetProperty="Width"
-                                                To="33"
-                                                Duration="0:0:0.1">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <ExponentialEase EasingMode="EaseOut" />
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
+                                            <ColorAnimation
+                                            AutoReverse="True"
+                                            RepeatBehavior="Forever"
+                                            Storyboard.TargetProperty="(Rectangle.Fill).(SolidColorBrush.Color)"
+                                            To="{StaticResource YellowDark}"
+                                            Duration="0:0:0.8" />
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </DataTrigger.EnterActions>
-                                <DataTrigger.ExitActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation
-                                                Storyboard.TargetProperty="Width"
-                                                To="25"
-                                                Duration="0:0:0.1">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <ExponentialEase EasingMode="EaseOut" />
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </DataTrigger.ExitActions>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
-                </Border.Style>
-            </Border>
-            <Border
-                Width="30"
-                HorizontalAlignment="Left"
-                Background="{StaticResource TextBoxBackground}"
-                CornerRadius="3">
-                <Button Command="{Binding PickerVM.SetTargetPathCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" ToolTip="Set target path">
-                    <icon:PackIconMaterial
-                        Width="16"
-                        Height="12"
-                        Margin="4"
-                        Kind="DotsHorizontal" />
-                </Button>
-                <Border.Effect>
-                    <DropShadowEffect
-                        BlurRadius="3"
-                        Direction="0"
-                        Opacity="0.5"
-                        ShadowDepth="2" />
-                </Border.Effect>
-            </Border>
-        </Grid>
-        <Border Grid.Column="0" Grid.ColumnSpan="2"
+                </Rectangle.Style>
+            </Rectangle>
+            <Border Grid.Column="0" Grid.ColumnSpan="2"
+            x:Name="BackgroundCornerFillIn"
+            Margin="0, 0, 5, 0"
+            Background="{StaticResource TextBoxBackground}"
+            CornerRadius="4" />
+            <TextBox Grid.Column="0"
+            Margin="4, 0, 0, 0"
+            VerticalAlignment="Center"
+            VerticalContentAlignment="Center"
+            Background="{StaticResource DarkBackgroundBrush}"
+            Text="{Binding PickerVM.TargetPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource AbsolutePathToStringConverter}}"
+            mahapps:TextBoxHelper.Watermark="{Binding Watermark, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+            />
+            <Grid Grid.Column="1"
+            HorizontalAlignment="Right"
+            ClipToBounds="True">
+                <Border
+                Width="32"
+                HorizontalAlignment="Right"
+                BorderThickness="0"
+                CornerRadius="4">
+                    <Button Command="{Binding PickerVM.SetTargetPathCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Style="{StaticResource MainButtonStyle}" Background="Transparent" ToolTip="Set target path">
+                        <ic:SymbolIcon FontSize="18" Symbol="{Binding Icon, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
+                    </Button>
+                </Border>
+            </Grid>
+            <Border Grid.Column="0" Grid.ColumnSpan="2"
             x:Name="ErrorBorder"
             Background="Transparent"
             BorderBrush="{StaticResource WarningBrush}"
             BorderThickness="1"
-            CornerRadius="3"
+            CornerRadius="4"
             IsHitTestVisible="False"
             Visibility="{Binding PickerVM.InError, Converter={StaticResource bool2VisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
-            <Border.Style>
-                <Style TargetType="Border">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding PickerVM.InError, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="True">
-                            <DataTrigger.EnterActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ColorAnimation
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding PickerVM.InError, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="True">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation
                                             AutoReverse="True"
                                             RepeatBehavior="Forever"
                                             Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
                                             To="{StaticResource YellowDark}"
                                             Duration="0:0:0.8" />
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </DataTrigger.EnterActions>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Border.Style>
-        </Border>
-    </Grid>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+            </Border>
+        </Grid>
 </UserControl>

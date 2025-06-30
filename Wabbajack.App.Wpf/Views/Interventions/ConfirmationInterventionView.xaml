@@ -24,8 +24,8 @@
         <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
             x:Name="ShortDescription"
             Margin="0,0,0,5"
-            FontFamily="Lucida Sans"
-            FontSize="14"
+            FontFamily="{StaticResource PrimaryFont}"
+            FontSize="13"
             FontWeight="Bold"
             TextWrapping="WrapWithOverflow" />
         <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"

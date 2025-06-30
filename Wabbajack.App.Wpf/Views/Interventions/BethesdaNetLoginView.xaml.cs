@@ -1,13 +1,12 @@
 ﻿using System.Windows.Controls;
 
-namespace Wabbajack
+namespace Wabbajack;
+
+public partial class BethesdaNetLoginView : UserControl
 {
-    public partial class BethesdaNetLoginView : UserControl
+    public BethesdaNetLoginView()
     {
-        public BethesdaNetLoginView()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }
 

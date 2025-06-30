@@ -1,8 +1,140 @@
 ### Changelog
 
-#### Version
-- Fix for Wabbajack not fully utilizing saturating network speed because a download library added for resumable downloads was poorly optimized. Thanks to Thamous (@AlexDickerson).
-- Fix for situations where Wabbajack might send an excessive amount of OAuth requests resulting in hitting Nexus rate limits, causing a temporary ban. Thanks to Thamous (@AlexDickerson).
+#### Version - 4.0.2.0 - 6/26/2025
+* Fixed the community URL not being saved in the compiler menu
+* Fixed the additional profiles not being read or saved in the compiler menu
+* Fixed a crash when double-clicking the compiler file manager to open a folder
+* Reworked the manual file download report to be more readable
+  * Archives are now grouped by downloader and shown in tables, except for game files
+  * Adds support for auto light/dark mode depending on system, styled with PicoCSS
+* Fixed a crash when right-clicking the title bar ([@TDarkShadow](https://www.github.com/TDarkShadow))
+* Added back the changelog CLI command to allow for Wabbajack to create changelogs when given two different Wabbajack files ([@iAmMe27](https://www.github.com/iAmMe27))
+* Added experimental support for the following games
+  * Oblivion Remastered ([@reyqune](https://www.github.com/reyqune))
+  * Fallout 76 ([@TDarkShadow](https://www.github.com/TDarkShadow))
+  * Fallout: London ([@TDarkShadow](https://www.github.com/TDarkShadow))
+  * Warhammer 40,000: Darktide ([@LillyBird69](https://www.github.com/LillyBird69))
+  * Knights of the Old Republic II - The Sith Lords ([@JanuarySnow](https://www.github.com/JanuarySnow))
+  * Vampire: The Masquerade - Bloodlines ([@daulvec](https://www.github.com/daulvec))
+
+
+#### Version - 4.0.1.0 - 4/18/2025
+* Fixed subfolders of profiles showing up under additional profiles within compiler settings
+* Fixed Nexus login not taking cancellation token into account while waiting for authorization (closing the Nexus login prompt did not work)
+* Added 2FA support for MEGA login, added some extra logging for MEGA logins
+  * Special thanks to [@erri120](https://www.github.com/erri120) who originally implemented part of this in Wabbajack and the MegaApiClient library 4 years ago, which made the change rather easy
+* Added a warning for when WebView is not loading
+* Add progress indicator to the publish button after compilation (thanks to [@JanuarySnow](https://www.github.com/JanuarySnow))
+* Improve validation before being able to install, should avoid users installing to important folders/the Wabbajack installation directory
+* Adjusted the in-app log viewer to not constantly queue updates but to update it periodically instead to avoid freezes when too many log rows are queued (thanks to [@JanuarySnow](https://www.github.com/JanuarySnow))
+
+#### Version - 4.0.0.3 - 3/20/2025
+* Fixed the open logs folder button not actually opening the logs folder on a failed installation
+* Fixed the missing manual report incorrectly listing Nexus files
+  * The missing manual report will now be generated with clickable links to the Wabbajack downloads folder
+* Added MEGA anonymous login feature
+  * This was previously available in older Wabbajack 3.7 versions, but it broke due to MEGA introducing a new security feature to protect against bots.
+  * I was looking at fixing this up so the anonymous login would work again, but to my surprise it worked straight away without making any changes.
+  * Thus, both the option to use an account and the option to use the anonymous login have now been made available within the MEGA login menu.
+* Adjusted wording of 'failed to download' to 'failed to source' in the description for a failed download installation error, since certain files (game files) aren't actually downloaded
+
+
+#### Version - 4.0.0.2 - 3/19/2025
+* Fixed an issue where previous installation paths might not be remembered correctly
+  * From this version onwards, Wabbajack will additionally remember previous installations by .wabbajack filename instead of only by the full install path being the same
+* Replaced Play button after installation completes with Open Install Folder
+* Added 'Create Desktop Shortcut' button after installation completes
+* 'Open File Explorer' after a failed installation has been renamed to 'Open Logs Folder' as it better describes what the button does
+* Octopus.Octodiff NuGet library has been updated from 2.0.547 to 2.0.548
+
+#### Version - 4.0.0.1 - 3/18/2025
+* Fixed an issue where manual downloads would get stuck after only a few browser pop-ups
+* Fixed the new Wabbajack reset working not working in some cases
+* The MEGA login timeout has been increased to 30 seconds from 10 seconds to hopefully help with login errors.
+* GPU detection logic has been adjusted to account for virtual video controllers and video controllers without a reported refresh rate (thanks to [@kaeltis](https://www.github.com/kaeltis))
+
+#### Version - 4.0.0.0 - 3/17/2025
+* The entire UI has been overhauled to hopefully better guide users during installation/compilation and such.
+  * Major thanks to [@CritLoren](https://www.github.com/CritLoren) for coming up with a lot of ideas behind the redesign and creating [Figma mock-ups](https://www.figma.com/design/SylohOBwdYAtPbOj5VMQ25/Wabbajack-v4).
+  * This changelog won't go into detail into every bit, as I ([@tr4wzified](https://www.github.com/tr4wzified)) have been working on this for over a year now and I don't think anyone is going to be reading all of the changes anyway.
+  * For some comparison shots, scroll to the bottom of the changelog for this version!
+  * Good to know; despite the major version number increase, modlists from 3.7.5.3 are fully compatible with 4.0.0.0 and do not need to be recompiled by the modlist author.
+* The tag system has been overhauled. Only tags on [the whitelist](https://github.com/wabbajack-tools/mod-lists/blob/master/allowed_tags.json) will show up on modlists.
+  * This was done to standardize tags and make tag search more meaningful. The website has not been updated for this yet.
+* You can now search by tag within Wabbajack.
+* You can now search modlists by mod within Wabbajack. This is currently limited to mods from the Nexus.
+* Wabbajack now automatically suggests installation and downloads folders. [Click here](https://github.com/user-attachments/assets/84029c2a-396d-42bb-8736-eeef9cf66b18) for an overview of how this algorithm works!
+* The readme is now readable within Wabbajack itself, during installation and when previewing the modlist (when clicking on it in the gallery).
+* Fixed issues with non-featured / NSFW toggles not resetting properly in some cases.
+* Fixed issues with (gallery) images not loading on certain Windows installations without the Webp Image Extensions installed.
+* The gallery has been optimized to use smaller thumbnail images, saving on memory and loading times.
+* Search functions in the gallery have been improved to sort by best matching result.
+  * For example, searching for 'Ro' previously could show the 'Tahrovin' list first, simply because it also contained the word 'Ro'.
+* A total modlist size filter has been added to the gallery.
+* Installation and compilation cancel buttons have been added - for when things are taking too long and you just want to play games with your friends ;)
+* The settings menu has been overhauled as well adding some neat features!
+  * Resource settings can now be edited within the app without the need to open an external text editor with a settings json file, saves immediately after being changed
+  * New drag & drop upload features for the CDN
+  * A reset button is now available in-app that will delete **all** Wabbajack settings and restart the application.
+* Modlist authors: texture recompression is now disabled by default due to it causing issues on specific FNV setups. You can optionally toggle it back on to try and shave some space off a compiled modlist.
+* Modlist authors: a websiteURL can now be added to your modlist JSON entry (modlists.json), it's a separate button available before installation.
+* Modlist authors: Managing multiple modlists is now easier with the compilation overview menu, showing other previously compiled modlists and being able to swap between them easily.
+* The missing manual report document now properly links to download URLs and provides additional information on resolving issues with specific game files.
+* Fixed the Google Drive downloader not working properly, should be fully automated once again.
+* A MEGA login is now required for modlists requiring MEGA downloads.
+  * This is due to MEGA implementing additional security measures to block bots. Once I have some time I will investigate further and see if anonymous logins can be brought back.
+* Improved logging in various places, a few examples below:
+  * Drives are now logged including details about available free space and the drive type (SSD, HDD etc).
+  * System specifications are now logged more extensively, including GPU
+  * Installation and downloads folders are now logged when starting a Wabbajack installation
+* Fixed issue where Wabbajack could get stuck doing nothing when pressing install immediately after loading a list for installation.
+* Extra logging has been added that should cause message boxes with descriptive errors to pop up for people that are having issues launching Wabbajack instead of silent failures.
+* Wabbajack will now ignore trailing commas and comments within JSON files. However, I ask you do not try this out, stick to normal JSON conventions please ;)
+* When one modlist repository breaks (for example, due to invalid JSON), this will no longer cause the entire Wabbajack gallery to go down. Only the lists on broken repositories will no longer show up.
+* Last but not least, fonts are now shipped within the application. No more ugly serif fonts for Linux WINE users, I see you!
+
+##### Comparison images between Wabbajack 3.7.5.3 and Wabbajack 4.0.0.0
+* Home screen
+![image](https://github.com/user-attachments/assets/ca35d16e-2edf-4e78-9a8d-fb69c9f2c1f7)
+
+* Modlist Gallery
+![image](https://github.com/user-attachments/assets/01518433-b81c-44ca-be42-1a8c58e70522)
+![image](https://github.com/user-attachments/assets/a76e0a59-2660-4132-9bd8-02cb4587b95a)
+
+* Modlist installation
+  ![image](https://github.com/user-attachments/assets/bce2d7c9-8714-47a3-b03c-4e0fb62897eb)
+  ![image](https://github.com/user-attachments/assets/47781591-0e5c-4339-af99-f296f581d02e)
+  ![image](https://github.com/user-attachments/assets/1006b091-dbcd-46ff-8a33-c2da21c7e327)
+  ![image](https://github.com/user-attachments/assets/1d5ff8c6-9a1b-4fc5-808d-bf896b5af397)
+
+
+
+* Compile modlists
+![image](https://github.com/user-attachments/assets/266fcd6f-f95c-48c9-9d44-9a9568f26921)
+![image](https://github.com/user-attachments/assets/5a8dc0b8-0145-4d3f-b5ba-8ee855e59aa0)
+![image](https://github.com/user-attachments/assets/8296993d-a368-428f-972a-b70c05867316)
+![image](https://github.com/user-attachments/assets/1f32543c-a8a4-4629-93db-a478fa95967e)
+
+* Settings
+![image](https://github.com/user-attachments/assets/9a813a45-3903-4c28-8a48-a278a403c36d)
+
+
+
+
+
+
+
+
+#### Version - 3.7.5.3 - 1/29/2025
+* Compilation failures are now logged as an ERR type instead of INFO. Thanks to Thamous ([@AlexDickerson](https://github.com/AlexDickerson))
+* Fix for the Wabbajack CDN not downloading parts correctly anymore after it switched to chunked HTTP responses. Suspected change by Cloudflare.
+
+#### Version - 3.7.5.2 - 1/12/2025 
+* Fix for Wabbajack not fully utilizing saturating network speed because a download library added for resumable downloads was poorly optimized. Thanks to Thamous ([@AlexDickerson](https://github.com/AlexDickerson)).
+* Fix for situations where Wabbajack might send an excessive amount of OAuth requests resulting in hitting Nexus rate limits, causing a temporary ban. Thanks to Thamous ([@AlexDickerson](https://github.com/AlexDickerson)).
+* Fix for the Wabbajack gallery going down after a new repository is added because the gallery was accidentally dependent on the tests running the validation report.
+* Fix 7 Days to Die support not working properly. Thanks to [@JanuarySnow][https://github.com/JanuarySnow).
+
 
 #### Version - 3.7.5.1 - 11/23/2024
 * Reverted "Wabbajack will now put modfile Titles, Description and Version into the `.meta` file." as it didn't account for formatting in descriptions that could confuse the iniparser

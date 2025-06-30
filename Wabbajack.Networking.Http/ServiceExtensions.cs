@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Http;
 using System;
 using Wabbajack.Networking.Http.Interfaces;
 
@@ -10,5 +12,6 @@ public static class ServiceExtensions
     {
         services.AddHttpClient("ResumableClient").ConfigureHttpClient(c => c.Timeout = TimeSpan.FromMinutes(5));
         services.AddSingleton<IHttpDownloader, ResumableDownloader>();
+        services.RemoveAll<IHttpMessageHandlerBuilderFilter>();
     }
 }

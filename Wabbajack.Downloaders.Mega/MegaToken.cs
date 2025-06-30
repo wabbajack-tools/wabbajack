@@ -1,12 +1,10 @@
 ﻿using System.Text.Json.Serialization;
+using static CG.Web.MegaApiClient.MegaApiClient;
 
-namespace Wabbajack.Downloaders.ModDB;
+namespace Wabbajack.Downloaders;
 
 public class MegaToken
 {
-    [JsonPropertyName("email")]
-    public string Email { get; set; }
-    
-    [JsonPropertyName("password")]
-    public string Password { get; set; }
+    [JsonPropertyName("login")]
+    public AuthInfos? Login { get; set; }
 }

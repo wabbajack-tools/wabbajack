@@ -1,6 +1,7 @@
 using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -10,6 +11,7 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs.Logins;
+using Wabbajack.Messages;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.UserIntervention;
 
@@ -24,6 +26,7 @@ public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
     public string SiteName { get; } = "Nexus Mods";
     public ICommand TriggerLogin { get; set; }
     public ICommand ClearLogin { get; set; }
+    public ICommand ToggleLogin { get; set; }
     
     public ImageSource Icon { get; set; }
     public Type LoginFor()
@@ -32,30 +35,34 @@ public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
     }
 
     [Reactive]
-    public bool HaveLogin { get; set; }
+    public bool LoggedIn { get; set; }
     
     public NexusLoginManager(ILogger<NexusLoginManager> logger, ITokenProvider<NexusOAuthState> token, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _token = token;
         _serviceProvider = serviceProvider;
-        Task.Run(async () => await RefreshTokenState());
+        Task.Run(RefreshTokenState);
         
         ClearLogin = ReactiveCommand.CreateFromTask(async () =>
         {
             _logger.LogInformation("Deleting Login information for {SiteName}", SiteName);
             await ClearLoginToken();
-        }, this.WhenAnyValue(v => v.HaveLogin));
+        }, this.WhenAnyValue(v => v.LoggedIn));
 
-        Icon = BitmapFrame.Create(
-            typeof(NexusLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.nexus.png")!);
+        Icon = (DrawingImage)Application.Current.Resources["NexusLogo"];
         
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
         {
             _logger.LogInformation("Logging into {SiteName}", SiteName); 
-            //MessageBus.Current.SendMessage(new OpenBrowserTab(_serviceProvider.GetRequiredService<NexusLoginHandler>()));
             StartLogin();
-        }, this.WhenAnyValue(v => v.HaveLogin).Select(v => !v));
+        }, this.WhenAnyValue(v => v.LoggedIn).Select(v => !v));
+
+        ToggleLogin = ReactiveCommand.Create(() =>
+        {
+            if (LoggedIn) ClearLogin.Execute(null);
+            else TriggerLogin.Execute(null);
+        });
     }
 
     private async Task ClearLoginToken()
@@ -66,17 +73,23 @@ public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
 
     private void StartLogin()
     {
-        var view = new BrowserWindow(_serviceProvider);
-        view.Closed += async (sender, args) => { await RefreshTokenState(); };
-        var provider = _serviceProvider.GetRequiredService<NexusLoginHandler>();
-        view.DataContext = provider;
-        view.Show();
+        var handler = _serviceProvider.GetRequiredService<NexusLoginHandler>();
+        handler.Closed += async (_, _) => await RefreshTokenState();
+        ShowBrowserWindow.Send(handler);
     }
 
     private async Task RefreshTokenState()
     {
-        var token = await _token.Get();
+        NexusOAuthState token = null;
+        try
+        {
+            token = await _token.Get();
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError("Failed to refresh Nexus token state: {ex}", ex.ToString());
+        }
             
-        HaveLogin = _token.HaveToken() && !(token?.OAuth?.IsExpired ?? true);
+        LoggedIn = _token.HaveToken() && !(token?.OAuth?.IsExpired ?? true);
     }
 }
