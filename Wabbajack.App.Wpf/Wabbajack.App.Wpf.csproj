@@ -6,6 +6,7 @@
     <UseWPF>true</UseWPF>
     <Platforms>x64</Platforms>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
     <Version>$(VERSION)</Version>
     <AssemblyVersion>$(VERSION)</AssemblyVersion>
     <FileVersion>$(VERSION)</FileVersion>
