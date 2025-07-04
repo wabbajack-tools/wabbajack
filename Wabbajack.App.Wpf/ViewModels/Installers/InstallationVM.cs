@@ -767,7 +767,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                         IPS4OAuth2 ips4 => ips4.LinkUrl.ToString(),
                         GoogleDrive gd => gd.GetUri().ToString(),
                         Http http => http.Url.ToString(),
-                        Nexus nexus => nexus.LinkUrl.ToString(),
+                        Nexus nexus => $"{nexus.LinkUrl}?tab=files&file_id={nexus.FileID}",
                         _ => string.Empty
                     };
                     writer.Write($"<td><a data-tooltip='{url}' href='{url}' target='_blank'>{stateName}</a></td>");
