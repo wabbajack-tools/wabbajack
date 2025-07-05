@@ -2,6 +2,7 @@
 
 #### Version - 4.#.#.#
 * The link to a missing Nexus file now directly opens to the specific missing archive instead of the general mod page ([@ninjawaffle](https://www.github.com/ninjawaffle))
+* The build pipeline has been adjusted so the version number should now come out correctly within the application (no more 4.0.0.0 when you actually have 4.0.2.0) ([@EzioTheDeadPoet](https://www.github.com/EzioTheDeadPoet))
 
 #### Version - 4.0.2.0 - 6/26/2025
 * Fixed the community URL not being saved in the compiler menu
