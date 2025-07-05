@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 4.#.#.#
+* The link to a missing Nexus file now directly opens to the specific missing archive instead of the general mod page ([@ninjawaffle](https://www.github.com/ninjawaffle))
+
 #### Version - 4.0.2.0 - 6/26/2025
 * Fixed the community URL not being saved in the compiler menu
 * Fixed the additional profiles not being read or saved in the compiler menu
