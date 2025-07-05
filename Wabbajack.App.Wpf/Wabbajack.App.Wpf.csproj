@@ -6,10 +6,11 @@
     <UseWPF>true</UseWPF>
     <Platforms>x64</Platforms>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
     <Version>$(VERSION)</Version>
-    <AssemblyVersion>4.0.0.0</AssemblyVersion>
-    <FileVersion>4.0.0.0</FileVersion>
-    <Copyright>Copyright © 2019-2024</Copyright>
+    <AssemblyVersion>$(VERSION)</AssemblyVersion>
+    <FileVersion>$(VERSION)</FileVersion>
+    <Copyright>Copyright © 2019-$([System.DateTime]::Now.ToString('yyyy'))</Copyright>
     <Description>An automated ModList installer</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
    <!-- <IncludeSymbolsInSingleFile>true</IncludeSymbolsInSingleFile> -->
