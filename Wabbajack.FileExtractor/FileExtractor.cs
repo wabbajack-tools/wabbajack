@@ -29,7 +29,7 @@ public class FileExtractor
         FileType.BA2,
         FileType.BTAR,
         FileType.ZIP,
-        //FileType.EXE,
+        FileType.EXE,
         FileType.RAR_OLD,
         FileType.RAR_NEW,
         FileType._7Z);
@@ -48,6 +48,7 @@ public class FileExtractor
         new Extension(".rar"),
         new Extension(".zip"),
         new Extension(".btar"),
+        new Extension(".exe"),
         OMODExtension,
         FOMODExtension
     };
@@ -122,6 +123,10 @@ public class FileExtractor
                     results = await GatheringExtractWithBSA(sFn, (FileType) sig, shouldExtract, mapfn, token);
                 else
                     throw new Exception($"Invalid file format {sFn.Name}");
+                break;
+            case FileType.EXE:
+                results = await GatheringExtractWithInnoExtract(sFn, shouldExtract,
+                    mapfn, onlyFiles, token, progressFunction);
                 break;
             default:
                 throw new Exception($"Invalid file format {sFn.Name}");
@@ -381,6 +386,154 @@ public class FileExtractor
                 .ToDictionary(d => d.Item1, d => d.Item2);
             
 
+            return results;
+        }
+        finally
+        {
+            job.Dispose();
+            
+            if (tmpFile != null) await tmpFile.Value.DisposeAsync();
+
+            if (spoolFile != null) await spoolFile.Value.DisposeAsync();
+        }
+    }
+    
+    public async Task<IDictionary<RelativePath, T>> GatheringExtractWithInnoExtract<T>(IStreamFactory sf,
+        Predicate<RelativePath> shouldExtract,
+        Func<RelativePath, IExtractedFile, ValueTask<T>> mapfn,
+        IReadOnlyCollection<RelativePath>? onlyFiles,
+        CancellationToken token,
+        Action<Percent>? progressFunction = null)
+    {
+        TemporaryPath? tmpFile = null;
+        await using var dest = _manager.CreateFolder();
+
+        TemporaryPath? spoolFile = null;
+        AbsolutePath source;
+        
+        var job = await _limiter.Begin($"Extracting {sf.Name}", 0, token);
+        try
+        {
+            if (sf.Name is AbsolutePath abs)
+            {
+                source = abs;
+            }
+            else
+            {
+                spoolFile = _manager.CreateFile(sf.Name.FileName.Extension);
+                await using var s = await sf.GetStream();
+                await spoolFile.Value.Path.WriteAllAsync(s, token);
+                source = spoolFile.Value.Path;
+            }
+
+            var initialPath = "";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                initialPath = @"Extractors\windows-x64\innoextract.exe";
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                initialPath = @"Extractors\linux-x64\innoextract";
+
+            var processScan = new ProcessHelper
+            {Path = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint)};
+
+            var processExtract = new ProcessHelper
+                {Path = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint)};
+            
+            //Commented out because that feature doesn't seem to work with innoextract,
+            //at least not in the same formatting used by 7zip 
+            /*
+            if (onlyFiles != null)
+            {
+                //It's stupid that we have to do this, but 7zip's file pattern matching isn't very fuzzy
+                //Yes I mostly copied and pasted this and only tweaked a few bits from this.
+                IEnumerable<string> AllVariants(string input)
+                {
+                    var forward = input.Replace("\\", "/");
+                    yield return $"-I \"{input}\"";
+                    yield return $"-I \"\\{input}\"";
+                    yield return $"-I \"{forward}\"";
+                    yield return $"-I \"/{forward}\"";
+                }
+
+                tmpFile = _manager.CreateFile();
+                await tmpFile.Value.Path.WriteAllLinesAsync(onlyFiles.SelectMany(f => AllVariants((string) f)),
+                    token);
+
+                processExtract.Arguments = new object[]
+                {
+                    $"\"{source}\"", "-e", "-m", "--collisions \"rename-all\"", $"-d \"{dest}\"", $"\"{tmpFile.Value.ToString().ReplaceLineEndings(" ")}\""
+                };
+            }
+            else
+            {
+                processExtract.Arguments = new object[] {$"\"{source}\"", "-e", "-m", "--collisions \"rename-all\"", $"-d \"{dest}\"" };
+            }
+            */
+            
+            // This might not be the best way to do it since it forces a full extraction
+            // of the full .exe file, but the other method that would tell WJ to only extract specific files was bugged.
+            
+            //As mentioned in the Comments on the Pull request, this would be the pre-extraction analysis parameters.
+            processScan.Arguments = new object[] {$"\"{source}\"", "--list-sizes", "-m", "--collisions \"rename-all\""};
+            
+            processExtract.Arguments = new object[] {$"\"{source}\"", "-e", "-m", "--list-sizes", "--collisions \"rename-all\"", $"-d \"{dest}\"" };
+
+            _logger.LogTrace("{prog} {args}", processExtract.Path, processExtract.Arguments);
+
+            var sizeExtractedInBytes = 0;
+
+            var scanResult = processScan.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
+                .ForEachAsync(p =>
+                {
+                    var (_, line) = p;
+                    //Logic to gather the extracted size pre-extraction.
+                });
+
+            var extractResult = processExtract.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
+                .ForEachAsync(p =>
+                {
+                    var (_, line) = p;
+                    //This logs each extracted file as debug information
+                    _logger.LogDebug("{prog} {line}", processExtract.Path, line);
+                    
+                    //Logic for the progressbar and throughput "widget" based on gathered total extracted size.
+
+                }, token);
+            
+            var extractErrorResult = processExtract.Output.Where(d => d.Type == ProcessHelper.StreamType.Error)
+                .ForEachAsync(p =>
+                {
+                    var (_, line) = p;
+                    _logger.LogDebug("{prog} {FileName} {line}", processExtract.Path, source.FileName, line);
+                }, token);
+            
+            var exitCode = await processExtract.Start();
+            
+            
+            if (exitCode != 0)
+            {
+                //Commented out cause there are more .exe binaries in our average setups that this logging might confuse people more than it helps.
+                //_logger.LogDebug($"Can not extract {source.FileName} with Innoextract - Exit code: {exitCode}");
+            }
+            else
+            {
+                _logger.LogInformation($"Extracting {source.FileName} - done");
+                
+            }
+            
+            job.Dispose();
+            var results = await dest.Path.EnumerateFiles()
+                .SelectAsync(async f =>
+                {
+                    var path = f.RelativeTo(dest.Path);
+                    if (!shouldExtract(path)) return ((RelativePath, T)) default;
+                    var file = new ExtractedNativeFile(f);
+                    var mapResult = await mapfn(path, file);
+                    f.Delete();
+                    return (path, mapResult);
+                })
+                .Where(d => d.Item1 != default)
+                .ToDictionary(d => d.Item1, d => d.Item2);
+            
             return results;
         }
         finally
