@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+        <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
         <Version>$(VERSION)</Version>
     </PropertyGroup>
 

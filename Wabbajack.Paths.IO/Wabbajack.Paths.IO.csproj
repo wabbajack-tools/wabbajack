@@ -4,6 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+        <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
         <Version>$(VERSION)</Version>
     </PropertyGroup>
 

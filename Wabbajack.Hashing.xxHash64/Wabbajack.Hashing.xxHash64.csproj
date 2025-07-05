@@ -3,6 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
+        <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
         <Version>$(VERSION)</Version>
         <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
