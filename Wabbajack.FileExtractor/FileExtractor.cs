@@ -15,6 +15,7 @@ using Wabbajack.Common.FileSignatures;
 using Wabbajack.Compression.BSA;
 using Wabbajack.DTOs.Streams;
 using Wabbajack.FileExtractor.ExtractedFiles;
+using Wabbajack.FileExtractor.ExtractorHelpers;
 using Wabbajack.IO.Async;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -481,17 +482,21 @@ public class FileExtractor
 
             var sizeExtractedInBytes = 0;
 
-            var scanResult = processScan.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
+            // We skip the first and last lines since they don't contain any info about the files, it's just a header and a footer from InnoExtract
+            var scanResult = processScan.Output.Where(d => d.Type == ProcessHelper.StreamType.Output).Skip(1).SkipLast(1)
                 .ForEachAsync(p =>
                 {
                     var (_, line) = p;
-                    //Logic to gather the extracted size pre-extraction.
+                    job.Size += InnoHelper.GetExtractedFileSize(line);
                 });
 
-            var extractResult = processExtract.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
+            Task<int> scanExitCode = Task.Run(() => processScan.Start());
+
+            var extractResult = processExtract.Output.Where(d => d.Type == ProcessHelper.StreamType.Output).Skip(1).SkipLast(1)
                 .ForEachAsync(p =>
                 {
                     var (_, line) = p;
+                    job.ReportNoWait(InnoHelper.GetExtractedFileSize(line));
                     //This logs each extracted file as debug information
                     _logger.LogDebug("{prog} {line}", processExtract.Path, line);
                     
@@ -505,7 +510,10 @@ public class FileExtractor
                     var (_, line) = p;
                     _logger.LogDebug("{prog} {FileName} {line}", processExtract.Path, source.FileName, line);
                 }, token);
-            
+
+            // Wait for the job size to be calculated before actually starting the extraction operation, should be very fast
+            await scanExitCode;
+
             var exitCode = await processExtract.Start();
             
             
