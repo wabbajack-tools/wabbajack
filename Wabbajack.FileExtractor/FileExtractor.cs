@@ -321,14 +321,14 @@ public class FileExtractor
                 tmpFile = _manager.CreateFile();
                 await tmpFile.Value.Path.WriteAllLinesAsync(onlyFiles.SelectMany(f => AllVariants((string) f)),
                     token);
-                process.Arguments = new object[]
-                {
+                process.Arguments =
+                [
                     "x", "-bsp1", "-y", $"-o\"{dest}\"", source, $"@\"{tmpFile.Value.ToString()}\"", "-mmt=off"
-                };
+                ];
             }
             else
             {
-                process.Arguments = new object[] {"x", "-bsp1", "-y", $"-o\"{dest}\"", source, "-mmt=off"};
+                process.Arguments = ["x", "-bsp1", "-y", $"-o\"{dest}\"", source, "-mmt=off"];
             }
 
             _logger.LogTrace("{prog} {args}", process.Path, process.Arguments);
@@ -433,56 +433,25 @@ public class FileExtractor
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 initialPath = @"Extractors\linux-x64\innoextract";
 
+            // This might not be the best way to do it since it forces a full extraction
+            // of the full .exe file, but the other method that would tell WJ to only extract specific files was bugged
+
             var processScan = new ProcessHelper
-            {Path = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint)};
+            {
+                Path = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint),
+                Arguments = [$"\"{source}\"", "--list-sizes", "-m", "--collisions \"rename-all\""]
+            };
 
             var processExtract = new ProcessHelper
-                {Path = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint)};
-            
-            //Commented out because that feature doesn't seem to work with innoextract,
-            //at least not in the same formatting used by 7zip 
-            /*
-            if (onlyFiles != null)
             {
-                //It's stupid that we have to do this, but 7zip's file pattern matching isn't very fuzzy
-                //Yes I mostly copied and pasted this and only tweaked a few bits from this.
-                IEnumerable<string> AllVariants(string input)
-                {
-                    var forward = input.Replace("\\", "/");
-                    yield return $"-I \"{input}\"";
-                    yield return $"-I \"\\{input}\"";
-                    yield return $"-I \"{forward}\"";
-                    yield return $"-I \"/{forward}\"";
-                }
-
-                tmpFile = _manager.CreateFile();
-                await tmpFile.Value.Path.WriteAllLinesAsync(onlyFiles.SelectMany(f => AllVariants((string) f)),
-                    token);
-
-                processExtract.Arguments = new object[]
-                {
-                    $"\"{source}\"", "-e", "-m", "--collisions \"rename-all\"", $"-d \"{dest}\"", $"\"{tmpFile.Value.ToString().ReplaceLineEndings(" ")}\""
-                };
-            }
-            else
-            {
-                processExtract.Arguments = new object[] {$"\"{source}\"", "-e", "-m", "--collisions \"rename-all\"", $"-d \"{dest}\"" };
-            }
-            */
+                Path = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint),
+                Arguments = [$"\"{source}\"", "-e", "-m", "--list-sizes", "--collisions \"rename-all\"", $"-d \"{dest}\""]
+            };
             
-            // This might not be the best way to do it since it forces a full extraction
-            // of the full .exe file, but the other method that would tell WJ to only extract specific files was bugged.
-            
-            //As mentioned in the Comments on the Pull request, this would be the pre-extraction analysis parameters.
-            processScan.Arguments = new object[] {$"\"{source}\"", "--list-sizes", "-m", "--collisions \"rename-all\""};
-            
-            processExtract.Arguments = new object[] {$"\"{source}\"", "-e", "-m", "--list-sizes", "--collisions \"rename-all\"", $"-d \"{dest}\"" };
-
             _logger.LogTrace("{prog} {args}", processExtract.Path, processExtract.Arguments);
 
-            var sizeExtractedInBytes = 0;
-
             // We skip the first and last lines since they don't contain any info about the files, it's just a header and a footer from InnoExtract
+            // First do a scan so we know the total size of the operation
             var scanResult = processScan.Output.Where(d => d.Type == ProcessHelper.StreamType.Output).Skip(1).SkipLast(1)
                 .ForEachAsync(p =>
                 {
@@ -497,18 +466,13 @@ public class FileExtractor
                 {
                     var (_, line) = p;
                     job.ReportNoWait(InnoHelper.GetExtractedFileSize(line));
-                    //This logs each extracted file as debug information
-                    _logger.LogDebug("{prog} {line}", processExtract.Path, line);
-                    
-                    //Logic for the progressbar and throughput "widget" based on gathered total extracted size.
-
                 }, token);
             
             var extractErrorResult = processExtract.Output.Where(d => d.Type == ProcessHelper.StreamType.Error)
                 .ForEachAsync(p =>
                 {
                     var (_, line) = p;
-                    _logger.LogDebug("{prog} {FileName} {line}", processExtract.Path, source.FileName, line);
+                    _logger.LogError("While extracting InnoSetup archive {fileName} at {path}: {line}", source.FileName, processExtract.Path, line);
                 }, token);
 
             // Wait for the job size to be calculated before actually starting the extraction operation, should be very fast
@@ -519,13 +483,12 @@ public class FileExtractor
             
             if (exitCode != 0)
             {
-                //Commented out cause there are more .exe binaries in our average setups that this logging might confuse people more than it helps.
-                //_logger.LogDebug($"Can not extract {source.FileName} with Innoextract - Exit code: {exitCode}");
+                // Commented out because there are more .exe binaries in the average setup that this logging might confuse people more than it helps.
+                // _logger.LogDebug($"Can not extract {source.FileName} with Innoextract - Exit code: {exitCode}");
             }
             else
             {
                 _logger.LogInformation($"Extracting {source.FileName} - done");
-                
             }
             
             job.Dispose();
