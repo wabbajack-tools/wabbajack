@@ -86,7 +86,7 @@ public class ModListDetailsVM : BackNavigatingVM
                 .Select<string, Func<Archive, bool>>(txt =>
                 {
                     if (string.IsNullOrWhiteSpace(txt)) return _ => true;
-                    return item => item.State is Nexus nexus ? nexus.Name.ContainsCaseInsensitive(txt) : item.Name.ContainsCaseInsensitive(txt);
+                    return item => item.State is Nexus nexus ? nexus.Name.ContainsCaseInsensitive(txt) || item.Name.ContainsCaseInsensitive(txt) : item.Name.ContainsCaseInsensitive(txt);
                 });
 
             var searchSorter = this.WhenValueChanged(vm => vm.Search)
@@ -99,9 +99,7 @@ public class ModListDetailsVM : BackNavigatingVM
             _archives.Connect()
                     .ObserveOn(RxApp.MainThreadScheduler)
                     .Filter(searchTextPredicates)
-                    .Sort(searchSorter)
-                    .TreatMovesAsRemoveAdd()
-                    .Bind(out _filteredArchives)
+                    .SortAndBind(out _filteredArchives, searchSorter)
                     .Subscribe()
                     .DisposeWith(disposables);
 

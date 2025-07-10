@@ -67,7 +67,7 @@ public static class DriveHelper
         return DriveInfo.GetDrives()
                         .Where(d => d.IsReady && d.DriveType == DriveType.Fixed)
                         .OrderByDescending(d => d.AvailableFreeSpace > modlistSize)
-                        .ThenByDescending(d => Partitions[d.RootDirectory.Name[0]].MediaType == MediaType.SSD)
+                        .ThenByDescending(d => Partitions.ContainsKey(d.RootDirectory.Name[0]) && Partitions[d.RootDirectory.Name[0]].MediaType == MediaType.SSD)
                         .ThenByDescending(d => d.AvailableFreeSpace)
                         .FirstOrDefault();
     }
