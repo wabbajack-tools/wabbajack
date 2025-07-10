@@ -2,10 +2,13 @@
 
 #### Version - 4.0.3.0
 * The link to a missing Nexus file now directly opens to the specific missing archive instead of the general mod page ([@ninjawaffle](https://www.github.com/ninjawaffle))
-* Adjusted how Wabbajack gets its version number so it works with the current build pipeline, it now comes out correctly within the application (no more 4.0.0.0 when you actually have 4.0.2.0) ([@EzioTheDeadPoet](https://www.github.com/EzioTheDeadPoet))
-* Added back a working hash-game-files function to the CLI to make it easier to add support for new games ([@JanuarySnow](https://www.github.com/JanuarySnow))
+* Fixed version not properly being inlined into the executable ([@EzioTheDeadPoet](https://www.github.com/EzioTheDeadPoet))
+  * This means you won't see a 4.0.0.0 version in the bottom left of Wabbajack when you actually have 4.0.2.0.
+* Reintroduced hash-game-files function in the CLI to add support for new games ([@JanuarySnow](https://www.github.com/JanuarySnow))
 * Added support for extracting InnoSetup executables ([@EzioTheDeadPoet](https://www.github.com/EzioTheDeadPoet)))
 * Fixed a bug where searching for Nexus archives in the modlist overview would only search on the mod name instead of the archive name
+* Fixed the MEGA integration breaking with 402 Payment Required error messages after they implemented hashcashes
+  * A hashcash is basically a computationally expensive cryptographic puzzle, it needs to be solved upon login and it was implemented as a security measure by MEGA to prevent API abuse by bots
 
 #### Version - 4.0.2.0 - 6/26/2025
 * Fixed the community URL not being saved in the compiler menu

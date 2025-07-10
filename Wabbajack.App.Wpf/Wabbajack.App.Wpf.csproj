@@ -138,4 +138,10 @@
 
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="MegaApiClient">
+      <HintPath>..\Wabbajack.Downloaders.Mega\lib\MegaApiClient\MegaApiClient.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
