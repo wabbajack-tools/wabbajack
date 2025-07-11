@@ -10,6 +10,7 @@
 * Fixed a bug where searching for Nexus archives in the modlist overview would only search on the mod name instead of the archive name
 * Fixed the MEGA integration breaking with 402 Payment Required error messages after they implemented hashcashes
   * A hashcash is basically a computationally expensive cryptographic puzzle, it needs to be solved upon login and it was implemented as a security measure by MEGA to prevent API abuse by bots
+* Added GOG IDs for Vampire: The Masquerade - Bloodlines
 
 #### Version - 4.0.2.0 - 6/26/2025
 * Fixed the community URL not being saved in the compiler menu
