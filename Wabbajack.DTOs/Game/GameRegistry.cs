@@ -773,6 +773,10 @@ public static class GameRegistry
                 NexusGameId = 437,
                 MO2ArchiveName = "vampire",
                 SteamIDs = [2600],
+                GOGIDs = [
+                    1207659240,//Game
+                    1265943179//Game + Unofficial Patch Pre-Installed
+                ],
                 RequiredFiles = new []
                 {
                     @"vampire.exe".ToRelativePath(),
