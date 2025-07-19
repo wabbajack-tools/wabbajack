@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 4.0.3.0
+#### Version - 4.0.3.0 - 7/18/2025
 * The link to a missing Nexus file now directly opens to the specific missing archive instead of the general mod page ([@ninjawaffle](https://www.github.com/ninjawaffle))
 * Fixed version not properly being inlined into the executable ([@EzioTheDeadPoet](https://www.github.com/EzioTheDeadPoet))
   * This means you won't see a 4.0.0.0 version in the bottom left of Wabbajack when you actually have 4.0.2.0.

@@ -1,7 +1,7 @@
 rmdir /q/s c:\tmp\publish-wj\app
 rmdir /q/s c:\tmp\publish-wj\launcher
 
-python scripts\version_extract.py > VERSION.txt
+python3 scripts\version_extract.py > VERSION.txt
 SET /p VERSION=<VERSION.txt
 mkdir c:\tmp\publish-wj
 
