@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 4.0.4.0
+* Fixed the Nexus OAuth token never being refreshed upon starting installation or during downloads
+  * This could lead to issues after having not logged back into Nexus for 6 hours after your initial login
+
 #### Version - 4.0.3.0 - 7/18/2025
 * The link to a missing Nexus file now directly opens to the specific missing archive instead of the general mod page ([@ninjawaffle](https://www.github.com/ninjawaffle))
 * Fixed version not properly being inlined into the executable ([@EzioTheDeadPoet](https://www.github.com/EzioTheDeadPoet))
