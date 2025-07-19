@@ -46,9 +46,12 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
         _interventionLimiter = interventionLimiter;
     }
 
-    public override Task<bool> Prepare()
+    public override async Task<bool> Prepare()
     {
-        return Task.FromResult(_api.AuthInfo.HaveToken());
+        if (!_api.AuthInfo.HaveToken()) return false;
+
+        await EnsureLoginStillValid();
+        return true;
     }
 
     public override bool IsAllowed(ServerAllowList allowList, IDownloadState state)
@@ -121,6 +124,8 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
     public override async Task<Hash> Download(Archive archive, Nexus state, AbsolutePath destination,
         IJob job, CancellationToken token)
     {
+        await EnsureLoginStillValid();
+
         if (IsManualDebugMode || !(await _api.IsPremium(token)))
         {
             return await DownloadManually(archive, state, destination, job, token);
@@ -168,6 +173,15 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
         }
     }
 
+    private async Task EnsureLoginStillValid()
+    {
+        var oAuthToken = await _api.AuthInfo.Get();
+        if (oAuthToken?.OAuth?.IsExpired ?? true)
+        {
+            await _api.Validate();
+        }
+    }
+
     private async Task<Hash> DownloadManually(Archive archive, Nexus state, AbsolutePath destination, IJob job, CancellationToken token)
     {
         var md = new ManualDownload(new Archive
@@ -206,6 +220,7 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
     {
         try
         {
+            await EnsureLoginStillValid();
             var fileInfo = await _api.FileInfo(state.Game.MetaData().NexusName!, state.ModID, state.FileID, token);
             var (modInfo, _) = await _api.ModInfo(state.Game.MetaData().NexusName!, state.ModID, token);
 
