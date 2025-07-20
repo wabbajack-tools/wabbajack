@@ -2,36 +2,47 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Reactive.Disposables;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
+using ReactiveUI;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.DTOs.OAuth;
+using Wabbajack.Messages;
 using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.UserIntervention;
 
 public class NexusLoginHandler : BrowserWindowViewModel
 {
-    private static Uri OAuthUrl = new Uri("https://users.nexusmods.com/oauth");
-    private static string OAuthRedirectUrl = "https://127.0.0.1:1234";
-    private static string OAuthClientId = "wabbajack";
-    
     private readonly EncryptedJsonTokenProvider<NexusOAuthState> _tokenProvider;
     private readonly ILogger<NexusLoginHandler> _logger;
     private readonly HttpClient _client;
+    private readonly NexusAuthHelper _nexusAuthHelper;
 
-    public NexusLoginHandler(ILogger<NexusLoginHandler> logger, HttpClient client, EncryptedJsonTokenProvider<NexusOAuthState> tokenProvider, IServiceProvider serviceProvider) : base(serviceProvider)
+    public NexusLoginHandler(ILogger<NexusLoginHandler> logger, HttpClient client, IServiceProvider serviceProvider, NexusAuthHelper nexusAuthHelper) : base(serviceProvider)
     {
         _logger = logger;
         _client = client;
+        _nexusAuthHelper = nexusAuthHelper;
+
         HeaderText = "Nexus Login";
-        _tokenProvider = tokenProvider;
+        SupportsNativeWindow = true;
+
+        OpenNativeWindowCommand = ReactiveCommand.Create(async () =>
+        {
+            HideWindowOnClose = false;
+            await _tokenSource.CancelAsync();
+            ShowFloatingWindow.Send(FloatingScreenType.None);
+            ShowFloatingWindow.Send(FloatingScreenType.NativeNexusLogin);
+        });
     }
 
     protected override async Task Run(CancellationToken token)
@@ -45,12 +56,12 @@ public class NexusLoginHandler : BrowserWindowViewModel
         var codeChallengeBytes = SHA256.HashData(Encoding.UTF8.GetBytes(codeVerifier));
         var codeChallenge = StringBase64Extensions.Base64UrlEncode(codeChallengeBytes);
 
-
         Instructions = "Please log into the Nexus";
 
         var state = Guid.NewGuid().ToString();
         
-        await NavigateTo(new Uri("https://nexusmods.com"));
+        await NavigateTo(new Uri("https://nexusmods.com"), token);
+        token.ThrowIfCancellationRequested();
         var codeCompletionSource = new TaskCompletionSource<Dictionary<string, StringValues>>();
         
         Browser.CoreWebView2.NewWindowRequested += (sender, args) =>
@@ -63,8 +74,8 @@ public class NexusLoginHandler : BrowserWindowViewModel
             args.Handled = true;
         };
 
-        var uri = GenerateAuthorizeUrl(codeChallenge, state);
-        await NavigateTo(uri);
+        var uri = _nexusAuthHelper.GenerateAuthorizeUrl(codeChallenge, state);
+        await NavigateTo(uri, token);
 
         var ctx = await codeCompletionSource.Task.WaitAsync(token);
         
@@ -75,7 +86,7 @@ public class NexusLoginHandler : BrowserWindowViewModel
         
         var code = ctx["code"].FirstOrDefault();
 
-        var result = await AuthorizeToken(codeVerifier, code, token);
+        var result = await _nexusAuthHelper.AuthorizeToken(codeVerifier, code, token);
         
         if (result != null) 
             result.ReceivedAt = DateTime.UtcNow.ToFileTimeUtc();
@@ -84,44 +95,5 @@ public class NexusLoginHandler : BrowserWindowViewModel
         {
             OAuth = result!
         });
-    }
-    
-    private async Task<JwtTokenReply?> AuthorizeToken(string verifier, string code, CancellationToken cancel)
-    {
-        var request = new Dictionary<string, string> {
-            { "grant_type", "authorization_code" },
-            { "client_id", OAuthClientId },
-            { "redirect_uri", OAuthRedirectUrl },
-            { "code", code },
-            { "code_verifier", verifier },
-        };
-
-        var content = new FormUrlEncodedContent(request);
-
-        var response = await _client.PostAsync($"{OAuthUrl}/token", content, cancel);
-        if (!response.IsSuccessStatusCode)
-        {
-            _logger.LogCritical("Failed to get token {code} - {message}", response.StatusCode,
-                response.ReasonPhrase);
-            return null;
-        }
-        var responseString = await response.Content.ReadAsStringAsync(cancel);
-        return JsonSerializer.Deserialize<JwtTokenReply>(responseString);
-    }
-        
-    internal static Uri GenerateAuthorizeUrl(string challenge, string state)
-    {
-        var request = new Dictionary<string, string>
-        {
-            { "response_type", "code" },
-            { "scope", "public openid profile" },
-            { "code_challenge_method", "S256" },
-            { "client_id", OAuthClientId },
-            { "redirect_uri", OAuthRedirectUrl },
-            { "code_challenge", challenge },
-            { "state", state },
-        };
-        
-        return new Uri(QueryHelpers.AddQueryString($"{OAuthUrl}/authorize", request));
     }
 }

@@ -23,7 +23,8 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
 {
     private readonly ILogger<BrowserWindowViewModel> _logger;
     private readonly IServiceProvider _serviceProvider;
-    private CancellationTokenSource _tokenSource;
+    protected CancellationTokenSource _tokenSource;
+    protected bool HideWindowOnClose { get; set; }
 
     [Reactive] public WebView2 Browser { get; set; }
     [Reactive] public string HeaderText { get; set; }
@@ -32,6 +33,8 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
     [Reactive] public ICommand CloseCommand { get; set; }
     [Reactive] public ICommand BackCommand { get; set; }
     [Reactive] public ICommand OpenWebViewHelpCommand { get; set; }
+    [Reactive] public ICommand OpenNativeWindowCommand { get; set; }
+    [Reactive] public bool SupportsNativeWindow { get; set; }
     public event EventHandler Closed;
 
     public BrowserWindowViewModel(IServiceProvider serviceProvider)
@@ -65,10 +68,12 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
         }
     }
 
-    private void Close()
+    protected void Close()
     {
         _tokenSource.Dispose();
-        ShowFloatingWindow.Send(FloatingScreenType.None);
+        if(HideWindowOnClose)
+            ShowFloatingWindow.Send(FloatingScreenType.None);
+
         if(Closed != null)
         {
             foreach(var delegateMethod in Closed.GetInvocationList())
@@ -95,7 +100,8 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
         }
     }
 
-    public async Task NavigateTo(Uri uri)
+    public async Task NavigateTo(Uri uri) => await NavigateTo(uri, CancellationToken.None);
+    public async Task NavigateTo(Uri uri, CancellationToken token)
     {
         var tcs = new TaskCompletionSource();
         Address = uri.ToString();
@@ -119,10 +125,20 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
             }
         }
 
-        Browser.NavigationCompleted += Completed;
-        Browser.Source = uri;
-        await tcs.Task;
-        Browser.NavigationCompleted -= Completed;
+        try
+        {
+            Browser.NavigationCompleted += Completed;
+            Browser.Source = uri;
+            await tcs.Task.WaitAsync(token);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "While navigating to {uri}", uri.OriginalString);
+        }
+        finally
+        {
+            Browser.NavigationCompleted -= Completed;
+        }
     }
 
     public async Task RunJavaScript(string script)

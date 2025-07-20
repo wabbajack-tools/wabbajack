@@ -291,7 +291,11 @@ public partial class App
         services.AddTransient<ModListDetailsVM>();
         services.AddTransient<FileUploadVM>();
         services.AddTransient<MegaLoginVM>();
+        services.AddTransient<NativeNexusLoginVM>();
         services.AddTransient<AboutVM>();
+
+        // Other
+        services.AddTransient<NexusAuthHelper>();
 
         // Login Handlers
         services.AddTransient<VectorPlexusLoginHandler>();

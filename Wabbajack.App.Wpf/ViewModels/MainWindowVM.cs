@@ -65,6 +65,7 @@ public class MainWindowVM : ViewModel
     public readonly InfoVM InfoVM;
     public readonly FileUploadVM FileUploadVM;
     public readonly MegaLoginVM MegaLoginVM;
+    public readonly NativeNexusLoginVM NativeNexusLoginVM;
     public readonly UserInterventionHandlers UserInterventionHandlers;
 
     private readonly Client _wjClient;
@@ -97,7 +98,7 @@ public class MainWindowVM : ViewModel
 
     public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
         IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-        InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM, FileUploadVM fileUploadVM, MegaLoginVM megaLoginVM, SystemParametersConstructor systemParams, HttpClient httpClient)
+        InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM, FileUploadVM fileUploadVM, MegaLoginVM megaLoginVM, NativeNexusLoginVM nativeNexusLoginVM, SystemParametersConstructor systemParams, HttpClient httpClient)
     {
         _logger = logger;
         _wjClient = wjClient;
@@ -119,6 +120,7 @@ public class MainWindowVM : ViewModel
         ModListDetailsVM = modlistDetailsVM;
         FileUploadVM = fileUploadVM;
         MegaLoginVM = megaLoginVM;
+        NativeNexusLoginVM = nativeNexusLoginVM;
         UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetRequiredService<ILogger<UserInterventionHandlers>>(), this);
 
         this.WhenAnyValue(x => x.ActiveFloatingPane)
@@ -363,6 +365,7 @@ public class MainWindowVM : ViewModel
             FloatingScreenType.ModListDetails => ModListDetailsVM,
             FloatingScreenType.FileUpload => FileUploadVM,
             FloatingScreenType.MegaLogin => MegaLoginVM,
+            FloatingScreenType.NativeNexusLogin => NativeNexusLoginVM,
             _ => ActiveFloatingPane
         };
     }

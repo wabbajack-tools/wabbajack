@@ -89,7 +89,7 @@ public class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
         {
             _logger.LogError("Failed to refresh Nexus token state: {ex}", ex.ToString());
         }
-            
-        LoggedIn = _token.HaveToken() && !(token?.OAuth?.IsExpired ?? true);
+
+        LoggedIn = _token.HaveToken();
     }
 }

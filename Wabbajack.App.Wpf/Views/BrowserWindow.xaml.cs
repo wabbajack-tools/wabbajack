@@ -23,6 +23,16 @@ public partial class BrowserWindow : ReactiveUserControl<BrowserWindowViewModel>
                 WebViewWarning.Visibility = Visibility.Visible;
             });
 
+            if (ViewModel.SupportsNativeWindow)
+            {
+                RxApp.MainThreadScheduler.Schedule(async () =>
+                {
+                    NativeWindowText.Visibility = Visibility.Collapsed;
+                    await Task.Delay(TimeSpan.FromSeconds(2));
+                    NativeWindowText.Visibility = Visibility.Visible;
+                });
+            }
+
             this.BindCommand(ViewModel, vm => vm.BackCommand, v => v.BackButton)
                 .DisposeWith(disposables);
 
@@ -46,6 +56,7 @@ public partial class BrowserWindow : ReactiveUserControl<BrowserWindowViewModel>
                 .ObserveOnGuiThread()
                 .Subscribe(browser =>
                 {
+                    /*
                     RxApp.MainThreadScheduler.Schedule(() =>
                     {
                         if (browser.Parent != null)
@@ -57,6 +68,7 @@ public partial class BrowserWindow : ReactiveUserControl<BrowserWindowViewModel>
                         ViewModel.Browser.Height = double.NaN;
                         WebViewGrid.Children.Add(browser);
                     });
+                    */
                 })
                 .DisposeWith(disposables);
         });

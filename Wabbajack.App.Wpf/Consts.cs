@@ -27,4 +27,7 @@ public static class Consts
 
     public static RelativePath NativeSettingsJson = "native_settings.json".ToRelativePath();
     public const string AllSavedCompilerSettingsPaths = "compiler_settings_paths";
+    public static Uri NexusOAuthUrl => new("https://users.nexusmods.com/oauth");
+    public const string NexusOAuthRedirectUrl = "https://127.0.0.1:1234";
+    public const string NexusOAuthClientId = "wabbajack";
 }

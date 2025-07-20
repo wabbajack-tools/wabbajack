@@ -38,17 +38,33 @@
 			<ic:SymbolIcon Symbol="Dismiss" FontSize="24" HorizontalAlignment="Right" VerticalAlignment="Center" />
 		</Button>
         <Grid x:Name="WebViewGrid" Grid.Row="3" Grid.ColumnSpan="4" Margin="0, 0, 0, -16">
-            <TextBlock
+            <StackPanel
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center">
+                <TextBlock
                 x:Name="WebViewWarning"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Center"
+                Padding="0, 4, 0, 4"
                 Foreground="{StaticResource ForegroundBrush}">
                 <ic:SymbolIcon Width="13" Height="13" FontSize="13" Symbol="Warning" />
                 <Run Text="If you're seeing this, WebView failed to initialize!" />
                 <Run Text="Check out" />
                 <Hyperlink Command="{Binding OpenWebViewHelpCommand}">this section</Hyperlink>
                 <Run Text="on the Wabbajack wiki for more information on how to solve this issue." />
-            </TextBlock>
+                </TextBlock>
+                <TextBlock
+                x:Name="NativeWindowText"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Padding="0, 4, 0, 4"
+                Foreground="{StaticResource ForegroundBrush}"
+                Visibility="{Binding SupportsNativeWindow, Converter={StaticResource bool2VisibilityConverter}}">
+                <Run Text="Alternatively, you can" />
+                <Hyperlink Command="{Binding OpenNativeWindowCommand}">click here</Hyperlink>
+                <Run Text="to open a native version of this window that doesn't require WebView." />
+                </TextBlock>
+            </StackPanel>
         </Grid>
     </Grid>
 </rxui:ReactiveUserControl>
