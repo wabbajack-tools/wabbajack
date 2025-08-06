@@ -1,3 +1,4 @@
+using System;
 using Wabbajack.DTOs;
 using Wabbajack.Paths;
 
@@ -11,6 +12,7 @@ public class InstallerConfiguration
     public AbsolutePath Downloads { get; set; }
     public SystemParameters? SystemParameters { get; set; }
     public Game Game { get; set; }
+    public Game[]? OtherGames { get; set; } = Array.Empty<Game>();
     public AbsolutePath GameFolder { get; set; }
 
     public ModlistMetadata? Metadata { get; set; }

@@ -151,6 +151,13 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
                     }
                 }
             }
+            else if(warning == default && response.Content.Headers.ContentType?.MediaType == "application/octet-stream")
+            {
+                qb.Add("id", state.Id);
+                qb.Add("export", "download");
+                url = $"https://drive.usercontent.google.com/download";
+            }
+
             response.Dispose();
 
             var httpState = new HttpRequestMessage(HttpMethod.Get, url + qb.ToString());

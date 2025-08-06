@@ -619,9 +619,11 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
             try
             {
+                var canSource = GameRegistry.Games[ModList.GameType].CanSourceFrom ?? Array.Empty<Game>();
                 var cfg = new InstallerConfiguration
                 {
                     Game = ModList.GameType,
+                    OtherGames = canSource,
                     Downloads = Installer.DownloadLocation.TargetPath,
                     Install = Installer.Location.TargetPath,
                     ModList = ModList,
