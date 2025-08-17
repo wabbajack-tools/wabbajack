@@ -548,17 +548,31 @@ public abstract class AInstaller<T>
                 };
             }).ToDictionary(d => d.To);
 
+        _logger.LogInformation("First 10 of indexed directives below");
+        foreach(var indexedDirective in indexed.Keys.Take(10))
+        {
+            _logger.LogInformation("Indexed Directive: {Directive}", indexedDirective);
+        }
+
 
         var profileFolder = _configuration.Install.Combine("profiles");
         var savePath = (RelativePath) "saves";
 
-        NextStep(Consts.StepPreparing, "Looking for files to delete", 0);
+        NextStep(Consts.StepPreparing, "Looking for files to delete that aren't part of this modlist", 0);
+        _logger.LogInformation("Searching for files within install path {installPath}", _configuration.Install);
         await _configuration.Install.EnumerateFiles()
             .PMapAllBatched(_limiter,  f =>
             {
                 var relativeTo = f.RelativeTo(_configuration.Install);
+                _logger.LogInformation("Evaluating file path: {relativeTo}", relativeTo.ToString());
                 if (indexed.ContainsKey(relativeTo) || f.InFolder(_configuration.Downloads))
+                {
                     return f;
+                }
+                else
+                {
+                    _logger.LogWarning("File is not within indexed directives!");
+                }
 
                 if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return f;
                 var fNoSpaces = new string(f.ToString().Where(c => !Char.IsWhiteSpace(c)).ToArray());
@@ -568,7 +582,7 @@ public abstract class AInstaller<T>
                 if (bsaPathsToNotBuild.Contains(f))
                     return f;
 
-                //_logger.LogInformation("Deleting {RelativePath} it's not part of this ModList", relativeTo);
+                _logger.LogInformation("Deleting file {RelativePath}", relativeTo);
                 f.Delete();
                 return f;
             }).Sink();
@@ -596,6 +610,7 @@ public abstract class AInstaller<T>
                 .Where(p => !expectedFolders.Contains(p))
                 .OrderByDescending(p => p.ToString().Length)
                 .ToList();
+
             foreach (var dir in toDelete)
             {
                 dir.DeleteDirectory(dontDeleteIfNotEmpty: true);
