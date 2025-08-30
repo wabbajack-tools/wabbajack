@@ -9,6 +9,8 @@ public static class CommandLineBuilderExtensions
 
     public static void AddCLIVerbs(this IServiceCollection services)
     {
+        CommandLineBuilder.RegisterCommand<BethesdaLogin>(BethesdaLogin.Definition, c => ((BethesdaLogin)c).Run);
+        services.AddSingleton<BethesdaLogin>();
         CommandLineBuilder.RegisterCommand<Changelog>(Changelog.Definition, c => ((Changelog)c).Run);
         services.AddSingleton<Changelog>();
         CommandLineBuilder.RegisterCommand<Compile>(Compile.Definition, c => ((Compile)c).Run);

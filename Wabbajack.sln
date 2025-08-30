@@ -141,6 +141,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Downloaders.Verif
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Configuration", "Wabbajack.Configuration\Wabbajack.Configuration.csproj", "{E7CDACA6-D3FF-4CF6-8EF8-05FCD27F6FBE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Compression.CKM", "Wabbajack.Compression.CKM\Wabbajack.Compression.CKM.csproj", "{1C626413-405B-4E74-B65C-9C93C9E47C83}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -387,6 +389,10 @@ Global
 		{E7CDACA6-D3FF-4CF6-8EF8-05FCD27F6FBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7CDACA6-D3FF-4CF6-8EF8-05FCD27F6FBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7CDACA6-D3FF-4CF6-8EF8-05FCD27F6FBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C626413-405B-4E74-B65C-9C93C9E47C83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C626413-405B-4E74-B65C-9C93C9E47C83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C626413-405B-4E74-B65C-9C93C9E47C83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C626413-405B-4E74-B65C-9C93C9E47C83}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -435,6 +441,7 @@ Global
 		{7FC4F129-F0FA-46B7-B7C4-532E371A6326} = {98B731EE-4FC0-4482-A069-BCBA25497871}
 		{E4BDB22D-11A4-452F-8D10-D9CA9777EA22} = {F677890D-5109-43BC-97C7-C4CD47C8EE0C}
 		{D9560C73-4E58-4463-9DB9-D06491E0E1C8} = {98B731EE-4FC0-4482-A069-BCBA25497871}
+		{1C626413-405B-4E74-B65C-9C93C9E47C83} = {F677890D-5109-43BC-97C7-C4CD47C8EE0C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0AA30275-0F38-4A7D-B645-F5505178DDE8}
