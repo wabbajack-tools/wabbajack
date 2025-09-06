@@ -21,6 +21,7 @@ using Wabbajack.DTOs.ModListValidation;
 using Wabbajack.DTOs.ServerResponses;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Messages;
+using Wabbajack.App.Wpf.Services;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.RateLimiter;
 
@@ -29,6 +30,8 @@ namespace Wabbajack;
 public class ModListDetailsVM : BackNavigatingVM
 {
     private readonly Client _wjClient;
+    private readonly AdBlockService _adBlockService;
+
     [Reactive]
     public BaseModListMetadataVM MetadataVM { get; set; }
 
@@ -53,16 +56,34 @@ public class ModListDetailsVM : BackNavigatingVM
 
     public WebView2 Browser { get; set; }
 
-    public ModListDetailsVM(ILogger<ModListDetailsVM> logger, IServiceProvider serviceProvider, Client wjClient) : base(logger)
+    public ModListDetailsVM(ILogger<ModListDetailsVM> logger, IServiceProvider serviceProvider, Client wjClient, AdBlockService adBlockService) : base(logger)
     {
         _logger = logger;
         _wjClient = wjClient;
+        _adBlockService = adBlockService;
 
         Browser = serviceProvider.GetRequiredService<WebView2>();
+        InitializeAdBlocking().FireAndForget();
 
         MessageBus.Current.Listen<LoadModlistForDetails>()
             .Subscribe(msg => MetadataVM = msg.MetadataVM)
             .DisposeWith(CompositeDisposable);
+    }
+
+    private async Task InitializeAdBlocking()
+    {
+        while (Browser.CoreWebView2 == null)
+        {
+            await Task.Delay(250);
+        }
+        Browser.CoreWebView2.AddWebResourceRequestedFilter("*", Microsoft.Web.WebView2.Core.CoreWebView2WebResourceContext.All);
+        Browser.CoreWebView2.WebResourceRequested += (sender, args) =>
+        {
+            if (_adBlockService.IsBlocked(new Uri(args.Request.Uri)))
+            {
+                args.Response = Browser.CoreWebView2.Environment.CreateWebResourceResponse(null, 403, "Forbidden", "");
+            }
+        };
 
         OpenWebsiteCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(MetadataVM.Metadata.Links.WebsiteURL) { UseShellExecute = true }),
             this.WhenAnyValue(x => x.MetadataVM.Metadata.Links.WebsiteURL, x => !string.IsNullOrEmpty(x)).ObserveOnGuiThread());

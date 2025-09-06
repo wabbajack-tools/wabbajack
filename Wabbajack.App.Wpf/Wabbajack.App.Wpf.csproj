@@ -80,6 +80,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DistillNET" Version="1.6.6" />
     <PackageReference Include="DynamicData" Version="9.1.1" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.6.1">
       <NoWarn>NU1701</NoWarn>

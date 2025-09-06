@@ -69,6 +69,10 @@ public partial class App
             .Build();
 
         var webview2 = _host.Services.GetRequiredService<WebView2>();
+
+        var adBlockService = _host.Services.GetRequiredService<Services.AdBlockService>();
+        adBlockService.Initialize();
+
         var currentDir = (AbsolutePath)Directory.GetCurrentDirectory();
         var webViewDir = currentDir.Combine("WebView2");
         if(webViewDir.DirectoryExists())
@@ -261,6 +265,7 @@ public partial class App
 
         // Singletons
         services.AddSingleton<CefService>();
+        services.AddSingleton<Services.AdBlockService>();
         services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
         services.AddSingleton<ImageCacheManager>();
         services.AddSingleton<SystemParametersConstructor>();
