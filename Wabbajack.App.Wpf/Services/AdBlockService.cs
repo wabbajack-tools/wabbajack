@@ -41,20 +41,23 @@ public class AdBlockService
         _logger.LogInformation("Initializing AdBlockService...");
         try
         {
-            var allFilters = new List<string>();
-            foreach (var url in _filterListUrls)
+            var downloadTasks = _filterListUrls.Select(async url =>
             {
                 try
                 {
                     _logger.LogInformation("Downloading filter list from {url}", url);
-                    var filterData = await _httpClient.GetStringAsync(url);
-                    allFilters.Add(filterData);
+                    return await _httpClient.GetStringAsync(url);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "Failed to download filter list from {url}", url);
+                    return null;
                 }
-            }
+            });
+
+            var allFilters = (await Task.WhenAll(downloadTasks))
+                .Where(f => f is not null)
+                .ToList();
 
             var combinedFilters = string.Join(Environment.NewLine, allFilters);
             await _filter.Parse(combinedFilters);

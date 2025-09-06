@@ -71,7 +71,7 @@ public partial class App
         var webview2 = _host.Services.GetRequiredService<WebView2>();
 
         var adBlockService = _host.Services.GetRequiredService<Services.AdBlockService>();
-        adBlockService.Initialize();
+        _ = adBlockService.Initialize();
 
         var currentDir = (AbsolutePath)Directory.GetCurrentDirectory();
         var webViewDir = currentDir.Combine("WebView2");

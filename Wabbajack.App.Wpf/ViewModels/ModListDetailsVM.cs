@@ -21,6 +21,7 @@ using Wabbajack.DTOs.ModListValidation;
 using Wabbajack.DTOs.ServerResponses;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Messages;
+using Wabbajack.App.Wpf.Extensions;
 using Wabbajack.App.Wpf.Services;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.RateLimiter;
@@ -63,27 +64,10 @@ public class ModListDetailsVM : BackNavigatingVM
         _adBlockService = adBlockService;
 
         Browser = serviceProvider.GetRequiredService<WebView2>();
-        InitializeAdBlocking().FireAndForget();
 
         MessageBus.Current.Listen<LoadModlistForDetails>()
             .Subscribe(msg => MetadataVM = msg.MetadataVM)
             .DisposeWith(CompositeDisposable);
-    }
-
-    private async Task InitializeAdBlocking()
-    {
-        while (Browser.CoreWebView2 == null)
-        {
-            await Task.Delay(250);
-        }
-        Browser.CoreWebView2.AddWebResourceRequestedFilter("*", Microsoft.Web.WebView2.Core.CoreWebView2WebResourceContext.All);
-        Browser.CoreWebView2.WebResourceRequested += (sender, args) =>
-        {
-            if (_adBlockService.IsBlocked(new Uri(args.Request.Uri)))
-            {
-                args.Response = Browser.CoreWebView2.Environment.CreateWebResourceResponse(null, 403, "Forbidden", "");
-            }
-        };
 
         OpenWebsiteCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(MetadataVM.Metadata.Links.WebsiteURL) { UseShellExecute = true }),
             this.WhenAnyValue(x => x.MetadataVM.Metadata.Links.WebsiteURL, x => !string.IsNullOrEmpty(x)).ObserveOnGuiThread());
@@ -93,8 +77,9 @@ public class ModListDetailsVM : BackNavigatingVM
             this.WhenAnyValue(x => x.MetadataVM.Metadata.Links.Readme, x => !string.IsNullOrEmpty(x)).ObserveOnGuiThread());
 
         CloseCommand = ReactiveCommand.Create(() => ShowFloatingWindow.Send(FloatingScreenType.None));
-        this.WhenActivated(disposables =>
+        this.WhenActivated(async disposables =>
         {
+            await Browser.InitializeAdBlocking(_adBlockService);
             
             LoadArchives(MetadataVM.Metadata.RepositoryName, MetadataVM.Metadata.Links.MachineURL).FireAndForget();
             

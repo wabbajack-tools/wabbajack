@@ -16,6 +16,7 @@ using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Messages;
 using Wabbajack.Paths;
 using Microsoft.Extensions.Logging;
+using Wabbajack.App.Wpf.Extensions;
 using Wabbajack.App.Wpf.Services;
 
 namespace Wabbajack;
@@ -49,23 +50,10 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
         });
     }
 
-    private async Task InitializeAdBlocking()
-    {
-        await WaitForReady();
-        Browser.CoreWebView2.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
-        Browser.CoreWebView2.WebResourceRequested += (sender, args) =>
-        {
-            if (_adBlockService.IsBlocked(new Uri(args.Request.Uri)))
-            {
-                args.Response = Browser.CoreWebView2.Environment.CreateWebResourceResponse(null, 403, "Forbidden", "");
-            }
-        };
-    }
-
     public async Task RunBrowserOperation()
     {
         Browser = _serviceProvider.GetRequiredService<WebView2>();
-        await InitializeAdBlocking();
+        await Browser.InitializeAdBlocking(_adBlockService);
 
         try
         {
