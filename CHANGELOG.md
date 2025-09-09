@@ -1,6 +1,9 @@
 ### Changelog
 
-#### Version - 4.0.4.0
+### Version - 4.0.4.1
+* Hotfix for the game file sourcing now suddenly requiring other games to be installed on modlists that don't actually use file sourcing from other games ([@JanuarySnow](https://www.github.com/JanuarySnow))
+
+#### Version - 4.0.4.0 - 9/7/2025
 * Fixed the Nexus OAuth token never being refreshed upon starting installation or during downloads
   * This could lead to issues after having not logged back into Nexus for 6 hours after your initial login
 * Fixed an issue with the Google Drive downloader not being able to download files when not prompted with a harmful file warning
