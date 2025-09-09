@@ -620,10 +620,17 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
             try
             {
                 var canSource = GameRegistry.Games[ModList.GameType].CanSourceFrom ?? Array.Empty<Game>();
+                var namedgames = ModList.OtherGames;
+                var validgames = Array.Empty<Game>();
+                foreach (var g in namedgames)
+                {
+                    if (canSource.Contains(g) && GameRegistry.Games.ContainsKey(g))
+                        validgames.Add(g);
+                }
                 var cfg = new InstallerConfiguration
                 {
                     Game = ModList.GameType,
-                    OtherGames = canSource,
+                    OtherGames = validgames,
                     Downloads = Installer.DownloadLocation.TargetPath,
                     Install = Installer.Location.TargetPath,
                     ModList = ModList,
@@ -649,6 +656,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                 _logger.LogInformation("    Modlist file location: {wjFileLocation}", cfg.ModlistArchive.ToString());
                 _logger.LogInformation("    Game: {game}", cfg.Game.ToString());
                 _logger.LogInformation("    Game folder: {gameFolder}", cfg.GameFolder);
+                _logger.LogInformation("    Other games that can be sourced from: {otherGames}", string.Join(", ", cfg.OtherGames.Select(g => g.ToString())));
 
                 InstallResult result;
                 using (_cancellationTokenSource = new CancellationTokenSource())
