@@ -466,8 +466,13 @@ public abstract class AInstaller<T>
 
         AddIfValid(_gameLocator.GameLocation(_configuration.Game));
 
+        
+        // .othergames should only be non-null if the compiled list specifically named othergames
         foreach (var g in _configuration.OtherGames ?? Array.Empty<Game>())
+        {
+            _logger.LogInformation("Also searching othergame folder for {Game}", g);
             AddIfValid(_gameLocator.GameLocation(g));
+        }
 
         // Enumerate downloads + every game folder
         var allFiles = _configuration.Downloads.EnumerateFiles()
