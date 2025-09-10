@@ -1,6 +1,6 @@
 ### Changelog
 
-### Version - 4.0.4.1
+### Version - 4.0.4.1 - 9/10/2025
 * Hotfix for the game file sourcing now suddenly requiring other games to be installed on modlists that don't actually use file sourcing from other games ([@JanuarySnow](https://www.github.com/JanuarySnow))
 
 #### Version - 4.0.4.0 - 9/7/2025
