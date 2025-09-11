@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
+using Wabbajack.App.Wpf.Services;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Services.OSIntegrated;
 
@@ -21,7 +22,9 @@ public abstract class OAuth2LoginHandler<TLoginType> : BrowserWindowViewModel
     private readonly ILogger _logger;
 
     public OAuth2LoginHandler(ILogger logger, HttpClient httpClient,
-        EncryptedJsonTokenProvider<TLoginType> tokenProvider, IServiceProvider serviceProvider) : base(serviceProvider)
+        EncryptedJsonTokenProvider<TLoginType> tokenProvider, IServiceProvider serviceProvider,
+        AdBlockService adBlockService)
+        : base(serviceProvider, adBlockService)
     {
         var tlogin = new TLoginType();
         HeaderText = $"{tlogin.SiteName} Login";

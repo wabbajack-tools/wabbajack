@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.Interventions;
+using Wabbajack.App.Wpf.Services;
 using Wabbajack.Hashing.xxHash64;
 
 namespace Wabbajack.UserIntervention;
@@ -11,7 +12,8 @@ public class ManualBlobDownloadHandler : BrowserWindowViewModel
 {
     public ManualBlobDownload Intervention { get; set; }
 
-    public ManualBlobDownloadHandler(IServiceProvider serviceProvider) : base(serviceProvider) { }
+    public ManualBlobDownloadHandler(IServiceProvider serviceProvider, AdBlockService adBlockService)
+        : base(serviceProvider, adBlockService) { }
 
     protected override async Task Run(CancellationToken token)
     {

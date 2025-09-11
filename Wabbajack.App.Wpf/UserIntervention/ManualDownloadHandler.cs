@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.App.Wpf.Services;
 using Wabbajack.DTOs.Interventions;
 
 namespace Wabbajack;
@@ -10,7 +11,8 @@ public class ManualDownloadHandler : BrowserWindowViewModel
 {
     public ManualDownload Intervention { get; set; }
 
-    public ManualDownloadHandler(IServiceProvider serviceProvider) : base(serviceProvider) { }
+    public ManualDownloadHandler(IServiceProvider serviceProvider, AdBlockService adBlockService)
+        : base(serviceProvider, adBlockService) { }
 
     protected override async Task Run(CancellationToken token)
     {

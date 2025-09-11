@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Wabbajack.DTOs.Logins;
+using Wabbajack.App.Wpf.Services;
 using Wabbajack.DTOs.OAuth;
 using Wabbajack.Services.OSIntegrated;
 
@@ -26,7 +27,10 @@ public class NexusLoginHandler : BrowserWindowViewModel
     private readonly ILogger<NexusLoginHandler> _logger;
     private readonly HttpClient _client;
 
-    public NexusLoginHandler(ILogger<NexusLoginHandler> logger, HttpClient client, EncryptedJsonTokenProvider<NexusOAuthState> tokenProvider, IServiceProvider serviceProvider) : base(serviceProvider)
+    public NexusLoginHandler(ILogger<NexusLoginHandler> logger, HttpClient client,
+        EncryptedJsonTokenProvider<NexusOAuthState> tokenProvider, IServiceProvider serviceProvider,
+        AdBlockService adBlockService)
+        : base(serviceProvider, adBlockService)
     {
         _logger = logger;
         _client = client;

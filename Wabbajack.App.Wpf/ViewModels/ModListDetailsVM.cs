@@ -21,6 +21,8 @@ using Wabbajack.DTOs.ModListValidation;
 using Wabbajack.DTOs.ServerResponses;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Messages;
+using Wabbajack.App.Wpf.Extensions;
+using Wabbajack.App.Wpf.Services;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.RateLimiter;
 
@@ -29,6 +31,8 @@ namespace Wabbajack;
 public class ModListDetailsVM : BackNavigatingVM
 {
     private readonly Client _wjClient;
+    private readonly AdBlockService _adBlockService;
+
     [Reactive]
     public BaseModListMetadataVM MetadataVM { get; set; }
 
@@ -53,10 +57,11 @@ public class ModListDetailsVM : BackNavigatingVM
 
     public WebView2 Browser { get; set; }
 
-    public ModListDetailsVM(ILogger<ModListDetailsVM> logger, IServiceProvider serviceProvider, Client wjClient) : base(logger)
+    public ModListDetailsVM(ILogger<ModListDetailsVM> logger, IServiceProvider serviceProvider, Client wjClient, AdBlockService adBlockService) : base(logger)
     {
         _logger = logger;
         _wjClient = wjClient;
+        _adBlockService = adBlockService;
 
         Browser = serviceProvider.GetRequiredService<WebView2>();
 
@@ -72,8 +77,9 @@ public class ModListDetailsVM : BackNavigatingVM
             this.WhenAnyValue(x => x.MetadataVM.Metadata.Links.Readme, x => !string.IsNullOrEmpty(x)).ObserveOnGuiThread());
 
         CloseCommand = ReactiveCommand.Create(() => ShowFloatingWindow.Send(FloatingScreenType.None));
-        this.WhenActivated(disposables =>
+        this.WhenActivated(async disposables =>
         {
+            await Browser.InitializeAdBlocking(_adBlockService);
             
             LoadArchives(MetadataVM.Metadata.RepositoryName, MetadataVM.Metadata.Links.MachineURL).FireAndForget();
             

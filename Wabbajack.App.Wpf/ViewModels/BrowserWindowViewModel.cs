@@ -16,6 +16,8 @@ using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Messages;
 using Wabbajack.Paths;
 using Microsoft.Extensions.Logging;
+using Wabbajack.App.Wpf.Extensions;
+using Wabbajack.App.Wpf.Services;
 
 namespace Wabbajack;
 
@@ -23,6 +25,7 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
 {
     private readonly ILogger<BrowserWindowViewModel> _logger;
     private readonly IServiceProvider _serviceProvider;
+    private readonly AdBlockService _adBlockService;
     private CancellationTokenSource _tokenSource;
 
     [Reactive] public WebView2 Browser { get; set; }
@@ -34,9 +37,10 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
     [Reactive] public ICommand OpenWebViewHelpCommand { get; set; }
     public event EventHandler Closed;
 
-    public BrowserWindowViewModel(IServiceProvider serviceProvider)
+    public BrowserWindowViewModel(IServiceProvider serviceProvider, AdBlockService adBlockService)
     {
         _serviceProvider = serviceProvider;
+        _adBlockService = adBlockService;
         _logger = serviceProvider.GetRequiredService<ILogger<BrowserWindowViewModel>>();
         BackCommand = ReactiveCommand.Create(() => Browser.GoBack());
         CloseCommand = ReactiveCommand.Create(() => _tokenSource.Cancel());
@@ -49,6 +53,7 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
     public async Task RunBrowserOperation()
     {
         Browser = _serviceProvider.GetRequiredService<WebView2>();
+        await Browser.InitializeAdBlocking(_adBlockService);
 
         try
         {
