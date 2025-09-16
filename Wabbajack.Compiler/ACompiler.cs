@@ -448,14 +448,22 @@ public abstract class ACompiler
         await using var metajson = _settings.OutputFile.WithExtension(new Extension(".meta.json"))
             .Open(FileMode.Create, FileAccess.Write);
         await _dtos.Serialize(metadata, metajson);
-        _logger.LogInformation("Generating Modlist HTML report");
-        try
+        if (_settings.AutoGenerateReport)
         {
-            await ModlistReportGenerator.GenerateAsync(_dtos, _settings.OutputFile, _logger, openInBrowser: false, token);
+            _logger.LogInformation("Generating Modlist HTML report");
+            try
+            {
+                await ModlistReportGenerator.GenerateAsync(
+                    _dtos, _settings.OutputFile, _logger, openInBrowser: false, token);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to generate Modlist report.");
+            }
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogWarning(ex, "Failed to generate Modlist report.");
+            _logger.LogInformation("Skipping Modlist HTML report (disabled in settings).");
         }
 
         _logger.LogInformation("Removing ModList staging folder");

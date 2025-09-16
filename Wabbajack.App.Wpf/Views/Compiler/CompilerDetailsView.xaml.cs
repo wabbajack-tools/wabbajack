@@ -104,6 +104,9 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
 
             this.Bind(ViewModel, vm => vm.Settings.ModListCommunity, view => view.CommunitySetting.Text)
                 .DisposeWith(disposables);
+
+            this.Bind(ViewModel, vm => vm.Settings.AutoGenerateReport, view => view.AutoGenerateReportSetting.IsChecked)
+                .DisposeWith(disposables);
         });
 
     }
