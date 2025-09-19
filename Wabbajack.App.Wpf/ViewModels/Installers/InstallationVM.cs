@@ -621,16 +621,24 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
             {
                 var canSource = GameRegistry.Games[ModList.GameType].CanSourceFrom ?? Array.Empty<Game>();
                 var namedgames = ModList.OtherGames;
-                var validgames = Array.Empty<Game>();
+                if (ModList.OtherGames.Length == 0)
+                {
+                    _logger.LogInformation("Modlist does not specify any other games");
+                }
+                var validgames = new List<Game>();
                 foreach (var g in namedgames)
                 {
+                    _logger.LogInformation("Modlist specifies {game} as a possible source game", g);
                     if (canSource.Contains(g) && GameRegistry.Games.ContainsKey(g))
+                    {
+                        _logger.LogInformation("{game} is a valid source game", g);
                         validgames.Add(g);
+                    }
                 }
                 var cfg = new InstallerConfiguration
                 {
                     Game = ModList.GameType,
-                    OtherGames = validgames,
+                    OtherGames = validgames.ToArray(),
                     Downloads = Installer.DownloadLocation.TargetPath,
                     Install = Installer.Location.TargetPath,
                     ModList = ModList,
@@ -638,8 +646,12 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                     SystemParameters = _parametersConstructor.Create(),
                     GameFolder = _gameLocator.GameLocation(ModList.GameType)
                 };
+                foreach (var g in cfg.OtherGames)
+                {
+                    _logger.LogInformation("cfg specifies {game} as a possible source game", g);
+                }
                 StandardInstaller = StandardInstaller.Create(_serviceProvider, cfg);
-
+                
 
                 StandardInstaller.OnStatusUpdate = update =>
                 {

@@ -405,6 +405,9 @@ public abstract class ACompiler
 
         var allFiles = _stagingFolder.EnumerateFiles().ToList();
         NextStep("Finalizing", "Writing Wabbajack File", allFiles.Count);
+        if( _settings.OtherGames.Length > 0)
+            _logger.LogInformation("Modlist includes files from games: {games}", string.Join(", ", _settings.OtherGames.Append(_settings.Game).Distinct()));
+            ModList.OtherGames = _settings.OtherGames;
         await using (var fs = _settings.OutputFile.Open(FileMode.Create, FileAccess.Write))
         {
             using var za = new ZipArchive(fs, ZipArchiveMode.Create);
