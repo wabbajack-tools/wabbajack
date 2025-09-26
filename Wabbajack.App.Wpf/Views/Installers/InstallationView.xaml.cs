@@ -12,12 +12,18 @@ using System.Reactive.Concurrency;
 using System.Windows.Media;
 using Symbol = FluentIcons.Common.Symbol;
 using Wabbajack.Installer;
+using Markdig;
+using Microsoft.Web.WebView2.Wpf;
+using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
+using System.Threading.Tasks;
 
 namespace Wabbajack;
 
 /// <summary>
 /// Interaction logic for InstallationView.xaml
 /// </summary>
+
 public partial class InstallationView : ReactiveUserControl<InstallationVM>
 {
     public InstallationView()
@@ -111,7 +117,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      {
                          StoppedTitle.Text = result?.GetTitle() ?? string.Empty;
                          StoppedDescription.Text = result?.GetDescription() ?? string.Empty;
-                         switch(result)
+                         switch (result)
                          {
                              case InstallResult.DownloadFailed:
                                  StoppedButton.Command = ViewModel.OpenMissingArchivesCommand;
@@ -147,7 +153,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                          CancelButton.Visibility = x == InstallState.Installing ? Visibility.Visible : Visibility.Collapsed;
                          EditInstallDetailsButton.Visibility = x == InstallState.Failure ? Visibility.Visible : Visibility.Collapsed;
                          RetryButton.Visibility = x == InstallState.Failure ? Visibility.Visible : Visibility.Collapsed;
-
 
                          if (x == InstallState.Failure || x == InstallState.Success)
                              LogToggleButton.IsChecked = true;
@@ -250,7 +255,11 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .Subscribe(_ =>
                 {
                     LogToggleButton.IsChecked = false;
+                    ErrorToggleButton.IsChecked = false;
+
                     LogView.Visibility = Visibility.Collapsed;
+                    ErrorSummaryGrid.Visibility = Visibility.Collapsed;
+
                     ReadmeBrowserGrid.Visibility = Visibility.Visible;
                 })
                 .DisposeWith(disposables);
@@ -260,19 +269,34 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .Subscribe(_ =>
                 {
                     ReadmeToggleButton.IsChecked = false;
-                    LogView.Visibility = Visibility.Visible;
+                    ErrorToggleButton.IsChecked = false;
+
                     ReadmeBrowserGrid.Visibility = Visibility.Collapsed;
+                    ErrorSummaryGrid.Visibility = Visibility.Collapsed;
+
+                    LogView.Visibility = Visibility.Visible;
                 })
                 .DisposeWith(disposables);
 
+            ErrorToggleButton.Events().Checked
+                .ObserveOnGuiThread()
+                .Subscribe(async _ =>
+                {
+                    ReadmeToggleButton.IsChecked = false;
+                    LogToggleButton.IsChecked = false;
+
+                    ReadmeBrowserGrid.Visibility = Visibility.Collapsed;
+                    LogView.Visibility = Visibility.Collapsed;
+
+                    ErrorSummaryGrid.Visibility = Visibility.Visible;
+
+                    await RenderErrorMarkdownAsync(ViewModel?.FailureDetailsDescription ?? string.Empty);
+                })
+                .DisposeWith(disposables);
 
             this.WhenAnyValue(x => x.ReadmeBrowserGrid.Visibility)
                 .Where(x => x == Visibility.Visible)
-                .Subscribe(x =>
-                {
-                    if (x == Visibility.Visible)
-                        TakeWebViewOwnershipForReadme();
-                })
+                .Subscribe(_ => TakeWebViewOwnershipForReadme())
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.OpenReadmeCommand, v => v.ReadmeButton)
@@ -282,6 +306,14 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.CreateShortcutCommand, v => v.CreateShortcutButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.DiagnoseFailureCommand, v => v.DiagnoseButton)
+                .DisposeWith(disposables);
+
+            DiagnoseButton.Events().Click
+                .ObserveOnGuiThread()
+                .Subscribe(_ => ErrorToggleButton.IsChecked = true)
                 .DisposeWith(disposables);
 
             // Initially, readme tab should be visible
@@ -297,21 +329,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                                       ReadmeBrowserGrid.Visibility = Visibility.Collapsed;
                               })
                               .DisposeWith(disposables);
-
-            /*
-            // Slideshow
-            ViewModel.WhenAnyValue(vm => vm.SlideShowTitle)
-                .Select(f => f)
-                .BindToStrict(this, view => view.DetailImage.Title)
-                .DisposeWith(disposables);
-            ViewModel.WhenAnyValue(vm => vm.SlideShowAuthor)
-                .BindToStrict(this, view => view.DetailImage.Author)
-                .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(vm => vm.SlideShowImage)
-                .BindToStrict(this, view => view.DetailImage.Image)
-                .DisposeWith(disposables);
-            */
         });
     }
 
@@ -327,9 +344,106 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             ViewModel.ReadmeBrowser.Width = double.NaN;
             ViewModel.ReadmeBrowser.Height = double.NaN;
             ViewModel.ReadmeBrowser.Visibility = Visibility.Visible;
-            if(!string.IsNullOrEmpty(ViewModel?.ModList?.Readme))
+            if (!string.IsNullOrEmpty(ViewModel?.ModList?.Readme))
                 ViewModel.ReadmeBrowser.Source = new Uri(UIUtils.GetHumanReadableReadmeLink(ViewModel.ModList.Readme));
             ReadmeBrowserGrid.Children.Add(ViewModel.ReadmeBrowser);
         });
+    }
+
+    private string BuildErrorHtml(string markdown)
+    {
+        var pipeline = new MarkdownPipelineBuilder()
+            .UseAdvancedExtensions()
+            .UsePipeTables()
+            .UseAutoLinks()
+            .Build();
+
+        if (string.IsNullOrWhiteSpace(markdown))
+            markdown = "_No details provided._";
+
+        var html = Markdig.Markdown.ToHtml(markdown, pipeline);
+
+        var fg = (Application.Current.Resources["ForegroundBrush"] as SolidColorBrush)?.Color ?? Colors.White;
+        var bg = (Application.Current.Resources["CardBackgroundBrush"] as SolidColorBrush)?.Color ?? Color.FromRgb(0x1E, 0x1E, 0x1E);
+        var accent = (Application.Current.Resources["PrimaryBrush"] as SolidColorBrush)?.Color ?? Color.FromRgb(0x5B, 0x9B, 0xD5);
+
+        static string ToCss(Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+
+        var css = $@"
+:root {{ color-scheme: dark; }}
+body {{
+  margin: 0; padding: 12px 16px;
+  background: {ToCss(bg)};
+  color: {ToCss(fg)};
+  font-family: Segoe UI, system-ui, -apple-system, Arial, sans-serif;
+  font-size: 14px; line-height: 1.6;
+}}
+a {{ color: {ToCss(accent)}; text-decoration: none; }}
+a:hover {{ text-decoration: underline; }}
+pre, code {{ font-family: Consolas, 'Cascadia Code', monospace; }}
+pre {{ padding: 8px 10px; overflow: auto; background: rgba(255,255,255,0.06); border-radius: 6px; }}
+blockquote {{ margin: 0; padding: 8px 12px; border-left: 3px solid {ToCss(accent)}; background: rgba(255,255,255,0.04); border-radius: 4px; }}
+table {{ border-collapse: collapse; width: 100%; }}
+th, td {{ border: 1px solid rgba(255,255,255,0.12); padding: 6px 8px; }}
+ul, ol {{ margin: 0 0 0 20px; }}
+h1, h2, h3, h4 {{ margin: 8px 0; }}
+";
+
+        return $@"
+<!doctype html>
+<html>
+  <head>
+    <meta charset=""utf-8"">
+    <base target=""_blank"">
+    <style>{css}</style>
+  </head>
+  <body>{html}</body>
+</html>";
+    }
+
+    private async Task EnsureErrorWebViewReadyAsync()
+    {
+        if (ErrorMarkdownView.CoreWebView2 == null)
+        {
+            await ErrorMarkdownView.EnsureCoreWebView2Async(null);
+
+            ErrorMarkdownView.CoreWebView2.NewWindowRequested += (s, e) =>
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = e.Uri,
+                        UseShellExecute = true
+                    });
+                }
+                catch { }
+                e.Handled = true;
+            };
+
+            ErrorMarkdownView.CoreWebView2.NavigationStarting += (s, e) =>
+            {
+                if (e.Uri.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = e.Uri,
+                            UseShellExecute = true
+                        });
+                    }
+                    catch { }
+                    e.Cancel = true;
+                }
+            };
+        }
+    }
+
+    private async Task RenderErrorMarkdownAsync(string markdown)
+    {
+        await EnsureErrorWebViewReadyAsync();
+        var html = BuildErrorHtml(markdown ?? string.Empty);
+        ErrorMarkdownView.NavigateToString(html);
     }
 }
