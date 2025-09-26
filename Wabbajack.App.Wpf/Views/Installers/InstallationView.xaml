@@ -13,6 +13,7 @@
     xmlns:lib1="clr-namespace:Wabbajack"
     xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     xmlns:math="http://hexinnovation.com/math" xmlns:controls="http://schemas.sdl.com/xaml"
+    xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
     d:DataContext="{d:DesignInstance local:InstallationVM}"
     d:DesignHeight="500"
     d:DesignWidth="800"
@@ -265,6 +266,7 @@
                             Please make sure enough space is available on the disk and try again.
                             </TextBlock>
                             <local:WJButton x:Name="StoppedButton" Margin="0, 16, 0, 0" HorizontalAlignment="Left" Grid.Row="3" Text="Open Logs Folder" Icon="FolderOpen" ButtonStyle="SemiTransparent" />
+                            <local:WJButton x:Name="DiagnoseButton" Margin="8, 16, 0, 0" HorizontalAlignment="Left" Grid.Row="3" Text="How do I fix this?" Icon="Wrench" ButtonStyle="Mono" />
                         </Grid>
                     </Border>
                 </Grid>
@@ -293,6 +295,10 @@
                             x:Name="LogToggleButton"
                             MinWidth="80"
                             Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/7}">Log Viewer</ToggleButton>
+                            <ToggleButton
+                            x:Name="ErrorToggleButton"
+                            MinWidth="110"
+                            Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/6.5}">Error summary</ToggleButton>
                         </StackPanel>
                     </Border>
                     <local:WJButton x:Name="OpenReadmeButton" 
@@ -317,6 +323,14 @@
                 </Grid>
                 <Grid x:Name="ReadmeBrowserGrid" Grid.Row="1" Margin="0, 0, 0, 16"></Grid>
                 <local:LogView Grid.Row="1" x:Name="LogView" Margin="0, 0, 0, 16" Visibility="Collapsed" />
+                <Grid x:Name="ErrorSummaryGrid" Grid.Row="1" Margin="0,0,0,16" Visibility="Collapsed">
+                    <Border CornerRadius="8" Background="{Binding Background, ElementName=StoppedBorder}">
+                        <wv2:WebView2 x:Name="ErrorMarkdownView"
+                                      DefaultBackgroundColor="Transparent"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Stretch"/>
+                    </Border>
+                </Grid>
                 <Grid Grid.Row="2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
