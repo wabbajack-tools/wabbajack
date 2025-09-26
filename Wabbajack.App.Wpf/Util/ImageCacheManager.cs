@@ -26,8 +26,9 @@ public class ImageCacheManager
     private async Task SaveImage(Hash hash, MemoryStream ms)
     {
         var path = _imageCachePath.Combine(hash.ToHex());
+        ms.Position = 0;
         await using var fs = new FileStream(path.ToString(), FileMode.Create, FileAccess.Write);
-        ms.WriteTo(fs);
+        await ms.CopyToAsync(fs);
     }
     private async Task<(bool, MemoryStream)> LoadImage(Hash hash)
     {
@@ -105,6 +106,6 @@ public class CachedImage(BitmapImage image)
     private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(5);
     
     public BitmapImage Image { get; } = image;
-    
-    public bool IsExpired() => _cachedAt - DateTime.Now > _cacheDuration;
+
+    public bool IsExpired() => DateTime.Now - _cachedAt > _cacheDuration;
 }
