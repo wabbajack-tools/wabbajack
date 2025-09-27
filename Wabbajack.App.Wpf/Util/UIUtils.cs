@@ -20,6 +20,7 @@ using Wabbajack.DTOs;
 using Exception = System.Exception;
 using SharpImage = SixLabors.ImageSharp.Image;
 using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Metadata.Profiles.Icc;
 
 namespace Wabbajack;
 
@@ -145,7 +146,27 @@ public static class UIUtils
                         BitDepth = SixLabors.ImageSharp.Formats.Png.PngBitDepth.Bit8,
                         ColorType = SixLabors.ImageSharp.Formats.Png.PngColorType.RgbWithAlpha
                     };
-                    await sharpImg.SaveAsPngAsync(pngStream, fastPng);
+                    try
+                    {
+                        await sharpImg.SaveAsPngAsync(pngStream, fastPng);
+                    }
+                    catch (IndexOutOfRangeException)
+                    {
+                        // SME banner failed to load, buggy metadata in log, so this crap removes it
+                        sharpImg.Metadata.IccProfile = null;
+                        sharpImg.Metadata.ExifProfile = null;
+                        sharpImg.Metadata.XmpProfile = null;
+                        foreach (var f in sharpImg.Frames)
+                        {
+                            f.Metadata.IccProfile = null;
+                            f.Metadata.ExifProfile = null;
+                            f.Metadata.XmpProfile = null;
+                        }
+
+                        pngStream.SetLength(0);
+                        pngStream.Position = 0;
+                        await sharpImg.SaveAsPngAsync(pngStream, fastPng);
+                    }
 
                     pngStream.Position = 0;
 
