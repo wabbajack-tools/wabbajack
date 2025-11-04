@@ -32,6 +32,8 @@ public class ModList
     /// </summary>
     public Game GameType { get; set; }
 
+    public Game[] OtherGames { get; set; } = Array.Empty<Game>();
+
     /// <summary>
     ///     Hash of the banner-image
     /// </summary>

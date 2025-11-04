@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using IniParser.Model;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -84,7 +85,7 @@ public class MO2Compiler : ACompiler
 
         NextStep("Initializing", "Add Roots");
         await _vfs.AddRoots(roots, token, async (cur, max) => UpdateProgressAbsolute(cur, max)); // Step 1
-        
+
         // Find all Downloads
         IndexedArchives = await Settings.Downloads.EnumerateFiles()
             .Where(f => f.WithExtension(Ext.Meta).FileExists())
@@ -182,6 +183,7 @@ public class MO2Compiler : ACompiler
             Name = Settings.ModListName,
             Author = Settings.ModListAuthor,
             Description = Settings.ModListDescription,
+            OtherGames = Settings.OtherGames,
             Readme = Settings.ModListReadme,
             Image = ModListImage != default ? ModListImage.FileName : default,
             Website = Settings.ModListWebsite,

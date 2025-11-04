@@ -1,0 +1,1081 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MegaApiClient</name>
+    </assembly>
+    <members>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.Ok">
+            <summary>
+            API_OK (0): Success
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.InternalError">
+            <summary>
+            API_EINTERNAL (-1): An internal error has occurred. Please submit a bug report, detailing the exact circumstances in which this error occurred.
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.BadArguments">
+            <summary>
+            API_EARGS (-2): You have passed invalid arguments to this command.
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.RequestFailedRetry">
+            <summary>
+            API_EAGAIN (-3) (always at the request level): A temporary congestion or server malfunction prevented your request from being processed. No data was altered. Retry. Retries must be spaced with exponential backoff.
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.TooManyRequests">
+            <summary>
+            API_ERATELIMIT (-4): You have exceeded your command weight per time quota. Please wait a few seconds, then try again (this should never happen in sane real-life applications).
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.RequestFailedPermanetly">
+            <summary>
+            API_EFAILED (-5): The upload failed. Please restart it from scratch.
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.ToManyRequestsForThisResource">
+            <summary>
+            API_ETOOMANY (-6): Too many concurrent IP addresses are accessing this upload target URL.
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.ResourceAccessOutOfRange">
+            <summary>
+            API_ERANGE (-7): The upload file packet is out of range or not starting and ending on a chunk boundary.
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.ResourceExpired">
+            <summary>
+            API_EEXPIRED (-8): The upload target URL you are trying to access has expired. Please request a fresh one.
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.ResourceNotExists">
+            <summary>
+            API_EOENT (-9): Object (typically, node or user) not found
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.CircularLinkage">
+            <summary>
+            API_ECIRCULAR (-10): Circular linkage attempted
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.AccessDenied">
+            <summary>
+            API_EACCESS (-11): Access violation (e.g., trying to write to a read-only share)
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.ResourceAlreadyExists">
+            <summary>
+            API_EEXIST (-12): Trying to create an object that already exists
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.RequestIncomplete">
+            <summary>
+            API_EINCOMPLETE (-13): Trying to access an incomplete resource
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.CryptographicError">
+            <summary>
+            API_EKEY (-14): A decryption operation failed (never returned by the API)
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.BadSessionId">
+            <summary>
+            API_ESID (-15): Invalid or expired user session, please relogin
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.ResourceAdministrativelyBlocked">
+            <summary>
+            API_EBLOCKED (-16): User blocked
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.QuotaExceeded">
+            <summary>
+            API_EOVERQUOTA (-17): Request over quota
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.ResourceTemporarilyNotAvailable">
+            <summary>
+            API_ETEMPUNAVAIL (-18): Resource temporarily not available, please try again later
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.TooManyConnectionsOnThisResource">
+            <summary>
+            API_ETOOMANYCONNECTIONS (-19): Too many connections on this resource
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.FileCouldNotBeWrittenTo">
+            <summary>
+            API_EWRITE (-20): Write failed
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.FileCouldNotBeReadFrom">
+            <summary>
+            API_EREAD (-21): Read failed
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.InvalidOrMissingApplicationKey">
+            <summary>
+            API_EAPPKEY (-22): Invalid application key; request not processed
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.TwoFactorAuthenticationError">
+            <summary>
+            Login requires Two-Factor Authentication
+            </summary>
+        </member>
+        <member name="F:CG.Web.MegaApiClient.ApiResultCode.HashcashRequired">
+            <summary>
+            Hashcash calculation required
+            </summary>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.#ctor">
+            <summary>
+            Instantiate a new <see cref="T:CG.Web.MegaApiClient.MegaApiClient" /> object with default <see cref="T:CG.Web.MegaApiClient.Options"/> and default <see cref="T:CG.Web.MegaApiClient.IWebClient"/>
+            </summary>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.#ctor(CG.Web.MegaApiClient.Options)">
+            <summary>
+            Instantiate a new <see cref="T:CG.Web.MegaApiClient.MegaApiClient" /> object with custom <see cref="T:CG.Web.MegaApiClient.Options" /> and default <see cref="T:CG.Web.MegaApiClient.IWebClient"/>
+            </summary>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.#ctor(CG.Web.MegaApiClient.IWebClient)">
+            <summary>
+            Instantiate a new <see cref="T:CG.Web.MegaApiClient.MegaApiClient" /> object with default <see cref="T:CG.Web.MegaApiClient.Options" /> and custom <see cref="T:CG.Web.MegaApiClient.IWebClient"/>
+            </summary>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.#ctor(CG.Web.MegaApiClient.Options,CG.Web.MegaApiClient.IWebClient)">
+            <summary>
+            Instantiate a new <see cref="T:CG.Web.MegaApiClient.MegaApiClient" /> object with custom <see cref="T:CG.Web.MegaApiClient.Options"/> and custom <see cref="T:CG.Web.MegaApiClient.IWebClient" />
+            </summary>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.GenerateAuthInfos(System.String,System.String,System.String)">
+            <summary>
+            Generate authentication informations and store them in a serializable object to allow persistence
+            </summary>
+            <param name="email">email</param>
+            <param name="password">password</param>
+            <param name="mfaKey"></param>
+            <returns><see cref="T:CG.Web.MegaApiClient.MegaApiClient.AuthInfos" /> object containing encrypted data</returns>
+            <exception cref="T:System.ArgumentNullException">email or password is null</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.Login(System.String,System.String)">
+            <summary>
+            Login to Mega.co.nz service using email/password credentials
+            </summary>
+            <param name="email">email</param>
+            <param name="password">password</param>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Service is not available or credentials are invalid</exception>
+            <exception cref="T:System.ArgumentNullException">email or password is null</exception>
+            <exception cref="T:System.NotSupportedException">Already logged in</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.Login(System.String,System.String,System.String)">
+            <summary>
+            Login to Mega.co.nz service using email/password credentials
+            </summary>
+            <param name="email">email</param>
+            <param name="password">password</param>
+            <param name="mfaKey"></param>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Service is not available or credentials are invalid</exception>
+            <exception cref="T:System.ArgumentNullException">email or password is null</exception>
+            <exception cref="T:System.NotSupportedException">Already logged in</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.Login(CG.Web.MegaApiClient.MegaApiClient.AuthInfos)">
+            <summary>
+            Login to Mega.co.nz service using hashed credentials
+            </summary>
+            <param name="authInfos">Authentication informations generated by <see cref="M:CG.Web.MegaApiClient.MegaApiClient.GenerateAuthInfos(System.String,System.String,System.String)"/> method</param>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Service is not available or authInfos is invalid</exception>
+            <exception cref="T:System.ArgumentNullException">authInfos is null</exception>
+            <exception cref="T:System.NotSupportedException">Already logged in</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.Login">
+            <summary>
+            Login anonymously to Mega.co.nz service
+            </summary>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Throws if service is not available</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.LoginAnonymous">
+            <summary>
+            Login anonymously to Mega.co.nz service
+            </summary>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Throws if service is not available</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.Logout">
+            <summary>
+            Logout from Mega.co.nz service
+            </summary>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.GetRecoveryKey">
+            <summary>
+            Retrieve recovery key
+            </summary>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.GetAccountInformation">
+            <summary>
+            Retrieve account (quota) information
+            </summary>
+            <returns>An object containing account information</returns>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.GetSessionsHistory">
+            <summary>
+            Retrieve session history
+            </summary>
+            <returns>A collection of sessions</returns>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.GetNodes">
+            <summary>
+            Retrieve all filesystem nodes
+            </summary>
+            <returns>Flat representation of all the filesystem nodes</returns>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.GetNodes(CG.Web.MegaApiClient.INode)">
+            <summary>
+            Retrieve children nodes of a parent node
+            </summary>
+            <returns>Flat representation of children nodes</returns>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+            <exception cref="T:System.ArgumentNullException">Parent node is null</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.Delete(CG.Web.MegaApiClient.INode,System.Boolean)">
+            <summary>
+            Delete a node from the filesytem
+            </summary>
+            <remarks>
+            You can only delete <see cref="F:CG.Web.MegaApiClient.NodeType.Directory" /> or <see cref="F:CG.Web.MegaApiClient.NodeType.File" /> node
+            </remarks>
+            <param name="node">Node to delete</param>
+            <param name="moveToTrash">Moved to trash if true, Permanently deleted if false</param>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+            <exception cref="T:System.ArgumentNullException">node is null</exception>
+            <exception cref="T:System.ArgumentException">node is not a directory or a file</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.CreateFolder(System.String,CG.Web.MegaApiClient.INode)">
+            <summary>
+            Create a folder on the filesytem
+            </summary>
+            <param name="name">Folder name</param>
+            <param name="parent">Parent node to attach created folder</param>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+            <exception cref="T:System.ArgumentNullException">name or parent is null</exception>
+            <exception cref="T:System.ArgumentException">parent is not valid (all types are allowed expect <see cref="F:CG.Web.MegaApiClient.NodeType.File" />)</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.GetDownloadLink(CG.Web.MegaApiClient.INode)">
+            <summary>
+            Retrieve an url to download specified node
+            </summary>
+            <param name="node">Node to retrieve the download link (only <see cref="F:CG.Web.MegaApiClient.NodeType.File" /> or <see cref="F:CG.Web.MegaApiClient.NodeType.Directory" /> can be downloaded)</param>
+            <returns>Download link to retrieve the node with associated key</returns>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+            <exception cref="T:System.ArgumentNullException">node is null</exception>
+            <exception cref="T:System.ArgumentException">node is not valid (only <see cref="F:CG.Web.MegaApiClient.NodeType.File" /> or <see cref="F:CG.Web.MegaApiClient.NodeType.Directory" /> can be downloaded)</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.DownloadFile(CG.Web.MegaApiClient.INode,System.String,System.Nullable{System.Threading.CancellationToken})">
+            <summary>
+            Download a specified node and save it to the specified file
+            </summary>
+            <param name="node">Node to download (only <see cref="F:CG.Web.MegaApiClient.NodeType.File" /> can be downloaded)</param>
+            <param name="outputFile">File to save the node to</param>
+            <param name="cancellationToken">CancellationToken used to cancel the action</param>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+            <exception cref="T:System.ArgumentNullException">node or outputFile is null</exception>
+            <exception cref="T:System.ArgumentException">node is not valid (only <see cref="F:CG.Web.MegaApiClient.NodeType.File" /> can be downloaded)</exception>
+            <exception cref="T:CG.Web.MegaApiClient.DownloadException">Checksum is invalid. Downloaded data are corrupted</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.DownloadFile(System.Uri,System.String,System.Nullable{System.Threading.CancellationToken})">
+            <summary>
+            Download a specified Uri from Mega and save it to the specified file
+            </summary>
+            <param name="uri">Uri to download</param>
+            <param name="outputFile">File to save the Uri to</param>
+            <param name="cancellationToken">CancellationToken used to cancel the action</param>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+            <exception cref="T:System.ArgumentNullException">uri or outputFile is null</exception>
+            <exception cref="T:System.ArgumentException">Uri is not valid (id and key are required)</exception>
+            <exception cref="T:CG.Web.MegaApiClient.DownloadException">Checksum is invalid. Downloaded data are corrupted</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.Download(CG.Web.MegaApiClient.INode,System.Nullable{System.Threading.CancellationToken})">
+            <summary>
+            Retrieve a Stream to download and decrypt the specified node
+            </summary>
+            <param name="node">Node to download (only <see cref="F:CG.Web.MegaApiClient.NodeType.File" /> can be downloaded)</param>
+            <param name="cancellationToken">CancellationToken used to cancel the action</param>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+            <exception cref="T:System.ArgumentNullException">node or outputFile is null</exception>
+            <exception cref="T:System.ArgumentException">node is not valid (only <see cref="F:CG.Web.MegaApiClient.NodeType.File" /> can be downloaded)</exception>
+            <exception cref="T:CG.Web.MegaApiClient.DownloadException">Checksum is invalid. Downloaded data are corrupted</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.Download(System.Uri,System.Nullable{System.Threading.CancellationToken})">
+            <summary>
+            Retrieve a Stream to download and decrypt the specified Uri
+            </summary>
+            <param name="uri">Uri to download</param>
+            <param name="cancellationToken">CancellationToken used to cancel the action</param>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+            <exception cref="T:System.ArgumentNullException">uri is null</exception>
+            <exception cref="T:System.ArgumentException">Uri is not valid (id and key are required)</exception>
+            <exception cref="T:CG.Web.MegaApiClient.DownloadException">Checksum is invalid. Downloaded data are corrupted</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.GetNodeFromLink(System.Uri)">
+            <summary>
+            Retrieve public properties of a file from a specified Uri
+            </summary>
+            <param name="uri">Uri to retrive properties</param>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+            <exception cref="T:System.ArgumentNullException">uri is null</exception>
+            <exception cref="T:System.ArgumentException">Uri is not valid (id and key are required)</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.GetNodesFromLink(System.Uri)">
+            <summary>
+            Retrieve list of nodes from a specified Uri
+            </summary>
+            <param name="uri">Uri</param>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+            <exception cref="T:System.ArgumentNullException">uri is null</exception>
+            <exception cref="T:System.ArgumentException">Uri is not valid (id and key are required)</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.UploadFile(System.String,CG.Web.MegaApiClient.INode,System.Nullable{System.Threading.CancellationToken})">
+            <summary>
+            Upload a file on Mega.co.nz and attach created node to selected parent
+            </summary>
+            <param name="filename">File to upload</param>
+            <param name="parent">Node to attach the uploaded file (all types except <see cref="F:CG.Web.MegaApiClient.NodeType.File" /> are supported)</param>
+            <param name="cancellationToken">CancellationToken used to cancel the action</param>
+            <returns>Created node</returns>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+            <exception cref="T:System.ArgumentNullException">filename or parent is null</exception>
+            <exception cref="T:System.IO.FileNotFoundException">filename is not found</exception>
+            <exception cref="T:System.ArgumentException">parent is not valid (all types except <see cref="F:CG.Web.MegaApiClient.NodeType.File" /> are supported)</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.Upload(System.IO.Stream,System.String,CG.Web.MegaApiClient.INode,System.Nullable{System.DateTime},System.Nullable{System.Threading.CancellationToken})">
+            <summary>
+            Upload a stream on Mega.co.nz and attach created node to selected parent
+            </summary>
+            <param name="stream">Data to upload</param>
+            <param name="name">Created node name</param>
+            <param name="modificationDate">Custom modification date stored in the Node attributes</param>
+            <param name="parent">Node to attach the uploaded file (all types except <see cref="F:CG.Web.MegaApiClient.NodeType.File" /> are supported)</param>
+            <param name="cancellationToken">CancellationToken used to cancel the action</param>
+            <returns>Created node</returns>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+            <exception cref="T:System.ArgumentNullException">stream or name or parent is null</exception>
+            <exception cref="T:System.ArgumentException">parent is not valid (all types except <see cref="F:CG.Web.MegaApiClient.NodeType.File" /> are supported)</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.Move(CG.Web.MegaApiClient.INode,CG.Web.MegaApiClient.INode)">
+            <summary>
+            Change node parent
+            </summary>
+            <param name="node">Node to move</param>
+            <param name="destinationParentNode">New parent</param>
+            <returns>Moved node</returns>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+            <exception cref="T:System.ArgumentNullException">node or destinationParentNode is null</exception>
+            <exception cref="T:System.ArgumentException">node is not valid (only <see cref="F:CG.Web.MegaApiClient.NodeType.Directory" /> and <see cref="F:CG.Web.MegaApiClient.NodeType.File" /> are supported)</exception>
+            <exception cref="T:System.ArgumentException">parent is not valid (all types except <see cref="F:CG.Web.MegaApiClient.NodeType.File" /> are supported)</exception>
+        </member>
+        <member name="M:CG.Web.MegaApiClient.MegaApiClient.DownloadFileAttribute(CG.Web.MegaApiClient.INode,CG.Web.MegaApiClient.FileAttributeType,System.Nullable{System.Threading.CancellationToken})">
+            <summary>
+            Download thumbnail from file attributes (or return null if thumbnail is not available)
+            </summary>
+            <param name="node">Node to download the thumbnail from (only <see cref="F:CG.Web.MegaApiClient.NodeType.File" /> can be downloaded)</param>
+            <param name="fileAttributeType">File attribute type to retrieve</param>
+            <param name="cancellationToken">CancellationToken used to cancel the action</param>
+            <exception cref="T:System.NotSupportedException">Not logged in</exception>
+            <exception cref="T:CG.Web.MegaApiClient.ApiException">Mega.co.nz service reports an error</exception>
+            <exception cref="T:System.ArgumentNullException">node or outputFile is null</exception>
+            <exception cref="T:System.ArgumentException">node is not valid (only <see cref="F:CG.Web.MegaApiClient.NodeType.File" /> can be downloaded)</exception>
+            <exception cref="T:System.InvalidOperationException">file attribute data is invalid</exception>
+        </member>
+        <member name="P:CG.Web.MegaApiClient.Options.BufferSize">
+            <summary>
+            Size of the buffer used when downloading files
+            This value has an impact on the progression.
+            A lower value means more progression reports but a possible higher CPU usage
+            </summary>
+        </member>
+        <member name="P:CG.Web.MegaApiClient.Options.ChunksPackSize">
+            <summary>
+            Upload is splitted in multiple fragments (useful for big uploads)
+            The size of the fragments is defined by mega.nz and are the following:
+            0 / 128K / 384K / 768K / 1280K / 1920K / 2688K / 3584K / 4608K / ... (every 1024 KB) / EOF
+            The upload method tries to upload multiple fragments at once.
+            Fragments are merged until the total size reaches this value.
+            The special value -1 merges all chunks in a single fragment and a single upload
+            </summary>
+        </member>
+        <member name="T:BigInteger">
+            <summary>
+            This is a BigInteger class. Holds integer that is more than 64-bit (long).
+            </summary>
+            <remarks>
+            This class contains overloaded arithmetic operators(+, -, *, /, %), bitwise operators(&amp;, |) and other
+            operations that can be done with normal integer. It also contains implementation of various prime test.
+            This class also contains methods dealing with cryptography such as generating prime number, generating 
+            a coprime number.
+            </remarks>
+        </member>
+        <member name="M:BigInteger.#ctor">
+            <summary>
+            Default constructor for BigInteger of value 0
+            </summary>
+        </member>
+        <member name="M:BigInteger.#ctor(System.Int64)">
+            <summary>
+            Constructor (Default value provided by long)
+            </summary>
+            <param name="value">Turn the long value into BigInteger type</param>
+        </member>
+        <member name="M:BigInteger.#ctor(System.UInt64)">
+            <summary>
+            Constructor (Default value provided by ulong)
+            </summary>
+            <param name="value">Turn the unsigned long value into BigInteger type</param>
+        </member>
+        <member name="M:BigInteger.#ctor(BigInteger)">
+            <summary>
+            Constructor (Default value provided by BigInteger)
+            </summary>
+            <param name="bi"></param>
+        </member>
+        <member name="M:BigInteger.#ctor(System.String,System.Int32)">
+            <summary>
+            Constructor (Default value provided by a string of digits of the specified base)
+            </summary>
+            <example>
+            To initialize "a" with the default value of 1234 in base 10:
+                 BigInteger a = new BigInteger("1234", 10)
+            To initialize "a" with the default value of -0x1D4F in base 16:
+                 BigInteger a = new BigInteger("-1D4F", 16)
+            </example>
+            
+            <param name="value">String value in the format of [sign][magnitude]</param>
+            <param name="radix">The base of value</param>
+        </member>
+        <member name="M:BigInteger.#ctor(System.Collections.Generic.IList{System.Byte},System.Int32,System.Int32)">
+            <summary>
+            Constructor (Default value provided by an array of bytes of the specified length.)
+            </summary>
+            <param name="inData">A list of byte values</param>
+            <param name="length">Default -1</param>
+            <param name="offset">Default 0</param>
+        </member>
+        <member name="M:BigInteger.#ctor(System.UInt32[])">
+            <summary>
+             Constructor (Default value provided by an array of unsigned integers)
+            </summary>
+            <param name="inData">Array of unsigned integer</param>
+        </member>
+        <member name="M:BigInteger.op_Implicit(System.Int64)~BigInteger">
+            <summary>
+            Cast a type long value to type BigInteger value
+            </summary>
+            <param name="value">A long value</param>
+        </member>
+        <member name="M:BigInteger.op_Implicit(System.UInt64)~BigInteger">
+            <summary>
+            Cast a type ulong value to type BigInteger value
+            </summary>
+            <param name="value">An unsigned long value</param>
+        </member>
+        <member name="M:BigInteger.op_Implicit(System.Int32)~BigInteger">
+            <summary>
+            Cast a type int value to type BigInteger value
+            </summary>
+            <param name="value">An int value</param>
+        </member>
+        <member name="M:BigInteger.op_Implicit(System.UInt32)~BigInteger">
+            <summary>
+            Cast a type uint value to type BigInteger value
+            </summary>
+            <param name="value">An unsigned int value</param>
+        </member>
+        <member name="M:BigInteger.op_Addition(BigInteger,BigInteger)">
+            <summary>
+            Overloading of addition operator
+            </summary>
+            <param name="bi1">First BigInteger</param>
+            <param name="bi2">Second BigInteger</param>
+            <returns>Result of the addition of 2 BigIntegers</returns>
+        </member>
+        <member name="M:BigInteger.op_Increment(BigInteger)">
+            <summary>
+            Overloading of the unary ++ operator, which increments BigInteger by 1
+            </summary>
+            <param name="bi1">A BigInteger</param>
+            <returns>Incremented BigInteger</returns>
+        </member>
+        <member name="M:BigInteger.op_Subtraction(BigInteger,BigInteger)">
+            <summary>
+            Overloading of subtraction operator
+            </summary>
+            <param name="bi1">First BigInteger</param>
+            <param name="bi2">Second BigInteger</param>
+            <returns>Result of the subtraction of 2 BigIntegers</returns>
+        </member>
+        <member name="M:BigInteger.op_Decrement(BigInteger)">
+            <summary>
+            Overloading of the unary -- operator, decrements BigInteger by 1
+            </summary>
+            <param name="bi1">A BigInteger</param>
+            <returns>Decremented BigInteger</returns>
+        </member>
+        <member name="M:BigInteger.op_Multiply(BigInteger,BigInteger)">
+            <summary>
+            Overloading of multiplication operator
+            </summary>
+            <param name="bi1">First BigInteger</param>
+            <param name="bi2">Second BigInteger</param>
+            <returns>Result of the multiplication of 2 BigIntegers</returns>
+        </member>
+        <member name="M:BigInteger.op_LeftShift(BigInteger,System.Int32)">
+            <summary>
+            Overloading of the unary &lt;&lt; operator (left shift)
+            </summary>
+            <remarks>
+            Shifting by a negative number is an undefined behaviour (UB).
+            </remarks>
+            <param name="bi1">A BigInteger</param>
+            <param name="shiftVal">Left shift by shiftVal bit</param>
+            <returns>Left-shifted BigInteger</returns>
+        </member>
+        <member name="M:BigInteger.op_RightShift(BigInteger,System.Int32)">
+            <summary>
+            Overloading of the unary &gt;&gt; operator (right shift)
+            </summary>
+            <remarks>
+            Shifting by a negative number is an undefined behaviour (UB).
+            </remarks>
+            <param name="bi1">A BigInteger</param>
+            <param name="shiftVal">Right shift by shiftVal bit</param>
+            <returns>Right-shifted BigInteger</returns>
+        </member>
+        <member name="M:BigInteger.op_OnesComplement(BigInteger)">
+            <summary>
+            Overloading of the bit-wise NOT operator (1's complement)
+            </summary>
+            <param name="bi1">A BigInteger</param>
+            <returns>Complemented BigInteger</returns>
+        </member>
+        <member name="M:BigInteger.op_UnaryNegation(BigInteger)">
+            <summary>
+            Overloading of the NEGATE operator (2's complement)
+            </summary>
+            <param name="bi1">A BigInteger</param>
+            <returns>Negated BigInteger or default BigInteger value if bi1 is 0</returns>
+        </member>
+        <member name="M:BigInteger.op_Equality(BigInteger,BigInteger)">
+            <summary>
+            Overloading of equality operator, allows comparing 2 BigIntegers with == operator
+            </summary>
+            <param name="bi1">First BigInteger</param>
+            <param name="bi2">Second BigInteger</param>
+            <returns>Boolean result of the comparison</returns>
+        </member>
+        <member name="M:BigInteger.op_Inequality(BigInteger,BigInteger)">
+            <summary>
+            Overloading of not equal operator, allows comparing 2 BigIntegers with != operator
+            </summary>
+            <param name="bi1">First BigInteger</param>
+            <param name="bi2">Second BigInteger</param>
+            <returns>Boolean result of the comparison</returns>
+        </member>
+        <member name="M:BigInteger.Equals(System.Object)">
+            <summary>
+            Overriding of Equals method, allows comparing BigInteger with an arbitary object
+            </summary>
+            <param name="o">Input object, to be casted into BigInteger type for comparison</param>
+            <returns>Boolean result of the comparison</returns>
+        </member>
+        <member name="M:BigInteger.op_GreaterThan(BigInteger,BigInteger)">
+            <summary>
+            Overloading of greater than operator, allows comparing 2 BigIntegers with &gt; operator
+            </summary>
+            <param name="bi1">First BigInteger</param>
+            <param name="bi2">Second BigInteger</param>
+            <returns>Boolean result of the comparison</returns>
+        </member>
+        <member name="M:BigInteger.op_LessThan(BigInteger,BigInteger)">
+            <summary>
+            Overloading of greater than operator, allows comparing 2 BigIntegers with &lt; operator
+            </summary>
+            <param name="bi1">First BigInteger</param>
+            <param name="bi2">Second BigInteger</param>
+            <returns>Boolean result of the comparison</returns>
+        </member>
+        <member name="M:BigInteger.op_GreaterThanOrEqual(BigInteger,BigInteger)">
+            <summary>
+            Overloading of greater than or equal to operator, allows comparing 2 BigIntegers with &gt;= operator
+            </summary>
+            <param name="bi1">First BigInteger</param>
+            <param name="bi2">Second BigInteger</param>
+            <returns>Boolean result of the comparison</returns>
+        </member>
+        <member name="M:BigInteger.op_LessThanOrEqual(BigInteger,BigInteger)">
+            <summary>
+            Overloading of less than or equal to operator, allows comparing 2 BigIntegers with &lt;= operator
+            </summary>
+            <param name="bi1">First BigInteger</param>
+            <param name="bi2">Second BigInteger</param>
+            <returns>Boolean result of the comparison</returns>
+        </member>
+        <member name="M:BigInteger.op_Division(BigInteger,BigInteger)">
+            <summary>
+            Overloading of division operator
+            </summary>
+            <remarks>The dataLength of the divisor's absolute value must be less than maxLength</remarks>
+            <param name="bi1">Dividend</param>
+            <param name="bi2">Divisor</param>
+            <returns>Quotient of the division</returns>
+        </member>
+        <member name="M:BigInteger.op_Modulus(BigInteger,BigInteger)">
+            <summary>
+            Overloading of modulus operator
+            </summary>
+            <remarks>The dataLength of the divisor's absolute value must be less than maxLength</remarks>
+            <param name="bi1">Dividend</param>
+            <param name="bi2">Divisor</param>
+            <returns>Remainder of the division</returns>
+        </member>
+        <member name="M:BigInteger.op_BitwiseAnd(BigInteger,BigInteger)">
+            <summary>
+            Overloading of bitwise AND operator
+            </summary>
+            <param name="bi1">First BigInteger</param>
+            <param name="bi2">Second BigInteger</param>
+            <returns>BigInteger result after performing &amp; operation</returns>
+        </member>
+        <member name="M:BigInteger.op_BitwiseOr(BigInteger,BigInteger)">
+            <summary>
+            Overloading of bitwise OR operator
+            </summary>
+            <param name="bi1">First BigInteger</param>
+            <param name="bi2">Second BigInteger</param>
+            <returns>BigInteger result after performing | operation</returns>
+        </member>
+        <member name="M:BigInteger.op_ExclusiveOr(BigInteger,BigInteger)">
+            <summary>
+            Overloading of bitwise XOR operator
+            </summary>
+            <param name="bi1">First BigInteger</param>
+            <param name="bi2">Second BigInteger</param>
+            <returns>BigInteger result after performing ^ operation</returns>
+        </member>
+        <member name="M:BigInteger.max(BigInteger)">
+            <summary>
+            Compare this and a BigInteger and find the maximum one
+            </summary>
+            <param name="bi">BigInteger to be compared with this</param>
+            <returns>The bigger value of this and bi</returns>
+        </member>
+        <member name="M:BigInteger.min(BigInteger)">
+            <summary>
+            Compare this and a BigInteger and find the minimum one
+            </summary>
+            <param name="bi">BigInteger to be compared with this</param>
+            <returns>The smaller value of this and bi</returns>
+        </member>
+        <member name="M:BigInteger.abs">
+            <summary>
+            Returns the absolute value
+            </summary>
+            <returns>Absolute value of this</returns>
+        </member>
+        <member name="M:BigInteger.ToString">
+            <summary>
+            Returns a string representing the BigInteger in base 10
+            </summary>
+            <returns>string representation of the BigInteger</returns>
+        </member>
+        <member name="M:BigInteger.ToString(System.Int32)">
+            <summary>
+            Returns a string representing the BigInteger in [sign][magnitude] format in the specified radix
+            </summary>
+            <example>If the value of BigInteger is -255 in base 10, then ToString(16) returns "-FF"</example>
+            <param name="radix">Base</param>
+            <returns>string representation of the BigInteger in [sign][magnitude] format</returns>
+        </member>
+        <member name="M:BigInteger.ToHexString">
+            <summary>
+            Returns a hex string showing the contains of the BigInteger
+            </summary>
+            <example>
+            1) If the value of BigInteger is 255 in base 10, then ToHexString() returns "FF"
+            2) If the value of BigInteger is -255 in base 10, thenToHexString() returns ".....FFFFFFFFFF01", which is the 2's complement representation of -255.
+            </example>
+            <returns></returns>
+        </member>
+        <member name="M:BigInteger.modPow(BigInteger,BigInteger)">
+            <summary>
+            Modulo Exponentiation
+            </summary>
+            <param name="exp">Exponential</param>
+            <param name="n">Modulo</param>
+            <returns>BigInteger result of raising this to the power of exp and then modulo n </returns>
+        </member>
+        <member name="M:BigInteger.BarrettReduction(BigInteger,BigInteger,BigInteger)">
+             <summary>
+             Fast calculation of modular reduction using Barrett's reduction
+             </summary>
+             <remarks>
+             Requires x &lt; b^(2k), where b is the base.  In this case, base is 2^32 (uint).
+            
+             Reference [4]
+             </remarks>
+             <param name="x"></param>
+             <param name="n"></param>
+             <param name="constant"></param>
+             <returns></returns>
+        </member>
+        <member name="M:BigInteger.gcd(BigInteger)">
+            <summary>
+            Returns gcd(this, bi)
+            </summary>
+            <param name="bi"></param>
+            <returns>Greatest Common Divisor of this and bi</returns>
+        </member>
+        <member name="M:BigInteger.genRandomBits(System.Int32,System.Random)">
+            <summary>
+            Populates "this" with the specified amount of random bits
+            </summary>
+            <param name="bits"></param>
+            <param name="rand"></param>
+        </member>
+        <member name="M:BigInteger.bitCount">
+            <summary>
+            Returns the position of the most significant bit in the BigInteger
+            </summary>
+            <example>
+            1) The result is 1, if the value of BigInteger is 0...0000 0000
+            2) The result is 1, if the value of BigInteger is 0...0000 0001
+            3) The result is 2, if the value of BigInteger is 0...0000 0010
+            4) The result is 2, if the value of BigInteger is 0...0000 0011
+            5) The result is 5, if the value of BigInteger is 0...0001 0011
+            </example>
+            <returns></returns>
+        </member>
+        <member name="M:BigInteger.FermatLittleTest(System.Int32)">
+             <summary>
+             Probabilistic prime test based on Fermat's little theorem
+             </summary>
+             <remarks>
+             for any a &lt; p (p does not divide a) if
+                  a^(p-1) mod p != 1 then p is not prime.
+            
+             Otherwise, p is probably prime (pseudoprime to the chosen base).
+             
+             This method is fast but fails for Carmichael numbers when the randomly chosen base is a factor of the number.
+             </remarks>
+             <param name="confidence">Number of chosen bases</param>
+             <returns>True if this is a pseudoprime to randomly chosen bases</returns>
+        </member>
+        <member name="M:BigInteger.RabinMillerTest(System.Int32)">
+             <summary>
+             Probabilistic prime test based on Rabin-Miller's
+             </summary>
+             <remarks>
+             for any p &gt; 0 with p - 1 = 2^s * t
+            
+             p is probably prime (strong pseudoprime) if for any a &lt; p,
+             1) a^t mod p = 1 or
+             2) a^((2^j)*t) mod p = p-1 for some 0 &lt;= j &lt;= s-1
+            
+             Otherwise, p is composite.
+             </remarks>
+             <param name="confidence">Number of chosen bases</param>
+             <returns>True if this is a strong pseudoprime to randomly chosen bases</returns>
+        </member>
+        <member name="M:BigInteger.SolovayStrassenTest(System.Int32)">
+             <summary>
+             Probabilistic prime test based on Solovay-Strassen (Euler Criterion)
+             </summary>
+             <remarks>
+              p is probably prime if for any a &lt; p (a is not multiple of p),
+             a^((p-1)/2) mod p = J(a, p)
+            
+             where J is the Jacobi symbol.
+            
+             Otherwise, p is composite.
+             </remarks>
+             <param name="confidence">Number of chosen bases</param>
+             <returns>True if this is a Euler pseudoprime to randomly chosen bases</returns>
+        </member>
+        <member name="M:BigInteger.LucasStrongTest">
+             <summary>
+             Implementation of the Lucas Strong Pseudo Prime test
+             </summary>
+             <remarks>
+             Let n be an odd number with gcd(n,D) = 1, and n - J(D, n) = 2^s * d
+             with d odd and s >= 0.
+            
+             If Ud mod n = 0 or V2^r*d mod n = 0 for some 0 &lt;= r &lt; s, then n
+             is a strong Lucas pseudoprime with parameters (P, Q).  We select
+             P and Q based on Selfridge.
+             </remarks>
+             <returns>True if number is a strong Lucus pseudo prime</returns>
+        </member>
+        <member name="M:BigInteger.isProbablePrime(System.Int32)">
+            <summary>
+            Determines whether a number is probably prime using the Rabin-Miller's test
+            </summary>
+            <remarks>
+            Before applying the test, the number is tested for divisibility by primes &lt; 2000
+            </remarks>
+            <param name="confidence">Number of chosen bases</param>
+            <returns>True if this is probably prime</returns>
+        </member>
+        <member name="M:BigInteger.isProbablePrime">
+             <summary>
+             Determines whether this BigInteger is probably prime using a combination of base 2 strong pseudoprime test and Lucas strong pseudoprime test 
+             </summary>
+             <remarks>
+             The sequence of the primality test is as follows,
+            
+             1) Trial divisions are carried out using prime numbers below 2000.
+                if any of the primes divides this BigInteger, then it is not prime.
+            
+             2) Perform base 2 strong pseudoprime test.  If this BigInteger is a
+                base 2 strong pseudoprime, proceed on to the next step.
+            
+             3) Perform strong Lucas pseudoprime test.
+             
+             For a detailed discussion of this primality test, see [6].
+             </remarks>
+             <returns>True if this is probably prime</returns>
+        </member>
+        <member name="M:BigInteger.IntValue">
+            <summary>
+            Returns the lowest 4 bytes of the BigInteger as an int
+            </summary>
+            <returns>Lowest 4 bytes as integer</returns>
+        </member>
+        <member name="M:BigInteger.LongValue">
+            <summary>
+            Returns the lowest 8 bytes of the BigInteger as a long
+            </summary>
+            <returns>Lowest 8 bytes as long</returns>
+        </member>
+        <member name="M:BigInteger.Jacobi(BigInteger,BigInteger)">
+            <summary>
+            Computes the Jacobi Symbol for 2 BigInteger a and b
+            </summary>
+            <remarks>
+            Algorithm adapted from [3] and [4] with some optimizations
+            </remarks>
+            <param name="a">Any BigInteger</param>
+            <param name="b">Odd BigInteger</param>
+            <returns>Jacobi Symbol</returns>
+        </member>
+        <member name="M:BigInteger.genPseudoPrime(System.Int32,System.Int32,System.Random)">
+            <summary>
+            Generates a positive BigInteger that is probably prime
+            </summary>
+            <param name="bits">Number of bit</param>
+            <param name="confidence">Number of chosen bases</param>
+            <param name="rand">Random object</param>
+            <returns>A probably prime number</returns>
+        </member>
+        <member name="M:BigInteger.genCoPrime(System.Int32,System.Random)">
+            <summary>
+            Generates a random number with the specified number of bits such that gcd(number, this) = 1
+            </summary>
+            <remarks>
+            The number of bits must be greater than 0 and less than 2209
+            </remarks>
+            <param name="bits">Number of bit</param>
+            <param name="rand">Random object</param>
+            <returns>Relatively prime number of this</returns>
+        </member>
+        <member name="M:BigInteger.modInverse(BigInteger)">
+            <summary>
+            Returns the modulo inverse of this
+            </summary>
+            <remarks>
+            Throws ArithmeticException if the inverse does not exist.  (i.e. gcd(this, modulus) != 1)
+            </remarks>
+            <param name="modulus"></param>
+            <returns>Modulo inverse of this</returns>
+        </member>
+        <member name="M:BigInteger.getBytes">
+            <summary>
+            Returns the value of the BigInteger as a byte array
+            </summary>
+            <remarks>
+            The lowest index contains the MSB
+            </remarks>
+            <returns>Byte array containing value of the BigInteger</returns>
+        </member>
+        <member name="M:BigInteger.setBit(System.UInt32)">
+            <summary>
+            Sets the value of the specified bit to 1
+            </summary>
+            <remarks>
+            The Least Significant Bit position is 0
+            </remarks>
+            <param name="bitNum">The position of bit to be changed</param>
+        </member>
+        <member name="M:BigInteger.unsetBit(System.UInt32)">
+            <summary>
+            Sets the value of the specified bit to 0
+            </summary>
+            <remarks>
+            The Least Significant Bit position is 0
+            </remarks>
+            <param name="bitNum">The position of bit to be changed</param>
+        </member>
+        <member name="M:BigInteger.sqrt">
+            <summary>
+            Returns a value that is equivalent to the integer square root of this
+            </summary>
+            <remarks>
+            The integer square root of "this" is defined as the largest integer n, such that (n * n) &lt;= this.
+            Square root of negative integer is an undefined behaviour (UB).
+            </remarks>
+            <returns>Integer square root of this</returns>
+        </member>
+        <member name="M:BigInteger.LucasSequence(BigInteger,BigInteger,BigInteger,BigInteger)">
+             <summary>
+             Returns the k_th number in the Lucas Sequence reduced modulo n
+             </summary>
+             <remarks>
+             Uses index doubling to speed up the process.  For example, to calculate V(k),
+             we maintain two numbers in the sequence V(n) and V(n+1).
+            
+             To obtain V(2n), we use the identity
+                  V(2n) = (V(n) * V(n)) - (2 * Q^n)
+             To obtain V(2n+1), we first write it as
+                  V(2n+1) = V((n+1) + n)
+             and use the identity
+                  V(m+n) = V(m) * V(n) - Q * V(m-n)
+             Hence,
+                  V((n+1) + n) = V(n+1) * V(n) - Q^n * V((n+1) - n)
+                               = V(n+1) * V(n) - Q^n * V(1)
+                               = V(n+1) * V(n) - Q^n * P
+            
+             We use k in its binary expansion and perform index doubling for each
+             bit position.  For each bit position that is set, we perform an
+             index doubling followed by an index addition.  This means that for V(n),
+             we need to update it to V(2n+1).  For V(n+1), we need to update it to
+             V((2n+1)+1) = V(2*(n+1))
+            
+             This function returns
+             [0] = U(k)
+             [1] = V(k)
+             [2] = Q^n
+            
+             Where U(0) = 0 % n, U(1) = 1 % n
+                   V(0) = 2 % n, V(1) = P % n
+             </remarks>
+             <param name="P"></param>
+             <param name="Q"></param>
+             <param name="k"></param>
+             <param name="n"></param>
+             <returns></returns>
+        </member>
+        <member name="T:DamienG.Security.Cryptography.Crc32">
+            <summary>
+            Implements a 32-bit CRC hash algorithm compatible with Zip etc.
+            </summary>
+            <remarks>
+            Crc32 should only be used for backward compatibility with older file formats
+            and algorithms. It is not secure enough for new applications.
+            If you need to call multiple times for the same data either use the HashAlgorithm
+            interface or remember that the result of one Compute call needs to be ~ (XOR) before
+            being passed in as the seed for the next Compute call.
+            </remarks>
+        </member>
+        <member name="T:Medo.Security.Cryptography.Pbkdf2">
+            <summary>
+            Generic PBKDF2 implementation.
+            </summary>
+            <example>This sample shows how to initialize class with SHA-256 HMAC.
+            <code>
+            using (var hmac = new HMACSHA256()) {
+                var df = new Pbkdf2(hmac, "password", "salt");
+                var bytes = df.GetBytes();
+            }
+            </code>
+            </example>
+        </member>
+        <member name="M:Medo.Security.Cryptography.Pbkdf2.#ctor(System.Security.Cryptography.HMAC,System.Byte[],System.Byte[],System.Int32)">
+            <summary>
+            Creates new instance.
+            </summary>
+            <param name="algorithm">HMAC algorithm to use.</param>
+            <param name="password">The password used to derive the key.</param>
+            <param name="salt">The key salt used to derive the key.</param>
+            <param name="iterations">The number of iterations for the operation.</param>
+            <exception cref="T:System.ArgumentNullException">Algorithm cannot be null - Password cannot be null. -or- Salt cannot be null.</exception>
+        </member>
+        <member name="M:Medo.Security.Cryptography.Pbkdf2.#ctor(System.Security.Cryptography.HMAC,System.Byte[],System.Byte[])">
+            <summary>
+            Creates new instance.
+            </summary>
+            <param name="algorithm">HMAC algorithm to use.</param>
+            <param name="password">The password used to derive the key.</param>
+            <param name="salt">The key salt used to derive the key.</param>
+            <exception cref="T:System.ArgumentNullException">Algorithm cannot be null - Password cannot be null. -or- Salt cannot be null.</exception>
+        </member>
+        <member name="M:Medo.Security.Cryptography.Pbkdf2.#ctor(System.Security.Cryptography.HMAC,System.String,System.String,System.Int32)">
+            <summary>
+            Creates new instance.
+            </summary>
+            <param name="algorithm">HMAC algorithm to use.</param>
+            <param name="password">The password used to derive the key.</param>
+            <param name="salt">The key salt used to derive the key.</param>
+            <param name="iterations">The number of iterations for the operation.</param>
+            <exception cref="T:System.ArgumentNullException">Algorithm cannot be null - Password cannot be null. -or- Salt cannot be null.</exception>
+        </member>
+        <member name="M:Medo.Security.Cryptography.Pbkdf2.#ctor(System.Security.Cryptography.HMAC,System.String,System.String)">
+            <summary>
+            Creates new instance.
+            </summary>
+            <param name="algorithm">HMAC algorithm to use.</param>
+            <param name="password">The password used to derive the key.</param>
+            <param name="salt">The key salt used to derive the key.</param>
+            <exception cref="T:System.ArgumentNullException">Algorithm cannot be null - Password cannot be null. -or- Salt cannot be null.</exception>
+        </member>
+        <member name="P:Medo.Security.Cryptography.Pbkdf2.Algorithm">
+            <summary>
+            Gets algorithm used for generating key.
+            </summary>
+        </member>
+        <member name="P:Medo.Security.Cryptography.Pbkdf2.Salt">
+            <summary>
+            Gets salt bytes.
+            </summary>
+        </member>
+        <member name="P:Medo.Security.Cryptography.Pbkdf2.IterationCount">
+            <summary>
+            Gets iteration count.
+            </summary>
+        </member>
+        <member name="M:Medo.Security.Cryptography.Pbkdf2.GetBytes(System.Int32)">
+            <summary>
+            Returns a pseudo-random key from a password, salt and iteration count.
+            </summary>
+            <param name="count">Number of bytes to return.</param>
+            <returns>Byte array.</returns>
+        </member>
+    </members>
+</doc>

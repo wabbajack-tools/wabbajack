@@ -83,6 +83,7 @@ public static class GameRegistry
                     "FalloutNV.exe".ToRelativePath()
                 },
                 MainExecutable = "FalloutNV.exe".ToRelativePath(),
+                CanSourceFrom = new[] {Game.Fallout3},
                 IconSource = "https://cdn2.steamgriddb.com/icon/c706723a17a2b2acec4f9ebc9f572e31.png"
             }
         },
@@ -773,6 +774,10 @@ public static class GameRegistry
                 NexusGameId = 437,
                 MO2ArchiveName = "vampire",
                 SteamIDs = [2600],
+                GOGIDs = [
+                    1207659240,//Game
+                    1265943179//Game + Unofficial Patch Pre-Installed
+                ],
                 RequiredFiles = new []
                 {
                     @"vampire.exe".ToRelativePath(),

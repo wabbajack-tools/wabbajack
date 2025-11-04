@@ -1,5 +1,27 @@
 ### Changelog
 
+### Version - 4.0.4.1 - 9/10/2025
+* Hotfix for the game file sourcing now suddenly requiring other games to be installed on modlists that don't actually use file sourcing from other games ([@JanuarySnow](https://www.github.com/JanuarySnow))
+
+#### Version - 4.0.4.0 - 9/7/2025
+* Fixed the Nexus OAuth token never being refreshed upon starting installation or during downloads
+  * This could lead to issues after having not logged back into Nexus for 6 hours after your initial login
+* Fixed an issue with the Google Drive downloader not being able to download files when not prompted with a harmful file warning
+* Fixed Wabbajack not properly sourcing files from other installed games (for example when using Skyrim SE DLC on Skyrim VR modlists) ([@JanuarySnow](https://www.github.com/JanuarySnow)])
+* Fixed Wabbajack crashing when navigating the 'Has Mod(s)' filter in the gallery with arrow keys
+
+#### Version - 4.0.3.0 - 7/18/2025
+* The link to a missing Nexus file now directly opens to the specific missing archive instead of the general mod page ([@ninjawaffle](https://www.github.com/ninjawaffle))
+* Fixed version not properly being inlined into the executable ([@EzioTheDeadPoet](https://www.github.com/EzioTheDeadPoet))
+  * This means you won't see a 4.0.0.0 version in the bottom left of Wabbajack when you actually have 4.0.2.0.
+* Reintroduced hash-game-files function in the CLI to add support for new games ([@JanuarySnow](https://www.github.com/JanuarySnow))
+* Added support for extracting InnoSetup executables ([@EzioTheDeadPoet](https://www.github.com/EzioTheDeadPoet))
+  * As part of this, temporary files are now extracted to shorter folder names
+* Fixed a bug where searching for Nexus archives in the modlist overview would only search on the mod name instead of the archive name
+* Fixed the MEGA integration breaking with 402 Payment Required error messages after they implemented hashcashes
+  * A hashcash is basically a computationally expensive cryptographic puzzle, it needs to be solved upon login and it was implemented as a security measure by MEGA to prevent API abuse by bots
+* Added GOG IDs for Vampire: The Masquerade - Bloodlines
+
 #### Version - 4.0.2.0 - 6/26/2025
 * Fixed the community URL not being saved in the compiler menu
 * Fixed the additional profiles not being read or saved in the compiler menu

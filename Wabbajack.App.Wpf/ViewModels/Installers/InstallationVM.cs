@@ -619,9 +619,18 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
             try
             {
+                var canSource = GameRegistry.Games[ModList.GameType].CanSourceFrom ?? Array.Empty<Game>();
+                var namedgames = ModList.OtherGames;
+                var validgames = Array.Empty<Game>();
+                foreach (var g in namedgames)
+                {
+                    if (canSource.Contains(g) && GameRegistry.Games.ContainsKey(g))
+                        validgames.Add(g);
+                }
                 var cfg = new InstallerConfiguration
                 {
                     Game = ModList.GameType,
+                    OtherGames = validgames,
                     Downloads = Installer.DownloadLocation.TargetPath,
                     Install = Installer.Location.TargetPath,
                     ModList = ModList,
@@ -647,6 +656,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                 _logger.LogInformation("    Modlist file location: {wjFileLocation}", cfg.ModlistArchive.ToString());
                 _logger.LogInformation("    Game: {game}", cfg.Game.ToString());
                 _logger.LogInformation("    Game folder: {gameFolder}", cfg.GameFolder);
+                _logger.LogInformation("    Other games that can be sourced from: {otherGames}", string.Join(", ", cfg.OtherGames.Select(g => g.ToString())));
 
                 InstallResult result;
                 using (_cancellationTokenSource = new CancellationTokenSource())
@@ -767,7 +777,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                         IPS4OAuth2 ips4 => ips4.LinkUrl.ToString(),
                         GoogleDrive gd => gd.GetUri().ToString(),
                         Http http => http.Url.ToString(),
-                        Nexus nexus => nexus.LinkUrl.ToString(),
+                        Nexus nexus => $"{nexus.LinkUrl}?tab=files&file_id={nexus.FileID}",
                         _ => string.Empty
                     };
                     writer.Write($"<td><a data-tooltip='{url}' href='{url}' target='_blank'>{stateName}</a></td>");

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -455,32 +455,50 @@ public abstract class AInstaller<T>
         NextStep(Consts.StepHashing, "Hashing Archives", 0);
         _logger.LogInformation("Looking for files to hash");
 
+        // Collect all game folders – primary plus other games
+        var gameFolders = new HashSet<AbsolutePath>();
+
+        void AddIfValid(AbsolutePath p)
+        {
+            if (p != default && p != AbsolutePath.Empty)
+                gameFolders.Add(p);
+        }
+
+        AddIfValid(_gameLocator.GameLocation(_configuration.Game));
+
+        
+        // .othergames should only be non-null if the compiled list specifically named othergames
+        foreach (var g in _configuration.OtherGames ?? Array.Empty<Game>())
+        {
+            _logger.LogInformation("Also searching othergame folder for {Game}", g);
+            AddIfValid(_gameLocator.GameLocation(g));
+        }
+
+        // Enumerate downloads + every game folder
         var allFiles = _configuration.Downloads.EnumerateFiles()
-            .Concat(_gameLocator.GameLocation(_configuration.Game).EnumerateFiles())
+            .Concat(gameFolders.SelectMany(p => p.EnumerateFiles()))
             .ToList();
 
         _logger.LogInformation("Getting archive sizes");
-        var hashDict = (await allFiles.PMapAllBatched(_limiter, x => (x, x.Size())).ToList())
+        var hashDict = (await allFiles.PMapAllBatched(_limiter,
+                                                      x => (x, x.Size())).ToList())
             .GroupBy(f => f.Item2)
             .ToDictionary(g => g.Key, g => g.Select(v => v.x));
 
         _logger.LogInformation("Linking archives to downloads");
         var toHash = ModList.Archives.Where(a => hashDict.ContainsKey(a.Size))
-            .SelectMany(a => hashDict[a.Size]).ToList();
+            .SelectMany(a => hashDict[a.Size])
+            .ToList();
 
         MaxStepProgress = toHash.Count;
+        _logger.LogInformation("Found {count} total files, {hashedCount} matching filesize",
+                               allFiles.Count, toHash.Count);
 
-        _logger.LogInformation("Found {count} total files, {hashedCount} matching filesize", allFiles.Count,
-            toHash.Count);
-
-        var hashResults = await
-            toHash
-                .PMapAll(async e =>
-                {
-                    UpdateProgress(1);
-                    return (await FileHashCache.FileHashCachedAsync(e, token), e);
-                })
-                .ToList();
+        var hashResults = await toHash.PMapAll(async e =>
+        {
+            UpdateProgress(1);
+            return (await FileHashCache.FileHashCachedAsync(e, token), e);
+        }).ToList();
 
         HashedArchives = hashResults
             .OrderByDescending(e => e.Item2.LastModified())
@@ -489,6 +507,8 @@ public abstract class AInstaller<T>
             .Where(x => x.Item1 != default)
             .ToDictionary(kv => kv.Item1, kv => kv.e);
     }
+
+
 
 
     /// <summary>

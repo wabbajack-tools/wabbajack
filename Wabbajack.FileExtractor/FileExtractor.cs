@@ -15,6 +15,7 @@ using Wabbajack.Common.FileSignatures;
 using Wabbajack.Compression.BSA;
 using Wabbajack.DTOs.Streams;
 using Wabbajack.FileExtractor.ExtractedFiles;
+using Wabbajack.FileExtractor.ExtractorHelpers;
 using Wabbajack.IO.Async;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -29,7 +30,7 @@ public class FileExtractor
         FileType.BA2,
         FileType.BTAR,
         FileType.ZIP,
-        //FileType.EXE,
+        FileType.EXE,
         FileType.RAR_OLD,
         FileType.RAR_NEW,
         FileType._7Z);
@@ -48,6 +49,7 @@ public class FileExtractor
         new Extension(".rar"),
         new Extension(".zip"),
         new Extension(".btar"),
+        new Extension(".exe"),
         OMODExtension,
         FOMODExtension
     };
@@ -122,6 +124,10 @@ public class FileExtractor
                     results = await GatheringExtractWithBSA(sFn, (FileType) sig, shouldExtract, mapfn, token);
                 else
                     throw new Exception($"Invalid file format {sFn.Name}");
+                break;
+            case FileType.EXE:
+                results = await GatheringExtractWithInnoExtract(sFn, shouldExtract,
+                    mapfn, onlyFiles, token, progressFunction);
                 break;
             default:
                 throw new Exception($"Invalid file format {sFn.Name}");
@@ -315,14 +321,14 @@ public class FileExtractor
                 tmpFile = _manager.CreateFile();
                 await tmpFile.Value.Path.WriteAllLinesAsync(onlyFiles.SelectMany(f => AllVariants((string) f)),
                     token);
-                process.Arguments = new object[]
-                {
+                process.Arguments =
+                [
                     "x", "-bsp1", "-y", $"-o\"{dest}\"", source, $"@\"{tmpFile.Value.ToString()}\"", "-mmt=off"
-                };
+                ];
             }
             else
             {
-                process.Arguments = new object[] {"x", "-bsp1", "-y", $"-o\"{dest}\"", source, "-mmt=off"};
+                process.Arguments = ["x", "-bsp1", "-y", $"-o\"{dest}\"", source, "-mmt=off"];
             }
 
             _logger.LogTrace("{prog} {args}", process.Path, process.Arguments);
@@ -381,6 +387,124 @@ public class FileExtractor
                 .ToDictionary(d => d.Item1, d => d.Item2);
             
 
+            return results;
+        }
+        finally
+        {
+            job.Dispose();
+            
+            if (tmpFile != null) await tmpFile.Value.DisposeAsync();
+
+            if (spoolFile != null) await spoolFile.Value.DisposeAsync();
+        }
+    }
+    
+    public async Task<IDictionary<RelativePath, T>> GatheringExtractWithInnoExtract<T>(IStreamFactory sf,
+        Predicate<RelativePath> shouldExtract,
+        Func<RelativePath, IExtractedFile, ValueTask<T>> mapfn,
+        IReadOnlyCollection<RelativePath>? onlyFiles,
+        CancellationToken token,
+        Action<Percent>? progressFunction = null)
+    {
+        TemporaryPath? tmpFile = null;
+        await using var dest = _manager.CreateFolder();
+
+        TemporaryPath? spoolFile = null;
+        AbsolutePath source;
+        
+        var job = await _limiter.Begin($"Extracting {sf.Name}", 0, token);
+        try
+        {
+            if (sf.Name is AbsolutePath abs)
+            {
+                source = abs;
+            }
+            else
+            {
+                spoolFile = _manager.CreateFile(sf.Name.FileName.Extension);
+                await using var s = await sf.GetStream();
+                await spoolFile.Value.Path.WriteAllAsync(s, token);
+                source = spoolFile.Value.Path;
+            }
+
+            var initialPath = "";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                initialPath = @"Extractors\windows-x64\innoextract.exe";
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                initialPath = @"Extractors\linux-x64\innoextract";
+
+            // This might not be the best way to do it since it forces a full extraction
+            // of the full .exe file, but the other method that would tell WJ to only extract specific files was bugged
+
+            var processScan = new ProcessHelper
+            {
+                Path = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint),
+                Arguments = [$"\"{source}\"", "--list-sizes", "-m", "--collisions \"rename-all\""]
+            };
+
+            var processExtract = new ProcessHelper
+            {
+                Path = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint),
+                Arguments = [$"\"{source}\"", "-e", "-m", "--list-sizes", "--collisions \"rename-all\"", $"-d \"{dest}\""]
+            };
+            
+            _logger.LogTrace("{prog} {args}", processExtract.Path, processExtract.Arguments);
+
+            // We skip the first and last lines since they don't contain any info about the files, it's just a header and a footer from InnoExtract
+            // First do a scan so we know the total size of the operation
+            var scanResult = processScan.Output.Where(d => d.Type == ProcessHelper.StreamType.Output).Skip(1).SkipLast(1)
+                .ForEachAsync(p =>
+                {
+                    var (_, line) = p;
+                    job.Size += InnoHelper.GetExtractedFileSize(line);
+                });
+
+            Task<int> scanExitCode = Task.Run(() => processScan.Start());
+
+            var extractResult = processExtract.Output.Where(d => d.Type == ProcessHelper.StreamType.Output).Skip(1).SkipLast(1)
+                .ForEachAsync(p =>
+                {
+                    var (_, line) = p;
+                    job.ReportNoWait(InnoHelper.GetExtractedFileSize(line));
+                }, token);
+            
+            var extractErrorResult = processExtract.Output.Where(d => d.Type == ProcessHelper.StreamType.Error)
+                .ForEachAsync(p =>
+                {
+                    var (_, line) = p;
+                    _logger.LogError("While extracting InnoSetup archive {fileName} at {path}: {line}", source.FileName, processExtract.Path, line);
+                }, token);
+
+            // Wait for the job size to be calculated before actually starting the extraction operation, should be very fast
+            await scanExitCode;
+
+            var exitCode = await processExtract.Start();
+            
+            
+            if (exitCode != 0)
+            {
+                // Commented out because there are more .exe binaries in the average setup that this logging might confuse people more than it helps.
+                // _logger.LogDebug($"Can not extract {source.FileName} with Innoextract - Exit code: {exitCode}");
+            }
+            else
+            {
+                _logger.LogInformation($"Extracting {source.FileName} - done");
+            }
+            
+            job.Dispose();
+            var results = await dest.Path.EnumerateFiles()
+                .SelectAsync(async f =>
+                {
+                    var path = f.RelativeTo(dest.Path);
+                    if (!shouldExtract(path)) return ((RelativePath, T)) default;
+                    var file = new ExtractedNativeFile(f);
+                    var mapResult = await mapfn(path, file);
+                    f.Delete();
+                    return (path, mapResult);
+                })
+                .Where(d => d.Item1 != default)
+                .ToDictionary(d => d.Item1, d => d.Item2);
+            
             return results;
         }
         finally
