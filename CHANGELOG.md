@@ -1,6 +1,15 @@
 ### Changelog
 
-### Version - 4.0.4.1 - 9/10/2025
+#### Version - 4.0.5.0 - 11/04/2025
+* Added checkbox for automatically generating a modlist-report for analyzing the metadata of the resulting modlist file ([@JanuarySnow](https://www.github.com/JanuarySnow))
+* Added option to inverse the mod search filter in the gallery ([@JanuarySnow](https://www.github.com/JanuarySnow))
+* Added game MetaData for Dragon's Dogma 2 ([@Maelstrom8](https://github.com/Maelstrom8))
+* Optimized Performance ([@JanuarySnow](https://www.github.com/JanuarySnow))
+* Optimized Manual Downloads with LoversLab ([@zclimber](https://www.github.com/zclimber))
+* Fixed an installation issue when using other Games as sources ([@JanuarySnow](https://www.github.com/JanuarySnow))
+* Fixed the retry button deleting stuff it shouldn't, causing unfinished installations being reported as completed ([@JanuarySnow](https://www.github.com/JanuarySnow))
+
+#### Version - 4.0.4.1 - 9/10/2025
 * Hotfix for the game file sourcing now suddenly requiring other games to be installed on modlists that don't actually use file sourcing from other games ([@JanuarySnow](https://www.github.com/JanuarySnow))
 
 #### Version - 4.0.4.0 - 9/7/2025
