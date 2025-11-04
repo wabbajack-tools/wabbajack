@@ -621,7 +621,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
             {
                 var canSource = GameRegistry.Games[ModList.GameType].CanSourceFrom ?? Array.Empty<Game>();
                 var namedgames = ModList.OtherGames;
-                var validgames = Array.Empty<Game>();
+                var validgames = new List<Game>();
                 foreach (var g in namedgames)
                 {
                     if (canSource.Contains(g) && GameRegistry.Games.ContainsKey(g))
@@ -630,7 +630,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                 var cfg = new InstallerConfiguration
                 {
                     Game = ModList.GameType,
-                    OtherGames = validgames,
+                    OtherGames = validgames.ToArray(),
                     Downloads = Installer.DownloadLocation.TargetPath,
                     Install = Installer.Location.TargetPath,
                     ModList = ModList,
