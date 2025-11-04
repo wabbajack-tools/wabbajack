@@ -5,6 +5,7 @@
 * Added option to inverse the mod search filter in the gallery ([@JanuarySnow](https://www.github.com/JanuarySnow))
 * Added game MetaData for Dragon's Dogma 2 ([@Maelstrom8](https://github.com/Maelstrom8))
 * Optimized Performance ([@JanuarySnow](https://www.github.com/JanuarySnow))
+* Optimized Manual Downloads with LoversLab ([@zclimber](https://www.github.com/zclimber))
 * Fixed an installation issue when using other Games as sources ([@JanuarySnow](https://www.github.com/JanuarySnow))
 * Fixed the retry button deleting stuff it shouldn't, causing unfinished installations being reported as completed ([@JanuarySnow](https://www.github.com/JanuarySnow))
 
