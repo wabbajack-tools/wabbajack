@@ -16,7 +16,7 @@
 * Fixed the Nexus OAuth token never being refreshed upon starting installation or during downloads
   * This could lead to issues after having not logged back into Nexus for 6 hours after your initial login
 * Fixed an issue with the Google Drive downloader not being able to download files when not prompted with a harmful file warning
-* Fixed Wabbajack not properly sourcing files from other installed games (for example when using Skyrim SE DLC on Skyrim VR modlists) ([@JanuarySnow](https://www.github.com/JanuarySnow)])
+* Fixed Wabbajack not properly sourcing files from other installed games (for example, when using Skyrim SE DLC on Skyrim VR modlists) ([@JanuarySnow](https://www.github.com/JanuarySnow)])
 * Fixed Wabbajack crashing when navigating the 'Has Mod(s)' filter in the gallery with arrow keys
 
 #### Version - 4.0.3.0 - 7/18/2025
