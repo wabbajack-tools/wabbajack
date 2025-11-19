@@ -112,9 +112,15 @@
     <PackageReference Include="ReactiveUI.Fody" Version="19.5.41" />
     <PackageReference Include="ReactiveUI.WPF" Version="20.1.63" />
     <PackageReference Include="Sdl.MultiSelectComboBox" Version="1.0.103" />
+    <PackageReference Include="SharpCompress" Version="0.41.0" />
     <PackageReference Include="Silk.NET.DXGI" Version="2.22.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
+    <PackageReference Include="System.Text.Json" Version="10.0.0" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
   </ItemGroup>
 
