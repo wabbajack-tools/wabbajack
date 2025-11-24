@@ -786,6 +786,23 @@ public static class GameRegistry
                 IconSource = "https://cdn2.steamgriddb.com/icon/d4ab2732ed8ac6a4b2d9734cf4c851d2/32/32x32.png", 
             }
         },
+                {
+            Game.KingdomComeDeliverance2, new GameMetaData
+            {
+                Game = Game.Kingdom Come: Deliverance II,
+                MO2Name = "Kingdom Come: Deliverance II",
+                NexusName = "kingdomcomedeliverance2",
+                NexusGameId = 7286,
+                MO2ArchiveName = "kingdomcomedeliverance2",
+                SteamIDs = [1771300],
+                RequiredFiles = new []
+                {
+                    "KingdomCome.exe".ToRelativePath(),
+                },
+                MainExecutable = "KingdomCome.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/87d655b334d24764e1dd1b377f505922/32/32x32.png", 
+            }
+        },
         {
             Game.ModdingTools, new GameMetaData
             {
