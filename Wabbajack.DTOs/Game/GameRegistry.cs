@@ -786,10 +786,10 @@ public static class GameRegistry
                 IconSource = "https://cdn2.steamgriddb.com/icon/d4ab2732ed8ac6a4b2d9734cf4c851d2/32/32x32.png", 
             }
         },
-                {
+        {
             Game.KingdomComeDeliverance2, new GameMetaData
             {
-                Game = Game.Kingdom Come: Deliverance II,
+                Game = Game.KingdomComeDeliverance2,
                 MO2Name = "Kingdom Come: Deliverance II",
                 NexusName = "kingdomcomedeliverance2",
                 NexusGameId = 7286,
