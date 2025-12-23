@@ -49,6 +49,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <StackPanel Margin="{StaticResource TextPanelMargin}">
@@ -144,7 +145,16 @@
                 </CheckBox>
             </StackPanel>
 
-            <StackPanel Grid.Row="9" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}" ToolTip="Wabbajack will include selected profiles as part of the modlist alongside your main selected MO2 profile.">
+            <StackPanel Grid.Row="9" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
+                <CheckBox
+                      x:Name="AutoGenerateReportSetting"
+                      Margin="{StaticResource TitleMargin}"
+                      ToolTip="If ticked, Wabbajack will generate an HTML report next to the .wabbajack after compilation.">
+                    <TextBlock Text="Auto-generate Modlist HTML Report" FontSize="10" VerticalAlignment="Center"/>
+                </CheckBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="10" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}" ToolTip="Wabbajack will include selected profiles as part of the modlist alongside your main selected MO2 profile.">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Additional profile(s)"/>
                 <ListBox SelectionMode="Multiple" x:Name="AdditionalProfilesSetting">
                     <ListBox.Resources>

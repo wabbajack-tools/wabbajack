@@ -19,6 +19,8 @@ using SixLabors.ImageSharp.Formats.Png;
 using Wabbajack.DTOs;
 using Exception = System.Exception;
 using SharpImage = SixLabors.ImageSharp.Image;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Metadata.Profiles.Icc;
 
 namespace Wabbajack;
 
@@ -34,6 +36,7 @@ public static class UIUtils
         img.StreamSource = stream;
         img.EndInit();
         img.Freeze();
+        stream.Position = 0;
         return img;
     }
 
@@ -104,12 +107,18 @@ public static class UIUtils
         return default;
     }
 
-    public static IObservable<BitmapImage> DownloadBitmapImage(this IObservable<string> obs, Action<Exception> exceptionHandler,
-        LoadingLock loadingLock, HttpClient client, ImageCacheManager icm)
+    public static IObservable<BitmapImage> DownloadBitmapImage(
+    this IObservable<string> obs,
+    Action<Exception> exceptionHandler,
+    LoadingLock loadingLock,
+    HttpClient client,
+    ImageCacheManager icm)
     {
+        const int MaxConcurrent = 8;
+
         return obs
             .ObserveOn(RxApp.TaskpoolScheduler)
-            .SelectTask(async url =>
+            .Select(url => Observable.FromAsync(async () =>
             {
                 using var ll = loadingLock.WithLoading();
                 try
@@ -117,16 +126,54 @@ public static class UIUtils
                     var (cached, cachedImg) = await icm.Get(url);
                     if (cached) return cachedImg;
 
-                    await using var stream = await client.GetStreamAsync(url);
+                    await using var net = await client.GetStreamAsync(url);
 
-                    using var pngStream = new MemoryStream();
-                    using (var sharpImg = await SharpImage.LoadAsync(stream))
+                    using var sharpImg = await SixLabors.ImageSharp.Image.LoadAsync<SixLabors.ImageSharp.PixelFormats.Bgra32>(net);
+                    const int targetPx = 512;
+                    if (sharpImg.Width > targetPx || sharpImg.Height > targetPx)
                     {
-                        await sharpImg.SaveAsPngAsync(pngStream);
+                        var scale = Math.Min((float)targetPx / sharpImg.Width, (float)targetPx / sharpImg.Height);
+                        var nw = (int)(sharpImg.Width * scale);
+                        var nh = (int)(sharpImg.Height * scale);
+                        sharpImg.Mutate(x => x.Resize(nw, nh));
                     }
 
+                    using var pngStream = new MemoryStream(capacity: 64 * 1024);
+                    var fastPng = new SixLabors.ImageSharp.Formats.Png.PngEncoder
+                    {
+                        CompressionLevel = SixLabors.ImageSharp.Formats.Png.PngCompressionLevel.NoCompression,
+                        FilterMethod = SixLabors.ImageSharp.Formats.Png.PngFilterMethod.None,
+                        BitDepth = SixLabors.ImageSharp.Formats.Png.PngBitDepth.Bit8,
+                        ColorType = SixLabors.ImageSharp.Formats.Png.PngColorType.RgbWithAlpha
+                    };
+                    try
+                    {
+                        await sharpImg.SaveAsPngAsync(pngStream, fastPng);
+                    }
+                    catch (IndexOutOfRangeException)
+                    {
+                        // SME banner failed to load, buggy metadata in log, so this crap removes it
+                        sharpImg.Metadata.IccProfile = null;
+                        sharpImg.Metadata.ExifProfile = null;
+                        sharpImg.Metadata.XmpProfile = null;
+                        foreach (var f in sharpImg.Frames)
+                        {
+                            f.Metadata.IccProfile = null;
+                            f.Metadata.ExifProfile = null;
+                            f.Metadata.XmpProfile = null;
+                        }
+
+                        pngStream.SetLength(0);
+                        pngStream.Position = 0;
+                        await sharpImg.SaveAsPngAsync(pngStream, fastPng);
+                    }
+
+                    pngStream.Position = 0;
+
                     var img = BitmapImageFromStream(pngStream);
+
                     await icm.Add(url, img);
+
                     return img;
                 }
                 catch (Exception ex)
@@ -134,9 +181,11 @@ public static class UIUtils
                     exceptionHandler(ex);
                     return default;
                 }
-            })
+            }))
+            .Merge(MaxConcurrent) // limit concurrency
             .ObserveOnGuiThread();
     }
+
 
     /// <summary>
     /// Format bytes to a greater unit

@@ -33,6 +33,7 @@ using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.UserIntervention;
 using Wabbajack.Util;
+using Wabbajack.Common;
 using Ext = Wabbajack.Common.Ext;
 
 namespace Wabbajack;
@@ -43,9 +44,11 @@ namespace Wabbajack;
 public partial class App
 {
     private IHost _host;
+    private TimerResolution? _timerRes;
 
     private void OnStartup(object sender, StartupEventArgs e)
     {
+        _timerRes = new TimerResolution(1);
         if (IsAdmin())
         {
             var messageBox = MessageBox.Show("Don't run Wabbajack as Admin!", "Error", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
@@ -191,6 +194,7 @@ public partial class App
 
     protected override void OnExit(ExitEventArgs e)
     {
+        _timerRes?.Dispose();
         base.OnExit(e);
     }
 

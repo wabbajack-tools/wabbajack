@@ -1,13 +1,21 @@
 ### Changelog
 
-### Version - 4.0.4.1 - 9/10/2025
+#### Version - 4.0.5.0 - 11/04/2025
+* Added checkbox for automatically generating a modlist-report for analyzing the metadata of the resulting modlist file ([@JanuarySnow](https://www.github.com/JanuarySnow))
+* Added option to inverse the mod search filter in the gallery ([@JanuarySnow](https://www.github.com/JanuarySnow))
+* Added game MetaData for Dragon's Dogma 2 ([@Maelstrom8](https://github.com/Maelstrom8))
+* Optimized Performance ([@JanuarySnow](https://www.github.com/JanuarySnow))
+* Fixed an installation issue when using other Games as sources ([@JanuarySnow](https://www.github.com/JanuarySnow))
+* Fixed the retry button deleting stuff it shouldn't, causing unfinished installations being reported as completed ([@JanuarySnow](https://www.github.com/JanuarySnow))
+
+#### Version - 4.0.4.1 - 9/10/2025
 * Hotfix for the game file sourcing now suddenly requiring other games to be installed on modlists that don't actually use file sourcing from other games ([@JanuarySnow](https://www.github.com/JanuarySnow))
 
 #### Version - 4.0.4.0 - 9/7/2025
 * Fixed the Nexus OAuth token never being refreshed upon starting installation or during downloads
   * This could lead to issues after having not logged back into Nexus for 6 hours after your initial login
 * Fixed an issue with the Google Drive downloader not being able to download files when not prompted with a harmful file warning
-* Fixed Wabbajack not properly sourcing files from other installed games (for example when using Skyrim SE DLC on Skyrim VR modlists) ([@JanuarySnow](https://www.github.com/JanuarySnow)])
+* Fixed Wabbajack not properly sourcing files from other installed games (for example, when using Skyrim SE DLC on Skyrim VR modlists) ([@JanuarySnow](https://www.github.com/JanuarySnow)])
 * Fixed Wabbajack crashing when navigating the 'Has Mod(s)' filter in the gallery with arrow keys
 
 #### Version - 4.0.3.0 - 7/18/2025

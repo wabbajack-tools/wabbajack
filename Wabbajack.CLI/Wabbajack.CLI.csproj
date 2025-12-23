@@ -42,14 +42,13 @@
         <ProjectReference Include="..\Wabbajack.Networking.Discord\Wabbajack.Networking.Discord.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.GitHub\Wabbajack.Networking.GitHub.csproj" />
         <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
+        <ProjectReference Include="..\Wabbajack.Reporting\Wabbajack.Reporting.csproj" />
         <ProjectReference Include="..\Wabbajack.Server.Lib\Wabbajack.Server.Lib.csproj" />
         <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
         <ProjectReference Include="..\Wabbajack.VFS\Wabbajack.VFS.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="Resources\ModlistReport.html" />
-      <EmbeddedResource Include="Resources\ModlistReport.html" />
       <None Update="VerbRegistration.tt">
         <Generator>TextTemplatingFileGenerator</Generator>
         <LastGenOutput>VerbRegistration.cs</LastGenOutput>
@@ -66,6 +65,7 @@
 
     <ItemGroup>
       <Folder Include="Properties\PublishProfiles\" />
+      <Folder Include="Resources\" />
     </ItemGroup>
 
     <ItemGroup>
