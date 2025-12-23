@@ -48,4 +48,5 @@ public enum Game
     [Description("STAR WARS Knights of the Old Republic II")] Kotor2,
     [Description("Vampire: The Masquerade - Bloodlines")] VtMB,
     [Description("Kingdom Come: Deliverance II")] KingdomComeDeliverance2,
+    [Description("Dragon's Dogma 2")] DragonsDogma2,
 }

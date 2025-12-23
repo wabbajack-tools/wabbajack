@@ -38,7 +38,7 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                 .StartWith(Collapsed)
                 .BindTo(this, x => x.LoadingRing.Visibility)
                 .DisposeWith(dispose);
-            
+
             this.WhenAny(x => x.ViewModel.ModLists.Count)
                 .CombineLatest(this.WhenAnyValue(x => x.ViewModel.LoadingLock.IsLoading))
                 .Select(x => x.First == 0 && !x.Second)
@@ -56,6 +56,8 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                 .DisposeWith(dispose);
             this.BindStrict(ViewModel, vm => vm.IncludeUnofficial, x => x.IncludeUnofficial.IsChecked)
                 .DisposeWith(dispose);
+            this.BindStrict(ViewModel, vm => vm.ExcludeMods, x => x.ExcludeModsCheckbox.IsChecked)
+                .DisposeWith(dispose);
 
             this.BindStrict(ViewModel,
                     vm => vm.MinModlistSize,
@@ -70,12 +72,12 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                     vmProp => vmProp / Math.Pow(1024, 3),
                     vProp => vProp * Math.Pow(1024, 3))
                 .DisposeWith(dispose);
-            
+
             this.BindStrict(ViewModel,
                 vm => vm.HasMods,
                 v => v.HasModsFilter.SelectedItems)
                 .DisposeWith(dispose);
-            
+
             this.BindStrict(ViewModel,
                 vm => vm.HasTags,
                 v => v.HasTagsFilter.SelectedItems)
@@ -86,7 +88,7 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                 v => v.HasModsFilter.ItemsSource,
                 mods => new ObservableCollection<ModListMod>(mods))
                 .DisposeWith(dispose);
-            
+
             this.OneWayBindStrict(ViewModel,
                 vm => vm.AllTags,
                 v => v.HasTagsFilter.ItemsSource,
@@ -99,7 +101,7 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                     ViewModel.HasTags = new ObservableCollection<ModListTag>(HasTagsFilter.SelectedItems.Cast<ModListTag>());
                 })
                 .DisposeWith(dispose);
-            
+
             HasModsFilter.Events().SelectedItemsChanged
                 .Subscribe(_ =>
                 {

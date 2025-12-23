@@ -800,7 +800,24 @@ public static class GameRegistry
                     "KingdomCome.exe".ToRelativePath(),
                 },
                 MainExecutable = "KingdomCome.exe".ToRelativePath(),
-                IconSource = "https://cdn2.steamgriddb.com/icon/87d655b334d24764e1dd1b377f505922/32/32x32.png", 
+                IconSource = "https://cdn2.steamgriddb.com/icon/87d655b334d24764e1dd1b377f505922/32/32x32.png",
+            }
+        },
+        {
+            Game.DragonsDogma2, new GameMetaData
+            {
+                Game = Game.DragonsDogma2,
+                MO2Name = "Dragon's Dogma 2",
+                NexusName = "dragonsdogma2",
+                NexusGameId = 6234,
+                MO2ArchiveName = "dragonsdogma2",
+                SteamIDs = [2054970],
+                RequiredFiles = new []
+                {
+                    "DD2.exe".ToRelativePath(),
+                },
+                MainExecutable = "DD2.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/201c0f76a64e14fdfe74bdff9eb099f0/32/32x32.png", 
             }
         },
         {

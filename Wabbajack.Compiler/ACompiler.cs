@@ -25,6 +25,7 @@ using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.VFS;
+using Wabbajack.Reporting;
 
 namespace Wabbajack.Compiler;
 
@@ -404,6 +405,9 @@ public abstract class ACompiler
 
         var allFiles = _stagingFolder.EnumerateFiles().ToList();
         NextStep("Finalizing", "Writing Wabbajack File", allFiles.Count);
+        if (_settings.OtherGames.Length > 0)
+            _logger.LogInformation("Modlist includes files from games: {games}", string.Join(", ", _settings.OtherGames.Append(_settings.Game).Distinct()));
+            ModList.OtherGames = _settings.OtherGames;
         await using (var fs = _settings.OutputFile.Open(FileMode.Create, FileAccess.Write))
         {
             using var za = new ZipArchive(fs, ZipArchiveMode.Create);
@@ -447,6 +451,23 @@ public abstract class ACompiler
         await using var metajson = _settings.OutputFile.WithExtension(new Extension(".meta.json"))
             .Open(FileMode.Create, FileAccess.Write);
         await _dtos.Serialize(metadata, metajson);
+        if (_settings.AutoGenerateReport)
+        {
+            _logger.LogInformation("Generating Modlist HTML report");
+            try
+            {
+                await ModlistReportGenerator.GenerateAsync(
+                    _dtos, _settings.OutputFile, _logger, openInBrowser: false, token);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to generate Modlist report.");
+            }
+        }
+        else
+        {
+            _logger.LogInformation("Skipping Modlist HTML report (disabled in settings).");
+        }
 
         _logger.LogInformation("Removing ModList staging folder");
         _stagingFolder.DeleteDirectory();
