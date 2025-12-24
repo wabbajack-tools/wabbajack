@@ -787,6 +787,23 @@ public static class GameRegistry
             }
         },
         {
+            Game.KingdomComeDeliverance2, new GameMetaData
+            {
+                Game = Game.KingdomComeDeliverance2,
+                MO2Name = "Kingdom Come: Deliverance II",
+                NexusName = "kingdomcomedeliverance2",
+                NexusGameId = 7286,
+                MO2ArchiveName = "kingdomcomedeliverance2",
+                SteamIDs = [1771300],
+                RequiredFiles = new []
+                {
+                    "KingdomCome.exe".ToRelativePath(),
+                },
+                MainExecutable = "KingdomCome.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/87d655b334d24764e1dd1b377f505922/32/32x32.png",
+            }
+        },
+        {
             Game.DragonsDogma2, new GameMetaData
             {
                 Game = Game.DragonsDogma2,
