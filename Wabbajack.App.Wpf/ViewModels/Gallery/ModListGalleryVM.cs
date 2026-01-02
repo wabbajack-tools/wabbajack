@@ -241,29 +241,27 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                 })
                 .StartWith(_ => true);
 
-            var includedModsFilter = this.ObservableForProperty(vm => vm.HasMods)
-                .CombineLatest(this.ObservableForProperty(vm => vm.ExcludeMods).Select(v => v.Value))
-                .Select(tuple => (Mods: tuple.First.Value, Exclude: tuple.Second))
-                .Select<(ObservableCollection<ModListMod> Mods, bool Exclude), Func<GalleryModListMetadataVM, bool>>(filterData =>
-                {
-                    if(!filterData.Mods?.Any() ?? true) return _ => true;
+            var includedModsFilter =
+                this.WhenAnyValue(vm => vm.HasMods, vm => vm.ExcludeMods)
+                    .Select(tuple => (Mods: tuple.Item1, Exclude: tuple.Item2))
+                    .Select(filterData =>
+                    {
+                        if (!(filterData.Mods?.Any() ?? false)) return (Func<GalleryModListMetadataVM, bool>)(_ => true);
 
-                    if(filterData.Exclude)
-                    {
-                        // Exclude mode: show modlists that do not contain the mods
-                        return item =>
-                            !ModsPerList.TryGetValue(item.Metadata.Links.MachineURL, out var mods) ||
-                            !filterData.Mods.Any(mod => mods.Contains(mod.Name));
-                    }
-                    else
-                    {
-                        // Include mode: show modlists that contain the mods
+                        if (filterData.Exclude)
+                        {
+                            // Exclude mode: show modlists that do NOT contain the mods
+                            return item =>
+                                !ModsPerList.TryGetValue(item.Metadata.Links.MachineURL, out var mods) ||
+                                !filterData.Mods.Any(mod => mods.Contains(mod.Name));
+                        }
+
+                        // Include mode: show modlists that contain ALL selected mods
                         return item =>
                             ModsPerList.TryGetValue(item.Metadata.Links.MachineURL, out var mods) &&
                             filterData.Mods.All(mod => mods.Contains(mod.Name));
-                    }
-                })
-                .StartWith(_ => true);
+                    })
+                    .StartWith(_ => true);
 
 
             var searchSorter = this.WhenValueChanged(vm => vm.Search)
