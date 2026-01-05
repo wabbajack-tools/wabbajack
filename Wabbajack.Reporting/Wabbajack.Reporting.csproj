@@ -18,7 +18,7 @@
     <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
     <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
     <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj" />
-    <PackageReference Include="YamlDotNet" Version="15.3.0" />
+    <PackageReference Include="YamlDotNet" Version="16.3.0" />
     <PackageReference Include="Nettle" Version="3.*" />
   </ItemGroup>
 </Project>
