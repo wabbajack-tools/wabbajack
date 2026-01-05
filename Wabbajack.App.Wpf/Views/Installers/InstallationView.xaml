@@ -266,7 +266,7 @@
                             Please make sure enough space is available on the disk and try again.
                             </TextBlock>
                             <local:WJButton x:Name="StoppedButton" Margin="0, 16, 0, 0" HorizontalAlignment="Left" Grid.Row="3" Text="Open Logs Folder" Icon="FolderOpen" ButtonStyle="SemiTransparent" />
-                            <local:WJButton x:Name="DiagnoseButton" Margin="8, 16, 0, 0" HorizontalAlignment="Left" Grid.Row="3" Text="How do I fix this?" Icon="Wrench" ButtonStyle="Mono" />
+                            <local:WJButton x:Name="DiagnoseButton" Margin="8, 16, 0, 0" HorizontalAlignment="Left" Grid.Row="3" Text="How do I fix this? ( Opens error summary )" Icon="Wrench" ButtonStyle="Mono" />
                         </Grid>
                     </Border>
                 </Grid>
