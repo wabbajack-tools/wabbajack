@@ -70,6 +70,8 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 
     [Reactive] public bool IncludeUnofficial { get; set; }
 
+    [Reactive] public bool ExcludeMods { get; set; }
+
     [Reactive] public string GameType { get; set; }
     [Reactive] public double MinModlistSize { get; set; }
     [Reactive] public double MaxModlistSize { get; set; }
@@ -77,8 +79,8 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
     public Dictionary<string, string> CommonlyWrongFormattedTags { get; set; } = new();
     [Reactive] public HashSet<ModListTag> AllTags { get; set; } = new();
     [Reactive] public ObservableCollection<ModListTag> HasTags { get; set; } = new();
-    
-    
+
+
     [Reactive] public HashSet<ModListMod> AllMods { get; set; } = new();
     [Reactive] public ObservableCollection<ModListMod> HasMods { get; set; } = new();
     [Reactive] public Dictionary<string, HashSet<string>> ModsPerList { get; set; } = new();
@@ -138,6 +140,7 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
             OnlyInstalled = false;
             IncludeNSFW = false;
             IncludeUnofficial = false;
+            ExcludeMods = false;
             Search = string.Empty;
             SelectedGameTypeEntry = GameTypeEntries?.FirstOrDefault();
             HasTags = new ObservableCollection<ModListTag>();
@@ -158,8 +161,8 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
         {
             LoadModLists().FireAndForget();
             LoadSettings().FireAndForget();
-            
-            this.WhenAnyValue(x => x.IncludeNSFW, x => x.IncludeUnofficial, x => x.OnlyInstalled, x => x.GameType)
+
+            this.WhenAnyValue(x => x.IncludeNSFW, x => x.IncludeUnofficial, x => x.OnlyInstalled, x => x.GameType, x => x.ExcludeMods)
                 .Subscribe(_ => SaveSettings().FireAndForget())
                 .DisposeWith(disposables);
 
@@ -233,22 +236,35 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                 .Select<ObservableCollection<ModListTag>, Func<GalleryModListMetadataVM, bool>>(filteredTags =>
                 {
                     if(!filteredTags?.Any() ?? true) return _ => true;
-                    
+
                     return item => filteredTags.All(tag => item.Metadata.Tags.Contains(tag.Name));
                 })
                 .StartWith(_ => true);
-            
-            var includedModsFilter = this.ObservableForProperty(vm => vm.HasMods)
-                .Select(v => v.Value)
-                .Select<ObservableCollection<ModListMod>, Func<GalleryModListMetadataVM, bool>>(filteredMods =>
-                {
-                    if(!filteredMods?.Any() ?? true) return _ => true;
 
-                    return item =>
-                        ModsPerList.TryGetValue(item.Metadata.Links.MachineURL, out var mods) && filteredMods.All(mod => mods.Contains(mod.Name));
+            var includedModsFilter = this.ObservableForProperty(vm => vm.HasMods)
+                .CombineLatest(this.ObservableForProperty(vm => vm.ExcludeMods).Select(v => v.Value))
+                .Select(tuple => (Mods: tuple.First.Value, Exclude: tuple.Second))
+                .Select<(ObservableCollection<ModListMod> Mods, bool Exclude), Func<GalleryModListMetadataVM, bool>>(filterData =>
+                {
+                    if(!filterData.Mods?.Any() ?? true) return _ => true;
+
+                    if(filterData.Exclude)
+                    {
+                        // Exclude mode: show modlists that do not contain the mods
+                        return item =>
+                            !ModsPerList.TryGetValue(item.Metadata.Links.MachineURL, out var mods) ||
+                            !filterData.Mods.Any(mod => mods.Contains(mod.Name));
+                    }
+                    else
+                    {
+                        // Include mode: show modlists that contain the mods
+                        return item =>
+                            ModsPerList.TryGetValue(item.Metadata.Links.MachineURL, out var mods) &&
+                            filterData.Mods.All(mod => mods.Contains(mod.Name));
+                    }
                 })
                 .StartWith(_ => true);
-                                
+
 
             var searchSorter = this.WhenValueChanged(vm => vm.Search)
                                     .Throttle(searchThrottle, RxApp.MainThreadScheduler)
@@ -300,6 +316,7 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
             IncludeNSFW = IncludeNSFW,
             IncludeUnofficial = IncludeUnofficial,
             OnlyInstalled = OnlyInstalled,
+            ExcludeMods = ExcludeMods,
         });
         _savingSettings = false;
     }
@@ -309,13 +326,14 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
         using var ll = LoadingLock.WithLoading();
         RxApp.MainThreadScheduler.Schedule(await _settingsManager.Load<GalleryFilterSettings>("modlist_gallery"),
             (_, s) =>
-        {
-            SelectedGameTypeEntry = GameTypeEntries?.FirstOrDefault(gte => gte.GameIdentifier.Equals(s.GameType));
-            IncludeNSFW = s.IncludeNSFW;
-            IncludeUnofficial = s.IncludeUnofficial;
-            OnlyInstalled = s.OnlyInstalled;
-            return Disposable.Empty;
-        });
+            {
+                SelectedGameTypeEntry = GameTypeEntries?.FirstOrDefault(gte => gte.GameIdentifier.Equals(s.GameType));
+                IncludeNSFW = s.IncludeNSFW;
+                IncludeUnofficial = s.IncludeUnofficial;
+                OnlyInstalled = s.OnlyInstalled;
+                ExcludeMods = s.ExcludeMods;
+                return Disposable.Empty;
+            });
     }
 
     private async Task LoadModLists()

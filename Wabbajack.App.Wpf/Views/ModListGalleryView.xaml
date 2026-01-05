@@ -121,7 +121,20 @@
                 </Grid>
 
                 <StackPanel Grid.Row="4" Orientation="Vertical" Margin="0, 24, 0, 0">
-                    <TextBlock Text="Has mod(s)" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Has mod(s)" VerticalAlignment="Center" />
+                        <CheckBox x:Name="ExcludeModsCheckbox"
+                                  Grid.Column="1"
+                                  VerticalAlignment="Center"
+                                  Foreground="{StaticResource ForegroundBrush}"
+                                  ToolTip="Exclude modlists containing the selected mods instead of including them">
+                            <TextBlock FontSize="10" Text="Exclude" />
+                        </CheckBox>
+                    </Grid>
                     <sdl:MultiSelectComboBox
                         x:Name="HasModsFilter"
                         Margin="0, 12, 0, 0"

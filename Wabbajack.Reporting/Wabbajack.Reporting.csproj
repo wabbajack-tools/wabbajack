@@ -1,10 +1,24 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
+  
   <ItemGroup>
+    <EmbeddedResource Include="Resources\ModlistReport.html">
+      <LogicalName>Wabbajack.Reporting.Resources.ModlistReport.html</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj" />
+    <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
+    <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
+    <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
+    <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj" />
     <PackageReference Include="YamlDotNet" Version="15.3.0" />
+    <PackageReference Include="Nettle" Version="3.*" />
   </ItemGroup>
 </Project>
