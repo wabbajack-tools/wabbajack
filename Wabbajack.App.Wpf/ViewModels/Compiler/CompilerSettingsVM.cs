@@ -40,6 +40,7 @@ public class CompilerSettingsVM : ViewModel
         AlwaysEnabled = cs.AlwaysEnabled.ToHashSet();
         Version = cs.Version?.ToString() ?? "";
         Description = cs.Description;
+        AutoGenerateReport = cs.AutoGenerateReport;
     }
 
     [Reactive] public bool ModlistIsNSFW { get; set; }
@@ -47,6 +48,8 @@ public class CompilerSettingsVM : ViewModel
     [Reactive] public AbsolutePath Downloads { get; set; }
     [Reactive] public Game Game { get; set; }
     [Reactive] public AbsolutePath OutputFile { get; set; }
+
+    [Reactive] public bool AutoGenerateReport { get; set; } = false;
 
     [Reactive] public AbsolutePath ModListImage { get; set; }
     [Reactive] public bool UseGamePaths { get; set; }
@@ -133,7 +136,8 @@ public class CompilerSettingsVM : ViewModel
             Ignore = Ignore.ToArray(),
             AlwaysEnabled = AlwaysEnabled.ToArray(),
             Version = System.Version.Parse(Version),
-            Description = Description
+            Description = Description,
+            AutoGenerateReport = AutoGenerateReport
         };
     }
     public AbsolutePath CompilerSettingsPath

@@ -619,25 +619,31 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
             try
             {
-                var canSource = GameRegistry.Games[ModList.GameType].CanSourceFrom ?? Array.Empty<Game>();
-                var namedgames = ModList.OtherGames;
-                var validgames = Array.Empty<Game>();
+                // Always reload the modlist, incase of retrying , so it gets fresh directives and archives
+                var freshModList = await StandardInstaller.LoadFromFile(
+                    _dtos, WabbajackFileLocation.TargetPath);
+
+                var canSource = GameRegistry.Games[freshModList.GameType].CanSourceFrom ?? Array.Empty<Game>();
+                var namedgames = freshModList.OtherGames;
+                var validgames = new List<Game>();
                 foreach (var g in namedgames)
                 {
                     if (canSource.Contains(g) && GameRegistry.Games.ContainsKey(g))
                         validgames.Add(g);
                 }
+
                 var cfg = new InstallerConfiguration
                 {
                     Game = ModList.GameType,
-                    OtherGames = validgames,
+                    OtherGames = validgames.ToArray(),
                     Downloads = Installer.DownloadLocation.TargetPath,
                     Install = Installer.Location.TargetPath,
-                    ModList = ModList,
+                    ModList = freshModList,
                     ModlistArchive = WabbajackFileLocation.TargetPath,
                     SystemParameters = _parametersConstructor.Create(),
-                    GameFolder = _gameLocator.GameLocation(ModList.GameType)
+                    GameFolder = _gameLocator.GameLocation(freshModList.GameType)
                 };
+
                 StandardInstaller = StandardInstaller.Create(_serviceProvider, cfg);
 
 

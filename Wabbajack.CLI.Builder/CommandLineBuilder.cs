@@ -38,7 +38,17 @@ public class CommandLineBuilder
         },
         {
             typeof(AbsolutePath),
-            d => new Option<AbsolutePath>(d.Aliases, description: d.Description, parseArgument: d => d.Tokens.Single().Value.ToAbsolutePath())
+                d => new Option<AbsolutePath>(
+                    d.Aliases,
+                    description: d.Description,
+                    parseArgument: result =>
+                    {
+                        var token = result.Tokens.Single().Value;
+                        // If relative, resolve against current directory
+                        if (!System.IO.Path.IsPathRooted(token))
+                            token = System.IO.Path.GetFullPath(token);
+                        return token.ToAbsolutePath();
+                    })
         },
         {
             typeof(Uri),

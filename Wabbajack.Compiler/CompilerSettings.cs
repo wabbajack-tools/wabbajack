@@ -31,7 +31,9 @@ public class CompilerSettings
     [Obsolete("Use Version instead")] public Version ModlistVersion { get; set; } = Version.Parse("0.0.1.0");
     public bool PublishUpdate { get; set; } = false;
     public string MachineUrl { get; set; } = "";
-    
+
+    public bool AutoGenerateReport { get; set; } = false;
+
     /// <summary>
     /// The main (default) profile
     /// </summary>

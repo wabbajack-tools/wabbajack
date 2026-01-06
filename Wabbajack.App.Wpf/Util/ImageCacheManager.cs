@@ -25,24 +25,24 @@ public class ImageCacheManager
 
     private async Task SaveImage(Hash hash, MemoryStream ms)
     {
-        var path = _imageCachePath.Combine(hash.ToHex());
-        await using var fs = new FileStream(path.ToString(), FileMode.Create, FileAccess.Write);
-        ms.WriteTo(fs);
+        var path = PathFor(hash);
+        ms.Position = 0;
+        await using var fs = new FileStream(path.ToString(), FileMode.Create, FileAccess.Write, FileShare.Read);
+        await ms.CopyToAsync(fs);
     }
-    private async Task<(bool, MemoryStream)> LoadImage(Hash hash)
-    {
-        MemoryStream imageStream = null;
-        var path = _imageCachePath.Combine(hash.ToHex());
-        if (!path.FileExists())
-        {
-            return (false, imageStream);
-        }
 
-        imageStream = new MemoryStream();
-        await using var fs = new FileStream(path.ToString(), FileMode.Open, FileAccess.Read);
-        await fs.CopyToAsync(imageStream);
-        return (true, imageStream);
+    private async Task<(bool ok, MemoryStream stream)> LoadImage(Hash hash)
+    {
+        var path = PathFor(hash);
+        if (!path.FileExists()) return (false, null);
+
+        var ms = new MemoryStream();
+        await using var fs = new FileStream(path.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read);
+        await fs.CopyToAsync(ms);
+        return (true, ms);
     }
+
+    private AbsolutePath PathFor(Hash hash) => _imageCachePath.Combine(hash.ToHex());
 
     public ImageCacheManager(ILogger<ImageCacheManager> logger, Services.OSIntegrated.Configuration configuration)
     {
@@ -50,25 +50,32 @@ public class ImageCacheManager
         _configuration = configuration;
         _imageCachePath = _configuration.ImageCacheLocation;
         _imageCachePath.CreateDirectory();
-        
+
         RxApp.TaskpoolScheduler.ScheduleRecurringAction(_pollInterval, () =>
         {
-            foreach (var (hash, cachedImage) in _cachedImages)
+            foreach (var (hash, cached) in _cachedImages)
             {
-                if (!cachedImage.IsExpired()) continue;
-                
+                if (!cached.IsExpired()) continue;
+
                 try
                 {
                     _cachedImages.TryRemove(hash, out _);
-                    File.Delete(_configuration.ImageCacheLocation.Combine(hash).ToString());
+                    var path = PathFor(hash);
+                    if (path.FileExists())
+                    {
+                        try { File.Delete(path.ToString()); }
+                        catch (IOException) {  }
+                        catch (UnauthorizedAccessException) {  }
+                    }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError("Failed to delete cached image {b64}", hash);
+                    _logger.LogError(ex, "Failed to delete cached image {hashHex}", hash.ToHex());
                 }
             }
         });
-        
+
+
     }
 
     public async Task<bool> Add(string url, BitmapImage img)
@@ -105,6 +112,6 @@ public class CachedImage(BitmapImage image)
     private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(5);
     
     public BitmapImage Image { get; } = image;
-    
-    public bool IsExpired() => _cachedAt - DateTime.Now > _cacheDuration;
+
+    public bool IsExpired() => DateTime.Now - _cachedAt > _cacheDuration;
 }
