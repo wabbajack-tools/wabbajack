@@ -280,7 +280,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
 
             ErrorToggleButton.Events().Checked
                 .ObserveOnGuiThread()
-                .Subscribe(async _ =>
+                .Subscribe(_ =>
                 {
                     ReadmeToggleButton.IsChecked = false;
                     LogToggleButton.IsChecked = false;
@@ -290,7 +290,15 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
 
                     ErrorSummaryGrid.Visibility = Visibility.Visible;
 
-                    await RenderErrorMarkdownAsync(ViewModel?.FailureDetailsDescription ?? string.Empty);
+                })
+                .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.FailureDetailsDescription)
+                .Where(desc => !string.IsNullOrEmpty(desc))
+                .ObserveOnGuiThread()
+                .Subscribe(async desc =>
+                {
+                    await RenderErrorMarkdownAsync(desc);
                 })
                 .DisposeWith(disposables);
 
@@ -314,6 +322,16 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             DiagnoseButton.Events().Click
                 .ObserveOnGuiThread()
                 .Subscribe(_ => ErrorToggleButton.IsChecked = true)
+                .DisposeWith(disposables);
+
+            JoinDiscordButton.Events().Click
+                .ObserveOnGuiThread()
+                .Subscribe(_ => UIUtils.OpenWebsite(new Uri("https://www.wabbajack.org/discord")))
+                .DisposeWith(disposables);
+
+            VisitWikiButton.Events().Click
+                .ObserveOnGuiThread()
+                .Subscribe(_ => UIUtils.OpenWebsite(new Uri("https://wiki.wabbajack.org")))
                 .DisposeWith(disposables);
 
             // Initially, readme tab should be visible

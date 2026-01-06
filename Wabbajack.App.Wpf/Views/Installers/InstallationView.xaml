@@ -257,16 +257,27 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <TextBlock x:Name="StoppedInstallMsg" Grid.Row="0" Text="Installation failed" FontSize="18" Foreground="{StaticResource Transparent66ForegroundBrush}" />
                             <TextBlock x:Name="StoppedTitle" FontWeight="SemiBold" Grid.Row="1" FontSize="40" Text="Not enough space" Margin="0, -4, 0, 4" />
                             <TextBlock x:Name="StoppedDescription" Grid.Row="2" FontSize="14" TextWrapping="Wrap">
-                            The modlist installation has failed because your installation or downloads directory has run out of space.
-                            Please make sure enough space is available on the disk and try again.
+        The modlist installation has failed because your installation or downloads directory has run out of space.
+        Please make sure enough space is available on the disk and try again.
                             </TextBlock>
-                            <local:WJButton x:Name="StoppedButton" Margin="0, 16, 0, 0" HorizontalAlignment="Left" Grid.Row="3" Text="Open Logs Folder" Icon="FolderOpen" ButtonStyle="SemiTransparent" />
-                            <local:WJButton x:Name="DiagnoseButton" Margin="8, 16, 0, 0" HorizontalAlignment="Left" Grid.Row="3" Text="How do I fix this? ( Opens error summary )" Icon="Wrench" ButtonStyle="Mono" />
+
+                            <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0, 16, 0, 0">
+                                <local:WJButton x:Name="StoppedButton" HorizontalAlignment="Left" Text="Open Logs Folder" Icon="FolderOpen" ButtonStyle="SemiTransparent" />
+                                <local:WJButton x:Name="DiagnoseButton" Margin="8, 0, 0, 0" HorizontalAlignment="Left" Text="How do I fix this?" Icon="Wrench" ButtonStyle="Mono" />
+                            </StackPanel>
+
+                            <TextBlock Grid.Row="4" Margin="0, 24, 0, 8" Text="If this didn't help:" FontSize="14" Foreground="{StaticResource Transparent66ForegroundBrush}" />
+                            <StackPanel Grid.Row="5" Orientation="Horizontal">
+                                <local:WJButton x:Name="JoinDiscordButton" Text="Join our Discord" Icon="PeopleChat" ButtonStyle="Mono" />
+                                <local:WJButton x:Name="VisitWikiButton" Margin="8, 0, 0, 0" Text="Visit our Wiki" Icon="Globe" ButtonStyle="Mono" />
+                            </StackPanel>
                         </Grid>
                     </Border>
                 </Grid>

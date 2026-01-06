@@ -763,6 +763,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                         ProgressText = $"Error during installation of {ModList.Name}";
                         ProgressPercent = Percent.Zero;
                         ProgressState = ProgressState.Error;
+                        LaunchDiagnostics();
                     });
                 }
             }
@@ -776,6 +777,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                     ProgressPercent = Percent.Zero;
                     ProgressState = ProgressState.Error;
                     InstallResult = Wabbajack.Installer.InstallResult.Errored;
+                    LaunchDiagnostics();
                 });
             }
         });
