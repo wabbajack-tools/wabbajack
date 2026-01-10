@@ -125,6 +125,14 @@ jobs:
             -WaitForCompletion `
             -Force
 
+      - name: Verify Signatures
+        shell: pwsh
+        run: |
+          Write-Host "Checking signatures..."
+          Get-AuthenticodeSignature "publish\app\Wabbajack.exe" | Format-List
+          Get-AuthenticodeSignature "publish\app\cli\wabbajack-cli.exe" | Format-List
+          Get-AuthenticodeSignature "publish\launcher\Wabbajack.exe" | Format-List
+
       - name: Create App ZIP
         run: |
           & "C:\Program Files\7-Zip\7z.exe" a publish\wabbajack-${{ env.VERSION }}.zip publish\app\*
