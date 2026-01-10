@@ -1,18 +1,94 @@
-name: Create Release (Windows)
+name: Create Release
+
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
-
-    runs-on: release-builder
+    runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 6.0.x
-      - name: Build
+          dotnet-version: '9.0.x'
+
+      - name: Extract Version
         run: |
-          ./buildall.bat
+          $content = Get-Content "CHANGELOG.md" -Raw
+          if ($content -match "#### Version\s+([\d.]+)") {
+            $version = $matches[1]
+            Write-Host "Version: $version"
+            echo "VERSION=$version" >> $env:GITHUB_ENV
+          } else {
+            Write-Error "Could not find version in CHANGELOG.md"
+            exit 1
+          }
+
+      - name: Clean
+        run: dotnet clean
+
+      - name: Publish WPF App
+        run: |
+          dotnet publish Wabbajack.App.Wpf\Wabbajack.App.Wpf.csproj `
+            --framework "net9.0-windows" `
+            --runtime win-x64 `
+            --configuration Release `
+            /p:Platform=x64 `
+            -o publish\app `
+            /p:IncludeNativeLibrariesForSelfExtract=true `
+            --self-contained `
+            /p:DebugType=embedded
+
+      - name: Publish Launcher
+        run: |
+          dotnet publish Wabbajack.Launcher\Wabbajack.Launcher.csproj `
+            --framework "net9.0-windows" `
+            --runtime win-x64 `
+            --configuration Release `
+            /p:Platform=x64 `
+            -o publish\launcher `
+            /p:PublishSingleFile=true `
+            /p:IncludeNativeLibrariesForSelfExtract=true `
+            --self-contained `
+            /p:DebugType=embedded
+
+      - name: Publish CLI
+        run: |
+          dotnet publish Wabbajack.CLI\Wabbajack.CLI.csproj `
+            --framework "net9.0" `
+            --runtime win-x64 `
+            --configuration Release `
+            /p:Platform=x64 `
+            -o publish\app\cli `
+            /p:IncludeNativeLibrariesForSelfExtract=true `
+            --self-contained `
+            /p:DebugType=embedded
+
+      - name: Create App ZIP
+        run: |
+          & "C:\Program Files\7-Zip\7z.exe" a publish\wabbajack-${{ env.VERSION }}.zip publish\app\*
+
+      - name: Create Launcher ZIP
+        run: |
+          & "C:\Program Files\7-Zip\7z.exe" a publish\wabbajack-launcher-${{ env.VERSION }}.zip publish\launcher\*
+
+      - name: Upload App Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wabbajack-app
+          path: publish\wabbajack-${{ env.VERSION }}.zip
+          retention-days: 30
+
+      - name: Upload Launcher Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wabbajack-launcher
+          path: publish\wabbajack-launcher-${{ env.VERSION }}.zip
+          retention-days: 30
