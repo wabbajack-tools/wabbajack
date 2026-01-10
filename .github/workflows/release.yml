@@ -71,6 +71,57 @@ jobs:
             --self-contained `
             /p:DebugType=embedded
 
+      # Install SignPath PowerShell module
+      - name: Install SignPath Module
+        shell: pwsh
+        run: Install-Module -Name SignPath -Force -Scope CurrentUser
+
+      # Sign the executables using SignPath PowerShell module
+      - name: Sign Wabbajack.exe (Main App)
+        shell: pwsh
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_KEY }}
+          SIGNPATH_ORG_ID: ${{ secrets.SIGNPATH_ORG_ID }}
+        run: |
+          Submit-SigningRequest `
+            -InputArtifactPath "publish\app\Wabbajack.exe" `
+            -ApiToken $env:SIGNPATH_API_TOKEN `
+            -OrganizationId $env:SIGNPATH_ORG_ID `
+            -ProjectSlug "wabbajack" `
+            -SigningPolicySlug "test-signing" `
+            -OutputArtifactPath "publish\app\Wabbajack.exe" `
+            -WaitForCompletion
+
+      - name: Sign wabbajack-cli.exe
+        shell: pwsh
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_KEY }}
+          SIGNPATH_ORG_ID: ${{ secrets.SIGNPATH_ORG_ID }}
+        run: |
+          Submit-SigningRequest `
+            -InputArtifactPath "publish\app\cli\wabbajack-cli.exe" `
+            -ApiToken $env:SIGNPATH_API_TOKEN `
+            -OrganizationId $env:SIGNPATH_ORG_ID `
+            -ProjectSlug "wabbajack" `
+            -SigningPolicySlug "test-signing" `
+            -OutputArtifactPath "publish\app\cli\wabbajack-cli.exe" `
+            -WaitForCompletion
+
+      - name: Sign Wabbajack.exe (Launcher)
+        shell: pwsh
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_KEY }}
+          SIGNPATH_ORG_ID: ${{ secrets.SIGNPATH_ORG_ID }}
+        run: |
+          Submit-SigningRequest `
+            -InputArtifactPath "publish\launcher\Wabbajack.exe" `
+            -ApiToken $env:SIGNPATH_API_TOKEN `
+            -OrganizationId $env:SIGNPATH_ORG_ID `
+            -ProjectSlug "wabbajack" `
+            -SigningPolicySlug "test-signing" `
+            -OutputArtifactPath "publish\launcher\Wabbajack.exe" `
+            -WaitForCompletion
+
       - name: Create App ZIP
         run: |
           & "C:\Program Files\7-Zip\7z.exe" a publish\wabbajack-${{ env.VERSION }}.zip publish\app\*
