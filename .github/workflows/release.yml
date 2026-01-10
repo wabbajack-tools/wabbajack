@@ -90,7 +90,8 @@ jobs:
             -ProjectSlug "wabbajack" `
             -SigningPolicySlug "test-signing" `
             -OutputArtifactPath "publish\app\Wabbajack.exe" `
-            -WaitForCompletion
+            -WaitForCompletion `
+            -Force
 
       - name: Sign wabbajack-cli.exe
         shell: pwsh
@@ -105,7 +106,8 @@ jobs:
             -ProjectSlug "wabbajack" `
             -SigningPolicySlug "test-signing" `
             -OutputArtifactPath "publish\app\cli\wabbajack-cli.exe" `
-            -WaitForCompletion
+            -WaitForCompletion `
+            -Force
 
       - name: Sign Wabbajack.exe (Launcher)
         shell: pwsh
@@ -120,7 +122,8 @@ jobs:
             -ProjectSlug "wabbajack" `
             -SigningPolicySlug "test-signing" `
             -OutputArtifactPath "publish\launcher\Wabbajack.exe" `
-            -WaitForCompletion
+            -WaitForCompletion `
+            -Force
 
       - name: Create App ZIP
         run: |
