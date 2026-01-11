@@ -287,6 +287,7 @@ public class MO2Compiler : ACompiler
             new IgnoreExtension(this, Ext.Pyc),
             new IgnoreExtension(this, Ext.Log),
             new PatchStockGameFiles(this, _wjClient),
+            new IncludeTaggedFiles(this, Settings.NoMatchInclude),
             new DeconstructBSAs(
                 this), // Deconstruct BSAs before building patches so we don't generate massive patch files
 
@@ -314,7 +315,6 @@ public class MO2Compiler : ACompiler
             // TODO
             //new zEditIntegration.IncludeZEditPatches(this),
 
-            new IncludeTaggedFiles(this, Settings.NoMatchInclude),
             new IncludeRegex(this, ".*\\.txt"),
             new IgnorePathContains(this, @"\Edit Scripts\Export\"),
             new IgnoreExtension(this, new Extension(".CACHE")),
