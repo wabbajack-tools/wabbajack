@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 4.0.5.1 - 1/08/2026
+* Fixes to the headers sent by WebView2, so that manual downloads via wabbajack appear as wabbajack and not generic web users (playing nicer with various 3rd party sites)
+
 #### Version - 4.0.5.0 - 11/04/2025
 * Added checkbox for automatically generating a modlist-report for analyzing the metadata of the resulting modlist file ([@JanuarySnow](https://www.github.com/JanuarySnow))
 * Added option to inverse the mod search filter in the gallery ([@JanuarySnow](https://www.github.com/JanuarySnow))
