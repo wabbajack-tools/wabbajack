@@ -109,18 +109,18 @@ public class BaseModListMetadataVM : ViewModel
         var smallImageUri = UIUtils.GetLargeImageUri(metadata);
         var imageObs = Observable.Return(smallImageUri)
             .DownloadBitmapImage(
-                (ex) => _logger.LogError("Error downloading modlist image {Title} from {ImageUri}: {Exception}",
-                    Metadata.Title, smallImageUri, ex.ToString()), LoadingImageLock, client, icm);
+                ex => { },
+                LoadingImageLock, client, icm);
 
-            _Image = imageObs
-                .ToGuiProperty(this, nameof(Image))
-                .DisposeWith(CompositeDisposable);
+        _Image = imageObs
+            .ToGuiProperty(this, nameof(Image))
+            .DisposeWith(CompositeDisposable);
 
-            _LoadingImage = imageObs
-                .Select(x => false)
-                .StartWith(true)
-                .ToGuiProperty(this, nameof(LoadingImage))
-                .DisposeWith(CompositeDisposable);
+        _LoadingImage = imageObs
+            .Select(_ => false)
+            .StartWith(true)
+            .ToGuiProperty(this, nameof(LoadingImage))
+            .DisposeWith(CompositeDisposable);
 
         InstallCommand = ReactiveCommand.CreateFromTask(async () =>
         {

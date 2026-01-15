@@ -35,6 +35,7 @@ using Wabbajack.UserIntervention;
 using Wabbajack.Util;
 using Wabbajack.Common;
 using Ext = Wabbajack.Common.Ext;
+using Wabbajack.Messages;
 
 namespace Wabbajack;
 
@@ -49,6 +50,7 @@ public partial class App
     private void OnStartup(object sender, StartupEventArgs e)
     {
         _timerRes = new TimerResolution(1);
+        EnsureSafeWorkingDirectoryOrExit();
         if (IsAdmin())
         {
             var messageBox = MessageBox.Show("Don't run Wabbajack as Admin!", "Error", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
@@ -71,10 +73,17 @@ public partial class App
             })
             .Build();
 
+        var assoc = _host.Services.GetRequiredService<Wabbajack.Services.OSIntegrated.FileAssociationSelfHealService>();
+
+        if (OperatingSystem.IsWindows())
+        {
+            assoc.RegisterOrUpdate(enableProtocol: true); // Enable protocol registration
+        }
+
         var webview2 = _host.Services.GetRequiredService<WebView2>();
         var currentDir = (AbsolutePath)Directory.GetCurrentDirectory();
         var webViewDir = currentDir.Combine("WebView2");
-        if(webViewDir.DirectoryExists())
+        if (webViewDir.DirectoryExists())
         {
             var logger = _host.Services.GetRequiredService<ILogger<App>>();
             logger.LogInformation("Local WebView2 executable folder found. Using folder {0} instead of system binaries!", currentDir.Combine("WebView2"));
@@ -85,7 +94,18 @@ public partial class App
 
         RxApp.MainThreadScheduler.Schedule(0, (_, _) =>
         {
-            if (args.Length == 1)
+            // Check for URL protocol
+            if (args.Length > 0 && args[0].StartsWith("wabbajack://", StringComparison.OrdinalIgnoreCase))
+            {
+                OpenUI();
+
+                // Navigate to the gallery so ModListGalleryVM activates and subscribes
+                NavigateToGlobal.Send(ScreenType.ModListGallery);
+
+                HandleProtocolUrl(args[0]);
+                return Disposable.Empty;
+            }
+            else if (args.Length == 1)
             {
                 var arg = args[0].ToAbsolutePath();
                 if (arg.FileExists() && arg.Extension == Ext.Wabbajack)
@@ -93,7 +113,8 @@ public partial class App
                     OpenUI();
                     return Disposable.Empty;
                 }
-            } else if (args.Length > 0)
+            }
+            else if (args.Length > 0)
             {
                 var builder = _host.Services.GetRequiredService<CommandLineBuilder>();
                 builder.Run(e.Args).ContinueWith(async x =>
@@ -110,6 +131,140 @@ public partial class App
 
             return Disposable.Empty;
         });
+    }
+
+    private void HandleProtocolUrl(string url)
+    {
+        try
+        {
+            var logger = _host.Services.GetRequiredService<ILogger<App>>();
+            logger.LogInformation("Handling protocol URL: {url}", url);
+
+            // Parse the URL manually to  keep capitalization as thats important for machineurl
+            // Format: wabbajack://Januarysnow/tempusvr
+            if (!url.StartsWith("wabbajack://", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException("Invalid wabbajack:// URL format");
+            }
+
+            var machineUrl = NormalizeMachineUrlFromProtocol(url);
+
+            logger.LogInformation("Parsed machine URL: {machineUrl}", machineUrl);
+
+            RxApp.MainThreadScheduler.Schedule(() =>
+            {
+                logger.LogInformation("Sending LoadModlistFromProtocol message for: {machineUrl}", machineUrl);
+                LoadModlistFromProtocol.Send(machineUrl);
+            });
+        }
+        catch (Exception ex)
+        {
+            var logger = _host.Services.GetRequiredService<ILogger<App>>();
+            logger.LogError(ex, "Failed to handle protocol URL: {url}", url);
+
+            // Show error to user
+            MessageBox.Show(
+                $"Failed to open modlist from URL.\n\nURL: {url}\n\nError: {ex.Message}",
+                "Protocol Handler Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+    }
+
+    private static string GetProcessExePath()
+    {
+        // get current exe path for updating registry for file assocation
+        var p = Process.GetCurrentProcess().MainModule?.FileName;
+        if (string.IsNullOrWhiteSpace(p))
+            throw new Exception("Process location is unavailable!");
+        return p;
+    }
+
+    private static string NormalizeMachineUrlFromProtocol(string url)
+    {
+        var raw = url.Substring("wabbajack://".Length);
+        raw = Uri.UnescapeDataString(raw ?? string.Empty).Trim();
+
+        var q = raw.IndexOfAny(new[] { '?', '#' });
+        if (q >= 0) raw = raw.Substring(0, q);
+
+        raw = raw.Trim('/');
+
+        var parts = raw.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length >= 2)
+            return $"{parts[0]}/{parts[1]}";
+
+        if (parts.Length == 1)
+            return parts[0];
+
+        return string.Empty;
+    }
+
+    private static bool IsUnderDirectory(string childPath, string parentPath)
+    {
+        childPath = Path.GetFullPath(childPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) + Path.DirectorySeparatorChar;
+        parentPath = Path.GetFullPath(parentPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) + Path.DirectorySeparatorChar;
+        return childPath.StartsWith(parentPath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void EnsureSafeWorkingDirectoryOrExit(ILogger? logger = null)
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return;
+
+        var exePath = GetProcessExePath();
+        var exeDir = Path.GetDirectoryName(exePath);
+        if (string.IsNullOrWhiteSpace(exeDir))
+            throw new Exception("Executable directory is unavailable!");
+
+        var windowsDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        var system32Dir = Path.Combine(windowsDir, "System32");
+
+        if (IsUnderDirectory(exeDir, system32Dir) || IsUnderDirectory(exeDir, windowsDir))
+        {
+            MessageBox.Show(
+                "Wabbajack refuses to run from Windows system folders (Windows/System32) please use a dedicated Wabbajack folder ( and NOT a folder like Downloads, Desktop etc ).",
+                "Unsafe launch location",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error,
+                MessageBoxResult.OK,
+                MessageBoxOptions.DefaultDesktopOnly);
+
+            Environment.Exit(1);
+        }
+
+        // If the working directory is System32, force it to not.
+        var cwd = Directory.GetCurrentDirectory();
+        if (IsUnderDirectory(cwd, system32Dir) || IsUnderDirectory(cwd, windowsDir))
+        {
+            try
+            {
+                Directory.SetCurrentDirectory(exeDir);
+                logger?.LogInformation("Adjusted working directory from {OldCwd} to {NewCwd}", cwd, exeDir);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Wabbajack failed to set a safe working directory. It will now exit.\n\n" + ex,
+                    "Failed to set working directory",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error,
+                    MessageBoxResult.OK,
+                    MessageBoxOptions.DefaultDesktopOnly);
+
+                Environment.Exit(1);
+            }
+        }
+        else
+        {
+            //  for portable things
+            if (!string.Equals(Path.GetFullPath(cwd), Path.GetFullPath(exeDir), StringComparison.OrdinalIgnoreCase))
+            {
+                Directory.SetCurrentDirectory(exeDir);
+                logger?.LogInformation("Normalized working directory to executable directory: {NewCwd}", exeDir);
+            }
+        }
     }
 
     private void OpenUI()
@@ -262,6 +417,7 @@ public partial class App
 
         // Orc.FileAssociation
         services.AddSingleton<IApplicationRegistrationService>(new ApplicationRegistrationService());
+        services.AddSingleton<FileAssociationSelfHealService>();
 
         // Singletons
         services.AddSingleton<CefService>();
