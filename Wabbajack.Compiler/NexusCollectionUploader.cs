@@ -140,6 +140,7 @@ namespace Wabbajack.Compiler
                         result.Slug,
                         result.RevisionNumber);
                     await UpdateCollectionCategory(result.CollectionId, "wabbajack", authState.OAuth.AccessToken, token);
+                    await AddCollectionTag(result.CollectionId, "wabbajack", authState.OAuth.AccessToken, token);
                 }
                 else
                 {
@@ -209,6 +210,63 @@ namespace Wabbajack.Compiler
             }
 
             _logger.LogInformation("Collection category updated to '{category}'", category);
+            return true;
+        }
+
+        private async Task<bool> AddCollectionTag(
+            int collectionId,
+            string tag,
+            string accessToken,
+            CancellationToken token)
+        {
+            var mutation = @"
+        mutation addTag($collectionId: Int!, $tag: String!) {
+            addTag(collectionId: $collectionId, tag: $tag) {
+                success
+            }
+        }";
+
+            var variables = new
+            {
+                collectionId,
+                tag
+            };
+
+            var graphqlRequest = new
+            {
+                query = mutation,
+                variables
+            };
+
+            using var content = new StringContent(
+                JsonSerializer.Serialize(graphqlRequest, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                }),
+                Encoding.UTF8,
+                "application/json");
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, GraphQLUrl)
+            {
+                Content = content
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            request.Headers.TryAddWithoutValidation("Application-Name", "Wabbajack");
+            request.Headers.TryAddWithoutValidation("Application-Version", "0.0.0");
+            request.Headers.TryAddWithoutValidation("Protocol-Version", "1.5.0");
+
+            var response = await _httpClient.SendAsync(request, token);
+            var responseBody = await response.Content.ReadAsStringAsync(token);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("Failed to add tag to collection: {status} - {body}",
+                    response.StatusCode, responseBody);
+                return false;
+            }
+
+            _logger.LogInformation("Added tag '{tag}' to collection {id}", tag, collectionId);
             return true;
         }
 
