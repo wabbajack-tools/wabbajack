@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -5,9 +6,9 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Compiler.CompilationSteps;
 using Wabbajack.Downloaders;
@@ -16,16 +17,19 @@ using Wabbajack.DTOs;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.DTOs.Logins;
 using Wabbajack.FileExtractor.ExtractedFiles;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer;
+using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
-using Wabbajack.VFS;
 using Wabbajack.Reporting;
+using Wabbajack.VFS;
+
 
 namespace Wabbajack.Compiler;
 
@@ -47,6 +51,8 @@ public abstract class ACompiler
     public readonly IResource<ACompiler> CompilerLimiter;
     private int _currentStep;
     private long _currentStepProgress;
+    private readonly ITokenProvider<NexusOAuthState> _nexusTokenProvider;
+    private readonly HttpClient _httpClient;
 
     private long _maxStepProgress;
     public ConcurrentDictionary<PatchedFromArchive, VirtualFile[]> _patchOptions;
@@ -67,7 +73,9 @@ public abstract class ACompiler
         ParallelOptions parallelOptions, DownloadDispatcher dispatcher, Client wjClient, IGameLocator locator,
         DTOSerializer dtos, IResource<ACompiler> compilerLimiter,
         IBinaryPatchCache patchCache,
-        IImageLoader imageLoader)
+        IImageLoader imageLoader,
+        ITokenProvider<NexusOAuthState> nexusTokenProvider,
+        HttpClient httpClient)
     {
         CompilerLimiter = compilerLimiter;
         _logger = logger;
@@ -88,6 +96,8 @@ public abstract class ACompiler
         _patchCache = patchCache;
         ImageLoader = imageLoader;
         _updateStopWatch = new Stopwatch();
+        _nexusTokenProvider = nexusTokenProvider;
+        _httpClient = httpClient;
     }
 
     public IImageLoader ImageLoader { get; }
@@ -102,7 +112,7 @@ public abstract class ACompiler
 
     public Dictionary<Game, HashSet<Hash>> GameHashes { get; set; } = new();
     public Dictionary<Hash, Game[]> GamesWithHashes { get; set; } = new();
-    public ILookup<Hash,Archive> GameFiles { get; private set; }
+    public ILookup<Hash, Archive> GameFiles { get; private set; }
 
 
     public bool IgnoreMissingFiles { get; set; }
@@ -144,7 +154,7 @@ public abstract class ACompiler
             OnStatusUpdate(this, new StatusUpdate(_statusCategory, _statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
                 Percent.FactoryPutInRange(_currentStepProgress, _maxStepProgress), _currentStep));
     }
-    
+
     public void UpdateProgressAbsolute(long cur, long max)
     {
         _currentStepProgress = cur;
@@ -264,8 +274,9 @@ public abstract class ACompiler
 
                     IndexedArchives.AddRange(files.TryKeep(f =>
                     {
-                        var state = (GameFileSource) f.State;
-                        if (_vfs.Index.ByRootPath.TryGetValue(path.Combine(state.GameFile), out var vf)) {
+                        var state = (GameFileSource)f.State;
+                        if (_vfs.Index.ByRootPath.TryGetValue(path.Combine(state.GameFile), out var vf))
+                        {
                             return (true, new IndexedArchive(vf)
                             {
                                 Name = state.GameFile.ToString().Replace("/", "_").Replace("\\", "_"),
@@ -392,7 +403,7 @@ public abstract class ACompiler
         _logger.LogInformation("Exporting ModList to {location}", _settings.OutputFile);
 
         // Modify readme and ModList image to relative paths if they exist
-        if (_settings.ModListImage.FileExists()) ModList.Image = (RelativePath) "modlist-image.png";
+        if (_settings.ModListImage.FileExists()) ModList.Image = (RelativePath)"modlist-image.png";
 
         await using (var of = _stagingFolder.Combine("modlist").Open(FileMode.Create, FileAccess.Write))
         {
@@ -407,7 +418,7 @@ public abstract class ACompiler
         NextStep("Finalizing", "Writing Wabbajack File", allFiles.Count);
         if (_settings.OtherGames.Length > 0)
             _logger.LogInformation("Modlist includes files from games: {games}", string.Join(", ", _settings.OtherGames.Append(_settings.Game).Distinct()));
-            ModList.OtherGames = _settings.OtherGames;
+        ModList.OtherGames = _settings.OtherGames;
         await using (var fs = _settings.OutputFile.Open(FileMode.Create, FileAccess.Write))
         {
             using var za = new ZipArchive(fs, ZipArchiveMode.Create);
@@ -415,7 +426,7 @@ public abstract class ACompiler
             foreach (var f in allFiles)
             {
                 UpdateProgress(1);
-                var ze = za.CreateEntry((string) f.FileName);
+                var ze = za.CreateEntry((string)f.FileName);
                 await using var os = ze.Open();
                 await using var ins = f.Open(FileMode.Open);
                 await ins.CopyToAsync(os, token);
@@ -424,7 +435,7 @@ public abstract class ACompiler
             // Copy in modimage
             if (_settings.ModListImage.FileExists())
             {
-                var ze = za.CreateEntry((string) ModList.Image);
+                var ze = za.CreateEntry((string)ModList.Image);
                 await using var os = ze.Open();
                 await using var ins = _settings.ModListImage.Open(FileMode.Open);
                 await ins.CopyToAsync(os, token);
@@ -471,6 +482,55 @@ public abstract class ACompiler
 
         _logger.LogInformation("Removing ModList staging folder");
         _stagingFolder.DeleteDirectory();
+
+
+        var vortexJson = WabbajackToVortexCollection.Serialize(ModList);
+        var collectionJsonPath = _settings.OutputFile.WithExtension(new Extension(".collection.json"));
+        await collectionJsonPath.WriteAllTextAsync(vortexJson);
+
+        try
+        {
+
+            using var httpClient = new HttpClient();
+            var uploader = new NexusCollectionUploader(
+                _logger,
+                _nexusTokenProvider,
+                _httpClient,
+                _dtos.Options
+            );
+
+            var result = await uploader.UploadCollection(
+                ModList,
+                collectionJsonPath,
+                _settings.OutputFile,
+                existingCollectionId: null,
+                token);
+
+            if (result != null && result.Success)
+            {
+                _logger.LogInformation("Collection published to Nexus Mods!");
+
+                try
+                {
+                    var domain = WabbajackToVortexCollection.GetDomain(ModList.GameType.ToString());
+                    var url = $"https://www.nexusmods.com/games/{domain}/collections/{result.Slug}/revisions/{result.RevisionNumber}";
+                    _logger.LogInformation("Opening collection in browser: {url}", url);
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = url,
+                        UseShellExecute = true,
+                    });
+                }
+                catch (Exception openEx)
+                {
+                    _logger.LogWarning(openEx, "Failed to open browser for uploaded collection");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to upload collection to Nexus Mods this is optional and won't affect your modlist");
+        }
     }
 
     /// <summary>
@@ -484,8 +544,8 @@ public abstract class ACompiler
         {
             return tempPath.Path.Combine(file.ToHex());
         }
-        
-        NextStep("Compiling","Looking for patches");   
+
+        NextStep("Compiling", "Looking for patches");
         var toBuild = InstallDirectives.OfType<PatchedFromArchive>()
             .Where(p => _patchOptions.GetValueOrDefault(p, Array.Empty<VirtualFile>()).Length > 0)
             .SelectMany(p => _patchOptions[p].Select(c => new PatchedFromArchive
@@ -504,18 +564,18 @@ public abstract class ACompiler
             NextStep("Compiling", "Generating Patches", toBuild.Length);
 
             var allFiles = (await toBuild.PMapAllBatchedAsync(CompilerLimiter, async f =>
+            {
+                UpdateProgress(1);
+                return new[]
                 {
-                    UpdateProgress(1);
-                    return new[]
-                    {
                         _vfs.Index.FileForArchiveHashPath(f.ArchiveHashPath),
                         FindDestFile(f.To)
                     };
-                }).ToList())
+            }).ToList())
                 .SelectMany(x => x)
                 .DistinctBy(f => f.Hash)
                 .ToHashSet();
-            
+
             _logger.LogInformation("Extracting {Count} ({Size}) files for building patches", allFiles.Count,
                 allFiles.Sum(f => f.Size).ToFileSizeString());
 
@@ -582,9 +642,9 @@ public abstract class ACompiler
 
         if (to.InFolder(Consts.BSACreationDir))
         {
-            var bsaId = (RelativePath) ((string) to).Split('\\')[1];
+            var bsaId = (RelativePath)((string)to).Split('\\')[1];
             var bsa = InstallDirectives.OfType<CreateBSA>().First(b => b.TempID == bsaId);
-            var find = (RelativePath) Path.Combine(((string) to).Split('\\').Skip(2).ToArray());
+            var find = (RelativePath)Path.Combine(((string)to).Split('\\').Skip(2).ToArray());
 
             return _vfs.Index.ByRootPath[_settings.Source.Combine(bsa.To)].Children.First(c => c.RelativeName == find);
         }
