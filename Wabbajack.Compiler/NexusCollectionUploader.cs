@@ -9,6 +9,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
@@ -139,8 +140,14 @@ namespace Wabbajack.Compiler
                         "Collection uploaded successfully! Slug: {slug}, Revision: {revision}",
                         result.Slug,
                         result.RevisionNumber);
+
                     await UpdateCollectionCategory(result.CollectionId, "wabbajack", authState.OAuth.AccessToken, token);
-                    await AddCollectionTag(result.CollectionId, "wabbajack", authState.OAuth.AccessToken, token);
+
+                    var tagAdded = await AddCollectionTag(result.CollectionId, 25, authState.OAuth.AccessToken, token);
+                    if (!tagAdded)
+                    {
+                        _logger.LogWarning("Failed to add 'Wabbajack Compatible' tag to collection");
+                    }
                 }
                 else
                 {
@@ -215,28 +222,24 @@ namespace Wabbajack.Compiler
 
         private async Task<bool> AddCollectionTag(
             int collectionId,
-            string tag,
+            int tagId,
             string accessToken,
             CancellationToken token)
         {
             var mutation = @"
-        mutation addTag($collectionId: Int!, $tag: String!) {
-            addTag(collectionId: $collectionId, tag: $tag) {
-                success
-            }
-        }";
+    mutation addTagToCollection($collectionId: Int!, $tagIds: [ID!]!) {
+        addTagToCollection(collectionId: $collectionId, tagIds: $tagIds) {
+            success
+        }
+    }";
 
             var variables = new
             {
                 collectionId,
-                tag
+                tagIds = new[] { tagId },
             };
 
-            var graphqlRequest = new
-            {
-                query = mutation,
-                variables
-            };
+            var graphqlRequest = new { query = mutation, variables };
 
             using var content = new StringContent(
                 JsonSerializer.Serialize(graphqlRequest, new JsonSerializerOptions
@@ -266,7 +269,33 @@ namespace Wabbajack.Compiler
                 return false;
             }
 
-            _logger.LogInformation("Added tag '{tag}' to collection {id}", tag, collectionId);
+            try
+            {
+                var root = JsonNode.Parse(responseBody) as JsonObject;
+                var errors = root?["errors"] as JsonArray;
+                if (errors is { Count: > 0 })
+                {
+                    _logger.LogError("GraphQL returned errors while adding tag to collection: {errors}",
+                        errors.ToJsonString());
+                    return false;
+                }
+
+                var success = root?["data"]?["addTagToCollection"]?["success"]?.GetValue<bool>() ?? false;
+                if (!success)
+                {
+                    _logger.LogWarning(
+                        "addTagToCollection returned success = false for collection {id} and tag {tagId}",
+                        collectionId, tagId);
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to parse GraphQL response for addTagToCollection");
+                return false;
+            }
+
+            _logger.LogInformation("Added tag ID {tagId} to collection {id}", tagId, collectionId);
             return true;
         }
 
@@ -436,14 +465,6 @@ namespace Wabbajack.Compiler
             string accessToken,
             CancellationToken token)
         {
-            // 
-            // The Vortex collection.json format contains fields that are not accepted by the
-            // Nexus GraphQL CollectionManifest
-            //
-            // In Vortex this is handled by filtering before upload:
-            // info: omit installInstructions
-            // mods: omit hashes/choices/patches/details/instructions/phase/fileOverrides
-            // source: omit instructions/fileSize/tag
 
             // CollectionManifestInfo does not include installInstructions.
             // treat optional fields as null when empty so they are omitted from the payload.
@@ -467,7 +488,7 @@ namespace Wabbajack.Compiler
                   : collectionPayload.Info.GameVersions,
             };
 
-            // Vortex enforces name length in the UI Wabbajack doesn't,
+            // Vortex enforces name length in the UI but Wabbajack dont,
             const int MinCollectionNameLength = 3;
             const int MaxCollectionNameLength = 36;
             if (manifestInfo.name.Length < MinCollectionNameLength)
@@ -534,9 +555,7 @@ namespace Wabbajack.Compiler
                 return null;
             }
 
-            // try a couple of times. If Nexus rejects specific modIds/fileIds as NOT_FOUND/NOT_AVAILABLE,
-            //  remove those entries and retry. This is important for Wabbajack modlists which may include
-            // external tools (MO2, Bethini, etc.) that are not valid Nexus "mods" for the target game domain.
+            // external tools (MO2, Bethini, etc.) that are not valid Nexus "mods" for the target game.
             for (var attempt = 1; attempt <= 3; attempt++)
             {
                 var variables = new
@@ -622,7 +641,7 @@ namespace Wabbajack.Compiler
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to parse GraphQL error payload; will fall back to typed parsing.");
+                    _logger.LogWarning(ex, "Failed to parse GraphQL error payload will fall back to typed parsing.");
                 }
 
                 var result = JsonSerializer.Deserialize<GraphQLMutationResponse>(responseBody, _jsonOptions);
