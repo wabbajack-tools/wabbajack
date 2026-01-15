@@ -49,6 +49,7 @@ public partial class App
     private void OnStartup(object sender, StartupEventArgs e)
     {
         _timerRes = new TimerResolution(1);
+        EnsureSafeWorkingDirectoryOrExit();
         if (IsAdmin())
         {
             var messageBox = MessageBox.Show("Don't run Wabbajack as Admin!", "Error", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
@@ -70,6 +71,13 @@ public partial class App
                 ConfigureServices(services);
             })
             .Build();
+
+        var assoc = _host.Services.GetRequiredService<Wabbajack.Services.OSIntegrated.FileAssociationSelfHealService>();
+
+        if (OperatingSystem.IsWindows())
+        {
+            assoc.RegisterOrUpdate(enableProtocol: false);
+        }
 
         var webview2 = _host.Services.GetRequiredService<WebView2>();
         var currentDir = (AbsolutePath)Directory.GetCurrentDirectory();
@@ -110,6 +118,81 @@ public partial class App
 
             return Disposable.Empty;
         });
+    }
+
+    private static string GetProcessExePath()
+    {
+        // get current exe path for updating registry for file assocation
+        var p = Process.GetCurrentProcess().MainModule?.FileName;
+        if (string.IsNullOrWhiteSpace(p))
+            throw new Exception("Process location is unavailable!");
+        return p;
+    }
+
+    private static bool IsUnderDirectory(string childPath, string parentPath)
+    {
+        childPath = Path.GetFullPath(childPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) + Path.DirectorySeparatorChar;
+        parentPath = Path.GetFullPath(parentPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) + Path.DirectorySeparatorChar;
+        return childPath.StartsWith(parentPath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void EnsureSafeWorkingDirectoryOrExit(ILogger? logger = null)
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return;
+
+        var exePath = GetProcessExePath();
+        var exeDir = Path.GetDirectoryName(exePath);
+        if (string.IsNullOrWhiteSpace(exeDir))
+            throw new Exception("Executable directory is unavailable!");
+
+        var windowsDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        var system32Dir = Path.Combine(windowsDir, "System32");
+
+        if (IsUnderDirectory(exeDir, system32Dir) || IsUnderDirectory(exeDir, windowsDir))
+        {
+            MessageBox.Show(
+                "Wabbajack refuses to run from Windows system folders (Windows/System32) please use a dedicated Wabbajack folder ( and NOT a folder like Downloads, Desktop etc ).",
+                "Unsafe launch location",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error,
+                MessageBoxResult.OK,
+                MessageBoxOptions.DefaultDesktopOnly);
+
+            Environment.Exit(1);
+        }
+
+        // If the working directory is System32, force it to not.
+        var cwd = Directory.GetCurrentDirectory();
+        if (IsUnderDirectory(cwd, system32Dir) || IsUnderDirectory(cwd, windowsDir))
+        {
+            try
+            {
+                Directory.SetCurrentDirectory(exeDir);
+                logger?.LogInformation("Adjusted working directory from {OldCwd} to {NewCwd}", cwd, exeDir);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Wabbajack failed to set a safe working directory. It will now exit.\n\n" + ex,
+                    "Failed to set working directory",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error,
+                    MessageBoxResult.OK,
+                    MessageBoxOptions.DefaultDesktopOnly);
+
+                Environment.Exit(1);
+            }
+        }
+        else
+        {
+            //  for portable things
+            if (!string.Equals(Path.GetFullPath(cwd), Path.GetFullPath(exeDir), StringComparison.OrdinalIgnoreCase))
+            {
+                Directory.SetCurrentDirectory(exeDir);
+                logger?.LogInformation("Normalized working directory to executable directory: {NewCwd}", exeDir);
+            }
+        }
     }
 
     private void OpenUI()
@@ -262,6 +345,7 @@ public partial class App
 
         // Orc.FileAssociation
         services.AddSingleton<IApplicationRegistrationService>(new ApplicationRegistrationService());
+        services.AddSingleton<FileAssociationSelfHealService>();
 
         // Singletons
         services.AddSingleton<CefService>();

@@ -244,18 +244,6 @@ public class MainWindowVM : ViewModel
             Task.Run(() => _wjClient.SendMetric("started_wabbajack", fvi.FileVersion)).FireAndForget();
             Task.Run(() => _wjClient.SendMetric("started_sha", ThisAssembly.Git.Sha)).FireAndForget();
 
-            try
-            {
-                var applicationRegistrationService = _serviceProvider.GetRequiredService<IApplicationRegistrationService>();
-
-                var applicationInfo = new ApplicationInfo("Wabbajack", "Wabbajack", "Wabbajack", processLocation);
-                applicationInfo.SupportedExtensions.Add("wabbajack");
-                applicationRegistrationService.RegisterApplication(applicationInfo);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "While setting up file associations");
-            }
         }
         catch (Exception ex)
         {

@@ -173,7 +173,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
         });
         InstallCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget(), this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading,
                                                                                                         vm => vm.ValidationResult,
-                                                                                                        (notLoading, validationResult) => notLoading && (validationResult?.Succeeded ?? true)));
+                                                                                                       (notLoading, validationResult) => notLoading && (validationResult?.Succeeded ?? false)));
 
         OpenReadmeCommand = ReactiveCommand.Create(() =>
         {
@@ -269,21 +269,37 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
             Disposable.Create(() => token.Cancel())
                 .DisposeWith(disposables);
             */
-            
-            this.WhenAny(vm => vm.WabbajackFileLocation.ValidationResult)
-                .CombineLatest<ValidationResult, ValidationResult, ValidationResult, AbsolutePath, AbsolutePath, AbsolutePath>(this.WhenAny(vm => vm.Installer.DownloadLocation.ValidationResult),
-                    this.WhenAny(vm => vm.Installer.Location.ValidationResult),
-                    this.WhenAny(vm => vm.WabbajackFileLocation.TargetPath),
-                    this.WhenAny(vm => vm.Installer.Location.TargetPath),
-                    this.WhenAny(vm => vm.Installer.DownloadLocation.TargetPath))
+
+            this.WhenAnyValue(vm => vm.WabbajackFileLocation.ValidationResult,
+                  vm => vm.Installer.DownloadLocation.ValidationResult,
+                  vm => vm.Installer.Location.ValidationResult,
+                  vm => vm.WabbajackFileLocation.TargetPath,
+                  vm => vm.Installer.Location.TargetPath,
+                  vm => vm.Installer.DownloadLocation.TargetPath)
                 .Select(t =>
                 {
-                    var errors = (new[] { t.First, t.Second, t.Third})
-                        .Where(t => t.Failed)
+                    var (wjVr, dlVr, instVr, wjPath, instPath, dlPath) = t;
+
+                    var errors = new[] { wjVr, dlVr, instVr }
+                        .Where(v => v != null && v.Failed)
                         .Concat(Validate())
                         .ToArray();
+
                     if (!errors.Any()) return ValidationResult.Success;
-                    return ValidationResult.Fail(string.Join("\n", errors.Select(e => e.Reason)));
+
+                    var reasons = errors.Select(e => e.Reason)
+                        .Where(r => !string.IsNullOrWhiteSpace(r))
+                        .ToArray();
+
+                    foreach (var e in errors)
+                    {
+                        if (e.Failed && string.IsNullOrWhiteSpace(e.Reason))
+                            _logger.LogWarning("ValidationResult failed but had no reason. Type={Type}", e.GetType().FullName);
+                    }
+
+                    return reasons.Length == 0
+                        ? ValidationResult.Fail("Validation failed (no reason provided).")
+                        : ValidationResult.Fail(string.Join("\n", reasons));
                 })
                 .BindTo(this, vm => vm.ValidationResult)
                 .DisposeWith(disposables);
@@ -540,7 +556,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
             }
             else
             {
-                _logger.LogInformation("Modlist metadata not loaded, possibly using local install without metadata file");
+                _logger.LogDebug("Modlist metadata not loaded, possibly using local install without metadata file");
             }
 
             if (hasPrevModListInstallation)
