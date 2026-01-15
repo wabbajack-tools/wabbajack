@@ -222,6 +222,28 @@
                 Foreground="{StaticResource ForegroundBrush}"
                 Text="No modlists matching specified criteria" />
         </StackPanel>
+        <Grid x:Name="ProtocolOverlay"
+            Grid.ColumnSpan="2"
+            Visibility="Collapsed"
+            Background="#80000000"
+            Panel.ZIndex="9999">
+            <StackPanel HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Width="420">
+                <mahapps:ProgressRing Width="56" Height="56" IsActive="True" />
+                <TextBlock x:Name="ProtocolOverlayText"
+                   Margin="0,16,0,0"
+                   TextAlignment="Center"
+                   FontSize="16"
+                   Foreground="White"
+                   TextWrapping="Wrap" />
+                <TextBlock Margin="0,8,0,0"
+                   TextAlignment="Center"
+                   FontSize="12"
+                   Foreground="#CCFFFFFF"
+                   Text="Downloading modlist file…" />
+            </StackPanel>
+        </Grid>
         <!--<iconPacks:PackIconControl Grid.Row="1" Grid.Column="0"
                                    x:Name="ErrorIcon"
                                    Width="55"

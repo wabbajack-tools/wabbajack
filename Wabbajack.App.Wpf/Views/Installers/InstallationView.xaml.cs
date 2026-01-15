@@ -31,39 +31,24 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             this.Bind(ViewModel, vm => vm.Installer.DownloadLocation, view => view.DownloadLocationPicker.PickerVM)
                 .DisposeWith(disposables);
 
-            this.WhenAnyValue(v => v.ViewModel)
-                .Where(vm => vm != null)
-                .Take(1)
-                .Subscribe(vm =>
-                {
-                    //wait til its safe
-
-                    InstallationLocationPicker.PickerVM.AdditionalError =
-                        vm.WhenAnyValue(x => x.ValidationResult)
-                          .Where(vr => vr is InstallPathValidationResult);
-
-                    DownloadLocationPicker.PickerVM.AdditionalError =
-                        vm.WhenAnyValue(x => x.ValidationResult)
-                          .Where(vr => vr is DownloadsPathValidationResult);
-
-                    vm.WhenAnyValue(x => x.ValidationResult)
-                      .Subscribe(vr =>
-                      {
-                          if (vr != null && vr.Succeeded)
-                          {
-                              ErrorStateBorder.Visibility = Visibility.Collapsed;
-                              InstallButton.IsEnabled = true;
-                          }
-                          else
-                          {
-                              InstallButton.IsEnabled = false;
-                              ErrorStateBorder.Visibility = Visibility.Visible;
-                              ErrorStateReasonText.Text = vr?.Reason ?? "Unknown error";
-                          }
-                      })
-                      .DisposeWith(disposables);
-                })
-                .DisposeWith(disposables);
+            InstallationLocationPicker.PickerVM.AdditionalError = ViewModel.WhenAnyValue(vm => vm.ValidationResult).Where(vr => vr is InstallPathValidationResult);
+            DownloadLocationPicker.PickerVM.AdditionalError = ViewModel.WhenAnyValue(vm => vm.ValidationResult).Where(vr => vr is DownloadsPathValidationResult);
+            ViewModel.WhenAnyValue(vm => vm.ValidationResult)
+                     .Subscribe(vr =>
+                     {
+                         if (vr.Succeeded)
+                         {
+                             ErrorStateBorder.Visibility = Visibility.Collapsed;
+                             InstallButton.IsEnabled = true;
+                         }
+                         else
+                         {
+                             InstallButton.IsEnabled = false;
+                             ErrorStateBorder.Visibility = Visibility.Visible;
+                             ErrorStateReasonText.Text = vr.Reason;
+                         }
+                     })
+                     .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.OpenReadmeCommand, v => v.DocumentationButton)
                 .DisposeWith(disposables);
@@ -247,19 +232,18 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .BindToStrict(this, v => v.ModlistLoadingRing.Visibility)
                 .DisposeWith(disposables);
 
-            this.WhenAnyValue(v => v.ViewModel)
-                .Where(vm => vm != null)
-                .Select(vm => vm!.WhenAnyValue(x => x.ModList.Readme))
-                .Switch()
-                .Select(readme =>
-                {
-                    var humanReadableReadme = UIUtils.GetHumanReadableReadmeLink(readme);
-                    if (Uri.TryCreate(humanReadableReadme, UriKind.Absolute, out var uri))
-                        return uri;
-                    return null;
-                })
-                .BindToStrict(this, x => x.ViewModel.ReadmeBrowser.Source)
-                .DisposeWith(disposables);
+            this.WhenAnyValue(x => x.ViewModel.ModList.Readme)
+                     .Select(x =>
+                     {
+                         var humanReadableReadme = UIUtils.GetHumanReadableReadmeLink(ViewModel.ModList.Readme);
+                         if (Uri.TryCreate(humanReadableReadme, UriKind.Absolute, out var uri))
+                         {
+                             return uri;
+                         }
+                         return default;
+                     })
+                     .BindToStrict(this, x => x.ViewModel.ReadmeBrowser.Source)
+                     .DisposeWith(disposables);
 
             ReadmeToggleButton.Events().Checked
                 .ObserveOnGuiThread()
@@ -333,11 +317,8 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
 
     private void TakeWebViewOwnershipForReadme()
     {
-        
         RxApp.MainThreadScheduler.Schedule(() =>
         {
-            if (ViewModel == null) return;
-            if (ViewModel.ReadmeBrowser == null) return;
             ViewModel.ReadmeBrowser.Margin = new Thickness(0, 0, 0, 16);
             if (ViewModel.ReadmeBrowser.Parent != null)
             {

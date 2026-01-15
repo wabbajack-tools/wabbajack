@@ -360,6 +360,12 @@ public class MainWindowVM : ViewModel
         var args = Environment.GetCommandLineArgs();
         if (args.Length == 2)
         {
+            if (args[1].StartsWith("wabbajack://", StringComparison.OrdinalIgnoreCase))
+            {
+                modlistPath = default;
+                return false;
+            }
+
             var arg = args[1].ToAbsolutePath();
             if (arg.FileExists() && arg.Extension == Ext.Wabbajack)
             {

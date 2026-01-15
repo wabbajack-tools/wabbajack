@@ -110,6 +110,16 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
     private readonly CancellationToken _cancellationToken;
     private readonly IServiceProvider _serviceProvider;
 
+    private readonly SemaphoreSlim _loadModListsGate = new(1, 1);
+    private Task? _loadModListsTask;
+    private readonly TaskCompletionSource<bool> _galleryLoadedTcs =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    [Reactive] public bool IsResolvingProtocol { get; set; }
+    [Reactive] public string ProtocolStatusText { get; set; }
+
+    private string? _protocolInFlightNamespacedName;
+
     public ICommand ResetFiltersCommand { get; set; }
 
     public FilePickerVM LocalFilePicker { get; set; }
@@ -159,12 +169,41 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 
         this.WhenActivated(disposables =>
         {
-            LoadModLists().FireAndForget();
+            EnsureGalleryLoadedAsync().FireAndForget();
             LoadSettings().FireAndForget();
+
+            if (LoadModlistFromProtocol.TryConsumePending(out var pending))
+            {
+                _logger.LogInformation("[Protocol] Consumed pending machine URL on activation: {machineUrl}", pending);
+                HandleProtocolLoad(pending).FireAndForget();
+            }
+
+            MessageBus.Current.Listen<LoadModlistForInstalling>()
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(msg =>
+                {
+                    // If this load is the one initiated via protocol, drop the overlay.
+                    var msgMachine = msg.Metadata?.Links?.MachineURL;
+
+                    var msgNamespaced = msg.Metadata?.NamespacedName;
+                    if (!string.IsNullOrWhiteSpace(_protocolInFlightNamespacedName) &&
+                        !string.IsNullOrWhiteSpace(msgNamespaced) &&
+                        msgNamespaced.Equals(_protocolInFlightNamespacedName, StringComparison.OrdinalIgnoreCase))
+                    {
+
+
+                        _logger.LogInformation("[Protocol] LoadModlistForInstalling received for {machineUrl}, clearing overlay", msgMachine);
+                        IsResolvingProtocol = false;
+                        ProtocolStatusText = string.Empty;
+                        _protocolInFlightNamespacedName = null;
+                    }
+                })
+                .DisposeWith(disposables);
 
             this.WhenAnyValue(x => x.IncludeNSFW, x => x.IncludeUnofficial, x => x.OnlyInstalled, x => x.GameType, x => x.ExcludeMods)
                 .Subscribe(_ => SaveSettings().FireAndForget())
                 .DisposeWith(disposables);
+
 
             var searchTextPredicates = this.ObservableForProperty(vm => vm.Search)
                 .Throttle(searchThrottle, RxApp.MainThreadScheduler)
@@ -305,6 +344,85 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
         Error = null;
     }
 
+    private async Task HandleProtocolLoad(string machineUrl)
+    {
+        var normalized = (machineUrl ?? string.Empty).Trim().Trim('/');
+
+        _protocolInFlightNamespacedName = null;
+        IsResolvingProtocol = true;
+        ProtocolStatusText = $"Preparing to install {normalized}…";
+
+        using var ll = LoadingLock.WithLoading();
+
+        _logger.LogInformation("[Protocol] Requested load for machine URL: {machineUrl} (normalized: {normalized})",
+            machineUrl, normalized);
+
+        try
+        {
+            await EnsureGalleryLoadedAsync();
+
+            GalleryModListMetadataVM? modlist = null;
+
+            if (normalized.Contains("/"))
+            {
+                // repo/list
+                modlist = _modLists.Items.FirstOrDefault(m =>
+                    m.Metadata.NamespacedName.Equals(normalized, StringComparison.OrdinalIgnoreCase));
+            }
+            else
+            {
+                // Fallback: short list name only
+                modlist = _modLists.Items.FirstOrDefault(m =>
+                    m.Metadata.Links.MachineURL.Equals(normalized, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (modlist == null)
+            {
+                _logger.LogWarning("[Protocol] Modlist not found for identifier: {id}", normalized);
+                Error = ValidationResult.Fail($"Modlist '{normalized}' not found in gallery");
+                IsResolvingProtocol = false;
+                ProtocolStatusText = string.Empty;
+                ll.Fail();
+                return;
+            }
+
+            ProtocolStatusText = $"Preparing to install {modlist.Metadata.Title}…";
+            _protocolInFlightNamespacedName = modlist.Metadata.NamespacedName;
+
+            _logger.LogInformation("[Protocol] Found modlist '{title}' ({namespaced}), executing InstallCommand",
+                modlist.Metadata.Title, modlist.Metadata.NamespacedName);
+
+            if (!modlist.InstallCommand.CanExecute(null))
+            {
+                _logger.LogWarning("[Protocol] Cannot install modlist: {name}", modlist.Metadata.Title);
+                Error = ValidationResult.Fail($"Modlist '{modlist.Metadata.Title}' cannot be installed at this time");
+                IsResolvingProtocol = false;
+                ProtocolStatusText = string.Empty;
+                ll.Fail();
+                return;
+            }
+
+            modlist.InstallCommand.Execute(null);
+            ll.Succeed();
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("[Protocol] Protocol install cancelled for {id}", normalized);
+            Error = ValidationResult.Fail("Loading was cancelled");
+            IsResolvingProtocol = false;
+            ProtocolStatusText = string.Empty;
+            ll.Fail();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[Protocol] Failed to load modlist from protocol URL: {id}", normalized);
+            Error = ValidationResult.Fail($"Failed to load modlist: {ex.Message}");
+            IsResolvingProtocol = false;
+            ProtocolStatusText = string.Empty;
+            ll.Fail();
+        }
+    }
+
     private async Task SaveSettings()
     {
         if (_savingSettings) return;
@@ -383,13 +501,14 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                         httpClient, cacheManager)));
             });
             DetermineListSizeRange();
+            ll.Succeed();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "While loading lists");
             ll.Fail();
+            throw;
         }
-        ll.Succeed();
     }
 
     private void DetermineListSizeRange()
@@ -421,5 +540,43 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
             .OrderBy(gte => gte.GameMetaData.HumanFriendlyGameName)
             .Prepend(GameTypeEntry.GetAllGamesEntry(ModLists.Count))
             .ToList());
+    }
+
+    private Task EnsureGalleryLoadedAsync()
+    {
+        if (_galleryLoadedTcs.Task.IsCompleted)
+            return _galleryLoadedTcs.Task;
+
+        _loadModListsTask ??= LoadModListsSingleFlightAsync();
+
+        return _galleryLoadedTcs.Task;
+    }
+
+    private async Task LoadModListsSingleFlightAsync()
+    {
+        await _loadModListsGate.WaitAsync(_cancellationToken);
+        try
+        {
+            if (_galleryLoadedTcs.Task.IsCompleted)
+                return;
+
+            await LoadModLists();
+
+            _galleryLoadedTcs.TrySetResult(true);
+        }
+        catch (OperationCanceledException oce)
+        {
+            _galleryLoadedTcs.TrySetCanceled(oce.CancellationToken);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _galleryLoadedTcs.TrySetException(ex);
+            throw;
+        }
+        finally
+        {
+            _loadModListsGate.Release();
+        }
     }
 }

@@ -35,6 +35,7 @@ using Wabbajack.UserIntervention;
 using Wabbajack.Util;
 using Wabbajack.Common;
 using Ext = Wabbajack.Common.Ext;
+using Wabbajack.Messages;
 
 namespace Wabbajack;
 
@@ -76,13 +77,13 @@ public partial class App
 
         if (OperatingSystem.IsWindows())
         {
-            assoc.RegisterOrUpdate(enableProtocol: false);
+            assoc.RegisterOrUpdate(enableProtocol: true); // Enable protocol registration
         }
 
         var webview2 = _host.Services.GetRequiredService<WebView2>();
         var currentDir = (AbsolutePath)Directory.GetCurrentDirectory();
         var webViewDir = currentDir.Combine("WebView2");
-        if(webViewDir.DirectoryExists())
+        if (webViewDir.DirectoryExists())
         {
             var logger = _host.Services.GetRequiredService<ILogger<App>>();
             logger.LogInformation("Local WebView2 executable folder found. Using folder {0} instead of system binaries!", currentDir.Combine("WebView2"));
@@ -93,7 +94,18 @@ public partial class App
 
         RxApp.MainThreadScheduler.Schedule(0, (_, _) =>
         {
-            if (args.Length == 1)
+            // Check for URL protocol
+            if (args.Length > 0 && args[0].StartsWith("wabbajack://", StringComparison.OrdinalIgnoreCase))
+            {
+                OpenUI();
+
+                // Navigate to the gallery so ModListGalleryVM activates and subscribes
+                NavigateToGlobal.Send(ScreenType.ModListGallery);
+
+                HandleProtocolUrl(args[0]);
+                return Disposable.Empty;
+            }
+            else if (args.Length == 1)
             {
                 var arg = args[0].ToAbsolutePath();
                 if (arg.FileExists() && arg.Extension == Ext.Wabbajack)
@@ -101,7 +113,8 @@ public partial class App
                     OpenUI();
                     return Disposable.Empty;
                 }
-            } else if (args.Length > 0)
+            }
+            else if (args.Length > 0)
             {
                 var builder = _host.Services.GetRequiredService<CommandLineBuilder>();
                 builder.Run(e.Args).ContinueWith(async x =>
@@ -120,6 +133,44 @@ public partial class App
         });
     }
 
+    private void HandleProtocolUrl(string url)
+    {
+        try
+        {
+            var logger = _host.Services.GetRequiredService<ILogger<App>>();
+            logger.LogInformation("Handling protocol URL: {url}", url);
+
+            // Parse the URL manually to  keep capitalization as thats important for machineurl
+            // Format: wabbajack://Januarysnow/tempusvr
+            if (!url.StartsWith("wabbajack://", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException("Invalid wabbajack:// URL format");
+            }
+
+            var machineUrl = NormalizeMachineUrlFromProtocol(url);
+
+            logger.LogInformation("Parsed machine URL: {machineUrl}", machineUrl);
+
+            RxApp.MainThreadScheduler.Schedule(() =>
+            {
+                logger.LogInformation("Sending LoadModlistFromProtocol message for: {machineUrl}", machineUrl);
+                LoadModlistFromProtocol.Send(machineUrl);
+            });
+        }
+        catch (Exception ex)
+        {
+            var logger = _host.Services.GetRequiredService<ILogger<App>>();
+            logger.LogError(ex, "Failed to handle protocol URL: {url}", url);
+
+            // Show error to user
+            MessageBox.Show(
+                $"Failed to open modlist from URL.\n\nURL: {url}\n\nError: {ex.Message}",
+                "Protocol Handler Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+    }
+
     private static string GetProcessExePath()
     {
         // get current exe path for updating registry for file assocation
@@ -127,6 +178,27 @@ public partial class App
         if (string.IsNullOrWhiteSpace(p))
             throw new Exception("Process location is unavailable!");
         return p;
+    }
+
+    private static string NormalizeMachineUrlFromProtocol(string url)
+    {
+        var raw = url.Substring("wabbajack://".Length);
+        raw = Uri.UnescapeDataString(raw ?? string.Empty).Trim();
+
+        var q = raw.IndexOfAny(new[] { '?', '#' });
+        if (q >= 0) raw = raw.Substring(0, q);
+
+        raw = raw.Trim('/');
+
+        var parts = raw.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length >= 2)
+            return $"{parts[0]}/{parts[1]}";
+
+        if (parts.Length == 1)
+            return parts[0];
+
+        return string.Empty;
     }
 
     private static bool IsUnderDirectory(string childPath, string parentPath)
