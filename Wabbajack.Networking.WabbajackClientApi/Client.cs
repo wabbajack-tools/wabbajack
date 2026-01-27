@@ -542,6 +542,102 @@ public class Client
         return await _dtos.DeserializeAsync<IndexedVirtualFile>(await response.Content.ReadAsStreamAsync(token), token);
     }
 
+    private async Task<(GitHubClient Gh, string Owner, string Repo, string Path)> GetAuthorRepoTarget(string namespacedName)
+    {
+        var pair = namespacedName.Split("/");
+        var wjRepoName = pair[0];
+
+        var repoUrl = (await LoadRepositories())[wjRepoName];
+        var decomposed = repoUrl.LocalPath.Split("/");
+        var owner = decomposed[1];
+        var repoName = decomposed[2];
+        var path = string.Join("/", decomposed[4..]);
+
+        var creds = new Credentials((await _token.Get())!.AuthorKey);
+        var ghClient = new GitHubClient(new ProductHeaderValue("wabbajack"))
+        {
+            Credentials = creds
+        };
+
+        return (ghClient, owner, repoName, path);
+    }
+
+    public async Task SetNexusCollectionMapping(
+        string namespacedName,
+        int collectionId,
+        string slug,
+        string domainName,
+        int? lastRevisionNumber,
+        CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(namespacedName))
+            throw new ArgumentException("namespacedName was empty", nameof(namespacedName));
+        if (collectionId <= 0)
+            throw new ArgumentException("collectionId must be > 0", nameof(collectionId));
+        if (string.IsNullOrWhiteSpace(slug))
+            throw new ArgumentException("slug was empty", nameof(slug));
+        if (string.IsNullOrWhiteSpace(domainName))
+            throw new ArgumentException("domainName was empty", nameof(domainName));
+
+        var pair = namespacedName.Split("/");
+        if (pair.Length < 2)
+            throw new ArgumentException("namespacedName must look like 'repoName/machineUrl'", nameof(namespacedName));
+
+        var machineUrl = pair[1];
+
+        var (gh, owner, repo, path) = await GetAuthorRepoTarget(namespacedName);
+
+        var oldData = (await gh.Repository.Content.GetAllContents(owner, repo, path)).First();
+        var lists = _dtos.Deserialize<ModlistMetadata[]>(oldData.Content) ?? Array.Empty<ModlistMetadata>();
+
+        var list = lists.FirstOrDefault(c => c.Links.MachineURL.Equals(machineUrl, StringComparison.OrdinalIgnoreCase));
+        if (list == null)
+            throw new Exception($"Could not find list '{machineUrl}' in '{owner}/{repo}/{path}'");
+
+        list.Links.NexusCollection = new NexusCollectionLink
+        {
+            CollectionId = collectionId,
+            Slug = slug,
+            DomainName = domainName,
+            LastRevisionNumber = lastRevisionNumber
+        };
+
+        var newContent = _dtos.Serialize(lists, true);
+        newContent = GameRegistry.Games.Keys.Aggregate(newContent,
+            (current, g) => current.Replace($"\"game\": \"{g}\",", $"\"game\": \"{g.ToString().ToLower()}\","));
+
+        var updateRequest = new UpdateFileRequest($"Update Nexus collection mapping for {machineUrl}", newContent, oldData.Sha);
+        await gh.Repository.Content.UpdateFile(owner, repo, path, updateRequest);
+    }
+
+    public async Task<NexusCollectionLink?> GetNexusCollectionMapping(string namespacedName, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+
+        if (string.IsNullOrWhiteSpace(namespacedName))
+            throw new ArgumentException("namespacedName cannot be null/empty", nameof(namespacedName));
+
+        var pair = namespacedName.Split("/");
+        if (pair.Length < 2)
+            throw new ArgumentException($"Expected namespacedName in the form 'repo/machineUrl' but got '{namespacedName}'", nameof(namespacedName));
+
+        var machineUrl = pair[1];
+
+        var (gh, owner, repo, path) = await GetAuthorRepoTarget(namespacedName);
+        token.ThrowIfCancellationRequested();
+
+        var oldData = (await gh.Repository.Content.GetAllContents(owner, repo, path)).FirstOrDefault();
+        if (oldData == null)
+            return null;
+
+        var lists = _dtos.Deserialize<ModlistMetadata[]>(oldData.Content) ?? Array.Empty<ModlistMetadata>();
+        var list = lists.FirstOrDefault(c =>
+            c?.Links != null &&
+            c.Links.MachineURL.Equals(machineUrl, StringComparison.OrdinalIgnoreCase));
+
+        return list?.Links?.NexusCollection;
+    }
+
     public async Task<IReadOnlyList<string>> GetMyModlists(CancellationToken token)
     {
         var msg = await MakeMessage(HttpMethod.Get, new Uri($"{_configuration.BuildServerUrl}author_controls/lists"));
