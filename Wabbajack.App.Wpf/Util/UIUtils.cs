@@ -30,6 +30,7 @@ public static class UIUtils
 
     public static BitmapImage BitmapImageFromStream(Stream stream)
     {
+        if (stream.CanSeek) stream.Position = 0;
         var img = new BitmapImage();
         img.BeginInit();
         img.CacheOption = BitmapCacheOption.OnLoad;
@@ -37,6 +38,7 @@ public static class UIUtils
         img.EndInit();
         img.Freeze();
         stream.Position = 0;
+        if (stream.CanSeek) stream.Position = 0;
         return img;
     }
 
@@ -169,10 +171,11 @@ public static class UIUtils
                     }
 
                     pngStream.Position = 0;
+                    var bytes = pngStream.ToArray();
 
-                    var img = BitmapImageFromStream(pngStream);
+                    var img = BitmapImageFromStream(new MemoryStream(bytes, writable: false));
 
-                    await icm.Add(url, img);
+                    await icm.AddBytes(url, bytes);
 
                     return img;
                 }
