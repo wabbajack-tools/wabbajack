@@ -52,12 +52,20 @@
     <PackageVersion Include="Octokit" Version="14.0.0" />
     <PackageVersion Include="SteamKit2" Version="3.0.1" />
 
-    <!-- Game Store Integration -->
-    <PackageVersion Include="GameFinder.StoreHandlers.EADesktop" Version="4.5.0" />
-    <PackageVersion Include="GameFinder.StoreHandlers.EGS" Version="4.5.0" />
-    <PackageVersion Include="GameFinder.StoreHandlers.GOG" Version="4.5.0" />
-    <PackageVersion Include="GameFinder.StoreHandlers.Origin" Version="4.5.0" />
-    <PackageVersion Include="GameFinder.StoreHandlers.Steam" Version="4.5.0" />
+    <!-- Wabbajack.Paths (from NexusMods.Paths) -->
+    <PackageVersion Include="Reloaded.Memory" Version="9.4.2" />
+    <PackageVersion Include="TransparentValueObjects" Version="1.1.0" />
+    <PackageVersion Include="TransparentValueObjects.Abstractions" Version="1.1.0" />
+
+    <!-- Wabbajack.GameFinder -->
+    <PackageVersion Include="FluentResults" Version="3.16.0" />
+    <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageVersion Include="OneOf" Version="3.0.271" />
+    <PackageVersion Include="ValveKeyValue" Version="0.13.1.398" />
+
+    <!-- Testing Helpers -->
+    <PackageVersion Include="AutoFixture" Version="4.18.1" />
+    <PackageVersion Include="AutoFixture.Xunit2" Version="4.18.1" />
 
     <!-- Database -->
     <PackageVersion Include="System.Data.SQLite.Core" Version="1.0.119" />

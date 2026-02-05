@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+        <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
+        <Version>$(VERSION)</Version>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="FluentResults" />
+        <PackageReference Include="OneOf" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../Wabbajack.GameFinder.Paths/Wabbajack.GameFinder.Paths.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Wabbajack.GameFinder.Common.Tests" />
+    </ItemGroup>
+</Project>

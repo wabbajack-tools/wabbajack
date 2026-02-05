@@ -11,21 +11,15 @@
         <ProjectReference Include="..\Wabbajack.VFS\Wabbajack.VFS.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
-            <HintPath>..\..\..\Program Files\dotnet\packs\Microsoft.AspNetCore.App.Ref\6.0.0-preview.6.21355.2\ref\net6.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
-        </Reference>
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="GameFinder.StoreHandlers.EADesktop" />
-        <PackageReference Include="GameFinder.StoreHandlers.EGS" />
-        <PackageReference Include="GameFinder.StoreHandlers.GOG" />
-        <PackageReference Include="GameFinder.StoreHandlers.Origin" />
-        <PackageReference Include="GameFinder.StoreHandlers.Steam" />
+<ItemGroup>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
         <PackageReference Include="SixLabors.ImageSharp" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Wabbajack.GameFinder.StoreHandlers.Steam\Wabbajack.GameFinder.StoreHandlers.Steam.csproj" />
+        <ProjectReference Include="..\Wabbajack.GameFinder.StoreHandlers.GOG\Wabbajack.GameFinder.StoreHandlers.GOG.csproj" />
     </ItemGroup>
 
 </Project>

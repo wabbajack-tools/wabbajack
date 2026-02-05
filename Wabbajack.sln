@@ -141,6 +141,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Configuration", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Reporting", "Wabbajack.Reporting\Wabbajack.Reporting.csproj", "{8DC5501B-30D1-44E7-A515-DC00D2D21E35}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.GameFinder.Paths", "Wabbajack.GameFinder.Paths\Wabbajack.GameFinder.Paths.csproj", "{EDC53956-42D5-45CE-86C9-BB9A09AE49C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.GameFinder.Common", "Wabbajack.GameFinder.Common\Wabbajack.GameFinder.Common.csproj", "{4FEEE255-7C09-4AF5-8722-B04F334DAB61}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.GameFinder.RegistryUtils", "Wabbajack.GameFinder.RegistryUtils\Wabbajack.GameFinder.RegistryUtils.csproj", "{26843B47-8015-443F-8643-78525B39ABBC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.GameFinder.Wine", "Wabbajack.GameFinder.Wine\Wabbajack.GameFinder.Wine.csproj", "{2BF9EB1D-C289-4C20-B781-8657A04C3712}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.GameFinder.StoreHandlers.Steam", "Wabbajack.GameFinder.StoreHandlers.Steam\Wabbajack.GameFinder.StoreHandlers.Steam.csproj", "{60A93A15-B310-43BC-AE96-DA65779E6FE6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.GameFinder.StoreHandlers.GOG", "Wabbajack.GameFinder.StoreHandlers.GOG\Wabbajack.GameFinder.StoreHandlers.GOG.csproj", "{DEA4F7E1-5064-490B-94E3-50B2B6F35B2B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -387,6 +399,30 @@ Global
 		{8DC5501B-30D1-44E7-A515-DC00D2D21E35}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8DC5501B-30D1-44E7-A515-DC00D2D21E35}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8DC5501B-30D1-44E7-A515-DC00D2D21E35}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDC53956-42D5-45CE-86C9-BB9A09AE49C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDC53956-42D5-45CE-86C9-BB9A09AE49C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDC53956-42D5-45CE-86C9-BB9A09AE49C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDC53956-42D5-45CE-86C9-BB9A09AE49C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FEEE255-7C09-4AF5-8722-B04F334DAB61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FEEE255-7C09-4AF5-8722-B04F334DAB61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FEEE255-7C09-4AF5-8722-B04F334DAB61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FEEE255-7C09-4AF5-8722-B04F334DAB61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26843B47-8015-443F-8643-78525B39ABBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26843B47-8015-443F-8643-78525B39ABBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26843B47-8015-443F-8643-78525B39ABBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26843B47-8015-443F-8643-78525B39ABBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BF9EB1D-C289-4C20-B781-8657A04C3712}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BF9EB1D-C289-4C20-B781-8657A04C3712}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BF9EB1D-C289-4C20-B781-8657A04C3712}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BF9EB1D-C289-4C20-B781-8657A04C3712}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60A93A15-B310-43BC-AE96-DA65779E6FE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60A93A15-B310-43BC-AE96-DA65779E6FE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60A93A15-B310-43BC-AE96-DA65779E6FE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60A93A15-B310-43BC-AE96-DA65779E6FE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEA4F7E1-5064-490B-94E3-50B2B6F35B2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEA4F7E1-5064-490B-94E3-50B2B6F35B2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEA4F7E1-5064-490B-94E3-50B2B6F35B2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEA4F7E1-5064-490B-94E3-50B2B6F35B2B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

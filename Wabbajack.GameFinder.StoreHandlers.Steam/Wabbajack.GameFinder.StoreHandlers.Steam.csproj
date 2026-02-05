@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+        <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
+        <Version>$(VERSION)</Version>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="TransparentValueObjects" PrivateAssets="all" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <PackageReference Include="TransparentValueObjects.Abstractions" />
+        <PackageReference Include="ValveKeyValue" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../Wabbajack.GameFinder.Common/Wabbajack.GameFinder.Common.csproj" />
+        <ProjectReference Include="../Wabbajack.GameFinder.RegistryUtils/Wabbajack.GameFinder.RegistryUtils.csproj" />
+        <ProjectReference Include="../Wabbajack.GameFinder.Wine/Wabbajack.GameFinder.Wine.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Wabbajack.GameFinder.StoreHandlers.Steam.Tests" />
+    </ItemGroup>
+</Project>
