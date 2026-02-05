@@ -383,22 +383,22 @@ public class FileExtractor
                     f.Delete();
                     return (path, mapResult);
                 })
-                .Where(d => d.Item1 != default)
+                .WhereAsync(d => d.Item1 != default)
                 .ToDictionary(d => d.Item1, d => d.Item2);
-            
+
 
             return results;
         }
         finally
         {
             job.Dispose();
-            
+
             if (tmpFile != null) await tmpFile.Value.DisposeAsync();
 
             if (spoolFile != null) await spoolFile.Value.DisposeAsync();
         }
     }
-    
+
     public async Task<IDictionary<RelativePath, T>> GatheringExtractWithInnoExtract<T>(IStreamFactory sf,
         Predicate<RelativePath> shouldExtract,
         Func<RelativePath, IExtractedFile, ValueTask<T>> mapfn,
@@ -502,15 +502,15 @@ public class FileExtractor
                     f.Delete();
                     return (path, mapResult);
                 })
-                .Where(d => d.Item1 != default)
+                .WhereAsync(d => d.Item1 != default)
                 .ToDictionary(d => d.Item1, d => d.Item2);
-            
+
             return results;
         }
         finally
         {
             job.Dispose();
-            
+
             if (tmpFile != null) await tmpFile.Value.DisposeAsync();
 
             if (spoolFile != null) await spoolFile.Value.DisposeAsync();

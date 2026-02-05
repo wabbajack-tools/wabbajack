@@ -39,14 +39,10 @@ public static class CommandLineBuilderExtensions
         services.AddSingleton<Install>();
         CommandLineBuilder.RegisterCommand<InstallCompileInstallVerify>(InstallCompileInstallVerify.Definition, c => ((InstallCompileInstallVerify)c).Run);
         services.AddSingleton<InstallCompileInstallVerify>();
-        CommandLineBuilder.RegisterCommand<ListCreationClubContent>(ListCreationClubContent.Definition, c => ((ListCreationClubContent)c).Run);
-        services.AddSingleton<ListCreationClubContent>();
         CommandLineBuilder.RegisterCommand<ListGames>(ListGames.Definition, c => ((ListGames)c).Run);
         services.AddSingleton<ListGames>();
         CommandLineBuilder.RegisterCommand<ListModlists>(ListModlists.Definition, c => ((ListModlists)c).Run);
         services.AddSingleton<ListModlists>();
-        CommandLineBuilder.RegisterCommand<MegaLogin>(MegaLogin.Definition, c => ((MegaLogin)c).Run);
-        services.AddSingleton<MegaLogin>();
         CommandLineBuilder.RegisterCommand<MirrorFile>(MirrorFile.Definition, c => ((MirrorFile)c).Run);
         services.AddSingleton<MirrorFile>();
         CommandLineBuilder.RegisterCommand<ModlistReport>(ModlistReport.Definition, c => ((ModlistReport)c).Run);

@@ -250,7 +250,7 @@ public class Client
                     return Enumerable.Empty<ModlistMetadata>();
                 }
             })
-            .SelectMany(x => x)
+            .SelectManyAsync(x => x)
             .ToArray();
     }
 

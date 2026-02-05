@@ -1,13 +1,9 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Wabbajack.Downloaders.Bethesda;
 using Wabbajack.Downloaders.Http;
 using Wabbajack.Downloaders.Interfaces;
-using Wabbajack.Downloaders.IPS4OAuth2Downloader;
 using Wabbajack.Downloaders.Manual;
-using Wabbajack.Downloaders.MediaFire;
-using Wabbajack.Downloaders.ModDB;
 using Wabbajack.Downloaders.VerificationCache;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Networking.WabbajackClientApi;
@@ -26,14 +22,9 @@ public static class ServiceExtensions
                 .AddDTOSerializer()
                 .AddGoogleDriveDownloader()
                 .AddHttpDownloader()
-                .AddMegaDownloader()
-                .AddMediaFireDownloader()
-                .AddModDBDownloader()
                 .AddNexusDownloader()
-                .AddIPS4OAuth2Downloaders()
                 .AddWabbajackCDNDownloader()
                 .AddGameFileDownloader()
-                .AddBethesdaDownloader()
                 .AddWabbajackClient()
                 .AddManualDownloader();
         }
@@ -44,9 +35,6 @@ public static class ServiceExtensions
                 .AddDTOSerializer()
                 .AddGoogleDriveDownloader()
                 .AddHttpDownloader()
-                .AddMegaDownloader()
-                .AddMediaFireDownloader()
-                .AddModDBDownloader()
                 .AddWabbajackCDNDownloader()
                 .AddWabbajackClient();
         }

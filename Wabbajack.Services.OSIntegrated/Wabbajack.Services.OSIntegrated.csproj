@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
         <Version>$(VERSION)</Version>
@@ -28,7 +28,6 @@
         <ProjectReference Include="..\Wabbajack.Compiler\Wabbajack.Compiler.csproj" />
         <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj" />
         <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj" />
-        <ProjectReference Include="..\Wabbajack.Networking.BethesdaNet\Wabbajack.Networking.BethesdaNet.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.Discord\Wabbajack.Networking.Discord.csproj" />
         <ProjectReference Include="..\Wabbajack.VFS\Wabbajack.VFS.csproj" />
     </ItemGroup>

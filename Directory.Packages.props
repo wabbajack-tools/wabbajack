@@ -4,40 +4,31 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Avalonia -->
-    <PackageVersion Include="Avalonia" Version="11.2.5" />
-    <PackageVersion Include="Avalonia.Desktop" Version="11.2.5" />
-    <PackageVersion Include="Avalonia.Diagnostics" Version="11.2.5" />
-    <PackageVersion Include="Avalonia.ReactiveUI" Version="11.2.5" />
-    <PackageVersion Include="Avalonia.Themes.Fluent" Version="11.2.5" />
-    <PackageVersion Include="MessageBox.Avalonia" Version="3.2.0" />
-    <PackageVersion Include="ReactiveUI.Fody" Version="19.5.41" />
-
-    <!-- Microsoft.Extensions (unified to 9.0.2) -->
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="9.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.2" />
-    <PackageVersion Include="Microsoft.AspNetCore.Http.Extensions" Version="2.3.0" />
+    <!-- Microsoft.Extensions (unified to 10.0.2) -->
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.Http.Extensions" Version="2.3.9" />
 
     <!-- Testing (unified versions) -->
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageVersion Include="Xunit.DependencyInjection" Version="9.7.1" />
     <PackageVersion Include="Xunit.DependencyInjection.Logging" Version="8.1.0" />
-    <PackageVersion Include="FsCheck.Xunit" Version="3.0.0" />
+    <PackageVersion Include="FsCheck.Xunit" Version="3.3.2" />
     <PackageVersion Include="FluentAssertions" Version="8.0.0" />
-    <PackageVersion Include="coverlet.collector" Version="6.0.3" />
-    <PackageVersion Include="coverlet.msbuild" Version="6.0.3" />
-    <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="coverlet.msbuild" Version="6.0.4" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
 
     <!-- Image Processing -->
-    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.6" />
+    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageVersion Include="BCnEncoder.Net.ImageSharp" Version="1.1.1" />
     <PackageVersion Include="Shipwreck.Phash" Version="0.5.0" />
 
@@ -47,21 +38,20 @@
     <PackageVersion Include="Octopus.Octodiff" Version="2.0.548" />
 
     <!-- Networking -->
-    <PackageVersion Include="FluentFTP" Version="52.0.0" />
-    <PackageVersion Include="HtmlAgilityPack" Version="1.11.72" />
+    <PackageVersion Include="FluentFTP" Version="53.0.2" />
+    <PackageVersion Include="HtmlAgilityPack" Version="1.12.4" />
     <PackageVersion Include="Octokit" Version="14.0.0" />
-    <PackageVersion Include="SteamKit2" Version="3.0.1" />
 
     <!-- Wabbajack.Paths (from NexusMods.Paths) -->
-    <PackageVersion Include="Reloaded.Memory" Version="9.4.2" />
+    <PackageVersion Include="Reloaded.Memory" Version="9.4.3" />
     <PackageVersion Include="TransparentValueObjects" Version="1.1.0" />
     <PackageVersion Include="TransparentValueObjects.Abstractions" Version="1.1.0" />
 
     <!-- Wabbajack.GameFinder -->
-    <PackageVersion Include="FluentResults" Version="3.16.0" />
+    <PackageVersion Include="FluentResults" Version="4.0.0" />
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageVersion Include="OneOf" Version="3.0.271" />
-    <PackageVersion Include="ValveKeyValue" Version="0.13.1.398" />
+    <PackageVersion Include="ValveKeyValue" Version="0.20.0.417" />
 
     <!-- Testing Helpers -->
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
@@ -78,25 +68,24 @@
     <!-- Serialization -->
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="YamlDotNet" Version="16.3.0" />
-    <PackageVersion Include="Markdig" Version="0.40.0" />
+    <PackageVersion Include="Markdig" Version="0.44.0" />
     <PackageVersion Include="ini-parser-netstandard" Version="2.5.2" />
 
     <!-- Logging -->
-    <PackageVersion Include="NLog" Version="5.3.4" />
-    <PackageVersion Include="NLog.Extensions.Logging" Version="5.3.15" />
+    <PackageVersion Include="NLog" Version="6.1.0" />
+    <PackageVersion Include="NLog.Extensions.Logging" Version="6.1.1" />
 
     <!-- Utilities -->
-    <PackageVersion Include="DeviceId" Version="6.8.0" />
-    <PackageVersion Include="F23.StringSimilarity" Version="6.0.0" />
-    <PackageVersion Include="GitInfo" Version="3.5.0" />
-    <PackageVersion Include="JetBrains.Annotations" Version="2024.3.0" />
-    <PackageVersion Include="LibAES-CTR" Version="1.1.0" />
+    <PackageVersion Include="DeviceId" Version="6.9.0" />
+    <PackageVersion Include="F23.StringSimilarity" Version="7.0.1" />
+    <PackageVersion Include="GitInfo" Version="3.6.0" />
+    <PackageVersion Include="JetBrains.Annotations" Version="2025.2.4" />
     <PackageVersion Include="Microsoft.Toolkit.HighPerformance" Version="7.1.2" />
     <PackageVersion Include="Nettle" Version="3.0.0" />
     <PackageVersion Include="OMODFramework" Version="3.0.1" />
     <PackageVersion Include="shortid" Version="4.0.0" />
     <PackageVersion Include="System.Data.HashFunction.xxHash" Version="2.0.0" />
-    <PackageVersion Include="System.Reactive" Version="6.0.1" />
-    <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="9.0.2" />
+    <PackageVersion Include="System.Reactive" Version="6.1.0" />
+    <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="10.0.2" />
   </ItemGroup>
 </Project>

@@ -20,7 +20,6 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Installer;
-using Wabbajack.Networking.BethesdaNet;
 using Wabbajack.Networking.Discord;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
@@ -166,19 +165,9 @@ public static class ServiceExtensions
 
         service.AddSingleton<Client>();
         service.AddSingleton<WriteOnlyClient>();
-        service.AddBethesdaNet();
 
         // Token Providers
         service.AddAllSingleton<ITokenProvider<NexusOAuthState>, EncryptedJsonTokenProvider<NexusOAuthState>, NexusApiTokenProvider>();
-        service.AddAllSingleton<ITokenProvider<MegaToken>, EncryptedJsonTokenProvider<MegaToken>, MegaTokenProvider>();
-        
-        service.AddAllSingleton<ITokenProvider<BethesdaNetLoginState>, EncryptedJsonTokenProvider<BethesdaNetLoginState>, BethesdaNetTokenProvider>();
-        service
-            .AddAllSingleton<ITokenProvider<LoversLabLoginState>, EncryptedJsonTokenProvider<LoversLabLoginState>,
-                LoversLabTokenProvider>();
-        service
-            .AddAllSingleton<ITokenProvider<VectorPlexusLoginState>, EncryptedJsonTokenProvider<VectorPlexusLoginState>,
-                VectorPlexusTokenProvider>();
 
         service.AddAllSingleton<ITokenProvider<WabbajackApiState>, WabbajackApiTokenProvider>();
 
