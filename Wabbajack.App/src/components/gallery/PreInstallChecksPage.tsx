@@ -66,7 +66,8 @@ export function PreInstallChecksPage({
 
   // Folder input handler with Tauri dialog
   const handleBrowse = async (setter: (value: string) => void, title: string) => {
-    if (window.__TAURI__) {
+    // Tauri v2 sets __TAURI_INTERNALS__ even without withGlobalTauri
+    if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
       try {
         const { open } = await import('@tauri-apps/plugin-dialog');
         const selected = await open({
