@@ -49,6 +49,9 @@
 
     <!-- Wabbajack.GameFinder -->
     <PackageVersion Include="FluentResults" Version="4.0.0" />
+    <PackageVersion Include="GameFinder.StoreHandlers.Steam" Version="4.5.0" />
+    <PackageVersion Include="GameFinder.StoreHandlers.GOG" Version="4.5.0" />
+    <PackageVersion Include="GameFinder.Wine" Version="4.5.0" />
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageVersion Include="OneOf" Version="3.0.271" />
     <PackageVersion Include="ValveKeyValue" Version="0.20.0.417" />
