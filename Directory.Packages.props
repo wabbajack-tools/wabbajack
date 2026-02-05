@@ -47,7 +47,7 @@
     <PackageVersion Include="Octopus.Octodiff" Version="2.0.548" />
 
     <!-- Networking -->
-    <PackageVersion Include="FluentFTP" Version="52.0.0" />
+    <PackageVersion Include="FluentFTP" Version="53.0.2" />
     <PackageVersion Include="HtmlAgilityPack" Version="1.11.72" />
     <PackageVersion Include="Octokit" Version="14.0.0" />
     <PackageVersion Include="SteamKit2" Version="3.0.1" />
