@@ -48,7 +48,7 @@
 
     <!-- Networking -->
     <PackageVersion Include="FluentFTP" Version="52.0.0" />
-    <PackageVersion Include="HtmlAgilityPack" Version="1.11.72" />
+    <PackageVersion Include="HtmlAgilityPack" Version="1.12.4" />
     <PackageVersion Include="Octokit" Version="14.0.0" />
     <PackageVersion Include="SteamKit2" Version="3.0.1" />
 
