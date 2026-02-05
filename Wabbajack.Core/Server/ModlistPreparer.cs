@@ -187,13 +187,19 @@ public class ModlistPreparer : IDisposable
             // Build the pre-install info
             var info = BuildPreInstallInfo(sessionId, modList);
 
+            // Extract GameFile and Manual archives
+            var gameFileArchives = ExtractGameFileArchives(modList);
+            var manualArchives = ExtractManualArchives(modList);
+
             // Store in cache
             _cache[sessionId] = new PreparedModlist(
                 SessionId: sessionId,
                 ModList: modList,
                 Info: info,
                 TempFilePath: tempPath.Path,
-                PreparedAt: DateTime.UtcNow);
+                PreparedAt: DateTime.UtcNow,
+                GameFileArchives: gameFileArchives,
+                ManualArchives: manualArchives);
 
             // Update status to ready
             _activeOps[sessionId] = new ModlistPrepareStatus(sessionId, "ready", 1.0, null);
@@ -306,6 +312,41 @@ public class ModlistPreparer : IDisposable
             Warnings: warnings);
     }
 
+    private List<GameFileArchive> ExtractGameFileArchives(ModList modList)
+    {
+        return modList.Archives
+            .Where(a => a.State is GameFileSource)
+            .Select(a =>
+            {
+                var state = (GameFileSource)a.State;
+                return new GameFileArchive(
+                    Name: a.Name,
+                    Size: a.Size,
+                    Hash: a.Hash,
+                    Game: state.Game,
+                    GameFile: state.GameFile.ToString(),
+                    GameVersion: state.GameVersion);
+            })
+            .ToList();
+    }
+
+    private List<ManualArchive> ExtractManualArchives(ModList modList)
+    {
+        return modList.Archives
+            .Where(a => a.State is Manual)
+            .Select(a =>
+            {
+                var state = (Manual)a.State;
+                return new ManualArchive(
+                    Name: a.Name,
+                    Size: a.Size,
+                    Hash: a.Hash,
+                    Url: state.Url?.ToString() ?? "",
+                    Prompt: state.Prompt ?? "");
+            })
+            .ToList();
+    }
+
     public void Dispose()
     {
         // Clean up cached temp files
@@ -333,4 +374,27 @@ public record PreparedModlist(
     ModList ModList,
     ModlistPreInstallInfo Info,
     AbsolutePath TempFilePath,
-    DateTime PreparedAt);
+    DateTime PreparedAt,
+    List<GameFileArchive> GameFileArchives,
+    List<ManualArchive> ManualArchives);
+
+/// <summary>
+/// An archive that comes from game files.
+/// </summary>
+public record GameFileArchive(
+    string Name,
+    long Size,
+    Hashing.xxHash64.Hash Hash,
+    Game Game,
+    string GameFile,
+    string GameVersion);
+
+/// <summary>
+/// An archive that requires manual download.
+/// </summary>
+public record ManualArchive(
+    string Name,
+    long Size,
+    Hashing.xxHash64.Hash Hash,
+    string Url,
+    string Prompt);

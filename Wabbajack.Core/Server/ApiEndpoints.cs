@@ -24,6 +24,7 @@ public class HttpApiServer
     private readonly ApplicationInfo _appInfo;
     private readonly EventBroadcaster _eventBroadcaster;
     private readonly ModlistPreparer _modlistPreparer;
+    private readonly PreInstallChecker _preInstallChecker;
     private readonly HttpListener _listener;
     private readonly JsonSerializerOptions _jsonOptions;
 
@@ -32,12 +33,14 @@ public class HttpApiServer
         GameLocator gameLocator,
         ApplicationInfo appInfo,
         EventBroadcaster eventBroadcaster,
-        ModlistPreparer modlistPreparer)
+        ModlistPreparer modlistPreparer,
+        PreInstallChecker preInstallChecker)
     {
         _gameLocator = gameLocator;
         _appInfo = appInfo;
         _eventBroadcaster = eventBroadcaster;
         _modlistPreparer = modlistPreparer;
+        _preInstallChecker = preInstallChecker;
 
         _listener = new HttpListener();
         _listener.Prefixes.Add($"http://localhost:{port}/");
@@ -118,6 +121,20 @@ public class HttpApiServer
                     => await HandleModlistStatusAsync(context, p),
                 var p when p.StartsWith("/api/modlist/") && p.EndsWith("/info")
                     => await HandleModlistInfoAsync(context, p),
+                // Pre-install checklist endpoints
+                "/api/auth/nexus/status" => await HandleNexusStatusAsync(context),
+                var p when p.StartsWith("/api/modlist/") && p.EndsWith("/validate-paths") && context.Request.HttpMethod == "POST"
+                    => await HandleValidatePathsAsync(context, p, cancellationToken),
+                var p when p.StartsWith("/api/modlist/") && p.EndsWith("/check-game-files") && context.Request.HttpMethod == "POST"
+                    => await HandleCheckGameFilesAsync(context, p, cancellationToken),
+                var p when p.StartsWith("/api/modlist/") && p.EndsWith("/check-manual-downloads") && context.Request.HttpMethod == "POST"
+                    => await HandleCheckManualDownloadsAsync(context, p, cancellationToken),
+                var p when p.StartsWith("/api/modlist/") && p.EndsWith("/move-download") && context.Request.HttpMethod == "POST"
+                    => await HandleMoveDownloadAsync(context, p, cancellationToken),
+                var p when p.StartsWith("/api/modlist/") && p.EndsWith("/check-disk-space") && context.Request.HttpMethod == "POST"
+                    => await HandleCheckDiskSpaceAsync(context, p, cancellationToken),
+                var p when p.StartsWith("/api/modlist/") && p.EndsWith("/checklist")
+                    => await HandleGetChecklistAsync(context, p),
                 _ => false
             };
 
@@ -339,6 +356,165 @@ public class HttpApiServer
         await WriteJsonAsync(context, ApiResponse<ModlistPreInstallInfo>.Ok(prepared.Info));
         return true;
     }
+
+    #region Pre-Install Checklist Handlers
+
+    private async Task<bool> HandleNexusStatusAsync(HttpListenerContext context)
+    {
+        var status = _preInstallChecker.CheckNexusLogin();
+        await WriteJsonAsync(context, ApiResponse<NexusLoginStatus>.Ok(status));
+        return true;
+    }
+
+    private async Task<bool> HandleValidatePathsAsync(HttpListenerContext context, string path, CancellationToken token)
+    {
+        var sessionId = ExtractSessionId(path);
+        if (sessionId == null)
+        {
+            context.Response.StatusCode = 400;
+            await WriteJsonAsync(context, ApiResponse<PathValidationResult>.Fail("Invalid path"));
+            return true;
+        }
+
+        using var reader = new StreamReader(context.Request.InputStream, context.Request.ContentEncoding);
+        var body = await reader.ReadToEndAsync(token);
+
+        var request = JsonSerializer.Deserialize<ValidatePathsRequest>(body, _jsonOptions);
+        if (request == null)
+        {
+            context.Response.StatusCode = 400;
+            await WriteJsonAsync(context, ApiResponse<PathValidationResult>.Fail("Invalid request body"));
+            return true;
+        }
+
+        var result = _preInstallChecker.ValidatePaths(sessionId, request.InstallFolder, request.DownloadFolder);
+        await WriteJsonAsync(context, ApiResponse<PathValidationResult>.Ok(result));
+        return true;
+    }
+
+    private async Task<bool> HandleCheckGameFilesAsync(HttpListenerContext context, string path, CancellationToken token)
+    {
+        var sessionId = ExtractSessionId(path);
+        if (sessionId == null)
+        {
+            context.Response.StatusCode = 400;
+            await WriteJsonAsync(context, ApiResponse<GameFilesCheckResult>.Fail("Invalid path"));
+            return true;
+        }
+
+        var result = await _preInstallChecker.CheckGameFilesAsync(sessionId, token);
+        await WriteJsonAsync(context, ApiResponse<GameFilesCheckResult>.Ok(result));
+        return true;
+    }
+
+    private async Task<bool> HandleCheckManualDownloadsAsync(HttpListenerContext context, string path, CancellationToken token)
+    {
+        var sessionId = ExtractSessionId(path);
+        if (sessionId == null)
+        {
+            context.Response.StatusCode = 400;
+            await WriteJsonAsync(context, ApiResponse<ManualDownloadsCheckResult>.Fail("Invalid path"));
+            return true;
+        }
+
+        using var reader = new StreamReader(context.Request.InputStream, context.Request.ContentEncoding);
+        var body = await reader.ReadToEndAsync(token);
+
+        var request = JsonSerializer.Deserialize<CheckManualDownloadsRequest>(body, _jsonOptions);
+        if (request == null)
+        {
+            context.Response.StatusCode = 400;
+            await WriteJsonAsync(context, ApiResponse<ManualDownloadsCheckResult>.Fail("Invalid request body"));
+            return true;
+        }
+
+        var result = await _preInstallChecker.CheckManualDownloadsAsync(sessionId, request.DownloadFolder, token);
+        await WriteJsonAsync(context, ApiResponse<ManualDownloadsCheckResult>.Ok(result));
+        return true;
+    }
+
+    private async Task<bool> HandleMoveDownloadAsync(HttpListenerContext context, string path, CancellationToken token)
+    {
+        var sessionId = ExtractSessionId(path);
+        if (sessionId == null)
+        {
+            context.Response.StatusCode = 400;
+            await WriteJsonAsync(context, ApiResponse<bool>.Fail("Invalid path"));
+            return true;
+        }
+
+        using var reader = new StreamReader(context.Request.InputStream, context.Request.ContentEncoding);
+        var body = await reader.ReadToEndAsync(token);
+
+        var request = JsonSerializer.Deserialize<MoveDownloadRequest>(body, _jsonOptions);
+        if (request == null)
+        {
+            context.Response.StatusCode = 400;
+            await WriteJsonAsync(context, ApiResponse<bool>.Fail("Invalid request body"));
+            return true;
+        }
+
+        var success = await _preInstallChecker.MoveDownloadFileAsync(request.SourcePath, request.DownloadFolder, token);
+        await WriteJsonAsync(context, ApiResponse<bool>.Ok(success));
+        return true;
+    }
+
+    private async Task<bool> HandleCheckDiskSpaceAsync(HttpListenerContext context, string path, CancellationToken token)
+    {
+        var sessionId = ExtractSessionId(path);
+        if (sessionId == null)
+        {
+            context.Response.StatusCode = 400;
+            await WriteJsonAsync(context, ApiResponse<DiskSpaceCheckResult>.Fail("Invalid path"));
+            return true;
+        }
+
+        using var reader = new StreamReader(context.Request.InputStream, context.Request.ContentEncoding);
+        var body = await reader.ReadToEndAsync(token);
+
+        var request = JsonSerializer.Deserialize<CheckDiskSpaceRequest>(body, _jsonOptions);
+        if (request == null)
+        {
+            context.Response.StatusCode = 400;
+            await WriteJsonAsync(context, ApiResponse<DiskSpaceCheckResult>.Fail("Invalid request body"));
+            return true;
+        }
+
+        var result = _preInstallChecker.CheckDiskSpace(sessionId, request.InstallFolder, request.DownloadFolder);
+        await WriteJsonAsync(context, ApiResponse<DiskSpaceCheckResult>.Ok(result));
+        return true;
+    }
+
+    private async Task<bool> HandleGetChecklistAsync(HttpListenerContext context, string path)
+    {
+        var sessionId = ExtractSessionId(path);
+        if (sessionId == null)
+        {
+            context.Response.StatusCode = 400;
+            await WriteJsonAsync(context, ApiResponse<PreInstallChecklistState>.Fail("Invalid path"));
+            return true;
+        }
+
+        var state = _preInstallChecker.GetChecklistState(sessionId);
+        if (state == null)
+        {
+            context.Response.StatusCode = 404;
+            await WriteJsonAsync(context, ApiResponse<PreInstallChecklistState>.Fail("Session not found"));
+            return true;
+        }
+
+        await WriteJsonAsync(context, ApiResponse<PreInstallChecklistState>.Ok(state));
+        return true;
+    }
+
+    private static string? ExtractSessionId(string path)
+    {
+        // Extract session ID from path: /api/modlist/{sessionId}/...
+        var segments = path.Split('/');
+        return segments.Length >= 4 ? segments[3] : null;
+    }
+
+    #endregion
 
     private async Task WriteJsonAsync<T>(HttpListenerContext context, T data)
     {

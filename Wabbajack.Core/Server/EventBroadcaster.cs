@@ -137,6 +137,32 @@ public class EventBroadcaster
         BroadcastEvent(evt);
     }
 
+    /// <summary>
+    /// Broadcasts checklist progress for a specific check type.
+    /// </summary>
+    public void BroadcastChecklistProgress(string sessionId, string checkType, double progress, string message)
+    {
+        var evt = new ServerEvent(
+            "ChecklistProgress",
+            DateTime.UtcNow,
+            new { sessionId, checkType, progress, message });
+
+        BroadcastEvent(evt);
+    }
+
+    /// <summary>
+    /// Broadcasts per-file hash progress for large files.
+    /// </summary>
+    public void BroadcastHashProgress(string sessionId, string fileName, long bytesHashed, long totalBytes)
+    {
+        var evt = new ServerEvent(
+            "HashProgress",
+            DateTime.UtcNow,
+            new { sessionId, fileName, bytesHashed, totalBytes, progress = totalBytes > 0 ? (double)bytesHashed / totalBytes : 0 });
+
+        BroadcastEvent(evt);
+    }
+
     private void BroadcastEvent(ServerEvent evt)
     {
         foreach (var (clientId, channel) in _clients)

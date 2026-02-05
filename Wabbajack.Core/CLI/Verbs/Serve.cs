@@ -9,9 +9,12 @@ using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.DTOs.Logins;
+using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths.IO;
 using Wabbajack.Server;
+using Wabbajack.VFS;
 
 namespace Wabbajack.CLI.Verbs;
 
@@ -27,6 +30,8 @@ public class Serve
     private readonly DTOSerializer _dtoSerializer;
     private readonly DownloadDispatcher _dispatcher;
     private readonly Client _wjClient;
+    private readonly FileHashCache _fileHashCache;
+    private readonly ITokenProvider<NexusOAuthState>? _nexusAuth;
 
     public Serve(
         ILogger<Serve> logger,
@@ -35,7 +40,9 @@ public class Serve
         IConsoleRenderer console,
         DTOSerializer dtoSerializer,
         DownloadDispatcher dispatcher,
-        Client wjClient)
+        Client wjClient,
+        FileHashCache fileHashCache,
+        ITokenProvider<NexusOAuthState>? nexusAuth = null)
     {
         _logger = logger;
         _gameLocator = gameLocator;
@@ -44,6 +51,8 @@ public class Serve
         _dtoSerializer = dtoSerializer;
         _dispatcher = dispatcher;
         _wjClient = wjClient;
+        _fileHashCache = fileHashCache;
+        _nexusAuth = nexusAuth;
     }
 
     public static VerbDefinition Definition = new("serve",
@@ -74,7 +83,22 @@ public class Serve
             eventBroadcaster,
             _gameLocator);
 
-        var server = new HttpApiServer(port, _gameLocator, _appInfo, eventBroadcaster, modlistPreparer);
+        // Create pre-install checklist services
+        var pathValidator = new PathValidator(_gameLocator);
+        var fileScanner = new FileScanner(
+            NullLogger<FileScanner>.Instance,
+            _fileHashCache,
+            eventBroadcaster);
+        var preInstallChecker = new PreInstallChecker(
+            NullLogger<PreInstallChecker>.Instance,
+            _gameLocator,
+            fileScanner,
+            pathValidator,
+            modlistPreparer,
+            eventBroadcaster,
+            _nexusAuth);
+
+        var server = new HttpApiServer(port, _gameLocator, _appInfo, eventBroadcaster, modlistPreparer, preInstallChecker);
 
         _console.WriteMarkupLine($"[bold green]Wabbajack Server v{_appInfo.Version}[/]");
         _console.WriteMarkupLine($"[dim]Platform: {_appInfo.Platform}[/]");
@@ -89,6 +113,13 @@ public class Serve
         _console.WriteMarkupLine($"  [blue]POST[/] /api/modlist/prepare   - Prepare modlist for install");
         _console.WriteMarkupLine($"  [blue]GET[/]  /api/modlist/{{id}}/status - Get preparation status");
         _console.WriteMarkupLine($"  [blue]GET[/]  /api/modlist/{{id}}/info   - Get pre-install info");
+        _console.WriteMarkupLine("[dim]Pre-install Checklist:[/]");
+        _console.WriteMarkupLine($"  [blue]GET[/]  /api/auth/nexus/status - Check Nexus login");
+        _console.WriteMarkupLine($"  [blue]POST[/] /api/modlist/{{id}}/validate-paths - Validate folders");
+        _console.WriteMarkupLine($"  [blue]POST[/] /api/modlist/{{id}}/check-game-files - Check game files");
+        _console.WriteMarkupLine($"  [blue]POST[/] /api/modlist/{{id}}/check-manual-downloads - Check manual downloads");
+        _console.WriteMarkupLine($"  [blue]POST[/] /api/modlist/{{id}}/check-disk-space - Check disk space");
+        _console.WriteMarkupLine($"  [blue]GET[/]  /api/modlist/{{id}}/checklist - Get full checklist state");
         _console.WriteMarkupLine("");
         _console.WriteMarkupLine("[dim]Press Ctrl+C to stop the server[/]");
 

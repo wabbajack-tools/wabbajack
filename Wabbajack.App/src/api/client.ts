@@ -52,3 +52,37 @@ export async function getStatus(): Promise<ApiResponse<ServerStatus>> {
 export function getEventsUrl(): string {
   return `${API_BASE}/api/events`;
 }
+
+// Server-Sent Events
+export interface ServerEvent {
+  type: string;
+  timestamp: string;
+  data: unknown;
+}
+
+/**
+ * Subscribe to server-sent events.
+ * Returns an unsubscribe function.
+ */
+export function subscribeToEvents(
+  onEvent: (event: ServerEvent) => void
+): () => void {
+  const eventSource = new EventSource(getEventsUrl());
+
+  eventSource.onmessage = (e) => {
+    try {
+      const event = JSON.parse(e.data) as ServerEvent;
+      onEvent(event);
+    } catch (err) {
+      console.error('Failed to parse SSE event:', err);
+    }
+  };
+
+  eventSource.onerror = (err) => {
+    console.error('SSE error:', err);
+  };
+
+  return () => {
+    eventSource.close();
+  };
+}
