@@ -24,6 +24,32 @@ function formatSize(bytes: number): string {
   return `${kb.toFixed(0)} KB`;
 }
 
+function getPathErrorSummary(
+  pathValidation: {
+    installFolder: { errors: string[]; warnings: string[] };
+    downloadFolder: { errors: string[]; warnings: string[] };
+  } | null,
+  pathsError: string | null
+): string {
+  // If we have an API/network error, show that
+  if (pathsError) return pathsError;
+
+  // If we have validation results, show the first error
+  if (pathValidation) {
+    const installErrors = pathValidation.installFolder.errors;
+    const downloadErrors = pathValidation.downloadFolder.errors;
+
+    if (installErrors.length > 0) {
+      return `Install: ${installErrors[0]}`;
+    }
+    if (downloadErrors.length > 0) {
+      return `Downloads: ${downloadErrors[0]}`;
+    }
+  }
+
+  return 'Validation failed';
+}
+
 export function PreInstallChecksPage({
   info,
   onProceed,
@@ -52,6 +78,17 @@ export function PreInstallChecksPage({
       checklist.runAllChecks();
     }
   }, [checklist.installFolder, checklist.downloadFolder, hasRunInitialChecks, checklist.runAllChecks]);
+
+  // Re-run path-dependent checks when folders change (after initial setup)
+  useEffect(() => {
+    if (hasRunInitialChecks && checklist.installFolder && checklist.downloadFolder) {
+      // Only re-run checks that depend on folder paths
+      checklist.runPathValidation();
+      checklist.runDiskSpaceCheck();
+      checklist.runManualDownloadsCheck();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checklist.installFolder, checklist.downloadFolder]);
 
   // Calculate overall progress
   const stepStatuses = [
@@ -285,7 +322,7 @@ export function PreInstallChecksPage({
               : checklist.pathsStatus === 'checking'
                 ? 'Validating...'
                 : checklist.pathsStatus === 'failed'
-                  ? 'Invalid folder configuration'
+                  ? getPathErrorSummary(checklist.pathValidation, checklist.pathsError)
                   : 'Set folders above'
           }
           isActive={checklist.pathsStatus === 'checking'}

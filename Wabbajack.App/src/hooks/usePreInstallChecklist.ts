@@ -54,6 +54,7 @@ export interface UsePreInstallChecklistResult {
 
   // Step statuses
   pathsStatus: ChecklistStepStatus;
+  pathsError: string | null;
   nexusStatus: ChecklistStepStatus;
   gameFilesStatus: ChecklistStepStatus;
   manualDownloadsStatus: ChecklistStepStatus;
@@ -102,6 +103,7 @@ export function usePreInstallChecklist(
 
   // Step statuses
   const [pathsStatus, setPathsStatus] = useState<ChecklistStepStatus>('pending');
+  const [pathsError, setPathsError] = useState<string | null>(null);
   const [nexusStatus, setNexusStatus] = useState<ChecklistStepStatus>('pending');
   const [gameFilesStatus, setGameFilesStatus] =
     useState<ChecklistStepStatus>('pending');
@@ -171,10 +173,12 @@ export function usePreInstallChecklist(
   const runPathValidation = useCallback(async () => {
     if (!installFolder || !downloadFolder) {
       setPathsStatus('pending');
+      setPathsError(null);
       return;
     }
 
     setPathsStatus('checking');
+    setPathsError(null);
     try {
       const response = await validatePaths(sessionId, {
         installFolder,
@@ -191,10 +195,12 @@ export function usePreInstallChecklist(
           response.data.downloadFolder.warnings.length > 0;
         setPathsStatus(hasErrors ? 'failed' : hasWarnings ? 'warning' : 'passed');
       } else {
+        setPathsError(response.error || 'Validation request failed');
         setPathsStatus('failed');
       }
     } catch (error) {
       console.error('Path validation failed:', error);
+      setPathsError(error instanceof Error ? error.message : 'Failed to connect to server');
       setPathsStatus('failed');
     }
   }, [sessionId, installFolder, downloadFolder]);
@@ -336,7 +342,17 @@ export function usePreInstallChecklist(
   const blockingIssues: string[] = [];
 
   if (pathsStatus === 'failed') {
-    blockingIssues.push('Install or download folder has errors');
+    // Add specific path errors instead of generic message
+    if (pathValidation) {
+      pathValidation.installFolder.errors.forEach((err) =>
+        blockingIssues.push(`Install folder: ${err}`)
+      );
+      pathValidation.downloadFolder.errors.forEach((err) =>
+        blockingIssues.push(`Downloads folder: ${err}`)
+      );
+    } else {
+      blockingIssues.push('Install or download folder has errors');
+    }
   }
   if (nexusStatus === 'failed') {
     blockingIssues.push('Not logged into Nexus Mods');
@@ -375,6 +391,7 @@ export function usePreInstallChecklist(
 
     // Step statuses
     pathsStatus,
+    pathsError,
     nexusStatus,
     gameFilesStatus,
     manualDownloadsStatus,
