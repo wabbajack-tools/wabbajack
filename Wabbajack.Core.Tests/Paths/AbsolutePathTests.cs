@@ -20,7 +20,8 @@ public class AbsolutePathTests
     [Fact]
     public void ParentOfTopLevelPathThrows()
     {
-        Assert.Throws<PathException>(() => ((AbsolutePath) @"c:\").Parent.ToString());
+        // Note: "c:/" is the root, asking for its parent throws
+        Assert.Throws<PathException>(() => ((AbsolutePath) @"c:/").Parent.ToString());
     }
 
     [Fact]
@@ -72,12 +73,16 @@ public class AbsolutePathTests
     }
 
     [Fact]
-    public void CanGetPathFormats()
+    public void CanDetectPathTypes()
     {
-        Assert.Equal(PathFormat.Windows, ((AbsolutePath) @"c:\foo\bar").PathFormat);
-        Assert.Equal(PathFormat.Windows, ((AbsolutePath) @"\\foo\bar").PathFormat);
-        Assert.Equal(PathFormat.Unix, ((AbsolutePath) @"/foo/bar").PathFormat);
-        Assert.Throws<PathException>(() => ((AbsolutePath) @"c!\foo/bar").PathFormat);
+        // Windows paths are converted to forward slashes internally (case preserved)
+        Assert.StartsWith("c:/", ((AbsolutePath) @"c:\foo\bar").ToString());
+        // UNC paths use forward slashes after sanitization
+        Assert.StartsWith("//", ((AbsolutePath) @"\\foo\bar").ToString());
+        // Unix paths stay with forward slashes
+        Assert.StartsWith("/", ((AbsolutePath) @"/foo/bar").ToString());
+        // Invalid paths throw
+        Assert.Throws<PathException>(() => (AbsolutePath) @"c!/foo/bar");
     }
 
     [Fact]

@@ -42,6 +42,11 @@ public class FileScanner
         string sessionId,
         CancellationToken token)
     {
+        _logger.LogWarning("DEBUG: Scanning folder: {Folder}", folder);
+        _logger.LogWarning("DEBUG: Folder ToString: {FolderString}", folder.ToString());
+        System.Console.WriteLine($"DEBUG: Scanning folder: {folder}");
+        System.Console.WriteLine($"DEBUG: Folder ToString: {folder.ToString()}");
+
         if (!folder.DirectoryExists())
         {
             _logger.LogWarning("Folder does not exist: {Folder}", folder);
@@ -63,11 +68,30 @@ public class FileScanner
             .GroupBy(f => f.FileName.ToLowerInvariant())
             .ToDictionary(g => g.Key, g => g.ToList());
 
+        _logger.LogWarning("DEBUG: Looking for {Count} expected files: {Files}",
+            expectedFiles.Count,
+            string.Join(", ", expectedFiles.Select(f => f.FileName)));
+        System.Console.WriteLine($"DEBUG: Looking for {expectedFiles.Count} expected files: {string.Join(", ", expectedFiles.Select(f => f.FileName))}");
+
         // Get all files in the folder with names that match expected files
-        var allFiles = folder.EnumerateFiles()
+        var allFilesRaw = folder.EnumerateFiles().ToList();
+        _logger.LogWarning("DEBUG: Found {Count} total files in folder", allFilesRaw.Count);
+        System.Console.WriteLine($"DEBUG: Found {allFilesRaw.Count} total files in folder");
+        // Show first few files
+        foreach (var f in allFilesRaw.Take(5))
+        {
+            System.Console.WriteLine($"DEBUG:   Sample file: {f} (FileName: {f.FileName})");
+        }
+
+        var allFiles = allFilesRaw
             .Select(f => new ScannedFile(f, f.FileName.ToString().ToLowerInvariant()))
             .Where(f => expectedByName.ContainsKey(f.Name))
             .ToList();
+
+        _logger.LogWarning("DEBUG: Matched {Count} files by name: {Files}",
+            allFiles.Count,
+            string.Join(", ", allFiles.Select(f => f.Name)));
+        System.Console.WriteLine($"DEBUG: Matched {allFiles.Count} files by name: {string.Join(", ", allFiles.Select(f => f.Name))}");
 
         var results = new List<FileMatchResult>();
 
@@ -109,7 +133,13 @@ public class FileScanner
 
         if (nameMatches.Count == 0)
         {
-            _logger.LogDebug("File not found by name: {FileName}", expected.FileName);
+            _logger.LogWarning("File not found by name: {FileName} (expected: '{ExpectedName}')", expected.FileName, expectedName);
+            System.Console.WriteLine($"DEBUG: File NOT FOUND by name: {expected.FileName} (expected: '{expectedName}')");
+            System.Console.WriteLine($"DEBUG: All files available for matching ({allFiles.Count}):");
+            foreach (var f in allFiles.Take(20))
+            {
+                System.Console.WriteLine($"DEBUG:   - '{f.Name}' at {f.Path}");
+            }
             return new FileMatchResult(expected.FileName, expected.RelativePath, FileMatchStatus.NotFound, null, null);
         }
 

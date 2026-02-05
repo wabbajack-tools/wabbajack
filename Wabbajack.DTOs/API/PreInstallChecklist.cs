@@ -45,9 +45,11 @@ public record GameFilesCheckResult(
 /// </summary>
 public record GameFileStatus(
     [property: JsonPropertyName("relativePath")] string RelativePath,
+    [property: JsonPropertyName("absolutePath")] string AbsolutePath,
     [property: JsonPropertyName("status")] string Status,
     [property: JsonPropertyName("expectedHash")] string ExpectedHash,
-    [property: JsonPropertyName("actualHash")] string? ActualHash);
+    [property: JsonPropertyName("actualHash")] string? ActualHash,
+    [property: JsonPropertyName("expectedSize")] long ExpectedSize);
 
 #endregion
 

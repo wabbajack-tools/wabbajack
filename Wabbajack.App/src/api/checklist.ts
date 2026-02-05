@@ -33,9 +33,11 @@ export interface GameFilesCheckResult {
 
 export interface GameFileStatus {
   relativePath: string;
+  absolutePath: string;
   status: string; // 'found' | 'missing' | 'hash_mismatch' | 'size_mismatch'
   expectedHash: string;
   actualHash?: string;
+  expectedSize: number;
 }
 
 // Manual downloads check
@@ -86,11 +88,11 @@ export interface DriveSpaceInfo {
   hasEnoughSpace: boolean;
 }
 
-// Nexus login check
-export interface NexusLoginStatus {
-  isLoggedIn: boolean;
-  username?: string;
-}
+// Note: NexusLoginStatus is now in auth.ts
+import type { NexusLoginStatus } from './auth';
+
+// Re-export NexusLoginStatus for convenience
+export type { NexusLoginStatus } from './auth';
 
 // Full checklist state
 export interface PreInstallChecklistState {
@@ -108,13 +110,8 @@ export interface PreInstallChecklistState {
 // API Functions
 // ============================================================================
 
-/**
- * Check Nexus Mods login status.
- */
-export async function checkNexusLogin(): Promise<ApiResponse<NexusLoginStatus>> {
-  const response = await fetch(`${API_BASE}/api/auth/nexus/status`);
-  return response.json();
-}
+// Note: Nexus auth functions (checkNexusStatus, initiateNexusLogin, logoutNexus)
+// are in auth.ts
 
 /**
  * Validate install and download folder paths.

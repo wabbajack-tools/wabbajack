@@ -26,7 +26,8 @@ public class FullPathTests
     [Fact]
     public void ToStringWorks()
     {
-        Assert.Equal(@"c:\foo.zip|bar.7z", Foobar.ToString());
+        // AbsolutePath uses forward slashes internally, RelativePath uses backslashes
+        Assert.Equal(@"c:/foo.zip|bar.7z", Foobar.ToString());
     }
 
     [Fact]

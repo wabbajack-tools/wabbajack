@@ -78,6 +78,14 @@ public class PreInstallChecker
     /// </summary>
     public NexusLoginStatus CheckNexusLogin()
     {
+        // Check for NEXUS_API_KEY environment variable first
+        var apiKey = Environment.GetEnvironmentVariable("NEXUS_API_KEY");
+        if (!string.IsNullOrWhiteSpace(apiKey))
+        {
+            _logger.LogDebug("Using NEXUS_API_KEY from environment");
+            return new NexusLoginStatus(true, "API Key User");
+        }
+
         if (_nexusAuth == null)
         {
             _logger.LogDebug("Nexus auth provider not available");
@@ -109,14 +117,30 @@ public class PreInstallChecker
             return new GameFilesCheckResult("game_not_installed", prepared.GameFileArchives.Count, 0, new List<GameFileStatus>());
         }
 
+        _logger.LogWarning("DEBUG: Game {Game} found at: {GamePath}", game, gamePath);
+        _logger.LogWarning("DEBUG: Game path ToString: {GamePathString}", gamePath.ToString());
+        System.Console.WriteLine($"DEBUG: Game {game} found at: {gamePath}");
+        System.Console.WriteLine($"DEBUG: Game path ToString: {gamePath.ToString()}");
+
         // Build expected files list
+        // Note: GameFile paths from modlists use backslashes (Windows-style)
+        // Path.GetFileName doesn't handle backslashes on Linux, so we handle both separators
         var expectedFiles = prepared.GameFileArchives
             .Select(a => new ExpectedFile(
-                Path.GetFileName(a.GameFile),
+                GetFileNameCrossPlatform(a.GameFile),
                 a.GameFile,
                 a.Size,
                 a.Hash))
             .ToList();
+
+        _logger.LogWarning("DEBUG: Building expected files from {Count} GameFileArchives:", prepared.GameFileArchives.Count);
+        System.Console.WriteLine($"DEBUG: Building expected files from {prepared.GameFileArchives.Count} GameFileArchives:");
+        foreach (var a in prepared.GameFileArchives.Take(5))
+        {
+            var fileName = GetFileNameCrossPlatform(a.GameFile);
+            _logger.LogWarning("DEBUG:   GameFile: '{GameFile}' -> FileName: '{FileName}'", a.GameFile, fileName);
+            System.Console.WriteLine($"DEBUG:   GameFile: '{a.GameFile}' -> FileName: '{fileName}'");
+        }
 
         if (expectedFiles.Count == 0)
         {
@@ -127,18 +151,24 @@ public class PreInstallChecker
         var results = await _fileScanner.ScanFilesAsync(gamePath, expectedFiles, sessionId, token);
 
         // Convert to API format
-        var fileStatuses = results.Select(r => new GameFileStatus(
-            r.RelativePath,
-            r.Status switch
-            {
-                FileMatchStatus.Found => "found",
-                FileMatchStatus.NotFound => "missing",
-                FileMatchStatus.SizeMismatch => "size_mismatch",
-                FileMatchStatus.HashMismatch => "hash_mismatch",
-                _ => "unknown"
-            },
-            expectedFiles.First(e => e.FileName == r.FileName).ExpectedHash.ToString(),
-            r.ActualHash?.ToString())).ToList();
+        var fileStatuses = results.Select(r => {
+            var expected = expectedFiles.First(e => e.FileName == r.FileName);
+            var absolutePath = gamePath.Combine(r.RelativePath.ToRelativePath()).ToString();
+            return new GameFileStatus(
+                r.RelativePath,
+                absolutePath,
+                r.Status switch
+                {
+                    FileMatchStatus.Found => "found",
+                    FileMatchStatus.NotFound => "missing",
+                    FileMatchStatus.SizeMismatch => "size_mismatch",
+                    FileMatchStatus.HashMismatch => "hash_mismatch",
+                    _ => "unknown"
+                },
+                expected.ExpectedHash.ToString(),
+                r.ActualHash?.ToString(),
+                expected.ExpectedSize);
+        }).ToList();
 
         var foundCount = results.Count(r => r.Status == FileMatchStatus.Found);
         var status = foundCount == results.Count ? "complete" : "incomplete";
@@ -410,6 +440,26 @@ public class PreInstallChecker
         {
             return path;
         }
+    }
+
+    /// <summary>
+    /// Gets the file name from a path, handling both forward and backward slashes.
+    /// This is needed because modlist paths use backslashes (Windows-style) but
+    /// Path.GetFileName on Linux only recognizes forward slashes.
+    /// </summary>
+    private static string GetFileNameCrossPlatform(string path)
+    {
+        if (string.IsNullOrEmpty(path)) return path;
+
+        // Find the last separator (either / or \)
+        var lastBackslash = path.LastIndexOf('\\');
+        var lastForwardSlash = path.LastIndexOf('/');
+        var lastSeparator = Math.Max(lastBackslash, lastForwardSlash);
+
+        if (lastSeparator < 0)
+            return path; // No separator found, return as-is
+
+        return path.Substring(lastSeparator + 1);
     }
 
     private static string? GetFaviconForUrl(string url)

@@ -1,107 +1,261 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Wabbajack.Paths;
 
-public struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<RelativePath>
+/// <summary>
+/// A relative path that uses backslashes for Windows modlist compatibility.
+/// Paths are stored as strings internally with backslash separators.
+/// </summary>
+public readonly struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<RelativePath>
 {
-    public readonly string[] Parts;
+    /// <summary>
+    /// Represents an empty relative path.
+    /// </summary>
+    public static readonly RelativePath Empty = new(string.Empty);
 
-    private int _hashCode = 0;
+    /// <summary>
+    /// The internal path string using backslash separators.
+    /// </summary>
+    public readonly string Path;
 
-    internal RelativePath(string[] parts)
+    /// <summary>
+    /// Gets the file extension (including the dot).
+    /// </summary>
+    public Extension Extension => Extension.FromPath(Path);
+
+    /// <summary>
+    /// Gets the file name (last component of the path).
+    /// </summary>
+    public RelativePath FileName => new(PathHelpers.GetFileName(Path, PathHelpers.BackSlash).ToString());
+
+    /// <summary>
+    /// Gets the parent directory.
+    /// </summary>
+    public RelativePath Parent
     {
-        Parts = parts;
+        get
+        {
+            var dir = PathHelpers.GetDirectoryName(Path, PathHelpers.BackSlash);
+            return dir.IsEmpty ? Empty : new RelativePath(dir.ToString());
+        }
     }
 
+    /// <summary>
+    /// Gets the depth (number of path components).
+    /// </summary>
+    public int Depth => string.IsNullOrEmpty(Path) ? 0 : PathHelpers.GetDepth(Path, PathHelpers.BackSlash);
+
+    /// <summary>
+    /// Gets the number of directory levels (same as Depth).
+    /// </summary>
+    public int Level => Depth;
+
+    /// <summary>
+    /// Gets the top-level parent (first path component).
+    /// </summary>
+    public RelativePath TopParent
+    {
+        get
+        {
+            var top = PathHelpers.GetTopParent(Path, PathHelpers.BackSlash);
+            return top.IsEmpty ? Empty : new RelativePath(top.ToString());
+        }
+    }
+
+    /// <summary>
+    /// Gets the file name without the extension.
+    /// </summary>
+    public RelativePath FileNameWithoutExtension
+    {
+        get
+        {
+            var fileName = PathHelpers.GetFileName(Path, PathHelpers.BackSlash);
+            if (fileName.IsEmpty) return Empty;
+            var ext = PathHelpers.GetExtension(fileName);
+            if (ext.IsEmpty) return new RelativePath(fileName.ToString());
+            return new RelativePath(fileName.Slice(0, fileName.Length - ext.Length).ToString());
+        }
+    }
+
+    /// <summary>
+    /// Creates a RelativePath from a sanitized string (must already use backslashes).
+    /// </summary>
+    internal RelativePath(string path)
+    {
+        Path = path ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Creates a RelativePath from parts.
+    /// </summary>
     public static RelativePath FromParts(string[] parts)
     {
-        return new RelativePath(parts);
+        if (parts == null || parts.Length == 0) return Empty;
+        return new RelativePath(string.Join(PathHelpers.BackSlash, parts));
     }
 
-    public static explicit operator RelativePath(string i)
+    /// <summary>
+    /// Parses a string into a RelativePath, normalizing separators.
+    /// </summary>
+    public static explicit operator RelativePath(string input)
     {
-        var splits = i.Split(AbsolutePath.StringSplits, StringSplitOptions.RemoveEmptyEntries);
-        if (splits.Length >= 1 && splits[0].Contains(':'))
-            throw new PathException($"Tried to parse `{i} but `:` not valid in a path name");
-        return new RelativePath(splits);
+        if (string.IsNullOrWhiteSpace(input)) return Empty;
+
+        // Check for absolute path indicators
+        if (input.Contains(':'))
+            throw new PathException($"Tried to parse `{input}` but `:` is not valid in a relative path name");
+
+        var sanitized = PathHelpers.SanitizeRelative(input);
+        return new RelativePath(sanitized);
     }
 
-    public static explicit operator string(RelativePath i)
+    /// <summary>
+    /// Converts a RelativePath to its string representation.
+    /// </summary>
+    public static explicit operator string(RelativePath path)
     {
-        return i.ToString();
+        return path.Path;
     }
 
-    public Extension Extension => Extension.FromPath(Parts[^1]);
-    public RelativePath FileName => Parts.Length == 1 ? this : new RelativePath(new[] {Parts[^1]});
+    /// <summary>
+    /// Gets the path part at the specified index.
+    /// </summary>
+    public string GetPart(int index)
+    {
+        if (string.IsNullOrEmpty(Path)) throw new IndexOutOfRangeException();
 
+        var parts = Path.Split(PathHelpers.BackSlash);
+        return parts[index];
+    }
+
+    /// <summary>
+    /// Gets all path parts as an array.
+    /// </summary>
+    public string[] GetParts()
+    {
+        if (string.IsNullOrEmpty(Path)) return Array.Empty<string>();
+        return Path.Split(PathHelpers.BackSlash);
+    }
+
+    /// <summary>
+    /// Returns a new path with the extension replaced.
+    /// </summary>
     public RelativePath ReplaceExtension(Extension newExtension)
     {
-        var paths = new string[Parts.Length];
-        Array.Copy(Parts, paths, paths.Length);
-        var oldName = paths[^1];
-        var newName = ReplaceExtension(oldName, newExtension);
-        paths[^1] = newName;
-        return new RelativePath(paths);
+        var newPath = PathHelpers.ReplaceExtension(Path, newExtension.ToString());
+        return new RelativePath(newPath);
     }
 
-    internal static string ReplaceExtension(string oldName, Extension newExtension)
-    {
-        var oldExtLength = oldName.LastIndexOf(".", StringComparison.CurrentCultureIgnoreCase);
-        if (oldExtLength <= 0)
-            return oldName + newExtension;
-        
-        var newName = oldName[..oldExtLength] + newExtension;
-        return newName;
-    }
-
+    /// <summary>
+    /// Returns a new path with the extension appended.
+    /// </summary>
     public RelativePath WithExtension(Extension? ext)
     {
-        var parts = new string[Parts.Length];
-        Array.Copy(Parts, parts, Parts.Length);
-        parts[^1] = parts[^1] + ext;
-        return new RelativePath(parts);
+        if (ext == null) return this;
+        return new RelativePath(Path + ext);
     }
 
+    /// <summary>
+    /// Returns a new path without the extension.
+    /// </summary>
+    public RelativePath WithoutExtension()
+    {
+        var ext = Extension;
+        var extStr = ext.ToString();
+        if (string.IsNullOrEmpty(extStr)) return this;
+        return new RelativePath(Path.Substring(0, Path.Length - extStr.Length));
+    }
+
+    /// <summary>
+    /// Combines this path with an AbsolutePath base, converting backslashes to forward slashes.
+    /// </summary>
     public AbsolutePath RelativeTo(AbsolutePath basePath)
     {
-        var newArray = new string[basePath.Parts.Length + Parts.Length];
-        Array.Copy(basePath.Parts, 0, newArray, 0, basePath.Parts.Length);
-        Array.Copy(Parts, 0, newArray, basePath.Parts.Length, Parts.Length);
-        return new AbsolutePath(newArray, basePath.PathFormat);
+        return basePath.Combine(this);
     }
 
-    public readonly bool InFolder(RelativePath parent)
+    /// <summary>
+    /// Checks if this path is within the specified parent folder.
+    /// </summary>
+    public bool InFolder(RelativePath parent)
     {
-        return ArrayExtensions.AreEqualIgnoreCase(parent.Parts, 0, Parts, 0, parent.Parts.Length);
+        return PathHelpers.InFolder(Path, parent.Path, PathHelpers.BackSlash);
     }
 
+    /// <summary>
+    /// Returns the portion of this path relative to the specified base path.
+    /// </summary>
+    public RelativePath RelativeTo(RelativePath basePath)
+    {
+        if (basePath == Empty) return this;
+        var rel = PathHelpers.RelativeTo(Path, basePath.Path, PathHelpers.BackSlash);
+        if (rel.IsEmpty && !PathHelpers.PathEquals(Path, basePath.Path))
+            throw new PathException($"Path '{Path}' is not relative to '{basePath.Path}'");
+        return new RelativePath(rel.ToString());
+    }
+
+    /// <summary>
+    /// Combines this path with another relative path.
+    /// </summary>
+    public RelativePath Combine(params object[] paths)
+    {
+        var result = this;
+        foreach (var p in paths)
+        {
+            var relPath = p switch
+            {
+                string s => (RelativePath)s,
+                RelativePath rp => rp,
+                _ => throw new PathException($"Cannot cast {p} of type {p.GetType()} to RelativePath")
+            };
+            result = result.Combine(relPath);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Combines this path with another relative path.
+    /// </summary>
+    public RelativePath Combine(params RelativePath[] paths)
+    {
+        if (paths == null || paths.Length == 0) return this;
+
+        var result = Path;
+        foreach (var p in paths)
+        {
+            result = PathHelpers.JoinParts(result, p.Path, PathHelpers.BackSlash);
+        }
+        return new RelativePath(result);
+    }
+
+    /// <summary>
+    /// Returns the path as a string with backslash separators.
+    /// </summary>
     public override string ToString()
     {
-        if (Parts == null || Parts.Length == 0) return "";
-        return string.Join('\\', Parts);
+        return Path ?? string.Empty;
     }
+
+    /// <summary>
+    /// Converts backslashes to forward slashes for combining with AbsolutePath.
+    /// </summary>
+    internal string ToForwardSlash()
+    {
+        return PathHelpers.RelativeToForwardSlash(Path);
+    }
+
+    #region Equality and Comparison
 
     public override int GetHashCode()
     {
-        if (_hashCode != 0) return _hashCode;
-        if (Parts == null || Parts.Length == 0) return -1;
-        
-        _hashCode = Parts.Aggregate(0,
-            (current, part) => current ^ part.GetHashCode(StringComparison.CurrentCultureIgnoreCase));
-        return _hashCode;
+        return PathHelpers.PathHashCode(Path);
     }
 
     public bool Equals(RelativePath other)
     {
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        if (other.Parts == default) return other.Parts == Parts;
-
-        if (other.Parts.Length != Parts.Length) return false;
-        for (var idx = 0; idx < Parts.Length; idx++)
-            if (!Parts[idx].Equals(other.Parts[idx], StringComparison.InvariantCultureIgnoreCase))
-                return false;
-        return true;
+        return PathHelpers.PathEquals(Path, other.Path);
     }
 
     public override bool Equals(object? obj)
@@ -121,81 +275,58 @@ public struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<Relati
 
     public int CompareTo(RelativePath other)
     {
-        return ArrayExtensions.CompareString(Parts, other.Parts);
+        return PathHelpers.Compare(Path, other.Path);
     }
 
-    public int Depth => Parts.Length;
+    #endregion
 
-    public RelativePath Combine(params object[] paths)
+    #region String-like methods
+
+    /// <summary>
+    /// Checks if the path ends with the specified suffix.
+    /// </summary>
+    public bool EndsWith(string postfix)
     {
-        var converted = paths.Select(p =>
-        {
-            return p switch
-            {
-                string s => (RelativePath) s,
-                RelativePath path => path,
-                _ => throw new PathException($"Cannot cast {p} of type {p.GetType()} to Path")
-            };
-        }).ToArray();
-        return Combine(converted);
+        return Path.EndsWith(postfix, StringComparison.OrdinalIgnoreCase);
     }
 
-    public RelativePath Combine(params RelativePath[] paths)
+    /// <summary>
+    /// Checks if the file name starts with the specified prefix.
+    /// </summary>
+    public bool FileNameStartsWith(string prefix)
     {
-        var newLen = Parts.Length + paths.Sum(p => p.Parts.Length);
-        var newParts = new string[newLen];
-        Array.Copy(Parts, newParts, Parts.Length);
-
-        var toIdx = Parts.Length;
-        foreach (var p in paths)
-        {
-            Array.Copy(p.Parts, 0, newParts, toIdx, p.Parts.Length);
-            toIdx += p.Parts.Length;
-        }
-
-        return new RelativePath(newParts);
+        var fileName = PathHelpers.GetFileName(Path, PathHelpers.BackSlash);
+        return fileName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
     }
 
-    public RelativePath Parent
+    /// <summary>
+    /// Checks if the path starts with the specified prefix.
+    /// </summary>
+    public bool StartsWith(string prefix)
     {
-        get
-        {
-            if (Parts.Length <= 1)
-                throw new PathException("Can't get parent of a top level path");
-
-            var newParts = new string[Parts.Length - 1];
-            Array.Copy(Parts, newParts, Parts.Length - 1);
-            return new RelativePath(newParts);
-        }
+        return Path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
     }
 
-    public RelativePath WithoutExtension()
+    /// <summary>
+    /// Checks if this path starts with another relative path.
+    /// </summary>
+    public bool StartsWith(RelativePath other)
     {
-        var ext = Extension;
-        return Parts[^1][..^ext.ToString().Length].ToRelativePath();
+        if (string.IsNullOrEmpty(other.Path)) return true;
+        if (!Path.StartsWith(other.Path, StringComparison.OrdinalIgnoreCase)) return false;
+        if (Path.Length == other.Path.Length) return true;
+        return Path[other.Path.Length] == PathHelpers.BackSlash;
     }
 
-    public RelativePath TopParent => new(Parts[..1]);
-    public RelativePath FileNameWithoutExtension => Parts[^1][..Extension.ToString().Length].ToRelativePath();
-    public int Level => Parts.Length;
+    #endregion
 
-    public readonly bool EndsWith(string postfix)
-    {
-        return Parts[^1].EndsWith(postfix);
-    }
+    #region Obsolete compatibility properties
 
-    public bool FileNameStartsWith(string mrkinn)
-    {
-        return Parts[^1].StartsWith(mrkinn);
-    }
+    /// <summary>
+    /// Gets path parts as an array. Prefer GetParts() or GetPart(index) for new code.
+    /// </summary>
+    [Obsolete("Use GetParts() or GetPart(index) instead")]
+    public string[] Parts => GetParts();
 
-    public bool StartsWith(string s)
-    {
-        return ToString().StartsWith(s);
-    }
-
-    public string GetPart(int i)
-    {
-        return Parts[i];
-    }
+    #endregion
 }
