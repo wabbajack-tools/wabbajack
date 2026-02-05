@@ -27,8 +27,6 @@
     }
   },
   "plugins": {
-    "opener": {
-      "openUrl": true
-    }
+    "opener": {}
   }
 }

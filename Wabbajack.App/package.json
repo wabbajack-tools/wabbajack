@@ -11,10 +11,12 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@tauri-apps/plugin-opener": "^2.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.0.4",
     "@tauri-apps/api": "^2.5.0",
     "@tauri-apps/cli": "^2.5.0",
     "@types/react": "^19.0.0",
@@ -23,7 +25,6 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.41",
     "tailwindcss": "^4.0.4",
-    "@tailwindcss/vite": "^4.0.4",
     "typescript": "^5.5.3",
     "vite": "^5.4.1"
   }
