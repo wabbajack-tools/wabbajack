@@ -25,36 +25,11 @@ updates:
     versions:
     - 5.0.2
     - 5.0.5
-  - dependency-name: CefSharp.Wpf
-    versions:
-    - 87.1.132
-    - 88.2.90
-    - 89.0.170
-  - dependency-name: CefSharp.OffScreen
-    versions:
-    - 87.1.132
-    - 88.2.90
-    - 89.0.170
-  - dependency-name: CefSharp.Common.NETCore
-    versions:
-    - 89.0.170
-  - dependency-name: CefSharp.OffScreen.NETCore
-    versions:
-    - 89.0.170
-  - dependency-name: CefSharp.Common
-    versions:
-    - 87.1.132
-    - 88.2.90
-    - 89.0.170
   - dependency-name: Fody
     versions:
     - 6.4.0
     - 6.5.0
     - 6.5.1
-  - dependency-name: cef.redist.x64
-    versions:
-    - 89.0.14
-    - 89.0.17
   - dependency-name: YamlDotNet
     versions:
     - 10.0.0
