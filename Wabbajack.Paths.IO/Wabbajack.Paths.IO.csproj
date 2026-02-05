@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="shortid" Version="4.0.0" />
+      <PackageReference Include="shortid" />
     </ItemGroup>
 
 </Project>

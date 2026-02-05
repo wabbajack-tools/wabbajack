@@ -20,12 +20,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="F23.StringSimilarity" Version="6.0.0" />
-        <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.1" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
+        <PackageReference Include="F23.StringSimilarity" />
+        <PackageReference Include="ini-parser-netstandard" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+        <PackageReference Include="Newtonsoft.Json" />
+        <PackageReference Include="SixLabors.ImageSharp" />
     </ItemGroup>
 
 </Project>

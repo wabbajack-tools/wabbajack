@@ -18,14 +18,14 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="GameFinder.StoreHandlers.EADesktop" Version="4.5.0" />
-        <PackageReference Include="GameFinder.StoreHandlers.EGS" Version="4.5.0" />
-        <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="4.5.0" />
-        <PackageReference Include="GameFinder.StoreHandlers.Origin" Version="4.5.0" />
-        <PackageReference Include="GameFinder.StoreHandlers.Steam" Version="4.5.0" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.1" />
-        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
+        <PackageReference Include="GameFinder.StoreHandlers.EADesktop" />
+        <PackageReference Include="GameFinder.StoreHandlers.EGS" />
+        <PackageReference Include="GameFinder.StoreHandlers.GOG" />
+        <PackageReference Include="GameFinder.StoreHandlers.Origin" />
+        <PackageReference Include="GameFinder.StoreHandlers.Steam" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+        <PackageReference Include="SixLabors.ImageSharp" />
     </ItemGroup>
 
 </Project>
