@@ -124,6 +124,19 @@ public class EventBroadcaster
         BroadcastEvent(evt);
     }
 
+    /// <summary>
+    /// Broadcasts download progress for a modlist preparation operation.
+    /// </summary>
+    public void BroadcastDownloadProgress(string sessionId, double progress, long bytesDownloaded, long totalBytes)
+    {
+        var evt = new ServerEvent(
+            "DownloadProgress",
+            DateTime.UtcNow,
+            new { sessionId, progress, bytesDownloaded, totalBytes });
+
+        BroadcastEvent(evt);
+    }
+
     private void BroadcastEvent(ServerEvent evt)
     {
         foreach (var (clientId, channel) in _clients)

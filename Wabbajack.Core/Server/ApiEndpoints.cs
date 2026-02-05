@@ -23,6 +23,7 @@ public class HttpApiServer
     private readonly GameLocator _gameLocator;
     private readonly ApplicationInfo _appInfo;
     private readonly EventBroadcaster _eventBroadcaster;
+    private readonly ModlistPreparer _modlistPreparer;
     private readonly HttpListener _listener;
     private readonly JsonSerializerOptions _jsonOptions;
 
@@ -30,11 +31,13 @@ public class HttpApiServer
         int port,
         GameLocator gameLocator,
         ApplicationInfo appInfo,
-        EventBroadcaster eventBroadcaster)
+        EventBroadcaster eventBroadcaster,
+        ModlistPreparer modlistPreparer)
     {
         _gameLocator = gameLocator;
         _appInfo = appInfo;
         _eventBroadcaster = eventBroadcaster;
+        _modlistPreparer = modlistPreparer;
 
         _listener = new HttpListener();
         _listener.Prefixes.Add($"http://localhost:{port}/");
@@ -101,7 +104,7 @@ public class HttpApiServer
                 return;
             }
 
-            var path = context.Request.Url?.AbsolutePath ?? "/";
+            var path = context.Request.Url?.AbsolutePath?.TrimEnd('/') ?? "/";
 
             var handled = path switch
             {
@@ -109,6 +112,12 @@ public class HttpApiServer
                 "/api/games" => await HandleGamesAsync(context),
                 "/api/status" => await HandleStatusAsync(context),
                 "/api/events" => await HandleEventsAsync(context, cancellationToken),
+                "/api/modlist/prepare" when context.Request.HttpMethod == "POST"
+                    => await HandleModlistPrepareAsync(context, cancellationToken),
+                var p when p.StartsWith("/api/modlist/") && p.EndsWith("/status")
+                    => await HandleModlistStatusAsync(context, p),
+                var p when p.StartsWith("/api/modlist/") && p.EndsWith("/info")
+                    => await HandleModlistInfoAsync(context, p),
                 _ => false
             };
 
@@ -251,6 +260,83 @@ public class HttpApiServer
             _eventBroadcaster.UnregisterClient(clientId);
         }
 
+        return true;
+    }
+
+    private async Task<bool> HandleModlistPrepareAsync(HttpListenerContext context, CancellationToken cancellationToken)
+    {
+        using var reader = new StreamReader(context.Request.InputStream, context.Request.ContentEncoding);
+        var body = await reader.ReadToEndAsync(cancellationToken);
+
+        var request = JsonSerializer.Deserialize<ModlistPrepareRequest>(body, _jsonOptions);
+        if (request == null || string.IsNullOrEmpty(request.DownloadUrl))
+        {
+            context.Response.StatusCode = 400;
+            await WriteJsonAsync(context, ApiResponse<ModlistPrepareStatus>.Fail("Missing downloadUrl in request"));
+            return true;
+        }
+
+        var status = await _modlistPreparer.PrepareAsync(request, cancellationToken);
+        await WriteJsonAsync(context, ApiResponse<ModlistPrepareStatus>.Ok(status));
+        return true;
+    }
+
+    private async Task<bool> HandleModlistStatusAsync(HttpListenerContext context, string path)
+    {
+        // Extract session ID from path: /api/modlist/{sessionId}/status
+        var segments = path.Split('/');
+        if (segments.Length < 4)
+        {
+            context.Response.StatusCode = 400;
+            await WriteJsonAsync(context, ApiResponse<ModlistPrepareStatus>.Fail("Invalid path"));
+            return true;
+        }
+
+        var sessionId = segments[3];
+        var status = _modlistPreparer.GetStatus(sessionId);
+
+        if (status == null)
+        {
+            // Check if it's in the cache (already completed)
+            var prepared = _modlistPreparer.GetPrepared(sessionId);
+            if (prepared != null)
+            {
+                status = new ModlistPrepareStatus(sessionId, "ready", 1.0, null);
+            }
+            else
+            {
+                context.Response.StatusCode = 404;
+                await WriteJsonAsync(context, ApiResponse<ModlistPrepareStatus>.Fail("Session not found"));
+                return true;
+            }
+        }
+
+        await WriteJsonAsync(context, ApiResponse<ModlistPrepareStatus>.Ok(status));
+        return true;
+    }
+
+    private async Task<bool> HandleModlistInfoAsync(HttpListenerContext context, string path)
+    {
+        // Extract session ID from path: /api/modlist/{sessionId}/info
+        var segments = path.Split('/');
+        if (segments.Length < 4)
+        {
+            context.Response.StatusCode = 400;
+            await WriteJsonAsync(context, ApiResponse<ModlistPreInstallInfo>.Fail("Invalid path"));
+            return true;
+        }
+
+        var sessionId = segments[3];
+        var prepared = _modlistPreparer.GetPrepared(sessionId);
+
+        if (prepared == null)
+        {
+            context.Response.StatusCode = 404;
+            await WriteJsonAsync(context, ApiResponse<ModlistPreInstallInfo>.Fail("Modlist not prepared or not found"));
+            return true;
+        }
+
+        await WriteJsonAsync(context, ApiResponse<ModlistPreInstallInfo>.Ok(prepared.Info));
         return true;
     }
 

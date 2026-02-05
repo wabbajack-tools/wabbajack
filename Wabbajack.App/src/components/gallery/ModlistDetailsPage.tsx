@@ -3,6 +3,8 @@ import { ModlistMetadata, getGameDisplayName, FALLBACK_MODLIST_IMAGE } from '../
 interface ModlistDetailsPageProps {
   modlist: ModlistMetadata;
   onBack: () => void;
+  onStartInstall?: () => void;
+  isPreparingInstall?: boolean;
 }
 
 function formatSize(bytes: number | undefined): string {
@@ -46,7 +48,12 @@ function ExternalLink({ href, children }: { href: string; children: React.ReactN
   );
 }
 
-export function ModlistDetailsPage({ modlist, onBack }: ModlistDetailsPageProps) {
+export function ModlistDetailsPage({
+  modlist,
+  onBack,
+  onStartInstall,
+  isPreparingInstall = false,
+}: ModlistDetailsPageProps) {
   const meta = modlist.download_metadata;
 
   return (
@@ -180,17 +187,45 @@ export function ModlistDetailsPage({ modlist, onBack }: ModlistDetailsPageProps)
           {/* Install button */}
           <div className="glass rounded-2xl p-6 border border-neon-purple/20">
             <button
-              className="w-full bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-pink hover:to-neon-purple text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 neon-glow"
-              onClick={() => {
-                // TODO: Implement install flow - pass download URL to C# backend
-                console.log('Install:', modlist.links.download);
-                alert('Install functionality coming soon!\n\nDownload URL:\n' + modlist.links.download);
-              }}
+              className={`w-full font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+                isPreparingInstall
+                  ? 'bg-surface-light/50 text-text-muted cursor-not-allowed'
+                  : 'bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-pink hover:to-neon-purple text-white neon-glow'
+              }`}
+              onClick={onStartInstall}
+              disabled={isPreparingInstall}
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Install Modlist
+              {isPreparingInstall ? (
+                <>
+                  <svg
+                    className="h-5 w-5 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Preparing...
+                </>
+              ) : (
+                <>
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Install Modlist
+                </>
+              )}
             </button>
             <p className="text-xs text-text-muted text-center mt-3">
               Downloads and installs to your game folder

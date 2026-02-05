@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schemas.tauri.app/v2/capability.json",
+  "identifier": "default",
+  "description": "Default permissions for the Wabbajack desktop app",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "opener:default",
+    "dialog:default",
+    "dialog:allow-open"
+  ]
+}
