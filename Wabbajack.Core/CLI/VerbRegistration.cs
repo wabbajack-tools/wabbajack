@@ -59,5 +59,7 @@ public static class CommandLineBuilderExtensions
         services.AddSingleton<VerifyModlistInstall>();
         CommandLineBuilder.RegisterCommand<VFSIndex>(VFSIndex.Definition, c => ((VFSIndex)c).Run);
         services.AddSingleton<VFSIndex>();
+        CommandLineBuilder.RegisterCommand<Serve>(Serve.Definition, c => ((Serve)c).Run);
+        services.AddSingleton<Serve>();
     }
 }

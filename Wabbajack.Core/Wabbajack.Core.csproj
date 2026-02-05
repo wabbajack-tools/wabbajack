@@ -15,6 +15,8 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <NoWarn>CS8600;CS8601;CS8618;CS8604</NoWarn>
         <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+        <!-- Required for ASP.NET Core with trimming on .NET 10 preview -->
+        <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
     </PropertyGroup>
 
     <!-- Platform constants -->
