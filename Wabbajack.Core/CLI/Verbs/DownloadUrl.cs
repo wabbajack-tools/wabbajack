@@ -46,7 +46,7 @@ public class DownloadUrl
         var archive = new Archive() {State = parsed, Name = output.FileName.ToString()};
         
         var hash = await _dispatcher.Download(archive, output, CancellationToken.None, proxy); ;
-        Console.WriteLine($"Download complete: {output.Size().ToFileSizeString()} {hash} {hash.ToHex()} {(long)hash}");
+        System.Console.WriteLine($"Download complete: {output.Size().ToFileSizeString()} {hash} {hash.ToHex()} {(long)hash}");
         return 0;
     }
 }

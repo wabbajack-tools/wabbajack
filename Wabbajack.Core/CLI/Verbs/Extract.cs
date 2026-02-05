@@ -40,7 +40,7 @@ public class Extract
         
         await _extractor.ExtractAll(input, output, token, f =>
         {
-            Console.WriteLine($" - {f}");
+            System.Console.WriteLine($" - {f}");
             return true;
         });
         return 0;

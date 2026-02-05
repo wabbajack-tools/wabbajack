@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using FluentFTP.Helpers;
 using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Builder;
+using Wabbajack.CLI.Console;
 using Wabbajack.DTOs;
 using Wabbajack.Networking.WabbajackClientApi;
 
@@ -17,11 +18,13 @@ public class ListModlists
 {
     private readonly ILogger<ListModlists> _logger;
     private readonly Client _client;
+    private readonly IConsoleRenderer _console;
 
-    public ListModlists(ILogger<ListModlists> logger, Client wjClient)
+    public ListModlists(ILogger<ListModlists> logger, Client wjClient, IConsoleRenderer console)
     {
         _logger = logger;
         _client = wjClient;
+        _console = console;
     }
 
     public static VerbDefinition Definition =
@@ -29,15 +32,16 @@ public class ListModlists
 
     public async Task<int> Run(CancellationToken token)
     {
-        _logger.LogInformation("Loading all modlist definitions");
+        _console.Info("Loading all modlist definitions...");
         var modlists = await _client.LoadLists();
-        _logger.LogInformation("Loaded {Count} lists", modlists.Length);
 
-        foreach (var modlist in modlists.OrderBy(l => l.NamespacedName))
-        {
-            _logger.LogInformation("{Url} {Game} {Size}", modlist.NamespacedName, modlist.Game.MetaData().HumanFriendlyGameName, modlist.DownloadMetadata!.Size.FileSizeToString());
-        }
-        
+        _console.Table(
+            $"Available Modlists ({modlists.Length})",
+            modlists.OrderBy(l => l.NamespacedName),
+            ("Name", m => m.NamespacedName),
+            ("Game", m => m.Game.MetaData().HumanFriendlyGameName),
+            ("Size", m => m.DownloadMetadata?.Size.FileSizeToString() ?? "Unknown"));
+
         return 0;
     }
 }

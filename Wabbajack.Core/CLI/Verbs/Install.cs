@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Builder;
+using Wabbajack.CLI.Console;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
@@ -28,9 +29,12 @@ public class Install
     private readonly DTOSerializer _dtos;
     private readonly FileHashCache _cache;
     private readonly GameLocator _gameLocator;
+    private readonly IConsoleRenderer _console;
+    private readonly StatusUpdateBridge _statusBridge;
 
-    public Install(ILogger<Install> logger, Client wjClient, DownloadDispatcher dispatcher, DTOSerializer dtos, 
-        FileHashCache cache, GameLocator gameLocator, IServiceProvider serviceProvider)
+    public Install(ILogger<Install> logger, Client wjClient, DownloadDispatcher dispatcher, DTOSerializer dtos,
+        FileHashCache cache, GameLocator gameLocator, IServiceProvider serviceProvider,
+        IConsoleRenderer console, StatusUpdateBridge statusBridge)
     {
         _logger = logger;
         _wjClient = wjClient;
@@ -39,6 +43,8 @@ public class Install
         _serviceProvider = serviceProvider;
         _cache = cache;
         _gameLocator = gameLocator;
+        _console = console;
+        _statusBridge = statusBridge;
     }
 
     public static VerbDefinition Definition = new VerbDefinition("install", "Installs a wabbajack file", new[]
@@ -57,7 +63,13 @@ public class Install
                 return 1;
         }
 
+        _console.Info($"Loading modlist from {wabbajack.FileName}...");
         var modlist = await StandardInstaller.LoadFromFile(_dtos, wabbajack);
+
+        _console.Info($"Installing [bold]{modlist.Name}[/] v{modlist.Version}");
+        _console.Info($"Game: {modlist.GameType}");
+        _console.Info($"Output: {output}");
+        _console.Info($"Downloads: {downloads}");
 
         var installer = StandardInstaller.Create(_serviceProvider, new InstallerConfiguration
         {
@@ -69,9 +81,23 @@ public class Install
             GameFolder = _gameLocator.GameLocation(modlist.GameType)
         });
 
-        var result = await installer.Begin(token);
+        var result = await _statusBridge.WithProgressAsync(
+            $"Installing {modlist.Name}",
+            async onStatusUpdate =>
+            {
+                installer.OnStatusUpdate = onStatusUpdate;
+                return await installer.Begin(token);
+            },
+            token);
 
-        return result == InstallResult.Succeeded ? 0 : 2;
+        if (result == InstallResult.Succeeded)
+        {
+            _console.Success($"Installation complete: {modlist.Name}");
+            return 0;
+        }
+
+        _console.Error($"Installation failed: {result}");
+        return 2;
     }
 
     private async Task<bool> DownloadMachineUrl(string machineUrl, AbsolutePath wabbajack, CancellationToken token)

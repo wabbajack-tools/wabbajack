@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Builder;
+using Wabbajack.CLI.Console;
 using Wabbajack.Compiler;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
@@ -26,9 +27,12 @@ public class Compile
     private readonly FileHashCache _cache;
     private readonly GameLocator _gameLocator;
     private readonly CompilerSettingsInferencer _inferencer;
+    private readonly IConsoleRenderer _console;
+    private readonly StatusUpdateBridge _statusBridge;
 
-    public Compile(ILogger<Compile> logger, Client wjClient, DownloadDispatcher dispatcher, DTOSerializer dtos, 
-        FileHashCache cache, GameLocator gameLocator, IServiceProvider serviceProvider, CompilerSettingsInferencer inferencer)
+    public Compile(ILogger<Compile> logger, Client wjClient, DownloadDispatcher dispatcher, DTOSerializer dtos,
+        FileHashCache cache, GameLocator gameLocator, IServiceProvider serviceProvider, CompilerSettingsInferencer inferencer,
+        IConsoleRenderer console, StatusUpdateBridge statusBridge)
     {
         _logger = logger;
         _wjClient = wjClient;
@@ -38,6 +42,8 @@ public class Compile
         _cache = cache;
         _gameLocator = gameLocator;
         _inferencer = inferencer;
+        _console = console;
+        _statusBridge = statusBridge;
     }
 
     public static VerbDefinition Definition = new("compile", "Compiles a modlist",
@@ -46,30 +52,45 @@ public class Compile
         new OptionDefinition(typeof(AbsolutePath), "i", "installPath", "Install Path"),
         new OptionDefinition(typeof(AbsolutePath), "o", "outputPath", "OutputPath")
     });
-    public async Task<int> Run(AbsolutePath installPath, AbsolutePath outputPath,
-        CancellationToken token)
+
+    public async Task<int> Run(AbsolutePath installPath, AbsolutePath outputPath, CancellationToken token)
     {
-        _logger.LogInformation("Inferring settings");
+        _console.Info("Inferring compiler settings...");
         var inferredSettings = await _inferencer.InferFromRootPath(installPath);
         if (inferredSettings == null)
         {
-            _logger.LogInformation("Error inferencing settings");
+            _console.Error("Failed to infer compiler settings from the install path");
             return 2;
         }
 
         inferredSettings.UseGamePaths = true;
-        
-        if(outputPath.DirectoryExists())
+
+        if (outputPath.DirectoryExists())
         {
             inferredSettings.OutputFile = outputPath.Combine(inferredSettings.OutputFile.FileName);
-            _logger.LogInformation("Output file will be in: {outputPath}", inferredSettings.OutputFile);
         }
 
-        var compiler = MO2Compiler.Create(_serviceProvider, inferredSettings);
-        var result = await compiler.Begin(token);
-        if (!result)
-            return result ? 0 : 3;
+        _console.Info($"Compiling modlist: {inferredSettings.ModListName}");
+        _console.Info($"Output: {inferredSettings.OutputFile}");
 
-        return 0;
+        var compiler = MO2Compiler.Create(_serviceProvider, inferredSettings);
+
+        var result = await _statusBridge.WithProgressAsync(
+            $"Compiling {inferredSettings.ModListName}",
+            async onStatusUpdate =>
+            {
+                compiler.OnStatusUpdate += (_, status) => onStatusUpdate(status);
+                return await compiler.Begin(token);
+            },
+            token);
+
+        if (result)
+        {
+            _console.Success($"Compilation complete: {inferredSettings.OutputFile}");
+            return 0;
+        }
+
+        _console.Error("Compilation failed");
+        return 3;
     }
 }

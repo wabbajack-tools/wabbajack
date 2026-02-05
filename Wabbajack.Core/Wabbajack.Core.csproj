@@ -65,6 +65,7 @@
         <PackageReference Include="shortid" />
         <PackageReference Include="SixLabors.ImageSharp" />
         <PackageReference Include="Stub.System.Data.SQLite.Core.NetStandard" />
+        <PackageReference Include="Spectre.Console" />
         <PackageReference Include="System.CommandLine" />
         <PackageReference Include="System.CommandLine.NamingConventionBinder" />
         <PackageReference Include="System.Data.HashFunction.xxHash" />

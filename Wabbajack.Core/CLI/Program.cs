@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using Octokit;
+using Wabbajack.CLI.Builder;
+using Wabbajack.CLI.Console;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
@@ -18,7 +20,6 @@ using Wabbajack.Server.Lib;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.VFS;
 using Client = Wabbajack.Networking.GitHub.Client;
-using Wabbajack.CLI.Builder;
 
 namespace Wabbajack.CLI;
 
@@ -47,9 +48,13 @@ internal class Program
                 services.AddOSIntegrated();
                 services.AddServerLib();
 
+                // Console rendering with Spectre.Console
+                services.AddSingleton<IConsoleRenderer, SpectreConsoleRenderer>();
+                services.AddSingleton<StatusUpdateBridge>();
+                services.AddSingleton<SpectreRateLimiterReporter>();
 
                 services.AddTransient<Context>();
-                
+
                 services.AddSingleton<CommandLineBuilder>();
                 services.AddCLIVerbs();
             }).Build();
@@ -72,14 +77,15 @@ internal class Program
             Header = "############ Wabbajack log file - ${longdate} ############"
         };
 
+        // Console target only shows warnings and above to avoid interfering with Spectre.Console
+        // progress displays. Detailed logs go to file.
         var consoleTarget = new ConsoleTarget("console")
         {
             Layout = "${processtime} [${level:uppercase=true}] ${message:withexception=true}",
         };
-        
 
         config.AddRuleForAllLevels(fileTarget);
-        config.AddRuleForAllLevels(consoleTarget);
+        config.AddRule(NLog.LogLevel.Warn, NLog.LogLevel.Fatal, consoleTarget);
 
         loggingBuilder.ClearProviders();
         loggingBuilder.SetMinimumLevel(LogLevel.Trace);

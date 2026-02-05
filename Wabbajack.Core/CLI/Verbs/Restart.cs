@@ -32,22 +32,22 @@ public class Restart
 
     public async Task<int> Run()
     {
-        Console.WriteLine("Checking if Wabbajack is running...");
+        System.Console.WriteLine("Checking if Wabbajack is running...");
         var wabbajackProcess = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(WabbajackExecutableName)).FirstOrDefault();
         string? fileName = wabbajackProcess?.MainModule?.FileName;
         if(wabbajackProcess != null)
         {
-            Console.WriteLine("Detected Wabbajack! Killing the process...");
+            System.Console.WriteLine("Detected Wabbajack! Killing the process...");
             wabbajackProcess.Kill();
             Thread.Sleep(500);
         }
 
         if(fileName != null)
         {
-            Console.WriteLine("Restarting Wabbajack...");
+            System.Console.WriteLine("Restarting Wabbajack...");
             Process.Start(fileName);
         }
-        Console.WriteLine("Done!");
+        System.Console.WriteLine("Done!");
         return 0;
     }
 }
