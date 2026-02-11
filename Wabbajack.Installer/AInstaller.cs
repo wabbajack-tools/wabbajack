@@ -474,9 +474,11 @@ public abstract class AInstaller<T>
             AddIfValid(_gameLocator.GameLocation(g));
         }
 
-        // Enumerate downloads + every game folder
+        // Enumerate downloads + every game folder, filtering out any paths that
+        // don't survive the AbsolutePath round-trip (e.g. UNC/device paths like \\.\nul)
         var allFiles = _configuration.Downloads.EnumerateFiles()
             .Concat(gameFolders.SelectMany(p => p.EnumerateFiles()))
+            .Where(f => f.FileExists())
             .ToList();
 
         _logger.LogInformation("Getting archive sizes");

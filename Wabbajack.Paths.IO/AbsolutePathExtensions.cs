@@ -60,7 +60,14 @@ public static class AbsolutePathExtensions
 
     public static long Size(this AbsolutePath file)
     {
-        return new FileInfo(file.ToNativePath()).Length;
+        var nativePath = file.ToNativePath();
+        if (string.IsNullOrEmpty(nativePath))
+            throw new IOException($"Cannot get size of empty path");
+
+        if (!File.Exists(nativePath))
+            throw new FileNotFoundException($"Cannot get size of non-existent file: {nativePath}", nativePath);
+
+        return new FileInfo(nativePath).Length;
     }
 
     public static DateTime LastModifiedUtc(this AbsolutePath file)
