@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -16,6 +17,7 @@ using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Messages;
 using Wabbajack.Paths;
 using Microsoft.Extensions.Logging;
+using Wabbajack.DTOs;
 
 namespace Wabbajack;
 
@@ -24,6 +26,7 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
     private readonly ILogger<BrowserWindowViewModel> _logger;
     private readonly IServiceProvider _serviceProvider;
     private CancellationTokenSource _tokenSource;
+    private readonly ApplicationInfo _appInfo;
 
     [Reactive] public WebView2 Browser { get; set; }
     [Reactive] public string HeaderText { get; set; }
@@ -37,6 +40,7 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
     public BrowserWindowViewModel(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
+        _appInfo = serviceProvider.GetRequiredService<ApplicationInfo>();
         _logger = serviceProvider.GetRequiredService<ILogger<BrowserWindowViewModel>>();
         BackCommand = ReactiveCommand.Create(() => Browser.GoBack());
         CloseCommand = ReactiveCommand.Create(() => _tokenSource.Cancel());
@@ -44,12 +48,21 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
             var uri = Consts.WabbajackWebViewWikiUri;
             UIUtils.OpenWebsite(uri);
         });
+
     }
+    
+    void AddHeaders(object sender, CoreWebView2WebResourceRequestedEventArgs args)
+    {
+        args.Request.Headers.SetHeader("Application-Name", _appInfo.ApplicationSlug);
+        args.Request.Headers.SetHeader("Application-Version", _appInfo.Version);
+    }
+
 
     public async Task RunBrowserOperation()
     {
         Browser = _serviceProvider.GetRequiredService<WebView2>();
-
+        Browser.CoreWebView2InitializationCompleted += OnBrowserOnCoreWebView2InitializationCompleted;
+        
         try
         {
             _tokenSource = new CancellationTokenSource();
@@ -62,6 +75,16 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
         finally
         {
             Close();
+        }
+    }
+    
+    void OnBrowserOnCoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs args)
+    {
+        Browser.CoreWebView2InitializationCompleted -= OnBrowserOnCoreWebView2InitializationCompleted;
+        if (args.IsSuccess)
+        {
+            Browser.CoreWebView2.AddWebResourceRequestedFilter(uri:"*", CoreWebView2WebResourceContext.All);
+            Browser.CoreWebView2.WebResourceRequested += AddHeaders;
         }
     }
 
@@ -118,6 +141,7 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
                 }
             }
         }
+
 
         Browser.NavigationCompleted += Completed;
         Browser.Source = uri;
