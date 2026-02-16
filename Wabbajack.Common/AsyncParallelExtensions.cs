@@ -228,7 +228,7 @@ public static class AsyncParallelExtensions
         return lst;
     }
 
-    public static async Task<HashSet<T>> ToHashSet<T>(this IAsyncEnumerable<T> coll, Predicate<T>? filter = default)
+    public static async Task<HashSet<T>> ToHashSet<T>(this IAsyncEnumerable<T> coll, Func<T, bool>? filter = default)
     {
         HashSet<T> lst = new();
         if (filter == default)
@@ -244,11 +244,6 @@ public static class AsyncParallelExtensions
     public static async Task Do<T>(this IAsyncEnumerable<T> coll, Func<T, Task> fn)
     {
         await foreach (var itm in coll) await fn(itm);
-    }
-
-    public static async Task Do<T>(this IAsyncEnumerable<T> coll, Action<T> fn)
-    {
-        await foreach (var itm in coll) fn(itm);
     }
 
     public static async Task<IDictionary<TK, T>> ToDictionary<T, TK>(this IAsyncEnumerable<T> coll,
@@ -267,13 +262,6 @@ public static class AsyncParallelExtensions
         Dictionary<TK, TV> dict = new();
         await foreach (var itm in coll) dict.Add(kSelector(itm), vSelector(itm));
         return dict;
-    }
-
-    public static async IAsyncEnumerable<T> Where<T>(this IAsyncEnumerable<T> coll, Predicate<T> p)
-    {
-        await foreach (var itm in coll)
-            if (p(itm))
-                yield return itm;
     }
 
     public static async IAsyncEnumerable<TOut> SelectAsync<TIn, TOut>(this IEnumerable<TIn> coll,
@@ -298,11 +286,4 @@ public static class AsyncParallelExtensions
             yield return await fn(itm);
     }
 
-    public static async IAsyncEnumerable<TOut> SelectMany<TIn, TOut>(this IAsyncEnumerable<TIn> coll,
-        Func<TIn, IEnumerable<TOut>> fn)
-    {
-        await foreach (var itm in coll)
-        foreach (var inner in fn(itm))
-            yield return inner;
-    }
 }

@@ -6,9 +6,9 @@ SET /p VERSION=<VERSION.txt
 mkdir c:\tmp\publish-wj
 
 dotnet clean
-dotnet publish Wabbajack.App.Wpf\Wabbajack.App.Wpf.csproj --framework "net9.0-windows" --runtime win-x64 --configuration Release /p:Platform=x64 -o c:\tmp\publish-wj\app /p:IncludeNativeLibrariesForSelfExtract=true --self-contained  /p:DebugType=embedded 
-dotnet publish Wabbajack.Launcher\Wabbajack.Launcher.csproj --framework "net9.0-windows" --runtime win-x64 --configuration Release /p:Platform=x64 -o c:\tmp\publish-wj\launcher /p:PublishSingleFile=true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true --self-contained  /p:DebugType=embedded
-dotnet publish Wabbajack.CLI\Wabbajack.CLI.csproj --framework "net9.0" --runtime win-x64 --configuration Release /p:Platform=x64 -o c:\tmp\publish-wj\app\cli  /p:IncludeNativeLibrariesForSelfExtract=true --self-contained  /p:DebugType=embedded
+dotnet publish Wabbajack.App.Wpf\Wabbajack.App.Wpf.csproj --framework "net10.0-windows" --runtime win-x64 --configuration Release /p:Platform=x64 -o c:\tmp\publish-wj\app /p:IncludeNativeLibrariesForSelfExtract=true --self-contained  /p:DebugType=embedded 
+dotnet publish Wabbajack.Launcher\Wabbajack.Launcher.csproj --framework "net10.0-windows" --runtime win-x64 --configuration Release /p:Platform=x64 -o c:\tmp\publish-wj\launcher /p:PublishSingleFile=true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true --self-contained  /p:DebugType=embedded
+dotnet publish Wabbajack.CLI\Wabbajack.CLI.csproj --framework "net10.0" --runtime win-x64 --configuration Release /p:Platform=x64 -o c:\tmp\publish-wj\app\cli  /p:IncludeNativeLibrariesForSelfExtract=true --self-contained  /p:DebugType=embedded
 
 d:
 cd d:\oss\CodeSignTool\

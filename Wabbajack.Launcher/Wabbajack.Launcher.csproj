@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net6.0-windows</TargetFramework>
@@ -16,7 +16,7 @@
     </ItemGroup>
     <PropertyGroup>
         <ApplicationIcon>Assets\wabbajack.ico</ApplicationIcon>
-        <TargetFramework>net9.0-windows</TargetFramework>
+        <TargetFramework>net10.0-windows</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
       <None Remove="Assets\wabbajack.ico" />

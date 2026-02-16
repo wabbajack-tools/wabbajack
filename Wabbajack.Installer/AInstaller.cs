@@ -631,6 +631,7 @@ public abstract class AInstaller<T>
                 {
                     indexed.Remove(d.To);
                 }
+                return Task.CompletedTask;
             });
 
         NextStep(Consts.StepPreparing, "Updating ModList", 0);
