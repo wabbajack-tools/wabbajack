@@ -17,7 +17,7 @@
 
         <!-- ─── Left sidebar ─────────────────────────────────────────── -->
         <Border Grid.Column="0"
-                BorderBrush="#1Aa855f7" BorderThickness="0,0,1,0"
+                BorderBrush="#33a855f7" BorderThickness="0,0,1,0"
                 CornerRadius="0,8,8,0">
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       Padding="8,8,8,8">

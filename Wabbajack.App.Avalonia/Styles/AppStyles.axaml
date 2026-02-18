@@ -49,17 +49,68 @@
         <Setter Property="Height" Value="1" />
     </Style>
 
-    <!-- ── Button: subtle press feedback (all buttons) ─────────── -->
+    <!-- ── Button: ghost style (transparent + purple border) ────── -->
     <Style Selector="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#f8fafc" />
+        <Setter Property="BorderBrush" Value="#33a855f7" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
         <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Setter Property="Transitions">
             <Transitions>
                 <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" />
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
             </Transitions>
         </Setter>
     </Style>
+    <Style Selector="Button:pointerover">
+        <Setter Property="Background" Value="#1Aa855f7" />
+        <Setter Property="BorderBrush" Value="#55a855f7" />
+    </Style>
     <Style Selector="Button:pressed">
         <Setter Property="RenderTransform" Value="scaleX(0.97) scaleY(0.97)" />
+        <Setter Property="Background" Value="#26a855f7" />
+        <Setter Property="BorderBrush" Value="#66a855f7" />
+    </Style>
+
+    <!-- ── .titleBtn (window chrome — borderless, minimal) ────── -->
+    <Style Selector="Button.titleBtn">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.titleBtn:pointerover">
+        <Setter Property="Background" Value="#1Affffff" />
+    </Style>
+    <Style Selector="Button.titleBtn:pressed">
+        <Setter Property="Background" Value="#26ffffff" />
+    </Style>
+
+    <!-- ── FluentTheme ContentPresenter overrides (all buttons) ─── -->
+    <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#f8fafc" />
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#1Aa855f7" />
+        <Setter Property="Foreground" Value="#ffffff" />
+    </Style>
+    <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#26a855f7" />
+        <Setter Property="Foreground" Value="#f8fafc" />
+    </Style>
+
+    <!-- ── .titleBtn template overrides ──────────────────────── -->
+    <Style Selector="Button.titleBtn /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.titleBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#1Affffff" />
+    </Style>
+    <Style Selector="Button.titleBtn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#26ffffff" />
     </Style>
 
     <!-- ── .accent button (primary actions: gradient bg) ────────── -->
@@ -89,7 +140,16 @@
             </LinearGradientBrush>
         </Setter>
     </Style>
-    <!-- Override FluentTheme's internal ContentPresenter for accent hover/pressed -->
+    <!-- Override FluentTheme's internal ContentPresenter for accent (all states) -->
+    <Style Selector="Button.accent /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
+                <GradientStop Color="#a855f7" Offset="0" />
+                <GradientStop Color="#ec4899" Offset="1" />
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="Foreground" Value="White" />
+    </Style>
     <Style Selector="Button.accent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background">
             <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
@@ -184,8 +244,16 @@
         <Setter Property="BorderBrush" Value="#a855f7" />
     </Style>
 
-    <!-- ── Close button red hover ──────────────────────────────── -->
+    <!-- ── Close button (title bar chrome) ──────────────────────── -->
+    <Style Selector="Button.closeBtn">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
     <Style Selector="Button.closeBtn:pointerover">
+        <Setter Property="Background" Value="#e81123" />
+    </Style>
+    <Style Selector="Button.closeBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="#e81123" />
     </Style>
 

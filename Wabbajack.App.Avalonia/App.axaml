@@ -26,6 +26,43 @@
             <Color x:Key="SystemAccentColorLight2">#c084fc</Color>
             <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#a855f7" />
 
+            <!-- ── FluentTheme button overrides (kill the grey) ───── -->
+            <SolidColorBrush x:Key="ButtonBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#1Aa855f7" />
+            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#26a855f7" />
+            <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="#0D252542" />
+            <SolidColorBrush x:Key="ButtonForeground" Color="#f8fafc" />
+            <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#ffffff" />
+            <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#f8fafc" />
+            <SolidColorBrush x:Key="ButtonForegroundDisabled" Color="#44f8fafc" />
+            <SolidColorBrush x:Key="ButtonBorderBrush" Color="#33a855f7" />
+            <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#55a855f7" />
+            <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#66a855f7" />
+            <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="#1Aa855f7" />
+
+            <!-- ── FluentTheme control surface overrides ──────────── -->
+            <SolidColorBrush x:Key="TextControlBackground" Color="#252542" />
+            <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#2a2a4a" />
+            <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#252542" />
+            <SolidColorBrush x:Key="TextControlBorderBrush" Color="#33a855f7" />
+            <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#44a855f7" />
+            <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#66a855f7" />
+            <SolidColorBrush x:Key="TextControlForeground" Color="#f8fafc" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#64748b" />
+
+            <SolidColorBrush x:Key="ComboBoxBackground" Color="#252542" />
+            <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#2a2a4a" />
+            <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#33a855f7" />
+            <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#44a855f7" />
+
+            <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="#33a855f7" />
+            <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="#44a855f7" />
+            <SolidColorBrush x:Key="ListViewItemForegroundSelected" Color="#f8fafc" />
+
+            <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Color="#33a855f7" />
+            <SolidColorBrush x:Key="TabViewItemHeaderBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="TabViewItemHeaderBackgroundPointerOver" Color="#1Aa855f7" />
+
             <!-- ── Darkwave colour palette ────────────────────────── -->
             <Color x:Key="AppBackground">#0a0a0f</Color>
             <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource AppBackground}" />

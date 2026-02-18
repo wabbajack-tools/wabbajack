@@ -68,6 +68,7 @@
 
             <!-- Minimize -->
             <Button x:Name="MinimizeButton" Grid.Column="5"
+                    Classes="titleBtn"
                     Width="46" Height="32" Padding="0"
                     HorizontalContentAlignment="Center"
                     VerticalContentAlignment="Center"
@@ -77,6 +78,7 @@
 
             <!-- Maximize -->
             <Button x:Name="MaximizeButton" Grid.Column="6"
+                    Classes="titleBtn"
                     Width="46" Height="32" Padding="0"
                     HorizontalContentAlignment="Center"
                     VerticalContentAlignment="Center"

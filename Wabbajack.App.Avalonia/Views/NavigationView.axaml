@@ -7,8 +7,11 @@
              mc:Ignorable="d">
 
     <UserControl.Styles>
-        <!-- Nav button hover transitions -->
+        <!-- Nav button: borderless, full-width hover highlight -->
         <Style Selector="Button.navBtn">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Background" Duration="0:0:0.15" />

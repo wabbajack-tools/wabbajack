@@ -39,7 +39,7 @@
                             MinHeight="120" HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Center"
                             Background="{StaticResource SurfaceBrush}"
-                            BorderBrush="#1Aa855f7" BorderThickness="1"
+                            BorderBrush="#33a855f7" BorderThickness="1"
                             CornerRadius="16">
                         <StackPanel Spacing="10" HorizontalAlignment="Center">
                             <ic:SymbolIcon Symbol="Toolbox" FontSize="40"
@@ -60,7 +60,7 @@
                             MinHeight="120" HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Center"
                             Background="{StaticResource SurfaceBrush}"
-                            BorderBrush="#1Aa855f7" BorderThickness="1"
+                            BorderBrush="#33a855f7" BorderThickness="1"
                             CornerRadius="16">
                         <StackPanel Spacing="10" HorizontalAlignment="Center">
                             <ic:SymbolIcon Symbol="DocumentSettings" FontSize="40"
