@@ -5,6 +5,9 @@ on:
 
 permissions:
   contents: read
+  actions: read          # Required by SignPath action to read job details
+  id-token: write        # Optional: For OIDC authentication (future enhancement)
+  attestations: write    # Optional: For build provenance attestations (future enhancement)
 
 jobs:
   build:
@@ -71,67 +74,108 @@ jobs:
             --self-contained `
             /p:DebugType=embedded
 
-      # Install SignPath PowerShell module
-      - name: Install SignPath Module
-        shell: pwsh
-        run: Install-Module -Name SignPath -Force -Scope CurrentUser
+      # Sign the executables using SignPath GitHub Action
+      # Main App Signing: Upload → Sign → Verify
+      - name: Upload Unsigned Main App for Signing
+        id: upload-main-app
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-main-app
+          path: publish\app\Wabbajack.exe
+          retention-days: 1
 
-      # Sign the executables using SignPath PowerShell module
-      - name: Sign Wabbajack.exe (Main App)
-        shell: pwsh
-        env:
-          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_KEY }}
-          SIGNPATH_ORG_ID: ${{ secrets.SIGNPATH_ORG_ID }}
-        run: |
-          Submit-SigningRequest `
-            -InputArtifactPath "publish\app\Wabbajack.exe" `
-            -ApiToken $env:SIGNPATH_API_TOKEN `
-            -OrganizationId $env:SIGNPATH_ORG_ID `
-            -ProjectSlug "wabbajack" `
-            -SigningPolicySlug "test-signing" `
-            -OutputArtifactPath "publish\app\Wabbajack.exe" `
-            -WaitForCompletion `
-            -Force
+      - name: Sign Main App with SignPath
+        id: sign-main-app
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_KEY }}
+          organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
+          project-slug: wabbajack
+          signing-policy-slug: test-signing
+          artifact-configuration-slug: default
+          github-artifact-id: ${{ steps.upload-main-app.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 600
+          output-artifact-directory: publish\app
 
-      - name: Sign wabbajack-cli.exe
-        shell: pwsh
-        env:
-          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_KEY }}
-          SIGNPATH_ORG_ID: ${{ secrets.SIGNPATH_ORG_ID }}
-        run: |
-          Submit-SigningRequest `
-            -InputArtifactPath "publish\app\cli\wabbajack-cli.exe" `
-            -ApiToken $env:SIGNPATH_API_TOKEN `
-            -OrganizationId $env:SIGNPATH_ORG_ID `
-            -ProjectSlug "wabbajack" `
-            -SigningPolicySlug "test-signing" `
-            -OutputArtifactPath "publish\app\cli\wabbajack-cli.exe" `
-            -WaitForCompletion `
-            -Force
-
-      - name: Sign Wabbajack.exe (Launcher)
-        shell: pwsh
-        env:
-          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_KEY }}
-          SIGNPATH_ORG_ID: ${{ secrets.SIGNPATH_ORG_ID }}
-        run: |
-          Submit-SigningRequest `
-            -InputArtifactPath "publish\launcher\Wabbajack.exe" `
-            -ApiToken $env:SIGNPATH_API_TOKEN `
-            -OrganizationId $env:SIGNPATH_ORG_ID `
-            -ProjectSlug "wabbajack" `
-            -SigningPolicySlug "test-signing" `
-            -OutputArtifactPath "publish\launcher\Wabbajack.exe" `
-            -WaitForCompletion `
-            -Force
-
-      - name: Verify Signatures
+      - name: Verify Main App Signature
         shell: pwsh
         run: |
-          Write-Host "Checking signatures..."
-          Get-AuthenticodeSignature "publish\app\Wabbajack.exe" | Format-List
-          Get-AuthenticodeSignature "publish\app\cli\wabbajack-cli.exe" | Format-List
-          Get-AuthenticodeSignature "publish\launcher\Wabbajack.exe" | Format-List
+          Write-Host "Verifying Main App signature..."
+          $sig = Get-AuthenticodeSignature "publish\app\Wabbajack.exe"
+          if ($sig.Status -ne 'Valid') {
+            Write-Error "Main App signature verification failed: $($sig.Status)"
+            exit 1
+          }
+          $sig | Format-List
+
+      # CLI Signing: Upload → Sign → Verify
+      - name: Upload Unsigned CLI for Signing
+        id: upload-cli
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-cli
+          path: publish\app\cli\wabbajack-cli.exe
+          retention-days: 1
+
+      - name: Sign CLI with SignPath
+        id: sign-cli
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_KEY }}
+          organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
+          project-slug: wabbajack
+          signing-policy-slug: test-signing
+          artifact-configuration-slug: default
+          github-artifact-id: ${{ steps.upload-cli.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 600
+          output-artifact-directory: publish\app\cli
+
+      - name: Verify CLI Signature
+        shell: pwsh
+        run: |
+          Write-Host "Verifying CLI signature..."
+          $sig = Get-AuthenticodeSignature "publish\app\cli\wabbajack-cli.exe"
+          if ($sig.Status -ne 'Valid') {
+            Write-Error "CLI signature verification failed: $($sig.Status)"
+            exit 1
+          }
+          $sig | Format-List
+
+      # Launcher Signing: Upload → Sign → Verify
+      - name: Upload Unsigned Launcher for Signing
+        id: upload-launcher
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-launcher
+          path: publish\launcher\Wabbajack.exe
+          retention-days: 1
+
+      - name: Sign Launcher with SignPath
+        id: sign-launcher
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_KEY }}
+          organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
+          project-slug: wabbajack
+          signing-policy-slug: test-signing
+          artifact-configuration-slug: default
+          github-artifact-id: ${{ steps.upload-launcher.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 600
+          output-artifact-directory: publish\launcher
+
+      - name: Verify Launcher Signature
+        shell: pwsh
+        run: |
+          Write-Host "Verifying Launcher signature..."
+          $sig = Get-AuthenticodeSignature "publish\launcher\Wabbajack.exe"
+          if ($sig.Status -ne 'Valid') {
+            Write-Error "Launcher signature verification failed: $($sig.Status)"
+            exit 1
+          }
+          $sig | Format-List
 
       - name: Create App ZIP
         run: |
