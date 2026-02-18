@@ -23,6 +23,9 @@ public class ResourceSettingVM : ViewModelBase
 
     public int ProcessorCount { get; } = Environment.ProcessorCount;
 
+    private readonly ObservableAsPropertyHelper<string> _throughputLabel;
+    public string ThroughputLabel => _throughputLabel.Value;
+
     public ResourceSettingVM(IResource resource, ResourceSettingsManager.ResourceSetting setting,
         ResourceSettingsManager manager)
     {
@@ -32,6 +35,10 @@ public class ResourceSettingVM : ViewModelBase
         MaxTasks = (int)Math.Clamp(setting.MaxTasks, 1, 64);
         // Store throughput in MB/s for display (0 = unlimited)
         MaxThroughputMB = setting.MaxThroughput == 0 ? 0 : setting.MaxThroughput / (1024 * 1024);
+
+        _throughputLabel = this.WhenAnyValue(vm => vm.MaxThroughputMB)
+            .Select(mb => mb == 0 ? "Unlimited" : $"{mb} MB/s")
+            .ToProperty(this, vm => vm.ThroughputLabel);
 
         this.WhenAnyValue(vm => vm.MaxTasks, vm => vm.MaxThroughputMB)
             .Skip(1)

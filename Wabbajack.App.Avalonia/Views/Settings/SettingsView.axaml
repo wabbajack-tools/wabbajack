@@ -81,14 +81,9 @@
                                                     Value="{Binding MaxThroughputMB}"
                                                     Margin="12,0" />
                                             <TextBlock Grid.Column="2"
+                                                       Text="{Binding ThroughputLabel}"
                                                        VerticalAlignment="Center"
-                                                       HorizontalAlignment="Right">
-                                                <TextBlock.Text>
-                                                    <MultiBinding StringFormat="{}{0} MB/s">
-                                                        <Binding Path="MaxThroughputMB" />
-                                                    </MultiBinding>
-                                                </TextBlock.Text>
-                                            </TextBlock>
+                                                       HorizontalAlignment="Right" />
                                         </Grid>
 
                                     </Grid>

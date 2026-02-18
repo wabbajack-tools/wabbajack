@@ -53,6 +53,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center"
                                    Text="Find a modlist that suits you"
@@ -61,10 +62,20 @@
                                        Symbol="Search" IconVariant="Filled" FontSize="28"
                                        Foreground="{StaticResource PrimaryBrush}" />
                         <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2"
-                                   FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap">
+                                   FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap"
+                                   Margin="0,0,0,6">
                             Go through a series of questions to find a modlist that works for you through our
                             Wabbakinator quiz, or navigate the gallery yourself and pick something fun.
                         </TextBlock>
+                        <Button Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2"
+                                HorizontalAlignment="Left"
+                                Command="{Binding VisitModlistWizardCommand}"
+                                Padding="8,4" FontSize="12">
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <ic:SymbolIcon Symbol="QuestionCircle" FontSize="12" />
+                                <TextBlock Text="Take the Wabbakinator quiz" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
                     </Grid>
                 </Border>
 
