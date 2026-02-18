@@ -16,7 +16,7 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="54" />
+            <RowDefinition Height="40" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -35,7 +35,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- Logo -->
-            <Image Grid.Column="0" Width="18" Height="18"
+            <Image Grid.Column="0" Width="16" Height="16"
                    Margin="12,0,6,0" VerticalAlignment="Center"
                    Source="avares://Wabbajack.Avalonia/Assets/wabbajack.ico" />
 
@@ -48,52 +48,61 @@
 
             <!-- Load Local File -->
             <Button x:Name="LoadLocalFileButton" Grid.Column="3"
-                    Margin="0,0,4,0" VerticalAlignment="Center"
+                    Margin="0,0,4,0" Padding="10,0" Height="30"
+                    VerticalAlignment="Center"
                     ToolTip.Tip="Install from disk">
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                    <ic:SymbolIcon Symbol="ArrowUpload" FontSize="14" />
-                    <TextBlock Text="Install from disk" FontSize="12" />
+                    <ic:SymbolIcon Symbol="ArrowUpload" FontSize="13"
+                                   VerticalAlignment="Center" />
+                    <TextBlock Text="Install from disk" FontSize="12"
+                               VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
 
             <!-- Get Help -->
             <Button x:Name="GetHelpButton" Grid.Column="4"
-                    Margin="0,0,8,0" VerticalAlignment="Center"
+                    Margin="0,0,8,0" Padding="10,0" Height="30"
+                    VerticalAlignment="Center"
                     ToolTip.Tip="Get Help">
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                    <ic:SymbolIcon Symbol="QuestionCircle" FontSize="14" />
-                    <TextBlock Text="Get Help" FontSize="12" />
+                    <ic:SymbolIcon Symbol="QuestionCircle" FontSize="13"
+                                   VerticalAlignment="Center" />
+                    <TextBlock Text="Get Help" FontSize="12"
+                               VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
 
             <!-- Minimize -->
             <Button x:Name="MinimizeButton" Grid.Column="5"
                     Classes="titleBtn"
-                    Width="46" Height="32" Padding="0"
+                    Width="46" Height="40" Padding="0"
                     HorizontalContentAlignment="Center"
                     VerticalContentAlignment="Center"
                     VerticalAlignment="Top">
-                <ic:SymbolIcon Symbol="Subtract" FontSize="12" />
+                <ic:SymbolIcon Symbol="Subtract" FontSize="12"
+                               VerticalAlignment="Center" />
             </Button>
 
             <!-- Maximize -->
             <Button x:Name="MaximizeButton" Grid.Column="6"
                     Classes="titleBtn"
-                    Width="46" Height="32" Padding="0"
+                    Width="46" Height="40" Padding="0"
                     HorizontalContentAlignment="Center"
                     VerticalContentAlignment="Center"
                     VerticalAlignment="Top">
-                <ic:SymbolIcon Symbol="Maximize" FontSize="12" />
+                <ic:SymbolIcon Symbol="Maximize" FontSize="12"
+                               VerticalAlignment="Center" />
             </Button>
 
             <!-- Close -->
             <Button x:Name="CloseButton" Grid.Column="7"
                     Classes="closeBtn"
-                    Width="46" Height="32" Padding="0"
+                    Width="46" Height="40" Padding="0"
                     HorizontalContentAlignment="Center"
                     VerticalContentAlignment="Center"
                     VerticalAlignment="Top">
-                <ic:SymbolIcon Symbol="Dismiss" FontSize="12" />
+                <ic:SymbolIcon Symbol="Dismiss" FontSize="12"
+                               VerticalAlignment="Center" />
             </Button>
         </Grid>
 
