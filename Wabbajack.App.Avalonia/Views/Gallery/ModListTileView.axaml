@@ -8,12 +8,28 @@
              mc:Ignorable="d">
 
     <UserControl.Styles>
+        <!-- Tile root: hover glow + scale -->
+        <Style Selector="Border.TileRoot">
+            <Setter Property="BoxShadow" Value="0 4 16 0 #00000030" />
+            <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.25" />
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.25" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.TileRoot:pointerover">
+            <Setter Property="BoxShadow" Value="0 8 32 0 #40a855f7" />
+            <Setter Property="RenderTransform" Value="scaleX(1.02) scaleY(1.02)" />
+        </Style>
+
         <!-- Animate bottom gradient opacity on pointer-over of the tile border -->
         <Style Selector="Border.TileRoot Rectangle.BottomGradient">
             <Setter Property="Opacity" Value="0" />
             <Setter Property="Transitions">
                 <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.08" />
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
                 </Transitions>
             </Setter>
         </Style>
@@ -26,7 +42,7 @@
             <Setter Property="Opacity" Value="0.05" />
             <Setter Property="Transitions">
                 <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.08" />
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
                 </Transitions>
             </Setter>
         </Style>
@@ -63,10 +79,6 @@
                 CornerRadius="8"
                 ClipToBounds="True"
                 Width="476" Height="268">
-
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="25" Opacity="0.25" OffsetX="0" OffsetY="3" />
-            </Border.Effect>
 
             <Grid Width="476" Height="268" ClipToBounds="True">
 
@@ -133,6 +145,7 @@
 
                     <TextBlock Grid.Column="0" Grid.Row="1"
                                Text="{Binding Metadata.Title}"
+                               FontFamily="{StaticResource MontserratFont}"
                                FontWeight="Bold" FontSize="24"
                                TextWrapping="Wrap" MaxWidth="400"
                                Margin="0,0,0,2" />

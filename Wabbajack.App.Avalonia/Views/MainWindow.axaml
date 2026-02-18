@@ -86,6 +86,7 @@
 
             <!-- Close -->
             <Button x:Name="CloseButton" Grid.Column="7"
+                    Classes="closeBtn"
                     Width="46" Height="32" Padding="0"
                     HorizontalContentAlignment="Center"
                     VerticalContentAlignment="Center"
@@ -110,7 +111,24 @@
                     CornerRadius="8,0,0,8"
                     Background="{StaticResource SurfaceBrush}"
                     x:Name="MainContent">
-                <ContentControl Content="{Binding ActiveContent}" Margin="16" />
+                <Grid>
+                    <!-- Subtle radial purple glow (ambient neon lighting) -->
+                    <Border Opacity="0.08" IsHitTestVisible="False">
+                        <Border.Background>
+                            <RadialGradientBrush Center="85%,15%" GradientOrigin="85%,15%"
+                                                 RadiusX="0.6" RadiusY="0.6">
+                                <GradientStop Color="#a855f7" Offset="0" />
+                                <GradientStop Color="Transparent" Offset="1" />
+                            </RadialGradientBrush>
+                        </Border.Background>
+                    </Border>
+
+                    <TransitioningContentControl Content="{Binding ActiveContent}" Margin="16">
+                        <TransitioningContentControl.PageTransition>
+                            <CrossFade Duration="0:0:0.25" />
+                        </TransitioningContentControl.PageTransition>
+                    </TransitioningContentControl>
+                </Grid>
             </Border>
         </Grid>
 

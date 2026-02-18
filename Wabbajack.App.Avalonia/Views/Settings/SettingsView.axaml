@@ -16,6 +16,7 @@
 
                     <TextBlock Text="Resource Limits"
                                FontSize="16" FontWeight="SemiBold"
+                               FontFamily="{StaticResource MontserratFont}"
                                Margin="4,0,0,12" />
 
                     <ItemsControl x:Name="ResourceSettingsList">
@@ -107,6 +108,7 @@
                     <StackPanel HorizontalAlignment="Center" Spacing="4">
                         <TextBlock Text="Wabbajack"
                                    FontSize="36" FontWeight="Bold"
+                                   FontFamily="{StaticResource MontserratFont}"
                                    HorizontalAlignment="Center"
                                    Foreground="{StaticResource PrimaryBrush}" />
                         <TextBlock x:Name="VersionText"

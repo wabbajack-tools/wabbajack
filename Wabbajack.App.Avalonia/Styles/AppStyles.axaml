@@ -2,30 +2,191 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-        Global dark-theme tweaks on top of FluentTheme Dark variant.
-        These target the standard Avalonia 11 control themes.
+        Global darkwave-theme styles on top of FluentTheme Dark variant.
     -->
 
-    <!-- ScrollBar: thinner, lower-opacity track -->
-    <Style Selector="ScrollBar">
-        <Setter Property="AllowAutoHide" Value="True" />
+    <Styles.Resources>
+        <FontFamily x:Key="MontserratFont">avares://Wabbajack.Avalonia/Assets/Fonts#Montserrat</FontFamily>
+        <FontFamily x:Key="OpenSansFont">avares://Wabbajack.Avalonia/Assets/Fonts#Open Sans</FontFamily>
+    </Styles.Resources>
+
+    <!-- ── Typography defaults ─────────────────────────────────── -->
+    <Style Selector="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource OpenSansFont}" />
+        <Setter Property="Foreground" Value="#f8fafc" />
     </Style>
 
-    <!-- TabItem: remove default underline border, style active tab -->
+    <Style Selector="TextBlock.heading">
+        <Setter Property="FontFamily" Value="{StaticResource MontserratFont}" />
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+
+    <Style Selector="TextBlock.display">
+        <Setter Property="FontFamily" Value="{StaticResource MontserratFont}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="48" />
+    </Style>
+
     <Style Selector="TabItem">
+        <Setter Property="FontFamily" Value="{StaticResource MontserratFont}" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="Padding" Value="12,8" />
     </Style>
 
-    <!-- ListBoxItem: tighter padding, keep hover from theme -->
+    <!-- ── ScrollBar ───────────────────────────────────────────── -->
+    <Style Selector="ScrollBar">
+        <Setter Property="AllowAutoHide" Value="True" />
+    </Style>
+
+    <!-- ── ListBoxItem ─────────────────────────────────────────── -->
     <Style Selector="ListBoxItem">
         <Setter Property="Padding" Value="6,3" />
     </Style>
 
-    <!-- Separator: use our dark secondary colour -->
+    <!-- ── Separator ───────────────────────────────────────────── -->
     <Style Selector="Separator">
-        <Setter Property="Background" Value="#2A2B41" />
+        <Setter Property="Background" Value="#252542" />
         <Setter Property="Height" Value="1" />
+    </Style>
+
+    <!-- ── Button: subtle press feedback (all buttons) ─────────── -->
+    <Style Selector="Button">
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Button:pressed">
+        <Setter Property="RenderTransform" Value="scaleX(0.97) scaleY(0.97)" />
+    </Style>
+
+    <!-- ── .accent button (primary actions: gradient bg) ────────── -->
+    <Style Selector="Button.accent">
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
+                <GradientStop Color="#a855f7" Offset="0" />
+                <GradientStop Color="#ec4899" Offset="1" />
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Button.accent:pointerover">
+        <Setter Property="RenderTransform" Value="scaleX(1.02) scaleY(1.02)" />
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
+                <GradientStop Color="#b86bff" Offset="0" />
+                <GradientStop Color="#f472b6" Offset="1" />
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    <!-- Override FluentTheme's internal ContentPresenter for accent hover/pressed -->
+    <Style Selector="Button.accent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
+                <GradientStop Color="#b86bff" Offset="0" />
+                <GradientStop Color="#f472b6" Offset="1" />
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.accent:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
+                <GradientStop Color="#9333ea" Offset="0" />
+                <GradientStop Color="#db2777" Offset="1" />
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.accent:pressed">
+        <Setter Property="RenderTransform" Value="scaleX(0.98) scaleY(0.98)" />
+    </Style>
+
+    <!-- ── .card Border (info cards / panels) ──────────────────── -->
+    <Style Selector="Border.card">
+        <Setter Property="Background" Value="#1a1a2e" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="BorderBrush" Value="#33a855f7" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BoxShadow" Value="0 4 24 0 #00000040" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.25" />
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.25" />
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.25" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.card:pointerover">
+        <Setter Property="BoxShadow" Value="0 8 40 0 #55a855f7" />
+        <Setter Property="RenderTransform" Value="scaleX(1.03) scaleY(1.03)" />
+        <Setter Property="BorderBrush" Value="#66a855f7" />
+    </Style>
+
+    <!-- ── .pulseGlow Border (active install/compile states) ───── -->
+    <Style Selector="Border.pulseGlow">
+        <Setter Property="BoxShadow" Value="0 0 24 0 #20a855f7" />
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite" PlaybackDirection="Alternate">
+                <KeyFrame Cue="0%">
+                    <Setter Property="BoxShadow" Value="0 0 24 0 #20a855f7" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="BoxShadow" Value="0 0 24 0 #60a855f7" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ── TextBox ─────────────────────────────────────────────── -->
+    <Style Selector="TextBox">
+        <Setter Property="Background" Value="#252542" />
+        <Setter Property="BorderBrush" Value="#33a855f7" />
+        <Setter Property="Foreground" Value="#f8fafc" />
+        <Setter Property="CornerRadius" Value="6" />
+    </Style>
+    <Style Selector="TextBox:focus">
+        <Setter Property="BorderBrush" Value="#66a855f7" />
+    </Style>
+
+    <!-- ── ComboBox ───────────────────────────────────────────── -->
+    <Style Selector="ComboBox">
+        <Setter Property="Background" Value="#252542" />
+        <Setter Property="BorderBrush" Value="#33a855f7" />
+        <Setter Property="CornerRadius" Value="6" />
+    </Style>
+
+    <!-- ── ProgressBar ────────────────────────────────────────── -->
+    <Style Selector="ProgressBar">
+        <Setter Property="Foreground" Value="#a855f7" />
+        <Setter Property="Background" Value="#252542" />
+    </Style>
+
+    <!-- ── Slider thumb ───────────────────────────────────────── -->
+    <Style Selector="Slider /template/ Thumb">
+        <Setter Property="Background" Value="#a855f7" />
+    </Style>
+
+    <!-- ── CheckBox checked accent ────────────────────────────── -->
+    <Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="#a855f7" />
+        <Setter Property="BorderBrush" Value="#a855f7" />
+    </Style>
+
+    <!-- ── Close button red hover ──────────────────────────────── -->
+    <Style Selector="Button.closeBtn:pointerover">
+        <Setter Property="Background" Value="#e81123" />
     </Style>
 
 </Styles>

@@ -85,6 +85,7 @@
 
                     <!-- Install button -->
                     <Button x:Name="InstallButton"
+                            Classes="accent"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Center"
                             MinHeight="56" Margin="0,12,0,0">
@@ -111,7 +112,7 @@
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0%,30%" EndPoint="0%,100%">
                             <GradientStop Color="#00000000" Offset="0" />
-                            <GradientStop Color="#CC000000" Offset="1" />
+                            <GradientStop Color="#CC0a0a0f" Offset="1" />
                         </LinearGradientBrush>
                     </Border.Background>
                 </Border>
@@ -120,6 +121,7 @@
                 <StackPanel VerticalAlignment="Bottom" Margin="20,0,20,20" Spacing="4">
                     <TextBlock x:Name="SetupTitleText"
                                FontSize="48" FontWeight="Bold"
+                               FontFamily="{StaticResource MontserratFont}"
                                Foreground="White" TextWrapping="Wrap" />
                     <TextBlock x:Name="SetupAuthorText"
                                FontSize="22" Foreground="White" Opacity="0.8" />
@@ -152,7 +154,7 @@
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0%,20%" EndPoint="0%,100%">
                             <GradientStop Color="#00000000" Offset="0" />
-                            <GradientStop Color="#DD000000" Offset="1" />
+                            <GradientStop Color="#DD0a0a0f" Offset="1" />
                         </LinearGradientBrush>
                     </Border.Background>
                 </Border>
@@ -160,6 +162,7 @@
                 <StackPanel VerticalAlignment="Bottom" Margin="16,0,16,16" Spacing="8">
                     <TextBlock x:Name="InstallingTitleText"
                                FontSize="28" FontWeight="Bold"
+                               FontFamily="{StaticResource MontserratFont}"
                                Foreground="White" TextWrapping="Wrap" />
 
                     <!-- Overall progress -->
@@ -279,7 +282,7 @@
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0%,20%" EndPoint="0%,100%">
                         <GradientStop Color="#00000000" Offset="0" />
-                        <GradientStop Color="#EE000000" Offset="1" />
+                        <GradientStop Color="#EE0a0a0f" Offset="1" />
                     </LinearGradientBrush>
                 </Border.Background>
             </Border>
@@ -287,12 +290,13 @@
             <StackPanel VerticalAlignment="Bottom" Margin="24,0,24,24" Spacing="12">
                 <TextBlock x:Name="CompletedTitleText"
                            FontSize="60" FontWeight="Bold"
+                           FontFamily="{StaticResource MontserratFont}"
                            Foreground="White" TextWrapping="Wrap" />
                 <TextBlock Text="Installation complete!"
                            FontSize="24" Foreground="White" Opacity="0.85" />
 
                 <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
-                    <Button x:Name="BackToGalleryButton" Padding="14,8" FontSize="14">
+                    <Button x:Name="BackToGalleryButton" Classes="accent" Padding="14,8" FontSize="14">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <ic:SymbolIcon Symbol="ArrowLeft" FontSize="16" />
                             <TextBlock Text="Back to Gallery" />

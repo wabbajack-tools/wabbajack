@@ -5,8 +5,27 @@
              xmlns:ic="using:FluentIcons.Avalonia"
              x:Class="Wabbajack.App.Avalonia.Views.HomeView"
              mc:Ignorable="d">
+
+    <UserControl.Styles>
+        <!-- Entrance fade-in-up animation -->
+        <Style Selector="Grid.homeContent">
+            <Style.Animations>
+                <Animation Duration="0:0:0.5" Easing="CubicEaseOut" FillMode="Forward">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="0" />
+                        <Setter Property="TranslateTransform.Y" Value="20" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="1" />
+                        <Setter Property="TranslateTransform.Y" Value="0" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+    </UserControl.Styles>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <Grid Margin="8,0,8,0">
+        <Grid Classes="homeContent" Margin="8,0,8,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -16,18 +35,29 @@
             </Grid.RowDefinitions>
 
             <!-- Row 0: Title -->
-            <TextBlock Grid.Row="0" FontSize="87" FontWeight="Bold">
+            <TextBlock Grid.Row="0" FontSize="87" FontWeight="Bold"
+                       FontFamily="{StaticResource MontserratFont}">
                 <Run Foreground="{StaticResource ForegroundBrush}" Text="Welcome to " />
                 <Run Foreground="{StaticResource PrimaryBrush}" Text="Wabbajack" />
             </TextBlock>
 
             <!-- Row 1: Subtitle with counts -->
             <StackPanel Grid.Row="1" Orientation="Horizontal">
-                <TextBlock Text="The home of " FontSize="24" Foreground="{StaticResource ForegroundBrush}" />
-                <TextBlock x:Name="ModlistCountText" FontSize="24" Foreground="{StaticResource PrimaryBrush}" Text="0" />
-                <TextBlock Text=" ready-made modlists spanning " FontSize="24" Foreground="{StaticResource ForegroundBrush}" />
-                <TextBlock x:Name="GameCountText" FontSize="24" Foreground="{StaticResource PrimaryBrush}" Text="0" />
-                <TextBlock Text=" games." FontSize="24" Foreground="{StaticResource ForegroundBrush}" />
+                <TextBlock Text="The home of " FontSize="24"
+                           FontFamily="{StaticResource MontserratFont}"
+                           Foreground="{StaticResource ForegroundBrush}" />
+                <TextBlock x:Name="ModlistCountText" FontSize="24"
+                           FontFamily="{StaticResource MontserratFont}"
+                           Foreground="{StaticResource PrimaryBrush}" Text="0" />
+                <TextBlock Text=" ready-made modlists spanning " FontSize="24"
+                           FontFamily="{StaticResource MontserratFont}"
+                           Foreground="{StaticResource ForegroundBrush}" />
+                <TextBlock x:Name="GameCountText" FontSize="24"
+                           FontFamily="{StaticResource MontserratFont}"
+                           Foreground="{StaticResource PrimaryBrush}" Text="0" />
+                <TextBlock Text=" games." FontSize="24"
+                           FontFamily="{StaticResource MontserratFont}"
+                           Foreground="{StaticResource ForegroundBrush}" />
             </StackPanel>
 
             <!-- Row 2: Info cards 2x2 grid -->
@@ -42,9 +72,8 @@
                 </Grid.RowDefinitions>
 
                 <!-- Card 1: Find a modlist -->
-                <Border Grid.Row="0" Grid.Column="0" CornerRadius="16"
-                        BorderBrush="{StaticResource ComplementaryPrimary08Brush}"
-                        BorderThickness="3" Margin="0,0,16,16">
+                <Border Grid.Row="0" Grid.Column="0" Classes="card"
+                        Margin="0,0,16,16">
                     <Grid Margin="12" VerticalAlignment="Center">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -57,6 +86,7 @@
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center"
                                    Text="Find a modlist that suits you"
+                                   FontFamily="{StaticResource MontserratFont}"
                                    FontWeight="DemiBold" FontSize="24" Margin="0,0,0,4" />
                         <ic:SymbolIcon Grid.Column="1" Grid.Row="0" VerticalAlignment="Center"
                                        Symbol="Search" IconVariant="Filled" FontSize="28"
@@ -80,9 +110,8 @@
                 </Border>
 
                 <!-- Card 2: Follow install notes -->
-                <Border Grid.Row="0" Grid.Column="1" CornerRadius="16"
-                        BorderBrush="{StaticResource ComplementaryPrimary08Brush}"
-                        BorderThickness="3" Margin="0,0,16,16">
+                <Border Grid.Row="0" Grid.Column="1" Classes="card"
+                        Margin="0,0,16,16">
                     <Grid Margin="12" VerticalAlignment="Center">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -94,6 +123,7 @@
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center"
                                    Text="Follow the install notes"
+                                   FontFamily="{StaticResource MontserratFont}"
                                    FontWeight="DemiBold" FontSize="24" Margin="0,0,0,4" />
                         <ic:SymbolIcon Grid.Column="1" Grid.Row="0" VerticalAlignment="Center"
                                        Symbol="DocumentOnePageMultiple" IconVariant="Filled" FontSize="28"
@@ -107,9 +137,8 @@
                 </Border>
 
                 <!-- Card 3: Start downloading -->
-                <Border Grid.Row="1" Grid.Column="0" CornerRadius="16"
-                        BorderBrush="{StaticResource ComplementaryPrimary08Brush}"
-                        BorderThickness="3" Margin="0,0,16,16">
+                <Border Grid.Row="1" Grid.Column="0" Classes="card"
+                        Margin="0,0,16,16">
                     <Grid Margin="12" VerticalAlignment="Center">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -121,6 +150,7 @@
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center"
                                    Text="Start downloading your chosen list"
+                                   FontFamily="{StaticResource MontserratFont}"
                                    FontWeight="DemiBold" FontSize="24" Margin="0,0,0,4" />
                         <ic:SymbolIcon Grid.Column="1" Grid.Row="0" VerticalAlignment="Center"
                                        Symbol="ArrowDownload" IconVariant="Filled" FontSize="28"
@@ -134,9 +164,8 @@
                 </Border>
 
                 <!-- Card 4: Ready to play -->
-                <Border Grid.Row="1" Grid.Column="1" CornerRadius="16"
-                        BorderBrush="{StaticResource ComplementaryPrimary08Brush}"
-                        BorderThickness="3" Margin="0,0,16,16">
+                <Border Grid.Row="1" Grid.Column="1" Classes="card"
+                        Margin="0,0,16,16">
                     <Grid Margin="12" VerticalAlignment="Center">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -148,6 +177,7 @@
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center"
                                    Text="Ready to start playing!"
+                                   FontFamily="{StaticResource MontserratFont}"
                                    FontWeight="DemiBold" FontSize="24" Margin="0,0,0,4" />
                         <ic:SymbolIcon Grid.Column="1" Grid.Row="0" VerticalAlignment="Center"
                                        Symbol="Games" IconVariant="Filled" FontSize="28"
@@ -175,12 +205,14 @@
 
             <!-- Row 4: Get Started button -->
             <Button x:Name="GetStartedButton" Grid.Row="4"
+                    Classes="accent"
                     HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                     Margin="0,0,16,16" MinHeight="108">
                 <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
                     <ic:SymbolIcon Symbol="ChevronRight" FontSize="36" VerticalAlignment="Center" />
                     <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                        <TextBlock Text="Get Started" FontSize="20" FontWeight="Bold" />
+                        <TextBlock Text="Get Started" FontSize="20" FontWeight="Bold"
+                                   FontFamily="{StaticResource MontserratFont}" />
                         <TextBlock Text="Browse the gallery and find yourself a modlist to play"
                                    FontSize="13" Opacity="0.8" />
                     </StackPanel>

@@ -14,20 +14,54 @@
 
     <Application.Resources>
         <ResourceDictionary>
-            <!-- Dark background colours -->
-            <Color x:Key="AppBackground">#1B1B2D</Color>
+            <!-- ── Font families ──────────────────────────────────── -->
+            <FontFamily x:Key="MontserratFont">avares://Wabbajack.Avalonia/Assets/Fonts#Montserrat</FontFamily>
+            <FontFamily x:Key="OpenSansFont">avares://Wabbajack.Avalonia/Assets/Fonts#Open Sans</FontFamily>
+
+            <!-- ── FluentTheme accent color overrides ─────────────── -->
+            <Color x:Key="SystemAccentColor">#a855f7</Color>
+            <Color x:Key="SystemAccentColorDark1">#9333ea</Color>
+            <Color x:Key="SystemAccentColorDark2">#7e22ce</Color>
+            <Color x:Key="SystemAccentColorLight1">#b86bff</Color>
+            <Color x:Key="SystemAccentColorLight2">#c084fc</Color>
+            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#a855f7" />
+
+            <!-- ── Darkwave colour palette ────────────────────────── -->
+            <Color x:Key="AppBackground">#0a0a0f</Color>
             <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource AppBackground}" />
-            <Color x:Key="SurfaceColor">#23233A</Color>
+
+            <Color x:Key="BackgroundLight">#12121a</Color>
+            <SolidColorBrush x:Key="BackgroundLightBrush" Color="{StaticResource BackgroundLight}" />
+
+            <Color x:Key="SurfaceColor">#1a1a2e</Color>
             <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
-            <Color x:Key="PrimaryColor">#7B68EE</Color>
+
+            <Color x:Key="SurfaceLightColor">#252542</Color>
+            <SolidColorBrush x:Key="SurfaceLightBrush" Color="{StaticResource SurfaceLightColor}" />
+
+            <Color x:Key="PrimaryColor">#a855f7</Color>
             <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
-            <SolidColorBrush x:Key="ForegroundBrush" Color="White" />
-            <SolidColorBrush x:Key="NSFWBrush" Color="#CC2222" />
-            <SolidColorBrush x:Key="UnavailableBrush" Color="#CC2222" />
-            <SolidColorBrush x:Key="UnavailableDarkBrush" Color="#88CC2222" />
+
+            <Color x:Key="SecondaryColor">#ec4899</Color>
+            <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}" />
+
+            <Color x:Key="TertiaryColor">#22d3ee</Color>
+            <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource TertiaryColor}" />
+
+            <SolidColorBrush x:Key="ForegroundBrush" Color="#f8fafc" />
+            <SolidColorBrush x:Key="ForegroundSecondaryBrush" Color="#94a3b8" />
+            <SolidColorBrush x:Key="ForegroundMutedBrush" Color="#64748b" />
+
+            <SolidColorBrush x:Key="NSFWBrush" Color="#ef4444" />
+            <SolidColorBrush x:Key="UnavailableBrush" Color="#ef4444" />
+            <SolidColorBrush x:Key="UnavailableDarkBrush" Color="#88ef4444" />
+
+            <SolidColorBrush x:Key="SuccessBrush" Color="#10b981" />
+            <SolidColorBrush x:Key="WarningBrush" Color="#f59e0b" />
+
             <SolidColorBrush x:Key="ComplementaryBackgroundBrush" Color="{StaticResource SurfaceColor}" />
-            <SolidColorBrush x:Key="ComplementaryPrimary08Brush" Color="#147B68EE" />
-            <SolidColorBrush x:Key="DarkSecondaryBrush" Color="#2A2B41" />
+            <SolidColorBrush x:Key="ComplementaryPrimary08Brush" Color="#14a855f7" />
+            <SolidColorBrush x:Key="DarkSecondaryBrush" Color="#252542" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

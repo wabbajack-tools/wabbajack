@@ -25,6 +25,7 @@
                 <StackPanel Spacing="8">
                     <TextBlock Text="Compile a Modlist"
                                FontSize="36" FontWeight="Bold"
+                               FontFamily="{StaticResource MontserratFont}"
                                HorizontalAlignment="Center" />
                     <TextBlock Text="Package your Mod Organizer 2 modlist into a Wabbajack archive for distribution."
                                FontSize="14" Opacity="0.7" TextWrapping="Wrap"
@@ -36,12 +37,17 @@
                     <!-- New Modlist -->
                     <Button x:Name="NewModlistButton" Grid.Column="0"
                             MinHeight="120" HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Center">
+                            HorizontalContentAlignment="Center"
+                            Background="{StaticResource SurfaceBrush}"
+                            BorderBrush="#1Aa855f7" BorderThickness="1"
+                            CornerRadius="16">
                         <StackPanel Spacing="10" HorizontalAlignment="Center">
                             <ic:SymbolIcon Symbol="Toolbox" FontSize="40"
-                                          HorizontalAlignment="Center" />
+                                          HorizontalAlignment="Center"
+                                          Foreground="{StaticResource PrimaryBrush}" />
                             <TextBlock Text="New Modlist"
                                        FontSize="16" FontWeight="SemiBold"
+                                       FontFamily="{StaticResource MontserratFont}"
                                        HorizontalAlignment="Center" />
                             <TextBlock Text="Pick a modlist.txt to get started"
                                        FontSize="12" Opacity="0.65"
@@ -52,12 +58,17 @@
                     <!-- Load Settings -->
                     <Button x:Name="LoadSettingsButton" Grid.Column="2"
                             MinHeight="120" HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Center">
+                            HorizontalContentAlignment="Center"
+                            Background="{StaticResource SurfaceBrush}"
+                            BorderBrush="#1Aa855f7" BorderThickness="1"
+                            CornerRadius="16">
                         <StackPanel Spacing="10" HorizontalAlignment="Center">
                             <ic:SymbolIcon Symbol="DocumentSettings" FontSize="40"
-                                          HorizontalAlignment="Center" />
+                                          HorizontalAlignment="Center"
+                                          Foreground="{StaticResource PrimaryBrush}" />
                             <TextBlock Text="Load Settings"
                                        FontSize="16" FontWeight="SemiBold"
+                                       FontFamily="{StaticResource MontserratFont}"
                                        HorizontalAlignment="Center" />
                             <TextBlock Text="Resume a previous compilation"
                                        FontSize="12" Opacity="0.65"
@@ -106,7 +117,9 @@
                 <StackPanel Margin="20,16,12,16" Spacing="10">
 
                     <TextBlock Text="Compilation Settings"
-                               FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4" />
+                               FontSize="20" FontWeight="SemiBold"
+                               FontFamily="{StaticResource MontserratFont}"
+                               Margin="0,0,0,4" />
 
                     <!-- Source / Profile (read-only) -->
                     <TextBlock Text="MO2 Source folder" FontSize="11" Opacity="0.6" />
@@ -190,6 +203,7 @@
                     <!-- Action buttons -->
                     <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,12,0,0">
                         <Button x:Name="StartButton"
+                                Classes="accent"
                                 MinHeight="48" MinWidth="160"
                                 HorizontalContentAlignment="Center">
                             <StackPanel Orientation="Horizontal" Spacing="8">
@@ -221,7 +235,7 @@
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0%,20%" EndPoint="0%,100%">
                             <GradientStop Color="#00000000" Offset="0" />
-                            <GradientStop Color="#DD000000" Offset="1" />
+                            <GradientStop Color="#DD0a0a0f" Offset="1" />
                         </LinearGradientBrush>
                     </Border.Background>
                 </Border>
@@ -255,6 +269,7 @@
                 <!-- Modlist name -->
                 <TextBlock x:Name="ProgressTitleText"
                            FontSize="28" FontWeight="Bold"
+                           FontFamily="{StaticResource MontserratFont}"
                            HorizontalAlignment="Center"
                            TextWrapping="Wrap" TextAlignment="Center" />
 
