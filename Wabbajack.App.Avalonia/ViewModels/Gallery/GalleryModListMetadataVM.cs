@@ -3,9 +3,11 @@ using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
+using Wabbajack.App.Avalonia.Messages;
 using Wabbajack.App.Avalonia.Util;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.ModListValidation;
@@ -54,5 +56,12 @@ public class GalleryModListMetadataVM : BaseModListMetadataVM
         ModListContentsCommand = ReactiveCommand.Create(() =>
             UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/search/{Metadata.NamespacedName}")),
             IsLoadingIdle.StartWith(true));
+    }
+
+    protected override Task Install()
+    {
+        LoadModlistForInstalling.Send(Location, Metadata);
+        NavigateToGlobal.Send(ScreenType.Installer);
+        return Task.CompletedTask;
     }
 }

@@ -6,6 +6,7 @@ public enum ScreenType
 {
     Home,
     ModListGallery,
+    Installer,
 }
 
 public class NavigateToGlobal

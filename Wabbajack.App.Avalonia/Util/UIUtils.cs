@@ -11,11 +11,20 @@ using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
 using Wabbajack.App.Avalonia.Models;
 using Wabbajack.DTOs;
+using Wabbajack.Paths;
 
 namespace Wabbajack.App.Avalonia.Util;
 
 public static class UIUtils
 {
+    public static void OpenFolder(AbsolutePath path)
+    {
+        Process.Start(new ProcessStartInfo("explorer.exe", path.ToString())
+        {
+            UseShellExecute = true,
+        });
+    }
+
     public static void OpenWebsite(Uri url)
     {
         Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url.ToString().Replace(" ", "%20")}")

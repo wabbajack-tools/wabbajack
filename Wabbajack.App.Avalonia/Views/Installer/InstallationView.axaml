@@ -1,0 +1,324 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             x:Class="Wabbajack.App.Avalonia.Views.Installer.InstallationView"
+             mc:Ignorable="d">
+
+    <Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             STATE 1 — Configuration
+             ═══════════════════════════════════════════════════════════ -->
+        <Grid x:Name="SetupGrid">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="3*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: path pickers + link buttons + install button -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="12,12,8,12" Spacing="8">
+
+                    <!-- Modlist name display -->
+                    <TextBlock x:Name="SetupModlistNameText"
+                               FontSize="16" FontWeight="SemiBold"
+                               TextWrapping="Wrap" />
+
+                    <!-- Install location -->
+                    <TextBlock Text="Installation location"
+                               FontSize="11" Opacity="0.65" Margin="0,8,0,0" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox x:Name="InstallPathBox"
+                                 Watermark="Installation folder…"
+                                 Padding="8,6" />
+                        <Button x:Name="BrowseInstallButton" Grid.Column="1"
+                                Margin="4,0,0,0" Padding="8,6"
+                                ToolTip.Tip="Browse for folder">
+                            <ic:SymbolIcon Symbol="FolderOpen" FontSize="14" />
+                        </Button>
+                    </Grid>
+
+                    <!-- Download location -->
+                    <TextBlock Text="Download location"
+                               FontSize="11" Opacity="0.65" Margin="0,4,0,0" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox x:Name="DownloadPathBox"
+                                 Watermark="Downloads folder…"
+                                 Padding="8,6" />
+                        <Button x:Name="BrowseDownloadButton" Grid.Column="1"
+                                Margin="4,0,0,0" Padding="8,6"
+                                ToolTip.Tip="Browse for folder">
+                            <ic:SymbolIcon Symbol="FolderOpen" FontSize="14" />
+                        </Button>
+                    </Grid>
+
+                    <!-- Validation error banner -->
+                    <Border x:Name="ErrorBorder" IsVisible="False"
+                            Background="#661A1A" CornerRadius="6"
+                            Padding="10,8" Margin="0,4,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ic:SymbolIcon Symbol="ErrorCircle" FontSize="16"
+                                           Foreground="#FF6B6B" VerticalAlignment="Top"
+                                           Margin="0,1,0,0" />
+                            <TextBlock x:Name="ErrorText" Foreground="#FF6B6B"
+                                       TextWrapping="Wrap" FontSize="12" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Link buttons row -->
+                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,8,0,0">
+                        <Button x:Name="DocumentationButton" Padding="8,5" FontSize="12">
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <ic:SymbolIcon Symbol="DocumentText" FontSize="13" />
+                                <TextBlock Text="Readme" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="WebsiteButton" Padding="8,5" FontSize="12">
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <ic:SymbolIcon Symbol="Globe" FontSize="13" />
+                                <TextBlock Text="Website" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Install button -->
+                    <Button x:Name="InstallButton"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            MinHeight="56" Margin="0,12,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <ic:SymbolIcon Symbol="ArrowDownload" FontSize="22"
+                                           VerticalAlignment="Center" />
+                            <TextBlock Text="Install" FontSize="18" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Right: cover image with title/author overlay + loading bar -->
+            <Grid Grid.Column="1" ClipToBounds="True">
+                <Image x:Name="SetupModListImage"
+                       Stretch="UniformToFill"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center" />
+
+                <!-- Gradient overlay bottom-to-top -->
+                <Border>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0%,30%" EndPoint="0%,100%">
+                            <GradientStop Color="#00000000" Offset="0" />
+                            <GradientStop Color="#CC000000" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+
+                <!-- Title / author at bottom -->
+                <StackPanel VerticalAlignment="Bottom" Margin="20,0,20,20" Spacing="4">
+                    <TextBlock x:Name="SetupTitleText"
+                               FontSize="48" FontWeight="Bold"
+                               Foreground="White" TextWrapping="Wrap" />
+                    <TextBlock x:Name="SetupAuthorText"
+                               FontSize="22" Foreground="White" Opacity="0.8" />
+                </StackPanel>
+
+                <!-- Loading indicator while modlist loads -->
+                <ProgressBar x:Name="ModlistLoadingBar"
+                             IsIndeterminate="True" IsVisible="False"
+                             Height="4" VerticalAlignment="Top" />
+            </Grid>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             STATE 2 — Installing / Failure
+             ═══════════════════════════════════════════════════════════ -->
+        <Grid x:Name="InstallationGrid" IsVisible="False">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="3*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: cover image + progress overlay -->
+            <Grid Grid.Column="0" ClipToBounds="True">
+                <Image x:Name="InstallingModListImage"
+                       Stretch="UniformToFill"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center" />
+
+                <Border>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0%,20%" EndPoint="0%,100%">
+                            <GradientStop Color="#00000000" Offset="0" />
+                            <GradientStop Color="#DD000000" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+
+                <StackPanel VerticalAlignment="Bottom" Margin="16,0,16,16" Spacing="8">
+                    <TextBlock x:Name="InstallingTitleText"
+                               FontSize="28" FontWeight="Bold"
+                               Foreground="White" TextWrapping="Wrap" />
+
+                    <!-- Overall progress -->
+                    <TextBlock x:Name="InstallProgressText"
+                               Foreground="White" Opacity="0.9"
+                               FontSize="13" TextWrapping="Wrap" />
+                    <ProgressBar x:Name="InstallProgressBar"
+                                 Minimum="0" Maximum="1" Height="6"
+                                 CornerRadius="3" />
+
+                    <!-- Speed indicators -->
+                    <StackPanel Orientation="Horizontal" Spacing="16" Opacity="0.75">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="Hash:" FontSize="11" Foreground="White" />
+                            <TextBlock x:Name="HashSpeedText" FontSize="11" Foreground="White" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="Extract:" FontSize="11" Foreground="White" />
+                            <TextBlock x:Name="ExtractionSpeedText" FontSize="11" Foreground="White" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="DL:" FontSize="11" Foreground="White" />
+                            <TextBlock x:Name="DownloadSpeedText" FontSize="11" Foreground="White" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Failure / stopped overlay -->
+                <Border x:Name="StoppedBorder" IsVisible="False"
+                        VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                    <Border.Background>
+                        <SolidColorBrush Color="#CC1A1A1A" />
+                    </Border.Background>
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                Spacing="12" Margin="24">
+                        <ic:SymbolIcon x:Name="StoppedIcon" Symbol="ErrorCircle"
+                                       FontSize="64" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="StoppedInstallMsg"
+                                   FontSize="22" FontWeight="Bold"
+                                   HorizontalAlignment="Center" TextWrapping="Wrap"
+                                   TextAlignment="Center" />
+                        <TextBlock x:Name="StoppedTitle"
+                                   FontSize="15" Opacity="0.85"
+                                   HorizontalAlignment="Center" TextWrapping="Wrap"
+                                   TextAlignment="Center" />
+                        <Button x:Name="StoppedButton"
+                                HorizontalAlignment="Center"
+                                HorizontalContentAlignment="Center"
+                                MinWidth="160" Padding="12,8" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Right: action buttons + status area -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Button row -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal"
+                            Spacing="8" Margin="12,12,12,8">
+                    <Button x:Name="CancelButton" Padding="10,6" FontSize="12">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <ic:SymbolIcon Symbol="Dismiss" FontSize="13" />
+                            <TextBlock Text="Cancel" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="EditInstallDetailsButton" IsVisible="False"
+                            Padding="10,6" FontSize="12">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <ic:SymbolIcon Symbol="Edit" FontSize="13" />
+                            <TextBlock Text="Edit Details" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="RetryButton" IsVisible="False"
+                            Padding="10,6" FontSize="12">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <ic:SymbolIcon Symbol="ArrowCounterclockwise" FontSize="13" />
+                            <TextBlock Text="Retry" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="OpenLogFolderButton" Padding="10,6" FontSize="12">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <ic:SymbolIcon Symbol="FolderOpen" FontSize="13" />
+                            <TextBlock Text="Logs" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- Status / log placeholder -->
+                <Border Grid.Row="1"
+                        Background="{StaticResource AppBackgroundBrush}"
+                        CornerRadius="8,0,0,8" Margin="12,0,0,12">
+                    <StackPanel Margin="16" Spacing="8">
+                        <TextBlock Text="Installation log"
+                                   FontSize="11" Opacity="0.55" />
+                        <TextBlock x:Name="StatusDetailText"
+                                   FontSize="12" Opacity="0.8"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             STATE 3 — Success
+             ═══════════════════════════════════════════════════════════ -->
+        <Grid x:Name="CompletedGrid" IsVisible="False" ClipToBounds="True">
+            <Image x:Name="CompletedModListImage"
+                   Stretch="UniformToFill"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center" />
+
+            <Border>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0%,20%" EndPoint="0%,100%">
+                        <GradientStop Color="#00000000" Offset="0" />
+                        <GradientStop Color="#EE000000" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+
+            <StackPanel VerticalAlignment="Bottom" Margin="24,0,24,24" Spacing="12">
+                <TextBlock x:Name="CompletedTitleText"
+                           FontSize="60" FontWeight="Bold"
+                           Foreground="White" TextWrapping="Wrap" />
+                <TextBlock Text="Installation complete!"
+                           FontSize="24" Foreground="White" Opacity="0.85" />
+
+                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
+                    <Button x:Name="BackToGalleryButton" Padding="14,8" FontSize="14">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <ic:SymbolIcon Symbol="ArrowLeft" FontSize="16" />
+                            <TextBlock Text="Back to Gallery" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="ReadmeButton" Padding="14,8" FontSize="14">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <ic:SymbolIcon Symbol="DocumentText" FontSize="16" />
+                            <TextBlock Text="Readme" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="CreateShortcutButton" Padding="14,8" FontSize="14">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <ic:SymbolIcon Symbol="Link" FontSize="16" />
+                            <TextBlock Text="Create Shortcut" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="OpenFolderButton" Padding="14,8" FontSize="14">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <ic:SymbolIcon Symbol="FolderOpen" FontSize="16" />
+                            <TextBlock Text="Open Folder" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+    </Grid>
+</UserControl>
