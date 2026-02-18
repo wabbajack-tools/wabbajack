@@ -17,6 +17,10 @@
     <PropertyGroup>
         <ApplicationIcon>Assets\wabbajack.ico</ApplicationIcon>
         <TargetFramework>net10.0-windows</TargetFramework>
+        <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
+        <Version>$(VERSION)</Version>
+        <AssemblyVersion>$(VERSION)</AssemblyVersion>
+        <FileVersion>$(VERSION)</FileVersion>
     </PropertyGroup>
     <ItemGroup>
       <None Remove="Assets\wabbajack.ico" />

@@ -1,0 +1,16 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="using:Wabbajack.App.Avalonia"
+        x:Class="Wabbajack.App.Avalonia.Views.MainWindow"
+        Title="Wabbajack"
+        Width="1280" Height="800"
+        MinWidth="900" MinHeight="600"
+        Background="{StaticResource AppBackgroundBrush}"
+        mc:Ignorable="d">
+
+    <Grid>
+        <ContentControl Content="{Binding ActiveContent}" />
+    </Grid>
+</Window>

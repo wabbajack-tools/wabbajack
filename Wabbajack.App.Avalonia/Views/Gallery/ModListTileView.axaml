@@ -1,0 +1,231 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             x:Class="Wabbajack.App.Avalonia.Views.Gallery.ModListTileView"
+             d:DesignHeight="268" d:DesignWidth="476"
+             mc:Ignorable="d">
+
+    <UserControl.Styles>
+        <!-- Animate bottom gradient opacity on pointer-over of the tile border -->
+        <Style Selector="Border.TileRoot Rectangle.BottomGradient">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.08" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.TileRoot:pointerover Rectangle.BottomGradient">
+            <Setter Property="Opacity" Value="0.75" />
+        </Style>
+
+        <!-- Top shimmer on hover -->
+        <Style Selector="Border.TileRoot Rectangle.TopShimmer">
+            <Setter Property="Opacity" Value="0.05" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.08" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.TileRoot:pointerover Rectangle.TopShimmer">
+            <Setter Property="Opacity" Value="0.3" />
+        </Style>
+
+        <!-- Game name: only on hover -->
+        <Style Selector="Border.TileRoot Border.GameNamePill">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="Border.TileRoot:pointerover Border.GameNamePill">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+
+        <!-- Broken overlay: only on hover -->
+        <Style Selector="Border.TileRoot Border.BrokenOverlay">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="Border.TileRoot:pointerover Border.BrokenOverlay">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+    </UserControl.Styles>
+
+    <!-- Card button (transparent, no chrome) -->
+    <Button x:Name="ModlistButton"
+            Background="Transparent"
+            BorderThickness="0"
+            Padding="0">
+
+        <Border x:Name="TileRoot"
+                Classes="TileRoot"
+                Margin="8,0,8,16"
+                CornerRadius="8"
+                ClipToBounds="True"
+                Width="476" Height="268">
+
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="25" Opacity="0.25" OffsetX="0" OffsetY="3" />
+            </Border.Effect>
+
+            <Grid Width="476" Height="268" ClipToBounds="True">
+
+                <!-- Background image -->
+                <Image x:Name="ModlistImage"
+                       Stretch="UniformToFill" />
+
+                <!-- Loading spinner while image downloads -->
+                <ProgressBar IsIndeterminate="True"
+                             IsVisible="{Binding LoadingImage}"
+                             VerticalAlignment="Center"
+                             HorizontalAlignment="Center"
+                             Width="60" Height="4" />
+
+                <!-- Top shimmer (hover effect) -->
+                <Rectangle Classes="TopShimmer"
+                           Height="120"
+                           Margin="-80,-95,-80,0"
+                           VerticalAlignment="Top"
+                           Fill="White">
+                    <Rectangle.Effect>
+                        <BlurEffect Radius="100" />
+                    </Rectangle.Effect>
+                </Rectangle>
+
+                <!-- Bottom gradient backdrop (animated on hover when ImageContainsTitle=true) -->
+                <Rectangle Classes="BottomGradient"
+                           Height="120"
+                           Margin="-80,0,-80,-75"
+                           VerticalAlignment="Bottom"
+                           Fill="Black"
+                           IsVisible="{Binding ImageContainsTitle}">
+                    <Rectangle.Effect>
+                        <BlurEffect Radius="100" />
+                    </Rectangle.Effect>
+                </Rectangle>
+
+                <!-- Always-visible bottom gradient (when image does NOT contain title) -->
+                <Rectangle Height="120"
+                           Margin="-80,0,-80,-75"
+                           VerticalAlignment="Bottom"
+                           Fill="Black"
+                           Opacity="0.75"
+                           IsVisible="{Binding !ImageContainsTitle}">
+                    <Rectangle.Effect>
+                        <BlurEffect Radius="100" />
+                    </Rectangle.Effect>
+                </Rectangle>
+
+                <!-- Info overlay: title / author / sizes -->
+                <Grid Margin="8,0,0,8"
+                      VerticalAlignment="Bottom"
+                      ZIndex="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" MaxWidth="400" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Grid.Row="1"
+                               Text="{Binding Metadata.Title}"
+                               FontWeight="Bold" FontSize="24"
+                               TextWrapping="Wrap" MaxWidth="400"
+                               Margin="0,0,0,2" />
+
+                    <StackPanel Grid.Column="0" Grid.Row="2"
+                                Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="by" Opacity="0.66" FontSize="13" />
+                        <TextBlock Text="{Binding Metadata.Author}" FontSize="13" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Grid.Row="2"
+                                Orientation="Horizontal" Spacing="4"
+                                VerticalAlignment="Bottom">
+                        <ic:SymbolIcon Symbol="ArrowDownload"
+                                       FontSize="13" Opacity="0.66"
+                                       VerticalAlignment="Bottom" />
+                        <TextBlock Text="{Binding DownloadSizeText}"
+                                   FontSize="13" Opacity="0.66"
+                                   VerticalAlignment="Bottom" />
+                        <ic:SymbolIcon Symbol="Games"
+                                       FontSize="13" Opacity="0.66"
+                                       Margin="8,0,0,0"
+                                       VerticalAlignment="Bottom" />
+                        <TextBlock Text="{Binding InstallSizeText}"
+                                   FontSize="13" Opacity="0.66"
+                                   VerticalAlignment="Bottom" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Top-left: game icon + name -->
+                <Grid Margin="8,8,0,0"
+                      VerticalAlignment="Top" HorizontalAlignment="Left"
+                      ZIndex="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="4" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0"
+                            Width="26" Height="26"
+                            CornerRadius="6"
+                            Background="{StaticResource SurfaceBrush}" />
+
+                    <!-- Game name pill — only visible on hover via style -->
+                    <Border Grid.Column="2"
+                            Classes="GameNamePill"
+                            Background="{StaticResource AppBackgroundBrush}"
+                            CornerRadius="4" Opacity="0.85"
+                            Padding="8,2">
+                        <TextBlock Text="{Binding GameMetaData.HumanFriendlyGameName}"
+                                   FontSize="12" />
+                    </Border>
+                </Grid>
+
+                <!-- NSFW badge -->
+                <Border HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="0,8,8,0"
+                        ZIndex="2"
+                        IsVisible="{Binding Metadata.NSFW}"
+                        Background="{StaticResource NSFWBrush}"
+                        CornerRadius="4"
+                        Padding="8,2">
+                    <TextBlock Text="NSFW" FontSize="12" />
+                </Border>
+
+                <!-- Unavailable badge -->
+                <Border HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="0,36,8,0"
+                        ZIndex="2"
+                        IsVisible="{Binding IsBroken}"
+                        Background="{StaticResource UnavailableBrush}"
+                        CornerRadius="4"
+                        Padding="8,2">
+                    <TextBlock Text="Unavailable" FontSize="12" />
+                </Border>
+
+                <!-- Broken overlay (dark tint + message on hover) -->
+                <Border Classes="BrokenOverlay"
+                        IsVisible="{Binding IsBroken}"
+                        Background="{StaticResource UnavailableDarkBrush}"
+                        ZIndex="3">
+                    <TextBlock Margin="16"
+                               FontSize="15"
+                               TextWrapping="Wrap"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               Text="A game or mod update has made this list unavailable. Contact the author(s) for more information." />
+                </Border>
+
+            </Grid>
+        </Border>
+    </Button>
+</UserControl>

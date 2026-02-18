@@ -1,0 +1,28 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:Wabbajack.App.Avalonia"
+             x:Class="Wabbajack.App.Avalonia.App">
+    <Application.DataTemplates>
+        <local:ViewLocator />
+    </Application.DataTemplates>
+
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Dark background colours -->
+            <Color x:Key="AppBackground">#1B1B2D</Color>
+            <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource AppBackground}" />
+            <Color x:Key="SurfaceColor">#23233A</Color>
+            <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+            <Color x:Key="PrimaryColor">#7B68EE</Color>
+            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
+            <SolidColorBrush x:Key="ForegroundBrush" Color="White" />
+            <SolidColorBrush x:Key="NSFWBrush" Color="#CC2222" />
+            <SolidColorBrush x:Key="UnavailableBrush" Color="#CC2222" />
+            <SolidColorBrush x:Key="UnavailableDarkBrush" Color="#88CC2222" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,208 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="using:Wabbajack.App.Avalonia.Views.Gallery"
+             xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels.Gallery"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             x:Class="Wabbajack.App.Avalonia.Views.Gallery.ModListGalleryView"
+             d:DesignHeight="800" d:DesignWidth="1280"
+             mc:Ignorable="d">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="270" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ─── Left sidebar ─────────────────────────────────────────── -->
+        <ScrollViewer Grid.Column="0"
+                      VerticalScrollBarVisibility="Auto"
+                      Padding="8,8,8,8">
+            <StackPanel Orientation="Vertical" Spacing="0">
+
+                <!-- Search box -->
+                <Grid Margin="0,0,0,12">
+                    <TextBox x:Name="SearchBox"
+                             Watermark="Search for a modlist…"
+                             Padding="8,6,36,6" />
+                    <Border Width="30" HorizontalAlignment="Right"
+                            Background="Transparent" IsHitTestVisible="False">
+                        <ic:SymbolIcon Symbol="Search"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       FontSize="16" />
+                    </Border>
+                </Grid>
+
+                <!-- Game filter combo -->
+                <ComboBox x:Name="GameCombo"
+                          Margin="0,0,0,12"
+                          HorizontalAlignment="Stretch"
+                          ToolTip.Tip="Filter modlists by game">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ModListGalleryVM+GameTypeEntry">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Border Width="24" Height="24" CornerRadius="4" />
+                                <TextBlock Text="{Binding FormattedName}"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <!-- Include section -->
+                <TextBlock Text="Include" Margin="0,0,0,6" FontSize="11" Opacity="0.7" />
+                <Border CornerRadius="8" Background="{StaticResource SurfaceBrush}"
+                        Padding="12,10,12,10" Margin="0,0,0,16">
+                    <StackPanel Orientation="Vertical" Spacing="10">
+                        <CheckBox x:Name="IncludeUnofficial"
+                                  Content="Non-featured"
+                                  FontSize="12"
+                                  ToolTip.Tip="Show modlists that have not been officially vetted." />
+                        <CheckBox x:Name="IncludeNSFW"
+                                  Content="NSFW"
+                                  FontSize="12"
+                                  ToolTip.Tip="Show modlists that include NSFW frameworks." />
+                    </StackPanel>
+                </Border>
+
+                <!-- Size sliders -->
+                <TextBlock Text="Total Modlist Size" Margin="0,0,0,6" FontSize="12" />
+                <StackPanel Orientation="Vertical" Spacing="4" Margin="0,0,0,16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Min" VerticalAlignment="Center" FontSize="11" Opacity="0.7" />
+                        <Slider x:Name="MinSizeSlider"
+                                Grid.Column="1"
+                                Margin="8,0,0,0" />
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Max" VerticalAlignment="Center" FontSize="11" Opacity="0.7" />
+                        <Slider x:Name="MaxSizeSlider"
+                                Grid.Column="1"
+                                Margin="8,0,0,0" />
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="MinSizeLabel"
+                                   Grid.Column="0"
+                                   FontSize="11" Opacity="0.6" />
+                        <TextBlock x:Name="MaxSizeLabel"
+                                   Grid.Column="1"
+                                   HorizontalAlignment="Right"
+                                   FontSize="11" Opacity="0.6" />
+                    </Grid>
+                </StackPanel>
+
+                <!-- Has mod(s) -->
+                <Grid Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Has mod(s)" VerticalAlignment="Center" FontSize="12" />
+                    <CheckBox x:Name="ExcludeModsCheckbox"
+                              Grid.Column="1"
+                              Content="Exclude"
+                              FontSize="11"
+                              ToolTip.Tip="Exclude modlists containing the selected mods" />
+                </Grid>
+                <ListBox x:Name="HasModsFilter"
+                         SelectionMode="Multiple"
+                         MaxHeight="120"
+                         Margin="0,0,0,16"
+                         Background="{StaticResource SurfaceBrush}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding name}" FontSize="12" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- Has tag(s) -->
+                <TextBlock Text="Has tag(s)" Margin="0,0,0,6" FontSize="12" />
+                <ListBox x:Name="HasTagsFilter"
+                         SelectionMode="Multiple"
+                         MaxHeight="140"
+                         Margin="0,0,0,16"
+                         Background="{StaticResource SurfaceBrush}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding name}" FontSize="12" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- Only installed games -->
+                <CheckBox x:Name="OnlyInstalledCheckbox"
+                          Content="Show only modlists for installed games"
+                          FontSize="12"
+                          Margin="0,0,0,24"
+                          ToolTip.Tip="Show only modlists for games you have installed." />
+
+                <!-- Reset filters button -->
+                <Button x:Name="ResetFiltersButton"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        ToolTip.Tip="Reset all filters to defaults">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <ic:SymbolIcon Symbol="FilterDismiss" FontSize="14" />
+                        <TextBlock Text="Reset filters" />
+                    </StackPanel>
+                </Button>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ─── Right content area ────────────────────────────────────── -->
+        <Grid Grid.Column="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl x:Name="GalleryControl"
+                              HorizontalAlignment="Left">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <local:ModListTileView />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Loading indicator -->
+            <ProgressBar x:Name="LoadingBar"
+                         IsIndeterminate="True"
+                         IsVisible="False"
+                         VerticalAlignment="Top"
+                         Height="4" />
+
+            <!-- Empty state -->
+            <StackPanel x:Name="NoneFound"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        IsVisible="False"
+                        Spacing="12">
+                <ic:SymbolIcon Symbol="DismissCircle"
+                               FontSize="72"
+                               HorizontalAlignment="Center" />
+                <TextBlock Text="No modlists matching specified criteria"
+                           FontSize="24"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

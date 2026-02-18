@@ -1,0 +1,21 @@
+<Project>
+  <PropertyGroup>
+    <!--
+      GitInfo's GitSetVersion target (an InitialTarget, so it runs before everything)
+      unconditionally overwrites $(Version) with
+      "major.minor.patch+branch.commit".  When no git tag is reachable the result is
+      "0.0.0+main." (trailing dot = invalid NuGet version → NETSDK1018).
+
+      Setting GitVersion=false disables only that version-overriding target; it does
+      NOT affect ThisAssembly class generation (controlled separately by GitThisAssembly).
+
+      CI pipelines pass VERSION as an environment variable; local dev uses the fallback.
+    -->
+    <GitVersion>false</GitVersion>
+
+    <VERSION Condition="'$(VERSION)' == ''">4.0.0.0</VERSION>
+    <Version>$(VERSION)</Version>
+    <AssemblyVersion>$(VERSION)</AssemblyVersion>
+    <FileVersion>$(VERSION)</FileVersion>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,14 @@
+<Project>
+  <!--
+    Safety-net: if any remaining code path still produces a version string containing
+    build metadata ("+"), normalise it before GenerateAssemblyInfo consumes it.
+  -->
+  <Target Name="NormalizeGitInfoVersion" BeforeTargets="GenerateAssemblyInfo;GetAssemblyVersion">
+    <PropertyGroup>
+      <Version Condition="$(Version.Contains('+'))">4.0.0.0</Version>
+      <AssemblyVersion Condition="$(AssemblyVersion.Contains('+'))">4.0.0.0</AssemblyVersion>
+      <FileVersion Condition="$(FileVersion.Contains('+'))">4.0.0.0</FileVersion>
+      <PackageVersion Condition="$(PackageVersion.Contains('+'))">4.0.0.0</PackageVersion>
+    </PropertyGroup>
+  </Target>
+</Project>
