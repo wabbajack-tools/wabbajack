@@ -92,7 +92,7 @@ jobs:
           organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
           project-slug: wabbajack
           signing-policy-slug: test-signing
-          artifact-configuration-slug: default
+          artifact-configuration-slug: wabbajack-app
           github-artifact-id: ${{ steps.upload-main-app.outputs.artifact-id }}
           wait-for-completion: true
           wait-for-completion-timeout-in-seconds: 600
@@ -126,7 +126,7 @@ jobs:
           organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
           project-slug: wabbajack
           signing-policy-slug: test-signing
-          artifact-configuration-slug: default
+          artifact-configuration-slug: wabbajack-cli
           github-artifact-id: ${{ steps.upload-cli.outputs.artifact-id }}
           wait-for-completion: true
           wait-for-completion-timeout-in-seconds: 600
@@ -160,7 +160,7 @@ jobs:
           organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
           project-slug: wabbajack
           signing-policy-slug: test-signing
-          artifact-configuration-slug: default
+          artifact-configuration-slug: wabbajack-launcher
           github-artifact-id: ${{ steps.upload-launcher.outputs.artifact-id }}
           wait-for-completion: true
           wait-for-completion-timeout-in-seconds: 600
