@@ -1,0 +1,309 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             x:Class="Wabbajack.App.Avalonia.Views.Compiler.CompilerView"
+             mc:Ignorable="d">
+
+    <Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             STATE 1 — Home
+             ═══════════════════════════════════════════════════════════ -->
+        <Grid x:Name="HomeGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="1" HorizontalAlignment="Center"
+                        MaxWidth="640" Spacing="24" Margin="24">
+
+                <!-- Title -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Compile a Modlist"
+                               FontSize="36" FontWeight="Bold"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="Package your Mod Organizer 2 modlist into a Wabbajack archive for distribution."
+                               FontSize="14" Opacity="0.7" TextWrapping="Wrap"
+                               HorizontalAlignment="Center" TextAlignment="Center" />
+                </StackPanel>
+
+                <!-- Big action buttons -->
+                <Grid ColumnDefinitions="*,16,*">
+                    <!-- New Modlist -->
+                    <Button x:Name="NewModlistButton" Grid.Column="0"
+                            MinHeight="120" HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center">
+                        <StackPanel Spacing="10" HorizontalAlignment="Center">
+                            <ic:SymbolIcon Symbol="Toolbox" FontSize="40"
+                                          HorizontalAlignment="Center" />
+                            <TextBlock Text="New Modlist"
+                                       FontSize="16" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="Pick a modlist.txt to get started"
+                                       FontSize="12" Opacity="0.65"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Load Settings -->
+                    <Button x:Name="LoadSettingsButton" Grid.Column="2"
+                            MinHeight="120" HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center">
+                        <StackPanel Spacing="10" HorizontalAlignment="Center">
+                            <ic:SymbolIcon Symbol="DocumentSettings" FontSize="40"
+                                          HorizontalAlignment="Center" />
+                            <TextBlock Text="Load Settings"
+                                       FontSize="16" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="Resume a previous compilation"
+                                       FontSize="12" Opacity="0.65"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- Recent modlists -->
+                <StackPanel x:Name="RecentPanel" Spacing="8">
+                    <TextBlock Text="Recent"
+                               FontSize="13" Opacity="0.55" />
+                    <ItemsControl x:Name="RecentItemsControl">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button x:Name="RecentButton"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Left"
+                                        Padding="12,8" Margin="0,0,0,4">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <ic:SymbolIcon Symbol="History" FontSize="14"
+                                                       VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding}"
+                                                   FontSize="12" VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             STATE 2 — Configuration
+             ═══════════════════════════════════════════════════════════ -->
+        <Grid x:Name="ConfigGrid" IsVisible="False">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="360" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: form -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="20,16,12,16" Spacing="10">
+
+                    <TextBlock Text="Compilation Settings"
+                               FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4" />
+
+                    <!-- Source / Profile (read-only) -->
+                    <TextBlock Text="MO2 Source folder" FontSize="11" Opacity="0.6" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox x:Name="SourcePathBox"
+                                 IsReadOnly="True" Padding="8,6"
+                                 Watermark="(pick modlist.txt to set)" />
+                        <Button x:Name="BrowseModlistTxtButton" Grid.Column="1"
+                                Margin="4,0,0,0" Padding="8,6"
+                                ToolTip.Tip="Pick modlist.txt">
+                            <ic:SymbolIcon Symbol="FolderOpen" FontSize="14" />
+                        </Button>
+                    </Grid>
+
+                    <TextBlock Text="Profile" FontSize="11" Opacity="0.6" />
+                    <TextBox x:Name="ProfileBox"
+                             IsReadOnly="True" Padding="8,6" />
+
+                    <!-- Downloads -->
+                    <TextBlock Text="Downloads folder" FontSize="11" Opacity="0.6" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox x:Name="DownloadsPathBox"
+                                 Padding="8,6" Watermark="Downloads folder…" />
+                        <Button x:Name="BrowseDownloadsButton" Grid.Column="1"
+                                Margin="4,0,0,0" Padding="8,6"
+                                ToolTip.Tip="Browse for downloads folder">
+                            <ic:SymbolIcon Symbol="FolderOpen" FontSize="14" />
+                        </Button>
+                    </Grid>
+
+                    <!-- Output -->
+                    <TextBlock Text="Output .wabbajack file" FontSize="11" Opacity="0.6" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox x:Name="OutputPathBox"
+                                 Padding="8,6" Watermark="Output file path…" />
+                        <Button x:Name="BrowseOutputButton" Grid.Column="1"
+                                Margin="4,0,0,0" Padding="8,6"
+                                ToolTip.Tip="Choose output file">
+                            <ic:SymbolIcon Symbol="DocumentSave" FontSize="14" />
+                        </Button>
+                    </Grid>
+
+                    <!-- Modlist metadata -->
+                    <TextBlock Text="Modlist name" FontSize="11" Opacity="0.6" Margin="0,6,0,0" />
+                    <TextBox x:Name="ModListNameBox"
+                             Padding="8,6" Watermark="My Modlist" />
+
+                    <TextBlock Text="Author" FontSize="11" Opacity="0.6" />
+                    <TextBox x:Name="ModListAuthorBox"
+                             Padding="8,6" Watermark="Your name" />
+
+                    <TextBlock Text="Description" FontSize="11" Opacity="0.6" />
+                    <TextBox x:Name="ModListDescriptionBox"
+                             Padding="8,6" Watermark="Short description…"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             MinHeight="64" />
+
+                    <TextBlock Text="Version" FontSize="11" Opacity="0.6" />
+                    <TextBox x:Name="VersionBox"
+                             Padding="8,6" Watermark="1.0.0.0" MaxWidth="160"
+                             HorizontalAlignment="Left" />
+
+                    <!-- Cover image -->
+                    <TextBlock Text="Cover image" FontSize="11" Opacity="0.6" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox x:Name="ImagePathBox"
+                                 Padding="8,6" Watermark="Path to cover image…" />
+                        <Button x:Name="BrowseImageButton" Grid.Column="1"
+                                Margin="4,0,0,0" Padding="8,6"
+                                ToolTip.Tip="Browse for cover image">
+                            <ic:SymbolIcon Symbol="Image" FontSize="14" />
+                        </Button>
+                    </Grid>
+
+                    <!-- NSFW toggle -->
+                    <CheckBox x:Name="NSFWCheckBox" Margin="0,4,0,0">
+                        <TextBlock Text="Mark as NSFW" FontSize="13" />
+                    </CheckBox>
+
+                    <!-- Action buttons -->
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,12,0,0">
+                        <Button x:Name="StartButton"
+                                MinHeight="48" MinWidth="160"
+                                HorizontalContentAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <ic:SymbolIcon Symbol="Play" FontSize="18"
+                                               VerticalAlignment="Center" />
+                                <TextBlock Text="Compile List"
+                                           FontSize="15" FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="BackToHomeButton" Padding="12,8">
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <ic:SymbolIcon Symbol="ArrowLeft" FontSize="14" />
+                                <TextBlock Text="Back" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Right: cover image preview -->
+            <Grid Grid.Column="1" ClipToBounds="True">
+                <Image x:Name="CoverImage"
+                       Stretch="UniformToFill"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center" />
+                <Border>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0%,20%" EndPoint="0%,100%">
+                            <GradientStop Color="#00000000" Offset="0" />
+                            <GradientStop Color="#DD000000" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+                <StackPanel VerticalAlignment="Bottom" Margin="16,0,16,20" Spacing="4">
+                    <TextBlock x:Name="PreviewNameText"
+                               FontSize="22" FontWeight="Bold"
+                               Foreground="White" TextWrapping="Wrap" />
+                    <TextBlock x:Name="PreviewAuthorText"
+                               FontSize="14" Foreground="White" Opacity="0.75" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             STATE 3 — Compiling / Completed / Errored
+             ═══════════════════════════════════════════════════════════ -->
+        <Grid x:Name="ProgressGrid" IsVisible="False">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="1" HorizontalAlignment="Center"
+                        MaxWidth="560" Spacing="20" Margin="32">
+
+                <!-- Icon (changes by state) -->
+                <ic:SymbolIcon x:Name="ProgressIcon" Symbol="Toolbox"
+                               FontSize="64" HorizontalAlignment="Center" />
+
+                <!-- Modlist name -->
+                <TextBlock x:Name="ProgressTitleText"
+                           FontSize="28" FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           TextWrapping="Wrap" TextAlignment="Center" />
+
+                <!-- Status text -->
+                <TextBlock x:Name="ProgressStatusText"
+                           FontSize="14" Opacity="0.8"
+                           HorizontalAlignment="Center"
+                           TextWrapping="Wrap" TextAlignment="Center" />
+
+                <!-- Progress bar (visible while compiling) -->
+                <ProgressBar x:Name="CompileProgressBar"
+                             Minimum="0" Maximum="1" Height="8"
+                             CornerRadius="4"
+                             HorizontalAlignment="Stretch" />
+
+                <!-- Buttons -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                            Spacing="10" Margin="0,8,0,0">
+                    <Button x:Name="CancelCompileButton" Padding="12,8">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <ic:SymbolIcon Symbol="Dismiss" FontSize="14" />
+                            <TextBlock Text="Cancel" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="OpenOutputFolderButton" IsVisible="False"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <ic:SymbolIcon Symbol="FolderOpen" FontSize="14" />
+                            <TextBlock Text="Open Folder" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="OpenLogFolderButton" IsVisible="False"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <ic:SymbolIcon Symbol="FolderOpen" FontSize="14" />
+                            <TextBlock Text="Open Logs" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BackFromProgressButton" IsVisible="False"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <ic:SymbolIcon Symbol="ArrowLeft" FontSize="14" />
+                            <TextBlock Text="Back" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+            </StackPanel>
+        </Grid>
+
+    </Grid>
+</UserControl>

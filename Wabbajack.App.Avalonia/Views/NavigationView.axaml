@@ -48,8 +48,8 @@
                 </Grid>
             </Button>
 
-            <!-- Create a list (disabled) -->
-            <Button Grid.Row="4" Height="95" Margin="8,0,8,0" IsEnabled="False"
+            <!-- Create a list -->
+            <Button x:Name="CreateButton" Grid.Row="4" Height="95" Margin="8,0,8,0"
                     HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
                 <Grid>
                     <Grid.RowDefinitions>

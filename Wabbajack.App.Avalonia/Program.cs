@@ -94,6 +94,8 @@ internal class Program
         services.AddTransient<HomeVM>();
         services.AddTransient<ModListGalleryVM>();
         services.AddSingleton<Wabbajack.App.Avalonia.ViewModels.Installer.InstallationVM>();
+        services.AddSingleton<Wabbajack.App.Avalonia.ViewModels.Compiler.CompilerVM>();
+        services.AddSingleton<Wabbajack.Compiler.CompilerSettingsInferencer>();
     }
 
     public static IServiceProvider Services { get; private set; } = null!;

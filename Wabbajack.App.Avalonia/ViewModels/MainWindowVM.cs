@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.App.Avalonia.Messages;
+using Wabbajack.App.Avalonia.ViewModels.Compiler;
 using Wabbajack.App.Avalonia.ViewModels.Gallery;
 using Wabbajack.App.Avalonia.ViewModels.Installer;
 
@@ -14,7 +15,8 @@ public class MainWindowVM : ViewModelBase
     [Reactive] public ViewModelBase ActiveContent { get; set; }
     [Reactive] public NavigationVM NavigationVM { get; set; }
 
-    public MainWindowVM(HomeVM homeVm, NavigationVM navigationVm, ModListGalleryVM galleryVm, InstallationVM installationVm)
+    public MainWindowVM(HomeVM homeVm, NavigationVM navigationVm, ModListGalleryVM galleryVm,
+        InstallationVM installationVm, CompilerVM compilerVm)
     {
         NavigationVM = navigationVm;
         ActiveContent = homeVm;
@@ -25,6 +27,7 @@ public class MainWindowVM : ViewModelBase
                 ScreenType.Home => (ViewModelBase)homeVm,
                 ScreenType.ModListGallery => galleryVm,
                 ScreenType.Installer => installationVm,
+                ScreenType.Compiler => compilerVm,
                 _ => ActiveContent
             })
             .DisposeWith(CompositeDisposable);

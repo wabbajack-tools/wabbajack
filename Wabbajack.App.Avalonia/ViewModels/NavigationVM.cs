@@ -17,6 +17,7 @@ public class NavigationVM : ViewModelBase
 
     public ICommand HomeCommand { get; }
     public ICommand BrowseCommand { get; }
+    public ICommand CreateCommand { get; }
     public string Version { get; }
 
     public NavigationVM(ILogger<NavigationVM> logger)
@@ -25,6 +26,7 @@ public class NavigationVM : ViewModelBase
 
         HomeCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.Home));
         BrowseCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.ModListGallery));
+        CreateCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.Compiler));
 
         MessageBus.Current.Listen<NavigateToGlobal>()
             .Subscribe(x => ActiveScreen = x.Screen)
