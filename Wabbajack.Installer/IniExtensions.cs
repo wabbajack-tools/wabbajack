@@ -36,7 +36,7 @@ public static class IniExtensions
     public static void SaveIniFile(this IniData data, AbsolutePath file)
     {
         var parser = new FileIniDataParser(IniParser());
-        parser.WriteFile(file.ToString(), data);
+        parser.WriteFile(file.ToString(), data, new UTF8Encoding(false));
     }
 
     /// <summary>
