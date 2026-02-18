@@ -54,6 +54,29 @@
             <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#2a2a4a" />
             <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#33a855f7" />
             <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#44a855f7" />
+            <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#1a1a2e" />
+            <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#33a855f7" />
+
+            <!-- ── Slider internals ─────────────────────────────────── -->
+            <SolidColorBrush x:Key="SliderTrackValueFill" Color="#a855f7" />
+            <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#b86bff" />
+            <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#9333ea" />
+            <SolidColorBrush x:Key="SliderTrackFill" Color="#252542" />
+            <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#252542" />
+            <SolidColorBrush x:Key="SliderTrackBackground" Color="#252542" />
+            <SolidColorBrush x:Key="SliderThumbBackground" Color="#a855f7" />
+            <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#b86bff" />
+            <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#9333ea" />
+
+            <!-- ── CheckBox internals ───────────────────────────────── -->
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUnchecked" Color="Transparent" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUnchecked" Color="#33a855f7" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedPointerOver" Color="#55a855f7" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedPointerOver" Color="#1Aa855f7" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#a855f7" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeChecked" Color="#a855f7" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" Color="#b86bff" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPointerOver" Color="#b86bff" />
 
             <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="#33a855f7" />
             <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="#44a855f7" />

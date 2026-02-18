@@ -216,8 +216,14 @@
         <Setter Property="Foreground" Value="#f8fafc" />
         <Setter Property="CornerRadius" Value="6" />
     </Style>
+    <Style Selector="TextBox:pointerover">
+        <Setter Property="BorderBrush" Value="#44a855f7" />
+    </Style>
     <Style Selector="TextBox:focus">
         <Setter Property="BorderBrush" Value="#66a855f7" />
+    </Style>
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BoxShadow" Value="0 0 8 0 #33a855f7" />
     </Style>
 
     <!-- ── ComboBox ───────────────────────────────────────────── -->
@@ -226,19 +232,38 @@
         <Setter Property="BorderBrush" Value="#33a855f7" />
         <Setter Property="CornerRadius" Value="6" />
     </Style>
+    <Style Selector="ComboBox:pointerover">
+        <Setter Property="BorderBrush" Value="#55a855f7" />
+    </Style>
 
     <!-- ── ProgressBar ────────────────────────────────────────── -->
     <Style Selector="ProgressBar">
         <Setter Property="Foreground" Value="#a855f7" />
         <Setter Property="Background" Value="#252542" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="MinHeight" Value="6" />
     </Style>
 
-    <!-- ── Slider thumb ───────────────────────────────────────── -->
+    <!-- ── Slider: track + thumb deep theming ──────────────────── -->
     <Style Selector="Slider /template/ Thumb">
         <Setter Property="Background" Value="#a855f7" />
+        <Setter Property="Width" Value="18" />
+        <Setter Property="Height" Value="18" />
+    </Style>
+    <Style Selector="Slider /template/ Thumb:pointerover">
+        <Setter Property="Background" Value="#b86bff" />
     </Style>
 
-    <!-- ── CheckBox checked accent ────────────────────────────── -->
+    <!-- ── CheckBox: unchecked + checked theming ───────────────── -->
+    <Style Selector="CheckBox /template/ Border#NormalRectangle">
+        <Setter Property="BorderBrush" Value="#33a855f7" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="CornerRadius" Value="4" />
+    </Style>
+    <Style Selector="CheckBox:pointerover /template/ Border#NormalRectangle">
+        <Setter Property="BorderBrush" Value="#55a855f7" />
+        <Setter Property="Background" Value="#1Aa855f7" />
+    </Style>
     <Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
         <Setter Property="Background" Value="#a855f7" />
         <Setter Property="BorderBrush" Value="#a855f7" />

@@ -185,31 +185,17 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- Top-left: game icon + name -->
-                <Grid Margin="8,8,0,0"
-                      VerticalAlignment="Top" HorizontalAlignment="Left"
-                      ZIndex="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="4" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <Border Grid.Column="0"
-                            Width="26" Height="26"
-                            CornerRadius="6"
-                            Background="#252542" />
-
-                    <!-- Game name pill — only visible on hover via style -->
-                    <Border Grid.Column="2"
-                            Classes="GameNamePill"
-                            Background="#CC0a0a0f"
-                            CornerRadius="4"
-                            Padding="8,2">
-                        <TextBlock Text="{Binding GameMetaData.HumanFriendlyGameName}"
-                                   FontSize="11" Foreground="White" />
-                    </Border>
-                </Grid>
+                <!-- Top-left: game name pill — only visible on hover via style -->
+                <Border Classes="GameNamePill"
+                        Margin="8,8,0,0"
+                        VerticalAlignment="Top" HorizontalAlignment="Left"
+                        ZIndex="2"
+                        Background="#CC0a0a0f"
+                        CornerRadius="4"
+                        Padding="8,2">
+                    <TextBlock Text="{Binding GameMetaData.HumanFriendlyGameName}"
+                               FontSize="11" Foreground="White" />
+                </Border>
 
                 <!-- NSFW badge -->
                 <Border HorizontalAlignment="Right"
