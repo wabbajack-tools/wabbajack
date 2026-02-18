@@ -19,7 +19,9 @@ public partial class NavigationView : ReactiveUserControl<NavigationVM>
                 .DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.BrowseCommand,  v => v.BrowseButton)
                 .DisposeWith(disposables);
-            this.BindCommand(ViewModel, vm => vm.CreateCommand,  v => v.CreateButton)
+            this.BindCommand(ViewModel, vm => vm.CreateCommand,   v => v.CreateButton)
+                .DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.SettingsCommand, v => v.SettingsButton)
                 .DisposeWith(disposables);
 
             this.WhenAnyValue(x => x.ViewModel!.Version)

@@ -96,6 +96,7 @@ internal class Program
         services.AddSingleton<Wabbajack.App.Avalonia.ViewModels.Installer.InstallationVM>();
         services.AddSingleton<Wabbajack.App.Avalonia.ViewModels.Compiler.CompilerVM>();
         services.AddSingleton<Wabbajack.Compiler.CompilerSettingsInferencer>();
+        services.AddSingleton<Wabbajack.App.Avalonia.ViewModels.Settings.SettingsVM>();
     }
 
     public static IServiceProvider Services { get; private set; } = null!;

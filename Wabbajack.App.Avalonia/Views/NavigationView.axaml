@@ -63,8 +63,8 @@
                 </Grid>
             </Button>
 
-            <!-- Settings (disabled) -->
-            <Button Grid.Row="6" Height="95" Margin="8,0,8,0" IsEnabled="False"
+            <!-- Settings -->
+            <Button x:Name="SettingsButton" Grid.Row="6" Height="95" Margin="8,0,8,0"
                     HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
                 <Grid>
                     <Grid.RowDefinitions>
