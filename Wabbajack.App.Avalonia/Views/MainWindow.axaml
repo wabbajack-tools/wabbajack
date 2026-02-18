@@ -3,14 +3,120 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="using:Wabbajack.App.Avalonia"
+        xmlns:views="using:Wabbajack.App.Avalonia.Views"
+        xmlns:ic="using:FluentIcons.Avalonia"
         x:Class="Wabbajack.App.Avalonia.Views.MainWindow"
         Title="Wabbajack"
-        Width="1280" Height="800"
-        MinWidth="900" MinHeight="600"
+        Width="1441" Height="695"
+        MinWidth="1100" MinHeight="500"
         Background="{StaticResource AppBackgroundBrush}"
+        SystemDecorations="None"
+        ExtendClientAreaToDecorationsHint="True"
         mc:Ignorable="d">
 
     <Grid>
-        <ContentControl Content="{Binding ActiveContent}" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="54" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- ─── Row 0: Custom Title Bar ─────────────────────────────── -->
+        <Grid x:Name="TitleBarGrid" Grid.Row="0"
+              Background="{StaticResource AppBackgroundBrush}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Logo -->
+            <Image Grid.Column="0" Width="18" Height="18"
+                   Margin="12,0,6,0" VerticalAlignment="Center"
+                   Source="avares://Wabbajack.Avalonia/Assets/wabbajack.ico" />
+
+            <!-- App name -->
+            <TextBlock Grid.Column="1" Text="Wabbajack" FontSize="13"
+                       VerticalAlignment="Center" Margin="0,0,12,0"
+                       Foreground="{StaticResource ForegroundBrush}" />
+
+            <!-- Col 2: stretch (future progress pills) -->
+
+            <!-- Load Local File -->
+            <Button x:Name="LoadLocalFileButton" Grid.Column="3"
+                    Margin="0,0,4,0" VerticalAlignment="Center"
+                    ToolTip.Tip="Install from disk">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ic:SymbolIcon Symbol="ArrowUpload" FontSize="14" />
+                    <TextBlock Text="Install from disk" FontSize="12" />
+                </StackPanel>
+            </Button>
+
+            <!-- Get Help -->
+            <Button x:Name="GetHelpButton" Grid.Column="4"
+                    Margin="0,0,8,0" VerticalAlignment="Center"
+                    ToolTip.Tip="Get Help">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ic:SymbolIcon Symbol="QuestionCircle" FontSize="14" />
+                    <TextBlock Text="Get Help" FontSize="12" />
+                </StackPanel>
+            </Button>
+
+            <!-- Minimize -->
+            <Button x:Name="MinimizeButton" Grid.Column="5"
+                    Width="46" Height="32" Padding="0"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    VerticalAlignment="Top">
+                <ic:SymbolIcon Symbol="Subtract" FontSize="12" />
+            </Button>
+
+            <!-- Maximize -->
+            <Button x:Name="MaximizeButton" Grid.Column="6"
+                    Width="46" Height="32" Padding="0"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    VerticalAlignment="Top">
+                <ic:SymbolIcon Symbol="Maximize" FontSize="12" />
+            </Button>
+
+            <!-- Close -->
+            <Button x:Name="CloseButton" Grid.Column="7"
+                    Width="46" Height="32" Padding="0"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    VerticalAlignment="Top">
+                <ic:SymbolIcon Symbol="Dismiss" FontSize="12" />
+            </Button>
+        </Grid>
+
+        <!-- ─── Row 1: Content Area ──────────────────────────────────── -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="115" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Navigation sidebar -->
+            <views:NavigationView Grid.Column="0"
+                                  DataContext="{Binding NavigationVM}" />
+
+            <!-- Main content -->
+            <Border Grid.Column="1"
+                    CornerRadius="8,0,0,8"
+                    Background="{StaticResource SurfaceBrush}"
+                    x:Name="MainContent">
+                <ContentControl Content="{Binding ActiveContent}" Margin="16" />
+            </Border>
+        </Grid>
+
+        <!-- ─── Floating overlay (future modals) ─────────────────────── -->
+        <Border Grid.Row="0" Grid.RowSpan="2"
+                IsVisible="False"
+                ZIndex="2" />
     </Grid>
 </Window>

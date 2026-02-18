@@ -1,6 +1,9 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Wabbajack.App.Avalonia.Messages;
 using Wabbajack.App.Avalonia.ViewModels.Gallery;
 
 namespace Wabbajack.App.Avalonia.ViewModels;
@@ -8,9 +11,20 @@ namespace Wabbajack.App.Avalonia.ViewModels;
 public class MainWindowVM : ViewModelBase
 {
     [Reactive] public ViewModelBase ActiveContent { get; set; }
+    [Reactive] public NavigationVM NavigationVM { get; set; }
 
-    public MainWindowVM(IServiceProvider serviceProvider)
+    public MainWindowVM(HomeVM homeVm, NavigationVM navigationVm, ModListGalleryVM galleryVm)
     {
-        ActiveContent = serviceProvider.GetRequiredService<ModListGalleryVM>();
+        NavigationVM = navigationVm;
+        ActiveContent = homeVm;
+
+        MessageBus.Current.Listen<NavigateToGlobal>()
+            .Subscribe(msg => ActiveContent = msg.Screen switch
+            {
+                ScreenType.Home => (ViewModelBase)homeVm,
+                ScreenType.ModListGallery => galleryVm,
+                _ => ActiveContent
+            })
+            .DisposeWith(CompositeDisposable);
     }
 }

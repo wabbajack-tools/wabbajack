@@ -23,6 +23,9 @@
             <SolidColorBrush x:Key="NSFWBrush" Color="#CC2222" />
             <SolidColorBrush x:Key="UnavailableBrush" Color="#CC2222" />
             <SolidColorBrush x:Key="UnavailableDarkBrush" Color="#88CC2222" />
+            <SolidColorBrush x:Key="ComplementaryBackgroundBrush" Color="{StaticResource SurfaceColor}" />
+            <SolidColorBrush x:Key="ComplementaryPrimary08Brush" Color="#147B68EE" />
+            <SolidColorBrush x:Key="DarkSecondaryBrush" Color="#2A2B41" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

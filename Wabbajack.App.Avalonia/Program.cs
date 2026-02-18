@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using Wabbajack.App.Avalonia.Interventions;
+using Wabbajack.App.Avalonia.Messages;
 using Wabbajack.App.Avalonia.ViewModels;
 using Wabbajack.App.Avalonia.ViewModels.Gallery;
 using Wabbajack.App.Avalonia.Util;
@@ -89,6 +90,8 @@ internal class Program
         services.AddSingleton<SettingsManager>();
 
         services.AddTransient<MainWindowVM>();
+        services.AddSingleton<NavigationVM>();
+        services.AddTransient<HomeVM>();
         services.AddTransient<ModListGalleryVM>();
     }
 
