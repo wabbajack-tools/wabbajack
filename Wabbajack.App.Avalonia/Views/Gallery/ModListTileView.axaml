@@ -8,20 +8,24 @@
              mc:Ignorable="d">
 
     <UserControl.Styles>
-        <!-- Tile root: hover glow + scale -->
+        <!-- Tile root: hover glow + scale + border brightening -->
         <Style Selector="Border.TileRoot">
-            <Setter Property="BoxShadow" Value="0 4 16 0 #00000030" />
+            <Setter Property="BoxShadow" Value="0 4 16 0 #00000040" />
+            <Setter Property="BorderBrush" Value="#33a855f7" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="RenderTransformOrigin" Value="50%,50%" />
             <Setter Property="Transitions">
                 <Transitions>
                     <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.25" />
                     <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.25" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.25" />
                 </Transitions>
             </Setter>
         </Style>
         <Style Selector="Border.TileRoot:pointerover">
-            <Setter Property="BoxShadow" Value="0 8 32 0 #40a855f7" />
+            <Setter Property="BoxShadow" Value="0 8 32 0 #55a855f7" />
             <Setter Property="RenderTransform" Value="scaleX(1.02) scaleY(1.02)" />
+            <Setter Property="BorderBrush" Value="#66a855f7" />
         </Style>
 
         <!-- Animate bottom gradient opacity on pointer-over of the tile border -->
@@ -67,17 +71,16 @@
         </Style>
     </UserControl.Styles>
 
-    <!-- Card button (transparent, no chrome) -->
+    <!-- Card button — chromeless wrapper, all visuals on the inner Border -->
     <Button x:Name="ModlistButton"
-            Background="Transparent"
-            BorderThickness="0"
-            Padding="0">
+            Classes="chromeless">
 
         <Border x:Name="TileRoot"
                 Classes="TileRoot"
                 Margin="8,0,8,16"
                 CornerRadius="8"
                 ClipToBounds="True"
+                Background="#151528"
                 Width="476" Height="268">
 
             <Grid Width="476" Height="268" ClipToBounds="True">
@@ -129,7 +132,7 @@
                 </Rectangle>
 
                 <!-- Info overlay: title / author / sizes -->
-                <Grid Margin="8,0,0,8"
+                <Grid Margin="10,0,10,10"
                       VerticalAlignment="Bottom"
                       ZIndex="2">
                     <Grid.RowDefinitions>
@@ -138,7 +141,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" MaxWidth="400" />
+                        <ColumnDefinition Width="Auto" MaxWidth="380" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
@@ -146,32 +149,39 @@
                     <TextBlock Grid.Column="0" Grid.Row="1"
                                Text="{Binding Metadata.Title}"
                                FontFamily="{StaticResource MontserratFont}"
-                               FontWeight="Bold" FontSize="24"
-                               TextWrapping="Wrap" MaxWidth="400"
+                               FontWeight="Bold" FontSize="22"
+                               TextWrapping="Wrap" MaxWidth="380"
+                               Foreground="White"
                                Margin="0,0,0,2" />
 
                     <StackPanel Grid.Column="0" Grid.Row="2"
                                 Orientation="Horizontal" Spacing="4">
-                        <TextBlock Text="by" Opacity="0.66" FontSize="13" />
-                        <TextBlock Text="{Binding Metadata.Author}" FontSize="13" />
+                        <TextBlock Text="by" Opacity="0.6" FontSize="12"
+                                   Foreground="White" />
+                        <TextBlock Text="{Binding Metadata.Author}" FontSize="12"
+                                   Foreground="White" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Grid.Row="2"
                                 Orientation="Horizontal" Spacing="4"
                                 VerticalAlignment="Bottom">
                         <ic:SymbolIcon Symbol="ArrowDownload"
-                                       FontSize="13" Opacity="0.66"
-                                       VerticalAlignment="Bottom" />
+                                       FontSize="12" Opacity="0.6"
+                                       Foreground="White"
+                                       VerticalAlignment="Center" />
                         <TextBlock Text="{Binding DownloadSizeText}"
-                                   FontSize="13" Opacity="0.66"
-                                   VerticalAlignment="Bottom" />
+                                   FontSize="12" Opacity="0.6"
+                                   Foreground="White"
+                                   VerticalAlignment="Center" />
                         <ic:SymbolIcon Symbol="Games"
-                                       FontSize="13" Opacity="0.66"
-                                       Margin="8,0,0,0"
-                                       VerticalAlignment="Bottom" />
+                                       FontSize="12" Opacity="0.6"
+                                       Foreground="White"
+                                       Margin="6,0,0,0"
+                                       VerticalAlignment="Center" />
                         <TextBlock Text="{Binding InstallSizeText}"
-                                   FontSize="13" Opacity="0.66"
-                                   VerticalAlignment="Bottom" />
+                                   FontSize="12" Opacity="0.6"
+                                   Foreground="White"
+                                   VerticalAlignment="Center" />
                     </StackPanel>
                 </Grid>
 
@@ -188,16 +198,16 @@
                     <Border Grid.Column="0"
                             Width="26" Height="26"
                             CornerRadius="6"
-                            Background="{StaticResource SurfaceBrush}" />
+                            Background="#252542" />
 
                     <!-- Game name pill — only visible on hover via style -->
                     <Border Grid.Column="2"
                             Classes="GameNamePill"
-                            Background="{StaticResource AppBackgroundBrush}"
-                            CornerRadius="4" Opacity="0.85"
+                            Background="#CC0a0a0f"
+                            CornerRadius="4"
                             Padding="8,2">
                         <TextBlock Text="{Binding GameMetaData.HumanFriendlyGameName}"
-                                   FontSize="12" />
+                                   FontSize="11" Foreground="White" />
                     </Border>
                 </Grid>
 
@@ -210,7 +220,8 @@
                         Background="{StaticResource NSFWBrush}"
                         CornerRadius="4"
                         Padding="8,2">
-                    <TextBlock Text="NSFW" FontSize="12" />
+                    <TextBlock Text="NSFW" FontSize="11" FontWeight="SemiBold"
+                               Foreground="White" />
                 </Border>
 
                 <!-- Unavailable badge -->
@@ -222,7 +233,8 @@
                         Background="{StaticResource UnavailableBrush}"
                         CornerRadius="4"
                         Padding="8,2">
-                    <TextBlock Text="Unavailable" FontSize="12" />
+                    <TextBlock Text="Unavailable" FontSize="11" FontWeight="SemiBold"
+                               Foreground="White" />
                 </Border>
 
                 <!-- Broken overlay (dark tint + message on hover) -->
@@ -231,8 +243,9 @@
                         Background="{StaticResource UnavailableDarkBrush}"
                         ZIndex="3">
                     <TextBlock Margin="16"
-                               FontSize="15"
+                               FontSize="14"
                                TextWrapping="Wrap"
+                               Foreground="White"
                                VerticalAlignment="Center"
                                HorizontalAlignment="Center"
                                Text="A game or mod update has made this list unavailable. Contact the author(s) for more information." />

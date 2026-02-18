@@ -11,16 +11,16 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="270" />
+            <ColumnDefinition Width="260" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <!-- ─── Left sidebar ─────────────────────────────────────────── -->
         <Border Grid.Column="0"
-                BorderBrush="#33a855f7" BorderThickness="0,0,1,0"
-                CornerRadius="0,8,8,0">
+                Background="#0e0e1a"
+                BorderBrush="#33a855f7" BorderThickness="0,0,1,0">
         <ScrollViewer VerticalScrollBarVisibility="Auto"
-                      Padding="8,8,8,8">
+                      Padding="12,12,12,12">
             <StackPanel Orientation="Vertical" Spacing="0">
 
                 <!-- Search box -->
@@ -29,34 +29,39 @@
                              Watermark="Search for a modlist…"
                              Padding="8,6,36,6" />
                     <Border Width="30" HorizontalAlignment="Right"
-                            Background="Transparent" IsHitTestVisible="False">
+                            CornerRadius="0,6,6,0"
+                            Background="#14a855f7" IsHitTestVisible="False">
                         <ic:SymbolIcon Symbol="Search"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
-                                       FontSize="16" />
+                                       FontSize="14"
+                                       Foreground="#a855f7" />
                     </Border>
                 </Grid>
 
                 <!-- Game filter combo -->
                 <ComboBox x:Name="GameCombo"
-                          Margin="0,0,0,12"
+                          Margin="0,0,0,16"
                           HorizontalAlignment="Stretch"
                           ToolTip.Tip="Filter modlists by game">
                     <ComboBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:ModListGalleryVM+GameTypeEntry">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Border Width="24" Height="24" CornerRadius="4" />
+                                <Border Width="22" Height="22" CornerRadius="4"
+                                        Background="#252542" />
                                 <TextBlock Text="{Binding FormattedName}"
-                                           VerticalAlignment="Center" />
+                                           VerticalAlignment="Center" FontSize="12" />
                             </StackPanel>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
 
                 <!-- Include section -->
-                <TextBlock Text="Include" Margin="0,0,0,6" FontSize="11" Opacity="0.7"
+                <TextBlock Text="INCLUDE" Margin="0,0,0,6" FontSize="10"
+                           Opacity="0.5" LetterSpacing="2"
                            FontFamily="{StaticResource MontserratFont}" FontWeight="SemiBold" />
-                <Border CornerRadius="8" Background="{StaticResource SurfaceBrush}"
+                <Border CornerRadius="8" Background="#151528"
+                        BorderBrush="#33a855f7" BorderThickness="1"
                         Padding="12,10,12,10" Margin="0,0,0,16">
                     <StackPanel Orientation="Vertical" Spacing="10">
                         <CheckBox x:Name="IncludeUnofficial"
@@ -71,28 +76,29 @@
                 </Border>
 
                 <!-- Size sliders -->
-                <TextBlock Text="Total Modlist Size" Margin="0,0,0,6" FontSize="12"
+                <TextBlock Text="TOTAL SIZE" Margin="0,0,0,6" FontSize="10"
+                           Opacity="0.5" LetterSpacing="2"
                            FontFamily="{StaticResource MontserratFont}" FontWeight="SemiBold" />
                 <StackPanel Orientation="Vertical" Spacing="4" Margin="0,0,0,16">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="30" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Min" VerticalAlignment="Center" FontSize="11" Opacity="0.7" />
+                        <TextBlock Text="Min" VerticalAlignment="Center" FontSize="10" Opacity="0.5" />
                         <Slider x:Name="MinSizeSlider"
                                 Grid.Column="1"
-                                Margin="8,0,0,0" />
+                                Margin="4,0,0,0" />
                     </Grid>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="30" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Max" VerticalAlignment="Center" FontSize="11" Opacity="0.7" />
+                        <TextBlock Text="Max" VerticalAlignment="Center" FontSize="10" Opacity="0.5" />
                         <Slider x:Name="MaxSizeSlider"
                                 Grid.Column="1"
-                                Margin="8,0,0,0" />
+                                Margin="4,0,0,0" />
                     </Grid>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -101,11 +107,11 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock x:Name="MinSizeLabel"
                                    Grid.Column="0"
-                                   FontSize="11" Opacity="0.6" />
+                                   FontSize="10" Opacity="0.4" />
                         <TextBlock x:Name="MaxSizeLabel"
                                    Grid.Column="1"
                                    HorizontalAlignment="Right"
-                                   FontSize="11" Opacity="0.6" />
+                                   FontSize="10" Opacity="0.4" />
                     </Grid>
                 </StackPanel>
 
@@ -115,7 +121,8 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="Has mod(s)" VerticalAlignment="Center" FontSize="12"
+                    <TextBlock Text="HAS MOD(S)" VerticalAlignment="Center" FontSize="10"
+                               Opacity="0.5" LetterSpacing="2"
                                FontFamily="{StaticResource MontserratFont}" FontWeight="SemiBold" />
                     <CheckBox x:Name="ExcludeModsCheckbox"
                               Grid.Column="1"
@@ -126,8 +133,7 @@
                 <ListBox x:Name="HasModsFilter"
                          SelectionMode="Multiple"
                          MaxHeight="120"
-                         Margin="0,0,0,16"
-                         Background="{StaticResource SurfaceBrush}">
+                         Margin="0,0,0,16">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding name}" FontSize="12" />
@@ -136,13 +142,13 @@
                 </ListBox>
 
                 <!-- Has tag(s) -->
-                <TextBlock Text="Has tag(s)" Margin="0,0,0,6" FontSize="12"
+                <TextBlock Text="HAS TAG(S)" Margin="0,0,0,6" FontSize="10"
+                           Opacity="0.5" LetterSpacing="2"
                            FontFamily="{StaticResource MontserratFont}" FontWeight="SemiBold" />
                 <ListBox x:Name="HasTagsFilter"
                          SelectionMode="Multiple"
                          MaxHeight="140"
-                         Margin="0,0,0,16"
-                         Background="{StaticResource SurfaceBrush}">
+                         Margin="0,0,0,16">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding name}" FontSize="12" />
@@ -154,7 +160,7 @@
                 <CheckBox x:Name="OnlyInstalledCheckbox"
                           Content="Show only modlists for installed games"
                           FontSize="12"
-                          Margin="0,0,0,24"
+                          Margin="0,0,0,20"
                           ToolTip.Tip="Show only modlists for games you have installed." />
 
                 <!-- Reset filters button -->
@@ -162,10 +168,12 @@
                         Classes="accent"
                         HorizontalAlignment="Stretch"
                         HorizontalContentAlignment="Center"
+                        Padding="8,8"
                         ToolTip.Tip="Reset all filters to defaults">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <ic:SymbolIcon Symbol="FilterDismiss" FontSize="14" />
-                        <TextBlock Text="Reset filters" />
+                        <ic:SymbolIcon Symbol="FilterDismiss" FontSize="14"
+                                       VerticalAlignment="Center" />
+                        <TextBlock Text="Reset filters" VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
 
@@ -175,9 +183,10 @@
 
         <!-- ─── Right content area ────────────────────────────────────── -->
         <Grid Grid.Column="1">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          Padding="8,8,8,0">
                 <ItemsControl x:Name="GalleryControl"
-                              HorizontalAlignment="Left">
+                              HorizontalAlignment="Center">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel />
@@ -206,9 +215,12 @@
                         Spacing="12">
                 <ic:SymbolIcon Symbol="DismissCircle"
                                FontSize="72"
+                               Foreground="#64748b"
                                HorizontalAlignment="Center" />
                 <TextBlock Text="No modlists matching specified criteria"
-                           FontSize="24"
+                           FontSize="20"
+                           FontFamily="{StaticResource MontserratFont}"
+                           Opacity="0.6"
                            HorizontalAlignment="Center" />
             </StackPanel>
         </Grid>
