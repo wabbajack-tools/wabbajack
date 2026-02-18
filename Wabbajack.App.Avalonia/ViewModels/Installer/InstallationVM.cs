@@ -152,7 +152,25 @@ public class InstallationVM : ViewModelBase
                         Installer.DownloadPath = p.TrimEnd('\\', '/') + "\\downloads";
                 })
                 .DisposeWith(disposables);
+
+            // On first activation, restore the last used modlist (if no modlist is already loaded)
+            if (WabbajackFilePath == default)
+                RestoreLastModlist().FireAndForget();
         });
+    }
+
+    private async Task RestoreLastModlist()
+    {
+        try
+        {
+            var lastPath = await _settingsManager.Load<AbsolutePath>(LastLoadedModlist);
+            if (lastPath != default && lastPath.FileExists())
+                await LoadModlist(lastPath, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not restore last modlist");
+        }
     }
 
     private async Task LoadModlistFromMessage(AbsolutePath path, ModlistMetadata metadata)

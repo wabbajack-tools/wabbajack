@@ -5,6 +5,15 @@
              xmlns:ic="using:FluentIcons.Avalonia"
              x:Class="Wabbajack.App.Avalonia.Views.NavigationView"
              mc:Ignorable="d">
+
+    <UserControl.Styles>
+        <!-- Active nav button: subtle primary-colour tint -->
+        <Style Selector="Button.active">
+            <Setter Property="Background" Value="#2B7B68EE" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+        </Style>
+    </UserControl.Styles>
+
     <Border BorderThickness="0">
         <Grid>
             <Grid.RowDefinitions>
