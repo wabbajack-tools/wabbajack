@@ -1,0 +1,31 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Global dark-theme tweaks on top of FluentTheme Dark variant.
+        These target the standard Avalonia 11 control themes.
+    -->
+
+    <!-- ScrollBar: thinner, lower-opacity track -->
+    <Style Selector="ScrollBar">
+        <Setter Property="AllowAutoHide" Value="True" />
+    </Style>
+
+    <!-- TabItem: remove default underline border, style active tab -->
+    <Style Selector="TabItem">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Padding" Value="12,8" />
+    </Style>
+
+    <!-- ListBoxItem: tighter padding, keep hover from theme -->
+    <Style Selector="ListBoxItem">
+        <Setter Property="Padding" Value="6,3" />
+    </Style>
+
+    <!-- Separator: use our dark secondary colour -->
+    <Style Selector="Separator">
+        <Setter Property="Background" Value="#2A2B41" />
+        <Setter Property="Height" Value="1" />
+    </Style>
+
+</Styles>
