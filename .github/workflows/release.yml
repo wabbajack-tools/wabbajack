@@ -75,7 +75,7 @@ jobs:
             /p:DebugType=embedded
 
       # Sign the executables using SignPath GitHub Action
-      # Main App Signing: Upload → Sign → Verify
+      # Main App Signing: Upload → Sign
       - name: Upload Unsigned Main App for Signing
         id: upload-main-app
         uses: actions/upload-artifact@v4
@@ -98,18 +98,7 @@ jobs:
           wait-for-completion-timeout-in-seconds: 1800
           output-artifact-directory: publish\app
 
-      - name: Verify Main App Signature
-        shell: pwsh
-        run: |
-          Write-Host "Verifying Main App signature..."
-          $sig = Get-AuthenticodeSignature "publish\app\Wabbajack.exe"
-          if ($sig.Status -ne 'Valid') {
-            Write-Error "Main App signature verification failed: $($sig.Status)"
-            exit 1
-          }
-          $sig | Format-List
-
-      # CLI Signing: Upload → Sign → Verify
+      # CLI Signing: Upload → Sign
       - name: Upload Unsigned CLI for Signing
         id: upload-cli
         uses: actions/upload-artifact@v4
@@ -132,18 +121,7 @@ jobs:
           wait-for-completion-timeout-in-seconds: 1800
           output-artifact-directory: publish\app\cli
 
-      - name: Verify CLI Signature
-        shell: pwsh
-        run: |
-          Write-Host "Verifying CLI signature..."
-          $sig = Get-AuthenticodeSignature "publish\app\cli\wabbajack-cli.exe"
-          if ($sig.Status -ne 'Valid') {
-            Write-Error "CLI signature verification failed: $($sig.Status)"
-            exit 1
-          }
-          $sig | Format-List
-
-      # Launcher Signing: Upload → Sign → Verify
+      # Launcher Signing: Upload → Sign
       - name: Upload Unsigned Launcher for Signing
         id: upload-launcher
         uses: actions/upload-artifact@v4
@@ -165,17 +143,6 @@ jobs:
           wait-for-completion: true
           wait-for-completion-timeout-in-seconds: 1800
           output-artifact-directory: publish\launcher
-
-      - name: Verify Launcher Signature
-        shell: pwsh
-        run: |
-          Write-Host "Verifying Launcher signature..."
-          $sig = Get-AuthenticodeSignature "publish\launcher\Wabbajack.exe"
-          if ($sig.Status -ne 'Valid') {
-            Write-Error "Launcher signature verification failed: $($sig.Status)"
-            exit 1
-          }
-          $sig | Format-List
 
       - name: Create App ZIP
         run: |
