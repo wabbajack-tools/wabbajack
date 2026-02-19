@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write        # Required for creating releases and uploading assets
   actions: read          # Required by SignPath action to read job details
   id-token: write        # Optional: For OIDC authentication (future enhancement)
   attestations: write    # Optional: For build provenance attestations (future enhancement)
@@ -31,6 +31,33 @@ jobs:
             echo "VERSION=$version" >> $env:GITHUB_ENV
           } else {
             Write-Error "Could not find version in CHANGELOG.md"
+            exit 1
+          }
+
+      - name: Extract Release Notes
+        run: |
+          $content = Get-Content "CHANGELOG.md" -Raw
+          $version = "${{ env.VERSION }}"
+
+          # Match the version section in CHANGELOG.md
+          $pattern = "#### Version\s+\-\s+" + [regex]::Escape($version) + "\s+\-[^\n]*\n((?:(?!#### Version)[\s\S])*)"
+
+          if ($content -match $pattern) {
+            $notes = $matches[1].Trim()
+
+            # Remove comparison images section if present
+            $notes = $notes -replace "(?s)##### Comparison images.*$", ""
+            $notes = $notes.Trim()
+
+            Write-Host "Extracted release notes:"
+            Write-Host $notes
+
+            # Write to multiline environment variable
+            "RELEASE_NOTES<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            $notes | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          } else {
+            Write-Error "Could not find changelog for version $version"
             exit 1
           }
 
@@ -146,7 +173,7 @@ jobs:
 
       - name: Create App ZIP
         run: |
-          & "C:\Program Files\7-Zip\7z.exe" a publish\wabbajack-${{ env.VERSION }}.zip publish\app\*
+          & "C:\Program Files\7-Zip\7z.exe" a publish\${{ env.VERSION }}.zip publish\app\*
 
       - name: Create Launcher ZIP
         run: |
@@ -156,7 +183,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wabbajack-app
-          path: publish\wabbajack-${{ env.VERSION }}.zip
+          path: publish\${{ env.VERSION }}.zip
           retention-days: 30
 
       - name: Upload Launcher Artifact
@@ -165,3 +192,73 @@ jobs:
           name: wabbajack-launcher
           path: publish\wabbajack-launcher-${{ env.VERSION }}.zip
           retention-days: 30
+
+      - name: Create GitHub Release
+        id: create_release
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          Write-Host "Creating release for version ${{ env.VERSION }}"
+
+          # Check if release already exists (for re-runs)
+          $releaseExists = gh release view "${{ env.VERSION }}" 2>$null
+
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Release ${{ env.VERSION }} already exists, skipping creation"
+          } else {
+            Write-Host "Creating new release ${{ env.VERSION }}"
+            gh release create "${{ env.VERSION }}" `
+              --title "${{ env.VERSION }}" `
+              --notes "${{ env.RELEASE_NOTES }}" `
+              --draft `
+              --latest
+
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "Failed to create release"
+              exit 1
+            }
+          }
+
+      - name: Upload Release Assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          Write-Host "Uploading assets for version ${{ env.VERSION }}"
+
+          # Get list of existing assets (for re-runs)
+          $existingAssets = @()
+          try {
+            $assetsJson = gh release view "${{ env.VERSION }}" --json assets | ConvertFrom-Json
+            $existingAssets = $assetsJson.assets | ForEach-Object { $_.name }
+            Write-Host "Existing assets: $($existingAssets -join ', ')"
+          } catch {
+            Write-Host "No existing assets found"
+          }
+
+          # Upload Wabbajack.exe (launcher)
+          if ($existingAssets -notcontains "Wabbajack.exe") {
+            Write-Host "Uploading Wabbajack.exe"
+            gh release upload "${{ env.VERSION }}" "publish\launcher\Wabbajack.exe" --clobber
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "Failed to upload Wabbajack.exe"
+              exit 1
+            }
+          } else {
+            Write-Host "Wabbajack.exe already exists, skipping"
+          }
+
+          # Upload app package ZIP
+          $zipName = "${{ env.VERSION }}.zip"
+          if ($existingAssets -notcontains $zipName) {
+            Write-Host "Uploading $zipName"
+            gh release upload "${{ env.VERSION }}" "publish\$zipName" --clobber
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "Failed to upload $zipName"
+              exit 1
+            }
+          } else {
+            Write-Host "$zipName already exists, skipping"
+          }
+
+          Write-Host "Asset upload complete"
