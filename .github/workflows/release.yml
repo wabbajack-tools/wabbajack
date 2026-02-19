@@ -95,7 +95,7 @@ jobs:
           artifact-configuration-slug: wabbajack-app
           github-artifact-id: ${{ steps.upload-main-app.outputs.artifact-id }}
           wait-for-completion: true
-          wait-for-completion-timeout-in-seconds: 600
+          wait-for-completion-timeout-in-seconds: 1800
           output-artifact-directory: publish\app
 
       - name: Verify Main App Signature
@@ -129,7 +129,7 @@ jobs:
           artifact-configuration-slug: wabbajack-cli
           github-artifact-id: ${{ steps.upload-cli.outputs.artifact-id }}
           wait-for-completion: true
-          wait-for-completion-timeout-in-seconds: 600
+          wait-for-completion-timeout-in-seconds: 1800
           output-artifact-directory: publish\app\cli
 
       - name: Verify CLI Signature
@@ -163,7 +163,7 @@ jobs:
           artifact-configuration-slug: wabbajack-launcher
           github-artifact-id: ${{ steps.upload-launcher.outputs.artifact-id }}
           wait-for-completion: true
-          wait-for-completion-timeout-in-seconds: 600
+          wait-for-completion-timeout-in-seconds: 1800
           output-artifact-directory: publish\launcher
 
       - name: Verify Launcher Signature
