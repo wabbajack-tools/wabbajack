@@ -25,7 +25,7 @@ jobs:
       - name: Extract Version
         run: |
           $content = Get-Content "CHANGELOG.md" -Raw
-          if ($content -match "#### Version\s+([\d.]+)") {
+          if ($content -match "#### Version\s+\-\s+([\d.]+)") {
             $version = $matches[1]
             Write-Host "Version: $version"
             echo "VERSION=$version" >> $env:GITHUB_ENV
