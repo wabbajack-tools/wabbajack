@@ -557,19 +557,19 @@ namespace Wabbajack.Compiler
             try
             {
                 var root = JsonNode.Parse(responseBody) as JsonObject;
-                var details = root?["details"] as JsonArray;
+                var errors = root?["errors"] as JsonArray;
 
-                if (details != null && details.Count > 0)
+                if (errors != null && errors.Count > 0)
                 {
-                    foreach (var detNode in details)
+                    foreach (var errNode in errors)
                     {
-                        // Each entry is a  string: "Mod {mod_id}, {domain} not available/not found"
-                        var msg = detNode?.GetValue<string>();
+                        // Each entry: { "detail": "Mod {mod_id}, {domain} not available/not found", "pointer": "..." }
+                        var msg = (errNode as JsonObject)?["detail"]?.GetValue<string>();
                         if (string.IsNullOrWhiteSpace(msg)) continue;
 
                         if (msg.StartsWith("Mod ", StringComparison.OrdinalIgnoreCase))
                         {
-                            var afterMod = msg[4..];
+                            var afterMod = msg[4..]; // strip "Mod "
                             var commaIdx = afterMod.IndexOf(',');
                             var modIdStr = commaIdx > 0
                                 ? afterMod[..commaIdx].Trim()
