@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,43 +27,45 @@ namespace Wabbajack.Compiler
     {
         private sealed class ManifestModSource
         {
-            public string type { get; set; } = "nexus";
-
-            // nexus-type fields only
-            public long modId { get; set; }
-            public long fileId { get; set; }
-
-            // off-site/browse-type fields
-            public string? url { get; set; }
-
-            // Common field
-            public string? updatePolicy { get; set; }
+            [JsonPropertyName("type")] public string type { get; set; } = "nexus";
+            [JsonPropertyName("mod_id")] public string mod_id { get; set; } = "";
+            [JsonPropertyName("file_id")] public string file_id { get; set; } = "";
+            [JsonPropertyName("url")] public string url { get; set; } = "";
+            [JsonPropertyName("md5")] public string md5 { get; set; } = "";
+            [JsonPropertyName("file_size")] public long file_size { get; set; } = 0;
+            [JsonPropertyName("update_policy")] public string update_policy { get; set; } = "";
+            [JsonPropertyName("logical_filename")] public string logical_filename { get; set; } = "";
+            [JsonPropertyName("file_expression")] public string file_expression { get; set; } = "";
+            [JsonPropertyName("adult_content")] public bool adult_content { get; set; } = false;
         }
 
         private sealed class ManifestMod
         {
-            public string name { get; set; } = "Unknown";
-            public string version { get; set; } = "1.0.0";
-            public bool optional { get; set; }
-            public string domainName { get; set; } = "";
-            public ManifestModSource source { get; set; } = new();
+            [JsonPropertyName("name")] public string name { get; set; } = "Unknown";
+            [JsonPropertyName("version")] public string version { get; set; } = "1.0.0";
+            [JsonPropertyName("optional")] public bool optional { get; set; } = false;
+            [JsonPropertyName("domain_name")] public string domain_name { get; set; } = "";
+            [JsonPropertyName("source")] public ManifestModSource source { get; set; } = new();
+            [JsonPropertyName("author")] public string author { get; set; } = "";
         }
 
         private readonly ILogger _logger;
         private readonly ITokenProvider<NexusOAuthState> _tokenProvider;
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerOptions _jsonOptions;
+
         public delegate void UploadProgressHandler(string stage, double progress);
         public event UploadProgressHandler? OnProgress;
 
-        // via nexusmods/nexus-api talks to https://api.nexusmods.com/v2/graphql
+        private static readonly string RestBaseUrl =
+            Environment.GetEnvironmentVariable("NEXUS_REST_URL")
+            ?? "https://api.nexusmods.com/v3";
+
         private static readonly string GraphQLUrl =
             Environment.GetEnvironmentVariable("NEXUS_GRAPHQL_URL")
             ?? "https://api.nexusmods.com/v2/graphql";
 
         private const int CollectionSchemaId = 2;
-
-        // This cap prevents hammering the API
         private const int MaxUploadAttempts = 3;
 
         public NexusCollectionUploader(
@@ -77,13 +80,15 @@ namespace Wabbajack.Compiler
             _jsonOptions = jsonOptions;
         }
 
+
         public async Task<CollectionUploadResult?> UploadCollection(
-    ModList modList,
-    AbsolutePath collectionJsonPath,
-    AbsolutePath archivePath,
-    int? existingCollectionId = null,
-    string? gameVersion = null,
-    CancellationToken token = default)
+            ModList modList,
+            AbsolutePath collectionJsonPath,
+            AbsolutePath archivePath,
+            string? existingCollectionId = null,
+            string? gameVersion = null,
+            Func<Task<bool>>? confirmFallbackToCreate = null,
+            CancellationToken token = default)
         {
             try
             {
@@ -100,63 +105,56 @@ namespace Wabbajack.Compiler
                     return null;
                 }
 
-                // attempt new url so a retry never reuses a stale URL.
-                string? assetFileUUID = null;
-                bool uploadSuccess = false;
+
+                string? uploadUuid = null;
 
                 for (int uploadAttempt = 1; uploadAttempt <= MaxUploadAttempts; uploadAttempt++)
                 {
                     OnProgress?.Invoke("requesting_url", 0.0);
                     _logger.LogInformation(
-                        "Requesting upload URL from Nexus Mods (attempt {attempt}/{max})...",
+                        "Requesting multipart upload session from Nexus Mods (attempt {attempt}/{max})...",
                         uploadAttempt, MaxUploadAttempts);
-
-                    var uploadUrlResult = await GetRevisionUploadUrl(authState.OAuth.AccessToken, token);
-                    if (uploadUrlResult == null)
-                    {
-                        _logger.LogError("Failed to get upload URL from Nexus on attempt {attempt}", uploadAttempt);
-                        if (uploadAttempt < MaxUploadAttempts)
-                        {
-                            var delay = TimeSpan.FromSeconds(Math.Pow(2, uploadAttempt) * 5);
-                            _logger.LogInformation("Waiting {delay}s before retrying URL request...", delay.TotalSeconds);
-                            await Task.Delay(delay, token);
-                            continue;
-                        }
-                        return null;
-                    }
-
-                    _logger.LogInformation("Got upload URL with UUID: {uuid}", uploadUrlResult.Uuid);
 
                     OnProgress?.Invoke("upload", 0.0);
                     _logger.LogInformation(
                         "Uploading collection archive ({size:N0} bytes, {mb:N0} MB)...",
                         archivePath.Size(), archivePath.Size() / (1024 * 1024));
 
-                    uploadSuccess = await UploadFileToPresignedUrl(uploadUrlResult.Url, archivePath, uploadAttempt, MaxUploadAttempts, token);
+                    uploadUuid = await UploadFileMultipart(archivePath, authState.OAuth.AccessToken, token);
 
-                    if (uploadSuccess)
-                    {
-                        assetFileUUID = uploadUrlResult.Uuid;
-                        break;
-                    }
+                    if (uploadUuid != null) break;
 
                     if (uploadAttempt < MaxUploadAttempts)
                     {
                         var delay = TimeSpan.FromSeconds(Math.Pow(2, uploadAttempt) * 5);
-                        _logger.LogWarning(
-                            "Upload attempt {attempt} failed. Fetching a fresh pre-signed URL and retrying in {delay}s...",
+                        _logger.LogWarning("Upload attempt {attempt} failed. Retrying in {delay}s...",
                             uploadAttempt, delay.TotalSeconds);
                         await Task.Delay(delay, token);
                     }
                 }
 
-                if (!uploadSuccess || assetFileUUID == null)
+                if (uploadUuid == null)
                 {
                     _logger.LogError("File upload failed after {max} attempts", MaxUploadAttempts);
                     return null;
                 }
 
-                _logger.LogInformation("File uploaded successfully (UUID: {uuid})", assetFileUUID);
+                _logger.LogInformation("File uploaded successfully (UUID: {uuid})", uploadUuid);
+
+
+                OnProgress?.Invoke("finalising_upload", 0.0);
+                if (!await FinaliseUpload(uploadUuid, authState.OAuth.AccessToken, token))
+                {
+                    _logger.LogError("Failed to finalise upload {uuid}", uploadUuid);
+                    return null;
+                }
+
+                if (!await WaitForUploadAvailable(uploadUuid, authState.OAuth.AccessToken, token))
+                {
+                    _logger.LogError("Upload {uuid} did not reach 'available' state in time", uploadUuid);
+                    return null;
+                }
+
 
                 OnProgress?.Invoke("building_manifest", 0.0);
                 var collectionPayload = WabbajackToVortexCollection.Build(modList, gameVersion);
@@ -164,53 +162,43 @@ namespace Wabbajack.Compiler
                 OnProgress?.Invoke("sending_manifest", 0.0);
                 _logger.LogInformation(
                     "Creating/updating collection on Nexus Mods (existingCollectionId={id})",
-                    existingCollectionId.HasValue ? existingCollectionId.Value.ToString() : "none");
+                    existingCollectionId ?? "none");
 
                 CollectionUploadResult? result = null;
 
-                if (existingCollectionId.HasValue && existingCollectionId.Value > 0)
+                if (!string.IsNullOrWhiteSpace(existingCollectionId))
                 {
-                    result = await CreateOrUpdateRevision(
-                        collectionPayload,
-                        assetFileUUID,
-                        existingCollectionId.Value,
-                        modList.IsNSFW,
-                        authState.OAuth.AccessToken,
-                        collectionJsonPath,
-                        token);
+                    result = await CreateCollectionRevision(
+                        collectionPayload, uploadUuid, existingCollectionId,
+                        modList.IsNSFW, authState.OAuth.AccessToken, collectionJsonPath, token);
 
                     if (result == null)
-                    {
                         _logger.LogWarning(
-                            "createOrUpdateRevision failed for collectionId={id}. Falling back to createCollection.",
-                            existingCollectionId.Value);
-                    }
+                            "createCollectionRevision failed for collectionId={id}.", existingCollectionId);
                 }
 
                 if (result == null)
                 {
+                    if (!string.IsNullOrWhiteSpace(existingCollectionId) && confirmFallbackToCreate != null)
+                    {
+                        var confirmed = await confirmFallbackToCreate();
+                        if (!confirmed)
+                        {
+                            _logger.LogInformation("Fallback to createCollection declined by caller. Aborting.");
+                            return null;
+                        }
+                    }
+
                     result = await CreateCollection(
-                        collectionPayload,
-                        assetFileUUID,
-                        modList.IsNSFW,
-                        authState.OAuth.AccessToken,
-                        collectionJsonPath,
-                        token);
+                        collectionPayload, uploadUuid, modList.IsNSFW,
+                        authState.OAuth.AccessToken, collectionJsonPath, token);
                 }
 
                 if (result != null && result.Success)
                 {
                     _logger.LogInformation(
-                        "Collection uploaded successfully! Slug: {slug}, Revision: {revision}",
-                        result.Slug, result.RevisionNumber);
-
-                    OnProgress?.Invoke("finalizing", 0.0);
-                    await UpdateCollectionCategory(result.CollectionId, "wabbajack", authState.OAuth.AccessToken, token);
-
-                    // Tag id 25 == wabbajack
-                    var tagAdded = await AddCollectionTag(result.CollectionId, 25, authState.OAuth.AccessToken, token);
-                    if (!tagAdded)
-                        _logger.LogInformation("Wabbajack tag already present on collection");
+                        "Collection uploaded successfully! CollectionId: {id}, RevisionId: {rev}, Slug: {slug}",
+                        result.CollectionId, result.RevisionId, result.Slug);
 
                     OnProgress?.Invoke("complete", 1.0);
                 }
@@ -228,739 +216,646 @@ namespace Wabbajack.Compiler
             }
         }
 
-        private async Task<bool> UpdateCollectionCategory(
-            int collectionId,
-            string category,
-            string accessToken,
-            CancellationToken token)
-        {
-            var mutation = @"
-mutation updateCollection($collectionId: Int!, $category: String!) {
-  updateCollection(collectionId: $collectionId, category: $category) {
-    success
-  }
-}";
 
-            var variables = new { collectionId, category };
-            var graphqlRequest = new { query = mutation, variables };
+        private async Task<MultipartUploadSession?> CreateMultipartUploadSession(
+            AbsolutePath filePath, string accessToken, CancellationToken token)
+        {
+            var payload = new
+            {
+                size_bytes = filePath.Size(),
+                filename = filePath.FileName.ToString()
+            };
 
             using var content = new StringContent(
-                JsonSerializer.Serialize(graphqlRequest, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                }),
-                Encoding.UTF8,
-                "application/json");
-
-            using var request = new HttpRequestMessage(HttpMethod.Post, GraphQLUrl) { Content = content };
+                JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            using var request = new HttpRequestMessage(
+                HttpMethod.Post, $"{RestBaseUrl}/uploads/multipart")
+            { Content = content };
             AddNexusHeaders(request, accessToken);
 
             var response = await _httpClient.SendAsync(request, token);
-            var responseBody = await response.Content.ReadAsStringAsync(token);
+            var body = await response.Content.ReadAsStringAsync(token);
+            response.EnsureSuccessStatusCode();
 
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogError("Failed to update collection category: {status} - {body}",
-                    response.StatusCode, responseBody);
-                return false;
-            }
-
-            _logger.LogInformation("Collection category updated to '{category}'", category);
-            return true;
+            return JsonSerializer.Deserialize<MultipartUploadSession>(body,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
 
-        private async Task<bool> AddCollectionTag(
-            int collectionId,
-            int tagId,
-            string accessToken,
-            CancellationToken token)
+        private async Task<string?> UploadFileMultipart(
+            AbsolutePath filePath, string accessToken, CancellationToken token)
         {
-            var mutation = @"
-mutation addTagToCollection($collectionId: Int!, $tagIds: [ID!]!) {
-  addTagToCollection(collectionId: $collectionId, tagIds: $tagIds) {
-    success
-  }
-}";
-
-            var variables = new { collectionId, tagIds = new[] { tagId } };
-            var graphqlRequest = new { query = mutation, variables };
-
-            using var content = new StringContent(
-                JsonSerializer.Serialize(graphqlRequest, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                }),
-                Encoding.UTF8,
-                "application/json");
-
-            using var request = new HttpRequestMessage(HttpMethod.Post, GraphQLUrl) { Content = content };
-            AddNexusHeaders(request, accessToken);
-
-            var response = await _httpClient.SendAsync(request, token);
-            var responseBody = await response.Content.ReadAsStringAsync(token);
-
-            if (!response.IsSuccessStatusCode)
+            var session = await CreateMultipartUploadSession(filePath, accessToken, token);
+            if (session == null)
             {
-                _logger.LogError("Failed to add tag to collection: {status} - {body}",
-                    response.StatusCode, responseBody);
-                return false;
-            }
-
-            try
-            {
-                var root = JsonNode.Parse(responseBody) as JsonObject;
-                var errors = root?["errors"] as JsonArray;
-                if (errors is { Count: > 0 })
-                {
-                    var firstError = errors[0] as JsonObject;
-                    var code = firstError?["extensions"]?["code"]?.GetValue<string>();
-                    if (code == "TAG_ALREADY_ATTACHED")
-                    {
-                        _logger.LogInformation("Tag {tagId} already attached to collection {id}", tagId, collectionId);
-                        return true;
-                    }
-
-                    _logger.LogError("GraphQL returned errors while adding tag to collection: {errors}",
-                        errors.ToJsonString());
-                    return false;
-                }
-
-                var success = root?["data"]?["addTagToCollection"]?["success"]?.GetValue<bool>() ?? false;
-                if (!success)
-                {
-                    _logger.LogWarning("addTagToCollection returned success=false for collection {id} and tag {tagId}",
-                        collectionId, tagId);
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to parse GraphQL response for addTagToCollection");
-                return false;
-            }
-
-            _logger.LogInformation("Added tag ID {tagId} to collection {id}", tagId, collectionId);
-            return true;
-        }
-
-        private async Task<PreSignedUrlResult?> GetRevisionUploadUrl(string accessToken, CancellationToken token)
-        {
-            var query = @"
-query collectionRevisionUploadUrl {
-  collectionRevisionUploadUrl {
-    url
-    uuid
-  }
-}";
-
-            var graphqlRequest = new { query };
-
-            var content = new StringContent(
-                JsonSerializer.Serialize(graphqlRequest, _jsonOptions),
-                Encoding.UTF8,
-                "application/json");
-
-            var request = new HttpRequestMessage(HttpMethod.Post, GraphQLUrl) { Content = content };
-            AddNexusHeaders(request, accessToken);
-
-            var response = await _httpClient.SendAsync(request, token);
-            var responseBody = await response.Content.ReadAsStringAsync(token);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogError("GraphQL request failed: {status} - {body}", response.StatusCode, responseBody);
+                _logger.LogError("Failed to create multipart upload session");
                 return null;
             }
 
-            var result = JsonSerializer.Deserialize<GraphQLResponse<PreSignedUrlResponse>>(responseBody, _jsonOptions);
+            var sessionId = session.SessionUuid;
+            _logger.LogInformation(
+                "Multipart session created: UUID={uuid}, Parts={parts}, PartSize={size}MB",
+                sessionId, session.PartsPresignedUrl.Count, session.PartsSize / 1024 / 1024);
 
-            if (result?.Errors?.Length > 0)
+            var totalSize = filePath.Size();
+            var etags = new ConcurrentDictionary<int, string>();
+            var completed = 0;
+
+            using var uploadClient = CreateUploadClient();
+
+            for (int i = 0; i < session.PartsPresignedUrl.Count; i++)
             {
-                _logger.LogError("GraphQL returned errors while requesting upload URL: {errors}",
-                    JsonSerializer.Serialize(result.Errors, _jsonOptions));
-                return null;
-            }
+                var partNumber = i + 1;
+                var partUrl = session.PartsPresignedUrl[i];
+                var offset = (long)i * session.PartsSize;
+                var length = (int)Math.Min(session.PartsSize, totalSize - offset);
 
-            return result?.Data?.CollectionRevisionUploadUrl;
-        }
+                var etag = await UploadPartWithRetry(
+                    uploadClient, filePath, partUrl, partNumber, offset, length, totalSize, token);
 
-        private static HttpClient CreateUploadClient()
-        {
-            var handler = new SocketsHttpHandler
-            {
-                KeepAlivePingDelay = TimeSpan.FromSeconds(30),
-                KeepAlivePingTimeout = TimeSpan.FromSeconds(15),
-                KeepAlivePingPolicy = HttpKeepAlivePingPolicy.WithActiveRequests,
-
-                PooledConnectionIdleTimeout = Timeout.InfiniteTimeSpan,
-                PooledConnectionLifetime = Timeout.InfiniteTimeSpan,
-
-                InitialHttp2StreamWindowSize = 512 * 1024,
-            };
-
-            handler.Expect100ContinueTimeout = TimeSpan.Zero;
-
-            return new HttpClient(handler)
-            {
-                Timeout = Timeout.InfiniteTimeSpan,
-            };
-        }
-
-        private async Task<bool> UploadFileToPresignedUrl(
-            string presignedUrl,
-            AbsolutePath filePath,
-            int currentAttempt,
-            int maxAttempts,
-            CancellationToken token)
-        {
-            try
-            {
-                var fileSize = filePath.Size();
-                _logger.LogInformation(
-                    "Starting upload to pre-signed URL (attempt {attempt}/{max}, {size:N0} bytes / {mb:N0} MB)...",
-                    currentAttempt, maxAttempts, fileSize, fileSize / (1024 * 1024));
-
-                var estimatedSeconds = (fileSize / (625 * 1024)) + 300;
-                var uploadTimeout = TimeSpan.FromSeconds(Math.Clamp(estimatedSeconds, 45 * 60, 4 * 60 * 60));
-                _logger.LogInformation(
-                    "Upload timeout set to {minutes:N0} minutes based on file size.",
-                    uploadTimeout.TotalMinutes);
-
-                await using var fileStream = filePath.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
-
-                var progressStream = new ProgressStream(fileStream, fileSize, (bytesRead, totalBytes) =>
+                if (etag == null)
                 {
-                    var percentage = (double)bytesRead / totalBytes;
-                    OnProgress?.Invoke("upload", percentage);
-                });
-
-                using var content = new StreamContent(progressStream, 256 * 1024);
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                content.Headers.ContentLength = fileSize;
-
-                using var request = new HttpRequestMessage(HttpMethod.Put, presignedUrl) { Content = content };
-
-                using var uploadClient = CreateUploadClient();
-                using var uploadCts = new CancellationTokenSource(uploadTimeout);
-                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, uploadCts.Token);
-
-                using var response = await uploadClient.SendAsync(
-                    request,
-                    HttpCompletionOption.ResponseHeadersRead,
-                    linkedCts.Token);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger.LogInformation("Upload completed successfully (HTTP {status})", (int)response.StatusCode);
-                    return true;
+                    _logger.LogError("Part {part} failed permanently", partNumber);
+                    return null;
                 }
 
-                string errorBody;
+                etags[partNumber] = etag;
+                completed++;
+                var pct = (double)completed / session.PartsPresignedUrl.Count;
+                OnProgress?.Invoke("upload", pct);
+                _logger.LogInformation("Part {part}/{total} complete | {pct:P0}",
+                    partNumber, session.PartsPresignedUrl.Count, pct);
+            }
+
+
+            var success = await CompleteMultipartUpload(
+                uploadClient,
+                session.CompletePresignedUrl,
+                etags.OrderBy(x => x.Key).Select(x => (x.Key, x.Value)).ToList(),
+                token);
+
+            return success ? sessionId : null;
+        }
+
+        private async Task<string?> UploadPartWithRetry(
+            HttpClient client, AbsolutePath filePath, string url,
+            int partNumber, long offset, int length, long totalSize, CancellationToken token)
+        {
+            const int maxRetries = 10;
+
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            {
                 try
                 {
-                    using var errorCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-                    errorBody = await response.Content.ReadAsStringAsync(errorCts.Token);
-                    if (errorBody.Length > 2000) errorBody = errorBody[..2000] + "…";
+                    var chunk = new byte[length];
+                    await using var f = filePath.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                    f.Seek(offset, SeekOrigin.Begin);
+                    await f.ReadExactlyAsync(chunk, token);
+
+                    using var content = new ByteArrayContent(chunk);
+                    content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                    content.Headers.ContentLength = length;
+
+                    using var request = new HttpRequestMessage(HttpMethod.Put, url) { Content = content };
+                    using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+                    using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, cts.Token);
+                    using var response = await client.SendAsync(request, linked.Token);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var etag = response.Headers.ETag?.Tag?.Trim('"') ?? "";
+                        if (string.IsNullOrEmpty(etag))
+                            throw new Exception("No ETag in response");
+
+                        _logger.LogDebug("Part {part} OK (attempt {attempt}) ETag={etag}",
+                            partNumber, attempt, etag);
+                        return etag;
+                    }
+
+                    _logger.LogWarning("Part {part} attempt {attempt}: HTTP {status}",
+                        partNumber, attempt, (int)response.StatusCode);
                 }
-                catch
+                catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
+                catch (Exception ex)
                 {
-                    errorBody = "(could not read error body)";
+                    _logger.LogWarning("Part {part} attempt {attempt} failed: {msg}",
+                        partNumber, attempt, ex.Message);
                 }
 
-                _logger.LogError("Upload failed: HTTP {status} - {body}", response.StatusCode, errorBody);
+                if (attempt < maxRetries)
+                {
+                    var delay = TimeSpan.FromSeconds(
+                        Math.Min(Math.Pow(2, attempt), 60) + Random.Shared.NextDouble() * 5);
+                    _logger.LogInformation("Retrying part {part} in {delay:N1}s...",
+                        partNumber, delay.TotalSeconds);
+                    await Task.Delay(delay, token);
+                }
+            }
+
+            return null;
+        }
+
+        private async Task<bool> CompleteMultipartUpload(
+            HttpClient client, string completeUrl,
+            List<(int PartNumber, string ETag)> etags, CancellationToken token)
+        {
+            var xml = new StringBuilder("<CompleteMultipartUpload>");
+            foreach (var (partNumber, etag) in etags)
+                xml.Append(
+                    $"<Part><PartNumber>{partNumber}</PartNumber><ETag>{etag}</ETag></Part>");
+            xml.Append("</CompleteMultipartUpload>");
+
+            using var content = new StringContent(xml.ToString(), Encoding.UTF8, "application/xml");
+            using var request = new HttpRequestMessage(HttpMethod.Post, completeUrl)
+            {
+                Content = content
+            };
+
+            var response = await client.SendAsync(request, token);
+            var body = await response.Content.ReadAsStringAsync(token);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("Multipart completion failed: {status} - {body}",
+                    (int)response.StatusCode, body);
                 return false;
             }
-            catch (TaskCanceledException ex)
+
+            _logger.LogInformation("Multipart upload completed successfully");
+            return true;
+        }
+
+        private async Task<bool> FinaliseUpload(
+            string uploadUuid, string accessToken, CancellationToken token)
+        {
+            using var request = new HttpRequestMessage(
+                HttpMethod.Post, $"{RestBaseUrl}/uploads/{uploadUuid}/finalise")
             {
-                _logger.LogWarning(ex,
-                    "Upload timed out or was cancelled on attempt {attempt}/{max}",
-                    currentAttempt, maxAttempts);
-                return false;
-            }
-            catch (HttpRequestException ex) when (
-                ex.InnerException is IOException ioEx &&
-                ioEx.InnerException is System.Net.Sockets.SocketException sockEx)
+                Content = new StringContent("{}", Encoding.UTF8, "application/json")
+            };
+            AddNexusHeaders(request, accessToken);
+
+            try
             {
-                _logger.LogWarning(
-                    "Network error on attempt {attempt}/{max}: {socketError} — {message}",
-                    currentAttempt, maxAttempts, sockEx.SocketErrorCode, ex.Message);
-                return false;
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogWarning(ex,
-                    "HTTP error on attempt {attempt}/{max}", currentAttempt, maxAttempts);
-                return false;
-            }
-            catch (IOException ex)
-            {
-                _logger.LogWarning(ex,
-                    "IO error on attempt {attempt}/{max}", currentAttempt, maxAttempts);
-                return false;
+                var response = await _httpClient.SendAsync(request, token);
+                var body = await response.Content.ReadAsStringAsync(token);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("FinaliseUpload failed: {status} - {body}",
+                        response.StatusCode, body);
+                    return false;
+                }
+
+                _logger.LogInformation("Upload {uuid} finalised", uploadUuid);
+                return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Unexpected error during upload attempt {attempt}/{max}", currentAttempt, maxAttempts);
+                _logger.LogError(ex, "Exception during FinaliseUpload for {uuid}", uploadUuid);
                 return false;
             }
         }
 
-        private async Task<CollectionUploadResult?> CreateCollection(
-            WabbajackToVortexCollection.VortexCollection collectionPayload,
-            string assetFileUUID,
-            bool adultContent,
-            string accessToken,
-            AbsolutePath collectionJsonPath,
-            CancellationToken token)
+        private async Task<bool> WaitForUploadAvailable(
+            string uploadUuid, string accessToken, CancellationToken token,
+            int maxWaitSeconds = 120)
         {
-            var mutation = @"
-mutation createCollection($collectionData: CollectionPayload!, $uuid: String!) {
-  createCollection(collectionData: $collectionData, uuid: $uuid) {
-    collection { id slug }
-    revision { id revisionNumber }
-    success
-  }
-}";
+            var deadline = DateTime.UtcNow.AddSeconds(maxWaitSeconds);
+            var attempt = 0;
 
-            return await ExecuteCollectionMutation(
-                mutation,
-                "createCollection",
-                collectionPayload,
-                assetFileUUID,
-                null,
-                adultContent,
-                accessToken,
-                collectionJsonPath,
-                token);
-        }
-
-        private async Task<CollectionUploadResult?> CreateOrUpdateRevision(
-            WabbajackToVortexCollection.VortexCollection collectionPayload,
-            string assetFileUUID,
-            int collectionId,
-            bool adultContent,
-            string accessToken,
-            AbsolutePath collectionJsonPath,
-            CancellationToken token)
-        {
-            var mutation = @"
-mutation createOrUpdateRevision($collectionData: CollectionPayload!, $uuid: String!, $collectionId: Int!) {
-  createOrUpdateRevision(collectionData: $collectionData, uuid: $uuid, collectionId: $collectionId) {
-    collection { id slug }
-    revision { id revisionNumber }
-    success
-  }
-}";
-
-            return await ExecuteCollectionMutation(
-                mutation,
-                "createOrUpdateRevision",
-                collectionPayload,
-                assetFileUUID,
-                collectionId,
-                adultContent,
-                accessToken,
-                collectionJsonPath,
-                token);
-        }
-
-        private async Task<CollectionUploadResult?> ExecuteCollectionMutation(
-            string mutation,
-            string operationName,
-            WabbajackToVortexCollection.VortexCollection collectionPayload,
-            string assetFileUUID,
-            int? collectionId,
-            bool adultContent,
-            string accessToken,
-            AbsolutePath collectionJsonPath,
-            CancellationToken token)
-        {
-            // not send installInstructions it's not needed and bloats the payload
-            var manifestInfo = new
+            while (DateTime.UtcNow < deadline)
             {
-                author = string.IsNullOrWhiteSpace(collectionPayload.Info.Author) ? "Anonymous" : collectionPayload.Info.Author,
-                authorUrl = string.IsNullOrWhiteSpace(collectionPayload.Info.AuthorUrl) ? null : collectionPayload.Info.AuthorUrl,
-                name = string.IsNullOrWhiteSpace(collectionPayload.Info.Name) ? "Wabbajack Collection" : collectionPayload.Info.Name,
-                summary = string.IsNullOrWhiteSpace(collectionPayload.Info.Summary) ? null : collectionPayload.Info.Summary.Trim(),
-                description = string.IsNullOrWhiteSpace(collectionPayload.Info.Description) ? null : collectionPayload.Info.Description,
-                domainName = collectionPayload.Info.DomainName,
-                gameVersions = (collectionPayload.Info.GameVersions?.Count ?? 0) == 0 ? null : collectionPayload.Info.GameVersions,
-            };
+                attempt++;
+                await Task.Delay(TimeSpan.FromSeconds(Math.Min(3 * attempt, 15)), token);
 
-            _logger.LogInformation(
-                "Manifest info - author: '{author}', name: '{name}', summary: '{summary}', descLen: {descLen}, gameVersions: {gameVersions}",
-                manifestInfo.author,
-                manifestInfo.name,
-                manifestInfo.summary,
-                manifestInfo.description?.Length ?? 0,
-                manifestInfo.gameVersions != null ? string.Join(", ", manifestInfo.gameVersions) : "null");
+                using var request = new HttpRequestMessage(
+                    HttpMethod.Get, $"{RestBaseUrl}/uploads/{uploadUuid}");
+                AddNexusHeaders(request, accessToken);
 
-            const int MinCollectionNameLength = 3;
-            const int MaxCollectionNameLength = 36;
-
-            if (manifestInfo.name.Length < MinCollectionNameLength)
-            {
-                _logger.LogError("Collection name too short for Nexus (min {min}): '{name}'",
-                    MinCollectionNameLength, manifestInfo.name);
-                return null;
-            }
-
-            object infoToSend = manifestInfo;
-            if (manifestInfo.name.Length > MaxCollectionNameLength)
-            {
-                _logger.LogWarning("Collection name too long for Nexus (max {max}), truncating: '{name}'",
-                    MaxCollectionNameLength, manifestInfo.name);
-                infoToSend = new
+                try
                 {
-                    manifestInfo.author,
-                    manifestInfo.authorUrl,
-                    name = manifestInfo.name.Substring(0, MaxCollectionNameLength),
-                    manifestInfo.summary,
-                    manifestInfo.description,
-                    manifestInfo.domainName,
-                    manifestInfo.gameVersions,
-                };
+                    var response = await _httpClient.SendAsync(request, token);
+                    var body = await response.Content.ReadAsStringAsync(token);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        _logger.LogWarning("GetUpload {uuid} returned {status}",
+                            uploadUuid, response.StatusCode);
+                        continue;
+                    }
+
+                    var root = JsonNode.Parse(body) as JsonObject;
+                    var state = root?["state"]?.GetValue<string>();
+
+                    _logger.LogInformation("Upload {uuid} state: {state} (attempt {attempt})",
+                        uploadUuid, state, attempt);
+
+                    if (state == "available") return true;
+
+                    if (state != null && state != "created" && state != "processing")
+                    {
+                        _logger.LogError("Upload {uuid} entered unexpected state: {state}",
+                            uploadUuid, state);
+                        return false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error polling upload state for {uuid}", uploadUuid);
+                }
             }
 
-            if (string.IsNullOrWhiteSpace(manifestInfo.domainName) || manifestInfo.domainName == "site")
-            {
-                _logger.LogError(
-                    "Invalid/unknown Nexus domainName for this modlist: '{domain}'. Must be a real game domain (e.g. skyrimspecialedition).",
-                    manifestInfo.domainName);
-                return null;
-            }
+            _logger.LogError("Upload {uuid} did not become available within {sec}s",
+                uploadUuid, maxWaitSeconds);
+            return false;
+        }
 
-            var manifestMods = (collectionPayload.Mods ?? new List<WabbajackToVortexCollection.VortexMod>())
+
+        private Task<CollectionUploadResult?> CreateCollection(
+            VortexCollection collectionPayload, string uploadUuid, bool adultContent,
+            string accessToken, AbsolutePath collectionJsonPath, CancellationToken token)
+            => ExecuteCollectionRestCall(
+                $"{RestBaseUrl}/collections",
+                collectionPayload, uploadUuid, adultContent,
+                accessToken, collectionJsonPath,
+                isRevision: false, collectionId: null, token: token);
+
+        private Task<CollectionUploadResult?> CreateCollectionRevision(
+            VortexCollection collectionPayload, string uploadUuid, string collectionId,
+            bool adultContent, string accessToken, AbsolutePath collectionJsonPath,
+            CancellationToken token)
+            => ExecuteCollectionRestCall(
+                $"{RestBaseUrl}/collections/{collectionId}/revisions",
+                collectionPayload, uploadUuid, adultContent,
+                accessToken, collectionJsonPath,
+                isRevision: true, collectionId: collectionId, token: token);
+
+
+        private List<ManifestMod>? BuildManifestMods(
+            VortexCollection collectionPayload, string fallbackDomain)
+        {
+            var manifestMods = (collectionPayload.Mods ?? new List<VortexMod>())
                 .Select(mod => new ManifestMod
                 {
                     name = string.IsNullOrWhiteSpace(mod.Name) ? "Unknown" : mod.Name,
                     version = string.IsNullOrWhiteSpace(mod.Version) ? "1.0.0" : mod.Version,
                     optional = mod.Optional,
-                    domainName = string.IsNullOrWhiteSpace(mod.DomainName) ? manifestInfo.domainName : mod.DomainName,
+                    domain_name = string.IsNullOrWhiteSpace(mod.DomainName)
+                                  ? fallbackDomain : mod.DomainName,
+                    author = string.IsNullOrWhiteSpace(mod.Author) ? "" : mod.Author,
                     source = new ManifestModSource
                     {
                         type = mod.Source.Type,
-                        modId = mod.Source.ModId,
-                        fileId = mod.Source.FileId,
-                        updatePolicy = "prefer",
-                        url = mod.Source.Url,
-                    },
+                        mod_id = mod.Source.Type == "nexus"
+                                           ? mod.Source.ModId.ToString() : "",
+                        file_id = mod.Source.Type == "nexus"
+                                           ? mod.Source.FileId.ToString() : "",
+                        url = mod.Source.Url ?? "",
+                        file_size = mod.Source.FileSize,
+                        update_policy = "prefer",
+                        logical_filename = mod.Source.LogicalFilename ?? "",
+                        file_expression = mod.Source.LogicalFilename ?? "",
+                        md5 = mod.Source.Md5 ?? "",
+                        adult_content = false,
+                    }
                 })
                 .ToList();
 
-            if (manifestMods.Count == 0)
-            {
-                _logger.LogError("Cannot create a Nexus collection with 0 mods.");
-                return null;
-            }
 
-            var invalidNexusMods = manifestMods
-                .Where(m => m.source.type == "nexus" && (m.source.modId <= 0 || m.source.fileId <= 0))
+            var invalid = manifestMods
+                .Where(m => m.source.type == "nexus" &&
+                            (string.IsNullOrWhiteSpace(m.source.mod_id) || m.source.mod_id == "0" ||
+                             string.IsNullOrWhiteSpace(m.source.file_id) || m.source.file_id == "0"))
                 .Take(5)
                 .ToList();
 
-            if (invalidNexusMods.Count > 0)
+            if (invalid.Count > 0)
             {
-                _logger.LogError("Some mods are missing Nexus modId/fileId. First few: {mods}",
+                _logger.LogError(
+                    "Some nexus-type mods are missing mod_id/file_id. First few: {mods}",
                     JsonSerializer.Serialize(
-                        invalidNexusMods.Select(m => new { m.name, m.source.modId, m.source.fileId }),
+                        invalid.Select(m => new { m.name, m.source.mod_id, m.source.file_id }),
                         _jsonOptions));
                 return null;
             }
 
-            for (var attempt = 1; attempt <= 3; attempt++)
+            _logger.LogInformation(
+                "Manifest: {nexus} nexus-type, {browse} browse-type, {total} total mods",
+                manifestMods.Count(m => m.source.type == "nexus"),
+                manifestMods.Count(m => m.source.type == "browse"),
+                manifestMods.Count);
+
+            return manifestMods;
+        }
+
+
+        private bool TryRemoveInvalidModsFromRestError(
+            string responseBody, ref List<ManifestMod> manifestMods)
+        {
+            var badModIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            try
             {
-                var variables = new
+                var root = JsonNode.Parse(responseBody) as JsonObject;
+                var details = root?["details"] as JsonArray;
+
+                if (details != null && details.Count > 0)
                 {
-                    collectionData = new
+                    foreach (var detNode in details)
                     {
-                        adultContent,
-                        collectionSchemaId = CollectionSchemaId,
-                        collectionManifest = new
+                        // Each entry is a  string: "Mod {mod_id}, {domain} not available/not found"
+                        var msg = detNode?.GetValue<string>();
+                        if (string.IsNullOrWhiteSpace(msg)) continue;
+
+                        if (msg.StartsWith("Mod ", StringComparison.OrdinalIgnoreCase))
                         {
-                            info = infoToSend,
-                            mods = manifestMods,
-                        },
-                    },
-                    uuid = assetFileUUID,
-                    collectionId
-                };
+                            var afterMod = msg[4..];
+                            var commaIdx = afterMod.IndexOf(',');
+                            var modIdStr = commaIdx > 0
+                                ? afterMod[..commaIdx].Trim()
+                                : afterMod.Trim();
 
-                var graphqlRequest = new { query = mutation, variables };
+                            if (!string.IsNullOrWhiteSpace(modIdStr))
+                            {
+                                badModIds.Add(modIdStr);
+                                _logger.LogWarning("Nexus flagged invalid mod_id={id}: {msg}", modIdStr, msg);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not parse 422 details for invalid mod stripping");
+            }
 
-                var serializedRequest = JsonSerializer.Serialize(graphqlRequest, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                });
+            if (badModIds.Count == 0)
+            {
+                _logger.LogWarning(
+                    "Received 422 but could not extract any mod ids from response body: {body}",
+                    responseBody);
+                return false;
+            }
 
-                // Save the actual GraphQL payload for debugging
+            var before = manifestMods.Count;
+            manifestMods = manifestMods
+                .Where(m => !badModIds.Contains(m.source.mod_id))
+                .ToList();
+
+            var removed = before - manifestMods.Count;
+            if (removed > 0)
+                _logger.LogWarning(
+                    "Removed {count} invalid mod(s) from manifest (mod_ids: [{ids}]); will retry",
+                    removed, string.Join(", ", badModIds));
+            else
+                _logger.LogWarning(
+                    "Nexus reported invalid mod_ids [{ids}] but none matched manifest entries — " +
+                    "mod_ids in manifest may differ from those in the error. Cannot strip.",
+                    string.Join(", ", badModIds));
+
+            return removed > 0;
+        }
+
+        private async Task<CollectionUploadResult?> ExecuteCollectionRestCall(
+            string url,
+            VortexCollection collectionPayload,
+            string uploadUuid,
+            bool adultContent,
+            string accessToken,
+            AbsolutePath collectionJsonPath,
+            bool isRevision,
+            string? collectionId,
+            CancellationToken token)
+        {
+            var info = collectionPayload.Info;
+
+            if (string.IsNullOrWhiteSpace(info.DomainName) || info.DomainName == "site")
+                throw new InvalidOperationException($"Invalid domain name: '{info.DomainName}'");
+
+            const int MinNameLength = 3;
+            const int MaxNameLength = 36;
+
+            var name = string.IsNullOrWhiteSpace(info.Name) ? "Wabbajack Collection" : info.Name;
+            if (name.Length > MaxNameLength)
+            {
+                _logger.LogWarning("Collection name too long (max {max}), truncating: '{name}'",
+                    MaxNameLength, name);
+                name = name[..MaxNameLength];
+            }
+            if (name.Length < MinNameLength)
+                throw new InvalidOperationException($"Collection name too short: '{name}'");
+
+            var manifestMods = BuildManifestMods(collectionPayload, info.DomainName);
+            if (manifestMods == null) return null;
+            if (manifestMods.Count == 0)
+                throw new InvalidOperationException("Cannot create a Nexus collection with 0 mods.");
+
+            // strips those mods and re-sends. Should only require 1-2 attempts
+            const int MaxRestAttempts = 5;
+
+            for (int attempt = 1; attempt <= MaxRestAttempts; attempt++)
+            {
+                var jsonBody = BuildJsonBody(uploadUuid, name, info, adultContent, manifestMods);
+
                 var debugPath = collectionJsonPath.Parent.Combine(
-                    $"{collectionJsonPath.FileName}_graphql_payload.json");
-                await debugPath.WriteAllTextAsync(serializedRequest);
-                _logger.LogInformation("Saved GraphQL payload to {path} ({kb} KB, {count} mods)",
-                    debugPath, serializedRequest.Length / 1024, manifestMods.Count);
+                    $"{collectionJsonPath.FileName}_rest_payload.json");
+                await debugPath.WriteAllTextAsync(jsonBody);
+                _logger.LogInformation(
+                    "Saved REST payload to {path} ({kb} KB, {count} mods)",
+                    debugPath, jsonBody.Length / 1024, manifestMods.Count);
 
-                using var content = new StringContent(serializedRequest, Encoding.UTF8, "application/json");
-                using var request = new HttpRequestMessage(HttpMethod.Post, GraphQLUrl) { Content = content };
+                using var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+                using var request = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Content = content
+                };
                 AddNexusHeaders(request, accessToken);
 
                 using var mutationCts = new CancellationTokenSource(TimeSpan.FromMinutes(15));
-                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, mutationCts.Token);
-
-                using var mutationClient = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+                    token, mutationCts.Token);
 
                 string responseBody;
+                System.Net.HttpStatusCode statusCode;
 
                 try
                 {
-                    var response = await mutationClient.SendAsync(request, linkedCts.Token);
+                    using var response = await _httpClient.SendAsync(
+                        request, HttpCompletionOption.ResponseHeadersRead, linkedCts.Token);
+
+                    _logger.LogInformation("Response status: {status}", response.StatusCode);
+
+                    statusCode = response.StatusCode;
                     responseBody = await response.Content.ReadAsStringAsync(linkedCts.Token);
 
                     if (!response.IsSuccessStatusCode)
                     {
-                        _logger.LogError("GraphQL mutation failed: {status} - {body}",
-                            response.StatusCode, responseBody);
+                        _logger.LogError("Collection REST call failed: {status} - {body}",
+                            statusCode, responseBody);
 
-                        if (response.StatusCode == System.Net.HttpStatusCode.GatewayTimeout)
+                        if (statusCode == System.Net.HttpStatusCode.UnprocessableEntity)
                         {
-                            _logger.LogInformation(
-                                "Gateway timeout on manifest attempt {attempt} — checking if collection was created...",
-                                attempt);
-
-                            await Task.Delay(TimeSpan.FromSeconds(15), token);
-
-                            var existingCollection = await FindRecentlyCreatedCollection(
-                                collectionPayload.Info.Name,
-                                collectionPayload.Info.DomainName,
-                                accessToken,
-                                token);
-
-                            if (existingCollection != null)
+                            if (attempt < MaxRestAttempts &&
+                                TryRemoveInvalidModsFromRestError(responseBody, ref manifestMods))
                             {
+                                if (manifestMods.Count == 0)
+                                {
+                                    _logger.LogError(
+                                        "After removing invalid mods, 0 mods remain. Aborting.");
+                                    return null;
+                                }
+
                                 _logger.LogWarning(
-                                    "Collection was created despite timeout! Using collection ID {id}",
-                                    existingCollection.CollectionId);
-                                return existingCollection;
-                            }
-
-                            if (attempt < 3)
-                            {
-                                _logger.LogWarning("Collection not found yet, retrying in 20s (attempt {next}/3)...", attempt + 1);
-                                await Task.Delay(TimeSpan.FromSeconds(20), token);
+                                    "Retrying with {count} mods after stripping invalid refs " +
+                                    "(attempt {next}/{max})",
+                                    manifestMods.Count, attempt + 1, MaxRestAttempts);
                                 continue;
                             }
 
-                            _logger.LogError("Collection creation failed after 3 manifest attempts with timeouts");
                             return null;
                         }
 
-                        return null;
-                    }
-                }
-                catch (TaskCanceledException) when (attempt < 3)
-                {
-                    _logger.LogInformation(
-                        "Manifest request cancelled/timed-out on attempt {attempt} — checking if collection was created...",
-                        attempt);
-                    await Task.Delay(TimeSpan.FromSeconds(15), token);
-
-                    var existingCollection = await FindRecentlyCreatedCollection(
-                        collectionPayload.Info.Name,
-                        collectionPayload.Info.DomainName,
-                        accessToken,
-                        token);
-
-                    if (existingCollection != null)
-                    {
-                        _logger.LogWarning(
-                            "Collection was created despite cancellation! Using collection ID {id}",
-                            existingCollection.CollectionId);
-                        return existingCollection;
-                    }
-
-                    _logger.LogWarning("Manifest attempt {attempt} timed out, retrying in 20s...", attempt);
-                    await Task.Delay(TimeSpan.FromSeconds(20), token);
-                    continue;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error during manifest attempt {attempt}", attempt);
-                    if (attempt < 3)
-                    {
-                        await Task.Delay(TimeSpan.FromSeconds(20), token);
-                        continue;
-                    }
-                    throw;
-                }
-
-                // Check for GraphQL-level errors and try to remove invalid mods
-                try
-                {
-                    var root = JsonNode.Parse(responseBody) as JsonObject;
-                    var errors = root?["errors"] as JsonArray;
-                    if (errors is { Count: > 0 })
-                    {
-                        _logger.LogError("GraphQL returned errors during {op}: {errors}",
-                            operationName, errors.ToJsonString());
-
-                        var removedAny = TryRemoveInvalidModsFromErrors(errors, ref manifestMods);
-                        if (removedAny)
+                        if (statusCode == System.Net.HttpStatusCode.GatewayTimeout && attempt < MaxRestAttempts)
                         {
-                            if (manifestMods.Count == 0)
-                            {
-                                _logger.LogError("After removing invalid mods, 0 mods remain. Aborting.");
-                                return null;
-                            }
-
                             _logger.LogWarning(
-                                "Retrying {op} after removing invalid mods. Remaining: {count}",
-                                operationName, manifestMods.Count);
+                                "Gateway timeout on attempt {attempt}, retrying in 20s...", attempt);
+                            await Task.Delay(TimeSpan.FromSeconds(20), token);
                             continue;
                         }
 
                         return null;
                     }
                 }
+                catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
+                catch (TaskCanceledException) when (attempt < MaxRestAttempts)
+                {
+                    _logger.LogWarning(
+                        "Collection REST request timed out on attempt {attempt}, retrying...", attempt);
+                    await Task.Delay(TimeSpan.FromSeconds(20), token);
+                    continue;
+                }
+                catch (Exception ex) when (attempt < MaxRestAttempts)
+                {
+                    _logger.LogWarning(ex,
+                        "Error during collection REST call attempt {attempt}, retrying...", attempt);
+                    await Task.Delay(TimeSpan.FromSeconds(20), token);
+                    continue;
+                }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to parse GraphQL error payload; falling back to typed parse.");
-                }
-
-                var result = JsonSerializer.Deserialize<GraphQLMutationResponse>(responseBody, _jsonOptions);
-                if (result?.Data == null)
-                {
-                    _logger.LogError("No data in GraphQL response");
+                    _logger.LogError(ex,
+                        "Error during collection REST call attempt {attempt}, no more retries", attempt);
                     return null;
                 }
 
-                var mutationResult = operationName switch
-                {
-                    "createCollection" => result.Data.CreateCollection,
-                    "createOrUpdateRevision" => result.Data.CreateOrUpdateRevision,
-                    _ => null
-                };
+                _logger.LogInformation(
+                    "Collection REST call succeeded on attempt {attempt}. Response: {body}",
+                    attempt, responseBody);
 
-                if (mutationResult == null)
+                try
                 {
-                    _logger.LogError("Mutation result not found in response for operation '{op}'", operationName);
+                    var root = JsonNode.Parse(responseBody) as JsonObject;
+
+                    string returnedCollectionId;
+                    string returnedRevisionId;
+
+                    if (isRevision)
+                    {
+                        returnedRevisionId = root?["id"]?.GetValue<string>() ?? "";
+                        returnedCollectionId = root?["collection_id"]?.GetValue<string>()
+                                               ?? collectionId ?? "";
+                    }
+                    else
+                    {
+                        returnedCollectionId = root?["id"]?.GetValue<string>() ?? "";
+                        returnedRevisionId = root?["revision_id"]?.GetValue<string>() ?? "";
+                    }
+
+                    var found = await FindRecentlyCreatedCollection(
+                        info.Name, info.DomainName, accessToken, token,
+                        preferredCollectionId: returnedCollectionId);
+
+                    return new CollectionUploadResult
+                    {
+                        CollectionId = returnedCollectionId,
+                        RevisionId = returnedRevisionId,
+                        Slug = found?.Slug ?? "",
+                        RevisionNumber = found?.RevisionNumber ?? 1,
+                        Success = true
+                    };
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Failed to parse collection REST response: {body}", responseBody);
                     return null;
                 }
-
-                _logger.LogInformation("Collection mutation '{op}' succeeded on attempt {attempt}!", operationName, attempt);
-
-                return new CollectionUploadResult
-                {
-                    CollectionId = mutationResult.Collection.Id,
-                    Slug = mutationResult.Collection.Slug,
-                    RevisionId = mutationResult.Revision.Id,
-                    RevisionNumber = mutationResult.Revision.RevisionNumber,
-                    Success = mutationResult.Success
-                };
             }
 
-            _logger.LogError("Exceeded retry attempts for {op}", operationName);
+            _logger.LogError("Exceeded retry attempts for collection REST call to {url}", url);
             return null;
         }
 
-        private static void AddNexusHeaders(HttpRequestMessage request, string accessToken)
-        {
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            request.Headers.TryAddWithoutValidation("Application-Name", "Wabbajack");
-            request.Headers.TryAddWithoutValidation("Application-Version", "0.0.0");
-            request.Headers.TryAddWithoutValidation("Protocol-Version", "1.5.0");
-        }
 
-        private bool TryRemoveInvalidModsFromErrors(JsonArray errors, ref List<ManifestMod> manifestMods)
+        private string BuildJsonBody(
+            string uploadUuid,
+            string name,
+            VortexInfo info,
+            bool adultContent,
+            List<ManifestMod> manifestMods)
         {
-            var badModIds = new HashSet<long>();
-            var badFileIds = new HashSet<long>();
-
-            foreach (var errNode in errors)
+            var manifestInfo = new
             {
-                var ext = errNode?["extensions"] as JsonObject;
-                var detail = ext?["detail"] as JsonArray;
-                if (detail == null) continue;
+                author = string.IsNullOrWhiteSpace(info.Author) ? "Anonymous" : info.Author,
+                author_url = info.AuthorUrl ?? "",
+                name,
+                summary = info.Summary?.Trim() ?? "",
+                description = info.Description ?? "",
+                domain_name = info.DomainName,
+                game_versions = (info.GameVersions?.Count ?? 0) == 0 ? null : info.GameVersions,
+            };
 
-                foreach (var detNode in detail)
+            var manifest = new { info = manifestInfo, mods = manifestMods };
+
+            var serOpts = new JsonSerializerOptions
+            {
+                WriteIndented = false,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            };
+
+            return JsonSerializer.Serialize(new
+            {
+                upload_id = uploadUuid,
+                collection_data = new
                 {
-                    var attribute = detNode?["attribute"]?.GetValue<string>();
-                    var code = detNode?["code"]?.GetValue<string>();
-                    var valueNode = detNode?["value"];
-
-                    if (valueNode == null) continue;
-                    if (code is not ("NOT_FOUND" or "NOT_AVAILABLE" or "DELETED")) continue;
-
-                    if (attribute == "modId" && TryGetLong(valueNode, out var modId))
-                        badModIds.Add(modId);
-                    else if (attribute == "fileId" && TryGetLong(valueNode, out var fileId))
-                        badFileIds.Add(fileId);
-                }
-            }
-
-            if (badModIds.Count == 0 && badFileIds.Count == 0)
-                return false;
-
-            var before = manifestMods.Count;
-            manifestMods = manifestMods
-                .Where(m => !badModIds.Contains(m.source.modId) && !badFileIds.Contains(m.source.fileId))
-                .ToList();
-
-            var removed = before - manifestMods.Count;
-            if (removed > 0)
-            {
-                _logger.LogWarning(
-                    "Removed {count} invalid mod entries (bad modIds: {modIds}; bad fileIds: {fileIds})",
-                    removed,
-                    string.Join(",", badModIds),
-                    string.Join(",", badFileIds));
-            }
-
-            return removed > 0;
+                    adult_content = adultContent,
+                    collection_schema_id = CollectionSchemaId,
+                    collection_manifest = manifest,
+                },
+            }, serOpts);
         }
 
-        private static bool TryGetLong(JsonNode node, out long value)
-        {
-            if (node is JsonValue jv)
-            {
-                if (jv.TryGetValue<long>(out value)) return true;
-                if (jv.TryGetValue<int>(out var i)) { value = i; return true; }
-                if (jv.TryGetValue<string>(out var s) && long.TryParse(s, out value)) return true;
-            }
-
-            value = default;
-            return false;
-        }
 
         private async Task<CollectionUploadResult?> FindRecentlyCreatedCollection(
             string collectionName,
             string domainName,
             string accessToken,
-            CancellationToken token)
+            CancellationToken token,
+            string? preferredCollectionId = null)
         {
             try
             {
-                _logger.LogInformation("Searching for collection '{name}' in domain '{domain}'...",
-                    collectionName, domainName);
-
                 var targetName = collectionName.Length > 36 ? collectionName[..36] : collectionName;
-
                 var deadline = DateTime.UtcNow.AddSeconds(90);
                 var attempt = 0;
 
                 while (DateTime.UtcNow < deadline)
                 {
                     attempt++;
-
                     var found = await FindRecentlyCreatedCollection_MyCollectionsSafeList(
-                        targetName, domainName, accessToken, token);
-
+                        targetName, domainName, accessToken, token, preferredCollectionId);
                     if (found != null)
                         return found;
-
                     var delay = TimeSpan.FromSeconds(Math.Min(5 + (attempt * 2), 15));
                     _logger.LogInformation(
                         "Collection not visible yet; re-checking in {seconds}s (attempt {attempt})",
@@ -969,15 +864,11 @@ mutation createOrUpdateRevision($collectionData: CollectionPayload!, $uuid: Stri
                 }
 
                 _logger.LogWarning(
-                    "No collection found matching '{name}' in domain '{domain}' within 90s window",
+                    "No collection found matching '{name}' in domain '{domain}' within 90s",
                     targetName, domainName);
-
                 return null;
             }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
+            catch (OperationCanceledException) { throw; }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error searching for existing collection");
@@ -989,7 +880,8 @@ mutation createOrUpdateRevision($collectionData: CollectionPayload!, $uuid: Stri
             string targetName,
             string domainName,
             string accessToken,
-            CancellationToken token)
+            CancellationToken token,
+            string? preferredCollectionId = null)
         {
             var query = @"
                 query myCollections($count: Int!, $offset: Int!, $viewAdultContent: Boolean!, $viewUnlisted: Boolean!, $viewUnderModeration: Boolean!) {
@@ -1008,20 +900,11 @@ mutation createOrUpdateRevision($collectionData: CollectionPayload!, $uuid: Stri
                       name
                       game { domainName }
                       draftRevisionNumber
-                      publishedAt
                     }
                   }
                 }";
 
-            var variables = new
-            {
-                count = 50,
-                offset = 0,
-                viewAdultContent = true,
-                viewUnlisted = true,
-                viewUnderModeration = true
-            };
-
+            var variables = new { count = 50, offset = 0, viewAdultContent = true, viewUnlisted = true, viewUnderModeration = true };
             var graphqlRequest = new { query, variables };
 
             using var content = new StringContent(
@@ -1030,8 +913,7 @@ mutation createOrUpdateRevision($collectionData: CollectionPayload!, $uuid: Stri
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
                 }),
-                Encoding.UTF8,
-                "application/json");
+                Encoding.UTF8, "application/json");
 
             using var request = new HttpRequestMessage(HttpMethod.Post, GraphQLUrl) { Content = content };
             AddNexusHeaders(request, accessToken);
@@ -1041,19 +923,15 @@ mutation createOrUpdateRevision($collectionData: CollectionPayload!, $uuid: Stri
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("myCollections request failed: {status} - {body}",
-                    response.StatusCode, responseBody);
+                _logger.LogWarning("myCollections request failed: {status}", response.StatusCode);
                 return null;
             }
 
             JsonObject? root;
-            try
+            try { root = JsonNode.Parse(responseBody) as JsonObject; }
+            catch (Exception ex)
             {
-                root = JsonNode.Parse(responseBody) as JsonObject;
-            }
-            catch (Exception parseEx)
-            {
-                _logger.LogWarning(parseEx, "myCollections returned unparseable JSON");
+                _logger.LogWarning(ex, "myCollections returned unparseable JSON");
                 return null;
             }
 
@@ -1068,44 +946,65 @@ mutation createOrUpdateRevision($collectionData: CollectionPayload!, $uuid: Stri
                 return null;
             }
 
-            _logger.LogDebug("myCollections returned {count} nodes; scanning for match", nodes.Count);
-
+            var candidates = new List<JsonObject>();
             foreach (var node in nodes)
             {
-                if (node is not JsonObject obj)
-                    continue;
-
+                if (node is not JsonObject obj) continue;
                 var name = obj["name"]?.GetValue<string>();
                 var gameDomain = obj["game"]?["domainName"]?.GetValue<string>();
-                var slug = obj["slug"]?.GetValue<string>();
-                var collectionIdValue = ParseIntId(obj["id"]);
-
-                if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(gameDomain))
-                    continue;
-
-                if (!name.Equals(targetName, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                if (!gameDomain.Equals(domainName, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                var draftRev = obj["draftRevisionNumber"]?.GetValue<int?>() ?? 1;
-
-                _logger.LogInformation(
-                    "Found matching collection: id={id} slug='{slug}' draftRev={draftRev}",
-                    collectionIdValue, slug, draftRev);
-
-                return new CollectionUploadResult
-                {
-                    CollectionId = collectionIdValue,
-                    Slug = slug ?? "",
-                    RevisionId = 0,
-                    RevisionNumber = draftRev,
-                    Success = true
-                };
+                if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(gameDomain)) continue;
+                if (!name.Equals(targetName, StringComparison.OrdinalIgnoreCase)) continue;
+                if (!gameDomain.Equals(domainName, StringComparison.OrdinalIgnoreCase)) continue;
+                candidates.Add(obj);
             }
 
-            return null;
+            if (candidates.Count == 0)
+                return null;
+
+            // When we know the id of the collection we just created, we MUST match by id.
+            // Never fall back to a different same-named collection — that would store the
+            // wrong slug in the mapping. Return null so the retry loop keeps polling until
+            // the correct collection appears in myCollections.
+            JsonObject? match;
+            if (!string.IsNullOrWhiteSpace(preferredCollectionId))
+            {
+                match = candidates.FirstOrDefault(obj =>
+                {
+                    var idNode = obj["id"];
+                    string? nodeId = null;
+                    if (idNode is JsonValue jv)
+                    {
+                        if (jv.TryGetValue<string>(out var s)) nodeId = s;
+                        else if (jv.TryGetValue<int>(out var i)) nodeId = i.ToString();
+                        else if (jv.TryGetValue<long>(out var l)) nodeId = l.ToString();
+                    }
+                    return string.Equals(nodeId, preferredCollectionId, StringComparison.OrdinalIgnoreCase);
+                });
+
+                if (match == null)
+                {
+                    var foundIds = candidates
+                        .Select(o => o["id"]?.ToJsonString()?.Trim('"') ?? "?")
+                        .ToList();
+                    _logger.LogInformation(
+                        "preferredCollectionId={id} not yet visible in myCollections " +
+                        "(found same-named collection(s) with id(s): [{ids}]); will retry",
+                        preferredCollectionId, string.Join(", ", foundIds));
+                    return null;
+                }
+            }
+            else
+            {
+                match = candidates[0];
+            }
+
+            var slug2 = match["slug"]?.GetValue<string>();
+            var id2 = match["id"]?.ToJsonString()?.Trim('"') ?? "";
+            var draftRev = match["draftRevisionNumber"]?.GetValue<int?>() ?? 1;
+            _logger.LogInformation(
+                "Found matching collection: id={id} slug='{slug}' draftRev={draftRev}",
+                id2, slug2, draftRev);
+            return new CollectionUploadResult { CollectionId = id2, Slug = slug2 ?? "", RevisionId = "0", RevisionNumber = draftRev, Success = true };
         }
 
         private static int ParseIntId(JsonNode? idNode)
@@ -1113,108 +1012,132 @@ mutation createOrUpdateRevision($collectionData: CollectionPayload!, $uuid: Stri
             try
             {
                 if (idNode == null) return 0;
-
                 if (idNode is JsonValue jv)
                 {
                     if (jv.TryGetValue<int>(out var i)) return i;
-                    if (jv.TryGetValue<long>(out var l))
-                    {
-                        if (l > int.MaxValue) return 0;
-                        return (int)l;
-                    }
+                    if (jv.TryGetValue<long>(out var l)) return l > int.MaxValue ? 0 : (int)l;
                     if (jv.TryGetValue<string>(out var s))
                     {
-                        if (int.TryParse(s, out var parsedInt)) return parsedInt;
-                        if (long.TryParse(s, out var parsedLong))
-                        {
-                            if (parsedLong > int.MaxValue) return 0;
-                            return (int)parsedLong;
-                        }
+                        if (int.TryParse(s, out var pi)) return pi;
+                        if (long.TryParse(s, out var pl)) return pl > int.MaxValue ? 0 : (int)pl;
                     }
                 }
             }
-            catch { /* ignored */ }
-
+            catch { }
             return 0;
         }
+
+        public async Task<string?> ValidateTokenAsync(CancellationToken token)
+        {
+            if (!_tokenProvider.HaveToken())
+                return "No Nexus Mods token found. Please log in via Settings.";
+
+            var authState = await _tokenProvider.Get();
+            if (authState?.OAuth == null)
+                return "OAuth state is missing. Please log in via Settings.";
+
+            if (authState.OAuth.IsExpired)
+                return "Your Nexus Mods session has expired. Please log in again via Settings.";
+
+            var query = @"query { currentUser { name } }";
+            var graphqlRequest = new { query };
+
+            using var content = new StringContent(
+                JsonSerializer.Serialize(graphqlRequest, _jsonOptions),
+                Encoding.UTF8, "application/json");
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, GraphQLUrl)
+            {
+                Content = content
+            };
+            AddNexusHeaders(request, authState.OAuth.AccessToken);
+
+            try
+            {
+                using var validateCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                using var linked = CancellationTokenSource.CreateLinkedTokenSource(
+                    token, validateCts.Token);
+
+                var response = await _httpClient.SendAsync(request, linked.Token);
+                var body = await response.Content.ReadAsStringAsync(linked.Token);
+
+                if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized
+                                        or System.Net.HttpStatusCode.Forbidden)
+                    return "Your Nexus Mods session is no longer valid. " +
+                           "Please log in again via Settings.";
+
+                if (!response.IsSuccessStatusCode)
+                    return $"Nexus Mods API returned {(int)response.StatusCode} while " +
+                           "validating your session. Please try again.";
+
+                var root = JsonNode.Parse(body) as JsonObject;
+                var errors = root?["errors"] as JsonArray;
+                if (errors is { Count: > 0 })
+                {
+                    var firstCode = (errors[0] as JsonObject)?
+                        ["extensions"]?["code"]?.GetValue<string>();
+                    if (firstCode is "UNAUTHORIZED" or "FORBIDDEN" or "UNAUTHENTICATED")
+                        return "Your Nexus Mods session is no longer valid. " +
+                               "Please log in again via Settings.";
+                }
+
+                var userName = root?["data"]?["currentUser"]?["name"]?.GetValue<string>();
+                if (string.IsNullOrWhiteSpace(userName))
+                    return "Could not confirm Nexus Mods identity. Please log in again via Settings.";
+
+                _logger.LogInformation("Nexus token validated — logged in as: {user}", userName);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Token validation request failed");
+                return $"Could not reach Nexus Mods to validate your session: {ex.Message}";
+            }
+        }
+
+
+        private static void AddNexusHeaders(HttpRequestMessage request, string accessToken)
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            request.Headers.TryAddWithoutValidation("User-Agent", "Wabbajack/0.0.0");
+            request.Headers.TryAddWithoutValidation("Application-Name", "Wabbajack");
+            request.Headers.TryAddWithoutValidation("Application-Version", "0.0.0");
+            request.Headers.TryAddWithoutValidation("Protocol-Version", "1.5.0");
+        }
+
+        private static HttpClient CreateUploadClient()
+        {
+            var handler = new SocketsHttpHandler
+            {
+                KeepAlivePingDelay = TimeSpan.FromSeconds(30),
+                KeepAlivePingTimeout = TimeSpan.FromSeconds(15),
+                KeepAlivePingPolicy = HttpKeepAlivePingPolicy.WithActiveRequests,
+                PooledConnectionIdleTimeout = Timeout.InfiniteTimeSpan,
+                PooledConnectionLifetime = Timeout.InfiniteTimeSpan,
+                InitialHttp2StreamWindowSize = 512 * 1024,
+            };
+            handler.Expect100ContinueTimeout = TimeSpan.Zero;
+            return new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
+        }
     }
-    public class PreSignedUrlResult
+
+
+    public class MultipartUploadSession
     {
-        [JsonPropertyName("url")]
-        public string Url { get; set; } = "";
+        [JsonPropertyName("uuid")] public string Uuid { get; set; } = "";
+        [JsonPropertyName("id")] public string Id { get; set; } = "";
+        [JsonPropertyName("parts_size")] public long PartsSize { get; set; }
+        [JsonPropertyName("parts_presigned_url")] public List<string> PartsPresignedUrl { get; set; } = new();
+        [JsonPropertyName("complete_presigned_url")] public string CompletePresignedUrl { get; set; } = "";
 
-        [JsonPropertyName("uuid")]
-        public string Uuid { get; set; } = "";
-    }
-
-    public class PreSignedUrlResponse
-    {
-        [JsonPropertyName("collectionRevisionUploadUrl")]
-        public PreSignedUrlResult CollectionRevisionUploadUrl { get; set; } = new();
-    }
-
-    public class GraphQLResponse<T>
-    {
-        [JsonPropertyName("data")]
-        public T? Data { get; set; }
-
-        [JsonPropertyName("errors")]
-        public object[]? Errors { get; set; }
-    }
-
-    public class GraphQLMutationResponse
-    {
-        [JsonPropertyName("data")]
-        public MutationData? Data { get; set; }
-
-        [JsonPropertyName("errors")]
-        public object[]? Errors { get; set; }
-    }
-
-    public class MutationData
-    {
-        [JsonPropertyName("createCollection")]
-        public CreateCollectionResult? CreateCollection { get; set; }
-
-        [JsonPropertyName("createOrUpdateRevision")]
-        public CreateCollectionResult? CreateOrUpdateRevision { get; set; }
-    }
-
-    public class CreateCollectionResult
-    {
-        [JsonPropertyName("collection")]
-        public CollectionInfo Collection { get; set; } = new();
-
-        [JsonPropertyName("revision")]
-        public RevisionInfo Revision { get; set; } = new();
-
-        [JsonPropertyName("success")]
-        public bool Success { get; set; }
-    }
-
-    public class CollectionInfo
-    {
-        [JsonPropertyName("id")]
-        public int Id { get; set; }
-
-        [JsonPropertyName("slug")]
-        public string Slug { get; set; } = "";
-    }
-
-    public class RevisionInfo
-    {
-        [JsonPropertyName("id")]
-        public int Id { get; set; }
-
-        [JsonPropertyName("revisionNumber")]
-        public int RevisionNumber { get; set; }
+        public string SessionUuid => string.IsNullOrWhiteSpace(Uuid) ? Id : Uuid;
     }
 
     public class CollectionUploadResult
     {
-        public int CollectionId { get; set; }
+        public string CollectionId { get; set; } = "";
         public string Slug { get; set; } = "";
-        public int RevisionId { get; set; }
+        public string RevisionId { get; set; } = "";
         public int RevisionNumber { get; set; }
         public bool Success { get; set; }
     }
@@ -1246,41 +1169,35 @@ mutation createOrUpdateRevision($collectionData: CollectionPayload!, $uuid: Stri
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var bytesRead = _baseStream.Read(buffer, offset, count);
-            _bytesRead += bytesRead;
-
+            var n = _baseStream.Read(buffer, offset, count);
+            _bytesRead += n;
             if ((DateTime.Now - _lastReport).TotalMilliseconds > 100)
-            {
-                _progressCallback(_bytesRead, _totalLength);
-                _lastReport = DateTime.Now;
-            }
-
-            return bytesRead;
+            { _progressCallback(_bytesRead, _totalLength); _lastReport = DateTime.Now; }
+            return n;
         }
 
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        public override async Task<int> ReadAsync(
+            byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            var bytesRead = await _baseStream.ReadAsync(buffer, offset, count, cancellationToken);
-            _bytesRead += bytesRead;
-
+            var n = await _baseStream.ReadAsync(buffer, offset, count, cancellationToken);
+            _bytesRead += n;
             if ((DateTime.Now - _lastReport).TotalMilliseconds > 100)
-            {
-                _progressCallback(_bytesRead, _totalLength);
-                _lastReport = DateTime.Now;
-            }
-
-            return bytesRead;
+            { _progressCallback(_bytesRead, _totalLength); _lastReport = DateTime.Now; }
+            return n;
         }
 
-        public override void Flush() => _baseStream.Flush();
-        public override long Seek(long offset, SeekOrigin origin) => _baseStream.Seek(offset, origin);
-        public override void SetLength(long value) => _baseStream.SetLength(value);
-        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override void Flush()
+            => _baseStream.Flush();
+        public override long Seek(long offset, SeekOrigin origin)
+            => _baseStream.Seek(offset, origin);
+        public override void SetLength(long value)
+            => _baseStream.SetLength(value);
+        public override void Write(byte[] buffer, int offset, int count)
+            => throw new NotSupportedException();
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-                _progressCallback(_bytesRead, _totalLength);
+            if (disposing) _progressCallback(_bytesRead, _totalLength);
             base.Dispose(disposing);
         }
     }

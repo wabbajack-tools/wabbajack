@@ -207,6 +207,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
             this.WhenAnyValue(x => x.CompilerFileManagerVM.Settings.AlwaysEnabled)
                 .BindTo(this, x => x.Settings.AlwaysEnabled)
                 .DisposeWith(disposables);
+
             this.WhenAnyValue(x => x.State)
                 .Where(s => s == CompilerState.Completed)
                 .Subscribe(async _ =>
@@ -219,7 +220,6 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                     PublishCollectionLastResult = PublishCollectionResult.None;
                 })
                 .DisposeWith(disposables);
-
         });
     }
 
@@ -235,9 +235,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
         {
             BusyStatusText = "Publishing modlist...";
             IsPublishing = true;
-
             PublishingPercentage = Percent.Zero;
-
 
             var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
                 await Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
@@ -282,7 +280,6 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                     ProgressText = "Compiling...";
                     State = CompilerState.Compiling;
                     CurrentStep = Step.Busy;
-                    ProgressText = "Compiling...";
                     ProgressState = ProgressState.Normal;
                     return Disposable.Empty;
                 });
@@ -333,7 +330,6 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                     CollectionPublishingPercentage = Percent.One;
                     CollectionPublishingStage = "";
                     PublishCollectionLastResult = PublishCollectionResult.None;
-
                     return Disposable.Empty;
                 });
             }
@@ -354,14 +350,12 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                         CollectionPublishingPercentage = Percent.One;
                         CollectionPublishingStage = "";
                         PublishCollectionLastResult = PublishCollectionResult.None;
-
                         return Disposable.Empty;
                     }
                     else
                     {
                         this.ProgressText = "Compilation Failed";
                         ProgressPercent = Percent.Zero;
-
                         State = CompilerState.Errored;
                         _logger.LogError(ex, "Failed compilation: {Message}", ex.Message);
 
@@ -369,7 +363,6 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                         CollectionPublishingPercentage = Percent.One;
                         CollectionPublishingStage = "";
                         PublishCollectionLastResult = PublishCollectionResult.None;
-
                         return Disposable.Empty;
                     }
                 });
@@ -381,7 +374,6 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
 
     private async Task RunPreflightChecksAsync()
     {
-        
         try
         {
             _logger.LogInformation("Running preflight checks...");
@@ -465,10 +457,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                 modList.Archives?.Count() ?? 0);
 
             var vortexJson = WabbajackToVortexCollection.Serialize(modList, gameVersion);
-
-            _logger.LogInformation("Vortex collection built successfully");
             var collectionJsonPath = Settings.OutputFile.WithExtension(new Extension(".collection.json"));
-
             await collectionJsonPath.WriteAllTextAsync(vortexJson);
 
             var uploader = new NexusCollectionUploader(
@@ -491,25 +480,30 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                             break;
                         case "upload":
                             // Map upload progress from 0.15 to 0.85 (70% of total)
-                            var uploadPercent = 0.15 + (progress * 0.70);
+                            var uploadPercent = 0.15 + (progress * 0.55);
                             CollectionPublishingStage = $"Uploading file ({progress:P0})...";
                             CollectionPublishingPercentage = new Percent(uploadPercent);
                             BusyStatusText = $"Uploading to Nexus Mods ({progress:P0})...";
                             break;
+                        case "finalising_upload":
+                            CollectionPublishingStage = "Finalising upload...";
+                            CollectionPublishingPercentage = new Percent(0.72);
+                            BusyStatusText = "Finalising upload...";
+                            break;
                         case "building_manifest":
                             CollectionPublishingStage = "Building manifest...";
-                            CollectionPublishingPercentage = new Percent(0.86);
+                            CollectionPublishingPercentage = new Percent(0.76);
                             BusyStatusText = "Building collection manifest...";
+                            break;
+                        case "validating_mods":
+                            CollectionPublishingStage = "Validating mod references...";
+                            CollectionPublishingPercentage = new Percent(0.80);
+                            BusyStatusText = "Checking mod availability on Nexus Mods...";
                             break;
                         case "sending_manifest":
                             CollectionPublishingStage = "Sending to Nexus Mods...";
                             CollectionPublishingPercentage = new Percent(0.90);
                             BusyStatusText = "Sending manifest to Nexus Mods (this may take several minutes)...";
-                            break;
-                        case "finalizing":
-                            CollectionPublishingStage = "Finalizing...";
-                            CollectionPublishingPercentage = new Percent(0.95);
-                            BusyStatusText = "Finalizing collection...";
                             break;
                         case "complete":
                             CollectionPublishingStage = "Complete!";
@@ -520,16 +514,15 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
             };
 
             var listDomain = WabbajackToVortexCollection.GetDomain(modList.GameType.ToString());
-
             // Load stored mapping from the author's modlists.json
-            int? existingCollectionId = null;
+            string? existingCollectionId = null;
             string? existingSlug = null;
             string? existingDomain = null;
 
             try
             {
                 var mapping = await _wjClient.GetNexusCollectionMapping(Settings.MachineUrl, CancellationToken.None);
-                if (mapping != null && mapping.CollectionId > 0)
+                if (mapping != null && !string.IsNullOrWhiteSpace(mapping.CollectionId))
                 {
                     existingCollectionId = mapping.CollectionId;
                     existingSlug = mapping.Slug;
@@ -541,22 +534,21 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                 _logger.LogWarning(ex, "Failed to read Nexus collection mapping from modlists.json; will create a new collection instead.");
             }
 
-            if (existingCollectionId.HasValue &&
+            if (!string.IsNullOrWhiteSpace(existingCollectionId) &&
                 !string.IsNullOrWhiteSpace(existingDomain) &&
                 !existingDomain.Equals(listDomain, StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogWarning(
                     "Stored Nexus mapping domain '{stored}' does not match current list domain '{current}'. Ignoring stored collectionId={id}.",
-                    existingDomain, listDomain, existingCollectionId.Value);
-
+                    existingDomain, listDomain, existingCollectionId);
                 existingCollectionId = null;
                 existingSlug = null;
                 existingDomain = null;
             }
 
-            if (existingCollectionId.HasValue)
+            if (!string.IsNullOrWhiteSpace(existingCollectionId))
                 _logger.LogInformation("Using stored Nexus collection mapping: collectionId={id} slug={slug} domain={domain}",
-                    existingCollectionId.Value, existingSlug, existingDomain);
+                    existingCollectionId, existingSlug, existingDomain);
             else
                 _logger.LogInformation("No stored Nexus collection mapping found; creating new collection.");
 
@@ -566,7 +558,8 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                 Settings.OutputFile,
                 existingCollectionId: existingCollectionId,
                 gameVersion: gameVersion,
-                CancellationToken.None);
+                confirmFallbackToCreate: null,
+                token: CancellationToken.None);
 
             if (result != null && result.Success)
             {
@@ -580,7 +573,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                         result.CollectionId,
                         result.Slug,
                         listDomain,
-                        result.RevisionNumber,
+                        result.RevisionNumber > 0 ? result.RevisionNumber : null,
                         CancellationToken.None);
 
                     _logger.LogInformation("Persisted Nexus mapping to modlists.json: collectionId={id} slug={slug} domain={domain} rev={rev}",
@@ -591,14 +584,17 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                     _logger.LogWarning(ex, "Collection created/updated, but failed to persist Nexus mapping into modlists.json");
                 }
 
-                try
+                if (!string.IsNullOrWhiteSpace(result.Slug) && result.RevisionNumber > 0)
                 {
-                    var url = $"https://www.nexusmods.com/games/{listDomain}/collections/{result.Slug}/revisions/{result.RevisionNumber}";
-                    Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
-                }
-                catch (Exception openEx)
-                {
-                    _logger.LogWarning(openEx, "Failed to open browser for uploaded collection");
+                    try
+                    {
+                        var url = $"https://www.nexusmods.com/games/{listDomain}/collections/{result.Slug}/revisions/{result.RevisionNumber}";
+                        Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+                    }
+                    catch (Exception openEx)
+                    {
+                        _logger.LogWarning(openEx, "Failed to open browser for uploaded collection");
+                    }
                 }
             }
             else
@@ -628,9 +624,14 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
             ExistingCollectionRevisionNumber = null;
             ExistingCollectionSlug = null;
 
+            _logger.LogInformation("CheckExistingCollectionStatus: MachineUrl='{url}'", Settings.MachineUrl);
             // Get mapping from modlists.json
             var mapping = await _wjClient.GetNexusCollectionMapping(Settings.MachineUrl, CancellationToken.None);
-            if (mapping == null || mapping.CollectionId <= 0 || string.IsNullOrWhiteSpace(mapping.Slug))
+
+            _logger.LogInformation("CheckExistingCollectionStatus: mapping={m}",
+                mapping == null ? "null" : $"id={mapping.CollectionId} slug={mapping.Slug} domain={mapping.DomainName}");
+
+            if (mapping == null || string.IsNullOrWhiteSpace(mapping.CollectionId) || string.IsNullOrWhiteSpace(mapping.Slug))
             {
                 _logger.LogInformation("No existing Nexus collection mapping found");
                 return;
@@ -646,6 +647,13 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                 mapping.Slug,
                 mapping.DomainName ?? listDomain,
                 CancellationToken.None);
+
+            if (!latestRevision.HasValue && mapping.LastRevisionNumber.HasValue)
+            {
+                latestRevision = mapping.LastRevisionNumber;
+                _logger.LogInformation("Using stored revision number {rev} for slug={slug} (collection may be draft-only)",
+                    latestRevision.Value, mapping.Slug);
+            }
 
             if (latestRevision.HasValue)
             {
@@ -682,17 +690,8 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
               }
             }";
 
-        var variables = new
-        {
-            slug,
-            domainName
-        };
-
-        var graphqlRequest = new
-        {
-            query,
-            variables
-        };
+        var variables = new { slug, domainName };
+        var graphqlRequest = new { query, variables };
 
         using var content = new StringContent(
             System.Text.Json.JsonSerializer.Serialize(graphqlRequest, new System.Text.Json.JsonSerializerOptions
@@ -725,9 +724,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
             }
 
             var root = System.Text.Json.Nodes.JsonNode.Parse(responseBody) as System.Text.Json.Nodes.JsonObject;
-            var revisionNumber = root?["data"]?["collectionRevision"]?["revisionNumber"]?.GetValue<int>();
-
-            return revisionNumber;
+            return root?["data"]?["collectionRevision"]?["revisionNumber"]?.GetValue<int>();
         }
         catch (Exception ex)
         {
@@ -746,7 +743,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                 continue;
 
             var manager = _logins.FirstOrDefault(l => l.LoginFor() == downloader.GetType());
-            if(manager == null)
+            if (manager == null)
             {
                 _logger.LogError("Cannot install, could not prepare {Name} for downloading", downloader.GetType().Name);
                 throw new Exception($"No way to prepare {downloader}");
@@ -776,7 +773,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
         {
             await CancellationTokenSource.CancelAsync();
         }
-        catch(ObjectDisposedException ex)
+        catch (ObjectDisposedException ex)
         {
             _logger.LogError("Could not cancel compilation, cancellation token was disposed! Exception: {ex}", ex.ToString());
         }
@@ -784,7 +781,6 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
 
     private async Task<bool> RunPreflightChecks(CancellationToken token)
     {
-
         IReadOnlyList<string> lists;
         try
         {
