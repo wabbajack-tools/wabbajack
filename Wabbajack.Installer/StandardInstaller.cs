@@ -112,7 +112,8 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         _configuration.Install.CreateDirectory();
         _configuration.Downloads.CreateDirectory();
 
-        await OptimizeModlist(token);
+        var optimizeResult = await OptimizeModlist(token);
+        if (!optimizeResult) return InstallResult.Cancelled;
         if (token.IsCancellationRequested) return InstallResult.Cancelled;
 
         await HashArchives(token);

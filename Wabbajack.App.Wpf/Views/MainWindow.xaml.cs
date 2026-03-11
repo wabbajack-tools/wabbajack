@@ -169,6 +169,11 @@ public partial class MainWindow : MetroWindow
                 .Select(x => x == null ? Visibility.Hidden : Visibility.Visible)
                 .BindTo(this, view => view.FloatingWindow.Visibility);
 
+            // Hide main content when floating pane is active to prevent WebView2 airspace overlap
+            vm.WhenAnyValue(vm => vm.ActiveFloatingPane)
+                .Select(x => x == null ? Visibility.Visible : Visibility.Collapsed)
+                .BindTo(this, view => view.MainContent.Visibility);
+
             this.Events().KeyDown
                 .Subscribe(x => HandleKeyDown(this, x));
 

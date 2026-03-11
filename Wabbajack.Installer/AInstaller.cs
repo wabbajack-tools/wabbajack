@@ -65,6 +65,7 @@ public abstract class AInstaller<T>
     private readonly Stopwatch _updateStopWatch = new();
 
     public Action<StatusUpdate>? OnStatusUpdate;
+    public Func<string, string, Task<bool>>? OnConfirmAction;
     protected readonly IResource<IInstaller> _limiter;
     private Func<long, string> _statusFormatter = x => x.ToString();
 
@@ -513,14 +514,15 @@ public abstract class AInstaller<T>
 
     /// <summary>
     ///     The user may already have some files in the _configuration.Install. If so we can go through these and
-    ///     figure out which need to be updated, deleted, or left alone
+    ///     figure out which need to be updated, deleted, or left alone.
+    ///     Returns false if the user cancelled the operation (e.g. declined file deletion confirmation).
     /// </summary>
-    protected async Task OptimizeModlist(CancellationToken token)
+    protected async Task<bool> OptimizeModlist(CancellationToken token)
     {
         _logger.LogInformation("Optimizing ModList directives");
         UnoptimizedArchives = ModList.Archives;
         UnoptimizedDirectives = ModList.Directives;
-        
+
         var indexed = ModList.Directives.ToDictionary(d => d.To);
 
         var bsasToBuild = await ModList.Directives
@@ -557,26 +559,64 @@ public abstract class AInstaller<T>
         var profileFolder = _configuration.Install.Combine("profiles");
         var savePath = (RelativePath) "saves";
 
+        // Phase 1: Enumerate files that would be deleted (non-destructive)
         NextStep(Consts.StepPreparing, "Looking for files to delete", 0);
+        var filesToDelete = new List<AbsolutePath>();
         await _configuration.Install.EnumerateFiles()
-            .PMapAllBatched(_limiter,  f =>
+            .PMapAllBatched(_limiter, f =>
             {
                 var relativeTo = f.RelativeTo(_configuration.Install);
                 if (indexed.ContainsKey(relativeTo) || f.InFolder(_configuration.Downloads))
-                    return f;
+                    return (AbsolutePath?)null;
 
-                if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return f;
+                if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return null;
                 var fNoSpaces = new string(f.ToString().Where(c => !Char.IsWhiteSpace(c)).ToArray());
                 if (NoDeleteRegex.IsMatch(fNoSpaces))
-                    return f;
+                    return null;
 
                 if (bsaPathsToNotBuild.Contains(f))
-                    return f;
+                    return null;
 
-                //_logger.LogInformation("Deleting {RelativePath} it's not part of this ModList", relativeTo);
+                return (AbsolutePath?)f;
+            })
+            .Do(f =>
+            {
+                if (f.HasValue)
+                    filesToDelete.Add(f.Value);
+            });
+
+        // Phase 2: Confirm with user before deleting (if files would be deleted)
+        if (filesToDelete.Count > 0)
+        {
+            _logger.LogInformation("{Count} file(s) in the installation directory are not part of the modlist and will be deleted", filesToDelete.Count);
+
+            if (OnConfirmAction != null)
+            {
+                var title = "Confirm file deletion";
+                var message = $"{filesToDelete.Count} file(s) that are not part of the \"{_configuration.ModList.Name}\" modlist " +
+                    $"will be deleted from:\n\n{_configuration.Install}\n\n" +
+                    $"Save files and [NoDelete] folders will be preserved.\n\n" +
+                    $"Do you want to continue?";
+
+                var confirmed = await OnConfirmAction(title, message);
+                if (!confirmed)
+                {
+                    _logger.LogInformation("User cancelled installation during file cleanup confirmation");
+                    return false;
+                }
+            }
+        }
+
+        // Phase 3: Actually delete the files
+        if (filesToDelete.Count > 0)
+        {
+            NextStep(Consts.StepPreparing, "Deleting outdated files", filesToDelete.Count);
+            foreach (var f in filesToDelete)
+            {
                 f.Delete();
-                return f;
-            }).Sink();
+                UpdateProgress(1);
+            }
+        }
 
         NextStep(Consts.StepPreparing, "Cleaning empty folders", 0);
         var expectedFolders = indexed.Keys
@@ -642,6 +682,7 @@ public abstract class AInstaller<T>
         
         ModList.Archives = ModList.Archives.Where(a => requiredArchives.Contains(a.Hash)).ToArray();
         ModList.Directives = indexed.Values.ToArray();
+        return true;
     }
 
 
