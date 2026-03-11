@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -5,9 +6,9 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Compiler.CompilationSteps;
 using Wabbajack.Downloaders;
@@ -16,16 +17,19 @@ using Wabbajack.DTOs;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.DTOs.Logins;
 using Wabbajack.FileExtractor.ExtractedFiles;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer;
+using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
-using Wabbajack.VFS;
 using Wabbajack.Reporting;
+using Wabbajack.VFS;
+
 
 namespace Wabbajack.Compiler;
 
@@ -47,6 +51,8 @@ public abstract class ACompiler
     public readonly IResource<ACompiler> CompilerLimiter;
     private int _currentStep;
     private long _currentStepProgress;
+    private readonly ITokenProvider<NexusOAuthState> _nexusTokenProvider;
+    private readonly HttpClient _httpClient;
 
     private long _maxStepProgress;
     public ConcurrentDictionary<PatchedFromArchive, VirtualFile[]> _patchOptions;
@@ -67,7 +73,9 @@ public abstract class ACompiler
         ParallelOptions parallelOptions, DownloadDispatcher dispatcher, Client wjClient, IGameLocator locator,
         DTOSerializer dtos, IResource<ACompiler> compilerLimiter,
         IBinaryPatchCache patchCache,
-        IImageLoader imageLoader)
+        IImageLoader imageLoader,
+        ITokenProvider<NexusOAuthState> nexusTokenProvider,
+        HttpClient httpClient)
     {
         CompilerLimiter = compilerLimiter;
         _logger = logger;
@@ -88,6 +96,8 @@ public abstract class ACompiler
         _patchCache = patchCache;
         ImageLoader = imageLoader;
         _updateStopWatch = new Stopwatch();
+        _nexusTokenProvider = nexusTokenProvider;
+        _httpClient = httpClient;
     }
 
     public IImageLoader ImageLoader { get; }
@@ -144,7 +154,7 @@ public abstract class ACompiler
             OnStatusUpdate(this, new StatusUpdate(_statusCategory, _statusText, Percent.FactoryPutInRange(_currentStep, MaxSteps),
                 Percent.FactoryPutInRange(_currentStepProgress, _maxStepProgress), _currentStep));
     }
-    
+
     public void UpdateProgressAbsolute(long cur, long max)
     {
         _currentStepProgress = cur;
@@ -424,7 +434,7 @@ public abstract class ACompiler
             // Copy in modimage
             if (_settings.ModListImage.FileExists())
             {
-                var ze = za.CreateEntry((string) ModList.Image);
+                var ze = za.CreateEntry((string)ModList.Image);
                 await using var os = ze.Open();
                 await using var ins = _settings.ModListImage.Open(FileMode.Open);
                 await ins.CopyToAsync(os, token);
@@ -471,6 +481,7 @@ public abstract class ACompiler
 
         _logger.LogInformation("Removing ModList staging folder");
         _stagingFolder.DeleteDirectory();
+
     }
 
     /// <summary>
@@ -484,8 +495,8 @@ public abstract class ACompiler
         {
             return tempPath.Path.Combine(file.ToHex());
         }
-        
-        NextStep("Compiling","Looking for patches");   
+
+        NextStep("Compiling","Looking for patches");
         var toBuild = InstallDirectives.OfType<PatchedFromArchive>()
             .Where(p => _patchOptions.GetValueOrDefault(p, Array.Empty<VirtualFile>()).Length > 0)
             .SelectMany(p => _patchOptions[p].Select(c => new PatchedFromArchive
@@ -515,7 +526,7 @@ public abstract class ACompiler
                 .SelectMany(x => x)
                 .DistinctBy(f => f.Hash)
                 .ToHashSet();
-            
+
             _logger.LogInformation("Extracting {Count} ({Size}) files for building patches", allFiles.Count,
                 allFiles.Sum(f => f.Size).ToFileSizeString());
 
