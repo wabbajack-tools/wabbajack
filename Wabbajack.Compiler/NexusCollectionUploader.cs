@@ -553,6 +553,7 @@ namespace Wabbajack.Compiler
             string responseBody, ref List<ManifestMod> manifestMods)
         {
             var badModIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var badFileIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             try
             {
@@ -569,7 +570,7 @@ namespace Wabbajack.Compiler
 
                         if (msg.StartsWith("Mod ", StringComparison.OrdinalIgnoreCase))
                         {
-                            var afterMod = msg[4..]; // strip "Mod "
+                            var afterMod = msg[4..];
                             var commaIdx = afterMod.IndexOf(',');
                             var modIdStr = commaIdx > 0
                                 ? afterMod[..commaIdx].Trim()
@@ -581,37 +582,56 @@ namespace Wabbajack.Compiler
                                 _logger.LogWarning("Nexus flagged invalid mod_id={id}: {msg}", modIdStr, msg);
                             }
                         }
+                        else if (msg.StartsWith("File ", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var afterFile = msg[5..];
+                            var commaIdx = afterFile.IndexOf(',');
+                            var fileIdStr = commaIdx > 0
+                                ? afterFile[..commaIdx].Trim()
+                                : afterFile.Trim();
+
+                            if (!string.IsNullOrWhiteSpace(fileIdStr))
+                            {
+                                badFileIds.Add(fileIdStr);
+                                _logger.LogWarning("Nexus flagged invalid file_id={id}: {msg}", fileIdStr, msg);
+                            }
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Could not parse 422 details for invalid mod stripping");
+                _logger.LogWarning(ex, "Could not parse 422 error body for invalid mod stripping");
             }
 
-            if (badModIds.Count == 0)
+            if (badModIds.Count == 0 && badFileIds.Count == 0)
             {
                 _logger.LogWarning(
-                    "Received 422 but could not extract any mod ids from response body: {body}",
+                    "Received 422 but could not extract any mod/file ids from response body: {body}",
                     responseBody);
                 return false;
             }
 
             var before = manifestMods.Count;
             manifestMods = manifestMods
-                .Where(m => !badModIds.Contains(m.source.mod_id))
+                .Where(m => !badModIds.Contains(m.source.mod_id) &&
+                            !badFileIds.Contains(m.source.file_id))
                 .ToList();
 
             var removed = before - manifestMods.Count;
             if (removed > 0)
                 _logger.LogWarning(
-                    "Removed {count} invalid mod(s) from manifest (mod_ids: [{ids}]); will retry",
-                    removed, string.Join(", ", badModIds));
+                    "Removed {count} invalid mod(s) from manifest " +
+                    "(mod_ids: [{mids}], file_ids: [{fids}]); will retry",
+                    removed,
+                    string.Join(", ", badModIds),
+                    string.Join(", ", badFileIds));
             else
                 _logger.LogWarning(
-                    "Nexus reported invalid mod_ids [{ids}] but none matched manifest entries — " +
-                    "mod_ids in manifest may differ from those in the error. Cannot strip.",
-                    string.Join(", ", badModIds));
+                    "Nexus reported invalid refs (mod_ids: [{mids}], file_ids: [{fids}]) " +
+                    "but none matched manifest entries. Cannot strip.",
+                    string.Join(", ", badModIds),
+                    string.Join(", ", badFileIds));
 
             return removed > 0;
         }
