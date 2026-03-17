@@ -16,4 +16,6 @@ public class LinksObject
     
     [JsonPropertyName("discordURL")] public string DiscordURL { get; set; } = string.Empty;
     [JsonPropertyName("websiteURL")] public string WebsiteURL { get; set; } = string.Empty;
+    [JsonPropertyName("nexusCollection")]
+    public NexusCollectionLink? NexusCollection { get; set; }
 }

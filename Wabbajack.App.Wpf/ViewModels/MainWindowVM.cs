@@ -95,6 +95,10 @@ public class MainWindowVM : ViewModel
     [Reactive]
     public bool NavigationVisible { get; private set; } = true;
 
+    private System.IO.Pipes.NamedPipeServerStream? _protocolPipeServer;
+    private CancellationTokenSource? _protocolPipeCts;
+
+
     public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
         IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
         InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM, FileUploadVM fileUploadVM, MegaLoginVM megaLoginVM, SystemParametersConstructor systemParams, HttpClient httpClient)
@@ -120,6 +124,8 @@ public class MainWindowVM : ViewModel
         FileUploadVM = fileUploadVM;
         MegaLoginVM = megaLoginVM;
         UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetRequiredService<ILogger<UserInterventionHandlers>>(), this);
+
+        StartProtocolPipeServer();
 
         this.WhenAnyValue(x => x.ActiveFloatingPane)
             .Buffer(2, 1)
@@ -244,18 +250,6 @@ public class MainWindowVM : ViewModel
             Task.Run(() => _wjClient.SendMetric("started_wabbajack", fvi.FileVersion)).FireAndForget();
             Task.Run(() => _wjClient.SendMetric("started_sha", ThisAssembly.Git.Sha)).FireAndForget();
 
-            try
-            {
-                var applicationRegistrationService = _serviceProvider.GetRequiredService<IApplicationRegistrationService>();
-
-                var applicationInfo = new ApplicationInfo("Wabbajack", "Wabbajack", "Wabbajack", processLocation);
-                applicationInfo.SupportedExtensions.Add("wabbajack");
-                applicationRegistrationService.RegisterApplication(applicationInfo);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "While setting up file associations");
-            }
         }
         catch (Exception ex)
         {
@@ -282,6 +276,85 @@ public class MainWindowVM : ViewModel
     private void GetHelp()
     {
         if (ActivePane is ICanGetHelpVM) ((ICanGetHelpVM)ActivePane).GetHelpCommand.Execute(null);
+    }
+
+    private void StartProtocolPipeServer()
+    {
+        _protocolPipeCts = new CancellationTokenSource();
+
+        Task.Run(async () =>
+        {
+            while (!_protocolPipeCts.Token.IsCancellationRequested)
+            {
+                try
+                {
+                    _protocolPipeServer = new System.IO.Pipes.NamedPipeServerStream(
+                        "WabbajackProtocolPipe",
+                        System.IO.Pipes.PipeDirection.In,
+                        1,
+                        System.IO.Pipes.PipeTransmissionMode.Byte,
+                        System.IO.Pipes.PipeOptions.Asynchronous);
+
+                    await _protocolPipeServer.WaitForConnectionAsync(_protocolPipeCts.Token);
+
+                    using var reader = new System.IO.StreamReader(_protocolPipeServer);
+                    var argsString = await reader.ReadLineAsync();
+
+                    if (!string.IsNullOrWhiteSpace(argsString))
+                    {
+                        var args = argsString.Split('|');
+
+                        RxApp.MainThreadScheduler.Schedule(() =>
+                        {
+                            // Bring window to front
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                var mainWindow = Application.Current.MainWindow;
+                                if (mainWindow.WindowState == WindowState.Minimized)
+                                    mainWindow.WindowState = WindowState.Normal;
+
+                                mainWindow.Activate();
+                                mainWindow.Topmost = true;
+                                mainWindow.Topmost = false;
+                                mainWindow.Focus();
+                            });
+
+                            // Handle the protocol URL
+                            if (args.Length > 0 && args[0].StartsWith("wabbajack://", StringComparison.OrdinalIgnoreCase))
+                            {
+                                NavigateToGlobal.Send(ScreenType.ModListGallery);
+                                var payload = args[0].Substring("wabbajack://".Length);
+                                payload = Uri.UnescapeDataString(payload ?? string.Empty).Trim();
+                                LoadModlistFromProtocol.Send(payload);
+                            }
+                        });
+                    }
+
+                    _protocolPipeServer.Disconnect();
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error in protocol pipe server");
+                    await Task.Delay(100);
+                }
+                finally
+                {
+                    _protocolPipeServer?.Dispose();
+                    _protocolPipeServer = null;
+                }
+            }
+        }, _protocolPipeCts.Token);
+    }
+
+    public override void Dispose()
+    {
+        _protocolPipeCts?.Cancel();
+        _protocolPipeServer?.Dispose();
+        base.Dispose();
     }
 
     private void LoadLocalFile()
@@ -372,6 +445,12 @@ public class MainWindowVM : ViewModel
         var args = Environment.GetCommandLineArgs();
         if (args.Length == 2)
         {
+            if (args[1].StartsWith("wabbajack://", StringComparison.OrdinalIgnoreCase))
+            {
+                modlistPath = default;
+                return false;
+            }
+
             var arg = args[1].ToAbsolutePath();
             if (arg.FileExists() && arg.Extension == Ext.Wabbajack)
             {
