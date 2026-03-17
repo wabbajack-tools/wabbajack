@@ -1,5 +1,17 @@
 ### Changelog
 
+#### Version - 4.1.0.0 - 3/11/2026
+* Automated conversion of Wabbajack lists to NexusMods Collection pages by @januarysnow
+  - After compilation you can convert your wabbajack list to a format that is understood by Nexusmods as a pseudo-collection, and will create a webpage on their collections section for this list, it will be tagged as a Wabbajack list on there.
+  - These will function in most user-facing respects as a collection and is a new place to expose your list to users, but will be downloaded and installed via Wabbajack as usual
+  - Subsequent compiles can push new revisions to this "collection" , the link to this collection will be stored in your modlist.json
+* Allow Wabbajack to install lists by double-clicking .wabbajack files and by opening a url by @januarysnow
+  - A url that has the format of wabbajack://<machineurl> will open the list with that machineurl and start installing it automatically
+  - Wabbajack will need to have been opened once before by the user before it can automatically open itself from urls and file association in future
+  - .wabbajack files can open WJ and start install automatically, by being double-clicked
+  - A url that starts a download of a .wabbajack file
+  - This allows Nexusmods to present the "collections" in the previous feature to be installed directly from the "collection" page directly into the users Wabbajack instance, with a special url that downloads the .wabbajack file itself
+
 #### Version - 4.0.5.1 - 1/08/2026
 * Fixes to the headers sent by WebView2, so that manual downloads via wabbajack appear as wabbajack and not generic web users (playing nicer with various 3rd party sites)
 
