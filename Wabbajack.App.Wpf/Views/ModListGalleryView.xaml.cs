@@ -17,9 +17,25 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
 
         this.WhenActivated(dispose =>
         {
+            this.WhenAnyValue(x => x.ViewModel.IsResolvingProtocol)
+                .Select(isBusy => !isBusy)
+                .BindToStrict(this, x => x.ModListGalleryControl.IsEnabled)
+                .DisposeWith(dispose);
+
+            this.WhenAnyValue(x => x.ViewModel.IsResolvingProtocol)
+                .Select(x => x ? Visible : Collapsed)
+                .BindToStrict(this, x => x.ProtocolOverlay.Visibility)
+                .DisposeWith(dispose);
+
+            this.WhenAnyValue(x => x.ViewModel.ProtocolStatusText)
+                .BindToStrict(this, x => x.ProtocolOverlayText.Text)
+                .DisposeWith(dispose);
+
             this.WhenAny(x => x.ViewModel.ModLists)
                 .BindToStrict(this, x => x.ModListGalleryControl.ItemsSource)
                 .DisposeWith(dispose);
+
+
 
             this.WhenAny(x => x.ViewModel.SmallestSizedModlist)
                 .Where(x => x != null)
