@@ -1,81 +1,35 @@
 using System;
-using System.CommandLine;
-using System.CommandLine.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using CG.Web.MegaApiClient;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Octokit;
-using Wabbajack.CLI;
 using Wabbajack.CLI.Builder;
 using Wabbajack.CLI.Verbs;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs.Interventions;
-using Wabbajack.Networking.Http;
-using Wabbajack.Networking.Http.Interfaces;
-using Wabbajack.Paths.IO;
-using Wabbajack.Server.Lib;
 using Wabbajack.Services.OSIntegrated;
-using Wabbajack.VFS;
 using Xunit;
-using Client = Wabbajack.Networking.GitHub.Client;
 
 namespace Wabbajack.CLI.Test;
 
+[Collection("CLI")]
 public class DIRegistrationTests
 {
-    private IServiceProvider BuildServiceProvider()
+    private readonly IServiceProvider _provider;
+
+    public DIRegistrationTests(CLITestFixture fixture)
     {
-        var host = Host.CreateDefaultBuilder(Array.Empty<string>())
-            .ConfigureServices((host, services) =>
-            {
-                services.AddSingleton(new JsonSerializerOptions());
-                services.AddSingleton<HttpClient, HttpClient>();
-                services.AddResumableHttpDownloader();
-                services.AddSingleton<IConsole, SystemConsole>();
-                services.AddSingleton<CommandLineBuilder, CommandLineBuilder>();
-                services.AddSingleton<TemporaryFileManager>();
-                services.AddSingleton<FileExtractor.FileExtractor>();
-                services.AddSingleton(new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount });
-                services.AddSingleton<Client>();
-                services.AddSingleton<Networking.WabbajackClientApi.Client>();
-                services.AddSingleton(s => new GitHubClient(new ProductHeaderValue("wabbajack")));
-                services.AddSingleton<TemporaryFileManager>();
-                services.AddSingleton<MegaApiClient>();
-                services.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
-
-                services.AddOSIntegrated(o =>
-                {
-                    o.UseLocalCache = true;
-                    o.UseStubbedGameFolders = true;
-                });
-                services.AddServerLib();
-
-                services.AddTransient<Context>();
-
-                services.AddSingleton<CommandLineBuilder>();
-                services.AddCLIVerbs();
-            }).Build();
-
-        return host.Services;
+        _provider = fixture.ServiceProvider;
     }
 
     [Fact]
     public void AllRegisteredVerbsCanBeResolved()
     {
-        var provider = BuildServiceProvider();
-
         var failedVerbs = CommandLineBuilder.Verbs
             .Where(verbType =>
             {
                 try
                 {
-                    provider.GetRequiredService(verbType);
+                    _provider.GetRequiredService(verbType);
                     return false;
                 }
                 catch
@@ -201,8 +155,7 @@ public class DIRegistrationTests
     [Fact]
     public void CommandLineBuilderCanBeResolved()
     {
-        var provider = BuildServiceProvider();
-        var builder = provider.GetRequiredService<CommandLineBuilder>();
+        var builder = _provider.GetRequiredService<CommandLineBuilder>();
         Assert.NotNull(builder);
     }
 
