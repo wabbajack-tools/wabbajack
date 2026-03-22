@@ -18,6 +18,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="Wabbajack.CLI.Test" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Markdig" Version="0.40.0" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.1" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
