@@ -27,10 +27,10 @@ public class Install
     private readonly IServiceProvider _serviceProvider;
     private readonly DTOSerializer _dtos;
     private readonly FileHashCache _cache;
-    private readonly GameLocator _gameLocator;
+    private readonly IGameLocator _gameLocator;
 
     public Install(ILogger<Install> logger, Client wjClient, DownloadDispatcher dispatcher, DTOSerializer dtos, 
-        FileHashCache cache, GameLocator gameLocator, IServiceProvider serviceProvider)
+        FileHashCache cache, IGameLocator gameLocator, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _wjClient = wjClient;
