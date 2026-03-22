@@ -9,13 +9,12 @@
         <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
         <Version>$(VERSION)</Version>
         <AssemblyName>wabbajack-cli</AssemblyName>
-        <PublishTrimmed>true</PublishTrimmed>
+        <PublishTrimmed>false</PublishTrimmed>
         <TimeMode>linked</TimeMode>
         <NoWarn>CS8600</NoWarn>
         <NoWarn>CS8601</NoWarn>
         <NoWarn>CS8618</NoWarn>
         <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
-        <TargetFramework>net9.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
