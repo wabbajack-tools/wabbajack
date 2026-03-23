@@ -26,21 +26,21 @@ public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>, IProxya
         _downloader = downloader;
     }
 
-    public override Task<Hash> Download(Archive archive, DTOs.DownloadStates.Manual state, AbsolutePath destination, IJob job, CancellationToken token)
+    public override async Task<Hash> Download(Archive archive, DTOs.DownloadStates.Manual state, AbsolutePath destination, IJob job, CancellationToken token)
     {
         _logger.LogInformation("Starting manual download of {Url}", state.Url);
 
-        if (ShouldUseBlobDownload(state.Url))
+        if (ShouldUseBrowserDownload(state.Url))
         {
-            return DoManualBlobDownload(archive, destination, token);
+            return await DoManualBrowserDownload(archive, destination, token);
         }
         else
         {
-            return DoManualDownload(archive, destination, job, token);
+            return await DoManualDownload(archive, destination, job, token);
         }
     }
 
-    private bool ShouldUseBlobDownload(Uri url)
+    private bool ShouldUseBrowserDownload(Uri url)
     {
         return url.Host.EndsWith("loverslab.com");
     }
@@ -55,9 +55,9 @@ public class ManualDownloader : ADownloader<DTOs.DownloadStates.Manual>, IProxya
         return await _downloader.Download(msg, destination, job, token);
     }
 
-    private async Task<Hash> DoManualBlobDownload(Archive archive, AbsolutePath destination, CancellationToken token)
+    private async Task<Hash> DoManualBrowserDownload(Archive archive, AbsolutePath destination, CancellationToken token)
     {
-        var intervention = new ManualBlobDownload(archive, destination);
+        var intervention = new ManualBrowserDownload(archive, destination);
         _interventionHandler.Raise(intervention);
         await intervention.Task;
 

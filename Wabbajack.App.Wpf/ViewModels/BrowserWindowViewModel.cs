@@ -1,3 +1,10 @@
+using HtmlAgilityPack;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Web.WebView2.Core;
+using Microsoft.Web.WebView2.Wpf;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,19 +12,13 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using HtmlAgilityPack;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.Wpf;
-using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using Wabbajack.DTOs;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Messages;
 using Wabbajack.Paths;
-using Microsoft.Extensions.Logging;
-using Wabbajack.DTOs;
+using Wabbajack.RateLimiter;
 
 namespace Wabbajack;
 
@@ -44,13 +45,14 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
         _logger = serviceProvider.GetRequiredService<ILogger<BrowserWindowViewModel>>();
         BackCommand = ReactiveCommand.Create(() => Browser.GoBack());
         CloseCommand = ReactiveCommand.Create(() => _tokenSource.Cancel());
-        OpenWebViewHelpCommand = ReactiveCommand.Create(() => {
+        OpenWebViewHelpCommand = ReactiveCommand.Create(() =>
+        {
             var uri = Consts.WabbajackWebViewWikiUri;
             UIUtils.OpenWebsite(uri);
         });
 
     }
-    
+
     void AddHeaders(object sender, CoreWebView2WebResourceRequestedEventArgs args)
     {
         args.Request.Headers.SetHeader("Application-Name", _appInfo.ApplicationSlug);
@@ -62,7 +64,7 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
     {
         Browser = _serviceProvider.GetRequiredService<WebView2>();
         Browser.CoreWebView2InitializationCompleted += OnBrowserOnCoreWebView2InitializationCompleted;
-        
+
         try
         {
             _tokenSource = new CancellationTokenSource();
@@ -77,13 +79,13 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
             Close();
         }
     }
-    
+
     void OnBrowserOnCoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs args)
     {
         Browser.CoreWebView2InitializationCompleted -= OnBrowserOnCoreWebView2InitializationCompleted;
         if (args.IsSuccess)
         {
-            Browser.CoreWebView2.AddWebResourceRequestedFilter(uri:"*", CoreWebView2WebResourceContext.All);
+            Browser.CoreWebView2.AddWebResourceRequestedFilter(uri: "*", CoreWebView2WebResourceContext.All);
             Browser.CoreWebView2.WebResourceRequested += AddHeaders;
         }
     }
@@ -92,9 +94,9 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
     {
         _tokenSource.Dispose();
         ShowFloatingWindow.Send(FloatingScreenType.None);
-        if(Closed != null)
+        if (Closed != null)
         {
-            foreach(var delegateMethod in Closed.GetInvocationList())
+            foreach (var delegateMethod in Closed.GetInvocationList())
             {
                 delegateMethod.DynamicInvoke(this, null);
                 Closed -= delegateMethod as EventHandler;
@@ -110,11 +112,11 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
 
     protected abstract Task Run(CancellationToken token);
 
-    protected async Task WaitForReady()
+    protected async Task WaitForReady(CancellationToken token = default)
     {
         while (Browser.CoreWebView2 == null)
         {
-            await Task.Delay(250);
+            await Task.Delay(10, token);
         }
     }
 
@@ -131,7 +133,7 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
             }
             else
             {
-                if (a.WebErrorStatus is CoreWebView2WebErrorStatus.ConnectionAborted or CoreWebView2WebErrorStatus.Unknown )
+                if (a.WebErrorStatus is CoreWebView2WebErrorStatus.ConnectionAborted or CoreWebView2WebErrorStatus.Unknown)
                 {
                     tcs.TrySetResult();
                 }
@@ -186,88 +188,15 @@ public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
         return doc;
     }
 
-    public async Task<ManualDownload.BrowserDownloadState> WaitForDownloadUri(CancellationToken token, Func<Task>? whileWaiting)
+    public async Task<T> WaitWhileRemovingIframes<T>(Task<T> mainTask, CancellationToken token)
     {
-        var source = new TaskCompletionSource<Uri>();
-        var referer = Browser.Source;
-        while (Browser.CoreWebView2 == null)
-            await Task.Delay(10, token);
-
-        EventHandler<CoreWebView2DownloadStartingEventArgs> handler = null!;
-        
-        handler = (_, args) =>
+        while (!token.IsCancellationRequested && !mainTask.IsCompleted)
         {
-            try
-            {
-                source.SetResult(new Uri(args.DownloadOperation.Uri));
-                Browser.CoreWebView2.DownloadStarting -= handler;
-            }
-            catch (Exception)
-            {
-                source.SetCanceled(token);
-                Browser.CoreWebView2.DownloadStarting -= handler;
-            }
+            await RunJavaScript("Array.from(document.getElementsByTagName(\"iframe\")).forEach(f => {if (f.title != \"SP Consent Message\" && !f.src.includes(\"challenges.cloudflare.com\")) f.remove()})");
 
-            args.Cancel = true;
-            args.Handled = true;
-        };
-
-        Browser.CoreWebView2.DownloadStarting += handler;     
-            
-        Uri uri;
-
-        while (true)
-        {
-            try
-            {
-                uri = await source.Task.WaitAsync(TimeSpan.FromMilliseconds(250), token);
-                break;
-            }
-            catch (TimeoutException)
-            {
-                if (whileWaiting != null)
-                    await whileWaiting();
-            }
+            await Task.WhenAny(mainTask, Task.Delay(250, token));
         }
-
-        var cookies = await GetCookies(uri.Host, token);
-        return new ManualDownload.BrowserDownloadState(
-            uri,
-            cookies,
-            new[]
-            {
-                ("Referer", referer?.ToString() ?? uri.ToString())
-            },
-            Browser.CoreWebView2.Settings.UserAgent);
-    }
-
-    public async Task<Hash> WaitForDownload(AbsolutePath path, CancellationToken token)
-    {
-        var source = new TaskCompletionSource();
-        var referer = Browser.Source;
-        while (Browser.CoreWebView2 == null)
-            await Task.Delay(10, token);
-
-        Browser.CoreWebView2.DownloadStarting += (sender, args) =>
-        {
-            try
-            {
-                args.ResultFilePath = path.ToString();
-                args.Handled = true;
-                args.DownloadOperation.StateChanged += (o, o1) =>
-                {
-                    var operation = (CoreWebView2DownloadOperation) o;
-                    if (operation.State == CoreWebView2DownloadState.Completed)
-                        source.TrySetResult();
-                };
-            }
-            catch (Exception)
-            {
-                source.SetCanceled();
-            } 
-        };
-
-        await source.Task;
-        return default;
+        token.ThrowIfCancellationRequested();
+        return mainTask.Result;
     }
 }

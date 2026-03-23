@@ -396,9 +396,9 @@ public class MainWindowVM : ViewModel
         //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
     }
 
-    private void HandleManualBlobDownload(ManualBlobDownload manualDownload)
+    private void HandleManualBlobDownload(ManualBrowserDownload manualDownload)
     {
-        var handler = _serviceProvider.GetRequiredService<ManualBlobDownloadHandler>();
+        var handler = _serviceProvider.GetRequiredService<ManualBrowserDownloadHandler>();
         handler.Intervention = manualDownload;
         //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
     }
