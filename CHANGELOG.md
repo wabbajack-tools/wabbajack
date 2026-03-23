@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 4.1.0.2 - 3/22/2026
+* Fix CLI GameLocator DI resolution failure (#2486): inject IGameLocator interface instead of concrete GameLocator in all CLI verbs
+* Add comprehensive CLI test suite (42 tests) covering DI registration, verb structure, and verb unit tests
+
 #### Version - 4.1.0.1 - 3/17/2026
 * HOTFIX: Properly handle "invalid file" responses from Nexus Mods when uploading a collection
 

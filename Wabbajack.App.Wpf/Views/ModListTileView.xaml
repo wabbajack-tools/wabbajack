@@ -78,9 +78,8 @@
 
                         <Grid Margin="8, 0, 0, 8" Panel.ZIndex="1">
                             <Grid.Visibility>
-                                <MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="Or(!x, y) ? `Visible` : `Collapsed`">
+                                <MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="!x ? `Visible` : `Collapsed`">
                                     <Binding Path="ImageContainsTitle" />
-                                    <Binding ElementName="ModListTile" Path="IsMouseOver" />
                                 </MultiBinding>
                             </Grid.Visibility>
 

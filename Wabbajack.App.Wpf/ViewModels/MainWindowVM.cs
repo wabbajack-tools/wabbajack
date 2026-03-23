@@ -476,6 +476,15 @@ public class MainWindowVM : ViewModel
         }
     }
 
+    public async Task<bool> ShowConfirmationDialog(string title, string message)
+    {
+        var dialog = new ConfirmationDialogVM(title, message);
+        ActiveFloatingPane = dialog;
+        var result = await dialog.Result;
+        ActiveFloatingPane = null;
+        return result;
+    }
+
     public async Task ShutdownApplication()
     {
         Dispose();

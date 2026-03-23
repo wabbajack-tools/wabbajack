@@ -112,7 +112,8 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         _configuration.Install.CreateDirectory();
         _configuration.Downloads.CreateDirectory();
 
-        await OptimizeModlist(token);
+        var optimizeResult = await OptimizeModlist(token);
+        if (!optimizeResult) return InstallResult.Cancelled;
         if (token.IsCancellationRequested) return InstallResult.Cancelled;
 
         await HashArchives(token);
@@ -470,7 +471,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                         }
 
                     if (!modified) continue;
-                    parser.WriteFile(file.ToString(), data);
+                    parser.WriteFile(file.ToString(), data, new UTF8Encoding(false));
                     _logger.LogTrace("Remapped screen size in {file}", file);
                 }
                 catch (Exception ex)
@@ -496,7 +497,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                     }
 
                 if (modified)
-                    parser.WriteFile(file.ToString(), data);
+                    parser.WriteFile(file.ToString(), data, new UTF8Encoding(false));
             }
             catch (Exception ex)
             {
@@ -516,7 +517,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                     var data = parser.ReadFile(file.ToString());
                     data["Viewport"]["Resolution"] =
                         $"{_configuration.SystemParameters!.ScreenWidth}x{_configuration.SystemParameters!.ScreenHeight}";
-                    parser.WriteFile(file.ToString(), data);
+                    parser.WriteFile(file.ToString(), data, new UTF8Encoding(false));
                 }
                 catch (Exception ex)
                 {
