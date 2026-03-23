@@ -795,6 +795,7 @@ public static class GameRegistry
                 NexusGameId = 7286,
                 MO2ArchiveName = "kingdomcomedeliverance2",
                 SteamIDs = [1771300],
+                GOGIDs = [1248083010, 1485720934, 1076704248],
                 RequiredFiles = new []
                 {
                     "KingdomCome.exe".ToRelativePath(),
