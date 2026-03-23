@@ -178,7 +178,7 @@ public static class AbsolutePathExtensions
         CancellationToken token, bool closeWhenDone = true)
     {
         await using var dest = file.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-        await using var sw = new StreamWriter(dest, Encoding.UTF8);
+        await using var sw = new StreamWriter(dest, new UTF8Encoding(false));
 
         foreach (var line in src) await sw.WriteLineAsync(line);
 
@@ -189,7 +189,7 @@ public static class AbsolutePathExtensions
         FileMode fileMode, CancellationToken token)
     {
         await using var dest = file.Open(fileMode, FileAccess.Write, FileShare.None);
-        await using var sw = new StreamWriter(dest, Encoding.UTF8);
+        await using var sw = new StreamWriter(dest, new UTF8Encoding(false));
         foreach (var line in src) await sw.WriteLineAsync(line);
         await sw.DisposeAsync();
     }

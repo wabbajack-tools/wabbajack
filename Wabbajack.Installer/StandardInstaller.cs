@@ -470,7 +470,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                         }
 
                     if (!modified) continue;
-                    parser.WriteFile(file.ToString(), data);
+                    parser.WriteFile(file.ToString(), data, new UTF8Encoding(false));
                     _logger.LogTrace("Remapped screen size in {file}", file);
                 }
                 catch (Exception ex)
@@ -496,7 +496,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                     }
 
                 if (modified)
-                    parser.WriteFile(file.ToString(), data);
+                    parser.WriteFile(file.ToString(), data, new UTF8Encoding(false));
             }
             catch (Exception ex)
             {
@@ -516,7 +516,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                     var data = parser.ReadFile(file.ToString());
                     data["Viewport"]["Resolution"] =
                         $"{_configuration.SystemParameters!.ScreenWidth}x{_configuration.SystemParameters!.ScreenHeight}";
-                    parser.WriteFile(file.ToString(), data);
+                    parser.WriteFile(file.ToString(), data, new UTF8Encoding(false));
                 }
                 catch (Exception ex)
                 {
