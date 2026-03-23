@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 4.1.0.1 - 3/17/2026
+* HOTFIX: Properly handle "invalid file" responses from Nexus Mods when uploading a collection
+
 #### Version - 4.1.0.0 - 3/11/2026
 * Automated conversion of Wabbajack lists to NexusMods Collection pages by @januarysnow
   - After compilation you can convert your wabbajack list to a format that is understood by Nexusmods as a pseudo-collection, and will create a webpage on their collections section for this list, it will be tagged as a Wabbajack list on there.
