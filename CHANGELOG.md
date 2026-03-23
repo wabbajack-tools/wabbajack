@@ -14,6 +14,9 @@
 * Added confirmation dialog before destructive file deletion ([@jakemismas](https://github.com/jakemismas)) PR #2897
 * Various fixes to the CLI ([@matracey](https://github.com/matracey)) PR #2900
   * And added CLI Tests
+* Known Issues:
+  * When switching away from the "Browse lists" tab and back to it, clears the game selector list and resets the game filter 
+    * Workaround is to toggle one of the "include" filters on and off to force a refresh of the game selector list
 
 #### Version - 4.1.0.1 - 3/17/2026
 * HOTFIX: Properly handle "invalid file" responses from Nexus Mods when uploading a collection
