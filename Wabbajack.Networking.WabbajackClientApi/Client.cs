@@ -40,7 +40,7 @@ namespace Wabbajack.Networking.WabbajackClientApi;
 
 public class Client
 {
-    public static readonly long UploadedFileBlockSize = (long) 1024 * 1024 * 2;
+    public static readonly long UploadedFileBlockSize = (long)1024 * 1024 * 2;
 
     private readonly HttpClient _client;
     private readonly Configuration _configuration;
@@ -88,7 +88,7 @@ public class Client
             _logger.LogInformation("Init Client: {Id}", (await _token.Get())?.MetricsKey);
             _inited = true;
         }
-        
+
         var msg = await MakeMessage(HttpMethod.Get,
             new Uri($"{_configuration.BuildServerUrl}metrics/{action}/{subject}"));
         var result = await _client.SendAsync(msg);
@@ -192,10 +192,8 @@ public class Client
             };
     }
 
-
     public async Task<FileDefinition> GenerateFileDefinition(AbsolutePath path)
     {
-
         var parts = Blocks(path.Size()).ToArray();
         var definition = new FileDefinition
         {
@@ -209,7 +207,7 @@ public class Client
                 await using (var fs = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     fs.Position = part.Offset;
-                    await fs.ReadAsync(buffer);
+                    await fs.ReadExactlyAsync(buffer, CancellationToken.None);
                 }
 
                 part.Hash = await buffer.Hash(job);
@@ -226,30 +224,30 @@ public class Client
         var featured = await LoadFeaturedLists();
 
         return await (await repos).PMapAll(async url =>
+        {
+            try
             {
-                try
-                {
-                    return (await _client.GetFromJsonAsync<ModlistMetadata[]>(_limiter,
-                        new HttpRequestMessage(HttpMethod.Get, url.Value),
-                        _dtos.Options))!.Select(meta =>
+                return (await _client.GetFromJsonAsync<ModlistMetadata[]>(_limiter,
+                    new HttpRequestMessage(HttpMethod.Get, url.Value),
+                    _dtos.Options))!.Select(meta =>
                     {
                         meta.RepositoryName = url.Key;
                         meta.Official = meta.RepositoryName == "wj-featured" ||
-                                        featured.Contains(meta.NamespacedName);
+                                            featured.Contains(meta.NamespacedName);
                         return meta;
                     });
-                }
-                catch (JsonException ex)
-                {
-                    _logger.LogError(ex, "Failed loading JSON for repository {repo} from {url} - Exception: {ex}", url.Key, url.Value, ex.ToString());
-                    return Enumerable.Empty<ModlistMetadata>();
-                }
-                catch(Exception ex)
-                {
-                    _logger.LogError(ex, "Failed loading lists from repository {repo}: {url} - Exception: {ex}", url.Key, url.Value, ex.ToString());
-                    return Enumerable.Empty<ModlistMetadata>();
-                }
-            })
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Failed loading JSON for repository {repo} from {url} - Exception: {ex}", url.Key, url.Value, ex.ToString());
+                return Enumerable.Empty<ModlistMetadata>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed loading lists from repository {repo}: {url} - Exception: {ex}", url.Key, url.Value, ex.ToString());
+                return Enumerable.Empty<ModlistMetadata>();
+            }
+        })
             .SelectMany(x => x)
             .ToArray();
     }
@@ -279,6 +277,7 @@ public class Client
             _dtos.Options);
         return data!.ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
+
     public async Task<Dictionary<string, string>> LoadTagMappings()
     {
         var data = await _client.GetFromJsonAsync<Dictionary<string, string>>(_limiter,
@@ -290,12 +289,12 @@ public class Client
 
     public async Task<SearchIndex> LoadSearchIndex()
     {
-        return await _client.GetFromJsonAsync<SearchIndex>(_limiter,
+        return (await _client.GetFromJsonAsync<SearchIndex>(_limiter,
             new HttpRequestMessage(HttpMethod.Get,
                 "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/refs/heads/master/reports/searchIndex.json"),
-            _dtos.Options);
+            _dtos.Options))!;
     }
-    
+
     public Uri GetPatchUrl(Hash upgradeHash, Hash archiveHash)
     {
         return new Uri($"{_configuration.PatchBaseAddress}{upgradeHash.ToHex()}_{archiveHash.ToHex()}");
@@ -312,7 +311,7 @@ public class Client
             _logger.LogInformation("Uploading Block {Idx}/{Max}", block.Index, blocks.Length);
             data.Position = block.Offset;
             var blockData = new byte[block.Size];
-            await data.ReadAsync(blockData);
+            await data.ReadExactlyAsync(blockData, CancellationToken.None);
             var hash = await blockData.Hash();
 
             using var result = await _client.SendAsync(await MakeMessage(HttpMethod.Post,
@@ -366,7 +365,6 @@ public class Client
         return (sha, (await oldData.Content.ReadFromJsonAsync<T>(_dtos.Options, token.Value))!);
     }
 
-
     public async Task UploadMirror(FileDefinition definition, AbsolutePath file)
     {
         var hashAsHex = definition.Hash.ToHex();
@@ -388,7 +386,7 @@ public class Client
 
             dataIn.Position = part.Offset;
             var data = new byte[part.Size];
-            await dataIn.ReadAsync(data);
+            await dataIn.ReadExactlyAsync(data, CancellationToken.None);
 
             using var partResult = await _client.SendAsync(await MakeMessage(HttpMethod.Put,
                 new Uri($"{_configuration.BuildServerUrl}mirrored_files/{hashAsHex}/part/{idx}"),
@@ -428,7 +426,6 @@ public class Client
             throw new HttpException(result);
     }
 
-
     public async Task<(IObservable<(Percent PercentDone, string Message)> Progress, Task<Uri> Task)> UploadAuthorFile(
         AbsolutePath path)
     {
@@ -460,7 +457,7 @@ public class Client
                 await using (var fs = path.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     fs.Position = part.Offset;
-                    await fs.ReadAsync(buffer);
+                    await fs.ReadExactlyAsync(buffer, CancellationToken.None);
                 }
 
                 await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
@@ -542,6 +539,115 @@ public class Client
         return await _dtos.DeserializeAsync<IndexedVirtualFile>(await response.Content.ReadAsStreamAsync(token), token);
     }
 
+    private async Task<(GitHubClient Gh, string Owner, string Repo, string Path)> GetAuthorRepoTarget(string namespacedName)
+    {
+        var pair = namespacedName.Split("/");
+        var wjRepoName = pair[0];
+
+        var repoUrl = (await LoadRepositories())[wjRepoName];
+        var decomposed = repoUrl.LocalPath.Split("/");
+        var owner = decomposed[1];
+        var repoName = decomposed[2];
+        var path = string.Join("/", decomposed[4..]);
+
+        var creds = new Credentials((await _token.Get())!.AuthorKey);
+        var ghClient = new GitHubClient(new ProductHeaderValue("wabbajack"))
+        {
+            Credentials = creds
+        };
+
+        return (ghClient, owner, repoName, path);
+    }
+
+    public async Task SetNexusCollectionMapping(
+        string namespacedName,
+        string collectionId,
+        string slug,
+        string domainName,
+        int? lastRevisionNumber,
+        CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(namespacedName))
+            throw new ArgumentException("namespacedName was empty", nameof(namespacedName));
+        if (string.IsNullOrWhiteSpace(collectionId))
+            throw new ArgumentException("collectionId was empty", nameof(collectionId));
+        if (string.IsNullOrWhiteSpace(domainName))
+            throw new ArgumentException("domainName was empty", nameof(domainName));
+
+        if (string.IsNullOrWhiteSpace(slug))
+        {
+            _logger.LogWarning(
+                "SetNexusCollectionMapping: slug is empty for collectionId={id} — " +
+                "NexusCollection link will be stored without a slug. " +
+                "It will be filled in on the next successful upload.",
+                collectionId);
+        }
+
+        var pair = namespacedName.Split("/");
+        if (pair.Length < 2)
+            throw new ArgumentException(
+                "namespacedName must look like 'repoName/machineUrl'",
+                nameof(namespacedName));
+
+        var machineUrl = pair[1];
+
+        var (gh, owner, repo, path) = await GetAuthorRepoTarget(namespacedName);
+
+        var oldData = (await gh.Repository.Content.GetAllContents(owner, repo, path)).First();
+        var lists = _dtos.Deserialize<ModlistMetadata[]>(oldData.Content)
+                      ?? Array.Empty<ModlistMetadata>();
+
+        var list = lists.FirstOrDefault(c =>
+            c.Links.MachineURL.Equals(machineUrl, StringComparison.OrdinalIgnoreCase));
+        if (list == null)
+            throw new Exception($"Could not find list '{machineUrl}' in '{owner}/{repo}/{path}'");
+
+        list.Links.NexusCollection = new NexusCollectionLink
+        {
+            CollectionId = collectionId,
+            Slug = slug,
+            DomainName = domainName,
+            LastRevisionNumber = lastRevisionNumber
+        };
+
+        var newContent = _dtos.Serialize(lists, true);
+        newContent = GameRegistry.Games.Keys.Aggregate(newContent,
+            (current, g) =>
+                current.Replace($"\"game\": \"{g}\",", $"\"game\": \"{g.ToString().ToLower()}\","));
+
+        var updateRequest = new UpdateFileRequest(
+            $"Update Nexus collection mapping for {machineUrl}", newContent, oldData.Sha);
+        await gh.Repository.Content.UpdateFile(owner, repo, path, updateRequest);
+    }
+
+    public async Task<NexusCollectionLink?> GetNexusCollectionMapping(string namespacedName, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+
+        if (string.IsNullOrWhiteSpace(namespacedName))
+            throw new ArgumentException("namespacedName cannot be null/empty", nameof(namespacedName));
+
+        var pair = namespacedName.Split("/");
+        if (pair.Length < 2)
+            throw new ArgumentException($"Expected namespacedName in the form 'repo/machineUrl' but got '{namespacedName}'", nameof(namespacedName));
+
+        var machineUrl = pair[1];
+
+        var (gh, owner, repo, path) = await GetAuthorRepoTarget(namespacedName);
+        token.ThrowIfCancellationRequested();
+
+        var oldData = (await gh.Repository.Content.GetAllContents(owner, repo, path)).FirstOrDefault();
+        if (oldData == null)
+            return null;
+
+        var lists = _dtos.Deserialize<ModlistMetadata[]>(oldData.Content) ?? Array.Empty<ModlistMetadata>();
+        var list = lists.FirstOrDefault(c =>
+            c?.Links != null &&
+            c.Links.MachineURL.Equals(machineUrl, StringComparison.OrdinalIgnoreCase));
+
+        return list?.Links?.NexusCollection;
+    }
+
     public async Task<IReadOnlyList<string>> GetMyModlists(CancellationToken token)
     {
         var msg = await MakeMessage(HttpMethod.Get, new Uri($"{_configuration.BuildServerUrl}author_controls/lists"));
@@ -564,7 +670,6 @@ public class Client
         var path = string.Join("/", decomposed[4..]);
 
         var (progress, uploadTask) = await UploadAuthorFile(modList);
-        
         // Usually the GitHub publish will take basically no time at all compared to the upload so just ignore progress percentage here
         var publishTask = Task.Run(async () =>
         {
@@ -587,9 +692,8 @@ public class Client
             list.DownloadMetadata = metadata;
             list.Links.Download = downloadUrl.ToString();
             list.DateUpdated = DateTime.UtcNow;
-
-            var newContent = _dtos.Serialize(oldContent, true);
             // Ensure game names are lowercase
+            var newContent = _dtos.Serialize(oldContent, true);
             newContent = GameRegistry.Games.Keys.Aggregate(newContent,
                 (current, g) => current.Replace($"\"game\": \"{g}\",", $"\"game\": \"{g.ToString().ToLower()}\","));
 
@@ -599,5 +703,4 @@ public class Client
 
         return (progress, publishTask);
     }
-
 }

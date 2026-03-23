@@ -22,6 +22,9 @@ using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Wabbajack.VFS;
+using System.Net.Http;
+using Wabbajack.DTOs.Logins;
+using Wabbajack.Networking.Http.Interfaces;
 
 namespace Wabbajack.Compiler;
 
@@ -33,9 +36,11 @@ public class MO2Compiler : ACompiler
         DownloadDispatcher dispatcher,
         Client wjClient, IGameLocator locator, DTOSerializer dtos, IResource<ACompiler> compilerLimiter,
         IBinaryPatchCache patchCache,
-        IImageLoader imageLoader) :
+        IImageLoader imageLoader,
+        ITokenProvider<NexusOAuthState> nexusTokenProvider,
+        HttpClient httpClient) :
         base(logger, extractor, hashCache, vfs, manager, settings, parallelOptions, dispatcher, wjClient, locator, dtos,
-            compilerLimiter, patchCache, imageLoader)
+            compilerLimiter, patchCache, imageLoader, nexusTokenProvider, httpClient)
     {
         MaxSteps = 14;
     }
@@ -55,7 +60,9 @@ public class MO2Compiler : ACompiler
             provider.GetRequiredService<DTOSerializer>(),
             provider.GetRequiredService<IResource<ACompiler>>(),
             provider.GetRequiredService<IBinaryPatchCache>(),
-            provider.GetRequiredService<IImageLoader>());
+            provider.GetRequiredService<IImageLoader>(),
+            provider.GetRequiredService<ITokenProvider<NexusOAuthState>>(),
+            provider.GetRequiredService<HttpClient>());
     }
 
     public CompilerSettings Mo2Settings => (CompilerSettings) Settings;
