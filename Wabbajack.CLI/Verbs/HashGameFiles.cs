@@ -26,13 +26,13 @@ namespace Wabbajack.CLI.Verbs;
 public class HashGameFiles
 {
     private readonly ILogger<HashGameFiles> _logger;
-    private readonly GameLocator _gameLocator;
+    private readonly IGameLocator _gameLocator;
     private readonly FileHashCache _cache;
     private readonly DTOSerializer _dtos;
 
     public HashGameFiles(
         ILogger<HashGameFiles> logger,
-        GameLocator gameLocator,
+        IGameLocator gameLocator,
         FileHashCache cache,
         DTOSerializer dtos)
     {

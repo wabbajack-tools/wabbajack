@@ -4,8 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
-    <Platforms>x64</Platforms>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
     <Version>$(VERSION)</Version>
     <AssemblyVersion>$(VERSION)</AssemblyVersion>
@@ -27,9 +26,6 @@
         <ApplicationIcon>Resources\Icons\wabbajack.ico</ApplicationIcon>
     </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
 
     <ItemGroup>
         <!-- TODO: These updates are currently required because CefSharp.Wpf specifies

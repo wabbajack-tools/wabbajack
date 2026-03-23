@@ -565,6 +565,9 @@ public abstract class AInstaller<T>
                 if (indexed.ContainsKey(relativeTo) || f.InFolder(_configuration.Downloads))
                     return f;
 
+                if (f == _configuration.ModlistArchive)
+                    return f;
+
                 if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return f;
                 var fNoSpaces = new string(f.ToString().Where(c => !Char.IsWhiteSpace(c)).ToArray());
                 if (NoDeleteRegex.IsMatch(fNoSpaces))
