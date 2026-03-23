@@ -114,7 +114,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     [Reactive] public ValidationResult ValidationResult { get; set; }
     
     [Reactive] public bool ShowNSFWSlides { get; set; }
-    
+
     public LogStream LoggerProvider { get; }
 
 
@@ -328,6 +328,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                 .Select(x => x.PathParts.Any() ? x.Combine("downloads") : x)
                 .Subscribe(x => Installer.DownloadLocation.TargetPath = x)
                 .DisposeWith(disposables);
+
         });
 
     }
@@ -670,6 +671,18 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                         ProgressText = update.StatusText;
                         ProgressPercent = update.StepsProgress;
                     });
+                };
+
+                StandardInstaller.OnConfirmAction = async (title, message) =>
+                {
+                    var tcs = new TaskCompletionSource<bool>();
+                    RxApp.MainThreadScheduler.Schedule(async () =>
+                    {
+                        var mainWindowVM = (MainWindowVM)System.Windows.Application.Current.MainWindow.DataContext;
+                        var result = await mainWindowVM.ShowConfirmationDialog(title, message);
+                        tcs.TrySetResult(result);
+                    });
+                    return await tcs.Task;
                 };
 
                 _logger.LogInformation("Starting installation of {modlist} {version}:", cfg.ModList.Name, cfg.ModList.Version?.ToString() ?? "");
