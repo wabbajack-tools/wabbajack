@@ -24,11 +24,11 @@ public class Compile
     private readonly DTOSerializer _dtos;
     private readonly IServiceProvider _serviceProvider;
     private readonly FileHashCache _cache;
-    private readonly GameLocator _gameLocator;
+    private readonly IGameLocator _gameLocator;
     private readonly CompilerSettingsInferencer _inferencer;
 
     public Compile(ILogger<Compile> logger, Client wjClient, DownloadDispatcher dispatcher, DTOSerializer dtos, 
-        FileHashCache cache, GameLocator gameLocator, IServiceProvider serviceProvider, CompilerSettingsInferencer inferencer)
+        FileHashCache cache, IGameLocator gameLocator, IServiceProvider serviceProvider, CompilerSettingsInferencer inferencer)
     {
         _logger = logger;
         _wjClient = wjClient;

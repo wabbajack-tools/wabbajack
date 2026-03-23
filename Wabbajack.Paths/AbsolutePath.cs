@@ -19,6 +19,12 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
 
     private int _hashCode = 0;
 
+    /// <summary>
+    /// True when the original path started with \\ (UNC or device path like \\.\nul).
+    /// ToString() uses this to restore the \\ prefix that Split drops.
+    /// </summary>
+    private readonly bool _isUnc = false;
+
     internal readonly string[] Parts;
 
     public string[] PathParts => Parts == default ? Array.Empty<string>() : Parts;
@@ -26,10 +32,11 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
     public Extension Extension => Extension.FromPath(Parts[^1]);
     public RelativePath FileName => new(Parts[^1..]);
 
-    internal AbsolutePath(string[] parts, PathFormat format)
+    internal AbsolutePath(string[] parts, PathFormat format, bool isUnc = false)
     {
         Parts = parts;
         PathFormat = format;
+        _isUnc = isUnc;
     }
 
     internal static readonly char[] StringSplits = {'/', '\\'};
@@ -37,8 +44,9 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
     private static AbsolutePath Parse(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) return default;
+        var isUnc = path.StartsWith(@"\\");
         var parts = path.Split(StringSplits, StringSplitOptions.RemoveEmptyEntries);
-        return new AbsolutePath(parts, DetectPathType(path));
+        return new AbsolutePath(parts, DetectPathType(path), isUnc);
     }
 
     private static readonly HashSet<char>
@@ -66,7 +74,7 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
                     throw new PathException($"Path {this} does not have a parent folder");
                 var newParts = new string[Parts.Length - 1];
                 Array.Copy(Parts, newParts, newParts.Length);
-                return new AbsolutePath(newParts, PathFormat);
+                return new AbsolutePath(newParts, PathFormat, _isUnc);
             }
         }
     }
@@ -97,9 +105,9 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
         var oldName = paths[^1];
         var newName = RelativePath.ReplaceExtension(oldName, newExtension);
         paths[^1] = newName;
-        return new AbsolutePath(paths, PathFormat);
+        return new AbsolutePath(paths, PathFormat, _isUnc);
     }
-    
+
     public static explicit operator AbsolutePath(string input)
     {
         return Parse(input);
@@ -109,7 +117,10 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
     {
         if (Parts == default) return "";
         if (PathFormat == PathFormat.Windows)
-            return string.Join('\\', Parts);
+        {
+            var joined = string.Join('\\', Parts);
+            return _isUnc ? @"\\" + joined : joined;
+        }
         return '/' + string.Join('/', Parts);
     }
 
@@ -187,7 +198,7 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
             toIdx += p.Parts.Length;
         }
 
-        return new AbsolutePath(newParts, PathFormat);
+        return new AbsolutePath(newParts, PathFormat, _isUnc);
     }
 
     public static bool operator ==(AbsolutePath a, AbsolutePath b)
@@ -205,7 +216,7 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
         var parts = new string[Parts.Length];
         Array.Copy(Parts, parts, Parts.Length);
         parts[^1] = parts[^1] + ext;
-        return new AbsolutePath(parts, PathFormat);
+        return new AbsolutePath(parts, PathFormat, _isUnc);
     }
 
     public AbsolutePath AppendToName(string append)

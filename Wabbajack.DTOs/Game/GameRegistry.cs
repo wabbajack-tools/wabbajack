@@ -821,6 +821,23 @@ public static class GameRegistry
             }
         },
         {
+            Game.NieRAutomata, new GameMetaData
+            {
+                Game = Game.NieRAutomata,
+                MO2Name = "NieR:Automata",
+                NexusName = "nierautomata",
+                NexusGameId = 1950,
+                MO2ArchiveName = "nierautomata",
+                SteamIDs = [524220],
+                RequiredFiles = new []
+                {
+                    "NieRAutomata.exe".ToRelativePath(),
+                },
+                MainExecutable = "NieRAutomata.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/e8fd4a8a5bab2b3785d794ab51fef55c/32/32x32.png",
+            }
+        },
+        {
             Game.ModdingTools, new GameMetaData
             {
                 Game = Game.ModdingTools,

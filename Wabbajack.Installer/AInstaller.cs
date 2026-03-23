@@ -475,9 +475,11 @@ public abstract class AInstaller<T>
             AddIfValid(_gameLocator.GameLocation(g));
         }
 
-        // Enumerate downloads + every game folder
+        // Enumerate downloads + every game folder, filtering out any paths that
+        // don't survive the AbsolutePath round-trip (e.g. UNC/device paths like \\.\nul)
         var allFiles = _configuration.Downloads.EnumerateFiles()
             .Concat(gameFolders.SelectMany(p => p.EnumerateFiles()))
+            .Where(f => f.FileExists())
             .ToList();
 
         _logger.LogInformation("Getting archive sizes");
@@ -568,6 +570,9 @@ public abstract class AInstaller<T>
                 var relativeTo = f.RelativeTo(_configuration.Install);
                 if (indexed.ContainsKey(relativeTo) || f.InFolder(_configuration.Downloads))
                     return (AbsolutePath?)null;
+
+                if (f == _configuration.ModlistArchive)
+                    return null;
 
                 if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return null;
                 var fNoSpaces = new string(f.ToString().Where(c => !Char.IsWhiteSpace(c)).ToArray());
