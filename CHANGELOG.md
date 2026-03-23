@@ -1,8 +1,19 @@
 ### Changelog
 
-#### Version - 4.1.0.2 - 3/22/2026
-* Fix CLI GameLocator DI resolution failure (#2486): inject IGameLocator interface instead of concrete GameLocator in all CLI verbs
-* Add comprehensive CLI test suite (42 tests) covering DI registration, verb structure, and verb unit tests
+#### Version - 4.1.1.0 - TBD
+* Added automatic check for common errors to suggest fixes ([@januarysnow](https://github.com/januarysnow)) PR #2852
+* Updated dependencies ([@JanuarySnow](https://github.com/JanuarySnow)) PR #2862
+* Fixed mod filter checkbox not working properly ([@januarysnow](https://github.com/januarysnow)) PR #2871
+* Added support for Nier: Automata ([@SulfurNitride](https://github.com/SulfurNitride)) PR #2872
+* Added support for Kingdom Come : Deliverance II ([@ellisalgernon](https://github.com/https://github.com/ellisalgernon)) (Technically added earlier but didn't make it into the changelog)
+  * Added support for the GOG Version ([@EzioTheDeadPoet](https://github.com/EzioTheDeadPoet))
+* Updated GalleryView to Display List Titles of Lists that have the Title not in the Thumbnail ([@januarysnow](https://github.com/januarysnow)) PR #2874
+* Fixes to ImageLoading and ImageCaching ([@januarysnow](https://github.com/januarysnow)) PR #2881
+* Fixed AbsolutePath UNC prefix loss causing NUL device crash during archive hashing ([@jakemismas](https://github.com/jakemismas)) PR #2891
+* Fixec UTF-8 BOM in INI file writes causing Skyrim resolution issues ([@cashcon57](https://github.com/cashcon57)) PR #2894
+* Added confirmation dialog before destructive file deletion ([@jakemismas](https://github.com/jakemismas)) PR #2897
+* Various fixes to the CLI ([@matracey](https://github.com/matracey)) PR #2900
+  * And added CLI Tests
 
 #### Version - 4.1.0.1 - 3/17/2026
 * HOTFIX: Properly handle "invalid file" responses from Nexus Mods when uploading a collection
