@@ -59,6 +59,7 @@ public class ManualBrowserDownloadHandler : BrowserWindowViewModel
             {
                 if (IsCorrectFileDownloading(args.DownloadOperation, archive))
                 {
+					Instructions = "Download is ongoing, please wait";
                     args.ResultFilePath = downloadPath;
                     args.DownloadOperation.StateChanged += (o, o1) =>
                     {
@@ -95,9 +96,9 @@ public class ManualBrowserDownloadHandler : BrowserWindowViewModel
             else
             {
                 var (fileName, downloadSize) = wrongDownload.Task.Result;
-                var result = Xceed.Wpf.Toolkit.MessageBox.Show(
-                    $"Started download of file \"{fileName}\" with size {UIUtils.FormatBytes(downloadSize)}, " +
-                    $"but expected \"{archive.Name}\" with size {UIUtils.FormatBytes(archive.Size)}.\n" +
+                var result = MessageBox.Show(
+                    $"Expected file \"{archive.Name}\" with size {UIUtils.FormatBytes(archive.Size)},\n" +
+                    $"but starting download of \"{fileName}\" with size {UIUtils.FormatBytes(downloadSize)}.\n" +
                     $"Try again?",
                     "Trying to download wrong file",
                     MessageBoxButton.OKCancel);
