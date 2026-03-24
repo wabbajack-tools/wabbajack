@@ -76,6 +76,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
 
     [Reactive] public int? ExistingCollectionRevisionNumber { get; set; }
     [Reactive] public string? ExistingCollectionSlug { get; set; }
+    [Reactive] public bool ExistingCollectionIsDraft { get; set; }
     [Reactive] public bool IsCheckingCollectionStatus { get; set; }
 
     [Reactive] public Percent CollectionPublishingPercentage { get; set; } = Percent.One;
@@ -623,6 +624,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
             IsCheckingCollectionStatus = true;
             ExistingCollectionRevisionNumber = null;
             ExistingCollectionSlug = null;
+            ExistingCollectionIsDraft = false;
 
             _logger.LogInformation("CheckExistingCollectionStatus: MachineUrl='{url}'", Settings.MachineUrl);
             // Get mapping from modlists.json
@@ -642,24 +644,29 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
             // Use the Game from Settings to get the domain
             var listDomain = WabbajackToVortexCollection.GetDomain(Settings.Game.ToString());
 
-            // Now query Nexus GraphQL to get the latest revision number
-            var latestRevision = await GetLatestCollectionRevision(
+            // Query Nexus GraphQL for the latest PUBLISHED revision number.
+            // collectionRevision only returns published revisions — null means the collection is still a draft.
+            var latestRevisionFromApi = await GetLatestCollectionRevision(
                 mapping.Slug,
                 mapping.DomainName ?? listDomain,
                 CancellationToken.None);
 
+            var isDraft = !latestRevisionFromApi.HasValue;
+            var latestRevision = latestRevisionFromApi;
+
             if (!latestRevision.HasValue && mapping.LastRevisionNumber.HasValue)
             {
                 latestRevision = mapping.LastRevisionNumber;
-                _logger.LogInformation("Using stored revision number {rev} for slug={slug} (collection may be draft-only)",
+                _logger.LogInformation("Using stored revision number {rev} for slug={slug} (collection is unpublished draft)",
                     latestRevision.Value, mapping.Slug);
             }
 
             if (latestRevision.HasValue)
             {
                 ExistingCollectionRevisionNumber = latestRevision.Value;
-                _logger.LogInformation("Found existing collection '{slug}' at revision {rev}",
-                    mapping.Slug, latestRevision.Value);
+                ExistingCollectionIsDraft = isDraft;
+                _logger.LogInformation("Found existing collection '{slug}' at revision {rev} (isDraft={draft})",
+                    mapping.Slug, latestRevision.Value, isDraft);
             }
         }
         catch (Exception ex)
