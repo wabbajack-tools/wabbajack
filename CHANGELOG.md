@@ -14,7 +14,7 @@
 * Added a confirmation dialog before destructive file deletion ([@jakemismas](https://github.com/jakemismas)) PR #2897
 * Various fixes to the CLI ([@matracey](https://github.com/matracey)) PR #2900
   * And added CLI Tests
-* Added ManualBlobDownload for improving some manual Downloads ([@zclimber](https://github.com/zclimber)) PR #2901
+* Added ManualBlobDownload for improving LL Downloads ([@zclimber](https://github.com/zclimber)) PR #2901
 * Updated Nexus Collection Support related API calls ([@januarysnow](https://github.com/januarysnow)) PR #2902 
 * Known Issues:
   * When switching away from the "Browse lists" tab and back to it, clears the game selector list and resets the game filter 
