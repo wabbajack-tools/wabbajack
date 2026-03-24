@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 4.1.1.0 - TBD
+#### Version - 4.2.0.0 - TBD
 * Added automatic check for common errors to suggest fixes ([@januarysnow](https://github.com/januarysnow)) PR #2852
 * Updated dependencies ([@JanuarySnow](https://github.com/JanuarySnow)) PR #2862
 * Fixed mod filter checkbox not working properly ([@januarysnow](https://github.com/januarysnow)) PR #2871
