@@ -58,6 +58,8 @@ public class ManualDownloadHandler : BrowserWindowViewModel
 
         Browser.CoreWebView2.DownloadStarting += handler;
 
+        await NavigateTo(downloadPageUrl);
+
         try
         {
             var uri = await base.WaitWhileRemovingIframes(source.Task, token);
