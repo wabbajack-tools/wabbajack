@@ -479,7 +479,7 @@ public partial class App
         //Disabled VP due to frequent login issues & because the only file that really got downloaded there has a mirror
         //services.AddAllSingleton<INeedsLogin, VectorPlexusLoginManager>();
         services.AddSingleton<ManualDownloadHandler>();
-        services.AddSingleton<ManualBlobDownloadHandler>();
+        services.AddSingleton<ManualBrowserDownloadHandler>();
         services.AddSingleton<NexusCollectionDownloader>();
         // Verbs
         services.AddSingleton<CommandLineBuilder>();
