@@ -48,6 +48,12 @@ public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClie
 
             return await HashFile(downloadedFilePath, token);
         }
+        catch (IOException ex) when (ex.HResult == unchecked((int)0x80070070) /* ERROR_DISK_FULL */
+                                  || ex.HResult == unchecked((int)0x80070027) /* ERROR_HANDLE_DISK_FULL */)
+        {
+            _logger.LogError(ex, "Not enough disk space to download '{name}'", filePath.FileName.ToString());
+            throw;
+        }
         catch (Exception ex) when (ex is SocketException || ex is IOException)
         {
             _logger.LogWarning(ex, "Failed to download '{name}' due to network error. Retrying...", filePath.FileName.ToString());
@@ -59,7 +65,7 @@ public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClie
                 throw;
             }
 
-            return await DownloadAndHash(msg, filePath, job, token, retry--);
+            return await DownloadAndHash(CloneRequest(msg), filePath, job, token, retry - 1);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.RequestedRangeNotSatisfiable)
         {
@@ -72,7 +78,7 @@ public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClie
                 throw;
             }
 
-            return await DownloadAndHash(msg, filePath, job, token, retry--, true);
+            return await DownloadAndHash(CloneRequest(msg), filePath, job, token, retry - 1, true);
         }
         catch (Exception ex)
         {
@@ -146,5 +152,16 @@ public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClie
         {
             return filePath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
         }
+    }
+
+    private static HttpRequestMessage CloneRequest(HttpRequestMessage original)
+    {
+        var clone = new HttpRequestMessage(original.Method, original.RequestUri);
+        clone.Version = original.Version;
+
+        foreach (var header in original.Headers)
+            clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
+
+        return clone;
     }
 }
