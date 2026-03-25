@@ -28,7 +28,7 @@ jobs:
       - name: Get App Version from CHANGELOG.md
         shell: bash
         run: |
-          VERSION=$(grep -m1 -oP '^#### Version - \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md)
+          VERSION=$(LC_ALL=en_US.UTF-8 grep -m1 -oP '^#### Version - \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
       
       - name: Set Permissions
@@ -115,7 +115,7 @@ jobs:
       - name: Get App Version from CHANGELOG.md
         shell: bash
         run: |
-          VERSION=$(grep -m1 -oP '^#### Version - \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md)
+          VERSION=$(LC_ALL=en_US.UTF-8 grep -m1 -oP '^#### Version - \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           
       - name: Restore
