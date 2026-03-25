@@ -30,6 +30,7 @@ jobs:
         run: |
           VERSION=$(LC_ALL=en_US.UTF-8 grep -m1 -oP '^#### Version - \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Current Version: $VERSION"
       
       - name: Set Permissions
         if: runner.os != 'Windows'
@@ -117,6 +118,8 @@ jobs:
         run: |
           VERSION=$(LC_ALL=en_US.UTF-8 grep -m1 -oP '^#### Version - \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Current Version: $VERSION"
+ 
           
       - name: Restore
         run: dotnet restore ${{ matrix.project }}/${{ matrix.project }}.csproj
