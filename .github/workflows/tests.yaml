@@ -4,12 +4,9 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main ]
-
-env:
-  VERSION: 4.0.5.0
 
 jobs:
+  
   build:
     
     name: Test ${{ matrix.project }} (${{ matrix.os }})
@@ -27,6 +24,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Get App Version from CHANGELOG.md
+        run: |
+          VERSION=$(grep -m1 -oP '^#### Version - \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
       
       - name: Set Permissions
         if: runner.os != 'Windows'
@@ -107,8 +109,13 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '9.0.x'
-          include-prerelease: true      
-
+          include-prerelease: true
+          
+      - name: Get App Version from CHANGELOG.md
+        run: |
+          VERSION=$(grep -m1 -oP '^#### Version - \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          
       - name: Restore
         run: dotnet restore ${{ matrix.project }}/${{ matrix.project }}.csproj
       - name: Build
