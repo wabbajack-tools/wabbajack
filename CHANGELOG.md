@@ -15,7 +15,8 @@
 * Various fixes to the CLI ([@matracey](https://github.com/matracey)) PR #2900
   * And added CLI Tests
 * Added ManualBlobDownload for improving LL Downloads ([@zclimber](https://github.com/zclimber)) PR #2901
-* Updated Nexus Collection Support related API calls ([@januarysnow](https://github.com/januarysnow)) PR #2902 
+* Updated Nexus Collection Support related API calls ([@januarysnow](https://github.com/januarysnow)) PR #2902
+* Fix ResumableDownloader crash on disk full and broken retry logic ([@cashcon57](https://github.com/cashcon57)) PR #2905
 * Known Issues:
   * When switching away from the "Browse lists" tab and back to it, clears the game selector list and resets the game filter 
     * Workaround is to toggle one of the "include" filters on and off to force a refresh of the game selector list
