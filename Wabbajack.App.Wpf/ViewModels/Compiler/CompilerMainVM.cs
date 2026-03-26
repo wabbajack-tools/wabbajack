@@ -441,8 +441,26 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                     if (mainFile.FileExists())
                     {
                         var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(mainFile.ToString());
-                        gameVersion = versionInfo.FileVersion;
-                        _logger.LogInformation("Detected game version: {version} for {game}", gameVersion, modList.GameType);
+                        _logger.LogInformation("Game version info: FileVersion={fv} ProductVersion={pv}",
+                            versionInfo.FileVersion, versionInfo.ProductVersion);
+
+                        var pv = versionInfo.ProductVersion?.Trim();
+                        var fv = versionInfo.FileVersion?.Trim();
+
+                        static bool IsMeaningful(string? v) =>
+                            !string.IsNullOrWhiteSpace(v) &&
+                            v != "0.0.0.0" &&
+                            v != "1.0.0.0" &&
+                            v != "0, 0, 0, 0" &&
+                            v != "1, 0, 0, 0" &&
+                            !v.StartsWith("0.0.0") &&
+                            !v.StartsWith("1.0.0.0");
+
+                        // Prefer ProductVersion
+                        // Fall back to FileVersion only if ProductVersion is meaningless
+                        gameVersion = IsMeaningful(pv) ? pv : IsMeaningful(fv) ? fv : null;
+
+                        _logger.LogInformation("Detected game version: {version} for {game}", gameVersion ?? "none", modList.GameType);
                     }
                 }
             }
@@ -553,6 +571,8 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
             else
                 _logger.LogInformation("No stored Nexus collection mapping found; creating new collection.");
 
+            var expectedNewRevisionNumber = (ExistingCollectionRevisionNumber ?? 0) + 1;
+
             var result = await uploader.UploadCollection(
                 modList,
                 collectionJsonPath,
@@ -574,7 +594,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                         result.CollectionId,
                         result.Slug,
                         listDomain,
-                        result.RevisionNumber > 0 ? result.RevisionNumber : null,
+                        expectedNewRevisionNumber,
                         CancellationToken.None);
 
                     _logger.LogInformation("Persisted Nexus mapping to modlists.json: collectionId={id} slug={slug} domain={domain} rev={rev}",
@@ -585,11 +605,12 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                     _logger.LogWarning(ex, "Collection created/updated, but failed to persist Nexus mapping into modlists.json");
                 }
 
-                if (!string.IsNullOrWhiteSpace(result.Slug) && result.RevisionNumber > 0)
+                if (!string.IsNullOrWhiteSpace(result.Slug))
                 {
                     try
                     {
-                        var url = $"https://www.nexusmods.com/games/{listDomain}/collections/{result.Slug}/revisions/{result.RevisionNumber}";
+                        var revisionForUrl = expectedNewRevisionNumber > 0 ? expectedNewRevisionNumber : result.RevisionNumber;
+                        var url = $"https://www.nexusmods.com/games/{listDomain}/collections/{result.Slug}/revisions/{revisionForUrl}";
                         Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
                     }
                     catch (Exception openEx)

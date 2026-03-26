@@ -775,17 +775,30 @@ namespace Wabbajack.Compiler
                 try
                 {
                     var root = JsonNode.Parse(responseBody) as JsonObject;
-                    // API wraps all v3 responses in { "data": { ... } }
                     var data = root?["data"] as JsonObject ?? root;
 
                     string returnedCollectionId;
                     string returnedRevisionId;
+                    int? returnedRevisionNumber = null;
 
                     if (isRevision)
                     {
                         returnedRevisionId = data?["id"]?.GetValue<string>() ?? "";
                         returnedCollectionId = data?["collection_id"]?.GetValue<string>()
                                                ?? collectionId ?? "";
+
+                        // The revision number is returned directly in the response
+                        var revNumNode = data?["revision_number"];
+                        if (revNumNode != null)
+                        {
+                            if (revNumNode is JsonValue jv)
+                            {
+                                if (jv.TryGetValue<int>(out var i)) returnedRevisionNumber = i;
+                                else if (jv.TryGetValue<long>(out var l)) returnedRevisionNumber = (int)l;
+                                else if (jv.TryGetValue<string>(out var s) && int.TryParse(s, out var pi))
+                                    returnedRevisionNumber = pi;
+                            }
+                        }
                     }
                     else
                     {
@@ -793,16 +806,24 @@ namespace Wabbajack.Compiler
                         returnedRevisionId = data?["revision_id"]?.GetValue<string>() ?? "";
                     }
 
+                    _logger.LogInformation(
+                        "REST response: collectionId={id} revisionId={rev} revisionNumber={num}",
+                        returnedCollectionId, returnedRevisionId, returnedRevisionNumber?.ToString() ?? "not in response");
+
                     var found = await FindRecentlyCreatedCollection(
                         info.Name, info.DomainName, accessToken, token,
                         preferredCollectionId: returnedCollectionId);
+
+                    // Use the revision number from the REST response
+                    // Only fall back to the GraphQL draftRevisionNumber if the REST response didn't include it.
+                    var revisionNumber = returnedRevisionNumber ?? found?.RevisionNumber ?? 1;
 
                     return new CollectionUploadResult
                     {
                         CollectionId = returnedCollectionId,
                         RevisionId = returnedRevisionId,
                         Slug = found?.Slug ?? "",
-                        RevisionNumber = found?.RevisionNumber ?? 1,
+                        RevisionNumber = revisionNumber,
                         Success = true
                     };
                 }
