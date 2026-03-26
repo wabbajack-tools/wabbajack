@@ -60,7 +60,14 @@ public static class AbsolutePathExtensions
 
     public static long Size(this AbsolutePath file)
     {
-        return new FileInfo(file.ToNativePath()).Length;
+        var nativePath = file.ToNativePath();
+        if (string.IsNullOrEmpty(nativePath))
+            throw new IOException($"Cannot get size of empty path");
+
+        if (!File.Exists(nativePath))
+            throw new FileNotFoundException($"Cannot get size of non-existent file: {nativePath}", nativePath);
+
+        return new FileInfo(nativePath).Length;
     }
 
     public static DateTime LastModifiedUtc(this AbsolutePath file)
@@ -171,7 +178,7 @@ public static class AbsolutePathExtensions
         CancellationToken token, bool closeWhenDone = true)
     {
         await using var dest = file.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-        await using var sw = new StreamWriter(dest, Encoding.UTF8);
+        await using var sw = new StreamWriter(dest, new UTF8Encoding(false));
 
         foreach (var line in src) await sw.WriteLineAsync(line);
 
@@ -182,7 +189,7 @@ public static class AbsolutePathExtensions
         FileMode fileMode, CancellationToken token)
     {
         await using var dest = file.Open(fileMode, FileAccess.Write, FileShare.None);
-        await using var sw = new StreamWriter(dest, Encoding.UTF8);
+        await using var sw = new StreamWriter(dest, new UTF8Encoding(false));
         foreach (var line in src) await sw.WriteLineAsync(line);
         await sw.DisposeAsync();
     }

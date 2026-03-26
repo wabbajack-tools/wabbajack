@@ -17,9 +17,9 @@ namespace Wabbajack.CLI.Verbs;
 public class ListGames
 {
     private readonly ILogger<ListGames> _logger;
-    private readonly GameLocator _locator;
+    private readonly IGameLocator _locator;
 
-    public ListGames(ILogger<ListGames> logger, GameLocator locator)
+    public ListGames(ILogger<ListGames> logger, IGameLocator locator)
     {
         _logger = logger;
         _locator = locator;

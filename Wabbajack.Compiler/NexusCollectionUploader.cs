@@ -237,7 +237,11 @@ namespace Wabbajack.Compiler
             var body = await response.Content.ReadAsStringAsync(token);
             response.EnsureSuccessStatusCode();
 
-            return JsonSerializer.Deserialize<MultipartUploadSession>(body,
+            // API wraps all v3 responses in { "data": { ... } }
+            var root = JsonNode.Parse(body) as JsonObject;
+            var dataNode = root?["data"] ?? root; // fall back to root if no wrapper (older API)
+            return JsonSerializer.Deserialize<MultipartUploadSession>(
+                dataNode?.ToJsonString() ?? "{}",
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
 
@@ -445,7 +449,9 @@ namespace Wabbajack.Compiler
                     }
 
                     var root = JsonNode.Parse(body) as JsonObject;
-                    var state = root?["state"]?.GetValue<string>();
+                    // API wraps all v3 responses in { "data": { ... } }
+                    var dataObj = root?["data"] as JsonObject ?? root;
+                    var state = dataObj?["state"]?.GetValue<string>();
 
                     _logger.LogInformation("Upload {uuid} state: {state} (attempt {attempt})",
                         uploadUuid, state, attempt);
@@ -769,20 +775,22 @@ namespace Wabbajack.Compiler
                 try
                 {
                     var root = JsonNode.Parse(responseBody) as JsonObject;
+                    // API wraps all v3 responses in { "data": { ... } }
+                    var data = root?["data"] as JsonObject ?? root;
 
                     string returnedCollectionId;
                     string returnedRevisionId;
 
                     if (isRevision)
                     {
-                        returnedRevisionId = root?["id"]?.GetValue<string>() ?? "";
-                        returnedCollectionId = root?["collection_id"]?.GetValue<string>()
+                        returnedRevisionId = data?["id"]?.GetValue<string>() ?? "";
+                        returnedCollectionId = data?["collection_id"]?.GetValue<string>()
                                                ?? collectionId ?? "";
                     }
                     else
                     {
-                        returnedCollectionId = root?["id"]?.GetValue<string>() ?? "";
-                        returnedRevisionId = root?["revision_id"]?.GetValue<string>() ?? "";
+                        returnedCollectionId = data?["id"]?.GetValue<string>() ?? "";
+                        returnedRevisionId = data?["revision_id"]?.GetValue<string>() ?? "";
                     }
 
                     var found = await FindRecentlyCreatedCollection(

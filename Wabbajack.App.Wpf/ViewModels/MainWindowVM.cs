@@ -396,9 +396,9 @@ public class MainWindowVM : ViewModel
         //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
     }
 
-    private void HandleManualBlobDownload(ManualBlobDownload manualDownload)
+    private void HandleManualBlobDownload(ManualBrowserDownload manualDownload)
     {
-        var handler = _serviceProvider.GetRequiredService<ManualBlobDownloadHandler>();
+        var handler = _serviceProvider.GetRequiredService<ManualBrowserDownloadHandler>();
         handler.Intervention = manualDownload;
         //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
     }
@@ -474,6 +474,15 @@ public class MainWindowVM : ViewModel
         {
             Thread.Sleep(TimeSpan.FromSeconds(1));
         }
+    }
+
+    public async Task<bool> ShowConfirmationDialog(string title, string message)
+    {
+        var dialog = new ConfirmationDialogVM(title, message);
+        ActiveFloatingPane = dialog;
+        var result = await dialog.Result;
+        ActiveFloatingPane = null;
+        return result;
     }
 
     public async Task ShutdownApplication()

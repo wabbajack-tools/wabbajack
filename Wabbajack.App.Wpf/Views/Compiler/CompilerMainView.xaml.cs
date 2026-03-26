@@ -200,6 +200,7 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
                     var preflightPassed = x.Item5;
                     var existingRevision = x.Item6;
                     var isChecking = x.Item7;
+                    var isDraft = ViewModel.ExistingCollectionIsDraft;
 
                     if (isBusy) _ClickedPublishCollection = true;
 
@@ -237,7 +238,9 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
                     {
                         if (existingRevision.HasValue)
                         {
-                            PublishCollectionButton.Text = $"Push Revision {existingRevision.Value + 1} to Nexus Mods";
+                            PublishCollectionButton.Text = isDraft
+                                ? "Update Draft Revision on Nexus Mods"
+                                : $"Push Revision {existingRevision.Value + 1} to Nexus Mods";
                         }
                         else
                         {
@@ -247,7 +250,9 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
                     }
 
                     PublishCollectionButton.Text = result == CompilerMainVM.PublishCollectionResult.Success
-                        ? (existingRevision.HasValue ? "Revision Pushed Successfully" : "Collection Created Successfully")
+                        ? (existingRevision.HasValue
+                            ? (isDraft ? "Draft Updated Successfully" : "Revision Pushed Successfully")
+                            : "Collection Created Successfully")
                         : "Collection Failed";
                 })
                 .DisposeWith(disposables);

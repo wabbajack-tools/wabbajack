@@ -1,5 +1,26 @@
 ### Changelog
 
+#### Version - 4.2.0.0 - TBD
+* Added automatic check for common errors to suggest fixes ([@januarysnow](https://github.com/januarysnow)) PR #2852
+* Updated dependencies ([@JanuarySnow](https://github.com/JanuarySnow)) PR #2862
+* Fixed mod filter checkbox not working properly ([@januarysnow](https://github.com/januarysnow)) PR #2871
+* Added support for Nier: Automata ([@SulfurNitride](https://github.com/SulfurNitride)) PR #2872
+* Added support for Kingdom Come : Deliverance II ([@ellisalgernon](https://github.com/https://github.com/ellisalgernon)) (Technically added earlier but didn't make it into the changelog)
+  * Added support for the GOG Version ([@EzioTheDeadPoet](https://github.com/EzioTheDeadPoet))
+* Updated GalleryView to Display List Titles of Lists that have the Title not in the Thumbnail ([@januarysnow](https://github.com/januarysnow)) PR #2874
+* Fixes to ImageLoading and ImageCaching ([@januarysnow](https://github.com/januarysnow)) PR #2881
+* Fixed AbsolutePath UNC prefix loss causing NUL device crash during archive hashing ([@jakemismas](https://github.com/jakemismas)) PR #2891
+* Fixec UTF-8 BOM in INI file writes causing Skyrim resolution issues ([@cashcon57](https://github.com/cashcon57)) PR #2894
+* Added a confirmation dialog before destructive file deletion ([@jakemismas](https://github.com/jakemismas)) PR #2897
+* Various fixes to the CLI ([@matracey](https://github.com/matracey)) PR #2900
+  * And added CLI Tests
+* Added ManualBlobDownload for improving LL Downloads ([@zclimber](https://github.com/zclimber)) PR #2901
+* Updated Nexus Collection Support related API calls ([@januarysnow](https://github.com/januarysnow)) PR #2902
+* Fix ResumableDownloader crash on disk full and broken retry logic ([@cashcon57](https://github.com/cashcon57)) PR #2905
+* Known Issues:
+  * When switching away from the "Browse lists" tab and back to it, clears the game selector list and resets the game filter 
+    * Workaround is to toggle one of the "include" filters on and off to force a refresh of the game selector list
+
 #### Version - 4.1.0.1 - 3/17/2026
 * HOTFIX: Properly handle "invalid file" responses from Nexus Mods when uploading a collection
 

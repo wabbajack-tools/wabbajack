@@ -30,9 +30,9 @@ public class UserInterventionHandler : IUserInterventionHandler
                 MessageBus.Current.SendMessage(new ShowBrowserWindow(provider));
                 break;
             }
-            case ManualBlobDownload bd:
+            case ManualBrowserDownload bd:
             {
-                var provider = _serviceProvider.GetRequiredService<ManualBlobDownloadHandler>();
+                var provider = _serviceProvider.GetRequiredService<ManualBrowserDownloadHandler>();
                 provider.Intervention = bd;
                 MessageBus.Current.SendMessage(new ShowBrowserWindow(provider));
                 break;

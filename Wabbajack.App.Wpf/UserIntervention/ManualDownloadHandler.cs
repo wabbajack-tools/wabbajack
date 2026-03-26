@@ -1,3 +1,4 @@
+using Microsoft.Web.WebView2.Core;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ public class ManualDownloadHandler : BrowserWindowViewModel
 
     protected override async Task Run(CancellationToken token)
     {
-        var uri = default(ManualDownload.BrowserDownloadState);
+        var dowloadState = default(ManualDownload.BrowserDownloadState);
         try
         {
             var archive = Intervention.Archive;
@@ -24,16 +25,60 @@ public class ManualDownloadHandler : BrowserWindowViewModel
 
             Instructions = string.IsNullOrWhiteSpace(md.Prompt) ? $"Please download {archive.Name}" : md.Prompt;
 
-            var task = WaitForDownloadUri(token, async () =>
-            {
-                await RunJavaScript("Array.from(document.getElementsByTagName(\"iframe\")).forEach(f => {if (f.title != \"SP Consent Message\" && !f.src.includes(\"challenges.cloudflare.com\")) f.remove()})");
-            });
-            await NavigateTo(md.Url);
-            uri = await task;
+            dowloadState = await NavigateAndLoadDownloadState(md.Url, token);
         }
         finally
         {
-            Intervention.Finish(uri);
+            Intervention.Finish(dowloadState);
         }
+    }
+
+    private async Task<ManualDownload.BrowserDownloadState> NavigateAndLoadDownloadState(Uri downloadPageUrl, CancellationToken token)
+    {
+        var source = new TaskCompletionSource<Uri>();
+        var referer = Browser.Source;
+        await WaitForReady(token);
+
+        EventHandler<CoreWebView2DownloadStartingEventArgs> handler = null!;
+
+        handler = (_, args) =>
+        {
+            try
+            {
+                source.TrySetResult(new Uri(args.DownloadOperation.Uri));
+            }
+            catch (Exception)
+            {
+                source.TrySetCanceled(token);
+            }
+
+            args.Cancel = true;
+            args.Handled = true;
+        };
+
+        Browser.CoreWebView2.DownloadStarting += handler;
+
+        await NavigateTo(downloadPageUrl);
+
+        try
+        {
+            var uri = await base.WaitWhileRemovingIframes(source.Task, token);
+
+            var cookies = await GetCookies(uri.Host, token);
+
+            return new ManualDownload.BrowserDownloadState(
+                uri,
+                cookies,
+                new[]
+                {
+                ("Referer", referer?.ToString() ?? uri.ToString())
+                },
+                Browser.CoreWebView2.Settings.UserAgent);
+        }
+        finally
+        {
+            Browser.CoreWebView2.DownloadStarting -= handler;
+        }
+
     }
 }

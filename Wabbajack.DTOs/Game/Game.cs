@@ -49,4 +49,5 @@ public enum Game
     [Description("Vampire: The Masquerade - Bloodlines")] VtMB,
     [Description("Kingdom Come: Deliverance II")] KingdomComeDeliverance2,
     [Description("Dragon's Dogma 2")] DragonsDogma2,
+    [Description("NieR:Automata")] NieRAutomata,
 }

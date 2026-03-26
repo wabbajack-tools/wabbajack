@@ -42,6 +42,10 @@ using System.Windows.Input;
 using Microsoft.Web.WebView2.Wpf;
 using System.Diagnostics;
 using System.Reactive.Concurrency;
+using Wabbajack.Reporting;
+using Markdig;
+using Markdig.Syntax;
+
 
 namespace Wabbajack;
 
@@ -67,6 +71,9 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     [Reactive] public StandardInstaller StandardInstaller { get; set; }
     [Reactive] public BitmapImage ModListImage { get; set; }
     [Reactive] public InstallState InstallState { get; set; }
+
+    [Reactive] public string FailureDetailsTitle { get; set; } = string.Empty;
+    [Reactive] public string FailureDetailsDescription { get; set; } = string.Empty;
 
     /// <summary>
     /// Don't use the Reactive attribute on nullable enum values
@@ -114,7 +121,9 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     [Reactive] public ValidationResult ValidationResult { get; set; }
     
     [Reactive] public bool ShowNSFWSlides { get; set; }
-    
+
+    [Reactive] public bool DiagnosticsVisible { get; set; } = false;
+
     public LogStream LoggerProvider { get; }
 
 
@@ -130,6 +139,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     public ICommand OpenWebsiteCommand { get; }
     public ICommand OpenMissingArchivesCommand { get; }
     public ICommand BackToGalleryCommand { get; }
+    public ICommand DiagnoseFailureCommand { get; }
     public ICommand OpenLogFolderCommand { get; }
     public ICommand OpenInstallFolderCommand { get; }
     public ICommand InstallCommand { get; }
@@ -160,6 +170,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
 
         Installer = new MO2InstallerVM(this);
         ReadmeBrowser = serviceProvider.GetRequiredService<WebView2>();
+
 
         CancelCommand = ReactiveCommand.Create(CancelInstall, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
         EditInstallDetailsCommand = ReactiveCommand.Create(() =>
@@ -222,6 +233,8 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
         });
 
         BackToGalleryCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.ModListGallery));
+
+        DiagnoseFailureCommand = ReactiveCommand.Create(() => LaunchDiagnostics());
 
         CreateShortcutCommand = ReactiveCommand.Create(() => CreateDesktopShortcut());
 
@@ -328,6 +341,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                 .Select(x => x.PathParts.Any() ? x.Combine("downloads") : x)
                 .Subscribe(x => Installer.DownloadLocation.TargetPath = x)
                 .DisposeWith(disposables);
+
         });
 
     }
@@ -345,6 +359,69 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
         string icon = path.Replace('\\', '/');
         writer.WriteLine("IconFile=" + icon);
     }
+
+    private void LaunchDiagnostics()
+    {
+        try
+        {
+            // Remote tags
+            const string YamlUrl = "https://raw.githubusercontent.com/JanuarySnow/WJ-Bot/main/tags.yaml";
+            const string RawBase = "https://raw.githubusercontent.com/JanuarySnow/WJ-Bot/main/";
+
+            // try and get the log without Wabbajack stepping on us doing that ting
+            var liveLog = _configuration.LogLocation.Combine("Wabbajack.current.log").ToString();
+
+            string logText = SafeReadAllText(liveLog)
+                          ?? string.Empty;
+
+            var result = Wabbajack.Reporting.DiagnosticsFacade.AnalyzeText(
+                logText: logText,
+                yamlUrl: YamlUrl,
+                rawBase: RawBase
+            );
+
+            if (result.HasValue)
+            {
+                FailureDetailsTitle = $"Possible issue: {result.Title}";
+                FailureDetailsDescription = result.Body;
+            }
+            else
+            {
+                FailureDetailsTitle = "No common issues detected";
+                FailureDetailsDescription = "Couldn't match a known issue in your log. You can open the log file to investigate further, or join the Wabbajack Discord to ask for help.";
+            }
+            InstallState = InstallState.Failure;
+            DiagnosticsVisible = true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Diagnostics failed");
+            FailureDetailsTitle = "Diagnostics failed";
+            FailureDetailsDescription = $"An error occurred while analyzing your log.\n{ex.GetType().Name}: {ex.Message}";
+            InstallState = InstallState.Failure;
+            DiagnosticsVisible = true;
+        }
+    }
+
+    private static string? SafeReadAllText(string path)
+    {
+        try
+        {
+            if (!File.Exists(path)) return null;
+            using var fs = new FileStream(path,
+                                          FileMode.Open,
+                                          FileAccess.Read,
+                                          FileShare.ReadWrite | FileShare.Delete);
+            using var sr = new StreamReader(fs);
+            return sr.ReadToEnd();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+
 
     private static string GetSuggestedInstallFolder(ModlistMetadata x)
     {
@@ -672,6 +749,18 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                     });
                 };
 
+                StandardInstaller.OnConfirmAction = async (title, message) =>
+                {
+                    var tcs = new TaskCompletionSource<bool>();
+                    RxApp.MainThreadScheduler.Schedule(async () =>
+                    {
+                        var mainWindowVM = (MainWindowVM)System.Windows.Application.Current.MainWindow.DataContext;
+                        var result = await mainWindowVM.ShowConfirmationDialog(title, message);
+                        tcs.TrySetResult(result);
+                    });
+                    return await tcs.Task;
+                };
+
                 _logger.LogInformation("Starting installation of {modlist} {version}:", cfg.ModList.Name, cfg.ModList.Version?.ToString() ?? "");
                 _logger.LogInformation("    Installation folder: {installFolder}", cfg.Install.ToString());
                 _logger.LogInformation("    Downloads folder: {downloadsFolder}", cfg.Downloads.ToString());
@@ -703,6 +792,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                         ProgressText = $"Error during installation of {ModList.Name}";
                         ProgressPercent = Percent.Zero;
                         ProgressState = ProgressState.Error;
+                        LaunchDiagnostics();
                     });
                 }
             }
@@ -716,6 +806,7 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
                     ProgressPercent = Percent.Zero;
                     ProgressState = ProgressState.Error;
                     InstallResult = Wabbajack.Installer.InstallResult.Errored;
+                    LaunchDiagnostics();
                 });
             }
         });
