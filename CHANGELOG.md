@@ -3,7 +3,8 @@
 #### Version - 4.2.0.1
 * Fixed Nexus Collections Publishing not setting the correct Game Version
   & Fixed WJ opening the wrong Collection revision on Nexus Mods after a publish ([@januarysnow](https://github.com/januarysnow)) PR #2907
-
+* Fixed Gallery Title and Metadata not being displayed when hovering over modlists ([@Lartza](https://github.com/Lartza))
+ 
 #### Version - 4.2.0.0 - 3/26/2026
 * Added automatic check for common errors to suggest fixes ([@januarysnow](https://github.com/januarysnow)) PR #2852
 * Updated dependencies ([@JanuarySnow](https://github.com/JanuarySnow)) PR #2862
