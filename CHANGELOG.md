@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 4.2.0.1
+#### Version - 4.2.1.0 - TBD
 * Fixed Nexus Collections Publishing not setting the correct Game Version
   & Fixed WJ opening the wrong Collection revision on Nexus Mods after a publish ([@januarysnow](https://github.com/januarysnow)) PR #2907
 * Fixed Gallery Title and Metadata not being displayed when hovering over modlists ([@Lartza](https://github.com/Lartza))
@@ -17,7 +17,7 @@
 * Updated GalleryView to Display List Titles of Lists that have the Title not in the Thumbnail ([@januarysnow](https://github.com/januarysnow)) PR #2874
 * Fixes to ImageLoading and ImageCaching ([@januarysnow](https://github.com/januarysnow)) PR #2881
 * Fixed AbsolutePath UNC prefix loss causing NUL device crash during archive hashing ([@jakemismas](https://github.com/jakemismas)) PR #2891
-* Fixec UTF-8 BOM in INI file writes causing Skyrim resolution issues ([@cashcon57](https://github.com/cashcon57)) PR #2894
+* Fixed UTF-8 BOM in INI file writes causing Skyrim resolution issues ([@cashcon57](https://github.com/cashcon57)) PR #2894
 * Added a confirmation dialog before destructive file deletion ([@jakemismas](https://github.com/jakemismas)) PR #2897
 * Various fixes to the CLI ([@matracey](https://github.com/matracey)) PR #2900
   * And added CLI Tests
