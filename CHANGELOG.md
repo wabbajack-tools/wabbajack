@@ -6,6 +6,7 @@
 * Fixed Gallery Title and Metadata not being displayed when hovering over modlists ([@Lartza](https://github.com/Lartza))
 * Fixed Gallery Game filter ComboBox not working reliably
   & Filters not always applying when switching back to the Gallery Tab ([@EzioTheDeadPoet](https://github.com/EzioTheDeadPoet)) 
+* Added the mention of the downloads folder to the file deletion confirm dialog ([@EzioTheDeadPoet](https://github.com/EzioTheDeadPoet))
  
 #### Version - 4.2.0.0 - 3/26/2026
 * Added automatic check for common errors to suggest fixes ([@januarysnow](https://github.com/januarysnow)) PR #2852
