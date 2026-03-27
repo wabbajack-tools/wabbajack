@@ -600,7 +600,7 @@ public abstract class AInstaller<T>
                 var title = "Confirm file deletion";
                 var message = $"{filesToDelete.Count} file(s) that are not part of the \"{_configuration.ModList.Name}\" modlist " +
                     $"will be deleted from:\n\n{_configuration.Install}\n\n" +
-                    $"Save files and [NoDelete] folders will be preserved.\n\n" +
+                    $"Save files, downloads and [NoDelete] folders will be preserved.\n\n" +
                     $"Do you want to continue?";
 
                 var confirmed = await OnConfirmAction(title, message);
