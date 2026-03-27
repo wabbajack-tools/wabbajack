@@ -1,22 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms.VisualStyles;
+using System.Windows;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
-using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using ReactiveMarbles.ObservableEvents;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
@@ -27,12 +24,11 @@ using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.Services;
-using System.Windows;
 
 namespace Wabbajack;
 public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 {
-    public class GameTypeEntry
+    public class GameTypeEntry : ReactiveObject
     {
         public GameTypeEntry(GameMetaData gameMetaData, int amount)
         {
@@ -40,13 +36,15 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
             IsAllGamesEntry = gameMetaData == null;
             GameIdentifier = IsAllGamesEntry ? ALL_GAME_IDENTIFIER : gameMetaData?.HumanFriendlyGameName;
             Amount = amount;
-            FormattedName = IsAllGamesEntry ? $"{ALL_GAME_IDENTIFIER} ({Amount})" : $"{gameMetaData.HumanFriendlyGameName} ({Amount})";
+
+            this.WhenAnyValue(x => x.Amount)
+                .Subscribe(_ => this.RaisePropertyChanged(nameof(FormattedName)));
         }
 
         public bool IsAllGamesEntry { get; set; }
         public GameMetaData GameMetaData { get; private set; }
-        public int Amount { get; private set; }
-        public string FormattedName { get; private set; }
+        [Reactive] public int Amount { get; set; }
+        public string FormattedName => IsAllGamesEntry ? $"{ALL_GAME_IDENTIFIER} ({Amount})" : $"{GameMetaData.HumanFriendlyGameName} ({Amount})";
         public string GameIdentifier { get; private set; }
         public static GameTypeEntry GetAllGamesEntry(int amount) => new(null, amount);
     }
@@ -73,7 +71,7 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 
     [Reactive] public bool ExcludeMods { get; set; }
 
-    [Reactive] public string GameType { get; set; }
+    [Reactive] public string GameType { get; set; } = "All games";
     [Reactive] public double MinModlistSize { get; set; }
     [Reactive] public double MaxModlistSize { get; set; }
 
@@ -89,16 +87,19 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
     [Reactive] public GalleryModListMetadataVM SmallestSizedModlist { get; set; }
     [Reactive] public GalleryModListMetadataVM LargestSizedModlist { get; set; }
 
-    [Reactive] public ObservableCollection<GameTypeEntry> GameTypeEntries { get; set; }
-    private bool _filteringOnGame;
+    [Reactive] public ObservableCollection<GameTypeEntry> AllGameTypeEntries { get; set; } = new();
+    [Reactive] public ObservableCollection<GameTypeEntry> GameTypeEntries { get; set; } = new();
     private GameTypeEntry _selectedGameTypeEntry = null;
+    private bool _updatingGamesToFilter = false;
 
     public GameTypeEntry SelectedGameTypeEntry
     {
         get => _selectedGameTypeEntry;
         set
         {
-            RaiseAndSetIfChanged(ref _selectedGameTypeEntry, value ?? GameTypeEntries?.FirstOrDefault(gte => gte.IsAllGamesEntry));
+            if (_selectedGameTypeEntry == value) return;
+            var newEntry = value ?? GameTypeEntries?.FirstOrDefault(gte => gte.IsAllGamesEntry);
+            RaiseAndSetIfChanged(ref _selectedGameTypeEntry, newEntry);
             GameType = _selectedGameTypeEntry?.GameIdentifier;
         }
     }
@@ -171,7 +172,9 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
         this.WhenActivated(disposables =>
         {
             EnsureGalleryLoadedAsync().FireAndForget();
-            LoadSettings().FireAndForget();
+            
+            if (!IsSettingsLoaded)
+                LoadSettings().FireAndForget();
 
             if (LoadModlistFromProtocol.TryConsumePending(out var pending))
             {
@@ -209,7 +212,7 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
             var searchTextPredicates = this.ObservableForProperty(vm => vm.Search)
                 .Throttle(searchThrottle, RxApp.MainThreadScheduler)
                 .Select(change => change.Value?.Trim() ?? "")
-                .StartWith(Search)
+                .StartWith(Search ?? "")
                 .Select<string, Func<GalleryModListMetadataVM, bool>>(txt =>
                 {
                     if (string.IsNullOrWhiteSpace(txt)) return _ => true;
@@ -220,12 +223,12 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 
             var onlyInstalledGamesFilter = this.ObservableForProperty(vm => vm.OnlyInstalled)
                 .Select(v => v.Value)
+                .StartWith(OnlyInstalled)
                 .Select<bool, Func<GalleryModListMetadataVM, bool>>(onlyInstalled =>
                 {
                     if (onlyInstalled == false) return _ => true;
                     return item => _locator.IsInstalled(item.Metadata.Game);
-                })
-                .StartWith(_ => true);
+                });
 
             var includeUnofficialFilter = this.ObservableForProperty(vm => vm.IncludeUnofficial)
                 .Select(v => v.Value)
@@ -247,39 +250,40 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 
             var gameFilter = this.ObservableForProperty(vm => vm.GameType)
                 .Select(v => v.Value)
+                .StartWith(GameType)
                 .Select<string, Func<GalleryModListMetadataVM, bool>>(selected =>
                 {
-                    _filteringOnGame = true;
                     if (selected is null or ALL_GAME_IDENTIFIER) return _ => true;
                     return item => item.Metadata.Game.MetaData().HumanFriendlyGameName == selected;
-                })
-                .StartWith(_ => true);
+                });
 
             var minModlistSizeFilter = this.ObservableForProperty(vm => vm.MinModlistSize)
-                                 .Throttle(TimeSpan.FromSeconds(0.05), RxApp.MainThreadScheduler)
-                                 .Select(v => v.Value)
-                                 .Select<double, Func<GalleryModListMetadataVM, bool>>(minModlistSize =>
-                                 {
-                                     return item => item.Metadata.DownloadMetadata.TotalSize >= minModlistSize;
-                                 });
+                .Throttle(TimeSpan.FromSeconds(0.05), RxApp.MainThreadScheduler)
+                .Select(v => v.Value)
+                .StartWith(MinModlistSize)
+                .Select<double, Func<GalleryModListMetadataVM, bool>>(minModlistSize =>
+                {
+                    return item => item.Metadata.DownloadMetadata.TotalSize >= minModlistSize;
+                });
 
             var maxModlistSizeFilter = this.ObservableForProperty(vm => vm.MaxModlistSize)
-                                 .Throttle(TimeSpan.FromSeconds(0.05), RxApp.MainThreadScheduler)
-                                 .Select(v => v.Value)
-                                 .Select<double, Func<GalleryModListMetadataVM, bool>>(maxModlistSize =>
-                                 {
-                                     return item => item.Metadata.DownloadMetadata.TotalSize <= maxModlistSize;
-                                 });
+                .Throttle(TimeSpan.FromSeconds(0.05), RxApp.MainThreadScheduler)
+                .Select(v => v.Value)
+                .StartWith(MaxModlistSize)
+                .Select<double, Func<GalleryModListMetadataVM, bool>>(maxModlistSize =>
+                {
+                    return item => item.Metadata.DownloadMetadata.TotalSize <= maxModlistSize;
+                });
 
             var includedTagsFilter = this.ObservableForProperty(vm => vm.HasTags)
                 .Select(v => v.Value)
+                .StartWith(HasTags)
                 .Select<ObservableCollection<ModListTag>, Func<GalleryModListMetadataVM, bool>>(filteredTags =>
                 {
                     if(!filteredTags?.Any() ?? true) return _ => true;
 
                     return item => filteredTags.All(tag => item.Metadata.Tags.Contains(tag.Name));
-                })
-                .StartWith(_ => true);
+                });
 
             var includedModsFilter =
                 this.WhenAnyValue(vm => vm.HasMods, vm => vm.ExcludeMods)
@@ -300,16 +304,15 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                         return item =>
                             ModsPerList.TryGetValue(item.Metadata.Links.MachineURL, out var mods) &&
                             filterData.Mods.All(mod => mods.Contains(mod.Name));
-                    })
-                    .StartWith(_ => true);
+                    });
 
 
             var searchSorter = this.WhenValueChanged(vm => vm.Search)
-                                    .Throttle(searchThrottle, RxApp.MainThreadScheduler)
-                                    .Select(s => SortExpressionComparer<GalleryModListMetadataVM>
-                                                 .Descending(m => m.Metadata.Title.StartsWith(s ?? "", StringComparison.InvariantCultureIgnoreCase))
-                                                 .ThenByDescending(m => m.Metadata.Title.Contains(s ?? "", StringComparison.InvariantCultureIgnoreCase))
-                                                 .ThenByDescending(m => !m.IsBroken));
+                .Throttle(searchThrottle, RxApp.MainThreadScheduler)
+                .Select(s => SortExpressionComparer<GalleryModListMetadataVM>
+                    .Descending(m => m.Metadata.Title.StartsWith(s ?? "", StringComparison.InvariantCultureIgnoreCase))
+                    .ThenByDescending(m => m.Metadata.Title.Contains(s ?? "", StringComparison.InvariantCultureIgnoreCase))
+                    .ThenByDescending(m => !m.IsBroken));
             _modLists.Connect()
                 .Filter(searchTextPredicates)
                 .Filter(onlyInstalledGamesFilter)
@@ -323,19 +326,129 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                 .SortAndBind(out _filteredModLists, searchSorter)
                 .Subscribe(_ =>
                 {
-                    if (!_filteringOnGame)
-                    {
-                        var previousGameType = GameType;
-                        SelectedGameTypeEntry = null;
-                        LoadGameTypeEntries();
-                        var nextEntry = GameTypeEntries.FirstOrDefault(gte => previousGameType == gte.GameIdentifier);
-                        SelectedGameTypeEntry = nextEntry ?? GameTypeEntries.FirstOrDefault(gte => GameType == ALL_GAME_IDENTIFIER);
-                    }
-
-                    _filteringOnGame = false;
+                    UpdateGamesToFilter();
                 })
                 .DisposeWith(disposables);
         });
+    }
+
+    private void UpdateGamesToFilter()
+    {
+        if (AllGameTypeEntries == null || !AllGameTypeEntries.Any() || _updatingGamesToFilter) return;
+
+        try
+        {
+            _updatingGamesToFilter = true;
+            // Apply all filters EXCEPT the game filter to the master list to get counts per game
+            var search = Search?.Trim() ?? "";
+            var onlyInstalled = OnlyInstalled;
+            var includeUnofficial = IncludeUnofficial;
+            var includeNSFW = IncludeNSFW;
+            var minModlistSize = MinModlistSize;
+            var maxModlistSize = MaxModlistSize;
+            var hasTags = HasTags?.ToList();
+            var hasMods = HasMods?.ToList();
+            var excludeMods = ExcludeMods;
+            var modsPerList = ModsPerList;
+
+            var filteredItems = _modLists.Items
+                .AsParallel()
+                .Where(item => 
+                {
+                    // Search
+                    if (!string.IsNullOrWhiteSpace(search) && 
+                        !item.Metadata.Title.ContainsCaseInsensitive(search) &&
+                        !item.Metadata.Description.ContainsCaseInsensitive(search) &&
+                        !item.Metadata.Tags.Contains(search))
+                        return false;
+
+                    // Only Installed
+                    if (onlyInstalled && !_locator.IsInstalled(item.Metadata.Game))
+                        return false;
+
+                    // Unofficial
+                    if (!includeUnofficial && !item.Metadata.Official)
+                        return false;
+
+                    // NSFW
+                    if (!includeNSFW && item.Metadata.NSFW)
+                        return false;
+
+                    // Size
+                    if (item.Metadata.DownloadMetadata.TotalSize < minModlistSize || 
+                        item.Metadata.DownloadMetadata.TotalSize > maxModlistSize)
+                        return false;
+
+                    // Tags
+                    if (hasTags != null && hasTags.Any() && !hasTags.All(tag => item.Metadata.Tags.Contains(tag.Name)))
+                        return false;
+
+                    // Mods
+                    if (hasMods != null && hasMods.Any())
+                    {
+                        if (excludeMods)
+                        {
+                            if (modsPerList.TryGetValue(item.Metadata.Links.MachineURL, out var mods) &&
+                                hasMods.Any(mod => mods.Contains(mod.Name)))
+                                return false;
+                        }
+                        else
+                        {
+                            if (!modsPerList.TryGetValue(item.Metadata.Links.MachineURL, out var mods) ||
+                                !hasMods.All(mod => mods.Contains(mod.Name)))
+                                return false;
+                        }
+                    }
+
+                    return true;
+                })
+                .ToList();
+
+            var counts = filteredItems
+                .GroupBy(m => m.Metadata.Game)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var totalCount = filteredItems.Count;
+
+            var selectedIdentifier = SelectedGameTypeEntry?.GameIdentifier;
+
+            foreach (var entry in AllGameTypeEntries)
+            {
+                if (entry.IsAllGamesEntry)
+                {
+                    entry.Amount = totalCount;
+                }
+                else
+                {
+                    var game = entry.GameMetaData.Game;
+                    entry.Amount = counts.TryGetValue(game, out var count) ? count : 0;
+                }
+            }
+
+            // Synchronize GameTypeEntries to only show those with Amount > 0
+            var toShow = AllGameTypeEntries.Where(e => e.IsAllGamesEntry || e.Amount > 0).ToList();
+        
+            // Update GameTypeEntries collection while preserving selection
+            var currentEntries = GameTypeEntries.ToList();
+            if (!currentEntries.SequenceEqual(toShow))
+            {
+                GameTypeEntries.Clear();
+                foreach (var entry in toShow)
+                    GameTypeEntries.Add(entry);
+            
+                // Re-select if possible
+                if (selectedIdentifier == null) return;
+                var match = GameTypeEntries.FirstOrDefault(e => e.GameIdentifier == selectedIdentifier);
+                var fallback = GameTypeEntries.FirstOrDefault(e => e.IsAllGamesEntry);
+                var toSelect = match ?? fallback;
+                if (!ReferenceEquals(SelectedGameTypeEntry, toSelect))
+                    SelectedGameTypeEntry = toSelect;
+            }
+        }
+        finally
+        {
+            _updatingGamesToFilter = false;
+        }
     }
 
     public override void Unload()
@@ -736,17 +849,29 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
         _savingSettings = false;
     }
 
+    public bool IsSettingsLoaded { get; private set; }
+
+    private string _pendingGameTypeFromSettings = null;
+
     private async Task LoadSettings()
     {
         using var ll = LoadingLock.WithLoading();
         RxApp.MainThreadScheduler.Schedule(await _settingsManager.Load<GalleryFilterSettings>("modlist_gallery"),
             (_, s) =>
             {
-                SelectedGameTypeEntry = GameTypeEntries?.FirstOrDefault(gte => gte.GameIdentifier.Equals(s.GameType));
+                if (AllGameTypeEntries == null || !AllGameTypeEntries.Any())
+                {
+                    _pendingGameTypeFromSettings = s.GameType;
+                }
+                else
+                {
+                    SelectedGameTypeEntry = GameTypeEntries?.FirstOrDefault(gte => gte.GameIdentifier == s.GameType);
+                }
                 IncludeNSFW = s.IncludeNSFW;
                 IncludeUnofficial = s.IncludeUnofficial;
                 OnlyInstalled = s.OnlyInstalled;
                 ExcludeMods = s.ExcludeMods;
+                IsSettingsLoaded = true;
                 return Disposable.Empty;
             });
     }
@@ -760,11 +885,11 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
             var tagMappings = await _wjClient.LoadTagMappings();
 
             AllTags = allowedTags.Select(t => new ModListTag(t))
-                                 .OrderBy(t => t.Name)
-                                 .Prepend(new ModListTag("NSFW"))
-                                 .Prepend(new ModListTag("Featured"))
-                                 .Prepend(new ModListTag("Unavailable"))
-                                 .ToHashSet();
+                .OrderBy(t => t.Name)
+                .Prepend(new ModListTag("NSFW"))
+                .Prepend(new ModListTag("Featured"))
+                .Prepend(new ModListTag("Unavailable"))
+                .ToHashSet();
             var searchIndex = await _wjClient.LoadSearchIndex();
             ModsPerList = searchIndex.ModsPerList;
             AllMods = searchIndex.AllMods.Select(mod => new ModListMod(mod)).ToHashSet();
@@ -797,6 +922,7 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                     new GalleryModListMetadataVM(_logger, this, m, _maintainer, modlistSummaries.TryGetValue(m.Links.MachineURL, out var summary) ? summary : null, _wjClient, _cancellationToken,
                         httpClient, cacheManager)));
             });
+            LoadGameTypeEntries();
             DetermineListSizeRange();
             ll.Succeed();
         }
@@ -831,12 +957,28 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 
     private void LoadGameTypeEntries()
     {
-        GameTypeEntries = new(ModLists.Select(m => m.Metadata)
+        var entries = _modLists.Items.Select(m => m.Metadata)
             .GroupBy(m => m.Game)
             .Select(g => new GameTypeEntry(g.Key.MetaData(), g.Count()))
             .OrderBy(gte => gte.GameMetaData.HumanFriendlyGameName)
-            .Prepend(GameTypeEntry.GetAllGamesEntry(ModLists.Count))
-            .ToList());
+            .Prepend(GameTypeEntry.GetAllGamesEntry(_modLists.Count))
+            .ToList();
+
+        AllGameTypeEntries.Clear();
+        AllGameTypeEntries.AddRange(entries);
+
+        UpdateGamesToFilter();
+
+        if (_pendingGameTypeFromSettings != null)
+        {
+            SelectedGameTypeEntry = GameTypeEntries.FirstOrDefault(gte => gte.GameIdentifier == _pendingGameTypeFromSettings)
+                                    ?? GameTypeEntries.FirstOrDefault(gte => gte.IsAllGamesEntry);
+            _pendingGameTypeFromSettings = null;
+        }
+        else if (SelectedGameTypeEntry == null)
+        {
+            SelectedGameTypeEntry = GameTypeEntries.FirstOrDefault(gte => gte.IsAllGamesEntry);
+        }
     }
 
     private Task EnsureGalleryLoadedAsync()
