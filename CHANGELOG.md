@@ -1,5 +1,6 @@
 ### Changelog
-
+#### Version - 4.2.1.1 - TBD
+* FIxed BSA order of operations as it was a "dirty" edit in a previous PR
 #### Version - 4.2.1.0 - TBD
 * Fixed Nexus Collections Publishing not setting the correct Game Version
   & Fixed WJ opening the wrong Collection revision on Nexus Mods after a publish ([@januarysnow](https://github.com/januarysnow)) PR #2907
