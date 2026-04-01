@@ -62,9 +62,10 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
     public ICommand OpenFolderCommand { get; }
     public ICommand PublishCommand { get; }
     public ICommand PublishCollectionCommand { get; }
-
     public ICommand RefreshPreflightChecksCommand { get; }
+    public enum PublishResult { None, Success, Failed }
 
+    [Reactive] public PublishResult PublishLastResult { get; set; } = PublishResult.None;
     [Reactive] public bool IsPublishing { get; set; }
     [Reactive] public bool IsPublishingCollection { get; set; }
     [Reactive] public Percent PublishingPercentage { get; set; } = Percent.One;
@@ -183,10 +184,10 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                 CurrentStep = Step.Configuration;
                 State = CompilerState.Configuration;
                 ProgressState = ProgressState.Normal;
-                // Reset collection publishing state when entering configuration
                 CollectionPublishingPercentage = Percent.One;
                 CollectionPublishingStage = "";
                 PublishCollectionLastResult = PublishCollectionResult.None;
+                PublishLastResult = PublishResult.None;
             }
 
             this.WhenAnyValue(x => x.CompilerDetailsVM.Settings)
@@ -235,6 +236,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
         try
         {
             BusyStatusText = "Publishing modlist...";
+            PublishLastResult = PublishResult.None;
             IsPublishing = true;
             PublishingPercentage = Percent.Zero;
 
@@ -248,10 +250,12 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
 
             using var progressSubscription = progress.Subscribe(p => PublishingPercentage = p.PercentDone);
             await publishTask;
+            PublishLastResult = PublishResult.Success;
         }
         catch (Exception ex)
         {
             _logger.LogError("While publishing: {ex}", ex);
+            PublishLastResult = PublishResult.Failed;
         }
         finally
         {
