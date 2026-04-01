@@ -149,12 +149,13 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
                 .BindToStrict(this, v => v.PreflightStatusText.Visibility)
                 .DisposeWith(disposables);
 
-            ViewModel.WhenAnyValue(vm => vm.PublishingPercentage, vm => vm.PreflightChecksPassed)
+            ViewModel.WhenAnyValue(vm => vm.PublishingPercentage, vm => vm.PreflightChecksPassed, vm => vm.PublishLastResult)
                 .ObserveOnGuiThread()
                 .Subscribe(x =>
                 {
                     var pct = x.Item1;
                     var preflightPassed = x.Item2;
+                    var lastResult = x.Item3;
 
                     if (pct != RateLimiter.Percent.One) _ClickedPublish = true;
 
@@ -167,6 +168,10 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
                     else if (pct.Value >= 0 && pct.Value < 1)
                     {
                         PublishButton.Text = "Publishing...";
+                    }
+                    else if (lastResult == CompilerMainVM.PublishResult.Failed)
+                    {
+                        PublishButton.Text = "Publish Failed";
                     }
                     else
                     {
