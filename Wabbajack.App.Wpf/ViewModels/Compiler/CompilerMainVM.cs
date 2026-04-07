@@ -607,7 +607,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                         CancellationToken.None);
 
                     _logger.LogInformation("Persisted Nexus mapping to modlists.json: collectionId={id} slug={slug} domain={domain} rev={rev}",
-                        result.CollectionId, result.Slug, listDomain, result.RevisionNumber);
+                        result.CollectionId, slugToPersist, listDomain, result.RevisionNumber);
                 }
                 catch (Exception ex)
                 {
