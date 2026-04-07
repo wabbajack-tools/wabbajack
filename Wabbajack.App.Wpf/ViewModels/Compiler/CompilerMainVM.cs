@@ -582,6 +582,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                 collectionJsonPath,
                 Settings.OutputFile,
                 existingCollectionId: existingCollectionId,
+                existingSlug: existingSlug,
                 gameVersion: gameVersion,
                 confirmFallbackToCreate: null,
                 token: CancellationToken.None);
@@ -593,10 +594,14 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
                 // put mapping back to the author modlists.json
                 try
                 {
+                    var slugToPersist = !string.IsNullOrWhiteSpace(result.Slug)
+                        ? result.Slug
+                        : existingSlug ?? "";
+
                     await _wjClient.SetNexusCollectionMapping(
                         Settings.MachineUrl,
                         result.CollectionId,
-                        result.Slug,
+                        slugToPersist,
                         listDomain,
                         expectedNewRevisionNumber,
                         CancellationToken.None);

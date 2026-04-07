@@ -544,7 +544,10 @@ public class Client
         var pair = namespacedName.Split("/");
         var wjRepoName = pair[0];
 
-        var repoUrl = (await LoadRepositories())[wjRepoName];
+        var repositories = await LoadRepositories();
+        var repoKey = repositories.Keys.FirstOrDefault(k => k.Equals(wjRepoName, StringComparison.OrdinalIgnoreCase))
+            ?? wjRepoName;
+        var repoUrl = repositories[repoKey];
         var decomposed = repoUrl.LocalPath.Split("/");
         var owner = decomposed[1];
         var repoName = decomposed[2];
