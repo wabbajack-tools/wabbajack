@@ -333,10 +333,20 @@ Invoke-Step "Uploading to Nexus Mods" {
     Write-Host "`nNexus Mods uploads complete!" -ForegroundColor Green
 }
 
-# --- Step 8: Discord output ---
+# --- Step 8: Publish GitHub release ---
+
+Invoke-Step "Publishing GitHub release" {
+    Push-Location $repoRoot
+    gh release edit $script:version --draft=false
+    Assert-ExitCode "gh release edit --draft=false"
+    Pop-Location
+    Write-Host "Release $($script:version) is now live!" -ForegroundColor Green
+}
+
+# --- Step 9: Discord output ---
 
 Invoke-Step "Release complete!" {
-    Write-Host "`nGitHub: https://github.com/wabbajack-tools/wabbajack/releases/tag/$($script:version) (DRAFT - publish when ready)" -ForegroundColor Green
+    Write-Host "`nGitHub: https://github.com/wabbajack-tools/wabbajack/releases/tag/$($script:version)" -ForegroundColor Green
     Write-Host "Nexus:  https://www.nexusmods.com/site/mods/403?tab=files" -ForegroundColor Green
 
     Write-Host "`n--- Copy below for Discord ---`n" -ForegroundColor Magenta
