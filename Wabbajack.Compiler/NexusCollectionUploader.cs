@@ -86,6 +86,7 @@ namespace Wabbajack.Compiler
             AbsolutePath collectionJsonPath,
             AbsolutePath archivePath,
             string? existingCollectionId = null,
+            string? existingSlug = null,
             string? gameVersion = null,
             Func<Task<bool>>? confirmFallbackToCreate = null,
             CancellationToken token = default)
@@ -170,7 +171,7 @@ namespace Wabbajack.Compiler
                 {
                     result = await CreateCollectionRevision(
                         collectionPayload, uploadUuid, existingCollectionId,
-                        modList.IsNSFW, authState.OAuth.AccessToken, collectionJsonPath, token);
+                        modList.IsNSFW, authState.OAuth.AccessToken, collectionJsonPath, existingSlug, token);
 
                     if (result == null)
                         _logger.LogWarning(
@@ -191,7 +192,7 @@ namespace Wabbajack.Compiler
 
                     result = await CreateCollection(
                         collectionPayload, uploadUuid, modList.IsNSFW,
-                        authState.OAuth.AccessToken, collectionJsonPath, token);
+                        authState.OAuth.AccessToken, collectionJsonPath, null,token);
                 }
 
                 if (result != null && result.Success)
@@ -479,21 +480,23 @@ namespace Wabbajack.Compiler
 
         private Task<CollectionUploadResult?> CreateCollection(
             VortexCollection collectionPayload, string uploadUuid, bool adultContent,
-            string accessToken, AbsolutePath collectionJsonPath, CancellationToken token)
+            string accessToken, AbsolutePath collectionJsonPath, string? knownSlug, CancellationToken token)
             => ExecuteCollectionRestCall(
                 $"{RestBaseUrl}/collections",
                 collectionPayload, uploadUuid, adultContent,
                 accessToken, collectionJsonPath,
+                knownSlug: knownSlug,
                 isRevision: false, collectionId: null, token: token);
 
         private Task<CollectionUploadResult?> CreateCollectionRevision(
             VortexCollection collectionPayload, string uploadUuid, string collectionId,
             bool adultContent, string accessToken, AbsolutePath collectionJsonPath,
-            CancellationToken token)
+            string? knownSlug, CancellationToken token)
             => ExecuteCollectionRestCall(
                 $"{RestBaseUrl}/collections/{collectionId}/revisions",
                 collectionPayload, uploadUuid, adultContent,
                 accessToken, collectionJsonPath,
+                knownSlug: knownSlug,
                 isRevision: true, collectionId: collectionId, token: token);
 
 
@@ -645,6 +648,7 @@ namespace Wabbajack.Compiler
             AbsolutePath collectionJsonPath,
             bool isRevision,
             string? collectionId,
+            string? knownSlug,
             CancellationToken token)
         {
             var info = collectionPayload.Info;
@@ -806,23 +810,37 @@ namespace Wabbajack.Compiler
                         returnedRevisionId = data?["revision_id"]?.GetValue<string>() ?? "";
                     }
 
+                    var returnedSlug = data?["slug"]?.GetValue<string>();
+
                     _logger.LogInformation(
-                        "REST response: collectionId={id} revisionId={rev} revisionNumber={num}",
-                        returnedCollectionId, returnedRevisionId, returnedRevisionNumber?.ToString() ?? "not in response");
+                        "REST response: collectionId={id} revisionId={rev} revisionNumber={num} slug={slug}",
+                        returnedCollectionId, returnedRevisionId,
+                        returnedRevisionNumber?.ToString() ?? "not in response",
+                        returnedSlug ?? "not in response");
 
-                    var found = await FindRecentlyCreatedCollection(
-                        info.Name, info.DomainName, accessToken, token,
-                        preferredCollectionId: returnedCollectionId);
+                    // Determine the slug: prefer REST response, then known slug, then GraphQL lookup
+                    var finalSlug = returnedSlug;
 
-                    // Use the revision number from the REST response
-                    // Only fall back to the GraphQL draftRevisionNumber if the REST response didn't include it.
+                    if (string.IsNullOrWhiteSpace(finalSlug))
+                        finalSlug = knownSlug;
+
+                    CollectionUploadResult? found = null;
+                    if (string.IsNullOrWhiteSpace(finalSlug))
+                    {
+                        // Only do the slow GraphQL poll if we truly have no slug
+                        found = await FindRecentlyCreatedCollection(
+                            info.Name, info.DomainName, accessToken, token,
+                            preferredCollectionId: returnedCollectionId);
+                        finalSlug = found?.Slug;
+                    }
+
                     var revisionNumber = returnedRevisionNumber ?? found?.RevisionNumber ?? 1;
 
                     return new CollectionUploadResult
                     {
                         CollectionId = returnedCollectionId,
                         RevisionId = returnedRevisionId,
-                        Slug = found?.Slug ?? "",
+                        Slug = finalSlug ?? "",
                         RevisionNumber = revisionNumber,
                         Success = true
                     };
