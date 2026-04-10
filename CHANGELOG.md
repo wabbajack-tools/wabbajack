@@ -2,7 +2,7 @@
 #### Version - 4.2.1.0 - TBD
 * Fixed Nexus Collections Publishing not setting the correct Game Version  
   & Fixed WJ opening the wrong Collection revision on Nexus Mods after a publish ([@januarysnow](https://github.com/januarysnow)) PR #2907  
-  & Fixed Issues with the publish button not reporting success or failure correctly ([@januarysnow](https://github.com/januarysnow)) PR # 2913
+  & Fixed Issues with the publish button not reporting success or failure correctly ([@januarysnow](https://github.com/januarysnow)) PR # 2913  
   & Fixed Collection Page Creation and Pre-Validation failing in some cases ([@januarysnow](https://github.com/januarysnow)) PR # 2915
 * Fixed BSA order of operations
 * Fixed Gallery Title and Metadata not being displayed when hovering over modlists ([@Lartza](https://github.com/Lartza))
