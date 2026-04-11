@@ -126,7 +126,7 @@ Invoke-Step "Code signing (OTP will be prompted)" {
     Push-Location $codeSignDir
     foreach ($file in $filesToSign) {
         Write-Host "Signing $file ..." -ForegroundColor Yellow
-        & cmd /c "CodeSignTool.bat sign -input_file_path `"$file`" -username=%CODE_SIGN_USER% -password=%CODE_SIGN_PASS% $totpArg"
+        & cmd /c "CodeSignTool.bat sign -input_file_path `"$file`" -override=true -username=%CODE_SIGN_USER% -password=%CODE_SIGN_PASS% $totpArg"
         Assert-ExitCode "CodeSignTool sign $file"
     }
     Pop-Location
