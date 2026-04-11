@@ -348,7 +348,8 @@ Invoke-Step "Publishing GitHub release" {
 
 function Send-DiscordMessage {
     param([string]$Content)
-    $payload = @{ content = $Content } | ConvertTo-Json -Depth 5 -Compress
+    # flags: 4 = SUPPRESS_EMBEDS - prevents auto-generated link previews
+    $payload = @{ content = $Content; flags = 4 } | ConvertTo-Json -Depth 5 -Compress
     Invoke-RestMethod -Uri $env:DISCORD_RELEASE_WEBHOOK -Method POST `
         -ContentType "application/json" -Body $payload | Out-Null
 }
