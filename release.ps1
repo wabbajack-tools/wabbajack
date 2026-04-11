@@ -130,6 +130,18 @@ Invoke-Step "Code signing (OTP will be prompted)" {
         Assert-ExitCode "CodeSignTool sign $file"
     }
     Pop-Location
+
+    # Verify each file has a valid Authenticode signature.
+    # CodeSignTool.bat is known to swallow exit codes on failure, so we can't trust $LASTEXITCODE alone.
+    foreach ($file in $filesToSign) {
+        $sig = Get-AuthenticodeSignature -FilePath $file
+        Write-Host "  $($file): $($sig.Status) - signed by $($sig.SignerCertificate.Subject)"
+        if ($sig.Status -ne 'Valid') {
+            Write-Host "ERROR: $file is not validly signed (status: $($sig.Status))" -ForegroundColor Red
+            exit 1
+        }
+    }
+    Write-Host "All executables have valid signatures." -ForegroundColor Green
 }
 
 # --- Step 4: Package ---
