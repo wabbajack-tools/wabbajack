@@ -1,19 +1,48 @@
 name: Create Release (Windows)
+
 on:
   workflow_dispatch:
 
-jobs:
-  build:
+permissions:
+  contents: write
 
-    runs-on: release-builder
+jobs:
+  release:
+    runs-on: windows-latest
+
+    env:
+      CODE_SIGN_USER:          ${{ secrets.CODE_SIGN_USER }}
+      CODE_SIGN_PASS:          ${{ secrets.CODE_SIGN_PASS }}
+      CODE_SIGN_TOTP_SECRET:   ${{ secrets.CODE_SIGN_TOTP_SECRET }}
+      NEXUS_API_KEY:           ${{ secrets.NEXUS_API_KEY }}
+      DISCORD_RELEASE_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+      GH_TOKEN:                ${{ secrets.GITHUB_TOKEN }}
+      PUBLISH_DIR:             ${{ github.workspace }}\publish-wj
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.x
-      - name: Build and Release
+
+      - name: Download CodeSignTool
         shell: pwsh
         run: |
-          ./release.ps1
+          $url = "https://github.com/SSLcom/CodeSignTool/releases/download/v1.3.2/CodeSignTool-v1.3.2-windows.zip"
+          $zip = "$env:RUNNER_TEMP\CodeSignTool.zip"
+          $extractRoot = "${{ github.workspace }}\CodeSignTool"
+          Invoke-WebRequest -Uri $url -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath $extractRoot -Force
+          # Locate the directory containing CodeSignTool.bat (zip may extract with or without nested folder)
+          $batFile = Get-ChildItem $extractRoot -Recurse -Filter "CodeSignTool.bat" | Select-Object -First 1
+          if (-not $batFile) { throw "CodeSignTool.bat not found after extraction" }
+          $codeSignDir = $batFile.Directory.FullName
+          Write-Host "CodeSignTool installed at: $codeSignDir"
+          "CODE_SIGN_DIR=$codeSignDir" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Run release pipeline
+        shell: pwsh
+        run: ./release.ps1

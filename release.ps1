@@ -1,9 +1,9 @@
 $ErrorActionPreference = 'Stop'
 
-$repoRoot     = "c:\oss\wabbajack"
-$codeSignDir  = "c:\oss\CodeSignTool"
-$publishDir   = "c:\tmp\publish-wj"
-$sevenZip     = "c:\Program Files\7-Zip\7z.exe"
+$repoRoot     = $PSScriptRoot
+$codeSignDir  = if ($env:CODE_SIGN_DIR)  { $env:CODE_SIGN_DIR }  else { "c:\oss\CodeSignTool" }
+$publishDir   = if ($env:PUBLISH_DIR)    { $env:PUBLISH_DIR }    else { "c:\tmp\publish-wj" }
+$sevenZip     = if ($env:SEVEN_ZIP_PATH) { $env:SEVEN_ZIP_PATH } else { "c:\Program Files\7-Zip\7z.exe" }
 
 $nexusApiBase     = "https://api.nexusmods.com/v3"
 $nexusGameDomain  = "site"
@@ -53,38 +53,25 @@ function Invoke-NexusApi {
     Invoke-RestMethod @params
 }
 
-# --- Step 1: Changelog ---
+# --- Step 1: Changelog version check ---
 
-Invoke-Step "Updating changelog" {
+Invoke-Step "Reading changelog version" {
     $changelogPath = Join-Path $repoRoot "CHANGELOG.md"
-    $lines = Get-Content $changelogPath -Raw
+    $content = Get-Content $changelogPath -Raw
 
-    if ($lines -match '(?m)^#### Version - ([\d.]+) - TBD\s*$') {
-        $version = $Matches[1]
-        $today = (Get-Date).ToString("M/d/yyyy")
-        $lines = $lines -replace "(?m)^(#### Version - [\d.]+ - )TBD\s*$", "`${1}$today"
-        Set-Content $changelogPath $lines -NoNewline
-        Write-Host "Set version $version date to $today"
-
-        Push-Location $repoRoot
-        git add CHANGELOG.md
-        git commit -m "Update CHANGELOG for version $version"
-        Assert-ExitCode "git commit"
-        git push
-        Assert-ExitCode "git push"
-        Pop-Location
-    }
-    elseif ($lines -match '(?m)^#### Version - ([\d.]+) - ') {
-        $version = $Matches[1]
-        Write-Host "Changelog already has a date for $version, skipping commit"
-    }
-    else {
-        Write-Host "No version header found in CHANGELOG.md" -ForegroundColor Red
+    if ($content -match '(?m)^#### Version - ([\d.]+) - TBD\s*$') {
+        Write-Host "ERROR: CHANGELOG.md still has TBD as the date for version $($Matches[1])." -ForegroundColor Red
+        Write-Host "Set the release date in CHANGELOG.md, commit, and push before running this script." -ForegroundColor Red
         exit 1
     }
 
-    $script:version = $version
-    Write-Host "Version: $version" -ForegroundColor Green
+    if ($content -notmatch '(?m)^#### Version - ([\d.]+) - ') {
+        Write-Host "ERROR: No version header found in CHANGELOG.md" -ForegroundColor Red
+        exit 1
+    }
+
+    $script:version = $Matches[1]
+    Write-Host "Version: $script:version" -ForegroundColor Green
 }
 
 # --- Step 2: Build ---
@@ -134,10 +121,12 @@ Invoke-Step "Code signing (OTP will be prompted)" {
         "$publishDir\app\cli\wabbajack-cli.exe"
     )
 
+    $totpArg = if ($env:CODE_SIGN_TOTP_SECRET) { "-totp_secret=%CODE_SIGN_TOTP_SECRET%" } else { "" }
+
     Push-Location $codeSignDir
     foreach ($file in $filesToSign) {
         Write-Host "Signing $file ..." -ForegroundColor Yellow
-        & cmd /c "CodeSignTool.bat sign -input_file_path `"$file`" -username=%CODE_SIGN_USER% -password=%CODE_SIGN_PASS%"
+        & cmd /c "CodeSignTool.bat sign -input_file_path `"$file`" -username=%CODE_SIGN_USER% -password=%CODE_SIGN_PASS% $totpArg"
         Assert-ExitCode "CodeSignTool sign $file"
     }
     Pop-Location
@@ -343,13 +332,43 @@ Invoke-Step "Publishing GitHub release" {
     Write-Host "Release $($script:version) is now live!" -ForegroundColor Green
 }
 
-# --- Step 9: Discord output ---
+# --- Step 9: Discord announcement ---
+
+function Send-DiscordMessage {
+    param([string]$Content)
+    $payload = @{ content = $Content } | ConvertTo-Json -Depth 5 -Compress
+    Invoke-RestMethod -Uri $env:DISCORD_RELEASE_WEBHOOK -Method POST `
+        -ContentType "application/json" -Body $payload | Out-Null
+}
+
+Invoke-Step "Posting to Discord" {
+    if (-not $env:DISCORD_RELEASE_WEBHOOK) {
+        Write-Host "DISCORD_RELEASE_WEBHOOK not set, skipping" -ForegroundColor Yellow
+        return
+    }
+
+    $header = @"
+$($script:version) is released
+
+Please download via the launcher or via the link on the website: https://www.wabbajack.org/
+Or on the Nexus: https://www.nexusmods.com/site/mods/403
+"@
+
+    $fullMessage = "$header`n`n$releaseNotes"
+
+    if ($fullMessage.Length -le 2000) {
+        Send-DiscordMessage -Content $fullMessage
+    }
+    else {
+        Write-Host "Message exceeds 2000 chars, splitting into header + changelog" -ForegroundColor Yellow
+        Send-DiscordMessage -Content $header
+        Send-DiscordMessage -Content $releaseNotes
+    }
+
+    Write-Host "Posted to Discord" -ForegroundColor Green
+}
 
 Invoke-Step "Release complete!" {
     Write-Host "`nGitHub: https://github.com/wabbajack-tools/wabbajack/releases/tag/$($script:version)" -ForegroundColor Green
     Write-Host "Nexus:  https://www.nexusmods.com/site/mods/403?tab=files" -ForegroundColor Green
-
-    Write-Host "`n--- Copy below for Discord ---`n" -ForegroundColor Magenta
-    Write-Host $releaseNotes
-    Write-Host "`n--- End Discord ---" -ForegroundColor Magenta
 }
