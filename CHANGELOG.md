@@ -1,4 +1,8 @@
 ### Changelog
+
+#### Version - 4.2.1.1 - 4/11/2026
+* Testing new release and deployment pipeline
+
 #### Version - 4.2.1.0 - 4/10/2026
 * Fixed Nexus Collections Publishing not setting the correct Game Version  
   & Fixed WJ opening the wrong Collection revision on Nexus Mods after a publish ([@januarysnow](https://github.com/januarysnow)) PR #2907  
