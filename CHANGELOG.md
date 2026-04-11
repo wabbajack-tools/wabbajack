@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 4.2.1.2 - 4/11/2026
+* Round 2: Testing new release and deployment pipeline (digital signatures are a pain)
+
 #### Version - 4.2.1.1 - 4/11/2026
 * Testing new release and deployment pipeline
 
