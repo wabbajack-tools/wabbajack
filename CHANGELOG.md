@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 4.2.1.3 - 4/13/2026
+* Added handling for change to REST v3 api on Nexus' side, will catch legacy and new names of properties (#2918)
+
 #### Version - 4.2.1.2 - 4/11/2026
 * Round 2: Testing new release and deployment pipeline (digital signatures are a pain)
 
