@@ -1187,8 +1187,15 @@ namespace Wabbajack.Compiler
     {
         [JsonPropertyName("uuid")] public string Uuid { get; set; } = "";
         [JsonPropertyName("id")] public string Id { get; set; } = "";
-        [JsonPropertyName("parts_size")] public long PartsSize { get; set; }
-        [JsonPropertyName("parts_presigned_url")] public List<string> PartsPresignedUrl { get; set; } = new();
+
+        [JsonPropertyName("part_sizes")] public long PartSizes { get; set; }
+        [JsonPropertyName("parts_size")] public long PartsSize_Legacy { get; set; }
+        public long PartsSize => PartSizes > 0 ? PartSizes : PartsSize_Legacy;
+
+        [JsonPropertyName("part_presigned_urls")] public List<string>? PartPresignedUrls { get; set; }
+        [JsonPropertyName("parts_presigned_url")] public List<string>? PartsPresignedUrl_Legacy { get; set; }
+        public List<string> PartsPresignedUrl => PartPresignedUrls ?? PartsPresignedUrl_Legacy ?? new();
+
         [JsonPropertyName("complete_presigned_url")] public string CompletePresignedUrl { get; set; } = "";
 
         public string SessionUuid => string.IsNullOrWhiteSpace(Uuid) ? Id : Uuid;
