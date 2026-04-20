@@ -256,6 +256,12 @@ namespace Wabbajack.Compiler
                 return null;
             }
 
+            if (session.PartsSize <= 0 || session.PartsPresignedUrl.Count == 0 || string.IsNullOrWhiteSpace(session.CompletePresignedUrl))
+            {
+                _logger.LogError("Invalid multipart upload session returned by Nexus Mods");
+                return null;
+            }
+
             var sessionId = session.SessionUuid;
             _logger.LogInformation(
                 "Multipart session created: UUID={uuid}, Parts={parts}, PartSize={size}MB",
@@ -1188,9 +1194,10 @@ namespace Wabbajack.Compiler
         [JsonPropertyName("uuid")] public string Uuid { get; set; } = "";
         [JsonPropertyName("id")] public string Id { get; set; } = "";
 
+        [JsonPropertyName("part_size_bytes")] public long PartSizeBytes { get; set; }
         [JsonPropertyName("part_sizes")] public long PartSizes { get; set; }
         [JsonPropertyName("parts_size")] public long PartsSize_Legacy { get; set; }
-        public long PartsSize => PartSizes > 0 ? PartSizes : PartsSize_Legacy;
+        public long PartsSize => PartSizeBytes > 0 ? PartSizeBytes : (PartSizes > 0 ? PartSizes : PartsSize_Legacy);
 
         [JsonPropertyName("part_presigned_urls")] public List<string>? PartPresignedUrls { get; set; }
         [JsonPropertyName("parts_presigned_url")] public List<string>? PartsPresignedUrl_Legacy { get; set; }
