@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 4.2.1.4 - 4/21/2026
+* HOTFIX: changed REST variable naming for the Nexus API
+
 #### Version - 4.2.1.3 - 4/13/2026
 * Added handling for change to REST v3 api on Nexus' side, will catch legacy and new names of properties (#2918)
 
