@@ -18,7 +18,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="Wabbajack.CLI.Test" />
+        <InternalsVisibleTo Include="Wabbajack.Test" />
     </ItemGroup>
 
     <ItemGroup>
@@ -45,16 +45,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.CLI.Builder\Wabbajack.CLI.Builder.csproj" />
-        <ProjectReference Include="..\Wabbajack.Downloaders.Bethesda\Wabbajack.Downloaders.Bethesda.csproj" />
-        <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj" />
-        <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj" />
-        <ProjectReference Include="..\Wabbajack.Networking.Discord\Wabbajack.Networking.Discord.csproj" />
-        <ProjectReference Include="..\Wabbajack.Networking.GitHub\Wabbajack.Networking.GitHub.csproj" />
-        <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
-        <ProjectReference Include="..\Wabbajack.Reporting\Wabbajack.Reporting.csproj" />
-        <ProjectReference Include="..\Wabbajack.Server.Lib\Wabbajack.Server.Lib.csproj" />
-        <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
-        <ProjectReference Include="..\Wabbajack.VFS\Wabbajack.VFS.csproj" />
+        <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -79,7 +70,7 @@
 
     <ItemGroup>
       <Reference Include="MegaApiClient">
-        <HintPath>..\Wabbajack.Downloaders.Mega\lib\MegaApiClient\MegaApiClient.dll</HintPath>
+        <HintPath>..\Wabbajack.Lib\lib\MegaApiClient\MegaApiClient.dll</HintPath>
       </Reference>
     </ItemGroup>
 

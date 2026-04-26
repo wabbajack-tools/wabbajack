@@ -49,11 +49,7 @@
         <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Wabbajack.Downloaders.Http\Wabbajack.Downloaders.Http.csproj" />
-        <ProjectReference Include="..\Wabbajack.Downloaders.Nexus\Wabbajack.Downloaders.Nexus.csproj" />
-        <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
-        <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj" />
-        <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
+        <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
     </ItemGroup>
     <ItemGroup>
       <AvaloniaResource Remove="Resources\Icons\wabbajack.ico" />

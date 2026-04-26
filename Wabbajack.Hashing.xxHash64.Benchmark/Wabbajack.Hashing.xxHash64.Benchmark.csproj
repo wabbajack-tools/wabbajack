@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Wabbajack.Hashing.xxHash64\Wabbajack.Hashing.xxHash64.csproj" />
+        <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
     </ItemGroup>
 
 </Project>

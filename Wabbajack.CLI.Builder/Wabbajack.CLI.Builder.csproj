@@ -25,7 +25,7 @@
     </ItemGroup>
     
     <ItemGroup>
-      <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj" />
+      <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
     </ItemGroup>
 
 </Project>

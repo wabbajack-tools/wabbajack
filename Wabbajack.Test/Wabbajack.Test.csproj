@@ -1,0 +1,96 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net9.0-windows</TargetFramework>
+    <TargetFramework Condition=" '$(OS)' != 'Windows_NT'">net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <NoWarn>CS8600;CS8601;CS8618;CS8604</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.msbuild" Version="6.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" Version="8.0.0" />
+    <PackageReference Include="FsCheck.Xunit" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NSubstitute" Version="5.3.0" />
+    <PackageReference Include="SharpCompress" Version="0.41.0" />
+    <PackageReference Include="Shipwreck.Phash" Version="0.5.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageReference Include="System.Data.HashFunction.xxHash" Version="2.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Private.Uri" Version="4.3.2" />
+    <PackageReference Include="System.Text.Json" Version="10.0.0" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="Xunit.DependencyInjection" Version="9.7.1" />
+    <PackageReference Include="Xunit.DependencyInjection.Logging" Version="8.1.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="YamlDotNet" Version="16.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Wabbajack.CLI.Builder\Wabbajack.CLI.Builder.csproj" />
+    <ProjectReference Include="..\Wabbajack.CLI\Wabbajack.CLI.csproj" />
+    <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="MegaApiClient">
+      <HintPath>..\Wabbajack.Lib\lib\MegaApiClient\MegaApiClient.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Networking.Steam tests reference types that are excluded from Wabbajack.Lib (see csproj note there). -->
+  <ItemGroup>
+    <Compile Remove="Networking.Steam\**\*.cs" />
+    <None Include="Networking.Steam\**\*.cs" />
+  </ItemGroup>
+
+  <!-- Test data files. The original per-project tests had these at the bin root (e.g. bin/.../TestFiles/x.bsa)
+       and the test code uses KnownFolders.EntryPoint.Combine("TestFiles"). To keep that runtime layout
+       after consolidation, <Link> remaps each file to the flat root output path. -->
+  <ItemGroup>
+    <None Update="Compression.BSA\TestFiles\*.bsa">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>TestFiles\%(Filename)%(Extension)</Link>
+    </None>
+    <None Update="DTOs\Resources\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Resources\%(Filename)%(Extension)</Link>
+    </None>
+    <None Update="FileExtractor\TestData\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>TestData\%(Filename)%(Extension)</Link>
+    </None>
+    <None Update="Hashing.PHash\TestData\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>TestData\%(Filename)%(Extension)</Link>
+    </None>
+    <None Update="Installer\TestData\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>TestData\%(Filename)%(Extension)</Link>
+    </None>
+  </ItemGroup>
+
+</Project>

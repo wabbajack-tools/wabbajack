@@ -1,0 +1,137 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
+    <Version>$(VERSION)</Version>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <NoWarn>CS8600;CS8601;CS8618;CS8604;CS8632;CS1998</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
+    <DefineConstants>_WINDOWS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCnEncoder.Net.ImageSharp" Version="1.1.1" />
+    <PackageReference Include="DeviceId" Version="6.8.0" />
+    <PackageReference Include="F23.StringSimilarity" Version="6.0.0" />
+    <PackageReference Include="FluentFTP" Version="52.0.0" />
+    <PackageReference Include="GameFinder.StoreHandlers.EADesktop" Version="4.5.0" />
+    <PackageReference Include="GameFinder.StoreHandlers.EGS" Version="4.5.0" />
+    <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="4.5.0" />
+    <PackageReference Include="GameFinder.StoreHandlers.Origin" Version="4.5.0" />
+    <PackageReference Include="GameFinder.StoreHandlers.Steam" Version="4.5.0" />
+    <PackageReference Include="GitInfo" Version="3.5.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.72" />
+    <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
+    <PackageReference Include="K4os.Compression.LZ4.Streams" Version="1.3.8" />
+    <PackageReference Include="LibAES-CTR" Version="1.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.3.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Toolkit.HighPerformance" Version="7.1.2" />
+    <PackageReference Include="Nettle" Version="3.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Octokit" Version="14.0.0" />
+    <PackageReference Include="Octopus.Octodiff" Version="2.0.548" />
+    <PackageReference Include="OMODFramework" Version="3.0.1" />
+    <PackageReference Include="SharpCompress" Version="0.41.0" />
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
+    <PackageReference Include="Shipwreck.Phash" Version="0.5.0" />
+    <PackageReference Include="shortid" Version="4.0.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="SteamKit2" Version="3.0.1" />
+    <PackageReference Include="Stub.System.Data.SQLite.Core.NetStandard" Version="1.0.119" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" PrivateAssets="None" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Private.Uri" Version="4.3.2" />
+    <PackageReference Include="System.Reactive" Version="6.0.1" />
+    <PackageReference Include="System.Text.Json" Version="10.0.0" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
+    <PackageReference Include="YamlDotNet" Version="16.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="MegaApiClient">
+      <HintPath>lib\MegaApiClient\MegaApiClient.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Networking.Steam is broken on main (SteamKit2 API drift on UpdateMachineAuthCallback)
+       and has no in-tree consumers. Files preserved on disk; excluded from compilation. -->
+  <ItemGroup>
+    <Compile Remove="Networking.Steam\**\*.cs" />
+    <None Include="Networking.Steam\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Common\FileSignatures\Signatures.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Signatures.cs</LastGenOutput>
+    </None>
+    <Compile Update="Common\FileSignatures\Signatures.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Signatures.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Reporting\Resources\ModlistReport.html">
+      <LogicalName>Wabbajack.Reporting.Resources.ModlistReport.html</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- Native extractor binaries and texture tools. Source files live under FileExtractor/Extractors/... and
+       Hashing.PHash/Tools/ to match the in-tree project layout, but the consuming code (FileExtractor.cs,
+       TexConvImageLoader.cs) looks for them at "Extractors\..." and "Tools\..." relative to EntryPoint.
+       <Link> remaps the output path so they land where the code expects regardless of source layout. -->
+  <ItemGroup>
+    <None Update="FileExtractor\Extractors\windows-x64\7z.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Extractors\windows-x64\7z.dll</Link>
+    </None>
+    <None Update="FileExtractor\Extractors\windows-x64\7z.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Extractors\windows-x64\7z.exe</Link>
+    </None>
+    <None Update="FileExtractor\Extractors\windows-x64\innoextract.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Extractors\windows-x64\innoextract.exe</Link>
+    </None>
+    <None Update="FileExtractor\Extractors\mac\7zz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Extractors\mac\7zz</Link>
+    </None>
+    <None Update="FileExtractor\Extractors\linux-x64\7zz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Extractors\linux-x64\7zz</Link>
+    </None>
+    <None Update="FileExtractor\Extractors\linux-x64\innoextract">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Extractors\linux-x64\innoextract</Link>
+    </None>
+    <None Update="Hashing.PHash\Tools\texconv.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Tools\texconv.exe</Link>
+    </None>
+    <None Update="Hashing.PHash\Tools\texdiag.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Tools\texdiag.exe</Link>
+    </None>
+  </ItemGroup>
+
+</Project>

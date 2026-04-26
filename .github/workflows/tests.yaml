@@ -34,7 +34,7 @@ jobs:
       
       - name: Set Permissions
         if: runner.os != 'Windows'
-        run: chmod -R +x Wabbajack.FileExtractor/Extractors
+        run: chmod -R +x Wabbajack.Lib/FileExtractor/Extractors
         
       - name: Setup .NET Core SDK 9.0.x
         uses: actions/setup-dotnet@v1
@@ -58,75 +58,32 @@ jobs:
       #    path: ./
   
   publish:
-    name: Publish Projects
+    name: Publish Wabbajack.Lib
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' }}
-    strategy:
-      matrix:
-        project:
-          - Wabbajack.Common
-          - Wabbajack.Compiler
-          - Wabbajack.Compression.BSA
-          - Wabbajack.Compression.Zip
-          - Wabbajack.Configuration
-          - Wabbajack.Downloaders.Bethesda
-          - Wabbajack.Downloaders.Dispatcher
-          - Wabbajack.Downloaders.GameFile
-          - Wabbajack.Downloaders.GoogleDrive
-          - Wabbajack.Downloaders.Http
-          - Wabbajack.Downloaders.Interfaces
-          - Wabbajack.Downloaders.IPS4OAuth2Downloader
-          - Wabbajack.Downloaders.Manual
-          - Wabbajack.Downloaders.MediaFire
-          - Wabbajack.Downloaders.Mega
-          - Wabbajack.Downloaders.ModDB
-          - Wabbajack.Downloaders.Nexus
-          - Wabbajack.Downloaders.VerificationCache
-          - Wabbajack.Downloaders.WabbajackCDN
-          - Wabbajack.DTOs
-          - Wabbajack.FileExtractor
-          - Wabbajack.Hashing.PHash
-          - Wabbajack.Hashing.xxHash64
-          - Wabbajack.Installer
-          - Wabbajack.IO.Async
-          - Wabbajack.Networking.BethesdaNet
-          - Wabbajack.Networking.Discord
-          - Wabbajack.Networking.GitHub
-          - Wabbajack.Networking.Http
-          - Wabbajack.Networking.Http.Interfaces
-          - Wabbajack.Networking.NexusApi
-          - Wabbajack.Networking.WabbajackClientApi
-          - Wabbajack.Paths
-          - Wabbajack.Paths.IO
-          - Wabbajack.RateLimiter
-          - Wabbajack.Services.OSIntegrated
-          - Wabbajack.VFS
-          - Wabbajack.VFS.Interfaces
-          
     needs: build
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Setup .NET Core SDK 9.0.x
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '9.0.x'
           include-prerelease: true
-          
+
       - name: Get App Version from CHANGELOG.md
         shell: bash
         run: |
           VERSION=$(LC_ALL=en_US.UTF-8 grep -m1 -oP '^#### Version - \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Current Version: $VERSION"
- 
-          
+
       - name: Restore
-        run: dotnet restore ${{ matrix.project }}/${{ matrix.project }}.csproj
+        run: dotnet restore Wabbajack.Lib/Wabbajack.Lib.csproj
       - name: Build
-        run: dotnet build ${{ matrix.project }}/${{ matrix.project }}.csproj --no-restore --configuration Release
+        run: dotnet build Wabbajack.Lib/Wabbajack.Lib.csproj --no-restore --configuration Release
       - name: Pack
-        run: dotnet pack ${{ matrix.project }}/${{ matrix.project }}.csproj --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg -o .
+        run: dotnet pack Wabbajack.Lib/Wabbajack.Lib.csproj --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg -o .
       - name: Publish
         run: dotnet nuget push *.nupkg --api-key ${{secrets.NUGET_KEY}} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
-    
+

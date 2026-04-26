@@ -24,7 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
+        <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
     </ItemGroup>
 
 </Project>
