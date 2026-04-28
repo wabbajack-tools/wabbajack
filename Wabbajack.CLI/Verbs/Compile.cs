@@ -1,10 +1,10 @@
 using System;
-using System.CommandLine;
-using System.CommandLine.NamingConventionBinder;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Builder;
+using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
@@ -49,23 +49,34 @@ public class Compile
     public async Task<int> Run(AbsolutePath installPath, AbsolutePath outputPath,
         CancellationToken token)
     {
-        _logger.LogInformation("Inferring settings");
-        var inferredSettings = await _inferencer.InferFromRootPath(installPath);
-        if (inferredSettings == null)
+        CompilerSettings settings;
+        if (installPath.FileName.Extension == Ext.CompilerSettings)
         {
-            _logger.LogInformation("Error inferencing settings");
-            return 2;
+            _logger.LogInformation("Using specified settings file");
+            await using var fs = installPath.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+            settings = (await _dtos.DeserializeAsync<CompilerSettings>(fs))!;
+        }
+        else
+        {
+            _logger.LogInformation("Inferring settings");
+            var inferredSettings = await _inferencer.InferFromRootPath(installPath);
+            if (inferredSettings == null)
+            {
+                _logger.LogInformation("Error inferencing settings");
+                return 2;
+            }
+
+            inferredSettings.UseGamePaths = true;
+            settings = inferredSettings;
         }
 
-        inferredSettings.UseGamePaths = true;
-        
         if(outputPath.DirectoryExists())
         {
-            inferredSettings.OutputFile = outputPath.Combine(inferredSettings.OutputFile.FileName);
-            _logger.LogInformation("Output file will be in: {outputPath}", inferredSettings.OutputFile);
+            settings.OutputFile = outputPath.Combine(settings.OutputFile.FileName);
+            _logger.LogInformation("Output file will be in: {outputPath}", settings.OutputFile);
         }
 
-        var compiler = MO2Compiler.Create(_serviceProvider, inferredSettings);
+        var compiler = MO2Compiler.Create(_serviceProvider, settings);
         var result = await compiler.Begin(token);
         if (!result)
             return result ? 0 : 3;
