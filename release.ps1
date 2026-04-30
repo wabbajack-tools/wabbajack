@@ -223,14 +223,27 @@ function Upload-ToNexus {
     Write-Host "Uploading $fileName ($([math]::Round($fileSize / 1MB, 1)) MB) to group $GroupId..." -ForegroundColor Yellow
 
     # 1. Create multipart upload
+    # Note: size_bytes sent as string per current Nexus v3 API spec
     $upload = Invoke-NexusApi -Method POST -Path "/uploads/multipart" -Body @{
         filename   = $fileName
-        size_bytes = $fileSize
+        size_bytes = "$fileSize"
     }
-    $uploadId    = $upload.data.id
-    $partUrls    = $upload.data.parts_presigned_url
-    $partSize    = $upload.data.parts_size
-    $completeUrl = $upload.data.complete_presigned_url
+    $data        = if ($upload.data) { $upload.data } else { $upload }
+    $uploadId    = $data.id
+    $partUrls    = $data.part_presigned_urls
+    $partSize    = $data.part_size_bytes
+    $completeUrl = $data.complete_presigned_url
+
+    if (-not $uploadId) {
+        Write-Host "ERROR: Nexus API did not return an upload ID. Raw response:" -ForegroundColor Red
+        Write-Host ($upload | ConvertTo-Json -Depth 5 -Compress) -ForegroundColor Red
+        exit 1
+    }
+    if (-not $partUrls -or $partUrls.Count -eq 0) {
+        Write-Host "ERROR: Nexus API returned 0 upload parts. Raw response:" -ForegroundColor Red
+        Write-Host ($upload | ConvertTo-Json -Depth 5 -Compress) -ForegroundColor Red
+        exit 1
+    }
 
     Write-Host "  Upload ID: $uploadId ($($partUrls.Count) parts, $([math]::Round($partSize / 1MB, 1)) MB each)"
 
@@ -284,7 +297,8 @@ function Upload-ToNexus {
     $maxAttempts = 60
     for ($attempt = 0; $attempt -lt $maxAttempts; $attempt++) {
         $status = Invoke-NexusApi -Method GET -Path "/uploads/$uploadId"
-        $state = $status.data.state
+        $statusData = if ($status.data) { $status.data } else { $status }
+        $state = $statusData.state
         Write-Host "  State: $state"
         if ($state -eq "available") { break }
         $delay = [math]::Min(2000 * [math]::Pow(1.5, $attempt), 30000)
@@ -303,8 +317,9 @@ function Upload-ToNexus {
         version       = $Version
         file_category = $Category
     }
+    $resultData = if ($result.data) { $result.data } else { $result }
 
-    Write-Host "  File created: $($result.data.id)" -ForegroundColor Green
+    Write-Host "  File created: $($resultData.id)" -ForegroundColor Green
 }
 
 Invoke-Step "Uploading to Nexus Mods" {
