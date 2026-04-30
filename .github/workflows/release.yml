@@ -14,8 +14,6 @@ jobs:
       CODE_SIGN_USER:          ${{ secrets.CODE_SIGN_USER }}
       CODE_SIGN_PASS:          ${{ secrets.CODE_SIGN_PASS }}
       CODE_SIGN_TOTP_SECRET:   ${{ secrets.CODE_SIGN_TOTP_SECRET }}
-      NEXUS_API_KEY:           ${{ secrets.NEXUS_API_KEY }}
-      DISCORD_RELEASE_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
       GH_TOKEN:                ${{ secrets.GITHUB_TOKEN }}
       PUBLISH_DIR:             ${{ github.workspace }}\publish-wj
 
@@ -43,6 +41,86 @@ jobs:
           Write-Host "CodeSignTool installed at: $codeSignDir"
           "CODE_SIGN_DIR=$codeSignDir" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Run release pipeline
+      - name: Build, sign, package, and create GitHub draft release
+        id: build
         shell: pwsh
         run: ./release.ps1
+
+      # --- Nexus Mods uploads (official action) ---
+
+      - name: Upload launcher to Nexus Mods
+        uses: Nexus-Mods/upload-action@v1
+        with:
+          api_key: ${{ secrets.NEXUS_API_KEY }}
+          file_group_id: "1328371"
+          filename: ${{ github.workspace }}\publish-wj\Wabbajack.zip
+          version: ${{ steps.build.outputs.version }}
+          display_name: Wabbajack.zip
+          description: |
+            Version - ${{ steps.build.outputs.version }} - download this file
+
+            Changelog: https://github.com/wabbajack-tools/wabbajack/releases/tag/${{ steps.build.outputs.version }}
+          file_category: main
+
+      - name: Upload full release to Nexus Mods
+        uses: Nexus-Mods/upload-action@v1
+        with:
+          api_key: ${{ secrets.NEXUS_API_KEY }}
+          file_group_id: "1328362"
+          filename: ${{ github.workspace }}\publish-wj\${{ steps.build.outputs.version }}.zip
+          version: ${{ steps.build.outputs.version }}
+          display_name: ${{ steps.build.outputs.version }}.zip
+          description: "Release files, ignore this unless you're sure you need it"
+          file_category: optional
+
+      # --- Publish & announce ---
+
+      - name: Publish GitHub release
+        shell: pwsh
+        run: |
+          gh release edit "${{ steps.build.outputs.version }}" --draft=false
+          Write-Host "Release ${{ steps.build.outputs.version }} is now live!"
+
+      - name: Post to Discord
+        shell: pwsh
+        env:
+          DISCORD_RELEASE_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+        run: |
+          if (-not $env:DISCORD_RELEASE_WEBHOOK) {
+              Write-Host "DISCORD_RELEASE_WEBHOOK not set, skipping"
+              exit 0
+          }
+
+          $version = "${{ steps.build.outputs.version }}"
+
+          # Extract changelog section for this version
+          $content = Get-Content CHANGELOG.md -Raw
+          $releaseNotes = ""
+          if ($content -match "(?ms)(#### Version - $([regex]::Escape($version)) - .+?)(?=\r?\n#### Version - |\z)") {
+              $releaseNotes = $Matches[1].Trim()
+          }
+
+          $header = @"
+          $version is released
+
+          Please download via the launcher or via the link on the website: https://www.wabbajack.org/
+          Or on the Nexus: https://www.nexusmods.com/site/mods/403
+          "@
+          $header = ($header -split "`n" | ForEach-Object { $_.Trim() }) -join "`n"
+
+          function Send-DiscordMessage {
+              param([string]$Content)
+              $payload = @{ content = $Content; flags = 4 } | ConvertTo-Json -Depth 5 -Compress
+              Invoke-RestMethod -Uri $env:DISCORD_RELEASE_WEBHOOK -Method POST `
+                  -ContentType "application/json" -Body $payload | Out-Null
+          }
+
+          $fullMessage = "$header`n`n$releaseNotes"
+          if ($fullMessage.Length -le 2000) {
+              Send-DiscordMessage -Content $fullMessage
+          } else {
+              Write-Host "Message exceeds 2000 chars, splitting"
+              Send-DiscordMessage -Content $header
+              Send-DiscordMessage -Content $releaseNotes
+          }
+          Write-Host "Posted to Discord"
