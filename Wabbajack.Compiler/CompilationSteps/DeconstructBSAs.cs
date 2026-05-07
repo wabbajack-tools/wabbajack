@@ -121,16 +121,22 @@ public class DeconstructBSAs : ACompilationStep
             //_cleanup = await source.File.Context.Stage(source.File.Children);
         }
 
-        var matches = await sourceFiles.SelectAsync(
-                async e => await _mo2Compiler.RunStack(stack,
-                    new RawSourceFile(e, Consts.BSACreationDir.Combine(id, (RelativePath) e.Name))))
+        var matches = await sourceFiles.SelectAsync(async e =>
+                {
+                    var rawSource = new RawSourceFile(e, Consts.BSACreationDir.Combine(id, (RelativePath) e.Name));
+                    var result = await _mo2Compiler.RunStack(stack, rawSource);
+                    return (result, sourceFile: e);
+                })
             .ToList();
 
-
-        foreach (var match in matches)
+        foreach (var (match, sourceFile) in matches)
         {
-            if (match is IgnoredDirectly ignored)
-                throw new CompilerException($"File required for BSA {source.Path} creation doesn't exist: {match.To} reason {ignored.Reason}");
+            if (match is IgnoredDirectly)
+            {
+                var diagnosis = DiagnoseNoMatch(sourceFile, source);
+                throw new CompilerException(
+                    $"File required for BSA {source.Path} creation cannot be matched: {match.To}\n{diagnosis}");
+            }
 
             _mo2Compiler.ExtraFiles.Add(match);
         }
@@ -148,5 +154,49 @@ public class DeconstructBSAs : ACompilationStep
         if (_cleanup != null)
             await _cleanup();
         return directive;
+    }
+
+    private string DiagnoseNoMatch(VirtualFile file, RawSourceFile bsaSource)
+    {
+        var hash = file.Hash;
+        var filenameOnly = file.Name.FileName;
+        var bsaName = bsaSource.File.AbsoluteName.FileName;
+
+        if (_mo2Compiler.IndexedFiles.TryGetValue(hash, out var foundInArchives))
+        {
+            var archiveNames = foundInArchives
+                .Select(f => f.TopParent.AbsoluteName.FileName.ToString())
+                .Distinct()
+                .Take(5);
+            return $"Hash {hash.ToHex()} for '{filenameOnly}' IS present in indexed archives " +
+                   $"({string.Join(", ", archiveNames)}) but could not be matched. " +
+                   "This may indicate a VFS index inconsistency or some other problem with the compiler.";
+        }
+
+        var sameNameFiles = _mo2Compiler.IndexedFiles.Values
+            .SelectMany(f => f)
+            .Where(f => f.Name.FileName == filenameOnly)
+            .ToList();
+
+        if (sameNameFiles.Count > 0)
+        {
+            var archiveNames = sameNameFiles
+                .Select(f => f.TopParent.AbsoluteName.FileName.ToString())
+                .Distinct()
+                .Take(5);
+            return $"'{filenameOnly}' (BSA hash: {hash.ToHex()}) was NOT found by hash, but files with " +
+                   $"the same name exist in downloads: {string.Join(", ", archiveNames)}. " +
+                   $"The BSA '{bsaName}' likely has different contents than the download archive " +
+                   "it may have been repacked, patched, or modified after download. " +
+                   "Re-download the archive containing this BSA to get a fresh copy.";
+        }
+
+        return $"'{filenameOnly}' (hash: {hash.ToHex()}) was not found in any indexed download archive. " +
+               $"Possible causes:\n" +
+               $"  1) The download archive for '{bsaName}' is missing from the downloads folder.\n" +
+               $"  2) The archive is present but has no valid .meta companion file.\n" +
+               $"  3) The archive was removed from the index because its download state could not be verified " +
+               "(check for 'Removing N archives' warnings earlier in the log).\n" +
+               $"  4) The archive failed to index during VFS initialization, check for extraction errors above.";
     }
 }

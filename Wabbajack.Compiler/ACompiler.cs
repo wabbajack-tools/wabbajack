@@ -181,15 +181,29 @@ public abstract class ACompiler
     internal async Task<RelativePath> IncludeFile(byte[] data)
     {
         var id = IncludeId();
-        await _stagingFolder.Combine(id).WriteAllBytesAsync(data);
+        try
+        {
+            await _stagingFolder.Combine(id).WriteAllBytesAsync(data);
+        }
+        catch (IOException ex) when (IsDiskFull(ex))
+        {
+            ThrowDiskFullForStaging(ex);
+        }
         return id;
     }
 
     internal async Task<RelativePath> IncludeFile(Stream data)
     {
         var id = IncludeId();
-        await using var os = _stagingFolder.Combine(id).Open(FileMode.Create, FileAccess.Write);
-        await data.CopyToAsync(os);
+        try
+        {
+            await using var os = _stagingFolder.Combine(id).Open(FileMode.Create, FileAccess.Write);
+            await data.CopyToAsync(os);
+        }
+        catch (IOException ex) when (IsDiskFull(ex))
+        {
+            ThrowDiskFullForStaging(ex);
+        }
         return id;
     }
 
@@ -219,6 +233,24 @@ public abstract class ACompiler
         return await IncludeFile(stream, token);
     }
 
+
+    protected static bool IsDiskFull(IOException ex)
+    {
+        const int ErrorDiskFull = unchecked((int)0x80070070);
+        const int ErrorHandleDiskFull = unchecked((int)0x80070027);
+        const int ENoSpc = 28;
+        return ex.HResult == ErrorDiskFull || ex.HResult == ErrorHandleDiskFull || ex.HResult == ENoSpc;
+    }
+
+    private void ThrowDiskFullForStaging(IOException inner)
+    {
+        var drive = new DriveInfo(Path.GetPathRoot(_stagingFolder.ToString())!);
+        var freeSpace = drive.IsReady ? drive.AvailableFreeSpace.ToFileSizeString() : "unknown";
+        throw new CompilerException(
+            $"Ran out of disk space while staging compiled files. " +
+            $"Drive {drive.Name} has {freeSpace} free. " +
+            $"Free up space on the drive containing your MO2 installation and try again.", inner);
+    }
 
     internal async Task<(RelativePath, AbsolutePath)> IncludeString(string str)
     {

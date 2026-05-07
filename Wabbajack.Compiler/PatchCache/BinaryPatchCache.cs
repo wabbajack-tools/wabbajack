@@ -32,21 +32,29 @@ public class BinaryPatchCache : IBinaryPatchCache
 
     public async Task<CacheEntry> CreatePatch(Stream srcStream, Hash srcHash, Stream destStream, Hash destHash, IJob? job)
     {
-
         var location = PatchLocation(srcHash, destHash);
         if (location.FileExists())
             return new CacheEntry(srcHash, destHash, location.Size(), this);
-        
+
         await using var sigStream = new MemoryStream();
         var tempName = _location.Combine(Guid.NewGuid().ToString()).WithExtension(Ext.Temp);
         try
         {
-
             {
                 await using var patchStream = tempName.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None);
                 OctoDiff.Create(srcStream, destStream, sigStream, patchStream, job);
             }
             await tempName.MoveToAsync(location, true, CancellationToken.None);
+        }
+        catch (IOException ex) when (IsDiskFull(ex))
+        {
+            var drive = new DriveInfo(Path.GetPathRoot(_location.ToString())!);
+            var freeSpace = drive.IsReady ? drive.AvailableFreeSpace.ToFileSizeString() : "unknown";
+            throw new CompilerException(
+                $"Ran out of disk space while generating binary patch files. " +
+                $"Drive {drive.Name} has {freeSpace} free. " +
+                $"The patch cache at '{_location}' may contain large files from previous compilations — " +
+                $"consider clearing it to reclaim space.", ex);
         }
         finally
         {
@@ -55,6 +63,14 @@ public class BinaryPatchCache : IBinaryPatchCache
         }
 
         return new CacheEntry(srcHash, destHash, location.Size(), this);
+    }
+
+    private static bool IsDiskFull(IOException ex)
+    {
+        const int ErrorDiskFull = unchecked((int)0x80070070);
+        const int ErrorHandleDiskFull = unchecked((int)0x80070027);
+        const int ENoSpc = 28; // Linux/Mac ENOSPC
+        return ex.HResult == ErrorDiskFull || ex.HResult == ErrorHandleDiskFull || ex.HResult == ENoSpc;
     }
 
 
