@@ -6,6 +6,7 @@ using System.IO.Hashing;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -26,9 +27,9 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 {
     private readonly CompositeDisposable _disposable = new();
     private readonly AbsolutePath _downloadDir;
-    private readonly bool _isPremium;
     private readonly ILogger _logger;
     private readonly DownloadDispatcher? _downloadDispatcher;
+    [Reactive] public partial bool IsPremium { get; set; }
 
     // All tracked archives with their sub-items
     private readonly List<(Archive Archive, PreflightSubItem Item, bool IsNexus)> _tracked = new();
@@ -56,9 +57,18 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         DownloadDispatcher? downloadDispatcher = null)
     {
         _downloadDir = downloadDir;
-        _isPremium = isPremium;
+        IsPremium = isPremium;
         _logger = logger;
         _downloadDispatcher = downloadDispatcher;
+
+        // Re-evaluate status when premium state changes
+        Observable.Skip(this.WhenAnyValue(x => x.IsPremium), 1)
+            .Subscribe(_ =>
+            {
+                _logger.LogInformation("Preflight: premium status changed to {IsPremium}", IsPremium);
+                UpdateStatus();
+            })
+            .DisposeWith(_disposable);
 
         // Build stable sub-item list for all non-auto archives
         foreach (var a in allArchives)
@@ -123,7 +133,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     /// </summary>
     public void StartAutoDownload()
     {
-        if (!_isPremium || _downloadDispatcher == null || IsAutoDownloading) return;
+        if (!IsPremium || _downloadDispatcher == null || IsAutoDownloading) return;
 
         IsAutoDownloading = true;
         _autoDownloadCts = new CancellationTokenSource();
@@ -170,18 +180,19 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         {
             // Poll file size for progress while downloading
             var expectedSize = archive.Size;
+            var destFileInfo = new FileInfo(destPath.ToString());
             var progressCts = CancellationTokenSource.CreateLinkedTokenSource(token);
             var progressTask = Task.Run(async () =>
             {
                 while (!progressCts.Token.IsCancellationRequested)
                 {
-                    await Task.Delay(500, progressCts.Token).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+                    await Task.Delay(2000, progressCts.Token).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
                     try
                     {
-                        if (destPath.FileExists() && expectedSize > 0)
+                        destFileInfo.Refresh();
+                        if (destFileInfo.Exists && expectedSize > 0)
                         {
-                            var currentSize = destPath.Size();
-                            var pct = Math.Min(1.0, (double)currentSize / expectedSize);
+                            var pct = Math.Min(1.0, (double)destFileInfo.Length / expectedSize);
                             RxApp.MainThreadScheduler.Schedule(() => item.Progress = pct);
                         }
                     }
@@ -456,17 +467,21 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         lock (_lock)
         {
             var readyCount = _tracked.Count(t => t.Item.IsReady);
-            var missingManual = _tracked.Where(t => !t.IsNexus && !t.Item.IsReady).ToList();
-            var missingNexus = _tracked.Where(t => t.IsNexus && !t.Item.IsReady).ToList();
+            var missingManualCount = _tracked.Count(t => !t.IsNexus && !t.Item.IsReady);
+            var missingNexusCount = _tracked.Count(t => t.IsNexus && !t.Item.IsReady);
             var allReady = readyCount == _tracked.Count;
 
             _logger.LogDebug("Preflight downloads status: {Ready}/{Total} ready, {MissingManual} manual missing, {MissingNexus} nexus missing",
-                readyCount, _tracked.Count, missingManual.Count, missingNexus.Count);
+                readyCount, _tracked.Count, missingManualCount, missingNexusCount);
+
+            // Only rebuild SubItems list when the count actually changes
+            if (readyCount != ReadyCount)
+            {
+                SubItems = _tracked.Where(t => !t.Item.IsReady).OrderByDescending(t => t.Archive.Size).Select(t => t.Item).ToList();
+            }
 
             ReadyCount = readyCount;
             TotalTracked = _tracked.Count;
-
-            SubItems = _tracked.Where(t => !t.Item.IsReady).OrderByDescending(t => t.Archive.Size).Select(t => t.Item).ToList();
 
             var readySuffix = readyCount > 0 ? $" ({readyCount} of {_tracked.Count} ready)" : "";
 
@@ -477,24 +492,24 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
                 ActionCommand = null;
                 ActionLabel = null;
             }
-            else if (missingManual.Count == 0 && missingNexus.Count > 0 && _isPremium)
+            else if (missingManualCount == 0 && missingNexusCount > 0 && IsPremium)
             {
                 Status = PreflightCheckStatus.Info;
                 FailureMessage = IsAutoDownloading
                     ? $"Downloading Nexus files...{readySuffix}"
-                    : $"{missingNexus.Count} Nexus files available for automatic download{readySuffix}";
+                    : $"{missingNexusCount} Nexus files available for automatic download{readySuffix}";
                 ActionCommand = IsAutoDownloading
                     ? ReactiveCommand.Create(PauseAutoDownload)
                     : ReactiveCommand.Create(StartAutoDownload);
                 ActionLabel = IsAutoDownloading ? "Pause" : "Automatic Download";
             }
-            else if (missingNexus.Count > 0 && !_isPremium)
+            else if (missingNexusCount > 0 && !IsPremium)
             {
                 Status = PreflightCheckStatus.Failed;
-                var total = missingNexus.Count + missingManual.Count;
-                FailureMessage = missingManual.Count > 0
+                var total = missingNexusCount + missingManualCount;
+                FailureMessage = missingManualCount > 0
                     ? $"{total} files need downloading{readySuffix}"
-                    : $"{missingNexus.Count} Nexus files require premium or manual download{readySuffix}";
+                    : $"{missingNexusCount} Nexus files require premium or manual download{readySuffix}";
                 ActionCommand = ReactiveCommand.Create(() =>
                     OpenUrl("https://next.nexusmods.com/premium"));
                 ActionLabel = "Get Nexus Premium";
@@ -504,7 +519,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
                 Status = PreflightCheckStatus.Failed;
                 FailureMessage = $"Download these files — they'll be detected automatically{readySuffix}";
                 // If there are also Nexus files and we're premium, show the auto-download button
-                if (missingNexus.Count > 0 && _isPremium)
+                if (missingNexusCount > 0 && IsPremium)
                 {
                     ActionCommand = IsAutoDownloading
                         ? ReactiveCommand.Create(PauseAutoDownload)

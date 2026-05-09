@@ -671,6 +671,13 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
 
             await downloadsCheck.ScanExistingFiles(CancellationToken.None);
 
+            // Update premium status reactively when user logs in/out
+            if (nexusLogin != null)
+            {
+                nexusLogin.WhenAnyValue(x => x.LoggedIn)
+                    .Subscribe(loggedIn => downloadsCheck.IsPremium = loggedIn);
+            }
+
             var checks = new IPreflightCheck[] { pathCheck, gameCheck, diskCheck, nexusCheck, downloadsCheck };
 
             Preflight?.Dispose();
