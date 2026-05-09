@@ -82,10 +82,15 @@
                                 <!-- Title row with action button -->
                                 <DockPanel>
                                     <Button DockPanel.Dock="Right"
-                                            Content="{Binding ActionLabel}"
                                             Command="{Binding ActionCommand}"
                                             Padding="12,6"
                                             VerticalAlignment="Center">
+                                        <Button.Content>
+                                            <StackPanel Orientation="Horizontal">
+                                                <ic:SymbolIcon Symbol="Diamond" FontSize="14" Margin="0,0,6,0" />
+                                                <TextBlock Text="{Binding ActionLabel}" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button.Content>
                                         <Button.Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource WJButtonStyle}">
                                                 <Setter Property="Visibility" Value="Visible" />

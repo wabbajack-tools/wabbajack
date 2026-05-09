@@ -13,6 +13,7 @@ using Humanizer;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
+using Wabbajack.Downloaders;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Hashing.xxHash64;
@@ -27,11 +28,16 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     private readonly AbsolutePath _downloadDir;
     private readonly bool _isPremium;
     private readonly ILogger _logger;
+    private readonly DownloadDispatcher? _downloadDispatcher;
 
     // All tracked archives with their sub-items
     private readonly List<(Archive Archive, PreflightSubItem Item, bool IsNexus)> _tracked = new();
     private readonly HashSet<Hash> _matchedHashes = new();
     private readonly object _lock = new();
+
+    // Auto-download state
+    private CancellationTokenSource? _autoDownloadCts;
+    [Reactive] public partial bool IsAutoDownloading { get; set; }
 
     public string Title => "Downloads";
     [Reactive] public partial PreflightCheckStatus Status { get; set; }
@@ -46,11 +52,13 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     public long PresentArchiveSize { get; private set; }
 
     public DownloadsCheck(IReadOnlyList<Archive> allArchives, AbsolutePath downloadDir,
-        AbsolutePath systemDownloadsDir, bool isPremium, ILogger logger)
+        AbsolutePath systemDownloadsDir, bool isPremium, ILogger logger,
+        DownloadDispatcher? downloadDispatcher = null)
     {
         _downloadDir = downloadDir;
         _isPremium = isPremium;
         _logger = logger;
+        _downloadDispatcher = downloadDispatcher;
 
         // Build stable sub-item list for all non-auto archives
         foreach (var a in allArchives)
@@ -76,7 +84,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         _logger.LogInformation("Preflight downloads: tracking {Count} archives ({Nexus} Nexus, {Manual} manual)",
             _tracked.Count, _tracked.Count(t => t.IsNexus), _tracked.Count(t => !t.IsNexus));
 
-        SubItems = _tracked.Select(t => t.Item).ToList();
+        SubItems = _tracked.Where(t => !t.Item.IsReady).Select(t => t.Item).ToList();
         UpdateStatus();
         StartWatching(downloadDir, systemDownloadsDir);
     }
@@ -109,6 +117,111 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         }
     }
 
+    /// <summary>
+    /// Start auto-downloading all missing Nexus archives. Premium only.
+    /// </summary>
+    public void StartAutoDownload()
+    {
+        if (!_isPremium || _downloadDispatcher == null || IsAutoDownloading) return;
+
+        IsAutoDownloading = true;
+        _autoDownloadCts = new CancellationTokenSource();
+        var token = _autoDownloadCts.Token;
+
+        Task.Run(async () =>
+        {
+            _logger.LogInformation("Preflight: starting auto-download of Nexus archives");
+
+            while (!token.IsCancellationRequested)
+            {
+                // Get next undownloaded Nexus archive
+                (Archive Archive, PreflightSubItem Item, bool IsNexus) next;
+                lock (_lock)
+                {
+                    next = _tracked.FirstOrDefault(t => t.IsNexus && !t.Item.IsReady);
+                }
+
+                if (next.Archive == null) break; // All done
+
+                var destPath = _downloadDir.Combine(next.Archive.Name);
+                _logger.LogInformation("Preflight: auto-downloading {Name}", next.Archive.Name);
+
+                RxApp.MainThreadScheduler.Schedule(() =>
+                {
+                    next.Item.StatusText = "Downloading...";
+                    next.Item.Progress = 0;
+                });
+
+                try
+                {
+                    if (!_downloadDir.DirectoryExists())
+                        _downloadDir.CreateDirectory();
+
+                    var hash = await _downloadDispatcher.Download(next.Archive, destPath, token);
+
+                    if (hash == next.Archive.Hash)
+                    {
+                        _logger.LogInformation("Preflight: auto-download complete: {Name}", next.Archive.Name);
+                        lock (_lock)
+                        {
+                            _matchedHashes.Add(hash);
+                            PresentArchiveSize += next.Archive.Size;
+                        }
+
+                        RxApp.MainThreadScheduler.Schedule(() =>
+                        {
+                            next.Item.IsReady = true;
+                            next.Item.StatusText = null;
+                            next.Item.Progress = null;
+                        });
+                        RxApp.MainThreadScheduler.Schedule(UpdateStatus);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Preflight: hash mismatch for {Name}: expected {Expected}, got {Actual}",
+                            next.Archive.Name, next.Archive.Hash.ToHex(), hash.ToHex());
+                        RxApp.MainThreadScheduler.Schedule(() =>
+                        {
+                            next.Item.StatusText = "Hash mismatch — try again";
+                            next.Item.Progress = null;
+                        });
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation("Preflight: auto-download paused");
+                    RxApp.MainThreadScheduler.Schedule(() =>
+                    {
+                        next.Item.StatusText = null;
+                        next.Item.Progress = null;
+                    });
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Preflight: auto-download failed for {Name}", next.Archive.Name);
+                    RxApp.MainThreadScheduler.Schedule(() =>
+                    {
+                        next.Item.StatusText = $"Download failed: {ex.Message}";
+                        next.Item.Progress = null;
+                    });
+                    // Continue to next file
+                }
+            }
+
+            RxApp.MainThreadScheduler.Schedule(() =>
+            {
+                IsAutoDownloading = false;
+                UpdateStatus();
+            });
+        }, token);
+    }
+
+    public void PauseAutoDownload()
+    {
+        _autoDownloadCts?.Cancel();
+    }
+
     private async Task TryMatchFile(AbsolutePath filePath, CancellationToken token)
     {
         if (!filePath.FileExists()) return;
@@ -120,7 +233,6 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             try
             {
                 fileSize = filePath.Size();
-                // Try opening the file to check it's not locked
                 await using var testStream = filePath.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
                 break;
             }
@@ -156,7 +268,6 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             filePath.FileName, fileSize, candidates.Count,
             string.Join(", ", candidates.Select(c => c.Archive.Name)));
 
-        // Show verification progress on the first candidate's sub-item
         var subItem = candidates[0].Item;
         var fileName = filePath.FileName.ToString();
         RxApp.MainThreadScheduler.Schedule(() =>
@@ -205,7 +316,6 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 
         _logger.LogInformation("Preflight: hashed {File} = {Hash}", filePath.FileName, hash.ToHex());
 
-        // Find which tracked archive matches this hash
         lock (_lock)
         {
             var match = _tracked.FirstOrDefault(t => !t.Item.IsReady && t.Archive.Hash == hash);
@@ -217,7 +327,6 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 
             _logger.LogInformation("Preflight: matched {File} to archive {Archive}", filePath.FileName, match.Archive.Name);
 
-            // Move file to download dir if not already there
             var destPath = _downloadDir.Combine(match.Archive.Name);
             if (filePath != destPath)
             {
@@ -314,7 +423,6 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     {
         Task.Run(async () =>
         {
-            // Wait for file to settle (browser may still be writing)
             await Task.Delay(2000);
             await TryMatchFile((AbsolutePath)fullPath, CancellationToken.None);
         });
@@ -335,7 +443,6 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             ReadyCount = readyCount;
             TotalTracked = _tracked.Count;
 
-            // SubItems only shows non-ready items — ready ones are rolled up into ReadyCount
             SubItems = _tracked.Where(t => !t.Item.IsReady).Select(t => t.Item).ToList();
 
             var readySuffix = readyCount > 0 ? $" ({readyCount} of {_tracked.Count} ready)" : "";
@@ -350,9 +457,13 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             else if (missingManual.Count == 0 && missingNexus.Count > 0 && _isPremium)
             {
                 Status = PreflightCheckStatus.Info;
-                FailureMessage = $"{missingNexus.Count} Nexus files will be downloaded automatically during install{readySuffix}";
-                ActionCommand = null;
-                ActionLabel = null;
+                FailureMessage = IsAutoDownloading
+                    ? $"Downloading Nexus files...{readySuffix}"
+                    : $"{missingNexus.Count} Nexus files available for automatic download{readySuffix}";
+                ActionCommand = IsAutoDownloading
+                    ? ReactiveCommand.Create(PauseAutoDownload)
+                    : ReactiveCommand.Create(StartAutoDownload);
+                ActionLabel = IsAutoDownloading ? "Pause" : "Automatic Download";
             }
             else if (missingNexus.Count > 0 && !_isPremium)
             {
@@ -369,8 +480,19 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             {
                 Status = PreflightCheckStatus.Failed;
                 FailureMessage = $"Download these files — they'll be detected automatically{readySuffix}";
-                ActionCommand = null;
-                ActionLabel = null;
+                // If there are also Nexus files and we're premium, show the auto-download button
+                if (missingNexus.Count > 0 && _isPremium)
+                {
+                    ActionCommand = IsAutoDownloading
+                        ? ReactiveCommand.Create(PauseAutoDownload)
+                        : ReactiveCommand.Create(StartAutoDownload);
+                    ActionLabel = IsAutoDownloading ? "Pause" : "Automatic Download";
+                }
+                else
+                {
+                    ActionCommand = null;
+                    ActionLabel = null;
+                }
             }
         }
     }
@@ -384,7 +506,6 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         }
         catch
         {
-            // Ignore failures to open browser
         }
     }
 
@@ -403,5 +524,9 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         };
     }
 
-    public void Dispose() => _disposable.Dispose();
+    public void Dispose()
+    {
+        _autoDownloadCts?.Cancel();
+        _disposable.Dispose();
+    }
 }

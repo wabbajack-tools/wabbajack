@@ -666,7 +666,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 Installer.DownloadLocation.TargetPath,
                 systemDownloads,
                 isPremium: nexusLogin?.LoggedIn == true,
-                logger: _logger);
+                logger: _logger,
+                downloadDispatcher: _downloadDispatcher);
 
             await downloadsCheck.ScanExistingFiles(CancellationToken.None);
 
