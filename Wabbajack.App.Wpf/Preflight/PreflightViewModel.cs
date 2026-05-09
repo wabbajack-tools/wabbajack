@@ -16,6 +16,11 @@ public partial class PreflightViewModel : ReactiveObject, IDisposable
     private readonly CompositeDisposable _disposable = new();
     private readonly IPreflightCheck[] _checks;
 
+    /// <summary>
+    /// External subscriptions (from InstallationVM) that should be disposed with this preflight.
+    /// </summary>
+    public CompositeDisposable Subscriptions { get; } = new();
+
     // Modlist info
     public string ModlistName { get; init; } = "";
     public string ModlistVersion { get; init; } = "";
@@ -81,6 +86,7 @@ public partial class PreflightViewModel : ReactiveObject, IDisposable
 
     public void Dispose()
     {
+        Subscriptions.Dispose();
         _disposable.Dispose();
         foreach (var check in _checks)
             check.Dispose();

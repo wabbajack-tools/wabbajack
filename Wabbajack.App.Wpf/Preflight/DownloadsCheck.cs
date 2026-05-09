@@ -38,11 +38,20 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     private readonly HashSet<Hash> _matchedHashes = new();
     private readonly HashSet<string> _activeDownloads = new(); // filenames being auto-downloaded
     private readonly object _lock = new();
-    private volatile bool _updateStatusPending;
+    private int _updateStatusPending; // 0 = not pending, 1 = pending (for Interlocked)
 
     // Auto-download state
     private CancellationTokenSource? _autoDownloadCts;
     [Reactive] public partial bool IsAutoDownloading { get; set; }
+
+    // Pre-created commands (avoid recreating on every UpdateStatus call)
+    private readonly ICommand _startAutoDownloadCommand;
+    private readonly ICommand _pauseAutoDownloadCommand;
+    private readonly ICommand _getNexusPremiumCommand;
+
+    private const int ProgressPollIntervalMs = 2000;
+    private const int WatcherSettleDelayMs = 2000;
+    private const int UpdateStatusDebounceMs = 1000;
 
     public string Title => "Downloads";
     [Reactive] public partial PreflightCheckStatus Status { get; set; }
@@ -66,6 +75,10 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         _logger = logger;
         _downloadDispatcher = downloadDispatcher;
         _hashCache = hashCache;
+
+        _startAutoDownloadCommand = ReactiveCommand.Create(StartAutoDownload);
+        _pauseAutoDownloadCommand = ReactiveCommand.Create(PauseAutoDownload);
+        _getNexusPremiumCommand = ReactiveCommand.Create(() => OpenUrl("https://next.nexusmods.com/premium"));
 
         // Re-evaluate status when premium state changes
         Observable.Skip(this.WhenAnyValue(x => x.IsPremium), 1)
@@ -257,12 +270,12 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             // Poll file size for progress while downloading — also updates status from "Queued" to "Downloading"
             var expectedSize = archive.Size;
             var destFileInfo = new FileInfo(destPath.ToString());
-            var progressCts = CancellationTokenSource.CreateLinkedTokenSource(token);
+            using var progressCts = CancellationTokenSource.CreateLinkedTokenSource(token);
             var progressTask = Task.Run(async () =>
             {
                 while (!progressCts.Token.IsCancellationRequested)
                 {
-                    await Task.Delay(2000, progressCts.Token).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+                    await Task.Delay(ProgressPollIntervalMs, progressCts.Token).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
                     try
                     {
                         destFileInfo.Refresh();
@@ -346,12 +359,11 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     /// </summary>
     private void ScheduleUpdateStatus()
     {
-        if (_updateStatusPending) return;
-        _updateStatusPending = true;
+        if (Interlocked.CompareExchange(ref _updateStatusPending, 1, 0) != 0) return;
         Task.Run(async () =>
         {
-            await Task.Delay(1000);
-            _updateStatusPending = false;
+            await Task.Delay(UpdateStatusDebounceMs);
+            Interlocked.Exchange(ref _updateStatusPending, 0);
             RxApp.MainThreadScheduler.Schedule(UpdateStatus);
         });
     }
@@ -566,7 +578,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 
         Task.Run(async () =>
         {
-            await Task.Delay(2000);
+            await Task.Delay(WatcherSettleDelayMs);
             await TryMatchFile((AbsolutePath)fullPath, CancellationToken.None);
         });
     }
@@ -607,9 +619,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
                 FailureMessage = IsAutoDownloading
                     ? $"Downloading Nexus files...{readySuffix}"
                     : $"{missingNexusCount} Nexus files available for automatic download{readySuffix}";
-                ActionCommand = IsAutoDownloading
-                    ? ReactiveCommand.Create(PauseAutoDownload)
-                    : ReactiveCommand.Create(StartAutoDownload);
+                ActionCommand = IsAutoDownloading ? _pauseAutoDownloadCommand : _startAutoDownloadCommand;
                 ActionLabel = IsAutoDownloading ? "Pause" : "Automatic Download";
             }
             else if (missingNexusCount > 0 && !IsPremium)
@@ -619,20 +629,16 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
                 FailureMessage = missingManualCount > 0
                     ? $"{total} files need downloading{readySuffix}"
                     : $"{missingNexusCount} Nexus files require premium or manual download{readySuffix}";
-                ActionCommand = ReactiveCommand.Create(() =>
-                    OpenUrl("https://next.nexusmods.com/premium"));
+                ActionCommand = _getNexusPremiumCommand;
                 ActionLabel = "Get Nexus Premium";
             }
             else
             {
                 Status = PreflightCheckStatus.Failed;
                 FailureMessage = $"Download these files — they'll be detected automatically{readySuffix}";
-                // If there are also Nexus files and we're premium, show the auto-download button
                 if (missingNexusCount > 0 && IsPremium)
                 {
-                    ActionCommand = IsAutoDownloading
-                        ? ReactiveCommand.Create(PauseAutoDownload)
-                        : ReactiveCommand.Create(StartAutoDownload);
+                    ActionCommand = IsAutoDownloading ? _pauseAutoDownloadCommand : _startAutoDownloadCommand;
                     ActionLabel = IsAutoDownloading ? "Pause" : "Automatic Download";
                 }
                 else

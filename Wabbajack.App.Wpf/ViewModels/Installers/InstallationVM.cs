@@ -674,13 +674,6 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
             // Scan existing files in background — don't block page load
             downloadsCheck.StartScanExistingFiles();
 
-            // Update premium status reactively when user logs in/out
-            if (nexusLogin != null)
-            {
-                nexusLogin.WhenAnyValue(x => x.LoggedIn)
-                    .Subscribe(loggedIn => downloadsCheck.IsPremium = loggedIn);
-            }
-
             var checks = new IPreflightCheck[] { pathCheck, gameCheck, diskCheck, nexusCheck, downloadsCheck };
 
             Preflight?.Dispose();
@@ -699,6 +692,17 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 () => BeginInstall().FireAndForget(),
                 Preflight.WhenAnyValue(p => p.AllPassed));
 
+            // All reactive subscriptions are attached to the preflight's lifetime
+            // so they're cleaned up when the preflight is disposed (e.g., loading a new modlist)
+
+            // Update premium status reactively when user logs in/out
+            if (nexusLogin != null)
+            {
+                nexusLogin.WhenAnyValue(x => x.LoggedIn)
+                    .Subscribe(loggedIn => downloadsCheck.IsPremium = loggedIn)
+                    .DisposeWith(Preflight.Subscriptions);
+            }
+
             // Wire path changes to reactive checks
             this.WhenAnyValue(
                 vm => vm.Installer.Location.TargetPath,
@@ -713,7 +717,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                         dm?.SizeOfInstalledFiles ?? 0,
                         dm?.SizeOfArchives ?? 0,
                         downloadsCheck.PresentArchiveSize);
-                });
+                })
+                .DisposeWith(Preflight.Subscriptions);
 
             // Poll disk space every 5 seconds
             Observable.Interval(TimeSpan.FromSeconds(5))
@@ -727,7 +732,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                         dm?.SizeOfInstalledFiles ?? 0,
                         dm?.SizeOfArchives ?? 0,
                         downloadsCheck.PresentArchiveSize);
-                });
+                })
+                .DisposeWith(Preflight.Subscriptions);
 
             ll.Succeed();
             await _settingsManager.Save(LastLoadedModlist, path);

@@ -10,6 +10,15 @@ namespace Wabbajack.Views.Preflight;
 
 public partial class PreflightView : ReactiveUserControl<PreflightViewModel>
 {
+    private static readonly Brush SummaryBackground = new SolidColorBrush(Color.FromRgb(0x1a, 0x2a, 0x1a));
+    private static readonly Brush SummaryForeground = new SolidColorBrush(Color.FromRgb(0x4a, 0xde, 0x80));
+
+    static PreflightView()
+    {
+        SummaryBackground.Freeze();
+        SummaryForeground.Freeze();
+    }
+
     public PreflightView()
     {
         InitializeComponent();
@@ -43,18 +52,11 @@ public partial class PreflightView : ReactiveUserControl<PreflightViewModel>
                 .Subscribe(tuple =>
                 {
                     var (allPassed, passed, total) = tuple;
-                    if (allPassed)
-                    {
-                        SummaryBar.Background = new SolidColorBrush(Color.FromRgb(0x1a, 0x2a, 0x1a));
-                        SummaryText.Foreground = new SolidColorBrush(Color.FromRgb(0x4a, 0xde, 0x80));
-                        SummaryText.Text = $"\u2713 All {total} checks passed \u2014 Ready to install";
-                    }
-                    else
-                    {
-                        SummaryBar.Background = new SolidColorBrush(Color.FromRgb(0x1a, 0x2a, 0x1a));
-                        SummaryText.Foreground = new SolidColorBrush(Color.FromRgb(0x4a, 0xde, 0x80));
-                        SummaryText.Text = $"\u2713 {passed} of {total} checks passed";
-                    }
+                    SummaryBar.Background = SummaryBackground;
+                    SummaryText.Foreground = SummaryForeground;
+                    SummaryText.Text = allPassed
+                        ? $"\u2713 All {total} checks passed \u2014 Ready to install"
+                        : $"\u2713 {passed} of {total} checks passed";
                 })
                 .DisposeWith(disposables);
 
