@@ -661,15 +661,18 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
             var systemDownloads = (AbsolutePath)Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
 
+            var hashCache = _serviceProvider.GetService<FileHashCache>();
             var downloadsCheck = new DownloadsCheck(
                 ModList.Archives,
                 Installer.DownloadLocation.TargetPath,
                 systemDownloads,
                 isPremium: nexusLogin?.LoggedIn == true,
                 logger: _logger,
-                downloadDispatcher: _downloadDispatcher);
+                downloadDispatcher: _downloadDispatcher,
+                hashCache: hashCache);
 
-            await downloadsCheck.ScanExistingFiles(CancellationToken.None);
+            // Scan existing files in background — don't block page load
+            downloadsCheck.StartScanExistingFiles();
 
             // Update premium status reactively when user logs in/out
             if (nexusLogin != null)

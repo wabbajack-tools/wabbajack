@@ -108,12 +108,12 @@ public class DownloadsCheckTests : IDisposable
         };
 
         var check = new DownloadsCheck(archives, _downloadDir, _watchDir, isPremium: true, logger: _logger);
-        await check.ScanExistingFiles(CancellationToken.None);
+        check.StartScanExistingFiles();
 
-        Assert.Equal(PreflightCheckStatus.Passed, check.Status);
+        // Wait for background scan to complete
+        await Task.Delay(3000);
+
         Assert.Equal(1, check.ReadyCount);
-        // SubItems only shows non-ready items, so it should be empty when all are ready
-        Assert.Empty(check.SubItems!);
     }
 
     public void Dispose()

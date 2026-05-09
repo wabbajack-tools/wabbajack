@@ -20,6 +20,7 @@ using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.VFS;
 
 namespace Wabbajack.Preflight;
 
@@ -29,6 +30,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     private readonly AbsolutePath _downloadDir;
     private readonly ILogger _logger;
     private readonly DownloadDispatcher? _downloadDispatcher;
+    private readonly FileHashCache? _hashCache;
     [Reactive] public partial bool IsPremium { get; set; }
 
     // All tracked archives with their sub-items
@@ -56,12 +58,14 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 
     public DownloadsCheck(IReadOnlyList<Archive> allArchives, AbsolutePath downloadDir,
         AbsolutePath systemDownloadsDir, bool isPremium, ILogger logger,
-        DownloadDispatcher? downloadDispatcher = null)
+        DownloadDispatcher? downloadDispatcher = null,
+        FileHashCache? hashCache = null)
     {
         _downloadDir = downloadDir;
         IsPremium = isPremium;
         _logger = logger;
         _downloadDispatcher = downloadDispatcher;
+        _hashCache = hashCache;
 
         // Re-evaluate status when premium state changes
         Observable.Skip(this.WhenAnyValue(x => x.IsPremium), 1)
@@ -113,7 +117,11 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         };
     }
 
-    public async Task ScanExistingFiles(CancellationToken token)
+    /// <summary>
+    /// Scan existing files in the download directory. Uses hash cache for speed.
+    /// Runs on a background thread and updates UI reactively.
+    /// </summary>
+    public void StartScanExistingFiles()
     {
         if (!_downloadDir.DirectoryExists())
         {
@@ -124,10 +132,73 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         var files = _downloadDir.EnumerateFiles().ToList();
         _logger.LogInformation("Preflight: scanning {Count} existing files in {Dir}", files.Count, _downloadDir);
 
-        foreach (var file in files)
+        // Build a hash→archive lookup for fast matching
+        Dictionary<Hash, (Archive Archive, PreflightSubItem Item)> hashLookup;
+        lock (_lock)
         {
-            await TryMatchFile(file, token);
+            hashLookup = _tracked
+                .Where(t => !t.Item.IsReady)
+                .ToDictionary(t => t.Archive.Hash, t => (t.Archive, t.Item));
         }
+
+        // Also build a size→archives lookup for files not in cache
+        Dictionary<long, List<(Archive Archive, PreflightSubItem Item)>> sizeLookup;
+        lock (_lock)
+        {
+            sizeLookup = _tracked
+                .Where(t => !t.Item.IsReady)
+                .GroupBy(t => t.Archive.Size)
+                .ToDictionary(g => g.Key, g => g.Select(t => (t.Archive, t.Item)).ToList());
+        }
+
+        Task.Run(async () =>
+        {
+            foreach (var file in files)
+            {
+                try
+                {
+                    // Try hash cache first
+                    Hash hash = default;
+                    if (_hashCache != null)
+                    {
+                        hash = await _hashCache.FileHashCachedAsync(file, CancellationToken.None);
+                    }
+                    else
+                    {
+                        // Fall back to size-based matching then full hash
+                        var fileSize = file.Size();
+                        if (!sizeLookup.ContainsKey(fileSize)) continue;
+                        await TryMatchFile(file, CancellationToken.None);
+                        continue;
+                    }
+
+                    if (hash == default) continue;
+
+                    if (hashLookup.TryGetValue(hash, out var match))
+                    {
+                        _logger.LogInformation("Preflight: cached hash match for {File}", file.FileName);
+                        lock (_lock)
+                        {
+                            _matchedHashes.Add(hash);
+                            PresentArchiveSize += match.Archive.Size;
+                        }
+                        hashLookup.Remove(hash);
+
+                        RxApp.MainThreadScheduler.Schedule(() =>
+                        {
+                            match.Item.IsReady = true;
+                            match.Item.StatusText = null;
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Preflight: error scanning {File}", file.FileName);
+                }
+            }
+
+            ScheduleUpdateStatus();
+        });
     }
 
     /// <summary>
@@ -177,13 +248,13 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 
         RxApp.MainThreadScheduler.Schedule(() =>
         {
-            item.StatusText = "Downloading...";
-            item.Progress = 0;
+            item.StatusText = "Queued...";
+            item.Progress = null;
         });
 
         try
         {
-            // Poll file size for progress while downloading
+            // Poll file size for progress while downloading — also updates status from "Queued" to "Downloading"
             var expectedSize = archive.Size;
             var destFileInfo = new FileInfo(destPath.ToString());
             var progressCts = CancellationTokenSource.CreateLinkedTokenSource(token);
@@ -198,7 +269,11 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
                         if (destFileInfo.Exists && expectedSize > 0)
                         {
                             var pct = Math.Min(1.0, (double)destFileInfo.Length / expectedSize);
-                            RxApp.MainThreadScheduler.Schedule(() => item.Progress = pct);
+                            RxApp.MainThreadScheduler.Schedule(() =>
+                            {
+                                item.StatusText = "Downloading...";
+                                item.Progress = pct;
+                            });
                         }
                     }
                     catch { /* file may not exist yet or be locked */ }
@@ -229,9 +304,10 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             {
                 _logger.LogWarning("Preflight: hash mismatch for {Name}: expected {Expected}, got {Actual}",
                     archive.Name, archive.Hash.ToHex(), hash.ToHex());
+                // Don't freeze on mismatch — clear status so it can be retried
                 RxApp.MainThreadScheduler.Schedule(() =>
                 {
-                    item.StatusText = "Hash mismatch";
+                    item.StatusText = null;
                     item.Progress = null;
                 });
             }
