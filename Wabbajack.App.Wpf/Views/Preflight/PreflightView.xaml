@@ -81,14 +81,13 @@
                             <StackPanel>
                                 <!-- Title row with action button -->
                                 <DockPanel>
-                                    <local:WJButton DockPanel.Dock="Right"
-                                                    Text="{Binding ActionLabel}"
-                                                    Command="{Binding ActionCommand}"
-                                                    ButtonStyle="Mono"
-                                                    Icon="ArrowDownload"
-                                                    VerticalAlignment="Center">
-                                        <local:WJButton.Style>
-                                            <Style TargetType="local:WJButton">
+                                    <Button DockPanel.Dock="Right"
+                                            Content="{Binding ActionLabel}"
+                                            Command="{Binding ActionCommand}"
+                                            Padding="12,6"
+                                            VerticalAlignment="Center">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource WJButtonStyle}">
                                                 <Setter Property="Visibility" Value="Visible" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding ActionCommand}" Value="{x:Null}">
@@ -96,8 +95,8 @@
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
-                                        </local:WJButton.Style>
-                                    </local:WJButton>
+                                        </Button.Style>
+                                    </Button>
                                     <TextBlock FontSize="15"
                                                FontWeight="SemiBold"
                                                VerticalAlignment="Center">
@@ -169,15 +168,14 @@
                                                                VerticalAlignment="Center" />
 
                                                     <!-- Action Button -->
-                                                    <local:WJButton Grid.Column="2"
-                                                                    Text="{Binding ActionLabel}"
-                                                                    Command="{Binding ActionCommand}"
-                                                                    ButtonStyle="SemiTransparent"
-                                                                    Icon="Open"
-                                                                    IconSize="16"
-                                                                    VerticalAlignment="Center">
-                                                        <local:WJButton.Style>
-                                                            <Style TargetType="local:WJButton">
+                                                    <Button Grid.Column="2"
+                                                            Content="{Binding ActionLabel}"
+                                                            Command="{Binding ActionCommand}"
+                                                            Padding="8,4"
+                                                            FontSize="12"
+                                                            VerticalAlignment="Center">
+                                                        <Button.Style>
+                                                            <Style TargetType="Button" BasedOn="{StaticResource WJSemiTransparentButtonStyle}">
                                                                 <Setter Property="Visibility" Value="Visible" />
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding ActionCommand}" Value="{x:Null}">
@@ -185,8 +183,8 @@
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
-                                                        </local:WJButton.Style>
-                                                    </local:WJButton>
+                                                        </Button.Style>
+                                                    </Button>
 
                                                     <!-- Status / Progress row -->
                                                     <StackPanel Grid.Row="1" Grid.ColumnSpan="3"
