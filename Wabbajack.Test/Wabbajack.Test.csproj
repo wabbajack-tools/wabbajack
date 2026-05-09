@@ -49,6 +49,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Wabbajack.App.Wpf\Wabbajack.App.Wpf.csproj" />
     <ProjectReference Include="..\Wabbajack.CLI.Builder\Wabbajack.CLI.Builder.csproj" />
     <ProjectReference Include="..\Wabbajack.CLI\Wabbajack.CLI.csproj" />
     <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
