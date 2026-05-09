@@ -39,9 +39,9 @@ using Wabbajack.VFS;
 using Humanizer;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
-using Microsoft.Web.WebView2.Wpf;
 using System.Diagnostics;
 using System.Reactive.Concurrency;
+using Wabbajack.Preflight;
 using Wabbajack.Reporting;
 using Markdig;
 using Markdig.Syntax;
@@ -100,8 +100,6 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     [Reactive] public partial string SuggestedInstallFolder { get; set; }
     [Reactive] public partial string SuggestedDownloadFolder { get; set; }
 
-    public WebView2 ReadmeBrowser { get; set; }
-
     private readonly DTOSerializer _dtos;
     private readonly ILogger<InstallationVM> _logger;
     private readonly SettingsManager _settingsManager;
@@ -126,6 +124,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
 
     public LogStream LoggerProvider { get; }
 
+
+    [Reactive] public partial PreflightViewModel? Preflight { get; set; }
 
     [Reactive] public partial string HashingSpeed { get; set; }
     [Reactive] public partial string ExtractingSpeed { get; set; }
@@ -169,7 +169,6 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         ProgressText = $"Installation";
 
         Installer = new MO2InstallerVM(this);
-        ReadmeBrowser = serviceProvider.GetRequiredService<WebView2>();
 
 
         CancelCommand = ReactiveCommand.Create(CancelInstall, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
@@ -643,7 +642,77 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
             }
             
             PopulateSlideShow(ModList);
-            
+
+            // Create preflight checks
+            var nexusLogin = _logins.FirstOrDefault(l => l.LoginFor() == typeof(Wabbajack.Downloaders.NexusDownloader));
+
+            var gameFolders = GameRegistry.Games.Keys
+                .Select(g => _gameLocator.TryFindLocation(g, out var loc) ? loc : default)
+                .Where(p => p != default)
+                .ToList();
+
+            var gameCheck = new GameInstalledCheck(_gameLocator, ModList.GameType);
+            var pathCheck = new PathValidationCheck();
+            var diskCheck = new DiskSpaceCheck();
+            var nexusCheck = new NexusLoginCheck(nexusLogin!);
+
+            var systemDownloads = (AbsolutePath)Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+
+            var downloadsCheck = new DownloadsCheck(
+                ModList.Archives,
+                Installer.DownloadLocation.TargetPath,
+                systemDownloads,
+                isPremium: nexusLogin?.LoggedIn == true);
+
+            _ = downloadsCheck.ScanExistingFiles(CancellationToken.None);
+
+            var checks = new IPreflightCheck[] { gameCheck, pathCheck, diskCheck, nexusCheck, downloadsCheck };
+
+            Preflight?.Dispose();
+            Preflight = new PreflightViewModel(checks)
+            {
+                ModlistName = ModList.Name,
+                ModlistVersion = ModList.Version?.ToString() ?? "",
+                ModlistAuthor = ModList.Author,
+                ReadmeUrl = ModList.Readme
+            };
+
+            // Wire Install command from preflight
+            Preflight.InstallCommand = ReactiveCommand.Create(
+                () => BeginInstall().FireAndForget(),
+                Preflight.WhenAnyValue(p => p.AllPassed));
+
+            // Wire path changes to reactive checks
+            this.WhenAnyValue(
+                vm => vm.Installer.Location.TargetPath,
+                vm => vm.Installer.DownloadLocation.TargetPath)
+                .Subscribe(paths =>
+                {
+                    var (installPath, downloadPath) = paths;
+                    pathCheck.Update(installPath, downloadPath, gameFolders);
+
+                    var dm = metadata?.DownloadMetadata;
+                    diskCheck.Update(installPath, downloadPath,
+                        dm?.SizeOfInstalledFiles ?? 0,
+                        dm?.SizeOfArchives ?? 0,
+                        downloadsCheck.PresentArchiveSize);
+                });
+
+            // Poll disk space every 5 seconds
+            Observable.Interval(TimeSpan.FromSeconds(5))
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(_ =>
+                {
+                    var installPath = Installer.Location.TargetPath;
+                    var downloadPath = Installer.DownloadLocation.TargetPath;
+                    var dm = metadata?.DownloadMetadata;
+                    diskCheck.Update(installPath, downloadPath,
+                        dm?.SizeOfInstalledFiles ?? 0,
+                        dm?.SizeOfArchives ?? 0,
+                        downloadsCheck.PresentArchiveSize);
+                });
+
             ll.Succeed();
             await _settingsManager.Save(LastLoadedModlist, path);
         }
@@ -697,8 +766,6 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 InstallState = InstallState.Installing;
                 ProgressState = ProgressState.Normal;
             });
-
-            await PrepareDownloaders();
 
             var postfix = (await WabbajackFileLocation.TargetPath.FileName.ToString().Hash()).ToHex();
             await _settingsManager.Save(InstallSettingsPrefix + postfix, new SavedInstallSettings
