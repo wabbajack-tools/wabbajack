@@ -623,6 +623,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                     {
                         SuggestedInstallFolder = GetSuggestedInstallFolder(metadata);
                         SuggestedDownloadFolder = SuggestedInstallFolder + "\\downloads";
+                        Installer.Location.TargetPath = (AbsolutePath)SuggestedInstallFolder;
+                        Installer.DownloadLocation.TargetPath = (AbsolutePath)SuggestedDownloadFolder;
                     }
                 }
                 catch (Exception ex)
