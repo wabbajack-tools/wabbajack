@@ -157,6 +157,10 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             {
                 try
                 {
+                    // Ensure the download directory exists
+                    if (!_downloadDir.DirectoryExists())
+                        _downloadDir.CreateDirectory();
+
                     if (destPath.FileExists()) destPath.Delete();
                     File.Move(filePath.ToString(), destPath.ToString());
                 }
@@ -185,7 +189,11 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 
     private void WatchDirectory(AbsolutePath dir)
     {
-        if (!dir.DirectoryExists()) return;
+        if (dir == default) return;
+
+        // Create the directory if it doesn't exist so the watcher works
+        if (!dir.DirectoryExists())
+            dir.CreateDirectory();
 
         var watcher = new FileSystemWatcher(dir.ToString())
         {
