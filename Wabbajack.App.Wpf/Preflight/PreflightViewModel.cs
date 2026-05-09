@@ -62,8 +62,21 @@ public partial class PreflightViewModel : ReactiveObject, IDisposable
         // Info counts as passed (non-blocking) for the summary
         PassedCount = _checks.Count(c => c.Status is PreflightCheckStatus.Passed or PreflightCheckStatus.Info);
         AllPassed = PassedCount == TotalCount;
-        // Show cards for anything that isn't fully passed (Failed, Pending, Checking, Info)
-        FailedChecks = _checks.Where(c => c.Status != PreflightCheckStatus.Passed).ToList();
+
+        // Progressive disclosure: show checks in order, stop after the first hard failure.
+        // Info checks are shown but don't stop the sequence.
+        var visible = new List<IPreflightCheck>();
+        foreach (var check in _checks)
+        {
+            if (check.Status == PreflightCheckStatus.Passed)
+                continue;
+
+            visible.Add(check);
+
+            if (check.Status == PreflightCheckStatus.Failed)
+                break; // Don't show checks after the first failure
+        }
+        FailedChecks = visible;
     }
 
     public void Dispose()

@@ -91,7 +91,7 @@ public class DownloadsCheckTests : IDisposable
     }
 
     [Fact]
-    public async Task ArchiveAlreadyInDownloadFolder_Passes()
+    public async Task ArchiveAlreadyInDownloadFolder_MarkedReady()
     {
         var data = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
         var hash = await data.Hash();
@@ -107,6 +107,8 @@ public class DownloadsCheckTests : IDisposable
         await check.ScanExistingFiles(CancellationToken.None);
 
         Assert.Equal(PreflightCheckStatus.Passed, check.Status);
+        Assert.True(check.SubItems![0].IsReady);
+        Assert.Equal("Ready", check.SubItems[0].StatusText);
     }
 
     public void Dispose()

@@ -667,7 +667,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
 
             _ = downloadsCheck.ScanExistingFiles(CancellationToken.None);
 
-            var checks = new IPreflightCheck[] { gameCheck, pathCheck, diskCheck, nexusCheck, downloadsCheck };
+            var checks = new IPreflightCheck[] { pathCheck, gameCheck, diskCheck, nexusCheck, downloadsCheck };
 
             Preflight?.Dispose();
             Preflight = new PreflightViewModel(checks)

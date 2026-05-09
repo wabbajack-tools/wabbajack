@@ -11,6 +11,7 @@ public partial class PreflightSubItem : ReactiveObject
     public required string SizeText { get; init; }
     [Reactive] public partial string? StatusText { get; set; }
     [Reactive] public partial double? Progress { get; set; }
+    [Reactive] public partial bool IsReady { get; set; }
     public ICommand? ActionCommand { get; init; }
     public string? ActionLabel { get; init; }
 }
