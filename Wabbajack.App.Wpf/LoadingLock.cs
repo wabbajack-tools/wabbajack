@@ -2,16 +2,16 @@ using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 
 namespace Wabbajack.Models;
 
-public class LoadingLock : ReactiveObject, IDisposable
+public partial class LoadingLock : ReactiveObject, IDisposable
 {
     private readonly CompositeDisposable _disposable;
     
     [Reactive]
-    public ValidationResult? ErrorState { get; set; }
+    public partial ValidationResult? ErrorState { get; set; }
 
     public LoadingLock()
     {
@@ -28,11 +28,11 @@ public class LoadingLock : ReactiveObject, IDisposable
             .DisposeWith(_disposable);
     }
 
-    [Reactive] public int LoadLevel { get; private set; }
+    [Reactive] public partial int LoadLevel { get; private set; }
 
-    [Reactive] public bool IsLoading { get; private set; }
-    
-    [Reactive] public bool IsNotLoading { get; private set; }
+    [Reactive] public partial bool IsLoading { get; private set; }
+
+    [Reactive] public partial bool IsNotLoading { get; private set; }
 
     public IObservable<bool> IsLoadingObservable => this.WhenAnyValue(ll => ll.IsLoading);
     public IObservable<bool> IsNotLoadingObservable => this.WhenAnyValue(ll => ll.IsNotLoading);

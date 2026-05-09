@@ -6,7 +6,7 @@ using System.Windows.Media.Imaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.IPS4OAuth2Downloader;
 using Wabbajack.DTOs.Logins;
@@ -16,7 +16,7 @@ using Wabbajack.UserIntervention;
 
 namespace Wabbajack.LoginManagers;
 
-public class VectorPlexusLoginManager : ViewModel, ILoginFor<LoversLabDownloader>
+public partial class VectorPlexusLoginManager : ViewModel, ILoginFor<LoversLabDownloader>
 {
     private readonly ILogger<VectorPlexusLoginManager> _logger;
     private readonly ITokenProvider<VectorPlexusLoginState> _token;
@@ -34,7 +34,7 @@ public class VectorPlexusLoginManager : ViewModel, ILoginFor<LoversLabDownloader
     }
 
     [Reactive]
-    public bool LoggedIn { get; set; }
+    public partial bool LoggedIn { get; set; }
     
     public VectorPlexusLoginManager(ILogger<VectorPlexusLoginManager> logger, ITokenProvider<VectorPlexusLoginState> token, IServiceProvider serviceProvider)
     {

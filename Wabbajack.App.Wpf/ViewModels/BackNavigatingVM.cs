@@ -6,7 +6,7 @@ using System.Reactive.Subjects;
 using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
 using Wabbajack.Messages;
 
@@ -21,14 +21,14 @@ public interface IBackNavigatingVM : IReactiveObject
     IObservable<bool> IsBackEnabled { get; }
 }
 
-public class BackNavigatingVM : ViewModel, IBackNavigatingVM, IClosableVM
+public partial class BackNavigatingVM : ViewModel, IBackNavigatingVM, IClosableVM
 {
     [Reactive]
-    public ViewModel NavigateBackTarget { get; set; }
+    public partial ViewModel NavigateBackTarget { get; set; }
     public ICommand CloseCommand { get; protected set; }
-    
+
     [Reactive]
-    public bool IsActive { get; set; }
+    public partial bool IsActive { get; set; }
     
     public Subject<bool> IsBackEnabledSubject { get; } = new Subject<bool>();
     public IObservable<bool> IsBackEnabled { get; }

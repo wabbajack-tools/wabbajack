@@ -6,21 +6,21 @@ using System.Threading.Tasks;
 using System.Web;
 using HtmlAgilityPack;
 using Microsoft.Web.WebView2.Core;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Views;
 
 namespace Wabbajack.UserIntervention;
 
-public abstract class WebUserInterventionBase<T> : ViewModel
+public abstract partial class WebUserInterventionBase<T> : ViewModel
 where T : IUserIntervention
 {
     [Reactive]
-    public string HeaderText { get; set; }
-    
+    public partial string HeaderText { get; set; }
+
     [Reactive]
-    public string Instructions { get; set; }
+    public partial string Instructions { get; set; }
 
     public BrowserView? Browser { get; set; }
 

@@ -1,4 +1,4 @@
-﻿using ReactiveUI.Fody.Helpers;
+﻿using ReactiveUI.SourceGenerators;
 using System;
 using System.Threading.Tasks;
 using Wabbajack.Compiler;
@@ -6,7 +6,7 @@ using Wabbajack.DTOs;
 
 namespace Wabbajack;
 
-public class MO2CompilerVM : ViewModel
+public partial class MO2CompilerVM : ViewModel
 {
     public BaseCompilerVM Parent { get; }
 
@@ -15,10 +15,10 @@ public class MO2CompilerVM : ViewModel
     public FilePickerVM ModListLocation { get; }
 
     [Reactive]
-    public ACompiler ActiveCompilation { get; private set; }
-    
+    public partial ACompiler ActiveCompilation { get; private set; }
+
     [Reactive]
-    public object StatusTracker { get; private set; }
+    public partial object StatusTracker { get; private set; }
 
     public void Unload()
     {

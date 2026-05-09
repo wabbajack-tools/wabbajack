@@ -4,27 +4,27 @@ using System.Reactive.Subjects;
 using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.Messages;
 using Wabbajack.Models;
 
 namespace Wabbajack;
 
-public class WebBrowserVM : ViewModel, IBackNavigatingVM, IDisposable
+public partial class WebBrowserVM : ViewModel, IBackNavigatingVM, IDisposable
 {
     private readonly ILogger<WebBrowserVM> _logger;
     private readonly CefService _cefService;
 
     [Reactive]
-    public string Instructions { get; set; }
+    public partial string Instructions { get; set; }
 
     public dynamic Browser { get; }
     public dynamic Driver { get; set; }
 
     [Reactive]
-    public ViewModel NavigateBackTarget { get; set; }
+    public partial ViewModel NavigateBackTarget { get; set; }
 
-    [Reactive] public ICommand CloseCommand { get; set; }
+    [Reactive] public partial ICommand CloseCommand { get; set; }
 
     public Subject<bool> IsBackEnabledSubject { get; } = new Subject<bool>();
     public IObservable<bool> IsBackEnabled { get; }

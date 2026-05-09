@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.Compiler;
 using Wabbajack.Messages;
 using Wabbajack.Models;
@@ -14,15 +14,15 @@ using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack;
 
-public class CompiledModListTileVM
+public partial class CompiledModListTileVM : ViewModel
 {
     private ILogger _logger;
     private SettingsManager _settingsManager;
     public LoadingLock LoadingImageLock { get; } = new();
     public ICommand CompileModListCommand { get; }
     public ICommand DeleteModListCommand { get; }
-    [Reactive] public CompilerSettings CompilerSettings { get; set; }
-    [Reactive] public bool Deleted { get; set; }
+    [Reactive] public partial CompilerSettings CompilerSettings { get; set; }
+    [Reactive] public partial bool Deleted { get; set; }
 
     public CompiledModListTileVM(ILogger logger, SettingsManager settingsManager, CompilerSettings compilerSettings)
     {

@@ -1,6 +1,6 @@
 ﻿using FluentIcons.Common;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -44,20 +44,20 @@ public class FileTreeViewItem : TreeViewItem
 /// <summary>
 /// TODO: Bit of a super class for both files and folders atm, refactor?
 /// </summary>
-public class FileTreeItemVM : ReactiveObject, IDisposable
+public partial class FileTreeItemVM : ReactiveObject, IDisposable
 {
     private readonly CompositeDisposable _disposable = new();
     public FileSystemInfo Info { get; set; }
     public bool IsDirectory { get; set; }
     public Symbol Symbol { get; set; }
-    [Reactive] public CompilerFileState? CompilerFileState { get; set; }
-    [Reactive] public ObservableCollection<CompilerFileState> CompilerFileStates { get; set; } = new ObservableCollection<CompilerFileState>();
+    [Reactive] public partial CompilerFileState? CompilerFileState { get; set; }
+    [Reactive] public partial ObservableCollection<CompilerFileState> CompilerFileStates { get; set; } = new ObservableCollection<CompilerFileState>();
 
     public RelativePath PathRelativeToRoot { get; set; }
-    [Reactive] public bool ContainsNoMatchIncludes { get; set; }
-    [Reactive] public bool ContainsIncludes { get; set; }
-    [Reactive] public bool ContainsIgnores { get; set; }
-    [Reactive] public bool ContainsAlwaysEnableds { get; set; }
+    [Reactive] public partial bool ContainsNoMatchIncludes { get; set; }
+    [Reactive] public partial bool ContainsIncludes { get; set; }
+    [Reactive] public partial bool ContainsIgnores { get; set; }
+    [Reactive] public partial bool ContainsAlwaysEnableds { get; set; }
 
     public FileTreeItemVM(DirectoryInfo info)
     {

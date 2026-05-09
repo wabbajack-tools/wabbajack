@@ -12,7 +12,7 @@ using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs.Logins;
@@ -26,13 +26,13 @@ using Wabbajack.Util;
 
 namespace Wabbajack;
 
-public class AboutVM : ViewModel
+public partial class AboutVM : ViewModel
 {
     private readonly ILogger<AboutVM> _logger;
     private readonly Client _client;
     private readonly IServiceProvider _provider;
 
-    [Reactive] public ObservableCollection<ContributorVM> Contributors { get; private set; }
+    [Reactive] public partial ObservableCollection<ContributorVM> Contributors { get; private set; }
     public AboutVM(ILogger<AboutVM> logger, Client client, IServiceProvider provider)
     {
         _logger = logger;

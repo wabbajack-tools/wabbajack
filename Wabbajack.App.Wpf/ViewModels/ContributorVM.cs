@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs.Logins;
@@ -28,17 +28,17 @@ using System.Reactive.Linq;
 
 namespace Wabbajack;
 
-public class ContributorVM : ViewModel
+public partial class ContributorVM : ViewModel
 {
     private readonly ILogger<ContributorVM> _logger;
     private readonly HttpClient _httpClient;
     private readonly ImageCacheManager _icm;
     private readonly Client _client;
 
-    [Reactive] public Octokit.RepositoryContributor Contributor { get; set; }
+    [Reactive] public partial Octokit.RepositoryContributor Contributor { get; set; }
     protected ObservableAsPropertyHelper<BitmapImage> _Avatar { get; set; }
     public BitmapImage Avatar => _Avatar.Value;
-    [Reactive] public ICommand OpenProfileCommand { get; private set; }
+    [Reactive] public partial ICommand OpenProfileCommand { get; private set; }
 
     public ContributorVM(ILogger<ContributorVM> logger, HttpClient httpClient, Octokit.RepositoryContributor contributor, ImageCacheManager icm)
     {

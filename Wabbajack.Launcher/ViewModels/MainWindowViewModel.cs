@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using MsBox.Avalonia.Dto;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.Http;
 using Wabbajack.DTOs.Logins;
@@ -26,7 +26,7 @@ using Wabbajack.Paths.IO;
 
 namespace Wabbajack.Launcher.ViewModels;
 
-public class MainWindowViewModel : ViewModelBase
+public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly WebClient _client = new();
     private readonly List<string> _errors = new();
@@ -72,8 +72,8 @@ public class MainWindowViewModel : ViewModelBase
         var tsk = CheckForUpdates();
     }
 
-    [Reactive] ObservableCollection<string> StatusHistory { get; set; } = new ObservableCollection<string>();
-    [Reactive] public string Status { get; set; }
+    [Reactive] public partial ObservableCollection<string> StatusHistory { get; set; } = new ObservableCollection<string>();
+    [Reactive] public partial string Status { get; set; }
 
     private async Task CheckForUpdates()
     {

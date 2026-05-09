@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Paths;
 using Wabbajack.Services.OSIntegrated;
@@ -16,14 +16,14 @@ using Wabbajack.Messages;
 
 namespace Wabbajack;
 
-public abstract class BaseCompilerVM : ProgressViewModel
+public abstract partial class BaseCompilerVM : ProgressViewModel
 {
     protected readonly DTOSerializer _dtos;
     protected readonly SettingsManager _settingsManager;
     protected readonly ILogger<BaseCompilerVM> _logger;
     protected readonly Client _wjClient;
 
-    [Reactive] public CompilerSettingsVM Settings { get; set; } = new();
+    [Reactive] public partial CompilerSettingsVM Settings { get; set; } = new();
 
     public BaseCompilerVM(DTOSerializer dtos, SettingsManager settingsManager, ILogger<BaseCompilerVM> logger, Client wjClient)
     {

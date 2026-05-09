@@ -235,7 +235,7 @@ public static class AsyncParallelExtensions
             await foreach (var itm in coll)
                 lst.Add(itm);
         else
-            await foreach (var itm in coll.Where(filter))
+            await foreach (var itm in coll.Where(x => filter(x)))
                 lst.Add(itm);
 
         return lst;
@@ -269,12 +269,6 @@ public static class AsyncParallelExtensions
         return dict;
     }
 
-    public static async IAsyncEnumerable<T> Where<T>(this IAsyncEnumerable<T> coll, Predicate<T> p)
-    {
-        await foreach (var itm in coll)
-            if (p(itm))
-                yield return itm;
-    }
 
     public static async IAsyncEnumerable<TOut> SelectAsync<TIn, TOut>(this IEnumerable<TIn> coll,
         Func<TIn, ValueTask<TOut>> fn)
@@ -298,11 +292,4 @@ public static class AsyncParallelExtensions
             yield return await fn(itm);
     }
 
-    public static async IAsyncEnumerable<TOut> SelectMany<TIn, TOut>(this IAsyncEnumerable<TIn> coll,
-        Func<TIn, IEnumerable<TOut>> fn)
-    {
-        await foreach (var itm in coll)
-        foreach (var inner in fn(itm))
-            yield return inner;
-    }
 }

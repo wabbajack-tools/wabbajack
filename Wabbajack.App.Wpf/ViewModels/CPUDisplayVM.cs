@@ -1,21 +1,21 @@
 ﻿using System;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.RateLimiter;
 
 namespace Wabbajack;
 
-public class CPUDisplayVM : ViewModel
+public partial class CPUDisplayVM : ViewModel
 {
     [Reactive]
-    public ulong ID { get; set; }
+    public partial ulong ID { get; set; }
     [Reactive]
-    public DateTime StartTime { get; set; }
+    public partial DateTime StartTime { get; set; }
     [Reactive]
-    public bool IsWorking { get; set; }
+    public partial bool IsWorking { get; set; }
     [Reactive]
-    public string Msg { get; set; }
+    public partial string Msg { get; set; }
     [Reactive]
-    public Percent ProgressPercent { get; set; }
+    public partial Percent ProgressPercent { get; set; }
 
     public CPUDisplayVM()
     {

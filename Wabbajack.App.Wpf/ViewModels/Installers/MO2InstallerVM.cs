@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.Installer;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.Paths;
@@ -11,18 +11,18 @@ using System.Reactive.Linq;
 
 namespace Wabbajack;
 
-public class MO2InstallerVM : ViewModel, ISubInstallerVM
+public partial class MO2InstallerVM : ViewModel, ISubInstallerVM
 {
     public InstallationVM Parent { get; }
 
     [Reactive]
-    public ValidationResult CanInstall { get; set; }
+    public partial ValidationResult CanInstall { get; set; }
 
     [Reactive]
-    public IInstaller ActiveInstallation { get; private set; }
+    public partial IInstaller ActiveInstallation { get; private set; }
 
     [Reactive]
-    public Mo2ModlistInstallationSettings CurrentSettings { get; set; }
+    public partial Mo2ModlistInstallationSettings CurrentSettings { get; set; }
 
     public FilePickerVM Location { get; }
 
@@ -31,7 +31,7 @@ public class MO2InstallerVM : ViewModel, ISubInstallerVM
     public bool SupportsAfterInstallNavigation => true;
 
     [Reactive]
-    public bool AutomaticallyOverwrite { get; set; }
+    public partial bool AutomaticallyOverwrite { get; set; }
 
     public int ConfigVisualVerticalOffset => 25;
 

@@ -1,13 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using System;
 using System.Reactive.Disposables;
 using Wabbajack.Messages;
 
 namespace Wabbajack;
 
-public class InfoVM : BackNavigatingVM
+public partial class InfoVM : BackNavigatingVM
 {
     public InfoVM(ILogger<InfoVM> logger) : base(logger)
     {
@@ -19,5 +19,5 @@ public class InfoVM : BackNavigatingVM
             })
             .DisposeWith(CompositeDisposable);
     }
-    [Reactive] public string Info { get; set; }
+    [Reactive] public partial string Info { get; set; }
 }

@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net9.0-windows</TargetFramework>
-    <TargetFramework Condition=" '$(OS)' != 'Windows_NT'">net9.0</TargetFramework>
+    <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net10.0-windows</TargetFramework>
+    <TargetFramework Condition=" '$(OS)' != 'Windows_NT'">net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>

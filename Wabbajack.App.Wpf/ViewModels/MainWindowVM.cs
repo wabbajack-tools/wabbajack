@@ -1,6 +1,6 @@
 ﻿using DynamicData.Binding;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -36,19 +36,19 @@ namespace Wabbajack;
 /// Main View Model for the application.
 /// Keeps track of which sub view is being shown in the window, and has some singleton wiring like WorkQueue and Logging.
 /// </summary>
-public class MainWindowVM : ViewModel
+public partial class MainWindowVM : ViewModel
 {
     private Common.AsyncLock _browserLocker = new();
     public MainWindow MainWindow { get; }
 
     [Reactive]
-    public ViewModel ActivePane { get; private set; }
+    public partial ViewModel ActivePane { get; private set; }
 
     [Reactive]
-    public ViewModel? ActiveFloatingPane { get; private set; } = null;
+    public partial ViewModel? ActiveFloatingPane { get; private set; } = null;
 
     [Reactive]
-    public NavigationVM NavigationVM { get; private set; }
+    public partial NavigationVM NavigationVM { get; private set; }
 
     public ObservableCollectionExtended<IStatusMessage> Log { get; } = new ObservableCollectionExtended<IStatusMessage>();
 
@@ -84,16 +84,16 @@ public class MainWindowVM : ViewModel
     public string VersionDisplay { get; }
 
     [Reactive]
-    public string ResourceStatus { get; set; }
+    public partial string ResourceStatus { get; set; }
 
     [Reactive]
-    public string WindowTitle { get; set; }
+    public partial string WindowTitle { get; set; }
 
     [Reactive]
-    public bool UpdateAvailable { get; private set; }
+    public partial bool UpdateAvailable { get; private set; }
 
     [Reactive]
-    public bool NavigationVisible { get; private set; } = true;
+    public partial bool NavigationVisible { get; private set; } = true;
 
     private System.IO.Pipes.NamedPipeServerStream? _protocolPipeServer;
     private CancellationTokenSource? _protocolPipeCts;

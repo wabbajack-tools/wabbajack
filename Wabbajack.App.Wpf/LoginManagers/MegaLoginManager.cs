@@ -10,7 +10,7 @@ using CG.Web.MegaApiClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.ModDB;
 using Wabbajack.DTOs.Logins;
@@ -21,7 +21,7 @@ using static CG.Web.MegaApiClient.MegaApiClient;
 
 namespace Wabbajack.LoginManagers;
 
-public class MegaLoginManager : ViewModel, ILoginFor<MegaDownloader>
+public partial class MegaLoginManager : ViewModel, ILoginFor<MegaDownloader>
 {
     private readonly ILogger<MegaLoginManager> _logger;
     private readonly ITokenProvider<MegaToken> _token;
@@ -39,7 +39,7 @@ public class MegaLoginManager : ViewModel, ILoginFor<MegaDownloader>
     }
 
     [Reactive]
-    public bool LoggedIn { get; set; }
+    public partial bool LoggedIn { get; set; }
     
     public MegaLoginManager(ILogger<MegaLoginManager> logger, ITokenProvider<MegaToken> token, MegaApiClient apiClient)
     {

@@ -11,7 +11,7 @@ using DynamicData.Binding;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.CLI.Verbs;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
@@ -23,7 +23,7 @@ using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack;
 
-public class CompilerHomeVM : ViewModel
+public partial class CompilerHomeVM : ViewModel
 {
     private readonly SettingsManager _settingsManager;
     private readonly IServiceProvider _serviceProvider;
@@ -32,10 +32,10 @@ public class CompilerHomeVM : ViewModel
     private readonly DTOSerializer _dtos;
     private readonly CompilerSettingsInferencer _inferencer;
 
-    [Reactive] public ICommand NewModlistCommand { get; set; }
-    [Reactive] public ICommand LoadSettingsCommand { get; set; }
+    [Reactive] public partial ICommand NewModlistCommand { get; set; }
+    [Reactive] public partial ICommand LoadSettingsCommand { get; set; }
 
-    [Reactive] public ObservableCollection<CompiledModListTileVM> CompiledModLists { get; set; }
+    [Reactive] public partial ObservableCollection<CompiledModListTileVM> CompiledModLists { get; set; }
 
     public FilePickerVM CompilerSettingsPicker { get; private set; }
     public FilePickerVM NewModlistPicker { get; private set; }

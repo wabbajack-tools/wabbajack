@@ -7,7 +7,7 @@ using System.Net.Http;
 using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Windows.Media.Imaging;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using DynamicData;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -57,23 +57,23 @@ public enum InstallState
     Failure
 }
 
-public class InstallationVM : ProgressViewModel, ICpuStatusVM
+public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
 {
     private const string LastLoadedModlist = "last-loaded-modlist";
     private const string InstallSettingsPrefix = "install-settings-";
     private readonly Random _random = new();
     
 
-    [Reactive] public ModList ModList { get; set; }
-    [Reactive] public ModlistMetadata ModlistMetadata { get; set; }
-    [Reactive] public FilePickerVM WabbajackFileLocation { get; set; }
-    [Reactive] public MO2InstallerVM Installer { get; set; }
-    [Reactive] public StandardInstaller StandardInstaller { get; set; }
-    [Reactive] public BitmapImage ModListImage { get; set; }
-    [Reactive] public InstallState InstallState { get; set; }
+    [Reactive] public partial ModList ModList { get; set; }
+    [Reactive] public partial ModlistMetadata ModlistMetadata { get; set; }
+    [Reactive] public partial FilePickerVM WabbajackFileLocation { get; set; }
+    [Reactive] public partial MO2InstallerVM Installer { get; set; }
+    [Reactive] public partial StandardInstaller StandardInstaller { get; set; }
+    [Reactive] public partial BitmapImage ModListImage { get; set; }
+    [Reactive] public partial InstallState InstallState { get; set; }
 
-    [Reactive] public string FailureDetailsTitle { get; set; } = string.Empty;
-    [Reactive] public string FailureDetailsDescription { get; set; } = string.Empty;
+    [Reactive] public partial string FailureDetailsTitle { get; set; } = string.Empty;
+    [Reactive] public partial string FailureDetailsDescription { get; set; } = string.Empty;
 
     /// <summary>
     /// Don't use the Reactive attribute on nullable enum values
@@ -93,12 +93,12 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     /// <summary>
     ///  Slideshow Data
     /// </summary>
-    [Reactive] public BitmapFrame SlideShowImage { get; set; }
-    [Reactive] public string SlideShowTitle { get; set; } 
-    [Reactive] public string SlideShowAuthor { get; set; }
-    [Reactive] public string SlideShowDescription { get; set; }
-    [Reactive] public string SuggestedInstallFolder { get; set; }
-    [Reactive] public string SuggestedDownloadFolder { get; set; }
+    [Reactive] public partial BitmapFrame SlideShowImage { get; set; }
+    [Reactive] public partial string SlideShowTitle { get; set; }
+    [Reactive] public partial string SlideShowAuthor { get; set; }
+    [Reactive] public partial string SlideShowDescription { get; set; }
+    [Reactive] public partial string SuggestedInstallFolder { get; set; }
+    [Reactive] public partial string SuggestedDownloadFolder { get; set; }
 
     public WebView2 ReadmeBrowser { get; set; }
 
@@ -116,20 +116,20 @@ public class InstallationVM : ProgressViewModel, ICpuStatusVM
     private CancellationTokenSource _cancellationTokenSource;
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
 
-    [Reactive] public bool Installing { get; set; }
-    
-    [Reactive] public ValidationResult ValidationResult { get; set; }
-    
-    [Reactive] public bool ShowNSFWSlides { get; set; }
+    [Reactive] public partial bool Installing { get; set; }
 
-    [Reactive] public bool DiagnosticsVisible { get; set; } = false;
+    [Reactive] public partial ValidationResult ValidationResult { get; set; }
+
+    [Reactive] public partial bool ShowNSFWSlides { get; set; }
+
+    [Reactive] public partial bool DiagnosticsVisible { get; set; } = false;
 
     public LogStream LoggerProvider { get; }
 
 
-    [Reactive] public string HashingSpeed { get; set; }
-    [Reactive] public string ExtractingSpeed { get; set; }
-    [Reactive] public string DownloadingSpeed { get; set; }
+    [Reactive] public partial string HashingSpeed { get; set; }
+    [Reactive] public partial string ExtractingSpeed { get; set; }
+    [Reactive] public partial string DownloadingSpeed { get; set; }
     
     // Command properties
     public ICommand OpenManifestCommand { get; }

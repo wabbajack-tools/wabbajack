@@ -13,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DynamicData;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.DTOs;
@@ -36,19 +36,19 @@ public enum CompilerState
     Completed,
     Errored
 }
-public class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
+public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
 {
     private readonly ResourceMonitor _resourceMonitor;
     private readonly CompilerSettingsInferencer _inferencer;
     
     public CompilerFileManagerVM CompilerFileManagerVM { get; private set; }
-    [Reactive] public List<string> AvailableProfiles { get; set; }
+    [Reactive] public partial List<string> AvailableProfiles { get; set; }
 
     [Reactive]
-    public CompilerState State { get; set; }
-    
+    public partial CompilerState State { get; set; }
+
     [Reactive]
-    public MO2CompilerVM SubCompilerVM { get; set; }
+    public partial MO2CompilerVM SubCompilerVM { get; set; }
     
     // Paths 
     public FilePickerVM ModlistLocation { get; private set; }
@@ -65,7 +65,7 @@ public class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
     
     [Reactive]
-    public ValidationResult ErrorState { get; private set; }
+    public partial ValidationResult ErrorState { get; private set; }
     
     public CompilerDetailsVM(ILogger<CompilerDetailsVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
         IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 

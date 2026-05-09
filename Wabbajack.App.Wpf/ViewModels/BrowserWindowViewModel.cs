@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,20 +22,20 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack;
 
-public abstract class BrowserWindowViewModel : ViewModel, IClosableVM
+public abstract partial class BrowserWindowViewModel : ViewModel, IClosableVM
 {
     private readonly ILogger<BrowserWindowViewModel> _logger;
     private readonly IServiceProvider _serviceProvider;
     private CancellationTokenSource _tokenSource;
     private readonly ApplicationInfo _appInfo;
 
-    [Reactive] public WebView2 Browser { get; set; }
-    [Reactive] public string HeaderText { get; set; }
-    [Reactive] public string Instructions { get; set; }
-    [Reactive] public string Address { get; set; }
-    [Reactive] public ICommand CloseCommand { get; set; }
-    [Reactive] public ICommand BackCommand { get; set; }
-    [Reactive] public ICommand OpenWebViewHelpCommand { get; set; }
+    [Reactive] public partial WebView2 Browser { get; set; }
+    [Reactive] public partial string HeaderText { get; set; }
+    [Reactive] public partial string Instructions { get; set; }
+    [Reactive] public partial string Address { get; set; }
+    [Reactive] public partial ICommand CloseCommand { get; set; }
+    [Reactive] public partial ICommand BackCommand { get; set; }
+    [Reactive] public partial ICommand OpenWebViewHelpCommand { get; set; }
     public event EventHandler Closed;
 
     public BrowserWindowViewModel(IServiceProvider serviceProvider)
