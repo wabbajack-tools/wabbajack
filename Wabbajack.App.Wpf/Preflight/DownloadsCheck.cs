@@ -157,7 +157,29 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
                     if (!_downloadDir.DirectoryExists())
                         _downloadDir.CreateDirectory();
 
+                    // Poll file size for progress while downloading
+                    var expectedSize = next.Archive.Size;
+                    var progressCts = CancellationTokenSource.CreateLinkedTokenSource(token);
+                    var progressTask = Task.Run(async () =>
+                    {
+                        while (!progressCts.Token.IsCancellationRequested)
+                        {
+                            await Task.Delay(500, progressCts.Token).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+                            try
+                            {
+                                if (destPath.FileExists() && expectedSize > 0)
+                                {
+                                    var currentSize = destPath.Size();
+                                    var pct = Math.Min(1.0, (double)currentSize / expectedSize);
+                                    RxApp.MainThreadScheduler.Schedule(() => next.Item.Progress = pct);
+                                }
+                            }
+                            catch { /* file may not exist yet or be locked */ }
+                        }
+                    }, progressCts.Token);
+
                     var hash = await _downloadDispatcher.Download(next.Archive, destPath, token);
+                    await progressCts.CancelAsync();
 
                     if (hash == next.Archive.Hash)
                     {
