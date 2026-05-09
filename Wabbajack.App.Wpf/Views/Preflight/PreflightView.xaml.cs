@@ -22,6 +22,13 @@ public partial class PreflightView : ReactiveUserControl<PreflightViewModel>
             this.BindCommand(ViewModel, vm => vm.ViewReadmeCommand, v => v.ViewReadmeButton)
                 .DisposeWith(disposables);
 
+            // Path pickers — bind to the shared FilePickerVM instances
+            this.Bind(ViewModel, vm => vm.InstallLocation, v => v.InstallLocationPicker.PickerVM)
+                .DisposeWith(disposables);
+
+            this.Bind(ViewModel, vm => vm.DownloadLocation, v => v.DownloadLocationPicker.PickerVM)
+                .DisposeWith(disposables);
+
             // Failed checks list
             this.OneWayBind(ViewModel, vm => vm.FailedChecks, v => v.FailedChecksList.ItemsSource)
                 .DisposeWith(disposables);

@@ -63,96 +63,10 @@
                 <ColumnDefinition Width="3.5*" />
             </Grid.ColumnDefinitions>
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <StackPanel x:Name="InstallationLocationPanel" Style="{StaticResource Panel}">
-                    <TextBlock Style="{StaticResource TitleStyle}" Text="Installation Location" />
-                    <TextBlock Style="{StaticResource DescriptionStyle}">
-                        The folder where the list will be installed into.<LineBreak />
-                        Choose an empty folder outside Windows-protected areas.
-                        Using an SSD is highly recommended for optimal performance.
-                    </TextBlock>
-                    <local:FilePicker x:Name="InstallationLocationPicker"
-                                      Style="{StaticResource PickerStyle}"
-                                      Icon="Folder"
-                                      ToolTip="Path to the folder where the list will be installed to"
-                                      IsEnabled="{Binding LoadingLock.IsNotLoading}"/>
-                </StackPanel>
-
-                <StackPanel x:Name="DownloadLocationPanel" Grid.Row="1" Style="{StaticResource Panel}">
-                    <TextBlock Style="{StaticResource TitleStyle}" Text="Downloads Location" />
-                    <TextBlock Style="{StaticResource DescriptionStyle}">
-                        The folder where the downloads will be stored.<LineBreak />
-                        By default these are stored in a subdirectory of the installation folder, but you can also use a shared folder so previous downloads are reused.
-                        Downloads can be deleted after installation.
-                    </TextBlock>
-                    <local:FilePicker x:Name="DownloadLocationPicker"
-                                      Style="{StaticResource PickerStyle}"
-                                      Icon="Folder"
-                                      ToolTip="Path to the folder where the mod archives will be downloaded to"
-                                      IsEnabled="{Binding LoadingLock.IsNotLoading}" />
-                </StackPanel>
-
-                <Grid Grid.Row="3">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <local:WJButton x:Name="DocumentationButton" Text="Readme" Icon="Document" Grid.Row="0" Margin="{StaticResource InstallMargin}" Width="Auto" />
-                    <local:WJButton x:Name="WebsiteButton" Text="Website" Icon="Globe" Grid.Row="1" Margin="{StaticResource InstallMargin}" Width="Auto" />
-                    <local:WJButton x:Name="CommunityButton" Text="Community" Icon="PeopleChat" Grid.Row="2" Margin="{StaticResource InstallMargin}" Width="Auto" />
-                    <local:WJButton x:Name="ManifestButton" Text="Archives" Icon="BoxSearch" Grid.Row="3" Width="Auto" />
-                </Grid>
-
-            </Grid>
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <local:DetailImageView x:Name="DetailImage" TitleFontSize="48" AuthorFontSize="24" Margin="0, 0, 0, 16" />
+                <local:DetailImageView x:Name="DetailImage" TitleFontSize="48" AuthorFontSize="24" />
                 <mahapps:ProgressRing x:Name="ModlistLoadingRing" />
-                <Grid Grid.Row="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Border
-                        x:Name="ErrorStateBorder"
-                        Grid.Column="0"
-                        Background="{StaticResource ErrorBrush}"
-                        Margin="0, 0, 16, 0"
-                        CornerRadius="8">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="8" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ic:SymbolIcon
-                                Grid.Column="0"
-                                Symbol="Warning"
-                                FontSize="18"
-                                Width="18"
-                                Height="18"
-                                Margin="16, 0, 0, 0"/>
-                            <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="0, 0, 16, 0">
-                                <Run Text="Cannot start installation!" FontWeight="Bold" />
-                                <Run x:Name="ErrorStateReasonText" Text="Placeholder reason." />
-                            </TextBlock>
-                        </Grid>
-                    </Border>
-                    <local:WJButton x:Name="InstallButton" Grid.Column="2" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown" HorizontalAlignment="Right" />
-                </Grid>
             </Grid>
+            <ContentControl x:Name="PreflightHost" Grid.Column="2" />
         </Grid>
         <Grid x:Name="InstallationGrid" Visibility="Collapsed">
             <Grid.ColumnDefinitions>
@@ -332,8 +246,7 @@
                                     Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/4.5}"
                                     HorizontalAlignment="Right" />
                 </Grid>
-                <ContentControl x:Name="PreflightHost" Grid.Row="1" Margin="0, 0, 0, 16" />
-                <local:LogView Grid.Row="1" x:Name="LogView" Margin="0, 0, 0, 16" Visibility="Collapsed" />
+                <local:LogView Grid.Row="1" x:Name="LogView" Margin="0, 0, 0, 16" />
                 <Grid x:Name="ErrorSummaryGrid" Grid.Row="1" Margin="0,0,0,16" Visibility="Collapsed">
                     <Border CornerRadius="8" Background="{Binding Background, ElementName=StoppedBorder}">
                         <wv2:WebView2 x:Name="ErrorMarkdownView"

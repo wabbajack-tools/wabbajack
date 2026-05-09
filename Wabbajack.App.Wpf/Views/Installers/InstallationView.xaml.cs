@@ -1,4 +1,4 @@
-﻿using System.Reactive.Disposables;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
 using System.Windows;
@@ -32,41 +32,14 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
         InitializeComponent();
         this.WhenActivated(disposables =>
         {
-            this.Bind(ViewModel, vm => vm.Installer.Location, view => view.InstallationLocationPicker.PickerVM)
-                .DisposeWith(disposables);
-
-            this.Bind(ViewModel, vm => vm.Installer.DownloadLocation, view => view.DownloadLocationPicker.PickerVM)
-                .DisposeWith(disposables);
-
-            InstallationLocationPicker.PickerVM.AdditionalError = ViewModel.WhenAnyValue(vm => vm.ValidationResult).Where(vr => vr is InstallPathValidationResult);
-            DownloadLocationPicker.PickerVM.AdditionalError = ViewModel.WhenAnyValue(vm => vm.ValidationResult).Where(vr => vr is DownloadsPathValidationResult);
-            ViewModel.WhenAnyValue(vm => vm.ValidationResult)
-                     .Subscribe(vr =>
-                     {
-                         if (vr.Succeeded)
-                         {
-                             ErrorStateBorder.Visibility = Visibility.Collapsed;
-                             InstallButton.IsEnabled = true;
-                         }
-                         else
-                         {
-                             InstallButton.IsEnabled = false;
-                             ErrorStateBorder.Visibility = Visibility.Visible;
-                             ErrorStateReasonText.Text = vr.Reason;
-                         }
-                     })
-                     .DisposeWith(disposables);
-
-            this.BindCommand(ViewModel, vm => vm.OpenReadmeCommand, v => v.DocumentationButton)
-                .DisposeWith(disposables);
-
-            this.BindCommand(ViewModel, vm => vm.OpenWebsiteCommand, v => v.WebsiteButton)
-                .DisposeWith(disposables);
-
-            this.BindCommand(ViewModel, vm => vm.OpenCommunityCommand, v => v.CommunityButton)
-                .DisposeWith(disposables);
-
-            this.BindCommand(ViewModel, vm => vm.OpenManifestCommand, v => v.ManifestButton)
+            // Preflight view in SetupGrid
+            this.WhenAnyValue(v => v.ViewModel!.Preflight)
+                .Where(p => p != null)
+                .ObserveOnGuiThread()
+                .Subscribe(preflight =>
+                {
+                    PreflightHost.Content = new PreflightView { ViewModel = preflight };
+                })
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.CancelCommand, v => v.CancelButton)
@@ -76,9 +49,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.InstallCommand, v => v.RetryButton)
-                .DisposeWith(disposables);
-
-            this.BindCommand(ViewModel, vm => vm.InstallCommand, v => v.InstallButton)
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.BackToGalleryCommand, v => v.BackToGalleryButton)
@@ -165,26 +135,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      })
                      .DisposeWith(disposables);
 
-            ViewModel.WhenAnyValue(vm => vm.SuggestedInstallFolder)
-                     .ObserveOnGuiThread()
-                     .Subscribe(x =>
-                     {
-                         InstallationLocationPicker.Watermark = x;
-                         if (string.IsNullOrEmpty(ViewModel?.Installer?.Location?.TargetPath.ToString()))
-                             ViewModel.Installer.Location.TargetPath = (AbsolutePath)x;
-                     })
-                    .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(vm => vm.SuggestedDownloadFolder)
-                     .ObserveOnGuiThread()
-                     .Subscribe(x =>
-                     {
-                         DownloadLocationPicker.Watermark = x;
-                         if (string.IsNullOrEmpty(ViewModel?.Installer?.DownloadLocation?.TargetPath.ToString()))
-                             ViewModel.Installer.DownloadLocation.TargetPath = (AbsolutePath)x;
-                     })
-                    .DisposeWith(disposables);
-
             ViewModel.WhenAnyValue(vm => vm.ModListImage)
                      .BindToStrict(this, v => v.DetailImage.Image)
                      .DisposeWith(disposables);
@@ -238,15 +188,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .BindToStrict(this, v => v.ModlistLoadingRing.Visibility)
                 .DisposeWith(disposables);
 
-            this.WhenAnyValue(v => v.ViewModel!.Preflight)
-                .Where(p => p != null)
-                .ObserveOnGuiThread()
-                .Subscribe(preflight =>
-                {
-                    PreflightHost.Content = new PreflightView { ViewModel = preflight };
-                })
-                .DisposeWith(disposables);
-
             ReadmeToggleButton.Events().Checked
                 .ObserveOnGuiThread()
                 .Subscribe(_ =>
@@ -256,8 +197,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
 
                     LogView.Visibility = Visibility.Collapsed;
                     ErrorSummaryGrid.Visibility = Visibility.Collapsed;
-
-                    PreflightHost.Visibility = Visibility.Visible;
                 })
                 .DisposeWith(disposables);
 
@@ -268,7 +207,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                     ReadmeToggleButton.IsChecked = false;
                     ErrorToggleButton.IsChecked = false;
 
-                    PreflightHost.Visibility = Visibility.Collapsed;
                     ErrorSummaryGrid.Visibility = Visibility.Collapsed;
 
                     LogView.Visibility = Visibility.Visible;
@@ -282,7 +220,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                     ReadmeToggleButton.IsChecked = false;
                     LogToggleButton.IsChecked = false;
 
-                    PreflightHost.Visibility = Visibility.Collapsed;
                     LogView.Visibility = Visibility.Collapsed;
 
                     ErrorSummaryGrid.Visibility = Visibility.Visible;
@@ -326,19 +263,8 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .Subscribe(_ => UIUtils.OpenWebsite(new Uri("https://wiki.wabbajack.org")))
                 .DisposeWith(disposables);
 
-            // Initially, readme tab should be visible
-            ReadmeToggleButton.IsChecked = true;
-
-            MessageBus.Current.Listen<ShowFloatingWindow>()
-                              .ObserveOnGuiThread()
-                              .Subscribe(msg =>
-                              {
-                                  if (msg.Screen == FloatingScreenType.None && (ReadmeToggleButton.IsChecked ?? false))
-                                      PreflightHost.Visibility = Visibility.Visible;
-                                  else
-                                      PreflightHost.Visibility = Visibility.Collapsed;
-                              })
-                              .DisposeWith(disposables);
+            // Initially, log tab should be visible in the install view
+            LogToggleButton.IsChecked = true;
         });
     }
 

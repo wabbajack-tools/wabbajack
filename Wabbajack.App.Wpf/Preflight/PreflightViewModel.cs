@@ -22,6 +22,10 @@ public partial class PreflightViewModel : ReactiveObject, IDisposable
     public string ModlistAuthor { get; init; } = "";
     public string? ReadmeUrl { get; init; }
 
+    // Path pickers — set by InstallationVM to share the same FilePickerVM instances
+    public FilePickerVM? InstallLocation { get; init; }
+    public FilePickerVM? DownloadLocation { get; init; }
+
     // Summary
     [Reactive] public partial int PassedCount { get; set; }
     [Reactive] public partial int TotalCount { get; set; }

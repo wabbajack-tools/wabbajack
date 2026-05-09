@@ -675,7 +675,9 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 ModlistName = ModList.Name,
                 ModlistVersion = ModList.Version?.ToString() ?? "",
                 ModlistAuthor = ModList.Author,
-                ReadmeUrl = ModList.Readme
+                ReadmeUrl = ModList.Readme,
+                InstallLocation = Installer.Location,
+                DownloadLocation = Installer.DownloadLocation
             };
 
             // Wire Install command from preflight
