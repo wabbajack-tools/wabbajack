@@ -129,115 +129,115 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         _autoDownloadCts = new CancellationTokenSource();
         var token = _autoDownloadCts.Token;
 
+        if (!_downloadDir.DirectoryExists())
+            _downloadDir.CreateDirectory();
+
+        // Get all undownloaded Nexus archives
+        List<(Archive Archive, PreflightSubItem Item, bool IsNexus)> toDownload;
+        lock (_lock)
+        {
+            toDownload = _tracked.Where(t => t.IsNexus && !t.Item.IsReady).ToList();
+        }
+
+        _logger.LogInformation("Preflight: starting parallel auto-download of {Count} Nexus archives", toDownload.Count);
+
+        // Fire all downloads concurrently — the DownloadDispatcher's IResource limiter
+        // gates how many actually run in parallel based on ResourceSettings.MaxTasks
+        var tasks = toDownload.Select(entry => DownloadOneAsync(entry.Archive, entry.Item, token));
         Task.Run(async () =>
         {
-            _logger.LogInformation("Preflight: starting auto-download of Nexus archives");
-
-            while (!token.IsCancellationRequested)
-            {
-                // Get next undownloaded Nexus archive
-                (Archive Archive, PreflightSubItem Item, bool IsNexus) next;
-                lock (_lock)
-                {
-                    next = _tracked.FirstOrDefault(t => t.IsNexus && !t.Item.IsReady);
-                }
-
-                if (next.Archive == null) break; // All done
-
-                var destPath = _downloadDir.Combine(next.Archive.Name);
-                _logger.LogInformation("Preflight: auto-downloading {Name}", next.Archive.Name);
-
-                RxApp.MainThreadScheduler.Schedule(() =>
-                {
-                    next.Item.StatusText = "Downloading...";
-                    next.Item.Progress = 0;
-                });
-
-                try
-                {
-                    if (!_downloadDir.DirectoryExists())
-                        _downloadDir.CreateDirectory();
-
-                    // Poll file size for progress while downloading
-                    var expectedSize = next.Archive.Size;
-                    var progressCts = CancellationTokenSource.CreateLinkedTokenSource(token);
-                    var progressTask = Task.Run(async () =>
-                    {
-                        while (!progressCts.Token.IsCancellationRequested)
-                        {
-                            await Task.Delay(500, progressCts.Token).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
-                            try
-                            {
-                                if (destPath.FileExists() && expectedSize > 0)
-                                {
-                                    var currentSize = destPath.Size();
-                                    var pct = Math.Min(1.0, (double)currentSize / expectedSize);
-                                    RxApp.MainThreadScheduler.Schedule(() => next.Item.Progress = pct);
-                                }
-                            }
-                            catch { /* file may not exist yet or be locked */ }
-                        }
-                    }, progressCts.Token);
-
-                    var hash = await _downloadDispatcher.Download(next.Archive, destPath, token);
-                    await progressCts.CancelAsync();
-
-                    if (hash == next.Archive.Hash)
-                    {
-                        _logger.LogInformation("Preflight: auto-download complete: {Name}", next.Archive.Name);
-                        lock (_lock)
-                        {
-                            _matchedHashes.Add(hash);
-                            PresentArchiveSize += next.Archive.Size;
-                        }
-
-                        RxApp.MainThreadScheduler.Schedule(() =>
-                        {
-                            next.Item.IsReady = true;
-                            next.Item.StatusText = null;
-                            next.Item.Progress = null;
-                        });
-                        RxApp.MainThreadScheduler.Schedule(UpdateStatus);
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Preflight: hash mismatch for {Name}: expected {Expected}, got {Actual}",
-                            next.Archive.Name, next.Archive.Hash.ToHex(), hash.ToHex());
-                        RxApp.MainThreadScheduler.Schedule(() =>
-                        {
-                            next.Item.StatusText = "Hash mismatch — try again";
-                            next.Item.Progress = null;
-                        });
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    _logger.LogInformation("Preflight: auto-download paused");
-                    RxApp.MainThreadScheduler.Schedule(() =>
-                    {
-                        next.Item.StatusText = null;
-                        next.Item.Progress = null;
-                    });
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Preflight: auto-download failed for {Name}", next.Archive.Name);
-                    RxApp.MainThreadScheduler.Schedule(() =>
-                    {
-                        next.Item.StatusText = $"Download failed: {ex.Message}";
-                        next.Item.Progress = null;
-                    });
-                    // Continue to next file
-                }
-            }
-
+            await Task.WhenAll(tasks);
             RxApp.MainThreadScheduler.Schedule(() =>
             {
                 IsAutoDownloading = false;
                 UpdateStatus();
             });
         }, token);
+    }
+
+    private async Task DownloadOneAsync(Archive archive, PreflightSubItem item, CancellationToken token)
+    {
+        var destPath = _downloadDir.Combine(archive.Name);
+        _logger.LogInformation("Preflight: auto-downloading {Name}", archive.Name);
+
+        RxApp.MainThreadScheduler.Schedule(() =>
+        {
+            item.StatusText = "Downloading...";
+            item.Progress = 0;
+        });
+
+        try
+        {
+            // Poll file size for progress while downloading
+            var expectedSize = archive.Size;
+            var progressCts = CancellationTokenSource.CreateLinkedTokenSource(token);
+            var progressTask = Task.Run(async () =>
+            {
+                while (!progressCts.Token.IsCancellationRequested)
+                {
+                    await Task.Delay(500, progressCts.Token).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+                    try
+                    {
+                        if (destPath.FileExists() && expectedSize > 0)
+                        {
+                            var currentSize = destPath.Size();
+                            var pct = Math.Min(1.0, (double)currentSize / expectedSize);
+                            RxApp.MainThreadScheduler.Schedule(() => item.Progress = pct);
+                        }
+                    }
+                    catch { /* file may not exist yet or be locked */ }
+                }
+            }, progressCts.Token);
+
+            var hash = await _downloadDispatcher!.Download(archive, destPath, token);
+            await progressCts.CancelAsync();
+
+            if (hash == archive.Hash)
+            {
+                _logger.LogInformation("Preflight: auto-download complete: {Name}", archive.Name);
+                lock (_lock)
+                {
+                    _matchedHashes.Add(hash);
+                    PresentArchiveSize += archive.Size;
+                }
+
+                RxApp.MainThreadScheduler.Schedule(() =>
+                {
+                    item.IsReady = true;
+                    item.StatusText = null;
+                    item.Progress = null;
+                });
+                RxApp.MainThreadScheduler.Schedule(UpdateStatus);
+            }
+            else
+            {
+                _logger.LogWarning("Preflight: hash mismatch for {Name}: expected {Expected}, got {Actual}",
+                    archive.Name, archive.Hash.ToHex(), hash.ToHex());
+                RxApp.MainThreadScheduler.Schedule(() =>
+                {
+                    item.StatusText = "Hash mismatch";
+                    item.Progress = null;
+                });
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Preflight: auto-download paused for {Name}", archive.Name);
+            RxApp.MainThreadScheduler.Schedule(() =>
+            {
+                item.StatusText = null;
+                item.Progress = null;
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Preflight: auto-download failed for {Name}", archive.Name);
+            RxApp.MainThreadScheduler.Schedule(() =>
+            {
+                item.StatusText = $"Failed: {ex.Message}";
+                item.Progress = null;
+            });
+        }
     }
 
     public void PauseAutoDownload()
