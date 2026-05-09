@@ -34,7 +34,9 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     // All tracked archives with their sub-items
     private readonly List<(Archive Archive, PreflightSubItem Item, bool IsNexus)> _tracked = new();
     private readonly HashSet<Hash> _matchedHashes = new();
+    private readonly HashSet<string> _activeDownloads = new(); // filenames being auto-downloaded
     private readonly object _lock = new();
+    private volatile bool _updateStatusPending;
 
     // Auto-download state
     private CancellationTokenSource? _autoDownloadCts;
@@ -168,7 +170,10 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     private async Task DownloadOneAsync(Archive archive, PreflightSubItem item, CancellationToken token)
     {
         var destPath = _downloadDir.Combine(archive.Name);
+        var fileName = destPath.FileName.ToString();
         _logger.LogInformation("Preflight: auto-downloading {Name}", archive.Name);
+
+        lock (_lock) { _activeDownloads.Add(fileName); }
 
         RxApp.MainThreadScheduler.Schedule(() =>
         {
@@ -218,7 +223,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
                     item.StatusText = null;
                     item.Progress = null;
                 });
-                RxApp.MainThreadScheduler.Schedule(UpdateStatus);
+                ScheduleUpdateStatus();
             }
             else
             {
@@ -249,11 +254,30 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
                 item.Progress = null;
             });
         }
+        finally
+        {
+            lock (_lock) { _activeDownloads.Remove(fileName); }
+        }
     }
 
     public void PauseAutoDownload()
     {
         _autoDownloadCts?.Cancel();
+    }
+
+    /// <summary>
+    /// Schedule an UpdateStatus call on the UI thread, debounced to at most once per second.
+    /// </summary>
+    private void ScheduleUpdateStatus()
+    {
+        if (_updateStatusPending) return;
+        _updateStatusPending = true;
+        Task.Run(async () =>
+        {
+            await Task.Delay(1000);
+            _updateStatusPending = false;
+            RxApp.MainThreadScheduler.Schedule(UpdateStatus);
+        });
     }
 
     private async Task TryMatchFile(AbsolutePath filePath, CancellationToken token)
@@ -404,7 +428,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             });
         }
 
-        RxApp.MainThreadScheduler.Schedule(UpdateStatus);
+        ScheduleUpdateStatus();
     }
 
     private void StartWatching(AbsolutePath downloadDir, AbsolutePath systemDownloadsDir)
@@ -455,6 +479,15 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 
     private void OnFileChanged(string fullPath)
     {
+        var name = Path.GetFileName(fullPath);
+
+        // Skip temp files and files currently being auto-downloaded
+        if (name.EndsWith(".tmp") || name.EndsWith(".crdownload")) return;
+        lock (_lock)
+        {
+            if (_activeDownloads.Contains(name)) return;
+        }
+
         Task.Run(async () =>
         {
             await Task.Delay(2000);
