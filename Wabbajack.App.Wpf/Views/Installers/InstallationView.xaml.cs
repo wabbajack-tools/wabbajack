@@ -13,10 +13,11 @@ using System.Windows.Media;
 using Symbol = FluentIcons.Common.Symbol;
 using Wabbajack.Installer;
 using Markdig;
-using Microsoft.Web.WebView2.Wpf;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using System.Threading.Tasks;
+using Wabbajack.Preflight;
+using Wabbajack.Views.Preflight;
 
 namespace Wabbajack;
 
@@ -237,18 +238,14 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 .BindToStrict(this, v => v.ModlistLoadingRing.Visibility)
                 .DisposeWith(disposables);
 
-            this.WhenAnyValue(x => x.ViewModel.ModList.Readme)
-                     .Select(x =>
-                     {
-                         var humanReadableReadme = UIUtils.GetHumanReadableReadmeLink(ViewModel.ModList.Readme);
-                         if (Uri.TryCreate(humanReadableReadme, UriKind.Absolute, out var uri))
-                         {
-                             return uri;
-                         }
-                         return default;
-                     })
-                     .BindToStrict(this, x => x.ViewModel.ReadmeBrowser.Source)
-                     .DisposeWith(disposables);
+            this.WhenAnyValue(v => v.ViewModel!.Preflight)
+                .Where(p => p != null)
+                .ObserveOnGuiThread()
+                .Subscribe(preflight =>
+                {
+                    PreflightHost.Content = new PreflightView { ViewModel = preflight };
+                })
+                .DisposeWith(disposables);
 
             ReadmeToggleButton.Events().Checked
                 .ObserveOnGuiThread()
@@ -260,7 +257,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                     LogView.Visibility = Visibility.Collapsed;
                     ErrorSummaryGrid.Visibility = Visibility.Collapsed;
 
-                    ReadmeBrowserGrid.Visibility = Visibility.Visible;
+                    PreflightHost.Visibility = Visibility.Visible;
                 })
                 .DisposeWith(disposables);
 
@@ -271,7 +268,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                     ReadmeToggleButton.IsChecked = false;
                     ErrorToggleButton.IsChecked = false;
 
-                    ReadmeBrowserGrid.Visibility = Visibility.Collapsed;
+                    PreflightHost.Visibility = Visibility.Collapsed;
                     ErrorSummaryGrid.Visibility = Visibility.Collapsed;
 
                     LogView.Visibility = Visibility.Visible;
@@ -285,7 +282,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                     ReadmeToggleButton.IsChecked = false;
                     LogToggleButton.IsChecked = false;
 
-                    ReadmeBrowserGrid.Visibility = Visibility.Collapsed;
+                    PreflightHost.Visibility = Visibility.Collapsed;
                     LogView.Visibility = Visibility.Collapsed;
 
                     ErrorSummaryGrid.Visibility = Visibility.Visible;
@@ -300,11 +297,6 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                 {
                     await RenderErrorMarkdownAsync(desc);
                 })
-                .DisposeWith(disposables);
-
-            this.WhenAnyValue(x => x.ReadmeBrowserGrid.Visibility)
-                .Where(x => x == Visibility.Visible)
-                .Subscribe(_ => TakeWebViewOwnershipForReadme())
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.OpenReadmeCommand, v => v.ReadmeButton)
@@ -342,29 +334,11 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                               .Subscribe(msg =>
                               {
                                   if (msg.Screen == FloatingScreenType.None && (ReadmeToggleButton.IsChecked ?? false))
-                                      ReadmeBrowserGrid.Visibility = Visibility.Visible;
+                                      PreflightHost.Visibility = Visibility.Visible;
                                   else
-                                      ReadmeBrowserGrid.Visibility = Visibility.Collapsed;
+                                      PreflightHost.Visibility = Visibility.Collapsed;
                               })
                               .DisposeWith(disposables);
-        });
-    }
-
-    private void TakeWebViewOwnershipForReadme()
-    {
-        RxApp.MainThreadScheduler.Schedule(() =>
-        {
-            ViewModel.ReadmeBrowser.Margin = new Thickness(0, 0, 0, 16);
-            if (ViewModel.ReadmeBrowser.Parent != null)
-            {
-                ((Panel)ViewModel.ReadmeBrowser.Parent).Children.Remove(ViewModel.ReadmeBrowser);
-            }
-            ViewModel.ReadmeBrowser.Width = double.NaN;
-            ViewModel.ReadmeBrowser.Height = double.NaN;
-            ViewModel.ReadmeBrowser.Visibility = Visibility.Visible;
-            if (!string.IsNullOrEmpty(ViewModel?.ModList?.Readme))
-                ViewModel.ReadmeBrowser.Source = new Uri(UIUtils.GetHumanReadableReadmeLink(ViewModel.ModList.Readme));
-            ReadmeBrowserGrid.Children.Add(ViewModel.ReadmeBrowser);
         });
     }
 
