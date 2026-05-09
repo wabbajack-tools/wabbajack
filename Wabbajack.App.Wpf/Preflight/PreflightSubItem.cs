@@ -9,6 +9,7 @@ public partial class PreflightSubItem : ReactiveObject
 {
     public required string Name { get; init; }
     public required string SizeText { get; init; }
+    public long SizeBytes { get; init; }
     [Reactive] public partial string? StatusText { get; set; }
     [Reactive] public partial double? Progress { get; set; }
     [Reactive] public partial bool IsReady { get; set; }

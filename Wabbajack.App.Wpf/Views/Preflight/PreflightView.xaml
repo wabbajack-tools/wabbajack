@@ -126,11 +126,13 @@
                                            TextWrapping="Wrap"
                                            Margin="0,6,0,0" />
 
-                                <!-- SubItems list -->
-                                <ItemsControl ItemsSource="{Binding SubItems}"
-                                              Margin="0,8,0,0">
-                                    <ItemsControl.Style>
-                                        <Style TargetType="ItemsControl">
+                                <!-- SubItems list (scrollable, ~5 rows max) -->
+                                <ScrollViewer Margin="0,8,0,0"
+                                              MaxHeight="200"
+                                              VerticalScrollBarVisibility="Auto"
+                                              HorizontalScrollBarVisibility="Disabled">
+                                    <ScrollViewer.Style>
+                                        <Style TargetType="ScrollViewer">
                                             <Setter Property="Visibility" Value="Visible" />
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding SubItems}" Value="{x:Null}">
@@ -138,7 +140,8 @@
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </ItemsControl.Style>
+                                    </ScrollViewer.Style>
+                                <ItemsControl ItemsSource="{Binding SubItems}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type preflight:PreflightSubItem}">
                                             <Border Background="{StaticResource ComplementaryPrimary08Brush}"
@@ -228,6 +231,7 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
+                                </ScrollViewer>
                             </StackPanel>
                         </Border>
                     </DataTemplate>

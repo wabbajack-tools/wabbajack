@@ -57,16 +57,8 @@
     </UserControl.Resources>
     <Grid>
         <Grid x:Name="SetupGrid">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="16" />
-                <ColumnDefinition Width="3.5*" />
-            </Grid.ColumnDefinitions>
-            <Grid>
-                <local:DetailImageView x:Name="DetailImage" TitleFontSize="48" AuthorFontSize="24" />
-                <mahapps:ProgressRing x:Name="ModlistLoadingRing" />
-            </Grid>
-            <ContentControl x:Name="PreflightHost" Grid.Column="2" />
+            <mahapps:ProgressRing x:Name="ModlistLoadingRing" />
+            <ContentControl x:Name="PreflightHost" />
         </Grid>
         <Grid x:Name="InstallationGrid" Visibility="Collapsed">
             <Grid.ColumnDefinitions>

@@ -73,6 +73,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             var item = new PreflightSubItem
             {
                 Name = a.Name,
+                SizeBytes = a.Size,
                 SizeText = a.Size.Bytes().ToString(),
                 ActionCommand = string.IsNullOrEmpty(url) ? null : ReactiveCommand.Create(() => OpenUrl(url)),
                 ActionLabel = string.IsNullOrEmpty(url) ? null : "Download"
@@ -84,7 +85,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         _logger.LogInformation("Preflight downloads: tracking {Count} archives ({Nexus} Nexus, {Manual} manual)",
             _tracked.Count, _tracked.Count(t => t.IsNexus), _tracked.Count(t => !t.IsNexus));
 
-        SubItems = _tracked.Where(t => !t.Item.IsReady).Select(t => t.Item).ToList();
+        SubItems = _tracked.Where(t => !t.Item.IsReady).OrderByDescending(t => t.Archive.Size).Select(t => t.Item).ToList();
         UpdateStatus();
         StartWatching(downloadDir, systemDownloadsDir);
     }
@@ -465,7 +466,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             ReadyCount = readyCount;
             TotalTracked = _tracked.Count;
 
-            SubItems = _tracked.Where(t => !t.Item.IsReady).Select(t => t.Item).ToList();
+            SubItems = _tracked.Where(t => !t.Item.IsReady).OrderByDescending(t => t.Archive.Size).Select(t => t.Item).ToList();
 
             var readySuffix = readyCount > 0 ? $" ({readyCount} of {_tracked.Count} ready)" : "";
 

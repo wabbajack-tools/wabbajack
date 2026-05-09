@@ -136,19 +136,11 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      .DisposeWith(disposables);
 
             ViewModel.WhenAnyValue(vm => vm.ModListImage)
-                     .BindToStrict(this, v => v.DetailImage.Image)
-                     .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(vm => vm.ModListImage)
                      .BindToStrict(this, v => v.InstallDetailImage.Image)
                      .DisposeWith(disposables);
 
             ViewModel.WhenAnyValue(vm => vm.ModListImage)
                      .BindToStrict(this, v => v.CompletedImage.Image)
-                     .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(vm => vm.ModList.Author)
-                     .BindToStrict(this, v => v.DetailImage.Author)
                      .DisposeWith(disposables);
 
             ViewModel.WhenAnyValue(vm => vm.ModList.Author)
@@ -160,19 +152,11 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      .DisposeWith(disposables);
 
             ViewModel.WhenAnyValue(vm => vm.ModList.Name)
-                     .BindToStrict(this, v => v.DetailImage.Title)
-                     .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(vm => vm.ModList.Name)
                      .BindToStrict(this, v => v.InstallDetailImage.Title)
                      .DisposeWith(disposables);
 
             ViewModel.WhenAnyValue(vm => vm.ModList.Name)
                      .BindToStrict(this, v => v.CompletedImage.Title)
-                     .DisposeWith(disposables);
-
-            ViewModel.WhenAnyValue(vm => vm.ModList.Version)
-                     .BindToStrict(this, v => v.DetailImage.Version)
                      .DisposeWith(disposables);
 
             ViewModel.WhenAnyValue(vm => vm.ModList.Version)
