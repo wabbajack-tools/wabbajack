@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Humanizer;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Wabbajack.DTOs;
@@ -24,6 +25,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     private readonly CompositeDisposable _disposable = new();
     private readonly AbsolutePath _downloadDir;
     private readonly bool _isPremium;
+    private readonly ILogger _logger;
 
     // All tracked archives with their sub-items
     private readonly List<(Archive Archive, PreflightSubItem Item, bool IsNexus)> _tracked = new();
@@ -41,10 +43,11 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     public long PresentArchiveSize { get; private set; }
 
     public DownloadsCheck(IReadOnlyList<Archive> allArchives, AbsolutePath downloadDir,
-        AbsolutePath systemDownloadsDir, bool isPremium)
+        AbsolutePath systemDownloadsDir, bool isPremium, ILogger logger)
     {
         _downloadDir = downloadDir;
         _isPremium = isPremium;
+        _logger = logger;
 
         // Build stable sub-item list for all non-auto archives
         foreach (var a in allArchives)
@@ -67,6 +70,9 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             _tracked.Add((a, item, isNexus));
         }
 
+        _logger.LogInformation("Preflight downloads: tracking {Count} archives ({Nexus} Nexus, {Manual} manual)",
+            _tracked.Count, _tracked.Count(t => t.IsNexus), _tracked.Count(t => !t.IsNexus));
+
         SubItems = _tracked.Select(t => t.Item).ToList();
         UpdateStatus();
         StartWatching(downloadDir, systemDownloadsDir);
@@ -85,9 +91,16 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 
     public async Task ScanExistingFiles(CancellationToken token)
     {
-        if (!_downloadDir.DirectoryExists()) return;
+        if (!_downloadDir.DirectoryExists())
+        {
+            _logger.LogInformation("Preflight: download dir {Dir} does not exist, skipping scan", _downloadDir);
+            return;
+        }
 
-        foreach (var file in _downloadDir.EnumerateFiles())
+        var files = _downloadDir.EnumerateFiles().ToList();
+        _logger.LogInformation("Preflight: scanning {Count} existing files in {Dir}", files.Count, _downloadDir);
+
+        foreach (var file in files)
         {
             await TryMatchFile(file, token);
         }
@@ -97,9 +110,29 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     {
         if (!filePath.FileExists()) return;
 
-        long fileSize;
-        try { fileSize = filePath.Size(); }
-        catch { return; }
+        // Wait for the file to be fully written — retry up to 5 times with backoff
+        long fileSize = 0;
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            try
+            {
+                fileSize = filePath.Size();
+                // Try opening the file to check it's not locked
+                await using var testStream = filePath.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                break;
+            }
+            catch (IOException) when (attempt < 4)
+            {
+                _logger.LogDebug("Preflight: file {File} locked (attempt {Attempt}), retrying...",
+                    filePath.FileName, attempt + 1);
+                await Task.Delay(1000 * (attempt + 1), token);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Preflight: cannot access file {File}", filePath.FileName);
+                return;
+            }
+        }
 
         List<(Archive Archive, PreflightSubItem Item, bool IsNexus)> candidates;
         lock (_lock)
@@ -109,7 +142,16 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
                 .ToList();
         }
 
-        if (candidates.Count == 0) return;
+        if (candidates.Count == 0)
+        {
+            _logger.LogDebug("Preflight: no size match for {File} ({Size} bytes)",
+                filePath.FileName, fileSize);
+            return;
+        }
+
+        _logger.LogInformation("Preflight: size match for {File} ({Size} bytes) — {Count} candidates: {Names}",
+            filePath.FileName, fileSize, candidates.Count,
+            string.Join(", ", candidates.Select(c => c.Archive.Name)));
 
         // Show verification progress on the first candidate's sub-item
         var subItem = candidates[0].Item;
@@ -135,8 +177,9 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             }
             hash = new Hash(hasher.GetCurrentHashAsUInt64());
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Preflight: failed to hash {File}", filePath.FileName);
             subItem.StatusText = null;
             subItem.Progress = null;
             return;
@@ -145,11 +188,19 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         subItem.StatusText = null;
         subItem.Progress = null;
 
+        _logger.LogInformation("Preflight: hashed {File} = {Hash}", filePath.FileName, hash.ToHex());
+
         // Find which tracked archive matches this hash
         lock (_lock)
         {
             var match = _tracked.FirstOrDefault(t => !t.Item.IsReady && t.Archive.Hash == hash);
-            if (match.Archive == null) return;
+            if (match.Archive == null)
+            {
+                _logger.LogInformation("Preflight: hash {Hash} does not match any tracked archive", hash.ToHex());
+                return;
+            }
+
+            _logger.LogInformation("Preflight: matched {File} to archive {Archive}", filePath.FileName, match.Archive.Name);
 
             // Move file to download dir if not already there
             var destPath = _downloadDir.Combine(match.Archive.Name);
@@ -157,18 +208,31 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             {
                 try
                 {
-                    // Ensure the download directory exists
                     if (!_downloadDir.DirectoryExists())
                         _downloadDir.CreateDirectory();
 
                     if (destPath.FileExists()) destPath.Delete();
                     File.Move(filePath.ToString(), destPath.ToString());
+                    _logger.LogInformation("Preflight: moved {Src} -> {Dest}", filePath, destPath);
                 }
-                catch
+                catch (Exception moveEx)
                 {
-                    try { File.Copy(filePath.ToString(), destPath.ToString(), true); }
-                    catch { return; }
+                    _logger.LogWarning(moveEx, "Preflight: move failed, trying copy");
+                    try
+                    {
+                        File.Copy(filePath.ToString(), destPath.ToString(), true);
+                        _logger.LogInformation("Preflight: copied {Src} -> {Dest}", filePath, destPath);
+                    }
+                    catch (Exception copyEx)
+                    {
+                        _logger.LogError(copyEx, "Preflight: copy also failed for {File}", filePath.FileName);
+                        return;
+                    }
                 }
+            }
+            else
+            {
+                _logger.LogInformation("Preflight: {File} already in download dir", filePath.FileName);
             }
 
             match.Item.IsReady = true;
@@ -182,18 +246,19 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 
     private void StartWatching(AbsolutePath downloadDir, AbsolutePath systemDownloadsDir)
     {
-        WatchDirectory(downloadDir);
+        WatchDirectory(downloadDir, "download");
         if (systemDownloadsDir != downloadDir && systemDownloadsDir != default)
-            WatchDirectory(systemDownloadsDir);
+            WatchDirectory(systemDownloadsDir, "system downloads");
     }
 
-    private void WatchDirectory(AbsolutePath dir)
+    private void WatchDirectory(AbsolutePath dir, string label)
     {
         if (dir == default) return;
 
-        // Create the directory if it doesn't exist so the watcher works
         if (!dir.DirectoryExists())
             dir.CreateDirectory();
+
+        _logger.LogInformation("Preflight: watching {Label} directory: {Dir}", label, dir);
 
         var watcher = new FileSystemWatcher(dir.ToString())
         {
@@ -202,9 +267,25 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             IncludeSubdirectories = false
         };
 
-        watcher.Created += (_, e) => OnFileChanged(e.FullPath);
-        watcher.Changed += (_, e) => OnFileChanged(e.FullPath);
-        watcher.Renamed += (_, e) => OnFileChanged(e.FullPath);
+        watcher.Created += (_, e) =>
+        {
+            _logger.LogDebug("Preflight: watcher [{Label}] Created: {File}", label, e.FullPath);
+            OnFileChanged(e.FullPath);
+        };
+        watcher.Changed += (_, e) =>
+        {
+            _logger.LogDebug("Preflight: watcher [{Label}] Changed: {File}", label, e.FullPath);
+            OnFileChanged(e.FullPath);
+        };
+        watcher.Renamed += (_, e) =>
+        {
+            _logger.LogDebug("Preflight: watcher [{Label}] Renamed: {Old} -> {New}", label, e.OldFullPath, e.FullPath);
+            OnFileChanged(e.FullPath);
+        };
+        watcher.Error += (_, e) =>
+        {
+            _logger.LogError(e.GetException(), "Preflight: watcher [{Label}] error", label);
+        };
 
         _disposable.Add(watcher);
     }
@@ -213,7 +294,8 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     {
         Task.Run(async () =>
         {
-            await Task.Delay(500);
+            // Wait for file to settle (browser may still be writing)
+            await Task.Delay(2000);
             await TryMatchFile((AbsolutePath)fullPath, CancellationToken.None);
         });
     }
@@ -226,6 +308,9 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             var missingNexus = _tracked.Where(t => t.IsNexus && !t.Item.IsReady).ToList();
             var allReady = _tracked.All(t => t.Item.IsReady);
 
+            _logger.LogDebug("Preflight downloads status: {Ready}/{Total} ready, {MissingManual} manual missing, {MissingNexus} nexus missing",
+                _tracked.Count(t => t.Item.IsReady), _tracked.Count, missingManual.Count, missingNexus.Count);
+
             if (allReady)
             {
                 Status = PreflightCheckStatus.Passed;
@@ -235,7 +320,6 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             }
             else if (missingManual.Count == 0 && missingNexus.Count > 0 && _isPremium)
             {
-                // Only Nexus files missing, premium user — non-blocking
                 Status = PreflightCheckStatus.Info;
                 FailureMessage = $"{missingNexus.Count} Nexus files will be downloaded automatically during install";
                 ActionCommand = null;

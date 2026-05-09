@@ -3,6 +3,8 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Hashing.xxHash64;
@@ -18,12 +20,14 @@ public class DownloadsCheckTests : IDisposable
     private readonly TemporaryFileManager _tempManager;
     private readonly AbsolutePath _downloadDir;
     private readonly AbsolutePath _watchDir;
+    private readonly ILogger _logger;
 
     public DownloadsCheckTests()
     {
         _tempManager = new TemporaryFileManager();
         _downloadDir = _tempManager.CreateFolder().Path;
         _watchDir = _tempManager.CreateFolder().Path;
+        _logger = Substitute.For<ILogger>();
     }
 
     private Archive MakeArchive(string name, long size, Hash hash, IDownloadState state)
@@ -40,7 +44,7 @@ public class DownloadsCheckTests : IDisposable
             MakeArchive("mod2.zip", 200, new Hash(2), new Http { Url = new Uri("https://example.com/mod2.zip") }),
         };
 
-        var check = new DownloadsCheck(archives, _downloadDir, _watchDir, isPremium: true);
+        var check = new DownloadsCheck(archives, _downloadDir, _watchDir, isPremium: true, logger: _logger);
 
         Assert.Equal(PreflightCheckStatus.Passed, check.Status);
     }
@@ -54,7 +58,7 @@ public class DownloadsCheckTests : IDisposable
             MakeArchive("mod2.zip", 200, new Hash(2), new Http { Url = new Uri("https://example.com/mod2.zip") }),
         };
 
-        var check = new DownloadsCheck(archives, _downloadDir, _watchDir, isPremium: true);
+        var check = new DownloadsCheck(archives, _downloadDir, _watchDir, isPremium: true, logger: _logger);
 
         Assert.Equal(PreflightCheckStatus.Info, check.Status);
         Assert.NotNull(check.SubItems);
@@ -69,7 +73,7 @@ public class DownloadsCheckTests : IDisposable
             MakeArchive("manual.zip", 100, new Hash(1), new Manual { Url = new Uri("https://example.com/manual") }),
         };
 
-        var check = new DownloadsCheck(archives, _downloadDir, _watchDir, isPremium: true);
+        var check = new DownloadsCheck(archives, _downloadDir, _watchDir, isPremium: true, logger: _logger);
 
         Assert.Equal(PreflightCheckStatus.Failed, check.Status);
         Assert.Equal(1, check.SubItems!.Count);
@@ -84,7 +88,7 @@ public class DownloadsCheckTests : IDisposable
             MakeArchive("nexusmod.zip", 100, new Hash(1), new Nexus { Game = Game.SkyrimSpecialEdition, ModID = 1, FileID = 1 }),
         };
 
-        var check = new DownloadsCheck(archives, _downloadDir, _watchDir, isPremium: false);
+        var check = new DownloadsCheck(archives, _downloadDir, _watchDir, isPremium: false, logger: _logger);
 
         Assert.Equal(PreflightCheckStatus.Failed, check.Status);
         Assert.Equal(1, check.SubItems!.Count);
@@ -103,7 +107,7 @@ public class DownloadsCheckTests : IDisposable
             MakeArchive("existing.zip", data.Length, hash, new Manual { Url = new Uri("https://example.com") }),
         };
 
-        var check = new DownloadsCheck(archives, _downloadDir, _watchDir, isPremium: true);
+        var check = new DownloadsCheck(archives, _downloadDir, _watchDir, isPremium: true, logger: _logger);
         await check.ScanExistingFiles(CancellationToken.None);
 
         Assert.Equal(PreflightCheckStatus.Passed, check.Status);

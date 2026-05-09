@@ -663,7 +663,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 ModList.Archives,
                 Installer.DownloadLocation.TargetPath,
                 systemDownloads,
-                isPremium: nexusLogin?.LoggedIn == true);
+                isPremium: nexusLogin?.LoggedIn == true,
+                logger: _logger);
 
             _ = downloadsCheck.ScanExistingFiles(CancellationToken.None);
 
