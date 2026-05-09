@@ -1,4 +1,3 @@
-// Wabbajack.App.Wpf/Preflight/DownloadsCheck.cs
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -24,15 +23,19 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 {
     private readonly CompositeDisposable _disposable = new();
     private readonly AbsolutePath _downloadDir;
+    private readonly bool _isPremium;
+
+    // Missing archives split by category
     private readonly Dictionary<Hash, Archive> _missingManual;
+    private readonly Dictionary<Hash, Archive> _missingNexus;
     private readonly HashSet<Hash> _presentHashes = new();
     private readonly object _lock = new();
 
     public string Title => "Downloads";
     [Reactive] public partial PreflightCheckStatus Status { get; set; }
     [Reactive] public partial string? FailureMessage { get; set; }
-    public ICommand? ActionCommand => null;
-    public string? ActionLabel => null;
+    [Reactive] public partial ICommand? ActionCommand { get; set; }
+    [Reactive] public partial string? ActionLabel { get; set; }
     [Reactive] public partial IReadOnlyList<PreflightSubItem>? SubItems { get; set; }
 
     /// <summary>Total bytes of archives confirmed present in the download folder.</summary>
@@ -42,23 +45,31 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         AbsolutePath systemDownloadsDir, bool isPremium)
     {
         _downloadDir = downloadDir;
+        _isPremium = isPremium;
 
-        // Classify which archives need manual download
+        // Split missing archives into Nexus vs manual
+        _missingNexus = allArchives
+            .Where(a => a.State is Nexus)
+            .ToDictionary(a => a.Hash, a => a);
+
         _missingManual = allArchives
-            .Where(a => IsManualDownload(a, isPremium))
+            .Where(a => IsManualDownload(a))
             .ToDictionary(a => a.Hash, a => a);
 
         UpdateStatus();
         StartWatching(downloadDir, systemDownloadsDir);
     }
 
-    private static bool IsManualDownload(Archive archive, bool isPremium)
+    /// <summary>
+    /// Returns true if the archive requires manual download (not Nexus, not HTTP, not GameFileSource).
+    /// </summary>
+    private static bool IsManualDownload(Archive archive)
     {
         return archive.State switch
         {
             Http => false,
             GameFileSource => false,
-            Nexus => !isPremium,
+            Nexus => false, // Nexus tracked separately
             _ => true,
         };
     }
@@ -82,7 +93,8 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         List<Archive> candidates;
         lock (_lock)
         {
-            candidates = _missingManual.Values.Where(a => a.Size == fileSize).ToList();
+            candidates = _missingManual.Values.Concat(_missingNexus.Values)
+                .Where(a => a.Size == fileSize).ToList();
         }
 
         if (candidates.Count == 0) return;
@@ -136,8 +148,19 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 
         lock (_lock)
         {
-            if (!_missingManual.ContainsKey(hash)) return;
-            var archive = _missingManual[hash];
+            Archive? archive = null;
+            if (_missingManual.TryGetValue(hash, out var manualArchive))
+            {
+                archive = manualArchive;
+                _missingManual.Remove(hash);
+            }
+            else if (_missingNexus.TryGetValue(hash, out var nexusArchive))
+            {
+                archive = nexusArchive;
+                _missingNexus.Remove(hash);
+            }
+
+            if (archive == null) return;
 
             var destPath = _downloadDir.Combine(archive.Name);
             if (filePath != destPath)
@@ -157,7 +180,6 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
                 }
             }
 
-            _missingManual.Remove(hash);
             _presentHashes.Add(hash);
             PresentArchiveSize += archive.Size;
         }
@@ -203,32 +225,89 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     {
         lock (_lock)
         {
-            if (_missingManual.Count == 0)
+            var hasManual = _missingManual.Count > 0;
+            var hasNexus = _missingNexus.Count > 0;
+            var hasNonPremiumNexus = hasNexus && !_isPremium;
+
+            // Build sub-items list: Nexus archives first, then manual
+            var items = new List<PreflightSubItem>();
+
+            foreach (var a in _missingNexus.Values)
             {
-                Status = PreflightCheckStatus.Passed;
-                FailureMessage = null;
-                SubItems = null;
-            }
-            else
-            {
-                Status = PreflightCheckStatus.Failed;
-                FailureMessage = "Download these files — they'll be detected automatically";
-                SubItems = _missingManual.Values.Select(a => new PreflightSubItem
+                items.Add(new PreflightSubItem
                 {
                     Name = a.Name,
                     SizeText = a.Size.Bytes().ToString(),
-                    ActionCommand = ReactiveCommand.Create(() =>
-                    {
-                        var url = GetDownloadUrl(a);
-                        if (!string.IsNullOrEmpty(url))
-                            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-                    }),
-                    ActionLabel = "Download"
-                }).ToList();
+                    ActionCommand = ReactiveCommand.Create(() => OpenUrl(GetDownloadUrl(a))),
+                    ActionLabel = "Open"
+                });
             }
 
-            this.RaisePropertyChanged(nameof(Title));
+            foreach (var a in _missingManual.Values)
+            {
+                items.Add(new PreflightSubItem
+                {
+                    Name = a.Name,
+                    SizeText = a.Size.Bytes().ToString(),
+                    ActionCommand = ReactiveCommand.Create(() => OpenUrl(GetDownloadUrl(a))),
+                    ActionLabel = "Download"
+                });
+            }
+
+            if (!hasManual && !hasNexus)
+            {
+                // Everything present
+                Status = PreflightCheckStatus.Passed;
+                FailureMessage = null;
+                ActionCommand = null;
+                ActionLabel = null;
+                SubItems = null;
+            }
+            else if (!hasManual && hasNexus && _isPremium)
+            {
+                // Only Nexus files missing, premium user — non-blocking, will auto-download
+                Status = PreflightCheckStatus.Info;
+                FailureMessage = $"{_missingNexus.Count} Nexus files will be downloaded automatically during install";
+                ActionCommand = null; // Auto-download happens during install
+                ActionLabel = null;
+                SubItems = items;
+            }
+            else if (hasNexus && !_isPremium)
+            {
+                // Non-premium user with Nexus files — blocking
+                Status = PreflightCheckStatus.Failed;
+                FailureMessage = hasManual
+                    ? $"{_missingNexus.Count + _missingManual.Count} files need downloading"
+                    : $"{_missingNexus.Count} Nexus files require premium or manual download";
+                ActionCommand = ReactiveCommand.Create(() =>
+                    OpenUrl("https://next.nexusmods.com/premium"));
+                ActionLabel = "Get Nexus Premium";
+                SubItems = items;
+            }
+            else
+            {
+                // Manual files missing (possibly with Nexus files too)
+                Status = PreflightCheckStatus.Failed;
+                FailureMessage = "Download these files — they'll be detected automatically";
+                if (hasNexus && _isPremium)
+                {
+                    ActionCommand = null;
+                    ActionLabel = null;
+                }
+                else
+                {
+                    ActionCommand = null;
+                    ActionLabel = null;
+                }
+                SubItems = items;
+            }
         }
+    }
+
+    private static void OpenUrl(string url)
+    {
+        if (!string.IsNullOrEmpty(url))
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
     }
 
     private static string GetDownloadUrl(Archive archive)

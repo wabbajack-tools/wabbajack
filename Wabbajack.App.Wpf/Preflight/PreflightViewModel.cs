@@ -59,8 +59,10 @@ public partial class PreflightViewModel : ReactiveObject, IDisposable
 
     private void Recompute()
     {
-        PassedCount = _checks.Count(c => c.Status == PreflightCheckStatus.Passed);
+        // Info counts as passed (non-blocking) for the summary
+        PassedCount = _checks.Count(c => c.Status is PreflightCheckStatus.Passed or PreflightCheckStatus.Info);
         AllPassed = PassedCount == TotalCount;
+        // Show cards for anything that isn't fully passed (Failed, Pending, Checking, Info)
         FailedChecks = _checks.Where(c => c.Status != PreflightCheckStatus.Passed).ToList();
     }
 

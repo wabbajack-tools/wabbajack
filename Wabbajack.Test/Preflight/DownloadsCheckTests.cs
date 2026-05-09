@@ -32,7 +32,21 @@ public class DownloadsCheckTests : IDisposable
     }
 
     [Fact]
-    public void NoManualArchives_Passes()
+    public void OnlyHttpArchives_Passes()
+    {
+        var archives = new[]
+        {
+            MakeArchive("mod1.zip", 100, new Hash(1), new Http { Url = new Uri("https://example.com/mod1.zip") }),
+            MakeArchive("mod2.zip", 200, new Hash(2), new Http { Url = new Uri("https://example.com/mod2.zip") }),
+        };
+
+        var check = new DownloadsCheck(archives, _downloadDir, _watchDir, isPremium: true);
+
+        Assert.Equal(PreflightCheckStatus.Passed, check.Status);
+    }
+
+    [Fact]
+    public void PremiumWithNexusArchives_InfoStatus()
     {
         var archives = new[]
         {
@@ -42,7 +56,9 @@ public class DownloadsCheckTests : IDisposable
 
         var check = new DownloadsCheck(archives, _downloadDir, _watchDir, isPremium: true);
 
-        Assert.Equal(PreflightCheckStatus.Passed, check.Status);
+        Assert.Equal(PreflightCheckStatus.Info, check.Status);
+        Assert.NotNull(check.SubItems);
+        Assert.Single(check.SubItems); // Only the Nexus archive, HTTP is not tracked
     }
 
     [Fact]

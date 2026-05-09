@@ -6,7 +6,7 @@ using System.Windows.Input;
 
 namespace Wabbajack.Preflight;
 
-public enum PreflightCheckStatus { Pending, Checking, Passed, Failed }
+public enum PreflightCheckStatus { Pending, Checking, Passed, Failed, Info }
 
 public interface IPreflightCheck : INotifyPropertyChanged, IDisposable
 {

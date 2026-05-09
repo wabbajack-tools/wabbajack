@@ -14,20 +14,17 @@
     d:DesignHeight="600"
     d:DesignWidth="800">
 
-    <UserControl.Resources>
-        <local:BoolToVisibilityConverter x:Key="BoolToVis" />
-    </UserControl.Resources>
-
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="24">
 
             <!-- Header: Modlist name + View Readme -->
             <DockPanel Margin="0,0,0,16">
-                <Button x:Name="ViewReadmeButton"
-                        DockPanel.Dock="Right"
-                        Content="View Readme"
-                        Padding="12,6"
-                        VerticalAlignment="Center" />
+                <local:WJButton x:Name="ViewReadmeButton"
+                                DockPanel.Dock="Right"
+                                ButtonStyle="Mono"
+                                Text="View Readme"
+                                Icon="Document"
+                                VerticalAlignment="Center" />
                 <TextBlock x:Name="ModlistNameText"
                            FontSize="24"
                            FontWeight="Bold"
@@ -41,13 +38,13 @@
                            Foreground="#aaa"
                            FontSize="13"
                            Margin="0,0,0,4" />
-                <local:FilePicker x:Name="InstallLocationPicker" Margin="0,0,0,12" />
+                <local:FilePicker x:Name="InstallLocationPicker" Icon="Folder" Margin="0,0,0,12" />
 
                 <TextBlock Text="Download Location"
                            Foreground="#aaa"
                            FontSize="13"
                            Margin="0,0,0,4" />
-                <local:FilePicker x:Name="DownloadLocationPicker" />
+                <local:FilePicker x:Name="DownloadLocationPicker" Icon="Folder" />
             </StackPanel>
 
             <!-- Summary Bar -->
@@ -60,26 +57,38 @@
                            FontWeight="SemiBold" />
             </Border>
 
-            <!-- Failed Checks List -->
+            <!-- Visible Checks List (failed + info) -->
             <ItemsControl x:Name="FailedChecksList">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type preflight:IPreflightCheck}">
-                        <Border Background="#1e1118"
-                                BorderBrush="#7f1d1d"
-                                BorderThickness="1"
-                                CornerRadius="6"
+                        <Border CornerRadius="6"
                                 Padding="16"
                                 Margin="0,0,0,8">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="#1e1118" />
+                                    <Setter Property="BorderBrush" Value="#7f1d1d" />
+                                    <Setter Property="BorderThickness" Value="1" />
+                                    <Style.Triggers>
+                                        <!-- Info cards get a neutral/blue style instead of red -->
+                                        <DataTrigger Binding="{Binding Status}" Value="{x:Static preflight:PreflightCheckStatus.Info}">
+                                            <Setter Property="Background" Value="#111827" />
+                                            <Setter Property="BorderBrush" Value="#1e3a5f" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
                             <StackPanel>
                                 <!-- Title row with action button -->
                                 <DockPanel>
-                                    <Button DockPanel.Dock="Right"
-                                            Content="{Binding ActionLabel}"
-                                            Command="{Binding ActionCommand}"
-                                            Padding="10,4"
-                                            VerticalAlignment="Center">
-                                        <Button.Style>
-                                            <Style TargetType="Button">
+                                    <local:WJButton DockPanel.Dock="Right"
+                                                    Text="{Binding ActionLabel}"
+                                                    Command="{Binding ActionCommand}"
+                                                    ButtonStyle="Mono"
+                                                    Icon="ArrowDownload"
+                                                    VerticalAlignment="Center">
+                                        <local:WJButton.Style>
+                                            <Style TargetType="local:WJButton">
                                                 <Setter Property="Visibility" Value="Visible" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding ActionCommand}" Value="{x:Null}">
@@ -87,17 +96,26 @@
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
-                                        </Button.Style>
-                                    </Button>
-                                    <TextBlock Foreground="#f87171"
-                                               FontSize="15"
+                                        </local:WJButton.Style>
+                                    </local:WJButton>
+                                    <TextBlock FontSize="15"
                                                FontWeight="SemiBold"
                                                VerticalAlignment="Center">
-                                        <Run Text="&#x2717; " /><Run Text="{Binding Title, Mode=OneWay}" />
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="#f87171" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Status}" Value="{x:Static preflight:PreflightCheckStatus.Info}">
+                                                        <Setter Property="Foreground" Value="#60a5fa" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                        <Run x:Name="CheckIcon" Text="&#x2717; " /><Run Text="{Binding Title, Mode=OneWay}" />
                                     </TextBlock>
                                 </DockPanel>
 
-                                <!-- Failure message -->
+                                <!-- Failure/info message -->
                                 <TextBlock Text="{Binding FailureMessage}"
                                            Foreground="#ccc"
                                            FontSize="13"
@@ -119,7 +137,7 @@
                                     </ItemsControl.Style>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type preflight:PreflightSubItem}">
-                                            <Border Background="#2a1520"
+                                            <Border Background="{StaticResource ComplementaryPrimary08Brush}"
                                                     CornerRadius="4"
                                                     Padding="12,8"
                                                     Margin="0,0,0,4">
@@ -145,20 +163,21 @@
                                                     <!-- Size -->
                                                     <TextBlock Grid.Column="1"
                                                                Text="{Binding SizeText}"
-                                                               Foreground="#999"
+                                                               Foreground="{StaticResource Transparent66ForegroundBrush}"
                                                                FontSize="12"
                                                                Margin="12,0"
                                                                VerticalAlignment="Center" />
 
                                                     <!-- Action Button -->
-                                                    <Button Grid.Column="2"
-                                                            Content="{Binding ActionLabel}"
-                                                            Command="{Binding ActionCommand}"
-                                                            Padding="8,3"
-                                                            FontSize="12"
-                                                            VerticalAlignment="Center">
-                                                        <Button.Style>
-                                                            <Style TargetType="Button">
+                                                    <local:WJButton Grid.Column="2"
+                                                                    Text="{Binding ActionLabel}"
+                                                                    Command="{Binding ActionCommand}"
+                                                                    ButtonStyle="SemiTransparent"
+                                                                    Icon="Open"
+                                                                    IconSize="16"
+                                                                    VerticalAlignment="Center">
+                                                        <local:WJButton.Style>
+                                                            <Style TargetType="local:WJButton">
                                                                 <Setter Property="Visibility" Value="Visible" />
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding ActionCommand}" Value="{x:Null}">
@@ -166,8 +185,8 @@
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
-                                                        </Button.Style>
-                                                    </Button>
+                                                        </local:WJButton.Style>
+                                                    </local:WJButton>
 
                                                     <!-- Status / Progress row -->
                                                     <StackPanel Grid.Row="1" Grid.ColumnSpan="3"
@@ -183,7 +202,7 @@
                                                             </Style>
                                                         </StackPanel.Style>
                                                         <TextBlock Text="{Binding StatusText}"
-                                                                   Foreground="#aaa"
+                                                                   Foreground="{StaticResource Transparent66ForegroundBrush}"
                                                                    FontSize="11" />
                                                         <ProgressBar Value="{Binding Progress}"
                                                                      Minimum="0" Maximum="1"
@@ -213,13 +232,12 @@
             </ItemsControl>
 
             <!-- Install Button -->
-            <Button x:Name="InstallButton"
-                    Content="Install"
-                    HorizontalAlignment="Right"
-                    Padding="24,10"
-                    FontSize="16"
-                    FontWeight="SemiBold"
-                    Margin="0,16,0,0" />
+            <local:WJButton x:Name="InstallButton"
+                            Text="Install"
+                            Icon="DesktopArrowDown"
+                            ButtonStyle="Color"
+                            HorizontalAlignment="Right"
+                            Margin="0,16,0,0" />
 
         </StackPanel>
     </ScrollViewer>
