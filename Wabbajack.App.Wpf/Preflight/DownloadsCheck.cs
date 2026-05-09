@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Hashing;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
@@ -156,8 +157,11 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         // Show verification progress on the first candidate's sub-item
         var subItem = candidates[0].Item;
         var fileName = filePath.FileName.ToString();
-        subItem.StatusText = $"Verifying {fileName}...";
-        subItem.Progress = 0;
+        RxApp.MainThreadScheduler.Schedule(() =>
+        {
+            subItem.StatusText = $"Verifying {fileName}...";
+            subItem.Progress = 0;
+        });
 
         Hash hash;
         try
@@ -173,20 +177,29 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
                 hasher.Append(buffer.AsSpan(0, read));
                 totalRead += read;
                 if (fileSize > 0)
-                    subItem.Progress = (double)totalRead / fileSize;
+                {
+                    var pct = (double)totalRead / fileSize;
+                    RxApp.MainThreadScheduler.Schedule(() => subItem.Progress = pct);
+                }
             }
             hash = new Hash(hasher.GetCurrentHashAsUInt64());
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Preflight: failed to hash {File}", filePath.FileName);
-            subItem.StatusText = null;
-            subItem.Progress = null;
+            RxApp.MainThreadScheduler.Schedule(() =>
+            {
+                subItem.StatusText = null;
+                subItem.Progress = null;
+            });
             return;
         }
 
-        subItem.StatusText = null;
-        subItem.Progress = null;
+        RxApp.MainThreadScheduler.Schedule(() =>
+        {
+            subItem.StatusText = null;
+            subItem.Progress = null;
+        });
 
         _logger.LogInformation("Preflight: hashed {File} = {Hash}", filePath.FileName, hash.ToHex());
 
@@ -235,13 +248,18 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
                 _logger.LogInformation("Preflight: {File} already in download dir", filePath.FileName);
             }
 
-            match.Item.IsReady = true;
-            match.Item.StatusText = "Ready";
             _matchedHashes.Add(hash);
             PresentArchiveSize += match.Archive.Size;
+
+            var matchedItem = match.Item;
+            RxApp.MainThreadScheduler.Schedule(() =>
+            {
+                matchedItem.IsReady = true;
+                matchedItem.StatusText = "Ready";
+            });
         }
 
-        UpdateStatus();
+        RxApp.MainThreadScheduler.Schedule(UpdateStatus);
     }
 
     private void StartWatching(AbsolutePath downloadDir, AbsolutePath systemDownloadsDir)
