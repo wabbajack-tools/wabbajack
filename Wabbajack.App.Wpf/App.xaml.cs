@@ -467,7 +467,6 @@ public partial class App
 
         // Login Handlers
         services.AddTransient<VectorPlexusLoginHandler>();
-        services.AddTransient<NexusLoginHandler>();
         services.AddTransient<LoversLabLoginHandler>();
 
         // Login Managers
