@@ -111,8 +111,9 @@ public class DownloadsCheckTests : IDisposable
         await check.ScanExistingFiles(CancellationToken.None);
 
         Assert.Equal(PreflightCheckStatus.Passed, check.Status);
-        Assert.True(check.SubItems![0].IsReady);
-        Assert.Equal("Ready", check.SubItems[0].StatusText);
+        Assert.Equal(1, check.ReadyCount);
+        // SubItems only shows non-ready items, so it should be empty when all are ready
+        Assert.Empty(check.SubItems!);
     }
 
     public void Dispose()

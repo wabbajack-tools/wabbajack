@@ -39,6 +39,8 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     [Reactive] public partial ICommand? ActionCommand { get; set; }
     [Reactive] public partial string? ActionLabel { get; set; }
     [Reactive] public partial IReadOnlyList<PreflightSubItem>? SubItems { get; set; }
+    [Reactive] public partial int ReadyCount { get; set; }
+    [Reactive] public partial int TotalTracked { get; set; }
 
     /// <summary>Total bytes of archives confirmed present in the download folder.</summary>
     public long PresentArchiveSize { get; private set; }
@@ -255,7 +257,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             RxApp.MainThreadScheduler.Schedule(() =>
             {
                 matchedItem.IsReady = true;
-                matchedItem.StatusText = "Ready";
+                matchedItem.StatusText = null;
             });
         }
 
@@ -322,24 +324,33 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     {
         lock (_lock)
         {
+            var readyCount = _tracked.Count(t => t.Item.IsReady);
             var missingManual = _tracked.Where(t => !t.IsNexus && !t.Item.IsReady).ToList();
             var missingNexus = _tracked.Where(t => t.IsNexus && !t.Item.IsReady).ToList();
-            var allReady = _tracked.All(t => t.Item.IsReady);
+            var allReady = readyCount == _tracked.Count;
 
             _logger.LogDebug("Preflight downloads status: {Ready}/{Total} ready, {MissingManual} manual missing, {MissingNexus} nexus missing",
-                _tracked.Count(t => t.Item.IsReady), _tracked.Count, missingManual.Count, missingNexus.Count);
+                readyCount, _tracked.Count, missingManual.Count, missingNexus.Count);
+
+            ReadyCount = readyCount;
+            TotalTracked = _tracked.Count;
+
+            // SubItems only shows non-ready items — ready ones are rolled up into ReadyCount
+            SubItems = _tracked.Where(t => !t.Item.IsReady).Select(t => t.Item).ToList();
+
+            var readySuffix = readyCount > 0 ? $" ({readyCount} of {_tracked.Count} ready)" : "";
 
             if (allReady)
             {
                 Status = PreflightCheckStatus.Passed;
-                FailureMessage = null;
+                FailureMessage = $"All {_tracked.Count} files ready";
                 ActionCommand = null;
                 ActionLabel = null;
             }
             else if (missingManual.Count == 0 && missingNexus.Count > 0 && _isPremium)
             {
                 Status = PreflightCheckStatus.Info;
-                FailureMessage = $"{missingNexus.Count} Nexus files will be downloaded automatically during install";
+                FailureMessage = $"{missingNexus.Count} Nexus files will be downloaded automatically during install{readySuffix}";
                 ActionCommand = null;
                 ActionLabel = null;
             }
@@ -348,8 +359,8 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
                 Status = PreflightCheckStatus.Failed;
                 var total = missingNexus.Count + missingManual.Count;
                 FailureMessage = missingManual.Count > 0
-                    ? $"{total} files need downloading"
-                    : $"{missingNexus.Count} Nexus files require premium or manual download";
+                    ? $"{total} files need downloading{readySuffix}"
+                    : $"{missingNexus.Count} Nexus files require premium or manual download{readySuffix}";
                 ActionCommand = ReactiveCommand.Create(() =>
                     OpenUrl("https://next.nexusmods.com/premium"));
                 ActionLabel = "Get Nexus Premium";
@@ -357,7 +368,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             else
             {
                 Status = PreflightCheckStatus.Failed;
-                FailureMessage = "Download these files — they'll be detected automatically";
+                FailureMessage = $"Download these files — they'll be detected automatically{readySuffix}";
                 ActionCommand = null;
                 ActionLabel = null;
             }

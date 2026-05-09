@@ -167,7 +167,7 @@
                                                                Margin="12,0"
                                                                VerticalAlignment="Center" />
 
-                                                    <!-- Action Button (hidden when ready) -->
+                                                    <!-- Action Button -->
                                                     <Button Grid.Column="2"
                                                             Content="{Binding ActionLabel}"
                                                             Command="{Binding ActionCommand}"
@@ -181,32 +181,10 @@
                                                                     <DataTrigger Binding="{Binding ActionCommand}" Value="{x:Null}">
                                                                         <Setter Property="Visibility" Value="Collapsed" />
                                                                     </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding IsReady}" Value="True">
-                                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                                    </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
                                                         </Button.Style>
                                                     </Button>
-
-                                                    <!-- Ready indicator -->
-                                                    <TextBlock Grid.Column="2"
-                                                               Text="&#x2713; Ready"
-                                                               Foreground="#4ade80"
-                                                               FontSize="12"
-                                                               FontWeight="SemiBold"
-                                                               VerticalAlignment="Center">
-                                                        <TextBlock.Style>
-                                                            <Style TargetType="TextBlock">
-                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding IsReady}" Value="True">
-                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </TextBlock.Style>
-                                                    </TextBlock>
 
                                                     <!-- Status / Progress row -->
                                                     <StackPanel Grid.Row="1" Grid.ColumnSpan="3"

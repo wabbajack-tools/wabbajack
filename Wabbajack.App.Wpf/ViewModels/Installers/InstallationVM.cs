@@ -668,7 +668,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 isPremium: nexusLogin?.LoggedIn == true,
                 logger: _logger);
 
-            _ = downloadsCheck.ScanExistingFiles(CancellationToken.None);
+            await downloadsCheck.ScanExistingFiles(CancellationToken.None);
 
             var checks = new IPreflightCheck[] { pathCheck, gameCheck, diskCheck, nexusCheck, downloadsCheck };
 
