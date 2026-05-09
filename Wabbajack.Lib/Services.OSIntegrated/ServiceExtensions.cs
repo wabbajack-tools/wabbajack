@@ -35,7 +35,6 @@ using Wabbajack.VFS;
 using Wabbajack.VFS.Interfaces;
 using Client = Wabbajack.Networking.WabbajackClientApi.Client;
 using shortid;
-using shortid.Configuration;
 
 namespace Wabbajack.Services.OSIntegrated;
 
@@ -56,7 +55,7 @@ public static class ServiceExtensions
         var options = new OSIntegratedOptions();
         cfn?.Invoke(options);
         
-        GenerationOptions shortIdOptions = new(
+        ShortIdOptions shortIdOptions = new(
             useNumbers: true, 
             useSpecialCharacters:false, 
             length: 8);

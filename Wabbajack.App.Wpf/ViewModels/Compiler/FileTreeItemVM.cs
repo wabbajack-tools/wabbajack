@@ -85,7 +85,7 @@ public partial class FileTreeItemVM : ReactiveObject, IDisposable
             ".hkx" => Symbol.DocumentPerson,
             ".nif" or ".btr" => Symbol.DocumentCube,
             ".mp3" or ".wav" or ".fuz" => Symbol.DocumentCatchUp,
-            ".js" => Symbol.DocumentJavascript,
+            ".js" => Symbol.DocumentJavaScript,
             ".java" => Symbol.DocumentJava,
             ".pdf" => Symbol.DocumentPdf,
             ".lua" or ".py" or ".bat" or ".reds" or ".psc" => Symbol.Receipt,

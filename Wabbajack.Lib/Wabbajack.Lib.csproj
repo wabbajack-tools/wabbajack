@@ -18,50 +18,50 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BCnEncoder.Net.ImageSharp" Version="1.1.1" />
-    <PackageReference Include="DeviceId" Version="6.8.0" />
-    <PackageReference Include="F23.StringSimilarity" Version="6.0.0" />
-    <PackageReference Include="FluentFTP" Version="52.0.0" />
-    <PackageReference Include="GameFinder.StoreHandlers.EADesktop" Version="4.5.0" />
-    <PackageReference Include="GameFinder.StoreHandlers.EGS" Version="4.5.0" />
-    <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="4.5.0" />
-    <PackageReference Include="GameFinder.StoreHandlers.Origin" Version="4.5.0" />
-    <PackageReference Include="GameFinder.StoreHandlers.Steam" Version="4.5.0" />
-    <PackageReference Include="GitInfo" Version="3.5.0">
+    <PackageReference Include="BCnEncoder.Net.ImageSharp" Version="1.1.3" />
+    <PackageReference Include="DeviceId" Version="6.11.0" />
+    <PackageReference Include="F23.StringSimilarity" Version="7.0.1" />
+    <PackageReference Include="FluentFTP" Version="54.1.2" />
+    <PackageReference Include="GameFinder.StoreHandlers.EADesktop" Version="4.9.0" />
+    <PackageReference Include="GameFinder.StoreHandlers.EGS" Version="4.9.0" />
+    <PackageReference Include="GameFinder.StoreHandlers.GOG" Version="4.9.0" />
+    <PackageReference Include="GameFinder.StoreHandlers.Origin" Version="4.9.0" />
+    <PackageReference Include="GameFinder.StoreHandlers.Steam" Version="4.9.0" />
+    <PackageReference Include="GitInfo" Version="3.6.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.72" />
-    <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
+    <PackageReference Include="ini-parser-netstandard" Version="2.5.3" />
     <PackageReference Include="K4os.Compression.LZ4.Streams" Version="1.3.8" />
-    <PackageReference Include="LibAES-CTR" Version="1.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.3.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.1" />
+    <PackageReference Include="LibAES-CTR" Version="1.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.3.9" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
     <PackageReference Include="Microsoft.Toolkit.HighPerformance" Version="7.1.2" />
     <PackageReference Include="Nettle" Version="3.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Octokit" Version="14.0.0" />
-    <PackageReference Include="Octopus.Octodiff" Version="2.0.548" />
+    <PackageReference Include="Octopus.Octodiff" Version="2.0.549" />
     <PackageReference Include="OMODFramework" Version="3.0.1" />
-    <PackageReference Include="SharpCompress" Version="0.41.0" />
+    <PackageReference Include="SharpCompress" Version="0.48.0" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="Shipwreck.Phash" Version="0.5.0" />
-    <PackageReference Include="shortid" Version="4.0.0" />
+    <PackageReference Include="shortid" Version="5.1.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
-    <PackageReference Include="SteamKit2" Version="3.0.1" />
+    <PackageReference Include="SteamKit2" Version="3.4.0" />
     <PackageReference Include="Stub.System.Data.SQLite.Core.NetStandard" Version="1.0.119" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" PrivateAssets="None" />
-    <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.7" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
-    <PackageReference Include="System.Reactive" Version="6.0.1" />
-    <PackageReference Include="System.Text.Json" Version="10.0.0" />
+    <PackageReference Include="System.Reactive" Version="6.1.0" />
+    <PackageReference Include="System.Text.Json" Version="10.0.7" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
-    <PackageReference Include="YamlDotNet" Version="16.3.0" />
+    <PackageReference Include="YamlDotNet" Version="17.1.0" />
   </ItemGroup>
 
   <ItemGroup>

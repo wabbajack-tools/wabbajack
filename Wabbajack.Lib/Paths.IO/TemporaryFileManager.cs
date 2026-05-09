@@ -3,14 +3,13 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using shortid;
-using shortid.Configuration;
 namespace Wabbajack.Paths.IO;
 
 public class TemporaryFileManager : IDisposable, IAsyncDisposable
 {
     private readonly AbsolutePath _basePath;
     private readonly bool _deleteOnDispose;
-    private GenerationOptions _options = new(
+    private ShortIdOptions _options = new(
         useNumbers: true,
         useSpecialCharacters:false,
         length: 8);
