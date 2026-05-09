@@ -1,5 +1,5 @@
-﻿using System;
-using System.Data.HashFunction.xxHash;
+using System;
+using System.IO.Hashing;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 
@@ -25,17 +25,17 @@ public class xxHashBenchmark
     }
 
     [Benchmark]
-    public void NewCode()
+    public ulong OneShot()
     {
-        var hash = new xxHashAlgorithm(0);
-        hash.HashBytes(_data);
+        return XxHash64.HashToUInt64(_data);
     }
 
     [Benchmark]
-    public void OldCode()
+    public ulong Incremental()
     {
-        var config = new xxHashConfig {HashSizeInBits = 64};
-        BitConverter.ToUInt64(xxHashFactory.Instance.Create(config).ComputeHash(_data).Hash);
+        var hasher = new XxHash64();
+        hasher.Append(_data);
+        return hasher.GetCurrentHashAsUInt64();
     }
 }
 

@@ -1,4 +1,5 @@
 using System;
+using System.IO.Hashing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,8 +33,8 @@ public static class StringExtensions
         return Convert.FromBase64String(data);
     }
 
-    public static async ValueTask<Hash> Hash(this string s)
+    public static ValueTask<Hash> Hash(this string s)
     {
-        return await Encoding.UTF8.GetBytes(s).Hash();
+        return ValueTask.FromResult(new Hash(XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(s))));
     }
 }

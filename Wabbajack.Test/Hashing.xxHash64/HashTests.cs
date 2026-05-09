@@ -1,5 +1,4 @@
 using System;
-using System.Data.HashFunction.xxHash;
 using Xunit;
 
 namespace Wabbajack.Hashing.xxHash64.Test;
@@ -9,13 +8,6 @@ public class HashTests
     private static readonly Hash Hash1 = new(1);
     private static readonly Hash Hash1a = new(1);
     private static readonly Hash Hash2 = new(2);
-
-  
-    private ulong HashOld(byte[] data)
-    {
-        var config = new xxHashConfig {HashSizeInBits = 64};
-        return BitConverter.ToUInt64(xxHashFactory.Instance.Create(config).ComputeHash(data).Hash);
-    }
 
     [Fact]
     public void HashesAreEquatable()

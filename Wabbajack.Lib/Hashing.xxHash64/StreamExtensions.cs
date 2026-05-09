@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.IO;
+using System.IO.Hashing;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.RateLimiter;
@@ -20,10 +21,9 @@ public static class StreamExtensions
         using var rented = MemoryPool<byte>.Shared.Rent(buffserSize);
         var buffer = rented.Memory;
 
-        var hasher = new xxHashAlgorithm(0);
+        var hasher = new XxHash64();
 
         var running = true;
-        ulong finalHash = 0;
         while (running && !token.IsCancellationRequested)
         {
             var totalRead = 0;
@@ -32,7 +32,6 @@ public static class StreamExtensions
             {
                 var read = await inputStream.ReadAsync(buffer.Slice(totalRead, buffer.Length - totalRead),
                     token);
-
 
                 if (read == 0)
                 {
@@ -47,43 +46,24 @@ public static class StreamExtensions
             }
 
             var pendingWrite = outputStream.WriteAsync(buffer[..totalRead], token);
-            if (running)
-            {
-                hasher.TransformByteGroupsInternal(buffer.Span);
-                await pendingWrite;
-            }
-            else
-            {
-                var preSize = (totalRead >> 5) << 5;
-                if (preSize > 0)
-                {
-                    hasher.TransformByteGroupsInternal(buffer[..preSize].Span);
-                    finalHash = hasher.FinalizeHashValueInternal(buffer[preSize..totalRead].Span);
-                    await pendingWrite;
-                    break;
-                }
-
-                finalHash = hasher.FinalizeHashValueInternal(buffer[..totalRead].Span);
-                await pendingWrite;
-                break;
-            }
+            hasher.Append(buffer[..totalRead].Span);
+            await pendingWrite;
         }
 
         await outputStream.FlushAsync(token);
 
-        return new Hash(finalHash);
+        return new Hash(hasher.GetCurrentHashAsUInt64());
     }
-    
+
     public static async Task<Hash> HashingCopy(this Stream inputStream, Func<Memory<byte>, Task> fn,
         CancellationToken token)
     {
         using var rented = MemoryPool<byte>.Shared.Rent(1024 * 1024);
         var buffer = rented.Memory;
 
-        var hasher = new xxHashAlgorithm(0);
+        var hasher = new XxHash64();
 
         var running = true;
-        ulong finalHash = 0;
         while (running && !token.IsCancellationRequested)
         {
             var totalRead = 0;
@@ -92,7 +72,7 @@ public static class StreamExtensions
             {
                 var read = await inputStream.ReadAsync(buffer.Slice(totalRead, buffer.Length - totalRead),
                     token);
-                
+
                 if (read == 0)
                 {
                     running = false;
@@ -102,29 +82,11 @@ public static class StreamExtensions
             }
 
             var pendingWrite = fn(buffer[..totalRead]);
-            if (running)
-            {
-                hasher.TransformByteGroupsInternal(buffer.Span);
-                await pendingWrite;
-            }
-            else
-            {
-                var preSize = (totalRead >> 5) << 5;
-                if (preSize > 0)
-                {
-                    hasher.TransformByteGroupsInternal(buffer[..preSize].Span);
-                    finalHash = hasher.FinalizeHashValueInternal(buffer[preSize..totalRead].Span);
-                    await pendingWrite;
-                    break;
-                }
-
-                finalHash = hasher.FinalizeHashValueInternal(buffer[..totalRead].Span);
-                await pendingWrite;
-                break;
-            }
+            hasher.Append(buffer[..totalRead].Span);
+            await pendingWrite;
         }
-        
-        return new Hash(finalHash);
+
+        return new Hash(hasher.GetCurrentHashAsUInt64());
     }
 
     public static (Stream InputStream, Func<Hash> Fn) HashingPull(this Stream src)
@@ -136,17 +98,25 @@ public static class StreamExtensions
     class PullingStream : Stream
     {
         private readonly Stream _src;
-        private readonly xxHashAlgorithm _hasher;
-        private ulong? _hash;
+        private readonly XxHash64 _hasher;
+        private bool _finished;
 
         public PullingStream(Stream src)
         {
             _src = src;
-            _hasher = new xxHashAlgorithm(0);
+            _hasher = new XxHash64();
         }
-        
-        public Hash Hash => new(_hash ?? throw new InvalidOperationException("Hash not yet computed"));
-        
+
+        public Hash Hash
+        {
+            get
+            {
+                if (!_finished)
+                    throw new InvalidOperationException("Hash not yet computed");
+                return new Hash(_hasher.GetCurrentHashAsUInt64());
+            }
+        }
+
         public override long Seek(long offset, SeekOrigin origin)
         {
             throw new NotImplementedException();
@@ -179,30 +149,18 @@ public static class StreamExtensions
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (_hash.HasValue)
+            if (_finished)
                 throw new InvalidDataException("HashingPull can only be read once");
-            
-            var sized = count >> 5 << 5;
-            if (sized == 0)
-                throw new ArgumentException("count must be a multiple of 32, got " + count, nameof(count));
-            
-            
-            var read = _src.ReadAtLeast(buffer, sized);
-            
+
+            var read = _src.Read(buffer, offset, count);
+
             if (read == 0)
+            {
+                _finished = true;
                 return 0;
-
-
-            if (read == sized)
-            {
-                _hasher.TransformByteGroupsInternal(buffer.AsSpan(offset, read));
-            }
-            else
-            {
-                _hash = _hasher.FinalizeHashValueInternal(buffer.AsSpan(offset, read));
-                return read;
             }
 
+            _hasher.Append(buffer.AsSpan(offset, read));
             return read;
         }
     }

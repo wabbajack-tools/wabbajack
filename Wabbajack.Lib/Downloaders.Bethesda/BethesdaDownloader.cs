@@ -44,7 +44,7 @@ public class BethesdaDownloader : ADownloader<DTOs.DownloadStates.Bethesda>, IUr
 
         using var os = destination.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
         
-        var hasher = new xxHashAlgorithm(0);
+        var hasher = new System.IO.Hashing.XxHash64();
         Hash finalHash = default;
 
         var aesKey = depot!.ExInfoA.ToArray();
@@ -69,19 +69,11 @@ public class BethesdaDownloader : ADownloader<DTOs.DownloadStates.Bethesda>, IUr
         })
         .Do(async data =>
         {
-            if (data.Length < tree.DepotList.First().BytesPerChunk)
-            {
-                hasher.HashBytes(data);
-            }
-            else
-            {
-                finalHash = Hash.FromULong(hasher.FinalizeHashValueInternal(data));
-            }
-            
+            hasher.Append(data);
             await os.WriteAsync(data, token);
         });
-        
-        return finalHash;
+
+        return Hash.FromULong(hasher.GetCurrentHashAsUInt64());
     }
 
     private async Task<byte[]> GetChunk(DTOs.DownloadStates.Bethesda state, Chunk chunk, long propertiesId,

@@ -1,5 +1,4 @@
-using System.IO;
-using System.Threading;
+using System.IO.Hashing;
 using System.Threading.Tasks;
 using Wabbajack.RateLimiter;
 
@@ -7,9 +6,8 @@ namespace Wabbajack.Hashing.xxHash64;
 
 public static class ByteArrayExtensions
 {
-    public static async ValueTask<Hash> Hash(this byte[] data, IJob? job = null)
+    public static ValueTask<Hash> Hash(this byte[] data, IJob? job = null)
     {
-        using var ms = new MemoryStream(data);
-        return await ms.HashingCopy(Stream.Null, CancellationToken.None, job);
+        return ValueTask.FromResult(new Hash(XxHash64.HashToUInt64(data)));
     }
 }
