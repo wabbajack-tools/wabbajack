@@ -29,6 +29,10 @@
         </None>
     </ItemGroup>
 
+    <Target Name="SetExtractorsExecutableOnUnix" AfterTargets="Build" Condition="'$(OS)' != 'Windows_NT'">
+        <Exec Command="chmod +x &quot;$(OutputPath)Extractors/linux-x64/7zz&quot; &quot;$(OutputPath)Extractors/linux-x64/innoextract&quot; &quot;$(OutputPath)Extractors/mac/7zz&quot;" />
+    </Target>
+
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
         <ProjectReference Include="..\Wabbajack.Compression.BSA\Wabbajack.Compression.BSA.csproj" />

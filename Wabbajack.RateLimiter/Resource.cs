@@ -34,8 +34,12 @@ public class Resource<T> : IResource<T>
     public Resource(string humanName, Func<Task<(int MaxTasks, long MaxThroughput)>> settingGetter, CancellationToken? token = null)
     {
         Name = humanName;
+        MaxTasks = Environment.ProcessorCount;
+        MaxThroughput = long.MaxValue;
+        _semaphore = new SemaphoreSlim(MaxTasks);
+        _channel = Channel.CreateBounded<PendingReport>(10);
         _tasks = new ConcurrentDictionary<ulong, Job<T>>();
-        
+
         Task.Run(async () =>
         {
             var (maxTasks, maxThroughput) = await settingGetter();

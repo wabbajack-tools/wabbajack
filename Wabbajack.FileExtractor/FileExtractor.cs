@@ -303,8 +303,11 @@ public class FileExtractor
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 initialPath = @"Extractors\mac\7zz";
 
+            var executablePath = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint);
+            EnsureExecutable(executablePath);
+
             var process = new ProcessHelper
-                {Path = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint)};
+                {Path = executablePath};
 
             if (onlyFiles != null)
             {
@@ -433,12 +436,15 @@ public class FileExtractor
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 initialPath = @"Extractors\linux-x64\innoextract";
 
+            var executablePath = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint);
+            EnsureExecutable(executablePath);
+
             // This might not be the best way to do it since it forces a full extraction
             // of the full .exe file, but the other method that would tell WJ to only extract specific files was bugged
 
             var processScan = new ProcessHelper
             {
-                Path = initialPath.ToRelativePath().RelativeTo(KnownFolders.EntryPoint),
+                Path = executablePath,
                 Arguments = [$"\"{source}\"", "--list-sizes", "-m", "--collisions \"rename-all\""]
             };
 
@@ -529,5 +535,25 @@ public class FileExtractor
             await abs.WriteAllAsync(stream, token);
             return 0;
         }, token, progressFunction: updateProgress);
+    }
+
+    private static void EnsureExecutable(AbsolutePath path)
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && !RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            return;
+
+        if (!File.Exists(path.ToString()))
+            return;
+
+        try
+        {
+            var mode = File.GetUnixFileMode(path.ToString());
+            mode |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+            File.SetUnixFileMode(path.ToString(), mode);
+        }
+        catch
+        {
+            // Best-effort; if this fails, let process start report the error.
+        }
     }
 }
