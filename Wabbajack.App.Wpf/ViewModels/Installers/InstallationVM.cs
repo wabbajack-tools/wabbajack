@@ -654,6 +654,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 .ToList();
 
             var gameCheck = new GameInstalledCheck(_gameLocator, ModList.GameType);
+            var gameFilesCheck = new GameFilesCheck(ModList.Archives, _gameLocator, _logger);
             var pathCheck = new PathValidationCheck();
             var diskCheck = new DiskSpaceCheck();
             var nexusCheck = new NexusLoginCheck(nexusLogin!);
@@ -674,7 +675,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
             // Scan existing files in background — don't block page load
             downloadsCheck.StartScanExistingFiles();
 
-            var checks = new IPreflightCheck[] { pathCheck, gameCheck, diskCheck, nexusCheck, downloadsCheck };
+            var checks = new IPreflightCheck[] { pathCheck, gameCheck, gameFilesCheck, diskCheck, nexusCheck, downloadsCheck };
 
             Preflight?.Dispose();
             Preflight = new PreflightViewModel(checks)

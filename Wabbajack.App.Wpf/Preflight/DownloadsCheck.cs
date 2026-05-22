@@ -40,6 +40,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     private readonly HashSet<string> _activeDownloads = new(); // filenames being auto-downloaded
     private readonly object _lock = new();
     private int _updateStatusPending; // 0 = not pending, 1 = pending (for Interlocked)
+    private volatile bool _scanComplete; // true once StartScanExistingFiles finishes
 
     // Auto-download state
     private CancellationTokenSource? _autoDownloadCts;
@@ -150,6 +151,8 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         if (!_downloadDir.DirectoryExists())
         {
             _logger.LogInformation("Preflight: download dir {Dir} does not exist, skipping scan", _downloadDir);
+            _scanComplete = true;
+            ScheduleUpdateStatus();
             return;
         }
 
@@ -242,6 +245,8 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
                 }
             }
 
+            _scanComplete = true;
+            _logger.LogInformation("Preflight: scan complete");
             ScheduleUpdateStatus();
         });
     }
@@ -680,19 +685,25 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 
             var readySuffix = readyCount > 0 ? $" ({readyCount} of {_tracked.Count} ready)" : "";
 
-            if (allReady)
+            if (allReady && _scanComplete)
             {
                 Status = PreflightCheckStatus.Passed;
                 FailureMessage = $"All {_tracked.Count} files ready";
                 ActionCommand = null;
                 ActionLabel = null;
             }
+            else if (allReady && !_scanComplete)
+            {
+                // All items matched so far, but scan is still running
+                Status = PreflightCheckStatus.Checking;
+                FailureMessage = $"Verifying files...{readySuffix}";
+                ActionCommand = null;
+                ActionLabel = null;
+            }
             else if (missingAutoCount > 0)
             {
-                // There are files we can auto-download (Http/CDN always, Nexus if premium)
-                Status = missingManualCount > 0 || missingNexusNoPremium > 0
-                    ? PreflightCheckStatus.Failed
-                    : PreflightCheckStatus.Info;
+                // There are files we can auto-download — this is a blocking failure until downloaded
+                Status = PreflightCheckStatus.Failed;
                 FailureMessage = IsAutoDownloading
                     ? $"Downloading files...{readySuffix}"
                     : $"{missingAutoCount} files available for automatic download{readySuffix}";
