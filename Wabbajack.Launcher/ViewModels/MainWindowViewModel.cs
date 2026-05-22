@@ -196,52 +196,7 @@ public partial class MainWindowViewModel : ViewModelBase
             _errors.Add(ex.Message);
         }
 
-        try
-        {
-            await InstallWebView();
-        }
-        catch (Exception e)
-        {
-            _errors.Add(e.Message);
-        }
-
         await FinishAndExit();
-    }
-
-    [UriString]
-    private const string WebViewDownloadLink = "https://go.microsoft.com/fwlink/p/?LinkId=2124703";
-
-    private async Task InstallWebView(CancellationToken cancellationToken = default)
-    {
-        var setupPath = KnownFolders.WabbajackAppLocal.Combine("MicrosoftEdgeWebview2Setup.exe");
-        if (setupPath.FileExists()) return;
-
-        var wc = new WebClient();
-        wc.DownloadProgressChanged += (sender, args) => UpdateProgress("WebView2", sender, args);
-
-        Status = "Downloading WebView2 Runtime";
-
-        byte[] data;
-        try
-        {
-            data = await wc.DownloadDataTaskAsync(WebViewDownloadLink);
-        }
-        catch (Exception ex)
-        {
-            _errors.Add(ex.Message);
-            await FinishAndExit();
-            throw;
-        }
-
-        await setupPath.WriteAllBytesAsync(new Memory<byte>(data), cancellationToken);
-
-        var process = new ProcessHelper
-        {
-            Path = setupPath,
-            Arguments = new []{"/silent /install"}
-        };
-
-        await process.Start();
     }
 
     private async Task VerifyCurrentLocation()

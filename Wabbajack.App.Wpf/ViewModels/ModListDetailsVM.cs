@@ -9,9 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Web.WebView2.Wpf;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
@@ -51,14 +49,10 @@ public partial class ModListDetailsVM : BackNavigatingVM
     public ICommand OpenDiscordCommand { get; set; }
     public ICommand OpenReadmeCommand { get; set; }
 
-    public WebView2 Browser { get; set; }
-
     public ModListDetailsVM(ILogger<ModListDetailsVM> logger, IServiceProvider serviceProvider, Client wjClient) : base(logger)
     {
         _logger = logger;
         _wjClient = wjClient;
-
-        Browser = serviceProvider.GetRequiredService<WebView2>();
 
         MessageBus.Current.Listen<LoadModlistForDetails>()
             .Subscribe(msg => MetadataVM = msg.MetadataVM)

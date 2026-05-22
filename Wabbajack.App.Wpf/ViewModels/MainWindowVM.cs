@@ -23,7 +23,6 @@ using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Wabbajack.UserIntervention;
 using Wabbajack.ViewModels;
 using System.Reactive.Concurrency;
 using Wabbajack.Util;
@@ -38,7 +37,6 @@ namespace Wabbajack;
 /// </summary>
 public partial class MainWindowVM : ViewModel
 {
-    private Common.AsyncLock _browserLocker = new();
     public MainWindow MainWindow { get; }
 
     [Reactive]
@@ -142,11 +140,6 @@ public partial class MainWindowVM : ViewModel
 
         MessageBus.Current.Listen<NavigateTo>()
             .Subscribe(m => HandleNavigateTo(m.ViewModel))
-            .DisposeWith(CompositeDisposable);
-
-        MessageBus.Current.Listen<ShowBrowserWindow>()
-            .ObserveOnGuiThread()
-            .Subscribe(HandleShowBrowserWindow)
             .DisposeWith(CompositeDisposable);
 
         MessageBus.Current.Listen<ShowNavigation>()
@@ -387,29 +380,6 @@ public partial class MainWindowVM : ViewModel
     private void HandleNavigateTo(ViewModel objViewModel)
     {
         ActivePane = objViewModel;
-    }
-
-    private void HandleManualDownload(ManualDownload manualDownload)
-    {
-        var handler = _serviceProvider.GetRequiredService<ManualDownloadHandler>();
-        handler.Intervention = manualDownload;
-        //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
-    }
-
-    private void HandleManualBlobDownload(ManualBrowserDownload manualDownload)
-    {
-        var handler = _serviceProvider.GetRequiredService<ManualBrowserDownloadHandler>();
-        handler.Intervention = manualDownload;
-        //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
-    }
-
-    private async void HandleShowBrowserWindow(ShowBrowserWindow msg)
-    {
-        using var _ = await _browserLocker.WaitAsync();
-        var browserWindow = _serviceProvider.GetRequiredService<BrowserWindow>();
-        ActiveFloatingPane = browserWindow.ViewModel = msg.ViewModel;
-        browserWindow.DataContext = ActiveFloatingPane;
-        await browserWindow.ViewModel.RunBrowserOperation();
     }
 
     private void HandleNavigateTo(ScreenType s)

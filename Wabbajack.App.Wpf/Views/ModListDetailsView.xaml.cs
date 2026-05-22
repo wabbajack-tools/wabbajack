@@ -47,11 +47,6 @@ public partial class ModListDetailsView
                 .BindToStrict(this, x => x.ArchivesDataGrid.Visibility)
                 .DisposeWith(disposables);
 
-            this.WhenAnyValue(x => x.ReadmeButton.IsChecked)
-                .Select(x => x ?? false ? Visibility.Visible : Visibility.Hidden)
-                .BindToStrict(this, x => x.ViewModel.Browser.Visibility)
-                .DisposeWith(disposables);
-
             this.WhenAnyValue(x => x.ArchivesButton.IsChecked)
                 .Select(x => x ?? false ? Visibility.Visible : Visibility.Hidden)
                 .BindToStrict(this, x => x.SearchBox.Visibility)
@@ -67,24 +62,6 @@ public partial class ModListDetailsView
                 .BindToStrict(this, x => x.OpenReadmeButton.Visibility)
                 .DisposeWith(disposables);
 
-            this.WhenAnyValue(x => x.ViewModel.MetadataVM.Metadata.Links.Readme)
-                .Select(readme =>
-                {
-                    try
-                    {
-                        var humanReadableReadme = UIUtils.GetHumanReadableReadmeLink(readme);
-                        if(Uri.TryCreate(humanReadableReadme, UriKind.Absolute, out var uri)) {
-                            return uri;
-                        }
-                        return default;
-                    }
-                    catch(Exception)
-                    {
-                        return new Uri(readme);
-                    }
-                })
-                .BindToStrict(this, x => x.ViewModel.Browser.Source)
-                .DisposeWith(disposables);
 
             this.WhenAnyValue(x => x.ViewModel.MetadataVM.ProgressPercent)
                 .BindToStrict(this, x => x.InstallButton.ProgressPercentage)
@@ -121,14 +98,6 @@ public partial class ModListDetailsView
             this.BindCommand(ViewModel, x => x.MetadataVM.InstallCommand, x => x.InstallButton)
                 .DisposeWith(disposables);
 
-            RxApp.MainThreadScheduler.Schedule(() =>
-            {
-                if (ViewModel.Browser.Parent != null)
-                {
-                    ((Panel)ViewModel.Browser.Parent).Children.Remove(ViewModel.Browser);
-                }
-                MainContentGrid.Children.Add(ViewModel.Browser);
-            });
 
         });
     }

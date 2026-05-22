@@ -16,7 +16,6 @@ using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Web.WebView2.Wpf;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using Octokit;
@@ -31,7 +30,6 @@ using Wabbajack.Models;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
-using Wabbajack.UserIntervention;
 using Wabbajack.Util;
 using Wabbajack.Common;
 using Ext = Wabbajack.Common.Ext;
@@ -91,16 +89,6 @@ public partial class App
         if (OperatingSystem.IsWindows())
         {
             assoc.RegisterOrUpdate(enableProtocol: true); // Enable protocol registration
-        }
-
-        var webview2 = _host.Services.GetRequiredService<WebView2>();
-        var currentDir = (AbsolutePath)Directory.GetCurrentDirectory();
-        var webViewDir = currentDir.Combine("WebView2");
-        if(webViewDir.DirectoryExists())
-        {
-            var logger = _host.Services.GetRequiredService<ILogger<App>>();
-            logger.LogInformation("Local WebView2 executable folder found. Using folder {0} instead of system binaries!", currentDir.Combine("WebView2"));
-            webview2.CreationProperties = new CoreWebView2CreationProperties() { BrowserExecutableFolder = currentDir.Combine("WebView2").ToString() };
         }
 
         var args = e.Args;
@@ -443,9 +431,6 @@ public partial class App
 
         var currentDir = (AbsolutePath)Directory.GetCurrentDirectory();
         var webViewDir = currentDir.Combine("webview2");
-        services.AddSingleton<WebView2>();
-        services.AddSingleton<BrowserWindow>();
-
         // ViewModels
         services.AddTransient<MainWindow>();
         services.AddTransient<MainWindowVM>();
@@ -465,20 +450,9 @@ public partial class App
         services.AddTransient<MegaLoginVM>();
         services.AddTransient<AboutVM>();
 
-        // Login Handlers
-        services.AddTransient<VectorPlexusLoginHandler>();
-        services.AddTransient<LoversLabLoginHandler>();
-
         // Login Managers
-
-        //Disabled LL because it is currently not used and broken due to the way LL butchers their API
-        //services.AddAllSingleton<INeedsLogin, LoversLabLoginManager>();
         services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
         services.AddAllSingleton<INeedsLogin, MegaLoginManager>();
-        //Disabled VP due to frequent login issues & because the only file that really got downloaded there has a mirror
-        //services.AddAllSingleton<INeedsLogin, VectorPlexusLoginManager>();
-        services.AddSingleton<ManualDownloadHandler>();
-        services.AddSingleton<ManualBrowserDownloadHandler>();
         services.AddSingleton<NexusCollectionDownloader>();
         // Verbs
         services.AddSingleton<CommandLineBuilder>();

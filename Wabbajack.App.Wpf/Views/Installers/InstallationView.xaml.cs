@@ -214,9 +214,9 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             ViewModel.WhenAnyValue(vm => vm.FailureDetailsDescription)
                 .Where(desc => !string.IsNullOrEmpty(desc))
                 .ObserveOnGuiThread()
-                .Subscribe(async desc =>
+                .Subscribe(desc =>
                 {
-                    await RenderErrorMarkdownAsync(desc);
+                    ErrorMarkdownView.Text = desc;
                 })
                 .DisposeWith(disposables);
 
@@ -303,49 +303,4 @@ h1, h2, h3, h4 {{ margin: 8px 0; }}
 </html>";
     }
 
-    private async Task EnsureErrorWebViewReadyAsync()
-    {
-        if (ErrorMarkdownView.CoreWebView2 == null)
-        {
-            await ErrorMarkdownView.EnsureCoreWebView2Async(null);
-
-            ErrorMarkdownView.CoreWebView2.NewWindowRequested += (s, e) =>
-            {
-                try
-                {
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = e.Uri,
-                        UseShellExecute = true
-                    });
-                }
-                catch { }
-                e.Handled = true;
-            };
-
-            ErrorMarkdownView.CoreWebView2.NavigationStarting += (s, e) =>
-            {
-                if (e.Uri.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                {
-                    try
-                    {
-                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                        {
-                            FileName = e.Uri,
-                            UseShellExecute = true
-                        });
-                    }
-                    catch { }
-                    e.Cancel = true;
-                }
-            };
-        }
-    }
-
-    private async Task RenderErrorMarkdownAsync(string markdown)
-    {
-        await EnsureErrorWebViewReadyAsync();
-        var html = BuildErrorHtml(markdown ?? string.Empty);
-        ErrorMarkdownView.NavigateToString(html);
-    }
 }

@@ -9,7 +9,6 @@
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:rxui="http://reactiveui.net"
     xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
-    xmlns:wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
     x:TypeArguments="local:ModListDetailsVM"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance local:ModListDetailsVM}"
@@ -378,7 +377,6 @@
                 </Grid>
                     
 
-                <!-- WebView Browser, added by code behind -->
             </Grid>
         </Grid>
     </Grid>
