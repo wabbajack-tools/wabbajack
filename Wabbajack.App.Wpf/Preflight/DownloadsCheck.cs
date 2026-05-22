@@ -28,6 +28,7 @@ namespace Wabbajack.Preflight;
 public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 {
     private readonly CompositeDisposable _disposable = new();
+    private readonly CancellationTokenSource _lifetimeCts = new();
     private readonly AbsolutePath _downloadDir;
     private readonly ILogger _logger;
     private readonly DownloadDispatcher? _downloadDispatcher;
@@ -655,8 +656,10 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 
         Task.Run(async () =>
         {
-            await Task.Delay(WatcherSettleDelayMs);
-            await TryMatchFile((AbsolutePath)fullPath, CancellationToken.None);
+            await Task.Delay(WatcherSettleDelayMs, _lifetimeCts.Token)
+                .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+            if (_lifetimeCts.Token.IsCancellationRequested) return;
+            await TryMatchFile((AbsolutePath)fullPath, _lifetimeCts.Token);
         });
     }
 
@@ -759,7 +762,9 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 
     public void Dispose()
     {
+        _lifetimeCts.Cancel();
         _autoDownloadCts?.Cancel();
         _disposable.Dispose();
+        _lifetimeCts.Dispose();
     }
 }

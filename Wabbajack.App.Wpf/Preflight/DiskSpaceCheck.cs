@@ -31,8 +31,8 @@ public partial class DiskSpaceCheck : ReactiveObject, IPreflightCheck
 
         try
         {
-            var installDrive = new DriveInfo(installPath.ToString()[..1]);
-            var downloadDrive = new DriveInfo(downloadPath.ToString()[..1]);
+            var installDrive = new DriveInfo(Path.GetPathRoot(installPath.ToString())!);
+            var downloadDrive = new DriveInfo(Path.GetPathRoot(downloadPath.ToString())!);
             var sameDrive = installDrive.Name == downloadDrive.Name;
 
             if (sameDrive)

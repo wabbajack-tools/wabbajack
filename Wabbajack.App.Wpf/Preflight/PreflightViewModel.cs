@@ -49,7 +49,11 @@ public partial class PreflightViewModel : ReactiveObject, IDisposable
 
         // Set up readme command
         ViewReadmeCommand = ReactiveCommand.Create(
-            () => Process.Start(new ProcessStartInfo(ReadmeUrl!) { UseShellExecute = true }),
+            () =>
+            {
+                try { Process.Start(new ProcessStartInfo(ReadmeUrl!) { UseShellExecute = true }); }
+                catch { /* browser launch failure is non-fatal */ }
+            },
             this.WhenAnyValue(x => x.ReadmeUrl).Select(url => !string.IsNullOrWhiteSpace(url)));
 
         // Observe every check's Status property

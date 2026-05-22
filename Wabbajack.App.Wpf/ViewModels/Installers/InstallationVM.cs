@@ -83,11 +83,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     public InstallResult? InstallResult
     {
         get => _installResult;
-        set
-        {
-            RaiseAndSetIfChanged(ref _installResult, value);
-            _installResult = value;
-        }
+        set => RaiseAndSetIfChanged(ref _installResult, value);
     }
 
     /// <summary>
@@ -657,7 +653,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
             var gameFilesCheck = new GameFilesCheck(ModList.Archives, _gameLocator, _logger);
             var pathCheck = new PathValidationCheck();
             var diskCheck = new DiskSpaceCheck();
-            var nexusCheck = new NexusLoginCheck(nexusLogin!);
+            var nexusCheck = nexusLogin != null ? new NexusLoginCheck(nexusLogin) : null;
 
             var systemDownloads = (AbsolutePath)Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
@@ -675,7 +671,10 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
             // Scan existing files in background — don't block page load
             downloadsCheck.StartScanExistingFiles();
 
-            var checks = new IPreflightCheck[] { pathCheck, gameCheck, gameFilesCheck, diskCheck, nexusCheck, downloadsCheck };
+            var checksList = new List<IPreflightCheck> { pathCheck, gameCheck, gameFilesCheck, diskCheck };
+            if (nexusCheck != null) checksList.Add(nexusCheck);
+            checksList.Add(downloadsCheck);
+            var checks = checksList.ToArray();
 
             Preflight?.Dispose();
             Preflight = new PreflightViewModel(checks)

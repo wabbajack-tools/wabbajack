@@ -150,6 +150,7 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
         finally
         {
             tcpListener.Stop();
+            tcpListener.Server?.Close();
             await RefreshTokenState();
         }
     }
@@ -285,8 +286,8 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
             { "code_verifier", codeVerifier },
         };
 
-        var content = new FormUrlEncodedContent(request);
-        var response = await _httpClient.PostAsync($"{OAuthUrl}/token", content);
+        using var content = new FormUrlEncodedContent(request);
+        using var response = await _httpClient.PostAsync($"{OAuthUrl}/token", content);
 
         if (!response.IsSuccessStatusCode)
         {
