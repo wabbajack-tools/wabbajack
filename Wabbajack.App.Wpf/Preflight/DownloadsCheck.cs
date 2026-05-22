@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -49,6 +50,8 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
     private readonly ICommand _pauseAutoDownloadCommand;
     private readonly ICommand _getNexusPremiumCommand;
 
+    private const int MaxConcurrentDownloads = 4;
+    private const int MaxDownloadRetries = 3;
     private const int ProgressPollIntervalMs = 2000;
     private const int WatcherSettleDelayMs = 2000;
     private const int UpdateStatusDebounceMs = 1000;
@@ -170,17 +173,43 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             {
                 try
                 {
-                    // Try hash cache first
+                    // Quick size filter — skip files that can't possibly match any tracked archive
+                    long fileSize;
+                    try { fileSize = file.Size(); }
+                    catch { continue; }
+
+                    if (!sizeLookup.ContainsKey(fileSize)) continue;
+
+                    // Find the UI item to show progress on (first size-matched candidate)
+                    var candidates = sizeLookup[fileSize];
+                    var uiItem = candidates[0].Item;
+                    var fileName = file.FileName.ToString();
+
                     Hash hash = default;
                     if (_hashCache != null)
                     {
-                        hash = await _hashCache.FileHashCachedAsync(file, CancellationToken.None);
+                        // Check cache without hashing first
+                        hash = await _hashCache.TryGetHashCache(file);
+                        if (hash == default)
+                        {
+                            // Cache miss — need to hash the full file. Show UI progress.
+                            RxApp.MainThreadScheduler.Schedule(() =>
+                            {
+                                uiItem.StatusText = $"Verifying {fileName}...";
+                                uiItem.Progress = null;
+                            });
+
+                            hash = await _hashCache.FileHashCachedAsync(file, CancellationToken.None);
+
+                            RxApp.MainThreadScheduler.Schedule(() =>
+                            {
+                                uiItem.StatusText = null;
+                                uiItem.Progress = null;
+                            });
+                        }
                     }
                     else
                     {
-                        // Fall back to size-based matching then full hash
-                        var fileSize = file.Size();
-                        if (!sizeLookup.ContainsKey(fileSize)) continue;
                         await TryMatchFile(file, CancellationToken.None);
                         continue;
                     }
@@ -196,12 +225,7 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
                             PresentArchiveSize += match.Archive.Size;
                         }
                         hashLookup.Remove(hash);
-
-                        RxApp.MainThreadScheduler.Schedule(() =>
-                        {
-                            match.Item.IsReady = true;
-                            match.Item.StatusText = null;
-                        });
+                        MarkItemCompleted(match.Item);
                     }
                 }
                 catch (Exception ex)
@@ -216,6 +240,8 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
 
     /// <summary>
     /// Start auto-downloading all missing Nexus archives. Premium only.
+    /// Uses a simple worker-pool pattern: N workers pull from a shared queue,
+    /// so exactly MaxConcurrentDownloads are in-flight at any time.
     /// </summary>
     public void StartAutoDownload()
     {
@@ -228,21 +254,23 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         if (!_downloadDir.DirectoryExists())
             _downloadDir.CreateDirectory();
 
-        // Get all undownloaded Nexus archives
-        List<(Archive Archive, PreflightSubItem Item, bool IsNexus)> toDownload;
+        ConcurrentQueue<(Archive Archive, PreflightSubItem Item)> queue;
         lock (_lock)
         {
-            toDownload = _tracked.Where(t => t.IsNexus && !t.Item.IsReady).ToList();
+            queue = new ConcurrentQueue<(Archive, PreflightSubItem)>(
+                _tracked.Where(t => t.IsNexus && !t.Item.IsReady)
+                    .Select(t => (t.Archive, t.Item)));
         }
 
-        _logger.LogInformation("Preflight: starting parallel auto-download of {Count} Nexus archives", toDownload.Count);
+        _logger.LogInformation("Preflight: starting auto-download of {Count} Nexus archives ({Max} workers)",
+            queue.Count, MaxConcurrentDownloads);
 
-        // Fire all downloads concurrently — the DownloadDispatcher's IResource limiter
-        // gates how many actually run in parallel based on ResourceSettings.MaxTasks
-        var tasks = toDownload.Select(entry => DownloadOneAsync(entry.Archive, entry.Item, token));
         Task.Run(async () =>
         {
-            await Task.WhenAll(tasks);
+            var workers = Enumerable.Range(0, MaxConcurrentDownloads)
+                .Select(_ => DownloadWorkerAsync(queue, token));
+            await Task.WhenAll(workers);
+
             RxApp.MainThreadScheduler.Schedule(() =>
             {
                 IsAutoDownloading = false;
@@ -251,102 +279,137 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
         }, token);
     }
 
+    private async Task DownloadWorkerAsync(
+        ConcurrentQueue<(Archive Archive, PreflightSubItem Item)> queue,
+        CancellationToken token)
+    {
+        while (queue.TryDequeue(out var entry))
+        {
+            if (token.IsCancellationRequested) return;
+            await DownloadOneAsync(entry.Archive, entry.Item, token);
+        }
+    }
+
     private async Task DownloadOneAsync(Archive archive, PreflightSubItem item, CancellationToken token)
     {
         var destPath = _downloadDir.Combine(archive.Name);
         var fileName = destPath.FileName.ToString();
-        _logger.LogInformation("Preflight: auto-downloading {Name}", archive.Name);
 
         lock (_lock) { _activeDownloads.Add(fileName); }
 
-        RxApp.MainThreadScheduler.Schedule(() =>
-        {
-            item.StatusText = "Queued...";
-            item.Progress = null;
-        });
-
         try
         {
-            // Poll file size for progress while downloading — also updates status from "Queued" to "Downloading"
-            var expectedSize = archive.Size;
-            var destFileInfo = new FileInfo(destPath.ToString());
-            using var progressCts = CancellationTokenSource.CreateLinkedTokenSource(token);
-            var progressTask = Task.Run(async () =>
+            for (var attempt = 1; attempt <= MaxDownloadRetries; attempt++)
             {
-                while (!progressCts.Token.IsCancellationRequested)
+                token.ThrowIfCancellationRequested();
+
+                var prefix = attempt > 1 ? $"Retry {attempt}/{MaxDownloadRetries}: " : "";
+                SetItemStatus(item, $"{prefix}Starting download...", null);
+                _logger.LogInformation("Preflight: downloading {Name} (attempt {Attempt})", archive.Name, attempt);
+
+                // Download with progress polling
+                var hash = await DownloadWithProgress(archive, destPath, item, prefix, token);
+
+                if (hash == archive.Hash)
                 {
-                    await Task.Delay(ProgressPollIntervalMs, progressCts.Token).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
-                    try
+                    _logger.LogInformation("Preflight: download complete: {Name}", archive.Name);
+                    lock (_lock)
                     {
-                        destFileInfo.Refresh();
-                        if (destFileInfo.Exists && expectedSize > 0)
-                        {
-                            var pct = Math.Min(1.0, (double)destFileInfo.Length / expectedSize);
-                            RxApp.MainThreadScheduler.Schedule(() =>
-                            {
-                                item.StatusText = "Downloading...";
-                                item.Progress = pct;
-                            });
-                        }
+                        _matchedHashes.Add(hash);
+                        PresentArchiveSize += archive.Size;
                     }
-                    catch { /* file may not exist yet or be locked */ }
-                }
-            }, progressCts.Token);
-
-            var hash = await _downloadDispatcher!.Download(archive, destPath, token);
-            await progressCts.CancelAsync();
-
-            if (hash == archive.Hash)
-            {
-                _logger.LogInformation("Preflight: auto-download complete: {Name}", archive.Name);
-                lock (_lock)
-                {
-                    _matchedHashes.Add(hash);
-                    PresentArchiveSize += archive.Size;
+                    MarkItemCompleted(item);
+                    return;
                 }
 
-                RxApp.MainThreadScheduler.Schedule(() =>
+                // Hash mismatch — delete bad file, purge cache, retry
+                _logger.LogWarning(
+                    "Preflight: hash mismatch for {Name} (attempt {Attempt}): expected {Expected}, got {Actual}",
+                    archive.Name, attempt, archive.Hash.ToHex(), hash.ToHex());
+
+                try
                 {
-                    item.IsReady = true;
-                    item.StatusText = null;
-                    item.Progress = null;
-                });
-                ScheduleUpdateStatus();
-            }
-            else
-            {
-                _logger.LogWarning("Preflight: hash mismatch for {Name}: expected {Expected}, got {Actual}",
-                    archive.Name, archive.Hash.ToHex(), hash.ToHex());
-                // Don't freeze on mismatch — clear status so it can be retried
-                RxApp.MainThreadScheduler.Schedule(() =>
+                    if (destPath.FileExists()) destPath.Delete();
+                    _hashCache?.Purge(destPath);
+                }
+                catch (Exception ex)
                 {
-                    item.StatusText = null;
-                    item.Progress = null;
-                });
+                    _logger.LogWarning(ex, "Preflight: failed to clean up {Name}", archive.Name);
+                }
+
+                if (attempt < MaxDownloadRetries)
+                    SetItemStatus(item, $"Hash mismatch — retrying ({attempt}/{MaxDownloadRetries})...", null);
             }
+
+            // All retries exhausted
+            SetItemStatus(item, $"Failed: hash mismatch after {MaxDownloadRetries} attempts", null);
         }
         catch (OperationCanceledException)
         {
-            _logger.LogInformation("Preflight: auto-download paused for {Name}", archive.Name);
-            RxApp.MainThreadScheduler.Schedule(() =>
-            {
-                item.StatusText = null;
-                item.Progress = null;
-            });
+            _logger.LogInformation("Preflight: download paused for {Name}", archive.Name);
+            SetItemStatus(item, null, null);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Preflight: auto-download failed for {Name}", archive.Name);
-            RxApp.MainThreadScheduler.Schedule(() =>
-            {
-                item.StatusText = $"Failed: {ex.Message}";
-                item.Progress = null;
-            });
+            _logger.LogWarning(ex, "Preflight: download failed for {Name}", archive.Name);
+            SetItemStatus(item, $"Failed: {ex.Message}", null);
         }
         finally
         {
             lock (_lock) { _activeDownloads.Remove(fileName); }
         }
+    }
+
+    private async Task<Hash> DownloadWithProgress(Archive archive, AbsolutePath destPath,
+        PreflightSubItem item, string statusPrefix, CancellationToken token)
+    {
+        var expectedSize = archive.Size;
+        var destFileInfo = new FileInfo(destPath.ToString());
+        using var progressCts = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+        _ = Task.Run(async () =>
+        {
+            while (!progressCts.Token.IsCancellationRequested)
+            {
+                await Task.Delay(ProgressPollIntervalMs, progressCts.Token)
+                    .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+                if (progressCts.Token.IsCancellationRequested) break;
+                try
+                {
+                    destFileInfo.Refresh();
+                    if (destFileInfo.Exists && expectedSize > 0)
+                    {
+                        var pct = Math.Min(1.0, (double)destFileInfo.Length / expectedSize);
+                        SetItemStatus(item, $"{statusPrefix}Downloading...", pct);
+                    }
+                }
+                catch { /* file may not exist yet or be locked */ }
+            }
+        }, progressCts.Token);
+
+        var hash = await _downloadDispatcher!.Download(archive, destPath, token);
+        await progressCts.CancelAsync();
+        return hash;
+    }
+
+    private void SetItemStatus(PreflightSubItem item, string? status, double? progress)
+    {
+        RxApp.MainThreadScheduler.Schedule(() =>
+        {
+            item.StatusText = status;
+            item.Progress = progress;
+        });
+    }
+
+    private void MarkItemCompleted(PreflightSubItem item)
+    {
+        RxApp.MainThreadScheduler.Schedule(() =>
+        {
+            item.IsReady = true;
+            item.StatusText = null;
+            item.Progress = null;
+            UpdateStatus(); // immediately rebuild SubItems so item disappears from the list
+        });
     }
 
     public void PauseAutoDownload()
@@ -508,15 +571,8 @@ public partial class DownloadsCheck : ReactiveObject, IPreflightCheck
             _matchedHashes.Add(hash);
             PresentArchiveSize += match.Archive.Size;
 
-            var matchedItem = match.Item;
-            RxApp.MainThreadScheduler.Schedule(() =>
-            {
-                matchedItem.IsReady = true;
-                matchedItem.StatusText = null;
-            });
+            MarkItemCompleted(match.Item);
         }
-
-        ScheduleUpdateStatus();
     }
 
     private void StartWatching(AbsolutePath downloadDir, AbsolutePath systemDownloadsDir)
