@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -21,6 +22,24 @@ public class CompilerSettingsInferencer
     {
         _logger = logger;
 
+    }
+
+    public async Task<CompilerSettings?> LoadOrInferFromRootPath(AbsolutePath rootPath, DTOSerializer dtos)
+    {
+        var settingsPath = rootPath.Combine(Consts.CompilerSettings);
+        if (settingsPath.FileExists())
+        {
+            _logger.LogInformation("Loading compiler settings from {path}", settingsPath);
+            return dtos.Deserialize<CompilerSettings>(await settingsPath.ReadAllTextAsync());
+        }
+
+        var settings = await InferFromRootPath(rootPath);
+        if (settings != null)
+        {
+            _logger.LogInformation("Writing compiler settings to {path}", settingsPath);
+            await settingsPath.WriteAllTextAsync(dtos.Serialize(settings, writeIndented: true));
+        }
+        return settings;
     }
 
     public async Task<CompilerSettings?> InferFromRootPath(AbsolutePath rootPath)
@@ -59,7 +78,7 @@ public class CompilerSettingsInferencer
                 var settings = iniData["Settings"];
                 cs.Downloads = settings["download_directory"].FromMO2Ini().ToAbsolutePath();
 
-                if (cs.Downloads == default)
+                if (cs.Downloads == default || !cs.Downloads.DirectoryExists())
                     cs.Downloads = cs.Source.Combine("downloads");
 
                 cs.NoMatchInclude = Array.Empty<RelativePath>();

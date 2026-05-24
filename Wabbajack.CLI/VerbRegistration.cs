@@ -47,6 +47,8 @@ public static class CommandLineBuilderExtensions
         services.AddSingleton<ListModlists>();
         CommandLineBuilder.RegisterCommand<MegaLogin>(MegaLogin.Definition, c => ((MegaLogin)c).Run);
         services.AddSingleton<MegaLogin>();
+        CommandLineBuilder.RegisterCommand<NexusLogin>(NexusLogin.Definition, c => ((NexusLogin)c).Run);
+        services.AddSingleton<NexusLogin>();
         CommandLineBuilder.RegisterCommand<MirrorFile>(MirrorFile.Definition, c => ((MirrorFile)c).Run);
         services.AddSingleton<MirrorFile>();
         CommandLineBuilder.RegisterCommand<ModlistReport>(ModlistReport.Definition, c => ((ModlistReport)c).Run);

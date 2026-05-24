@@ -373,7 +373,7 @@ public class FileExtractor
 
             
             job.Dispose();
-            var results = await dest.Path.EnumerateFiles()
+            var extracted = await dest.Path.EnumerateFiles()
                 .SelectAsync(async f =>
                 {
                     var path = f.RelativeTo(dest.Path);
@@ -384,15 +384,21 @@ public class FileExtractor
                     return (path, mapResult);
                 })
                 .Where(d => d.Item1 != default)
+                .ToList();
+
+            // Archives can contain case-variant duplicate paths. On Linux's case-sensitive
+            // filesystem both are extracted; RelativePath equality is case-insensitive so
+            // they collide in the dictionary. DistinctBy keeps the first, matching Windows behaviour.
+            var results = extracted
+                .DistinctBy(d => d.Item1)
                 .ToDictionary(d => d.Item1, d => d.Item2);
-            
 
             return results;
         }
         finally
         {
             job.Dispose();
-            
+
             if (tmpFile != null) await tmpFile.Value.DisposeAsync();
 
             if (spoolFile != null) await spoolFile.Value.DisposeAsync();
@@ -492,7 +498,7 @@ public class FileExtractor
             }
             
             job.Dispose();
-            var results = await dest.Path.EnumerateFiles()
+            var extracted = await dest.Path.EnumerateFiles()
                 .SelectAsync(async f =>
                 {
                     var path = f.RelativeTo(dest.Path);
@@ -503,14 +509,21 @@ public class FileExtractor
                     return (path, mapResult);
                 })
                 .Where(d => d.Item1 != default)
+                .ToList();
+
+            // Archives can contain case-variant duplicate paths. On Linux's case-sensitive
+            // filesystem both are extracted; RelativePath equality is case-insensitive so
+            // they collide in the dictionary. DistinctBy keeps the first, matching Windows behaviour.
+            var results = extracted
+                .DistinctBy(d => d.Item1)
                 .ToDictionary(d => d.Item1, d => d.Item2);
-            
+
             return results;
         }
         finally
         {
             job.Dispose();
-            
+
             if (tmpFile != null) await tmpFile.Value.DisposeAsync();
 
             if (spoolFile != null) await spoolFile.Value.DisposeAsync();

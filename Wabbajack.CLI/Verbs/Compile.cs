@@ -49,8 +49,7 @@ public class Compile
     public async Task<int> Run(AbsolutePath installPath, AbsolutePath outputPath,
         CancellationToken token)
     {
-        _logger.LogInformation("Inferring settings");
-        var inferredSettings = await _inferencer.InferFromRootPath(installPath);
+        var inferredSettings = await _inferencer.LoadOrInferFromRootPath(installPath, _dtos);
         if (inferredSettings == null)
         {
             _logger.LogInformation("Error inferencing settings");

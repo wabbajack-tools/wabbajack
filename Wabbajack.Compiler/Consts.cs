@@ -55,5 +55,5 @@ public class Consts
 
     public static string LineSeparator => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "\r\n" : "\n";
     public static RelativePath MO2IniName => "ModOrganizer.ini".ToRelativePath();
-    public static object CompilerSettings => "compiler_settings.json".ToRelativePath();
+    public static RelativePath CompilerSettings => "compiler_settings.json".ToRelativePath();
 }
