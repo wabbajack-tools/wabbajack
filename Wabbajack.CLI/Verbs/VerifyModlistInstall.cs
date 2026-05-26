@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -136,10 +137,17 @@ public class VerifyModlistInstall
 
         _logger.LogInformation("Report written to {Report}", reportFile.Path);
         
-        Process.Start(new ProcessStartInfo("cmd.exe", $"start /c \"{reportFile.Path}\"")
+        ProcessStartInfo psi;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            CreateNoWindow = true,
-        });
+            psi = new ProcessStartInfo("xdg-open") { UseShellExecute = false };
+            psi.ArgumentList.Add(reportFile.Path.ToString());
+        }
+        else
+        {
+            psi = new ProcessStartInfo(reportFile.Path.ToString()) { UseShellExecute = true };
+        }
+        Process.Start(psi);
 
 
         return 0;
