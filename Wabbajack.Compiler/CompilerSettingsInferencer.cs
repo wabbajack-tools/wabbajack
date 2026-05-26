@@ -30,7 +30,15 @@ public class CompilerSettingsInferencer
         if (settingsPath.FileExists())
         {
             _logger.LogInformation("Loading compiler settings from {path}", settingsPath);
-            return dtos.Deserialize<CompilerSettings>(await settingsPath.ReadAllTextAsync());
+            try
+            {
+                return dtos.Deserialize<CompilerSettings>(await settingsPath.ReadAllTextAsync());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to parse {path}; delete or fix the file and try again", settingsPath);
+                return null;
+            }
         }
 
         var settings = await InferFromRootPath(rootPath);

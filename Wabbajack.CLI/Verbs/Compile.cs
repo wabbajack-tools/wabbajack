@@ -82,10 +82,17 @@ public class Compile
     internal async Task<int> RunPublish(CompilerSettings settings, CancellationToken token)
     {
         var metaPath = settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json);
+        if (!metaPath.FileExists())
+        {
+            _logger.LogError("Metadata file not found at {MetaPath}; run compile without --publish first or check the output path", metaPath);
+            return 4;
+        }
         var metadata = _dtos.Deserialize<DownloadMetadata>(await metaPath.ReadAllTextAsync())!;
         _logger.LogInformation("Publishing {MachineUrl} v{Version}", settings.MachineUrl, settings.Version);
-        var (_, publishTask) = await _publisher.PublishModlist(
+        var (progress, publishTask) = await _publisher.PublishModlist(
             settings.MachineUrl, settings.Version, settings.OutputFile, metadata);
+        using var _ = progress.Subscribe(p =>
+            _logger.LogInformation("Upload {Percent:P0} - {Message}", p.PercentDone.Value, p.Message));
         await publishTask;
         return 0;
     }

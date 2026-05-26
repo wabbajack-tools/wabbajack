@@ -389,6 +389,8 @@ public class FileExtractor
             // Archives can contain case-variant duplicate paths. On Linux's case-sensitive
             // filesystem both are extracted; RelativePath equality is case-insensitive so
             // they collide in the dictionary. DistinctBy keeps the first, matching Windows behaviour.
+            foreach (var dupe in extracted.GroupBy(d => d.Item1).Where(g => g.Count() > 1))
+                _logger.LogWarning("Archive contains case-variant duplicate path {Path}; dropping all but first", dupe.Key);
             var results = extracted
                 .DistinctBy(d => d.Item1)
                 .ToDictionary(d => d.Item1, d => d.Item2);
@@ -404,7 +406,7 @@ public class FileExtractor
             if (spoolFile != null) await spoolFile.Value.DisposeAsync();
         }
     }
-    
+
     public async Task<IDictionary<RelativePath, T>> GatheringExtractWithInnoExtract<T>(IStreamFactory sf,
         Predicate<RelativePath> shouldExtract,
         Func<RelativePath, IExtractedFile, ValueTask<T>> mapfn,
@@ -514,6 +516,8 @@ public class FileExtractor
             // Archives can contain case-variant duplicate paths. On Linux's case-sensitive
             // filesystem both are extracted; RelativePath equality is case-insensitive so
             // they collide in the dictionary. DistinctBy keeps the first, matching Windows behaviour.
+            foreach (var dupe in extracted.GroupBy(d => d.Item1).Where(g => g.Count() > 1))
+                _logger.LogWarning("Archive contains case-variant duplicate path {Path}; dropping all but first", dupe.Key);
             var results = extracted
                 .DistinctBy(d => d.Item1)
                 .ToDictionary(d => d.Item1, d => d.Item2);

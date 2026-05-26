@@ -27,6 +27,11 @@ public class NexusLogin
 
     public async Task<int> Run(string apiKey)
     {
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            _logger.LogError("API key cannot be empty");
+            return 1;
+        }
         _logger.LogInformation("Storing Nexus API key");
         await _tokenProvider.SetToken(new NexusOAuthState { ApiKey = apiKey, OAuth = null });
         _logger.LogInformation("Nexus API key stored successfully");

@@ -135,16 +135,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Setup .NET Core SDK 9.0.x
-        uses: actions/setup-dotnet@v1
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-          include-prerelease: true
 
       - name: Set extractor permissions
         run: chmod -R +x Wabbajack.FileExtractor/Extractors
+
+      - name: Run unit tests
+        run: |
+          dotnet test Wabbajack.Compiler.Test/Wabbajack.Compiler.Test.csproj --configuration Release
+          dotnet test Wabbajack.FileExtractor.Test/Wabbajack.FileExtractor.Test.csproj --configuration Release
+          dotnet test Wabbajack.CLI.Test/Wabbajack.CLI.Test.csproj --configuration Release
 
       - name: Publish self-contained Linux CLI
         run: |
