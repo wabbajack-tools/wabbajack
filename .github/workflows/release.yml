@@ -1,4 +1,4 @@
-name: Create Release (Windows)
+name: Create Release
 
 on:
   workflow_dispatch:
@@ -9,6 +9,9 @@ permissions:
 jobs:
   release:
     runs-on: windows-latest
+
+    outputs:
+      version: ${{ steps.build.outputs.version }}
 
     env:
       CODE_SIGN_USER:          ${{ secrets.CODE_SIGN_USER }}
@@ -124,3 +127,45 @@ jobs:
               Send-DiscordMessage -Content $releaseNotes
           }
           Write-Host "Posted to Discord"
+
+  release-linux:
+    name: Release Linux CLI
+    runs-on: ubuntu-latest
+    needs: release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Set extractor permissions
+        run: chmod -R +x Wabbajack.FileExtractor/Extractors
+
+      - name: Publish self-contained Linux CLI
+        env:
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          dotnet publish Wabbajack.CLI/Wabbajack.CLI.csproj \
+            --runtime linux-x64 \
+            --self-contained true \
+            --framework net9.0 \
+            --configuration Release \
+            /p:VERSION=$VERSION \
+            -o publish-linux
+
+      - name: Package tarball
+        env:
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          chmod +x publish-linux/wabbajack-cli
+          tar czf wabbajack-cli-linux-x64-$VERSION.tar.gz -C publish-linux .
+
+      - name: Upload to GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.release.outputs.version }}
+        run: gh release upload "$VERSION" "wabbajack-cli-linux-x64-$VERSION.tar.gz"

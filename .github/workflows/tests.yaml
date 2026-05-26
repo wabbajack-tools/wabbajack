@@ -129,4 +129,32 @@ jobs:
         run: dotnet pack ${{ matrix.project }}/${{ matrix.project }}.csproj --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg -o .
       - name: Publish
         run: dotnet nuget push *.nupkg --api-key ${{secrets.NUGET_KEY}} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
-    
+
+  validate-linux-packaging:
+    name: Validate Linux CLI packaging
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup .NET Core SDK 9.0.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '9.0.x'
+          include-prerelease: true
+
+      - name: Set extractor permissions
+        run: chmod -R +x Wabbajack.FileExtractor/Extractors
+
+      - name: Publish self-contained Linux CLI
+        run: |
+          dotnet publish Wabbajack.CLI/Wabbajack.CLI.csproj \
+            --runtime linux-x64 \
+            --self-contained true \
+            --framework net9.0 \
+            --configuration Release \
+            -o publish-linux
+
+      - name: Smoke-test published binary
+        run: ./publish-linux/wabbajack-cli --help
+

@@ -38,7 +38,7 @@ using FileMode = System.IO.FileMode;
 
 namespace Wabbajack.Networking.WabbajackClientApi;
 
-public class Client
+public class Client : IModlistPublisher
 {
     public static readonly long UploadedFileBlockSize = (long)1024 * 1024 * 2;
 

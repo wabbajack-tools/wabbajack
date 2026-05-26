@@ -44,6 +44,8 @@ public class CLITestFixture : IDisposable
                 services.AddSingleton(new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount });
                 services.AddSingleton<Client>();
                 services.AddSingleton<Networking.WabbajackClientApi.Client>();
+                services.AddSingleton<Networking.WabbajackClientApi.IModlistPublisher>(sp =>
+                    sp.GetRequiredService<Networking.WabbajackClientApi.Client>());
                 services.AddSingleton(s => new GitHubClient(new ProductHeaderValue("wabbajack")));
                 services.AddSingleton<MegaApiClient>();
                 services.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
