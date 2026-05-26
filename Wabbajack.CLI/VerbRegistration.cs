@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.Extensions.DependencyInjection;
 namespace Wabbajack.CLI;
+using Wabbajack.CLI.OAuth;
 using Wabbajack.CLI.Verbs;
 using Wabbajack.CLI.Builder;
 
@@ -65,5 +66,6 @@ public static class CommandLineBuilderExtensions
         services.AddSingleton<VerifyModlistInstall>();
         CommandLineBuilder.RegisterCommand<VFSIndex>(VFSIndex.Definition, c => ((VFSIndex)c).Run);
         services.AddSingleton<VFSIndex>();
+        services.AddSingleton<INexusOAuthFlow, BrowserAuthFlow>();
     }
 }
