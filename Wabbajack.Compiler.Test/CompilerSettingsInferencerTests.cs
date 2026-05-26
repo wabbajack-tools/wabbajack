@@ -39,7 +39,6 @@ public class CompilerSettingsInferencerTests
     [Fact]
     public async Task LoadOrInfer_ReadsExistingSettingsFileWithoutInferring()
     {
-        // No MO2 structure — inference would return null. A settings file exists.
         using var tempDir = _manager.CreateFolder();
         var dir = tempDir.Path;
 

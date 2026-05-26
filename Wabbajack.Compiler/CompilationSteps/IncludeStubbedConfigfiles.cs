@@ -44,11 +44,6 @@ public class IncludeStubbedConfigFiles : ACompilationStep
             compiler._settings.Downloads.ToString());
     }
 
-    /// <summary>
-    /// Replaces absolute paths in config file content with portable magic strings.
-    /// Handles all path formats: native backslash, double-backslash (Qt INI escaped),
-    /// forward-slash, and Wine Z: drive paths (when running on Linux under Wine/Proton).
-    /// </summary>
     public static string RemapData(string data, string gamePath, string sourcePath, string downloadsPath)
     {
         data = ReplacePath(data, gamePath, Consts.GAME_PATH_MAGIC_BACK, Consts.GAME_PATH_MAGIC_DOUBLE_BACK, Consts.GAME_PATH_MAGIC_FORWARD);

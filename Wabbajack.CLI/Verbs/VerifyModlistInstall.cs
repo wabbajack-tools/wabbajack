@@ -145,7 +145,7 @@ public class VerifyModlistInstall
         }
         else
         {
-            psi = new ProcessStartInfo(reportFile.Path.ToString()) { UseShellExecute = true };
+            psi = new ProcessStartInfo("cmd.exe", $"start /c \"{reportFile.Path}\"") { CreateNoWindow = true };
         }
         Process.Start(psi);
 
