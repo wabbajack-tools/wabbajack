@@ -20,32 +20,6 @@ public class CompilerSettingsInferencerTests
     }
 
     [Fact]
-    public async Task InferFromRootPath_WhenDownloadDirectoryDoesNotExist_FallsBackToSourceDownloads()
-    {
-        using var tempDir = _manager.CreateFolder();
-        var mo2Root = tempDir.Path;
-
-        var profileDir = mo2Root.Combine(Consts.MO2Profiles, "TestProfile");
-        profileDir.CreateDirectory();
-        profileDir.Combine(Consts.ModListTxt).WriteAllText("");
-
-        var ini = """
-            [General]
-            gameName=Fallout 4
-            selected_profile=TestProfile
-
-            [Settings]
-            download_directory=Z:\\nonexistent\\path\\that\\does\\not\\exist
-            """;
-        mo2Root.Combine(Consts.MO2IniName).WriteAllText(ini);
-
-        var result = await _inferencer.InferFromRootPath(mo2Root);
-
-        Assert.NotNull(result);
-        Assert.Equal(mo2Root.Combine("downloads"), result!.Downloads);
-    }
-
-    [Fact]
     public async Task LoadOrInfer_WritesSettingsFileWhenNoneExists()
     {
         using var tempDir = _manager.CreateFolder();

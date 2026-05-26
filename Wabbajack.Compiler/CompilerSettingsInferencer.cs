@@ -86,7 +86,7 @@ public class CompilerSettingsInferencer
                 var settings = iniData["Settings"];
                 cs.Downloads = settings["download_directory"].FromMO2Ini().ToAbsolutePath();
 
-                if (cs.Downloads == default || !cs.Downloads.DirectoryExists())
+                if (cs.Downloads == default)
                     cs.Downloads = cs.Source.Combine("downloads");
 
                 cs.NoMatchInclude = Array.Empty<RelativePath>();
