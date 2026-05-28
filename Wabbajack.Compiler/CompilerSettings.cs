@@ -18,6 +18,13 @@ public class CompilerSettings
     public AbsolutePath ModListImage { get; set; }
     public bool UseGamePaths { get; set; }
 
+    /// <summary>
+    /// Explicit game installation path, overrides automatic store-based detection via IGameLocator.
+    /// Required on Linux when the game is not installed through a recognised store (Steam/GOG/etc)
+    /// and MO2's gamePath ini entry points to a stock game folder.
+    /// </summary>
+    public AbsolutePath GamePath { get; set; }
+
     public bool UseTextureRecompression { get; set; } = false;
     public Game[] OtherGames { get; set; } = Array.Empty<Game>();
 

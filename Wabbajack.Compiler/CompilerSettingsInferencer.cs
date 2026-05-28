@@ -77,7 +77,9 @@ public class CompilerSettingsInferencer
                 cs.Source = mo2Folder;
 
                 var selectedProfile = general["selected_profile"].FromMO2Ini();
-                //cs.GamePath = general["gamePath"].FromMO2Ini().ToAbsolutePath();
+                var rawGamePath = general["gamePath"].FromMO2Ini();
+                if (!string.IsNullOrEmpty(rawGamePath))
+                    cs.GamePath = ParseMO2GamePath(rawGamePath);
                 cs.ModListName = selectedProfile;
                 cs.Profile = selectedProfile;
 
@@ -182,5 +184,16 @@ public class CompilerSettingsInferencer
             return fileNameString == baseVariant;
         }
         return fileNameString == baseVariant + "_FILES.txt" || fileNameString == baseVariant + "_FILES.TXT";
+    }
+
+    // MO2 stores gamePath as a directory, but some configurations store the game executable path.
+    // On Linux, a Z: drive prefix maps to the Linux root filesystem (Wine/Proton convention).
+    // Strips the Z: prefix if present, then strips a trailing .exe if present.
+    private static AbsolutePath ParseMO2GamePath(string path)
+    {
+        if (path.Length >= 2 && char.ToUpperInvariant(path[0]) == 'Z' && path[1] == ':')
+            path = path[2..].Replace('\\', '/');
+        var result = path.ToAbsolutePath();
+        return result.Extension == new Extension(".exe") ? result.Parent : result;
     }
 }

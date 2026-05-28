@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Paths;
@@ -49,5 +50,68 @@ public class CompilerSettingsInferencerTests
         Assert.NotNull(result);
         Assert.Single(result!.NoMatchInclude);
         Assert.Equal("tools", result.NoMatchInclude[0].ToString());
+    }
+
+    [Fact]
+    public async Task InferModList_ReadsGamePathFromMO2Ini()
+    {
+        using var tempDir = _manager.CreateFolder();
+        var mo2Root = tempDir.Path;
+
+        var profileDir = mo2Root.Combine(Consts.MO2Profiles, "TestProfile");
+        profileDir.CreateDirectory();
+        profileDir.Combine(Consts.ModListTxt).WriteAllText("");
+        mo2Root.Combine(Consts.MO2IniName).WriteAllText(
+            "[General]\ngameName=Fallout4\nselected_profile=TestProfile\ngamePath=C:\\\\Games\\\\Fallout4\n[Settings]\ndownload_directory=\n");
+
+        var result = await _inferencer.InferModListFromLocation(
+            mo2Root.Combine(Consts.MO2Profiles, "TestProfile", Consts.ModListTxt));
+
+        Assert.NotNull(result);
+        Assert.NotEqual(default, result!.GamePath);
+    }
+
+    [Fact]
+    public async Task InferModList_GamePathAsDirectory_StoredAsDirectory()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return;
+
+        using var tempDir = _manager.CreateFolder();
+        var mo2Root = tempDir.Path;
+
+        var profileDir = mo2Root.Combine(Consts.MO2Profiles, "TestProfile");
+        profileDir.CreateDirectory();
+        profileDir.Combine(Consts.ModListTxt).WriteAllText("");
+        mo2Root.Combine(Consts.MO2IniName).WriteAllText(
+            "[General]\ngameName=Fallout4\nselected_profile=TestProfile\ngamePath=Z:\\\\home\\\\user\\\\Games\\\\Fallout4\n[Settings]\ndownload_directory=\n");
+
+        var result = await _inferencer.InferModListFromLocation(
+            mo2Root.Combine(Consts.MO2Profiles, "TestProfile", Consts.ModListTxt));
+
+        Assert.NotNull(result);
+        Assert.Equal("/home/user/Games/Fallout4", result!.GamePath.ToString());
+    }
+
+    [Fact]
+    public async Task InferModList_GamePathAsExe_StoredAsParentDirectory()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return;
+
+        using var tempDir = _manager.CreateFolder();
+        var mo2Root = tempDir.Path;
+
+        var profileDir = mo2Root.Combine(Consts.MO2Profiles, "TestProfile");
+        profileDir.CreateDirectory();
+        profileDir.Combine(Consts.ModListTxt).WriteAllText("");
+        mo2Root.Combine(Consts.MO2IniName).WriteAllText(
+            "[General]\ngameName=Fallout4\nselected_profile=TestProfile\ngamePath=Z:\\\\home\\\\user\\\\Games\\\\Fallout4\\\\Fallout4.exe\n[Settings]\ndownload_directory=\n");
+
+        var result = await _inferencer.InferModListFromLocation(
+            mo2Root.Combine(Consts.MO2Profiles, "TestProfile", Consts.ModListTxt));
+
+        Assert.NotNull(result);
+        Assert.Equal("/home/user/Games/Fallout4", result!.GamePath.ToString());
     }
 }

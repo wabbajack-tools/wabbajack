@@ -37,9 +37,12 @@ public class IncludeStubbedConfigFiles : ACompilationStep
 
     public static string RemapData(ACompiler compiler, string data)
     {
+        var gamePath = compiler._settings.GamePath != default
+            ? compiler._settings.GamePath.ToString()
+            : compiler._locator.GameLocation(compiler._settings.Game).ToString();
         return RemapData(
             data,
-            compiler._locator.GameLocation(compiler._settings.Game).ToString(),
+            gamePath,
             compiler._settings.Source.ToString(),
             compiler._settings.Downloads.ToString());
     }
