@@ -114,4 +114,30 @@ public class CompilerSettingsInferencerTests
         Assert.NotNull(result);
         Assert.Equal("/home/user/Games/Fallout4", result!.GamePath.ToString());
     }
+
+    [Fact]
+    public async Task InferModList_GamePathByteArrayFormat_StoredAsDirectory()
+    {
+        // MO2 on Linux writes gamePath using Qt's @ByteArray encoding with Z:\\ prefix,
+        // which produces 4 backslashes before the first path component in the ini file.
+        // This is the format FromMO2Ini routes through UnescapeUTF8 (not Regex.Unescape).
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return;
+
+        using var tempDir = _manager.CreateFolder();
+        var mo2Root = tempDir.Path;
+
+        var profileDir = mo2Root.Combine(Consts.MO2Profiles, "TestProfile");
+        profileDir.CreateDirectory();
+        profileDir.Combine(Consts.ModListTxt).WriteAllText("");
+        // 4 actual backslashes before 'home', 2 between each subsequent component
+        mo2Root.Combine(Consts.MO2IniName).WriteAllText(
+            "[General]\ngameName=Fallout4\nselected_profile=TestProfile\ngamePath=@ByteArray(Z:\\\\\\\\home\\\\user\\\\Games\\\\Fallout4)\n[Settings]\ndownload_directory=\n");
+
+        var result = await _inferencer.InferModListFromLocation(
+            mo2Root.Combine(Consts.MO2Profiles, "TestProfile", Consts.ModListTxt));
+
+        Assert.NotNull(result);
+        Assert.Equal("/home/user/Games/Fallout4", result!.GamePath.ToString());
+    }
 }

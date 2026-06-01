@@ -19,9 +19,9 @@ public class CompilerSettings
     public bool UseGamePaths { get; set; }
 
     /// <summary>
-    /// Explicit game installation path, overrides automatic store-based detection via IGameLocator.
-    /// Required on Linux when the game is not installed through a recognised store (Steam/GOG/etc)
-    /// and MO2's gamePath ini entry points to a stock game folder.
+    /// Explicit game installation path inferred from MO2's gamePath ini setting.
+    /// When set, this path is added as an additional VFS root so that BSA contents
+    /// inside a Stock Game Folder are indexed for file matching during compilation.
     /// </summary>
     public AbsolutePath GamePath { get; set; }
 
