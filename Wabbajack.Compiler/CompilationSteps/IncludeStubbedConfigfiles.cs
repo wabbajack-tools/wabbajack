@@ -37,12 +37,9 @@ public class IncludeStubbedConfigFiles : ACompilationStep
 
     public static string RemapData(ACompiler compiler, string data)
     {
-        var gamePath = compiler._settings.GamePath != default
-            ? compiler._settings.GamePath.ToString()
-            : compiler._locator.GameLocation(compiler._settings.Game).ToString();
         return RemapData(
             data,
-            gamePath,
+            compiler._locator.GameLocation(compiler._settings.Game).ToString(),
             compiler._settings.Source.ToString(),
             compiler._settings.Downloads.ToString());
     }
@@ -66,6 +63,13 @@ public class IncludeStubbedConfigFiles : ACompilationStep
             data = data.Replace(wineBack, magicBack, StringComparison.InvariantCultureIgnoreCase);
             data = data.Replace(wineBack.Replace("\\", "\\\\"), magicDoubleBack, StringComparison.InvariantCultureIgnoreCase);
             data = data.Replace(wineBack.Replace("\\", "/"), magicForward, StringComparison.InvariantCultureIgnoreCase);
+
+            // MO2 on Linux stores @ByteArray paths with Z:\\ before the first component
+            // (double backslash after the drive letter). In the ini file this @ByteArray-encodes
+            // to 4 backslashes before the first component and 2 between subsequent components.
+            var wineByteArrayBase = "Z:\\\\" + path.TrimStart('/').Replace("/", "\\");
+            data = data.Replace(wineByteArrayBase, magicBack, StringComparison.InvariantCultureIgnoreCase);
+            data = data.Replace(wineByteArrayBase.Replace("\\", "\\\\"), magicDoubleBack, StringComparison.InvariantCultureIgnoreCase);
         }
 
         data = data.Replace(path, magicBack, StringComparison.InvariantCultureIgnoreCase);

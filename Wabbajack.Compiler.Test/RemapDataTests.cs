@@ -75,4 +75,26 @@ public class RemapDataTests
 
         Assert.Equal(data, result);
     }
+
+    [Fact]
+    public void MO2ByteArray_SourcePath_InGamePathField_RemappedWithStockGameFolderSuffix()
+    {
+        // MO2 on Linux under Wine stores paths in @ByteArray with Z:\\ prefix (double backslash
+        // after the drive letter), which @ByteArray-encodes to 4 backslashes before the first
+        // path component and 2 backslashes between subsequent components.
+        //
+        // The gamePath field points to a Stock Game Folder INSIDE the MO2 source directory.
+        // The source path prefix should be tokenised to MO2_PATH_MAGIC, leaving the
+        // \\Stock Game Folder suffix intact — matching the behaviour of a Windows compile.
+        var sourcePath = "/home/user/Games/LitR";
+        var data = @"gamePath=@ByteArray(Z:\\\\home\\user\\Games\\LitR\\Stock Game Folder)";
+
+        // gamePath arg is the game install (Steam) — it won't match the @ByteArray Stock Game
+        // Folder path, so source-path magic should handle it instead.
+        var result = IncludeStubbedConfigFiles.RemapData(data, "/game/steam/Fallout4", sourcePath, "/downloads");
+
+        Assert.Contains(Consts.MO2_PATH_MAGIC_DOUBLE_BACK, result);
+        Assert.Contains(@"\\Stock Game Folder", result);
+        Assert.DoesNotContain("Z:", result);
+    }
 }
