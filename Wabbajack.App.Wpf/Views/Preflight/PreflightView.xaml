@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
     xmlns:local="clr-namespace:Wabbajack"
-    xmlns:preflight="clr-namespace:Wabbajack.Preflight"
+    xmlns:preflight="clr-namespace:Wabbajack.Preflight;assembly=Wabbajack.App.Core"
     xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     d:DataContext="{d:DesignInstance preflight:PreflightViewModel}"
     x:TypeArguments="preflight:PreflightViewModel"
