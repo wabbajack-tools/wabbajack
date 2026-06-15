@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ReactiveUI;
 
 namespace Wabbajack.Messages;

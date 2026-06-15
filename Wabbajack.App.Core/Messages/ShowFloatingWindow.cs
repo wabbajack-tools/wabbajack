@@ -12,7 +12,7 @@ public enum FloatingScreenType
 public class ShowFloatingWindow
 {
     public FloatingScreenType Screen { get; }
-    
+
     private ShowFloatingWindow(FloatingScreenType screen)
     {
         Screen = screen;

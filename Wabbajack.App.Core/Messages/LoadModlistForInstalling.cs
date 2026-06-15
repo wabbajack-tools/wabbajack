@@ -7,7 +7,7 @@ namespace Wabbajack.Messages;
 public class LoadModlistForInstalling
 {
     public AbsolutePath Path { get; }
-    
+
     public ModlistMetadata Metadata { get; }
 
     public LoadModlistForInstalling(AbsolutePath path, ModlistMetadata metadata)
