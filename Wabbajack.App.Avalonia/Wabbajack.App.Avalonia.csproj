@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net10.0-windows</TargetFramework>
+    <TargetFramework Condition=" '$(OS)' != 'Windows_NT'">net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <AssemblyName>WabbajackAvalonia</AssemblyName>
+    <NoWarn>CS8600;CS8601;CS8618;CS8604;CS1998</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.14" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.14" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.14" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.14" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.9" />
+    <PackageReference Include="FluentIcons.Avalonia" Version="1.1.300" />
+    <PackageReference Include="MessageBox.Avalonia" Version="3.3.1.1" />
+    <PackageReference Include="ReactiveUI.SourceGenerators" Version="2.6.30" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Wabbajack.App.Core\Wabbajack.App.Core.csproj" />
+    <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
+  </ItemGroup>
+</Project>
