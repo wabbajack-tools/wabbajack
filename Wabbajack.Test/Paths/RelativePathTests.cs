@@ -1,71 +1,66 @@
 using System.Linq;
-using Xunit;
 
 namespace Wabbajack.Paths.Test;
 
 public class RelativePathTests
 {
-    [Fact]
-    public void CanReplaceExtensions()
+    [Test]
+    public async Task CanReplaceExtensions()
     {
-        Assert.Equal(new Extension(".dds"), ((RelativePath) @"foo\bar.dds").Extension);
-        Assert.Equal((RelativePath) @"foo\bar.zip",
-            ((RelativePath) @"foo\bar.dds").ReplaceExtension(new Extension(".zip")));
-        Assert.NotEqual((RelativePath) @"foo\bar\z.zip",
-            ((RelativePath) @"foo\bar.dds").ReplaceExtension(new Extension(".zip")));
-        Assert.Equal((RelativePath) @"foo\bar.zip",
-            ((RelativePath) @"foo\bar").ReplaceExtension(new Extension(".zip")));
+        await Assert.That(((RelativePath) @"foo\bar.dds").Extension).IsEqualTo(new Extension(".dds"));
+        await Assert.That(((RelativePath) @"foo\bar.dds").ReplaceExtension(new Extension(".zip"))).IsEqualTo((RelativePath) @"foo\bar.zip");
+        await Assert.That(((RelativePath) @"foo\bar.dds").ReplaceExtension(new Extension(".zip"))).IsNotEqualTo((RelativePath) @"foo\bar\z.zip");
+        await Assert.That(((RelativePath) @"foo\bar").ReplaceExtension(new Extension(".zip"))).IsEqualTo((RelativePath) @"foo\bar.zip");
     }
 
-    [Fact]
-    public void PathsAreValidated()
+    [Test]
+    public async Task PathsAreValidated()
     {
-        Assert.Throws<PathException>(() => @"c:\foo".ToRelativePath());
+        await Assert.That(() => @"c:\foo".ToRelativePath()).ThrowsExactly<PathException>();
     }
 
-    [Fact]
-    public void CanCreatePathsRelativeTo()
+    [Test]
+    public async Task CanCreatePathsRelativeTo()
     {
-        Assert.Equal((AbsolutePath) @"c:\foo\bar\baz.zip",
-            ((RelativePath) @"baz.zip").RelativeTo((AbsolutePath) @"c:\foo\bar"));
+        await Assert.That(((RelativePath) @"baz.zip").RelativeTo((AbsolutePath) @"c:\foo\bar")).IsEqualTo((AbsolutePath) @"c:\foo\bar\baz.zip");
     }
 
-    [Fact]
-    public void ObjectMethods()
+    [Test]
+    public async Task ObjectMethods()
     {
-        Assert.Equal(@"foo\bar", ((RelativePath) @"foo\bar").ToString());
+        await Assert.That(((RelativePath) @"foo\bar").ToString()).IsEqualTo(@"foo\bar");
 
-        Assert.Equal((RelativePath) @"foo\bar", (RelativePath) @"foo/bar");
-        Assert.NotEqual((RelativePath) @"foo\bar", (object) 42);
-        Assert.True((RelativePath) @"foo\bar" == (RelativePath) @"foo/bar");
-        Assert.True((RelativePath) @"foo\bar" != (RelativePath) @"foo/baz");
+        await Assert.That((RelativePath) @"foo/bar").IsEqualTo((RelativePath) @"foo\bar");
+        await Assert.That(((RelativePath) @"foo\bar").Equals((object) 42)).IsFalse();
+        await Assert.That((RelativePath) @"foo\bar" == (RelativePath) @"foo/bar").IsTrue();
+        await Assert.That((RelativePath) @"foo\bar" != (RelativePath) @"foo/baz").IsTrue();
 
-        Assert.Equal(((RelativePath) @"foo\bar").GetHashCode(), ((RelativePath) @"Foo\bar").GetHashCode());
+        await Assert.That(((RelativePath) @"Foo\bar").GetHashCode()).IsEqualTo(((RelativePath) @"foo\bar").GetHashCode());
     }
 
 
-    [Fact]
-    public void CanGetPathHashCodes()
+    [Test]
+    public async Task CanGetPathHashCodes()
     {
-        Assert.Equal(@"foo\bar.baz".ToRelativePath().GetHashCode(), @"Foo\Bar.bAz".ToRelativePath().GetHashCode());
+        await Assert.That(@"Foo\Bar.bAz".ToRelativePath().GetHashCode()).IsEqualTo(@"foo\bar.baz".ToRelativePath().GetHashCode());
     }
 
 
-    [Fact]
-    public void CaseInsensitiveEquality()
+    [Test]
+    public async Task CaseInsensitiveEquality()
     {
-        Assert.Equal(@"foo\bar.baz".ToRelativePath(), @"Foo\Bar.bAz".ToRelativePath());
-        Assert.NotEqual(@"foo\bar.baz".ToRelativePath(), (object) 42);
+        await Assert.That(@"Foo\Bar.bAz".ToRelativePath()).IsEqualTo(@"foo\bar.baz".ToRelativePath());
+        await Assert.That(@"foo\bar.baz".ToRelativePath().Equals((object) 42)).IsFalse();
     }
 
-    [Fact]
-    public void CanGetFilenameFromRelativePath()
+    [Test]
+    public async Task CanGetFilenameFromRelativePath()
     {
-        Assert.Equal((RelativePath) "bar.dds", @"foo\bar.dds".ToRelativePath().FileName);
+        await Assert.That(@"foo\bar.dds".ToRelativePath().FileName).IsEqualTo((RelativePath) "bar.dds");
     }
 
-    [Fact]
-    public void PathsAreComparable()
+    [Test]
+    public async Task PathsAreComparable()
     {
         var data = new[]
         {
@@ -83,6 +78,6 @@ public class RelativePathTests
             (RelativePath) @"b\c",
             (RelativePath) @"d\e\f"
         };
-        Assert.Equal(data3, data2);
+        await Assert.That(data2.SequenceEqual(data3)).IsTrue();
     }
 }

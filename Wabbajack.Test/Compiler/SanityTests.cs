@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,11 +13,11 @@ using Wabbajack.DTOs.Texture;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
-using Xunit;
 
 namespace Wabbajack.Compiler.Test;
 
-public class CompilerSanityTests : IAsyncLifetime
+[ClassConstructor<CompilerClassConstructor>]
+public class CompilerSanityTests
 {
     private readonly FileExtractor.FileExtractor _fileExtractor;
     private readonly ModListHarness _harness;
@@ -47,26 +47,22 @@ public class CompilerSanityTests : IAsyncLifetime
     }
 
 
-    public async Task InitializeAsync()
+    [Before(HookType.Test)]
+    public async Task Setup()
     {
         _mod = await _harness.InstallMod(Ext.Zip,
             new Uri(
                 "https://authored-files.wabbajack.org/Tonal%20Architect_WJ_TEST_FILES.zip_9cb97a01-3354-4077-9e4a-7e808d47794f"));
     }
 
-    public Task DisposeAsync()
-    {
-        return Task.CompletedTask;
-    }
-
     private async Task CompileAndValidate(int expectedDirectives, Action<CompilerSettings>? configureSettings = null)
     {
         _modlist = await _harness.Compile(configureSettings);
-        Assert.NotNull(_modlist);
-        Assert.Single(_modlist!.Archives);
+        await Assert.That(_modlist).IsNotNull();
+        await Assert.That(_modlist!.Archives).HasSingleItem();
 
-        Assert.NotEmpty(_modlist.Directives.Select(d => d.To).ToHashSet());
-        Assert.Equal(expectedDirectives, _modlist.Directives.Length);
+        await Assert.That(_modlist.Directives.Select(d => d.To).ToHashSet()).IsNotEmpty();
+        await Assert.That(_modlist.Directives.Length).IsEqualTo(expectedDirectives);
     }
 
     private async Task InstallAndValidate()
@@ -77,18 +73,18 @@ public class CompilerSanityTests : IAsyncLifetime
             _harness.VerifyInstalledFile(file);
     }
 
-    [Fact]
+    [Test]
     public async Task CanCompileDirectMatchFiles()
     {
         await CompileAndValidate(4);
 
         foreach (var directive in _modlist!.Directives.OfType<FromArchive>())
-            Assert.Equal(_modlist.Archives.First().Hash, directive.ArchiveHashPath.Hash);
+            await Assert.That(directive.ArchiveHashPath.Hash).IsEqualTo(_modlist.Archives.First().Hash);
 
         await InstallAndValidate();
     }
 
-    [Fact]
+    [Test]
     public async Task CanPatchFiles()
     {
         foreach (var file in _mod.FullPath.EnumerateFiles(Ext.Esp))
@@ -100,11 +96,11 @@ public class CompilerSanityTests : IAsyncLifetime
 
         await CompileAndValidate(4);
 
-        Assert.Single(_modlist!.Directives.OfType<PatchedFromArchive>());
+        await Assert.That(_modlist!.Directives.OfType<PatchedFromArchive>()).HasSingleItem();
         await InstallAndValidate();
     }
 
-    [Fact]
+    [Test]
     public async Task CanExtractBSAs()
     {
         var bsa = _mod.FullPath.EnumerateFiles(Ext.Bsa)
@@ -117,7 +113,7 @@ public class CompilerSanityTests : IAsyncLifetime
         await InstallAndValidate();
     }
 
-    [Fact]
+    [Test]
     public async Task CanRecreateBSAs()
     {
         var bsa = _mod.FullPath.EnumerateFiles(Ext.Bsa).MinBy(d => d.Size());
@@ -138,11 +134,11 @@ public class CompilerSanityTests : IAsyncLifetime
         }
 
         await CompileAndValidate(42);
-        Assert.Single(_modlist!.Directives.OfType<CreateBSA>());
+        await Assert.That(_modlist!.Directives.OfType<CreateBSA>()).HasSingleItem();
         await InstallAndValidate();
     }
 
-    [Fact]
+    [Test]
     public async Task DuplicateFilesAreCopied()
     {
         foreach (var file in _mod.FullPath.EnumerateFiles(Ext.Esp))
@@ -155,12 +151,12 @@ public class CompilerSanityTests : IAsyncLifetime
         await CompileAndValidate(5);
 
         foreach (var directive in _modlist!.Directives.OfType<FromArchive>())
-            Assert.Equal(_modlist.Archives.First().Hash, directive.ArchiveHashPath.Hash);
+            await Assert.That(directive.ArchiveHashPath.Hash).IsEqualTo(_modlist.Archives.First().Hash);
 
         await InstallAndValidate();
     }
 
-    [Fact]
+    [Test]
     public async Task NoMatchIncludeIncludesNonMatchingFiles()
     {
         var someFile = _mod.FullPath.Combine("some folder", "some file.pex");
@@ -180,12 +176,12 @@ public class CompilerSanityTests : IAsyncLifetime
             };
         });
 
-        Assert.Equal(3, _modlist!.Directives.OfType<InlineFile>().Count());
+        await Assert.That(_modlist!.Directives.OfType<InlineFile>().Count()).IsEqualTo(3);
 
         await InstallAndValidate();
     }
 
-    [Fact]
+    [Test]
     public async Task CanDetectSimilarUnpackedTextures()
     {
         foreach (var bsa in _mod.FullPath.EnumerateFiles(Ext.Bsa))
@@ -200,25 +196,25 @@ public class CompilerSanityTests : IAsyncLifetime
         foreach (var file in _mod.FullPath.EnumerateFiles())
         {
             var oldState = await _imageLoader.Load(file);
-            Assert.NotEqual(DXGI_FORMAT.UNKNOWN, oldState.Format);
+            await Assert.That(oldState.Format).IsNotEqualTo(DXGI_FORMAT.UNKNOWN);
             _logger.LogInformation("Recompressing {file}", file.FileName);
             await _imageLoader.Recompress(file, 512, 512, 1, DXGI_FORMAT.BC7_UNORM, file, CancellationToken.None);
 
             var state = await _imageLoader.Load(file);
-            Assert.Equal(DXGI_FORMAT.BC7_UNORM, state.Format);
+            await Assert.That(state.Format).IsEqualTo(DXGI_FORMAT.BC7_UNORM);
         }
 
         await CompileAndValidate(3);
 
-        Assert.Equal(2, _modlist!.Directives.OfType<TransformedTexture>().Count());
+        await Assert.That(_modlist!.Directives.OfType<TransformedTexture>().Count()).IsEqualTo(2);
 
         foreach (var directive in _modlist!.Directives.OfType<TransformedTexture>())
         {
             _logger.LogInformation("For file {name} {format}", directive.To.FileName, directive.ImageState.Format);
-            Assert.Equal(directive.To.FileName, directive.ArchiveHashPath.Parts[^1].FileName);
-            Assert.Equal(512, directive.ImageState.Height);
-            Assert.Equal(512, directive.ImageState.Width);
-            Assert.Equal(DXGI_FORMAT.BC7_UNORM, directive.ImageState.Format);
+            await Assert.That(directive.ArchiveHashPath.Parts[^1].FileName).IsEqualTo(directive.To.FileName);
+            await Assert.That(directive.ImageState.Height).IsEqualTo(512);
+            await Assert.That(directive.ImageState.Width).IsEqualTo(512);
+            await Assert.That(directive.ImageState.Format).IsEqualTo(DXGI_FORMAT.BC7_UNORM);
         }
 
         await InstallAndValidate();

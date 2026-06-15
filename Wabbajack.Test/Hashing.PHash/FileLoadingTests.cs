@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -8,11 +8,10 @@ using Shipwreck.Phash;
 using Wabbajack.DTOs.Texture;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Xunit;
 
 namespace Wabbajack.Hashing.PHash.Test;
 
-public class FileLoadingTests : IAsyncDisposable
+public class FileLoadingTests
 {
     private readonly IImageLoader[] _imageLoaders;
     private readonly TemporaryFileManager _tmp;
@@ -37,11 +36,11 @@ public class FileLoadingTests : IAsyncDisposable
         }
     }
     
-    [Theory]
-    [InlineData("test-dxt5.dds", 1.0f)]
-    [InlineData("test-dxt5-recompressed.dds", 1f)]
-    [InlineData("test-dxt5-small-bc7.dds", 0.983f)]
-    [InlineData("test-dxt5-small-bc7-vflip.dds", 0.189f)]
+    [Test]
+    [Arguments("test-dxt5.dds", 1.0f)]
+    [Arguments("test-dxt5-recompressed.dds", 1f)]
+    [Arguments("test-dxt5-small-bc7.dds", 0.983f)]
+    [Arguments("test-dxt5-small-bc7-vflip.dds", 0.189f)]
     public async Task LoadAllFiles(string file, float difference)
     {
         foreach (var imageLoader in _imageLoaders)
@@ -52,20 +51,20 @@ public class FileLoadingTests : IAsyncDisposable
             var state = await imageLoader.Load("TestData".ToRelativePath().Combine(file)
                 .RelativeTo(KnownFolders.EntryPoint));
 
-            Assert.NotEqual(DXGI_FORMAT.UNKNOWN, baseState.Format);
+            await Assert.That(baseState.Format).IsNotEqualTo(DXGI_FORMAT.UNKNOWN);
 
-            Assert.Equal(difference,
+            await Assert.That(
                 ImagePhash.GetCrossCorrelation(
                     new Digest { Coefficients = baseState.PerceptualHash.Data },
-                    new Digest { Coefficients = state.PerceptualHash.Data }),
-                1.0);
+                    new Digest { Coefficients = state.PerceptualHash.Data }))
+                .IsEqualTo(difference).Within(1.0f);
 
             await using var outFile = _tmp.CreateFile();
             await imageLoader.Recompress(inputFile, 64, 64, 0, DXGI_FORMAT.BC7_UNORM, outFile, CancellationToken.None);
         }
     }
 
-    [Fact]
+    [Test]
     public async Task CanConvertCubeMaps()
     {
         foreach (var imageLoader in _imageLoaders)
@@ -87,7 +86,8 @@ public class FileLoadingTests : IAsyncDisposable
         }
     }
 
-    public async ValueTask DisposeAsync()
+    [After(HookType.Test)]
+    public async Task Cleanup()
     {
         await _tmp.DisposeAsync();
     }

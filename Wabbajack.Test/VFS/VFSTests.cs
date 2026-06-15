@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading;
@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Xunit;
 
 namespace Wabbajack.VFS.Test;
 
-public class VFSTests : IDisposable
+[ClassConstructor<VfsClassConstructor>]
+public class VFSTests
 {
     private readonly AbsolutePath _archiveTestTxt;
 
@@ -32,25 +32,26 @@ public class VFSTests : IDisposable
         _archiveTestTxt = "archive/test.txt".ToRelativePath().RelativeTo(_vfsTestDir);
     }
 
-    public void Dispose()
+    [After(HookType.Test)]
+    public void Cleanup()
     {
         _manager?.Dispose();
     }
 
-    [Fact]
+    [Test]
     public async Task FilesAreIndexed()
     {
         await AddFile(_testTxt, "This is a test");
         await _context.AddRoot(_vfsTestDir, CancellationToken.None);
 
         var file = _context.Index.ByRootPath["test.txt".ToRelativePath().RelativeTo(_vfsTestDir)];
-        Assert.NotNull(file);
+        await Assert.That(file).IsNotNull();
 
-        Assert.Equal(14, file.Size);
-        Assert.Equal(file.Hash, Hash.FromBase64("qX0GZvIaTKM="));
+        await Assert.That(file.Size).IsEqualTo(14);
+        await Assert.That(Hash.FromBase64("qX0GZvIaTKM=")).IsEqualTo(file.Hash);
     }
 
-    [Fact]
+    [Test]
     public async Task ArchiveContentsAreIndexed()
     {
         await AddFile(_archiveTestTxt, "This is a test");
@@ -59,20 +60,20 @@ public class VFSTests : IDisposable
 
         var absPath = "test.zip".ToRelativePath().RelativeTo(_vfsTestDir);
         var file = _context.Index.ByRootPath[absPath];
-        Assert.NotNull(file);
+        await Assert.That(file).IsNotNull();
 
-        Assert.Equal(130, file.Size);
+        await Assert.That(file.Size).IsEqualTo(130);
         //Assert.Equal(await absPath.HashCopyTo(Stream.Null), file.Hash);
 
-        Assert.True(file.IsArchive);
+        await Assert.That(file.IsArchive).IsTrue();
         var innerFile = file.Children.First();
-        Assert.Equal(14, innerFile.Size);
-        Assert.Equal(Hash.FromBase64("qX0GZvIaTKM="), innerFile.Hash);
-        Assert.Same(file, file.Children.First().Parent);
+        await Assert.That(innerFile.Size).IsEqualTo(14);
+        await Assert.That(innerFile.Hash).IsEqualTo(Hash.FromBase64("qX0GZvIaTKM="));
+        await Assert.That(file.Children.First().Parent).IsSameReferenceAs(file);
     }
 
 
-    [Fact]
+    [Test]
     public async Task DuplicateFileHashes()
     {
         await AddFile(_archiveTestTxt, "This is a test");
@@ -82,29 +83,29 @@ public class VFSTests : IDisposable
         await _context.AddRoot(_vfsTestDir, CancellationToken.None);
 
         var files = _context.Index.ByHash[Hash.FromBase64("qX0GZvIaTKM=")];
-        Assert.Equal(2, files.Count());
+        await Assert.That(files.Count()).IsEqualTo(2);
     }
 
-    [Fact]
+    [Test]
     public async Task DeletedFilesAreRemoved()
     {
         await AddFile(_testTxt, "This is a test");
         await _context.AddRoot(_vfsTestDir, CancellationToken.None);
 
         var file = _context.Index.ByRootPath[_testTxt];
-        Assert.NotNull(file);
+        await Assert.That(file).IsNotNull();
 
-        Assert.Equal(14, file.Size);
-        Assert.Equal(Hash.FromBase64("qX0GZvIaTKM="), file.Hash);
+        await Assert.That(file.Size).IsEqualTo(14);
+        await Assert.That(file.Hash).IsEqualTo(Hash.FromBase64("qX0GZvIaTKM="));
 
         _testTxt.Delete();
 
         await _context.AddRoot(_vfsTestDir, CancellationToken.None);
 
-        Assert.DoesNotContain(_testTxt, _context.Index.AllFiles.Select(f => f.AbsoluteName));
+        await Assert.That(_context.Index.AllFiles.Select(f => f.AbsoluteName)).DoesNotContain(_testTxt);
     }
 
-    [Fact]
+    [Test]
     public async Task UnmodifiedFilesAreNotReIndexed()
     {
         await AddFile(_testTxt, "This is a test");
@@ -117,10 +118,10 @@ public class VFSTests : IDisposable
 
         var new_file = _context.Index.ByRootPath[_testTxt];
 
-        Assert.Equal(old_time, new_file.LastAnalyzed);
+        await Assert.That(new_file.LastAnalyzed).IsEqualTo(old_time);
     }
 
-    [Fact]
+    [Test]
     public async Task CanStageSimpleArchives()
     {
         await AddFile(_archiveTestTxt, "This is a test");
@@ -138,7 +139,7 @@ public class VFSTests : IDisposable
         }, CancellationToken.None);
     }
 
-    [Fact]
+    [Test]
     public async Task CanStageNestedArchives()
     {
         await AddFile(_archiveTestTxt, "This is a test");

@@ -1,101 +1,95 @@
 using System.Linq;
-using Xunit;
 
 namespace Wabbajack.Paths.Test;
 
 public class AbsolutePathTests
 {
-    [Fact]
-    public void CanParsePaths()
+    [Test]
+    public async Task CanParsePaths()
     {
-        Assert.Equal(((AbsolutePath) @"c:\foo\bar").ToString(), ((AbsolutePath) @"c:\foo\bar").ToString());
+        await Assert.That(((AbsolutePath) @"c:\foo\bar").ToString()).IsEqualTo(((AbsolutePath) @"c:\foo\bar").ToString());
     }
 
-    [Fact]
-    public void CanGetParentPath()
+    [Test]
+    public async Task CanGetParentPath()
     {
-        Assert.Equal(((AbsolutePath) @"c:\foo").ToString(), ((AbsolutePath) @"c:\foo\bar").Parent.ToString());
+        await Assert.That(((AbsolutePath) @"c:\foo\bar").Parent.ToString()).IsEqualTo(((AbsolutePath) @"c:\foo").ToString());
     }
 
-    [Fact]
-    public void ParentOfTopLevelPathThrows()
+    [Test]
+    public async Task ParentOfTopLevelPathThrows()
     {
-        Assert.Throws<PathException>(() => ((AbsolutePath) @"c:\").Parent.ToString());
+        await Assert.That(() => ((AbsolutePath) @"c:\").Parent.ToString()).ThrowsExactly<PathException>();
     }
 
-    [Fact]
-    public void CanCreateRelativePathsFromAbolutePaths()
+    [Test]
+    public async Task CanCreateRelativePathsFromAbolutePaths()
     {
-        Assert.Equal((RelativePath) @"baz\qux.zip",
-            ((AbsolutePath) @"\\foo\bar\baz\qux.zip").RelativeTo((AbsolutePath) @"\\foo\bar"));
-        Assert.Throws<PathException>(() =>
-            ((AbsolutePath) @"\\foo\bar\baz\qux.zip").RelativeTo((AbsolutePath) @"\\z\bar"));
-        Assert.Throws<PathException>(() =>
-            ((AbsolutePath) @"\\foo\bar\baz\qux.zip").RelativeTo((AbsolutePath) @"\\z\bar\buz"));
+        await Assert.That(((AbsolutePath) @"\\foo\bar\baz\qux.zip").RelativeTo((AbsolutePath) @"\\foo\bar")).IsEqualTo((RelativePath) @"baz\qux.zip");
+        await Assert.That(() =>
+            ((AbsolutePath) @"\\foo\bar\baz\qux.zip").RelativeTo((AbsolutePath) @"\\z\bar")).ThrowsExactly<PathException>();
+        await Assert.That(() =>
+            ((AbsolutePath) @"\\foo\bar\baz\qux.zip").RelativeTo((AbsolutePath) @"\\z\bar\buz")).ThrowsExactly<PathException>();
     }
 
-    [Fact]
-    public void PathsAreEquatable()
+    [Test]
+    public async Task PathsAreEquatable()
     {
-        Assert.Equal((AbsolutePath) @"c:\foo", (AbsolutePath) @"c:\foo");
+        await Assert.That((AbsolutePath) @"c:\foo").IsEqualTo((AbsolutePath) @"c:\foo");
 
-        Assert.True((AbsolutePath) @"c:\foo" == (AbsolutePath) @"c:\Foo");
-        Assert.False((AbsolutePath) @"c:\foo" != (AbsolutePath) @"c:\Foo");
-        Assert.NotEqual((AbsolutePath) @"c:\foo", (AbsolutePath) @"c:\bar");
-        Assert.NotEqual((AbsolutePath) @"c:\foo\bar", (AbsolutePath) @"c:\foo");
+        await Assert.That((AbsolutePath) @"c:\foo" == (AbsolutePath) @"c:\Foo").IsTrue();
+        await Assert.That((AbsolutePath) @"c:\foo" != (AbsolutePath) @"c:\Foo").IsFalse();
+        await Assert.That((AbsolutePath) @"c:\bar").IsNotEqualTo((AbsolutePath) @"c:\foo");
+        await Assert.That((AbsolutePath) @"c:\foo").IsNotEqualTo((AbsolutePath) @"c:\foo\bar");
     }
 
-    [Fact]
-    public void CanGetPathHashCodes()
+    [Test]
+    public async Task CanGetPathHashCodes()
     {
-        Assert.Equal(@"c:\foo\bar.baz".ToAbsolutePath().GetHashCode(),
-            @"C:\Foo\Bar.bAz".ToAbsolutePath().GetHashCode());
+        await Assert.That(@"C:\Foo\Bar.bAz".ToAbsolutePath().GetHashCode()).IsEqualTo(@"c:\foo\bar.baz".ToAbsolutePath().GetHashCode());
     }
 
 
-    [Fact]
-    public void CaseInsensitiveEquality()
+    [Test]
+    public async Task CaseInsensitiveEquality()
     {
-        Assert.Equal(@"c:\foo\bar.baz".ToAbsolutePath(), @"C:\Foo\Bar.bAz".ToAbsolutePath());
-        Assert.NotEqual(@"c:\foo\bar.baz".ToAbsolutePath(), (object) 42);
+        await Assert.That(@"C:\Foo\Bar.bAz".ToAbsolutePath()).IsEqualTo(@"c:\foo\bar.baz".ToAbsolutePath());
+        await Assert.That(@"c:\foo\bar.baz".ToAbsolutePath().Equals((object) 42)).IsFalse();
     }
 
-    [Fact]
-    public void CanReplaceExtensions()
+    [Test]
+    public async Task CanReplaceExtensions()
     {
-        Assert.Equal(new Extension(".dds"), ((AbsolutePath) @"/foo/bar.dds").Extension);
-        Assert.Equal((RelativePath) "bar.dds", ((AbsolutePath) @"/foo/bar.dds").FileName);
-        Assert.Equal((AbsolutePath) @"/foo/bar.zip",
-            ((AbsolutePath) @"/foo/bar.dds").ReplaceExtension(new Extension(".zip")));
-        Assert.Equal((AbsolutePath) @"/foo\bar.zip",
-            ((AbsolutePath) @"/foo\bar").ReplaceExtension(new Extension(".zip")));
+        await Assert.That(((AbsolutePath) @"/foo/bar.dds").Extension).IsEqualTo(new Extension(".dds"));
+        await Assert.That(((AbsolutePath) @"/foo/bar.dds").FileName).IsEqualTo((RelativePath) "bar.dds");
+        await Assert.That(((AbsolutePath) @"/foo/bar.dds").ReplaceExtension(new Extension(".zip"))).IsEqualTo((AbsolutePath) @"/foo/bar.zip");
+        await Assert.That(((AbsolutePath) @"/foo\bar").ReplaceExtension(new Extension(".zip"))).IsEqualTo((AbsolutePath) @"/foo\bar.zip");
     }
 
-    [Fact]
-    public void CanGetPathFormats()
+    [Test]
+    public async Task CanGetPathFormats()
     {
-        Assert.Equal(PathFormat.Windows, ((AbsolutePath) @"c:\foo\bar").PathFormat);
-        Assert.Equal(PathFormat.Windows, ((AbsolutePath) @"\\foo\bar").PathFormat);
-        Assert.Equal(PathFormat.Unix, ((AbsolutePath) @"/foo/bar").PathFormat);
-        Assert.Throws<PathException>(() => ((AbsolutePath) @"c!\foo/bar").PathFormat);
+        await Assert.That(((AbsolutePath) @"c:\foo\bar").PathFormat).IsEqualTo(PathFormat.Windows);
+        await Assert.That(((AbsolutePath) @"\\foo\bar").PathFormat).IsEqualTo(PathFormat.Windows);
+        await Assert.That(((AbsolutePath) @"/foo/bar").PathFormat).IsEqualTo(PathFormat.Unix);
+        await Assert.That(() => ((AbsolutePath) @"c!\foo/bar").PathFormat).ThrowsExactly<PathException>();
     }
 
-    [Fact]
-    public void CanCombinePaths()
+    [Test]
+    public async Task CanCombinePaths()
     {
-        Assert.Equal("/foo/bar/baz/qux",
-            ((AbsolutePath) "/").Combine("foo", (RelativePath) "bar", "baz/qux").ToString());
-        Assert.Throws<PathException>(() => ((AbsolutePath) "/").Combine(42));
+        await Assert.That(((AbsolutePath) "/").Combine("foo", (RelativePath) "bar", "baz/qux").ToString()).IsEqualTo("/foo/bar/baz/qux");
+        await Assert.That(() => ((AbsolutePath) "/").Combine(42)).ThrowsExactly<PathException>();
     }
 
-    [Fact]
-    public void CanConvertPathsToStrings()
+    [Test]
+    public async Task CanConvertPathsToStrings()
     {
-        Assert.Equal("/foo/bar", ((AbsolutePath) "/foo/bar").ToString());
+        await Assert.That(((AbsolutePath) "/foo/bar").ToString()).IsEqualTo("/foo/bar");
     }
 
-    [Fact]
-    public void PathsAreComparable()
+    [Test]
+    public async Task PathsAreComparable()
     {
         var data = new[]
         {
@@ -113,11 +107,11 @@ public class AbsolutePathTests
             (AbsolutePath) @"c:\b\c",
             (AbsolutePath) @"c:\d\e\f"
         };
-        Assert.Equal(data3, data2);
+        await Assert.That(data2.SequenceEqual(data3)).IsTrue();
     }
 
-    [Fact]
-    public void CanGetThisAndAllParents()
+    [Test]
+    public async Task CanGetThisAndAllParents()
     {
         var path = @"c:\foo\bar\baz.zip".ToAbsolutePath();
         var subPaths = new[]
@@ -127,7 +121,7 @@ public class AbsolutePathTests
             @"c:\foo\Bar",
             @"c:\foo\bar\baz.zip"
         }.Select(f => f.ToAbsolutePath());
-        
-        Assert.Equal(subPaths.OrderBy(f => f), path.ThisAndAllParents().OrderBy(f => f).ToArray());
+
+        await Assert.That(path.ThisAndAllParents().OrderBy(f => f).SequenceEqual(subPaths.OrderBy(f => f))).IsTrue();
     }
 }

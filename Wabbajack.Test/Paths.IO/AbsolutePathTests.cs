@@ -1,8 +1,5 @@
 using System;
 using System.Linq;
-using System.Threading.Tasks;
-using FsCheck.Xunit;
-using Xunit;
 
 namespace Wabbajack.Paths.IO.Test;
 
@@ -13,43 +10,56 @@ public class AbsolutePathTests
         return KnownFolders.EntryPoint.Combine(Guid.NewGuid().ToString());
     }
 
-    [Property(StartSize = 1024)]
-    public void CanReadAndWriteFiles(byte[] data)
+    [Test]
+    [Arguments(0)]
+    [Arguments(1)]
+    [Arguments(16)]
+    [Arguments(4096)]
+    public async Task CanReadAndWriteFiles(int size)
     {
+        var data = new byte[size];
+        new Random(size + 1).NextBytes(data);
+
         var file = GetTempFile();
         file.WriteAllBytes(data);
 
-        Assert.Equal(data.Length, file.Size());
-
-        Assert.Equal(data, file.ReadAllBytes());
+        await Assert.That(file.Size()).IsEqualTo(data.Length);
+        await Assert.That(file.ReadAllBytes().SequenceEqual(data)).IsTrue();
         file.Delete();
 
         file.WriteAllText("Test");
-        Assert.Equal("Test", file.ReadAllText());
+        await Assert.That(file.ReadAllText()).IsEqualTo("Test");
+        file.Delete();
     }
 
-    [Fact]
+    [Test]
     public async Task CanReadAndWriteFilesAsync()
     {
         var data = "This is a test";
         var file = GetTempFile();
         await file.WriteAllTextAsync(data);
 
-        Assert.Equal(data.Length, file.Size());
+        await Assert.That(file.Size()).IsEqualTo(data.Length);
 
-        Assert.Equal(data, await file.ReadAllTextAsync());
+        await Assert.That(await file.ReadAllTextAsync()).IsEqualTo(data);
         file.Delete();
     }
 
-    [Property(EndSize = 100)] // OSX has a max length of 1024
-    public void LongPathsAreSupported(uint depth)
+    [Test]
+    [Arguments(1)]
+    [Arguments(10)]
+    [Arguments(100)]
+    public async Task LongPathsAreSupported(int depth)
     {
+        // OSX has a max length of 1024, so cap depth at 100
         var basePath = KnownFolders.EntryPoint.Combine("deep_paths");
         basePath.DeleteDirectory();
 
-        var path = Enumerable.Range(1, (int) depth + 1).Aggregate(basePath, (path, i) => path.Combine($"path_{i}"));
+        var path = Enumerable.Range(1, depth + 1).Aggregate(basePath, (p, i) => p.Combine($"path_{i}"));
         path.Parent.CreateDirectory();
         path.WriteAllText("test");
+
+        await Assert.That(path.FileExists()).IsTrue();
 
         basePath.DeleteDirectory();
     }

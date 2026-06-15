@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,12 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.CLI.Verbs;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Xunit;
 
 namespace Wabbajack.CLI.Test;
 
-[Collection("CLI")]
-public class IntegrationTests : IDisposable
+[ClassConstructor<CliClassConstructor>]
+[NotInParallel]
+public class IntegrationTests
 {
     private readonly IServiceProvider _provider;
     private readonly AbsolutePath _tempDir;
@@ -25,7 +25,8 @@ public class IntegrationTests : IDisposable
         _tempDir.CreateDirectory();
     }
 
-    public void Dispose()
+    [After(HookType.Test)]
+    public void Cleanup()
     {
         if (_tempDir.DirectoryExists())
         {
@@ -50,7 +51,7 @@ public class IntegrationTests : IDisposable
         return zipPath;
     }
 
-    [Fact]
+    [Test]
     public async Task Extract_WithValidZip_ExtractsFiles()
     {
         var zipPath = CreateTestZip("test.zip",
@@ -62,11 +63,11 @@ public class IntegrationTests : IDisposable
         var verb = _provider.GetRequiredService<Extract>();
         var result = await verb.Run(zipPath, outputDir, CancellationToken.None);
 
-        Assert.Equal(0, result);
-        Assert.True(outputDir.Combine("hello.txt".ToRelativePath()).FileExists());
+        await Assert.That(result).IsEqualTo(0);
+        await Assert.That(outputDir.Combine("hello.txt".ToRelativePath()).FileExists()).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task Extract_WithEmptyZip_ReturnsZero()
     {
         var zipPath = CreateTestZip("empty.zip");
@@ -76,10 +77,10 @@ public class IntegrationTests : IDisposable
         var verb = _provider.GetRequiredService<Extract>();
         var result = await verb.Run(zipPath, outputDir, CancellationToken.None);
 
-        Assert.Equal(0, result);
+        await Assert.That(result).IsEqualTo(0);
     }
 
-    [Fact]
+    [Test]
     public async Task Extract_WithNestedDirectories_ExtractsAll()
     {
         var zipPath = CreateTestZip("nested.zip",
@@ -92,35 +93,38 @@ public class IntegrationTests : IDisposable
         var verb = _provider.GetRequiredService<Extract>();
         var result = await verb.Run(zipPath, outputDir, CancellationToken.None);
 
-        Assert.Equal(0, result);
+        await Assert.That(result).IsEqualTo(0);
     }
 
-    [Fact]
+    [Test]
     public async Task Compile_WithNonExistentPath_Throws()
     {
         var verb = _provider.GetRequiredService<Compile>();
         var nonExistent = _tempDir.Combine("does-not-exist");
 
-        await Assert.ThrowsAnyAsync<Exception>(
-            () => verb.Run(nonExistent, _tempDir, CancellationToken.None));
+        await Assert.That(
+            () => verb.Run(nonExistent, _tempDir, CancellationToken.None))
+            .Throws<Exception>();
     }
 
-    [Fact]
+    [Test]
     public async Task DownloadUrl_WithUnsupportedScheme_Throws()
     {
         var verb = _provider.GetRequiredService<DownloadUrl>();
         var output = _tempDir.Combine("output.bin");
 
-        await Assert.ThrowsAnyAsync<Exception>(
-            () => verb.Run(new Uri("file:///not/a/real/download"), output));
+        await Assert.That(
+            () => verb.Run(new Uri("file:///not/a/real/download"), output))
+            .Throws<Exception>();
     }
 
-    [Fact]
+    [Test]
     public async Task HashGameFiles_WithInvalidGame_ThrowsException()
     {
         var verb = _provider.GetRequiredService<HashGameFiles>();
 
-        await Assert.ThrowsAnyAsync<Exception>(
-            () => verb.Run(_tempDir, "NotARealGame12345", CancellationToken.None));
+        await Assert.That(
+            () => verb.Run(_tempDir, "NotARealGame12345", CancellationToken.None))
+            .Throws<Exception>();
     }
 }

@@ -8,12 +8,12 @@ using Wabbajack.DTOs.Validation;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
-using Xunit;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
 namespace Wabbajack.DTOs.Test;
 
+[ClassConstructor<DtosClassConstructor>]
 public class ModListTests
 {
     private readonly HttpClient _client;
@@ -32,35 +32,35 @@ public class ModListTests
         _parallelOptions = parallelOptions;
     }
 
-    [Fact]
-    public void CanLoadModListSummaryInfo()
+    [Test]
+    public async Task CanLoadModListSummaryInfo()
     {
         var jsonPath = KnownFolders.EntryPoint.Combine(@"Resources\ModListSummarySample.json");
         var data = JsonSerializer.Deserialize<ModListSummary[]>(jsonPath.ReadAllText());
-        Assert.NotNull(data);
-        Assert.Equal(38, data.Length);
+        await Assert.That(data).IsNotNull();
+        await Assert.That(data.Length).IsEqualTo(38);
     }
 
-    [Fact]
-    public void CanLoadModList()
+    [Test]
+    public async Task CanLoadModList()
     {
         var jsonPath = KnownFolders.EntryPoint.Combine(@"Resources\ModListSample.json");
         var data = _serializer.Deserialize<ModList>(jsonPath.ReadAllText());
         var s = _serializer.Serialize(data);
     }
 
-    [Theory]
-    [InlineData("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json")]
+    [Test]
+    [Arguments("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json")]
     public async Task CanLoadModListMetadata(string uri)
     {
         var str = await _client.GetStringAsync(uri);
         var data = _serializer.Deserialize<ModlistMetadata[]>(str);
         var s = _serializer.Serialize(data);
-        Assert.True(data!.Length > 0);
+        await Assert.That(data!.Length > 0).IsTrue();
     }
 
-    [Theory]
-    [InlineData("https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml")]
+    [Test]
+    [Arguments("https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml")]
     public async Task CanLoadAllowList(string uri)
     {
         var str = await _client.GetStringAsync(uri);
@@ -69,22 +69,22 @@ public class ModListTests
             .Build();
         var list = d.Deserialize<ServerAllowList>(str);
 
-        Assert.True(list.GoogleIDs.Length > 1);
-        Assert.True(list.AllowedPrefixes.Length > 1);
+        await Assert.That(list.GoogleIDs.Length > 1).IsTrue();
+        await Assert.That(list.AllowedPrefixes.Length > 1).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task CanGetListStatus()
     {
         var statuses = await _wjClient.GetListStatuses();
-        Assert.True(statuses.Length > 10);
+        await Assert.That(statuses.Length > 10).IsTrue();
 
         await statuses.PDoAll(new Resource<ModListTests>("Resource Test", 4),
             async status =>
             {
                 _logger.LogInformation("Loading {machineURL}", status.MachineURL);
                 var detailed = await _wjClient.GetDetailedStatus(status.MachineURL.Split('/')[0], status.MachineURL.Split('/')[1]);
-                Assert.True(detailed.MachineURL == status.MachineURL);
+                await Assert.That(detailed.MachineURL == status.MachineURL).IsTrue();
             });
     }
 }

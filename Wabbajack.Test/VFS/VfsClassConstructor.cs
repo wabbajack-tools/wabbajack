@@ -1,20 +1,18 @@
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
+using Wabbajack.Test.TestingInfra;
 using Wabbajack.VFS.Interfaces;
-using Xunit.DependencyInjection;
-using Xunit.DependencyInjection.Logging;
 
 namespace Wabbajack.VFS.Test;
 
-public class Startup
+public sealed class VfsClassConstructor : DiClassConstructorBase
 {
-    public void ConfigureServices(IServiceCollection service)
+    protected override void ConfigureServices(IServiceCollection service)
     {
         service.AddSingleton<TemporaryFileManager, TemporaryFileManager>();
         service
@@ -25,16 +23,16 @@ public class Startup
             .AddAllSingleton<IResource, IResource<Context>, Resource<Context>>(
                 s =>
                     new ("VFS Context", 2));
-        
+
         service
             .AddAllSingleton<IResource, IResource<FileHashCache>, Resource<FileHashCache>>(
                 s =>
                     new ("File Hash Cache", 2));
-        
+
         // ImageLoader
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             service.AddSingleton<IImageLoader, TexConvImageLoader>();
-        else 
+        else
             service.AddSingleton<IImageLoader, CrossPlatformImageLoader>();
 
 
@@ -45,10 +43,5 @@ public class Startup
         service.AddAllSingleton<IVfsCache, VFSDiskCache>(x => new VFSDiskCache(KnownFolders.EntryPoint.Combine("vfscache_2.sqlite")));
         service.AddTransient<Context>();
         service.AddSingleton<FileExtractor.FileExtractor>();
-    }
-
-    public void Configure(ILoggerFactory loggerFactory, ITestOutputHelperAccessor accessor)
-    {
-        loggerFactory.AddProvider(new XunitTestOutputLoggerProvider(accessor, delegate { return true; }));
     }
 }

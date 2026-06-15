@@ -1,28 +1,26 @@
-using Xunit;
-
 namespace Wabbajack.Paths.Test;
 
 public class ArrayExtensionsTests
 {
-    [Fact]
-    public void AreEqualTests()
+    [Test]
+    public async Task AreEqualTests()
     {
-        Assert.True(ArrayExtensions.AreEqual(new[] {1, 2, 3}, 0, new[] {1, 2}, 0, 2));
-        Assert.False(ArrayExtensions.AreEqual(new[] {1, 2, 3}, 0, new[] {1, 2}, 0, 3));
-        Assert.False(ArrayExtensions.AreEqual(new[] {1, 2}, 1, new[] {1, 2, 3}, 0, 2));
+        await Assert.That(ArrayExtensions.AreEqual(new[] {1, 2, 3}, 0, new[] {1, 2}, 0, 2)).IsTrue();
+        await Assert.That(ArrayExtensions.AreEqual(new[] {1, 2, 3}, 0, new[] {1, 2}, 0, 3)).IsFalse();
+        await Assert.That(ArrayExtensions.AreEqual(new[] {1, 2}, 1, new[] {1, 2, 3}, 0, 2)).IsFalse();
     }
 
-    [Fact]
-    public void CompareTo()
+    [Test]
+    public async Task CompareTo()
     {
-        Assert.Equal(0, ArrayExtensions.Compare(new[] {1, 1}, new[] {1, 1}));
-        Assert.Equal(1, ArrayExtensions.Compare(new[] {1, 1, 1}, new[] {1, 1}));
-        Assert.Equal(-1, ArrayExtensions.Compare(new[] {1, 1}, new[] {1, 1, 1}));
-        Assert.Equal(1, ArrayExtensions.Compare(new[] {1, 2}, new[] {1, 1, 1}));
+        await Assert.That(ArrayExtensions.Compare(new[] {1, 1}, new[] {1, 1})).IsEqualTo(0);
+        await Assert.That(ArrayExtensions.Compare(new[] {1, 1, 1}, new[] {1, 1})).IsEqualTo(1);
+        await Assert.That(ArrayExtensions.Compare(new[] {1, 1}, new[] {1, 1, 1})).IsEqualTo(-1);
+        await Assert.That(ArrayExtensions.Compare(new[] {1, 2}, new[] {1, 1, 1})).IsEqualTo(1);
 
-        Assert.Equal(0, ArrayExtensions.CompareString(new[] {"1", "1"}, new[] {"1", "1"}));
-        Assert.Equal(1, ArrayExtensions.CompareString(new[] {"1", "1", "1"}, new[] {"1", "1"}));
-        Assert.Equal(-1, ArrayExtensions.CompareString(new[] {"1", "1"}, new[] {"1", "1", "1"}));
-        Assert.Equal(1, ArrayExtensions.CompareString(new[] {"1", "2"}, new[] {"1", "1", "1"}));
+        await Assert.That(ArrayExtensions.CompareString(new[] {"1", "1"}, new[] {"1", "1"})).IsEqualTo(0);
+        await Assert.That(ArrayExtensions.CompareString(new[] {"1", "1", "1"}, new[] {"1", "1"})).IsEqualTo(1);
+        await Assert.That(ArrayExtensions.CompareString(new[] {"1", "1"}, new[] {"1", "1", "1"})).IsEqualTo(-1);
+        await Assert.That(ArrayExtensions.CompareString(new[] {"1", "2"}, new[] {"1", "1", "1"})).IsEqualTo(1);
     }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -10,11 +10,10 @@ using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Xunit;
 
 namespace Wabbajack.CLI.Test;
 
-public class ListGamesTests : IDisposable
+public class ListGamesTests
 {
     private readonly AbsolutePath _tempDir;
 
@@ -25,7 +24,8 @@ public class ListGamesTests : IDisposable
         _tempDir.CreateDirectory();
     }
 
-    public void Dispose()
+    [After(HookType.Test)]
+    public void Cleanup()
     {
         if (_tempDir.DirectoryExists())
         {
@@ -34,7 +34,7 @@ public class ListGamesTests : IDisposable
         }
     }
 
-    [Fact]
+    [Test]
     public async Task Run_NoGamesInstalled_ReturnsZero()
     {
         var locator = Substitute.For<IGameLocator>();
@@ -43,10 +43,10 @@ public class ListGamesTests : IDisposable
         var verb = new ListGames(NullLogger<ListGames>.Instance, locator);
         var result = await verb.Run(CancellationToken.None);
 
-        Assert.Equal(0, result);
+        await Assert.That(result).IsEqualTo(0);
     }
 
-    [Fact]
+    [Test]
     public async Task Run_CallsIsInstalledForAllGames()
     {
         var locator = Substitute.For<IGameLocator>();
@@ -61,7 +61,7 @@ public class ListGamesTests : IDisposable
         }
     }
 
-    [Fact]
+    [Test]
     public async Task Run_WithInstalledGame_CallsGameLocation()
     {
         var locator = Substitute.For<IGameLocator>();
@@ -83,11 +83,11 @@ public class ListGamesTests : IDisposable
         var verb = new ListGames(NullLogger<ListGames>.Instance, locator);
         var result = await verb.Run(CancellationToken.None);
 
-        Assert.Equal(0, result);
+        await Assert.That(result).IsEqualTo(0);
         locator.Received().GameLocation(gameKey);
     }
 
-    [Fact]
+    [Test]
     public async Task Run_WithMixedInstalledGames_ReturnsZero()
     {
         var locator = Substitute.For<IGameLocator>();
@@ -96,7 +96,7 @@ public class ListGamesTests : IDisposable
         var verb = new ListGames(NullLogger<ListGames>.Instance, locator);
         var result = await verb.Run(CancellationToken.None);
 
-        Assert.Equal(0, result);
+        await Assert.That(result).IsEqualTo(0);
         locator.DidNotReceive().GameLocation(Arg.Any<Game>());
     }
 }

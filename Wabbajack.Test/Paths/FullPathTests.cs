@@ -1,5 +1,4 @@
 using System;
-using Xunit;
 
 namespace Wabbajack.Paths.Test;
 
@@ -9,49 +8,49 @@ public class FullPathTests
     public static FullPath FooBar = new(@"c:\foo.zip".ToAbsolutePath(), "Bar.7z".ToRelativePath());
     public static FullPath Foobar = new(@"c:\foo.zip".ToAbsolutePath(), "bar.7z".ToRelativePath());
 
-    [Fact]
-    public void CanGetExtensions()
+    [Test]
+    public async Task CanGetExtensions()
     {
-        Assert.Equal(new Extension(".7z"), FooBar.Extension);
-        Assert.Equal(new Extension(".zip"), Foo.Extension);
+        await Assert.That(FooBar.Extension).IsEqualTo(new Extension(".7z"));
+        await Assert.That(Foo.Extension).IsEqualTo(new Extension(".zip"));
     }
 
-    [Fact]
-    public void CanGetFileName()
+    [Test]
+    public async Task CanGetFileName()
     {
-        Assert.Equal("Bar.7z".ToRelativePath(), FooBar.FileName);
-        Assert.Equal("foo.zip".ToRelativePath(), Foo.FileName);
+        await Assert.That(FooBar.FileName).IsEqualTo("Bar.7z".ToRelativePath());
+        await Assert.That(Foo.FileName).IsEqualTo("foo.zip".ToRelativePath());
     }
 
-    [Fact]
-    public void ToStringWorks()
+    [Test]
+    public async Task ToStringWorks()
     {
-        Assert.Equal(@"c:\foo.zip|bar.7z", Foobar.ToString());
+        await Assert.That(Foobar.ToString()).IsEqualTo(@"c:\foo.zip|bar.7z");
     }
 
-    [Fact]
-    public void HashCodeWorks()
+    [Test]
+    public async Task HashCodeWorks()
     {
-        Assert.Equal(FooBar.GetHashCode(), Foobar.GetHashCode());
+        await Assert.That(Foobar.GetHashCode()).IsEqualTo(FooBar.GetHashCode());
     }
 
-    [Fact]
-    public void CompareWorks()
+    [Test]
+    public async Task CompareWorks()
     {
-        Assert.Equal(-1, Foo.CompareTo(FooBar));
-        Assert.Equal(0, Foobar.CompareTo(FooBar));
-        Assert.NotEqual(-1, new FullPath(@"z:\arr".ToAbsolutePath()).CompareTo(Foo));
+        await Assert.That(Foo.CompareTo(FooBar)).IsEqualTo(-1);
+        await Assert.That(Foobar.CompareTo(FooBar)).IsEqualTo(0);
+        await Assert.That(new FullPath(@"z:\arr".ToAbsolutePath()).CompareTo(Foo)).IsNotEqualTo(-1);
     }
 
-    [Fact]
-    public void EqualityWorks()
+    [Test]
+    public async Task EqualityWorks()
     {
-        Assert.Equal(Foobar, FooBar);
-        Assert.NotEqual(new FullPath(@"z:\arr".ToAbsolutePath()), Foo);
-        Assert.NotEqual(Foo, Foobar);
-        Assert.NotEqual(Foo, (object) 42);
+        await Assert.That(FooBar).IsEqualTo(Foobar);
+        await Assert.That(Foo).IsNotEqualTo(new FullPath(@"z:\arr".ToAbsolutePath()));
+        await Assert.That(Foobar).IsNotEqualTo(Foo);
+        await Assert.That(Foo.Equals((object) 42)).IsFalse();
 
-        Assert.True(FooBar == Foobar);
-        Assert.True(FooBar != Foo);
+        await Assert.That(FooBar == Foobar).IsTrue();
+        await Assert.That(FooBar != Foo).IsTrue();
     }
 }

@@ -4,14 +4,13 @@ using Wabbajack.DTOs;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.Paths;
 using Wabbajack.Preflight;
-using Xunit;
 
 namespace Wabbajack.Preflight.Test;
 
 public class GameInstalledCheckTests
 {
-    [Fact]
-    public void GameInstalled_Passes()
+    [Test]
+    public async Task GameInstalled_Passes()
     {
         var locator = Substitute.For<IGameLocator>();
         AbsolutePath path = (AbsolutePath)@"C:\Games\Skyrim";
@@ -20,11 +19,11 @@ public class GameInstalledCheckTests
 
         var check = new GameInstalledCheck(locator, Game.SkyrimSpecialEdition);
 
-        Assert.Equal(PreflightCheckStatus.Passed, check.Status);
+        await Assert.That(check.Status).IsEqualTo(PreflightCheckStatus.Passed);
     }
 
-    [Fact]
-    public void GameNotInstalled_Fails()
+    [Test]
+    public async Task GameNotInstalled_Fails()
     {
         var locator = Substitute.For<IGameLocator>();
         locator.TryFindLocation(Game.SkyrimSpecialEdition, out Arg.Any<AbsolutePath>())
@@ -32,7 +31,7 @@ public class GameInstalledCheckTests
 
         var check = new GameInstalledCheck(locator, Game.SkyrimSpecialEdition);
 
-        Assert.Equal(PreflightCheckStatus.Failed, check.Status);
-        Assert.Contains("Skyrim", check.FailureMessage);
+        await Assert.That(check.Status).IsEqualTo(PreflightCheckStatus.Failed);
+        await Assert.That(check.FailureMessage).Contains("Skyrim");
     }
 }

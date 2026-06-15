@@ -7,11 +7,11 @@ using Wabbajack.CLI.Verbs;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.Services.OSIntegrated;
-using Xunit;
 
 namespace Wabbajack.CLI.Test;
 
-[Collection("CLI")]
+[ClassConstructor<CliClassConstructor>]
+[NotInParallel]
 public class DIRegistrationTests
 {
     private readonly IServiceProvider _provider;
@@ -21,8 +21,8 @@ public class DIRegistrationTests
         _provider = fixture.ServiceProvider;
     }
 
-    [Fact]
-    public void AllRegisteredVerbsCanBeResolved()
+    [Test]
+    public async Task AllRegisteredVerbsCanBeResolved()
     {
         var failedVerbs = CommandLineBuilder.Verbs
             .Where(verbType =>
@@ -39,12 +39,11 @@ public class DIRegistrationTests
             })
             .ToList();
 
-        Assert.True(failedVerbs.Count == 0,
-            $"Failed to resolve verb types: {string.Join(", ", failedVerbs.Select(t => t.Name))}");
+        await Assert.That(failedVerbs.Count == 0).IsTrue();
     }
 
-    [Fact]
-    public void AllVerbFilesAreRegistered()
+    [Test]
+    public async Task AllVerbFilesAreRegistered()
     {
         var verbAssembly = typeof(Install).Assembly;
         var verbNamespace = "Wabbajack.CLI.Verbs";
@@ -66,30 +65,27 @@ public class DIRegistrationTests
 
         var unregistered = verbClassesInAssembly.Except(registeredVerbNames).ToList();
 
-        Assert.True(unregistered.Count == 0,
-            $"Verb classes not registered in AddCLIVerbs(): {string.Join(", ", unregistered)}");
+        await Assert.That(unregistered.Count == 0).IsTrue();
     }
 
-    [Fact]
-    public void AllVerbsHaveDefinitionAndRunMethod()
+    [Test]
+    public async Task AllVerbsHaveDefinitionAndRunMethod()
     {
         foreach (var verbType in CommandLineBuilder.Verbs)
         {
             var definitionField = verbType.GetField("Definition",
                 BindingFlags.Public | BindingFlags.Static);
-            Assert.True(definitionField != null,
-                $"{verbType.Name} is missing a public static 'Definition' field");
-            Assert.IsType<VerbDefinition>(definitionField!.GetValue(null));
+            await Assert.That(definitionField != null).IsTrue();
+            await Assert.That(definitionField!.GetValue(null)).IsTypeOf<VerbDefinition>();
 
             var runMethod = verbType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .FirstOrDefault(m => m.Name == "Run");
-            Assert.True(runMethod != null,
-                $"{verbType.Name} is missing a 'Run' method");
+            await Assert.That(runMethod != null).IsTrue();
         }
     }
 
-    [Fact]
-    public void AllVerbDefinitionOptionTypesAreSupported()
+    [Test]
+    public async Task AllVerbDefinitionOptionTypesAreSupported()
     {
         var supportedTypes = new[]
         {
@@ -104,15 +100,13 @@ public class DIRegistrationTests
 
             foreach (var option in definition.Options)
             {
-                Assert.True(supportedTypes.Contains(option.Type),
-                    $"{verbType.Name} option '--{option.LongOption}' uses unsupported type '{option.Type.Name}'. " +
-                    $"Supported: {string.Join(", ", supportedTypes.Select(t => t.Name))}");
+                await Assert.That(supportedTypes.Contains(option.Type)).IsTrue();
             }
         }
     }
 
-    [Fact]
-    public void NoDuplicateVerbCommandNames()
+    [Test]
+    public async Task NoDuplicateVerbCommandNames()
     {
         var names = CommandLineBuilder.Verbs
             .Select(verbType =>
@@ -129,12 +123,11 @@ public class DIRegistrationTests
             .Select(g => $"'{g.Key}' used by: {string.Join(", ", g.Select(x => x.Item1))}")
             .ToList();
 
-        Assert.True(duplicates.Count == 0,
-            $"Duplicate command names: {string.Join("; ", duplicates)}");
+        await Assert.That(duplicates.Count == 0).IsTrue();
     }
 
-    [Fact]
-    public void NoVerbInjectsConcreteGameLocator()
+    [Test]
+    public async Task NoVerbInjectsConcreteGameLocator()
     {
         foreach (var verbType in CommandLineBuilder.Verbs)
         {
@@ -144,23 +137,21 @@ public class DIRegistrationTests
                 var parameters = ctor.GetParameters();
                 foreach (var param in parameters)
                 {
-                    Assert.True(param.ParameterType != typeof(GameLocator),
-                        $"{verbType.Name} constructor injects concrete GameLocator " +
-                        $"(parameter '{param.Name}'). Use IGameLocator instead.");
+                    await Assert.That(param.ParameterType != typeof(GameLocator)).IsTrue();
                 }
             }
         }
     }
 
-    [Fact]
-    public void CommandLineBuilderCanBeResolved()
+    [Test]
+    public async Task CommandLineBuilderCanBeResolved()
     {
         var builder = _provider.GetRequiredService<CommandLineBuilder>();
-        Assert.NotNull(builder);
+        await Assert.That(builder).IsNotNull();
     }
 
-    [Fact]
-    public void GameLocatorIsResolvableAsInterface()
+    [Test]
+    public async Task GameLocatorIsResolvableAsInterface()
     {
         var services = new ServiceCollection();
         services.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
@@ -173,6 +164,6 @@ public class DIRegistrationTests
         var provider = services.BuildServiceProvider();
 
         var locator = provider.GetRequiredService<IGameLocator>();
-        Assert.NotNull(locator);
+        await Assert.That(locator).IsNotNull();
     }
 }

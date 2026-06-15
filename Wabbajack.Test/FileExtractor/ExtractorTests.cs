@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
-using Xunit;
 
 namespace Wabbajack.FileExtractor.Test;
 
+[ClassConstructor<FileExtractorClassConstructor>]
 public class ExtractorTests
 {
     private readonly FileExtractor _extractor;
@@ -21,7 +21,7 @@ public class ExtractorTests
         _limiter = limiter;
     }
 
-    [Fact]
+    [Test]
     public async Task CanExtract7z()
     {
         var src = KnownFolders.EntryPoint.Combine("TestData", "cheese.7z");
@@ -34,10 +34,10 @@ public class ExtractorTests
                 return new {Path = path, Data = await sr.ReadToEndAsync()};
             }, null, CancellationToken.None);
 
-        Assert.True(results.Count == 1);
+        await Assert.That(results.Count == 1).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task CanExtractWithGatheringExtract()
     {
         var src = KnownFolders.EntryPoint.Combine("TestData", "cheese.7z");
@@ -50,6 +50,6 @@ public class ExtractorTests
                 return new {Path = path, Data = await sr.ReadToEndAsync()};
             }, CancellationToken.None);
 
-        Assert.True(results.Count == 1);
+        await Assert.That(results.Count == 1).IsTrue();
     }
 }

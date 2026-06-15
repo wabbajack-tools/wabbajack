@@ -15,8 +15,6 @@ jobs:
     env:
       NEXUS_API_KEY: ${{ secrets.NEXUS_API_KEY }}
       NEXUS_LOGIN: ${{ secrets.NEXUS_LOGIN }}
-      VECTOR_PLEXUS: ${{ secrets.VECTOR_PLEXUS }}
-      LOVERS_LAB: ${{ secrets.LOVERS_LAB }}
     
     strategy:
       matrix:
@@ -42,13 +40,14 @@ jobs:
           dotnet-version: '10.0.x'
           include-prerelease: true
 
+      # TUnit runs on Microsoft.Testing.Platform; global.json opts dotnet test into MTP mode.
       - name: Test
         if: ${{ github.ref == 'refs/heads/main' }}
-        run: dotnet test /p:EnableWindowsTargeting=true
+        run: dotnet test --project Wabbajack.Test/Wabbajack.Test.csproj /p:EnableWindowsTargeting=true
 
       - name: Test
         if: ${{ github.ref != 'refs/heads/main' }}
-        run: dotnet test /p:EnableWindowsTargeting=true --filter "Category!=RequiresOAuth"
+        run: dotnet test --project Wabbajack.Test/Wabbajack.Test.csproj /p:EnableWindowsTargeting=true -- --treenode-filter "/*/*/*/*[Category!=RequiresOAuth]"
         
       #- name: Upload Test Folder on Failure
       #  if: ${{ failure() }}

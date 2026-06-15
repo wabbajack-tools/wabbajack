@@ -1,14 +1,13 @@
 // Wabbajack.Test/Preflight/DiskSpaceCheckTests.cs
 using Wabbajack.Paths;
 using Wabbajack.Preflight;
-using Xunit;
 
 namespace Wabbajack.Preflight.Test;
 
 public class DiskSpaceCheckTests
 {
-    [Fact]
-    public void SufficientSpace_Passes()
+    [Test]
+    public async Task SufficientSpace_Passes()
     {
         var check = new DiskSpaceCheck();
         // Use current drive which should have some free space
@@ -17,11 +16,11 @@ public class DiskSpaceCheckTests
 
         check.Update(testPath, testPath, smallSize, smallSize, 0);
 
-        Assert.Equal(PreflightCheckStatus.Passed, check.Status);
+        await Assert.That(check.Status).IsEqualTo(PreflightCheckStatus.Passed);
     }
 
-    [Fact]
-    public void InsufficientInstallSpace_Fails()
+    [Test]
+    public async Task InsufficientInstallSpace_Fails()
     {
         var check = new DiskSpaceCheck();
         var testPath = (AbsolutePath)AppDomain.CurrentDomain.BaseDirectory;
@@ -29,12 +28,12 @@ public class DiskSpaceCheckTests
 
         check.Update(testPath, testPath, hugeSize, 0, 0);
 
-        Assert.Equal(PreflightCheckStatus.Failed, check.Status);
-        Assert.Contains("disk space", check.FailureMessage, StringComparison.OrdinalIgnoreCase);
+        await Assert.That(check.Status).IsEqualTo(PreflightCheckStatus.Failed);
+        await Assert.That(check.FailureMessage).Contains("disk space", StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact]
-    public void AlreadyDownloadedArchives_ReduceRequired()
+    [Test]
+    public async Task AlreadyDownloadedArchives_ReduceRequired()
     {
         var check = new DiskSpaceCheck();
         var testPath = (AbsolutePath)AppDomain.CurrentDomain.BaseDirectory;
@@ -47,6 +46,6 @@ public class DiskSpaceCheckTests
 
         check.Update(testPath, testPath, 0, totalArchiveSize, alreadyPresent);
 
-        Assert.Equal(PreflightCheckStatus.Passed, check.Status);
+        await Assert.That(check.Status).IsEqualTo(PreflightCheckStatus.Passed);
     }
 }

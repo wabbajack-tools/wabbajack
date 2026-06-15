@@ -6,10 +6,10 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Xunit;
 
 namespace Wabbajack.Installer.Test;
 
+[ClassConstructor<InstallerClassConstructor>]
 public class StandardInstallerTest
 {
     private readonly TemporaryFileManager _manager;
@@ -25,14 +25,14 @@ public class StandardInstallerTest
         _manager = manager;
     }
 
-    [Fact]
+    [Test]
     public async Task CanLoadModlistDefinition()
     {
         var modlist = await StandardInstaller.LoadFromFile(_serializer, _modList);
-        Assert.Equal("MO2AndSKSETest", modlist.Name);
+        await Assert.That(modlist.Name).IsEqualTo("MO2AndSKSETest");
     }
 
-    [Fact]
+    [Test]
     public async Task CanInstallAList()
     {
         var modlist = await StandardInstaller.LoadFromFile(_serializer, _modList);
@@ -57,8 +57,8 @@ public class StandardInstallerTest
         configuration.IgnoreMirrorList = true;
 
         var installer = _provider.GetService<StandardInstaller>();
-        Assert.True(await installer.Begin(CancellationToken.None) == InstallResult.Succeeded);
+        await Assert.That(await installer.Begin(CancellationToken.None) == InstallResult.Succeeded).IsTrue();
 
-        Assert.True("ModOrganizer.exe".ToRelativePath().RelativeTo(installFolder).FileExists());
+        await Assert.That("ModOrganizer.exe".ToRelativePath().RelativeTo(installFolder).FileExists()).IsTrue();
     }
 }

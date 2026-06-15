@@ -6,7 +6,6 @@ using System.Windows.Input;
 using NSubstitute;
 using ReactiveUI;
 using Wabbajack.Preflight;
-using Xunit;
 
 namespace Wabbajack.Preflight.Test;
 
@@ -28,8 +27,8 @@ public class PreflightViewModelTests
         public void Dispose() { }
     }
 
-    [Fact]
-    public void AllChecksPassed_InstallEnabled()
+    [Test]
+    public async Task AllChecksPassed_InstallEnabled()
     {
         var checks = new IPreflightCheck[]
         {
@@ -39,14 +38,14 @@ public class PreflightViewModelTests
 
         var vm = new PreflightViewModel(checks);
 
-        Assert.True(vm.AllPassed);
-        Assert.Equal(2, vm.PassedCount);
-        Assert.Equal(2, vm.TotalCount);
-        Assert.Empty(vm.FailedChecks);
+        await Assert.That(vm.AllPassed).IsTrue();
+        await Assert.That(vm.PassedCount).IsEqualTo(2);
+        await Assert.That(vm.TotalCount).IsEqualTo(2);
+        await Assert.That(vm.FailedChecks).IsEmpty();
     }
 
-    [Fact]
-    public void SomeChecksFailed_InstallDisabled()
+    [Test]
+    public async Task SomeChecksFailed_InstallDisabled()
     {
         var checks = new IPreflightCheck[]
         {
@@ -56,13 +55,13 @@ public class PreflightViewModelTests
 
         var vm = new PreflightViewModel(checks);
 
-        Assert.False(vm.AllPassed);
-        Assert.Equal(1, vm.PassedCount);
-        Assert.Single(vm.FailedChecks);
+        await Assert.That(vm.AllPassed).IsFalse();
+        await Assert.That(vm.PassedCount).IsEqualTo(1);
+        await Assert.That(vm.FailedChecks).HasSingleItem();
     }
 
-    [Fact]
-    public void InfoStatusCountsAsPassed_ButStaysVisible()
+    [Test]
+    public async Task InfoStatusCountsAsPassed_ButStaysVisible()
     {
         var checks = new IPreflightCheck[]
         {
@@ -72,13 +71,13 @@ public class PreflightViewModelTests
 
         var vm = new PreflightViewModel(checks);
 
-        Assert.True(vm.AllPassed);          // Info counts as passed
-        Assert.Equal(2, vm.PassedCount);    // Both counted
-        Assert.Single(vm.FailedChecks);     // Info still visible in the list
+        await Assert.That(vm.AllPassed).IsTrue();          // Info counts as passed
+        await Assert.That(vm.PassedCount).IsEqualTo(2);    // Both counted
+        await Assert.That(vm.FailedChecks).HasSingleItem();     // Info still visible in the list
     }
 
-    [Fact]
-    public void CheckTransitionsToPass_UpdatesSummary()
+    [Test]
+    public async Task CheckTransitionsToPass_UpdatesSummary()
     {
         var failingCheck = new FakeCheck { Status = PreflightCheckStatus.Failed, FailureMessage = "Oops" };
         var checks = new IPreflightCheck[]
@@ -88,12 +87,12 @@ public class PreflightViewModelTests
         };
 
         var vm = new PreflightViewModel(checks);
-        Assert.False(vm.AllPassed);
+        await Assert.That(vm.AllPassed).IsFalse();
 
         // Transition to passed
         failingCheck.Status = PreflightCheckStatus.Passed;
 
-        Assert.True(vm.AllPassed);
-        Assert.Equal(2, vm.PassedCount);
+        await Assert.That(vm.AllPassed).IsTrue();
+        await Assert.That(vm.PassedCount).IsEqualTo(2);
     }
 }

@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Compression.Zip;
 using Wabbajack.Hashing.xxHash64;
-using Xunit;
 
 namespace Wabbajack.Networking.Http.Test;
 
@@ -25,14 +24,14 @@ public class ChunkedBufferingStreamTests
         _mstream = new MemoryStream(_data);
     }
     
-    [Fact]
+    [Test]
     public async Task CanHashStream()
     {
         var cstream = new MemoryChunkedBufferingStream(_mstream);
-        Assert.Equal(await _data.Hash(), await cstream.Hash(CancellationToken.None));
+        await Assert.That(await cstream.Hash(CancellationToken.None)).IsEqualTo(await _data.Hash());
     }
 
-    [Fact]
+    [Test]
     public async Task CanExtractOneFile()
     {
         var ms = new MemoryStream();
@@ -68,7 +67,7 @@ public class ChunkedBufferingStreamTests
 
             var ems = new MemoryStream();
             await zipFile.Extract(entry, ems, CancellationToken.None);
-            Assert.Equal(Encoding.UTF8.GetBytes("Cheese for Everyone!"), ems.ToArray());
+            await Assert.That(ems.ToArray().SequenceEqual(Encoding.UTF8.GetBytes("Cheese for Everyone!"))).IsTrue();
         }
 
         

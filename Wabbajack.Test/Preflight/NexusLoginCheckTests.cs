@@ -3,7 +3,6 @@ using System.Linq;
 using NSubstitute;
 using Wabbajack.LoginManagers;
 using Wabbajack.Preflight;
-using Xunit;
 
 namespace Wabbajack.Preflight.Test;
 
@@ -18,24 +17,24 @@ public class NexusLoginCheckTests
         return mock;
     }
 
-    [Fact]
-    public void LoggedIn_Passes()
+    [Test]
+    public async Task LoggedIn_Passes()
     {
         var login = CreateMockNexusLogin(true);
         var check = new NexusLoginCheck(login);
 
-        Assert.Equal(PreflightCheckStatus.Passed, check.Status);
+        await Assert.That(check.Status).IsEqualTo(PreflightCheckStatus.Passed);
     }
 
-    [Fact]
-    public void NotLoggedIn_Fails()
+    [Test]
+    public async Task NotLoggedIn_Fails()
     {
         var login = CreateMockNexusLogin(false);
         var check = new NexusLoginCheck(login);
 
-        Assert.Equal(PreflightCheckStatus.Failed, check.Status);
-        Assert.Contains("Nexus", check.FailureMessage);
-        Assert.NotNull(check.ActionCommand);
-        Assert.Equal("Log In", check.ActionLabel);
+        await Assert.That(check.Status).IsEqualTo(PreflightCheckStatus.Failed);
+        await Assert.That(check.FailureMessage).Contains("Nexus");
+        await Assert.That(check.ActionCommand).IsNotNull();
+        await Assert.That(check.ActionLabel).IsEqualTo("Log In");
     }
 }

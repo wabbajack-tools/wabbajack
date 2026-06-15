@@ -4,11 +4,11 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.Downloaders.VerificationCache;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Paths.IO;
-using Xunit;
 
 namespace Wabbajack.Downloaders.Dispatcher.Test;
 
 
+[ClassConstructor<DispatcherClassConstructor>]
 public class VerificationCacheTests
 {
     private readonly ILogger<VerificationCache.VerificationCache> _logger;
@@ -20,7 +20,7 @@ public class VerificationCacheTests
         _dtos = dtos;
     }
 
-    [Fact]
+    [Test]
     public async Task BasicCacheTests()
     {
         using var cacheBase = new VerificationCache.VerificationCache(_logger,  
@@ -32,21 +32,21 @@ public class VerificationCacheTests
 
         var goodState = new DTOs.DownloadStates.Http { Url = new Uri($"https://some.com/{Guid.NewGuid()}/path") };
         var badState = new DTOs.DownloadStates.Http { Url = new Uri($"https://some.com/{Guid.NewGuid()}/path") };
-        Assert.True((await cache.Get(goodState)).IsValid == null);
+        await Assert.That((await cache.Get(goodState)).IsValid == null).IsTrue();
 
         await cache.Put(goodState, true);
         var result = await cache.Get(goodState);
-        Assert.True(result.IsValid);
-        Assert.IsType<DTOs.DownloadStates.Http>(result.State);
+        await Assert.That(result.IsValid).IsTrue();
+        await Assert.That(result.State).IsTypeOf<DTOs.DownloadStates.Http>();
 
         await Task.Delay(TimeSpan.FromSeconds(2));
-        
-        Assert.False((await cache.Get(goodState)).IsValid);
+
+        await Assert.That((await cache.Get(goodState)).IsValid).IsFalse();
 
         await cache.Put(badState, true);
-        Assert.True((await cache.Get(badState)).IsValid);
+        await Assert.That((await cache.Get(badState)).IsValid).IsTrue();
         await cache.Put(badState, false);
-        Assert.Null((await cache.Get(badState)).IsValid);
+        await Assert.That((await cache.Get(badState)).IsValid).IsNull();
 
     }
 }

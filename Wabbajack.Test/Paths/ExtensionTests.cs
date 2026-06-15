@@ -1,5 +1,4 @@
 using System;
-using Xunit;
 
 namespace Wabbajack.Paths.Test;
 
@@ -10,52 +9,52 @@ public class ExtensionTests
     public static Extension DDS2 = new(".DDS");
     public static Extension EMPTY = new("");
 
-    [Fact]
-    public void ExtensionsAreEqual()
+    [Test]
+    public async Task ExtensionsAreEqual()
     {
-        Assert.Equal(DDS, DDS);
-        Assert.Equal(DDS, DDS2);
-        Assert.Equal(DDS, Dds);
+        await Assert.That(DDS).IsEqualTo(DDS);
+        await Assert.That(DDS2).IsEqualTo(DDS);
+        await Assert.That(Dds).IsEqualTo(DDS);
 
-        Assert.True(DDS == Dds);
-        Assert.True(DDS != EMPTY);
+        await Assert.That(DDS == Dds).IsTrue();
+        await Assert.That(DDS != EMPTY).IsTrue();
 
-        Assert.NotEqual(EMPTY, DDS);
+        await Assert.That(DDS).IsNotEqualTo(EMPTY);
 
-        Assert.NotEqual(DDS, (object) 42);
+        await Assert.That(DDS.Equals((object) 42)).IsFalse();
     }
 
-    [Fact]
-    public void CanGetExtensionOfPath()
+    [Test]
+    public async Task CanGetExtensionOfPath()
     {
-        Assert.Equal(DDS, ((AbsolutePath) @"c:\foo\bar.dds").Extension);
+        await Assert.That(((AbsolutePath) @"c:\foo\bar.dds").Extension).IsEqualTo(DDS);
     }
 
-    [Fact]
-    public void ExtensionsHaveConversionOperators()
+    [Test]
+    public async Task ExtensionsHaveConversionOperators()
     {
-        Assert.True(".DDS" == (string) DDS);
-        Assert.True(DDS == (Extension) ".DDs");
+        await Assert.That(".DDS" == (string) DDS).IsTrue();
+        await Assert.That(DDS == (Extension) ".DDs").IsTrue();
     }
 
-    [Fact]
-    public void ExtensionsRequireDots()
+    [Test]
+    public async Task ExtensionsRequireDots()
     {
-        Assert.Throws<PathException>(() => new Extension("foo"));
+        await Assert.That(() => new Extension("foo")).ThrowsExactly<PathException>();
     }
 
-    [Fact]
-    public void ExtensionsOverrideObjectMethods()
+    [Test]
+    public async Task ExtensionsOverrideObjectMethods()
     {
-        Assert.Equal(".DDS", DDS.ToString());
-        Assert.Equal(".DDS".GetHashCode(StringComparison.InvariantCultureIgnoreCase), DDS.GetHashCode());
+        await Assert.That(DDS.ToString()).IsEqualTo(".DDS");
+        await Assert.That(DDS.GetHashCode()).IsEqualTo(".DDS".GetHashCode(StringComparison.InvariantCultureIgnoreCase));
     }
 
-    [Fact]
-    public void CanGetExtensionFromPath()
+    [Test]
+    public async Task CanGetExtensionFromPath()
     {
-        Assert.Equal(DDS, Extension.FromPath("myfoo.DDS"));
-        Assert.Equal(DDS, Extension.FromPath("myfoo.bar.DDS"));
-        Assert.Equal(EMPTY, Extension.FromPath("baz"));
+        await Assert.That(Extension.FromPath("myfoo.DDS")).IsEqualTo(DDS);
+        await Assert.That(Extension.FromPath("myfoo.bar.DDS")).IsEqualTo(DDS);
+        await Assert.That(Extension.FromPath("baz")).IsEqualTo(EMPTY);
     }
 }

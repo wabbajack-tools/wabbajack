@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -8,11 +8,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Wabbajack.CLI.Verbs;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Xunit;
 
 namespace Wabbajack.CLI.Test;
 
-public class DumpZipInfoTests : IDisposable
+public class DumpZipInfoTests
 {
     private readonly AbsolutePath _zipFile;
 
@@ -21,7 +20,8 @@ public class DumpZipInfoTests : IDisposable
         _zipFile = Path.GetTempFileName().ToAbsolutePath();
     }
 
-    public void Dispose()
+    [After(HookType.Test)]
+    public void Cleanup()
     {
         if (_zipFile.FileExists()) _zipFile.Delete();
     }
@@ -38,7 +38,7 @@ public class DumpZipInfoTests : IDisposable
         }
     }
 
-    [Fact]
+    [Test]
     public async Task Run_ListMode_ReturnsZero()
     {
         CreateTestZip(
@@ -49,10 +49,10 @@ public class DumpZipInfoTests : IDisposable
         var verb = new DumpZipInfo(NullLogger<DumpZipInfo>.Instance);
         var result = await verb.Run(_zipFile, test: false);
 
-        Assert.Equal(0, result);
+        await Assert.That(result).IsEqualTo(0);
     }
 
-    [Fact]
+    [Test]
     public async Task Run_TestMode_ExtractsAndReturnsZero()
     {
         CreateTestZip(
@@ -63,21 +63,21 @@ public class DumpZipInfoTests : IDisposable
         var verb = new DumpZipInfo(NullLogger<DumpZipInfo>.Instance);
         var result = await verb.Run(_zipFile, test: true);
 
-        Assert.Equal(0, result);
+        await Assert.That(result).IsEqualTo(0);
     }
 
-    [Fact]
+    [Test]
     public async Task Run_EmptyZip_ReturnsZero()
     {
         CreateTestZip();
 
         var verb = new DumpZipInfo(NullLogger<DumpZipInfo>.Instance);
 
-        Assert.Equal(0, await verb.Run(_zipFile, test: false));
-        Assert.Equal(0, await verb.Run(_zipFile, test: true));
+        await Assert.That(await verb.Run(_zipFile, test: false)).IsEqualTo(0);
+        await Assert.That(await verb.Run(_zipFile, test: true)).IsEqualTo(0);
     }
 
-    [Fact]
+    [Test]
     public async Task Run_ManyFiles_ReturnsZero()
     {
         var entries = new (string, byte[])[50];
@@ -89,6 +89,6 @@ public class DumpZipInfoTests : IDisposable
         var verb = new DumpZipInfo(NullLogger<DumpZipInfo>.Instance);
         var result = await verb.Run(_zipFile, test: false);
 
-        Assert.Equal(0, result);
+        await Assert.That(result).IsEqualTo(0);
     }
 }

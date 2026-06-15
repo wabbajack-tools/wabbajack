@@ -5,13 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace Wabbajack.Compression.Zip.Test
 {
     public class Tests
     {
-        [Fact]
+        [Test]
         public async Task CanReadSimpleZip()
         {
             var random = new Random();
@@ -43,8 +42,8 @@ namespace Wabbajack.Compression.Zip.Test
             {
                 var tms = new MemoryStream();
                 await reader.Extract(file.First, tms, CancellationToken.None);
-                Assert.Equal(file.First.FileName, file.Second.f.ToString());
-                Assert.Equal(file.Second.buffer, tms.ToArray());
+                await Assert.That(file.Second.f.ToString()).IsEqualTo(file.First.FileName);
+                await Assert.That(tms.ToArray().SequenceEqual(file.Second.buffer)).IsTrue();
             }
 
         }

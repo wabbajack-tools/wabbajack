@@ -1,15 +1,14 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Wabbajack.CLI.Verbs;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Xunit;
 
 namespace Wabbajack.CLI.Test;
 
-public class EncryptDecryptTests : IDisposable
+public class EncryptDecryptTests
 {
     private readonly AbsolutePath _inputFile;
     private readonly AbsolutePath _outputFile;
@@ -26,14 +25,15 @@ public class EncryptDecryptTests : IDisposable
             .Combine(_keyName.ToRelativePath());
     }
 
-    public void Dispose()
+    [After(HookType.Test)]
+    public void Cleanup()
     {
         if (_inputFile.FileExists()) _inputFile.Delete();
         if (_outputFile.FileExists()) _outputFile.Delete();
         if (_encryptedPath.FileExists()) _encryptedPath.Delete();
     }
 
-    [Fact]
+    [Test]
     public async Task EncryptDecrypt_Roundtrip_PreservesContent()
     {
         var originalData = new byte[] { 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100 };
@@ -41,17 +41,17 @@ public class EncryptDecryptTests : IDisposable
 
         var encryptVerb = new Encrypt(NullLogger<Encrypt>.Instance);
         var encryptResult = await encryptVerb.Run(_inputFile, _keyName);
-        Assert.Equal(0, encryptResult);
+        await Assert.That(encryptResult).IsEqualTo(0);
 
         var decryptVerb = new Decrypt(NullLogger<Decrypt>.Instance);
         var decryptResult = await decryptVerb.Run(_outputFile, _keyName);
-        Assert.Equal(0, decryptResult);
+        await Assert.That(decryptResult).IsEqualTo(0);
 
         var decryptedData = await _outputFile.ReadAllBytesAsync();
-        Assert.Equal(originalData, decryptedData);
+        await Assert.That(decryptedData.SequenceEqual(originalData)).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task Encrypt_WritesToExpectedLocation()
     {
         await _inputFile.WriteAllBytesAsync(new byte[] { 1, 2, 3 });
@@ -59,10 +59,10 @@ public class EncryptDecryptTests : IDisposable
         var verb = new Encrypt(NullLogger<Encrypt>.Instance);
         await verb.Run(_inputFile, _keyName);
 
-        Assert.True(_encryptedPath.FileExists());
+        await Assert.That(_encryptedPath.FileExists()).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task EncryptDecrypt_EmptyFile_Roundtrips()
     {
         await _inputFile.WriteAllBytesAsync(Array.Empty<byte>());
@@ -74,10 +74,10 @@ public class EncryptDecryptTests : IDisposable
         await decryptVerb.Run(_outputFile, _keyName);
 
         var decryptedData = await _outputFile.ReadAllBytesAsync();
-        Assert.Empty(decryptedData);
+        await Assert.That(decryptedData).IsEmpty();
     }
 
-    [Fact]
+    [Test]
     public async Task EncryptDecrypt_LargeFile_Roundtrips()
     {
         var data = new byte[64 * 1024];
@@ -91,6 +91,6 @@ public class EncryptDecryptTests : IDisposable
         await decryptVerb.Run(_outputFile, _keyName);
 
         var decryptedData = await _outputFile.ReadAllBytesAsync();
-        Assert.Equal(data, decryptedData);
+        await Assert.That(decryptedData.SequenceEqual(data)).IsTrue();
     }
 }

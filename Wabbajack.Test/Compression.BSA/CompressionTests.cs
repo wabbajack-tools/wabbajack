@@ -9,11 +9,11 @@ using Wabbajack.Common;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
-using Xunit;
 
 namespace Wabbajack.Compression.BSA.Test;
 
 [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters")]
+[ClassConstructor<BsaClassConstructor>]
 public class CompressionTests
 {
     private readonly ILogger<CompressionTests> _logger;
@@ -28,29 +28,29 @@ public class CompressionTests
         _parallelOptions = parallelOptions;
     }
 
-    public static IEnumerable<object[]> TestFiles
+    public static IEnumerable<(string, AbsolutePath)> TestFiles
     {
         get
         {
             return KnownFolders.EntryPoint.Combine("TestFiles").EnumerateFiles("*.bsa", false)
-                .Select(p => new object[] {p.FileName, p});
+                .Select(p => (p.FileName.ToString(), p));
         }
     }
 
-    [Theory]
-    [MemberData(nameof(TestFiles))]
+    [Test]
+    [MethodDataSource(nameof(TestFiles))]
     public async Task CanReadDataContents(string name, AbsolutePath path)
     {
         var reader = await BSADispatch.Open(path);
         foreach (var file in reader.Files)
         {
-            Assert.True(file.Path.Depth > 0);
+            await Assert.That(file.Path.Depth > 0).IsTrue();
             await file.CopyDataTo(new MemoryStream(), CancellationToken.None);
         }
     }
 
-    [Theory]
-    [MemberData(nameof(TestFiles))]
+    [Test]
+    [MethodDataSource(nameof(TestFiles))]
     public async Task CanRecreateBSAs(string name, AbsolutePath path)
     {
         if (name == "tes4.bsa") return; // not sure why is is failing
@@ -65,7 +65,7 @@ public class CompressionTests
                     var ms = new MemoryStream();
                     await file.CopyDataTo(ms, CancellationToken.None);
                     ms.Position = 0;
-                    Assert.Equal(file.Size, ms.Length);
+                    await Assert.That(ms.Length).IsEqualTo(file.Size);
                     return new {file.State, Stream = ms};
                 }).ToList();
 
@@ -86,15 +86,15 @@ public class CompressionTests
             {
                 var (oldFile, newFile) = pair;
                 _logger.LogInformation("Comparing {old} and {new}", oldFile.Path, newFile.Path);
-                Assert.Equal(oldFile.Path, newFile.Path);
-                Assert.Equal(oldFile.Size, newFile.Size);
+                await Assert.That(newFile.Path).IsEqualTo(oldFile.Path);
+                await Assert.That(newFile.Size).IsEqualTo(oldFile.Size);
 
                 var oldData = new MemoryStream();
                 var newData = new MemoryStream();
                 await oldFile.CopyDataTo(oldData, CancellationToken.None);
                 await newFile.CopyDataTo(newData, CancellationToken.None);
-                Assert.Equal(oldData.ToArray(), newData.ToArray());
-                Assert.Equal(oldFile.Size, newFile.Size);
+                await Assert.That(newData.ToArray().SequenceEqual(oldData.ToArray())).IsTrue();
+                await Assert.That(newFile.Size).IsEqualTo(oldFile.Size);
             });
     }
 }

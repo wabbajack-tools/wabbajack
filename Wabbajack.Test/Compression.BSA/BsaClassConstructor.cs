@@ -2,16 +2,14 @@ using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Wabbajack.Paths.IO;
-using Xunit.DependencyInjection;
-using Xunit.DependencyInjection.Logging;
+using Wabbajack.Test.TestingInfra;
 
 namespace Wabbajack.Compression.BSA.Test;
 
-public class Startup
+public sealed class BsaClassConstructor : DiClassConstructorBase
 {
-    public void ConfigureServices(IServiceCollection service)
+    protected override void ConfigureServices(IServiceCollection service)
     {
         service.AddSingleton<TemporaryFileManager, TemporaryFileManager>();
         service.AddSingleton(new ParallelOptions
@@ -19,10 +17,5 @@ public class Startup
             MaxDegreeOfParallelism = Environment.ProcessorCount
         });
         service.AddSingleton(new JsonSerializerOptions());
-    }
-
-    public void Configure(ILoggerFactory loggerFactory, ITestOutputHelperAccessor accessor)
-    {
-        loggerFactory.AddProvider(new XunitTestOutputLoggerProvider(accessor, delegate { return true; }));
     }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,12 +12,12 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.VFS;
-using Xunit;
 
 namespace Wabbajack.CLI.Test;
 
-[Collection("CLI")]
-public class HashGameFilesTests : IDisposable
+[ClassConstructor<CliClassConstructor>]
+[NotInParallel]
+public class HashGameFilesTests
 {
     private readonly AbsolutePath _tempDir;
     private readonly IServiceProvider _provider;
@@ -31,7 +31,8 @@ public class HashGameFilesTests : IDisposable
         _tempDir.CreateDirectory();
     }
 
-    public void Dispose()
+    [After(HookType.Test)]
+    public void Cleanup()
     {
         if (_tempDir.DirectoryExists())
         {
@@ -40,7 +41,7 @@ public class HashGameFilesTests : IDisposable
         }
     }
 
-    [Fact]
+    [Test]
     public async Task Run_GameNotInstalled_ReturnsOne()
     {
         var locator = Substitute.For<IGameLocator>();
@@ -55,10 +56,10 @@ public class HashGameFilesTests : IDisposable
 
         var result = await verb.Run(outputDir, "SkyrimSpecialEdition", CancellationToken.None);
 
-        Assert.Equal(1, result);
+        await Assert.That(result).IsEqualTo(1);
     }
 
-    [Fact]
+    [Test]
     public async Task Run_WithGameFiles_HashesAndWritesJson()
     {
         var gameDir = _tempDir.Combine("game");
@@ -94,14 +95,14 @@ public class HashGameFilesTests : IDisposable
 
         var result = await verb.Run(outputDir, "SkyrimSpecialEdition", CancellationToken.None);
 
-        Assert.Equal(0, result);
+        await Assert.That(result).IsEqualTo(0);
 
         // Verify output file was created
         var outputFiles = outputDir.EnumerateFiles().ToArray();
-        Assert.NotEmpty(outputFiles);
+        await Assert.That(outputFiles).IsNotEmpty();
     }
 
-    [Fact]
+    [Test]
     public async Task Run_WithInvalidGameName_Throws()
     {
         var locator = Substitute.For<IGameLocator>();
@@ -112,11 +113,12 @@ public class HashGameFilesTests : IDisposable
         var outputDir = _tempDir.Combine("output");
         outputDir.CreateDirectory();
 
-        await Assert.ThrowsAnyAsync<Exception>(
-            () => verb.Run(outputDir, "CompletelyFakeGame12345", CancellationToken.None));
+        await Assert.That(
+            () => verb.Run(outputDir, "CompletelyFakeGame12345", CancellationToken.None))
+            .Throws<Exception>();
     }
 
-    [Fact]
+    [Test]
     public async Task Run_WithEmptyGameFolder_WritesEmptyJson()
     {
         var gameDir = _tempDir.Combine("empty-game");
@@ -145,6 +147,6 @@ public class HashGameFilesTests : IDisposable
 
         var result = await verb.Run(outputDir, "SkyrimSpecialEdition", CancellationToken.None);
 
-        Assert.Equal(0, result);
+        await Assert.That(result).IsEqualTo(0);
     }
 }

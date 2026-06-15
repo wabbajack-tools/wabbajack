@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using CG.Web.MegaApiClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Octokit;
@@ -16,7 +15,6 @@ using Wabbajack.Paths.IO;
 using Wabbajack.Server.Lib;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.VFS;
-using Xunit;
 using Client = Wabbajack.Networking.GitHub.Client;
 
 namespace Wabbajack.CLI.Test;
@@ -45,7 +43,6 @@ public class CLITestFixture : IDisposable
                 services.AddSingleton<Client>();
                 services.AddSingleton<Networking.WabbajackClientApi.Client>();
                 services.AddSingleton(s => new GitHubClient(new ProductHeaderValue("wabbajack")));
-                services.AddSingleton<MegaApiClient>();
                 services.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
                 services.AddOSIntegrated(o =>
                 {
@@ -53,7 +50,7 @@ public class CLITestFixture : IDisposable
                     o.UseStubbedGameFolders = true;
                 });
                 services.AddServerLib();
-                services.AddTransient<Context>();
+                services.AddTransient<Wabbajack.VFS.Context>();
                 services.AddSingleton<CommandLineBuilder>();
                 services.AddCLIVerbs();
             }).Build();
@@ -64,9 +61,4 @@ public class CLITestFixture : IDisposable
     public void Dispose()
     {
     }
-}
-
-[CollectionDefinition("CLI")]
-public class CLITestCollection : ICollectionFixture<CLITestFixture>
-{
 }

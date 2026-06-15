@@ -12,7 +12,6 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Xunit;
 
 namespace Wabbajack.Compiler.Test;
 
@@ -161,7 +160,9 @@ public class ModListHarness
     {
         var dest = source.RelativeTo(_source).RelativeTo(_installLocation);
         _logger.LogInformation("Verifying {file}", source.RelativeTo(_source));
-        Assert.Equal(source.Size(), dest.Size());
+        if (!Equals(source.Size(), dest.Size()))
+            throw new InvalidOperationException(
+                $"Size mismatch for installed file {dest}: expected {source.Size()}, got {dest.Size()}");
     }
 }
 

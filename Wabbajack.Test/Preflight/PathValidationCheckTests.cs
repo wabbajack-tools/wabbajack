@@ -2,14 +2,13 @@
 using Wabbajack.Preflight;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Xunit;
 
 namespace Wabbajack.Preflight.Test;
 
 public class PathValidationCheckTests
 {
-    [Fact]
-    public void ValidPaths_Pass()
+    [Test]
+    public async Task ValidPaths_Pass()
     {
         var check = new PathValidationCheck();
         check.Update(
@@ -17,11 +16,11 @@ public class PathValidationCheckTests
             (AbsolutePath)@"D:\Modlists\TestList\downloads",
             Array.Empty<AbsolutePath>());
 
-        Assert.Equal(PreflightCheckStatus.Passed, check.Status);
+        await Assert.That(check.Status).IsEqualTo(PreflightCheckStatus.Passed);
     }
 
-    [Fact]
-    public void EmptyInstallPath_Fails()
+    [Test]
+    public async Task EmptyInstallPath_Fails()
     {
         var check = new PathValidationCheck();
         check.Update(
@@ -29,12 +28,12 @@ public class PathValidationCheckTests
             (AbsolutePath)@"D:\Downloads",
             Array.Empty<AbsolutePath>());
 
-        Assert.Equal(PreflightCheckStatus.Failed, check.Status);
-        Assert.Contains("installation location", check.FailureMessage, StringComparison.OrdinalIgnoreCase);
+        await Assert.That(check.Status).IsEqualTo(PreflightCheckStatus.Failed);
+        await Assert.That(check.FailureMessage).Contains("installation location", StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact]
-    public void IdenticalPaths_Fails()
+    [Test]
+    public async Task IdenticalPaths_Fails()
     {
         var check = new PathValidationCheck();
         check.Update(
@@ -42,12 +41,12 @@ public class PathValidationCheckTests
             (AbsolutePath)@"D:\Modlists\TestList",
             Array.Empty<AbsolutePath>());
 
-        Assert.Equal(PreflightCheckStatus.Failed, check.Status);
-        Assert.Contains("identical", check.FailureMessage, StringComparison.OrdinalIgnoreCase);
+        await Assert.That(check.Status).IsEqualTo(PreflightCheckStatus.Failed);
+        await Assert.That(check.FailureMessage).Contains("identical", StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact]
-    public void InstallInGameFolder_Fails()
+    [Test]
+    public async Task InstallInGameFolder_Fails()
     {
         var gameFolders = new[] { (AbsolutePath)@"C:\Games\Skyrim" };
         var check = new PathValidationCheck();
@@ -56,7 +55,7 @@ public class PathValidationCheckTests
             (AbsolutePath)@"D:\Downloads",
             gameFolders);
 
-        Assert.Equal(PreflightCheckStatus.Failed, check.Status);
-        Assert.Contains("game folder", check.FailureMessage, StringComparison.OrdinalIgnoreCase);
+        await Assert.That(check.Status).IsEqualTo(PreflightCheckStatus.Failed);
+        await Assert.That(check.FailureMessage).Contains("game folder", StringComparison.OrdinalIgnoreCase);
     }
 }

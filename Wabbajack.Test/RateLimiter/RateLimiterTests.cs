@@ -4,14 +4,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
 using static System.Threading.Tasks.Task;
 
 namespace Wabbajack.RateLimiter.Test;
 
 public class RateLimiter
 {
-    //[Fact]
+    //[Test]
     public async Task BasicTaskTests()
     {
         var rateLimiter = new Resource<int>("Test Resource", 2);
@@ -39,10 +38,10 @@ public class RateLimiter
                 SetMax(lockObj, ref current, ref max, -1);
             });
 
-        Assert.Equal(2, max);
+        await Assert.That(max).IsEqualTo(2);
     }
 
-    //[Fact]
+    //[Test]
     public async Task TestBasicThroughput()
     {
         var rateLimiter = new Resource<int>("Test Resource", 1, 1024 * 1024);
@@ -52,18 +51,18 @@ public class RateLimiter
         var sw = Stopwatch.StartNew();
 
         var report = rateLimiter.StatusReport;
-        Assert.Equal(0, report.Transferred);
+        await Assert.That(report.Transferred).IsEqualTo(0);
         foreach (var x in Enumerable.Range(0, 5)) await job.Report(1024 * 1024 / 2, CancellationToken.None);
 
         var elapsed = sw.Elapsed;
-        Assert.True(elapsed > TimeSpan.FromSeconds(1));
-        Assert.True(elapsed < TimeSpan.FromSeconds(3));
+        await Assert.That(elapsed > TimeSpan.FromSeconds(1)).IsTrue();
+        await Assert.That(elapsed < TimeSpan.FromSeconds(3)).IsTrue();
 
         report = rateLimiter.StatusReport;
-        Assert.Equal(1024 * 1024 * 5 / 2, report.Transferred);
+        await Assert.That(report.Transferred).IsEqualTo(1024 * 1024 * 5 / 2);
     }
 
-    //[Fact]
+    //[Test]
     public async Task TestParallelThroughput()
     {
         var rateLimiter = new Resource<int>("Test Resource", 2, 1024 * 1024);
@@ -81,11 +80,11 @@ public class RateLimiter
 
         await WhenAll(tasks.ToArray());
         var elapsed = sw.Elapsed;
-        Assert.True(elapsed > TimeSpan.FromSeconds(1));
-        Assert.True(elapsed < TimeSpan.FromSeconds(3));
+        await Assert.That(elapsed > TimeSpan.FromSeconds(1)).IsTrue();
+        await Assert.That(elapsed < TimeSpan.FromSeconds(3)).IsTrue();
     }
 
-    //[Fact]
+    //[Test]
     public async Task TestParallelThroughputWithLimitedTasks()
     {
         var rateLimiter = new Resource<int>("Test Resource", 1, 1024 * 1024 * 4);
@@ -103,7 +102,7 @@ public class RateLimiter
 
         await WhenAll(tasks.ToArray());
         var elapsed = sw.Elapsed;
-        Assert.True(elapsed > TimeSpan.FromSeconds(0.5));
-        Assert.True(elapsed < TimeSpan.FromSeconds(1.5));
+        await Assert.That(elapsed > TimeSpan.FromSeconds(0.5)).IsTrue();
+        await Assert.That(elapsed < TimeSpan.FromSeconds(1.5)).IsTrue();
     }
 }

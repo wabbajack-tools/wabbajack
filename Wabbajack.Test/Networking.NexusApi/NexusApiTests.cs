@@ -1,9 +1,9 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace Wabbajack.Networking.NexusApi.Test;
 
+[ClassConstructor<NexusApiClassConstructor>]
 public class NexusApiTests
 {
     private readonly NexusApi _api;
@@ -13,33 +13,33 @@ public class NexusApiTests
         _api = api;
     }
 
-    [Fact]
-    [Trait("Category", "RequiresOAuth")]
+    [Test]
+    [Category("RequiresOAuth")]
     public async Task CanValidateUser()
     {
         var (info, headers) = await _api.Validate();
-        Assert.True(info.IsPremium);
+        await Assert.That(info.IsPremium).IsTrue();
     }
 
-    [Fact]
-    [Trait("Category", "RequiresOAuth")]
+    [Test]
+    [Category("RequiresOAuth")]
     public async Task CanGetModInfo()
     {
         var (_, originalHeaders) = await _api.Validate();
 
         var (info, headers) = await _api.ModInfo("skyrimspecialedition", 12604);
-        Assert.Equal("SkyUI", info.Name);
+        await Assert.That(info.Name).IsEqualTo("SkyUI");
 
         var (files, _) = await _api.ModFiles("skyrimspecialedition", 12604);
 
-        Assert.True(files.Files.Length > 0);
+        await Assert.That(files.Files.Length > 0).IsTrue();
 
         var (file, _) = await _api.FileInfo("skyrimspecialedition", 12604,
             files.Files.OrderByDescending(f => f.FileId).First().FileId);
 
-        Assert.Equal("MAIN", file.CategoryName);
+        await Assert.That(file.CategoryName).IsEqualTo("MAIN");
 
         var (links, _) = await _api.DownloadLink("skyrimspecialedition", 12604, file.FileId);
-        Assert.True(links.Length > 0);
+        await Assert.That(links.Length > 0).IsTrue();
     }
 }

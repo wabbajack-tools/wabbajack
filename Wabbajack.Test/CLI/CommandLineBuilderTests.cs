@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.CLI.Builder;
-using Xunit;
 
 namespace Wabbajack.CLI.Test;
 
-[Collection("CLI")]
+[ClassConstructor<CliClassConstructor>]
+[NotInParallel]
 public class CommandLineBuilderTests
 {
     private readonly CLITestFixture _fixture;
@@ -15,49 +15,49 @@ public class CommandLineBuilderTests
         _fixture = fixture;
     }
 
-    [Fact]
+    [Test]
     public async Task Run_WithEncryptVerb_HelpReturnsZero()
     {
         var builder = _fixture.ServiceProvider.GetRequiredService<CommandLineBuilder>();
         var result = await builder.Run(new[] { "encrypt", "--help" });
-        Assert.Equal(0, result);
+        await Assert.That(result).IsEqualTo(0);
     }
 
-    [Fact]
+    [Test]
     public async Task Run_WithUnknownVerb_ReturnsNonZero()
     {
         var builder = _fixture.ServiceProvider.GetRequiredService<CommandLineBuilder>();
         var result = await builder.Run(new[] { "nonexistent-verb-12345" });
-        Assert.NotEqual(0, result);
+        await Assert.That(result).IsNotEqualTo(0);
     }
 
-    [Fact]
+    [Test]
     public async Task Run_WithHelpFlag_ReturnsZero()
     {
         var builder = _fixture.ServiceProvider.GetRequiredService<CommandLineBuilder>();
         var result = await builder.Run(new[] { "--help" });
-        Assert.Equal(0, result);
+        await Assert.That(result).IsEqualTo(0);
     }
 
-    [Fact]
+    [Test]
     public async Task Run_WithVerbHelpFlag_ReturnsZero()
     {
         var builder = _fixture.ServiceProvider.GetRequiredService<CommandLineBuilder>();
         var result = await builder.Run(new[] { "hash-file", "--help" });
-        Assert.Equal(0, result);
+        await Assert.That(result).IsEqualTo(0);
     }
 
-    [Fact]
+    [Test]
     public async Task Run_WithListGamesVerb_CompletesSuccessfully()
     {
         var builder = _fixture.ServiceProvider.GetRequiredService<CommandLineBuilder>();
         var result = await builder.Run(new[] { "list-games" });
-        Assert.True(result >= 0, $"list-games returned {result}");
+        await Assert.That(result >= 0).IsTrue();
     }
 
-    [Fact]
-    public void Verbs_ReturnsNonEmptyCollection()
+    [Test]
+    public async Task Verbs_ReturnsNonEmptyCollection()
     {
-        Assert.NotEmpty(CommandLineBuilder.Verbs);
+        await Assert.That(CommandLineBuilder.Verbs).IsNotEmpty();
     }
 }

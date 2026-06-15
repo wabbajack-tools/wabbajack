@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Hashing.xxHash64;
-using Xunit;
 
 namespace Wabbajack.DTOs.Test;
 
@@ -14,32 +13,32 @@ public class ValueTests
         _dtos = new DTOSerializer(new JsonConverter[] {new HashJsonConverter(), new HashRelativePathConverter()});
     }
 
-    [Fact]
-    public void TestHash()
+    [Test]
+    public async Task TestHash()
     {
         var a = new HashData {Value = Hash.FromULong(int.MaxValue)};
         var b = _dtos.Deserialize<HashData>(_dtos.Serialize(a));
-        Assert.Equal(a.Value, b.Value);
+        await Assert.That(b.Value).IsEqualTo(a.Value);
     }
 
-    [Fact]
-    public void TestHashRelative()
+    [Test]
+    public async Task TestHashRelative()
     {
         var a = new HashDataRelative {Value = new HashRelativePath(Hash.FromULong(int.MaxValue))};
         var b = _dtos.Deserialize<HashDataRelative>(_dtos.Serialize(a));
-        Assert.Equal(a.Value.Hash, b.Value.Hash);
+        await Assert.That(b.Value.Hash).IsEqualTo(a.Value.Hash);
     }
 
-    [Fact]
-    public void TestToFromJsonHash()
+    [Test]
+    public async Task TestToFromJsonHash()
     {
         for (ulong hash = 0; hash < 1024 * 1024; hash++)
         {
             var a = new BoxedHash {Hash = Hash.FromULong(hash)};
             var b = _dtos.Deserialize<BoxedHash>(_dtos.Serialize(a))!;
-            Assert.Equal($"{{\"Hash\":\"{a.Hash.ToString()}\"}}", _dtos.Serialize(b));
-            Assert.Equal(a.Hash, Hash.FromBase64(Hash.FromULong(hash).ToBase64()));
-            Assert.Equal(a.Hash, b.Hash);
+            await Assert.That(_dtos.Serialize(b)).IsEqualTo($"{{\"Hash\":\"{a.Hash.ToString()}\"}}");
+            await Assert.That(Hash.FromBase64(Hash.FromULong(hash).ToBase64())).IsEqualTo(a.Hash);
+            await Assert.That(b.Hash).IsEqualTo(a.Hash);
         }
     }
 

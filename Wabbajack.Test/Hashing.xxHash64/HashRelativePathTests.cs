@@ -1,5 +1,4 @@
 using Wabbajack.Paths;
-using Xunit;
 
 namespace Wabbajack.Hashing.xxHash64.Test;
 
@@ -12,39 +11,39 @@ public class HashRelativePathTests
     public HashRelativePath Path1baz = new(Hash.FromLong(2), @"foo\baz.zip".ToRelativePath());
     public HashRelativePath Path2 = new(Hash.FromLong(2), @"foo\bar.zip".ToRelativePath());
 
-    [Fact]
-    public void SupportEquality()
+    [Test]
+    public async Task SupportEquality()
     {
-        Assert.Equal(Path1, Path1a);
-        Assert.True(Path1 == Path1a);
-        Assert.False(Path1 != Path1a);
-        Assert.Equal(Path1, (object) Path1a);
-        Assert.NotEqual(Path1, (object) 1);
-        Assert.NotEqual(Path1, Path1baz);
-        Assert.NotEqual(Path1, Path2);
-        Assert.NotEqual(Path1, Path1Base);
+        await Assert.That(Path1a).IsEqualTo(Path1);
+        await Assert.That(Path1 == Path1a).IsTrue();
+        await Assert.That(Path1 != Path1a).IsFalse();
+        await Assert.That((object) Path1a).IsEqualTo(Path1);
+        await Assert.That(Path1.Equals((object) 1)).IsFalse();
+        await Assert.That(Path1baz).IsNotEqualTo(Path1);
+        await Assert.That(Path2).IsNotEqualTo(Path1);
+        await Assert.That(Path1Base).IsNotEqualTo(Path1);
     }
 
-    [Fact]
-    public void CanGetIPathMembers()
+    [Test]
+    public async Task CanGetIPathMembers()
     {
-        Assert.Equal(new Extension(".zip"), Path1.Extension);
-        Assert.Equal("bar.zip".ToRelativePath(), Path1.FileName);
+        await Assert.That(Path1.Extension).IsEqualTo(new Extension(".zip"));
+        await Assert.That(Path1.FileName).IsEqualTo("bar.zip".ToRelativePath());
     }
 
-    [Fact]
-    public void SupportsObjectMembers()
+    [Test]
+    public async Task SupportsObjectMembers()
     {
-        Assert.Equal(@"AQAAAAAAAAA=|foo\bar.zip", Path1.ToString());
-        Assert.Equal(Path1.GetHashCode(), Path1a.GetHashCode());
-        Assert.NotEqual(Path1.GetHashCode(), Path2.GetHashCode());
+        await Assert.That(Path1.ToString()).IsEqualTo(@"AQAAAAAAAAA=|foo\bar.zip");
+        await Assert.That(Path1a.GetHashCode()).IsEqualTo(Path1.GetHashCode());
+        await Assert.That(Path2.GetHashCode()).IsNotEqualTo(Path1.GetHashCode());
     }
 
-    [Fact]
-    public void CanBeCompared()
+    [Test]
+    public async Task CanBeCompared()
     {
-        Assert.Equal(0, Path1.CompareTo(Path1a));
-        Assert.Equal(-1, Path1.CompareTo(Path2));
-        Assert.Equal(1, Path2.CompareTo(Path1a));
+        await Assert.That(Path1.CompareTo(Path1a)).IsEqualTo(0);
+        await Assert.That(Path1.CompareTo(Path2)).IsEqualTo(-1);
+        await Assert.That(Path2.CompareTo(Path1a)).IsEqualTo(1);
     }
 }
