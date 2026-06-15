@@ -1,0 +1,15 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Brand colors (from Wabbajack.App.Wpf/Themes/Styles.xaml) -->
+    <Color x:Key="ForegroundColor">#E5E5E8</Color>
+    <Color x:Key="PrimaryColor">#D8BAF8</Color>
+    <Color x:Key="ComplementaryPrimary08Color">#383750</Color>
+    <Color x:Key="DarkSecondaryColor">#363952</Color>
+    <Color x:Key="WindowBackgroundColor">#222531</Color>
+
+    <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}" />
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
+    <SolidColorBrush x:Key="ComplementaryPrimary08Brush" Color="{StaticResource ComplementaryPrimary08Color}" />
+    <SolidColorBrush x:Key="DarkSecondaryBrush" Color="{StaticResource DarkSecondaryColor}" />
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}" />
+</ResourceDictionary>
