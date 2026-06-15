@@ -13,6 +13,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        Nav.DataContext = Program.Services.GetRequiredService<NavigationVM>();
         ActivePane.Content = Program.Services.GetRequiredService<HomeVM>();
 
         MessageBus.Current.Listen<NavigateToGlobal>()
@@ -22,7 +23,7 @@ public partial class MainWindow : Window
     private object Resolve(ScreenType screen) => screen switch
     {
         ScreenType.Home => Program.Services.GetRequiredService<HomeVM>(),
-        // Other screens are added as their VMs are ported in later waves.
-        _ => ActivePane.Content!
+        // Other screens resolve to a placeholder until their wave ports them.
+        _ => new ScreenPlaceholderView(screen.ToString())
     };
 }
