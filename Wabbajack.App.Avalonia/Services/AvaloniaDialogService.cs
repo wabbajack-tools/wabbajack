@@ -1,3 +1,4 @@
+using Avalonia.Threading;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
 
@@ -7,8 +8,7 @@ public sealed class AvaloniaDialogService : IDialogService
 {
     public void ShowError(string message, string title)
     {
-        // Fire-and-forget; the MessageBox shows on the UI thread.
         var box = MessageBoxManager.GetMessageBoxStandard(title, message, ButtonEnum.Ok, Icon.Error);
-        _ = box.ShowAsync();
+        Dispatcher.UIThread.Post(() => _ = box.ShowAsync());
     }
 }

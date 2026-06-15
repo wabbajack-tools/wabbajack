@@ -8,6 +8,8 @@ namespace Wabbajack;
 
 public sealed class AvaloniaImageService : IImageService
 {
+    private static readonly System.Net.Http.HttpClient _http = new();
+
     public IObservable<object?> DownloadImage(IObservable<string?> urls, Action<Exception> onError, LoadingLock loadingLock)
         => urls.SelectMany(url => Observable.FromAsync(async () =>
         {
@@ -15,8 +17,7 @@ public sealed class AvaloniaImageService : IImageService
             using var ll = loadingLock.WithLoading();
             try
             {
-                using var http = new System.Net.Http.HttpClient();
-                await using var stream = await http.GetStreamAsync(url);
+                await using var stream = await _http.GetStreamAsync(url);
                 using var ms = new MemoryStream();
                 await stream.CopyToAsync(ms);
                 ms.Position = 0;
@@ -28,6 +29,13 @@ public sealed class AvaloniaImageService : IImageService
     public object? FromStream(Stream stream)
     {
         if (stream.CanSeek) stream.Position = 0;
-        return new Bitmap(stream);
+        try
+        {
+            return new Bitmap(stream);
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

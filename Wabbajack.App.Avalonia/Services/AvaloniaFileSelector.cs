@@ -8,6 +8,23 @@ using Wabbajack.Paths;
 
 namespace Wabbajack;
 
+/// <summary>
+/// Avalonia implementation of <see cref="IFileSelector"/>.
+/// </summary>
+/// <remarks>
+/// <para>
+/// <strong>Known limitation (Wave 0):</strong> <see cref="IFileSelector.SelectPath"/> is synchronous, but
+/// Avalonia's storage-picker APIs are async. The current implementation bridges this with
+/// <c>.GetAwaiter().GetResult()</c>, which will <strong>deadlock</strong> if called on the UI thread
+/// (the awaited Task needs the UI thread to complete, but the UI thread is blocked waiting for it).
+/// </para>
+/// <para>
+/// This is safe only when called from a background thread. <c>FilePickerVM</c> is not exercised in
+/// Wave 0, so the risk is contained for now. In a later wave, <see cref="IFileSelector"/> should be
+/// updated to expose an async signature (<c>Task&lt;AbsolutePath?&gt;</c>) to eliminate the
+/// sync-over-async pattern entirely.
+/// </para>
+/// </remarks>
 public sealed class AvaloniaFileSelector : IFileSelector
 {
     public AbsolutePath? SelectPath(FileSelectorRequest request)
