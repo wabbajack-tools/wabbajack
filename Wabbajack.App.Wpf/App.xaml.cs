@@ -433,21 +433,7 @@ public partial class App
         var webViewDir = currentDir.Combine("webview2");
         // ViewModels
         services.AddTransient<MainWindow>();
-        services.AddTransient<MainWindowVM>();
-        services.AddTransient<NavigationVM>();
-        services.AddTransient<HomeVM>();
-        services.AddTransient<ModListGalleryVM>();
-        services.AddTransient<CompilerHomeVM>();
-        services.AddTransient<CompilerDetailsVM>();
-        services.AddTransient<CompilerFileManagerVM>();
-        services.AddTransient<CompilerMainVM>();
-        services.AddTransient<InstallationVM>();
-        services.AddTransient<SettingsVM>();
-        services.AddTransient<WebBrowserVM>();
-        services.AddTransient<InfoVM>();
-        services.AddTransient<ModListDetailsVM>();
-        services.AddTransient<FileUploadVM>();
-        services.AddTransient<AboutVM>();
+        services.AddViewModels();
 
         // Login Managers
         services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
