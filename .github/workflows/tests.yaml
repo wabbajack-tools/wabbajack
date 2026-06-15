@@ -48,7 +48,13 @@ jobs:
       - name: Test
         if: ${{ github.ref != 'refs/heads/main' }}
         run: dotnet test --project Wabbajack.Test/Wabbajack.Test.csproj /p:EnableWindowsTargeting=true -- --treenode-filter "/*/*/*/*[Category!=RequiresOAuth]"
-        
+
+      - name: Build Avalonia app
+        run: dotnet build Wabbajack.App.Avalonia/Wabbajack.App.Avalonia.csproj /p:EnableWindowsTargeting=true
+
+      - name: Avalonia headless UI tests
+        run: dotnet test --project Wabbajack.App.Avalonia.Test/Wabbajack.App.Avalonia.Test.csproj /p:EnableWindowsTargeting=true
+
       #- name: Upload Test Folder on Failure
       #  if: ${{ failure() }}
       #  uses: actions/upload-artifact@v2
