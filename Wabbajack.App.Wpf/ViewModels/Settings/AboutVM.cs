@@ -58,7 +58,7 @@ public partial class AboutVM : ViewModel
                                         .Where(c => !c.Type.Equals("Bot", StringComparison.OrdinalIgnoreCase))
                                         .Select(c =>
                                         {
-                                            return new ContributorVM(_provider.GetRequiredService<ILogger<ContributorVM>>(), _provider.GetRequiredService<HttpClient>(), c, _provider.GetRequiredService<ImageCacheManager>());
+                                            return new ContributorVM(_provider.GetRequiredService<ILogger<ContributorVM>>(), _provider.GetRequiredService<IImageService>(), c);
                                         })
                                         .Take(5); // Sorry! Not enough space for everyone :(
                 Contributors = new ObservableCollection<ContributorVM>(contributorVMs);

@@ -113,6 +113,7 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
     private readonly IServiceProvider _serviceProvider;
     private readonly IFileSelector _fileSelector;
     private readonly IDialogService _dialogService;
+    private readonly IImageService _imageService;
 
     private readonly SemaphoreSlim _loadModListsGate = new(1, 1);
     private Task? _loadModListsTask;
@@ -131,7 +132,7 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 
     public ModListGalleryVM(ILogger<ModListGalleryVM> logger, Client wjClient, GameLocator locator,
         SettingsManager settingsManager, ModListDownloadMaintainer maintainer, CancellationToken cancellationToken, IServiceProvider serviceProvider,
-        IFileSelector fileSelector, IDialogService dialogService)
+        IFileSelector fileSelector, IDialogService dialogService, IImageService imageService)
         : base(logger)
     {
         var searchThrottle = TimeSpan.FromSeconds(0.35);
@@ -144,6 +145,7 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
         _serviceProvider = serviceProvider;
         _fileSelector = fileSelector;
         _dialogService = dialogService;
+        _imageService = imageService;
 
         LocalFilePicker = new FilePickerVM(_fileSelector, this);
         LocalFilePicker.ExistCheckOption = FilePickerVM.CheckOptions.On;
@@ -917,7 +919,7 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                 e.Clear();
                 e.AddOrUpdate(modLists.Select(m =>
                     new GalleryModListMetadataVM(_logger, this, m, _maintainer, modlistSummaries.TryGetValue(m.Links.MachineURL, out var summary) ? summary : null, _wjClient, _cancellationToken,
-                        httpClient, cacheManager)));
+                        _imageService)));
             });
             LoadGameTypeEntries();
             DetermineListSizeRange();

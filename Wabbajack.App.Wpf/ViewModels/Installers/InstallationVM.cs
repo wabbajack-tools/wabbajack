@@ -69,7 +69,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     [Reactive] public partial FilePickerVM WabbajackFileLocation { get; set; }
     [Reactive] public partial MO2InstallerVM Installer { get; set; }
     [Reactive] public partial StandardInstaller StandardInstaller { get; set; }
-    [Reactive] public partial BitmapImage ModListImage { get; set; }
+    [Reactive] public partial object ModListImage { get; set; }
     [Reactive] public partial InstallState InstallState { get; set; }
 
     [Reactive] public partial string FailureDetailsTitle { get; set; } = string.Empty;
@@ -89,7 +89,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     /// <summary>
     ///  Slideshow Data
     /// </summary>
-    [Reactive] public partial BitmapFrame SlideShowImage { get; set; }
+    [Reactive] public partial object SlideShowImage { get; set; }
     [Reactive] public partial string SlideShowTitle { get; set; }
     [Reactive] public partial string SlideShowAuthor { get; set; }
     [Reactive] public partial string SlideShowDescription { get; set; }
@@ -145,11 +145,12 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     public ICommand CreateShortcutCommand { get; }
 
     private readonly IFileSelector _fileSelector;
+    private readonly IImageService _imageService;
 
     public InstallationVM(ILogger<InstallationVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
         Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins,
-        IFileSelector fileSelector)
+        IFileSelector fileSelector, IImageService imageService)
     {
         _logger = logger;
         _configuration = configuration;
@@ -164,6 +165,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         _downloadDispatcher = dispatcher;
         _logins = logins;
         _fileSelector = fileSelector;
+        _imageService = imageService;
 
         ConfigurationText = $"Loading... Please wait";
         ProgressText = $"Installation";
@@ -595,7 +597,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         {
             ModList = await StandardInstaller.LoadFromFile(_dtos, path);
             var stream = await StandardInstaller.ModListImageStream(path);
-            if(stream != null) ModListImage = UIUtils.BitmapImageFromStream(stream);
+            if(stream != null) ModListImage = _imageService.FromStream(stream);
 
             ConfigurationText = $"Preparing to install {metadata?.Title ?? ModList.Name}";
             ProgressText = $"Installation";
@@ -1076,7 +1078,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 .ToArray();
             var thisMod = mods[_random.Next(0, mods.Length)];
             var data = await _client.GetByteArrayAsync(thisMod.ImageURL!);
-            var image = BitmapFrame.Create(new MemoryStream(data));
+            var image = _imageService.FromStream(new MemoryStream(data));
             SlideShowTitle = thisMod.Name;
             SlideShowAuthor = thisMod.Author;
             SlideShowDescription = thisMod.Description;

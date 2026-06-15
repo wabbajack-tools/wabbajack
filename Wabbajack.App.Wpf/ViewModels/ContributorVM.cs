@@ -9,7 +9,6 @@ using System.Reactive.Disposables;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Windows.Media.Imaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
@@ -31,27 +30,24 @@ namespace Wabbajack;
 public partial class ContributorVM : ViewModel
 {
     private readonly ILogger<ContributorVM> _logger;
-    private readonly HttpClient _httpClient;
-    private readonly ImageCacheManager _icm;
+    private readonly IImageService _imageService;
     private readonly Client _client;
 
     [Reactive] public partial Octokit.RepositoryContributor Contributor { get; set; }
-    protected ObservableAsPropertyHelper<BitmapImage> _Avatar { get; set; }
-    public BitmapImage Avatar => _Avatar.Value;
+    protected ObservableAsPropertyHelper<object> _Avatar { get; set; }
+    public object Avatar => _Avatar.Value;
     [Reactive] public partial ICommand OpenProfileCommand { get; private set; }
 
-    public ContributorVM(ILogger<ContributorVM> logger, HttpClient httpClient, Octokit.RepositoryContributor contributor, ImageCacheManager icm)
+    public ContributorVM(ILogger<ContributorVM> logger, IImageService imageService, Octokit.RepositoryContributor contributor)
     {
         _logger = logger;
-        _httpClient = httpClient;
-        _icm = icm;
+        _imageService = imageService;
         Contributor = contributor;
 
         OpenProfileCommand = ReactiveCommand.Create(OpenProfile);
 
-        var avatarObservable = Observable.Return(Contributor.AvatarUrl)
-            .ObserveOn(RxApp.TaskpoolScheduler)
-            .DownloadBitmapImage(ex => _logger.LogWarning(ex, "Could not load contributor image for user {Name}", Contributor.Login), LoadingLock, _httpClient, _icm)
+        var avatarObservable = _imageService
+            .DownloadImage(Observable.Return(Contributor.AvatarUrl), ex => _logger.LogWarning(ex, "Could not load contributor image for user {Name}", Contributor.Login), LoadingLock)
             .Replay(1)
             .RefCount(TimeSpan.FromMilliseconds(5000));
 

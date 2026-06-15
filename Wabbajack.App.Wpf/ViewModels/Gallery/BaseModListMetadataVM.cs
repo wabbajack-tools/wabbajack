@@ -62,8 +62,8 @@ public partial class BaseModListMetadataVM : ViewModel
 
     [Reactive] public partial IValidationResult Error { get; protected set; }
 
-    protected ObservableAsPropertyHelper<BitmapImage> _Image { get; set; }
-    public BitmapImage Image => _Image.Value;
+    protected ObservableAsPropertyHelper<object> _Image { get; set; }
+    public object Image => _Image.Value;
 
     protected ObservableAsPropertyHelper<bool> _LoadingImage { get; set; }
     public bool LoadingImage => _LoadingImage.Value;
@@ -76,10 +76,10 @@ public partial class BaseModListMetadataVM : ViewModel
     protected readonly Client _wjClient;
     protected readonly CancellationToken _cancellationToken;
     protected readonly ServiceProvider _serviceProvider;
-    protected readonly ImageCacheManager _icm;
+    protected readonly IImageService _imageService;
 
     public BaseModListMetadataVM(ILogger logger, ModlistMetadata metadata,
-        ModListDownloadMaintainer maintainer, ModListSummary? summary, Client wjClient, CancellationToken cancellationToken, HttpClient client, ImageCacheManager icm)
+        ModListDownloadMaintainer maintainer, ModListSummary? summary, Client wjClient, CancellationToken cancellationToken, IImageService imageService)
     {
         _logger = logger;
         _maintainer = maintainer;
@@ -87,6 +87,7 @@ public partial class BaseModListMetadataVM : ViewModel
         Summary = summary;
         _wjClient = wjClient;
         _cancellationToken = cancellationToken;
+        _imageService = imageService;
 
         GameMetaData = Metadata.Game.MetaData();
         Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.NamespacedName).WithExtension(Ext.Wabbajack);
@@ -107,10 +108,9 @@ public partial class BaseModListMetadataVM : ViewModel
         IsLoadingIdle = new Subject<bool>();
 
         var smallImageUri = UIUtils.GetLargeImageUri(metadata);
-        var imageObs = Observable.Return(smallImageUri)
-            .DownloadBitmapImage(
-                (ex) => _logger.LogError("Error downloading modlist image {Title} from {ImageUri}: {Exception}",
-                    Metadata.Title, smallImageUri, ex.ToString()), LoadingImageLock, client, icm);
+        var imageObs = _imageService.DownloadImage(Observable.Return(smallImageUri),
+            (ex) => _logger.LogError("Error downloading modlist image {Title} from {ImageUri}: {Exception}",
+                Metadata.Title, smallImageUri, ex.ToString()), LoadingImageLock);
 
             _Image = imageObs
                 .ToGuiProperty(this, nameof(Image))
