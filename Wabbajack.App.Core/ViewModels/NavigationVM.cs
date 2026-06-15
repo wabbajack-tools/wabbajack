@@ -38,7 +38,9 @@ public partial class NavigationVM : ViewModel
             .DisposeWith(CompositeDisposable);
 
         var processLocation = Process.GetCurrentProcess().MainModule?.FileName ?? throw new Exception("Process location is unavailable!");
-        var assembly = Assembly.GetExecutingAssembly();
+        // Use the entry assembly (the host app EXE) for the version string. NavigationVM lives in
+        // Wabbajack.App.Core, so GetExecutingAssembly() would report Core's version, not the host app's.
+        var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
         var assemblyLocation = assembly.Location;
         var fvi = FileVersionInfo.GetVersionInfo(string.IsNullOrWhiteSpace(assemblyLocation) ? processLocation : assemblyLocation);
         Version = $"{fvi.FileVersion}";
