@@ -119,7 +119,7 @@ public partial class MainWindowVM : ViewModel
         InfoVM = infoVM;
         ModListDetailsVM = modlistDetailsVM;
         FileUploadVM = fileUploadVM;
-        UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetRequiredService<ILogger<UserInterventionHandlers>>(), this);
+        UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetRequiredService<ILogger<UserInterventionHandlers>>(), this, serviceProvider.GetRequiredService<IDialogService>());
 
         StartProtocolPipeServer();
 

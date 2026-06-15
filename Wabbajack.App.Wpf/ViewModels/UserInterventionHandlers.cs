@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.Common;
@@ -15,19 +14,20 @@ public class UserInterventionHandlers
 {
     public MainWindowVM MainWindow { get; }
     private readonly ILogger<UserInterventionHandlers> _logger;
+    private readonly IDialogService _dialogService;
 
-    public UserInterventionHandlers(ILogger<UserInterventionHandlers> logger, MainWindowVM mvm)
+    public UserInterventionHandlers(ILogger<UserInterventionHandlers> logger, MainWindowVM mvm, IDialogService dialogService)
     {
         _logger = logger;
         MainWindow = mvm;
+        _dialogService = dialogService;
     }
     public async Task Handle(IStatusMessage msg)
     {
         switch (msg)
         {
             case CriticalFailureIntervention c:
-                MessageBox.Show(c.ExtendedDescription, c.ShortDescription, MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                _dialogService.ShowError(c.ExtendedDescription, c.ShortDescription);
                 c.Cancel();
                 if (c.ExitApplication) await MainWindow.ShutdownApplication();
                 break;

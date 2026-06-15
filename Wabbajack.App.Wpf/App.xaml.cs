@@ -422,6 +422,7 @@ public partial class App
         // Singletons
         services.AddSingleton<CefService>();
         services.AddSingleton<IFileSelector, WpfFileSelector>();
+        services.AddSingleton<IDialogService, WpfDialogService>();
         services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
         services.AddSingleton<ImageCacheManager>();
         services.AddSingleton<SystemParametersConstructor>();

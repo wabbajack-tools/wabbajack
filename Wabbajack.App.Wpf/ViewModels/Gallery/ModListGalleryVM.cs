@@ -112,6 +112,7 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
     private readonly CancellationToken _cancellationToken;
     private readonly IServiceProvider _serviceProvider;
     private readonly IFileSelector _fileSelector;
+    private readonly IDialogService _dialogService;
 
     private readonly SemaphoreSlim _loadModListsGate = new(1, 1);
     private Task? _loadModListsTask;
@@ -130,7 +131,7 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 
     public ModListGalleryVM(ILogger<ModListGalleryVM> logger, Client wjClient, GameLocator locator,
         SettingsManager settingsManager, ModListDownloadMaintainer maintainer, CancellationToken cancellationToken, IServiceProvider serviceProvider,
-        IFileSelector fileSelector)
+        IFileSelector fileSelector, IDialogService dialogService)
         : base(logger)
     {
         var searchThrottle = TimeSpan.FromSeconds(0.35);
@@ -142,6 +143,7 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
         _cancellationToken = cancellationToken;
         _serviceProvider = serviceProvider;
         _fileSelector = fileSelector;
+        _dialogService = dialogService;
 
         LocalFilePicker = new FilePickerVM(_fileSelector, this);
         LocalFilePicker.ExistCheckOption = FilePickerVM.CheckOptions.On;
@@ -535,11 +537,7 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                 Error = ValidationResult.Fail(errorMessage);
 
                 // Show popup error
-                MessageBox.Show(
-                    errorMessage,
-                    "Game Not Installed",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                _dialogService.ShowError(errorMessage, "Game Not Installed");
 
                 IsResolvingProtocol = false;
                 ProtocolStatusText = string.Empty;
@@ -740,11 +738,7 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                 Error = ValidationResult.Fail(errorMessage);
 
                 // Show popup error
-                MessageBox.Show(
-                    errorMessage,
-                    "Nexus Collection Download Failed",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                _dialogService.ShowError(errorMessage, "Nexus Collection Download Failed");
 
                 IsResolvingProtocol = false;
                 ProtocolStatusText = string.Empty;
