@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:local="clr-namespace:Wabbajack"
+    xmlns:core="clr-namespace:Wabbajack;assembly=Wabbajack.App.Core"
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:views="clr-namespace:Wabbajack.Views"
@@ -139,7 +140,7 @@
                     </Viewbox>
                     <ContentPresenter Content="{Binding ActivePane}" VerticalAlignment="Stretch" Margin="16">
                         <ContentPresenter.Resources>
-                            <DataTemplate DataType="{x:Type local:HomeVM}">
+                            <DataTemplate DataType="{x:Type core:HomeVM}">
                                 <local:HomeView ViewModel="{Binding}" />
                             </DataTemplate>
                             <DataTemplate DataType="{x:Type local:ModListGalleryVM}">

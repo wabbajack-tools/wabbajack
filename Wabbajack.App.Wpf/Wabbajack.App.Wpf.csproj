@@ -119,6 +119,7 @@
     <ProjectReference Include="..\Wabbajack.CLI.Builder\Wabbajack.CLI.Builder.csproj" />
     <ProjectReference Include="..\Wabbajack.CLI\Wabbajack.CLI.csproj" />
     <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
+    <ProjectReference Include="..\Wabbajack.App.Core\Wabbajack.App.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
