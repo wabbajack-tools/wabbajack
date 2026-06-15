@@ -1,0 +1,38 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:core="using:Wabbajack"
+             xmlns:local="using:Wabbajack"
+             xmlns:rxui="http://reactiveui.net"
+             x:Class="Wabbajack.NavigationView"
+             x:TypeArguments="core:NavigationVM"
+             x:DataType="core:NavigationVM"
+             Width="100">
+    <Grid RowDefinitions="Auto,8,Auto,8,Auto,*,Auto,Auto">
+        <Button Grid.Row="0" x:Name="HomeButton" Height="95" Margin="8,0,8,0" Command="{Binding HomeCommand}">
+            <Grid RowDefinitions="*,Auto">
+                <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Home" FontSize="36" Foreground="{DynamicResource ForegroundBrush}" />
+                <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,8,0,0" Text="Home" Foreground="{DynamicResource ForegroundBrush}" />
+            </Grid>
+        </Button>
+        <Button Grid.Row="2" x:Name="BrowseButton" Height="95" Margin="8,0,8,0" Command="{Binding BrowseCommand}">
+            <Grid RowDefinitions="*,Auto">
+                <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="CloudArrowDown" FontSize="36" Foreground="{DynamicResource ForegroundBrush}" />
+                <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,8,0,0" Text="Browse lists" Foreground="{DynamicResource ForegroundBrush}" />
+            </Grid>
+        </Button>
+        <Button Grid.Row="4" x:Name="CompileButton" Height="95" Margin="8,0,8,0" Command="{Binding CompileModListCommand}">
+            <Grid RowDefinitions="*,Auto">
+                <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Toolbox" FontSize="36" Foreground="{DynamicResource ForegroundBrush}" />
+                <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,8,0,0" Text="Create a list" Foreground="{DynamicResource ForegroundBrush}" />
+            </Grid>
+        </Button>
+        <Button Grid.Row="6" x:Name="SettingsButton" Padding="12" Height="95" Margin="8,0,8,0" Command="{Binding SettingsCommand}">
+            <Grid RowDefinitions="*,Auto">
+                <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Settings" FontSize="36" Foreground="{DynamicResource ForegroundBrush}" />
+                <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,8,0,0" Text="Settings" Foreground="{DynamicResource ForegroundBrush}" />
+            </Grid>
+        </Button>
+        <TextBlock Grid.Row="7" x:Name="VersionTextBlock" Text="{Binding Version}" FontSize="12" HorizontalAlignment="Center" Margin="0,10,0,10" Foreground="{DynamicResource ForegroundBrush}" Opacity="0.66" />
+    </Grid>
+</rxui:ReactiveUserControl>
