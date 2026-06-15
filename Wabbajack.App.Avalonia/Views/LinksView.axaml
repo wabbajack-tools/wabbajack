@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             x:Class="Wabbajack.LinksView">
+    <StackPanel Spacing="16">
+        <Button x:Name="PatreonButton" Click="Patreon_Click" Width="180" Height="49">
+            <DockPanel LastChildFill="True">
+                <ic:SymbolIcon DockPanel.Dock="Right" FontSize="24" Symbol="Heart" VerticalAlignment="Center"
+                               Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,16,0" />
+                <TextBlock FontWeight="DemiBold" FontSize="18" VerticalAlignment="Center" Margin="16,0,0,0" Text="Patreon" />
+            </DockPanel>
+        </Button>
+        <Button x:Name="GitHubButton" Click="GitHub_Click" Width="180" Height="49">
+            <DockPanel LastChildFill="True">
+                <ic:SymbolIcon DockPanel.Dock="Right" FontSize="24" Symbol="BranchFork" VerticalAlignment="Center"
+                               Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,16,0" />
+                <TextBlock FontWeight="DemiBold" FontSize="18" VerticalAlignment="Center" Margin="16,0,0,0" Text="GitHub" />
+            </DockPanel>
+        </Button>
+        <Button x:Name="DiscordButton" Click="Discord_Click" Width="180" Height="49">
+            <DockPanel LastChildFill="True">
+                <ic:SymbolIcon DockPanel.Dock="Right" FontSize="24" Symbol="PeopleChat" VerticalAlignment="Center"
+                               Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,16,0" />
+                <TextBlock FontWeight="DemiBold" FontSize="18" VerticalAlignment="Center" Margin="16,0,0,0" Text="Discord" />
+            </DockPanel>
+        </Button>
+        <Button x:Name="WikiButton" Click="Wiki_Click" Width="180" Height="49">
+            <DockPanel LastChildFill="True">
+                <ic:SymbolIcon DockPanel.Dock="Right" FontSize="24" Symbol="QuestionCircle" VerticalAlignment="Center"
+                               Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,16,0" />
+                <TextBlock FontWeight="DemiBold" FontSize="18" VerticalAlignment="Center" Margin="16,0,0,0" Text="Wiki" />
+            </DockPanel>
+        </Button>
+    </StackPanel>
+</UserControl>
