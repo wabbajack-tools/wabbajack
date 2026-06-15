@@ -31,6 +31,7 @@ public partial class CompilerHomeVM : ViewModel
     private readonly CancellationToken _cancellationToken;
     private readonly DTOSerializer _dtos;
     private readonly CompilerSettingsInferencer _inferencer;
+    private readonly IFileSelector _fileSelector;
 
     [Reactive] public partial ICommand NewModlistCommand { get; set; }
     [Reactive] public partial ICommand LoadSettingsCommand { get; set; }
@@ -41,36 +42,38 @@ public partial class CompilerHomeVM : ViewModel
     public FilePickerVM NewModlistPicker { get; private set; }
 
     public CompilerHomeVM(ILogger<CompilerHomeVM> logger, SettingsManager settingsManager,
-        IServiceProvider serviceProvider, DTOSerializer dtos, CompilerSettingsInferencer inferencer)
+        IServiceProvider serviceProvider, DTOSerializer dtos, CompilerSettingsInferencer inferencer,
+        IFileSelector fileSelector)
     {
         _logger = logger;
         _settingsManager = settingsManager;
         _serviceProvider = serviceProvider;
         _dtos = dtos;
         _inferencer = inferencer;
+        _fileSelector = fileSelector;
 
         MessageBus.Current.Listen<ReloadCompiledModLists>()
             .Subscribe(m => LoadAllCompilerSettings().FireAndForget())
             .DisposeWith(CompositeDisposable);
 
-        NewModlistPicker = new FilePickerVM
+        NewModlistPicker = new FilePickerVM(_fileSelector)
         {
             ExistCheckOption = FilePickerVM.CheckOptions.On,
             PathType = FilePickerVM.PathTypeOptions.File,
             PromptTitle = "Select a Mod Organizer profile (modlist.txt)"
         };
         NewModlistPicker.Filters.AddRange([
-            new CommonFileDialogFilter("Modlist", "modlist" + Ext.Txt)
+            new FileFilter("Modlist", "modlist" + Ext.Txt)
         ]);
 
-        CompilerSettingsPicker = new FilePickerVM
+        CompilerSettingsPicker = new FilePickerVM(_fileSelector)
         {
             ExistCheckOption = FilePickerVM.CheckOptions.On,
             PathType = FilePickerVM.PathTypeOptions.File,
             PromptTitle = "Select a compiler settings file"
         };
         CompilerSettingsPicker.Filters.AddRange([
-            new CommonFileDialogFilter("Compiler Settings File", "*" + Ext.CompilerSettings)
+            new FileFilter("Compiler Settings File", "*" + Ext.CompilerSettings)
         ]);
 
         NewModlistCommand = ReactiveCommand.CreateFromTask(async () => {

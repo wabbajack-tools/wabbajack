@@ -111,6 +111,7 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
     private readonly SettingsManager _settingsManager;
     private readonly CancellationToken _cancellationToken;
     private readonly IServiceProvider _serviceProvider;
+    private readonly IFileSelector _fileSelector;
 
     private readonly SemaphoreSlim _loadModListsGate = new(1, 1);
     private Task? _loadModListsTask;
@@ -128,7 +129,8 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
     public ICommand LoadLocalFileCommand { get; set; }
 
     public ModListGalleryVM(ILogger<ModListGalleryVM> logger, Client wjClient, GameLocator locator,
-        SettingsManager settingsManager, ModListDownloadMaintainer maintainer, CancellationToken cancellationToken, IServiceProvider serviceProvider)
+        SettingsManager settingsManager, ModListDownloadMaintainer maintainer, CancellationToken cancellationToken, IServiceProvider serviceProvider,
+        IFileSelector fileSelector)
         : base(logger)
     {
         var searchThrottle = TimeSpan.FromSeconds(0.35);
@@ -139,13 +141,14 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
         _settingsManager = settingsManager;
         _cancellationToken = cancellationToken;
         _serviceProvider = serviceProvider;
+        _fileSelector = fileSelector;
 
-        LocalFilePicker = new FilePickerVM(this);
+        LocalFilePicker = new FilePickerVM(_fileSelector, this);
         LocalFilePicker.ExistCheckOption = FilePickerVM.CheckOptions.On;
         LocalFilePicker.PathType = FilePickerVM.PathTypeOptions.File;
         LocalFilePicker.Filters.AddRange(new[]
         {
-            new CommonFileDialogFilter("Wabbajack Modlist", "*" + Ext.Wabbajack),
+            new FileFilter("Wabbajack Modlist", "*" + Ext.Wabbajack),
         });
 
         ResetFiltersCommand = ReactiveCommand.Create(() => {

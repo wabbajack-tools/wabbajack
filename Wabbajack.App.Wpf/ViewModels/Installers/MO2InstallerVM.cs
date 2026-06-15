@@ -35,11 +35,14 @@ public partial class MO2InstallerVM : ViewModel, ISubInstallerVM
 
     public int ConfigVisualVerticalOffset => 25;
 
-    public MO2InstallerVM(InstallationVM installerVM)
+    private readonly IFileSelector _fileSelector;
+
+    public MO2InstallerVM(InstallationVM installerVM, IFileSelector fileSelector)
     {
         Parent = installerVM;
+        _fileSelector = fileSelector;
 
-        Location = new FilePickerVM()
+        Location = new FilePickerVM(_fileSelector)
         {
             ExistCheckOption = FilePickerVM.CheckOptions.Off,
             PathType = FilePickerVM.PathTypeOptions.Folder,
@@ -54,7 +57,7 @@ public partial class MO2InstallerVM : ViewModel, ISubInstallerVM
                 }
             }).DisposeWith(CompositeDisposable);
 
-        DownloadLocation = new FilePickerVM()
+        DownloadLocation = new FilePickerVM(_fileSelector)
         {
             ExistCheckOption = FilePickerVM.CheckOptions.Off,
             PathType = FilePickerVM.PathTypeOptions.Folder,

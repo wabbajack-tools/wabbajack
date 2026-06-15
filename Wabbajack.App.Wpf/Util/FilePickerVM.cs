@@ -1,5 +1,4 @@
 ﻿using DynamicData;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using System;
@@ -67,13 +66,16 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<string> _errorTooltip;
         public string ErrorTooltip => _errorTooltip.Value;
 
-        public SourceList<CommonFileDialogFilter> Filters { get; } = new();
+        public SourceList<FileFilter> Filters { get; } = new();
 
         public const string PathDoesNotExistText = "Path does not exist";
         public const string DoesNotPassFiltersText = "Path does not pass designated filters";
 
-        public FilePickerVM(object parentVM = null)
+        private readonly IFileSelector _fileSelector;
+
+        public FilePickerVM(IFileSelector fileSelector, object parentVM = null)
         {
+            _fileSelector = fileSelector;
             Parent = parentVM;
             SetTargetPathCommand = ConstructTypicalPickerCommand();
 
@@ -185,7 +187,11 @@ namespace Wabbajack
 
                     try
                     {
-                        if (!query.Any(filter => filter.Extensions.Any(ext => new Extension("." + ext) == target.Extension))) return false;
+                        if (!query.Any(filter => filter.Patterns.Any(p =>
+                        {
+                            var dot = p.LastIndexOf('.');
+                            return dot >= 0 && new Extension(p[dot..]) == target.Extension;
+                        }))) return false;
                     }
                     catch (ArgumentException)
                     {
@@ -251,30 +257,17 @@ namespace Wabbajack
             return ReactiveCommand.Create(
                 execute: () =>
                 {
-                    AbsolutePath dirPath;
-                    dirPath = TargetPath.FileExists() ? TargetPath.Parent : TargetPath;
-                    var dlg = new CommonOpenFileDialog
+                    var dirPath = TargetPath.FileExists() ? TargetPath.Parent : TargetPath;
+                    var selected = _fileSelector.SelectPath(new FileSelectorRequest
                     {
                         Title = PromptTitle,
                         IsFolderPicker = PathType == PathTypeOptions.Folder,
-                        InitialDirectory = dirPath.ToString(),
-                        AddToMostRecentlyUsedList = false,
-                        AllowNonFileSystemItems = false,
-                        DefaultDirectory = dirPath.ToString(),
-                        EnsureFileExists = true,
-                        EnsurePathExists = true,
-                        EnsureReadOnly = false,
-                        EnsureValidNames = true,
-                        Multiselect = false,
-                        ShowPlacesList = true,
-                    };
-                    foreach (var filter in Filters.Items)
-                    {
-                        dlg.Filters.Add(filter);
-                    }
-                    if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
+                        InitialDirectory = dirPath,
+                        Filters = Filters.Items.ToList(),
+                    });
+                    if (selected == null) return;
 
-                    var path = (AbsolutePath)dlg.FileName;
+                    var path = selected.Value;
                     TargetPath = PathTransformer == null ? path : PathTransformer(path);
 
                 }, canExecute: canExecute);

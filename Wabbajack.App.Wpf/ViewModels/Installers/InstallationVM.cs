@@ -143,10 +143,13 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     public ICommand EditInstallDetailsCommand { get; }
     public ICommand VerifyCommand { get; }
     public ICommand CreateShortcutCommand { get; }
-    
+
+    private readonly IFileSelector _fileSelector;
+
     public InstallationVM(ILogger<InstallationVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
-        Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins)
+        Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins,
+        IFileSelector fileSelector)
     {
         _logger = logger;
         _configuration = configuration;
@@ -160,11 +163,12 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         _client = client;
         _downloadDispatcher = dispatcher;
         _logins = logins;
+        _fileSelector = fileSelector;
 
         ConfigurationText = $"Loading... Please wait";
         ProgressText = $"Installation";
 
-        Installer = new MO2InstallerVM(this);
+        Installer = new MO2InstallerVM(this, _fileSelector);
 
 
         CancelCommand = ReactiveCommand.Create(CancelInstall, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
@@ -191,13 +195,13 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
             UIUtils.OpenWebsite(ModList.Website);
         }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModList.Website, (isNotLoading, website) => isNotLoading && !string.IsNullOrWhiteSpace(website)));
         
-        WabbajackFileLocation = new FilePickerVM
+        WabbajackFileLocation = new FilePickerVM(_fileSelector)
         {
             ExistCheckOption = FilePickerVM.CheckOptions.On,
             PathType = FilePickerVM.PathTypeOptions.File,
             PromptTitle = "Select a modlist to install"
         };
-        WabbajackFileLocation.Filters.Add(new CommonFileDialogFilter("Wabbajack modlist", "*.wabbajack"));
+        WabbajackFileLocation.Filters.Add(new FileFilter("Wabbajack modlist", "*.wabbajack"));
         
         OpenLogFolderCommand = ReactiveCommand.Create(() =>
         {

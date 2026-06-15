@@ -39,13 +39,14 @@ public partial class FileUploadVM : ViewModel
     private IObservable<bool> IsUploading { get; }
     public WabbajackApiState ApiToken { get; private set; }
 
-    public FileUploadVM(ILogger<FileUploadVM> logger, WabbajackApiTokenProvider tokenProvider, Client wjClient, SettingsVM vm)
+    public FileUploadVM(ILogger<FileUploadVM> logger, WabbajackApiTokenProvider tokenProvider, Client wjClient, SettingsVM vm,
+        IFileSelector fileSelector)
     {
         _logger = logger;
         _tokenProvider = tokenProvider;
         _wjClient = wjClient;
         IsUploading = _isUploading;
-        Picker = new FilePickerVM(this);
+        Picker = new FilePickerVM(fileSelector, this);
 
         Task.Run(async () =>
         {

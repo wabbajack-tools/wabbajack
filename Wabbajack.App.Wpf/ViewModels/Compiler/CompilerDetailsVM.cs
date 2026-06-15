@@ -40,7 +40,8 @@ public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
 {
     private readonly ResourceMonitor _resourceMonitor;
     private readonly CompilerSettingsInferencer _inferencer;
-    
+    private readonly IFileSelector _fileSelector;
+
     public CompilerFileManagerVM CompilerFileManagerVM { get; private set; }
     [Reactive] public partial List<string> AvailableProfiles { get; set; }
 
@@ -55,7 +56,7 @@ public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
     public FilePickerVM DownloadLocation { get; private set; }
     public FilePickerVM OutputLocation { get; private set; }
 
-    public FilePickerVM ModListImageLocation { get; private set; } = new();
+    public FilePickerVM ModListImageLocation { get; private set; }
     
     /* public ReactiveCommand<Unit, Unit> ExecuteCommand { get; } */
     public ReactiveCommand<Unit, Unit> ReInferSettingsCommand { get; set; }
@@ -69,11 +70,12 @@ public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
     
     public CompilerDetailsVM(ILogger<CompilerDetailsVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
         IServiceProvider serviceProvider, LogStream loggerProvider, ResourceMonitor resourceMonitor, 
-        CompilerSettingsInferencer inferencer, Client wjClient, CompilerFileManagerVM compilerFileManagerVM) : base(dtos, settingsManager, logger, wjClient)
+        CompilerSettingsInferencer inferencer, IFileSelector fileSelector, Client wjClient, CompilerFileManagerVM compilerFileManagerVM) : base(dtos, settingsManager, logger, wjClient)
     {
         LoggerProvider = loggerProvider;
         _resourceMonitor = resourceMonitor;
         _inferencer = inferencer;
+        _fileSelector = fileSelector;
         CompilerFileManagerVM = compilerFileManagerVM;
 
         SubCompilerVM = new MO2CompilerVM(this);
@@ -85,7 +87,7 @@ public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
         {
             State = CompilerState.Configuration;
 
-            ModlistLocation = new FilePickerVM
+            ModlistLocation = new FilePickerVM(_fileSelector)
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.File,
@@ -95,18 +97,18 @@ public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
 
             ModlistLocation.Filters.AddRange(new[]
             {
-                new CommonFileDialogFilter("MO2 Modlist", "*" + Ext.Txt),
-                new CommonFileDialogFilter("Compiler Settings File", "*" + Ext.CompilerSettings)
+                new FileFilter("MO2 Modlist", "*" + Ext.Txt),
+                new FileFilter("Compiler Settings File", "*" + Ext.CompilerSettings)
             });
 
-            DownloadLocation = new FilePickerVM
+            DownloadLocation = new FilePickerVM(_fileSelector)
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Location where the downloads for this list are stored"
             };
 
-            OutputLocation = new FilePickerVM
+            OutputLocation = new FilePickerVM(_fileSelector)
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.Off,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
@@ -114,7 +116,7 @@ public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
                 PathTransformer = (folder) => folder.DirectoryExists() ? folder.Combine(!string.IsNullOrWhiteSpace(Settings?.ModListName) ? Settings.ModListName : "Default").WithExtension(Ext.Wabbajack) : folder
             };
 
-            ModListImageLocation = new FilePickerVM
+            ModListImageLocation = new FilePickerVM(_fileSelector)
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.File,
@@ -122,9 +124,9 @@ public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
             };
             ModListImageLocation.Filters.AddRange(new[]
             {
-                new CommonFileDialogFilter("WebP Image (preferred)", "*" + Ext.Webp),
-                new CommonFileDialogFilter("PNG Image", "*" + Ext.Png),
-                new CommonFileDialogFilter("JPG Image", "*" + Ext.Jpg),
+                new FileFilter("WebP Image (preferred)", "*" + Ext.Webp),
+                new FileFilter("PNG Image", "*" + Ext.Png),
+                new FileFilter("JPG Image", "*" + Ext.Jpg),
             });
 
 
