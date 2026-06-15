@@ -32,18 +32,20 @@ public class HomeViewTests
             window.Arrange(new Rect(0, 0, 1000, 700));
 
             // The view is "rendered" when its content has produced a realized visual tree.
-            var viewRendered = view.GetVisualDescendants().OfType<Control>().Any();
+            var descendants = view.GetVisualDescendants().OfType<Control>().ToList();
 
             ScreenType? screen = null;
             using var sub = MessageBus.Current.Listen<NavigateToGlobal>().Subscribe(m => screen = m.Screen);
 
             vm.BrowseCommand.Execute(null);
 
-            return (viewRendered, screen);
+            return (descendants, screen);
         });
 
-        // Core proof: the view realized a visual tree AND BrowseCommand fired the global navigation.
-        await Assert.That(rendered).IsTrue();
+        // Core proof: the view realized a full visual tree (BigButton + LinksView both rendered)
+        // AND BrowseCommand fired the global navigation.
+        await Assert.That(rendered.OfType<global::Wabbajack.BigButton>().Any()).IsTrue();
+        await Assert.That(rendered.OfType<global::Wabbajack.LinksView>().Any()).IsTrue();
         await Assert.That(navigatedTo).IsEqualTo(ScreenType.ModListGallery);
     }
 }
