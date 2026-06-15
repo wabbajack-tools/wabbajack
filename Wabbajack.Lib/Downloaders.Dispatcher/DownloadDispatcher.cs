@@ -90,6 +90,7 @@ public class DownloadDispatcher
             if (!dest.Parent.DirectoryExists())
                 dest.Parent.CreateDirectory();
 
+            a = ReinterpretIfOrphaned(a);
             var downloader = Downloader(a);
             if ((useProxy ?? _useProxyCache) && downloader is IProxyable p)
             {
@@ -130,6 +131,7 @@ public class DownloadDispatcher
     {
         try
         {
+            a = ReinterpretIfOrphaned(a);
             var (valid, newState) = await _verificationCache.Get(a.State);
             if (valid == true)
             {
@@ -266,6 +268,25 @@ public class DownloadDispatcher
         if (result != null) return result!;
         _logger.LogError("No downloader found for {type}", archive.State.GetType());
         throw new NotImplementedException($"No downloader for {archive.State.GetType()}");
+    }
+
+    /// <summary>
+    /// If no registered downloader can handle the archive's state (e.g. a retired source such as
+    /// Mega or Bethesda), reinterpret it as a <see cref="DTOs.DownloadStates.Manual"/> download so
+    /// the user can fetch the file by hand. Returns the archive unchanged when a downloader exists.
+    /// </summary>
+    public Archive ReinterpretIfOrphaned(Archive a)
+    {
+        if (_downloaders.Any(d => d.CanDownload(a))) return a;
+
+        var manual = ManualReinterpreter.ToManual(a.State);
+        if (manual == null) return a;
+
+        _logger.LogInformation(
+            "No dedicated downloader for {State}; reinterpreting {Name} as a manual download from {Url}",
+            a.State.GetType().Name, a.Name, manual.Url);
+
+        return new Archive { Name = a.Name, Size = a.Size, Hash = a.Hash, State = manual };
     }
 
     public bool TryGetDownloader(Archive archive, out IDownloader downloader)

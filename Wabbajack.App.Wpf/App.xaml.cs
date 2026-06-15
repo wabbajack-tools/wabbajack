@@ -447,12 +447,10 @@ public partial class App
         services.AddTransient<InfoVM>();
         services.AddTransient<ModListDetailsVM>();
         services.AddTransient<FileUploadVM>();
-        services.AddTransient<MegaLoginVM>();
         services.AddTransient<AboutVM>();
 
         // Login Managers
         services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
-        services.AddAllSingleton<INeedsLogin, MegaLoginManager>();
         services.AddSingleton<NexusCollectionDownloader>();
         // Verbs
         services.AddSingleton<CommandLineBuilder>();

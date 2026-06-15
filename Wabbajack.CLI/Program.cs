@@ -19,7 +19,6 @@ using Wabbajack.Services.OSIntegrated;
 using Wabbajack.VFS;
 using Client = Wabbajack.Networking.GitHub.Client;
 using Wabbajack.CLI.Builder;
-using CG.Web.MegaApiClient;
 
 namespace Wabbajack.CLI;
 
@@ -43,7 +42,6 @@ internal class Program
                 services.AddSingleton<Networking.WabbajackClientApi.Client>();
                 services.AddSingleton(s => new GitHubClient(new ProductHeaderValue("wabbajack")));
                 services.AddSingleton<TemporaryFileManager>();
-                services.AddSingleton<MegaApiClient>();
                 services.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
 
                 services.AddOSIntegrated();
