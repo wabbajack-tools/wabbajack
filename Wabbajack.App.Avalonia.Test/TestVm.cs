@@ -22,8 +22,11 @@ public static class TestVm
             o.UseStubbedGameFolders = true;
         });
         s.AddTransient<global::Wabbajack.HomeVM>();
+        s.AddTransient<global::Wabbajack.NavigationVM>();
         return s.BuildServiceProvider();
     }
 
     public static global::Wabbajack.HomeVM Home() => Sp.GetRequiredService<global::Wabbajack.HomeVM>();
+
+    public static global::Wabbajack.NavigationVM Navigation() => Sp.GetRequiredService<global::Wabbajack.NavigationVM>();
 }

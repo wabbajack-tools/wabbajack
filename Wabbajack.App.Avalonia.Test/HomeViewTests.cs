@@ -39,6 +39,11 @@ public class HomeViewTests
 
             vm.BrowseCommand.Execute(null);
 
+            // Close the headless window before the dispatch returns. Leaving multiple shown headless
+            // windows open across [NotInParallel] tests deadlocks the shared single-threaded headless
+            // session on a later Dispatch; closing here keeps the session reusable.
+            window.Close();
+
             return (descendants, screen);
         });
 
