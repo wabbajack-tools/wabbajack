@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.App.Core", "Wabba
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.App.Avalonia", "Wabbajack.App.Avalonia\Wabbajack.App.Avalonia.csproj", "{A719D5B8-108B-4610-BD7A-F9A1D616DCD3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.App.Avalonia.Test", "Wabbajack.App.Avalonia.Test\Wabbajack.App.Avalonia.Test.csproj", "{4C2E0E6F-BEC3-4C36-8C2F-FEB9163FAA27}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -163,6 +165,18 @@ Global
 		{A719D5B8-108B-4610-BD7A-F9A1D616DCD3}.Release|x64.Build.0 = Release|Any CPU
 		{A719D5B8-108B-4610-BD7A-F9A1D616DCD3}.Release|x86.ActiveCfg = Release|Any CPU
 		{A719D5B8-108B-4610-BD7A-F9A1D616DCD3}.Release|x86.Build.0 = Release|Any CPU
+		{4C2E0E6F-BEC3-4C36-8C2F-FEB9163FAA27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C2E0E6F-BEC3-4C36-8C2F-FEB9163FAA27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C2E0E6F-BEC3-4C36-8C2F-FEB9163FAA27}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4C2E0E6F-BEC3-4C36-8C2F-FEB9163FAA27}.Debug|x64.Build.0 = Debug|Any CPU
+		{4C2E0E6F-BEC3-4C36-8C2F-FEB9163FAA27}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4C2E0E6F-BEC3-4C36-8C2F-FEB9163FAA27}.Debug|x86.Build.0 = Debug|Any CPU
+		{4C2E0E6F-BEC3-4C36-8C2F-FEB9163FAA27}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C2E0E6F-BEC3-4C36-8C2F-FEB9163FAA27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C2E0E6F-BEC3-4C36-8C2F-FEB9163FAA27}.Release|x64.ActiveCfg = Release|Any CPU
+		{4C2E0E6F-BEC3-4C36-8C2F-FEB9163FAA27}.Release|x64.Build.0 = Release|Any CPU
+		{4C2E0E6F-BEC3-4C36-8C2F-FEB9163FAA27}.Release|x86.ActiveCfg = Release|Any CPU
+		{4C2E0E6F-BEC3-4C36-8C2F-FEB9163FAA27}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
