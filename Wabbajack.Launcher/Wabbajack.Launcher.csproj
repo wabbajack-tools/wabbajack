@@ -21,14 +21,14 @@
       <None Remove="Assets\wabbajack.ico" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.14" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.17" />
         <PackageReference Include="GitInfo" Version="3.6.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Avalonia" Version="11.3.14" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.3.14" />
-        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.14" />
+        <PackageReference Include="Avalonia" Version="11.3.17" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.3.17" />
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.17" />
         <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.9" />
         <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
         <PackageReference Include="MessageBox.Avalonia" Version="3.3.1.1" />

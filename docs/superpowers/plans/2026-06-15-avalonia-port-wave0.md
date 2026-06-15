@@ -4,9 +4,9 @@
 
 **Goal:** Stand up a new cross-platform Avalonia app (`Wabbajack.App.Avalonia`) that reuses the existing `Wabbajack.App.Core` ViewModels, renders a high-fidelity `HomeView`, and is covered by a real headless UI test — proving every pattern needed to port the rest of the app.
 
-**Architecture:** A parallel Avalonia 11.3.14 app beside the WPF app (deleted only in the final wave). DI via `Microsoft.Extensions.DependencyInjection`; a ReactiveUI-style `ViewLocator` maps VM→View; navigation reuses the existing `NavigateToGlobal` message bus already in Core; the three UI abstractions (`IFileSelector`/`IDialogService`/`IImageService`) get Avalonia implementations. Headless tests use Avalonia's framework-agnostic `HeadlessUnitTestSession` driven from TUnit.
+**Architecture:** A parallel Avalonia 11.3.17 app beside the WPF app (deleted only in the final wave). DI via `Microsoft.Extensions.DependencyInjection`; a ReactiveUI-style `ViewLocator` maps VM→View; navigation reuses the existing `NavigateToGlobal` message bus already in Core; the three UI abstractions (`IFileSelector`/`IDialogService`/`IImageService`) get Avalonia implementations. Headless tests use Avalonia's framework-agnostic `HeadlessUnitTestSession` driven from TUnit.
 
-**Tech Stack:** Avalonia 11.3.14, `Avalonia.ReactiveUI`, `Avalonia.Themes.Fluent`, `Avalonia.Headless`, `FluentIcons.Avalonia`, `MessageBox.Avalonia`, `Microsoft.Extensions.DependencyInjection/Hosting`, TUnit, `Wabbajack.App.Core`, `Wabbajack.Lib`.
+**Tech Stack:** Avalonia 11.3.17, `Avalonia.ReactiveUI`, `Avalonia.Themes.Fluent`, `Avalonia.Headless`, `FluentIcons.Avalonia`, `MessageBox.Avalonia`, `Microsoft.Extensions.DependencyInjection/Hosting`, TUnit, `Wabbajack.App.Core`, `Wabbajack.Lib`.
 
 **Reference files (read these while implementing):**
 - Bootstrap pattern: `Wabbajack.Launcher/{Program.cs,App.axaml,App.axaml.cs,ViewLocator.cs}`
@@ -47,12 +47,12 @@
     <NoWarn>CS8600;CS8601;CS8618;CS8604;CS1998</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.3.14" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.3.14" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.14" />
-    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.14" />
+    <PackageReference Include="Avalonia" Version="11.3.17" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.17" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.17" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.17" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.9" />
-    <PackageReference Include="FluentIcons.Avalonia" Version="1.1.299" />
+    <PackageReference Include="FluentIcons.Avalonia" Version="1.1.300" />
     <PackageReference Include="MessageBox.Avalonia" Version="3.3.1.1" />
     <PackageReference Include="ReactiveUI.SourceGenerators" Version="2.6.30" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
@@ -744,7 +744,7 @@ git commit -m "Avalonia Wave 0: HomeView + DI host + navigation; app shows Home 
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="TUnit" Version="1.55.2" />
-    <PackageReference Include="Avalonia.Headless" Version="11.3.14" />
+    <PackageReference Include="Avalonia.Headless" Version="11.3.17" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Wabbajack.App.Avalonia\Wabbajack.App.Avalonia.csproj" />
@@ -790,7 +790,7 @@ public static class HeadlessSession
     public static Task Dispatch(Func<Task> body) => _session.Value.Dispatch(body, default);
 }
 ```
-> Confirm the `HeadlessUnitTestSession.StartNew` / `Dispatch` signatures against `Avalonia.Headless` 11.3.14 (the XUnit/NUnit integrations use this type internally). `StartNew` takes the type exposing a static `BuildAvaloniaApp()`.
+> Confirm the `HeadlessUnitTestSession.StartNew` / `Dispatch` signatures against `Avalonia.Headless` 11.3.17 (the XUnit/NUnit integrations use this type internally). `StartNew` takes the type exposing a static `BuildAvaloniaApp()`.
 
 - [ ] **Step 4: Write the failing headless test**
 
