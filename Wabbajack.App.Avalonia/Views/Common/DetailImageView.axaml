@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Wabbajack.DetailImageView"
+             ClipToBounds="True">
+    <Border CornerRadius="8" ClipToBounds="True">
+        <Grid RowDefinitions="Auto,*,Auto,Auto">
+            <Rectangle Grid.RowSpan="4" Fill="Black" />
+            <Image Grid.RowSpan="4" Stretch="UniformToFill"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Source="{Binding Image, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+            <TextBlock Grid.Row="2" Margin="16,0,0,0"
+                       HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                       FontWeight="Bold" TextWrapping="WrapWithOverflow"
+                       Foreground="{DynamicResource ForegroundBrush}"
+                       FontSize="{Binding TitleFontSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                       Text="{Binding Title, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+            <StackPanel Grid.Row="3" Margin="16,0,0,16" Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="version" Foreground="{DynamicResource Transparent66ForegroundBrush}"
+                           FontSize="{Binding AuthorFontSize, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                <TextBlock Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="{Binding AuthorFontSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                           Text="{Binding Version, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                <TextBlock Text="by" Foreground="{DynamicResource Transparent66ForegroundBrush}"
+                           FontSize="{Binding AuthorFontSize, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                <TextBlock Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="{Binding AuthorFontSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                           Text="{Binding Author, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>
