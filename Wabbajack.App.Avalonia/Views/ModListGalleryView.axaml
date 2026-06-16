@@ -85,10 +85,16 @@
                                    Foreground="{DynamicResource ForegroundBrush}" />
                     </StackPanel>
                 </Grid>
-                <Button Margin="0,12,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                <Button Margin="0,12,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
                         Background="{DynamicResource ComplementaryPrimary08Brush}"
-                        Foreground="{DynamicResource ForegroundBrush}"
-                        Content="{Binding HasMods.Count, StringFormat='{}{0} selected'}">
+                        Foreground="{DynamicResource ForegroundBrush}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource ForegroundBrush}"
+                                   Text="{Binding HasMods.Count, StringFormat='{}{0} selected'}" />
+                        <ic:SymbolIcon Grid.Column="1" Symbol="Edit" FontSize="15" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource ComplementaryWhite25Brush}" />
+                    </Grid>
                     <Button.Flyout>
                         <Flyout>
                             <ListBox x:Name="ModsListBox" SelectionMode="Multiple,Toggle"
@@ -105,10 +111,16 @@
 
                 <!-- Has tag(s) -->
                 <TextBlock Text="Has tag(s)" Margin="0,24,0,0" Foreground="{DynamicResource ForegroundBrush}" />
-                <Button Margin="0,12,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                <Button Margin="0,12,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
                         Background="{DynamicResource ComplementaryPrimary08Brush}"
-                        Foreground="{DynamicResource ForegroundBrush}"
-                        Content="{Binding HasTags.Count, StringFormat='{}{0} selected'}">
+                        Foreground="{DynamicResource ForegroundBrush}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource ForegroundBrush}"
+                                   Text="{Binding HasTags.Count, StringFormat='{}{0} selected'}" />
+                        <ic:SymbolIcon Grid.Column="1" Symbol="Edit" FontSize="15" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource ComplementaryWhite25Brush}" />
+                    </Grid>
                     <Button.Flyout>
                         <Flyout>
                             <ListBox x:Name="TagsListBox" SelectionMode="Multiple,Toggle"
