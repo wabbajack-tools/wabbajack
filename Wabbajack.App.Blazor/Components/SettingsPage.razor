@@ -1,0 +1,102 @@
+@inherits ReactiveInjectableComponentBase<SettingsVM>
+
+@* Ported from WPF SettingsView: Accounts (logins) + Performance (resource limits) + About
+   (contributors), plus the action buttons. Sub-VMs load on activation, so we activate them and
+   re-render when their data arrives. *@
+<div class="settings">
+    <h1 class="screen-title">Settings</h1>
+
+    <div class="settings-cols">
+        <section class="settings-card">
+            <h2>Accounts</h2>
+            @foreach (var target in ViewModel!.LoginVM.Logins)
+            {
+                var login = target.Login;
+                <div class="login-row">
+                    <span class="login-name">@login.SiteName</span>
+                    <span class="login-status @(login.LoggedIn ? "in" : "out")">@(login.LoggedIn ? "Logged in" : "Logged out")</span>
+                    <button class="btn" @onclick="() => Exec(login.ToggleLogin)">@(login.LoggedIn ? "Log out" : "Log in")</button>
+                </div>
+            }
+        </section>
+
+        <section class="settings-card">
+            <h2>Performance</h2>
+            @if (ViewModel.PerformanceVM.Settings is { } settings)
+            {
+                @foreach (var s in settings)
+                {
+                    <div class="perf-row">
+                        <span class="perf-name">@s.HumanName</span>
+                        <label class="perf-field">Max tasks <input type="number" min="1" @bind="s.MaxTasks" /></label>
+                    </div>
+                }
+            }
+        </section>
+
+        <section class="settings-card">
+            <h2>About</h2>
+            <div class="contributors">
+                @if (ViewModel.AboutVM.Contributors is { } contributors)
+                {
+                    @foreach (var c in contributors)
+                    {
+                        <button class="contributor" @onclick="() => Exec(c.OpenProfileCommand)" title="@c.Contributor.Login">
+                            <img class="contributor-avatar" src="@c.Contributor.AvatarUrl" alt="@c.Contributor.Login" />
+                            <span>@c.Contributor.Login</span>
+                        </button>
+                    }
+                }
+            </div>
+        </section>
+    </div>
+
+    <div class="settings-actions">
+        <button class="btn" @onclick="() => Exec(ViewModel.OpenFileUploadCommand)">Upload a file</button>
+        <button class="btn" @onclick="() => Exec(ViewModel.LaunchCLICommand)">Launch CLI</button>
+        <button class="btn danger" @onclick="() => Exec(ViewModel.ResetCommand)">Reset Wabbajack</button>
+    </div>
+</div>
+
+@code {
+    private readonly System.Collections.Generic.List<IDisposable> _activations = new();
+    private readonly System.Collections.Generic.HashSet<PerformanceSettingVM> _activatedPerf = new();
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (ViewModel is null) return;
+
+        if (firstRender)
+        {
+            _activations.Add(ViewModel.Activator.Activate());
+            _activations.Add(ViewModel.PerformanceVM.Activator.Activate());
+            _activations.Add(ViewModel.AboutVM.Activator.Activate());
+
+            // Re-render when the async-loaded data arrives (these are on sub-VMs, not our ViewModel).
+            _activations.Add(ViewModel.AboutVM.WhenAnyValue(x => x.Contributors)
+                .Subscribe(_ => InvokeAsync(StateHasChanged)));
+            _activations.Add(ViewModel.PerformanceVM._settings.Connect()
+                .Subscribe(_ => InvokeAsync(StateHasChanged)));
+        }
+
+        // Activate each performance row so edits persist (its WhenActivated wires the save).
+        if (ViewModel.PerformanceVM.Settings is { } ps)
+            foreach (var p in ps)
+                if (_activatedPerf.Add(p))
+                    _activations.Add(p.Activator.Activate());
+    }
+
+    private static void Exec(System.Windows.Input.ICommand? cmd)
+    {
+        if (cmd != null && cmd.CanExecute(null)) cmd.Execute(null);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+            foreach (var a in _activations)
+                a.Dispose();
+        base.Dispose(disposing);
+    }
+}

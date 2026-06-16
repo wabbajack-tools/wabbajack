@@ -52,6 +52,13 @@ internal static class TestSupport
         s.AddTransient<HomeVM>();
         s.AddTransient<ModListGalleryVM>();
         s.AddTransient<InfoVM>();
+
+        // Settings + deps (mirrors the app).
+        s.AddSingleton<Wabbajack.Networking.GitHub.Client>();
+        s.AddSingleton(_ => new Octokit.GitHubClient(new Octokit.ProductHeaderValue("wabbajack")));
+        s.AddSingleton<Wabbajack.LoginManagers.INeedsLogin, Wabbajack.LoginManagers.NexusLoginManager>();
+        s.AddTransient<SettingsVM>();
+        s.AddTransient<AboutVM>();
     }
 
     // Builds a single gallery tile VM from fake metadata + the offline service graph.

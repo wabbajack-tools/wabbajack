@@ -42,6 +42,13 @@ internal static class Program
         builder.Services.AddTransient<ModListGalleryVM>();
         builder.Services.AddTransient<InfoVM>();
 
+        // Settings + its dependencies (mirrors the WPF/Avalonia app registrations).
+        builder.Services.AddSingleton<Wabbajack.Networking.GitHub.Client>();
+        builder.Services.AddSingleton(_ => new Octokit.GitHubClient(new Octokit.ProductHeaderValue("wabbajack")));
+        builder.Services.AddSingleton<Wabbajack.LoginManagers.INeedsLogin, Wabbajack.LoginManagers.NexusLoginManager>();
+        builder.Services.AddTransient<SettingsVM>();
+        builder.Services.AddTransient<AboutVM>();
+
         builder.RootComponents.Add<App>("#app");
 
         var app = builder.Build();

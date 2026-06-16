@@ -114,6 +114,25 @@ html, body {
 .btn { padding: 10px 16px; background: var(--card); color: var(--fg); border: none; border-radius: 8px; cursor: pointer; }
 .btn:hover { background: #4e4571; }
 
+/* ---- Settings ---- */
+.settings { height: 100%; overflow-y: auto; padding: 24px 32px; }
+.screen-title { font-size: 32px; font-weight: 800; margin: 0 0 16px; }
+.settings-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.settings-card { background: var(--bg-alt); border-radius: 12px; padding: 16px; }
+.settings-card h2 { font-size: 18px; margin: 0 0 12px; }
+.login-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.login-name { flex: 1; }
+.login-status { font-size: 12px; }
+.login-status.in { color: #98c379; }
+.login-status.out { color: var(--fg-dim); }
+.perf-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.perf-field input { width: 80px; background: var(--bg); color: var(--fg); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 4px 6px; }
+.contributors { display: flex; flex-wrap: wrap; gap: 12px; }
+.contributor { background: transparent; border: none; color: var(--fg); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 64px; font-size: 11px; }
+.contributor-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; }
+.settings-actions { display: flex; gap: 10px; margin-top: 20px; }
+.btn.danger { background: var(--danger); color: #1b1b27; }
+
 /* ---- Placeholder ---- */
 .placeholder { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
 .placeholder-title { font-size: 28px; }
