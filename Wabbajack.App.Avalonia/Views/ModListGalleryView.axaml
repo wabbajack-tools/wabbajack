@@ -60,30 +60,30 @@
                 <!-- Total Modlist Size -->
                 <TextBlock Text="Total Modlist Size" FontSize="13" Margin="0,12,0,0"
                            Foreground="{DynamicResource ForegroundBrush}" />
-                <Slider Margin="0,8,0,0" Minimum="0"
-                        Maximum="{Binding LargestSizedModlist.Metadata.DownloadMetadata.TotalSize, FallbackValue=100000000000, TargetNullValue=100000000000}"
-                        Value="{Binding MinModlistSize}" />
-                <Slider Margin="0,0,0,0" Minimum="0"
-                        Maximum="{Binding LargestSizedModlist.Metadata.DownloadMetadata.TotalSize, FallbackValue=100000000000, TargetNullValue=100000000000}"
-                        Value="{Binding MaxModlistSize}" />
-                <Grid ColumnDefinitions="*,*">
+                <local:RangeSlider Margin="0,10,0,0" Minimum="0"
+                                   Maximum="{Binding LargestSizedModlist.Metadata.DownloadMetadata.TotalSize, FallbackValue=100000000000, TargetNullValue=100000000000}"
+                                   LowerValue="{Binding MinModlistSize}"
+                                   UpperValue="{Binding MaxModlistSize}" />
+                <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
                     <TextBlock Grid.Column="0" HorizontalAlignment="Left"
                                Foreground="{DynamicResource ComplementaryWhite25Brush}"
-                               Text="{Binding MinModlistSize, Converter={StaticResource FileSize}}" />
+                               Text="{Binding MinModlistSize, Converter={StaticResource BytesToGb}}" />
                     <TextBlock Grid.Column="1" HorizontalAlignment="Right"
                                Foreground="{DynamicResource ComplementaryWhite25Brush}"
-                               Text="{Binding MaxModlistSize, Converter={StaticResource FileSize}}" />
+                               Text="{Binding MaxModlistSize, Converter={StaticResource BytesToGb}}" />
                 </Grid>
 
                 <!-- Has mod(s) -->
                 <Grid Margin="0,24,0,0" ColumnDefinitions="*,Auto">
                     <TextBlock Grid.Column="0" Text="Has mod(s)" VerticalAlignment="Center"
                                Foreground="{DynamicResource ForegroundBrush}" />
-                    <CheckBox Grid.Column="1" IsChecked="{Binding ExcludeMods}" VerticalAlignment="Center"
-                              Foreground="{DynamicResource ForegroundBrush}"
-                              ToolTip.Tip="Exclude modlists containing the selected mods instead of including them">
-                        <TextBlock FontSize="11" Text="Exclude" />
-                    </CheckBox>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"
+                                ToolTip.Tip="Exclude modlists containing the selected mods instead of including them">
+                        <ToggleSwitch IsChecked="{Binding ExcludeMods}" OnContent="" OffContent=""
+                                      MinWidth="0" Padding="0" VerticalAlignment="Center" />
+                        <TextBlock FontSize="11" Text="Exclude" VerticalAlignment="Center" Margin="8,0,0,0"
+                                   Foreground="{DynamicResource ForegroundBrush}" />
+                    </StackPanel>
                 </Grid>
                 <Button Margin="0,12,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                         Background="{DynamicResource ComplementaryPrimary08Brush}"

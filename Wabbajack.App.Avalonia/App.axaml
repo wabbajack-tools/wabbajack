@@ -48,9 +48,11 @@
             <conv:AbsolutePathConverter x:Key="AbsolutePathConverter" />
             <conv:EnumEqualsConverter x:Key="EnumEquals" />
             <conv:FileSizeConverter x:Key="FileSize" />
+            <conv:BytesToGbConverter x:Key="BytesToGb" />
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://WabbajackAvalonia/Styles/Brand.axaml" />
                 <ResourceInclude Source="avares://WabbajackAvalonia/Styles/LogoBackground.axaml" />
+                <ResourceInclude Source="avares://WabbajackAvalonia/Controls/RangeSlider.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
