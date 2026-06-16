@@ -42,6 +42,7 @@
             <conv:FileSizeConverter x:Key="FileSize" />
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://WabbajackAvalonia/Styles/Brand.axaml" />
+                <ResourceInclude Source="avares://WabbajackAvalonia/Styles/LogoBackground.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
