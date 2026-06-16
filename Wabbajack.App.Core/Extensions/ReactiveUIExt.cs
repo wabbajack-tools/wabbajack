@@ -39,6 +39,17 @@ namespace Wabbajack
             return source.ObserveOn(RxApp.MainThreadScheduler);
         }
 
+        public static IDisposable BindToStrict<TValue, TTarget>(
+            this IObservable<TValue> @this,
+            TTarget target,
+            Expression<Func<TTarget, TValue>> property)
+            where TTarget : class
+        {
+            return @this
+                .ObserveOnGuiThread()
+                .BindTo<TValue, TTarget, TValue>(target, property);
+        }
+
         
         /// <summary>
         /// Like IObservable.Select but supports async map functions

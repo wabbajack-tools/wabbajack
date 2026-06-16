@@ -195,18 +195,7 @@ public static class UIUtils
     /// </summary>
     /// <param name="bytes">number of bytes</param>
     /// <returns></returns>
-    public static string FormatBytes(long bytes, bool round = false)
-    {
-        string[] Suffix = { "B", "KB", "MB", "GB", "TB" };
-        int i;
-        double dblSByte = bytes;
-        for (i = 0; i < Suffix.Length && bytes >= 1024; i++, bytes /= 1024)
-        {
-            dblSByte = bytes / 1024.0;
-        }
-
-        return String.Format("{0:0.##} {1}", round ? Math.Ceiling(dblSByte) : dblSByte, Suffix[i]);
-    }
+    public static string FormatBytes(long bytes, bool round = false) => ImageUris.FormatBytes(bytes, round);
 
     public static void OpenFile(AbsolutePath file)
     {
@@ -216,16 +205,9 @@ public static class UIUtils
         });
     }
 
-    public static string GetSmallImageUri(ModlistMetadata metadata)
-    {
-        var fileName = metadata.Links.MachineURL + "_small.webp";
-        return $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{metadata.RepositoryName}/{fileName}";
-    }
-    public static string GetLargeImageUri(ModlistMetadata metadata)
-    {
-        var fileName = metadata.Links.MachineURL + "_large.webp";
-        return $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{metadata.RepositoryName}/{fileName}";
-    }
+    public static string GetSmallImageUri(ModlistMetadata metadata) => ImageUris.GetSmallImageUri(metadata);
+
+    public static string GetLargeImageUri(ModlistMetadata metadata) => ImageUris.GetLargeImageUri(metadata);
 
     public static string GetHumanReadableReadmeLink(string uri)
     {

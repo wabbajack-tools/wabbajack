@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -9,7 +9,6 @@ using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Windows.Media.Imaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
@@ -90,16 +89,16 @@ public partial class BaseModListMetadataVM : ViewModel
         _imageService = imageService;
 
         GameMetaData = Metadata.Game.MetaData();
-        Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.NamespacedName).WithExtension(Ext.Wabbajack);
-        
+        Location = CommonFolders.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.NamespacedName).WithExtension(Ext.Wabbajack);
+
         UpdateStatus().FireAndForget();
 
         ModListTagList = Metadata.Tags?.Select(tag => new ModListTag(tag)).ToHashSet();
         ModListTagList.Add(new ModListTag(GameMetaData.HumanFriendlyGameName));
 
-        DownloadSizeText = "Download size: " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
-        InstallSizeText = "Installation size: " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
-        TotalSizeRequirementText =  "Total size requirement: " + UIUtils.FormatBytes( Metadata.DownloadMetadata.TotalSize );
+        DownloadSizeText = "Download size: " + ImageUris.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
+        InstallSizeText = "Installation size: " + ImageUris.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
+        TotalSizeRequirementText =  "Total size requirement: " + ImageUris.FormatBytes( Metadata.DownloadMetadata.TotalSize );
         VersionText = "v" + Metadata.Version;
         ImageContainsTitle = Metadata.ImageContainsTitle;
         DisplayVersionOnlyInInstallerView = Metadata.DisplayVersionOnlyInInstallerView;
@@ -107,7 +106,7 @@ public partial class BaseModListMetadataVM : ViewModel
 
         IsLoadingIdle = new Subject<bool>();
 
-        var smallImageUri = UIUtils.GetLargeImageUri(metadata);
+        var smallImageUri = ImageUris.GetLargeImageUri(metadata);
         var imageObs = _imageService.DownloadImage(Observable.Return(smallImageUri),
             (ex) => _logger.LogError("Error downloading modlist image {Title} from {ImageUri}: {Exception}",
                 Metadata.Title, smallImageUri, ex.ToString()), LoadingImageLock);

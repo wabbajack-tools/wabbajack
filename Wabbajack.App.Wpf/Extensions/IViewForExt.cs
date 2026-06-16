@@ -88,17 +88,6 @@ namespace Wabbajack
                 viewToVmConverter: viewToVmConverter);
         }
 
-        public static IDisposable BindToStrict<TValue, TTarget>(
-            this IObservable<TValue> @this,
-            TTarget target,
-            Expression<Func<TTarget, TValue>> property)
-            where TTarget : class
-        {
-            return @this
-                .ObserveOnGuiThread()
-                .BindTo<TValue, TTarget, TValue>(target, property);
-        }
-
         /// <summary>
         /// Just a function to signify a field is being used, so it triggers compile errors if it changes
         /// </summary>

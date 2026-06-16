@@ -40,24 +40,7 @@ public class LauncherUpdater
     }
 
 
-    public static Lazy<AbsolutePath> CommonFolder = new (() =>
-    {
-        var entryPoint = KnownFolders.EntryPoint;
-
-        // If we're not in a folder that looks like a version, abort
-        if (!Version.TryParse(entryPoint.FileName.ToString(), out var version))
-        {
-            return entryPoint;
-        }
-
-        // If we're not in a folder that has Wabbajack.exe in the parent folder, abort
-        if (!entryPoint.Parent.Combine(Consts.AppName).WithExtension(new Extension(".exe")).FileExists())
-        {
-            return entryPoint;
-        }
-
-        return entryPoint.Parent;
-    });
+    public static Lazy<AbsolutePath> CommonFolder => Wabbajack.CommonFolders.CommonFolder;
 
 
 
