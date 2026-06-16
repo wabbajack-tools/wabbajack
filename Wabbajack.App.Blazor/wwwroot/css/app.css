@@ -44,11 +44,12 @@ html, body {
     align-items: center;
     background: var(--bg);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    -webkit-app-region: drag;
     user-select: none;
 }
-.titlebar-title { flex: 1; padding-left: 14px; font-size: 13px; color: var(--fg-dim); }
-.titlebar-controls { display: flex; -webkit-app-region: no-drag; }
+/* Manual drag region (Photino ignores -webkit-app-region); fills the bar left of the controls. */
+.titlebar-drag { flex: 1; height: 100%; display: flex; align-items: center; touch-action: none; }
+.titlebar-title { padding-left: 14px; font-size: 13px; color: var(--fg-dim); }
+.titlebar-controls { display: flex; }
 .win-btn {
     width: 46px;
     height: 38px;

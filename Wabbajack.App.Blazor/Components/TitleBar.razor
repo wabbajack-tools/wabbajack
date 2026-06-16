@@ -1,10 +1,18 @@
 @* Custom themed title bar for the chromeless Photino window (mirrors WPF's ShowTitleBar="False").
-   The bar is a drag region (-webkit-app-region: drag in CSS); the buttons opt out and drive the
-   native window via the Photino window handle. *@
+   Photino's WebView2 doesn't honor -webkit-app-region: drag, so we drag manually: track pointer
+   movement over the drag region and reposition the native window by the screen-coordinate delta.
+   The window-control buttons are outside the drag region so they don't start a drag. *@
 @inject Wabbajack.Blazor.Services.PhotinoWindowHolder Win
 
 <div class="titlebar">
-    <span class="titlebar-title">Wabbajack</span>
+    <div class="titlebar-drag"
+         @onpointerdown="StartDrag"
+         @onpointermove="OnMove"
+         @onpointerup="EndDrag"
+         @onpointerup:preventDefault="false"
+         @ondblclick="MaxRestore">
+        <span class="titlebar-title">Wabbajack</span>
+    </div>
     <div class="titlebar-controls">
         <button class="win-btn" title="Minimize" @onclick="Minimize">&#x2012;</button>
         <button class="win-btn" title="Maximize" @onclick="MaxRestore">&#x25A1;</button>
@@ -13,6 +21,34 @@
 </div>
 
 @code {
+    private bool _dragging;
+    private double _startScreenX, _startScreenY;
+    private int _startLeft, _startTop;
+
+    private void StartDrag(PointerEventArgs e)
+    {
+        var w = Win.Window;
+        if (w is null) return;
+        // Dragging a maximized window: restore it first so it tracks the cursor.
+        if (w.Maximized) w.SetMaximized(false);
+        _dragging = true;
+        _startScreenX = e.ScreenX;
+        _startScreenY = e.ScreenY;
+        _startLeft = w.Left;
+        _startTop = w.Top;
+    }
+
+    private void OnMove(PointerEventArgs e)
+    {
+        if (!_dragging) return;
+        var w = Win.Window;
+        if (w is null) return;
+        w.SetLeft(_startLeft + (int)(e.ScreenX - _startScreenX));
+        w.SetTop(_startTop + (int)(e.ScreenY - _startScreenY));
+    }
+
+    private void EndDrag(PointerEventArgs e) => _dragging = false;
+
     private void Minimize() => Win.Window?.SetMinimized(true);
 
     private void MaxRestore()
