@@ -173,6 +173,22 @@ public partial class MainWindow : MetroWindow
             this.Events().KeyDown
                 .Subscribe(x => HandleKeyDown(this, x));
 
+            MessageBus.Current.Listen<TaskBarUpdate>()
+                .ObserveOnGuiThread()
+                .Subscribe(update =>
+                {
+                    TaskbarItemInfoControl.ProgressState = update.State switch
+                    {
+                        TaskbarItemState.None => System.Windows.Shell.TaskbarItemProgressState.None,
+                        TaskbarItemState.Normal => System.Windows.Shell.TaskbarItemProgressState.Normal,
+                        TaskbarItemState.Indeterminate => System.Windows.Shell.TaskbarItemProgressState.Indeterminate,
+                        TaskbarItemState.Error => System.Windows.Shell.TaskbarItemProgressState.Error,
+                        TaskbarItemState.Paused => System.Windows.Shell.TaskbarItemProgressState.Paused,
+                        _ => System.Windows.Shell.TaskbarItemProgressState.None
+                    };
+                    TaskbarItemInfoControl.ProgressValue = update.ProgressValue;
+                });
+
         }
         catch (Exception ex)
         {

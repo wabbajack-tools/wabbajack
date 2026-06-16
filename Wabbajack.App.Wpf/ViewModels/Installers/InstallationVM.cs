@@ -14,7 +14,6 @@ using System.Reactive.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Shell;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Wabbajack.Common;
@@ -769,14 +768,14 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
 
             if (result != 0)
             {
-                TaskBarUpdate.Send($"Error during verification of {ModList.Name}", TaskbarItemProgressState.Error);
+                TaskBarUpdate.Send($"Error during verification of {ModList.Name}", TaskbarItemState.Error);
                 InstallState = InstallState.Failure;
                 ProgressText = $"Error during install of {ModList.Name}";
                 ProgressPercent = Percent.Zero;
             }
             else
             {
-                TaskBarUpdate.Send($"Finished verification of {ModList.Name}", TaskbarItemProgressState.Normal);
+                TaskBarUpdate.Send($"Finished verification of {ModList.Name}", TaskbarItemState.Normal);
                 InstallState = InstallState.Success;
             }
         });
