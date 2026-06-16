@@ -12,6 +12,8 @@
     <PackageReference Include="Avalonia" Version="11.3.17" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.17" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.17" />
+    <!-- Avalonia.Controls.DataGrid is not published at 11.3.17; 11.3.13 is the latest 11.3.x and is compatible with Avalonia 11.3.17 -->
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.13" />
     <PackageReference Include="Avalonia.Diagnostics" Version="11.3.17" />
     <!-- Avalonia.ReactiveUI 11.3.14 does not exist on NuGet; pinned to last published 11.3.9 -->
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.9" />

@@ -75,35 +75,20 @@
         </ScrollViewer>
 
         <!-- RIGHT: archives -->
-        <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
+        <Grid Grid.Column="1" RowDefinitions="Auto,*">
             <TextBox Grid.Row="0" Text="{Binding Search}" Watermark="Search archives"
                      Foreground="{DynamicResource ForegroundBrush}" />
 
-            <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="4,12,4,4">
-                <TextBlock Grid.Column="0" Text="Name" FontWeight="Bold"
-                           Foreground="{DynamicResource ForegroundBrush}" />
-                <TextBlock Grid.Column="1" Text="Size" FontWeight="Bold"
-                           Foreground="{DynamicResource ForegroundBrush}" />
-            </Grid>
-
-            <Border Grid.Row="2" BorderThickness="1" CornerRadius="4"
+            <Border Grid.Row="1" Margin="0,12,0,0" BorderThickness="1" CornerRadius="4"
                     BorderBrush="{DynamicResource DarkSecondaryBrush}">
-                <ScrollViewer>
-                    <ItemsControl ItemsSource="{Binding Archives}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Grid ColumnDefinitions="*,Auto" Margin="4,3">
-                                    <TextBlock Grid.Column="0" Text="{Binding Name}"
-                                               TextTrimming="CharacterEllipsis"
-                                               Foreground="{DynamicResource ForegroundBrush}" />
-                                    <TextBlock Grid.Column="1" Margin="12,0,0,0"
-                                               Text="{Binding Size, Converter={StaticResource FileSize}}"
-                                               Foreground="{DynamicResource Transparent66ForegroundBrush}" />
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
+                <DataGrid ItemsSource="{Binding Archives}" IsReadOnly="True"
+                          GridLinesVisibility="Horizontal" CanUserSortColumns="True"
+                          Background="Transparent" Foreground="{DynamicResource ForegroundBrush}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Archive" Binding="{Binding Name}" Width="2*" />
+                        <DataGridTextColumn Header="Size" Binding="{Binding Size, Converter={StaticResource FileSize}}" Width="Auto" />
+                    </DataGrid.Columns>
+                </DataGrid>
             </Border>
         </Grid>
     </Grid>
