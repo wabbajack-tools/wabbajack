@@ -1,5 +1,8 @@
 @inherits ReactiveInjectableComponentBase<NavigationVM>
 @inject ModListDetailsVM DetailsVm
+@inject FileUploadVM UploadVm
+@* Injected to force early creation so it subscribes to LoadInfoScreen before navigation. *@
+@inject InfoVM InfoVm
 
 @* App shell: nav sidebar + routed content + floating overlay. Mirrors WPF MainWindow/MainWindowVM. *@
 <div class="app">
@@ -16,6 +19,9 @@
                 break;
             case ScreenType.Settings:
                 <SettingsPage />
+                break;
+            case ScreenType.Info:
+                <InfoPage />
                 break;
             default:
                 <ScreenPlaceholder Screen="ViewModel.ActiveScreen" />
@@ -35,7 +41,7 @@
     {
         <div class="overlay-backdrop" @onclick="CloseFloating">
             <div class="overlay-panel" @onclick:stopPropagation="true">
-                <ScreenPlaceholder Screen="ScreenType.Settings" Label="File upload (not yet ported)" />
+                <FileUploadPanel Vm="UploadVm" />
             </div>
         </div>
     }

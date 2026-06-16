@@ -38,9 +38,11 @@ internal static class Program
         // the panel would NRE — the same ordering bug we hit on the other heads).
         builder.Services.AddSingleton<NavigationVM>();
         builder.Services.AddSingleton<ModListDetailsVM>();
+        builder.Services.AddSingleton<FileUploadVM>();
         builder.Services.AddTransient<HomeVM>();
         builder.Services.AddTransient<ModListGalleryVM>();
-        builder.Services.AddTransient<InfoVM>();
+        // Singleton + created at shell init so it's subscribed to LoadInfoScreen before the message arrives.
+        builder.Services.AddSingleton<InfoVM>();
 
         // Settings + its dependencies (mirrors the WPF/Avalonia app registrations).
         builder.Services.AddSingleton<Wabbajack.Networking.GitHub.Client>();

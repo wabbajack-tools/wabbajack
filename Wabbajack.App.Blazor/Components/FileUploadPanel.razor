@@ -1,0 +1,40 @@
+@* Floating file-upload pane, ported from WPF FileUploadSettingsView/FileUploadView. Bound to the
+   persistent FileUploadVM (so it survives open/close). Browse a file, upload, copy the result URL. *@
+<div class="upload">
+    <h2>Upload a file</h2>
+
+    <div class="upload-row">
+        <input class="upload-path" type="text" readonly value="@Vm.Picker?.TargetPath.ToString()" placeholder="No file selected" />
+        <button class="btn" @onclick="() => Exec(Vm.BrowseFileCommand)">Browse…</button>
+    </div>
+
+    <button class="btn" @onclick="() => Exec(Vm.UploadCommand)">Upload</button>
+
+    @if (Vm.UploadProgress > 0)
+    {
+        <div class="upload-progress"><div class="upload-bar" style="width:@(Vm.UploadProgress * 100)%"></div></div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Vm.FileUrl))
+    {
+        <div class="upload-row">
+            <input class="upload-path" type="text" readonly value="@Vm.FileUrl" />
+            <button class="btn" @onclick="() => Exec(Vm.CopyUrlCommand)">Copy</button>
+        </div>
+    }
+
+    <div class="details-actions">
+        <button class="btn" @onclick="Close">Close</button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public FileUploadVM Vm { get; set; } = default!;
+
+    private void Close() => Wabbajack.Messages.ShowFloatingWindow.Send(Wabbajack.Messages.FloatingScreenType.None);
+
+    private static void Exec(System.Windows.Input.ICommand? cmd)
+    {
+        if (cmd != null && cmd.CanExecute(null)) cmd.Execute(null);
+    }
+}

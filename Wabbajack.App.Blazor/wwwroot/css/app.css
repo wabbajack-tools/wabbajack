@@ -133,6 +133,25 @@ html, body {
 .settings-actions { display: flex; gap: 10px; margin-top: 20px; }
 .btn.danger { background: var(--danger); color: #1b1b27; }
 
+/* ---- Info ---- */
+.info { height: 100%; overflow-y: auto; padding: 24px 32px; }
+.info-text { margin-top: 16px; white-space: pre-wrap; line-height: 1.5; }
+
+/* ---- File upload panel ---- */
+.upload h2 { margin: 0 0 16px; }
+.upload-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.upload-path { flex: 1; background: var(--bg); color: var(--fg); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px 8px; }
+.upload-progress { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; margin-bottom: 12px; }
+.upload-bar { height: 100%; background: var(--primary); }
+
+/* ---- Details archives ---- */
+.details-archives { margin: 12px 0; }
+.details-archives-head { font-weight: 600; margin-bottom: 6px; }
+.archive-list { max-height: 240px; overflow-y: auto; border: 1px solid var(--bg); border-radius: 6px; }
+.archive-row { display: flex; justify-content: space-between; gap: 10px; padding: 4px 8px; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.archive-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.archive-size { color: var(--fg-dim); flex: 0 0 auto; }
+
 /* ---- Placeholder ---- */
 .placeholder { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
 .placeholder-title { font-size: 28px; }

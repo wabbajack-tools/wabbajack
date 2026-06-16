@@ -1,6 +1,7 @@
-@* Floating modlist-details overlay. Minimal for now (image/title/author/description/tags + close);
-   the archives DataGrid from WPF is deferred. Bound to the persistent ModListDetailsVM, whose
-   MetadataVM is populated by LoadModlistForDetails before this is shown. *@
+@implements IDisposable
+
+@* Floating modlist-details overlay. Bound to the persistent ModListDetailsVM (MetadataVM is populated
+   by LoadModlistForDetails before this is shown). Activating the VM loads the archive list. *@
 @if (Vm.MetadataVM is { } meta)
 {
     <div class="details">
@@ -20,6 +21,22 @@
 
         <div class="details-desc">@meta.Metadata.Description</div>
 
+        <div class="details-archives">
+            <div class="details-archives-head">Archives@(Vm.Archives is { } a ? $" ({a.Count})" : "")</div>
+            @if (Vm.Archives is { Count: > 0 } archives)
+            {
+                <div class="archive-list">
+                    @foreach (var archive in archives)
+                    {
+                        <div class="archive-row">
+                            <span class="archive-name">@archive.Name</span>
+                            <span class="archive-size">@ImageUris.FormatBytes(archive.Size)</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
         <div class="details-actions">
             <button class="btn" @onclick="Close">Close</button>
         </div>
@@ -29,8 +46,33 @@
 @code {
     [Parameter] public ModListDetailsVM Vm { get; set; } = default!;
 
+    private IDisposable? _activation;
+    private System.Collections.Specialized.INotifyCollectionChanged? _archivesHook;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (!firstRender) return;
+
+        _activation = Vm.Activator.Activate();
+        if (Vm.Archives is System.Collections.Specialized.INotifyCollectionChanged cc)
+        {
+            _archivesHook = cc;
+            cc.CollectionChanged += OnArchivesChanged;
+        }
+    }
+
+    private void OnArchivesChanged(object? s, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        => InvokeAsync(StateHasChanged);
+
     private void Close()
     {
         if (Vm.CloseCommand.CanExecute(null)) Vm.CloseCommand.Execute(null);
+    }
+
+    public void Dispose()
+    {
+        if (_archivesHook != null) _archivesHook.CollectionChanged -= OnArchivesChanged;
+        _activation?.Dispose();
     }
 }

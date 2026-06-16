@@ -1,0 +1,14 @@
+@inherits ReactiveInjectableComponentBase<InfoVM>
+
+@* Ported from WPF InfoView: shows an info/readme string with a back button. *@
+<div class="info">
+    <button class="btn" @onclick="Close">‹ Back</button>
+    <div class="info-text">@ViewModel!.Info</div>
+</div>
+
+@code {
+    private void Close()
+    {
+        if (ViewModel!.CloseCommand is { } cmd && cmd.CanExecute(null)) cmd.Execute(null);
+    }
+}

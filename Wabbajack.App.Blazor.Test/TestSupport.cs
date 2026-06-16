@@ -49,9 +49,10 @@ internal static class TestSupport
 
         s.AddSingleton<NavigationVM>();
         s.AddSingleton<ModListDetailsVM>();
+        s.AddSingleton<FileUploadVM>();
         s.AddTransient<HomeVM>();
         s.AddTransient<ModListGalleryVM>();
-        s.AddTransient<InfoVM>();
+        s.AddSingleton<InfoVM>();
 
         // Settings + deps (mirrors the app).
         s.AddSingleton<Wabbajack.Networking.GitHub.Client>();
