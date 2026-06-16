@@ -26,6 +26,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <conv:IsZeroConverter x:Key="IsZero" />
+            <conv:AbsolutePathConverter x:Key="AbsolutePathConverter" />
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://WabbajackAvalonia/Styles/Brand.axaml" />
             </ResourceDictionary.MergedDictionaries>

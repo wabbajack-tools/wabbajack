@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:local="using:Wabbajack"
+             x:Class="Wabbajack.FilePicker">
+    <Grid ColumnDefinitions="*,Auto">
+        <TextBox Grid.Column="0"
+                 VerticalAlignment="Center"
+                 VerticalContentAlignment="Center"
+                 Foreground="{DynamicResource ForegroundBrush}"
+                 ToolTip.Tip="{Binding PickerVM.ErrorTooltip, RelativeSource={RelativeSource AncestorType=local:FilePicker}}"
+                 Text="{Binding PickerVM.TargetPath, RelativeSource={RelativeSource AncestorType=local:FilePicker}, Mode=TwoWay, Converter={StaticResource AbsolutePathConverter}}" />
+        <Button Grid.Column="1"
+                Margin="4,0,0,0"
+                Background="Transparent"
+                BorderThickness="0"
+                ToolTip.Tip="Set target path"
+                Command="{Binding PickerVM.SetTargetPathCommand, RelativeSource={RelativeSource AncestorType=local:FilePicker}}">
+            <ic:SymbolIcon FontSize="18"
+                           Foreground="{DynamicResource ForegroundBrush}"
+                           Symbol="FolderOpen" />
+        </Button>
+    </Grid>
+</UserControl>

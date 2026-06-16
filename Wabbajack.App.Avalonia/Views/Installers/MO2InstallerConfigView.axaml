@@ -1,0 +1,39 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:core="using:Wabbajack"
+             xmlns:local="using:Wabbajack"
+             xmlns:rxui="http://reactiveui.net"
+             x:Class="Wabbajack.MO2InstallerConfigView"
+             x:TypeArguments="core:MO2InstallerVM"
+             x:DataType="core:MO2InstallerVM">
+    <Grid ColumnDefinitions="Auto,20,*" RowDefinitions="40,40">
+        <TextBlock Grid.Row="0" Grid.Column="0"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Center"
+                   MinWidth="120"
+                   FontSize="13"
+                   TextAlignment="Center"
+                   Foreground="{DynamicResource ForegroundBrush}"
+                   ToolTip.Tip="The directory where the modlist will be installed"
+                   Text="Modlist Installation Location" />
+        <local:FilePicker Grid.Row="0" Grid.Column="2"
+                          Height="30"
+                          VerticalAlignment="Center"
+                          ToolTip.Tip="The directory where the modlist will be installed"
+                          PickerVM="{Binding Location}" />
+        <TextBlock Grid.Row="1" Grid.Column="0"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Center"
+                   MinWidth="120"
+                   FontSize="13"
+                   TextAlignment="Center"
+                   Foreground="{DynamicResource ForegroundBrush}"
+                   ToolTip.Tip="The directory where modlist archives will be downloaded to"
+                   Text="Resource Download Location" />
+        <local:FilePicker Grid.Row="1" Grid.Column="2"
+                          Height="30"
+                          VerticalAlignment="Center"
+                          ToolTip.Tip="The directory where modlist archives will be downloaded to"
+                          PickerVM="{Binding DownloadLocation}" />
+    </Grid>
+</rxui:ReactiveUserControl>
