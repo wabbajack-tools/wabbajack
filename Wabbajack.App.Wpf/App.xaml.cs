@@ -423,6 +423,7 @@ public partial class App
         services.AddSingleton<CefService>();
         services.AddSingleton<IFileSelector, WpfFileSelector>();
         services.AddSingleton<IDialogService, WpfDialogService>();
+        services.AddSingleton<IClipboardService, WpfClipboardService>();
         services.AddSingleton<IImageService, WpfImageService>();
         services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
         services.AddSingleton<ImageCacheManager>();
