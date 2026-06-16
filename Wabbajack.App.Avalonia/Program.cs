@@ -28,6 +28,9 @@ internal class Program
                 services.AddTransient<ModListGalleryVM>();
                 services.AddTransient<SettingsVM>();
                 services.AddTransient<AboutVM>();
+                // AboutVM pulls the GitHub contributor list; register the client like the WPF app does.
+                services.AddSingleton<Networking.GitHub.Client>();
+                services.AddSingleton(_ => new Octokit.GitHubClient(new Octokit.ProductHeaderValue("wabbajack")));
             }).Build();
         Services = host.Services;
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
