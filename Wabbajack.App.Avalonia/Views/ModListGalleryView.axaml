@@ -76,7 +76,59 @@
                     <CheckBox Content="Only installed games" IsChecked="{Binding OnlyInstalled}"
                               Foreground="{DynamicResource ForegroundBrush}" />
 
-                    <!-- TODO: mod/tag multi-select filters deferred (needs a custom multi-select control) -->
+                    <!-- Mod/tag multi-select filters. Avalonia has no MahApps-style MultiSelectComboBox, so this
+                         is a functional equivalent: a Button whose Flyout hosts a multi-select ListBox. Selection is
+                         synced ListBox -> VM in code-behind (HasTags/HasMods are rebuilt on SelectionChanged). -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Has tag(s)" Foreground="{DynamicResource ForegroundBrush}" />
+                        <Button HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Foreground="{DynamicResource ForegroundBrush}"
+                                Content="{Binding HasTags.Count, StringFormat='{}{0} selected'}">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <ListBox x:Name="TagsListBox"
+                                             SelectionMode="Multiple,Toggle"
+                                             ItemsSource="{Binding AllTags}"
+                                             MaxHeight="300" MinWidth="220">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Name}"
+                                                           Foreground="{DynamicResource ForegroundBrush}" />
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Has mod(s)" Foreground="{DynamicResource ForegroundBrush}" />
+                        <Button HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Foreground="{DynamicResource ForegroundBrush}"
+                                Content="{Binding HasMods.Count, StringFormat='{}{0} selected'}">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <ListBox x:Name="ModsListBox"
+                                             SelectionMode="Multiple,Toggle"
+                                             ItemsSource="{Binding AllMods}"
+                                             MaxHeight="300" MinWidth="220">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Name}"
+                                                           Foreground="{DynamicResource ForegroundBrush}" />
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                        <CheckBox Content="Exclude" IsChecked="{Binding ExcludeMods}"
+                                  Foreground="{DynamicResource ForegroundBrush}"
+                                  ToolTip.Tip="Show modlists that do NOT contain the selected mods." />
+                    </StackPanel>
 
                     <local:WJButton Text="Reset filters" Icon="ArrowReset"
                                     Command="{Binding ResetFiltersCommand}"
