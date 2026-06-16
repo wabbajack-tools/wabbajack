@@ -23,6 +23,7 @@ public partial class MainWindow : Window
     private object Resolve(ScreenType screen) => screen switch
     {
         ScreenType.Home => Program.Services.GetRequiredService<HomeVM>(),
+        ScreenType.ModListGallery => Program.Services.GetRequiredService<ModListGalleryVM>(),
         // Other screens resolve to a placeholder until their wave ports them.
         _ => new ScreenPlaceholderView(screen.ToString())
     };
