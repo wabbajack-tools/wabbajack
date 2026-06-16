@@ -23,6 +23,7 @@ internal class Program
                 services.AddSingleton<IFileSelector, AvaloniaFileSelector>();
                 services.AddSingleton<IDialogService, AvaloniaDialogService>();
                 services.AddSingleton<IImageService, AvaloniaImageService>();
+                services.AddSingleton<ISystemParameters, AvaloniaSystemParameters>();
                 services.AddTransient<HomeVM>(); // Core VMs the Avalonia app currently uses
                 services.AddTransient<NavigationVM>();
                 services.AddTransient<ModListGalleryVM>();

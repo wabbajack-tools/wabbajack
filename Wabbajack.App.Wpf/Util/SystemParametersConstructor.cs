@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using PInvoke;
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
+using Wabbajack;
 using Wabbajack.Installer;
 using static PInvoke.User32;
 using UnmanagedType = System.Runtime.InteropServices.UnmanagedType;
@@ -15,7 +16,7 @@ namespace Wabbajack.Util
 {
     // Much of the GDI code here is taken from : https://github.com/ModOrganizer2/modorganizer/blob/master/src/envmetrics.cpp
     // Thanks to MO2 for being good citizens and supporting OSS code
-    public class SystemParametersConstructor
+    public class SystemParametersConstructor : ISystemParameters
     {
         private readonly ILogger<SystemParametersConstructor> _logger;
 

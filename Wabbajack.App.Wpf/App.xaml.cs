@@ -427,6 +427,7 @@ public partial class App
         services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
         services.AddSingleton<ImageCacheManager>();
         services.AddSingleton<SystemParametersConstructor>();
+        services.AddSingleton<ISystemParameters>(s => s.GetRequiredService<SystemParametersConstructor>());
         services.AddSingleton<LauncherUpdater>();
         services.AddSingleton<ResourceMonitor>();
         services.AddSingleton<Networking.GitHub.Client>();
