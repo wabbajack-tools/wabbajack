@@ -332,6 +332,11 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                     UpdateGamesToFilter();
                 })
                 .DisposeWith(disposables);
+
+            // _filteredModLists is assigned by SortAndBind above (an `out` field), AFTER the view may have
+            // already bound to the expression-bodied `ModLists` property and captured its initial null.
+            // Notify so XAML `{Binding ModLists}` re-reads the now-populated collection.
+            this.RaisePropertyChanged(nameof(ModLists));
         });
     }
 
