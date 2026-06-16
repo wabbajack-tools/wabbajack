@@ -1,0 +1,69 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:core="using:Wabbajack"
+             xmlns:local="using:Wabbajack"
+             xmlns:rxui="http://reactiveui.net"
+             x:Class="Wabbajack.ModListGalleryView"
+             x:TypeArguments="core:ModListGalleryVM"
+             x:DataType="core:ModListGalleryVM">
+    <Grid ColumnDefinitions="280,*">
+        <!-- Filter sidebar -->
+        <Border Grid.Column="0" Background="{DynamicResource ComplementaryPrimary08Brush}">
+            <ScrollViewer>
+                <StackPanel Margin="12" Spacing="12">
+                    <TextBox Text="{Binding Search}" Watermark="Search"
+                             Foreground="{DynamicResource ForegroundBrush}" />
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Game" Foreground="{DynamicResource ForegroundBrush}" />
+                        <ComboBox ItemsSource="{Binding GameTypeEntries}"
+                                  SelectedItem="{Binding SelectedGameTypeEntry}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="core:ModListGalleryVM+GameTypeEntry">
+                                    <TextBlock Text="{Binding FormattedName}"
+                                               Foreground="{DynamicResource ForegroundBrush}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <CheckBox Content="Include non-featured" IsChecked="{Binding IncludeUnofficial}"
+                              Foreground="{DynamicResource ForegroundBrush}" />
+                    <CheckBox Content="Include NSFW" IsChecked="{Binding IncludeNSFW}"
+                              Foreground="{DynamicResource ForegroundBrush}" />
+                    <CheckBox Content="Only installed games" IsChecked="{Binding OnlyInstalled}"
+                              Foreground="{DynamicResource ForegroundBrush}" />
+
+                    <Button Content="Reset filters" Command="{Binding ResetFiltersCommand}"
+                            HorizontalAlignment="Stretch" />
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Tile grid -->
+        <Grid Grid.Column="1">
+            <TextBlock Text="No modlists found"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Opacity="0.5"
+                       FontSize="18"
+                       Foreground="{DynamicResource ForegroundBrush}" />
+            <ScrollViewer>
+                <ItemsControl ItemsSource="{Binding ModLists}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="core:GalleryModListMetadataVM">
+                            <local:ModListTileView DataContext="{Binding}" ViewModel="{Binding}" Margin="8" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</rxui:ReactiveUserControl>
