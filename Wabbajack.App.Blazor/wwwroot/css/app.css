@@ -357,3 +357,10 @@ html, body {
 .install-failure-banner { color: var(--fg-dim); font-size: 16px; }
 .install-failure-title { font-size: 28px; font-weight: 700; margin: 4px 0 8px; }
 .install-failure-desc { font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
+
+/* ---- Preflight checklist (in the installer Configuration step) ---- */
+.preflight { margin: 12px 0; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px; }
+.preflight-head { font-weight: 600; margin-bottom: 8px; }
+.preflight-check { display: flex; align-items: center; gap: 10px; padding: 4px 0; font-size: 13px; }
+.preflight-check.failed .preflight-check-title { color: var(--danger); }
+.preflight-check-msg { color: var(--fg-dim); flex: 1; }

@@ -42,6 +42,28 @@
                     <div class="install-validation">@vr.Reason</div>
                 }
 
+                @* Preflight checklist (populated once a modlist is loaded), ported from WPF PreflightView. *@
+                @if (ViewModel.Preflight is { } pf)
+                {
+                    <div class="preflight">
+                        <div class="preflight-head">Preflight checks — @pf.PassedCount/@pf.TotalCount passed</div>
+                        @foreach (var check in pf.FailedChecks)
+                        {
+                            <div class="preflight-check failed">
+                                <span class="preflight-check-title">@check.Title</span>
+                                @if (!string.IsNullOrWhiteSpace(check.FailureMessage))
+                                {
+                                    <span class="preflight-check-msg">@check.FailureMessage</span>
+                                }
+                                @if (check.ActionCommand is { } ac && !string.IsNullOrWhiteSpace(check.ActionLabel))
+                                {
+                                    <button class="btn" @onclick="() => Exec(ac)">@check.ActionLabel</button>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+
                 <div class="install-actions">
                     <button class="btn" @onclick="() => Exec(ViewModel.OpenReadmeCommand)">Open Readme</button>
                     <button class="btn primary" @onclick="() => Exec(ViewModel.InstallCommand)">Begin Install</button>
@@ -119,6 +141,7 @@
 @code {
     private readonly System.Collections.Generic.List<IDisposable> _activations = new();
     private bool _hooked;
+    private IDisposable? _preflightSub;
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -128,6 +151,15 @@
         // Drive the VM's WhenActivated (wires validation / install-state subscriptions). ReactiveUI.Blazor
         // does not activate the VM's ViewModelActivator for us, so we do it explicitly.
         _activations.Add(ViewModel.Activator.Activate());
+
+        // The Preflight VM is assigned when a modlist loads; re-render when it (or its summary) changes.
+        _activations.Add(ViewModel.WhenAnyValue(x => x.Preflight).Subscribe(pf =>
+        {
+            _preflightSub?.Dispose();
+            _preflightSub = pf?.WhenAnyValue(x => x.PassedCount, x => x.AllPassed, x => x.FailedChecks)
+                .Subscribe(_ => InvokeAsync(StateHasChanged));
+            InvokeAsync(StateHasChanged);
+        }));
 
         // ReactiveComponentBase re-renders on the VM's PropertyChanged, but NOT on the StatusList
         // collection that the ResourceMonitor fills in place during an install, so hook it.
@@ -155,6 +187,7 @@
         {
             if (ViewModel?.StatusList is INotifyCollectionChanged tasks)
                 tasks.CollectionChanged -= OnTasksChanged;
+            _preflightSub?.Dispose();
             foreach (var a in _activations)
                 a.Dispose();
         }
