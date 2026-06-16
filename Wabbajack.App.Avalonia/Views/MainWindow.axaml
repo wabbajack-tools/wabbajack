@@ -4,8 +4,19 @@
         x:Class="Wabbajack.Views.MainWindow"
         Width="1280" Height="800" Title="Wabbajack"
         Background="{DynamicResource WindowBackgroundBrush}">
-    <Grid ColumnDefinitions="Auto,*">
-        <wj:NavigationView x:Name="Nav" />
-        <ContentControl x:Name="ActivePane" Grid.Column="1" />
+    <Grid>
+        <Grid ColumnDefinitions="Auto,*">
+            <wj:NavigationView x:Name="Nav" />
+            <ContentControl x:Name="ActivePane" Grid.Column="1" />
+        </Grid>
+        <!-- Floating overlay layer: hosts ModListDetails/FileUpload panes over the main content. -->
+        <Grid x:Name="FloatingLayer" IsVisible="False" ZIndex="10">
+            <Border x:Name="FloatingBackdrop"
+                    Background="{DynamicResource WindowBackgroundBrush}" Opacity="0.75" />
+            <Border Margin="32" CornerRadius="8" MaxWidth="1100" MaxHeight="720"
+                    Background="{DynamicResource ComplementaryBackgroundBrush}">
+                <ContentControl x:Name="FloatingPane" />
+            </Border>
+        </Grid>
     </Grid>
 </Window>
