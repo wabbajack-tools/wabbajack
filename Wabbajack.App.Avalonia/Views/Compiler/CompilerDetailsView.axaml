@@ -1,0 +1,114 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:core="using:Wabbajack"
+             xmlns:local="using:Wabbajack"
+             xmlns:rxui="http://reactiveui.net"
+             x:Class="Wabbajack.CompilerDetailsView"
+             x:TypeArguments="core:CompilerDetailsVM"
+             x:DataType="core:CompilerDetailsVM"
+             x:CompileBindings="False">
+    <ScrollViewer Background="Transparent"
+                  HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="16" Spacing="8">
+
+            <!-- Title / Name -->
+            <TextBlock Text="ModList Name" Foreground="{DynamicResource ForegroundBrush}" />
+            <TextBox Watermark="Modlist name..." MaxLength="150"
+                     Foreground="{DynamicResource ForegroundBrush}"
+                     Text="{Binding Settings.ModListName, Mode=TwoWay}" />
+
+            <!-- Author -->
+            <TextBlock Text="Author" Foreground="{DynamicResource ForegroundBrush}" />
+            <TextBox Watermark="Author name(s)..." MaxLength="150"
+                     Foreground="{DynamicResource ForegroundBrush}"
+                     Text="{Binding Settings.ModListAuthor, Mode=TwoWay}" />
+
+            <!-- Version -->
+            <TextBlock Text="Version" Foreground="{DynamicResource ForegroundBrush}" />
+            <TextBox Watermark="1.0.0..." MaxLength="9"
+                     Foreground="{DynamicResource ForegroundBrush}"
+                     Text="{Binding Settings.Version, Mode=TwoWay}" />
+
+            <!-- Profile -->
+            <TextBlock Text="Selected MO2 Profile" Foreground="{DynamicResource ForegroundBrush}" />
+            <ComboBox HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding AvailableProfiles}"
+                      SelectedItem="{Binding Settings.Profile, Mode=TwoWay}" />
+
+            <!-- Description -->
+            <TextBlock Text="Description" Foreground="{DynamicResource ForegroundBrush}" />
+            <TextBox Watermark="A comprehensive overhaul of..."
+                     Height="120" AcceptsReturn="True" AcceptsTab="False"
+                     TextWrapping="Wrap" MaxLength="999"
+                     VerticalContentAlignment="Top"
+                     Foreground="{DynamicResource ForegroundBrush}"
+                     Text="{Binding Settings.ModListDescription, Mode=TwoWay}" />
+
+            <!-- Readme -->
+            <TextBlock Text="Documentation (Readme)" Foreground="{DynamicResource ForegroundBrush}" />
+            <TextBox Watermark="https://www..."
+                     Foreground="{DynamicResource ForegroundBrush}"
+                     Text="{Binding Settings.ModListReadme, Mode=TwoWay}" />
+
+            <!-- Website -->
+            <TextBlock Text="Website" Foreground="{DynamicResource ForegroundBrush}" />
+            <TextBox Watermark="https://www..."
+                     Foreground="{DynamicResource ForegroundBrush}"
+                     Text="{Binding Settings.ModListWebsite, Mode=TwoWay}" />
+
+            <!-- Image -->
+            <TextBlock Text="Image" Foreground="{DynamicResource ForegroundBrush}" />
+            <local:FilePicker Height="30"
+                              ToolTip.Tip="Path to an image to display for the modlist."
+                              PickerVM="{Binding ModListImageLocation}" />
+
+            <!-- Modlist location -->
+            <TextBlock Text="Modlist / Config File" Foreground="{DynamicResource ForegroundBrush}" />
+            <local:FilePicker Height="30"
+                              ToolTip.Tip="Path to a config file or a modlist.txt file"
+                              PickerVM="{Binding ModlistLocation}" />
+
+            <!-- Downloads folder -->
+            <TextBlock Text="Downloads Folder" Foreground="{DynamicResource ForegroundBrush}" />
+            <local:FilePicker Height="30"
+                              ToolTip.Tip="Path to the folder where the downloaded archives of your modlist are stored"
+                              PickerVM="{Binding DownloadLocation}" />
+
+            <!-- Export destination -->
+            <TextBlock Text="Export Destination" Foreground="{DynamicResource ForegroundBrush}" />
+            <local:FilePicker Height="30"
+                              ToolTip.Tip="Path to the file where the list installer will be saved on completion"
+                              PickerVM="{Binding OutputLocation}" />
+
+            <!-- Checkboxes -->
+            <CheckBox Content="Not Safe For Work (NSFW)"
+                      Foreground="{DynamicResource ForegroundBrush}"
+                      ToolTip.Tip="Select this if your modlist has adult themed content."
+                      IsChecked="{Binding Settings.ModlistIsNSFW, Mode=TwoWay}" />
+            <CheckBox Content="Use Game Paths"
+                      Foreground="{DynamicResource ForegroundBrush}"
+                      ToolTip.Tip="Allow Wabbajack to source files directly from the game installation."
+                      IsChecked="{Binding Settings.UseGamePaths, Mode=TwoWay}" />
+            <CheckBox Content="Enable Texture Recompression"
+                      Foreground="{DynamicResource ForegroundBrush}"
+                      ToolTip.Tip="Recompress DDS textures to save on export file size rather than using binary patching."
+                      IsChecked="{Binding Settings.UseTextureRecompression, Mode=TwoWay}" />
+            <CheckBox Content="Auto-generate Modlist HTML Report"
+                      Foreground="{DynamicResource ForegroundBrush}"
+                      ToolTip.Tip="Generate an HTML report next to the .wabbajack after compilation."
+                      IsChecked="{Binding Settings.AutoGenerateReport, Mode=TwoWay}" />
+
+            <!-- Actions -->
+            <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,8,0,0" HorizontalAlignment="Left">
+                <local:WJButton Text="Re-infer Settings" Icon="ArrowSync" ButtonStyle="Mono"
+                                Command="{Binding ReInferSettingsCommand}" />
+            </StackPanel>
+
+            <!-- DEFERRED: manual include / ignore / always-enabled / additional-profile list editors.
+                 The file-tree (CompilerFileManagerVM) handles include/ignore selection. -->
+
+        </StackPanel>
+    </ScrollViewer>
+</rxui:ReactiveUserControl>
