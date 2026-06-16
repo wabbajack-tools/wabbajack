@@ -9,39 +9,40 @@
              x:DataType="core:NavigationVM"
              Width="100">
     <rxui:ReactiveUserControl.Styles>
-        <!-- Active nav item: highlighted background + brand-coloured icon/label (mirrors WPF ActiveNavButtonStyle). -->
+        <!-- Nav icons are brand-purple; labels stay light. Mirrors WPF's NavButton look. -->
+        <Style Selector="ic|SymbolIcon.nav">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+        </Style>
+        <!-- Active nav item: highlighted background + left brand-purple accent bar
+             (mirrors WPF ActiveNavButtonStyle). -->
         <Style Selector="Button.active">
             <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary16Brush}" />
-        </Style>
-        <Style Selector="Button.active ic|SymbolIcon">
-            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
-        </Style>
-        <Style Selector="Button.active TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+            <Setter Property="BorderThickness" Value="3,0,0,0" />
         </Style>
     </rxui:ReactiveUserControl.Styles>
     <Grid RowDefinitions="Auto,8,Auto,8,Auto,*,Auto,Auto">
         <Button Grid.Row="0" x:Name="HomeButton" Height="95" Margin="8,0,8,0" Command="{Binding HomeCommand}">
             <Grid RowDefinitions="*,Auto">
-                <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Home" FontSize="36" Foreground="{DynamicResource ForegroundBrush}" />
+                <ic:SymbolIcon Classes="nav" VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Home" FontSize="36" />
                 <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,8,0,0" Text="Home" Foreground="{DynamicResource ForegroundBrush}" />
             </Grid>
         </Button>
         <Button Grid.Row="2" x:Name="BrowseButton" Height="95" Margin="8,0,8,0" Command="{Binding BrowseCommand}">
             <Grid RowDefinitions="*,Auto">
-                <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="CloudArrowDown" FontSize="36" Foreground="{DynamicResource ForegroundBrush}" />
+                <ic:SymbolIcon Classes="nav" VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="CloudArrowDown" FontSize="36" />
                 <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,8,0,0" Text="Browse lists" Foreground="{DynamicResource ForegroundBrush}" />
             </Grid>
         </Button>
         <Button Grid.Row="4" x:Name="CompileButton" Height="95" Margin="8,0,8,0" Command="{Binding CompileModListCommand}">
             <Grid RowDefinitions="*,Auto">
-                <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Toolbox" FontSize="36" Foreground="{DynamicResource ForegroundBrush}" />
+                <ic:SymbolIcon Classes="nav" VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Toolbox" FontSize="36" />
                 <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,8,0,0" Text="Create a list" Foreground="{DynamicResource ForegroundBrush}" />
             </Grid>
         </Button>
         <Button Grid.Row="6" x:Name="SettingsButton" Padding="12" Height="95" Margin="8,0,8,0" Command="{Binding SettingsCommand}">
             <Grid RowDefinitions="*,Auto">
-                <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Settings" FontSize="36" Foreground="{DynamicResource ForegroundBrush}" />
+                <ic:SymbolIcon Classes="nav" VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Settings" FontSize="36" />
                 <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,8,0,0" Text="Settings" Foreground="{DynamicResource ForegroundBrush}" />
             </Grid>
         </Button>
