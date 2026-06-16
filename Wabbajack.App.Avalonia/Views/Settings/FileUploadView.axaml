@@ -1,0 +1,59 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:core="using:Wabbajack"
+             xmlns:local="using:Wabbajack"
+             xmlns:rxui="http://reactiveui.net"
+             x:Class="Wabbajack.FileUploadView"
+             x:TypeArguments="core:FileUploadVM"
+             x:DataType="core:FileUploadVM"
+             x:CompileBindings="False">
+    <Border Background="{DynamicResource BackgroundBrush}" CornerRadius="8" MinWidth="500">
+        <StackPanel Margin="16" Spacing="16">
+            <!-- Header: title + close -->
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" Text="Upload a file" FontSize="20" FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource ForegroundBrush}" />
+                <Button Grid.Column="1" Background="Transparent" BorderThickness="0"
+                        ToolTip.Tip="Close"
+                        Command="{Binding CloseCommand}">
+                    <ic:SymbolIcon FontSize="18" Foreground="{DynamicResource ForegroundBrush}" Symbol="Dismiss" />
+                </Button>
+            </Grid>
+
+            <!-- Section 1: Start (pick & upload). Visibility gated in code-behind:
+                 visible when FileUrl is empty AND not uploading (UploadProgress == 0). -->
+            <StackPanel x:Name="StartSection" Spacing="12">
+                <!-- Drag-and-drop file upload is DEFERRED; use the FilePicker / Browse button instead. -->
+                <local:FilePicker PickerVM="{Binding Picker}" />
+                <local:WJButton Text="Choose &amp; upload" Icon="DocumentArrowUp" ButtonStyle="Color"
+                                HorizontalAlignment="Left"
+                                Command="{Binding BrowseAndUploadFileCommand}" />
+            </StackPanel>
+
+            <!-- Section 2: Uploading. Visible when 0 &lt; UploadProgress &lt; 1 and FileUrl empty. -->
+            <StackPanel x:Name="UploadingSection" Spacing="8">
+                <ProgressBar Minimum="0" Maximum="1" Value="{Binding UploadProgress}" />
+                <TextBlock Foreground="{DynamicResource ForegroundBrush}"
+                           Text="{Binding UploadProgress, StringFormat='Uploading... {0:P0}'}" />
+            </StackPanel>
+
+            <!-- Section 3: Completed. Visible when FileUrl is non-empty. -->
+            <StackPanel x:Name="CompletedSection" Spacing="12">
+                <TextBlock Text="Upload complete!" FontSize="16" FontWeight="Bold"
+                           Foreground="{DynamicResource ForegroundBrush}" />
+                <TextBox Text="{Binding FileUrl}" IsReadOnly="True"
+                         Foreground="{DynamicResource ForegroundBrush}" />
+                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Left">
+                    <local:WJButton Text="Copy URL" Icon="Copy" ButtonStyle="Color"
+                                    Command="{Binding CopyUrlCommand}" />
+                    <local:WJButton Text="Browse uploads" Icon="DocumentMultiple" ButtonStyle="Mono"
+                                    Command="{Binding BrowseUploadsCommand}" />
+                    <local:WJButton Text="Upload more files" Icon="DocumentArrowUp" ButtonStyle="Mono"
+                                    Command="{Binding UploadMoreFilesCommand}" />
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</rxui:ReactiveUserControl>
