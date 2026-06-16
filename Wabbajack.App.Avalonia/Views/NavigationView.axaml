@@ -8,6 +8,18 @@
              x:TypeArguments="core:NavigationVM"
              x:DataType="core:NavigationVM"
              Width="100">
+    <rxui:ReactiveUserControl.Styles>
+        <!-- Active nav item: highlighted background + brand-coloured icon/label (mirrors WPF ActiveNavButtonStyle). -->
+        <Style Selector="Button.active">
+            <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary16Brush}" />
+        </Style>
+        <Style Selector="Button.active ic|SymbolIcon">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+        </Style>
+        <Style Selector="Button.active TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+        </Style>
+    </rxui:ReactiveUserControl.Styles>
     <Grid RowDefinitions="Auto,8,Auto,8,Auto,*,Auto,Auto">
         <Button Grid.Row="0" x:Name="HomeButton" Height="95" Margin="8,0,8,0" Command="{Binding HomeCommand}">
             <Grid RowDefinitions="*,Auto">
@@ -33,6 +45,6 @@
                 <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,8,0,0" Text="Settings" Foreground="{DynamicResource ForegroundBrush}" />
             </Grid>
         </Button>
-        <TextBlock Grid.Row="7" x:Name="VersionTextBlock" Text="{Binding Version}" FontSize="12" HorizontalAlignment="Center" Margin="0,10,0,10" Foreground="{DynamicResource ForegroundBrush}" Opacity="0.66" />
+        <TextBlock Grid.Row="7" x:Name="VersionTextBlock" Text="{Binding Version, StringFormat='v{0}'}" FontSize="12" HorizontalAlignment="Center" Margin="0,10,0,10" Foreground="{DynamicResource ForegroundBrush}" Opacity="0.66" />
     </Grid>
 </rxui:ReactiveUserControl>

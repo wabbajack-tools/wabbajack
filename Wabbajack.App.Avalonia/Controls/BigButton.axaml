@@ -3,18 +3,18 @@
              xmlns:ic="using:FluentIcons.Avalonia"
              x:Class="Wabbajack.BigButton"
              ClipToBounds="True">
-    <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+    <Button x:Name="PART_Button" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
             Command="{Binding Command, RelativeSource={RelativeSource AncestorType=UserControl}}"
             Background="{DynamicResource ComplementaryPrimary08Brush}"
             CornerRadius="16" BorderThickness="0">
         <Grid Margin="16" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-            <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" FontWeight="DemiBold" FontSize="24" Margin="0,0,0,4"
+            <TextBlock x:Name="PART_Title" Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" FontWeight="DemiBold" FontSize="24" Margin="0,0,0,4"
                        Foreground="{DynamicResource ForegroundBrush}"
                        Text="{Binding Title, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-            <ic:SymbolIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" FontSize="28"
+            <ic:SymbolIcon x:Name="PART_Icon" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" FontSize="28"
                            Foreground="{DynamicResource PrimaryBrush}"
                            Symbol="{Binding Icon, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-            <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" FontSize="13" VerticalAlignment="Center"
+            <TextBlock x:Name="PART_Desc" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" FontSize="13" VerticalAlignment="Center"
                        TextWrapping="Wrap" Foreground="{DynamicResource ForegroundBrush}"
                        Text="{Binding Description, RelativeSource={RelativeSource AncestorType=UserControl}}" />
         </Grid>

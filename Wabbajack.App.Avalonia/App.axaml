@@ -8,6 +8,10 @@
     </Application.DataTemplates>
     <Application.Styles>
         <FluentTheme />
+        <!-- Apply the Wabbajack brand font (Gabarito) app-wide; FontFamily inherits to all descendants. -->
+        <Style Selector="Window">
+            <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
+        </Style>
         <Style Selector="Button.link">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
@@ -25,6 +29,8 @@
     </Application.Styles>
     <Application.Resources>
         <ResourceDictionary>
+            <FontFamily x:Key="PrimaryFont">avares://WabbajackAvalonia/Assets/Fonts/Gabarito.ttf#Gabarito</FontFamily>
+            <FontFamily x:Key="ContentControlThemeFontFamily">avares://WabbajackAvalonia/Assets/Fonts/Gabarito.ttf#Gabarito</FontFamily>
             <conv:IsZeroConverter x:Key="IsZero" />
             <conv:AbsolutePathConverter x:Key="AbsolutePathConverter" />
             <conv:EnumEqualsConverter x:Key="EnumEquals" />

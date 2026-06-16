@@ -25,4 +25,7 @@
     <ProjectReference Include="..\Wabbajack.App.Core\Wabbajack.App.Core.csproj" />
     <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
 </Project>
