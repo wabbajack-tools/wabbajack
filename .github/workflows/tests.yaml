@@ -52,6 +52,9 @@ jobs:
       - name: Build Blazor app
         run: dotnet build Wabbajack.App.Blazor/Wabbajack.App.Blazor.csproj /p:EnableWindowsTargeting=true
 
+      - name: Blazor component (bUnit) tests
+        run: dotnet test --project Wabbajack.App.Blazor.Test/Wabbajack.App.Blazor.Test.csproj /p:EnableWindowsTargeting=true
+
       #- name: Upload Test Folder on Failure
       #  if: ${{ failure() }}
       #  uses: actions/upload-artifact@v2
