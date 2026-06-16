@@ -31,4 +31,33 @@ public class DetailsPanelTests
         await Assert.That(buttons.Any(t => t.Contains("Website"))).IsTrue();
         await Assert.That(buttons.Any(t => t.Contains("Close"))).IsTrue();
     }
+
+    // EVIDENCE: is the InstallCommand gated (CanExecute false), or does executing it actually run?
+    [Test]
+    public async Task InstallCommand_CanExecute_IsTrue()
+    {
+        using var ctx = new BunitContext();
+        TestSupport.Register(ctx.Services);
+        var tile = TestSupport.CreateTile(ctx.Services);
+
+        await Assert.That(tile.InstallCommand.CanExecute(null)).IsTrue();
+    }
+
+    // EVIDENCE: executing the command enters the download path (Status -> Downloading). If this holds,
+    // the click DOES work — it just downloads silently with no UI feedback, which reads as "nothing".
+    [Test]
+    public async Task InstallCommand_Execute_EntersDownloadingState()
+    {
+        using var ctx = new BunitContext();
+        TestSupport.Register(ctx.Services);
+        var tile = TestSupport.CreateTile(ctx.Services);
+
+        tile.InstallCommand.Execute(null);
+
+        // Poll briefly: HaveModList is false for the fake tile, so Download() runs and sets Status.
+        for (var i = 0; i < 50 && tile.Status != BaseModListMetadataVM.ModListStatus.Downloading; i++)
+            await Task.Delay(100);
+
+        await Assert.That(tile.Status).IsEqualTo(BaseModListMetadataVM.ModListStatus.Downloading);
+    }
 }
