@@ -26,6 +26,8 @@ internal class Program
                 services.AddTransient<HomeVM>(); // Core VMs the Avalonia app currently uses
                 services.AddTransient<NavigationVM>();
                 services.AddTransient<ModListGalleryVM>();
+                services.AddTransient<SettingsVM>();
+                services.AddTransient<AboutVM>();
             }).Build();
         Services = host.Services;
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);

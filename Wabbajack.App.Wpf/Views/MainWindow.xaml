@@ -164,7 +164,7 @@
                             <DataTemplate DataType="{x:Type local:WebBrowserVM}">
                                 <local:WebBrowserView />
                             </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:SettingsVM}">
+                            <DataTemplate DataType="{x:Type core:SettingsVM}">
                                 <local:SettingsView ViewModel="{Binding}" />
                             </DataTemplate>
                             <DataTemplate DataType="{x:Type local:ModListDetailsVM}">
