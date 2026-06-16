@@ -29,29 +29,78 @@
                         </ComboBox>
                     </StackPanel>
 
-                    <CheckBox Content="Include non-featured" IsChecked="{Binding IncludeUnofficial}"
-                              Foreground="{DynamicResource ForegroundBrush}" />
-                    <CheckBox Content="Include NSFW" IsChecked="{Binding IncludeNSFW}"
-                              Foreground="{DynamicResource ForegroundBrush}" />
+                    <!-- "Include" section: bold header + bordered checkbox group, mirroring the WPF sidebar -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Include" FontWeight="Bold"
+                                   Foreground="{DynamicResource ForegroundBrush}" />
+                        <Border CornerRadius="8" Padding="12"
+                                Background="{DynamicResource ComplementaryPrimary08Brush}">
+                            <StackPanel Spacing="12">
+                                <CheckBox Content="Non-featured" IsChecked="{Binding IncludeUnofficial}"
+                                          Foreground="{DynamicResource ForegroundBrush}"
+                                          ToolTip.Tip="Show modlists that have not been tested to provide a stable experience with official support channels." />
+                                <CheckBox Content="NSFW" IsChecked="{Binding IncludeNSFW}"
+                                          Foreground="{DynamicResource ForegroundBrush}"
+                                          ToolTip.Tip="Show modlists that include NSFW frameworks." />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- "Total Modlist Size" filter. Avalonia has no built-in RangeSlider, so this is a
+                         functional approximation of the WPF MahApps RangeSlider using two stacked Sliders.
+                         Maximum is bound defensively against LargestSizedModlist (null when offline) via a
+                         FallbackValue of 100GB so binding never NREs. -->
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Total Modlist Size" FontWeight="Bold"
+                                   Foreground="{DynamicResource ForegroundBrush}" />
+                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" >
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Min" VerticalAlignment="Center"
+                                       Margin="0,0,8,0" Foreground="{DynamicResource ForegroundBrush}" />
+                            <Slider Grid.Row="0" Grid.Column="1" Minimum="0"
+                                    Maximum="{Binding LargestSizedModlist.Metadata.DownloadMetadata.TotalSize, FallbackValue=100000000000, TargetNullValue=100000000000}"
+                                    Value="{Binding MinModlistSize}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Margin="8,0,0,0"
+                                       Foreground="{DynamicResource ForegroundBrush}"
+                                       Text="{Binding MinModlistSize, Converter={StaticResource FileSize}}" />
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Max" VerticalAlignment="Center"
+                                       Margin="0,0,8,0" Foreground="{DynamicResource ForegroundBrush}" />
+                            <Slider Grid.Row="1" Grid.Column="1" Minimum="0"
+                                    Maximum="{Binding LargestSizedModlist.Metadata.DownloadMetadata.TotalSize, FallbackValue=100000000000, TargetNullValue=100000000000}"
+                                    Value="{Binding MaxModlistSize}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Margin="8,0,0,0"
+                                       Foreground="{DynamicResource ForegroundBrush}"
+                                       Text="{Binding MaxModlistSize, Converter={StaticResource FileSize}}" />
+                        </Grid>
+                    </StackPanel>
+
                     <CheckBox Content="Only installed games" IsChecked="{Binding OnlyInstalled}"
                               Foreground="{DynamicResource ForegroundBrush}" />
 
-                    <Button Content="Reset filters" Command="{Binding ResetFiltersCommand}"
-                            HorizontalAlignment="Stretch" />
+                    <!-- TODO: mod/tag multi-select filters deferred (needs a custom multi-select control) -->
+
+                    <local:WJButton Text="Reset filters" Icon="ArrowReset"
+                                    Command="{Binding ResetFiltersCommand}"
+                                    HorizontalAlignment="Stretch" />
                 </StackPanel>
             </ScrollViewer>
         </Border>
 
         <!-- Tile grid -->
-        <Grid Grid.Column="1">
-            <TextBlock Text="No modlists found"
+        <Grid Grid.Column="1" RowDefinitions="Auto,*">
+            <!-- "Install from disk" sits at the top of the right content column (WPF placed it top-right of the window) -->
+            <local:WJButton Grid.Row="0"
+                            Text="Install from disk" Icon="ArrowUpload" ButtonStyle="Mono"
+                            Command="{Binding LoadLocalFileCommand}"
+                            HorizontalAlignment="Right" Margin="8" />
+            <TextBlock Grid.Row="1"
+                       Text="No modlists found"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
                        Opacity="0.5"
                        FontSize="18"
                        IsVisible="{Binding ModLists.Count, Converter={StaticResource IsZero}}"
                        Foreground="{DynamicResource ForegroundBrush}" />
-            <ScrollViewer>
+            <ScrollViewer Grid.Row="1">
                 <ItemsControl ItemsSource="{Binding ModLists}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>

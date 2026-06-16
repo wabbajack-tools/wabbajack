@@ -15,7 +15,13 @@ public sealed class FileSizeConverter : IValueConverter
     public static readonly FileSizeConverter Instance = new();
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is long l ? l.ToFileSizeString() : "";
+        => value switch
+        {
+            long l => l.ToFileSizeString(),
+            // Size range sliders bind double values (MinModlistSize/MaxModlistSize, in bytes).
+            double d => ((long)d).ToFileSizeString(),
+            _ => ""
+        };
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
