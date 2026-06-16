@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net.Http;
 using ReactiveUI;
 using System.Reactive.Disposables;
-using System.Windows.Media.Imaging;
 using ReactiveUI.SourceGenerators;
 using DynamicData;
 using System.Reactive;
@@ -15,7 +14,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
@@ -31,8 +29,6 @@ using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
-using Wabbajack.Util;
-using Wabbajack.CLI.Verbs;
 using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.VFS;
 using Humanizer;
@@ -42,8 +38,6 @@ using System.Diagnostics;
 using System.Reactive.Concurrency;
 using Wabbajack.Preflight;
 using Wabbajack.Reporting;
-using Markdig;
-using Markdig.Syntax;
 
 
 namespace Wabbajack;
@@ -99,7 +93,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     private readonly ILogger<InstallationVM> _logger;
     private readonly SettingsManager _settingsManager;
     private readonly IServiceProvider _serviceProvider;
-    private readonly SystemParametersConstructor _parametersConstructor;
+    private readonly ISystemParameters _systemParameters;
     private readonly IGameLocator _gameLocator;
     private readonly ResourceMonitor _resourceMonitor;
     private readonly Services.OSIntegrated.Configuration _configuration;
@@ -140,16 +134,16 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     public ICommand InstallCommand { get; }
     public ICommand CancelCommand { get; }
     public ICommand EditInstallDetailsCommand { get; }
-    public ICommand VerifyCommand { get; }
     public ICommand CreateShortcutCommand { get; }
 
     private readonly IFileSelector _fileSelector;
     private readonly IImageService _imageService;
+    private readonly IDialogService _dialogService;
 
     public InstallationVM(ILogger<InstallationVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
-        SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
+        ISystemParameters systemParameters, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
         Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins,
-        IFileSelector fileSelector, IImageService imageService)
+        IFileSelector fileSelector, IImageService imageService, IDialogService dialogService)
     {
         _logger = logger;
         _configuration = configuration;
@@ -157,7 +151,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         _settingsManager = settingsManager;
         _dtos = dtos;
         _serviceProvider = serviceProvider;
-        _parametersConstructor = parametersConstructor;
+        _systemParameters = systemParameters;
         _gameLocator = gameLocator;
         _resourceMonitor = resourceMonitor;
         _client = client;
@@ -165,6 +159,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         _logins = logins;
         _fileSelector = fileSelector;
         _imageService = imageService;
+        _dialogService = dialogService;
 
         ConfigurationText = $"Loading... Please wait";
         ProgressText = $"Installation";
@@ -188,12 +183,12 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
 
         OpenReadmeCommand = ReactiveCommand.Create(() =>
         {
-            UIUtils.OpenWebsite(ModList.Readme);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(ModList.Readme.ToString()) { UseShellExecute = true });
         }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModList.Readme, (isNotLoading, readme) => isNotLoading && !string.IsNullOrWhiteSpace(readme)));
 
         OpenWebsiteCommand = ReactiveCommand.Create(() =>
         {
-            UIUtils.OpenWebsite(ModList.Website);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(ModList.Website.ToString()) { UseShellExecute = true });
         }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModList.Website, (isNotLoading, website) => isNotLoading && !string.IsNullOrWhiteSpace(website)));
         
         WabbajackFileLocation = new FilePickerVM(_fileSelector)
@@ -206,24 +201,26 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         
         OpenLogFolderCommand = ReactiveCommand.Create(() =>
         {
-            UIUtils.OpenFolderAndSelectFile(_configuration.LogLocation.Combine("Wabbajack.current.log"));
+            // Cross-platform: open the containing folder (dropping the WPF "select the file" nicety).
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(_configuration.LogLocation.ToString()) { UseShellExecute = true });
         });
 
         OpenCommunityCommand = ReactiveCommand.Create(() =>
         {
-            UIUtils.OpenWebsite(new Uri(ModList.Community));
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(new Uri(ModList.Community).ToString()) { UseShellExecute = true });
         }, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModlistMetadata,
         (isNotLoading, metadata) => isNotLoading && !string.IsNullOrEmpty(metadata?.Links?.DiscordURL)));
 
         OpenManifestCommand = ReactiveCommand.Create(() =>
         {
             // TODO: Open modlist archives in modal dialog
-            UIUtils.OpenWebsite(new Uri("https://www.wabbajack.org/search/" + ModlistMetadata.NamespacedName));
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(new Uri("https://www.wabbajack.org/search/" + ModlistMetadata.NamespacedName).ToString()) { UseShellExecute = true });
         }, this.WhenAnyValue(x => x.LoadingLock.IsNotLoading, vm => vm.ModlistMetadata, (isNotLoading, metadata) => isNotLoading && !string.IsNullOrEmpty(metadata?.NamespacedName)));
         
         OpenInstallFolderCommand = ReactiveCommand.Create(() =>
         {
-            UIUtils.OpenFolderAndSelectFile(Installer.Location.TargetPath.Combine("ModOrganizer.exe"));
+            // Cross-platform: open the containing folder (dropping the WPF "select the file" nicety).
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(Installer.Location.TargetPath.ToString()) { UseShellExecute = true });
         });
 
         OpenMissingArchivesCommand = ReactiveCommand.Create(() =>
@@ -430,8 +427,15 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         folderName = folderName.Split('-')[0];
         // Remove all special characters
         folderName = Regex.Replace(folderName, "[^a-zA-Z0-9_ .]+", "");
-        // Get preferred installation drive (SSD with enough space)
-        var preferredPartition = DriveHelper.GetPreferredInstallationDrive(x.DownloadMetadata.SizeOfInstalledFiles);
+        // Get preferred installation drive (drive with enough free space).
+        // Cross-platform replacement for the WPF DriveHelper which used WMI to also prefer SSDs;
+        // the SSD ranking is dropped here as it relies on Windows-only System.Management.
+        var modlistSize = x.DownloadMetadata.SizeOfInstalledFiles;
+        var preferredPartition = DriveInfo.GetDrives()
+            .Where(d => d.IsReady && d.DriveType == DriveType.Fixed)
+            .OrderByDescending(d => d.AvailableFreeSpace > modlistSize)
+            .ThenByDescending(d => d.AvailableFreeSpace)
+            .FirstOrDefault();
         var words = folderName.Split(' ');
         // Abbreviate the list name if it's too long, otherwise convert it to PascalCase
         folderName = words.Length >= 3 ? string.Join("", words.Select(w => w[0])).ToUpper() : folderName.Pascalize();
@@ -751,35 +755,9 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         }
     }
 
-    private async Task Verify()
-    {
-        await Task.Run(async () =>
-        {
-            InstallState = InstallState.Installing;
-
-            ProgressText = $"Verifying {ModList.Name}";
-
-
-            var cmd = new VerifyModlistInstall(_serviceProvider.GetRequiredService<ILogger<VerifyModlistInstall>>(), _dtos,
-                _serviceProvider.GetRequiredService<IResource<FileHashCache>>(),
-                _serviceProvider.GetRequiredService<TemporaryFileManager>());
-
-            var result = await cmd.Run(WabbajackFileLocation.TargetPath, Installer.Location.TargetPath, _cancellationTokenSource.Token);
-
-            if (result != 0)
-            {
-                TaskBarUpdate.Send($"Error during verification of {ModList.Name}", TaskbarItemState.Error);
-                InstallState = InstallState.Failure;
-                ProgressText = $"Error during install of {ModList.Name}";
-                ProgressPercent = Percent.Zero;
-            }
-            else
-            {
-                TaskBarUpdate.Send($"Finished verification of {ModList.Name}", TaskbarItemState.Normal);
-                InstallState = InstallState.Success;
-            }
-        });
-    }
+    // The Verify() flow (which used Wabbajack.CLI's VerifyModlistInstall verb) was removed during the
+    // move to Wabbajack.App.Core: it was unreachable dead code (VerifyCommand was never wired to it) and
+    // Wabbajack.CLI is a Windows-only (net10.0-windows7.0) project that the cross-platform Core cannot reference.
 
     private async Task BeginInstall()
     {
@@ -827,7 +805,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                     Install = Installer.Location.TargetPath,
                     ModList = freshModList,
                     ModlistArchive = WabbajackFileLocation.TargetPath,
-                    SystemParameters = _parametersConstructor.Create(),
+                    SystemParameters = _systemParameters.Create(),
                     GameFolder = _gameLocator.GameLocation(freshModList.GameType)
                 };
 
@@ -848,8 +826,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                     var tcs = new TaskCompletionSource<bool>();
                     RxApp.MainThreadScheduler.Schedule(async () =>
                     {
-                        var mainWindowVM = (MainWindowVM)System.Windows.Application.Current.MainWindow.DataContext;
-                        var result = await mainWindowVM.ShowConfirmationDialog(title, message);
+                        var result = await _dialogService.ShowConfirmation(title, message);
                         tcs.TrySetResult(result);
                     });
                     return await tcs.Task;

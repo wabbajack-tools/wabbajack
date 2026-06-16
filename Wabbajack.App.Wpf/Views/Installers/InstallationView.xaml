@@ -7,16 +7,17 @@
     xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:lib="clr-namespace:Wabbajack;assembly=Wabbajack"
     xmlns:local="clr-namespace:Wabbajack"
+    xmlns:core="clr-namespace:Wabbajack;assembly=Wabbajack.App.Core"
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
     xmlns:lib1="clr-namespace:Wabbajack"
     xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     xmlns:math="http://hexinnovation.com/math" xmlns:controls="http://schemas.sdl.com/xaml"
-    d:DataContext="{d:DesignInstance local:InstallationVM}"
+    d:DataContext="{d:DesignInstance core:InstallationVM}"
     d:DesignHeight="500"
     d:DesignWidth="800"
-    x:TypeArguments="local:InstallationVM"
+    x:TypeArguments="core:InstallationVM"
     mc:Ignorable="d">
     <UserControl.Resources>
         <Thickness x:Key="InstallMargin" Bottom="8" />

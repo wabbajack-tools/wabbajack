@@ -4,6 +4,7 @@ using Avalonia.ReactiveUI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Wabbajack.DTOs.Interventions;
+using Wabbajack.Models;
 using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack;
@@ -29,6 +30,11 @@ internal class Program
                 services.AddTransient<ModListGalleryVM>();
                 services.AddTransient<SettingsVM>();
                 services.AddTransient<AboutVM>();
+                services.AddTransient<InstallationVM>();
+                // InstallationVM needs these singletons that AddOSIntegrated doesn't provide.
+                services.AddSingleton<ResourceMonitor>();
+                services.AddSingleton<LogStream>();
+                // LogStream not wired as an NLog target yet (deferred): the log view just renders empty.
                 // AboutVM pulls the GitHub contributor list; register the client like the WPF app does.
                 services.AddSingleton<Networking.GitHub.Client>();
                 services.AddSingleton(_ => new Octokit.GitHubClient(new Octokit.ProductHeaderValue("wabbajack")));
