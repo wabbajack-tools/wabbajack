@@ -60,6 +60,32 @@ internal static class TestSupport
         s.AddSingleton<Wabbajack.LoginManagers.INeedsLogin, Wabbajack.LoginManagers.NexusLoginManager>();
         s.AddTransient<SettingsVM>();
         s.AddTransient<AboutVM>();
+
+        // Compiler screens + deps not provided by AddOSIntegrated (ResourceMonitor, LogStream).
+        // ResourceMonitor's ctor calls RxApp.MainThreadScheduler.ScheduleRecurringAction(1s, ...). With
+        // our process-global scheduler pinned to ImmediateScheduler a *recurring* schedule degenerates
+        // into an infinite synchronous loop, hanging construction. Build it with the scheduler temporarily
+        // on the task pool (real delays, off-thread), then restore Immediate for the rest of the suite.
+        s.AddSingleton<Wabbajack.Models.ResourceMonitor>(sp =>
+        {
+            var prev = RxApp.MainThreadScheduler;
+            RxApp.MainThreadScheduler = TaskPoolScheduler.Default;
+            try
+            {
+                return new Wabbajack.Models.ResourceMonitor(
+                    sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Wabbajack.Models.ResourceMonitor>>(),
+                    sp.GetServices<Wabbajack.RateLimiter.IResource>());
+            }
+            finally
+            {
+                RxApp.MainThreadScheduler = prev;
+            }
+        });
+        s.AddSingleton<Wabbajack.Models.LogStream>();
+        s.AddTransient<CompilerHomeVM>();
+        s.AddTransient<CompilerMainVM>();
+        s.AddTransient<CompilerDetailsVM>();
+        s.AddTransient<CompilerFileManagerVM>();
     }
 
     // Builds a single gallery tile VM from fake metadata + the offline service graph.

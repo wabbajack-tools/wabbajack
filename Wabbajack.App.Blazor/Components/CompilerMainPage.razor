@@ -1,0 +1,145 @@
+@inherits ReactiveInjectableComponentBase<CompilerMainVM>
+
+@* Ported from WPF CompilerMainView: a two-column layout with the modlist details form on the left
+   (CompilerDetailsVM) and the source-folder file tree on the right (CompilerFileManagerVM), plus the
+   Compile action button and a status line. The VM defaults to the Configuration state on activation and
+   does not start compiling on its own. *@
+<div class="compiler-main">
+    <h1 class="screen-title">@TitleOrDefault</h1>
+
+    <div class="compiler-main-cols">
+        <section class="compiler-details">
+            @{ var s = ViewModel!.CompilerDetailsVM.Settings; }
+            <div class="cd-row">
+                <label class="cd-field">
+                    <span class="cd-label">Author</span>
+                    <input type="text" placeholder="Author name(s)..." @bind="s.ModListAuthor" @bind:event="oninput" />
+                </label>
+                <label class="cd-field">
+                    <span class="cd-label">Version</span>
+                    <input type="text" placeholder="1.0.0..." @bind="s.Version" @bind:event="oninput" />
+                </label>
+            </div>
+            <div class="cd-row">
+                <label class="cd-field">
+                    <span class="cd-label">Title</span>
+                    <input type="text" placeholder="Modlist name..." @bind="s.ModListName" @bind:event="oninput" />
+                </label>
+                <label class="cd-field">
+                    <span class="cd-label">Selected MO2 Profile</span>
+                    <select @bind="s.Profile">
+                        <option value="">@(s.Profile is { Length: > 0 } ? s.Profile : "(none)")</option>
+                        @if (ViewModel.CompilerDetailsVM.AvailableProfiles is { } profiles)
+                        {
+                            @foreach (var p in profiles)
+                            {
+                                <option value="@p">@p</option>
+                            }
+                        }
+                    </select>
+                </label>
+            </div>
+            <label class="cd-field">
+                <span class="cd-label">Description</span>
+                <textarea rows="4" placeholder="A comprehensive overhaul of..." @bind="s.ModListDescription" @bind:event="oninput"></textarea>
+            </label>
+            <label class="cd-field">
+                <span class="cd-label">Documentation (Readme) <span class="cd-optional">Optional</span></span>
+                <input type="text" placeholder="https://www..." @bind="s.ModListReadme" @bind:event="oninput" />
+            </label>
+            <label class="cd-field">
+                <span class="cd-label">Website <span class="cd-optional">Optional</span></span>
+                <input type="text" placeholder="https://www..." @bind="s.ModListWebsite" @bind:event="oninput" />
+            </label>
+            <label class="cd-field">
+                <span class="cd-label">Machine URL <span class="cd-optional">Optional</span></span>
+                <input type="text" placeholder="modlistRepository/ModlistName" @bind="s.MachineUrl" @bind:event="oninput" />
+            </label>
+            <div class="cd-checks">
+                <label class="cd-check"><input type="checkbox" @bind="s.ModlistIsNSFW" /> Not Safe For Work (NSFW)</label>
+                <label class="cd-check"><input type="checkbox" @bind="s.UseTextureRecompression" /> Enable Texture Recompression</label>
+                <label class="cd-check"><input type="checkbox" @bind="s.AutoGenerateReport" /> Auto-generate Modlist HTML Report</label>
+            </div>
+        </section>
+
+        <section class="compiler-files">
+            <h2 class="compiler-files-title">Source Files</h2>
+            @if (ViewModel.CompilerFileManagerVM.Files is { Count: > 0 } files)
+            {
+                <ul class="file-tree">
+                    @foreach (var node in files)
+                    {
+                        <FileTreeNode Item="node" @key="node" />
+                    }
+                </ul>
+            }
+            else
+            {
+                <div class="empty">No source folder selected yet.</div>
+            }
+        </section>
+    </div>
+
+    <div class="compiler-main-status">
+        <span class="compiler-state">State: @ViewModel.State</span>
+        @if (!string.IsNullOrEmpty(ViewModel.ProgressText))
+        {
+            <span class="compiler-progress">@ViewModel.ProgressText</span>
+        }
+    </div>
+
+    <div class="compiler-main-actions">
+        <button class="btn primary" @onclick="() => Exec(ViewModel.StartCommand)" disabled="@(!CanStart)">Compile List</button>
+    </div>
+</div>
+
+@code {
+    private readonly System.Collections.Generic.List<IDisposable> _activations = new();
+    private bool _hooked;
+
+    private string TitleOrDefault =>
+        ViewModel?.CompilerDetailsVM.Settings.ModListName is { Length: > 0 } name ? name : "Modlist Details";
+
+    private bool CanStart => ViewModel?.StartCommand.CanExecute(null) ?? false;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (ViewModel is null) return;
+
+        if (firstRender)
+        {
+            // Activate the main VM and the two sub-VMs so their WhenActivated wiring runs (the main VM
+            // sets State = Configuration; the details VM builds its file pickers / profile list; the file
+            // manager builds the source tree if a source is already set).
+            _activations.Add(ViewModel.Activator.Activate());
+            _activations.Add(ViewModel.CompilerDetailsVM.Activator.Activate());
+            _activations.Add(ViewModel.CompilerFileManagerVM.Activator.Activate());
+
+            // Re-render when sub-VM properties the markup depends on change (the base only watches our VM).
+            _activations.Add(ViewModel.WhenAnyValue(x => x.CompilerDetailsVM.Settings)
+                .Subscribe(_ => InvokeAsync(StateHasChanged)));
+            _activations.Add(ViewModel.WhenAnyValue(x => x.CompilerDetailsVM.AvailableProfiles)
+                .Subscribe(_ => InvokeAsync(StateHasChanged)));
+        }
+
+        if (!_hooked && ViewModel.CompilerFileManagerVM.Files is INotifyCollectionChanged ncc)
+        {
+            _hooked = true;
+            ncc.CollectionChanged += (_, _) => InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private static void Exec(System.Windows.Input.ICommand? cmd)
+    {
+        if (cmd != null && cmd.CanExecute(null)) cmd.Execute(null);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+            foreach (var a in _activations)
+                a.Dispose();
+        base.Dispose(disposing);
+    }
+}

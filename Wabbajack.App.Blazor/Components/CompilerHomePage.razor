@@ -1,0 +1,92 @@
+@inherits ReactiveInjectableComponentBase<CompilerHomeVM>
+
+@* Ported from WPF CompilerHomeView: two "big buttons" (compile new / load settings) plus a list of
+   recently compiled modlist tiles. The VM loads saved compiler settings on activation, so we activate
+   it and re-render when the CompiledModLists collection changes. *@
+<div class="compiler-home">
+    <h1 class="screen-title">Compile a Modlist</h1>
+
+    <div class="compiler-home-actions">
+        <button class="big-button" @onclick="() => Exec(ViewModel!.NewModlistCommand)">
+            <span class="big-button-title">Compile a new list</span>
+            <span class="big-button-desc">Import the modlist.txt file to set up a new Wabbajack modlist export</span>
+        </button>
+        <button class="big-button" @onclick="() => Exec(ViewModel!.LoadSettingsCommand)">
+            <span class="big-button-title">Load compiler settings</span>
+            <span class="big-button-desc">Continue the export of an existing modlist or push an update</span>
+        </button>
+    </div>
+
+    <h2 class="compiler-home-recent-title">Recently Compiled Modlists</h2>
+
+    <div class="compiler-home-recent">
+        @if (ViewModel?.CompiledModLists is { Count: > 0 } lists)
+        {
+            @foreach (var tile in lists)
+            {
+                @if (!tile.Deleted)
+                {
+                    <div class="compiled-tile" @key="tile">
+                        <div class="compiled-tile-body">
+                            <span class="compiled-tile-name">@tile.CompilerSettings.ModListName</span>
+                            <span class="compiled-tile-author">@tile.CompilerSettings.ModListAuthor</span>
+                        </div>
+                        <div class="compiled-tile-actions">
+                            <button class="btn" @onclick="() => Exec(tile.CompileModListCommand)">Compile</button>
+                            <button class="btn danger" @onclick="() => Exec(tile.DeleteModListCommand)">Delete</button>
+                        </div>
+                    </div>
+                }
+            }
+        }
+        else
+        {
+            <div class="empty">No previously compiled modlists.</div>
+        }
+    </div>
+</div>
+
+@code {
+    private readonly System.Collections.Generic.List<IDisposable> _activations = new();
+    private INotifyCollectionChanged? _hookedCollection;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (ViewModel is null) return;
+
+        if (firstRender)
+        {
+            // Drive WhenActivated so LoadAllCompilerSettings runs and CompiledModLists is populated.
+            _activations.Add(ViewModel.Activator.Activate());
+        }
+
+        // CompiledModLists is replaced (new ObservableCollection) then filled asynchronously.
+        // ReactiveComponentBase re-renders on the VM's PropertyChanged (the property is [Reactive]) but
+        // NOT on the inner CollectionChanged, so hook whichever collection instance is current.
+        if (ViewModel.CompiledModLists is INotifyCollectionChanged ncc && !ReferenceEquals(ncc, _hookedCollection))
+        {
+            if (_hookedCollection is not null) _hookedCollection.CollectionChanged -= OnListsChanged;
+            _hookedCollection = ncc;
+            ncc.CollectionChanged += OnListsChanged;
+        }
+    }
+
+    private void OnListsChanged(object? sender, NotifyCollectionChangedEventArgs e) => InvokeAsync(StateHasChanged);
+
+    private static void Exec(System.Windows.Input.ICommand? cmd)
+    {
+        if (cmd != null && cmd.CanExecute(null)) cmd.Execute(null);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            if (_hookedCollection is not null) _hookedCollection.CollectionChanged -= OnListsChanged;
+            foreach (var a in _activations)
+                a.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+}

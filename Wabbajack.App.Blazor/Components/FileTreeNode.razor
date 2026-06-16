@@ -1,0 +1,48 @@
+@* Recursive node for the compiler source file tree (mirrors the WPF HierarchicalDataTemplate /
+   TreeView in CompilerFileManagerView). Toggling a directory flips IsExpanded on the VM, which lazily
+   realizes the children from disk; we re-render and recurse over Children. *@
+<li class="file-node">
+    <div class="file-row @(Item.IsDirectory ? "dir" : "file")">
+        @if (Item.IsDirectory)
+        {
+            <button class="file-toggle" @onclick="Toggle">@(Item.IsExpanded ? "▾" : "▸")</button>
+        }
+        else
+        {
+            <span class="file-toggle-spacer"></span>
+        }
+        <span class="file-name">@Item.ToString()</span>
+        @if (Item.CompilerFileState is { } state)
+        {
+            <span class="file-state">@state</span>
+        }
+    </div>
+
+    @if (Item.IsDirectory && Item.IsExpanded && Item.Children.Count > 0)
+    {
+        <ul class="file-tree">
+            @foreach (var child in Item.Children)
+            {
+                @if (child.IsPlaceholder)
+                {
+                    <li class="file-node"><div class="file-row loading">Loading…</div></li>
+                }
+                else
+                {
+                    <FileTreeNode Item="child" @key="child" />
+                }
+            }
+        </ul>
+    }
+</li>
+
+@code {
+    [Parameter] public FileTreeItemVM Item { get; set; } = default!;
+
+    private void Toggle()
+    {
+        Item.IsExpanded = !Item.IsExpanded;
+        // Flipping IsExpanded lazily fills Children on the VM (synchronously via WhenAnyValue); re-render.
+        StateHasChanged();
+    }
+}

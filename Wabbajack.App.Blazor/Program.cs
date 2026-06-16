@@ -51,6 +51,14 @@ internal static class Program
         builder.Services.AddTransient<SettingsVM>();
         builder.Services.AddTransient<AboutVM>();
 
+        // Compiler screens + deps. ResourceMonitor and LogStream aren't registered by AddOSIntegrated.
+        builder.Services.AddSingleton<Wabbajack.Models.ResourceMonitor>();
+        builder.Services.AddSingleton<Wabbajack.Models.LogStream>();
+        builder.Services.AddTransient<CompilerHomeVM>();
+        builder.Services.AddTransient<CompilerMainVM>();
+        builder.Services.AddTransient<CompilerDetailsVM>();
+        builder.Services.AddTransient<CompilerFileManagerVM>();
+
         builder.RootComponents.Add<App>("#app");
 
         var app = builder.Build();
