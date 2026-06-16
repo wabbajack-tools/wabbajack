@@ -22,10 +22,51 @@ html, body {
     overflow: hidden;
 }
 
-#app, .app { height: 100vh; }
+/* ---- Themed scrollbars (Chromium/WebView2) ---- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--card); border-radius: 5px; border: 2px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background: #4e4571; }
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* ---- Transitions ---- */
+@keyframes screen-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes overlay-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes panel-pop-in { from { opacity: 0; transform: translateY(10px) scale(0.985); } to { opacity: 1; transform: none; } }
+
+#app, .window { height: 100vh; }
+
+/* ---- Window + custom title bar (chromeless) ---- */
+.window { display: flex; flex-direction: column; }
+.titlebar {
+    flex: 0 0 38px;
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    -webkit-app-region: drag;
+    user-select: none;
+}
+.titlebar-title { flex: 1; padding-left: 14px; font-size: 13px; color: var(--fg-dim); }
+.titlebar-controls { display: flex; -webkit-app-region: no-drag; }
+.win-btn {
+    width: 46px;
+    height: 38px;
+    background: transparent;
+    border: none;
+    color: var(--fg);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+}
+.win-btn:hover { background: var(--bg-alt); }
+.win-btn.close:hover { background: #c0392b; color: #fff; }
 
 /* ---- App shell (nav + main + overlay) ---- */
-.app { display: flex; }
+.app { display: flex; flex: 1; min-height: 0; position: relative; }
+
+/* Screen content fades in on navigation. */
+.screen { height: 100%; animation: screen-fade-in 0.18s ease; }
 
 .nav {
     width: 100px;
@@ -72,6 +113,7 @@ html, body {
     align-items: center;
     justify-content: center;
     z-index: 100;
+    animation: overlay-fade-in 0.15s ease;
 }
 .overlay-panel {
     width: min(900px, 90%);
@@ -81,6 +123,7 @@ html, body {
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+    animation: panel-pop-in 0.18s ease;
 }
 
 /* ---- Home ---- */

@@ -7,58 +7,65 @@
 @inject CompilerMainVM CompilerVm
 @inject Wabbajack.Blazor.Services.BlazorUserInterventionHandler Interventions
 
-@* App shell: nav sidebar + routed content + floating overlay. Mirrors WPF MainWindow/MainWindowVM. *@
-<div class="app">
-    <NavSidebar Vm="ViewModel" />
+@* App shell: themed title bar + nav sidebar + routed content + floating overlay. Mirrors WPF. *@
+<div class="window">
+    <TitleBar />
 
-    <div class="app-main">
-        @switch (ViewModel!.ActiveScreen)
-        {
-            case ScreenType.Home:
-                <HomePage />
-                break;
-            case ScreenType.ModListGallery:
-                <GalleryPage />
-                break;
-            case ScreenType.Settings:
-                <SettingsPage />
-                break;
-            case ScreenType.Info:
-                <InfoPage />
-                break;
-            case ScreenType.CompilerHome:
-                <CompilerHomePage />
-                break;
-            case ScreenType.CompilerMain:
-                <CompilerMainPage />
-                break;
-            case ScreenType.Installer:
-                <InstallerPage />
-                break;
-            default:
-                <ScreenPlaceholder Screen="ViewModel.ActiveScreen" />
-                break;
-        }
+    <div class="app">
+        <NavSidebar Vm="ViewModel" />
+
+        <div class="app-main">
+            @* Keyed on the screen so the element is recreated on navigation, replaying the fade-in. *@
+            <div class="screen" @key="ViewModel!.ActiveScreen">
+                @switch (ViewModel.ActiveScreen)
+                {
+                    case ScreenType.Home:
+                        <HomePage />
+                        break;
+                    case ScreenType.ModListGallery:
+                        <GalleryPage />
+                        break;
+                    case ScreenType.Settings:
+                        <SettingsPage />
+                        break;
+                    case ScreenType.Info:
+                        <InfoPage />
+                        break;
+                    case ScreenType.CompilerHome:
+                        <CompilerHomePage />
+                        break;
+                    case ScreenType.CompilerMain:
+                        <CompilerMainPage />
+                        break;
+                    case ScreenType.Installer:
+                        <InstallerPage />
+                        break;
+                    default:
+                        <ScreenPlaceholder Screen="ViewModel.ActiveScreen" />
+                        break;
+                }
+            </div>
+
+            <InterventionModal Intervention="_intervention" />
+
+            @if (_floating == FloatingScreenType.ModListDetails)
+            {
+                <div class="overlay-backdrop" @onclick="CloseFloating">
+                    <div class="overlay-panel" @onclick:stopPropagation="true">
+                        <ModListDetailsPanel Vm="DetailsVm" />
+                    </div>
+                </div>
+            }
+            else if (_floating == FloatingScreenType.FileUpload)
+            {
+                <div class="overlay-backdrop" @onclick="CloseFloating">
+                    <div class="overlay-panel" @onclick:stopPropagation="true">
+                        <FileUploadPanel Vm="UploadVm" />
+                    </div>
+                </div>
+            }
+        </div>
     </div>
-
-    <InterventionModal Intervention="_intervention" />
-
-    @if (_floating == FloatingScreenType.ModListDetails)
-    {
-        <div class="overlay-backdrop" @onclick="CloseFloating">
-            <div class="overlay-panel" @onclick:stopPropagation="true">
-                <ModListDetailsPanel Vm="DetailsVm" />
-            </div>
-        </div>
-    }
-    else if (_floating == FloatingScreenType.FileUpload)
-    {
-        <div class="overlay-backdrop" @onclick="CloseFloating">
-            <div class="overlay-panel" @onclick:stopPropagation="true">
-                <FileUploadPanel Vm="UploadVm" />
-            </div>
-        </div>
-    }
 </div>
 
 @code {

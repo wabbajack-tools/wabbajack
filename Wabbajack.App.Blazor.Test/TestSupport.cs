@@ -39,6 +39,8 @@ internal static class TestSupport
             o.UseLocalCache = true;
             o.UseStubbedGameFolders = true;
         });
+        // The Shell's TitleBar injects this; the window stays null in tests (controls no-op).
+        s.AddSingleton<PhotinoWindowHolder>();
         s.AddSingleton<IImageService, BlazorImageService>();
         s.AddSingleton<IDialogService, StubDialogService>();
         s.AddSingleton<IFileSelector, StubFileSelector>();

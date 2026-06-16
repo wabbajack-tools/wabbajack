@@ -113,6 +113,7 @@ internal static class Program
         app.Services.GetRequiredService<PhotinoWindowHolder>().Window = app.MainWindow;
 
         app.MainWindow
+            .SetChromeless(true)
             .SetTitle("Wabbajack (Blazor spike)")
             .SetSize(1280, 800);
 

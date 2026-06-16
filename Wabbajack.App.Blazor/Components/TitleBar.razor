@@ -1,0 +1,25 @@
+@* Custom themed title bar for the chromeless Photino window (mirrors WPF's ShowTitleBar="False").
+   The bar is a drag region (-webkit-app-region: drag in CSS); the buttons opt out and drive the
+   native window via the Photino window handle. *@
+@inject Wabbajack.Blazor.Services.PhotinoWindowHolder Win
+
+<div class="titlebar">
+    <span class="titlebar-title">Wabbajack</span>
+    <div class="titlebar-controls">
+        <button class="win-btn" title="Minimize" @onclick="Minimize">&#x2012;</button>
+        <button class="win-btn" title="Maximize" @onclick="MaxRestore">&#x25A1;</button>
+        <button class="win-btn close" title="Close" @onclick="Close">&#x2715;</button>
+    </div>
+</div>
+
+@code {
+    private void Minimize() => Win.Window?.SetMinimized(true);
+
+    private void MaxRestore()
+    {
+        var w = Win.Window;
+        if (w != null) w.SetMaximized(!w.Maximized);
+    }
+
+    private void Close() => Win.Window?.Close();
+}
