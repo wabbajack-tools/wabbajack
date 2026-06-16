@@ -49,6 +49,7 @@
                        VerticalAlignment="Center"
                        Opacity="0.5"
                        FontSize="18"
+                       IsVisible="{Binding ModLists.Count, Converter={StaticResource IsZero}}"
                        Foreground="{DynamicResource ForegroundBrush}" />
             <ScrollViewer>
                 <ItemsControl ItemsSource="{Binding ModLists}">
