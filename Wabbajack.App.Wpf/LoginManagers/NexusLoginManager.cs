@@ -45,7 +45,7 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
     public ICommand ClearLogin { get; set; }
     public ICommand ToggleLogin { get; set; }
 
-    public ImageSource Icon { get; set; }
+    public object Icon { get; set; }
     public Type LoginFor()
     {
         return typeof(NexusDownloader);

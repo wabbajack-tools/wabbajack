@@ -14,7 +14,7 @@ public partial class LoginItemView : IViewFor<LoginTargetVM>
         InitializeComponent();
         this.WhenActivated(disposable =>
         {
-            ViewModel.WhenAny(x => x.Login.Icon)
+            ViewModel.WhenAny(x => x.Login.Icon, x => x.Value as System.Windows.Media.ImageSource)
                 .BindToStrict(this, view => view.Favicon.Source)
                 .DisposeWith(disposable);
 

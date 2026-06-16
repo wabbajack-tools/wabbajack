@@ -52,7 +52,7 @@ public partial class SettingsVM : ViewModel
             });
         });
 
-        LoginVM = new LoginManagerVM(provider.GetRequiredService<ILogger<LoginManagerVM>>(), this,
+        LoginVM = new LoginManagerVM(provider.GetRequiredService<ILogger<LoginManagerVM>>(),
             provider.GetRequiredService<IEnumerable<INeedsLogin>>());
         LaunchCLICommand = ReactiveCommand.CreateFromTask(LaunchCLI);
         ResetCommand = ReactiveCommand.Create(Reset);
