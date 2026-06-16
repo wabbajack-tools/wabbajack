@@ -1,4 +1,4 @@
-﻿using FluentIcons.Common;
+using FluentIcons.Common;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using System;
@@ -9,7 +9,6 @@ using System.Linq;
 using System.Reactive.Disposables;
 using ReactiveMarbles.ObservableEvents;
 using System.Reactive.Linq;
-using System.Windows.Controls;
 using Wabbajack.Paths;
 
 namespace Wabbajack;
@@ -25,20 +24,6 @@ public enum CompilerFileState : uint
     Ignore = 4,
     [Description("Always Enabled")]
     AlwaysEnabled = 8
-}
-
-public class FileTreeViewItem : TreeViewItem
-{
-    public FileTreeViewItem(DirectoryInfo dir)
-    {
-        base.Header = new FileTreeItemVM(dir);
-    }
-    public FileTreeViewItem(FileInfo file)
-    {
-        base.Header = new FileTreeItemVM(file);
-    }
-    public new FileTreeItemVM Header => base.Header as FileTreeItemVM;
-    public static FileTreeViewItem Placeholder => default;
 }
 
 /// <summary>
@@ -58,6 +43,22 @@ public partial class FileTreeItemVM : ReactiveObject, IDisposable
     [Reactive] public partial bool ContainsIncludes { get; set; }
     [Reactive] public partial bool ContainsIgnores { get; set; }
     [Reactive] public partial bool ContainsAlwaysEnableds { get; set; }
+
+    /// <summary>
+    /// Child nodes of this item, populated lazily for directories. Drives the view layer's
+    /// HierarchicalDataTemplate / TreeDataTemplate rendering.
+    /// </summary>
+    public ObservableCollection<FileTreeItemVM> Children { get; } = new();
+
+    /// <summary>
+    /// Bound two-way to the tree container's expanded state; flipping true triggers lazy-load.
+    /// </summary>
+    [Reactive] public partial bool IsExpanded { get; set; }
+
+    /// <summary>
+    /// Lazy-load bookkeeping flag: true once <see cref="Children"/> has been realized from disk.
+    /// </summary>
+    public bool ChildrenLoaded { get; set; }
 
     public FileTreeItemVM(DirectoryInfo info)
     {
