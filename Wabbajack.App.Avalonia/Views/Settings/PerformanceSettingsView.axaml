@@ -1,0 +1,30 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:core="using:Wabbajack"
+             xmlns:local="using:Wabbajack"
+             xmlns:rxui="http://reactiveui.net"
+             x:Class="Wabbajack.PerformanceSettingsView"
+             x:TypeArguments="core:PerformanceSettingsVM"
+             x:DataType="core:PerformanceSettingsVM">
+    <Border Background="{DynamicResource BackgroundBrush}" CornerRadius="8">
+        <Grid Margin="16" RowDefinitions="Auto,Auto,*">
+            <TextBlock Grid.Row="0" Text="Performance" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"
+                       Foreground="{DynamicResource ForegroundBrush}" />
+            <TextBlock Grid.Row="1" Margin="0,0,0,8" LineHeight="18" TextWrapping="Wrap"
+                       Foreground="{DynamicResource ForegroundBrush}">
+                <Run Text="Specify the maximum number of asynchronous tasks per resource type. Recommended to leave at default settings for maximum performance (" />
+                <Run Text="{Binding MaxThreads}" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}" /><Run Text=" threads)." />
+            </TextBlock>
+            <ScrollViewer Grid.Row="2" Background="Transparent" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Settings}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="core:PerformanceSettingVM">
+                            <local:PerformanceSettingView DataContext="{Binding}" ViewModel="{Binding}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</rxui:ReactiveUserControl>

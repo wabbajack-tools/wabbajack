@@ -1,0 +1,34 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:core="using:Wabbajack"
+             xmlns:local="using:Wabbajack"
+             xmlns:rxui="http://reactiveui.net"
+             x:Class="Wabbajack.AboutView"
+             x:TypeArguments="core:AboutVM"
+             x:DataType="core:AboutVM">
+    <Border Background="{DynamicResource BackgroundBrush}" CornerRadius="8">
+        <StackPanel Margin="16" Spacing="16">
+            <TextBlock Text="About Wabbajack" FontSize="20" FontWeight="Bold"
+                       Foreground="{DynamicResource ForegroundBrush}" />
+            <TextBlock FontSize="18" HorizontalAlignment="Center" TextWrapping="Wrap">
+                <Run Text="Made with" Foreground="{DynamicResource ForegroundBrush}" />
+                <Run Text="love" Foreground="{DynamicResource PrimaryBrush}" />
+                <Run Text="by the" Foreground="{DynamicResource ForegroundBrush}" />
+                <Run Text="Wabbajack team" Foreground="{DynamicResource PrimaryBrush}" FontWeight="Bold" />
+            </TextBlock>
+            <ItemsControl ItemsSource="{Binding Contributors}" HorizontalAlignment="Center">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="core:ContributorVM">
+                        <local:ContributorView DataContext="{Binding}" ViewModel="{Binding}" Margin="12,0" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </Border>
+</rxui:ReactiveUserControl>

@@ -1,0 +1,29 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:core="using:Wabbajack"
+             xmlns:local="using:Wabbajack"
+             xmlns:rxui="http://reactiveui.net"
+             x:Class="Wabbajack.PerformanceSettingView"
+             x:TypeArguments="core:PerformanceSettingVM"
+             x:DataType="core:PerformanceSettingVM">
+    <Grid Margin="0,0,0,8" ColumnDefinitions="*,Auto,Auto" VerticalAlignment="Center">
+        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                   Text="{Binding HumanName}"
+                   Foreground="{DynamicResource ForegroundBrush}" />
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Margin="8,0,16,0">
+            <TextBlock VerticalAlignment="Center" Text="Max Tasks"
+                       Foreground="{DynamicResource ForegroundBrush}" />
+            <TextBox Width="64" TextAlignment="Center"
+                     Text="{Binding MaxTasks, Mode=TwoWay}"
+                     Foreground="{DynamicResource ForegroundBrush}" />
+        </StackPanel>
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+            <TextBlock VerticalAlignment="Center" Text="Max Throughput"
+                       Foreground="{DynamicResource ForegroundBrush}" />
+            <TextBox Width="64" TextAlignment="Center"
+                     Text="{Binding MaxThroughput, Mode=TwoWay}"
+                     Foreground="{DynamicResource ForegroundBrush}" />
+        </StackPanel>
+    </Grid>
+</rxui:ReactiveUserControl>

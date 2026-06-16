@@ -1,0 +1,21 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:core="using:Wabbajack"
+             xmlns:local="using:Wabbajack"
+             xmlns:rxui="http://reactiveui.net"
+             x:Class="Wabbajack.ContributorView"
+             x:TypeArguments="core:ContributorVM"
+             x:DataType="core:ContributorVM">
+    <Button Classes="link" Padding="0" Background="Transparent" BorderThickness="0"
+            Command="{Binding OpenProfileCommand}"
+            ToolTip.Tip="{Binding Contributor.Login}">
+        <StackPanel Orientation="Vertical" Spacing="4" HorizontalAlignment="Center">
+            <Border CornerRadius="18" Width="36" Height="36" ClipToBounds="True">
+                <Image Source="{Binding Avatar}" Width="36" Height="36" Stretch="UniformToFill" />
+            </Border>
+            <TextBlock Text="{Binding Contributor.Login}" HorizontalAlignment="Center"
+                       Foreground="{DynamicResource ForegroundBrush}" />
+        </StackPanel>
+    </Button>
+</rxui:ReactiveUserControl>
