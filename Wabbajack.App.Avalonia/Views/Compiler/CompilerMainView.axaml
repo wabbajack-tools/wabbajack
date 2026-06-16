@@ -1,0 +1,136 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:core="using:Wabbajack"
+             xmlns:local="using:Wabbajack"
+             xmlns:rxui="http://reactiveui.net"
+             x:Class="Wabbajack.CompilerMainView"
+             x:Name="Root"
+             x:TypeArguments="core:CompilerMainVM"
+             x:DataType="core:CompilerMainVM"
+             x:CompileBindings="False">
+    <Grid Margin="16">
+
+        <!-- ============================ Configuration ============================ -->
+        <Grid IsVisible="{Binding State, Converter={StaticResource EnumEquals}, ConverterParameter=Configuration}"
+              RowDefinitions="Auto,*,Auto">
+            <TextBlock Grid.Row="0" Text="{Binding ConfigurationText}"
+                       FontSize="24" FontWeight="DemiBold" Margin="0,0,0,16"
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource ForegroundBrush}" />
+
+            <!-- Two-pane: details form (left) + file tree (right) -->
+            <Grid Grid.Row="1" ColumnDefinitions="3*,16,2*">
+                <local:CompilerDetailsView Grid.Column="0"
+                                           DataContext="{Binding CompilerDetailsVM}"
+                                           ViewModel="{Binding CompilerDetailsVM}" />
+                <local:CompilerFileManagerView Grid.Column="2"
+                                               DataContext="{Binding CompilerFileManagerVM}"
+                                               ViewModel="{Binding CompilerFileManagerVM}" />
+            </Grid>
+
+            <!-- Action buttons -->
+            <Grid Grid.Row="2" Margin="0,16,0,0" ColumnDefinitions="Auto,Auto,*,Auto">
+                <local:WJButton Grid.Column="0"
+                                Text="Back" Icon="ChevronLeft"
+                                ButtonStyle="Mono"
+                                Command="{Binding #Root.BackCommand}"
+                                HorizontalAlignment="Left" />
+                <local:WJButton Grid.Column="1" Margin="8,0,0,0"
+                                Text="Get Help" Icon="QuestionCircle"
+                                ButtonStyle="Mono"
+                                Command="{Binding GetHelpCommand}"
+                                HorizontalAlignment="Left" />
+                <local:WJButton Grid.Column="3"
+                                Text="Compile" Icon="Play"
+                                ButtonStyle="Color"
+                                Command="{Binding StartCommand}"
+                                HorizontalAlignment="Right" />
+            </Grid>
+        </Grid>
+
+        <!-- ============================ Compiling ============================ -->
+        <Grid IsVisible="{Binding State, Converter={StaticResource EnumEquals}, ConverterParameter=Compiling}"
+              ColumnDefinitions="2.35*,16,3*">
+
+            <!-- Left: progress + cpu -->
+            <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,*">
+                <TextBlock Grid.Row="0" Text="{Binding ProgressText}"
+                           FontSize="20" FontWeight="DemiBold" Margin="0,0,0,8"
+                           TextWrapping="Wrap"
+                           Foreground="{DynamicResource ForegroundBrush}" />
+
+                <ProgressBar Grid.Row="1" Minimum="0" Maximum="1"
+                             Value="{Binding ProgressPercent.Value}"
+                             Height="8" Margin="0,0,0,8" />
+
+                <TextBlock Grid.Row="2" Text="{Binding BusyStatusText}"
+                           FontSize="14" Margin="0,0,0,16"
+                           TextWrapping="Wrap"
+                           Foreground="{DynamicResource Transparent66ForegroundBrush}" />
+
+                <local:CpuView Grid.Row="3" DataContext="{Binding}" ViewModel="{Binding}" />
+            </Grid>
+
+            <!-- Right: log + cancel -->
+            <Grid Grid.Column="2" RowDefinitions="*,16,Auto">
+                <local:LogView Grid.Row="0" DataContext="{Binding LoggerProvider}" />
+                <local:WJButton Grid.Row="2"
+                                Text="Cancel" Icon="Dismiss"
+                                ButtonStyle="Danger"
+                                Command="{Binding CancelCommand}"
+                                HorizontalAlignment="Right" />
+            </Grid>
+        </Grid>
+
+        <!-- ============================ Completed ============================ -->
+        <Grid IsVisible="{Binding State, Converter={StaticResource EnumEquals}, ConverterParameter=Completed}">
+            <Border CornerRadius="8" Padding="32"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Grid VerticalAlignment="Center" RowDefinitions="Auto,Auto,Auto">
+                    <TextBlock Grid.Row="0" Text="Compilation complete" FontSize="18"
+                               Foreground="{DynamicResource Transparent66ForegroundBrush}" />
+                    <TextBlock Grid.Row="1" Text="{Binding ProgressText}"
+                               FontWeight="SemiBold" FontSize="40" Margin="0,-4,0,8"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource ForegroundBrush}" />
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="0,24,0,0">
+                        <local:WJButton Text="Open in File Explorer" Icon="FolderOpen"
+                                        ButtonStyle="Color"
+                                        Command="{Binding OpenFolderCommand}" />
+                        <local:WJButton Text="Open Log" Icon="WindowNew"
+                                        ButtonStyle="Mono"
+                                        Command="{Binding OpenLogCommand}" />
+                        <local:WJButton Text="Back" Icon="ChevronLeft"
+                                        ButtonStyle="Mono"
+                                        Command="{Binding #Root.BackCommand}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ============================ Errored ============================ -->
+        <Grid IsVisible="{Binding State, Converter={StaticResource EnumEquals}, ConverterParameter=Errored}">
+            <Border CornerRadius="8" Padding="32"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Grid VerticalAlignment="Center" RowDefinitions="Auto,Auto,Auto">
+                    <TextBlock Grid.Row="0" Text="Compilation failed" FontSize="18"
+                               Foreground="{DynamicResource Transparent66ForegroundBrush}" />
+                    <TextBlock Grid.Row="1" Text="{Binding ProgressText}"
+                               FontWeight="SemiBold" FontSize="40" Margin="0,-4,0,8"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource ForegroundBrush}" />
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="0,24,0,0">
+                        <local:WJButton Text="Open Log" Icon="WindowNew"
+                                        ButtonStyle="Color"
+                                        Command="{Binding OpenLogCommand}" />
+                        <local:WJButton Text="Back" Icon="ChevronLeft"
+                                        ButtonStyle="Mono"
+                                        Command="{Binding #Root.BackCommand}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+    </Grid>
+</rxui:ReactiveUserControl>
