@@ -1,0 +1,110 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:core="using:Wabbajack"
+             xmlns:local="using:Wabbajack"
+             xmlns:rxui="http://reactiveui.net"
+             x:Class="Wabbajack.ModListDetailsView"
+             x:TypeArguments="core:ModListDetailsVM"
+             x:CompileBindings="False">
+    <!-- DEFERRED from the WPF version: the WPF DataGrid with a separate Nexus-name
+         column and a per-row Readme toggle. A simple Name/Size list is the deliverable
+         here; the Nexus-specific columns and Readme toggle are intentionally omitted. -->
+    <Grid ColumnDefinitions="360,*" Margin="16">
+
+        <!-- LEFT: modlist info -->
+        <ScrollViewer Grid.Column="0" Margin="0,0,16,0">
+            <StackPanel Spacing="12">
+                <local:DetailImageView Height="200"
+                                       Image="{Binding MetadataVM.Image}"
+                                       Title="{Binding MetadataVM.Metadata.Title}"
+                                       Author="{Binding MetadataVM.Metadata.Author}" />
+
+                <TextBlock Text="{Binding MetadataVM.Metadata.Title}"
+                           FontSize="22" FontWeight="Bold" TextWrapping="Wrap"
+                           Foreground="{DynamicResource ForegroundBrush}" />
+
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="by" Foreground="{DynamicResource Transparent66ForegroundBrush}" />
+                    <TextBlock Text="{Binding MetadataVM.Metadata.Author}"
+                               Foreground="{DynamicResource ForegroundBrush}" />
+                </StackPanel>
+
+                <!-- Tags -->
+                <ItemsControl ItemsSource="{Binding MetadataVM.ModListTagList}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,6,6" Padding="8,3" CornerRadius="4"
+                                    Background="{DynamicResource ComplementaryPrimary08Brush}">
+                                <TextBlock Text="{Binding Name}"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource ForegroundBrush}" />
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Description -->
+                <ScrollViewer MaxHeight="180">
+                    <TextBlock Text="{Binding MetadataVM.Metadata.Description}"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource ForegroundBrush}" />
+                </ScrollViewer>
+
+                <!-- Action buttons -->
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <local:WJButton Text="Website" Icon="Globe"
+                                    Command="{Binding OpenWebsiteCommand}" />
+                    <local:WJButton Text="Discord" Icon="Chat"
+                                    Command="{Binding OpenDiscordCommand}" />
+                    <local:WJButton Text="Readme" Icon="Document"
+                                    Command="{Binding OpenReadmeCommand}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <local:WJButton Text="Install" Icon="ArrowDownload" ButtonStyle="Color"
+                                    Command="{Binding MetadataVM.InstallCommand}" />
+                    <local:WJButton Text="Close" Icon="Dismiss"
+                                    Command="{Binding CloseCommand}" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- RIGHT: archives -->
+        <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
+            <TextBox Grid.Row="0" Text="{Binding Search}" Watermark="Search archives"
+                     Foreground="{DynamicResource ForegroundBrush}" />
+
+            <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="4,12,4,4">
+                <TextBlock Grid.Column="0" Text="Name" FontWeight="Bold"
+                           Foreground="{DynamicResource ForegroundBrush}" />
+                <TextBlock Grid.Column="1" Text="Size" FontWeight="Bold"
+                           Foreground="{DynamicResource ForegroundBrush}" />
+            </Grid>
+
+            <Border Grid.Row="2" BorderThickness="1" CornerRadius="4"
+                    BorderBrush="{DynamicResource DarkSecondaryBrush}">
+                <ScrollViewer>
+                    <ItemsControl ItemsSource="{Binding Archives}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,Auto" Margin="4,3">
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                               TextTrimming="CharacterEllipsis"
+                                               Foreground="{DynamicResource ForegroundBrush}" />
+                                    <TextBlock Grid.Column="1" Margin="12,0,0,0"
+                                               Text="{Binding Size, Converter={StaticResource FileSize}}"
+                                               Foreground="{DynamicResource Transparent66ForegroundBrush}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</rxui:ReactiveUserControl>
