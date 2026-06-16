@@ -6,7 +6,11 @@ using FluentIcons.Common;
 
 namespace Wabbajack;
 
-public enum ButtonStyle { Mono, Color, Danger }
+// Shared ButtonStyle enum used by both BigButton and WJButton.
+// Extended with WJButton's variants (Progress/Transparent/SemiTransparent)
+// so the two controls share a single ButtonStyle type in the Wabbajack namespace
+// (avoids a duplicate-type clash).
+public enum ButtonStyle { Mono, Color, Danger, Progress, Transparent, SemiTransparent }
 
 public partial class BigButton : UserControl
 {
