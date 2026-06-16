@@ -6,154 +6,140 @@
              xmlns:rxui="http://reactiveui.net"
              x:Class="Wabbajack.ModListGalleryView"
              x:TypeArguments="core:ModListGalleryVM"
-             x:DataType="core:ModListGalleryVM">
-    <Grid ColumnDefinitions="280,*">
+             x:DataType="core:ModListGalleryVM"
+             x:CompileBindings="False">
+    <Grid ColumnDefinitions="270,*">
         <!-- Filter sidebar -->
-        <Border Grid.Column="0" Background="{DynamicResource ComplementaryPrimary08Brush}">
-            <ScrollViewer>
-                <StackPanel Margin="12" Spacing="12">
-                    <TextBox Text="{Binding Search}" Watermark="Search"
+        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Padding="0,0,16,0">
+            <StackPanel Orientation="Vertical">
+                <!-- Search box with an inline search icon on the right -->
+                <Grid>
+                    <TextBox Text="{Binding Search}" Watermark="Search for a modlist..."
+                             Background="{DynamicResource ComplementaryPrimary08Brush}"
                              Foreground="{DynamicResource ForegroundBrush}" />
+                    <Border Width="30" CornerRadius="8" HorizontalAlignment="Right" IsHitTestVisible="False"
+                            Background="{DynamicResource ComplementaryPrimary08Brush}">
+                        <ic:SymbolIcon Symbol="Search" IconVariant="Filled" FontSize="16"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource PrimaryBrush}" />
+                    </Border>
+                </Grid>
 
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Game" Foreground="{DynamicResource ForegroundBrush}" />
-                        <ComboBox ItemsSource="{Binding GameTypeEntries}"
-                                  SelectedItem="{Binding SelectedGameTypeEntry}"
-                                  HorizontalAlignment="Stretch">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate x:DataType="core:ModListGalleryVM+GameTypeEntry">
-                                    <TextBlock Text="{Binding FormattedName}"
-                                               Foreground="{DynamicResource ForegroundBrush}" />
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                    </StackPanel>
+                <!-- Game filter -->
+                <ComboBox Margin="0,12,0,0" HorizontalAlignment="Stretch"
+                          Background="{DynamicResource ComplementaryPrimary08Brush}"
+                          Foreground="{DynamicResource ForegroundBrush}"
+                          ItemsSource="{Binding GameTypeEntries}"
+                          SelectedItem="{Binding SelectedGameTypeEntry}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="core:ModListGalleryVM+GameTypeEntry">
+                            <TextBlock Text="{Binding FormattedName}" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource ForegroundBrush}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
 
-                    <!-- "Include" section: bold header + bordered checkbox group, mirroring the WPF sidebar -->
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Include" FontWeight="Bold"
-                                   Foreground="{DynamicResource ForegroundBrush}" />
-                        <Border CornerRadius="8" Padding="12"
-                                Background="{DynamicResource ComplementaryPrimary08Brush}">
-                            <StackPanel Spacing="12">
-                                <CheckBox Content="Non-featured" IsChecked="{Binding IncludeUnofficial}"
-                                          Foreground="{DynamicResource ForegroundBrush}"
-                                          ToolTip.Tip="Show modlists that have not been tested to provide a stable experience with official support channels." />
-                                <CheckBox Content="NSFW" IsChecked="{Binding IncludeNSFW}"
-                                          Foreground="{DynamicResource ForegroundBrush}"
-                                          ToolTip.Tip="Show modlists that include NSFW frameworks." />
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-
-                    <!-- "Total Modlist Size" filter. Avalonia has no built-in RangeSlider, so this is a
-                         functional approximation of the WPF MahApps RangeSlider using two stacked Sliders.
-                         Maximum is bound defensively against LargestSizedModlist (null when offline) via a
-                         FallbackValue of 100GB so binding never NREs. -->
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="Total Modlist Size" FontWeight="Bold"
-                                   Foreground="{DynamicResource ForegroundBrush}" />
-                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" >
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Min" VerticalAlignment="Center"
-                                       Margin="0,0,8,0" Foreground="{DynamicResource ForegroundBrush}" />
-                            <Slider Grid.Row="0" Grid.Column="1" Minimum="0"
-                                    Maximum="{Binding LargestSizedModlist.Metadata.DownloadMetadata.TotalSize, FallbackValue=100000000000, TargetNullValue=100000000000}"
-                                    Value="{Binding MinModlistSize}" VerticalAlignment="Center" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Margin="8,0,0,0"
-                                       Foreground="{DynamicResource ForegroundBrush}"
-                                       Text="{Binding MinModlistSize, Converter={StaticResource FileSize}}" />
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Max" VerticalAlignment="Center"
-                                       Margin="0,0,8,0" Foreground="{DynamicResource ForegroundBrush}" />
-                            <Slider Grid.Row="1" Grid.Column="1" Minimum="0"
-                                    Maximum="{Binding LargestSizedModlist.Metadata.DownloadMetadata.TotalSize, FallbackValue=100000000000, TargetNullValue=100000000000}"
-                                    Value="{Binding MaxModlistSize}" VerticalAlignment="Center" />
-                            <TextBlock Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Margin="8,0,0,0"
-                                       Foreground="{DynamicResource ForegroundBrush}"
-                                       Text="{Binding MaxModlistSize, Converter={StaticResource FileSize}}" />
-                        </Grid>
-                    </StackPanel>
-
-                    <CheckBox Content="Only installed games" IsChecked="{Binding OnlyInstalled}"
-                              Foreground="{DynamicResource ForegroundBrush}" />
-
-                    <!-- Mod/tag multi-select filters. Avalonia has no MahApps-style MultiSelectComboBox, so this
-                         is a functional equivalent: a Button whose Flyout hosts a multi-select ListBox. Selection is
-                         synced ListBox -> VM in code-behind (HasTags/HasMods are rebuilt on SelectionChanged). -->
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Has tag(s)" Foreground="{DynamicResource ForegroundBrush}" />
-                        <Button HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Left"
-                                Foreground="{DynamicResource ForegroundBrush}"
-                                Content="{Binding HasTags.Count, StringFormat='{}{0} selected'}">
-                            <Button.Flyout>
-                                <Flyout>
-                                    <ListBox x:Name="TagsListBox"
-                                             SelectionMode="Multiple,Toggle"
-                                             ItemsSource="{Binding AllTags}"
-                                             MaxHeight="300" MinWidth="220">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Name}"
-                                                           Foreground="{DynamicResource ForegroundBrush}" />
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                    </ListBox>
-                                </Flyout>
-                            </Button.Flyout>
-                        </Button>
-                    </StackPanel>
-
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Has mod(s)" Foreground="{DynamicResource ForegroundBrush}" />
-                        <Button HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Left"
-                                Foreground="{DynamicResource ForegroundBrush}"
-                                Content="{Binding HasMods.Count, StringFormat='{}{0} selected'}">
-                            <Button.Flyout>
-                                <Flyout>
-                                    <ListBox x:Name="ModsListBox"
-                                             SelectionMode="Multiple,Toggle"
-                                             ItemsSource="{Binding AllMods}"
-                                             MaxHeight="300" MinWidth="220">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Name}"
-                                                           Foreground="{DynamicResource ForegroundBrush}" />
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                    </ListBox>
-                                </Flyout>
-                            </Button.Flyout>
-                        </Button>
-                        <CheckBox Content="Exclude" IsChecked="{Binding ExcludeMods}"
+                <!-- Include group -->
+                <TextBlock Text="Include" Margin="0,12,0,4" Foreground="{DynamicResource ForegroundBrush}" />
+                <Border CornerRadius="8" Padding="0,12,0,12"
+                        Background="{DynamicResource ComplementaryPrimary08Brush}">
+                    <StackPanel Orientation="Vertical">
+                        <CheckBox Margin="12,0,0,12" IsChecked="{Binding IncludeUnofficial}"
                                   Foreground="{DynamicResource ForegroundBrush}"
-                                  ToolTip.Tip="Show modlists that do NOT contain the selected mods." />
+                                  ToolTip.Tip="Show modlists that have not been tested to provide a stable experience with official support channels.">
+                            <TextBlock FontSize="11" Text="Non-featured" />
+                        </CheckBox>
+                        <CheckBox Margin="12,0,0,0" IsChecked="{Binding IncludeNSFW}"
+                                  Foreground="{DynamicResource ForegroundBrush}"
+                                  ToolTip.Tip="Show modlists that include NSFW frameworks.">
+                            <TextBlock FontSize="11" Text="NSFW" />
+                        </CheckBox>
                     </StackPanel>
+                </Border>
 
-                    <local:WJButton Text="Reset filters" Icon="ArrowReset"
-                                    Command="{Binding ResetFiltersCommand}"
-                                    HorizontalAlignment="Stretch" />
-                </StackPanel>
-            </ScrollViewer>
-        </Border>
+                <!-- Total Modlist Size -->
+                <TextBlock Text="Total Modlist Size" FontSize="13" Margin="0,12,0,0"
+                           Foreground="{DynamicResource ForegroundBrush}" />
+                <Slider Margin="0,8,0,0" Minimum="0"
+                        Maximum="{Binding LargestSizedModlist.Metadata.DownloadMetadata.TotalSize, FallbackValue=100000000000, TargetNullValue=100000000000}"
+                        Value="{Binding MinModlistSize}" />
+                <Slider Margin="0,0,0,0" Minimum="0"
+                        Maximum="{Binding LargestSizedModlist.Metadata.DownloadMetadata.TotalSize, FallbackValue=100000000000, TargetNullValue=100000000000}"
+                        Value="{Binding MaxModlistSize}" />
+                <Grid ColumnDefinitions="*,*">
+                    <TextBlock Grid.Column="0" HorizontalAlignment="Left"
+                               Foreground="{DynamicResource ComplementaryWhite25Brush}"
+                               Text="{Binding MinModlistSize, Converter={StaticResource FileSize}}" />
+                    <TextBlock Grid.Column="1" HorizontalAlignment="Right"
+                               Foreground="{DynamicResource ComplementaryWhite25Brush}"
+                               Text="{Binding MaxModlistSize, Converter={StaticResource FileSize}}" />
+                </Grid>
 
-        <!-- Tile grid -->
-        <Grid Grid.Column="1" RowDefinitions="Auto,*">
-            <!-- "Install from disk" sits at the top of the right content column (WPF placed it top-right of the window) -->
-            <local:WJButton Grid.Row="0"
-                            Text="Install from disk" Icon="ArrowUpload" ButtonStyle="Mono"
-                            Command="{Binding LoadLocalFileCommand}"
-                            HorizontalAlignment="Right" Margin="8" />
-            <TextBlock Grid.Row="1"
-                       Text="No modlists found"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Opacity="0.5"
-                       FontSize="18"
-                       IsVisible="{Binding ModLists.Count, Converter={StaticResource IsZero}}"
-                       Foreground="{DynamicResource ForegroundBrush}" />
-            <ScrollViewer Grid.Row="1">
-                <ItemsControl ItemsSource="{Binding ModLists}">
+                <!-- Has mod(s) -->
+                <Grid Margin="0,24,0,0" ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="Has mod(s)" VerticalAlignment="Center"
+                               Foreground="{DynamicResource ForegroundBrush}" />
+                    <CheckBox Grid.Column="1" IsChecked="{Binding ExcludeMods}" VerticalAlignment="Center"
+                              Foreground="{DynamicResource ForegroundBrush}"
+                              ToolTip.Tip="Exclude modlists containing the selected mods instead of including them">
+                        <TextBlock FontSize="11" Text="Exclude" />
+                    </CheckBox>
+                </Grid>
+                <Button Margin="0,12,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                        Background="{DynamicResource ComplementaryPrimary08Brush}"
+                        Foreground="{DynamicResource ForegroundBrush}"
+                        Content="{Binding HasMods.Count, StringFormat='{}{0} selected'}">
+                    <Button.Flyout>
+                        <Flyout>
+                            <ListBox x:Name="ModsListBox" SelectionMode="Multiple,Toggle"
+                                     ItemsSource="{Binding AllMods}" MaxHeight="300" MinWidth="220">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" Foreground="{DynamicResource ForegroundBrush}" />
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+
+                <!-- Has tag(s) -->
+                <TextBlock Text="Has tag(s)" Margin="0,24,0,0" Foreground="{DynamicResource ForegroundBrush}" />
+                <Button Margin="0,12,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                        Background="{DynamicResource ComplementaryPrimary08Brush}"
+                        Foreground="{DynamicResource ForegroundBrush}"
+                        Content="{Binding HasTags.Count, StringFormat='{}{0} selected'}">
+                    <Button.Flyout>
+                        <Flyout>
+                            <ListBox x:Name="TagsListBox" SelectionMode="Multiple,Toggle"
+                                     ItemsSource="{Binding AllTags}" MaxHeight="300" MinWidth="220">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" Foreground="{DynamicResource ForegroundBrush}" />
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+
+                <CheckBox Margin="0,24,0,0" IsChecked="{Binding OnlyInstalled}"
+                          Foreground="{DynamicResource ForegroundBrush}"
+                          ToolTip.Tip="Show only modlists for games you have installed on your PC">
+                    <TextBlock FontSize="11" Text="Show only modlists for installed games" VerticalAlignment="Center" />
+                </CheckBox>
+
+                <local:WJButton Margin="0,24,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                                Icon="FilterDismiss" Text="Reset filters"
+                                Command="{Binding ResetFiltersCommand}"
+                                ToolTip.Tip="Reset filters to the default options" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Tile grid + install-from-disk + empty state -->
+        <Grid Grid.Column="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding ModLists}" HorizontalAlignment="Center">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel />
@@ -166,6 +152,20 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
+
+            <!-- "No modlists matching" empty state (mirrors WPF NoneFound) -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Vertical"
+                        IsVisible="{Binding ModLists.Count, Converter={StaticResource IsZero}}">
+                <ic:SymbolIcon Symbol="DismissCircle" FontSize="72" HorizontalAlignment="Center"
+                               Foreground="{DynamicResource Triadic2Brush}" />
+                <TextBlock FontSize="24" Margin="0,8,0,0" HorizontalAlignment="Center"
+                           Foreground="{DynamicResource ForegroundBrush}"
+                           Text="No modlists matching specified criteria" />
+            </StackPanel>
+
+            <local:WJButton Text="Install from disk" Icon="ArrowUpload" ButtonStyle="Mono"
+                            Command="{Binding LoadLocalFileCommand}"
+                            HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,16,0" />
         </Grid>
     </Grid>
 </rxui:ReactiveUserControl>
