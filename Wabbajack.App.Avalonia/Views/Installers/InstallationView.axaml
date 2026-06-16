@@ -80,19 +80,44 @@
         <Grid IsVisible="{Binding InstallState, Converter={StaticResource EnumEquals}, ConverterParameter=Installing}"
               ColumnDefinitions="2.35*,16,3*">
 
-            <!-- Left: progress + workers + cpu -->
-            <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,*">
-                <TextBlock Grid.Row="0" Text="{Binding ProgressText}"
+            <!-- Left: slideshow + progress + workers + cpu -->
+            <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,Auto,*">
+
+                <!-- Slideshow -->
+                <Border Grid.Row="0" Margin="0,0,0,16"
+                        CornerRadius="8" ClipToBounds="True">
+                    <Grid RowDefinitions="*,Auto,Auto,Auto">
+                        <Rectangle Grid.RowSpan="4" Fill="Black" />
+                        <Image Grid.RowSpan="4" Stretch="UniformToFill"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Source="{Binding SlideShowImage}" />
+                        <TextBlock Grid.Row="1" Margin="16,8,16,0"
+                                   FontWeight="Bold" FontSize="20"
+                                   TextWrapping="WrapWithOverflow"
+                                   Foreground="{DynamicResource ForegroundBrush}"
+                                   Text="{Binding SlideShowTitle}" />
+                        <TextBlock Grid.Row="2" Margin="16,0,16,0"
+                                   FontSize="14"
+                                   Foreground="{DynamicResource Transparent66ForegroundBrush}"
+                                   Text="{Binding SlideShowAuthor}" />
+                        <TextBlock Grid.Row="3" Margin="16,4,16,16"
+                                   FontSize="13" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource ForegroundBrush}"
+                                   Text="{Binding SlideShowDescription}" />
+                    </Grid>
+                </Border>
+
+                <TextBlock Grid.Row="1" Text="{Binding ProgressText}"
                            FontSize="20" FontWeight="DemiBold" Margin="0,0,0,8"
                            TextWrapping="Wrap"
                            Foreground="{DynamicResource ForegroundBrush}" />
 
-                <ProgressBar Grid.Row="1" Minimum="0" Maximum="1"
+                <ProgressBar Grid.Row="2" Minimum="0" Maximum="1"
                              Value="{Binding ProgressPercent.Value}"
                              Height="8" Margin="0,0,0,16" />
 
                 <!-- Worker speed indicators -->
-                <Grid Grid.Row="2" Margin="0,0,0,16"
+                <Grid Grid.Row="3" Margin="0,0,0,16"
                       ColumnDefinitions="*,16,*,16,*">
                     <Border Grid.Column="0" BorderThickness="2" CornerRadius="4" Padding="8"
                             BorderBrush="{DynamicResource ComplementaryPrimary08Brush}">
@@ -129,7 +154,7 @@
                     </Border>
                 </Grid>
 
-                <local:CpuView Grid.Row="3" DataContext="{Binding}" ViewModel="{Binding}" />
+                <local:CpuView Grid.Row="4" DataContext="{Binding}" ViewModel="{Binding}" />
             </Grid>
 
             <!-- Right: log + cancel -->

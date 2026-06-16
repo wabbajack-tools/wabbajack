@@ -4,6 +4,7 @@ using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using Wabbajack.Messages;
+using Wabbajack.Services;
 
 namespace Wabbajack.Views;
 
@@ -22,6 +23,10 @@ public partial class MainWindow : Window
         MessageBus.Current.Listen<ShowFloatingWindow>()
             .Subscribe(m => Dispatcher.UIThread.Post(() => ShowFloating(m.Screen)));
 
+        // Windows-only taskbar progress. No-op on other platforms (guarded in the helper).
+        MessageBus.Current.Listen<TaskBarUpdate>()
+            .Subscribe(m => Dispatcher.UIThread.Post(() => UpdateTaskbar(m)));
+
         // Dismiss the floating pane on Escape or a click on the dimmed backdrop.
         KeyDown += (_, e) =>
         {
@@ -34,6 +39,21 @@ public partial class MainWindow : Window
         var initialScreen = Environment.GetEnvironmentVariable("WJ_SCREEN");
         if (!string.IsNullOrEmpty(initialScreen) && Enum.TryParse<ScreenType>(initialScreen, out var screen))
             Dispatcher.UIThread.Post(() => NavigateToGlobal.Send(screen));
+    }
+
+    private void UpdateTaskbar(TaskBarUpdate update)
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        try
+        {
+            var hwnd = TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+            if (hwnd == IntPtr.Zero) return;
+            WindowsTaskbarProgress.Update(hwnd, update.State, update.ProgressValue);
+        }
+        catch
+        {
+            // COM calls can fail; never let taskbar updates crash the app.
+        }
     }
 
     private void ShowFloating(FloatingScreenType screen)
