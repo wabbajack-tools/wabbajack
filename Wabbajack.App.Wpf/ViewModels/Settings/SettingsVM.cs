@@ -59,7 +59,6 @@ public partial class SettingsVM : ViewModel
         OpenFileUploadCommand = ReactiveCommand.Create(OpenFileUpload);
         PerformanceVM = new PerformanceSettingsVM(
             provider.GetRequiredService<IResource<DownloadDispatcher>>(),
-            provider.GetRequiredService<SystemParametersConstructor>(),
             provider.GetRequiredService<ResourceSettingsManager>());
         AboutVM = provider.GetRequiredService<AboutVM>();
     }

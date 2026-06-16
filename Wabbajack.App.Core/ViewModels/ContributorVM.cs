@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -16,13 +16,11 @@ using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs.Logins;
-using Wabbajack.LoginManagers;
 using Wabbajack.Messages;
 using Wabbajack.Networking.GitHub;
 using Wabbajack.RateLimiter;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
-using Wabbajack.Util;
 using System.Reactive.Linq;
 
 namespace Wabbajack;
