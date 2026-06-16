@@ -63,6 +63,6 @@ public partial class ContributorVM : ViewModel
 
     private void OpenProfile()
     {
-        UIUtils.OpenWebsite(Contributor.HtmlUrl);
+        Process.Start(new ProcessStartInfo(Contributor.HtmlUrl.ToString()) { UseShellExecute = true });
     }
 }

@@ -48,7 +48,7 @@ public partial class SettingsVM : ViewModel
             BrowseUploadsCommand = ReactiveCommand.Create(async () =>
             {
                 var authorApiKey = ApiToken?.AuthorKey;
-                UIUtils.OpenWebsite(new Uri($"{Consts.WabbajackBuildServerUri}author_controls/login/{authorApiKey}"));
+                Process.Start(new ProcessStartInfo($"{Consts.WabbajackBuildServerUri}author_controls/login/{authorApiKey}") { UseShellExecute = true });
             });
         });
 
