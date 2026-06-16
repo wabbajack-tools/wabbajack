@@ -1,8 +1,10 @@
 @inherits ReactiveInjectableComponentBase<NavigationVM>
 @inject ModListDetailsVM DetailsVm
 @inject FileUploadVM UploadVm
-@* Injected to force early creation so it subscribes to LoadInfoScreen before navigation. *@
+@* Injected to force early creation so they subscribe to their messages before navigation. *@
 @inject InfoVM InfoVm
+@inject InstallationVM InstallerVm
+@inject CompilerMainVM CompilerVm
 @inject Wabbajack.Blazor.Services.BlazorUserInterventionHandler Interventions
 
 @* App shell: nav sidebar + routed content + floating overlay. Mirrors WPF MainWindow/MainWindowVM. *@

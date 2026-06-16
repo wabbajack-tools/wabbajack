@@ -58,12 +58,17 @@ internal static class Program
         builder.Services.AddSingleton<Wabbajack.Models.ResourceMonitor>();
         builder.Services.AddSingleton<Wabbajack.Models.LogStream>();
         builder.Services.AddTransient<CompilerHomeVM>();
-        builder.Services.AddTransient<CompilerMainVM>();
+        // Singleton + created at shell init: CompilerHome navigates to CompilerMain then sends
+        // LoadCompilerSettings, so CompilerMain must already be subscribed (same lifetime requirement
+        // as the installer).
+        builder.Services.AddSingleton<CompilerMainVM>();
         builder.Services.AddTransient<CompilerDetailsVM>();
         builder.Services.AddTransient<CompilerFileManagerVM>();
 
-        // Installer (ResourceMonitor/LogStream already registered above for the compiler).
-        builder.Services.AddTransient<InstallationVM>();
+        // Installer: singleton + created at shell init so it's subscribed to LoadModlistForInstalling /
+        // LoadLastLoadedModlist BEFORE the gallery sends them and navigates (otherwise the message is
+        // missed and it sticks on "Loading... Please wait"). ResourceMonitor/LogStream registered above.
+        builder.Services.AddSingleton<InstallationVM>();
 
         builder.RootComponents.Add<App>("#app");
 

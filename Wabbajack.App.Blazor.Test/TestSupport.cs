@@ -85,31 +85,35 @@ internal static class TestSupport
         });
         s.AddSingleton<Wabbajack.Models.LogStream>();
         s.AddTransient<CompilerHomeVM>();
-        s.AddTransient<CompilerMainVM>();
+        s.AddSingleton<CompilerMainVM>();
         s.AddTransient<CompilerDetailsVM>();
         s.AddTransient<CompilerFileManagerVM>();
 
-        // Installer (ResourceMonitor registered above with the scheduler-deadlock workaround).
-        s.AddTransient<InstallationVM>();
+        // Installer: singleton so it's subscribed to LoadModlistForInstalling before navigation (matches
+        // the app). ResourceMonitor registered above with the scheduler-deadlock workaround.
+        s.AddSingleton<InstallationVM>();
     }
+
+    // Fake modlist metadata used across tests (tile rendering, navigation data-transfer).
+    public static ModlistMetadata FakeMetadata() => new()
+    {
+        Title = TileTitle,
+        Author = "Test Author",
+        Game = Game.SkyrimSpecialEdition,
+        NSFW = false,
+        RepositoryName = "wj-tests",
+        Links = new LinksObject { MachineURL = "fake-machine-url" },
+        DownloadMetadata = new DownloadMetadata
+        {
+            SizeOfArchives = 1024L * 1024 * 1024,
+            SizeOfInstalledFiles = 2L * 1024 * 1024 * 1024,
+        },
+    };
 
     // Builds a single gallery tile VM from fake metadata + the offline service graph.
     public static GalleryModListMetadataVM CreateTile(IServiceProvider sp)
     {
-        var metadata = new ModlistMetadata
-        {
-            Title = TileTitle,
-            Author = "Test Author",
-            Game = Game.SkyrimSpecialEdition,
-            NSFW = false,
-            RepositoryName = "wj-tests",
-            Links = new LinksObject { MachineURL = "fake-machine-url" },
-            DownloadMetadata = new DownloadMetadata
-            {
-                SizeOfArchives = 1024L * 1024 * 1024,
-                SizeOfInstalledFiles = 2L * 1024 * 1024 * 1024,
-            },
-        };
+        var metadata = FakeMetadata();
 
         return new GalleryModListMetadataVM(
             NullLogger<GalleryModListMetadataVM>.Instance,
