@@ -8,4 +8,7 @@ public interface IDialogService
 {
     /// <summary>Shows a modal error dialog with an OK button.</summary>
     void ShowError(string message, string title);
+
+    /// <summary>Shows a modal yes/no confirmation dialog. Returns true if the user confirmed.</summary>
+    System.Threading.Tasks.Task<bool> ShowConfirmation(string title, string message);
 }
