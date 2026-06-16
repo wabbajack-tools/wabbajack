@@ -6,7 +6,7 @@
         FontFamily="{DynamicResource PrimaryFont}"
         Background="{DynamicResource WindowBackgroundBrush}">
     <Grid>
-        <Image Source="{DynamicResource WabbajackLogoBackground}" HorizontalAlignment="Right" VerticalAlignment="Stretch" Stretch="Uniform" IsHitTestVisible="False" ZIndex="-1" />
+        <Image Source="{DynamicResource WabbajackLogoBackground}" HorizontalAlignment="Right" VerticalAlignment="Stretch" Stretch="Uniform" IsHitTestVisible="False" ZIndex="-1" Opacity="0.35" />
         <Grid ColumnDefinitions="Auto,*">
             <wj:NavigationView x:Name="Nav" />
             <ContentControl x:Name="ActivePane" Grid.Column="1" />
