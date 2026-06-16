@@ -22,7 +22,10 @@ internal static class Program
 
         // Reuse the exact backend graph the Avalonia/WPF heads use.
         builder.Services.AddOSIntegrated();
-        builder.Services.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
+        // Surface interventions as a modal (instead of throwing); the shell observes it.
+        builder.Services.AddSingleton<Wabbajack.Blazor.Services.BlazorUserInterventionHandler>();
+        builder.Services.AddSingleton<IUserInterventionHandler>(sp =>
+            sp.GetRequiredService<Wabbajack.Blazor.Services.BlazorUserInterventionHandler>());
 
         // The five platform abstractions Core needs. Only the image service does real work for the
         // gallery spike; the rest are never hit on the gallery path, so they are minimal stubs.

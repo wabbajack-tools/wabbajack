@@ -3,6 +3,7 @@
 @inject FileUploadVM UploadVm
 @* Injected to force early creation so it subscribes to LoadInfoScreen before navigation. *@
 @inject InfoVM InfoVm
+@inject Wabbajack.Blazor.Services.BlazorUserInterventionHandler Interventions
 
 @* App shell: nav sidebar + routed content + floating overlay. Mirrors WPF MainWindow/MainWindowVM. *@
 <div class="app">
@@ -35,6 +36,8 @@
         }
     </div>
 
+    <InterventionModal Intervention="_intervention" />
+
     @if (_floating == FloatingScreenType.ModListDetails)
     {
         <div class="overlay-backdrop" @onclick="CloseFloating">
@@ -55,7 +58,9 @@
 
 @code {
     private FloatingScreenType _floating = FloatingScreenType.None;
+    private global::Wabbajack.AUserIntervention? _intervention;
     private IDisposable? _floatingSub;
+    private IDisposable? _interventionSub;
 
     protected override void OnInitialized()
     {
@@ -63,13 +68,21 @@
         // ShowFloatingWindow isn't a VM property, so subscribe to the bus directly and re-render.
         _floatingSub = MessageBus.Current.Listen<ShowFloatingWindow>()
             .Subscribe(m => InvokeAsync(() => { _floating = m.Screen; StateHasChanged(); }));
+
+        // Interventions are raised from background work; marshal to the UI and re-render.
+        _interventionSub = Interventions.Current
+            .Subscribe(iv => InvokeAsync(() => { _intervention = iv; StateHasChanged(); }));
     }
 
     private void CloseFloating() => ShowFloatingWindow.Send(FloatingScreenType.None);
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing) _floatingSub?.Dispose();
+        if (disposing)
+        {
+            _floatingSub?.Dispose();
+            _interventionSub?.Dispose();
+        }
         base.Dispose(disposing);
     }
 }

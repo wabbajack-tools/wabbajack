@@ -1,0 +1,27 @@
+@* Modal for a pending user intervention (install/compile confirmations). Confirmation interventions
+   get a Continue button; all get Cancel. Commands resolve the intervention's TaskCompletionSource. *@
+@if (Intervention is { } iv)
+{
+    <div class="overlay-backdrop">
+        <div class="overlay-panel">
+            <h2>@iv.ShortDescription</h2>
+            <p class="intervention-desc">@iv.ExtendedDescription</p>
+            <div class="details-actions">
+                @if (iv is global::Wabbajack.ConfirmationIntervention confirm)
+                {
+                    <button class="btn primary" @onclick="() => Exec(confirm.ConfirmCommand)">Continue</button>
+                }
+                <button class="btn" @onclick="() => Exec(iv.CancelCommand)">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public global::Wabbajack.AUserIntervention? Intervention { get; set; }
+
+    private static void Exec(System.Windows.Input.ICommand? cmd)
+    {
+        if (cmd != null && cmd.CanExecute(null)) cmd.Execute(null);
+    }
+}

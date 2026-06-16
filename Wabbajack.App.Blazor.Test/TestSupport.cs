@@ -31,7 +31,9 @@ internal static class TestSupport
     public static void Register(IServiceCollection s)
     {
         s.AddLogging();
-        s.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
+        // Use the Blazor intervention handler (the shell injects it); interventions are never raised in tests.
+        s.AddSingleton<Wabbajack.Blazor.Services.BlazorUserInterventionHandler>();
+        s.AddSingleton<IUserInterventionHandler>(sp => sp.GetRequiredService<Wabbajack.Blazor.Services.BlazorUserInterventionHandler>());
         s.AddOSIntegrated(o =>
         {
             o.UseLocalCache = true;
