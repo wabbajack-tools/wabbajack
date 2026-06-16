@@ -12,7 +12,6 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DynamicData;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
 using Wabbajack.Compiler;

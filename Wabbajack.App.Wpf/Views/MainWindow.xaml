@@ -149,7 +149,7 @@
                             <DataTemplate DataType="{x:Type local:CompilerHomeVM}">
                                 <local:CompilerHomeView ViewModel="{Binding}" />
                             </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:CompilerDetailsVM}">
+                            <DataTemplate DataType="{x:Type core:CompilerDetailsVM}">
                                 <local:CompilerDetailsView ViewModel="{Binding}" />
                             </DataTemplate>
                             <DataTemplate DataType="{x:Type core:CompilerFileManagerVM}">

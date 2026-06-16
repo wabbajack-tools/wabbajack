@@ -26,7 +26,7 @@ public partial class MO2CompilerVM : ViewModel
     }
 
     public IObservable<bool> CanCompile { get; }
-    public Task<GetResponse<ModList>> Compile()
+    public Task<ModList> Compile()
     {
         throw new NotImplementedException();
     }
