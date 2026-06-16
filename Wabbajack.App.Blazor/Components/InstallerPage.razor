@@ -1,0 +1,163 @@
+@inherits ReactiveInjectableComponentBase<InstallationVM>
+
+@* Ported from WPF InstallationView (+ MO2InstallerConfigView): a state-switched screen that mirrors the
+   four InstallState values. Default state is Configuration. Heavy work (loading a modlist, running an
+   install) is fire-and-forget on the VM; this component only renders the current state and re-renders
+   when VM properties / the resource-monitor collection change (always via InvokeAsync(StateHasChanged)). *@
+<div class="installer">
+    <h1 class="screen-title">@(ViewModel!.ConfigurationText ?? "Installation")</h1>
+
+    @switch (ViewModel.InstallState)
+    {
+        case InstallState.Configuration:
+            <section class="install-card" data-state="configuration">
+                <h2>Configure installation</h2>
+
+                <label class="install-field">
+                    <span class="install-field-label">Modlist file</span>
+                    <div class="install-pick">
+                        <input class="install-input" readonly value="@PathText(ViewModel.WabbajackFileLocation?.TargetPath.ToString())" placeholder="Select a .wabbajack modlist" />
+                        <button class="btn" @onclick="() => Exec(ViewModel.WabbajackFileLocation?.SetTargetPathCommand)">Browse</button>
+                    </div>
+                </label>
+
+                <label class="install-field">
+                    <span class="install-field-label">Install location</span>
+                    <div class="install-pick">
+                        <input class="install-input" readonly value="@PathText(ViewModel.Installer?.Location.TargetPath.ToString())" placeholder="Select an install folder" />
+                        <button class="btn" @onclick="() => Exec(ViewModel.Installer?.Location.SetTargetPathCommand)">Browse</button>
+                    </div>
+                </label>
+
+                <label class="install-field">
+                    <span class="install-field-label">Downloads location</span>
+                    <div class="install-pick">
+                        <input class="install-input" readonly value="@PathText(ViewModel.Installer?.DownloadLocation.TargetPath.ToString())" placeholder="Select a downloads folder" />
+                        <button class="btn" @onclick="() => Exec(ViewModel.Installer?.DownloadLocation.SetTargetPathCommand)">Browse</button>
+                    </div>
+                </label>
+
+                @if (ViewModel.ValidationResult is { Succeeded: false } vr && !string.IsNullOrWhiteSpace(vr.Reason))
+                {
+                    <div class="install-validation">@vr.Reason</div>
+                }
+
+                <div class="install-actions">
+                    <button class="btn" @onclick="() => Exec(ViewModel.OpenReadmeCommand)">Open Readme</button>
+                    <button class="btn primary" @onclick="() => Exec(ViewModel.InstallCommand)">Begin Install</button>
+                    <button class="btn danger" @onclick="() => Exec(ViewModel.CancelCommand)">Cancel</button>
+                </div>
+            </section>
+            break;
+
+        case InstallState.Installing:
+            <section class="install-card" data-state="installing">
+                <h2>Installing</h2>
+                <div class="install-status">@ViewModel.ProgressText</div>
+
+                <div class="install-progress">
+                    <div class="install-progress-bar" style="width:@($"{ViewModel.ProgressPercent.Value * 100:0}%")"></div>
+                </div>
+
+                <div class="install-speeds">
+                    <div class="install-speed">
+                        <span class="install-speed-name">Validation</span>
+                        <span class="install-speed-val">@ViewModel.HashingSpeed</span>
+                    </div>
+                    <div class="install-speed">
+                        <span class="install-speed-name">Extraction</span>
+                        <span class="install-speed-val">@ViewModel.ExtractingSpeed</span>
+                    </div>
+                    <div class="install-speed">
+                        <span class="install-speed-name">Download</span>
+                        <span class="install-speed-val">@ViewModel.DownloadingSpeed</span>
+                    </div>
+                </div>
+
+                <div class="install-tasks">
+                    @foreach (var task in ViewModel.StatusList)
+                    {
+                        <div class="install-task" @key="task.ID">@task.ProgressPercent.Value.ToString("0%") @task.Msg</div>
+                    }
+                </div>
+
+                <div class="install-actions">
+                    <button class="btn danger" @onclick="() => Exec(ViewModel.CancelCommand)">Cancel</button>
+                </div>
+            </section>
+            break;
+
+        case InstallState.Success:
+            <section class="install-card" data-state="success">
+                <h2 class="install-success-title">Installation complete</h2>
+                <div class="install-status">@ViewModel.ProgressText</div>
+                <div class="install-actions">
+                    <button class="btn" @onclick="() => Exec(ViewModel.BackToGalleryCommand)">Back to Gallery</button>
+                    <button class="btn" @onclick="() => Exec(ViewModel.OpenReadmeCommand)">Open Readme</button>
+                    <button class="btn" @onclick="() => Exec(ViewModel.CreateShortcutCommand)">Create Desktop Shortcut</button>
+                    <button class="btn primary" @onclick="() => Exec(ViewModel.OpenInstallFolderCommand)">Open in File Explorer</button>
+                </div>
+            </section>
+            break;
+
+        case InstallState.Failure:
+            <section class="install-card" data-state="failure">
+                <div class="install-failure-banner">Installation failed</div>
+                <h2 class="install-failure-title">@(string.IsNullOrWhiteSpace(ViewModel.FailureDetailsTitle) ? "Something went wrong" : ViewModel.FailureDetailsTitle)</h2>
+                <div class="install-failure-desc">@ViewModel.FailureDetailsDescription</div>
+                <div class="install-actions">
+                    <button class="btn" @onclick="() => Exec(ViewModel.OpenLogFolderCommand)">Open Logs Folder</button>
+                    <button class="btn" @onclick="() => Exec(ViewModel.DiagnoseFailureCommand)">How do I fix this?</button>
+                    <button class="btn" @onclick="() => Exec(ViewModel.EditInstallDetailsCommand)">Edit Installation Details</button>
+                    <button class="btn primary" @onclick="() => Exec(ViewModel.InstallCommand)">Retry</button>
+                </div>
+            </section>
+            break;
+    }
+</div>
+
+@code {
+    private readonly System.Collections.Generic.List<IDisposable> _activations = new();
+    private bool _hooked;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (!firstRender || ViewModel is null) return;
+
+        // Drive the VM's WhenActivated (wires validation / install-state subscriptions). ReactiveUI.Blazor
+        // does not activate the VM's ViewModelActivator for us, so we do it explicitly.
+        _activations.Add(ViewModel.Activator.Activate());
+
+        // ReactiveComponentBase re-renders on the VM's PropertyChanged, but NOT on the StatusList
+        // collection that the ResourceMonitor fills in place during an install, so hook it.
+        if (!_hooked)
+        {
+            _hooked = true;
+            if (ViewModel.StatusList is INotifyCollectionChanged tasks)
+                tasks.CollectionChanged += OnTasksChanged;
+        }
+    }
+
+    private void OnTasksChanged(object? sender, NotifyCollectionChangedEventArgs e) => InvokeAsync(StateHasChanged);
+
+    private static string PathText(string? path) =>
+        string.IsNullOrWhiteSpace(path) || path == "." ? string.Empty : path;
+
+    private static void Exec(System.Windows.Input.ICommand? cmd)
+    {
+        if (cmd != null && cmd.CanExecute(null)) cmd.Execute(null);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            if (ViewModel?.StatusList is INotifyCollectionChanged tasks)
+                tasks.CollectionChanged -= OnTasksChanged;
+            foreach (var a in _activations)
+                a.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+}

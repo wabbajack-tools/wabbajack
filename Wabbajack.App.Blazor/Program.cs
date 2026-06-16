@@ -62,6 +62,9 @@ internal static class Program
         builder.Services.AddTransient<CompilerDetailsVM>();
         builder.Services.AddTransient<CompilerFileManagerVM>();
 
+        // Installer (ResourceMonitor/LogStream already registered above for the compiler).
+        builder.Services.AddTransient<InstallationVM>();
+
         builder.RootComponents.Add<App>("#app");
 
         var app = builder.Build();

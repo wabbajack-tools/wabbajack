@@ -88,6 +88,9 @@ internal static class TestSupport
         s.AddTransient<CompilerMainVM>();
         s.AddTransient<CompilerDetailsVM>();
         s.AddTransient<CompilerFileManagerVM>();
+
+        // Installer (ResourceMonitor registered above with the scheduler-deadlock workaround).
+        s.AddTransient<InstallationVM>();
     }
 
     // Builds a single gallery tile VM from fake metadata + the offline service graph.
