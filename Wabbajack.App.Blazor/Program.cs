@@ -1,10 +1,15 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
+using NLog.Targets;
 using Photino.Blazor;
 using Wabbajack;
 using Wabbajack.Blazor;
 using Wabbajack.Blazor.Services;
 using Wabbajack.DTOs.Interventions;
+using Wabbajack.Models;
+using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.Blazor;
@@ -18,7 +23,36 @@ internal static class Program
     {
         var builder = PhotinoBlazorAppBuilder.CreateDefault(args);
 
-        builder.Services.AddLogging();
+        // Logging: write a rolling file (so there's an actual log to read/open), console, and the
+        // in-app LogStream. Mirrors the WPF app's NLog setup.
+        var logStream = new LogStream { Name = "ui", Layout = "${message:withexception=false}" };
+        builder.Services.AddSingleton(logStream);
+        builder.Services.AddLogging(logging =>
+        {
+            var config = new NLog.Config.LoggingConfiguration();
+
+            var logFolder = KnownFolders.LauncherAwarePath.Combine("logs");
+            if (!logFolder.DirectoryExists()) logFolder.CreateDirectory();
+
+            var fileTarget = new FileTarget("file")
+            {
+                FileName = logFolder.Combine("Wabbajack.current.log").ToString(),
+                ArchiveFileName = logFolder.Combine("Wabbajack.{##}.log").ToString(),
+                ArchiveOldFileOnStartup = true,
+                MaxArchiveFiles = 10,
+                Layout = "${processtime} [${level:uppercase=true}] (${logger}) ${message:withexception=true}",
+                Header = "############ Wabbajack log file - ${longdate} ############"
+            };
+
+            config.AddRuleForAllLevels(fileTarget);
+            config.AddRuleForAllLevels(new ConsoleTarget("console"));
+            config.AddRuleForAllLevels(logStream);
+
+            logging.ClearProviders();
+            logging.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
+            logging.SetMinimumLevel(LogLevel.Information);
+            logging.AddNLog(config);
+        });
 
         // Reuse the exact backend graph the Avalonia/WPF heads use.
         builder.Services.AddOSIntegrated();
@@ -27,12 +61,13 @@ internal static class Program
         builder.Services.AddSingleton<IUserInterventionHandler>(sp =>
             sp.GetRequiredService<Wabbajack.Blazor.Services.BlazorUserInterventionHandler>());
 
-        // The five platform abstractions Core needs. Only the image service does real work for the
-        // gallery spike; the rest are never hit on the gallery path, so they are minimal stubs.
+        // Platform abstractions Core needs, backed by Photino's native dialogs / the webview clipboard.
+        // (The Stub* variants exist only for headless tests.)
+        builder.Services.AddSingleton<PhotinoWindowHolder>();
         builder.Services.AddSingleton<IImageService, BlazorImageService>();
-        builder.Services.AddSingleton<IDialogService, StubDialogService>();
-        builder.Services.AddSingleton<IFileSelector, StubFileSelector>();
-        builder.Services.AddSingleton<IClipboardService, StubClipboardService>();
+        builder.Services.AddSingleton<IDialogService, PhotinoDialogService>();
+        builder.Services.AddSingleton<IFileSelector, PhotinoFileSelector>();
+        builder.Services.AddSingleton<IClipboardService, PhotinoClipboardService>();
         builder.Services.AddSingleton<ISystemParameters, BlazorSystemParameters>();
 
         // Shell + screen VMs. NavigationVM is a singleton so the sidebar and the shell share one
@@ -54,9 +89,9 @@ internal static class Program
         builder.Services.AddTransient<SettingsVM>();
         builder.Services.AddTransient<AboutVM>();
 
-        // Compiler screens + deps. ResourceMonitor and LogStream aren't registered by AddOSIntegrated.
+        // Compiler screens + deps. ResourceMonitor isn't registered by AddOSIntegrated (LogStream was
+        // registered above as the NLog UI target).
         builder.Services.AddSingleton<Wabbajack.Models.ResourceMonitor>();
-        builder.Services.AddSingleton<Wabbajack.Models.LogStream>();
         builder.Services.AddTransient<CompilerHomeVM>();
         // Singleton + created at shell init: CompilerHome navigates to CompilerMain then sends
         // LoadCompilerSettings, so CompilerMain must already be subscribed (same lifetime requirement
@@ -73,6 +108,9 @@ internal static class Program
         builder.RootComponents.Add<App>("#app");
 
         var app = builder.Build();
+
+        // Hand the window to the platform services now that it exists (native file/dialog pickers).
+        app.Services.GetRequiredService<PhotinoWindowHolder>().Window = app.MainWindow;
 
         app.MainWindow
             .SetTitle("Wabbajack (Blazor spike)")
