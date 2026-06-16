@@ -1,21 +1,31 @@
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using ReactiveUI;
+using Wabbajack.Paths;
 
 namespace Wabbajack;
 
 public partial class FileUploadView : ReactiveUserControl<FileUploadVM>
 {
+    private readonly StackPanel _startSection;
+
     public FileUploadView()
     {
         AvaloniaXamlLoader.Load(this);
 
-        var startSection = this.FindControl<StackPanel>("StartSection")!;
+        _startSection = this.FindControl<StackPanel>("StartSection")!;
         var uploadingSection = this.FindControl<StackPanel>("UploadingSection")!;
         var completedSection = this.FindControl<StackPanel>("CompletedSection")!;
+
+        AddHandler(DragDrop.DragEnterEvent, OnDragEnter);
+        AddHandler(DragDrop.DragOverEvent, OnDragOver);
+        AddHandler(DragDrop.DragLeaveEvent, OnDragLeave);
+        AddHandler(DragDrop.DropEvent, OnDrop);
 
         // Gate the three sections on UploadProgress (0..1), matching the original WPF view.
         // (We can't gate on FileUrl: the VM overwrites it with human-readable status text on
@@ -29,7 +39,7 @@ public partial class FileUploadView : ReactiveUserControl<FileUploadVM>
             var progress = this.WhenAnyValue(x => x.ViewModel!.UploadProgress);
 
             progress.Select(p => p <= 0)
-                .BindTo(startSection, x => x.IsVisible)
+                .BindTo(_startSection, x => x.IsVisible)
                 .DisposeWith(dispose);
 
             progress.Select(p => p > 0 && p < 1)
@@ -40,5 +50,37 @@ public partial class FileUploadView : ReactiveUserControl<FileUploadVM>
                 .BindTo(completedSection, x => x.IsVisible)
                 .DisposeWith(dispose);
         });
+    }
+
+    private void OnDragEnter(object? sender, DragEventArgs e)
+    {
+        if (e.Data.Contains(DataFormats.Files))
+            _startSection.Classes.Add("dragOver");
+    }
+
+    private void OnDragOver(object? sender, DragEventArgs e)
+    {
+        e.DragEffects = e.Data.Contains(DataFormats.Files) ? DragDropEffects.Copy : DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private void OnDragLeave(object? sender, DragEventArgs e)
+    {
+        _startSection.Classes.Remove("dragOver");
+    }
+
+    private void OnDrop(object? sender, DragEventArgs e)
+    {
+        _startSection.Classes.Remove("dragOver");
+
+        var files = e.Data.GetFiles()?.ToList();
+        if (files == null || files.Count == 0) return;
+
+        var path = files[0].Path.LocalPath;
+        if (ViewModel is null) return;
+
+        ViewModel.UploadProgress = 0;
+        ViewModel.Picker.TargetPath = AbsolutePath.ConvertNoFailure(path);
+        ViewModel.UploadCommand.Execute(null);
     }
 }

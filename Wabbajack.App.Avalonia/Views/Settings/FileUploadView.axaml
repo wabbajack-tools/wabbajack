@@ -8,7 +8,13 @@
              x:TypeArguments="core:FileUploadVM"
              x:DataType="core:FileUploadVM"
              x:CompileBindings="False">
-    <Border Background="{DynamicResource BackgroundBrush}" CornerRadius="8" MinWidth="500">
+    <Border Background="{DynamicResource BackgroundBrush}" CornerRadius="8" MinWidth="500"
+            DragDrop.AllowDrop="True">
+        <Border.Styles>
+            <Style Selector="StackPanel.dragOver">
+                <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary08Brush}" />
+            </Style>
+        </Border.Styles>
         <StackPanel Margin="16" Spacing="16">
             <!-- Header: title + close -->
             <Grid ColumnDefinitions="*,Auto">
