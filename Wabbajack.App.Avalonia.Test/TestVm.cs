@@ -32,12 +32,21 @@ public static class TestVm
         });
         s.AddTransient<global::Wabbajack.HomeVM>();
         s.AddTransient<global::Wabbajack.NavigationVM>();
+        s.AddTransient<global::Wabbajack.SettingsVM>();
+        s.AddTransient<global::Wabbajack.AboutVM>();
+        // AboutVM depends on the GitHub Client (+ its Octokit GitHubClient). AddOSIntegrated does not
+        // register these, so wire them up exactly as the WPF app does (App.xaml.cs). Construction is
+        // offline-safe: no network in the ctors, and AboutVM only fetches contributors on activation.
+        s.AddSingleton<global::Wabbajack.Networking.GitHub.Client>();
+        s.AddSingleton(_ => new Octokit.GitHubClient(new Octokit.ProductHeaderValue("wabbajack")));
         return s.BuildServiceProvider();
     }
 
     public static global::Wabbajack.HomeVM Home() => Sp.GetRequiredService<global::Wabbajack.HomeVM>();
 
     public static global::Wabbajack.NavigationVM Navigation() => Sp.GetRequiredService<global::Wabbajack.NavigationVM>();
+
+    public static global::Wabbajack.SettingsVM Settings() => Sp.GetRequiredService<global::Wabbajack.SettingsVM>();
 
     // Title used by the fake tile metadata; GalleryTests asserts a TextBlock renders this exact text.
     public const string TileTitle = "Fake Test Modlist";
