@@ -149,7 +149,16 @@ public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
             this.WhenAnyValue(x => x.Settings.Source)
                 .Subscribe(source =>
                 {
-                    AvailableProfiles = source.Combine("profiles").EnumerateDirectories(recursive: false).Select(dir => dir.FileName.ToString()).ToList();
+                    // No modlist source selected yet (e.g. a freshly-constructed VM): nothing to enumerate.
+                    if (source == default)
+                    {
+                        AvailableProfiles = new List<string>();
+                        return;
+                    }
+                    var profiles = source.Combine("profiles");
+                    AvailableProfiles = profiles.DirectoryExists()
+                        ? profiles.EnumerateDirectories(recursive: false).Select(dir => dir.FileName.ToString()).ToList()
+                        : new List<string>();
                 })
                 .DisposeWith(disposables);
 

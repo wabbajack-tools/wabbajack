@@ -3,6 +3,7 @@
         xmlns:wj="using:Wabbajack"
         x:Class="Wabbajack.Views.MainWindow"
         Width="1280" Height="800" Title="Wabbajack"
+        FontFamily="{DynamicResource PrimaryFont}"
         Background="{DynamicResource WindowBackgroundBrush}">
     <Grid>
         <Grid ColumnDefinitions="Auto,*">
