@@ -60,6 +60,12 @@ public partial class FileTreeItemVM : ReactiveObject, IDisposable
     /// </summary>
     public bool ChildrenLoaded { get; set; }
 
+    /// <summary>
+    /// True for the inert sentinel child added under an unrealized directory so the expander shows.
+    /// The view renders these as a subtle "loading" row rather than as a real file/folder.
+    /// </summary>
+    public bool IsPlaceholder { get; set; }
+
     public FileTreeItemVM(DirectoryInfo info)
     {
         Info = info;

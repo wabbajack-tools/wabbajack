@@ -88,7 +88,7 @@ public class CompilerFileManagerVM : BaseCompilerVM
     /// Creates the single sentinel placeholder child used so an unrealized directory still shows its
     /// expander. It is replaced by the real contents on first expansion.
     /// </summary>
-    private static FileTreeItemVM CreatePlaceholder(DirectoryInfo dir) => new(dir);
+    private static FileTreeItemVM CreatePlaceholder(DirectoryInfo dir) => new(dir) { IsPlaceholder = true };
 
     /// <summary>
     /// Wires lazy-load on expansion for a directory node: when <see cref="FileTreeItemVM.IsExpanded"/>

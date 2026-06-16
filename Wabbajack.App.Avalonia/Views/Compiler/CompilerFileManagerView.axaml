@@ -16,24 +16,34 @@
         </TreeView.Styles>
         <TreeView.ItemTemplate>
             <TreeDataTemplate DataType="core:FileTreeItemVM" ItemsSource="{Binding Children}">
-                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                    <ic:SymbolIcon Symbol="{Binding Symbol}"
-                                   FontSize="16"
+                <Panel>
+                    <!-- Unrealized-directory sentinel: a subtle loading row, not a real entry. -->
+                    <TextBlock Text="Loading…"
+                               FontStyle="Italic"
+                               Opacity="0.5"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding IsPlaceholder}"
+                               Foreground="{DynamicResource ForegroundBrush}" />
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center"
+                                IsVisible="{Binding !IsPlaceholder}">
+                        <ic:SymbolIcon Symbol="{Binding Symbol}"
+                                       FontSize="16"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource ForegroundBrush}" />
+                        <TextBlock Text="{Binding Info.Name}"
                                    VerticalAlignment="Center"
                                    Foreground="{DynamicResource ForegroundBrush}" />
-                    <TextBlock Text="{Binding Info.Name}"
-                               VerticalAlignment="Center"
-                               Foreground="{DynamicResource ForegroundBrush}" />
-                    <!-- Single-select state editor over the nullable flags enum. -->
-                    <ComboBox MinWidth="140"
-                              VerticalAlignment="Center"
-                              SelectedItem="{Binding CompilerFileState, Mode=TwoWay}">
-                        <core:CompilerFileState>NoMatchInclude</core:CompilerFileState>
-                        <core:CompilerFileState>Include</core:CompilerFileState>
-                        <core:CompilerFileState>Ignore</core:CompilerFileState>
-                        <core:CompilerFileState>AlwaysEnabled</core:CompilerFileState>
-                    </ComboBox>
-                </StackPanel>
+                        <!-- Single-select state editor over the nullable flags enum. -->
+                        <ComboBox MinWidth="140"
+                                  VerticalAlignment="Center"
+                                  SelectedItem="{Binding CompilerFileState, Mode=TwoWay}">
+                            <core:CompilerFileState>NoMatchInclude</core:CompilerFileState>
+                            <core:CompilerFileState>Include</core:CompilerFileState>
+                            <core:CompilerFileState>Ignore</core:CompilerFileState>
+                            <core:CompilerFileState>AlwaysEnabled</core:CompilerFileState>
+                        </ComboBox>
+                    </StackPanel>
+                </Panel>
             </TreeDataTemplate>
         </TreeView.ItemTemplate>
     </TreeView>
