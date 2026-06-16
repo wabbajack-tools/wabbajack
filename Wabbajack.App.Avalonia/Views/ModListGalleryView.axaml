@@ -159,7 +159,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="core:GalleryModListMetadataVM">
-                            <local:ModListTileView DataContext="{Binding}" ViewModel="{Binding}" Margin="8" />
+                            <local:ModListTileView DataContext="{Binding}" ViewModel="{Binding}" />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

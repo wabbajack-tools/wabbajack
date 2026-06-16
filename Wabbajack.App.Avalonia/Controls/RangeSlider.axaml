@@ -5,7 +5,9 @@
         <Setter Property="Height" Value="22" />
         <Setter Property="Template">
             <ControlTemplate>
-                <Grid VerticalAlignment="Center">
+                <!-- Inset by half a thumb-width (5px) on each side so the thumbs stay inside the
+                     control bounds at the extremes (otherwise they're clipped / overflow). -->
+                <Grid VerticalAlignment="Center" Margin="5,0,5,0" ClipToBounds="False">
                     <!-- Inactive track -->
                     <Border Height="4" CornerRadius="2" VerticalAlignment="Center"
                             Background="{DynamicResource ComplementaryPrimary08Brush}" />
@@ -14,15 +16,15 @@
                             VerticalAlignment="Center" HorizontalAlignment="Left"
                             Background="{DynamicResource PrimaryBrush}" />
                     <!-- Thumbs positioned absolutely over the track -->
-                    <Canvas Name="PART_Track" Height="18" VerticalAlignment="Center" ClipToBounds="False">
-                        <Thumb Name="PART_LowerThumb" Width="10" Height="18" Canvas.Top="0">
+                    <Canvas Name="PART_Track" Height="14" VerticalAlignment="Center" ClipToBounds="False">
+                        <Thumb Name="PART_LowerThumb" Width="10" Height="14" Canvas.Top="0">
                             <Thumb.Template>
                                 <ControlTemplate>
                                     <Border Background="{DynamicResource PrimaryBrush}" CornerRadius="3" />
                                 </ControlTemplate>
                             </Thumb.Template>
                         </Thumb>
-                        <Thumb Name="PART_UpperThumb" Width="10" Height="18" Canvas.Top="0">
+                        <Thumb Name="PART_UpperThumb" Width="10" Height="14" Canvas.Top="0">
                             <Thumb.Template>
                                 <ControlTemplate>
                                     <Border Background="{DynamicResource PrimaryBrush}" CornerRadius="3" />
