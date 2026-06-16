@@ -21,6 +21,10 @@ public static class TestVm
 {
     private static readonly IServiceProvider Sp = Build();
 
+    // The offline DI container, exposed so shell-level tests (e.g. MainWindow) can construct the real
+    // app graph without touching the network.
+    public static IServiceProvider Services => Sp;
+
     private static IServiceProvider Build()
     {
         var s = new ServiceCollection();

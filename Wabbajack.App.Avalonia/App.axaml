@@ -2,7 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:Wabbajack"
              xmlns:conv="using:Wabbajack.Converters"
-             x:Class="Wabbajack.App">
+             x:Class="Wabbajack.App"
+             RequestedThemeVariant="Dark">
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>

@@ -9,6 +9,12 @@
              x:DataType="core:NavigationVM"
              Width="100">
     <rxui:ReactiveUserControl.Styles>
+        <!-- Nav buttons fill the sidebar width so they all match. Without this they size to their
+             content, which makes Home (the shortest label) narrower than the rest. Mirrors WPF,
+             where Button's HorizontalAlignment defaults to Stretch. -->
+        <Style Selector="Button">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
         <!-- Nav icons are brand-purple; labels stay light. Mirrors WPF's NavButton look. -->
         <Style Selector="ic|SymbolIcon.nav">
             <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />

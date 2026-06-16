@@ -9,6 +9,9 @@
     <NoWarn>CS8600;CS8601;CS8618;CS8604;CS1998</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Wabbajack.App.Avalonia.Test" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.17" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.17" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.17" />

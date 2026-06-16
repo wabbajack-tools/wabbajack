@@ -881,18 +881,24 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
         using var ll = LoadingLock.WithLoading();
         try
         {
+            // Get off the UI thread for all the heavy lifting: network calls, tag processing and
+            // (most importantly) constructing the per-list view models, which is the bulk of the
+            // cost since each one wires up several reactive subscriptions, an image download and a
+            // polling timer. Doing this on the UI thread is what froze the gallery on open.
+            await Dispatch.NotOnUI();
+
             var allowedTags = await _wjClient.LoadAllowedTags();
             var tagMappings = await _wjClient.LoadTagMappings();
 
-            AllTags = allowedTags.Select(t => new ModListTag(t))
+            var allTags = allowedTags.Select(t => new ModListTag(t))
                 .OrderBy(t => t.Name)
                 .Prepend(new ModListTag("NSFW"))
                 .Prepend(new ModListTag("Featured"))
                 .Prepend(new ModListTag("Unavailable"))
                 .ToHashSet();
             var searchIndex = await _wjClient.LoadSearchIndex();
-            ModsPerList = searchIndex.ModsPerList;
-            AllMods = searchIndex.AllMods.Select(mod => new ModListMod(mod)).ToHashSet();
+            var modsPerList = searchIndex.ModsPerList;
+            var allMods = searchIndex.AllMods.Select(mod => new ModListMod(mod)).ToHashSet();
             var modLists = await _wjClient.LoadLists();
             var modlistSummaries = (await _wjClient.GetListStatuses()).ToDictionary(summary => summary.MachineURL);
             foreach (var modlist in modLists)
@@ -913,12 +919,25 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                 modlist.Tags = modlistTags;
             }
 
+            var modListVMs = modLists.Select(m =>
+                new GalleryModListMetadataVM(_logger, this, m, _maintainer,
+                    modlistSummaries.TryGetValue(m.Links.MachineURL, out var summary) ? summary : null,
+                    _wjClient, _cancellationToken, _imageService))
+                .ToList();
+
+            // Back to the UI thread: everything below assigns bound properties or mutates observable
+            // collections (including the DynamicData filter/sort/bind pipeline), which must happen on
+            // the UI thread.
+            await Dispatch.OnUI();
+
+            AllTags = allTags;
+            ModsPerList = modsPerList;
+            AllMods = allMods;
+
             _modLists.Edit(e =>
             {
                 e.Clear();
-                e.AddOrUpdate(modLists.Select(m =>
-                    new GalleryModListMetadataVM(_logger, this, m, _maintainer, modlistSummaries.TryGetValue(m.Links.MachineURL, out var summary) ? summary : null, _wjClient, _cancellationToken,
-                        _imageService)));
+                e.AddOrUpdate(modListVMs);
             });
             LoadGameTypeEntries();
             DetermineListSizeRange();
