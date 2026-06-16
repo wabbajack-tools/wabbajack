@@ -1,3 +1,12 @@
+/* Brand font — Gabarito, the same variable font the WPF app uses (Resources/Fonts). */
+@font-face {
+    font-family: 'Gabarito';
+    src: url('../fonts/Gabarito.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* Wabbajack brand palette (mirrors Styles/Brand.axaml). */
 :root {
     --bg: #222531;
@@ -16,7 +25,7 @@ html, body {
     height: 100%;
     background: var(--bg);
     color: var(--fg);
-    font-family: "Segoe UI", system-ui, sans-serif;
+    font-family: 'Gabarito', "Segoe UI", system-ui, sans-serif;
     overflow: hidden;
 }
 
