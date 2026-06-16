@@ -87,7 +87,7 @@
         <Grid IsVisible="{Binding State, Converter={StaticResource EnumEquals}, ConverterParameter=Completed}">
             <Border CornerRadius="8" Padding="32"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                <Grid VerticalAlignment="Center" RowDefinitions="Auto,Auto,Auto">
+                <Grid VerticalAlignment="Center" RowDefinitions="Auto,Auto,Auto,Auto">
                     <TextBlock Grid.Row="0" Text="Compilation complete" FontSize="18"
                                Foreground="{DynamicResource Transparent66ForegroundBrush}" />
                     <TextBlock Grid.Row="1" Text="{Binding ProgressText}"
@@ -105,6 +105,82 @@
                                         ButtonStyle="Mono"
                                         Command="{Binding #Root.BackCommand}" />
                     </StackPanel>
+
+                    <!-- ===================== Publish workflow ===================== -->
+                    <Border Grid.Row="3" Margin="0,32,0,0" Padding="24"
+                            CornerRadius="8"
+                            Background="{DynamicResource ComplementaryPrimary08Brush}">
+                        <StackPanel Spacing="16">
+
+                            <TextBlock Text="Publish"
+                                       FontSize="20" FontWeight="DemiBold"
+                                       Foreground="{DynamicResource ForegroundBrush}" />
+
+                            <!-- Preflight checks row -->
+                            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                <ic:SymbolIcon Symbol="Checkmark" FontSize="20"
+                                               VerticalAlignment="Center"
+                                               Foreground="{DynamicResource SuccessBrush}"
+                                               IsVisible="{Binding PreflightChecksPassed}" />
+                                <TextBlock Text="{Binding PreflightCheckMessage}"
+                                           VerticalAlignment="Center"
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource Transparent66ForegroundBrush}" />
+                                <local:WJButton Text="Refresh checks" Icon="ArrowClockwise"
+                                                ButtonStyle="Mono"
+                                                Command="{Binding RefreshPreflightChecksCommand}" />
+                            </StackPanel>
+
+                            <!-- Publish modlist -->
+                            <StackPanel Spacing="8">
+                                <local:WJButton Text="Publish" Icon="CloudArrowUp"
+                                                ButtonStyle="Color"
+                                                HorizontalAlignment="Left"
+                                                Command="{Binding PublishCommand}" />
+                                <ProgressBar Minimum="0" Maximum="1"
+                                             Value="{Binding PublishingPercentage.Value}"
+                                             Height="8"
+                                             IsVisible="{Binding IsPublishing}" />
+                            </StackPanel>
+
+                            <!-- Publish as collection -->
+                            <StackPanel Spacing="8">
+                                <local:WJButton Text="Publish collection" Icon="CloudArrowUp"
+                                                ButtonStyle="Mono"
+                                                HorizontalAlignment="Left"
+                                                Command="{Binding PublishCollectionCommand}" />
+
+                                <StackPanel Orientation="Horizontal" Spacing="12"
+                                            IsVisible="{Binding ExistingCollectionSlug, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                    <TextBlock VerticalAlignment="Center"
+                                               TextWrapping="Wrap"
+                                               Foreground="{DynamicResource Transparent66ForegroundBrush}">
+                                        <Run Text="Existing collection:" />
+                                        <Run Text="{Binding ExistingCollectionSlug}" />
+                                        <Run Text="(rev" />
+                                        <Run Text="{Binding ExistingCollectionRevisionNumber}" />
+                                        <Run Text=")" />
+                                    </TextBlock>
+                                    <Border Padding="6,2" CornerRadius="4"
+                                            Background="{DynamicResource ComplementaryPrimary08Brush}"
+                                            IsVisible="{Binding ExistingCollectionIsDraft}">
+                                        <TextBlock Text="Draft" FontSize="12"
+                                                   Foreground="{DynamicResource Transparent66ForegroundBrush}" />
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Spacing="4" IsVisible="{Binding IsPublishingCollection}">
+                                    <TextBlock Text="{Binding CollectionPublishingStage}"
+                                               FontSize="14"
+                                               Foreground="{DynamicResource Transparent66ForegroundBrush}" />
+                                    <ProgressBar Minimum="0" Maximum="1"
+                                                 Value="{Binding CollectionPublishingPercentage.Value}"
+                                                 Height="8" />
+                                </StackPanel>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Border>
         </Grid>
