@@ -1,0 +1,40 @@
+@* Filter sidebar bound directly to the existing ModListGalleryVM reactive properties. *@
+
+<div class="sidebar">
+    <input class="search" type="text" placeholder="Search for a modlist..."
+           @bind="Vm.Search" @bind:event="oninput" />
+
+    <label class="field">Game</label>
+    <select class="select" @bind="SelectedGameIdentifier">
+        @foreach (var g in Vm.GameTypeEntries)
+        {
+            <option value="@g.GameIdentifier">@g.FormattedName</option>
+        }
+    </select>
+
+    <div class="group">
+        <label class="check"><input type="checkbox" @bind="Vm.IncludeUnofficial" /> Non-featured</label>
+        <label class="check"><input type="checkbox" @bind="Vm.IncludeNSFW" /> NSFW</label>
+        <label class="check"><input type="checkbox" @bind="Vm.OnlyInstalled" /> Only installed games</label>
+        <label class="check"><input type="checkbox" @bind="Vm.ExcludeMods" /> Exclude selected mods</label>
+    </div>
+
+    <button class="reset" @onclick="ResetFilters">Reset filters</button>
+</div>
+
+@code {
+    [Parameter] public ModListGalleryVM Vm { get; set; } = default!;
+
+    // Bind the dropdown by identifier string and translate to the VM's GameTypeEntry on set.
+    private string? SelectedGameIdentifier
+    {
+        get => Vm.SelectedGameTypeEntry?.GameIdentifier;
+        set => Vm.SelectedGameTypeEntry = Vm.GameTypeEntries.FirstOrDefault(g => g.GameIdentifier == value);
+    }
+
+    private void ResetFilters()
+    {
+        if (Vm.ResetFiltersCommand.CanExecute(null))
+            Vm.ResetFiltersCommand.Execute(null);
+    }
+}

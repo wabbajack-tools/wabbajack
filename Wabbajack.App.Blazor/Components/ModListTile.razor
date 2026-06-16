@@ -1,0 +1,19 @@
+@* One gallery tile. Binds <img> straight to the public modlist image URL so the webview handles
+   lazy-loading, HTTP caching and off-thread decode — no managed Bitmap, no base64 in the DOM. *@
+
+<div class="tile @(Tile.IsBroken ? "broken" : null)">
+    <img class="tile-img" loading="lazy" alt="@Tile.Metadata.Title"
+         src="@ImageUris.GetSmallImageUri(Tile.Metadata)" />
+    <div class="tile-overlay">
+        <div class="tile-title">@Tile.Metadata.Title</div>
+        <div class="tile-author">by @Tile.Metadata.Author</div>
+    </div>
+    @if (Tile.IsBroken)
+    {
+        <div class="tile-badge">Unavailable</div>
+    }
+</div>
+
+@code {
+    [Parameter] public GalleryModListMetadataVM Tile { get; set; } = default!;
+}

@@ -1,0 +1,18 @@
+@using System.Reactive.Concurrency
+@using System.Threading
+
+<GalleryPage />
+
+@code {
+    protected override void OnInitialized()
+    {
+        // The make-or-break wiring: bind ReactiveUI's UI scheduler to Blazor's renderer
+        // SynchronizationContext so Dispatch.OnUI() / ToGuiProperty / the DynamicData SortAndBind
+        // pipeline marshal onto the thread Blazor renders from. Runs before GalleryPage initializes.
+        var ctx = SynchronizationContext.Current;
+        if (ctx != null)
+            RxApp.MainThreadScheduler = new SynchronizationContextScheduler(ctx);
+
+        Console.WriteLine($"[spike] OnInitialized SynchronizationContext = {(ctx == null ? "NULL" : ctx.GetType().Name)}");
+    }
+}

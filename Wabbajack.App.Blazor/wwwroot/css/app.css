@@ -1,0 +1,114 @@
+/* Wabbajack brand palette (mirrors Styles/Brand.axaml). */
+:root {
+    --bg: #222531;
+    --bg-alt: #2a2b41;
+    --fg: #e5e5e8;
+    --fg-dim: rgba(229, 229, 232, 0.66);
+    --primary: #d8baf8;
+    --card: #3c3652;
+    --danger: #e06c75;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    overflow: hidden;
+}
+
+#app, .shell { height: 100vh; }
+
+.shell {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+}
+
+/* ---- Sidebar ---- */
+.sidebar {
+    padding: 16px;
+    background: var(--bg);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+.search, .select {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--bg-alt);
+    color: var(--fg);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.field { font-size: 13px; color: var(--fg-dim); }
+
+.group { display: flex; flex-direction: column; gap: 8px; padding: 8px 0; }
+.check { font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+
+.reset {
+    margin-top: 8px;
+    padding: 10px;
+    background: var(--bg-alt);
+    color: var(--fg);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    cursor: pointer;
+}
+.reset:hover { background: #4e4571; }
+
+/* ---- Content + grid ---- */
+.content { overflow-y: auto; padding: 16px; }
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.empty { color: var(--fg-dim); padding: 40px; text-align: center; font-size: 18px; }
+
+/* ---- Tile ---- */
+.tile {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--card);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.tile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.tile-overlay {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 10px 12px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0));
+}
+
+.tile-title { font-size: 15px; font-weight: 600; }
+.tile-author { font-size: 12px; color: var(--fg-dim); }
+
+.tile.broken { outline: 2px solid var(--danger); }
+.tile-badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+}

@@ -1,0 +1,71 @@
+@inherits ReactiveInjectableComponentBase<ModListGalleryVM>
+
+<div class="shell">
+    <FilterSidebar Vm="ViewModel" />
+
+    <div class="content">
+        @if (ViewModel?.ModLists is { Count: > 0 } lists)
+        {
+            <div class="grid">
+                @foreach (var tile in lists)
+                {
+                    <ModListTile Tile="tile" @key="tile" />
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty">Loading modlists…</div>
+        }
+    </div>
+</div>
+
+@code {
+    private IDisposable? _activation;
+    private bool _hooked;
+    private System.Diagnostics.Stopwatch? _sw;
+    private bool _loggedFirstTiles;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (!firstRender || ViewModel is null) return;
+
+        // Drive the VM's WhenActivated (loads the gallery, sets IsActive). ReactiveUI.Blazor does not
+        // activate the VM's ViewModelActivator for us, so we do it explicitly.
+        _sw = System.Diagnostics.Stopwatch.StartNew();
+        _activation = ViewModel.Activator.Activate();
+
+        // ReactiveComponentBase re-renders on the VM's PropertyChanged, but NOT on the child
+        // collections' CollectionChanged. The DynamicData pipeline fills ModLists in place, so hook it.
+        if (!_hooked)
+        {
+            _hooked = true;
+            if (ViewModel.ModLists is INotifyCollectionChanged modlists)
+                modlists.CollectionChanged += OnListsChanged;
+            if (ViewModel.GameTypeEntries is INotifyCollectionChanged games)
+                games.CollectionChanged += (_, _) => InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void OnListsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (!_loggedFirstTiles && (ViewModel?.ModLists?.Count ?? 0) > 0)
+        {
+            _loggedFirstTiles = true;
+            Console.WriteLine($"[spike] time-to-first-tiles: {_sw?.ElapsedMilliseconds}ms ({ViewModel!.ModLists!.Count} lists)");
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            if (ViewModel?.ModLists is INotifyCollectionChanged modlists)
+                modlists.CollectionChanged -= OnListsChanged;
+            _activation?.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+}

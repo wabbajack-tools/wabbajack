@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net10.0-windows</TargetFramework>
+    <TargetFramework Condition=" '$(OS)' != 'Windows_NT'">net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>WabbajackBlazor</AssemblyName>
+    <RootNamespace>Wabbajack.Blazor</RootNamespace>
+    <!-- Spike: silence the same nullable noise the other heads suppress. -->
+    <NoWarn>CS8600;CS8601;CS8618;CS8604;CS1998</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Wabbajack.App.Core\Wabbajack.App.Core.csproj" />
+    <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Photino.Blazor" Version="4.0.13" />
+    <PackageReference Include="ReactiveUI.Blazor" Version="20.4.1" />
+  </ItemGroup>
+  <!-- Photino.Blazor 4.x serves assets from a PhysicalFileProvider at {BaseDir}\wwwroot, so the
+       Razor SDK's static web assets (which don't copy to output) aren't enough — copy wwwroot physically. -->
+  <ItemGroup>
+    <Content Update="wwwroot\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
