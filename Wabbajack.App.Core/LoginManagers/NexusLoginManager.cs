@@ -14,9 +14,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
@@ -25,7 +23,6 @@ using Wabbajack.Downloaders;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.DTOs.OAuth;
 using Wabbajack.Networking.Http.Interfaces;
-using Wabbajack.UserIntervention;
 
 namespace Wabbajack.LoginManagers;
 
@@ -67,8 +64,6 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
             await ClearLoginToken();
         }, this.WhenAnyValue(v => v.LoggedIn));
 
-        Icon = (DrawingImage)Application.Current.Resources["NexusLogo"];
-
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
         {
             _logger.LogInformation("Logging into {SiteName}", SiteName);
@@ -91,9 +86,9 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
     private async Task StartLogin()
     {
         // PKCE: generate code verifier and challenge (RFC 7636)
-        var codeVerifier = Guid.NewGuid().ToString("N").ToBase64();
+        var codeVerifier = Convert.ToBase64String(Encoding.UTF8.GetBytes(Guid.NewGuid().ToString("N")));
         var codeChallengeBytes = SHA256.HashData(Encoding.UTF8.GetBytes(codeVerifier));
-        var codeChallenge = StringBase64Extensions.Base64UrlEncode(codeChallengeBytes);
+        var codeChallenge = WebEncoders.Base64UrlEncode(codeChallengeBytes);
 
         var state = Guid.NewGuid().ToString();
 

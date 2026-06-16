@@ -3,7 +3,9 @@ using Avalonia;
 using Avalonia.ReactiveUI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Wabbajack.DTOs;
 using Wabbajack.DTOs.Interventions;
+using Wabbajack.LoginManagers;
 using Wabbajack.Models;
 using Wabbajack.Services.OSIntegrated;
 
@@ -46,6 +48,8 @@ internal class Program
                 // AboutVM pulls the GitHub contributor list; register the client like the WPF app does.
                 services.AddSingleton<Networking.GitHub.Client>();
                 services.AddSingleton(_ => new Octokit.GitHubClient(new Octokit.ProductHeaderValue("wabbajack")));
+                // Nexus OAuth login: registering an INeedsLogin populates the Settings login list.
+                services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
             }).Build();
         Services = host.Services;
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
