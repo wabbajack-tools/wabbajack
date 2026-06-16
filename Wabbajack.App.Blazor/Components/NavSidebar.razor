@@ -15,7 +15,7 @@
     <button class="nav-btn @ActiveClass(ScreenType.Settings)" @onclick="() => Exec(Vm.SettingsCommand)">
         <span class="nav-glyph">⚙</span><span class="nav-label">Settings</span>
     </button>
-    <div class="nav-version">v@Vm.Version</div>
+    <div class="nav-version">v@(Vm.Version)</div>
 </div>
 
 @code {

@@ -38,6 +38,10 @@
         </div>
 
         <div class="details-actions">
+            <button class="btn primary" @onclick="() => Exec(meta.InstallCommand)">Install</button>
+            <button class="btn" @onclick="() => Exec(Vm.OpenWebsiteCommand)">Website</button>
+            <button class="btn" @onclick="() => Exec(Vm.OpenDiscordCommand)">Discord</button>
+            <button class="btn" @onclick="() => Exec(Vm.OpenReadmeCommand)">Readme</button>
             <button class="btn" @onclick="Close">Close</button>
         </div>
     </div>
@@ -68,6 +72,11 @@
     private void Close()
     {
         if (Vm.CloseCommand.CanExecute(null)) Vm.CloseCommand.Execute(null);
+    }
+
+    private static void Exec(System.Windows.Input.ICommand? cmd)
+    {
+        if (cmd != null && cmd.CanExecute(null)) cmd.Execute(null);
     }
 
     public void Dispose()

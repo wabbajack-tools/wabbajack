@@ -1,11 +1,4 @@
-/* Brand font — Gabarito, the same variable font the WPF app uses (Resources/Fonts). */
-@font-face {
-    font-family: 'Gabarito';
-    src: url('../fonts/Gabarito.ttf') format('truetype');
-    font-weight: 100 900;
-    font-style: normal;
-    font-display: swap;
-}
+/* Brand font Gabarito is declared (base64-inlined) in fonts.css, loaded before this file. */
 
 /* Wabbajack brand palette (mirrors Styles/Brand.axaml). */
 :root {
