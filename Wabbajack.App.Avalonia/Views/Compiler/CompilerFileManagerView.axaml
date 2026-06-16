@@ -1,0 +1,40 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:core="using:Wabbajack"
+             xmlns:rxui="http://reactiveui.net"
+             x:Class="Wabbajack.CompilerFileManagerView"
+             x:TypeArguments="core:CompilerFileManagerVM"
+             x:DataType="core:CompilerFileManagerVM"
+             x:CompileBindings="False">
+    <TreeView ItemsSource="{Binding Files}"
+              Background="Transparent">
+        <TreeView.Styles>
+            <Style Selector="TreeViewItem">
+                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+            </Style>
+        </TreeView.Styles>
+        <TreeView.ItemTemplate>
+            <TreeDataTemplate DataType="core:FileTreeItemVM" ItemsSource="{Binding Children}">
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <ic:SymbolIcon Symbol="{Binding Symbol}"
+                                   FontSize="16"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource ForegroundBrush}" />
+                    <TextBlock Text="{Binding Info.Name}"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource ForegroundBrush}" />
+                    <!-- Single-select state editor over the nullable flags enum. -->
+                    <ComboBox MinWidth="140"
+                              VerticalAlignment="Center"
+                              SelectedItem="{Binding CompilerFileState, Mode=TwoWay}">
+                        <core:CompilerFileState>NoMatchInclude</core:CompilerFileState>
+                        <core:CompilerFileState>Include</core:CompilerFileState>
+                        <core:CompilerFileState>Ignore</core:CompilerFileState>
+                        <core:CompilerFileState>AlwaysEnabled</core:CompilerFileState>
+                    </ComboBox>
+                </StackPanel>
+            </TreeDataTemplate>
+        </TreeView.ItemTemplate>
+    </TreeView>
+</rxui:ReactiveUserControl>
