@@ -36,6 +36,14 @@
             <Color x:Key="SystemAccentColorDark1">#B894E6</Color>
             <Color x:Key="SystemAccentColorDark2">#9A72CC</Color>
             <Color x:Key="SystemAccentColorDark3">#7C50B3</Color>
+            <!-- Match the WPF buttons' hover/pressed states (brand #4e4571 bg, light text) instead
+                 of Fluent's default grey, by overriding the Fluent Button theme brushes. -->
+            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#4e4571" />
+            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#4e4571" />
+            <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#E5E5E8" />
+            <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#E5E5E8" />
+            <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
+            <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
             <conv:IsZeroConverter x:Key="IsZero" />
             <conv:AbsolutePathConverter x:Key="AbsolutePathConverter" />
             <conv:EnumEqualsConverter x:Key="EnumEquals" />
