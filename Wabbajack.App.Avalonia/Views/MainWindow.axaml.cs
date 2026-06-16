@@ -29,6 +29,11 @@ public partial class MainWindow : Window
                 ShowFloating(FloatingScreenType.None);
         };
         FloatingBackdrop.PointerPressed += (_, _) => ShowFloating(FloatingScreenType.None);
+
+        // Debug/screenshot aid: launch directly into a screen via the WJ_SCREEN env var (e.g. "Installer").
+        var initialScreen = Environment.GetEnvironmentVariable("WJ_SCREEN");
+        if (!string.IsNullOrEmpty(initialScreen) && Enum.TryParse<ScreenType>(initialScreen, out var screen))
+            Dispatcher.UIThread.Post(() => NavigateToGlobal.Send(screen));
     }
 
     private void ShowFloating(FloatingScreenType screen)
