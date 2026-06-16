@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -9,10 +9,8 @@ using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
-using Wabbajack.CLI.Verbs;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.DTOs.JsonConverters;

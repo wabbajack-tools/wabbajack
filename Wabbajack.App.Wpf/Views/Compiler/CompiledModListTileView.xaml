@@ -5,13 +5,14 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:local="clr-namespace:Wabbajack"
+    xmlns:core="clr-namespace:Wabbajack;assembly=Wabbajack.App.Core"
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
     xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     d:DesignHeight="450"
     d:DesignWidth="800"
-    x:TypeArguments="local:CompiledModListTileVM"
+    x:TypeArguments="core:CompiledModListTileVM"
     mc:Ignorable="d">
     <Grid Margin="16, 0, 16, 16" x:Name="CompiledModListTile">
         <Border Name="BorderMask2" CornerRadius="10" BorderThickness="0" Background="White" Margin="1" />

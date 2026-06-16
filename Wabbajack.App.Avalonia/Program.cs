@@ -31,6 +31,10 @@ internal class Program
                 services.AddTransient<SettingsVM>();
                 services.AddTransient<AboutVM>();
                 services.AddTransient<InstallationVM>();
+                services.AddTransient<CompilerHomeVM>();
+                services.AddTransient<CompilerMainVM>();
+                services.AddTransient<CompilerDetailsVM>();
+                services.AddTransient<CompilerFileManagerVM>();
                 // InstallationVM needs these singletons that AddOSIntegrated doesn't provide.
                 services.AddSingleton<ResourceMonitor>();
                 services.AddSingleton<LogStream>();
