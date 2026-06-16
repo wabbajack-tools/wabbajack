@@ -51,6 +51,7 @@ public partial class MainWindow : Window
         ScreenType.Installer => Program.Services.GetRequiredService<InstallationVM>(),
         ScreenType.CompilerHome => Program.Services.GetRequiredService<CompilerHomeVM>(),
         ScreenType.CompilerMain => Program.Services.GetRequiredService<CompilerMainVM>(),
+        ScreenType.Info => Program.Services.GetRequiredService<InfoVM>(),
         // Other screens resolve to a placeholder until their wave ports them.
         _ => new ScreenPlaceholderView(screen.ToString())
     };

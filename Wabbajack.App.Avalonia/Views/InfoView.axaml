@@ -1,0 +1,16 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:core="using:Wabbajack"
+             xmlns:local="using:Wabbajack"
+             xmlns:rxui="http://reactiveui.net"
+             x:Class="Wabbajack.InfoView"
+             x:TypeArguments="core:InfoVM"
+             x:DataType="core:InfoVM">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16" MaxWidth="600">
+        <ic:SymbolIcon HorizontalAlignment="Center" Symbol="Info" FontSize="48" Foreground="{DynamicResource PrimaryBrush}" />
+        <TextBlock Text="{Binding Info}" TextWrapping="Wrap" TextAlignment="Center"
+                   HorizontalAlignment="Center" Foreground="{DynamicResource ForegroundBrush}" />
+        <local:WJButton HorizontalAlignment="Center" Text="Back" Icon="ArrowLeft" Command="{Binding CloseCommand}" />
+    </StackPanel>
+</rxui:ReactiveUserControl>
