@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -44,13 +45,13 @@ public class GalleryModListMetadataVM : BaseModListMetadataVM
             })
             .ToGuiProperty(this, nameof(Exists));
 
-        OpenWebsiteCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/modlist/{Metadata.NamespacedName}")));
+        OpenWebsiteCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo($"https://www.wabbajack.org/modlist/{Metadata.NamespacedName}") { UseShellExecute = true }));
 
         ModListContentsCommend = ReactiveCommand.Create(async () =>
         {
-            UIUtils.OpenWebsite(new Uri($"https://www.wabbajack.org/search/{Metadata.NamespacedName}"));
+            Process.Start(new ProcessStartInfo($"https://www.wabbajack.org/search/{Metadata.NamespacedName}") { UseShellExecute = true });
         }, IsLoadingIdle.StartWith(true));
-        
+
 
     }
 }

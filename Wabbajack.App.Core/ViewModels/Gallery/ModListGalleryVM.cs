@@ -7,13 +7,11 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
@@ -48,8 +46,6 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
         public string GameIdentifier { get; private set; }
         public static GameTypeEntry GetAllGamesEntry(int amount) => new(null, amount);
     }
-
-    public MainWindowVM MWVM { get; }
 
     private bool _savingSettings = false;
     private readonly SourceCache<GalleryModListMetadataVM, string> _modLists = new(x => x.Metadata.NamespacedName);
@@ -912,8 +908,6 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                 modlist.Tags = modlistTags;
             }
 
-            var httpClient = _serviceProvider.GetRequiredService<HttpClient>();
-            var cacheManager = _serviceProvider.GetRequiredService<ImageCacheManager>();
             _modLists.Edit(e =>
             {
                 e.Clear();

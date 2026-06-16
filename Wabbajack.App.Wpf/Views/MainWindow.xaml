@@ -143,7 +143,7 @@
                             <DataTemplate DataType="{x:Type core:HomeVM}">
                                 <local:HomeView ViewModel="{Binding}" />
                             </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
+                            <DataTemplate DataType="{x:Type core:ModListGalleryVM}">
                                 <local:ModListGalleryView ViewModel="{Binding}" />
                             </DataTemplate>
                             <DataTemplate DataType="{x:Type local:CompilerHomeVM}">

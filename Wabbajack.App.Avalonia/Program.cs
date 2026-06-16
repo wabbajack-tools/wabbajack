@@ -25,6 +25,7 @@ internal class Program
                 services.AddSingleton<IImageService, AvaloniaImageService>();
                 services.AddTransient<HomeVM>(); // Core VMs the Avalonia app currently uses
                 services.AddTransient<NavigationVM>();
+                services.AddTransient<ModListGalleryVM>();
             }).Build();
         Services = host.Services;
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);

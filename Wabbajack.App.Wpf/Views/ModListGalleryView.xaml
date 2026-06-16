@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:local="clr-namespace:Wabbajack"
+    xmlns:core="clr-namespace:Wabbajack;assembly=Wabbajack.App.Core"
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
@@ -13,7 +14,7 @@
     xmlns:sdl="http://schemas.sdl.com/xaml"
     d:DesignHeight="450"
     d:DesignWidth="900"
-    x:TypeArguments="local:ModListGalleryVM"
+    x:TypeArguments="core:ModListGalleryVM"
     mc:Ignorable="d">
     <Grid>
         <Grid.ColumnDefinitions>
