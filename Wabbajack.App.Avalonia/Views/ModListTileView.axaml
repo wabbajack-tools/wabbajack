@@ -1,0 +1,116 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:core="using:Wabbajack"
+             xmlns:rxui="http://reactiveui.net"
+             x:Class="Wabbajack.ModListTileView"
+             x:TypeArguments="core:BaseModListMetadataVM"
+             x:DataType="core:BaseModListMetadataVM">
+    <Button Command="{Binding InstallCommand}"
+            Background="Transparent"
+            BorderThickness="0"
+            Padding="0"
+            Width="340"
+            Height="480"
+            HorizontalContentAlignment="Stretch"
+            VerticalContentAlignment="Stretch">
+        <Border CornerRadius="8" ClipToBounds="True" Background="{DynamicResource DarkSecondaryBrush}">
+            <Grid>
+                <!-- Background thumbnail -->
+                <Image Source="{Binding Image}" Stretch="UniformToFill" />
+
+                <!-- Loading placeholder -->
+                <Border Background="{DynamicResource ComplementaryPrimary08Brush}"
+                        IsVisible="{Binding LoadingImage}">
+                    <TextBlock Text="Loading..."
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontSize="14"
+                               Foreground="{DynamicResource ForegroundBrush}" />
+                </Border>
+
+                <!-- Top-right badges -->
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Margin="8"
+                            Spacing="6">
+                    <Border Background="{DynamicResource NSFWBrush}"
+                            CornerRadius="4"
+                            Padding="6,2"
+                            IsVisible="{Binding Metadata.NSFW}">
+                        <TextBlock Text="NSFW"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource ForegroundBrush}" />
+                    </Border>
+                    <Border Background="{DynamicResource UnavailableBrush}"
+                            CornerRadius="4"
+                            Padding="6,2"
+                            IsVisible="{Binding IsBroken}">
+                        <TextBlock Text="Unavailable"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource ForegroundBrush}" />
+                    </Border>
+                </StackPanel>
+
+                <!-- Bottom overlay -->
+                <Border Background="#CC000000"
+                        VerticalAlignment="Bottom"
+                        Padding="10">
+                    <StackPanel Orientation="Vertical" Spacing="4">
+                        <TextBlock Text="{Binding Metadata.Title}"
+                                   FontWeight="Bold"
+                                   FontSize="18"
+                                   TextWrapping="Wrap"
+                                   TextTrimming="CharacterEllipsis"
+                                   MaxLines="2"
+                                   Foreground="{DynamicResource ForegroundBrush}" />
+
+                        <TextBlock Text="{Binding Metadata.Author}"
+                                   FontSize="13"
+                                   Opacity="0.8"
+                                   TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource ForegroundBrush}" />
+
+                        <TextBlock Text="{Binding GameMetaData.HumanFriendlyGameName}"
+                                   FontSize="12"
+                                   Opacity="0.7"
+                                   TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource ForegroundBrush}" />
+
+                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2,0,0">
+                            <ic:SymbolIcon Symbol="ArrowDownload"
+                                           IconVariant="Filled"
+                                           FontSize="14"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource ForegroundBrush}" />
+                            <TextBlock Text="{Binding DownloadSizeText}"
+                                       FontSize="11"
+                                       Opacity="0.8"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource ForegroundBrush}" />
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <ic:SymbolIcon Symbol="HardDrive"
+                                           IconVariant="Filled"
+                                           FontSize="14"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource ForegroundBrush}" />
+                            <TextBlock Text="{Binding InstallSizeText}"
+                                       FontSize="11"
+                                       Opacity="0.8"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource ForegroundBrush}" />
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,4,0,0">
+                            <Button Classes="link" Content="Details" Command="{Binding DetailsCommand}" />
+                            <Button Classes="link" Content="Website" Command="{Binding OpenWebsiteCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+    </Button>
+</rxui:ReactiveUserControl>
