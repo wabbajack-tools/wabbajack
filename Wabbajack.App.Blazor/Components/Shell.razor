@@ -1,0 +1,60 @@
+@inherits ReactiveInjectableComponentBase<NavigationVM>
+@inject ModListDetailsVM DetailsVm
+
+@* App shell: nav sidebar + routed content + floating overlay. Mirrors WPF MainWindow/MainWindowVM. *@
+<div class="app">
+    <NavSidebar Vm="ViewModel" />
+
+    <div class="app-main">
+        @switch (ViewModel!.ActiveScreen)
+        {
+            case ScreenType.Home:
+                <HomePage />
+                break;
+            case ScreenType.ModListGallery:
+                <GalleryPage />
+                break;
+            default:
+                <ScreenPlaceholder Screen="ViewModel.ActiveScreen" />
+                break;
+        }
+    </div>
+
+    @if (_floating == FloatingScreenType.ModListDetails)
+    {
+        <div class="overlay-backdrop" @onclick="CloseFloating">
+            <div class="overlay-panel" @onclick:stopPropagation="true">
+                <ModListDetailsPanel Vm="DetailsVm" />
+            </div>
+        </div>
+    }
+    else if (_floating == FloatingScreenType.FileUpload)
+    {
+        <div class="overlay-backdrop" @onclick="CloseFloating">
+            <div class="overlay-panel" @onclick:stopPropagation="true">
+                <ScreenPlaceholder Screen="ScreenType.Settings" Label="File upload (not yet ported)" />
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private FloatingScreenType _floating = FloatingScreenType.None;
+    private IDisposable? _floatingSub;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        // ShowFloatingWindow isn't a VM property, so subscribe to the bus directly and re-render.
+        _floatingSub = MessageBus.Current.Listen<ShowFloatingWindow>()
+            .Subscribe(m => InvokeAsync(() => { _floating = m.Screen; StateHasChanged(); }));
+    }
+
+    private void CloseFloating() => ShowFloatingWindow.Send(FloatingScreenType.None);
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing) _floatingSub?.Dispose();
+        base.Dispose(disposing);
+    }
+}

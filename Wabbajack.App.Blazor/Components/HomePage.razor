@@ -1,0 +1,57 @@
+@inherits ReactiveInjectableComponentBase<HomeVM>
+
+@* Ported from WPF HomeView: welcome heading + counts, four "how it works" cards, get-started. *@
+<div class="home">
+    <h1 class="home-title">Welcome to <span class="accent">Wabbajack</span></h1>
+
+    <p class="home-sub">
+        The home of <span class="accent">@ModlistCount</span> ready-made modlists spanning
+        <span class="accent">@GameCount</span> games.
+    </p>
+
+    <div class="home-cards">
+        <div class="card">
+            <div class="card-head">Find a modlist that suits you 🔍</div>
+            <div class="card-body">
+                Go through a series of questions to find a modlist that works for you with the
+                <a href="#" @onclick:preventDefault @onclick="() => Exec(ViewModel!.VisitModlistWizardCommand)">Wabbakinator quiz</a>,
+                or <a href="#" @onclick:preventDefault @onclick="() => Exec(ViewModel!.BrowseCommand)">navigate the gallery</a> yourself.
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-head">Follow the install notes 📄</div>
+            <div class="card-body">
+                Some modlists have steps to take before installing, some don't. Check your list's
+                documentation to see how to get started.
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-head">Start downloading your chosen list ⬇</div>
+            <div class="card-body">
+                Pick a destination with enough free space and click download. For full automation of
+                Nexus downloads, a premium account is required.
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-head">Ready to start playing! 🎮</div>
+            <div class="card-body">
+                If your install completed successfully and you're done with the docs, you're ready to
+                launch the modlist and play!
+            </div>
+        </div>
+    </div>
+
+    <button class="get-started" @onclick="() => Exec(ViewModel!.BrowseCommand)">
+        Get Started — browse the gallery ›
+    </button>
+</div>
+
+@code {
+    private int ModlistCount => ViewModel?.Modlists?.Length ?? 0;
+    private int GameCount => ViewModel?.Modlists?.Select(m => m.Game).Distinct().Count() ?? 0;
+
+    private static void Exec(System.Windows.Input.ICommand cmd)
+    {
+        if (cmd.CanExecute(null)) cmd.Execute(null);
+    }
+}

@@ -32,8 +32,15 @@ internal static class Program
         builder.Services.AddSingleton<IClipboardService, StubClipboardService>();
         builder.Services.AddSingleton<ISystemParameters, BlazorSystemParameters>();
 
-        // Only the gallery screen VM is needed; per-tile GalleryModListMetadataVMs are new'd inside it.
+        // Shell + screen VMs. NavigationVM is a singleton so the sidebar and the shell share one
+        // ActiveScreen. The floating ModListDetailsVM is a singleton so it is already subscribed to
+        // LoadModlistForDetails before a gallery tile sends it (otherwise MetadataVM would be null and
+        // the panel would NRE — the same ordering bug we hit on the other heads).
+        builder.Services.AddSingleton<NavigationVM>();
+        builder.Services.AddSingleton<ModListDetailsVM>();
+        builder.Services.AddTransient<HomeVM>();
         builder.Services.AddTransient<ModListGalleryVM>();
+        builder.Services.AddTransient<InfoVM>();
 
         builder.RootComponents.Add<App>("#app");
 

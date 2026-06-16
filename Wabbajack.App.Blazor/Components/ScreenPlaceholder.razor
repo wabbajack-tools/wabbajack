@@ -1,0 +1,10 @@
+@* Placeholder for screens not yet ported from WPF. Mirrors the old ScreenPlaceholderView. *@
+<div class="placeholder">
+    <div class="placeholder-title">@(Label ?? $"{Screen}")</div>
+    <div class="placeholder-sub">Not yet ported to Blazor</div>
+</div>
+
+@code {
+    [Parameter] public ScreenType Screen { get; set; }
+    [Parameter] public string? Label { get; set; }
+}

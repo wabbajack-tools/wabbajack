@@ -1,0 +1,36 @@
+@* Floating modlist-details overlay. Minimal for now (image/title/author/description/tags + close);
+   the archives DataGrid from WPF is deferred. Bound to the persistent ModListDetailsVM, whose
+   MetadataVM is populated by LoadModlistForDetails before this is shown. *@
+@if (Vm.MetadataVM is { } meta)
+{
+    <div class="details">
+        <img class="details-img" src="@ImageUris.GetLargeImageUri(meta.Metadata)" alt="@meta.Metadata.Title" />
+        <div class="details-title">@meta.Metadata.Title</div>
+        <div class="details-author">by @meta.Metadata.Author</div>
+
+        @if (meta.ModListTagList is { Count: > 0 } tags)
+        {
+            <div class="details-tags">
+                @foreach (var tag in tags)
+                {
+                    <span class="tag">@tag.Name</span>
+                }
+            </div>
+        }
+
+        <div class="details-desc">@meta.Metadata.Description</div>
+
+        <div class="details-actions">
+            <button class="btn" @onclick="Close">Close</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public ModListDetailsVM Vm { get; set; } = default!;
+
+    private void Close()
+    {
+        if (Vm.CloseCommand.CanExecute(null)) Vm.CloseCommand.Execute(null);
+    }
+}

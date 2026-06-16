@@ -1,0 +1,30 @@
+@* Nav sidebar. Ports WPF/Avalonia NavigationView: Home / Browse / Compile / Settings + version. *@
+<div class="nav">
+    <button class="nav-btn @ActiveClass(ScreenType.Home)" @onclick="() => Exec(Vm.HomeCommand)">
+        <span class="nav-glyph">⌂</span><span class="nav-label">Home</span>
+    </button>
+    <button class="nav-btn @ActiveClass(ScreenType.ModListGallery)" @onclick="() => Exec(Vm.BrowseCommand)">
+        <span class="nav-glyph">▤</span><span class="nav-label">Browse lists</span>
+    </button>
+    <button class="nav-btn @ActiveClass(ScreenType.CompilerHome)" @onclick="() => Exec(Vm.CompileModListCommand)">
+        <span class="nav-glyph">⚒</span><span class="nav-label">Create a list</span>
+    </button>
+
+    <div class="nav-spacer"></div>
+
+    <button class="nav-btn @ActiveClass(ScreenType.Settings)" @onclick="() => Exec(Vm.SettingsCommand)">
+        <span class="nav-glyph">⚙</span><span class="nav-label">Settings</span>
+    </button>
+    <div class="nav-version">v@Vm.Version</div>
+</div>
+
+@code {
+    [Parameter] public NavigationVM Vm { get; set; } = default!;
+
+    private string ActiveClass(ScreenType screen) => Vm.ActiveScreen == screen ? "active" : "";
+
+    private static void Exec(System.Windows.Input.ICommand cmd)
+    {
+        if (cmd.CanExecute(null)) cmd.Execute(null);
+    }
+}
