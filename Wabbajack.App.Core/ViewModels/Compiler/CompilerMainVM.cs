@@ -265,7 +265,7 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
         }
     }
 
-    private void OpenFolder() => UIUtils.OpenFolderAndSelectFile(Settings.OutputFile);
+    private void OpenFolder() => Process.Start(new ProcessStartInfo(Settings.OutputFile.Parent.ToString()) { UseShellExecute = true });
 
     private void GetHelp() => Process.Start(new ProcessStartInfo("https://wiki.wabbajack.org/modlist_author_documentation/Compilation.html") { UseShellExecute = true });
 
