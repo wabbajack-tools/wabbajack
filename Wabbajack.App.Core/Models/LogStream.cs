@@ -16,12 +16,12 @@ public class LogStream : TargetWithLayout
 
     private readonly SourceCache<ILogMessage, long> _messageLog = new(x => x.MessageId);
     private readonly Subject<ILogMessage> _messages = new();
-    
+
     public readonly ReadOnlyObservableCollection<ILogMessage> _messagesFiltered;
     private readonly CompositeDisposable _disposables;
     public ReadOnlyObservableCollection<ILogMessage> MessageLog => _messagesFiltered;
     public IObservable<ILogMessage> Messages => _messages;
-    
+
 
     public LogStream()
     {
@@ -79,5 +79,5 @@ public class LogStream : TargetWithLayout
         public LogLevel Level => info.Level;
         public string LongMessage => $"[{TimeStamp.ToString("HH:mm:ss")} {info.Level.ToString().ToUpper()}] {info.FormattedMessage}";
     }
-    
+
 }

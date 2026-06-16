@@ -13,6 +13,7 @@
   <ItemGroup>
     <PackageReference Include="DynamicData" Version="9.4.31" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="NLog" Version="6.1.3" />
     <PackageReference Include="ReactiveUI" Version="20.4.1" />
     <PackageReference Include="ReactiveUI.SourceGenerators" Version="2.6.30" />
     <PackageReference Include="System.Reactive" Version="6.1.0" />

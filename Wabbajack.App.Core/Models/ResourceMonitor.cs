@@ -15,7 +15,7 @@ namespace Wabbajack.Models;
 public class ResourceMonitor : IDisposable
 {
     private readonly TimeSpan _pollInterval = TimeSpan.FromMilliseconds(1000);
-    
+
     private readonly IResource[] _resources;
 
     private readonly Subject<(string Name, long Throughput)[]> _updates = new ();
@@ -40,7 +40,7 @@ public class ResourceMonitor : IDisposable
 
         RxApp.MainThreadScheduler.ScheduleRecurringAction(_pollInterval, Elapsed)
             .DisposeWith(_compositeDisposable);
-        
+
         _tasks.Connect()
             .Filter(x => x.IsWorking)
             .Bind(out _tasksFiltered)
@@ -93,7 +93,7 @@ public class ResourceMonitor : IDisposable
                     }
                 }
             }
-            
+
             // Delete
             foreach (var itm in l.Items.Where(v => !used.Contains(v.ID)))
                 l.Remove(itm);
