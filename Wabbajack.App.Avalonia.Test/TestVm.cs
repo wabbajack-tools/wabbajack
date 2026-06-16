@@ -47,6 +47,15 @@ public static class TestVm
         s.AddSingleton<global::Wabbajack.IImageService, NoOpImageService>();
         s.AddSingleton<global::Wabbajack.IDialogService, NoOpDialogService>();
         s.AddTransient<global::Wabbajack.InstallationVM>();
+        // Compiler VMs. All their constructor deps are already provided by AddOSIntegrated (DTOSerializer,
+        // SettingsManager, Client, CompilerSettingsInferencer, ITokenProvider<NexusOAuthState>, HttpClient,
+        // DownloadDispatcher) plus the offline ResourceMonitor/LogStream/IFileSelector registered above.
+        // None of these VMs start a compile or touch the network in their constructors (default
+        // State == Configuration), so they construct fully offline.
+        s.AddTransient<global::Wabbajack.CompilerHomeVM>();
+        s.AddTransient<global::Wabbajack.CompilerMainVM>();
+        s.AddTransient<global::Wabbajack.CompilerDetailsVM>();
+        s.AddTransient<global::Wabbajack.CompilerFileManagerVM>();
         // AboutVM depends on the GitHub Client (+ its Octokit GitHubClient). AddOSIntegrated does not
         // register these, so wire them up exactly as the WPF app does (App.xaml.cs). Construction is
         // offline-safe: no network in the ctors, and AboutVM only fetches contributors on activation.
@@ -62,6 +71,10 @@ public static class TestVm
     public static global::Wabbajack.SettingsVM Settings() => Sp.GetRequiredService<global::Wabbajack.SettingsVM>();
 
     public static global::Wabbajack.InstallationVM Installer() => Sp.GetRequiredService<global::Wabbajack.InstallationVM>();
+
+    public static global::Wabbajack.CompilerHomeVM CompilerHome() => Sp.GetRequiredService<global::Wabbajack.CompilerHomeVM>();
+
+    public static global::Wabbajack.CompilerMainVM CompilerMain() => Sp.GetRequiredService<global::Wabbajack.CompilerMainVM>();
 
     // Title used by the fake tile metadata; GalleryTests asserts a TextBlock renders this exact text.
     public const string TileTitle = "Fake Test Modlist";
