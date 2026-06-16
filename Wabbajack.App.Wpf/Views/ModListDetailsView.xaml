@@ -5,13 +5,14 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Wabbajack"
+    xmlns:core="clr-namespace:Wabbajack;assembly=Wabbajack.App.Core"
     xmlns:dtoStates="clr-namespace:Wabbajack.DTOs.DownloadStates;assembly=Wabbajack.DTOs"
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:rxui="http://reactiveui.net"
     xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
-    x:TypeArguments="local:ModListDetailsVM"
+    x:TypeArguments="core:ModListDetailsVM"
     mc:Ignorable="d"
-    d:DataContext="{d:DesignInstance local:ModListDetailsVM}"
+    d:DataContext="{d:DesignInstance core:ModListDetailsVM}"
     d:DesignHeight="300" d:DesignWidth="300">
     <Grid Margin="-16" x:Name="MainGrid">
         <Rectangle

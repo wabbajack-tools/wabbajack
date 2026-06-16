@@ -38,10 +38,10 @@
             <Border CornerRadius="8" Margin="32" Background="{StaticResource ComplementaryBackgroundBrush}">
                 <ContentPresenter x:Name="FloatingContentPresenter" Content="{Binding ActiveFloatingPane}" VerticalAlignment="Stretch" Margin="16">
                     <ContentPresenter.Resources>
-                        <DataTemplate DataType="{x:Type local:ModListDetailsVM}">
+                        <DataTemplate DataType="{x:Type core:ModListDetailsVM}">
                             <local:ModListDetailsView ViewModel="{Binding}" />
                         </DataTemplate>
-                        <DataTemplate DataType="{x:Type local:FileUploadVM}">
+                        <DataTemplate DataType="{x:Type core:FileUploadVM}">
                             <local:FileUploadView ViewModel="{Binding}" />
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type local:ConfirmationDialogVM}">
@@ -167,10 +167,10 @@
                             <DataTemplate DataType="{x:Type core:SettingsVM}">
                                 <local:SettingsView ViewModel="{Binding}" />
                             </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:ModListDetailsVM}">
+                            <DataTemplate DataType="{x:Type core:ModListDetailsVM}">
                                 <local:ModListDetailsView ViewModel="{Binding}" />
                             </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:InfoVM}">
+                            <DataTemplate DataType="{x:Type core:InfoVM}">
                                 <local:InfoView ViewModel="{Binding}" />
                             </DataTemplate>
                         </ContentPresenter.Resources>

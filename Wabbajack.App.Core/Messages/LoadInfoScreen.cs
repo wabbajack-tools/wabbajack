@@ -1,4 +1,4 @@
-﻿using ReactiveUI;
+using ReactiveUI;
 
 namespace Wabbajack.Messages;
 public class LoadInfoScreen

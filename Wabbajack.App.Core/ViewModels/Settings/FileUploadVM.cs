@@ -1,9 +1,9 @@
-﻿using System;
+using System;
+using System.Diagnostics;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using System.Web;
-using System.Windows;
 using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
@@ -22,6 +22,7 @@ public partial class FileUploadVM : ViewModel
     private readonly ILogger<FileUploadVM> _logger;
     private readonly WabbajackApiTokenProvider _tokenProvider;
     private readonly Client _wjClient;
+    private readonly IClipboardService _clipboard;
 
     public ICommand BrowseFileCommand { get; }
     public ICommand BrowseAndUploadFileCommand { get; }
@@ -34,17 +35,18 @@ public partial class FileUploadVM : ViewModel
     [Reactive] public partial double UploadProgress { get; set; }
     [Reactive] public partial string FileUrl { get; set; }
     public FilePickerVM Picker { get;}
-    
+
     private Subject<bool> _isUploading = new();
     private IObservable<bool> IsUploading { get; }
     public WabbajackApiState ApiToken { get; private set; }
 
-    public FileUploadVM(ILogger<FileUploadVM> logger, WabbajackApiTokenProvider tokenProvider, Client wjClient, SettingsVM vm,
-        IFileSelector fileSelector)
+    public FileUploadVM(ILogger<FileUploadVM> logger, WabbajackApiTokenProvider tokenProvider, Client wjClient,
+        IClipboardService clipboard, IFileSelector fileSelector)
     {
         _logger = logger;
         _tokenProvider = tokenProvider;
         _wjClient = wjClient;
+        _clipboard = clipboard;
         IsUploading = _isUploading;
         Picker = new FilePickerVM(fileSelector, this);
 
@@ -54,7 +56,8 @@ public partial class FileUploadVM : ViewModel
             BrowseUploadsCommand = ReactiveCommand.Create(async () =>
             {
                 var authorApiKey = ApiToken?.AuthorKey;
-                UIUtils.OpenWebsite(new Uri($"{Consts.WabbajackBuildServerUri}author_controls/login/{authorApiKey}"));
+                var url = new Uri($"{Consts.WabbajackBuildServerUri}author_controls/login/{authorApiKey}");
+                Process.Start(new ProcessStartInfo(url.ToString()) { UseShellExecute = true });
             });
         });
 
@@ -64,7 +67,7 @@ public partial class FileUploadVM : ViewModel
             UploadCommand.Execute(null);
         });
 
-        CopyUrlCommand = ReactiveCommand.Create(() => Clipboard.SetText(FileUrl));
+        CopyUrlCommand = ReactiveCommand.CreateFromTask(async () => await _clipboard.SetTextAsync(FileUrl));
 
         UploadCommand = ReactiveCommand.Create(async () =>
         {

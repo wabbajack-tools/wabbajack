@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -35,7 +35,7 @@ public partial class ModListDetailsVM : BackNavigatingVM
 
     [Reactive]
     public partial ObservableCollection<DetailedStatusItem> Status { get; set; }
-    
+
     [Reactive]
     public partial string Search { get; set; }
 
@@ -68,9 +68,9 @@ public partial class ModListDetailsVM : BackNavigatingVM
         CloseCommand = ReactiveCommand.Create(() => ShowFloatingWindow.Send(FloatingScreenType.None));
         this.WhenActivated(disposables =>
         {
-            
+
             LoadArchives(MetadataVM.Metadata.RepositoryName, MetadataVM.Metadata.Links.MachineURL).FireAndForget();
-            
+
             var searchThrottle = TimeSpan.FromSeconds(0.5);
 
             var searchTextPredicates = this.ObservableForProperty(vm => vm.Search)

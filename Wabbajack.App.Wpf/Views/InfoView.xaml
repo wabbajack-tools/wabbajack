@@ -5,12 +5,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:local="clr-namespace:Wabbajack"
+    xmlns:core="clr-namespace:Wabbajack;assembly=Wabbajack.App.Core"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
     xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     d:DesignHeight="700"
     d:DesignWidth="1000"
-    x:TypeArguments="local:InfoVM"
+    x:TypeArguments="core:InfoVM"
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
