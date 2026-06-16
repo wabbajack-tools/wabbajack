@@ -61,6 +61,18 @@ public static class TestVm
         // offline-safe: no network in the ctors, and AboutVM only fetches contributors on activation.
         s.AddSingleton<global::Wabbajack.Networking.GitHub.Client>();
         s.AddSingleton(_ => new Octokit.GitHubClient(new Octokit.ProductHeaderValue("wabbajack")));
+
+        // Floating-window overlay + Info screen VMs (Wave 6). All offline:
+        //   InfoVM            -> ILogger only.
+        //   FileUploadVM      -> ILogger, WabbajackApiTokenProvider, Client (from AddOSIntegrated),
+        //                        IClipboardService (no-op double below), IFileSelector (registered above).
+        //   ModListDetailsVM  -> ILogger, IServiceProvider, Client (all offline). MetadataVM is supplied
+        //                        via the LoadModlistForDetails message in the ModListDetails() factory.
+        // None of these touch the network in their constructors.
+        s.AddSingleton<global::Wabbajack.IClipboardService, NoOpClipboardService>();
+        s.AddTransient<global::Wabbajack.InfoVM>();
+        s.AddTransient<global::Wabbajack.FileUploadVM>();
+        s.AddTransient<global::Wabbajack.ModListDetailsVM>();
         return s.BuildServiceProvider();
     }
 
@@ -75,6 +87,20 @@ public static class TestVm
     public static global::Wabbajack.CompilerHomeVM CompilerHome() => Sp.GetRequiredService<global::Wabbajack.CompilerHomeVM>();
 
     public static global::Wabbajack.CompilerMainVM CompilerMain() => Sp.GetRequiredService<global::Wabbajack.CompilerMainVM>();
+
+    public static global::Wabbajack.InfoVM Info() => Sp.GetRequiredService<global::Wabbajack.InfoVM>();
+
+    public static global::Wabbajack.FileUploadVM FileUpload() => Sp.GetRequiredService<global::Wabbajack.FileUploadVM>();
+
+    // Resolves a ModListDetailsVM and publishes a LoadModlistForDetails carrying a fake tile so the VM's
+    // MetadataVM is populated (the view binds MetadataVM.* and would NRE otherwise). The VM subscribes to
+    // the message in its constructor, so the send must happen after it is resolved.
+    public static global::Wabbajack.ModListDetailsVM ModListDetails()
+    {
+        var vm = Sp.GetRequiredService<global::Wabbajack.ModListDetailsVM>();
+        Wabbajack.Messages.LoadModlistForDetails.Send(ModlistTile());
+        return vm;
+    }
 
     // Title used by the fake tile metadata; GalleryTests asserts a TextBlock renders this exact text.
     public const string TileTitle = "Fake Test Modlist";
@@ -116,6 +142,13 @@ public static class TestVm
             LoadingLock loadingLock) => Observable.Return<object?>(null);
 
         public object? FromStream(System.IO.Stream stream) => null;
+    }
+
+    // Offline IClipboardService double: never touches the system clipboard. FileUploadVM only invokes it
+    // from CopyUrlCommand, which the render/close tests never execute.
+    private sealed class NoOpClipboardService : IClipboardService
+    {
+        public Task SetTextAsync(string text) => Task.CompletedTask;
     }
 
     // Offline IDialogService double: never shows UI. The installer only invokes these when an install is
