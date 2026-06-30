@@ -49,10 +49,10 @@ jobs:
       # --- Nexus Mods uploads (official action) ---
 
       - name: Upload launcher to Nexus Mods
-        uses: Nexus-Mods/upload-action@v1.0.0-beta.5
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.8
         with:
           api_key: ${{ secrets.NEXUS_API_KEY }}
-          file_group_id: "1328371"
+          file_id: "1328371"
           filename: ${{ github.workspace }}\publish-wj\Wabbajack.zip
           version: ${{ steps.build.outputs.version }}
           display_name: Wabbajack.zip
@@ -60,18 +60,18 @@ jobs:
             Version - ${{ steps.build.outputs.version }} - download this file
 
             Changelog: https://github.com/wabbajack-tools/wabbajack/releases/tag/${{ steps.build.outputs.version }}
-          file_category: main
+          category: main
 
       - name: Upload full release to Nexus Mods
-        uses: Nexus-Mods/upload-action@v1.0.0-beta.5
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.8
         with:
           api_key: ${{ secrets.NEXUS_API_KEY }}
-          file_group_id: "1328362"
+          file_id: "1328362"
           filename: ${{ github.workspace }}\publish-wj\${{ steps.build.outputs.version }}.zip
           version: ${{ steps.build.outputs.version }}
           display_name: ${{ steps.build.outputs.version }}.zip
           description: "Release files, ignore this unless you're sure you need it"
-          file_category: optional
+          category: optional
 
       # --- Publish & announce ---
 
