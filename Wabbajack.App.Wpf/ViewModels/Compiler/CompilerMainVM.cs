@@ -250,6 +250,9 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
 
             using var progressSubscription = progress.Subscribe(p => PublishingPercentage = p.PercentDone);
             await publishTask;
+
+            await PublishModlistViewer();
+
             PublishLastResult = PublishResult.Success;
         }
         catch (Exception ex)
@@ -262,6 +265,47 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
             IsPublishing = false;
             PublishingPercentage = Percent.One;
             BusyStatusText = "";
+        }
+    }
+
+    private async Task PublishModlistViewer()
+    {
+        try
+        {
+            BusyStatusText = "Publishing modlist viewer...";
+            var profileFolder = Settings.Source.Combine("profiles", Settings.Profile);
+            if (!profileFolder.DirectoryExists()) return;
+
+            var info = new ModlistViewerInfo
+            {
+                Title = Settings.ModListName,
+                Author = Settings.ModListAuthor,
+                Game = Settings.Game.MetaData().HumanFriendlyGameName,
+                Version = Settings.Version,
+                Description = Settings.ModListDescription
+            };
+
+            var machineUrl = Settings.MachineUrl;
+            var slug = ModlistViewerGenerator.Sanitize(machineUrl.Contains('/') ? machineUrl[(machineUrl.LastIndexOf('/') + 1)..] : machineUrl);
+
+            var listHtml = await ModlistViewerGenerator.GenerateFromProfileAsync(profileFolder, Settings.Source.Combine("mods"), info, slug);
+
+            var entry = new ModlistViewerListEntry
+            {
+                Slug = slug,
+                Name = Settings.ModListName,
+                Game = info.Game,
+                Version = Settings.Version,
+                Updated = DateTime.UtcNow
+            };
+
+            var entries = await _wjClient.UpsertViewerListEntry(machineUrl, entry);
+            var hubHtml = ModlistViewerGenerator.BuildHub(entries);
+            await _wjClient.PublishViewerPages(machineUrl, slug, listHtml, hubHtml);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("While publishing modlist viewer: {ex}", ex);
         }
     }
 

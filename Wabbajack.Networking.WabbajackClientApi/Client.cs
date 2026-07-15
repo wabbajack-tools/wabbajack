@@ -706,4 +706,76 @@ public class Client
 
         return (progress, publishTask);
     }
+
+    private static readonly JsonSerializerOptions ViewerJson = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true
+    };
+
+    private async Task<(GitHubClient Client, string Owner, string Repo)> ViewerRepo(string namespacedName)
+    {
+        var wjRepoName = namespacedName.Split("/")[0];
+        var repoUrl = (await LoadRepositories())[wjRepoName];
+        var decomposed = repoUrl.LocalPath.Split("/");
+        var creds = new Credentials((await _token.Get())!.AuthorKey);
+        var ghClient = new GitHubClient(new ProductHeaderValue("wabbajack")) { Credentials = creds };
+        return (ghClient, decomposed[1], decomposed[2]);
+    }
+
+    public async Task<List<ModlistViewerListEntry>> UpsertViewerListEntry(string namespacedName, ModlistViewerListEntry entry)
+    {
+        var (ghClient, owner, repoName) = await ViewerRepo(namespacedName);
+
+        var entries = new List<ModlistViewerListEntry>();
+        string? sha = null;
+        try
+        {
+            var existing = (await ghClient.Repository.Content.GetAllContents(owner, repoName, "lists.json")).FirstOrDefault();
+            if (existing != null)
+            {
+                sha = existing.Sha;
+                entries = JsonSerializer.Deserialize<List<ModlistViewerListEntry>>(existing.Content, ViewerJson) ?? new List<ModlistViewerListEntry>();
+            }
+        }
+        catch (NotFoundException)
+        {
+        }
+
+        entries.RemoveAll(e => e.Slug == entry.Slug);
+        entries.Add(entry);
+        entries = entries.OrderByDescending(e => e.Updated).ToList();
+
+        var json = JsonSerializer.Serialize(entries, ViewerJson);
+        await UpsertFile(ghClient, owner, repoName, "lists.json", json, sha, $"Update modlist index for {entry.Slug}");
+        return entries;
+    }
+
+    public async Task PublishViewerPages(string namespacedName, string slug, string listHtml, string hubHtml)
+    {
+        var (ghClient, owner, repoName) = await ViewerRepo(namespacedName);
+        await UpsertFile(ghClient, owner, repoName, $"lists/{slug}.html", listHtml, null, $"Update modlist viewer for {slug}");
+        await UpsertFile(ghClient, owner, repoName, "index.html", hubHtml, null, "Update modlist hub");
+    }
+
+    private static async Task UpsertFile(GitHubClient ghClient, string owner, string repo, string path, string content, string? knownSha, string message)
+    {
+        var sha = knownSha;
+        if (sha == null)
+        {
+            try
+            {
+                var existing = (await ghClient.Repository.Content.GetAllContents(owner, repo, path)).FirstOrDefault();
+                sha = existing?.Sha;
+            }
+            catch (NotFoundException)
+            {
+            }
+        }
+
+        if (sha == null)
+            await ghClient.Repository.Content.CreateFile(owner, repo, path, new CreateFileRequest(message, content));
+        else
+            await ghClient.Repository.Content.UpdateFile(owner, repo, path, new UpdateFileRequest(message, content, sha));
+    }
 }
