@@ -57,8 +57,6 @@ public class ValidateLists
     private readonly IResource<HttpClient> _httpLimiter;
     private readonly AsyncLock _imageProcessLock;
 
-    private readonly ConcurrentBag<(Uri, Hash)> _proxyableFiles = new();
-    
     public ValidateLists(ILogger<ValidateLists> logger, Networking.WabbajackClientApi.Client wjClient,
         Client gitHubClient, TemporaryFileManager temporaryFileManager,
         DownloadDispatcher dispatcher, DTOSerializer dtos, ParallelOptions parallelOptions,
@@ -84,15 +82,22 @@ public class ValidateLists
     public static VerbDefinition Definition = new("validate-lists",
         "Gets a list of modlists, validates them and exports a result list", new[]
         {
-            new OptionDefinition(typeof(AbsolutePath), "r", "reports", "Location to store validation report outputs")
+            new OptionDefinition(typeof(AbsolutePath), "r", "reports", "Location to store validation report outputs"),
+            new OptionDefinition(typeof(int), "b", "batch-size", "Maximum number of lists to validate this run, prioritised by change and recency (0 = all)"),
+            new OptionDefinition(typeof(int), "c", "cycle-hours", "Skip lists already validated within this many hours unless they changed (0 = disabled)")
         });
 
-    public async Task<int> Run(AbsolutePath reports, AbsolutePath otherArchives)
+    public async Task<int> Run(AbsolutePath reports, AbsolutePath otherArchives, int batchSize, int cycleHours)
     {
-        _logger.LogInformation("Cleaning {Reports}", reports);
-        if (reports.DirectoryExists())
-            reports.DeleteDirectory();
-        
+        var incremental = batchSize > 0 || cycleHours > 0;
+
+        if (!incremental)
+        {
+            _logger.LogInformation("Cleaning {Reports}", reports);
+            if (reports.DirectoryExists())
+                reports.DeleteDirectory();
+        }
+
         reports.CreateDirectory();
         var token = CancellationToken.None;
         
@@ -115,11 +120,40 @@ public class ValidateLists
             _logger.LogInformation("Validating {MachineUrl} - {Version}", list.NamespacedName, list.Version);
         }
 
-        ConcurrentDictionary<string, HashSet<string>> modsPerList = new();
-        HashSet<string> allMods = new();
+        var state = await LoadState(reports, token);
 
-        var validatedLists = await listData.PMapAll(async modList =>
+        ModlistMetadata[] toValidate;
+        if (incremental)
         {
+            var now = DateTime.UtcNow;
+            var cycle = TimeSpan.FromHours(cycleHours > 0 ? cycleHours : 4);
+            var ranked = listData
+                .Select(l =>
+                {
+                    state.TryGetValue(l.NamespacedName, out var entry);
+                    var currentHash = l.DownloadMetadata?.Hash ?? default;
+                    var changed = entry == null || entry.Hash != currentHash;
+                    var recentlyValidated = entry != null && !changed && (now - entry.ValidatedAt) < cycle;
+                    return (list: l, changed, recentlyValidated);
+                })
+                .Where(x => !x.recentlyValidated)
+                .OrderByDescending(x => x.changed)
+                .ThenByDescending(x => x.list.DateUpdated)
+                .Select(x => x.list)
+                .ToList();
+            toValidate = (batchSize > 0 ? ranked.Take(batchSize) : ranked).ToArray();
+            _logger.LogInformation("Validating {Batch} of {Total} lists this run", toValidate.Length, listData.Length);
+        }
+        else
+        {
+            toValidate = listData;
+        }
+
+        var batchResults = new ValidatedModList[toValidate.Length];
+        await Parallel.ForEachAsync(toValidate.Select((modList, listIndex) => (modList, listIndex)), _parallelOptions,
+            async (tuple, _) =>
+        {
+            var (modList, listIndex) = tuple;
             var validatedList = new ValidatedModList
             {
                 Name = modList.Title,
@@ -146,7 +180,8 @@ public class ValidateLists
             {
                 _logger.LogError(ex, "Forcing down {Modlist} due to error while loading: ", modList.NamespacedName);
                 validatedList.Status = ListStatus.ForcedDown;
-                return validatedList;
+                batchResults[listIndex] = validatedList;
+                return;
             }
 
             try
@@ -162,25 +197,6 @@ public class ValidateLists
             catch (Exception ex)
             {
                 _logger.LogError(ex, "While processing modlist images for {MachineURL}", modList.NamespacedName);
-            }
-
-            try
-            {
-                _logger.LogInformation("Populating search index with contents of {MachineURL}", modList.NamespacedName);
-                HashSet<string> modListSearchableMods = new();
-                foreach (var archive in modListData.Archives)
-                {
-                    if (archive.State is not Nexus n) continue;
-                    if (string.IsNullOrWhiteSpace(n.Name)) continue;
-                    allMods.Add(n.Name);
-                    modListSearchableMods.Add(n.Name);
-                }
-
-                modsPerList.TryAdd(modList.Links.MachineURL, modListSearchableMods);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "While populating search index for {MachineURL}", modList.NamespacedName);
             }
 
             if (modList.ForceDown)
@@ -228,32 +244,32 @@ public class ValidateLists
                 };
             }).ToArray();
 
-            foreach (var archive in archives)
-            {
-                var downloader = _dispatcher.Downloader(archive.Original);
-                if (downloader is IProxyable proxyable)
-                {
-                    _proxyableFiles.Add((proxyable.UnParse(archive.Original.State), archive.Original.Hash));
-                }
-            }
-
             validatedList.Archives = archives;
             validatedList.Status = archives.Any(a => a.Status == ArchiveStatus.InValid)
                 ? ListStatus.Failed
                 : ListStatus.Available;
 
-            return validatedList;
-        }).ToArray();
+            batchResults[listIndex] = validatedList;
+        });
         
-        // Save search index to file
+        var stamp = DateTime.UtcNow;
+        foreach (var validated in toValidate)
         {
-            await using var searchIndexFileName = reports.Combine("searchIndex.json")
-                .Open(FileMode.Create, FileAccess.Write, FileShare.None);
-            await _dtos.Serialize(new SearchIndex() { AllMods = allMods, ModsPerList = modsPerList.ToDictionary() }, searchIndexFileName, true);
+            state[validated.NamespacedName] = new ValidationStateEntry
+            {
+                ValidatedAt = stamp,
+                Hash = validated.DownloadMetadata?.Hash ?? default
+            };
         }
 
-        var allArchives = validatedLists.SelectMany(l => l.Archives).ToList();
-        _logger.LogInformation("Validated {Count} lists in {Elapsed}", validatedLists.Length, stopWatch.Elapsed);
+        var live = listData.Select(l => l.NamespacedName).ToHashSet();
+        foreach (var staleKey in state.Keys.Where(k => !live.Contains(k)).ToList())
+            state.Remove(staleKey);
+
+        await SaveState(reports, state);
+
+        var allArchives = batchResults.SelectMany(l => l.Archives).ToList();
+        _logger.LogInformation("Validated {Count} lists in {Elapsed}", batchResults.Length, stopWatch.Elapsed);
         _logger.LogInformation(" - {Count} Valid", allArchives.Count(a => a.Status is ArchiveStatus.Valid));
         _logger.LogInformation(" - {Count} Invalid", allArchives.Count(a => a.Status is ArchiveStatus.InValid));
         _logger.LogInformation(" - {Count} Mirrored", allArchives.Count(a => a.Status is ArchiveStatus.Mirrored));
@@ -266,8 +282,8 @@ public class ValidateLists
                 invalid.Original.State.PrimaryKeyString);
         }
 
-        await ExportReports(reports, validatedLists, token);
-
+        await ExportListReports(reports, batchResults, token);
+        await ExportAggregates(reports, batchResults, listData, incremental, token);
 
         return 0;
     }
@@ -275,14 +291,22 @@ public class ValidateLists
     private async Task<(RelativePath SmallImage, RelativePath LargeImage)> ProcessModlistImage(AbsolutePath reports, ModlistMetadata validatedList,
         CancellationToken token)
     {
-        using var _ = await _imageProcessLock.WaitAsync();
         _logger.LogInformation("Processing Modlist Image for {MachineUrl}", validatedList.NamespacedName);
         var baseFolder = reports.Combine(validatedList.NamespacedName);
         baseFolder.CreateDirectory();
-        
-        await using var imageStream = await _httpClient.GetStreamAsync(validatedList.Links.ImageUri, token);
+
         var ms = new MemoryStream();
-        var hash = await imageStream.HashingCopy(ms, token);
+        await CircuitBreaker.WithAutoRetryAllAsync(_logger, async () =>
+        {
+            ms.SetLength(0);
+            ms.Position = 0;
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
+            cts.CancelAfter(TimeSpan.FromSeconds(45));
+            await using var imageStream = await _httpClient.GetStreamAsync(validatedList.Links.ImageUri, cts.Token);
+            await imageStream.CopyToAsync(ms, cts.Token);
+        }, maxRetries: 2);
+
+        using var _ = await _imageProcessLock.WaitAsync();
 
         RelativePath smallImage, largeImage;
         ms.Position = 0;
@@ -451,7 +475,7 @@ public class ValidateLists
     }
 
 
-    private async Task ExportReports(AbsolutePath reports, ValidatedModList[] validatedLists, CancellationToken token)
+    private async Task ExportListReports(AbsolutePath reports, ValidatedModList[] validatedLists, CancellationToken token)
     {
         foreach (var validatedList in validatedLists)
         {
@@ -561,43 +585,124 @@ public class ValidateLists
                 _logger.LogCritical(ex, "While sending discord message for {MachineURl}", validatedList.MachineURL);
             }
         }
+    }
 
+    private async Task ExportAggregates(AbsolutePath reports, ValidatedModList[] batchResults,
+        ModlistMetadata[] listData, bool incremental, CancellationToken token)
+    {
+        var batchByUrl = batchResults.ToDictionary(r => r.MachineURL);
 
-        var summaries = validatedLists.Select(l => new ModListSummary
+        var summaries = new List<ModListSummary>();
+        var allMods = new HashSet<string>();
+        var modsPerList = new Dictionary<string, HashSet<string>>();
+        var upgraded = new List<ValidatedArchive>();
+        var seenUpgraded = new HashSet<Hash>();
+        var proxyable = new HashSet<string>();
+
+        void Accumulate(ValidatedModList l)
         {
-            Failed = l.Archives.Count(f => f.Status == ArchiveStatus.InValid),
-            Mirrored = l.Archives.Count(f => f.Status == ArchiveStatus.Mirrored),
-            Passed = l.Archives.Count(f => f.Status == ArchiveStatus.Valid),
-            MachineURL = l.MachineURL,
-            Name = l.Name,
-            Updating = 0,
-            SmallImage = l.SmallImage,
-            LargeImage = l.LargeImage
-        }).ToArray();
+            summaries.Add(new ModListSummary
+            {
+                Failed = l.Archives.Count(f => f.Status == ArchiveStatus.InValid),
+                Mirrored = l.Archives.Count(f => f.Status == ArchiveStatus.Mirrored),
+                Passed = l.Archives.Count(f => f.Status == ArchiveStatus.Valid),
+                MachineURL = l.MachineURL,
+                Name = l.Name,
+                Updating = 0,
+                SmallImage = l.SmallImage,
+                LargeImage = l.LargeImage
+            });
 
+            var machineShort = l.MachineURL.Split('/').Last();
+            var mods = new HashSet<string>();
+            foreach (var archive in l.Archives)
+            {
+                if (archive.Original.State is Nexus n && !string.IsNullOrWhiteSpace(n.Name))
+                    mods.Add(n.Name);
 
-        await using var summaryFile = reports.Combine("modListSummary.json")
-            .Open(FileMode.Create, FileAccess.Write, FileShare.None);
-        await _dtos.Serialize(summaries, summaryFile, true);
+                if (archive.Status is ArchiveStatus.Mirrored or ArchiveStatus.Updated
+                    && seenUpgraded.Add(archive.Original.Hash))
+                    upgraded.Add(archive);
 
+                if (_dispatcher.Downloader(archive.Original) is IProxyable p)
+                    proxyable.Add($"{p.UnParse(archive.Original.State)}#name={archive.Original.Hash.ToHex()}");
+            }
 
-        var upgradedMetas = validatedLists.SelectMany(v => v.Archives)
-            .Where(a => a.Status is ArchiveStatus.Mirrored or ArchiveStatus.Updated)
-            .DistinctBy(a => a.Original.Hash)
-            .OrderBy(a => a.Original.Hash)
-            .ToArray();
-        await using var upgradedMetasFile = reports.Combine("upgraded.json")
-            .Open(FileMode.Create, FileAccess.Write, FileShare.None);
-        await _dtos.Serialize(upgradedMetas, upgradedMetasFile, true);
+            modsPerList[machineShort] = mods;
+            allMods.UnionWith(mods);
+        }
+
+        foreach (var meta in listData)
+        {
+            ValidatedModList? l;
+            if (batchByUrl.TryGetValue(meta.NamespacedName, out var fresh))
+                l = fresh;
+            else if (incremental)
+                l = await TryLoadStatus(reports, meta.NamespacedName, token);
+            else
+                l = null;
+
+            if (l == null) continue;
+            Accumulate(l);
+        }
+
+        await using (var searchIndexFile = reports.Combine("searchIndex.json")
+                         .Open(FileMode.Create, FileAccess.Write, FileShare.None))
+            await _dtos.Serialize(new SearchIndex { AllMods = allMods, ModsPerList = modsPerList }, searchIndexFile, true);
+
+        await using (var summaryFile = reports.Combine("modListSummary.json")
+                         .Open(FileMode.Create, FileAccess.Write, FileShare.None))
+            await _dtos.Serialize(summaries.ToArray(), summaryFile, true);
+
+        await using (var upgradedFile = reports.Combine("upgraded.json")
+                         .Open(FileMode.Create, FileAccess.Write, FileShare.None))
+            await _dtos.Serialize(upgraded.OrderBy(a => a.Original.Hash).ToArray(), upgradedFile, true);
 
         await using var proxyFile = reports.Combine("proxyable.txt")
             .Open(FileMode.Create, FileAccess.Write, FileShare.None);
         await using var tw = new StreamWriter(proxyFile);
-        foreach (var file in _proxyableFiles)
+        foreach (var line in proxyable.OrderBy(x => x))
+            await tw.WriteLineAsync(line);
+    }
+
+    private async Task<ValidatedModList?> TryLoadStatus(AbsolutePath reports, string namespacedName, CancellationToken token)
+    {
+        var file = reports.Combine(namespacedName).Combine("status").WithExtension(Ext.Json);
+        if (!file.FileExists()) return null;
+        try
         {
-            var str = $"{file.Item1}#name={file.Item2.ToHex()}";
-            await tw.WriteLineAsync(str);
+            await using var fs = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+            return await _dtos.DeserializeAsync<ValidatedModList>(fs, token);
         }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not read prior status for {List}", namespacedName);
+            return null;
+        }
+    }
+
+    private async Task<Dictionary<string, ValidationStateEntry>> LoadState(AbsolutePath reports, CancellationToken token)
+    {
+        var file = reports.Combine("validation-state.json");
+        if (!file.FileExists()) return new Dictionary<string, ValidationStateEntry>();
+        try
+        {
+            await using var fs = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+            return await _dtos.DeserializeAsync<Dictionary<string, ValidationStateEntry>>(fs, token)
+                   ?? new Dictionary<string, ValidationStateEntry>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not read validation state, starting fresh");
+            return new Dictionary<string, ValidationStateEntry>();
+        }
+    }
+
+    private async Task SaveState(AbsolutePath reports, Dictionary<string, ValidationStateEntry> state)
+    {
+        await using var fs = reports.Combine("validation-state.json")
+            .Open(FileMode.Create, FileAccess.Write, FileShare.None);
+        await _dtos.Serialize(state, fs, true);
     }
     
     private async Task SendDefinitionToLoadOrderLibrary(ValidatedModList validatedModList, CancellationToken token)
@@ -718,4 +823,10 @@ public class ValidateLists
         await archiveManager.Ingest(tempFile.Path, token);
         return hash;
     }
-} 
+}
+
+public class ValidationStateEntry
+{
+    public DateTime ValidatedAt { get; set; }
+    public Hash Hash { get; set; }
+}
