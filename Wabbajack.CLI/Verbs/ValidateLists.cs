@@ -84,12 +84,13 @@ public class ValidateLists
         {
             new OptionDefinition(typeof(AbsolutePath), "r", "reports", "Location to store validation report outputs"),
             new OptionDefinition(typeof(int), "b", "batch-size", "Maximum number of lists to validate this run, prioritised by change and recency (0 = all)"),
-            new OptionDefinition(typeof(int), "c", "cycle-hours", "Skip lists already validated within this many hours unless they changed (0 = disabled)")
+            new OptionDefinition(typeof(int), "c", "cycle-hours", "Skip lists already validated within this many hours unless they changed (0 = disabled)"),
+            new OptionDefinition(typeof(bool), "f", "only-failed", "Only re-validate lists whose last recorded status was Failed or ForcedDown")
         });
 
-    public async Task<int> Run(AbsolutePath reports, AbsolutePath otherArchives, int batchSize, int cycleHours)
+    public async Task<int> Run(AbsolutePath reports, AbsolutePath otherArchives, int batchSize, int cycleHours, bool onlyFailed)
     {
-        var incremental = batchSize > 0 || cycleHours > 0;
+        var incremental = batchSize > 0 || cycleHours > 0 || onlyFailed;
 
         if (!incremental)
         {
@@ -123,7 +124,16 @@ public class ValidateLists
         var state = await LoadState(reports, token);
 
         ModlistMetadata[] toValidate;
-        if (incremental)
+        if (onlyFailed)
+        {
+            var failing = listData
+                .Where(l => state.TryGetValue(l.NamespacedName, out var entry) && entry.Status != ListStatus.Available)
+                .OrderByDescending(l => l.DateUpdated)
+                .ToList();
+            toValidate = (batchSize > 0 ? failing.Take(batchSize) : failing).ToArray();
+            _logger.LogInformation("Re-validating {Batch} previously-failed lists (of {Total} total)", toValidate.Length, listData.Length);
+        }
+        else if (incremental)
         {
             var now = DateTime.UtcNow;
             var cycle = TimeSpan.FromHours(cycleHours > 0 ? cycleHours : 4);
@@ -133,11 +143,13 @@ public class ValidateLists
                     state.TryGetValue(l.NamespacedName, out var entry);
                     var currentHash = l.DownloadMetadata?.Hash ?? default;
                     var changed = entry == null || entry.Hash != currentHash;
-                    var recentlyValidated = entry != null && !changed && (now - entry.ValidatedAt) < cycle;
-                    return (list: l, changed, recentlyValidated);
+                    var previouslyFailed = entry != null && entry.Status != ListStatus.Available;
+                    var recentlyValidated = entry != null && !changed && !previouslyFailed && (now - entry.ValidatedAt) < cycle;
+                    return (list: l, changed, previouslyFailed, recentlyValidated);
                 })
                 .Where(x => !x.recentlyValidated)
                 .OrderByDescending(x => x.changed)
+                .ThenByDescending(x => x.previouslyFailed)
                 .ThenByDescending(x => x.list.DateUpdated)
                 .Select(x => x.list)
                 .ToList();
@@ -253,12 +265,13 @@ public class ValidateLists
         });
         
         var stamp = DateTime.UtcNow;
-        foreach (var validated in toValidate)
+        for (var i = 0; i < toValidate.Length; i++)
         {
-            state[validated.NamespacedName] = new ValidationStateEntry
+            state[toValidate[i].NamespacedName] = new ValidationStateEntry
             {
                 ValidatedAt = stamp,
-                Hash = validated.DownloadMetadata?.Hash ?? default
+                Hash = toValidate[i].DownloadMetadata?.Hash ?? default,
+                Status = batchResults[i].Status
             };
         }
 
@@ -829,4 +842,5 @@ public class ValidationStateEntry
 {
     public DateTime ValidatedAt { get; set; }
     public Hash Hash { get; set; }
+    public ListStatus Status { get; set; }
 }
