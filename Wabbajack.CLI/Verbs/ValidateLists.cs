@@ -122,12 +122,15 @@ public class ValidateLists
         }
 
         var state = await LoadState(reports, token);
+        var failingLists = onlyFailed || incremental
+            ? await LoadFailingLists(reports, listData, token)
+            : new HashSet<string>();
 
         ModlistMetadata[] toValidate;
         if (onlyFailed)
         {
             var failing = listData
-                .Where(l => state.TryGetValue(l.NamespacedName, out var entry) && entry.Status != ListStatus.Available)
+                .Where(l => failingLists.Contains(l.NamespacedName))
                 .OrderByDescending(l => l.DateUpdated)
                 .ToList();
             toValidate = (batchSize > 0 ? failing.Take(batchSize) : failing).ToArray();
@@ -143,7 +146,7 @@ public class ValidateLists
                     state.TryGetValue(l.NamespacedName, out var entry);
                     var currentHash = l.DownloadMetadata?.Hash ?? default;
                     var changed = entry == null || entry.Hash != currentHash;
-                    var previouslyFailed = entry != null && entry.Status != ListStatus.Available;
+                    var previouslyFailed = failingLists.Contains(l.NamespacedName);
                     var recentlyValidated = entry != null && !changed && !previouslyFailed && (now - entry.ValidatedAt) < cycle;
                     return (list: l, changed, previouslyFailed, recentlyValidated);
                 })
@@ -270,8 +273,7 @@ public class ValidateLists
             state[toValidate[i].NamespacedName] = new ValidationStateEntry
             {
                 ValidatedAt = stamp,
-                Hash = toValidate[i].DownloadMetadata?.Hash ?? default,
-                Status = batchResults[i].Status
+                Hash = toValidate[i].DownloadMetadata?.Hash ?? default
             };
         }
 
@@ -694,6 +696,19 @@ public class ValidateLists
         }
     }
 
+    private async Task<HashSet<string>> LoadFailingLists(AbsolutePath reports, ModlistMetadata[] listData, CancellationToken token)
+    {
+        var failing = new HashSet<string>();
+        foreach (var list in listData)
+        {
+            var status = await TryLoadStatus(reports, list.NamespacedName, token);
+            if (status != null && status.Status != ListStatus.Available)
+                failing.Add(list.NamespacedName);
+        }
+
+        return failing;
+    }
+
     private async Task<Dictionary<string, ValidationStateEntry>> LoadState(AbsolutePath reports, CancellationToken token)
     {
         var file = reports.Combine("validation-state.json");
@@ -842,5 +857,4 @@ public class ValidationStateEntry
 {
     public DateTime ValidatedAt { get; set; }
     public Hash Hash { get; set; }
-    public ListStatus Status { get; set; }
 }
