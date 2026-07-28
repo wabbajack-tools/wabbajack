@@ -16,7 +16,7 @@
     </ItemGroup>
     <PropertyGroup>
         <ApplicationIcon>Assets\wabbajack.ico</ApplicationIcon>
-        <TargetFramework>net9.0-windows</TargetFramework>
+        <TargetFramework>net10.0-windows</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
       <None Remove="Assets\wabbajack.ico" />
