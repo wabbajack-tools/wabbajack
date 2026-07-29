@@ -7,6 +7,9 @@
         <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
         <!-- Transitive ReactiveUI.WPF (via the app project) has no net10.0-windows asset. -->
         <NoWarn>NU1701</NoWarn>
+        <!-- References the WPF app (net10.0-windows), so this test host can only run on
+             Windows. Keep it out of the test run on other platforms (e.g. the Linux CI leg). -->
+        <IsTestProject Condition="!$([MSBuild]::IsOSPlatform('Windows'))">false</IsTestProject>
     </PropertyGroup>
 
     <ItemGroup>
