@@ -15,6 +15,9 @@
    <!-- <IncludeSymbolsInSingleFile>true</IncludeSymbolsInSingleFile> -->
     <AssemblyName>Wabbajack</AssemblyName>
     <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+    <!-- Required for source-generated [Reactive] partial properties that carry an initializer
+         (partial-property initializers are a preview language feature in the .NET 10 SDK). -->
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
 
@@ -82,10 +85,6 @@
     </PackageReference>
     <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" />
     <PackageReference Include="FluentIcons.Wpf" />
-    <PackageReference Include="Fody">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Genbox.AlphaFS" />
     <PackageReference Include="GitInfo">
       <PrivateAssets>all</PrivateAssets>
@@ -105,7 +104,7 @@
     <PackageReference Include="PInvoke.User32" />
     <PackageReference Include="ReactiveMarbles.ObservableEvents.SourceGenerator" />
     <PackageReference Include="ReactiveUI" />
-    <PackageReference Include="ReactiveUI.Fody" />
+    <PackageReference Include="ReactiveUI.SourceGenerators" />
     <PackageReference Include="ReactiveUI.WPF" />
     <PackageReference Include="Sdl.MultiSelectComboBox" />
     <PackageReference Include="SharpCompress" />

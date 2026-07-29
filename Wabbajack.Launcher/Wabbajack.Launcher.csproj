@@ -5,6 +5,9 @@
         <TargetFramework Condition=" '$(OS)' != 'Windows_NT'">net6.0</TargetFramework>
         <Nullable>enable</Nullable>
         <AssemblyName>Wabbajack</AssemblyName>
+        <!-- Required for source-generated [Reactive] partial properties that carry an initializer
+             (partial-property initializers are a preview language feature in the .NET 10 SDK). -->
+        <LangVersion>preview</LangVersion>
     </PropertyGroup>
     
     <PropertyGroup>
@@ -38,7 +41,7 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
         <PackageReference Include="Microsoft.Extensions.Hosting" />
         <PackageReference Include="Newtonsoft.Json" />
-        <PackageReference Include="ReactiveUI.Fody" />
+        <PackageReference Include="ReactiveUI.SourceGenerators" />
         <PackageReference Include="SharpCompress" />
         <PackageReference Include="SixLabors.ImageSharp" />
         <PackageReference Include="System.Drawing.Common" />
