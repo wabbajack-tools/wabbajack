@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
@@ -26,9 +26,9 @@ using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.Services;
 
 namespace Wabbajack;
-public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
+public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 {
-    public class GameTypeEntry : ReactiveObject
+    public partial class GameTypeEntry : ReactiveObject
     {
         public GameTypeEntry(GameMetaData gameMetaData, int amount)
         {
@@ -43,7 +43,7 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 
         public bool IsAllGamesEntry { get; set; }
         public GameMetaData GameMetaData { get; private set; }
-        [Reactive] public int Amount { get; set; }
+        [Reactive] public partial int Amount { get; set; }
         public string FormattedName => IsAllGamesEntry ? $"{ALL_GAME_IDENTIFIER} ({Amount})" : $"{GameMetaData.HumanFriendlyGameName} ({Amount})";
         public string GameIdentifier { get; private set; }
         public static GameTypeEntry GetAllGamesEntry(int amount) => new(null, amount);
@@ -59,36 +59,36 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 
     private const string ALL_GAME_IDENTIFIER = "All games";
 
-    [Reactive] public IValidationResult Error { get; set; }
+    [Reactive] public partial IValidationResult Error { get; set; }
 
-    [Reactive] public string Search { get; set; }
+    [Reactive] public partial string Search { get; set; }
 
-    [Reactive] public bool OnlyInstalled { get; set; }
+    [Reactive] public partial bool OnlyInstalled { get; set; }
 
-    [Reactive] public bool IncludeNSFW { get; set; }
+    [Reactive] public partial bool IncludeNSFW { get; set; }
 
-    [Reactive] public bool IncludeUnofficial { get; set; }
+    [Reactive] public partial bool IncludeUnofficial { get; set; }
 
-    [Reactive] public bool ExcludeMods { get; set; }
+    [Reactive] public partial bool ExcludeMods { get; set; }
 
-    [Reactive] public string GameType { get; set; } = "All games";
-    [Reactive] public double MinModlistSize { get; set; }
-    [Reactive] public double MaxModlistSize { get; set; }
+    [Reactive] public partial string GameType { get; set; } = "All games";
+    [Reactive] public partial double MinModlistSize { get; set; }
+    [Reactive] public partial double MaxModlistSize { get; set; }
 
     public Dictionary<string, string> CommonlyWrongFormattedTags { get; set; } = new();
-    [Reactive] public HashSet<ModListTag> AllTags { get; set; } = new();
-    [Reactive] public ObservableCollection<ModListTag> HasTags { get; set; } = new();
+    [Reactive] public partial HashSet<ModListTag> AllTags { get; set; } = new();
+    [Reactive] public partial ObservableCollection<ModListTag> HasTags { get; set; } = new();
 
 
-    [Reactive] public HashSet<ModListMod> AllMods { get; set; } = new();
-    [Reactive] public ObservableCollection<ModListMod> HasMods { get; set; } = new();
-    [Reactive] public Dictionary<string, HashSet<string>> ModsPerList { get; set; } = new();
+    [Reactive] public partial HashSet<ModListMod> AllMods { get; set; } = new();
+    [Reactive] public partial ObservableCollection<ModListMod> HasMods { get; set; } = new();
+    [Reactive] public partial Dictionary<string, HashSet<string>> ModsPerList { get; set; } = new();
 
-    [Reactive] public GalleryModListMetadataVM SmallestSizedModlist { get; set; }
-    [Reactive] public GalleryModListMetadataVM LargestSizedModlist { get; set; }
+    [Reactive] public partial GalleryModListMetadataVM SmallestSizedModlist { get; set; }
+    [Reactive] public partial GalleryModListMetadataVM LargestSizedModlist { get; set; }
 
-    [Reactive] public ObservableCollection<GameTypeEntry> AllGameTypeEntries { get; set; } = new();
-    [Reactive] public ObservableCollection<GameTypeEntry> GameTypeEntries { get; set; } = new();
+    [Reactive] public partial ObservableCollection<GameTypeEntry> AllGameTypeEntries { get; set; } = new();
+    [Reactive] public partial ObservableCollection<GameTypeEntry> GameTypeEntries { get; set; } = new();
     private GameTypeEntry _selectedGameTypeEntry = null;
     private bool _updatingGamesToFilter = false;
 
@@ -117,8 +117,8 @@ public class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
     private readonly TaskCompletionSource<bool> _galleryLoadedTcs =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    [Reactive] public bool IsResolvingProtocol { get; set; }
-    [Reactive] public string ProtocolStatusText { get; set; }
+    [Reactive] public partial bool IsResolvingProtocol { get; set; }
+    [Reactive] public partial string ProtocolStatusText { get; set; }
 
     private string? _protocolInFlightNamespacedName;
 

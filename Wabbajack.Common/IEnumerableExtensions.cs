@@ -43,20 +43,9 @@ public static class IEnumerableExtensions
         return coll.Select(fn).Where(p => p.Item1).Select(p => p.Item2);
     }
 
-    public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> coll)
-    {
-        var rnd = new Random();
-        var data = coll.ToArray();
-        for (var x = 0; x < data.Length; x++)
-        {
-            var a = rnd.Next(0, data.Length);
-            var b = rnd.Next(0, data.Length);
-
-            (data[b], data[a]) = (data[a], data[b]);
-        }
-
-        return data;
-    }
+    // Note: parameterless Shuffle<T>(IEnumerable<T>) was removed — .NET 10 provides
+    // System.Linq.Enumerable.Shuffle<T>(IEnumerable<T>) (Fisher-Yates via Random.Shared) in the BCL.
+    // The Shuffle<T>(IEnumerable<T>, Random) overload above is kept (different signature).
 
     /// <summary>
     /// Splits the collection into `size` parts

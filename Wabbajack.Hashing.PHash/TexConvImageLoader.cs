@@ -155,7 +155,7 @@ public class TexConvImageLoader : IImageLoader
                 MipLevels = byte.Parse(data["mipLevels"])
             };
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             throw;
         }

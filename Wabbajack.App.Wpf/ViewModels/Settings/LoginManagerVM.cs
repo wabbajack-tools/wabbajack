@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.LoginManagers;
 
 namespace Wabbajack;
 
-public class LoginManagerVM : BackNavigatingVM
+public partial class LoginManagerVM : BackNavigatingVM
 {
     public LoginTargetVM[] Logins { get; }
 
@@ -18,7 +18,7 @@ public class LoginManagerVM : BackNavigatingVM
     
 }
 
-public class LoginTargetVM : ViewModel
+public partial class LoginTargetVM : ViewModel
 {
     public INeedsLogin Login { get; }
     public LoginTargetVM(INeedsLogin login)
