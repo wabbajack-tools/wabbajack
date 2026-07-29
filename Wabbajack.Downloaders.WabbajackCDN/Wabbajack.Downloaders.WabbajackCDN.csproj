@@ -22,10 +22,6 @@
         <PackageReference Include="SharpCompress" />
         <PackageReference Include="SixLabors.ImageSharp" />
         <PackageReference Include="System.Drawing.Common" />
-        <PackageReference Include="System.Net.Http" />
-        <PackageReference Include="System.Private.Uri" />
-        <PackageReference Include="System.Text.Json" />
-        <PackageReference Include="System.Text.RegularExpressions" />
     </ItemGroup>
 
 </Project>

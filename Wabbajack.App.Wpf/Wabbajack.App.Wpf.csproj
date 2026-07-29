@@ -105,17 +105,16 @@
     <PackageReference Include="ReactiveMarbles.ObservableEvents.SourceGenerator" />
     <PackageReference Include="ReactiveUI" />
     <PackageReference Include="ReactiveUI.SourceGenerators" />
-    <PackageReference Include="ReactiveUI.WPF" />
+    <PackageReference Include="ReactiveUI.WPF">
+      <!-- ReactiveUI.WPF ships no net10.0-windows asset; NuGet falls back to the (working)
+           .NET Framework WPF assembly. Suppress the cosmetic compatibility warning. -->
+      <NoWarn>NU1701</NoWarn>
+    </PackageReference>
     <PackageReference Include="Sdl.MultiSelectComboBox" />
     <PackageReference Include="SharpCompress" />
     <PackageReference Include="Silk.NET.DXGI" />
     <PackageReference Include="SixLabors.ImageSharp" />
-    <PackageReference Include="System.Drawing.Common" />
-    <PackageReference Include="System.Net.Http" />
-    <PackageReference Include="System.Private.Uri" />
     <PackageReference Include="System.Reactive" />
-    <PackageReference Include="System.Text.Json" />
-    <PackageReference Include="System.Text.RegularExpressions" />
     <PackageReference Include="WPFThemes.DarkBlend" />
   </ItemGroup>
 

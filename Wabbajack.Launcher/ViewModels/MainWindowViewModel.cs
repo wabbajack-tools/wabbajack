@@ -337,7 +337,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var data = $"\"{filename}\" %*";
             var file = Path.Combine(Directory.GetCurrentDirectory(), "wabbajack-cli.bat");
             if (File.Exists(file) && await File.ReadAllTextAsync(file) == data) return;
-            var parent = Directory.GetParent(file).FullName;
+            var parent = Directory.GetParent(file)!.FullName;
             if (!Directory.Exists(file))
                 Directory.CreateDirectory(parent);
             await File.WriteAllTextAsync(file, data);

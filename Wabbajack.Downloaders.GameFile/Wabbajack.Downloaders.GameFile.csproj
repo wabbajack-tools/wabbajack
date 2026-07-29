@@ -12,12 +12,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
-            <HintPath>..\..\..\Program Files\dotnet\packs\Microsoft.AspNetCore.App.Ref\6.0.0-preview.6.21355.2\ref\net6.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
-        </Reference>
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="GameFinder.StoreHandlers.EADesktop" />
         <PackageReference Include="GameFinder.StoreHandlers.EGS" />
         <PackageReference Include="GameFinder.StoreHandlers.GOG" />
@@ -28,10 +22,6 @@
         <PackageReference Include="SharpCompress" />
         <PackageReference Include="SixLabors.ImageSharp" />
         <PackageReference Include="System.Drawing.Common" />
-        <PackageReference Include="System.Net.Http" />
-        <PackageReference Include="System.Private.Uri" />
-        <PackageReference Include="System.Text.Json" />
-        <PackageReference Include="System.Text.RegularExpressions" />
     </ItemGroup>
 
 </Project>

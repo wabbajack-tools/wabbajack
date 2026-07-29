@@ -642,8 +642,6 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 Installer.DownloadLocation.TargetPath = prevSettings.DownloadLocation;
             }
             
-            PopulateSlideShow(ModList);
-            
             ll.Succeed();
             await _settingsManager.Save(LastLoadedModlist, path);
         }
@@ -953,24 +951,6 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         
         public ModlistMetadata Metadata { get; set; }
     }
-
-    private void PopulateSlideShow(ModList modList)
-    {
-        return;
-
-        if (ModlistMetadata.ImageContainsTitle && ModlistMetadata.DisplayVersionOnlyInInstallerView)
-        {
-            SlideShowTitle = "v" + ModlistMetadata.Version.ToString();
-        }
-        else
-        {
-            SlideShowTitle = modList.Name;
-        }
-        SlideShowAuthor = modList.Author;
-        SlideShowDescription = modList.Description;
-        //SlideShowImage = ModListImage;
-    }
-
 
     private async Task PopulateNextModSlide(ModList modList)
     {

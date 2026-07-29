@@ -16,16 +16,6 @@
       <PackageReference Include="SharpCompress" />
       <PackageReference Include="SixLabors.ImageSharp" />
       <PackageReference Include="System.Drawing.Common" />
-      <PackageReference Include="System.Net.Http" />
-      <PackageReference Include="System.Private.Uri" />
-      <PackageReference Include="System.Text.Json" />
-      <PackageReference Include="System.Text.RegularExpressions" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
-        <HintPath>..\..\..\Program Files\dotnet\shared\Microsoft.AspNetCore.App\6.0.1\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
-      </Reference>
     </ItemGroup>
 
     <ItemGroup>

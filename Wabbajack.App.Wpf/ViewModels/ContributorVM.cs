@@ -33,7 +33,6 @@ public partial class ContributorVM : ViewModel
     private readonly ILogger<ContributorVM> _logger;
     private readonly HttpClient _httpClient;
     private readonly ImageCacheManager _icm;
-    private readonly Client _client;
 
     [Reactive] public partial Octokit.RepositoryContributor Contributor { get; set; }
     protected ObservableAsPropertyHelper<BitmapImage> _Avatar { get; set; }

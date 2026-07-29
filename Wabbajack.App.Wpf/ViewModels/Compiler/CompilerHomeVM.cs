@@ -28,7 +28,6 @@ public partial class CompilerHomeVM : ViewModel
     private readonly SettingsManager _settingsManager;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<CompilerHomeVM> _logger;
-    private readonly CancellationToken _cancellationToken;
     private readonly DTOSerializer _dtos;
     private readonly CompilerSettingsInferencer _inferencer;
 
