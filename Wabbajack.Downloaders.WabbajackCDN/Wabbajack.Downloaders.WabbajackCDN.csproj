@@ -19,7 +19,6 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-        <PackageReference Include="Microsoft.Toolkit.HighPerformance" />
         <PackageReference Include="SharpCompress" />
         <PackageReference Include="SixLabors.ImageSharp" />
         <PackageReference Include="System.Drawing.Common" />
