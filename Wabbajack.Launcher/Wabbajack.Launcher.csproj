@@ -22,31 +22,31 @@
       <None Remove="Assets\wabbajack.ico" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.18" />
-        <PackageReference Include="GitInfo" Version="3.6.1">
+        <PackageReference Include="Avalonia.Themes.Fluent" />
+        <PackageReference Include="GitInfo">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Avalonia" Version="11.3.18" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.3.18" />
-        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.18" />
-        <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.9" />
-        <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" />
-        <PackageReference Include="MessageBox.Avalonia" Version="3.3.1" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.10" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.10" />
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-        <PackageReference Include="ReactiveUI.Fody" Version="19.5.41" />
-        <PackageReference Include="SharpCompress" Version="0.50.1" />
-        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
-        <PackageReference Include="System.Drawing.Common" Version="10.0.10" />
-        <PackageReference Include="System.Net.Http" Version="4.3.4" />
-        <PackageReference Include="System.Private.Uri" Version="4.3.2" />
-        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.10" />
-        <PackageReference Include="System.Text.Json" Version="10.0.10" />
-        <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
+        <PackageReference Include="Avalonia" />
+        <PackageReference Include="Avalonia.Desktop" />
+        <PackageReference Include="Avalonia.Diagnostics" />
+        <PackageReference Include="Avalonia.ReactiveUI" />
+        <PackageReference Include="JetBrains.Annotations" />
+        <PackageReference Include="MessageBox.Avalonia" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" />
+        <PackageReference Include="Newtonsoft.Json" />
+        <PackageReference Include="ReactiveUI.Fody" />
+        <PackageReference Include="SharpCompress" />
+        <PackageReference Include="SixLabors.ImageSharp" />
+        <PackageReference Include="System.Drawing.Common" />
+        <PackageReference Include="System.Net.Http" />
+        <PackageReference Include="System.Private.Uri" />
+        <PackageReference Include="System.Security.Cryptography.ProtectedData" />
+        <PackageReference Include="System.Text.Json" />
+        <PackageReference Include="System.Text.RegularExpressions" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.Downloaders.Http\Wabbajack.Downloaders.Http.csproj" />
