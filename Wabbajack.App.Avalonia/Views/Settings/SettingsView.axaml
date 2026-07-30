@@ -25,7 +25,10 @@
         <ScrollViewer Grid.Row="1"
             Focusable="False"
             VerticalScrollBarVisibility="Auto">
-            <Grid>
+            <!-- VerticalAlignment=Top so this sizes to its content: WPF measured ScrollViewer content
+                 with infinite height (so the star row collapsed to content), whereas Avalonia stretches
+                 it to the viewport, which inflated the Miscellaneous card into a mostly-empty block. -->
+            <Grid VerticalAlignment="Top">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" MinWidth="345" />
                     <ColumnDefinition Width="16" />
