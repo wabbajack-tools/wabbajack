@@ -20,6 +20,7 @@
     <PackageVersion Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
     <PackageVersion Include="FluentAssertions" Version="7.2.2" />
     <PackageVersion Include="FluentFTP" Version="54.2.0" />
+    <PackageVersion Include="FluentIcons.Avalonia" Version="2.0.321" />
     <PackageVersion Include="FluentIcons.Wpf" Version="2.1.333" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.3.4" />
     <PackageVersion Include="GameFinder.StoreHandlers.EADesktop" Version="4.9.0" />
