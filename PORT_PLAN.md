@@ -1,6 +1,28 @@
 # Wabbajack: WPF → Avalonia Port Plan
 
-Status: planning. Branch: `halgari/avalonia-everywhere`.
+Status: **COMPLETE** — all phases done. Branch: `halgari/avalonia-everywhere`.
+
+The app now runs on Avalonia 11.3 / .NET 10. `Wabbajack.App.Wpf` has been deleted; the shipping
+head is `Wabbajack.App.Avalonia` (with `Wabbajack.App.Core` holding the shared, UI-agnostic layer).
+
+| Phase | Result |
+|---|---|
+| 0 — WebView2 spike | **GO.** `WebView2.Avalonia` exposes the full `CoreWebView2` API (cookie enumeration, `WebResourceRequested` header injection, `ExecuteScriptAsync`, navigation), verified at runtime against nexusmods.com. |
+| 1 — Core + Avalonia head | `Wabbajack.App.Core` created; the whole app layer (44 VMs + support + 15 converters) ported off WPF; DI bootstrap ported — real VMs/services construct and run. |
+| 2 — Theme | Palette (55 colours + 151 brushes) and the keyed control styles ported; WPF `Style=` → Avalonia `Classes=` with `:pointerover`/`:pressed`/`:disabled`. |
+| 3 — Views | All 44 views + code-behind compile and run (two agent fan-outs plus a long tail of XAML/binding fixes). |
+| 4 — Browser | Shared `WebView2` registered in DI (honouring a local `./WebView2` runtime) and hosted by `BrowserWindow`. |
+| 5 — Shell | Real `MainWindow` with Avalonia custom chrome (replacing MahApps `MetroWindow`), navigation, floating panes, single-instance, file association and `wabbajack://`. |
+| 6 — Cutover | WPF project deleted, solution/`release.ps1` updated, regression test retargeted (`Wabbajack.App.Avalonia.Test`, passing), 8 WPF-only packages removed. |
+
+Known follow-ups (tracked as `TODO(avalonia-*)` comments in code): taskbar progress has no Avalonia
+equivalent (needs `ITaskbarList3` P/Invoke if wanted); `RangeSlider`/`MultiSelectComboBox`/
+`AttentionBorder` are functional stubs pending real templates; a few WPF triggers/animations were
+translated structurally rather than pixel-exactly.
+
+---
+
+## Original plan
 
 ## Goal & constraints
 
