@@ -207,5 +207,4 @@
   <SolidColorBrush x:Key="MultiSelectComboBox.SelectedItemsPanel.Border" Color="Transparent"/>
   <SolidColorBrush x:Key="MultiSelectComboBox.Text.Disabled.Foreground" Color="{StaticResource DisabledForegroundColor}"/>
   <SolidColorBrush x:Key="MultiSelectComboBox.Text.Foreground" Color="{StaticResource ForegroundColor}"/>
-  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.Background" Color="{StaticResource ComplementaryPrimary16}" />
 </ResourceDictionary>
