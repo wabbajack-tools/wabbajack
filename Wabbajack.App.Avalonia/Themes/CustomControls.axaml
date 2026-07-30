@@ -55,22 +55,33 @@
     </Setter>
   </ControlTheme>
 
+  <ControlTheme x:Key="RangeSliderThumbTheme" TargetType="Thumb">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Ellipse Fill="{TemplateBinding Background}"
+                 Stroke="{DynamicResource BackgroundBrush}"
+                 StrokeThickness="2"
+                 Width="16" Height="16" />
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="Cursor" Value="Hand" />
+  </ControlTheme>
+
   <ControlTheme x:Key="{x:Type local:RangeSlider}" TargetType="local:RangeSlider">
     <Setter Property="Template">
       <ControlTemplate>
-        <!-- Two bound sliders standing in for MahApps' dual-thumb track. -->
-        <StackPanel Spacing="2">
-          <Slider x:Name="PART_Lower"
-                  Minimum="{TemplateBinding Minimum}"
-                  Maximum="{TemplateBinding Maximum}"
-                  Value="{Binding LowerValue, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
-                  Foreground="{DynamicResource TrackValueFillBrush}" />
-          <Slider x:Name="PART_Upper"
-                  Minimum="{TemplateBinding Minimum}"
-                  Maximum="{TemplateBinding Maximum}"
-                  Value="{Binding UpperValue, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
-                  Foreground="{DynamicResource TrackValueFillBrush}" />
-        </StackPanel>
+        <!-- Single track with two thumbs and a highlighted selected range. -->
+        <Canvas x:Name="PART_Track" Height="20" Background="Transparent" HorizontalAlignment="Stretch">
+          <Border Canvas.Top="8" Height="4" CornerRadius="2"
+                  Width="{Binding #PART_Track.Bounds.Width}"
+                  Background="{DynamicResource ComplementaryPrimary16Brush}" />
+          <Border x:Name="PART_RangeBar" Canvas.Top="8" Height="4" CornerRadius="2"
+                  Background="{DynamicResource PrimaryBrush}" />
+          <Thumb x:Name="PART_LowerThumb" Theme="{StaticResource RangeSliderThumbTheme}" Canvas.Top="2" Width="16" Height="16"
+                 Background="{DynamicResource PrimaryBrush}" />
+          <Thumb x:Name="PART_UpperThumb" Theme="{StaticResource RangeSliderThumbTheme}" Canvas.Top="2" Width="16" Height="16"
+                 Background="{DynamicResource PrimaryBrush}" />
+        </Canvas>
       </ControlTemplate>
     </Setter>
   </ControlTheme>
