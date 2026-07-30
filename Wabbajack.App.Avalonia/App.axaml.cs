@@ -13,7 +13,7 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var window = Program.Services.GetRequiredService<Views.MainWindow>();
+            var window = Program.Services.GetRequiredService<MainWindow>();
             window.DataContext = Program.Services.GetRequiredService<MainWindowVM>();
             desktop.MainWindow = window;
         }
