@@ -21,16 +21,37 @@ internal static class Program
 {
     public static IServiceProvider Services { get; private set; } = null!;
 
+    private static SingleInstance? _singleInstance;
+
     [STAThread]
     public static void Main(string[] args)
     {
+        // Single-instance guard, matching the WPF app. A second launch just exits; the running
+        // instance keeps ownership of the protocol/file-association handling.
+        _singleInstance = new SingleInstance("Wabbajack-{F8C1E8F0-3E3A-4B3D-9F4A-1E5C6D7E8F9A}");
+        if (!_singleInstance.IsFirstInstance)
+        {
+            Environment.Exit(0);
+            return;
+        }
+
         var host = Host.CreateDefaultBuilder(Array.Empty<string>())
             .ConfigureServices((_, services) => ConfigureServices(services))
             .Build();
         Services = host.Services;
 
+        if (OperatingSystem.IsWindows())
+        {
+            // .wabbajack file association + wabbajack:// protocol registration.
+            Services.GetRequiredService<FileAssociationSelfHealService>().RegisterOrUpdate(enableProtocol: true);
+        }
+
+        StartupArgs = args;
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
+
+    /// <summary>Command-line arguments the app was launched with (protocol URL, .wabbajack file, ...).</summary>
+    public static string[] StartupArgs { get; private set; } = Array.Empty<string>();
 
     // Also used by the Avalonia visual designer.
     public static AppBuilder BuildAvaloniaApp() =>
