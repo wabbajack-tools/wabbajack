@@ -1,13 +1,15 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:Wabbajack"
-             x:Class="Wabbajack.App">
+             x:Class="Wabbajack.App"
+             RequestedThemeVariant="Dark">
   <Application.DataTemplates>
     <local:ViewLocator />
   </Application.DataTemplates>
   <Application.Styles>
     <FluentTheme />
     <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+    <StyleInclude Source="/Themes/Base.axaml" />
     <StyleInclude Source="/Themes/Controls.axaml" />
   </Application.Styles>
   <Application.Resources>

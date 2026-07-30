@@ -1,0 +1,86 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    App-wide defaults. The WPF theme applied these through implicit (TargetType-keyed) styles;
+    Avalonia needs explicit type selectors. Together with RequestedThemeVariant="Dark" on the
+    Application this replaces the Fluent light defaults (white surfaces / black text) with the
+    Wabbajack palette, and restores the Gabarito font and the control padding the WPF theme had.
+  -->
+
+  <Style Selector="Window">
+    <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
+  </Style>
+
+  <Style Selector="UserControl">
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
+  </Style>
+
+  <Style Selector="TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
+  </Style>
+
+  <Style Selector="TextBox">
+    <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="Background" Value="{DynamicResource DarkBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorder}" />
+    <Setter Property="Padding" Value="8,6" />
+  </Style>
+
+  <!-- Buttons that carry no explicit Wabbajack class still need sane dark styling + padding. -->
+  <Style Selector="Button">
+    <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
+    <Setter Property="Foreground" Value="{DynamicResource ButtonForeground}" />
+    <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary08Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="12,8" />
+  </Style>
+  <Style Selector="Button:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MouseOverButtonBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderInterestBrush}" />
+  </Style>
+  <Style Selector="Button:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource PressedButtonBackground}" />
+  </Style>
+  <Style Selector="Button:disabled /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource DisabledButtonBackground}" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource DisabledButtonForeground}" />
+  </Style>
+
+  <Style Selector="ToggleButton">
+    <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
+    <Setter Property="Foreground" Value="{DynamicResource ButtonForeground}" />
+    <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary08Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorder}" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="12,8" />
+  </Style>
+
+  <Style Selector="CheckBox">
+    <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="Padding" Value="8,0,0,0" />
+  </Style>
+
+  <Style Selector="ComboBox">
+    <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="Background" Value="{DynamicResource DarkBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorder}" />
+    <Setter Property="Padding" Value="10,6" />
+  </Style>
+
+  <Style Selector="Slider">
+    <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+  </Style>
+
+  <Style Selector="ScrollViewer">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+</Styles>
