@@ -103,6 +103,32 @@ single biggest risk, so it is proven **first** (Phase 0) before any view work.
   `Wabbajack.App.Wpf` + WPF-only deps; update CI/release packaging; port the `InvalidProgramException`
   VM regression test to the new project.
 
+## Phase 1 sequencing correction (learned from a trial move)
+
+A trial move of all non-coupled VMs into Core proved the VM layer is **not** cleanly
+sliceable incrementally. Two hard constraints:
+
+1. **The shell/navigation/handler VMs reference the 8 WPF-coupled VMs.** `MainWindowVM`,
+   `NavigationVM`, the user-intervention handlers, and the Gallery/Compiler "main" VMs all hold
+   references to the coupled screens (browser, installation, details, gallery metadata). They
+   cannot move to Core until those 8 are decoupled first.
+2. **The VMs pull in the whole head-only support layer** — `Util/` (`FilePickerVM`,
+   `SystemParametersConstructor`, `ImageCacheManager`, `UIUtils`), `Models/` (`CefService`,
+   `LogStream`, `ResourceMonitor`), `Extensions/`, `Settings.cs`, `StatusMessages/`,
+   `Interventions/`. Some of these are WPF-bound (shell dialogs, `BitmapImage`, `WebView2`, DXGI).
+
+**Corrected order for the rest of Phase 1** (abstractions before the bulk move):
+
+- Add Core project references to the business libs the VMs need (`Services.OSIntegrated`,
+  `Networking.WabbajackClientApi`, `Networking.GitHub`, `Downloaders.*`, `Installer`, ...).
+- Introduce Core abstractions: `IWabbajackWebView` (browser), an image producer (bytes/stream ->
+  head decodes), a neutral taskbar-progress enum, an `IFilePicker`. Delete dead `CefService`.
+- Move the UI-agnostic support first (`LogStream`, `ResourceMonitor`, `Extensions`, `StatusMessages`,
+  `Settings.cs` model types), then the 8 coupled VMs rewritten against the abstractions, then the
+  shell/navigation/handler VMs — at which point the whole VM layer lands in Core.
+
+This is a deliberate decoupling pass, not a quick slice; it is the critical path for Phase 1.
+
 ## Open items / notes
 
 - Shared-core project name `Wabbajack.App.Core` is a proposal — rename if preferred.
