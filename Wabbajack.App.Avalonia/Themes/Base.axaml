@@ -83,4 +83,49 @@
   <Style Selector="ScrollViewer">
     <Setter Property="Background" Value="Transparent" />
   </Style>
+
+  <!-- DataGrid (modlist details archive list). The packaged Fluent DataGrid theme still paints
+       light headers/rows under our palette, so restate the surfaces explicitly. -->
+  <Style Selector="DataGrid">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorder}" />
+    <Setter Property="GridLinesVisibility" Value="Horizontal" />
+    <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource ComplementaryPrimary08Brush}" />
+    <Setter Property="VerticalGridLinesBrush" Value="Transparent" />
+    <Setter Property="RowBackground" Value="Transparent" />
+  </Style>
+
+  <Style Selector="DataGridColumnHeader">
+    <Setter Property="AreSeparatorsVisible" Value="False" />
+    <Setter Property="Background" Value="{DynamicResource DarkBackgroundBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
+    <Setter Property="SeparatorBrush" Value="{DynamicResource DarkBackgroundBrush}" />
+    <Setter Property="Padding" Value="10,6" />
+  </Style>
+  <!-- The packaged theme draws the header separator as a light rectangle regardless of
+       SeparatorBrush, so restyle it directly. -->
+  <Style Selector="DataGridColumnHeader /template/ Rectangle#VerticalSeparator">
+    <Setter Property="Fill" Value="{DynamicResource DarkBackgroundBrush}" />
+  </Style>
+
+  <Style Selector="DataGridRow">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+  </Style>
+  <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
+    <Setter Property="Fill" Value="{DynamicResource ComplementaryPrimary08Brush}" />
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+  <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+    <Setter Property="Fill" Value="{DynamicResource ComplementaryPrimary16Brush}" />
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+
+  <Style Selector="DataGridCell">
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
+    <Setter Property="Padding" Value="10,4" />
+  </Style>
 </Styles>

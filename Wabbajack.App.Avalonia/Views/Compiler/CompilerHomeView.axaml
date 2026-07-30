@@ -38,7 +38,9 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <TextBlock LineHeight="24" FontSize="28" VerticalAlignment="Top" HorizontalAlignment="Center" FontWeight="Bold" Margin="0, 0, 0, 32">
+            <!-- LineHeight must not be smaller than FontSize in Avalonia or the glyphs are clipped
+                 (WPF's LineStackingStrategy allowed the tighter 24 used here originally). -->
+            <TextBlock FontSize="28" VerticalAlignment="Top" HorizontalAlignment="Center" FontWeight="Bold" Margin="0, 0, 0, 32">
             Recently Compiled Modlists
             </TextBlock>
 

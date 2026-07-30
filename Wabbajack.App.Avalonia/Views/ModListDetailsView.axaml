@@ -357,7 +357,7 @@
                                                 </DataTemplate>
                                             </dg:DataGridTemplateColumn.CellTemplate>
                                         </dg:DataGridTemplateColumn>
-                                        <dg:DataGridTemplateColumn Header="Size" IsReadOnly="True" Width="60">
+                                        <dg:DataGridTemplateColumn Header="Size" IsReadOnly="True" Width="90">
                                             <dg:DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock x:Name="SizeCell"
