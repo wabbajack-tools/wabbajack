@@ -1,6 +1,6 @@
 using System;
 using System.Windows.Input;
-using System.Windows.Media;
+using Avalonia.Media;
 using Wabbajack.Downloaders.Interfaces;
 
 namespace Wabbajack.LoginManagers;
@@ -11,7 +11,7 @@ public interface INeedsLogin
     ICommand TriggerLogin { get; set; }
     ICommand ClearLogin { get; set; }
     ICommand ToggleLogin { get; set; }
-    ImageSource Icon { get; set; }
+    IImage Icon { get; set; }
     Type LoginFor();
     public bool LoggedIn { get; set; }
 }

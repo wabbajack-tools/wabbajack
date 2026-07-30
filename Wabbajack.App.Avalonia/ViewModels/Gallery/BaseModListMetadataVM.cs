@@ -9,7 +9,7 @@ using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Windows.Media.Imaging;
+using Avalonia.Media.Imaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
@@ -62,8 +62,10 @@ public partial class BaseModListMetadataVM : ViewModel
 
     [Reactive] public partial IValidationResult Error { get; protected set; }
 
-    protected ObservableAsPropertyHelper<BitmapImage> _Image { get; set; }
-    public BitmapImage Image => _Image.Value;
+    // TODO(avalonia): UIUtils.DownloadBitmapImage still returns System.Windows.Media.Imaging.BitmapImage
+    // (WPF) until Wabbajack.App.Avalonia/Util/UIUtils.cs is converted to Avalonia.Media.Imaging.Bitmap.
+    protected ObservableAsPropertyHelper<Bitmap> _Image { get; set; }
+    public Bitmap Image => _Image.Value;
 
     protected ObservableAsPropertyHelper<bool> _LoadingImage { get; set; }
     public bool LoadingImage => _LoadingImage.Value;

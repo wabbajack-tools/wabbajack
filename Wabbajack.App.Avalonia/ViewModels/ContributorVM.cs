@@ -9,7 +9,7 @@ using System.Reactive.Disposables;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Windows.Media.Imaging;
+using Avalonia.Media.Imaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
@@ -35,8 +35,8 @@ public partial class ContributorVM : ViewModel
     private readonly ImageCacheManager _icm;
 
     [Reactive] public partial Octokit.RepositoryContributor Contributor { get; set; }
-    protected ObservableAsPropertyHelper<BitmapImage> _Avatar { get; set; }
-    public BitmapImage Avatar => _Avatar.Value;
+    protected ObservableAsPropertyHelper<Bitmap> _Avatar { get; set; }
+    public Bitmap Avatar => _Avatar.Value;
     [Reactive] public partial ICommand OpenProfileCommand { get; private set; }
 
     public ContributorVM(ILogger<ContributorVM> logger, HttpClient httpClient, Octokit.RepositoryContributor contributor, ImageCacheManager icm)

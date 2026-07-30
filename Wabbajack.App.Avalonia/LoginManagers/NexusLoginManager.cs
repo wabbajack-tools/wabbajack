@@ -1,10 +1,9 @@
 using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using Avalonia;
+using Avalonia.Media;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
@@ -28,7 +27,7 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
     public ICommand ClearLogin { get; set; }
     public ICommand ToggleLogin { get; set; }
     
-    public ImageSource Icon { get; set; }
+    public IImage Icon { get; set; }
     public Type LoginFor()
     {
         return typeof(NexusDownloader);
@@ -50,7 +49,11 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
             await ClearLoginToken();
         }, this.WhenAnyValue(v => v.LoggedIn));
 
-        Icon = (DrawingImage)Application.Current.Resources["NexusLogo"];
+        // TODO(avalonia): "NexusLogo" is not yet registered as an Avalonia resource (it was a WPF
+        // DrawingImage defined in Wabbajack.App.Wpf/Themes/Styles.xaml). Once an equivalent
+        // Avalonia.Media.DrawingImage (or Bitmap) resource is added under this key in the Avalonia
+        // app's resource dictionaries, this lookup will resolve correctly.
+        Icon = (IImage)Application.Current!.Resources["NexusLogo"];
         
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
         {

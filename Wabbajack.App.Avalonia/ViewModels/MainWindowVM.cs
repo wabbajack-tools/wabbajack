@@ -10,11 +10,14 @@ using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Orc.FileAssociation;
+using Wabbajack.Views;
 using Wabbajack.Common;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.Interventions;
@@ -258,7 +261,8 @@ public partial class MainWindowVM : ViewModel
         }
         CopyVersionCommand = ReactiveCommand.Create(() =>
         {
-            Clipboard.SetText($"Wabbajack {VersionDisplay}\n{ThisAssembly.Git.Sha}");
+            var clipboard = GetMainWindow()?.Clipboard;
+            clipboard?.SetTextAsync($"Wabbajack {VersionDisplay}\n{ThisAssembly.Git.Sha}").FireAndForget();
         });
         GetHelpCommand = ReactiveCommand.Create(GetHelp);
         LoadLocalFileCommand = ReactiveCommand.Create(LoadLocalFile);
@@ -307,9 +311,10 @@ public partial class MainWindowVM : ViewModel
                         RxApp.MainThreadScheduler.Schedule(() =>
                         {
                             // Bring window to front
-                            Application.Current.Dispatcher.Invoke(() =>
+                            Avalonia.Threading.Dispatcher.UIThread.Invoke(() =>
                             {
-                                var mainWindow = Application.Current.MainWindow;
+                                var mainWindow = GetMainWindow();
+                                if (mainWindow is null) return;
                                 if (mainWindow.WindowState == WindowState.Minimized)
                                     mainWindow.WindowState = WindowState.Normal;
 
@@ -364,20 +369,28 @@ public partial class MainWindowVM : ViewModel
 
     private void Minimize()
     {
-        Application.Current.MainWindow.WindowState = WindowState.Minimized;
+        var mainWindow = GetMainWindow();
+        if (mainWindow != null)
+            mainWindow.WindowState = WindowState.Minimized;
     }
 
     private void ToggleMaximized()
     {
-        var currentWindowState = Application.Current.MainWindow.WindowState;
+        var mainWindow = GetMainWindow();
+        if (mainWindow == null) return;
+
+        var currentWindowState = mainWindow.WindowState;
         var desiredWindowState = currentWindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
 
         /*
         var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
         mainWindow.WindowState = desiredWindowState;
         */
-        Application.Current.MainWindow.WindowState = desiredWindowState;
+        mainWindow.WindowState = desiredWindowState;
     }
+
+    private static Window? GetMainWindow() =>
+        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
 
     private void Close()
     {

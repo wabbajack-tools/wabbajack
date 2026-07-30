@@ -1,9 +1,8 @@
 ﻿using ReactiveUI;
 using System;
-using System.Drawing;
 using System.Net.Http;
 using System.Reactive.Linq;
-using System.Windows.Media.Imaging;
+using Avalonia.Media.Imaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs.DownloadStates;
@@ -21,7 +20,7 @@ public class ModVM : ViewModel
     // Image isn't exposed as a direct property, but as an observable.
     // This acts as a caching mechanism, as interested parties will trigger it to be created,
     // and the cached image will automatically be released when the last interested party is gone.
-    public IObservable<BitmapImage> ImageObservable { get; }
+    public IObservable<Bitmap> ImageObservable { get; }
 
     public ModVM(ILogger<ModVM> logger, IServiceProvider serviceProvider, IMetaState state, ImageCacheManager icm)
     {

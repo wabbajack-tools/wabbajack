@@ -1,8 +1,8 @@
 using System;
 using System.Reactive.Linq;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
@@ -27,7 +27,7 @@ public partial class LoversLabLoginManager : ViewModel, ILoginFor<LoversLabDownl
     public ICommand ClearLogin { get; set; }
     public ICommand ToggleLogin { get; set; }
     
-    public ImageSource Icon { get; set; }
+    public IImage Icon { get; set; }
     public Type LoginFor()
     {
         return typeof(LoversLabDownloader);
@@ -50,7 +50,7 @@ public partial class LoversLabLoginManager : ViewModel, ILoginFor<LoversLabDownl
             RefreshTokenState();
         }, this.WhenAnyValue(v => v.LoggedIn));
 
-        Icon = BitmapFrame.Create(
+        Icon = new Bitmap(
             typeof(LoversLabLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.lovers_lab.png")!);
         
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>

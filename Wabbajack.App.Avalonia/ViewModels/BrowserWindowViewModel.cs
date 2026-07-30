@@ -1,8 +1,8 @@
+using Avalonia.Controls;
 using HtmlAgilityPack;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.Wpf;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using System;

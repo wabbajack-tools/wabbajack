@@ -2,7 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
+using Avalonia.Media.Imaging;
 using DynamicData.Kernel;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
@@ -105,19 +105,22 @@ public class ImageCacheManager
 
     }
 
-    public async Task<bool> Add(string url, BitmapImage img)
+    public async Task<bool> Add(string url, Bitmap img)
     {
-        if (img.StreamSource is null) return false;
+        if (img is null) return false;
 
-        if (img.StreamSource.CanSeek) img.StreamSource.Position = 0;
+        // TODO(avalonia): Avalonia's Bitmap doesn't retain the original source stream like
+        // WPF's BitmapImage.StreamSource did, so we re-encode via Bitmap.Save() instead of
+        // copying the original bytes. If lossless original bytes are needed, add an overload
+        // taking a Stream/byte[] directly (see AddBytes).
         await using var copy = new MemoryStream();
-        await img.StreamSource.CopyToAsync(copy);
+        img.Save(copy);
         var bytes = copy.ToArray();
 
         return await AddBytes(url, bytes);
     }
 
-    public async Task<(bool, BitmapImage)> Get(string url)
+    public async Task<(bool, Bitmap)> Get(string url)
     {
         var hash = await UTF8.GetBytes(url + "|pngcache-v2").Hash();
 
@@ -144,13 +147,16 @@ public class ImageCacheManager
             if (!isPng)
                 throw new InvalidDataException("Cached image is not PNG (likely old WebP cache)");
 
-            var img = UIUtils.BitmapImageFromStream(imageStream);
+            // TODO(avalonia): construct directly rather than via UIUtils.BitmapImageFromStream,
+            // since that helper still returns a WPF BitmapImage pending its own conversion.
+            var img = new Bitmap(imageStream);
             _cachedImages.TryAdd(hash, new CachedImage(img));
             return (true, img);
         }
         catch (Exception ex) when (
             ex is NotSupportedException ||
             ex is InvalidDataException ||
+            ex is ArgumentException ||
             ex is System.Runtime.InteropServices.COMException)
         {
             // Cache is bad: purge it and allow a re-download
@@ -175,7 +181,7 @@ public class ImageCacheManager
             if (_cachedImages.TryGetValue(hash, out _))
                 return true;
 
-            var img = UIUtils.BitmapImageFromStream(new MemoryStream(bytes, writable: false));
+            var img = new Bitmap(new MemoryStream(bytes, writable: false));
             _cachedImages[hash] = new CachedImage(img);
 
             await SaveImageAtomic(hash, bytes);
@@ -188,12 +194,12 @@ public class ImageCacheManager
     }
 }
 
-public class CachedImage(BitmapImage image)
+public class CachedImage(Bitmap image)
 {
     private readonly DateTime _cachedAt = DateTime.Now;
     private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(5);
-    
-    public BitmapImage Image { get; } = image;
+
+    public Bitmap Image { get; } = image;
 
     public bool IsExpired() => DateTime.Now - _cachedAt > _cacheDuration;
 }

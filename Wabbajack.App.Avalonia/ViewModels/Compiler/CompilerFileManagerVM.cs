@@ -16,7 +16,7 @@ using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Services.OSIntegrated;
-using System.Windows.Controls;
+using Avalonia.Controls;
 using System.Windows.Input;
 using System.ComponentModel;
 
@@ -161,9 +161,9 @@ public class CompilerFileManagerVM : BaseCompilerVM
         }
     }
 
-    private void LoadingItem_Expanded(object sender, System.Windows.RoutedEventArgs e)
+    private void LoadingItem_Expanded(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        var parent = (FileTreeViewItem)e.OriginalSource;
+        var parent = (FileTreeViewItem)e.Source;
         if (parent?.ItemsSource == null) return;
         foreach(var child in parent.ItemsSource)
         {

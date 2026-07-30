@@ -7,8 +7,9 @@ using System.Net.Http;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Windows.Media.Imaging;
+using Microsoft.WindowsAPICodePack.Dialogs;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Extensions;
 using Wabbajack.Models;
@@ -26,23 +27,17 @@ namespace Wabbajack;
 
 public static class UIUtils
 {
-    public static BitmapImage BitmapImageFromResource(string name) => BitmapImageFromStream(System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Wabbajack;component/" + name)).Stream);
+    public static Bitmap BitmapImageFromResource(string name) => BitmapImageFromStream(AssetLoader.Open(new Uri("avares://Wabbajack/" + name)));
 
-    public static BitmapImage BitmapImageFromStream(Stream stream)
+    public static Bitmap BitmapImageFromStream(Stream stream)
     {
         if (stream.CanSeek) stream.Position = 0;
-        var img = new BitmapImage();
-        img.BeginInit();
-        img.CacheOption = BitmapCacheOption.OnLoad;
-        img.StreamSource = stream;
-        img.EndInit();
-        img.Freeze();
-        stream.Position = 0;
+        var img = new Bitmap(stream);
         if (stream.CanSeek) stream.Position = 0;
         return img;
     }
 
-    public static bool TryGetBitmapImageFromFile(AbsolutePath path, out BitmapImage bitmapImage)
+    public static bool TryGetBitmapImageFromFile(AbsolutePath path, out Bitmap bitmapImage)
     {
         try
         {
@@ -51,7 +46,7 @@ public static class UIUtils
                 bitmapImage = default;
                 return false;
             }
-            bitmapImage = new BitmapImage(new Uri(path.ToString(), UriKind.RelativeOrAbsolute));
+            bitmapImage = new Bitmap(path.ToString());
             return true;
         }
         catch (Exception)
@@ -99,17 +94,24 @@ public static class UIUtils
         Process.Start(new ProcessStartInfo() { FileName = "explorer.exe ", Arguments = $"/select, \"{pathToFile}\"" });
     }
 
+    // Native Win32 shell file dialog (works in an Avalonia app on Windows). `filter` keeps the
+    // WinForms-style "Description|*.ext|Description2|*.ext2" format the callers already pass.
     public static AbsolutePath OpenFileDialog(string filter, string initialDirectory = null)
     {
-        OpenFileDialog ofd = new OpenFileDialog();
-        ofd.Filter = filter;
-        ofd.InitialDirectory = initialDirectory;
-        if (ofd.ShowDialog() == DialogResult.OK)
+        using var ofd = new CommonOpenFileDialog { EnsureFileExists = true };
+        if (initialDirectory != null) ofd.InitialDirectory = initialDirectory;
+        if (!string.IsNullOrWhiteSpace(filter))
+        {
+            var parts = filter.Split('|');
+            for (var i = 0; i + 1 < parts.Length; i += 2)
+                ofd.Filters.Add(new CommonFileDialogFilter(parts[i], parts[i + 1]));
+        }
+        if (ofd.ShowDialog() == CommonFileDialogResult.Ok)
             return (AbsolutePath)ofd.FileName;
         return default;
     }
 
-    public static IObservable<BitmapImage> DownloadBitmapImage(
+    public static IObservable<Bitmap> DownloadBitmapImage(
     this IObservable<string> obs,
     Action<Exception> exceptionHandler,
     LoadingLock loadingLock,

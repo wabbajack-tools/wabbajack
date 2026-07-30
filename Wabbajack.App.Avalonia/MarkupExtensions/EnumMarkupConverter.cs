@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Windows.Markup;
+using Avalonia.Markup.Xaml;
 
 namespace Wabbajack;
 

@@ -143,9 +143,14 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
         LocalFilePicker = new FilePickerVM(this);
         LocalFilePicker.ExistCheckOption = FilePickerVM.CheckOptions.On;
         LocalFilePicker.PathType = FilePickerVM.PathTypeOptions.File;
+        // TODO(avalonia-filepicker): FilePickerVM.Filters is still typed as
+        // SourceList<CommonFileDialogFilter> (Microsoft.WindowsAPICodePack.Dialogs), which lives in
+        // Util/FilePickerVM.cs (out of scope for this file). That type needs to move to the
+        // Wabbajack.Abstractions.IFilePicker abstraction before this call site can drop
+        // CommonFileDialogFilter; kept as-is here to stay compilable against the current FilePickerVM.
         LocalFilePicker.Filters.AddRange(new[]
         {
-            new CommonFileDialogFilter("Wabbajack Modlist", "*" + Ext.Wabbajack),
+            ("Wabbajack Modlist", "*" + Ext.Wabbajack),
         });
 
         ResetFiltersCommand = ReactiveCommand.Create(() => {
@@ -531,6 +536,10 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                 var errorMessage = $"Cannot install '{modlist.Metadata.Title}': {gameName} is not installed on this PC. Please install {gameName} first.";
                 Error = ValidationResult.Fail(errorMessage);
 
+                // TODO(avalonia): System.Windows.MessageBox has no Avalonia equivalent yet; this needs
+                // to be replaced with an Avalonia-native dialog/notification service. Left as-is (and
+                // not compilable without a WPF reference) since no such abstraction exists in this
+                // codebase yet.
                 // Show popup error
                 MessageBox.Show(
                     errorMessage,
@@ -736,6 +745,8 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
                 _logger.LogError("[Protocol] Failed to get collection info from Nexus");
                 Error = ValidationResult.Fail(errorMessage);
 
+                // TODO(avalonia): System.Windows.MessageBox has no Avalonia equivalent yet; see the
+                // other TODO(avalonia) note above in HandleProtocolLoad.
                 // Show popup error
                 MessageBox.Show(
                     errorMessage,

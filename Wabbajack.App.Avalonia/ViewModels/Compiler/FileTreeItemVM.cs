@@ -9,7 +9,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using ReactiveMarbles.ObservableEvents;
 using System.Reactive.Linq;
-using System.Windows.Controls;
+using Avalonia.Controls;
 using Wabbajack.Paths;
 
 namespace Wabbajack;

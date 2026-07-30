@@ -1,5 +1,5 @@
-﻿using System.Windows.Controls;
-using System.Windows.Media;
+using Avalonia.Controls;
+using Avalonia.VisualTree;
 
 namespace DarkBlendTheme
 {
@@ -14,12 +14,12 @@ namespace DarkBlendTheme
 
         private static TreeViewItem GetParent(TreeViewItem item)
         {
-            var parent = VisualTreeHelper.GetParent(item);
+            var parent = item.GetVisualParent();
 
             while (!(parent is TreeViewItem || parent is TreeView))
             {
                 if (parent == null) return null;
-                parent = VisualTreeHelper.GetParent(parent);
+                parent = parent.GetVisualParent();
             }
 
             return parent as TreeViewItem;

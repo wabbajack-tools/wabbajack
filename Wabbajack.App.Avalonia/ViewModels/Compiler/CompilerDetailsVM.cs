@@ -93,10 +93,15 @@ public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
                 TargetPath = Settings.ProfilePath
             };
 
+            // TODO(avalonia-filepicker): FilePickerVM.Filters is still typed as
+            // SourceList<CommonFileDialogFilter> (Microsoft.WindowsAPICodePack.Dialogs), which lives in
+            // Util/FilePickerVM.cs (out of scope for this file). That type needs to move to the
+            // Wabbajack.Abstractions.IFilePicker abstraction before these call sites can drop
+            // CommonFileDialogFilter; kept as-is here to stay compilable against the current FilePickerVM.
             ModlistLocation.Filters.AddRange(new[]
             {
-                new CommonFileDialogFilter("MO2 Modlist", "*" + Ext.Txt),
-                new CommonFileDialogFilter("Compiler Settings File", "*" + Ext.CompilerSettings)
+                ("MO2 Modlist", "*" + Ext.Txt),
+                ("Compiler Settings File", "*" + Ext.CompilerSettings)
             });
 
             DownloadLocation = new FilePickerVM
@@ -120,11 +125,12 @@ public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
                 PathType = FilePickerVM.PathTypeOptions.File,
                 PromptTitle = "Thumbnail image file to use for the modlist"
             };
+            // TODO(avalonia-filepicker): same CommonFileDialogFilter dependency as above (see FilePickerVM).
             ModListImageLocation.Filters.AddRange(new[]
             {
-                new CommonFileDialogFilter("WebP Image (preferred)", "*" + Ext.Webp),
-                new CommonFileDialogFilter("PNG Image", "*" + Ext.Png),
-                new CommonFileDialogFilter("JPG Image", "*" + Ext.Jpg),
+                ("WebP Image (preferred)", "*" + Ext.Webp),
+                ("PNG Image", "*" + Ext.Png),
+                ("JPG Image", "*" + Ext.Jpg),
             });
 
 

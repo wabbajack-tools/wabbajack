@@ -58,8 +58,13 @@ public partial class CompilerHomeVM : ViewModel
             PathType = FilePickerVM.PathTypeOptions.File,
             PromptTitle = "Select a Mod Organizer profile (modlist.txt)"
         };
+        // TODO(avalonia-filepicker): FilePickerVM.Filters is still typed as
+        // SourceList<CommonFileDialogFilter> (Microsoft.WindowsAPICodePack.Dialogs), which lives in
+        // Util/FilePickerVM.cs (out of scope for this file). That type needs to move to the
+        // Wabbajack.Abstractions.IFilePicker abstraction before these call sites can drop
+        // CommonFileDialogFilter; kept as-is here to stay compilable against the current FilePickerVM.
         NewModlistPicker.Filters.AddRange([
-            new CommonFileDialogFilter("Modlist", "modlist" + Ext.Txt)
+            ("Modlist", "modlist" + Ext.Txt)
         ]);
 
         CompilerSettingsPicker = new FilePickerVM
@@ -68,8 +73,9 @@ public partial class CompilerHomeVM : ViewModel
             PathType = FilePickerVM.PathTypeOptions.File,
             PromptTitle = "Select a compiler settings file"
         };
+        // TODO(avalonia-filepicker): same CommonFileDialogFilter dependency as above (see FilePickerVM).
         CompilerSettingsPicker.Filters.AddRange([
-            new CommonFileDialogFilter("Compiler Settings File", "*" + Ext.CompilerSettings)
+            ("Compiler Settings File", "*" + Ext.CompilerSettings)
         ]);
 
         NewModlistCommand = ReactiveCommand.CreateFromTask(async () => {

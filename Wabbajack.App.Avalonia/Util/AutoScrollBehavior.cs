@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Windows;
-using System.Windows.Controls;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
 
 namespace Wabbajack
 {
@@ -12,37 +13,42 @@ namespace Wabbajack
         private static readonly Dictionary<ListBox, Capture> Associations =
             new Dictionary<ListBox, Capture>();
 
-        public static readonly DependencyProperty ScrollOnNewItemProperty =
-            DependencyProperty.RegisterAttached(
+        public static readonly AttachedProperty<bool> ScrollOnNewItemProperty =
+            AvaloniaProperty.RegisterAttached<AutoScrollBehavior, ListBox, bool>(
                 "ScrollOnNewItem",
-                typeof(bool),
-                typeof(AutoScrollBehavior),
-                new UIPropertyMetadata(false, OnScrollOnNewItemChanged));
+                false);
 
-        public static bool GetScrollOnNewItem(DependencyObject obj)
+        static AutoScrollBehavior()
         {
-            return (bool)obj.GetValue(ScrollOnNewItemProperty);
+            ScrollOnNewItemProperty.Changed.Subscribe(e =>
+                OnScrollOnNewItemChanged((AvaloniaObject)e.Sender, e));
         }
 
-        public static void SetScrollOnNewItem(DependencyObject obj, bool value)
+        public static bool GetScrollOnNewItem(AvaloniaObject obj)
+        {
+            return obj.GetValue(ScrollOnNewItemProperty);
+        }
+
+        public static void SetScrollOnNewItem(AvaloniaObject obj, bool value)
         {
             obj.SetValue(ScrollOnNewItemProperty, value);
         }
 
         public static void OnScrollOnNewItemChanged(
-            DependencyObject d,
-            DependencyPropertyChangedEventArgs e)
+            AvaloniaObject d,
+            AvaloniaPropertyChangedEventArgs e)
         {
             var listBox = d as ListBox;
             if (listBox == null) return;
-            bool oldValue = (bool)e.OldValue, newValue = (bool)e.NewValue;
+            bool oldValue = (bool)e.OldValue!, newValue = (bool)e.NewValue!;
             if (newValue == oldValue) return;
             if (newValue)
             {
                 listBox.Loaded += ListBox_Loaded;
                 listBox.Unloaded += ListBox_Unloaded;
-                var itemsSourcePropertyDescriptor = TypeDescriptor.GetProperties(listBox)["ItemsSource"];
-                itemsSourcePropertyDescriptor.AddValueChanged(listBox, ListBox_ItemsSourceChanged);
+                // WPF used TypeDescriptor.AddValueChanged on the ItemsSource CLR property;
+                // the Avalonia equivalent is listening for AvaloniaProperty changes directly.
+                listBox.PropertyChanged += ListBox_PropertyChanged;
             }
             else
             {
@@ -50,9 +56,15 @@ namespace Wabbajack
                 listBox.Unloaded -= ListBox_Unloaded;
                 if (Associations.ContainsKey(listBox))
                     Associations[listBox].Dispose();
-                var itemsSourcePropertyDescriptor = TypeDescriptor.GetProperties(listBox)["ItemsSource"];
-                itemsSourcePropertyDescriptor.RemoveValueChanged(listBox, ListBox_ItemsSourceChanged);
+                listBox.PropertyChanged -= ListBox_PropertyChanged;
             }
+        }
+
+        private static void ListBox_PropertyChanged(object sender, AvaloniaPropertyChangedEventArgs e)
+        {
+            if (e.Property != ItemsControl.ItemsSourceProperty) return;
+            if (sender is not ListBox listBox) return;
+            ListBox_ItemsSourceChanged(listBox, EventArgs.Empty);
         }
 
         private static void ListBox_ItemsSourceChanged(object sender, EventArgs e)
@@ -114,7 +126,7 @@ namespace Wabbajack
                 _lastScrollTime = now;
 
                 // Defer to Dispatcher to ensure layout has completed
-                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                Dispatcher.UIThread.Post(() =>
                 {
                     var item = e.NewItems[0];
 
@@ -131,18 +143,22 @@ namespace Wabbajack
                     {
                         // Safe fallback
                     }
-                }), System.Windows.Threading.DispatcherPriority.Background);
+                }, DispatcherPriority.Background);
             }
 
             private static bool IsItemVisible(ListBox listBox, object item)
             {
-                var container = listBox.ItemContainerGenerator.ContainerFromItem(item) as FrameworkElement;
+                var container = listBox.ContainerFromItem(item) as Control;
                 if (container == null)
                     return false;
 
-                var bounds = container.TransformToAncestor(listBox)
-                                      .TransformBounds(new Rect(0, 0, container.ActualWidth, container.ActualHeight));
-                var viewport = new Rect(0, 0, listBox.ActualWidth, listBox.ActualHeight);
+                var transform = container.TransformToVisual(listBox);
+                if (transform == null)
+                    return false;
+
+                var bounds = new Rect(0, 0, container.Bounds.Width, container.Bounds.Height)
+                    .TransformToAABB(transform.Value);
+                var viewport = new Rect(0, 0, listBox.Bounds.Width, listBox.Bounds.Height);
                 return viewport.Contains(bounds.TopLeft) || viewport.Contains(bounds.BottomRight);
             }
         }

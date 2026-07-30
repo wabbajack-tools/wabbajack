@@ -9,6 +9,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <AssemblyName>Wabbajack</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>preview</LangVersion>
     <NoWarn>CS8600,CS8601,CS8618,CS8604,CS8632,CS1998,NU1701</NoWarn>
   </PropertyGroup>
@@ -27,6 +28,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="WebView2.Avalonia" />
+    <PackageReference Include="FluentIcons.Avalonia" />
     <PackageReference Include="DynamicData" />
     <PackageReference Include="Humanizer" />
     <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" />
@@ -35,6 +37,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />

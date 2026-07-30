@@ -2,10 +2,9 @@ using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using CG.Web.MegaApiClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -32,7 +31,7 @@ public partial class MegaLoginManager : ViewModel, ILoginFor<MegaDownloader>
     public ICommand ClearLogin { get; set; }
     public ICommand ToggleLogin { get; set; }
     
-    public ImageSource Icon { get; set; }
+    public IImage Icon { get; set; }
     public Type LoginFor()
     {
         return typeof(MegaDownloader);
@@ -53,7 +52,7 @@ public partial class MegaLoginManager : ViewModel, ILoginFor<MegaDownloader>
             await ClearLoginToken();
         }, this.WhenAnyValue(v => v.LoggedIn));
 
-        Icon = BitmapFrame.Create(
+        Icon = new Bitmap(
             typeof(MegaLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.mega.png")!);
         
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>

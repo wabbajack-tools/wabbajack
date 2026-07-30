@@ -6,7 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using ReactiveUI;
 using System.Reactive.Disposables;
-using System.Windows.Media.Imaging;
+using Avalonia.Media.Imaging;
 using ReactiveUI.SourceGenerators;
 using DynamicData;
 using System.Reactive;
@@ -14,7 +14,7 @@ using System.Reactive.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Shell;
+using Wabbajack.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Wabbajack.Common;
@@ -39,7 +39,7 @@ using Wabbajack.VFS;
 using Humanizer;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
-using Microsoft.Web.WebView2.Wpf;
+using Avalonia.Controls;
 using System.Diagnostics;
 using System.Reactive.Concurrency;
 using Wabbajack.Reporting;
@@ -69,7 +69,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     [Reactive] public partial FilePickerVM WabbajackFileLocation { get; set; }
     [Reactive] public partial MO2InstallerVM Installer { get; set; }
     [Reactive] public partial StandardInstaller StandardInstaller { get; set; }
-    [Reactive] public partial BitmapImage ModListImage { get; set; }
+    [Reactive] public partial Bitmap ModListImage { get; set; }
     [Reactive] public partial InstallState InstallState { get; set; }
 
     [Reactive] public partial string FailureDetailsTitle { get; set; } = string.Empty;
@@ -93,7 +93,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     /// <summary>
     ///  Slideshow Data
     /// </summary>
-    [Reactive] public partial BitmapFrame SlideShowImage { get; set; }
+    [Reactive] public partial Bitmap SlideShowImage { get; set; }
     [Reactive] public partial string SlideShowTitle { get; set; } 
     [Reactive] public partial string SlideShowAuthor { get; set; }
     [Reactive] public partial string SlideShowDescription { get; set; }
@@ -202,7 +202,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
             PathType = FilePickerVM.PathTypeOptions.File,
             PromptTitle = "Select a modlist to install"
         };
-        WabbajackFileLocation.Filters.Add(new CommonFileDialogFilter("Wabbajack modlist", "*.wabbajack"));
+        WabbajackFileLocation.Filters.Add(("Wabbajack modlist", "*.wabbajack"));
         
         OpenLogFolderCommand = ReactiveCommand.Create(() =>
         {
@@ -670,14 +670,14 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
 
             if (result != 0)
             {
-                TaskBarUpdate.Send($"Error during verification of {ModList.Name}", TaskbarItemProgressState.Error);
+                TaskBarUpdate.Send($"Error during verification of {ModList.Name}", TaskbarProgressState.Error);
                 InstallState = InstallState.Failure;
                 ProgressText = $"Error during install of {ModList.Name}";
                 ProgressPercent = Percent.Zero;
             }
             else
             {
-                TaskBarUpdate.Send($"Finished verification of {ModList.Name}", TaskbarItemProgressState.Normal);
+                TaskBarUpdate.Send($"Finished verification of {ModList.Name}", TaskbarProgressState.Normal);
                 InstallState = InstallState.Success;
             }
         });
@@ -752,7 +752,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                     var tcs = new TaskCompletionSource<bool>();
                     RxApp.MainThreadScheduler.Schedule(async () =>
                     {
-                        var mainWindowVM = (MainWindowVM)System.Windows.Application.Current.MainWindow.DataContext;
+                        var mainWindowVM = _serviceProvider.GetRequiredService<MainWindowVM>();
                         var result = await mainWindowVM.ShowConfirmationDialog(title, message);
                         tcs.TrySetResult(result);
                     });
@@ -963,7 +963,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 .ToArray();
             var thisMod = mods[_random.Next(0, mods.Length)];
             var data = await _client.GetByteArrayAsync(thisMod.ImageURL!);
-            var image = BitmapFrame.Create(new MemoryStream(data));
+            var image = new Bitmap(new MemoryStream(data));
             SlideShowTitle = thisMod.Name;
             SlideShowAuthor = thisMod.Author;
             SlideShowDescription = thisMod.Description;

@@ -12,10 +12,9 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new Views.MainWindow
-            {
-                DataContext = new ViewModels.MainWindowViewModel()
-            };
+            // TODO(avalonia-bootstrap): resolve MainWindowVM from the DI host (port App.xaml.cs
+            // ConfigureServices) and assign it as DataContext. Placeholder shell for now.
+            desktop.MainWindow = new Views.MainWindow();
         }
         base.OnFrameworkInitializationCompleted();
     }

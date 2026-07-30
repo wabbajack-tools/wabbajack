@@ -1,11 +1,11 @@
-﻿using DynamicData;
-using Microsoft.WindowsAPICodePack.Dialogs;
+using DynamicData;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using System;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using Wabbajack.Abstractions;
 using Wabbajack.Extensions;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -33,6 +33,15 @@ namespace Wabbajack
         public TransformPath PathTransformer { get; set; }
 
         public object Parent { get; }
+
+        // TODO(avalonia-filepicker): FilePickerVM is constructed from many call sites across the
+        // codebase (FileUploadVM, CompilerHomeVM, CompilerDetailsVM, ModListGalleryVM, InstallationVM,
+        // MO2InstallerVM, etc.). Fully wiring IFilePicker end-to-end would mean updating every one of
+        // those constructor calls to supply an instance (typically resolved via DI), which is outside
+        // the scope of converting this single file. FilePicker is exposed here as a settable field so
+        // callers can assign it (directly or via DI) once they're converted; until it is set, the
+        // picker command is a no-op rather than trying to invent a working dialog.
+        public IFilePicker FilePicker { get; set; }
 
         [Reactive]
         public partial ICommand SetTargetPathCommand { get; set; }
@@ -67,7 +76,12 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<string> _errorTooltip;
         public string ErrorTooltip => _errorTooltip.Value;
 
-        public SourceList<CommonFileDialogFilter> Filters { get; } = new();
+        // TODO(avalonia-filepicker): was SourceList<CommonFileDialogFilter> (Microsoft.WindowsAPICodePack.Dialogs).
+        // Filter entries are now plain (Name, Pattern) tuples to match IFilePicker.PickFile's signature.
+        // Other view models that still add CommonFileDialogFilter instances to this list (e.g.
+        // CompilerHomeVM, CompilerDetailsVM, ModListGalleryVM, InstallationVM) will need to be updated to
+        // construct (string Name, string Pattern) tuples instead when they are converted.
+        public SourceList<(string Name, string Pattern)> Filters { get; } = new();
 
         public const string PathDoesNotExistText = "Path does not exist";
         public const string DoesNotPassFiltersText = "Path does not pass designated filters";
@@ -185,7 +199,7 @@ namespace Wabbajack
 
                     try
                     {
-                        if (!query.Any(filter => filter.Extensions.Any(ext => new Extension("." + ext) == target.Extension))) return false;
+                        if (!query.Any(filter => filter.Pattern.Split(',').Any(ext => new Extension("." + ext.Trim().TrimStart('*', '.')) == target.Extension))) return false;
                     }
                     catch (ArgumentException)
                     {
@@ -248,34 +262,23 @@ namespace Wabbajack
 
         public ICommand ConstructTypicalPickerCommand(IObservable<bool> canExecute = null)
         {
-            return ReactiveCommand.Create(
-                execute: () =>
+            return ReactiveCommand.CreateFromTask(
+                execute: async () =>
                 {
-                    AbsolutePath dirPath;
-                    dirPath = TargetPath.FileExists() ? TargetPath.Parent : TargetPath;
-                    var dlg = new CommonOpenFileDialog
+                    if (FilePicker == null)
                     {
-                        Title = PromptTitle,
-                        IsFolderPicker = PathType == PathTypeOptions.Folder,
-                        InitialDirectory = dirPath.ToString(),
-                        AddToMostRecentlyUsedList = false,
-                        AllowNonFileSystemItems = false,
-                        DefaultDirectory = dirPath.ToString(),
-                        EnsureFileExists = true,
-                        EnsurePathExists = true,
-                        EnsureReadOnly = false,
-                        EnsureValidNames = true,
-                        Multiselect = false,
-                        ShowPlacesList = true,
-                    };
-                    foreach (var filter in Filters.Items)
-                    {
-                        dlg.Filters.Add(filter);
+                        // TODO(avalonia-filepicker): no IFilePicker has been wired up for this
+                        // instance yet (see the FilePicker property above), so there's nothing to do.
+                        return;
                     }
-                    if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
 
-                    var path = (AbsolutePath)dlg.FileName;
-                    TargetPath = PathTransformer == null ? path : PathTransformer(path);
+                    AbsolutePath? picked = PathType == PathTypeOptions.Folder
+                        ? await FilePicker.PickFolder(PromptTitle)
+                        : await FilePicker.PickFile(PromptTitle, Filters.Items.ToList());
+
+                    if (picked == null) return;
+
+                    TargetPath = PathTransformer == null ? picked.Value : PathTransformer(picked.Value);
 
                 }, canExecute: canExecute);
         }

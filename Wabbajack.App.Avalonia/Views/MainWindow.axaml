@@ -1,13 +1,14 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:Wabbajack.ViewModels"
+        xmlns:vm="using:Wabbajack"
         x:Class="Wabbajack.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
+        x:DataType="vm:MainWindowVM"
         Width="1280" Height="800"
         Title="Wabbajack">
-  <Grid RowDefinitions="*">
-    <TextBlock Text="{Binding Greeting}"
-               HorizontalAlignment="Center" VerticalAlignment="Center"
-               FontSize="22" />
+  <!-- Placeholder shell during the port. The faithful MainWindow markup lives in
+       port-staging/Views/MainWindow.axaml and is integrated once the DI bootstrap + theme land. -->
+  <Grid>
+    <TextBlock Text="Wabbajack (Avalonia) — shell integration in progress"
+               HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" />
   </Grid>
 </Window>
