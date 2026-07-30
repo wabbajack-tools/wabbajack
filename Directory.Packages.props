@@ -16,13 +16,11 @@
     <PackageVersion Include="coverlet.msbuild" Version="10.0.1" />
     <PackageVersion Include="DeviceId" Version="6.11.0" />
     <PackageVersion Include="DynamicData" Version="9.4.33" />
-    <PackageVersion Include="Extended.Wpf.Toolkit" Version="5.1.2" />
     <PackageVersion Include="F23.StringSimilarity" Version="7.0.1" />
     <PackageVersion Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
     <PackageVersion Include="FluentAssertions" Version="7.2.2" />
     <PackageVersion Include="FluentFTP" Version="54.2.0" />
     <PackageVersion Include="FluentIcons.Avalonia" Version="2.0.321" />
-    <PackageVersion Include="FluentIcons.Wpf" Version="2.1.333" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.3.4" />
     <PackageVersion Include="GameFinder.StoreHandlers.EADesktop" Version="4.9.0" />
     <PackageVersion Include="GameFinder.StoreHandlers.EGS" Version="4.9.0" />
@@ -37,9 +35,7 @@
     <PackageVersion Include="JetBrains.Annotations" Version="2026.2.0" />
     <PackageVersion Include="K4os.Compression.LZ4.Streams" Version="1.3.8" />
     <PackageVersion Include="LibAES-CTR" Version="1.1.2" />
-    <PackageVersion Include="MahApps.Metro" Version="3.0.0-alpha0476" />
     <PackageVersion Include="Markdig" Version="1.3.2" />
-    <PackageVersion Include="MathConverter" Version="3.0.0" />
     <PackageVersion Include="MessageBox.Avalonia" Version="3.3.1" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageVersion Include="Microsoft.AspNetCore.Http.Extensions" Version="2.3.11" />
@@ -53,7 +49,6 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.10" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
-    <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.4078.44" />
     <PackageVersion Include="Nettle" Version="3.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="NLog.Extensions.Logging" Version="6.1.4" />
@@ -66,9 +61,7 @@
     <PackageVersion Include="PInvoke.User32" Version="0.7.124" />
     <PackageVersion Include="ReactiveMarbles.ObservableEvents.SourceGenerator" Version="1.3.1" />
     <PackageVersion Include="ReactiveUI.SourceGenerators" Version="2.2.4" />
-    <PackageVersion Include="ReactiveUI.WPF" Version="20.1.63" />
     <PackageVersion Include="ReactiveUI" Version="20.1.63" />
-    <PackageVersion Include="Sdl.MultiSelectComboBox" Version="1.0.111" />
     <PackageVersion Include="SharpCompress" Version="0.50.1" />
     <PackageVersion Include="SharpZipLib" Version="1.4.2" />
     <PackageVersion Include="Shipwreck.Phash" Version="0.5.0" />
@@ -85,7 +78,6 @@
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="10.0.10" />
     <PackageVersion Include="WebView2.Avalonia" Version="1.0.3240.44-preview.250526.1" />
-    <PackageVersion Include="WPFThemes.DarkBlend" Version="1.0.8" />
     <PackageVersion Include="Xunit.DependencyInjection.Logging" Version="8.1.0" />
     <PackageVersion Include="Xunit.DependencyInjection" Version="9.7.1" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />

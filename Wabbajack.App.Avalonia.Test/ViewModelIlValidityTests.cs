@@ -8,7 +8,7 @@ using ReactiveUI;
 using Wabbajack;
 using Xunit;
 
-namespace Wabbajack.App.Wpf.Test;
+namespace Wabbajack.App.Avalonia.Test;
 
 /// <summary>
 /// Regression test for the ReactiveUI.Fody -> ReactiveUI.SourceGenerators migration.
@@ -20,7 +20,7 @@ namespace Wabbajack.App.Wpf.Test;
 /// startup inside <c>App.OpenUI()</c> while resolving the main window from the DI container.
 ///
 /// This test forces the JIT to compile every constructor and property accessor of every
-/// <see cref="ReactiveObject"/>-derived type in the Wabbajack.App.Wpf assembly. Invalid IL from a
+/// <see cref="ReactiveObject"/>-derived type in the Wabbajack.App.Avalonia assembly. Invalid IL from a
 /// weaver (or any future codegen regression) surfaces as <see cref="InvalidProgramException"/> /
 /// <see cref="BadImageFormatException"/> at <see cref="RuntimeHelpers.PrepareMethod(RuntimeMethodHandle)"/>
 /// time — reproducing the crash without needing to stand up the full DI graph or a WPF message loop.
@@ -40,7 +40,7 @@ public class ViewModelIlValidityTests
         // Guard against a vacuous pass: if reflection can't see the view models (e.g. the assembly
         // failed to load) the test must not silently succeed.
         reactiveTypes.Length.Should().BeGreaterThan(20,
-            "the Wabbajack.App.Wpf assembly should expose many ReactiveObject view models");
+            "the Wabbajack.App.Avalonia assembly should expose many ReactiveObject view models");
 
         const BindingFlags members = BindingFlags.Public | BindingFlags.NonPublic |
                                      BindingFlags.Instance | BindingFlags.DeclaredOnly;

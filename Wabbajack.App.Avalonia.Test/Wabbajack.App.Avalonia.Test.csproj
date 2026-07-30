@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0-windows</TargetFramework>
-        <UseWPF>true</UseWPF>
+        <UseWPF>false</UseWPF>
         <IsPackable>false</IsPackable>
         <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
         <!-- Transitive ReactiveUI.WPF (via the app project) has no net10.0-windows asset. -->
@@ -28,7 +28,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Wabbajack.App.Wpf\Wabbajack.App.Wpf.csproj" />
+        <ProjectReference Include="..\Wabbajack.App.Avalonia\Wabbajack.App.Avalonia.csproj" />
     </ItemGroup>
 
 </Project>
