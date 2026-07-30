@@ -30,7 +30,7 @@ public class SignatureChecker
     {
         var buffer = new byte[_maxLength];
         stream.Position = 0;
-        await stream.ReadAsync(buffer);
+        await stream.ReadAtLeastAsync(buffer, buffer.Length, throwOnEndOfStream: false);
         stream.Position = 0;
 
         foreach (var (fileType, signature) in _signatures)

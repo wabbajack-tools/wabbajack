@@ -131,7 +131,7 @@ public class DownloadDispatcher
         try
         {
             var (valid, newState) = await _verificationCache.Get(a.State);
-            if (valid == true)
+            if (valid == true && newState is not null)
             {
                 a.State = newState;
                 return true;

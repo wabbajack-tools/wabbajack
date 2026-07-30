@@ -1,7 +1,7 @@
 ﻿using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -19,19 +19,19 @@ using Wabbajack.Util;
 namespace Wabbajack;
 
 [JsonName("Mo2ModListInstallerSettings")]
-public class Mo2ModlistInstallationSettings
+public partial class Mo2ModlistInstallationSettings
 {
     public AbsolutePath InstallationLocation { get; set; }
     public AbsolutePath DownloadLocation { get; set; }
     public bool AutomaticallyOverrideExistingInstall { get; set; }
 }
 
-public class PerformanceSettingVM : ViewModel
+public partial class PerformanceSettingVM : ViewModel
 {
     private readonly ResourceSettingsManager _manager;
-    [Reactive] public string HumanName { get; set; }
-    [Reactive] public long MaxTasks { get; set; }
-    [Reactive] public long MaxThroughput { get; set; }
+    [Reactive] public partial string HumanName { get; set; }
+    [Reactive] public partial long MaxTasks { get; set; }
+    [Reactive] public partial long MaxThroughput { get; set; }
     public PerformanceSettingVM(ResourceSettingsManager manager) {
         _manager = manager;
 
@@ -53,14 +53,14 @@ public class PerformanceSettingVM : ViewModel
     }
 }
 
-public class PerformanceSettingsVM : ViewModel
+public partial class PerformanceSettingsVM : ViewModel
 {
 
     private readonly ResourceSettingsManager _settingsManager;
 
     public SourceList<PerformanceSettingVM> _settings = new();
     public ReadOnlyObservableCollection<PerformanceSettingVM> Settings;
-    [Reactive] public int MaxThreads { get; set; }
+    [Reactive] public partial int MaxThreads { get; set; }
 
     public PerformanceSettingsVM(IResource<DownloadDispatcher> downloadResources, SystemParametersConstructor systemParams, ResourceSettingsManager manager)
     {
@@ -97,7 +97,7 @@ public class PerformanceSettingsVM : ViewModel
     }
 
 }
-public class GalleryFilterSettings
+public partial class GalleryFilterSettings
 {
     public string GameType { get; set; }
     public bool IncludeNSFW { get; set; }
