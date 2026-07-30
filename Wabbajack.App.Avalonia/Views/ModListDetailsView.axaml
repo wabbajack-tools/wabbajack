@@ -322,7 +322,7 @@
                                 -->
                                 <dg:DataGrid x:Name="ArchivesDataGrid" AutoGenerateColumns="False" FontSize="13"
                           CanUserSortColumns="True"
-                          AlternatingRowBackground="{StaticResource ComplementaryPrimary12Brush}">
+>
                                     <dg:DataGrid.Styles>
                                         <Style Selector="DataGridColumnHeader">
                                             <Setter Property="Margin" Value="8, 0, 0, 0" />
@@ -331,7 +331,6 @@
                                             <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
                                         </Style>
                                         <Style Selector="DataGridRow">
-                                            <Setter Property="Classes.nexus-archive" Value="{Binding State, Converter={StaticResource IsNexusArchiveConverter}}" />
                                         </Style>
                                         <Style Selector="DataGridRow.nexus-archive:pointerover">
                                             <Setter Property="Cursor" Value="Hand" />

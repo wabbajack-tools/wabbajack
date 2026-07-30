@@ -120,7 +120,7 @@
                         </ic:SymbolIcon>
 
                         <Grid.RenderTransform>
-                            <RotateTransform x:Name="SpinTransform" Angle="0" />
+                            <RotateTransform Angle="0" />
                         </Grid.RenderTransform>
                         <!--
                             TODO: WPF used Grid.Triggers/EventTrigger(Loaded) + Storyboard DoubleAnimation

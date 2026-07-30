@@ -10,7 +10,6 @@
     Height="450"
     x:DataType="local:LoginWindowView"
     d:DataContext="{d:DesignInstance local:LoginWindowView}"
-    Style="{StaticResource {x:Type Window}}"
     mc:Ignorable="d">
     <!-- TODO: WindowTitleBrush="{StaticResource MahApps.Brushes.Accent}" from mah:MetroWindow has no direct
          Avalonia Window equivalent (MahApps-specific custom title bar chrome). Preserve the resource

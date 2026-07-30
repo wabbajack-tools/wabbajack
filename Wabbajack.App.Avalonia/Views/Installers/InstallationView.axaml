@@ -55,7 +55,6 @@
         </ControlTheme>
         <ControlTheme x:Key="InstallButtonStyle" TargetType="Button" BasedOn="{StaticResource WJButtonStyle}">
             <Setter Property="Margin" Value="{StaticResource InstallMargin}" />
-            <Setter Property="Width" Value="Auto" />
         </ControlTheme>
         <ControlTheme x:Key="WorkerIndicatorBorder" TargetType="Border">
             <Setter Property="BorderThickness" Value="2" />

@@ -65,7 +65,7 @@
                 selector, since it only depends on this element's own hover state.
             -->
             <Border.Styles>
-                <Style Selector="^:pointerover">
+                <Style Selector="Border:pointerover">
                     <Setter Property="BorderBrush" Value="{StaticResource BorderInterestBrush}" />
                 </Style>
             </Border.Styles>

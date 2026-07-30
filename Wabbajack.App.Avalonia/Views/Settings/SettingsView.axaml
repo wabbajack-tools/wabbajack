@@ -11,13 +11,13 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <UserControl.Resources>
+    <UserControl.Styles>
         <Style Selector="TextBlock">
             <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="FontSize" Value="12" />
         </Style>
-    </UserControl.Resources>
+    </UserControl.Styles>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />

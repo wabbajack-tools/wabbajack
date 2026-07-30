@@ -22,7 +22,7 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <ItemsControl
                               x:Name="CpuListControl"
-                              HorizontalContentAlignment="Stretch"
+
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                               Background="Transparent"
                               BorderBrush="Transparent"

@@ -13,7 +13,7 @@
         <SolidColorBrush x:Key="YellowBrush" Color="{StaticResource YellowColor}" />
         <Color x:Key="TransparentColor">#AA000000</Color>
         <SolidColorBrush x:Key="TransparentBrush" Color="{StaticResource TransparentColor}" />
-        <LinearGradientBrush x:Key="LinesBrush" MappingMode="Absolute" SpreadMethod="Repeat" StartPoint="0,0" EndPoint="48,36">
+        <LinearGradientBrush x:Key="LinesBrush" SpreadMethod="Repeat" StartPoint="0,0" EndPoint="48,36">
             <GradientStop Offset="0" Color="Black" />
             <GradientStop Offset="0.5" Color="{StaticResource TransparentColor}" />
             <GradientStop Offset="0.5" Color="{StaticResource YellowColor}" />

@@ -120,7 +120,7 @@
                          be supplied for this control to render/function. -->
                     <local:RangeSlider Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="1" Margin="0, 10, 0, 0"
                                        x:Name="SizeSliderFilter"
-                                       MinRangeWidth="3" AutoToolTipPlacement="TopLeft" AutoToolTipPrecision="1"
+                                       AutoToolTipPlacement="TopLeft" AutoToolTipPrecision="1"
                                        TrackValueFillBrush="{StaticResource PrimaryBrush}"
                                        ThumbFillBrush="{StaticResource PrimaryBrush}"
                                        ThumbFillHoverBrush="{StaticResource PrimaryBrush}"
