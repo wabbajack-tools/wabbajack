@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Wabbajack;
 
@@ -12,9 +13,9 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // TODO(avalonia-bootstrap): resolve MainWindowVM from the DI host (port App.xaml.cs
-            // ConfigureServices) and assign it as DataContext. Placeholder shell for now.
-            desktop.MainWindow = new Views.MainWindow();
+            var window = Program.Services.GetRequiredService<Views.MainWindow>();
+            window.DataContext = Program.Services.GetRequiredService<MainWindowVM>();
+            desktop.MainWindow = window;
         }
         base.OnFrameworkInitializationCompleted();
     }
