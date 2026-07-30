@@ -21,4 +21,10 @@
     <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
+    <ProjectReference Include="..\Wabbajack.Compiler\Wabbajack.Compiler.csproj" />
+    <ProjectReference Include="..\Wabbajack.Paths\Wabbajack.Paths.csproj" />
+  </ItemGroup>
+
 </Project>
