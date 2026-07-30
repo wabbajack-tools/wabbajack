@@ -13,6 +13,7 @@
     <AssemblyName>Wabbajack</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>preview</LangVersion>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <NoWarn>CS8600,CS8601,CS8618,CS8604,CS8632,CS1998,NU1701</NoWarn>
   </PropertyGroup>
 

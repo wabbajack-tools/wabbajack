@@ -6,6 +6,7 @@
     xmlns:ic="using:FluentIcons.Avalonia"
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:vm="clr-namespace:Wabbajack"
+    xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="450"
     d:DesignWidth="800"
@@ -38,7 +39,7 @@
                  IsPointerOver subscription on the ancestor Button, with a ColorTransition. -->
         </Style>
     </UserControl.Resources>
-    <Button x:Name="ModlistButton" Style="{StaticResource MainButtonStyle}" Background="Transparent" Foreground="{StaticResource ForegroundBrush}" BorderThickness="0">
+    <Button x:Name="ModlistButton" Classes="MainButtonStyle" Background="Transparent" Foreground="{StaticResource ForegroundBrush}" BorderThickness="0">
         <Border
         x:Name="ModListTile"
         Margin="8, 0, 8, 16"
@@ -276,7 +277,7 @@
                         VerticalAlignment="Stretch"
                             >
                             <Border.Background>
-                                <ImageBrush x:Name="ModlistImage" Stretch="UniformToFill"/>
+                                <ImageBrush Stretch="UniformToFill"/>
                             </Border.Background>
                             <Grid x:Name="ImageEffectGrid" Opacity="0.75">
                             </Grid>
@@ -354,7 +355,6 @@
                             converter instead of a custom converter class.
                         -->
                         <TextBlock
-                           xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
                            Margin="16"
                            FontSize="16"
                            VerticalAlignment="Center"

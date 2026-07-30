@@ -1,3 +1,5 @@
+using Wabbajack.Paths.IO;
+using Avalonia;
 using System;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -17,6 +19,7 @@ namespace Wabbajack;
 /// </summary>
 public partial class CompiledModListTileView : ReactiveUserControl<CompiledModListTileVM>
 {
+    private Avalonia.Media.ImageBrush ModlistImage => (Avalonia.Media.ImageBrush)ModlistImageBorder.Background!;
     public CompiledModListTileView()
     {
         InitializeComponent();
@@ -30,7 +33,7 @@ public partial class CompiledModListTileView : ReactiveUserControl<CompiledModLi
             // upcast to IImage via Select before binding.
             ViewModel.WhenAnyValue(vm => vm.CompilerSettings.ModListImage)
                      .Select(TryGetBitmapFromFile)
-                     .Select(bitmap => (IImage?)bitmap)
+                     .Select(bitmap => (Avalonia.Media.IImageBrushSource?)bitmap)
                      .BindToStrict(this, v => v.ModlistImage.Source)
                      .DisposeWith(dispose);
 

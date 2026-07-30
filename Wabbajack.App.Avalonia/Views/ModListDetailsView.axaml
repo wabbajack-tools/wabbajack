@@ -202,13 +202,13 @@
                     </Grid.RowDefinitions>
 
                     <local:WJButton x:Name="WebsiteButton" Grid.Column="0"
-                                    Text="Website" Icon="Globe" Width="Auto" />
+                                    Text="Website" Icon="Globe" />
                     <local:WJButton x:Name="DiscordButton" Grid.Column="2"
-                                    Text="Discord" Icon="PeopleChat" Width="Auto" />
+                                    Text="Discord" Icon="PeopleChat" />
 
                     <!-- Either Install or Unavailable description depending on whether modlist is unavailable -->
                     <!-- Above logic is defined programatically -->
-                    <local:WJButton x:Name="InstallButton" ButtonStyle="Progress" Grid.Row="2" Grid.ColumnSpan="5" Text="Download &amp; Install" Icon="ArrowDownload" Width="Auto" />
+                    <local:WJButton x:Name="InstallButton" ButtonStyle="Progress" Grid.Row="2" Grid.ColumnSpan="5" Text="Download &amp; Install" Icon="ArrowDownload" />
                     <Border x:Name="UnavailableDescription" Grid.Row="2" Grid.ColumnSpan="5" Background="{StaticResource UnavailableDarkBrush}" BorderBrush="{StaticResource UnavailableBrush}" BorderThickness="2" Padding="8" CornerRadius="4">
                         <TextBlock Text="A game or mod update has made the list unavailable for installation. The modlist requires an update from its author before it becomes available again. Contact the author(s) for more information." TextWrapping="Wrap" />
                     </Border>
@@ -223,7 +223,7 @@
                 <Grid>
 
                     <Border
-                    Style="{StaticResource ToggleButtonContainer}"
+                    Classes="ToggleButtonContainer"
                     Margin="0, 0, 0, 16"
                     >
                         <StackPanel Orientation="Horizontal" Margin="4">
@@ -267,7 +267,7 @@
 
                 </Grid>
 
-                <Button x:Name="CloseButton" Style="{StaticResource MainButtonStyle}" Background="Transparent"
+                <Button x:Name="CloseButton" Classes="MainButtonStyle" Background="Transparent"
                     BorderThickness="0" HorizontalAlignment="Right" Padding="16" Margin="-16, -16, -16, 0" VerticalAlignment="Center">
                     <ic:SymbolIcon Symbol="Dismiss" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Right" />
                 </Button>

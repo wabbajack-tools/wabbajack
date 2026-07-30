@@ -30,7 +30,7 @@
                 FontWeight="Bold"
                 Text="Login to MEGA" />
 
-            <Button x:Name="CloseButton" Style="{StaticResource MainButtonStyle}" Background="Transparent"
+            <Button x:Name="CloseButton" Classes="MainButtonStyle" Background="Transparent"
                     BorderThickness="0" HorizontalAlignment="Right" Padding="16" Margin="-16, -16, -16, 0" VerticalAlignment="Center">
                 <ic:SymbolIcon Symbol="Dismiss" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Right" />
             </Button>
@@ -74,7 +74,7 @@
                     <!-- WPF PasswordBox has no Avalonia equivalent control; masked TextBox + TextChanged
                          reproduces the same behavior (ViewModel.Password set on every keystroke). -->
                     <TextBox x:Name="PasswordBox" Grid.Row="6" PasswordChar="•" TextChanged="PasswordBox_PasswordChanged" />
-                    <local:WJButton x:Name="LoginButton" Grid.Row="8" Text="Login" Icon="PersonArrowRight" Width="Auto" ButtonStyle="Color" />
+                    <local:WJButton x:Name="LoginButton" Grid.Row="8" Text="Login" Icon="PersonArrowRight" ButtonStyle="Color" />
                     <Border x:Name="StatusBorder" Grid.Row="10" Padding="12" Background="{StaticResource PrimaryBrush}" CornerRadius="8" IsVisible="False">
                         <Grid x:Name="StatusGrid">
                             <Grid.ColumnDefinitions>
@@ -101,7 +101,7 @@
 
                 <Grid Grid.Column="3" Width="{Binding #AuthorFiles.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/3}">
                     <!-- Normal login -->
-                    <local:WJButton x:Name="LoginAnonymouslyButton" Text="Login anonymously" Icon="PersonArrowRight" Width="Auto" ButtonStyle="Color" />
+                    <local:WJButton x:Name="LoginAnonymouslyButton" Text="Login anonymously" Icon="PersonArrowRight" ButtonStyle="Color" />
                 </Grid>
             </Grid>
             <Grid x:Name="TwoFactorLoginGrid"
@@ -126,7 +126,7 @@
                          Text="{Binding TwoFactorKey}"
                          TextInput="TwoFactor_PreviewTextInput"
                          MaxLength="6" />
-                <local:WJButton x:Name="TwoFactorLoginButton" Grid.Row="4" Text="Login" Icon="PersonArrowRight" Width="Auto" ButtonStyle="Color" />
+                <local:WJButton x:Name="TwoFactorLoginButton" Grid.Row="4" Text="Login" Icon="PersonArrowRight" ButtonStyle="Color" />
                 <Border x:Name="TwoFactorStatusBorder" Grid.Row="6" Padding="12" Background="{StaticResource PrimaryBrush}" CornerRadius="8" IsVisible="False">
                     <Grid x:Name="TwoFactorStatusGrid">
                         <Grid.ColumnDefinitions>

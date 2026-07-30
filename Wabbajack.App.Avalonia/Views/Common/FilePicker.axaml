@@ -53,7 +53,7 @@
                 HorizontalAlignment="Right"
                 BorderThickness="0"
                 CornerRadius="4">
-                <Button Command="{Binding #Root.PickerVM.SetTargetPathCommand}" Style="{StaticResource MainButtonStyle}" Background="Transparent" ToolTip.Tip="Set target path">
+                <Button Command="{Binding #Root.PickerVM.SetTargetPathCommand}" Classes="MainButtonStyle" Background="Transparent" ToolTip.Tip="Set target path">
                     <fluent:SymbolIcon FontSize="18" Symbol="{Binding #Root.Icon}" />
                 </Button>
             </Border>

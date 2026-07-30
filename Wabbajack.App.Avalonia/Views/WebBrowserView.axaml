@@ -54,7 +54,7 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Command="{Binding BackCommand}"
-            Style="{StaticResource IconCircleButtonStyle}"
+            Classes="IconCircleButtonStyle"
             ToolTip.Tip="Back to main menu">
             <!--
                 TODO: original commented-out icon used MahApps.IconPacks (iconPacks:PackIconMaterial

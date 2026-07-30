@@ -17,11 +17,11 @@
     <ScrollViewer x:Name="SettingsScrollViewer" Background="Transparent" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
         <Grid>
             <Grid.Resources>
-                <Thickness x:Key="TitleMargin" Top="8" Bottom="8" />
-                <Thickness x:Key="TextPanelMargin" Right="16" />
+                <Thickness x:Key="TitleMargin">0,8,0,8</Thickness>
+                <Thickness x:Key="TextPanelMargin">0,0,16,0</Thickness>
                 <!--
                     WPF used <Style x:Key="..." TargetType="..." BasedOn="...">, applied explicitly via
-                    Style="{StaticResource ...}" on individual controls. Avalonia's per-instance,
+                    Classes="..." on individual controls. Avalonia's per-instance,
                     TargetType+BasedOn reusable style construct is ControlTheme (applied via the
                     control's Theme property), so these are translated to ControlTheme rather than Style.
                 -->

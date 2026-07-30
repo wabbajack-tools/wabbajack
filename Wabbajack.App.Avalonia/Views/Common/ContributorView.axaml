@@ -26,11 +26,11 @@
                 since Avalonia's Button has no plain settable ToolTip CLR property
                 (only the attached ToolTip.Tip) for BindToStrict to target directly.
             -->
-            <Button x:Name="AvatarButton" Style="{StaticResource AvatarButton}" ToolTip.ShowDelay="0" />
+            <Button x:Name="AvatarButton" Classes="AvatarButton" ToolTip.ShowDelay="0" />
 
             <Border x:Name="AvatarBorder" CornerRadius="64" Width="36" Height="36">
                 <Border.Background>
-                    <ImageBrush x:Name="AvatarImage" Stretch="UniformToFill" />
+                    <ImageBrush Stretch="UniformToFill" />
                 </Border.Background>
             </Border>
 

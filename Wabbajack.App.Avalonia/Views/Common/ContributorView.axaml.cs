@@ -1,3 +1,4 @@
+using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
@@ -12,6 +13,7 @@ namespace Wabbajack;
 /// </summary>
 public partial class ContributorView : ReactiveUserControl<ContributorVM>
 {
+    private Avalonia.Media.ImageBrush AvatarImage => (Avalonia.Media.ImageBrush)AvatarBorder.Background!;
     public ContributorView()
     {
         InitializeComponent();
@@ -28,7 +30,7 @@ public partial class ContributorView : ReactiveUserControl<ContributorVM>
             // the bound property's type exactly, so the Bitmap is upcast to
             // IImage via Select before binding.
             ViewModel.WhenAnyValue(vm => vm.Avatar)
-                     .Select(avatar => (IImage)avatar)
+                     .Select(avatar => (Avalonia.Media.IImageBrushSource?)avatar)
                      .BindToStrict(this, v => v.AvatarImage.Source)
                      .DisposeWith(disposable);
 

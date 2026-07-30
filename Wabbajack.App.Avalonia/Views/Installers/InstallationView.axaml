@@ -17,16 +17,16 @@
     mc:Ignorable="d">
     <!--
         WPF's <Style x:Key="..." TargetType="..."> resources, applied via
-        Style="{StaticResource ...}" on individual controls. Avalonia's per-instance,
+        Classes="..." on individual controls. Avalonia's per-instance,
         TargetType(+BasedOn) reusable style construct is ControlTheme (applied via the control's
         Theme property), so these locally-keyed styles are translated to ControlTheme below,
         matching the convention already used elsewhere in this port (see CompilerDetailsView.axaml).
-        Usage sites throughout the rest of this file keep the existing Style="{StaticResource ...}"
+        Usage sites throughout the rest of this file keep the existing Classes="..."
         attribute form to match the rest of the already-ported codebase (MainButtonStyle,
         WJButtonStyle, CircleButtonStyle, etc. are external/global resources, not defined here).
     -->
     <UserControl.Resources>
-        <Thickness x:Key="InstallMargin" Bottom="8" />
+        <Thickness x:Key="InstallMargin">0,0,0,8</Thickness>
         <!-- WPF TargetType was ButtonBase (abstract); narrowed to the concrete Button type.
              NOTE: this resource is unused in this view (dead resource in the WPF source too -
              no SlideshowButton-styled element exists anywhere in the markup below). -->
@@ -79,29 +79,29 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <StackPanel x:Name="InstallationLocationPanel" Style="{StaticResource Panel}">
-                    <TextBlock Style="{StaticResource TitleStyle}" Text="Installation Location" />
-                    <TextBlock Style="{StaticResource DescriptionStyle}">
+                <StackPanel x:Name="InstallationLocationPanel" Classes="Panel">
+                    <TextBlock Classes="TitleStyle" Text="Installation Location" />
+                    <TextBlock Classes="DescriptionStyle">
                         The folder where the list will be installed into.<LineBreak />
                         Choose an empty folder outside Windows-protected areas.
                         Using an SSD is highly recommended for optimal performance.
                     </TextBlock>
                     <local:FilePicker x:Name="InstallationLocationPicker"
-                                      Style="{StaticResource PickerStyle}"
+                                      Classes="PickerStyle"
                                       Icon="Folder"
                                       ToolTip.Tip="Path to the folder where the list will be installed to"
                                       IsEnabled="{Binding LoadingLock.IsNotLoading}"/>
                 </StackPanel>
 
-                <StackPanel x:Name="DownloadLocationPanel" Grid.Row="1" Style="{StaticResource Panel}">
-                    <TextBlock Style="{StaticResource TitleStyle}" Text="Downloads Location" />
-                    <TextBlock Style="{StaticResource DescriptionStyle}">
+                <StackPanel x:Name="DownloadLocationPanel" Grid.Row="1" Classes="Panel">
+                    <TextBlock Classes="TitleStyle" Text="Downloads Location" />
+                    <TextBlock Classes="DescriptionStyle">
                         The folder where the downloads will be stored.<LineBreak />
                         By default these are stored in a subdirectory of the installation folder, but you can also use a shared folder so previous downloads are reused.
                         Downloads can be deleted after installation.
                     </TextBlock>
                     <local:FilePicker x:Name="DownloadLocationPicker"
-                                      Style="{StaticResource PickerStyle}"
+                                      Classes="PickerStyle"
                                       Icon="Folder"
                                       ToolTip.Tip="Path to the folder where the mod archives will be downloaded to"
                                       IsEnabled="{Binding LoadingLock.IsNotLoading}" />
@@ -114,10 +114,10 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <local:WJButton x:Name="DocumentationButton" Text="Readme" Icon="Document" Grid.Row="0" Margin="{StaticResource InstallMargin}" Width="Auto" />
-                    <local:WJButton x:Name="WebsiteButton" Text="Website" Icon="Globe" Grid.Row="1" Margin="{StaticResource InstallMargin}" Width="Auto" />
-                    <local:WJButton x:Name="CommunityButton" Text="Community" Icon="PeopleChat" Grid.Row="2" Margin="{StaticResource InstallMargin}" Width="Auto" />
-                    <local:WJButton x:Name="ManifestButton" Text="Archives" Icon="BoxSearch" Grid.Row="3" Width="Auto" />
+                    <local:WJButton x:Name="DocumentationButton" Text="Readme" Icon="Document" Grid.Row="0" Margin="{StaticResource InstallMargin}" />
+                    <local:WJButton x:Name="WebsiteButton" Text="Website" Icon="Globe" Grid.Row="1" Margin="{StaticResource InstallMargin}" />
+                    <local:WJButton x:Name="CommunityButton" Text="Community" Icon="PeopleChat" Grid.Row="2" Margin="{StaticResource InstallMargin}" />
+                    <local:WJButton x:Name="ManifestButton" Text="Archives" Icon="BoxSearch" Grid.Row="3" />
                 </Grid>
 
             </Grid>
@@ -167,9 +167,9 @@
         </Grid>
         <Grid x:Name="InstallationGrid" IsVisible="False">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition x:Name="InstallationLeftColumn" Width="2.35*" />
+                <ColumnDefinition Width="2.35*" />
                 <ColumnDefinition Width="16" />
-                <ColumnDefinition x:Name="InstallationRightColumn" Width="3*" />
+                <ColumnDefinition Width="3*" />
             </Grid.ColumnDefinitions>
             <Grid>
                 <Grid.RowDefinitions>
@@ -200,7 +200,7 @@
                         <ColumnDefinition Width="16" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource WorkerIndicatorBorder}" ToolTip.Tip="An indicator representing the speed at which Wabbajack is validating the integrity of your installation by hashing required files. Speed is largely determined by disk read speeds and CPU power.">
+                    <Border Grid.Column="0" Classes="WorkerIndicatorBorder" ToolTip.Tip="An indicator representing the speed at which Wabbajack is validating the integrity of your installation by hashing required files. Speed is largely determined by disk read speeds and CPU power.">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -214,7 +214,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Grid.Column="2" Style="{StaticResource WorkerIndicatorBorder}" ToolTip.Tip="An indicator representing the speed at which Wabbajack is extracting downloaded files to your installation location. Speed is largely determined by disk read-write speeds and CPU power.">
+                    <Border Grid.Column="2" Classes="WorkerIndicatorBorder" ToolTip.Tip="An indicator representing the speed at which Wabbajack is extracting downloaded files to your installation location. Speed is largely determined by disk read-write speeds and CPU power.">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -228,7 +228,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Grid.Column="4" Style="{StaticResource WorkerIndicatorBorder}" ToolTip.Tip="An indicator representing the speed at which Wabbajack is downloading required files. Speed is largely determined by your internet connection and disk speed.">
+                    <Border Grid.Column="4" Classes="WorkerIndicatorBorder" ToolTip.Tip="An indicator representing the speed at which Wabbajack is downloading required files. Speed is largely determined by your internet connection and disk speed.">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -336,7 +336,7 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource ToggleButtonContainer}">
+                    <Border Grid.Column="0" Classes="ToggleButtonContainer">
                         <StackPanel Orientation="Horizontal" Margin="4">
                             <ToggleButton
                             x:Name="ReadmeToggleButton"

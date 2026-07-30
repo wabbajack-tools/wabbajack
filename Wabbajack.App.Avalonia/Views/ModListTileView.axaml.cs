@@ -1,3 +1,4 @@
+using Avalonia;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -14,6 +15,7 @@ namespace Wabbajack;
 /// </summary>
 public partial class ModListTileView : ReactiveUserControl<BaseModListMetadataVM>
 {
+    private Avalonia.Media.ImageBrush ModlistImage => (Avalonia.Media.ImageBrush)ImageEffectBorder.Background!;
     public ModListTileView()
     {
         InitializeComponent();
@@ -25,7 +27,7 @@ public partial class ModListTileView : ReactiveUserControl<BaseModListMetadataVM
             // Wabbajack.App.Avalonia/ViewModels/Gallery/BaseModListMetadataVM.cs), so it can be
             // bound directly to the ImageBrush's Source without any bridging conversion.
             ViewModel.WhenAnyValue(vm => vm.Image)
-                     .Select(b => (IImage)b)
+                     .Select(b => (Avalonia.Media.IImageBrushSource?)b)
                      .BindToStrict(this, v => v.ModlistImage.Source)
                      .DisposeWith(disposables);
 

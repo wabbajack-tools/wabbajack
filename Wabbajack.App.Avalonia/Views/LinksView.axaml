@@ -17,7 +17,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Button x:Name="PatreonButton" Style="{StaticResource MainButtonStyleLessRounded}" Click="Patreon_Click" Width="180" Height="49" Margin="0, 0, 0, 16">
+        <Button x:Name="PatreonButton" Classes="MainButtonStyleLessRounded" Click="Patreon_Click" Width="180" Height="49" Margin="0, 0, 0, 16">
             <DockPanel Width="{Binding ElementName=PatreonButton, Path=Bounds.Width}">
                 <TextBlock FontWeight="DemiBold" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="16, 0, 0, 0">
                 Patreon
@@ -25,7 +25,7 @@
                 <fluent:SymbolIcon FontSize="24" Symbol="Heart" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="{StaticResource PrimaryBrush}" Margin="0, 0, 16, 0" />
             </DockPanel>
         </Button>
-        <Button x:Name="GitHubButton" Grid.Row="1" Style="{StaticResource MainButtonStyleLessRounded}" Click="GitHub_Click" Width="180" Height="49" Margin="0, 0, 0, 16">
+        <Button x:Name="GitHubButton" Grid.Row="1" Classes="MainButtonStyleLessRounded" Click="GitHub_Click" Width="180" Height="49" Margin="0, 0, 0, 16">
             <DockPanel Width="{Binding ElementName=GitHubButton, Path=Bounds.Width}">
                 <TextBlock FontWeight="DemiBold" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="16, 0, 0, 0">
                 GitHub
@@ -33,7 +33,7 @@
                 <fluent:SymbolIcon FontSize="24" Symbol="BranchFork" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="{StaticResource PrimaryBrush}" Margin="0, 0, 16, 0" />
             </DockPanel>
         </Button>
-        <Button x:Name="DiscordButton" Grid.Row="2" Style="{StaticResource MainButtonStyleLessRounded}" Click="Discord_Click" Width="180" Height="49" Margin="0, 0, 0, 16">
+        <Button x:Name="DiscordButton" Grid.Row="2" Classes="MainButtonStyleLessRounded" Click="Discord_Click" Width="180" Height="49" Margin="0, 0, 0, 16">
             <DockPanel Width="{Binding ElementName=DiscordButton, Path=Bounds.Width}">
                 <TextBlock FontWeight="DemiBold" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="16, 0, 0, 0">
                 Discord
@@ -41,7 +41,7 @@
                 <fluent:SymbolIcon FontSize="24" Symbol="PeopleChat" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="{StaticResource PrimaryBrush}" Margin="0, 0, 16, 0" />
             </DockPanel>
         </Button>
-        <Button x:Name="WikiButton" Grid.Row="3" Style="{StaticResource MainButtonStyleLessRounded}" Click="Wiki_Click" Width="180" Height="49" Margin="0, 0, 0, 16">
+        <Button x:Name="WikiButton" Grid.Row="3" Classes="MainButtonStyleLessRounded" Click="Wiki_Click" Width="180" Height="49" Margin="0, 0, 0, 16">
             <DockPanel Width="{Binding ElementName=WikiButton, Path=Bounds.Width}">
                 <TextBlock FontWeight="DemiBold" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="16, 0, 0, 0">
                 Wiki

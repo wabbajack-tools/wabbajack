@@ -195,7 +195,7 @@
                     HorizontalContentAlignment="Center"
                     Icon="FilterDismiss"
                     Text="Reset filters"
-                    Width="Auto">
+>
                 </local:WJButton>
             </Grid>
         </ScrollViewer>

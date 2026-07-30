@@ -58,9 +58,9 @@
                             <Grid ClipToBounds="True">
                                 <!-- MahApps ProgressRing -> nearest Avalonia built-in: ProgressBar (IsIndeterminate). -->
                                 <ProgressBar x:Name="LoadingProgress" IsIndeterminate="True" Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                <Border BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <Border x:Name="ModlistImageBorder" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                                     <Border.Background>
-                                        <ImageBrush x:Name="ModlistImage" Stretch="UniformToFill" />
+                                        <ImageBrush Stretch="UniformToFill" />
                                     </Border.Background>
                                 </Border>
                                 <Rectangle x:Name="TopGlowRectangle" Height="120" Margin="-80,-75,-80,0" VerticalAlignment="Top" Fill="White" Opacity="0.15">
@@ -118,7 +118,7 @@
 
                 <Button
                     x:Name="DeleteButton"
-                    Style="{StaticResource TransparentButtonStyleDanger}"
+                    Classes="TransparentButtonStyleDanger"
                     Width="32"
                     Height="32"
                     Margin="0,4,0,0"

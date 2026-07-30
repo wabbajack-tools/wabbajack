@@ -71,7 +71,7 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
                      .BindToStrict(this, x => x.AdditionalProfilesSetting.ItemsSource)
                      .DisposeWith(disposables);
 
-            AdditionalProfilesSetting.Events().SelectionChanged
+            Observable.FromEventPattern<Avalonia.Controls.SelectionChangedEventArgs>(h => AdditionalProfilesSetting.SelectionChanged += h, h => AdditionalProfilesSetting.SelectionChanged -= h)
                 .Subscribe(args => {
                     _UserChangingProfileSelection = true;
                     // NOTE: AdditionalProfiles is a string[] (not a List<string>), so it has no Add

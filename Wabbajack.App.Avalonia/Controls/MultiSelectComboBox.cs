@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.ObjectModel;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 
 namespace Wabbajack;
@@ -18,6 +19,24 @@ public class MultiSelectComboBox : TemplatedControl
     {
         get => GetValue(ItemsSourceProperty);
         set => SetValue(ItemsSourceProperty, value);
+    }
+
+    public static readonly StyledProperty<SelectionMode> SelectionModeProperty =
+        AvaloniaProperty.Register<MultiSelectComboBox, SelectionMode>(nameof(SelectionMode), SelectionMode.Multiple);
+
+    public SelectionMode SelectionMode
+    {
+        get => GetValue(SelectionModeProperty);
+        set => SetValue(SelectionModeProperty, value);
+    }
+
+    public static readonly StyledProperty<bool> IsEditableProperty =
+        AvaloniaProperty.Register<MultiSelectComboBox, bool>(nameof(IsEditable));
+
+    public bool IsEditable
+    {
+        get => GetValue(IsEditableProperty);
+        set => SetValue(IsEditableProperty, value);
     }
 
     public IList SelectedItems { get; } = new ObservableCollection<object>();
