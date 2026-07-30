@@ -62,10 +62,32 @@
     <Setter Property="Padding" Value="12,8" />
   </Style>
 
+  <!-- Fluent paints the checked state with the system accent (blue); use the Wabbajack primary. -->
+  <Style Selector="ToggleButton:checked /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource BackgroundBrush}" />
+  </Style>
+  <Style Selector="ToggleButton:checked:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource PrimaryVariantBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource PrimaryVariantBrush}" />
+  </Style>
+
   <Style Selector="CheckBox">
     <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
     <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
     <Setter Property="Padding" Value="8,0,0,0" />
+  </Style>
+  <!-- Same accent leak on checkbox glyph backgrounds. -->
+  <Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
+    <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+  </Style>
+  <Style Selector="RadioButton:checked /template/ Ellipse#CheckOuterEllipse">
+    <Setter Property="Stroke" Value="{DynamicResource PrimaryBrush}" />
+  </Style>
+  <Style Selector="RadioButton:checked /template/ Ellipse#CheckGlyph">
+    <Setter Property="Fill" Value="{DynamicResource PrimaryBrush}" />
   </Style>
 
   <Style Selector="ComboBox">
