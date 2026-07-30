@@ -203,14 +203,18 @@
                 BorderBrush="Transparent"
                 BorderThickness="0"
                 Margin="0, 0, 0, -16">
-            <ScrollViewer Background="Transparent" VerticalScrollBarVisibility="Auto">
+            <!-- HorizontalScrollBarVisibility must be Disabled so the WrapPanel is measured against
+                 the viewport width and reflows into as many tile columns as fit; otherwise it is
+                 measured unconstrained and stays at the column count from the initial layout. -->
+            <ScrollViewer Background="Transparent" VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
                 <ItemsControl
                     x:Name="ModListGalleryControl"
-                    HorizontalAlignment="Center"
+                    HorizontalAlignment="Stretch"
                     ScrollViewer.VerticalScrollBarVisibility="Visible">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <WrapPanel />
+                            <WrapPanel HorizontalAlignment="Center" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>

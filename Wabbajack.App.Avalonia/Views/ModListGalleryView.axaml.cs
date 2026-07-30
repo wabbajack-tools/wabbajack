@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using System;
 using System.Collections;
 using System.Collections.ObjectModel;
@@ -15,6 +16,7 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
     public ModListGalleryView()
     {
         InitializeComponent();
+
 
         this.WhenActivated(dispose =>
         {
