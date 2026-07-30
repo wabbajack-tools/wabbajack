@@ -1,0 +1,144 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    Control styles ported from Wabbajack.App.Wpf/Themes/Styles.xaml.
+
+    WPF keyed styles (Style="{StaticResource MainButtonStyle}") became Avalonia style classes
+    (Classes="MainButtonStyle") during the port, so each keyed style is expressed here as a
+    class selector. Colours come from Themes/Colors.axaml, which carries the original palette
+    keys verbatim. WPF trigger blocks are translated to Avalonia pseudo-classes
+    (:pointerover / :pressed / :disabled).
+  -->
+
+  <!-- Shared button base (WPF MainButtonBaseStyle) -->
+  <Style Selector="Button.MainButtonStyle, Button.MainButtonStyleLessRounded, Button.WJButtonStyle">
+    <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{StaticResource ButtonForeground}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Padding" Value="8,4" />
+    <Setter Property="Focusable" Value="False" />
+  </Style>
+
+  <Style Selector="Button.MainButtonStyle">
+    <Setter Property="CornerRadius" Value="16" />
+  </Style>
+  <Style Selector="Button.MainButtonStyleLessRounded">
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+  <Style Selector="Button.WJButtonStyle">
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+
+  <Style Selector="Button.MainButtonStyle:pointerover, Button.MainButtonStyleLessRounded:pointerover, Button.WJButtonStyle:pointerover">
+    <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}" />
+    <Setter Property="BorderBrush" Value="{StaticResource BorderInterestBrush}" />
+  </Style>
+  <Style Selector="Button.MainButtonStyle:pressed, Button.MainButtonStyleLessRounded:pressed, Button.WJButtonStyle:pressed">
+    <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
+  </Style>
+  <Style Selector="Button.MainButtonStyle:disabled, Button.MainButtonStyleLessRounded:disabled, Button.WJButtonStyle:disabled">
+    <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+    <Setter Property="Background" Value="{StaticResource DisabledButtonBackground}" />
+  </Style>
+
+  <!-- Circular icon buttons -->
+  <Style Selector="Button.CircleButtonStyle, Button.IconCircleButtonStyle, Button.AvatarButton">
+    <Setter Property="CornerRadius" Value="64" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="6" />
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Foreground" Value="{StaticResource ButtonForeground}" />
+  </Style>
+  <Style Selector="Button.CircleButtonStyle, Button.IconCircleButtonStyle">
+    <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+  </Style>
+  <Style Selector="Button.AvatarButton">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.CircleButtonStyle:pointerover, Button.IconCircleButtonStyle:pointerover, Button.AvatarButton:pointerover">
+    <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}" />
+  </Style>
+  <Style Selector="Button.CircleButtonStyle:disabled, Button.IconCircleButtonStyle:disabled">
+    <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+  </Style>
+
+  <!-- Chrome-style bare icon buttons (title bar) -->
+  <Style Selector="Button.IconBareButtonStyle">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="CornerRadius" Value="0" />
+  </Style>
+  <Style Selector="Button.IconBareButtonStyle:pointerover">
+    <Setter Property="Background" Value="{StaticResource WindowHoverBackgroundBrush}" />
+  </Style>
+
+  <!-- Danger variant -->
+  <Style Selector="Button.TransparentButtonStyleDanger">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{StaticResource ErrorBrush}" />
+    <Setter Property="Focusable" Value="False" />
+  </Style>
+  <Style Selector="Button.TransparentButtonStyleDanger:pointerover">
+    <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}" />
+  </Style>
+
+  <!-- Containers / panels -->
+  <Style Selector="Border.WorkerIndicatorBorder">
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{StaticResource BorderInterestBrush}" />
+    <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+  </Style>
+
+  <Style Selector="Border.Panel">
+    <Setter Property="Background" Value="{StaticResource ComplementaryBackgroundBrush}" />
+  </Style>
+  <Style Selector="StackPanel.Panel">
+    <Setter Property="Background" Value="{StaticResource ComplementaryBackgroundBrush}" />
+  </Style>
+  <Style Selector="Grid.Panel">
+    <Setter Property="Background" Value="{StaticResource ComplementaryBackgroundBrush}" />
+  </Style>
+
+  <Style Selector="Border.ToggleButtonContainer">
+    <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+  </Style>
+  <Style Selector="StackPanel.ToggleButtonContainer">
+    <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+  </Style>
+
+  <!-- Typography -->
+  <Style Selector="TextBlock.TitleStyle">
+    <Setter Property="FontSize" Value="20" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+  </Style>
+  <Style Selector="TextBlock.DescriptionStyle">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="Foreground" Value="{StaticResource DimForegroundBrush}" />
+  </Style>
+
+  <!-- File pickers -->
+  <Style Selector="TextBox.PickerStyle">
+    <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="4" />
+  </Style>
+  <Style Selector="Border.PickerStyle">
+    <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="4" />
+  </Style>
+</Styles>
