@@ -55,6 +55,32 @@
     </Setter>
   </ControlTheme>
 
+  <!--
+    Full template for DataGrid column headers. The packaged Fluent theme draws a hard-coded
+    white vertical separator whose visibility the DataGrid sets programmatically (a local value
+    that style setters cannot override), so the header is templated here instead.
+  -->
+  <ControlTheme x:Key="{x:Type DataGridColumnHeader}" TargetType="DataGridColumnHeader">
+    <Setter Property="Background" Value="{DynamicResource DarkBackgroundBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Padding" Value="10,6" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{DynamicResource ComplementaryPrimary08Brush}"
+                BorderThickness="0,0,0,1">
+          <ContentPresenter Margin="{TemplateBinding Padding}"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Left" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
   <ControlTheme x:Key="RangeSliderThumbTheme" TargetType="Thumb">
     <Setter Property="Template">
       <ControlTemplate>

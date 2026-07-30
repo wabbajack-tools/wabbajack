@@ -87,7 +87,10 @@
   <!-- DataGrid (modlist details archive list). The packaged Fluent DataGrid theme still paints
        light headers/rows under our palette, so restate the surfaces explicitly. -->
   <Style Selector="DataGrid">
-    <Setter Property="Background" Value="Transparent" />
+    <!-- Opaque, not Transparent: the details view paints a white Border behind the grid as the
+         source for its rounded-corner OpacityMask, which otherwise shows through the gap between
+         column headers as a white bar. -->
+    <Setter Property="Background" Value="{DynamicResource ComplementaryBackgroundBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorder}" />
     <Setter Property="GridLinesVisibility" Value="Horizontal" />
@@ -104,10 +107,16 @@
     <Setter Property="SeparatorBrush" Value="{DynamicResource DarkBackgroundBrush}" />
     <Setter Property="Padding" Value="10,6" />
   </Style>
-  <!-- The packaged theme draws the header separator as a light rectangle regardless of
-       SeparatorBrush, so restyle it directly. -->
-  <Style Selector="DataGridColumnHeader /template/ Rectangle#VerticalSeparator">
-    <Setter Property="Fill" Value="{DynamicResource DarkBackgroundBrush}" />
+  <!-- The column-resize grippers are Thumbs; Fluent's default Thumb theme paints them solid white
+       over the header. Make them invisible but still draggable. -->
+  <Style Selector="DataGridColumnHeader /template/ Thumb">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="Transparent" />
+      </ControlTemplate>
+    </Setter>
   </Style>
 
   <Style Selector="DataGridRow">
