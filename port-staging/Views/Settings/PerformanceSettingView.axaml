@@ -1,0 +1,25 @@
+<rxui:ReactiveUserControl
+    x:Class="Wabbajack.PerformanceSettingView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:rxui="clr-namespace:Avalonia.ReactiveUI;assembly=Avalonia.ReactiveUI"
+    x:TypeArguments="local:PerformanceSettingVM"
+    x:DataType="local:PerformanceSettingVM"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <Grid Margin="0, 0, 0, 8">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock x:Name="HumanNameTextBlock" FontWeight="Normal" VerticalAlignment="Center" />
+        <TextBox x:Name="MaxTasksTextBox" Grid.Column="2" TextAlignment="Center" Width="32" Height="32" />
+
+    </Grid>
+</rxui:ReactiveUserControl>

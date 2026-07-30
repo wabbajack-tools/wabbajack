@@ -1,0 +1,63 @@
+<UserControl
+    x:Class="Wabbajack.ImageRadioButtonView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Name="Root"
+    d:DesignHeight="35"
+    ClipToBounds="False"
+    mc:Ignorable="d">
+    <Grid>
+        <Border
+            x:Name="HoverOverPrimaryGlow"
+            Margin="-10"
+            Background="{StaticResource PrimaryVariantBrush}"
+            CornerRadius="15"
+            Opacity="0.3"
+            IsVisible="{Binding #Root.IsChecked}">
+            <Border.Effect>
+                <BlurEffect Radius="15" />
+            </Border.Effect>
+        </Border>
+        <Border
+            x:Name="SelectedSecondaryGlow"
+            Margin="-2"
+            Background="{StaticResource SecondaryBrush}"
+            CornerRadius="12"
+            Opacity="0.3"
+            IsVisible="{Binding #Root.IsChecked}">
+            <Border.Effect>
+                <BlurEffect Radius="10" />
+            </Border.Effect>
+        </Border>
+        <Button
+            x:Name="RadioButton"
+            Background="Transparent"
+            BorderThickness="0"
+            Click="Button_Click">
+            <Button.Template>
+                <ControlTemplate>
+                    <!--
+                        The original WPF Style.Triggers/MultiDataTrigger combination
+                        (blur the image only when the control is neither hovered nor
+                        checked) has no direct Avalonia Style-selector equivalent
+                        because IsMouseOver/IsChecked here are custom properties on the
+                        ancestor UserControl, not pseudo-classes on the Image itself.
+                        Translated to a code-behind driven Effect update instead
+                        (see UpdateBlurEffect in the code-behind). x:Name added so the
+                        code-behind can reach this element.
+                    -->
+                    <Image x:Name="RadioImage" Source="{Binding #Root.Image}" />
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+        <Border
+            BorderBrush="{StaticResource SecondaryBrush}"
+            BorderThickness="1"
+            CornerRadius="9"
+            Opacity="0.8"
+            IsVisible="{Binding #Root.IsChecked}" />
+    </Grid>
+</UserControl>

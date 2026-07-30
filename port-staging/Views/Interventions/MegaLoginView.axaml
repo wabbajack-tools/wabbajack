@@ -1,0 +1,153 @@
+<rxui:ReactiveUserControl
+    x:Class="Wabbajack.MegaLoginView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:rxui="using:Avalonia.ReactiveUI"
+    xmlns:ic="using:FluentIcons.Avalonia"
+    xmlns:vm="using:Wabbajack"
+    x:DataType="vm:MegaLoginVM"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:TypeArguments="vm:MegaLoginVM"
+    mc:Ignorable="d">
+    <Border
+        x:Name="AuthorFiles">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="16" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <TextBlock
+                FontSize="20"
+                FontWeight="Bold"
+                Text="Login to MEGA" />
+
+            <Button x:Name="CloseButton" Style="{StaticResource MainButtonStyle}" Background="Transparent"
+                    BorderThickness="0" HorizontalAlignment="Right" Padding="16" Margin="-16, -16, -16, 0" VerticalAlignment="Center">
+                <ic:SymbolIcon Symbol="Dismiss" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Right" />
+            </Button>
+
+            <!-- Source is assigned in code-behind from the embedded manifest resource stream, same as WPF. -->
+            <Image x:Name="MegaImage" Grid.Row="2" Height="64" />
+            <Grid x:Name="LoginGrid" Grid.Row="4" VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- TODO: MathConverter has no Avalonia build (see PORT_PLAN.md / CompilerMainView.axaml note).
+                     The WPF binding computed Width = AuthorFiles.ActualWidth / 3. Rebound to
+                     AuthorFiles.Bounds.Width with the same StaticResource key so intent is preserved
+                     until a real converter/VM-computed property replaces it. -->
+                <Grid Grid.Column="1" Width="{Binding #AuthorFiles.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/3}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="16" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="16" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="16" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Normal login -->
+                    <TextBlock Text="E-mail" Grid.Row="0" />
+                    <TextBox x:Name="EmailTextBox"
+                             Grid.Row="2"
+                             Watermark="Enter e-mail..." />
+                    <TextBlock Text="Password" Grid.Row="4" />
+                    <!-- WPF PasswordBox has no Avalonia equivalent control; masked TextBox + TextChanged
+                         reproduces the same behavior (ViewModel.Password set on every keystroke). -->
+                    <TextBox x:Name="PasswordBox" Grid.Row="6" PasswordChar="•" TextChanged="PasswordBox_PasswordChanged" />
+                    <local:WJButton x:Name="LoginButton" Grid.Row="8" Text="Login" Icon="PersonArrowRight" Width="Auto" ButtonStyle="Color" />
+                    <Border x:Name="StatusBorder" Grid.Row="10" Padding="12" Background="{StaticResource PrimaryBrush}" CornerRadius="8" IsVisible="False">
+                        <Grid x:Name="StatusGrid">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ic:SymbolIcon x:Name="StatusIcon"
+                                   Grid.Column="0"
+                                   Symbol="ArrowCounterclockwise"
+                                   FontSize="24"
+                                   Foreground="{StaticResource DarkBackgroundBrush}"
+                                   VerticalAlignment="Center" />
+                            <TextBlock x:Name="StatusText"
+                               Grid.Column="2"
+                               Text="Logging in..."
+                               Foreground="{StaticResource DarkBackgroundBrush}"
+                               VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <TextBlock Grid.Column="2" Padding="16, 0, 16, 0" FontSize="24" VerticalAlignment="Center" Text="or..." Foreground="{StaticResource DisabledButtonForeground}" />
+
+                <Grid Grid.Column="3" Width="{Binding #AuthorFiles.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/3}">
+                    <!-- Normal login -->
+                    <local:WJButton x:Name="LoginAnonymouslyButton" Text="Login anonymously" Icon="PersonArrowRight" Width="Auto" ButtonStyle="Color" />
+                </Grid>
+            </Grid>
+            <Grid x:Name="TwoFactorLoginGrid"
+                  Grid.Row="4"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Width="{Binding #AuthorFiles.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/3}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="16" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="16" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="16" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="Please enter your 2FA code below to log in." />
+                <TextBox
+                         x:Name="TwoFactorKeyTextBox"
+                         Grid.Row="2"
+                         Watermark="Enter 6-digit code..."
+                         Text="{Binding TwoFactorKey}"
+                         TextInput="TwoFactor_PreviewTextInput"
+                         MaxLength="6" />
+                <local:WJButton x:Name="TwoFactorLoginButton" Grid.Row="4" Text="Login" Icon="PersonArrowRight" Width="Auto" ButtonStyle="Color" />
+                <Border x:Name="TwoFactorStatusBorder" Grid.Row="6" Padding="12" Background="{StaticResource PrimaryBrush}" CornerRadius="8" IsVisible="False">
+                    <Grid x:Name="TwoFactorStatusGrid">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ic:SymbolIcon x:Name="TwoFactorStatusIcon"
+                                   Grid.Column="0"
+                                   Symbol="ArrowCounterclockwise"
+                                   FontSize="24"
+                                   Foreground="{StaticResource DarkBackgroundBrush}"
+                                   VerticalAlignment="Center" />
+                        <TextBlock x:Name="TwoFactorStatusText"
+                               Grid.Column="2"
+                               Text="Logging in..."
+                               Foreground="{StaticResource DarkBackgroundBrush}"
+                               VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</rxui:ReactiveUserControl>

@@ -1,0 +1,20 @@
+<Window
+    x:Class="Wabbajack.LoginWindowView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Login"
+    Width="800"
+    Height="450"
+    x:DataType="local:LoginWindowView"
+    d:DataContext="{d:DesignInstance local:LoginWindowView}"
+    Style="{StaticResource {x:Type Window}}"
+    mc:Ignorable="d">
+    <!-- TODO: WindowTitleBrush="{StaticResource MahApps.Brushes.Accent}" from mah:MetroWindow has no direct
+         Avalonia Window equivalent (MahApps-specific custom title bar chrome). Preserve the resource
+         reference here for the theme; wire up via ExtendClientAreaToDecorationsHint / custom chrome if a
+         MahApps-style colored title bar is required. -->
+    <Grid x:Name="Grid" />
+</Window>

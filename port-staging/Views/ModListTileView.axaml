@@ -1,0 +1,384 @@
+<UserControl
+    x:Class="Wabbajack.ModListTileView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:ic="using:FluentIcons.Avalonia"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:vm="clr-namespace:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:DataType="vm:BaseModListMetadataVM"
+    mc:Ignorable="d">
+    <!--
+        The WPF root was rxui:ReactiveUserControl x:TypeArguments="local:BaseModListMetadataVM".
+        Avalonia root kept as plain UserControl (per porting convention); the code-behind class
+        still derives from Avalonia.ReactiveUI.ReactiveUserControl<BaseModListMetadataVM>.
+    -->
+    <UserControl.Resources>
+        <Color x:Key="TextBackgroundFill">#92000000</Color>
+        <SolidColorBrush x:Key="TextBackgroundFillBrush" Color="{StaticResource TextBackgroundFill}" />
+        <Color x:Key="TextBackgroundHoverFill">#DF000000</Color>
+        <!--
+            BackgroundBlurStyle is not referenced anywhere else in this view (it was unused/dead
+            in the original WPF file too). Ported for fidelity; the WPF DataTrigger that animated
+            the TextBlock.Background color on the ancestor Button's IsMouseOver has no direct
+            Avalonia Style-selector equivalent (no "ancestor of type" pseudo-class), so it is left
+            as a TODO below instead of being silently dropped.
+        -->
+        <Style x:Key="BackgroundBlurStyle" Selector="TextBlock">
+            <Setter Property="Background" Value="{StaticResource TextBackgroundFillBrush}" />
+            <Setter Property="Foreground" Value="Transparent" />
+            <Setter Property="IsVisible" Value="True" />
+            <!-- TODO: trigger - DataTrigger on ancestor Button IsMouseOver animating
+                 (TextBlock.Background).(SolidColorBrush.Color) between TextBackgroundFill and
+                 TextBackgroundHoverFill over 0.06s. No cross-ancestor selector in Avalonia; if
+                 this style is ever wired up, reproduce via a bound Style selector or code-behind
+                 IsPointerOver subscription on the ancestor Button, with a ColorTransition. -->
+        </Style>
+    </UserControl.Resources>
+    <Button x:Name="ModlistButton" Style="{StaticResource MainButtonStyle}" Background="Transparent" Foreground="{StaticResource ForegroundBrush}" BorderThickness="0">
+        <Border
+        x:Name="ModListTile"
+        Margin="8, 0, 8, 16"
+        BorderThickness="0"
+        BorderBrush="{StaticResource ButtonBorder}">
+            <Border.Effect>
+                <!--
+                    WPF used a DropShadowEffect with ShadowDepth="3" (default Direction=315) and
+                    BlurRadius="25"/Opacity="0.25". Avalonia's DropShadowEffect has no
+                    ShadowDepth/Direction pair, only OffsetX/OffsetY, so the shadow offset is
+                    approximated with OffsetX="2" OffsetY="2" (~ShadowDepth 3 at 315 degrees).
+                -->
+                <DropShadowEffect
+                BlurRadius="25"
+                Opacity="0.25"
+                OffsetX="2"
+                OffsetY="2"
+                Color="Black" />
+            </Border.Effect>
+            <!--
+                WPF Style.Triggers DataTrigger on this Border's own IsMouseOver (ElementName=ModListTile,
+                which is this very Border) translates directly to the Avalonia self ("^") pseudo-class
+                selector, since it only depends on this element's own hover state.
+            -->
+            <Border.Styles>
+                <Style Selector="^:pointerover">
+                    <Setter Property="BorderBrush" Value="{StaticResource BorderInterestBrush}" />
+                </Style>
+            </Border.Styles>
+            <Grid>
+                <!--
+                    NOTE (MathConverter): WPF's MathConverter (inline arithmetic-expression converter)
+                    has no Avalonia build (see PORT_PLAN.md "Hard/risk" tier). All ConverterParameter
+                    math-expression bindings below keep the same StaticResource key name/parameter
+                    string so a future Avalonia-compatible MathConverter implementation can be dropped
+                    in without further XAML changes; until then these bindings will not evaluate.
+                    ActualWidth/ActualHeight (WPF) -> Bounds.Width/Bounds.Height (Avalonia).
+                -->
+                <Border x:Name="MaskBorder" BorderThickness="0" BorderBrush="Transparent" Background="{StaticResource DarkSecondaryBrush}" Width="{Binding #MainGrid.Bounds.Width}" Height="{Binding #MainGrid.Bounds.Height}"/>
+                <Grid x:Name="MainGrid" Width="476" Height="{Binding #MainGrid.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x*9/16}" Background="Transparent" ClipToBounds="True">
+                    <Grid.OpacityMask>
+                        <VisualBrush Visual="{Binding #MaskBorder}"/>
+                    </Grid.OpacityMask>
+                    <Grid ClipToBounds="True">
+                        <!-- MahApps ProgressRing -> nearest Avalonia built-in: ProgressBar (IsIndeterminate). -->
+                        <ProgressBar x:Name="LoadingProgress" IsIndeterminate="True" Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+                        <!--
+                            WPF Visibility was a MultiBinding with MathConverter expression
+                            "Or(!x,y) ? `Visible` : `Collapsed`" over (ImageContainsTitle, ModListTile.IsMouseOver).
+                            Since MathConverter has no Avalonia build, this compound
+                            (!VM-property || element-hover) condition is reproduced in code-behind
+                            (see ModListTileView.axaml.cs) rather than left broken in XAML.
+                        -->
+                        <Grid x:Name="TitleOverlayGrid" Margin="8, 0, 0, 8" ZIndex="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" MaxWidth="400" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="1"
+                                VerticalAlignment="Top"
+                                FontWeight="Bold"
+                                TextWrapping="Wrap"
+                                FontSize="24"
+                                Margin="0, 0, 0, 2"
+                                Text="{Binding Metadata.Title}"
+                                MaxWidth="400" />
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="2"
+                                VerticalAlignment="Bottom"
+                                TextWrapping="Wrap"
+                                FontSize="13">
+                                <Run Text="by" Foreground="{StaticResource Transparent66ForegroundBrush}" />
+                                <Run Text="{Binding Metadata.Author}" />
+                            </TextBlock>
+
+                            <StackPanel
+                                  Orientation="Horizontal"
+                                  Grid.ColumnSpan="3"
+                                  Grid.Row="2"
+                                  Grid.Column="0"
+                                  VerticalAlignment="Bottom"
+                                  HorizontalAlignment="Right">
+                                <ic:SymbolIcon x:Name="DownloadSizeIcon"
+                                               Grid.Column="0"
+                                               Height="14"
+                                               Margin="0, 0, 4, 0"
+                                               VerticalAlignment="Bottom"
+                                               Foreground="{StaticResource Transparent66ForegroundBrush}"
+                                               FontSize="13"
+                                               Symbol="ArrowDownload"
+                                               IconVariant="Filled" />
+                                <TextBlock x:Name="DownloadSizeRun"
+                                           Grid.Column="1"
+                                           Height="14"
+                                           Margin="0, 0, 8, 0"
+                                           VerticalAlignment="Bottom"
+                                           Foreground="{StaticResource Transparent66ForegroundBrush}"
+                                           FontSize="13"/>
+
+                                <ic:SymbolIcon x:Name="InstallSizeIcon"
+                                               Grid.Column="3"
+                                               Height="14"
+                                               Margin="0, 0, 4, 0"
+                                               VerticalAlignment="Bottom"
+                                               Foreground="{StaticResource Transparent66ForegroundBrush}"
+                                               FontSize="13"
+                                               Symbol="Games"
+                                               IconVariant="Filled" />
+                                <TextBlock x:Name="InstallSizeRun"
+                                           Grid.Column="4"
+                                           Height="14"
+                                           Margin="0, 0, 8, 0"
+                                           VerticalAlignment="Bottom"
+                                           Foreground="{StaticResource Transparent66ForegroundBrush}"
+                                           FontSize="13"
+                                           />
+
+<!--
+                                <ic:SymbolIcon x:Name="TotalSizeIcon"
+                                               Grid.Column="0"
+                                               Grid.Row="2"
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource Transparent66ForegroundBrush}"
+                                               FontSize="13"
+                                               Symbol="HardDrive"
+                                               IconVariant="Filled" />
+                                <TextBlock x:Name="TotalSizeRun"
+                                           Grid.Column="1"
+                                           Grid.Row="2"
+                                           Margin="4, 0, 0, 0"
+                                           VerticalAlignment="Center"
+                                           Foreground="{StaticResource Transparent66ForegroundBrush}"
+                                           FontSize="13"
+                                           TextWrapping="Wrap" />
+                                           -->
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="8, 8, 0, 0" VerticalAlignment="Top" HorizontalAlignment="Stretch" ZIndex="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="4" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border x:Name="GameIcon" Grid.Column="0" Width="26" Height="26" CornerRadius="6">
+                                <Border.Background>
+                                    <ImageBrush Stretch="Fill" Source="{Binding GameMetaData.IconSource}"/>
+                                </Border.Background>
+                            </Border>
+                            <!-- WPF: Visibility via bool2VisibilityConverter (no ConverterParameter) is a
+                                 straightforward direct-bool case -> converter dropped, bind IsVisible directly. -->
+                            <Grid Grid.Column="2"
+                                  IsVisible="{Binding #ModListTile.IsPointerOver}">
+                                <TextBlock x:Name="GameName"
+                                       Text="{Binding GameMetaData.HumanFriendlyGameName}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Opacity="0.85"
+                                       ZIndex="2"/>
+                                <Border Background="{StaticResource WindowBackgroundBrush}" Opacity="0.66" Width="{Binding #GameName.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x+16}" Height="{Binding #GameIcon.Bounds.Height}" CornerRadius="4"/>
+                            </Grid>
+
+                            <!-- WPF: MultiBinding+MultiBoolToVisibilityConverter over a SINGLE binding
+                                 (Metadata.NSFW) is equivalent to a direct bool bind -> converter dropped. -->
+                            <Grid x:Name="NSFWTagGrid" Grid.Column="4" HorizontalAlignment="Right"
+                                  IsVisible="{Binding Metadata.NSFW}">
+                                <Grid>
+                                    <Grid.Effect>
+                                        <BlurEffect Radius="30" />
+                                    </Grid.Effect>
+                                    <Rectangle Margin="-4" Fill="{StaticResource NSFWBrush}" Width="{Binding #NSFW.Bounds.Width}" Height="{Binding #NSFW.Bounds.Height}" />
+                                </Grid>
+                                <TextBlock x:Name="NSFW"
+                                       Text="NSFW"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Opacity="0.85"
+                                       ZIndex="2"/>
+                                <Border Background="{StaticResource NSFWBrush}" Width="{Binding #NSFW.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x+16}" Height="{Binding #GameIcon.Bounds.Height}" CornerRadius="4">
+                                </Border>
+                            </Grid>
+                            <!-- WPF: MultiBinding+MultiBoolToVisibilityConverter over a SINGLE binding
+                                 (IsBroken) is equivalent to a direct bool bind -> converter dropped. -->
+                            <Grid Grid.Column="6" Margin="0, 0, 8, 0" HorizontalAlignment="Right"
+                                  IsVisible="{Binding IsBroken}">
+                                <Grid>
+                                    <Grid.Effect>
+                                        <BlurEffect Radius="30" />
+                                    </Grid.Effect>
+                                    <Rectangle Margin="-4" Fill="{StaticResource UnavailableBrush}" Width="{Binding #Unavailable.Bounds.Width}" Height="{Binding #Unavailable.Bounds.Height}" />
+                                </Grid>
+                                <TextBlock x:Name="Unavailable"
+                                       Text="Unavailable"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Opacity="0.85"
+                                       ZIndex="2"/>
+                                <Border Background="{StaticResource UnavailableBrush}" Width="{Binding #Unavailable.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x+16}" Height="{Binding #GameIcon.Bounds.Height}" CornerRadius="4">
+                                </Border>
+                            </Grid>
+                        </Grid>
+                        <!--
+                            WPF Style.Triggers held a MultiDataTrigger:
+                              IsMouseOver(ModListTile) == true AND IsBroken == true
+                            setting Effect=BlurEffect(25) on this Border. This spans an element's
+                            pointer state AND a VM property, which has no Avalonia Style-selector
+                            equivalent (no bound-property + pseudo-class combined selector), so it is
+                            reproduced in code-behind (see ModListTileView.axaml.cs) alongside the
+                            sibling Grid's Background swap that shared the exact same condition.
+                        -->
+                        <Border
+                        x:Name="ImageEffectBorder"
+                        BorderThickness="0"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                            >
+                            <Border.Background>
+                                <ImageBrush x:Name="ModlistImage" Stretch="UniformToFill"/>
+                            </Border.Background>
+                            <Grid x:Name="ImageEffectGrid" Opacity="0.75">
+                            </Grid>
+                        </Border>
+                        <!--
+                            WPF DataTrigger on ModListTile.IsMouseOver animated this Rectangle's Opacity
+                            (0.05 <-> 0.3) over 0.08s via Storyboard/DoubleAnimation. Reproduced with a
+                            Transition here plus a code-behind IsPointerOver subscription that assigns
+                            Opacity directly (see ModListTileView.axaml.cs), mirroring the
+                            CompiledModListTileView.axaml precedent.
+                        -->
+                        <Rectangle
+                        x:Name="TopGlowRectangle"
+                        Height="120"
+                        Margin="-80, -95, -80, 0"
+                        VerticalAlignment="Top"
+                        Fill="White"
+                        Opacity="0.05">
+                            <Rectangle.Effect>
+                                <BlurEffect Radius="100" />
+                            </Rectangle.Effect>
+                            <Rectangle.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Opacity" Duration="0:0:0.08" />
+                                </Transitions>
+                            </Rectangle.Transitions>
+                        </Rectangle>
+                        <!--
+                            WPF: Visibility via bool2VisibilityConverter (no ConverterParameter, straightforward)
+                            -> converter dropped, bind IsVisible directly to ImageContainsTitle.
+                            The MultiDataTrigger's Opacity animation (ModListTile.IsMouseOver: 0 <-> 0.75)
+                            is reproduced the same way as TopGlowRectangle, via Transition + code-behind.
+                        -->
+                        <Rectangle
+                        x:Name="MidGlowRectangle"
+                        Height="120"
+                        Margin="-80, 0, -80, -75"
+                        VerticalAlignment="Bottom"
+                        Fill="Black"
+                        Opacity="0"
+                        IsVisible="{Binding ImageContainsTitle}">
+                            <Rectangle.Effect>
+                                <BlurEffect Radius="100" />
+                            </Rectangle.Effect>
+                            <Rectangle.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Opacity" Duration="0:0:0.08" />
+                                </Transitions>
+                            </Rectangle.Transitions>
+                        </Rectangle>
+
+                        <!--
+                            WPF: Visibility via bool2VisibilityHiddenConverter (no ConverterParameter) is the
+                            inverse of bool2VisibilityConverter (True -> Collapsed, False -> Visible) ->
+                            straightforward, converter dropped, bind IsVisible to the negated bool via
+                            Avalonia's "!" binding-path negation operator. No hover animation on this one
+                            in the original (static Opacity="0.75").
+                        -->
+                        <Rectangle
+                        Height="120"
+                        Margin="-80, 0, -80, -75"
+                        VerticalAlignment="Bottom"
+                        Fill="Black"
+                        Opacity="0.75"
+                        IsVisible="{Binding !ImageContainsTitle}">
+                            <Rectangle.Effect>
+                                <BlurEffect Radius="100" />
+                            </Rectangle.Effect>
+                        </Rectangle>
+
+                        <!--
+                            WPF: Visibility via MultiBinding+MultiBoolToVisibilityConverter over TWO
+                            bindings (IsBroken AND ModListTile.IsMouseOver) is a straightforward AND of
+                            two booleans -> translated to Avalonia's built-in BoolConverters.And multi-value
+                            converter instead of a custom converter class.
+                        -->
+                        <TextBlock
+                           xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
+                           Margin="16"
+                           FontSize="16"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Left"
+                           Text="A game or mod update has made the list unavailable for installation. The modlist requires an update from its author before it is installable. Contact the author(s) for more information."
+                           TextWrapping="WrapWithOverflow">
+                            <TextBlock.IsVisible>
+                                <MultiBinding Converter="{x:Static conv:BoolConverters.And}">
+                                    <Binding Path="IsBroken" />
+                                    <Binding ElementName="ModListTile" Path="IsPointerOver" />
+                                </MultiBinding>
+                            </TextBlock.IsVisible>
+                            <TextBlock.Effect>
+                                <!--
+                                    WPF used DropShadowEffect ShadowDepth="3" (default Direction=315),
+                                    approximated the same way as the outer Border's shadow above.
+                                -->
+                                <DropShadowEffect OffsetX="2" OffsetY="2" BlurRadius="10" Opacity="0.5" Color="{StaticResource BackgroundColor}" />
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Border>
+    </Button>
+</UserControl>

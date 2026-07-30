@@ -1,0 +1,197 @@
+<rxui:ReactiveUserControl
+    x:Class="Wabbajack.CompilerDetailsView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:vm="using:Wabbajack"
+    xmlns:rxui="using:Avalonia.ReactiveUI"
+    xmlns:fluent="using:FluentIcons.Avalonia"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:TypeArguments="vm:CompilerDetailsVM"
+    x:DataType="vm:CompilerDetailsVM"
+    d:DataContext="{d:DesignInstance vm:CompilerDetailsVM}"
+    mc:Ignorable="d">
+    <ScrollViewer x:Name="SettingsScrollViewer" Background="Transparent" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <Grid>
+            <Grid.Resources>
+                <Thickness x:Key="TitleMargin" Top="8" Bottom="8" />
+                <Thickness x:Key="TextPanelMargin" Right="16" />
+                <!--
+                    WPF used <Style x:Key="..." TargetType="..." BasedOn="...">, applied explicitly via
+                    Style="{StaticResource ...}" on individual controls. Avalonia's per-instance,
+                    TargetType+BasedOn reusable style construct is ControlTheme (applied via the
+                    control's Theme property), so these are translated to ControlTheme rather than Style.
+                -->
+                <ControlTheme x:Key="ValueStyle" TargetType="TextBox" BasedOn="{StaticResource MainTextBoxStyle}">
+                    <Setter Property="MaxLength" Value="150" />
+                    <Setter Property="AcceptsTab" Value="False" />
+                    <Setter Property="Margin" Value="0,0,0,8" />
+                </ControlTheme>
+                <ControlTheme x:Key="PickerStyle" TargetType="local:FilePicker" BasedOn="{StaticResource MainFilePickerStyle}">
+                    <Setter Property="Margin" Value="0,0,0,8" />
+                </ControlTheme>
+            </Grid.Resources>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Margin="{StaticResource TextPanelMargin}">
+                <DockPanel HorizontalAlignment="Stretch">
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
+                </DockPanel>
+                <TextBox x:Name="AuthorNameSetting" Theme="{StaticResource ValueStyle}" Watermark="Author name(s)..." />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Version" />
+                <TextBox x:Name="VersionSetting" MaxLength="9" Theme="{StaticResource ValueStyle}" Watermark="1.0.0..." />
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Margin="{StaticResource TextPanelMargin}">
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Title" />
+                <TextBox x:Name="ModListNameSetting" Theme="{StaticResource ValueStyle}" Watermark="Modlist name..." />
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Selected MO2 Profile" />
+                <!-- TODO: WPF's IsSynchronizedWithCurrentItem="True" has no Avalonia equivalent (no ICollectionView); dropped. -->
+                <ComboBox x:Name="ProfileSetting">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <TextBlock Padding="2,8,0,8" Text="{Binding}" VerticalAlignment="Center" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
+                <TextBox x:Name="DescriptionSetting" Height="135" VerticalContentAlignment="Top" Watermark="A comprehensive overhaul of..." AcceptsReturn="True" AcceptsTab="False" MaxLength="999" Theme="{StaticResource ValueStyle}" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Image" />
+                <local:FilePicker x:Name="ImageFilePicker" Theme="{StaticResource PickerStyle}" Icon="DocumentImage" ToolTip.Tip="Path to an image to display for the modlist." Watermark="C:\...\Thumbnail-1600x900.webp" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Downloads folder" />
+                <local:FilePicker x:Name="DownloadsPicker" Theme="{StaticResource PickerStyle}" Icon="Folder" ToolTip.Tip="Path to the folder where the downloaded archives of your modlist are stored" Watermark="C:\...\downloads" />
+            </StackPanel>
+            <StackPanel Grid.Row="5" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Export destination" />
+                <local:FilePicker x:Name="OutputFilePicker" Theme="{StaticResource PickerStyle}" Icon="Folder" ToolTip.Tip="Path to the file where the list installer will be saved to on completion" Watermark="C:\...\Modlist.wabbajack" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="6" Margin="{StaticResource TextPanelMargin}">
+                <DockPanel>
+                    <!-- NOTE: WPF also set mahapps:TextBoxHelper.Watermark on this TextBlock; that attached property has no
+                         rendering effect on a non-editable TextBlock in WPF either, so it is dropped here as dead markup. -->
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Documentation (Readme)" ToolTip.Tip="Link to the documentation." />
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
+                </DockPanel>
+                <TextBox x:Name="ReadmeSetting" Theme="{StaticResource ValueStyle}" Watermark="https://www..." />
+            </StackPanel>
+            <StackPanel Grid.Row="6" Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
+                <DockPanel>
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
+                </DockPanel>
+                <TextBox x:Name="WebsiteSetting" Theme="{StaticResource ValueStyle}" Watermark="https://www..." />
+            </StackPanel>
+            <StackPanel Grid.Row="7" Margin="{StaticResource TextPanelMargin}">
+                <DockPanel>
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Community" />
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
+                </DockPanel>
+                <TextBox x:Name="CommunitySetting" Theme="{StaticResource ValueStyle}" Watermark="https://discord.gg/..." />
+            </StackPanel>
+            <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Vertical" Margin="{StaticResource TextPanelMargin}">
+                <DockPanel>
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Machine URL" ToolTip.Tip="Unique text string for this modlist prefixed with its GitHub repository name." />
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
+                </DockPanel>
+                <TextBox x:Name="MachineUrl" Theme="{StaticResource ValueStyle}" Watermark="modlistRepository/ModlistName" />
+            </StackPanel>
+            <StackPanel Grid.Row="8" Margin="{StaticResource TextPanelMargin}">
+                <CheckBox
+                    x:Name="NSFWSetting"
+                    Margin="{StaticResource TitleMargin}"
+                    ToolTip.Tip="Select this if your modlist has adult themed content such as SexLab or other mods involving sexual acts. Nude body replacer do not fall under this category, neither do revealing outfits or gore.">
+                    <TextBlock Text="Not Safe For Work (NSFW)" FontSize="10" VerticalAlignment="Center" />
+                </CheckBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="8" Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
+                <CheckBox
+                    x:Name="TextureRecompressionSetting"
+                    Margin="{StaticResource TitleMargin}"
+                    ToolTip.Tip="If this box is ticked, Wabbajack will recompress DDS textures to save on export file size rather than using the default binary patching method.">
+                    <TextBlock Text="Enable Texture Recompression" FontSize="10" VerticalAlignment="Center" />
+                </CheckBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="9" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
+                <CheckBox
+                    x:Name="AutoGenerateReportSetting"
+                    Margin="{StaticResource TitleMargin}"
+                    ToolTip.Tip="If ticked, Wabbajack will generate an HTML report next to the .wabbajack after compilation.">
+                    <TextBlock Text="Auto-generate Modlist HTML Report" FontSize="10" VerticalAlignment="Center" />
+                </CheckBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="10" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}" ToolTip.Tip="Wabbajack will include selected profiles as part of the modlist alongside your main selected MO2 profile.">
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Additional profile(s)" />
+                <ListBox SelectionMode="Multiple" x:Name="AdditionalProfilesSetting">
+                    <ListBox.Resources>
+                        <!--
+                            WPF's implicit-by-TargetType <Style TargetType="ListBoxItem" BasedOn="...">
+                            (applies automatically to every ListBoxItem in scope) maps to an Avalonia
+                            ControlTheme keyed by the target type itself, which Avalonia treats as the
+                            implicit theme for that control type within this resource scope.
+                        -->
+                        <ControlTheme x:Key="{x:Type ListBoxItem}" TargetType="ListBoxItem" BasedOn="{StaticResource ListBoxItemStyle}">
+                            <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+                        </ControlTheme>
+                    </ListBox.Resources>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <fluent:SymbolIcon
+                                    Grid.Column="0"
+                                    FontSize="13"
+                                    Symbol="Checkmark"
+                                    IsVisible="{Binding $parent[ListBoxItem].IsSelected}"
+                                    Margin="0,0,0,0" />
+                                <TextBlock Grid.Column="2" Padding="4,8,0,8" Text="{Binding}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+
+        </Grid>
+    </ScrollViewer>
+</rxui:ReactiveUserControl>

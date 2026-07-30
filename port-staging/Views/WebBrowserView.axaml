@@ -1,0 +1,77 @@
+<UserControl
+    x:Class="Wabbajack.WebBrowserView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="using:Wabbajack"
+    xmlns:vm="using:Wabbajack"
+    x:DataType="vm:WebBrowserVM"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <!--
+        TODO: Command="{Binding BackCommand}" below is preserved verbatim from the WPF source, but
+        WebBrowserVM (Wabbajack.App.Wpf/ViewModels/WebBrowserVM.cs) has no BackCommand member - it only
+        exposes CloseCommand (via IBackNavigatingVM). This binding was already dead/silently-failing in
+        the WPF original; not fixed here per faithful-port scope (same situation as the sibling
+        BethesdaNetLoginView port).
+    -->
+    <UserControl.Resources>
+        <Color x:Key="TextBackgroundFill">#92000000</Color>
+        <SolidColorBrush x:Key="TextBackgroundFillBrush" Color="{StaticResource TextBackgroundFill}" />
+        <Color x:Key="TextBackgroundHoverFill">#DF000000</Color>
+        <!--
+            TODO: trigger - the WPF style used a DataTrigger on the ancestor Button's IsMouseOver to
+            ColorAnimation the TextBlock.Background between TextBackgroundFill and TextBackgroundHoverFill
+            (0.06s). Avalonia has no DataTrigger/Storyboard equivalent. Also note this style is not actually
+            applied to any element in this view (dead resource in the WPF source too). Nearest faithful
+            translation, if this is ever wired up to a TextBlock inside a Button, would be a
+            Style Selector="Button:pointerover TextBlock.BackgroundBlurStyle" setting Background to
+            TextBackgroundHoverFillBrush, combined with a Transitions entry on the TextBlock for the
+            0.06s ease. Left as a ControlTheme (keyed like the WPF Style) without the hover animation.
+        -->
+        <ControlTheme x:Key="BackgroundBlurStyle" TargetType="TextBlock">
+            <Setter Property="Background" Value="{StaticResource TextBackgroundFillBrush}" />
+            <Setter Property="Foreground" Value="Transparent" />
+            <Setter Property="IsVisible" Value="True" />
+        </ControlTheme>
+    </UserControl.Resources>
+    <Grid Background="White">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="47" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <local:TopProgressView Grid.Row="0" Grid.RowSpan="1"
+            Title="{Binding Instructions}"
+            Background="#92000000"
+            ShadowMargin="False" />
+        <Button Grid.Row="0"
+            x:Name="BackButton"
+            Width="30"
+            Height="30"
+            Margin="7,5,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Command="{Binding BackCommand}"
+            Style="{StaticResource IconCircleButtonStyle}"
+            ToolTip.Tip="Back to main menu">
+            <!--
+                TODO: original commented-out icon used MahApps.IconPacks (iconPacks:PackIconMaterial
+                Kind="ArrowLeft") bound to the ancestor Button's own Foreground - no direct Avalonia
+                convention is specified for MahApps IconPacks (unlike FluentIcons.Wpf -> FluentIcons.Avalonia).
+                Left commented out, unconverted, matching the WPF source's already-inactive state.
+                <iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
+            -->
+        </Button>
+        <!--  Do it this way so we can access the browser directly from the VM  -->
+        <!--
+            TODO: Browser is a `dynamic` property on WebBrowserVM, currently assigned from a commented-out
+            `cefService.CreateBrowser()` call (CefSharp is a WPF-only Chromium Embedded Framework control).
+            The ContentControl below preserves the WPF binding as-is, but a real Avalonia port of this view
+            will need an Avalonia-compatible web view control (e.g. a CefGlue/WebView wrapper) plugged into
+            Browser before this control renders anything.
+        -->
+        <ContentControl Grid.Row="1" Content="{Binding Browser}" />
+    </Grid>
+</UserControl>

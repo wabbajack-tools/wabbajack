@@ -1,0 +1,34 @@
+<rxui:ReactiveUserControl
+    x:Class="Wabbajack.CpuLineView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:vm="using:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:rxui="using:Avalonia.ReactiveUI"
+    xmlns:ic="using:FluentIcons.Avalonia"
+    d:DesignHeight="65"
+    d:DesignWidth="400"
+    x:TypeArguments="vm:CPUDisplayVM"
+    x:DataType="vm:CPUDisplayVM"
+    mc:Ignorable="d">
+    <Border x:Name="BorderMask2" CornerRadius="8" BorderThickness="0" Background="White">
+        <Grid Margin="-1">
+            <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1" />
+            <Grid Height="32" Background="{StaticResource ComplementaryPrimary08Brush}">
+                <Grid.OpacityMask>
+                    <VisualBrush Visual="{Binding #BorderMask}"/>
+                </Grid.OpacityMask>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ProgressBar Grid.ColumnSpan="2" x:Name="BackgroundProgressBar" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ComplementaryPrimary16Brush}" Maximum="1" />
+                <ic:SymbolIcon x:Name="Icon" FontSize="18" Foreground="{StaticResource PrimaryBrush}" Margin="8, 0, 0, 0" HorizontalAlignment="Left" VerticalAlignment="Center" IsVisible="False" />
+                <TextBlock x:Name="Text" Margin="32, 0, 0, 0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" TextWrapping="NoWrap" />
+                <TextBlock x:Name="Progress" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="NoWrap" Margin="0, 0, 8, 0" />
+            </Grid>
+        </Grid>
+    </Border>
+</rxui:ReactiveUserControl>

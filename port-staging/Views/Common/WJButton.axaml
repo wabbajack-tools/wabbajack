@@ -1,0 +1,30 @@
+<Button
+    x:Name="WJButtonElement"
+    x:Class="Wabbajack.WJButton"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:fluent="using:FluentIcons.Avalonia"
+    x:DataType="local:WJButtonVM"
+    ClipToBounds="True"
+    d:DesignHeight="38"
+    d:DesignWidth="200"
+    Width="200"
+    Height="38"
+    mc:Ignorable="d">
+    <!--
+        WPF's RelativeSource FindAncestor/AncestorType=Button (from this Grid, the
+        nearest Button ancestor in the visual tree is this control itself, since the
+        Grid is this Button's own Content) becomes Avalonia's $parent[Button] ancestor
+        binding. Bounds.Width is Avalonia's ActualWidth equivalent.
+    -->
+    <Grid Width="{Binding $parent[Button].Bounds.Width}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <TextBlock x:Name="ButtonTextBlock" VerticalAlignment="Center" Margin="10, 4, 10, 4" />
+        <fluent:SymbolIcon x:Name="ButtonSymbolIcon" FontSize="18" VerticalAlignment="Center" Margin="10, 4, 10, 4" />
+    </Grid>
+</Button>

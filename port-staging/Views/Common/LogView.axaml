@@ -1,0 +1,86 @@
+<UserControl
+    x:Class="Wabbajack.LogView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:vm="clr-namespace:Wabbajack"
+    xmlns:models="clr-namespace:Wabbajack.Models"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:DataType="vm:CompilerMainVM"
+    mc:Ignorable="d">
+    <!--
+        TODO (DataContext ambiguity): LogView is reused, unmodified, from several
+        ViewModels (CompilerMainVM, CompilerDetailsVM, InstallationVM, ...) that each
+        declare their own `LogStream LoggerProvider` property but share no common
+        interface/base class. x:DataType above is a best-effort placeholder
+        (CompilerMainVM - the first consumer found) for design-time tooling only;
+        no binding in this file actually relies on it, because LoggerProvider is
+        resolved dynamically in code-behind (see LogView.axaml.cs), the same way the
+        original WPF {Binding LoggerProvider.MessageLog} resolved it reflectively off
+        whatever DataContext was in scope. Consider extracting a shared
+        `ILogViewModel { LogStream LoggerProvider }` interface so this view can bind
+        normally with a single x:DataType.
+
+        TODO (CollectionViewSource): WPF's <UserControl.Resources><CollectionViewSource
+        Source="{Binding LoggerProvider.MessageLog}" Filter="CollectionViewSource_Filter"/>
+        has no Avalonia equivalent (no CollectionViewSource type). The same filter
+        (row.Level.Ordinal >= 2, i.e. hide Trace/Debug) is reproduced in code-behind with
+        DynamicData's .Filter() operator over LoggerProvider.MessageLog, and the resulting
+        live filtered collection is assigned directly to LogListBox.ItemsSource.
+    -->
+    <Border x:Name="BorderMask2" CornerRadius="8" BorderThickness="0" Background="White">
+        <Grid Margin="-1">
+            <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1" />
+            <Grid>
+                <Grid.OpacityMask>
+                    <VisualBrush Visual="{Binding #BorderMask}" />
+                </Grid.OpacityMask>
+                <ListBox
+                    x:Name="LogListBox"
+                    local:AutoScrollBehavior.ScrollOnNewItem="True"
+                    BorderBrush="Transparent"
+                    BorderThickness="0"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <!--
+                        TODO (AutoScrollBehavior): Util/AutoScrollBehavior.cs is a WPF-only
+                        attached behavior (System.Windows.Controls.ListBox,
+                        DependencyProperty, TypeDescriptor property-change notifications). It
+                        has not been ported to Avalonia yet (out of scope for this view), so
+                        this attached property reference will not compile until an
+                        Avalonia-compatible AutoScrollBehavior (AvaloniaProperty-based, using
+                        Avalonia's ListBox/ItemsControl) is added alongside this file.
+                    -->
+                    <ListBox.Styles>
+                        <!--
+                            TODO (alternating row style): WPF's
+                            Style BasedOn="{StaticResource ListBoxItemStyle}" has no direct
+                            Avalonia equivalent for a keyed Style resource (Avalonia style
+                            reuse is via Selector cascading or ControlTheme, not BasedOn).
+                            Once ListBoxItemStyle is ported to Avalonia (as a ControlTheme),
+                            apply it via ListBox.ItemContainerTheme instead of inline here.
+
+                            WPF's ItemsControl.AlternationIndex/AlternationCount also has no
+                            Avalonia equivalent; the same odd/even row striping is reproduced
+                            below with the :nth-child() structural selector (1-based, so
+                            AlternationIndex 0 == odd rows, AlternationIndex 1 == even rows).
+                        -->
+                        <Style Selector="ListBoxItem:nth-child(2n+1)">
+                            <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+                        </Style>
+                        <Style Selector="ListBoxItem:nth-child(2n)">
+                            <Setter Property="Background" Value="{StaticResource LogViewAlternateBrush}" />
+                        </Style>
+                    </ListBox.Styles>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:LogStream+ILogMessage">
+                            <TextBlock Text="{Binding ShortMessage}" FontSize="13" Margin="0, 2, 0, 2" VerticalAlignment="Center" TextWrapping="WrapWithOverflow" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

@@ -1,0 +1,45 @@
+<reactiveUi:ReactiveUserControl x:TypeArguments="vm:BrowserWindowViewModel"
+                                x:Class="Wabbajack.Views.BrowserView"
+                                xmlns="https://github.com/avaloniaui"
+                                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                                xmlns:webview2="using:Avalonia.Controls"
+                                xmlns:reactiveUi="http://reactiveui.net"
+                                xmlns:vm="using:Wabbajack"
+                                x:DataType="vm:BrowserWindowViewModel"
+                                mc:Ignorable="d"
+                                d:DesignHeight="300" d:DesignWidth="300">
+    <!--
+        TODO(icons): the original WPF markup had two commented-out MahApps
+        iconPacks:PackIconModern icons (NavigatePrevious / Home) on the nav
+        buttons below. They were inert in WPF (commented out) and are kept
+        inert here; if they're ever reinstated, swap to FluentIcons.Avalonia
+        (xmlns:fluent="using:FluentIcons.Avalonia") with matching Symbol names
+        rather than restoring the MahApps iconPacks reference.
+    -->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="30"></ColumnDefinition>
+            <ColumnDefinition Width="30"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+
+        <Button Grid.Row="0" Grid.Column="0">
+            <!--<iconPacks:PackIconModern Kind="NavigatePrevious"></iconPacks:PackIconModern>-->
+        </Button>
+        <Button  Grid.Row="0" Grid.Column="1">
+            <!--<iconPacks:PackIconModern Kind="Home"></iconPacks:PackIconModern>-->
+        </Button>
+        <!-- NOTE: Grid.Column="3" is preserved verbatim from the WPF source even
+             though the Grid only defines columns 0-2; this appears to be a
+             pre-existing bug in the original view (the TextBox lands outside the
+             declared columns) and is kept as-is for a faithful port. -->
+        <TextBox  Grid.Row="0" Grid.Column="3" VerticalContentAlignment="Center"></TextBox>
+        <webview2:WebView2  Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" x:Name="Browser"></webview2:WebView2>
+    </Grid>
+</reactiveUi:ReactiveUserControl>

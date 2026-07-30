@@ -1,0 +1,381 @@
+<rxui:ReactiveUserControl
+    x:Class="Wabbajack.ModListDetailsView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Wabbajack"
+    xmlns:vm="using:Wabbajack"
+    xmlns:rxui="using:Avalonia.ReactiveUI"
+    xmlns:ic="using:FluentIcons.Avalonia"
+    xmlns:dg="using:Avalonia.Controls"
+    x:TypeArguments="vm:ModListDetailsVM"
+    x:DataType="vm:ModListDetailsVM"
+    mc:Ignorable="d"
+    d:DesignHeight="300" d:DesignWidth="300">
+    <!--
+        TODO (namespace/control swaps for this whole file):
+        - xmlns:mahapps (MahApps.Metro TextBoxHelper.Watermark) dropped: Avalonia's TextBox has a
+          native Watermark property, used directly below.
+        - xmlns:dtoStates (Wabbajack.DTOs.DownloadStates) and xmlns:wpf (Microsoft.Web.WebView2.Wpf)
+          were declared in the WPF file but never referenced in its markup, so they were dropped here.
+        - xmlns:dg="using:Avalonia.Controls" is added for <dg:DataGrid> / <dg:DataGridTemplateColumn>,
+          which live in the separate Avalonia.Controls.DataGrid NuGet package. That package reference
+          is NOT yet present in Wabbajack.App.Avalonia.csproj (out of scope for this read-only port) -
+          it must be added before this view can compile.
+        - MathConverter (used repeatedly below for ActualWidth/ActualHeight-derived sizing) has no
+          confirmed Avalonia build; WPF's ElementName ActualWidth/ActualHeight bindings were translated
+          to Avalonia's #Element.Bounds.Width / Bounds.Height, keeping the same StaticResource
+          MathConverter key so intent is preserved until a real converter/behavior replaces it
+          (see precedent in port-staging/Views/Compiler/CompilerMainView.axaml).
+    -->
+    <Grid Margin="-16" x:Name="MainGrid">
+        <Rectangle
+            Width="{Binding #MainGrid.Bounds.Width}"
+            Height="{Binding #MainGrid.Bounds.Height}"
+            IsHitTestVisible="False"
+            RadiusX="8"
+            RadiusY="8"
+            IsVisible="{Binding MetadataVM.IsBroken}">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1" Opacity="0.5">
+                    <GradientStop Color="{StaticResource UnavailableDark}" Offset="0.0" />
+                    <GradientStop Color="Transparent" Offset="1.0" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Grid Margin="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="280" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Border x:Name="ImageBorder" VerticalAlignment="Top" Margin="0, 0, 0, 8" BorderBrush="Transparent"
+                    CornerRadius="8"
+                    Height="{Binding #ImageBorder.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/(16/9)}">
+                    <Border.Background>
+                        <ImageBrush Source="{Binding MetadataVM.Image}" Stretch="UniformToFill" />
+                    </Border.Background>
+                </Border>
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding MetadataVM.Metadata.Title}" FontSize="32" FontWeight="Bold" TextWrapping="Wrap" Margin="0, 0, 8, 0" />
+                            <ic:SymbolIcon Grid.Row="1" Symbol="CheckmarkStarburst" FontSize="28" HorizontalAlignment="Right"
+                                   IconVariant="Filled" Foreground="{StaticResource PrimaryBrush}"
+                                   IsVisible="{Binding MetadataVM.Metadata.Official}"
+                                   ToolTip.Tip="This modlist has been tested and provides a stable experience with official support channels. More info about featured modlists is available on the Wabbajack wiki." />
+                        </Grid>
+                        <Grid Margin="0, 0, 0, 4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock FontSize="17.5" TextWrapping="Wrap">
+                            <Run Text="version" Foreground="#80FFFFFF" />
+                            <Run Text="{Binding MetadataVM.Metadata.Version}" />
+                            <Run Text="by" Foreground="#80FFFFFF" />
+                            <Run Text="{Binding MetadataVM.Metadata.Author}" />
+                            </TextBlock>
+                        </Grid>
+                        <DockPanel Margin="-4, 8, 0, 8">
+                            <ItemsControl x:Name="TagsControl">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <StackPanel.Styles>
+                                                <Style Selector="Border">
+                                                    <Setter Property="Margin" Value="8, 0, 0, 0" />
+                                                </Style>
+                                            </StackPanel.Styles>
+                                        </StackPanel>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ModListTag">
+                                        <!--
+                                            TODO: WPF's DataTrigger (Style.Triggers) has no direct Avalonia
+                                            equivalent. Translated to Classes bound via the existing
+                                            EqualsToBoolConverter (StaticResource, same converter WPF used
+                                            for other bool comparisons) plus Style Selectors keyed off those
+                                            classes. Behavior should be equivalent: exactly one of nsfw/
+                                            featured/unavailable/none is active based on Name.
+                                        -->
+                                        <Border
+                                        CornerRadius="4"
+                                        Padding="8"
+                                        Margin="4, 0, 0, 0"
+                                        Background="{StaticResource ComplementaryPrimary08Brush}"
+                                        Classes.nsfw="{Binding Name, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter=NSFW}"
+                                        Classes.featured="{Binding Name, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter=Featured}"
+                                        Classes.unavailable="{Binding Name, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter=Unavailable}"
+                                        >
+                                            <Border.Styles>
+                                                <Style Selector="Border.nsfw">
+                                                    <Setter Property="Background" Value="{StaticResource NSFWBrush}" />
+                                                    <Setter Property="ToolTip.Tip" Value="This modlist contains Not Safe For Work content such as nudity and sex frameworks." />
+                                                </Style>
+                                                <Style Selector="Border.featured">
+                                                    <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+                                                    <Setter Property="ToolTip.Tip" Value="This modlist has been tested and provides a stable experience with official support channels. More info about featured modlists is available on the Wabbajack wiki." />
+                                                </Style>
+                                                <Style Selector="Border.unavailable">
+                                                    <Setter Property="Background" Value="{StaticResource UnavailableBrush}" />
+                                                    <Setter Property="ToolTip.Tip" Value="This modlist is not currently installable." />
+                                                </Style>
+                                            </Border.Styles>
+
+                                            <StackPanel Orientation="Horizontal">
+                                                <ic:SymbolIcon
+                                                    Foreground="{StaticResource ComplementaryBrush}"
+                                                    IsVisible="False"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="15"
+                                                    Margin="0, 0, 4, 0"
+                                                    IconVariant="Filled"
+                                                    Classes.featured="{Binding Name, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter=Featured}"
+                                                    Classes.nsfw="{Binding Name, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter=NSFW}"
+                                                    Classes.unavailable="{Binding Name, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter=Unavailable}">
+                                                    <ic:SymbolIcon.Styles>
+                                                        <Style Selector="ic|SymbolIcon.featured">
+                                                            <Setter Property="IsVisible" Value="True" />
+                                                            <Setter Property="Symbol" Value="Checkmark" />
+                                                        </Style>
+                                                        <Style Selector="ic|SymbolIcon.nsfw">
+                                                            <Setter Property="IsVisible" Value="True" />
+                                                            <Setter Property="Symbol" Value="Warning" />
+                                                            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+                                                        </Style>
+                                                        <Style Selector="ic|SymbolIcon.unavailable">
+                                                            <Setter Property="IsVisible" Value="True" />
+                                                            <Setter Property="Symbol" Value="Wrench" />
+                                                            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+                                                        </Style>
+                                                    </ic:SymbolIcon.Styles>
+                                                </ic:SymbolIcon>
+                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Foreground="{StaticResource ForegroundBrush}"
+                                                           Classes.featured="{Binding Name, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter=Featured}">
+                                                    <TextBlock.Styles>
+                                                        <Style Selector="TextBlock.featured">
+                                                            <Setter Property="Foreground" Value="{StaticResource ComplementaryBrush}" />
+                                                        </Style>
+                                                    </TextBlock.Styles>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </DockPanel>
+                    </StackPanel>
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Background="Transparent" HorizontalScrollBarVisibility="Disabled">
+                        <TextBlock Text="{Binding MetadataVM.Metadata.Description}" TextWrapping="Wrap" LineHeight="18" Margin="0, 0, 4, 0" />
+                    </ScrollViewer>
+                </Grid>
+                <Grid Grid.Row="2" VerticalAlignment="Bottom" Margin="0, 16, 0, 0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="16" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <local:WJButton x:Name="WebsiteButton" Grid.Column="0"
+                                    Text="Website" Icon="Globe" Width="Auto" />
+                    <local:WJButton x:Name="DiscordButton" Grid.Column="2"
+                                    Text="Discord" Icon="PeopleChat" Width="Auto" />
+
+                    <!-- Either Install or Unavailable description depending on whether modlist is unavailable -->
+                    <!-- Above logic is defined programatically -->
+                    <local:WJButton x:Name="InstallButton" ButtonStyle="Progress" Grid.Row="2" Grid.ColumnSpan="5" Text="Download &amp; Install" Icon="ArrowDownload" Width="Auto" />
+                    <Border x:Name="UnavailableDescription" Grid.Row="2" Grid.ColumnSpan="5" Background="{StaticResource UnavailableDarkBrush}" BorderBrush="{StaticResource UnavailableBrush}" BorderThickness="2" Padding="8" CornerRadius="4">
+                        <TextBlock Text="A game or mod update has made the list unavailable for installation. The modlist requires an update from its author before it becomes available again. Contact the author(s) for more information." TextWrapping="Wrap" />
+                    </Border>
+
+                </Grid>
+            </Grid>
+            <Grid x:Name="ArchivesGrid" Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid>
+
+                    <Border
+                    Style="{StaticResource ToggleButtonContainer}"
+                    Margin="0, 0, 0, 16"
+                    >
+                        <StackPanel Orientation="Horizontal" Margin="4">
+                            <ToggleButton
+                            x:Name="ArchivesButton"
+                            IsChecked="True"
+                            Width="{Binding #ArchivesGrid.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/8}">Archives</ToggleButton>
+
+                            <ToggleButton
+                            x:Name="ReadmeButton"
+                            Width="{Binding #ArchivesGrid.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/8}" >Readme</ToggleButton>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBox
+                    x:Name="SearchBox"
+                    Watermark="Search for a mod..."
+                    Width="{Binding #ArchivesGrid.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/3}"
+                    HorizontalAlignment="Right"
+                    Margin="0, 0, 48, 16" />
+
+                    <Border x:Name="SearchBoxBackground"
+                    BorderThickness="0" CornerRadius="8" HorizontalAlignment="Right"
+                        Width="{Binding #SearchBox.Bounds.Width}"
+                        Height="{Binding #SearchBox.Bounds.Height}" Margin="0, 0, 48, 16">
+                        <Border HorizontalAlignment="Right" CornerRadius="8"
+                            Background="{StaticResource ComplementaryPrimary08Brush}" Padding="8, 0, 8, 0">
+                            <ic:SymbolIcon Symbol="Search" IconVariant="Filled" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Right" FontSize="18" />
+                        </Border>
+                    </Border>
+
+                    <local:WJButton x:Name="OpenReadmeButton"
+                                    ButtonStyle="Mono"
+                                    Text="Open in browser"
+                                    Icon="WindowNew"
+                                    IconSize="20"
+                                    Margin="0, 0, 48, 16"
+                                    Width="{Binding #SearchBox.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/1.8}"
+                                    Height="{Binding #SearchBox.Bounds.Height}"
+                                    HorizontalAlignment="Right" />
+
+                </Grid>
+
+                <Button x:Name="CloseButton" Style="{StaticResource MainButtonStyle}" Background="Transparent"
+                    BorderThickness="0" HorizontalAlignment="Right" Padding="16" Margin="-16, -16, -16, 0" VerticalAlignment="Center">
+                    <ic:SymbolIcon Symbol="Dismiss" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                </Button>
+
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!--
+                        TODO: This mask trick (VisualBrush over a rounded Border used as an OpacityMask so
+                        the DataGrid's square corners get clipped to match BorderMask2/BorderMask's
+                        CornerRadius) is preserved structurally - Avalonia supports VisualBrush and
+                        Grid.OpacityMask too - but it has not been verified to render identically under
+                        Avalonia's compositor. Verify visually once building is possible.
+                    -->
+                    <Border x:Name="BorderMask2" Grid.Row="0" CornerRadius="8" Background="White">
+                        <Grid Margin="-1">
+                            <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1"/>
+                            <Grid x:Name="MainContentGrid">
+                                <Grid.OpacityMask>
+                                    <VisualBrush Visual="{Binding #BorderMask}"/>
+                                </Grid.OpacityMask>
+                                <!--
+                                    TODO (DataGrid port - needs manual verification against the installed
+                                    Avalonia.Controls.DataGrid package version):
+                                    - CanUserDeleteRows / CanUserAddRows / SnapsToDevicePixels have no
+                                      Avalonia DataGrid equivalent and were dropped.
+                                    - The WPF DataGrid.ColumnHeaderStyle became a Style Selector targeting
+                                      "DataGridColumnHeader" below.
+                                    - The WPF DataGrid.CellStyle (BasedOn StaticResource DataGridCellStyle,
+                                      itself a full ControlTemplate defined in the WPF theme) has no
+                                      Avalonia counterpart yet; dropped until an Avalonia-native
+                                      DataGridCellStyle resource exists.
+                                    - The WPF DataGrid.ItemContainerStyle (BasedOn StaticResource
+                                      DataGridRowStyle) completely re-templated DataGridRow using
+                                      SelectiveScrollingGrid / DataGridCellsPresenter /
+                                      DataGridDetailsPresenter / DataGridRowHeader - none of which exist in
+                                      Avalonia's DataGrid template - plus a MultiDataTrigger that only
+                                      applied a hover background + hand cursor when IsMouseOver AND the
+                                      row's Item was a Nexus archive (via IsNexusArchiveConverter), and an
+                                      EventSetter for GotFocus (see DataGridRow_GotFocus in code-behind,
+                                      now re-wired via AddHandler in the Avalonia code-behind since
+                                      Avalonia Styles have no EventSetter). Approximated below with a
+                                      Classes.nexus-archive binding (using the same IsNexusArchiveConverter)
+                                      combined with the :pointerover pseudo-class, and a plain :selected
+                                      pseudo-class for the selected-row background. This is a best-effort
+                                      translation - the underlying DataGridRow template/parts differ from
+                                      WPF's and this needs to be confirmed once the DataGrid package is
+                                      wired up and the project builds.
+                                -->
+                                <dg:DataGrid x:Name="ArchivesDataGrid" AutoGenerateColumns="False" FontSize="13"
+                          CanUserSortColumns="True"
+                          AlternatingRowBackground="{StaticResource ComplementaryPrimary12Brush}">
+                                    <dg:DataGrid.Styles>
+                                        <Style Selector="DataGridColumnHeader">
+                                            <Setter Property="Margin" Value="8, 0, 0, 0" />
+                                            <Setter Property="VerticalAlignment" Value="Center" />
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                            <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+                                        </Style>
+                                        <Style Selector="DataGridRow">
+                                            <Setter Property="Classes.nexus-archive" Value="{Binding State, Converter={StaticResource IsNexusArchiveConverter}}" />
+                                        </Style>
+                                        <Style Selector="DataGridRow.nexus-archive:pointerover">
+                                            <Setter Property="Cursor" Value="Hand" />
+                                            <Setter Property="Background" Value="{StaticResource MouseOverListItem}" />
+                                        </Style>
+                                        <Style Selector="DataGridRow:selected">
+                                            <Setter Property="Background" Value="{StaticResource DataGridRowSelectedBrush}" />
+                                        </Style>
+                                    </dg:DataGrid.Styles>
+                                    <dg:DataGrid.Columns>
+                                        <dg:DataGridTemplateColumn Header="Name" IsReadOnly="True" Width="3*">
+                                            <dg:DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock x:Name="StateCell"
+                                               Text="{Binding State, Converter={StaticResource NexusArchiveStateConverter}, ConverterParameter=Name}"
+                                               TextTrimming="CharacterEllipsis" />
+                                                </DataTemplate>
+                                            </dg:DataGridTemplateColumn.CellTemplate>
+                                        </dg:DataGridTemplateColumn>
+                                        <dg:DataGridTemplateColumn Header="Archive" IsReadOnly="True" Width="4*">
+                                            <dg:DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock x:Name="NameCell" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                                </DataTemplate>
+                                            </dg:DataGridTemplateColumn.CellTemplate>
+                                        </dg:DataGridTemplateColumn>
+                                        <dg:DataGridTemplateColumn Header="Size" IsReadOnly="True" Width="60">
+                                            <dg:DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock x:Name="SizeCell"
+                                               Text="{Binding Size, Converter={StaticResource FileSizeConverter}}" />
+                                                </DataTemplate>
+                                            </dg:DataGridTemplateColumn.CellTemplate>
+                                        </dg:DataGridTemplateColumn>
+                                    </dg:DataGrid.Columns>
+                                </dg:DataGrid>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+
+                <!-- WebView Browser, added by code behind -->
+            </Grid>
+        </Grid>
+    </Grid>
+</rxui:ReactiveUserControl>

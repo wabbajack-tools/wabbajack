@@ -1,0 +1,429 @@
+<rxui:ReactiveUserControl
+    x:Class="Wabbajack.InstallationView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:rxui="using:Avalonia.ReactiveUI"
+    xmlns:vm="using:Wabbajack"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:ic="using:FluentIcons.Avalonia"
+    xmlns:wv2="using:Avalonia.Controls"
+    d:DesignHeight="500"
+    d:DesignWidth="800"
+    x:TypeArguments="vm:InstallationVM"
+    x:DataType="vm:InstallationVM"
+    d:DataContext="{d:DesignInstance vm:InstallationVM}"
+    mc:Ignorable="d">
+    <!--
+        WPF's <Style x:Key="..." TargetType="..."> resources, applied via
+        Style="{StaticResource ...}" on individual controls. Avalonia's per-instance,
+        TargetType(+BasedOn) reusable style construct is ControlTheme (applied via the control's
+        Theme property), so these locally-keyed styles are translated to ControlTheme below,
+        matching the convention already used elsewhere in this port (see CompilerDetailsView.axaml).
+        Usage sites throughout the rest of this file keep the existing Style="{StaticResource ...}"
+        attribute form to match the rest of the already-ported codebase (MainButtonStyle,
+        WJButtonStyle, CircleButtonStyle, etc. are external/global resources, not defined here).
+    -->
+    <UserControl.Resources>
+        <Thickness x:Key="InstallMargin" Bottom="8" />
+        <!-- WPF TargetType was ButtonBase (abstract); narrowed to the concrete Button type.
+             NOTE: this resource is unused in this view (dead resource in the WPF source too -
+             no SlideshowButton-styled element exists anywhere in the markup below). -->
+        <ControlTheme
+            x:Key="SlideshowButton"
+            TargetType="Button"
+            BasedOn="{StaticResource CircleButtonStyle}">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Margin" Value="4" />
+        </ControlTheme>
+        <ControlTheme x:Key="TitleStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0, 0, 0, 8" />
+        </ControlTheme>
+        <ControlTheme x:Key="DescriptionStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0, 0, 0, 8" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="Opacity" Value="0.66"/>
+        </ControlTheme>
+        <ControlTheme x:Key="PickerStyle" TargetType="local:FilePicker" BasedOn="{StaticResource MainFilePickerStyle}">
+            <Setter Property="Margin" Value="0, 0, 0, 8" />
+        </ControlTheme>
+        <ControlTheme x:Key="Panel" TargetType="StackPanel">
+            <Setter Property="Margin" Value="0, 0, 0, 8" />
+        </ControlTheme>
+        <ControlTheme x:Key="InstallButtonStyle" TargetType="Button" BasedOn="{StaticResource WJButtonStyle}">
+            <Setter Property="Margin" Value="{StaticResource InstallMargin}" />
+            <Setter Property="Width" Value="Auto" />
+        </ControlTheme>
+        <ControlTheme x:Key="WorkerIndicatorBorder" TargetType="Border">
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="{StaticResource ComplementaryPrimary08Brush}" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="0, 8, 0, 8" />
+        </ControlTheme>
+    </UserControl.Resources>
+    <Grid>
+        <Grid x:Name="SetupGrid">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="3.5*" />
+            </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel x:Name="InstallationLocationPanel" Style="{StaticResource Panel}">
+                    <TextBlock Style="{StaticResource TitleStyle}" Text="Installation Location" />
+                    <TextBlock Style="{StaticResource DescriptionStyle}">
+                        The folder where the list will be installed into.<LineBreak />
+                        Choose an empty folder outside Windows-protected areas.
+                        Using an SSD is highly recommended for optimal performance.
+                    </TextBlock>
+                    <local:FilePicker x:Name="InstallationLocationPicker"
+                                      Style="{StaticResource PickerStyle}"
+                                      Icon="Folder"
+                                      ToolTip.Tip="Path to the folder where the list will be installed to"
+                                      IsEnabled="{Binding LoadingLock.IsNotLoading}"/>
+                </StackPanel>
+
+                <StackPanel x:Name="DownloadLocationPanel" Grid.Row="1" Style="{StaticResource Panel}">
+                    <TextBlock Style="{StaticResource TitleStyle}" Text="Downloads Location" />
+                    <TextBlock Style="{StaticResource DescriptionStyle}">
+                        The folder where the downloads will be stored.<LineBreak />
+                        By default these are stored in a subdirectory of the installation folder, but you can also use a shared folder so previous downloads are reused.
+                        Downloads can be deleted after installation.
+                    </TextBlock>
+                    <local:FilePicker x:Name="DownloadLocationPicker"
+                                      Style="{StaticResource PickerStyle}"
+                                      Icon="Folder"
+                                      ToolTip.Tip="Path to the folder where the mod archives will be downloaded to"
+                                      IsEnabled="{Binding LoadingLock.IsNotLoading}" />
+                </StackPanel>
+
+                <Grid Grid.Row="3">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <local:WJButton x:Name="DocumentationButton" Text="Readme" Icon="Document" Grid.Row="0" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                    <local:WJButton x:Name="WebsiteButton" Text="Website" Icon="Globe" Grid.Row="1" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                    <local:WJButton x:Name="CommunityButton" Text="Community" Icon="PeopleChat" Grid.Row="2" Margin="{StaticResource InstallMargin}" Width="Auto" />
+                    <local:WJButton x:Name="ManifestButton" Text="Archives" Icon="BoxSearch" Grid.Row="3" Width="Auto" />
+                </Grid>
+
+            </Grid>
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <local:DetailImageView x:Name="DetailImage" TitleFontSize="48" AuthorFontSize="24" Margin="0, 0, 0, 16" />
+                <!-- MahApps ProgressRing has no Avalonia equivalent control; swapped for an indeterminate
+                     ProgressBar per PORT_PLAN.md ("MahApps controls -> nearest Avalonia built-in"). -->
+                <ProgressBar x:Name="ModlistLoadingRing" IsIndeterminate="True" Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border
+                        x:Name="ErrorStateBorder"
+                        Grid.Column="0"
+                        Background="{StaticResource ErrorBrush}"
+                        Margin="0, 0, 16, 0"
+                        CornerRadius="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ic:SymbolIcon
+                                Grid.Column="0"
+                                Symbol="Warning"
+                                FontSize="18"
+                                Width="18"
+                                Height="18"
+                                Margin="16, 0, 0, 0"/>
+                            <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="0, 0, 16, 0">
+                                <Run Text="Cannot start installation!" FontWeight="Bold" />
+                                <Run x:Name="ErrorStateReasonText" Text="Placeholder reason." />
+                            </TextBlock>
+                        </Grid>
+                    </Border>
+                    <local:WJButton x:Name="InstallButton" Grid.Column="2" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown" HorizontalAlignment="Right" />
+                </Grid>
+            </Grid>
+        </Grid>
+        <Grid x:Name="InstallationGrid" IsVisible="False">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="InstallationLeftColumn" Width="2.35*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition x:Name="InstallationRightColumn" Width="3*" />
+            </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!--
+                    TODO: MathConverter (hexinnovation, WPF-only value converter) has no Avalonia build
+                    (see PORT_PLAN.md). The WPF binding computed Height = ActualWidth / (16/9) to keep a
+                    16:9 aspect ratio off the element's own measured width. Replace with a dedicated
+                    value converter (e.g. AspectRatioConverter taking a ratio ConverterParameter) or a
+                    VM-level computed property. Left wired to Bounds.Width (Avalonia's ActualWidth
+                    equivalent) with the same StaticResource key so the intent is preserved until that
+                    converter exists.
+                -->
+                <local:DetailImageView x:Name="InstallDetailImage" TitleFontSize="36" AuthorFontSize="16" Margin="0, 0, 0, 16" Height="{Binding #InstallDetailImage.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/(16/9)}" />
+
+                <!-- Installing state -->
+                <local:CpuView x:Name="CpuView" Grid.Row="1" ViewModel="{Binding}" Margin="0, 0, 0, 16" />
+
+                <Grid x:Name="WorkerIndicators" Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource WorkerIndicatorBorder}" ToolTip.Tip="An indicator representing the speed at which Wabbajack is validating the integrity of your installation by hashing required files. Speed is largely determined by disk read speeds and CPU power.">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ic:SymbolIcon Grid.Column="0" Symbol="NumberSymbol" HorizontalAlignment="Left" Foreground="{StaticResource PrimaryBrush}" FontSize="18" Margin="8, 0, 0, 0" />
+                            <TextBlock Grid.Column="1" Margin="8, 0, 0, 0" Text="Validation" />
+                            <TextBlock Grid.Column="3" x:Name="HashSpeedText" HorizontalAlignment="Right" Margin="0, 0, 8, 0" />
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Column="2" Style="{StaticResource WorkerIndicatorBorder}" ToolTip.Tip="An indicator representing the speed at which Wabbajack is extracting downloaded files to your installation location. Speed is largely determined by disk read-write speeds and CPU power.">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ic:SymbolIcon Grid.Column="0" Symbol="Dock" HorizontalAlignment="Left" Foreground="{StaticResource PrimaryBrush}" FontSize="18" Margin="8, 0, 0, 0" />
+                            <TextBlock Grid.Column="1" Margin="8, 0, 0, 0" Text="Extraction" />
+                            <TextBlock Grid.Column="3" x:Name="ExtractionSpeedText" HorizontalAlignment="Right" Margin="0, 0, 8, 0" />
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Column="4" Style="{StaticResource WorkerIndicatorBorder}" ToolTip.Tip="An indicator representing the speed at which Wabbajack is downloading required files. Speed is largely determined by your internet connection and disk speed.">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ic:SymbolIcon Grid.Column="0" Symbol="ArrowDownload" HorizontalAlignment="Left" Foreground="{StaticResource PrimaryBrush}" FontSize="18" Margin="8, 0, 0, 0" />
+                            <TextBlock Grid.Column="1" Margin="8, 0, 0, 0" Text="Download" />
+                            <TextBlock Grid.Column="3" x:Name="DownloadSpeedText" HorizontalAlignment="Right" Margin="0, 0, 8, 0" />
+                        </Grid>
+                    </Border>
+
+                </Grid>
+
+                <!-- Failure state -->
+
+                <Grid Grid.Row="1" Grid.RowSpan="2" x:Name="StoppedMessage">
+                    <Border x:Name="StoppedBorder" CornerRadius="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{StaticResource SuccessBrush}">
+                        <StackPanel Orientation="Horizontal">
+                            <!-- Using a rectangle to push the icon to the side -->
+                            <!--
+                                TODO: MathConverter (hexinnovation, WPF-only markup extension) has no
+                                Avalonia build (see PORT_PLAN.md). The WPF math:Convert
+                                '(x-(y/1.5))' expression computed this Rectangle's Width from two
+                                named element bindings (x=StoppedMessage.ActualWidth,
+                                y=StoppedIcon.ActualWidth). Reproduced below as a MultiBinding against
+                                the same StaticResource MathConverter key (Bounds.Width is Avalonia's
+                                ActualWidth equivalent) so the intent is preserved until a dedicated
+                                multi-value converter (or a VM-level computed property) replaces it.
+                            -->
+                            <Rectangle>
+                                <Rectangle.Width>
+                                    <MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="(x-(y/1.5))">
+                                        <Binding Path="Bounds.Width" ElementName="StoppedMessage" />
+                                        <Binding Path="Bounds.Width" ElementName="StoppedIcon" />
+                                    </MultiBinding>
+                                </Rectangle.Width>
+                            </Rectangle>
+
+                            <!--
+                                TODO: MathConverter has no Avalonia build. WPF bound FontSize to
+                                StoppedMessage.ActualHeight via math:Convert 'Round(x*1.5)'; reproduced
+                                below as a single-value binding against the same StaticResource
+                                MathConverter key (Bounds.Height is Avalonia's ActualHeight equivalent).
+                            -->
+                            <ic:SymbolIcon
+                            x:Name="StoppedIcon"
+                            IconVariant="Filled"
+                            Symbol="ErrorCircle"
+                            HorizontalAlignment="Center"
+                            FontSize="{Binding #StoppedMessage.Bounds.Height, Converter={StaticResource MathConverter}, ConverterParameter=Round(x*1.5)}"
+                            Foreground="{StaticResource Transparent04PrimaryBrush}"
+                            />
+                        </StackPanel>
+                    </Border>
+                    <Border
+                    Grid.Row="1"
+                    Grid.RowSpan="2"
+                    Grid.ColumnSpan="2"
+                    CornerRadius="8"
+                    Padding="32"
+                    >
+                        <Grid VerticalAlignment="Center">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock x:Name="StoppedInstallMsg" Grid.Row="0" Text="Installation failed" FontSize="18" Foreground="{StaticResource Transparent66ForegroundBrush}" />
+                            <TextBlock x:Name="StoppedTitle" FontWeight="SemiBold" Grid.Row="1" FontSize="40" Text="Not enough space" Margin="0, -4, 0, 4" />
+                            <TextBlock x:Name="StoppedDescription" Grid.Row="2" FontSize="14" TextWrapping="Wrap">
+        The modlist installation has failed because your installation or downloads directory has run out of space.
+        Please make sure enough space is available on the disk and try again.
+                            </TextBlock>
+
+                            <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0, 16, 0, 0">
+                                <local:WJButton x:Name="StoppedButton" HorizontalAlignment="Left" Text="Open Logs Folder" Icon="FolderOpen" ButtonStyle="SemiTransparent" />
+                                <local:WJButton x:Name="DiagnoseButton" Margin="8, 0, 0, 0" HorizontalAlignment="Left" Text="How do I fix this?" Icon="Wrench" ButtonStyle="Mono" />
+                            </StackPanel>
+
+                            <TextBlock Grid.Row="4" Margin="0, 24, 0, 8" Text="If this didn't help:" FontSize="14" Foreground="{StaticResource Transparent66ForegroundBrush}" />
+                            <StackPanel Grid.Row="5" Orientation="Horizontal">
+                                <local:WJButton x:Name="JoinDiscordButton" Text="Join our Discord" Icon="PeopleChat" ButtonStyle="Mono" />
+                                <local:WJButton x:Name="VisitWikiButton" Margin="8, 0, 0, 0" Text="Visit our Wiki" Icon="Globe" ButtonStyle="Mono" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+            </Grid>
+            <Grid Grid.Column="2" x:Name="RightSideGrid">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Margin="0, 0, 0, 16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource ToggleButtonContainer}">
+                        <StackPanel Orientation="Horizontal" Margin="4">
+                            <ToggleButton
+                            x:Name="ReadmeToggleButton"
+                            IsChecked="True"
+                            MinWidth="80"
+                            Width="{Binding #RightSideGrid.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/7}">Readme</ToggleButton>
+                            <ToggleButton
+                            x:Name="LogToggleButton"
+                            MinWidth="80"
+                            Width="{Binding #RightSideGrid.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/7}">Log Viewer</ToggleButton>
+                            <ToggleButton
+                            x:Name="ErrorToggleButton"
+                            MinWidth="110"
+                            Width="{Binding #RightSideGrid.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/6.5}">Error summary</ToggleButton>
+                        </StackPanel>
+                    </Border>
+                    <local:WJButton x:Name="OpenReadmeButton"
+                                    Grid.Column="2"
+                                    ButtonStyle="Mono"
+                                    Text="Open in browser"
+                                    Icon="WindowNew"
+                                    IconSize="20"
+                                    MinWidth="160"
+                                    Width="{Binding #RightSideGrid.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/4.5}"
+                                    HorizontalAlignment="Right" />
+
+                    <local:WJButton x:Name="OpenLogFolderButton"
+                                    Grid.Column="2"
+                                    ButtonStyle="Mono"
+                                    Text="Open log file"
+                                    Icon="WindowNew"
+                                    IconSize="20"
+                                    MinWidth="160"
+                                    Width="{Binding #RightSideGrid.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/4.5}"
+                                    HorizontalAlignment="Right" />
+                </Grid>
+                <Grid x:Name="ReadmeBrowserGrid" Grid.Row="1" Margin="0, 0, 0, 16"></Grid>
+                <local:LogView Grid.Row="1" x:Name="LogView" Margin="0, 0, 0, 16" IsVisible="False" />
+                <Grid x:Name="ErrorSummaryGrid" Grid.Row="1" Margin="0,0,0,16" IsVisible="False">
+                    <Border CornerRadius="8" Background="{Binding #StoppedBorder.Background}">
+                        <!--
+                            TODO: WPF's Microsoft.Web.WebView2.Wpf.WebView2.DefaultBackgroundColor has no
+                            equivalent property on Avalonia.Controls.WebView2 (WebView2.Avalonia package);
+                            dropped rather than guessed. Verify the WebView's background visually once this
+                            control is wired up - the Border above already supplies an opaque background.
+                        -->
+                        <wv2:WebView2 x:Name="ErrorMarkdownView"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Stretch"/>
+                    </Border>
+                </Grid>
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <local:WJButton x:Name="CancelButton" Grid.Column="2" ButtonStyle="Danger" Text="Cancel" Icon="Dismiss" HorizontalAlignment="Right" IsVisible="False" />
+
+                    <local:WJButton x:Name="EditInstallDetailsButton" Grid.Column="1" ButtonStyle="Mono" Text="Edit Installation Details" Icon="TextBulletListSquareSettings" HorizontalAlignment="Right" IsVisible="True" Margin="0, 0, 16, 0" />
+                    <local:WJButton x:Name="RetryButton" Grid.Column="2" ButtonStyle="Color" Text="Retry" Icon="ArrowCounterclockwise" HorizontalAlignment="Right" />
+                </Grid>
+            </Grid>
+
+        </Grid>
+        <Grid x:Name="CompletedInstallationGrid" IsVisible="False">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="16" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <local:DetailImageView x:Name="CompletedImage" TitleFontSize="60" AuthorFontSize="27" />
+            <Grid x:Name="CompletedButtons" Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <local:WJButton x:Name="BackToGalleryButton" Grid.Row="1" Text="Back to Gallery" Icon="ChevronLeft" Direction="RightToLeft" HorizontalAlignment="Left" />
+                <local:WJButton x:Name="ReadmeButton" Grid.Column="2" Text="Open Readme" Icon="WindowNew" HorizontalAlignment="Right" ButtonStyle="Mono" />
+                <local:WJButton x:Name="CreateShortcutButton" Grid.Column="4" Text="Create Desktop Shortcut" Icon="DesktopArrowRight" HorizontalAlignment="Right" ButtonStyle="Mono" />
+                <local:WJButton x:Name="OpenFolderButton" Grid.Column="6" Text="Open in File Explorer" Icon="FolderOpen" HorizontalAlignment="Right" ButtonStyle="Color" />
+            </Grid>
+        </Grid>
+    </Grid>
+</rxui:ReactiveUserControl>

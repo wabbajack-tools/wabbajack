@@ -1,0 +1,80 @@
+<rxui:ReactiveUserControl
+    x:Class="Wabbajack.AboutView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:vm="using:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:rxui="using:Avalonia.ReactiveUI"
+    xmlns:ic="using:FluentIcons.Avalonia"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:TypeArguments="vm:AboutVM"
+    x:DataType="vm:AboutVM"
+    mc:Ignorable="d">
+    <Border
+        Background="{StaticResource BackgroundBrush}"
+        BorderBrush="{StaticResource ButtonNormalBorder}"
+        BorderThickness="0"
+        CornerRadius="8">
+        <Grid x:Name="AboutGrid" Margin="16" VerticalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="16" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="16" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <!--
+                TODO: MathConverter has no Avalonia build (see PORT_PLAN.md). The WPF binding computed
+                Width = ActualWidth / 2.25 off the grid's own measured width. Replaced ElementName+ActualWidth
+                with Avalonia's #name.Bounds.Width equivalent and left the same MathConverter StaticResource
+                key/ConverterParameter wired so the intent is preserved until a dedicated converter (e.g. an
+                AspectRatioConverter/ScaleConverter taking a factor ConverterParameter) or a VM-level computed
+                property replaces it.
+            -->
+            <Image Grid.Column="0" Width="{Binding #AboutGrid.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x/2.25}" Source="{StaticResource WabbajackLegacyLogo}"/>
+            <TextBlock Grid.Row="1" FontSize="36" HorizontalAlignment="Center">Wabbajack</TextBlock>
+            <TextBlock Grid.Row="3" FontSize="18" HorizontalAlignment="Center" FontWeight="Regular">
+                <Run Text="Made with" BaselineAlignment="Center" />
+                <!--
+                    TODO: WPF hosts the ic:SymbolIcon UIElement directly as TextBlock content, which WPF's
+                    XAML parser implicitly wraps into an InlineUIContainer. Avalonia's TextBlock has no such
+                    implicit conversion, so an explicit InlineUIContainer is required here.
+                -->
+                <InlineUIContainer>
+                    <ic:SymbolIcon Symbol="Heart" IconVariant="Filled" Foreground="{StaticResource PrimaryBrush}" FontSize="22" Width="22" VerticalAlignment="Center" />
+                </InlineUIContainer>
+                <Run Text="by the" BaselineAlignment="Center" />
+                <Run Text="Wabbajack team" Foreground="{StaticResource PrimaryBrush}" FontWeight="Bold" BaselineAlignment="Center" />
+            </TextBlock>
+            <ItemsControl HorizontalAlignment="Center" Grid.Row="5" x:Name="ContributorsControl">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <!--
+                            TODO: WPF's implicit-by-TargetType <Style TargetType="{x:Type local:ContributorView}">
+                            declared inside StackPanel.Resources has no Avalonia equivalent (Avalonia resource
+                            dictionaries only hold keyed resources; implicit per-type styling is expressed via
+                            Styles + a Selector instead). Translated to a StackPanel.Styles entry selecting
+                            local|ContributorView, keeping the same Margin setter.
+                        -->
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel.Styles>
+                                <Style Selector="local|ContributorView">
+                                    <Setter Property="Margin" Value="24, 0, 0, 0" />
+                                </Style>
+                            </StackPanel.Styles>
+                        </StackPanel>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <local:ContributorView ViewModel="{Binding}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+    </Border>
+</rxui:ReactiveUserControl>

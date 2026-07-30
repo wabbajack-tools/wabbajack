@@ -1,0 +1,131 @@
+<UserControl
+    x:Class="Wabbajack.CompiledModListTileView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:vm="clr-namespace:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ic="using:FluentIcons.Avalonia"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:DataType="vm:CompiledModListTileVM"
+    mc:Ignorable="d">
+    <!--
+        The WPF root was rxui:ReactiveUserControl x:TypeArguments="local:CompiledModListTileVM".
+        Avalonia root kept as plain UserControl (per porting convention); the code-behind class
+        still derives from Avalonia.ReactiveUI.ReactiveUserControl<CompiledModListTileVM>.
+    -->
+    <Grid Margin="16,0,16,16" x:Name="CompiledModListTile">
+        <Border x:Name="BorderMask2" CornerRadius="10" BorderThickness="0" Background="White" Margin="1" />
+        <StackPanel x:Name="HoverStackPanel" Orientation="Vertical" Background="{StaticResource ComplementaryPrimary08Brush}">
+            <!--
+                WPF used a DropShadowEffect with ShadowDepth="3" (default Direction=315) and
+                BlurRadius="25"/Opacity="0.25". Avalonia's DropShadowEffect has no
+                ShadowDepth/Direction pair, only OffsetX/OffsetY, so the shadow offset is
+                approximated with OffsetX="2" OffsetY="2" (~ShadowDepth 3 at 315 degrees).
+            -->
+            <StackPanel.Effect>
+                <DropShadowEffect BlurRadius="25" Opacity="0.25" OffsetX="2" OffsetY="2" Color="Black" />
+            </StackPanel.Effect>
+            <StackPanel.OpacityMask>
+                <VisualBrush Visual="{Binding #BorderMask2}" />
+            </StackPanel.OpacityMask>
+            <!--
+                TODO (trigger): WPF's Style.Triggers/MultiDataTrigger toggled Background on this
+                StackPanel whenever CompiledModListTile.IsMouseOver=True AND DeleteButton.IsMouseOver=False.
+                This depends on the hover state of two different named elements simultaneously, which has
+                no direct Avalonia Style-selector equivalent (no cross-element "hovered but not that other
+                one" selector). Reproduced in code-behind via a combined IsPointerOver observable on both
+                elements (see CompiledModListTileView.axaml.cs) that swaps this Background, ImageBorder's
+                BorderBrush, the two glow Rectangles' Opacity, the version Label's Opacity, and the two
+                TextBlocks' Foreground together, mirroring every Setter that shared this same
+                MultiDataTrigger condition in the original file.
+            -->
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Border x:Name="ImageBorder" Background="Transparent" BorderThickness="0" BorderBrush="{StaticResource ButtonBorder}">
+                    <Grid>
+                        <Border x:Name="MaskBorder" BorderThickness="0" BorderBrush="Transparent" Background="{StaticResource DarkSecondaryBrush}" Width="300" Height="169" />
+                        <Grid Width="300" Height="169" Background="Transparent" ClipToBounds="True">
+                            <Grid.OpacityMask>
+                                <VisualBrush Visual="{Binding #MaskBorder}" />
+                            </Grid.OpacityMask>
+                            <Grid ClipToBounds="True">
+                                <!-- MahApps ProgressRing -> nearest Avalonia built-in: ProgressBar (IsIndeterminate). -->
+                                <ProgressBar x:Name="LoadingProgress" IsIndeterminate="True" Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <Border BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                    <Border.Background>
+                                        <ImageBrush x:Name="ModlistImage" Stretch="UniformToFill" />
+                                    </Border.Background>
+                                </Border>
+                                <Rectangle x:Name="TopGlowRectangle" Height="120" Margin="-80,-75,-80,0" VerticalAlignment="Top" Fill="White" Opacity="0.15">
+                                    <Rectangle.Effect>
+                                        <BlurEffect Radius="100" />
+                                    </Rectangle.Effect>
+                                    <!--
+                                        Duration of the WPF DoubleAnimation (0.08s) between Opacity 0.15/0.2
+                                        reproduced declaratively via a Transition, driven by the code-behind
+                                        hover subscription that sets Opacity directly (see .axaml.cs).
+                                    -->
+                                    <Rectangle.Transitions>
+                                        <Transitions>
+                                            <DoubleTransition Property="Opacity" Duration="0:0:0.08" />
+                                        </Transitions>
+                                    </Rectangle.Transitions>
+                                </Rectangle>
+                                <Rectangle x:Name="BottomGlowRectangle" Height="120" Margin="-80,0,-80,-75" VerticalAlignment="Bottom" Fill="Black" Opacity="0.15">
+                                    <Rectangle.Effect>
+                                        <BlurEffect Radius="100" />
+                                    </Rectangle.Effect>
+                                    <Rectangle.Transitions>
+                                        <Transitions>
+                                            <DoubleTransition Property="Opacity" Duration="0:0:0.08" />
+                                        </Transitions>
+                                    </Rectangle.Transitions>
+                                </Rectangle>
+                                <!-- WPF Label -> Avalonia has no Label control; nearest equivalent is TextBlock (Content -> Text). -->
+                                <TextBlock x:Name="VersionLabel" Margin="10,242,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Text="{Binding CompilerSettings.Version}" Opacity="0">
+                                    <TextBlock.Transitions>
+                                        <Transitions>
+                                            <DoubleTransition Property="Opacity" Duration="0:0:0.08" />
+                                        </Transitions>
+                                    </TextBlock.Transitions>
+                                </TextBlock>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock x:Name="ModListNameText" Text="{Binding CompilerSettings.ModListName}" Grid.Column="0" Grid.Row="0" FontSize="20" Margin="8,8,8,0" />
+
+                <TextBlock x:Name="ModListSourceText" Text="{Binding CompilerSettings.Source}" Grid.Column="0" Grid.Row="1" FontSize="13" Opacity="0.5" Margin="8,8,8,8" />
+
+                <Button
+                    x:Name="DeleteButton"
+                    Style="{StaticResource TransparentButtonStyleDanger}"
+                    Width="32"
+                    Height="32"
+                    Margin="0,4,0,0"
+                    Grid.Column="2">
+                    <ic:SymbolIcon Symbol="DismissCircle" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Button>
+            </Grid>
+        </StackPanel>
+    </Grid>
+</UserControl>
