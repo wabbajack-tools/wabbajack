@@ -57,6 +57,23 @@ internal static class Program
         services.AddSingleton<Networking.GitHub.Client>();
         services.AddSingleton(_ => new GitHubClient(new ProductHeaderValue("wabbajack")));
 
+        // Browser host: a single shared WebView2 (WebView2.Avalonia) re-parented into BrowserWindow
+        // per operation, matching the WPF app. Honour a local ./WebView2 runtime folder if present.
+        services.AddSingleton(_ =>
+        {
+            var browser = new Avalonia.Controls.WebView2();
+            var localRuntime = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "WebView2");
+            if (System.IO.Directory.Exists(localRuntime))
+            {
+                browser.CreationProperties = new Avalonia.Controls.CoreWebView2CreationProperties
+                {
+                    BrowserExecutableFolder = localRuntime
+                };
+            }
+            return browser;
+        });
+        services.AddSingleton<Views.BrowserWindow>();
+
         services.AddSingleton<Views.MainWindow>();
         services.AddTransient<MainWindowVM>();
         services.AddTransient<NavigationVM>();

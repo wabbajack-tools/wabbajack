@@ -3,6 +3,15 @@
              xmlns:vm="using:Wabbajack"
              x:Class="Wabbajack.Views.BrowserWindow"
              x:DataType="vm:BrowserWindowViewModel">
-  <!-- TODO(avalonia-browser): integrate the real browser host (WebView2.Avalonia) in Phase 4. -->
-  <Grid />
+  <Grid RowDefinitions="Auto,Auto,*">
+    <TextBlock Grid.Row="0" Margin="8" FontSize="18"
+               Foreground="{StaticResource ForegroundBrush}"
+               Text="{Binding HeaderText}" />
+    <TextBlock Grid.Row="1" Margin="8,0,8,8" TextWrapping="Wrap"
+               Foreground="{StaticResource DimForegroundBrush}"
+               Text="{Binding Instructions}" />
+    <!-- The WebView2 instance lives on the view model (it is a DI singleton reused across
+         browser operations), so it is parented here in code-behind. -->
+    <Grid Grid.Row="2" x:Name="WebViewGrid" />
+  </Grid>
 </UserControl>
