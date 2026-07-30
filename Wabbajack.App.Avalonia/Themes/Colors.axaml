@@ -1,0 +1,211 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Faithful color/brush palette ported from Wabbajack.App.Wpf/Themes/Styles.xaml. -->
+  <Color x:Key="WindowBackgroundColor">#222531</Color>
+  <Color x:Key="WindowHoverBackgroundColor">#2A2B41</Color>
+  <Color x:Key="DarkBackgroundColor">#3c3652</Color>
+  <Color x:Key="DarkHoverBackgroundColor">#4e4571</Color>
+  <Color x:Key="LightBackgroundColor">#4e4571</Color>
+  <Color x:Key="BackgroundColor">#222531</Color>
+  <Color x:Key="DisabledBackgroundColor">#424242</Color>
+  <Color x:Key="PressedBackgroundColor">#4e4571</Color>
+  <Color x:Key="HeatedBorderColor">#514c6b</Color>
+  <Color x:Key="ForegroundColor">#E5E5E8</Color>
+  <Color x:Key="DisabledForegroundColor">#40E5E5E8</Color>
+  <Color x:Key="DimForegroundColor">#3b3c50</Color>
+  <Color x:Key="HighlightColor">#D9BBF9</Color>
+  <Color x:Key="HotColor">#525252</Color>
+  <Color x:Key="Yellow">#ffc400</Color>
+  <Color x:Key="RedDark">#5e2c2b</Color>
+  <Color x:Key="Green">#5fad56</Color>
+  <Color x:Key="YellowDark">#967400</Color>
+  <Color x:Key="NSFW">#ABA70000</Color>
+  <Color x:Key="Unavailable">#ABB17405</Color>
+  <Color x:Key="UnavailableDark">#AB6D4F23</Color>
+  <Color x:Key="Primary">#D8BAF8</Color>
+  <Color x:Key="BackgroundPrimary08">#303141</Color>
+  <Color x:Key="ComplementaryPrimary08">#383750</Color>
+  <Color x:Key="ComplementaryPrimary12">#3f3c57</Color>
+  <Color x:Key="ComplementaryPrimary16">#46425F</Color>
+  <Color x:Key="ComplementaryPrimary32">#62597C</Color>
+  <Color x:Key="ComplementaryPrimary50">#81739d</Color>
+  <Color x:Key="ComplementaryWhite02">#2d2e45</Color>
+  <Color x:Key="ComplementaryWhite25">#5f6071</Color>
+  <Color x:Key="ComplementaryBGBackground08">#313146</Color>
+  <Color x:Key="PrimaryVariant">#8866ad</Color>
+  <Color x:Key="DarkPrimaryAlt">#514c6b</Color>
+  <Color x:Key="DarkPrimaryVariant">#270080</Color>
+  <Color x:Key="DarkerPrimaryVariant">#1b0059</Color>
+  <Color x:Key="Secondary">#3C3652</Color>
+  <Color x:Key="DarkSecondary">#363952</Color>
+  <Color x:Key="DarkerSecondary">#095952</Color>
+  <Color x:Key="SecondaryBackground">#042421</Color>
+  <Color x:Key="OffWhiteSeconday">#cef0ed</Color>
+  <Color x:Key="LightSecondary">#8cede5</Color>
+  <Color x:Key="IntenseSecondary">#00ffe7</Color>
+  <Color x:Key="Complementary">#4e4571</Color>
+  <Color x:Key="DarkComplementary">#3C3652</Color>
+  <Color x:Key="ComplementaryBackground">#2A2B41</Color>
+  <Color x:Key="IntenseComplementary">#abf74d</Color>
+  <Color x:Key="Analogous1">#868CFC</Color>
+  <Color x:Key="Analogous2">#F686FC</Color>
+  <Color x:Key="Triadic1">#FC86C7</Color>
+  <Color x:Key="Triadic2">#FCBB86</Color>
+  <Color x:Key="MahApps.Colors.AccentBase">#FF222531</Color>
+  <Color x:Key="MahApps.Colors.Accent">#CCD8BAF8</Color>
+  <Color x:Key="MahApps.Colors.Accent2">#99D8BAF8</Color>
+  <Color x:Key="MahApps.Colors.Accent3">#66D8BAF8</Color>
+  <Color x:Key="MahApps.Colors.Accent4">#33D8BAF8</Color>
+
+  <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Green}" />
+  <SolidColorBrush x:Key="MaintenanceBrush" Color="{StaticResource Yellow}" />
+  <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Yellow}" />
+  <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource RedDark}" />
+  <SolidColorBrush x:Key="NSFWBrush" Color="{StaticResource NSFW}" />
+  <SolidColorBrush x:Key="UnavailableBrush" Color="{StaticResource Unavailable}" />
+  <SolidColorBrush x:Key="UnavailableDarkBrush" Color="{StaticResource UnavailableDark}" />
+  <SolidColorBrush x:Key="DarkBackgroundBrush" Color="{StaticResource DarkBackgroundColor}" />
+  <SolidColorBrush x:Key="DarkHoverBackgroundBrush" Color="{StaticResource DarkHoverBackgroundColor}" />
+  <SolidColorBrush x:Key="LightBackgroundBrush" Color="{StaticResource LightBackgroundColor}" />
+  <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+  <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="DimForegroundBrush" Color="{StaticResource DimForegroundColor}" />
+  <SolidColorBrush x:Key="MouseOverForegroundBrush" Color="{StaticResource DarkBackgroundColor}" />
+  <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}" />
+  <SolidColorBrush x:Key="WindowHoverBackgroundBrush" Color="{StaticResource WindowHoverBackgroundColor}" />
+  <SolidColorBrush x:Key="BorderInterestBrush" Color="{StaticResource HeatedBorderColor}" />
+  <SolidColorBrush x:Key="HeatedBorderBrush" Color="{StaticResource HeatedBorderColor}" />
+  <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
+  <SolidColorBrush x:Key="BackgroundPrimary08Brush" Color="{StaticResource BackgroundPrimary08}" />
+  <SolidColorBrush x:Key="ComplementaryPrimary50Brush" Color="{StaticResource ComplementaryPrimary50}" />
+  <SolidColorBrush x:Key="ComplementaryPrimary32Brush" Color="{StaticResource ComplementaryPrimary32}" />
+  <SolidColorBrush x:Key="ComplementaryPrimary16Brush" Color="{StaticResource ComplementaryPrimary16}" />
+  <SolidColorBrush x:Key="ComplementaryPrimary12Brush" Color="{StaticResource ComplementaryPrimary12}" />
+  <SolidColorBrush x:Key="ComplementaryPrimary08Brush" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="ComplementaryWhite02Brush" Color="{StaticResource ComplementaryWhite02}" />
+  <SolidColorBrush x:Key="ComplementaryWhite25Brush" Color="{StaticResource ComplementaryWhite25}" />
+  <SolidColorBrush x:Key="DarkPrimaryAltBrush" Color="{StaticResource DarkPrimaryAlt}" />
+  <SolidColorBrush x:Key="PrimaryVariantBrush" Color="{StaticResource PrimaryVariant}" />
+  <SolidColorBrush x:Key="DarkPrimaryVariantBrush" Color="{StaticResource DarkPrimaryVariant}" />
+  <SolidColorBrush x:Key="DarkerPrimaryVariantBrush" Color="{StaticResource DarkerPrimaryVariant}" />
+  <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}" />
+  <SolidColorBrush x:Key="DarkSecondaryBrush" Color="{StaticResource DarkSecondary}" />
+  <SolidColorBrush x:Key="DarkerSecondaryBrush" Color="{StaticResource DarkerSecondary}" />
+  <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="{StaticResource SecondaryBackground}" />
+  <SolidColorBrush x:Key="OffWhiteSecondayBrush" Color="{StaticResource OffWhiteSeconday}" />
+  <SolidColorBrush x:Key="LightSecondaryBrush" Color="{StaticResource LightSecondary}" />
+  <SolidColorBrush x:Key="IntenseSecondaryBrush" Color="{StaticResource IntenseSecondary}" />
+  <SolidColorBrush x:Key="ComplementaryBrush" Color="{StaticResource Complementary}" />
+  <SolidColorBrush x:Key="DarkComplementaryBrush" Color="{StaticResource DarkComplementary}" />
+  <SolidColorBrush x:Key="IntenseComplementaryBrush" Color="{StaticResource IntenseComplementary}" />
+  <SolidColorBrush x:Key="ComplementaryBackgroundBrush" Color="{StaticResource ComplementaryBackground}" />
+  <SolidColorBrush x:Key="Analogous1Brush" Color="{StaticResource Analogous1}" />
+  <SolidColorBrush x:Key="Analogous2Brush" Color="{StaticResource Analogous2}" />
+  <SolidColorBrush x:Key="Triadic1Brush" Color="{StaticResource Triadic1}" />
+  <SolidColorBrush x:Key="Triadic2Brush" Color="{StaticResource Triadic2}" />
+  <SolidColorBrush x:Key="TabItemHotBackground" Color="{StaticResource HotColor}" />
+  <SolidColorBrush x:Key="TabItemSelectedBackground" Color="{StaticResource LightBackgroundColor}" />
+  <SolidColorBrush x:Key="TabItemHotBorderBrush" Color="{StaticResource HotColor}" />
+  <SolidColorBrush x:Key="TabItemDisabledBackground" Color="{StaticResource DarkBackgroundColor}" />
+  <SolidColorBrush x:Key="TabItemDisabledBorderBrush" Color="{StaticResource DarkBackgroundColor}" />
+  <SolidColorBrush x:Key="ScrollViewerBackground" Color="{StaticResource DarkBackgroundColor}" />
+  <SolidColorBrush x:Key="VerticalScrollBarBackground" Color="{StaticResource BackgroundColor}" />
+  <SolidColorBrush x:Key="HorizontalScrollBarBackground" Color="{StaticResource BackgroundColor}" />
+  <SolidColorBrush x:Key="VerticalScrollBarThumb" Color="{StaticResource ComplementaryPrimary16}" />
+  <SolidColorBrush x:Key="ScrollBarDisabledBackground" Color="{StaticResource BackgroundColor}" />
+  <SolidColorBrush x:Key="ScrollBarMouseOverThumb" Color="{StaticResource ComplementaryPrimary50}" />
+  <SolidColorBrush x:Key="ScrollBarSelectedThumb" Color="{StaticResource Primary}" />
+  <SolidColorBrush x:Key="CornerBorder" Color="{StaticResource DarkBackgroundColor}" />
+  <SolidColorBrush x:Key="TextBoxBorder" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="TextBoxBackground" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="TextBoxDisabledForeground" Color="#8C8C8C" />
+  <SolidColorBrush x:Key="TextBoxDisabledBackground" Color="Transparent" />
+  <SolidColorBrush x:Key="InactiveSelectionHighlightBrush" Color="#335C85" />
+  <SolidColorBrush x:Key="ComboBoxButtonNormalBackground" Color="Transparent" />
+  <SolidColorBrush x:Key="ButtonNormalBackground" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="ButtonNormalBorder" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="ButtonForeground" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="MouseOverButtonForeground" Color="White" />
+  <SolidColorBrush x:Key="ButtonBackground" Color="{StaticResource BackgroundColor}" />
+  <SolidColorBrush x:Key="ButtonBorder" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="PressedButtonBackground" Color="{StaticResource PressedBackgroundColor}" />
+  <SolidColorBrush x:Key="PressedButtonForeground" Color="{StaticResource Primary}" />
+  <SolidColorBrush x:Key="MouseOverButtonBackground" Color="{StaticResource LightBackgroundColor}" />
+  <SolidColorBrush x:Key="DisabledButtonBackground" Color="{StaticResource ComplementaryPrimary16}" />
+  <SolidColorBrush x:Key="DisabledButtonForeground" Color="{StaticResource DisabledForegroundColor}" />
+  <SolidColorBrush x:Key="MouseOverDangerButtonBackground" Color="{StaticResource RedDark}" />
+  <SolidColorBrush x:Key="MouseOverDangerButtonForeground" Color="#ebe5e5" />
+  <SolidColorBrush x:Key="ToggleButtonBackground" Color="{StaticResource BackgroundColor}" />
+  <SolidColorBrush x:Key="ToggleButtonForeground" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="ToggleButtonBorder" Color="Transparent" />
+  <SolidColorBrush x:Key="MouseOverToggleButtonBackground" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="MouseOverToggleButtonForeground" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="PressedToggleButtonBackground" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="PressedToggleButtonForeground" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="DisabledToggleButtonBackground" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="DisabledToggleButtonForeground" Color="{StaticResource DisabledForegroundColor}" />
+  <SolidColorBrush x:Key="Expander.Background" Color="{StaticResource LightBackgroundColor}" />
+  <SolidColorBrush x:Key="Expander.MouseOver.Arrow.Stroke" Color="{StaticResource Primary}" />
+  <SolidColorBrush x:Key="Expander.Disabled.Arrow.Stroke" Color="{StaticResource DarkSecondary}" />
+  <SolidColorBrush x:Key="Expander.Static.Arrow.Stroke" Color="{StaticResource Primary}" />
+  <SolidColorBrush x:Key="CheckBoxFillNormal" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="CheckBoxForeground" Color="{StaticResource Primary}" />
+  <SolidColorBrush x:Key="CheckBoxMouseOverStroke" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="CheckBoxDisabledStroke" Color="{StaticResource DisabledBackgroundColor}" />
+  <SolidColorBrush x:Key="CheckBoxDisabledForeground" Color="#939393" />
+  <SolidColorBrush x:Key="CheckBoxStroke" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="RadioButtonMouseOverStroke" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="RadioButtonDisabledStroke" Color="{StaticResource DisabledBackgroundColor}" />
+  <SolidColorBrush x:Key="RadioButtonDisabledForeground" Color="#939393" />
+  <SolidColorBrush x:Key="RadioButtonStroke" Color="{StaticResource DarkBackgroundColor}" />
+  <SolidColorBrush x:Key="RadioButtonForeground" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="RadioButtonBackground" Color="{StaticResource LightDisabledBackgroundColor}" />
+  <SolidColorBrush x:Key="ListBorder" Color="{StaticResource DarkBackgroundColor}" />
+  <SolidColorBrush x:Key="ListBackground" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="SelectedListItem" Color="{StaticResource ComplementaryPrimary16}" />
+  <SolidColorBrush x:Key="SelectedListItemForeground" Color="{StaticResource Primary}" />
+  <SolidColorBrush x:Key="MouseOverListItem" Color="{StaticResource ComplementaryPrimary16}" />
+  <SolidColorBrush x:Key="TreeViewBackground" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="TreeViewDisabledForeground" Color="{StaticResource DisabledForegroundColor}" />
+  <SolidColorBrush x:Key="DisabledMenuForeground" Color="#656565" />
+  <SolidColorBrush x:Key="MenuBackground" Color="#3A3A3A" />
+  <SolidColorBrush x:Key="MenuItemSelectionFill" Color="{StaticResource HighlightColor}" />
+  <SolidColorBrush x:Key="SubMenuBackgroundBrush" Color="#3A3A3A" />
+  <SolidColorBrush x:Key="MenuItemPressedFill" Color="{StaticResource HighlightColor}" />
+  <SolidColorBrush x:Key="SubMenuBorderBrush" Color="{StaticResource LightBackgroundColor}" />
+  <SolidColorBrush x:Key="SubMenuRepeatButtonBrush" Color="{StaticResource HotColor}" />
+  <SolidColorBrush x:Key="SubMenuHoverRepeatButtonBrush" Color="#7F7F7F" />
+  <SolidColorBrush x:Key="MenuSeparatorBrush" Color="#4C4C4C" />
+  <SolidColorBrush x:Key="DataGridBackgroundBrush" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="DataGridHeaderBackgroundBrush" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="DataGridHeaderMouseOverBrush" Color="{StaticResource Primary}" />
+  <SolidColorBrush x:Key="DataGridHeaderBorderBrush" Color="Transparent" />
+  <SolidColorBrush x:Key="DataGridRowBorderBrush" Color="{StaticResource DisabledBackgroundColor}" />
+  <SolidColorBrush x:Key="DataGridRowBackgroundBrush" Color="{StaticResource ComplementaryPrimary08}" />
+  <SolidColorBrush x:Key="DataGridRowSelectedBrush" Color="{StaticResource HighlightColor}" />
+  <SolidColorBrush x:Key="GridLinesBrush" Color="Transparent" />
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.Background" Color="{StaticResource ComplementaryPrimary08}"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.Border" Color="Transparent"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.Disabled.Background" Color="{StaticResource ComplementaryPrimary08}"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.Disabled.Border" Color="Transparent"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.Disabled.Foreground" Color="{StaticResource ForegroundColor}"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.MouseOver.Background" Color="{StaticResource DarkHoverBackgroundColor}"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.MouseOver.Border" Color="Transparent"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.Pressed.Background" Color="{StaticResource ComplementaryPrimary16}"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.Pressed.Border" Color="Transparent"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.ListBox.GroupHeader.Background" Color="{StaticResource ComplementaryPrimary08}"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.ListBox.GroupHeader.Foreground" Color="{StaticResource ForegroundColor}"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.ListBoxItem.SelectedOrder.Foreground" Color="{StaticResource Primary}"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.ListBoxItem.Selector.Background" Color="{StaticResource ComplementaryPrimary16}"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.ListBoxItem.Selector.Border" Color="Transparent"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.ListBoxItem.Selected.Background" Color="{StaticResource ComplementaryPrimary16}" />
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.ListBoxItem.Selected.Border" Color="Transparent"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.SelectedItem.Border" Color="Transparent"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.SelectedItem.Button.Foreground" Color="{StaticResource ForegroundColor}"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.SelectedItem.Button.Hover.Background" Color="{StaticResource ComplementaryPrimary08}"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.SelectedItem.Button.Light.Foreground" Color="{StaticResource ForegroundColor}"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.SelectedItemsPanel.Border" Color="Transparent"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.Text.Disabled.Foreground" Color="{StaticResource DisabledForegroundColor}"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.Text.Foreground" Color="{StaticResource ForegroundColor}"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.Background" Color="{StaticResource ComplementaryPrimary16}" />
+</ResourceDictionary>
