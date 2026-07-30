@@ -123,14 +123,14 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                 tags => (IEnumerable)new ObservableCollection<ModListTag>(tags))
                 .DisposeWith(dispose);
 
-            HasTagsFilter.Events().SelectedItemsChanged
+            Observable.FromEventPattern(h => HasTagsFilter.SelectedItemsChanged += h, h => HasTagsFilter.SelectedItemsChanged -= h)
                 .Subscribe(_ =>
                 {
                     ViewModel.HasTags = new ObservableCollection<ModListTag>(HasTagsFilter.SelectedItems.Cast<ModListTag>());
                 })
                 .DisposeWith(dispose);
 
-            HasModsFilter.Events().SelectedItemsChanged
+            Observable.FromEventPattern(h => HasModsFilter.SelectedItemsChanged += h, h => HasModsFilter.SelectedItemsChanged -= h)
                 .Subscribe(_ =>
                 {
                     ViewModel.HasMods = new ObservableCollection<ModListMod>(HasModsFilter.SelectedItems.Cast<ModListMod>());
