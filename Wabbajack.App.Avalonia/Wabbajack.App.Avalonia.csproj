@@ -29,4 +29,8 @@
     <PackageReference Include="WebView2.Avalonia" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Wabbajack.App.Core\Wabbajack.App.Core.csproj" />
+  </ItemGroup>
+
 </Project>

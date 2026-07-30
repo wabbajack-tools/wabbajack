@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <NoWarn>CS8600;CS8601;CS8618;CS8604;CS8632;CS1998</NoWarn>
+  </PropertyGroup>
+
+  <!--
+    Shared, UI-framework-agnostic layer for the WPF and Avalonia heads during the port.
+    No WPF / Avalonia references may be added here.
+  -->
+  <ItemGroup>
+    <PackageReference Include="ReactiveUI" />
+    <PackageReference Include="ReactiveUI.SourceGenerators">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="System.Reactive" />
+    <PackageReference Include="Newtonsoft.Json" />
+  </ItemGroup>
+
+</Project>
