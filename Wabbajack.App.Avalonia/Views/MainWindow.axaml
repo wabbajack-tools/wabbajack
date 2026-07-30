@@ -1,0 +1,13 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Wabbajack.ViewModels"
+        x:Class="Wabbajack.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Width="1280" Height="800"
+        Title="Wabbajack">
+  <Grid RowDefinitions="*">
+    <TextBlock Text="{Binding Greeting}"
+               HorizontalAlignment="Center" VerticalAlignment="Center"
+               FontSize="22" />
+  </Grid>
+</Window>
