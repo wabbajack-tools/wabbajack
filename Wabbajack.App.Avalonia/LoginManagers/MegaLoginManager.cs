@@ -53,7 +53,7 @@ public partial class MegaLoginManager : ViewModel, ILoginFor<MegaDownloader>
         }, this.WhenAnyValue(v => v.LoggedIn));
 
         Icon = new Bitmap(
-            typeof(MegaLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.mega.png")!);
+            typeof(MegaLoginManager).Assembly.GetManifestResourceStream("Wabbajack.LoginManagers.Icons.mega.png")!);
         
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
         {

@@ -22,7 +22,7 @@ public partial class MegaLoginView : ReactiveUserControl<MegaLoginVM>
         // stream on the assembly that owns MegaLoginManager. If this asset is instead published as
         // an Avalonia asset (AvaloniaResource) in the ported project, prefer:
         //   MegaImage.Source = new Bitmap(AssetLoader.Open(new Uri("avares://<AssemblyName>/LoginManagers/Icons/mega-text.png")));
-        using (var stream = typeof(MegaLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.mega-text.png"))
+        using (var stream = typeof(MegaLoginManager).Assembly.GetManifestResourceStream("Wabbajack.LoginManagers.Icons.mega-text.png"))
         {
             MegaImage.Source = new Bitmap(stream!);
         }

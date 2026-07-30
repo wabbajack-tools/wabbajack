@@ -13,7 +13,6 @@ namespace Wabbajack;
 public partial class WebBrowserVM : ViewModel, IBackNavigatingVM, IDisposable
 {
     private readonly ILogger<WebBrowserVM> _logger;
-    private readonly CefService _cefService;
 
     [Reactive]
     public partial string Instructions { get; set; }
@@ -29,22 +28,21 @@ public partial class WebBrowserVM : ViewModel, IBackNavigatingVM, IDisposable
     public Subject<bool> IsBackEnabledSubject { get; } = new Subject<bool>();
     public IObservable<bool> IsBackEnabled { get; }
 
-    public WebBrowserVM(ILogger<WebBrowserVM> logger, CefService cefService)
+    // The CefSharp-era browser was already dead code before the Avalonia port (CefService.CreateBrowser
+    // returned 0 and every call site was commented out); the live browser is BrowserWindowViewModel,
+    // hosted by Views/BrowserWindow over WebView2. This view model is kept only because MainWindowVM
+    // and the MainWindow DataTemplate map still reference it.
+    public WebBrowserVM(ILogger<WebBrowserVM> logger)
     {
-        // CefService is required so that Cef is initalized
         _logger = logger;
-        _cefService = cefService;
         Instructions = "Wabbajack Web Browser";
-        
-        CloseCommand = ReactiveCommand.Create(NavigateBack.Send);
-        //Browser = cefService.CreateBrowser();
-        //Driver = new CefSharpWrapper(_logger, Browser, cefService);
 
+        CloseCommand = ReactiveCommand.Create(NavigateBack.Send);
     }
 
     public override void Dispose()
     {
-        Browser.Dispose();
+        (Browser as IDisposable)?.Dispose();
         base.Dispose();
     }
 }

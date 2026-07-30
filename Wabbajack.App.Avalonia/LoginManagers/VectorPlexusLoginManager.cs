@@ -52,7 +52,7 @@ public partial class VectorPlexusLoginManager : ViewModel, ILoginFor<LoversLabDo
         }, this.WhenAnyValue(v => v.LoggedIn));
 
         Icon = new Bitmap(
-            typeof(VectorPlexusLoginManager).Assembly.GetManifestResourceStream("Wabbajack.App.Wpf.LoginManagers.Icons.vector_plexus.png")!);
+            typeof(VectorPlexusLoginManager).Assembly.GetManifestResourceStream("Wabbajack.LoginManagers.Icons.vector_plexus.png")!);
         
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
         {

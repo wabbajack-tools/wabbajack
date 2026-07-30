@@ -53,18 +53,14 @@ public partial class NavigationView : ReactiveUserControl<NavigationVM>
 
     private void SetButtonActive(ScreenType activeScreen)
     {
-        // TODO: WPF's per-instance Button.Style assignment has no direct Avalonia equivalent
-        // (Avalonia controls don't expose a settable Style property). Translated to adding the
-        // looked-up resource Style to each button's local Styles collection, which applies it
-        // scoped to that control. Verify the Avalonia theme defines "ActiveNavButtonStyle" and
-        // "MainNavButtonStyle" as Avalonia Style objects (with a Selector, e.g. Selector="Button")
-        // rather than WPF's TargetType-based Style, since Avalonia styles are selector-based.
-        var activeButtonStyle = (Style)Application.Current!.Resources["ActiveNavButtonStyle"]!;
-        var mainButtonStyle = (Style)Application.Current!.Resources["MainNavButtonStyle"]!;
+        // WPF assigned Button.Style per instance; Avalonia has no settable Style property, so the
+        // active/inactive look is expressed as style classes (see Themes/Controls.axaml, selectors
+        // Button.ActiveNavButton / Button.MainNavButton).
         foreach (var (button, screens) in ButtonScreensDictionary)
         {
-            button.Styles.Clear();
-            button.Styles.Add(screens.Contains(activeScreen) ? activeButtonStyle : mainButtonStyle);
+            var isActive = screens.Contains(activeScreen);
+            button.Classes.Set("ActiveNavButton", isActive);
+            button.Classes.Set("MainNavButton", !isActive);
         }
     }
 }

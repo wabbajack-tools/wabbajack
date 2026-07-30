@@ -11,6 +11,9 @@
          re-enabled per-view later once bindings are verified. -->
     <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
     <AssemblyName>Wabbajack</AssemblyName>
+    <!-- Code lives in the Wabbajack namespace; keep manifest resource names matching it
+         (the login managers look up Wabbajack.LoginManagers.Icons.<file>.png). -->
+    <RootNamespace>Wabbajack</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>preview</LangVersion>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
@@ -19,6 +22,9 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <!-- Login provider icons are loaded as manifest resources by the *LoginManager classes
+         (RootNamespace Wabbajack -> Wabbajack.LoginManagers.Icons.<file>.png). -->
+    <EmbeddedResource Include="LoginManagers\Icons\*.png" />
   </ItemGroup>
 
   <ItemGroup>

@@ -6,6 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Octokit;
 using Orc.FileAssociation;
+using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
+using Wabbajack.Paths.IO;
 using Wabbajack.CLI;
 using Wabbajack.DTOs;
 using Wabbajack.Interventions;
@@ -36,6 +39,7 @@ internal static class Program
         }
 
         var host = Host.CreateDefaultBuilder(Array.Empty<string>())
+            .ConfigureLogging(AddLogging)
             .ConfigureServices((_, services) => ConfigureServices(services))
             .Build();
         Services = host.Services;
@@ -60,6 +64,46 @@ internal static class Program
             .LogToTrace()
             .UseReactiveUI();
 
+    // Ported from Wabbajack.App.Wpf/App.xaml.cs AddLogging: file + console + the in-app LogStream
+    // target (which is also registered so view models can bind the log view).
+    private static void AddLogging(ILoggingBuilder loggingBuilder)
+    {
+        var config = new NLog.Config.LoggingConfiguration();
+
+        var logFolder = KnownFolders.LauncherAwarePath.Combine("logs");
+        if (!logFolder.DirectoryExists())
+            logFolder.CreateDirectory();
+
+        var fileTarget = new NLog.Targets.FileTarget("file")
+        {
+            FileName = logFolder.Combine("Wabbajack.current.log").ToString(),
+            ArchiveFileName = logFolder.Combine("Wabbajack.{##}.log").ToString(),
+            ArchiveOldFileOnStartup = true,
+            MaxArchiveFiles = 10,
+            Layout = "${processtime} [${level:uppercase=true}] (${logger}) ${message:withexception=true}",
+            Header = "############ Wabbajack log file - ${longdate} ############"
+        };
+
+        var consoleTarget = new NLog.Targets.ConsoleTarget("console");
+
+        var uiTarget = new LogStream
+        {
+            Name = "ui",
+            Layout = "${message:withexception=false}",
+        };
+
+        loggingBuilder.Services.AddSingleton(uiTarget);
+
+        config.AddRuleForAllLevels(fileTarget);
+        config.AddRuleForAllLevels(consoleTarget);
+        config.AddRuleForAllLevels(uiTarget);
+
+        loggingBuilder.ClearProviders();
+        loggingBuilder.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
+        loggingBuilder.SetMinimumLevel(LogLevel.Information);
+        loggingBuilder.AddNLog(config);
+    }
+
     // Ported from Wabbajack.App.Wpf/App.xaml.cs ConfigureServices. The WPF WebView2/CefService/
     // BrowserWindow control registrations are handled in Phase 4 (browser host); everything else
     // is the same DI graph the WPF app used.
@@ -70,7 +114,7 @@ internal static class Program
         services.AddSingleton<IApplicationRegistrationService>(new ApplicationRegistrationService());
         services.AddSingleton<FileAssociationSelfHealService>();
 
-        services.AddSingleton<Interventions.UserInterventionHandler>();
+        services.AddSingleton<DTOs.Interventions.IUserInterventionHandler, Interventions.UserInterventionHandler>();
         services.AddSingleton<ImageCacheManager>();
         services.AddSingleton<SystemParametersConstructor>();
         services.AddSingleton<LauncherUpdater>();
