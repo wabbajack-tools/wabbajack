@@ -19,6 +19,7 @@
     </PackageReference>
     <PackageReference Include="System.Reactive" />
     <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="HtmlAgilityPack" />
   </ItemGroup>
 
   <ItemGroup>
