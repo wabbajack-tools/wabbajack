@@ -94,6 +94,18 @@ public partial class MainWindow : Window
             };
 
             vm.WhenAnyValue(vm => vm.ActivePane)
+                .Subscribe(pane =>
+                {
+                    _logger.LogInformation("ActivePane changed to {Pane}", pane?.GetType().Name ?? "null");
+                    ActivePaneHost.Content = pane;
+                    Dispatcher.UIThread.Post(() =>
+                        _logger.LogInformation("Host child={Child} bounds={Bounds} dataTemplates={Count}",
+                            ActivePaneHost.Presenter?.Child?.GetType().Name ?? "null",
+                            ActivePaneHost.Bounds,
+                            ActivePaneHost.DataTemplates.Count), DispatcherPriority.Background);
+                });
+
+            vm.WhenAnyValue(vm => vm.ActivePane)
                 .Subscribe(pane => WizardSteps.IsVisible = pane is IProgressVM);
 
             vm.WhenAnyValue(vm => vm.ActivePane)

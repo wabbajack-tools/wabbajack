@@ -52,8 +52,8 @@
         <Grid x:Name="FloatingWindow" Grid.Row="0" Grid.RowSpan="2" ZIndex="2">
             <Rectangle x:Name="FloatingWindowBackground" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Fill="{StaticResource BackgroundBrush}" Opacity="0.75"/>
             <Border CornerRadius="8" Margin="32" Background="{StaticResource ComplementaryBackgroundBrush}">
-                <ContentPresenter x:Name="FloatingContentPresenter" Content="{Binding ActiveFloatingPane}" VerticalAlignment="Stretch" Margin="16">
-                    <ContentPresenter.DataTemplates>
+                <ContentControl x:Name="FloatingContentPresenter" Content="{Binding ActiveFloatingPane}" VerticalAlignment="Stretch" Margin="16">
+                    <ContentControl.DataTemplates>
                         <DataTemplate DataType="{x:Type local:ModListDetailsVM}">
                             <local:ModListDetailsView ViewModel="{Binding}" />
                         </DataTemplate>
@@ -69,8 +69,8 @@
                         <DataTemplate DataType="{x:Type local:ConfirmationDialogVM}">
                             <local:ConfirmationDialogView ViewModel="{Binding}" />
                         </DataTemplate>
-                    </ContentPresenter.DataTemplates>
-                </ContentPresenter>
+                    </ContentControl.DataTemplates>
+                </ContentControl>
             </Border>
         </Grid>
         <Grid x:Name="TitleBar" Grid.Row="0" Background="{StaticResource BackgroundBrush}" ZIndex="1">
@@ -160,43 +160,7 @@
                             </Image.RenderTransform>
                         </Image>
                     </Viewbox>
-                    <ContentPresenter Content="{Binding ActivePane}" VerticalAlignment="Stretch" Margin="16">
-                        <ContentPresenter.DataTemplates>
-                            <DataTemplate DataType="{x:Type local:HomeVM}">
-                                <local:HomeView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
-                                <local:ModListGalleryView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:CompilerHomeVM}">
-                                <local:CompilerHomeView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:CompilerDetailsVM}">
-                                <local:CompilerDetailsView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:CompilerFileManagerVM}">
-                                <local:CompilerFileManagerView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:CompilerMainVM}">
-                                <local:CompilerMainView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:InstallationVM}">
-                                <local:InstallationView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:WebBrowserVM}">
-                                <local:WebBrowserView />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:SettingsVM}">
-                                <local:SettingsView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:ModListDetailsVM}">
-                                <local:ModListDetailsView ViewModel="{Binding}" />
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:InfoVM}">
-                                <local:InfoView ViewModel="{Binding}" />
-                            </DataTemplate>
-                        </ContentPresenter.DataTemplates>
-                    </ContentPresenter>
+                    <ContentControl x:Name="ActivePaneHost" Content="{Binding ActivePane}" VerticalAlignment="Stretch" Margin="16" />
                 </Grid>
             </Border>
         </Grid>

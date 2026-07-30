@@ -1,0 +1,26 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="using:Wabbajack"
+                    xmlns:dbt="using:DarkBlendTheme">
+  <!--
+    Converter instances the views reference as {StaticResource ...}. WPF declared these in
+    Themes/Styles.xaml; they are registered here so the ported views resolve them.
+    (MathConverter is our Avalonia replacement for the WPF-only hexinnovation package.)
+  -->
+  <local:AbsolutePathToStringConverter x:Key="AbsolutePathToStringConverter" />
+  <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+  <local:BoolToVisibilityConverter x:Key="bool2VisibilityConverter" />
+  <local:BoolToVisibilityHiddenConverter x:Key="BoolToVisibilityHiddenConverter" />
+  <local:EqualsToBoolConverter x:Key="EqualsToBoolConverter" />
+  <local:FileSizeConverter x:Key="FileSizeConverter" />
+  <local:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+  <local:IsNexusArchiveConverter x:Key="IsNexusArchiveConverter" />
+  <local:IsNotNullVisibilityConverter x:Key="IsNotNullVisibilityConverter" />
+  <local:IsNullToBoolConverter x:Key="IsNullToBoolConverter" />
+  <local:IsTypeVisibilityConverter x:Key="IsTypeVisibilityConverter" />
+  <dbt:LeftMarginMultiplierConverter x:Key="LeftMarginMultiplierConverter" />
+  <local:MathConverter x:Key="MathConverter" />
+  <local:MultiBoolToVisibilityConverter x:Key="MultiBoolToVisibilityConverter" />
+  <local:NexusArchiveStateConverter x:Key="NexusArchiveStateConverter" />
+  <local:WidthHeightRectConverter x:Key="WidthHeightRectConverter" />
+</ResourceDictionary>

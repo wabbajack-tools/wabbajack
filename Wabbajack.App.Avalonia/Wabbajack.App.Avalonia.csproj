@@ -22,6 +22,11 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <!-- Fonts/icons the views reference (PrimaryFont, window icon). -->
+    <AvaloniaResource Include="Resources\Fonts\**" />
+    <AvaloniaResource Include="Resources\Icons\**" />
+    <None Update="Resources\libwebp_x64.dll" CopyToOutputDirectory="Always" />
+    <None Update="Resources\libwebp_x86.dll" CopyToOutputDirectory="Always" />
     <!-- Login provider icons are loaded as manifest resources by the *LoginManager classes
          (RootNamespace Wabbajack -> Wabbajack.LoginManagers.Icons.<file>.png). -->
     <EmbeddedResource Include="LoginManagers\Icons\*.png" />

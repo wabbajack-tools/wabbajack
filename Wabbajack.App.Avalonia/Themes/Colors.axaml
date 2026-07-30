@@ -207,4 +207,11 @@
   <SolidColorBrush x:Key="MultiSelectComboBox.SelectedItemsPanel.Border" Color="Transparent"/>
   <SolidColorBrush x:Key="MultiSelectComboBox.Text.Disabled.Foreground" Color="{StaticResource DisabledForegroundColor}"/>
   <SolidColorBrush x:Key="MultiSelectComboBox.Text.Foreground" Color="{StaticResource ForegroundColor}"/>
+  <SolidColorBrush x:Key="LogViewAlternateBrush" Color="{StaticResource Primary}" Opacity="0.03" />
+  <SolidColorBrush x:Key="ProgressBrush" Color="{StaticResource Primary}" Opacity="0.16" />
+  <SolidColorBrush x:Key="Transparent04PrimaryBrush" Color="{StaticResource Primary}" Opacity="0.04" />
+  <SolidColorBrush x:Key="Transparent08PrimaryBrush" Color="{StaticResource Primary}" Opacity="0.08" />
+  <SolidColorBrush x:Key="Transparent16PrimaryBrush" Color="{StaticResource Primary}" Opacity="0.16" />
+  <SolidColorBrush x:Key="Transparent66ForegroundBrush" Color="{StaticResource ForegroundColor}" Opacity="0.66" />
+  <SolidColorBrush x:Key="Transparent88ForegroundBrush" Color="{StaticResource ForegroundColor}" Opacity="0.88" />
 </ResourceDictionary>

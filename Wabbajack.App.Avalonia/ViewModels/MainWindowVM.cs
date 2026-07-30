@@ -427,6 +427,7 @@ public partial class MainWindowVM : ViewModel
 
     private void HandleNavigateTo(ScreenType s)
     {
+        _logger.LogInformation("Navigating to screen {Screen}", s);
         ActivePane = s switch
         {
             ScreenType.Home => HomeVM,
