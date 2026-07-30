@@ -1,6 +1,7 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.ReactiveUI;
 using ReactiveUI;
 
@@ -21,14 +22,13 @@ public partial class ContributorView : ReactiveUserControl<ContributorVM>
                      .BindToStrict(this, v => v.AvatarButton.Command)
                      .DisposeWith(disposable);
 
-            // TODO: ContributorVM.Avatar is currently typed as
-            // System.Windows.Media.Imaging.BitmapImage (WPF-specific). Avalonia's
-            // ImageBrush.Source expects Avalonia.Media.IImage (e.g.
-            // Avalonia.Media.Imaging.Bitmap). The binding below is a structurally
-            // faithful port of the WPF code but will need ContributorVM updated to
-            // expose an Avalonia-compatible bitmap type before this compiles/works;
-            // that VM change is out of scope for this view-only port.
+            // ContributorVM.Avatar is an Avalonia.Media.Imaging.Bitmap, while
+            // ImageBrush.Source is typed as the broader Avalonia.Media.IImage.
+            // BindToStrict requires the source observable's value type to match
+            // the bound property's type exactly, so the Bitmap is upcast to
+            // IImage via Select before binding.
             ViewModel.WhenAnyValue(vm => vm.Avatar)
+                     .Select(avatar => (IImage)avatar)
                      .BindToStrict(this, v => v.AvatarImage.Source)
                      .DisposeWith(disposable);
 

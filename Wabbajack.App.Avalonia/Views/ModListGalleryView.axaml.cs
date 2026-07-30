@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -88,26 +89,38 @@ public partial class ModListGalleryView : ReactiveUserControl<ModListGalleryVM>
                     vProp => vProp * Math.Pow(1024, 3))
                 .DisposeWith(dispose);
 
-            this.BindStrict(ViewModel,
-                vm => vm.HasMods,
-                v => v.HasModsFilter.SelectedItems)
-                .DisposeWith(dispose);
+            // TODO(avalonia-bind): local:MultiSelectComboBox is a single non-generic control shared by
+            // both HasModsFilter (ModListMod items) and HasTagsFilter (ModListTag items). A strict
+            // two-way BindStrict here requires SelectedItems' declared type to exactly equal both
+            // ObservableCollection<ModListMod> and ObservableCollection<ModListTag> at once, which is
+            // impossible for a single property - so this can't be made to compile confidently from this
+            // file alone. View -> ViewModel sync is already handled below via the SelectedItemsChanged
+            // subscriptions; only the ViewModel -> View direction (e.g. clearing selection on
+            // ResetFiltersCommand) is lost until MultiSelectComboBox's SelectedItems type is finalized.
+            // this.BindStrict(ViewModel,
+            //     vm => vm.HasMods,
+            //     v => v.HasModsFilter.SelectedItems)
+            //     .DisposeWith(dispose);
+            //
+            // this.BindStrict(ViewModel,
+            //     vm => vm.HasTags,
+            //     v => v.HasTagsFilter.SelectedItems)
+            //     .DisposeWith(dispose);
 
-            this.BindStrict(ViewModel,
-                vm => vm.HasTags,
-                v => v.HasTagsFilter.SelectedItems)
-                .DisposeWith(dispose);
-
+            // Selector return values are explicitly cast to IEnumerable (rather than left as
+            // ObservableCollection<T>) so the inferred TOut matches ItemsSource's declared type -
+            // without the cast, the view-property and selector expressions infer conflicting exact
+            // types and the call fails to compile.
             this.OneWayBindStrict(ViewModel,
                 vm => vm.AllMods,
                 v => v.HasModsFilter.ItemsSource,
-                mods => new ObservableCollection<ModListMod>(mods))
+                mods => (IEnumerable)new ObservableCollection<ModListMod>(mods))
                 .DisposeWith(dispose);
 
             this.OneWayBindStrict(ViewModel,
                 vm => vm.AllTags,
                 v => v.HasTagsFilter.ItemsSource,
-                tags => new ObservableCollection<ModListTag>(tags))
+                tags => (IEnumerable)new ObservableCollection<ModListTag>(tags))
                 .DisposeWith(dispose);
 
             HasTagsFilter.Events().SelectedItemsChanged

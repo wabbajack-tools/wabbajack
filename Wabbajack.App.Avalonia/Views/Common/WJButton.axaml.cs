@@ -30,7 +30,7 @@ public partial class WJButtonVM : ViewModel
 {
 }
 
-public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject
+public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject, IActivatableView
 {
     private string _text;
 

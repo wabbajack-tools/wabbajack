@@ -19,7 +19,7 @@
         Resources/GameGridIcons/Fallout4.png) also do not exist in the repo. Everything below indicates
         this view is dead/orphaned legacy code from before Bethesda.net login moved to the OAuth2-based
         BethesdaNetTokenProvider flow. x:DataType above is a best-effort guess following the View->VM
-        naming convention (namespace/class do not exist yet) -- a human must either locate/recreate the
+        naming convention (namespace/class do not exist yet); a human must either locate/recreate the
         real BethesdaNetLoginVM (Instructions, BackCommand, LoginViaSkyrimSE, LoginViaFallout4 members) or
         confirm this view should be dropped instead of ported forward.
     -->

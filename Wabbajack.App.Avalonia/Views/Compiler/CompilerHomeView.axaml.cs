@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -22,7 +23,11 @@ public partial class CompilerHomeView : ReactiveUserControl<CompilerHomeVM>
 
         this.WhenActivated(dispose =>
         {
+            // ItemsControl.ItemsSource is the non-generic IEnumerable, so the
+            // ObservableCollection<CompiledModListTileVM> source needs an explicit
+            // cast/selector for BindToStrict's matching-type constraint.
             this.WhenAnyValue(x => x.ViewModel.CompiledModLists)
+                .Select(x => (IEnumerable)x)
                 .BindToStrict(this, x => x.CompiledModListsControl.ItemsSource)
                 .DisposeWith(dispose);
 

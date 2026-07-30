@@ -24,10 +24,13 @@ public partial class CompiledModListTileView : ReactiveUserControl<CompiledModLi
         {
             // WPF: UIUtils.TryGetBitmapImageFromFile returns a System.Windows.Media.Imaging.BitmapImage,
             // which is WPF-specific. Reproduced here with an Avalonia-compatible loader
-            // (TryGetBitmapFromFile below) that returns Avalonia.Media.Imaging.Bitmap for the
-            // ImageBrush.Source binding.
+            // (TryGetBitmapFromFile below) that returns Avalonia.Media.Imaging.Bitmap. BindToStrict
+            // requires the source observable's value type to match the bound property's type exactly,
+            // and ImageBrush.Source is typed as the broader Avalonia.Media.IImage, so the Bitmap is
+            // upcast to IImage via Select before binding.
             ViewModel.WhenAnyValue(vm => vm.CompilerSettings.ModListImage)
                      .Select(TryGetBitmapFromFile)
+                     .Select(bitmap => (IImage?)bitmap)
                      .BindToStrict(this, v => v.ModlistImage.Source)
                      .DisposeWith(dispose);
 

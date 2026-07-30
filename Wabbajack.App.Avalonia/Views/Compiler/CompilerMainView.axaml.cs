@@ -6,11 +6,11 @@ using Wabbajack.Common;
 using Wabbajack.Paths.IO;
 using System.Reactive.Disposables;
 using System;
-using ReactiveMarbles.ObservableEvents;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 
 namespace Wabbajack;
@@ -109,7 +109,9 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
             this.BindCommand(ViewModel, x => x.StartCommand, x => x.StartButton)
                 .DisposeWith(disposables);
 
-            ViewModel.StartCommand.Events().CanExecuteChanged
+            Observable.FromEventPattern<EventHandler, EventArgs>(
+                    h => ViewModel.StartCommand.CanExecuteChanged += h,
+                    h => ViewModel.StartCommand.CanExecuteChanged -= h)
                 .Subscribe(_ =>
                 {
                     if (!ViewModel.StartCommand.CanExecute(null))
@@ -184,7 +186,9 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
 
 
 
-            PublishCollectionButton.Events().Click
+            Observable.FromEventPattern<RoutedEventArgs>(
+                    h => PublishCollectionButton.Click += h,
+                    h => PublishCollectionButton.Click -= h)
                 .Subscribe(async _ => await HandlePublishCollectionClick())
                 .DisposeWith(disposables);
 

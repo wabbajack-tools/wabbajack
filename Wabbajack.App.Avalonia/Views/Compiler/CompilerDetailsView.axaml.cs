@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -58,6 +59,7 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
                 .DisposeWith(disposables);
 
             this.WhenAnyValue(v => v.ViewModel.AvailableProfiles)
+                .Select(x => (IEnumerable)x)
                 .BindToStrict(this, view => view.ProfileSetting.ItemsSource)
                 .DisposeWith(disposables);
 
@@ -65,18 +67,18 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
                 .DisposeWith(disposables);
 
             ViewModel.WhenAnyValue(v => v.AvailableProfiles, v => v.Settings.Profile)
-                     .Select((x) => x.Item1.Except([x.Item2]).ToList())
+                     .Select((x) => (IEnumerable)x.Item1.Except([x.Item2]).ToList())
                      .BindToStrict(this, x => x.AdditionalProfilesSetting.ItemsSource)
                      .DisposeWith(disposables);
 
             AdditionalProfilesSetting.Events().SelectionChanged
                 .Subscribe(args => {
                     _UserChangingProfileSelection = true;
+                    // NOTE: AdditionalProfiles is a string[] (not a List<string>), so it has no Add
+                    // method; the assignment below already captures the full current selection, so
+                    // the old WPF code's follow-up foreach-Add loop (which also duplicated entries)
+                    // is dropped as redundant.
                     ViewModel.Settings.AdditionalProfiles = AdditionalProfilesSetting.SelectedItems.OfType<string>().ToArray();
-                    foreach(string profile in AdditionalProfilesSetting.SelectedItems)
-                    {
-                        ViewModel.Settings.AdditionalProfiles.Add(profile);
-                    }
                     _UserChangingProfileSelection = false;
                 })
                 .DisposeWith(disposables);

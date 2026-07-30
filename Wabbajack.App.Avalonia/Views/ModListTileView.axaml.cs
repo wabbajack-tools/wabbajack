@@ -4,7 +4,6 @@ using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using Avalonia.ReactiveUI;
 using ReactiveUI;
 
@@ -21,22 +20,12 @@ public partial class ModListTileView : ReactiveUserControl<BaseModListMetadataVM
         this.WhenActivated(disposables =>
         {
             // WPF: BindToStrict(this, v => v.ModlistImage.ImageSource) with a
-            // System.Windows.Media.Imaging.BitmapImage.
-            // BLOCKED/TODO: BaseModListMetadataVM.Image is still typed as
-            // System.Windows.Media.Imaging.BitmapImage (WPF-only; see
-            // Wabbajack.App.Wpf/ViewModels/Gallery/BaseModListMetadataVM.cs and
-            // Wabbajack.App.Wpf/Util/UIUtils.cs DownloadBitmapImage). PORT_PLAN.md flags this as
-            // a Phase-1 "Images" abstraction that has not landed yet (VM should expose a
-            // stream/bytes producer that each head decodes to its own bitmap type). Until that
-            // lands, ToAvaloniaBitmap below is a best-effort bridge that reads the WPF
-            // BitmapImage's retained StreamSource (see UIUtils.BitmapImageFromStream, which sets
-            // CacheOption=OnLoad and resets StreamSource.Position=0) into an Avalonia Bitmap. This
-            // requires the Avalonia head to be able to resolve
-            // System.Windows.Media.Imaging.BitmapImage at compile time, which in turn requires a
-            // WPF-capable reference - it will not build as a pure Avalonia-only head until the
-            // Core image abstraction replaces this property's type.
+            // System.Windows.Media.Imaging.BitmapImage. BaseModListMetadataVM.Image is now typed
+            // as Avalonia.Media.Imaging.Bitmap (see
+            // Wabbajack.App.Avalonia/ViewModels/Gallery/BaseModListMetadataVM.cs), so it can be
+            // bound directly to the ImageBrush's Source without any bridging conversion.
             ViewModel.WhenAnyValue(vm => vm.Image)
-                     .Select(ToAvaloniaBitmap)
+                     .Select(b => (IImage)b)
                      .BindToStrict(this, v => v.ModlistImage.Source)
                      .DisposeWith(disposables);
 
@@ -125,20 +114,5 @@ public partial class ModListTileView : ReactiveUserControl<BaseModListMetadataVM
             this.BindCommand(ViewModel, vm => vm.DetailsCommand, v => v.ModlistButton)
                 .DisposeWith(disposables);
         });
-    }
-
-    private static Bitmap? ToAvaloniaBitmap(System.Windows.Media.Imaging.BitmapImage? source)
-    {
-        if (source?.StreamSource is null) return null;
-        try
-        {
-            var stream = source.StreamSource;
-            if (stream.CanSeek) stream.Position = 0;
-            return new Bitmap(stream);
-        }
-        catch (Exception)
-        {
-            return null;
-        }
     }
 }

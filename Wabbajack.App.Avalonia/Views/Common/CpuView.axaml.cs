@@ -1,3 +1,4 @@
+using Avalonia.ReactiveUI;
 using System.Reactive.Disposables;
 using ReactiveUI;
 using System.Reactive.Linq;

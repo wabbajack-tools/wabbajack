@@ -3,13 +3,13 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.ReactiveUI;
 using System;
 using System.Linq;
 using Wabbajack.Paths;
 using Wabbajack.Messages;
-using ReactiveMarbles.ObservableEvents;
 using System.Reactive.Concurrency;
 using Symbol = FluentIcons.Common.Symbol;
 using Wabbajack.Installer;
@@ -343,17 +343,19 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             this.BindCommand(ViewModel, vm => vm.DiagnoseFailureCommand, v => v.DiagnoseButton)
                 .DisposeWith(disposables);
 
-            DiagnoseButton.Events().Click
+            // ReactiveMarbles' .Events() generator doesn't reliably wrap Avalonia controls;
+            // use a direct Rx event wrapper around Button.Click instead.
+            Observable.FromEventPattern<RoutedEventArgs>(h => DiagnoseButton.Click += h, h => DiagnoseButton.Click -= h)
                 .ObserveOnGuiThread()
                 .Subscribe(_ => ErrorToggleButton.IsChecked = true)
                 .DisposeWith(disposables);
 
-            JoinDiscordButton.Events().Click
+            Observable.FromEventPattern<RoutedEventArgs>(h => JoinDiscordButton.Click += h, h => JoinDiscordButton.Click -= h)
                 .ObserveOnGuiThread()
                 .Subscribe(_ => UIUtils.OpenWebsite(new Uri("https://www.wabbajack.org/discord")))
                 .DisposeWith(disposables);
 
-            VisitWikiButton.Events().Click
+            Observable.FromEventPattern<RoutedEventArgs>(h => VisitWikiButton.Click += h, h => VisitWikiButton.Click -= h)
                 .ObserveOnGuiThread()
                 .Subscribe(_ => UIUtils.OpenWebsite(new Uri("https://wiki.wabbajack.org")))
                 .DisposeWith(disposables);

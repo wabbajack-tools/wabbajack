@@ -1,4 +1,5 @@
 using System.Reactive.Disposables;
+using System.Collections;
 using ReactiveUI;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -54,11 +55,9 @@ public partial class ModListDetailsView : ReactiveUserControl<ModListDetailsVM>
                 .BindToStrict(this, x => x.ArchivesDataGrid.IsVisible)
                 .DisposeWith(disposables);
 
-            // TODO: ViewModel.Browser is still typed as Microsoft.Web.WebView2.Wpf.WebView2 in the
-            // (not-yet-ported) ModListDetailsVM. Once that VM is ported to Avalonia with an
-            // Avalonia-compatible WebView control (see WebView2.Avalonia, already referenced by
-            // Wabbajack.App.Avalonia.csproj), ViewModel.Browser needs an IsVisible bool property (and a
-            // Source property, see below) for these bindings to compile.
+            // NOTE: ViewModel.Browser is Avalonia.Controls.WebView2 (WebView2.Avalonia package),
+            // which derives from Shapes.Rectangle/Control/Visual, so IsVisible (bool) and Source
+            // (Uri, see below) are available directly - no further porting needed here.
             this.WhenAnyValue(x => x.ReadmeButton.IsChecked)
                 .Select(x => x ?? false)
                 .BindToStrict(this, x => x.ViewModel.Browser.IsVisible)
@@ -117,6 +116,10 @@ public partial class ModListDetailsView : ReactiveUserControl<ModListDetailsVM>
                 .DisposeWith(disposables);
 
             this.WhenAnyValue(x => x.ViewModel.MetadataVM.ModListTagList)
+                // DataGrid/ItemsControl.ItemsSource is the non-generic IEnumerable, so the
+                // HashSet<ModListTag> source needs an explicit cast/selector for BindToStrict's
+                // matching-type constraint (same pattern as CompilerHomeView.axaml.cs).
+                .Select(x => (IEnumerable)x)
                 .BindToStrict(this, v => v.TagsControl.ItemsSource)
                 .DisposeWith(disposables);
 
