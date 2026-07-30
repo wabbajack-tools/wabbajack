@@ -16,6 +16,7 @@
         <ResourceInclude Source="/Themes/Colors.axaml" />
         <ResourceInclude Source="/Themes/Converters.axaml" />
         <ResourceInclude Source="/Themes/Assets.axaml" />
+        <ResourceInclude Source="/Themes/CustomControls.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>

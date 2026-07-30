@@ -1,0 +1,77 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="using:Wabbajack">
+  <!--
+    Templates for the controls that replaced WPF-only third-party widgets:
+    MahApps RangeSlider and the SDL Toolkit MultiSelectComboBox. Without these the controls
+    are template-less and render as blank space in the gallery filter panel.
+  -->
+
+  <ControlTheme x:Key="{x:Type local:MultiSelectComboBox}" TargetType="local:MultiSelectComboBox">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Grid>
+          <ToggleButton x:Name="PART_Toggle"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Padding="8,6"
+                        Background="{DynamicResource DarkBackgroundBrush}"
+                        BorderBrush="{DynamicResource ButtonBorder}"
+                        BorderThickness="1"
+                        CornerRadius="4">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock x:Name="PART_Summary"
+                         Grid.Column="0"
+                         Text="Any"
+                         TextTrimming="CharacterEllipsis"
+                         VerticalAlignment="Center"
+                         Foreground="{DynamicResource ForegroundBrush}" />
+              <Path Grid.Column="1"
+                    Margin="6,0,0,0"
+                    VerticalAlignment="Center"
+                    Width="8" Height="5"
+                    Stretch="Fill"
+                    Fill="{DynamicResource DimForegroundBrush}"
+                    Data="M 0,0 L 10,0 L 5,6 Z" />
+            </Grid>
+          </ToggleButton>
+          <Popup x:Name="PART_Popup"
+                 PlacementTarget="{Binding #PART_Toggle}"
+                 Placement="BottomEdgeAlignedLeft"
+                 IsLightDismissEnabled="True">
+            <Border Background="{DynamicResource DarkBackgroundBrush}"
+                    BorderBrush="{DynamicResource ButtonBorder}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="4"
+                    MinWidth="180">
+              <ScrollViewer MaxHeight="260">
+                <ItemsControl x:Name="PART_Items" />
+              </ScrollViewer>
+            </Border>
+          </Popup>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type local:RangeSlider}" TargetType="local:RangeSlider">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <!-- Two bound sliders standing in for MahApps' dual-thumb track. -->
+        <StackPanel Spacing="2">
+          <Slider x:Name="PART_Lower"
+                  Minimum="{TemplateBinding Minimum}"
+                  Maximum="{TemplateBinding Maximum}"
+                  Value="{Binding LowerValue, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                  Foreground="{DynamicResource TrackValueFillBrush}" />
+          <Slider x:Name="PART_Upper"
+                  Minimum="{TemplateBinding Minimum}"
+                  Maximum="{TemplateBinding Maximum}"
+                  Value="{Binding UpperValue, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                  Foreground="{DynamicResource TrackValueFillBrush}" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>
