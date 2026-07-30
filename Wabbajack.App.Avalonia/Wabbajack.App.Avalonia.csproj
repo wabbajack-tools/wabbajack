@@ -27,10 +27,35 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="WebView2.Avalonia" />
+    <PackageReference Include="DynamicData" />
+    <PackageReference Include="Humanizer" />
+    <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" />
+    <PackageReference Include="Genbox.AlphaFS" />
+    <PackageReference Include="GitInfo">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="NLog.Extensions.Logging" />
+    <PackageReference Include="Orc.FileAssociation" />
+    <PackageReference Include="PInvoke.User32" />
+    <PackageReference Include="ReactiveMarbles.ObservableEvents.SourceGenerator" />
+    <PackageReference Include="SharpCompress" />
+    <PackageReference Include="Silk.NET.DXGI" />
+    <PackageReference Include="SixLabors.ImageSharp" />
+    <PackageReference Include="System.Reactive" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Wabbajack.App.Core\Wabbajack.App.Core.csproj" />
+    <ProjectReference Include="..\Wabbajack.CLI\Wabbajack.CLI.csproj" />
+    <ProjectReference Include="..\Wabbajack.CLI.Builder\Wabbajack.CLI.Builder.csproj" />
+    <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj" />
+    <ProjectReference Include="..\Wabbajack.Reporting\Wabbajack.Reporting.csproj" />
+    <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
   </ItemGroup>
 
 </Project>
