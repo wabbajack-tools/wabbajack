@@ -31,13 +31,13 @@
         DynamicData's .Filter() operator over LoggerProvider.MessageLog, and the resulting
         live filtered collection is assigned directly to LogListBox.ItemsSource.
     -->
-    <Border x:Name="BorderMask2" CornerRadius="8" BorderThickness="0" Background="White">
-        <Grid Margin="-1">
-            <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1" />
+    <!-- CornerRadius + ClipToBounds instead of WPF's VisualBrush OpacityMask: Avalonia does not
+         render a live sibling visual correctly as a mask source, which hides the masked content and
+         leaves the white mask Border showing through (see CompilerFileManagerView). -->
+    <Border CornerRadius="8" ClipToBounds="True" BorderThickness="0"
+            Background="{StaticResource ComplementaryBackgroundBrush}">
+        <Grid>
             <Grid>
-                <Grid.OpacityMask>
-                    <VisualBrush Visual="{Binding #BorderMask}" />
-                </Grid.OpacityMask>
                 <ListBox
                     x:Name="LogListBox"
                     local:AutoScrollBehavior.ScrollOnNewItem="True"

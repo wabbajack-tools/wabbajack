@@ -31,14 +31,15 @@
         declares the bare TreeView; ItemsSource is still assigned from code-behind exactly as
         in the WPF original.
     -->
-    <Border Name="BorderMask2" CornerRadius="8" BorderThickness="0" Background="White">
-        <Grid Margin="-1">
-            <Grid.OpacityMask>
-                <VisualBrush Visual="{Binding #BorderMask}" />
-            </Grid.OpacityMask>
-            <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1" />
-            <TreeView x:Name="FileTreeView" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
-        </Grid>
+    <!--
+        WPF rounded this panel with an OpacityMask whose VisualBrush pointed at a sibling white,
+        rounded Border. Avalonia does not render a live sibling visual correctly as a mask source:
+        the resulting mask hid the TreeView almost entirely and left two white bands where the mask
+        source itself showed through. CornerRadius + ClipToBounds rounds the panel directly.
+    -->
+    <Border CornerRadius="8" ClipToBounds="True" BorderThickness="0"
+            Background="{StaticResource ComplementaryBackgroundBrush}">
+        <TreeView x:Name="FileTreeView" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
     </Border>
 
 </rxui:ReactiveUserControl>

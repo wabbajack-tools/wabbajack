@@ -15,6 +15,7 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Avalonia.Controls;
 using System.Windows.Input;
@@ -30,10 +31,26 @@ public class CompilerFileManagerVM : BaseCompilerVM
     {
         this.WhenActivated(disposables =>
         {
-            if (Settings.Source != default)
+            // DirectoryExists, not just "is set": a .compiler_settings file records the Source path
+            // from the machine it was authored on, so opening someone else's settings (or a moved
+            // install) points here at a directory that isn't there. Enumerating it threw
+            // DirectoryNotFoundException out of WhenActivated, which is unhandled and tore down the
+            // whole window rather than showing an empty file tree.
+            if (Settings.Source != default && Settings.Source.DirectoryExists())
             {
-                var fileTree = GetDirectoryContents(new DirectoryInfo(Settings.Source.ToString()));
-                Files = LoadSource(new DirectoryInfo(Settings.Source.ToString()));
+                try
+                {
+                    Files = LoadSource(new DirectoryInfo(Settings.Source.ToString()));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Could not read the compiler source folder {Source}", Settings.Source);
+                }
+            }
+            else if (Settings.Source != default)
+            {
+                _logger.LogWarning("Compiler source folder {Source} does not exist; showing an empty file tree",
+                    Settings.Source);
             }
 
             Disposable.Create(() => { }).DisposeWith(disposables);

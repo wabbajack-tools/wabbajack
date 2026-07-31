@@ -13,9 +13,11 @@
     x:DataType="vm:ViewModel"
     ClipToBounds="True"
     mc:Ignorable="d">
-    <Border x:Name="BorderMask2" CornerRadius="8" BorderThickness="0" Background="White">
+    <!-- CornerRadius + ClipToBounds instead of WPF's VisualBrush OpacityMask (see
+         CompilerFileManagerView): Avalonia does not render a live sibling visual correctly as a mask
+         source, so the mask hid the content and the white mask Border showed through instead. -->
+    <Border CornerRadius="8" ClipToBounds="True" BorderThickness="0" Background="Black">
         <Grid>
-            <Border Name="BorderMask" CornerRadius="8" Background="White" Margin="1"/>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -23,9 +25,6 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Grid.OpacityMask>
-                    <VisualBrush Visual="{Binding #BorderMask}" />
-                </Grid.OpacityMask>
                 <Rectangle Grid.RowSpan="4" Fill="{StaticResource ComplementaryPrimary08Brush}" IsVisible="{Binding ElementName=ModlistImage, Path=Source, Converter={StaticResource IsNotNullVisibilityConverter}}"/>
                 <Rectangle Grid.RowSpan="4" Fill="Black"/>
                 <!--

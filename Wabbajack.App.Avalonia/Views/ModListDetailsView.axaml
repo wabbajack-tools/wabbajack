@@ -279,19 +279,16 @@
                     </Grid.RowDefinitions>
 
                     <!--
-                        TODO: This mask trick (VisualBrush over a rounded Border used as an OpacityMask so
-                        the DataGrid's square corners get clipped to match BorderMask2/BorderMask's
-                        CornerRadius) is preserved structurally - Avalonia supports VisualBrush and
-                        Grid.OpacityMask too - but it has not been verified to render identically under
-                        Avalonia's compositor. Verify visually once building is possible.
+                        WPF clipped the DataGrid's square corners with an OpacityMask whose VisualBrush
+                        pointed at a sibling rounded white Border. Avalonia does not render a live
+                        sibling visual correctly as a mask source, so that mask hid content and let the
+                        white Border show through instead (it is what put a white bar above the column
+                        headers). CornerRadius + ClipToBounds rounds the panel directly.
                     -->
-                    <Border x:Name="BorderMask2" Grid.Row="0" CornerRadius="8" Background="White">
-                        <Grid Margin="-1">
-                            <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1"/>
+                    <Border Grid.Row="0" CornerRadius="8" ClipToBounds="True"
+                            Background="{StaticResource ComplementaryBackgroundBrush}">
+                        <Grid>
                             <Grid x:Name="MainContentGrid">
-                                <Grid.OpacityMask>
-                                    <VisualBrush Visual="{Binding #BorderMask}"/>
-                                </Grid.OpacityMask>
                                 <!--
                                     TODO (DataGrid port - needs manual verification against the installed
                                     Avalonia.Controls.DataGrid package version):
