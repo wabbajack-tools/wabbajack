@@ -45,6 +45,10 @@
         <!-- WPF ListBoxItemStyle, applied implicitly to every ListBoxItem in the additional-profiles list. -->
         <Style Selector="ListBox.Profiles ListBoxItem">
             <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary08Brush}" />
+            <!-- WPF's ListBoxItem left-aligns its content; Avalonia stretches it, which let the
+                 template's spacer column expand and pushed each profile name to the far right of the
+                 row, a long way from its checkmark. -->
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
         </Style>
         <Style Selector="ListBox.Profiles ListBoxItem:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource MouseOverListItem}" />

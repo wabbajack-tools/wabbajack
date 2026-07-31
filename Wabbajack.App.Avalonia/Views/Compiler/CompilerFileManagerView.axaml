@@ -47,7 +47,7 @@
                              shown here as read-only chips so the tagging is at least visible - editing
                              them still needs a bindable SelectedItems on MultiSelectComboBox. -->
                         <ItemsControl Grid.Column="2" ItemsSource="{Binding CompilerFileStates}"
-                                      VerticalAlignment="Center" Margin="8,0,0,0">
+                                      VerticalAlignment="Center" Margin="8,0,12,0">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <StackPanel Orientation="Horizontal" Spacing="4" />

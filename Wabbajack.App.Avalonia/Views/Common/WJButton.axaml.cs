@@ -165,13 +165,12 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject, I
                 if (percent == Percent.One)
                 {
                     this.ClearValue(BackgroundProperty);
-                    // TextBlock declares its own Foreground property distinct from the
-                    // TemplatedControl.Foreground that WJButton/ButtonSymbolIcon share, so it
-                    // must be qualified explicitly here (bare ForegroundProperty would resolve
-                    // to TemplatedControl's, which TextBlock does not use).
-                    ButtonTextBlock.ClearValue(TextBlock.ForegroundProperty);
                     ButtonSymbolIcon.ClearValue(ForegroundProperty);
                     Theme = FindButtonTheme("WJColorButtonStyle");
+                    // Not ClearValue on the label: clearing drops it back to the app-wide TextBlock
+                    // style's light Foreground rather than to the button's dark one, which left a
+                    // finished Progress button reading as near-white text on lilac.
+                    ApplyIconBrush(ButtonStyle.Progress);
                 }
                 else
                 {
@@ -269,19 +268,41 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject, I
     // not contain descendant selectors, so the equivalent is applied here.
     private void ApplyIconBrush(ButtonStyle style)
     {
-        if (ButtonSymbolIcon is null) return;
+        var onLightFill = style is ButtonStyle.Color or ButtonStyle.Progress;
 
-        if (style is ButtonStyle.Color or ButtonStyle.Progress)
+        if (ButtonSymbolIcon is not null)
         {
-            // These variants set Foreground to BackgroundBrush, which inherits down to the icon.
-            ButtonSymbolIcon.ClearValue(ForegroundProperty);
+            if (onLightFill)
+            {
+                // These variants set Foreground to BackgroundBrush, which inherits down to the icon.
+                ButtonSymbolIcon.ClearValue(ForegroundProperty);
+            }
+            else if (TryFindBrush("PrimaryBrush", out var primary))
+            {
+                ButtonSymbolIcon.Foreground = primary;
+            }
         }
-        else if (Application.Current is { } app
-                 && app.TryFindResource("PrimaryBrush", out var brush)
-                 && brush is IBrush primary)
+
+        // The label cannot rely on inheritance the way the icon does: Themes/Base.axaml gives every
+        // TextBlock an explicit light Foreground, which beats the value inherited from the button.
+        // On the light-filled variants that left "Install" as near-white text on lilac.
+        if (ButtonTextBlock is not null
+            && TryFindBrush(onLightFill ? "BackgroundBrush" : "ForegroundBrush", out var text))
         {
-            ButtonSymbolIcon.Foreground = primary;
+            ButtonTextBlock.Foreground = text;
         }
+    }
+
+    private static bool TryFindBrush(string key, out IBrush brush)
+    {
+        if (Application.Current is { } app && app.TryFindResource(key, out var found) && found is IBrush b)
+        {
+            brush = b;
+            return true;
+        }
+
+        brush = null!;
+        return false;
     }
 
     // Replaces the WPF WireNotifyPropertyChanged FrameworkPropertyMetadata callback: Avalonia's

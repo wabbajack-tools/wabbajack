@@ -30,6 +30,18 @@
     <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorder}" />
     <Setter Property="Padding" Value="8,6" />
   </Style>
+  <!-- Fluent swaps the border element's background to a near-black "focused" colour and paints a
+       light focus border, so clicking into any field turned it black with a white outline while
+       every other field stayed on the Wabbajack palette. Bind straight back to the control's own
+       Background so class-specific backgrounds (e.g. TextBox.Value) keep working. -->
+  <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{Binding $parent[TextBox].Background}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+  </Style>
+  <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{Binding $parent[TextBox].Background}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderInterestBrush}" />
+  </Style>
 
   <!-- Buttons that carry no explicit Wabbajack class still need sane dark styling + padding.
        HorizontalAlignment/VerticalAlignment are restated because Avalonia's Fluent theme pins buttons
