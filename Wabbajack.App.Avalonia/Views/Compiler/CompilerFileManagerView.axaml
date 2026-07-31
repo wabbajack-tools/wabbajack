@@ -7,29 +7,23 @@
     xmlns:vm="using:Wabbajack"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="using:Avalonia.ReactiveUI"
+    xmlns:fluent="using:FluentIcons.Avalonia"
     d:DesignHeight="450"
     d:DesignWidth="800"
     x:TypeArguments="vm:CompilerFileManagerVM"
     x:DataType="vm:CompilerFileManagerVM"
     mc:Ignorable="d">
     <!--
-        TODO (FileTreeViewItem / TreeView item template): the WPF original relies on
-        FileTreeViewItem (ViewModels/Compiler/FileTreeItemVM.cs) being a
-        System.Windows.Controls.TreeViewItem subclass whose Header is set directly to a
-        FileTreeItemVM in code-behind (CompilerFileManagerVM.LoadSource /
-        LoadDirectoryContents), with the actual per-item visuals (folder/file icon via
-        FluentIcons Symbol, CompilerFileState checkbox/flag UI) supplied entirely by the
-        keyed ControlTemplate `<Style TargetType="{x:Type wj:FileTreeViewItem}"
-        BasedOn="{StaticResource TreeViewItem}">` in Themes/Styles.xaml (out of scope for
-        this view). Avalonia's TreeView expects a HierarchicalDataTemplate over plain data
-        items rather than pre-built TreeViewItem containers, and Avalonia has no
-        ControlTemplate-based "is item its own container" style hook equivalent to WPF's
-        here. Faithfully porting this requires FileTreeViewItem to be rewritten as an
-        Avalonia TreeViewItem subclass (or replaced with a HierarchicalDataTemplate bound to
-        FileTreeItemVM) and the Styles.xaml TreeViewItem ControlTemplate to be ported to an
-        Avalonia ControlTheme/Style — both out of scope for this file. This view itself only
-        declares the bare TreeView; ItemsSource is still assigned from code-behind exactly as
-        in the WPF original.
+        FileTreeViewItem is an Avalonia TreeViewItem subclass whose Header is set to a
+        FileTreeItemVM in code-behind, so the items are their own containers and only the header
+        needs a template. WPF supplied those visuals through a keyed FileTreeViewItem
+        ControlTemplate in Themes/Styles.xaml; without an equivalent here every row measured to
+        nothing and the tree looked empty even with a valid source folder.
+
+        The DataTemplate below is scoped to this TreeView so it wins over the application-level
+        ViewLocator, which would otherwise try to resolve a "FileTreeItemView" that does not exist.
+        It covers the icon and name; the CompilerFileState flag UI from the WPF template is still
+        outstanding.
     -->
     <!--
         WPF rounded this panel with an OpacityMask whose VisualBrush pointed at a sibling white,
@@ -39,7 +33,17 @@
     -->
     <Border CornerRadius="8" ClipToBounds="True" BorderThickness="0"
             Background="{StaticResource ComplementaryBackgroundBrush}">
-        <TreeView x:Name="FileTreeView" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+        <TreeView x:Name="FileTreeView" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <TreeView.DataTemplates>
+                <DataTemplate DataType="vm:FileTreeItemVM">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <fluent:SymbolIcon Symbol="{Binding Symbol}" FontSize="16" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource PrimaryBrush}" />
+                        <TextBlock Text="{Binding Info.Name}" VerticalAlignment="Center" />
+                    </StackPanel>
+                </DataTemplate>
+            </TreeView.DataTemplates>
+        </TreeView>
     </Border>
 
 </rxui:ReactiveUserControl>

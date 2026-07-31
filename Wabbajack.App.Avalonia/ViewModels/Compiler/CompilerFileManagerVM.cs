@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Messages;
 using ReactiveUI;
+using ReactiveUI.SourceGenerators;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -23,37 +24,52 @@ using System.ComponentModel;
 
 namespace Wabbajack;
 
-public class CompilerFileManagerVM : BaseCompilerVM
+public partial class CompilerFileManagerVM : BaseCompilerVM
 {
-    public ObservableCollection<FileTreeViewItem> Files { get; set; }
+    // [Reactive], not a plain auto-property: Files is assigned inside WhenActivated, and the view
+    // binds ViewModel.Files -> FileTreeView.ItemsSource. Without change notification that binding
+    // captured the initial null and never saw the assignment, so the compiler's file tree stayed
+    // empty even when the source folder was present.
+    [Reactive]
+    public partial ObservableCollection<FileTreeViewItem> Files { get; set; }
 
     public CompilerFileManagerVM(ILogger<CompilerFileManagerVM> logger, DTOSerializer dtos, SettingsManager settingsManager, Client wjClient) : base(dtos, settingsManager, logger, wjClient)
     {
         this.WhenActivated(disposables =>
         {
-            // DirectoryExists, not just "is set": a .compiler_settings file records the Source path
-            // from the machine it was authored on, so opening someone else's settings (or a moved
-            // install) points here at a directory that isn't there. Enumerating it threw
-            // DirectoryNotFoundException out of WhenActivated, which is unhandled and tore down the
-            // whole window rather than showing an empty file tree.
-            if (Settings.Source != default && Settings.Source.DirectoryExists())
-            {
-                try
+            // Observed rather than read once: BaseCompilerVM replaces Settings when the
+            // LoadCompilerSettings message arrives, which happens after this view activates. Reading
+            // Settings.Source here directly saw the default empty path every time, so the file tree
+            // was always empty no matter what the source folder held.
+            this.WhenAnyValue(x => x.Settings.Source)
+                .DistinctUntilChanged()
+                .Subscribe(source =>
                 {
-                    Files = LoadSource(new DirectoryInfo(Settings.Source.ToString()));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Could not read the compiler source folder {Source}", Settings.Source);
-                }
-            }
-            else if (Settings.Source != default)
-            {
-                _logger.LogWarning("Compiler source folder {Source} does not exist; showing an empty file tree",
-                    Settings.Source);
-            }
+                    if (source == default) return;
 
-            Disposable.Create(() => { }).DisposeWith(disposables);
+                    // DirectoryExists, not just "is set": a .compiler_settings file records the Source
+                    // path from the machine that authored it, so opening someone else's settings (or a
+                    // moved install) points at a directory that isn't there. Enumerating it threw
+                    // DirectoryNotFoundException out of WhenActivated, which is unhandled and tore the
+                    // whole window down rather than showing an empty tree.
+                    if (!source.DirectoryExists())
+                    {
+                        _logger.LogWarning(
+                            "Compiler source folder {Source} does not exist; showing an empty file tree", source);
+                        Files = [];
+                        return;
+                    }
+
+                    try
+                    {
+                        Files = LoadSource(new DirectoryInfo(source.ToString()));
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Could not read the compiler source folder {Source}", source);
+                    }
+                })
+                .DisposeWith(disposables);
         });
     }
 

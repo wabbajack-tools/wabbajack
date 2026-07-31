@@ -37,6 +37,13 @@ public partial class FileTreeViewItem : TreeViewItem
     {
         base.Header = new FileTreeItemVM(file);
     }
+    // Avalonia resolves a control's default ControlTheme by its concrete type, so a TreeViewItem
+    // subclass gets no theme - and therefore no template - unless it points the lookup back at the
+    // base type. Without this every row measured to zero and the compiler's file tree rendered as an
+    // empty panel even though the view model had loaded the whole hierarchy. (WPF instead walks up
+    // to the base type's implicit style, which is why the original needed nothing here.)
+    protected override Type StyleKeyOverride => typeof(TreeViewItem);
+
     public new FileTreeItemVM Header => base.Header as FileTreeItemVM;
     public static FileTreeViewItem Placeholder => default;
 }
