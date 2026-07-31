@@ -105,10 +105,20 @@
             <StackPanel Grid.Row="1" Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Selected MO2 Profile" />
                 <!-- TODO: WPF's IsSynchronizedWithCurrentItem="True" has no Avalonia equivalent (no ICollectionView); dropped. -->
-                <ComboBox x:Name="ProfileSetting">
+                <!-- Height/FontSize/Margin match TextBox.Value above: this sits in the same row as the
+                     Title field, and the item template's vertical padding made it ~9px taller, so the
+                     two halves of the row did not line up. The padding stays on the dropdown rows
+                     (ComboBoxItem below) where it is wanted. -->
+                <ComboBox x:Name="ProfileSetting" Height="36" FontSize="13" Margin="0,0,0,8"
+                          VerticalContentAlignment="Center">
+                    <ComboBox.Styles>
+                        <Style Selector="ComboBoxItem">
+                            <Setter Property="Padding" Value="8,6" />
+                        </Style>
+                    </ComboBox.Styles>
                     <ComboBox.ItemTemplate>
                         <DataTemplate x:DataType="x:String">
-                            <TextBlock Padding="2,8,0,8" Text="{Binding}" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding}" VerticalAlignment="Center" />
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>

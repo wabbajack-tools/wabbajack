@@ -67,10 +67,10 @@ public partial class ModListTileView : ReactiveUserControl<BaseModListMetadataVM
             // (!ImageContainsTitle || ModListTile.IsPointerOver) is reproduced here directly.
             // Read hover from the Button rather than the ModListTile Border. Measured: hovering a
             // tile sets IsPointerOver on the Button but never on ModListTile, which left the title
-            // overlay, the game-name chip and both glow rectangles permanently inert. (ModListTile
-            // has no Background of its own and carries a DropShadowEffect; either could be why
-            // Avalonia stops there, but the Button is the interactive element and the right thing to
-            // key off regardless.)
+            // overlay, the game-name chip and both glow rectangles permanently inert. Why Avalonia
+            // stops at the Button here is not established - CompiledModListTileView reads hover off
+            // an equivalent effect-bearing wrapper and works - but the Button is the interactive
+            // element and the right thing to key off either way.
             var tileHover = ModlistButton.GetObservable(InputElement.IsPointerOverProperty);
             ViewModel.WhenAnyValue(vm => vm.ImageContainsTitle)
                      .Select(x => !x)
