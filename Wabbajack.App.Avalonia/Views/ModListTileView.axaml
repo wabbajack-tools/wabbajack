@@ -214,8 +214,12 @@
                             </Border>
                             <!-- WPF: Visibility via bool2VisibilityConverter (no ConverterParameter) is a
                                  straightforward direct-bool case -> converter dropped, bind IsVisible directly. -->
+                            <!-- Hover is read off the Button, not the ModListTile Border: measured,
+                                 hovering a tile never sets IsPointerOver on ModListTile, so every
+                                 hover affordance on the tile (this chip, the title overlay, the
+                                 glows) stayed dormant. See ModListTileView.axaml.cs. -->
                             <Grid Grid.Column="2"
-                                  IsVisible="{Binding #ModListTile.IsPointerOver}">
+                                  IsVisible="{Binding #ModlistButton.IsPointerOver}">
                                 <TextBlock x:Name="GameName"
                                        Text="{Binding GameMetaData.HumanFriendlyGameName}"
                                        HorizontalAlignment="Center"
@@ -368,7 +372,7 @@
                             <TextBlock.IsVisible>
                                 <MultiBinding Converter="{x:Static conv:BoolConverters.And}">
                                     <Binding Path="IsBroken" />
-                                    <Binding ElementName="ModListTile" Path="IsPointerOver" />
+                                    <Binding ElementName="ModlistButton" Path="IsPointerOver" />
                                 </MultiBinding>
                             </TextBlock.IsVisible>
                             <TextBlock.Effect>

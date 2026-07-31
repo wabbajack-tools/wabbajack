@@ -65,7 +65,13 @@ public partial class ModListTileView : ReactiveUserControl<BaseModListMetadataVM
             // "Or(!x,y) ? `Visible` : `Collapsed`" over (ImageContainsTitle, ModListTile.IsMouseOver).
             // MathConverter has no Avalonia build, so the compound condition
             // (!ImageContainsTitle || ModListTile.IsPointerOver) is reproduced here directly.
-            var tileHover = ModListTile.GetObservable(InputElement.IsPointerOverProperty);
+            // Read hover from the Button rather than the ModListTile Border. Measured: hovering a
+            // tile sets IsPointerOver on the Button but never on ModListTile, which left the title
+            // overlay, the game-name chip and both glow rectangles permanently inert. (ModListTile
+            // has no Background of its own and carries a DropShadowEffect; either could be why
+            // Avalonia stops there, but the Button is the interactive element and the right thing to
+            // key off regardless.)
+            var tileHover = ModlistButton.GetObservable(InputElement.IsPointerOverProperty);
             ViewModel.WhenAnyValue(vm => vm.ImageContainsTitle)
                      .Select(x => !x)
                      .CombineLatest(tileHover, (noTitle, hover) => noTitle || hover)

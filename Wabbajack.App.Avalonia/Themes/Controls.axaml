@@ -1,5 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:fluent="using:FluentIcons.Avalonia">
   <!--
     Control styles ported from Wabbajack.App.Wpf/Themes/Styles.xaml.
 
@@ -13,7 +14,7 @@
   -->
 
   <!-- Shared button base (WPF MainButtonBaseStyle) -->
-  <Style Selector="Button.MainButtonStyle, Button.MainButtonStyleLessRounded, Button.WJButtonStyle">
+  <Style Selector="Button.MainButtonStyle, Button.MainButtonStyleLessRounded, Button.WJButtonStyle, Button.BigButtonStyle, Button.BigColorButtonStyle">
     <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary08Brush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorder}" />
     <Setter Property="BorderThickness" Value="1" />
@@ -27,8 +28,50 @@
     <Setter Property="Focusable" Value="False" />
   </Style>
 
-  <Style Selector="Button.MainButtonStyle">
+  <Style Selector="Button.MainButtonStyle, Button.BigButtonStyle, Button.BigColorButtonStyle">
     <Setter Property="CornerRadius" Value="16" />
+  </Style>
+
+  <!--
+    WPF BigButtonStyle / BigColorButtonStyle (Styles.xaml), both BasedOn MainButtonStyle. These were
+    never ported, so BigButton's code-behind looked them up, found nothing, and left every BigButton
+    - including "Get Started" on the home screen - on Fluent's default grey theme instead of the
+    filled lilac the Color variant is supposed to have.
+  -->
+  <Style Selector="Button.BigButtonStyle, Button.BigColorButtonStyle">
+    <Setter Property="MinHeight" Value="96" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="Button.BigColorButtonStyle">
+    <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource BackgroundBrush}" />
+  </Style>
+  <!--
+    The label and description are plain TextBlocks, and Base.axaml gives every TextBlock an explicit
+    light Foreground - which beats anything inherited from the button. Brush them by descendant
+    selector instead; Controls.axaml is included after Base.axaml, so these win.
+  -->
+  <!-- WPF MainButtonBaseStyle tinted a hosted SymbolIcon with PrimaryBrush and switched it to the
+       Filled variant on hover. -->
+  <Style Selector="Button.BigButtonStyle fluent|SymbolIcon">
+    <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+  </Style>
+  <Style Selector="Button.BigButtonStyle:pointerover fluent|SymbolIcon, Button.BigColorButtonStyle:pointerover fluent|SymbolIcon">
+    <Setter Property="IconVariant" Value="Filled" />
+  </Style>
+  <!-- One <Style> per target type: a selector listing both TextBlock and SymbolIcon resolves to their
+       common base (Control), which has no Foreground, and fails to compile. -->
+  <Style Selector="Button.BigColorButtonStyle TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource BackgroundBrush}" />
+  </Style>
+  <Style Selector="Button.BigColorButtonStyle fluent|SymbolIcon">
+    <Setter Property="Foreground" Value="{DynamicResource BackgroundBrush}" />
+  </Style>
+  <Style Selector="Button.BigColorButtonStyle:pointerover TextBlock, Button.BigColorButtonStyle:pressed TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+  </Style>
+  <Style Selector="Button.BigColorButtonStyle:pointerover fluent|SymbolIcon, Button.BigColorButtonStyle:pressed fluent|SymbolIcon">
+    <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
   </Style>
   <Style Selector="Button.MainButtonStyleLessRounded">
     <Setter Property="CornerRadius" Value="8" />
@@ -44,17 +87,25 @@
     these buttons fell back to Fluent's pale grey hover - which is what put a light ring around a
     hovered gallery card. WPF's own triggers used DarkHoverBackgroundBrush with a transparent border.
   -->
-  <Style Selector="Button.MainButtonStyle:pointerover /template/ ContentPresenter, Button.MainButtonStyleLessRounded:pointerover /template/ ContentPresenter, Button.WJButtonStyle:pointerover /template/ ContentPresenter">
+  <!-- WPF MainButtonBaseStyle switched the cursor to a hand whenever an enabled button was hovered. -->
+  <Style Selector="Button.MainButtonStyle, Button.MainButtonStyleLessRounded, Button.WJButtonStyle, Button.BigButtonStyle, Button.BigColorButtonStyle, Button.CircleButtonStyle, Button.IconCircleButtonStyle, Button.AvatarButton, Button.MainNavButton, Button.ActiveNavButton, Button.IconBareButtonStyle, Button.TransparentButtonStyleDanger">
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button:disabled">
+    <Setter Property="Cursor" Value="Arrow" />
+  </Style>
+
+  <Style Selector="Button.MainButtonStyle:pointerover /template/ ContentPresenter, Button.MainButtonStyleLessRounded:pointerover /template/ ContentPresenter, Button.WJButtonStyle:pointerover /template/ ContentPresenter, Button.BigButtonStyle:pointerover /template/ ContentPresenter, Button.BigColorButtonStyle:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource DarkHoverBackgroundBrush}" />
     <Setter Property="BorderBrush" Value="Transparent" />
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource PressedButtonForeground}" />
   </Style>
-  <Style Selector="Button.MainButtonStyle:pressed /template/ ContentPresenter, Button.MainButtonStyleLessRounded:pressed /template/ ContentPresenter, Button.WJButtonStyle:pressed /template/ ContentPresenter">
+  <Style Selector="Button.MainButtonStyle:pressed /template/ ContentPresenter, Button.MainButtonStyleLessRounded:pressed /template/ ContentPresenter, Button.WJButtonStyle:pressed /template/ ContentPresenter, Button.BigButtonStyle:pressed /template/ ContentPresenter, Button.BigColorButtonStyle:pressed /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource PressedButtonBackground}" />
     <Setter Property="BorderBrush" Value="Transparent" />
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource PressedButtonForeground}" />
   </Style>
-  <Style Selector="Button.MainButtonStyle:disabled /template/ ContentPresenter, Button.MainButtonStyleLessRounded:disabled /template/ ContentPresenter, Button.WJButtonStyle:disabled /template/ ContentPresenter">
+  <Style Selector="Button.MainButtonStyle:disabled /template/ ContentPresenter, Button.MainButtonStyleLessRounded:disabled /template/ ContentPresenter, Button.WJButtonStyle:disabled /template/ ContentPresenter, Button.BigButtonStyle:disabled /template/ ContentPresenter, Button.BigColorButtonStyle:disabled /template/ ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource DisabledButtonForeground}" />
     <Setter Property="Background" Value="{DynamicResource DisabledButtonBackground}" />
   </Style>
@@ -87,23 +138,80 @@
   <Style Selector="Button.MainNavButton">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Foreground" Value="{DynamicResource DimForegroundBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ButtonForeground}" />
+    <Setter Property="CornerRadius" Value="16" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="Focusable" Value="False" />
   </Style>
   <Style Selector="Button.MainNavButton:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource MouseOverButtonBackground}" />
+    <Setter Property="Background" Value="{DynamicResource DarkHoverBackgroundBrush}" />
     <Setter Property="BorderBrush" Value="Transparent" />
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource ForegroundBrush}" />
   </Style>
   <Style Selector="Button.ActiveNavButton">
-    <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary08Brush}" />
+    <Setter Property="Background" Value="{DynamicResource WindowHoverBackgroundBrush}" />
     <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="16" />
     <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
-    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <!-- Stretch so the active indicator below can sit at the button's left edge rather than at the
+         left edge of the (centred) icon+label stack. -->
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="Focusable" Value="False" />
+  </Style>
+  <Style Selector="Button.ActiveNavButton:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource DarkHoverBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.ActiveNavButton:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource PressedButtonBackground}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <!--
+    WPF's ActiveNavButtonStyle ControlTemplate drew a 5x40 lilac pill at the left edge of the active
+    rail button. Avalonia style classes cannot add template parts per instance, so the pill lives in
+    NavigationView.axaml as a child of each button and is shown only for the active one.
+  -->
+  <Style Selector="Border.NavIndicator">
+    <Setter Property="Width" Value="5" />
+    <Setter Property="Height" Value="40" />
+    <Setter Property="CornerRadius" Value="3" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="Button.ActiveNavButton Border.NavIndicator">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <!--
+    Icon and label have to be brushed by descendant selector, not left to inherit: Base.axaml gives
+    every TextBlock an explicit light Foreground, so the labels stayed white while the icons dimmed
+    - the two halves of each rail button disagreed in every state.
+  -->
+  <!-- WPF's MainNavButtonStyle overrode no Foreground, so an inactive rail button used
+       ButtonForeground (the normal light foreground) and turned lilac on hover, like every other
+       MainButtonStyle button. The dim treatment here was a port invention and made the whole rail
+       read as disabled. -->
+  <Style Selector="Button.MainNavButton TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource ButtonForeground}" />
+  </Style>
+  <Style Selector="Button.MainNavButton fluent|SymbolIcon">
+    <Setter Property="Foreground" Value="{DynamicResource ButtonForeground}" />
+  </Style>
+  <Style Selector="Button.MainNavButton:pointerover TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource PressedButtonForeground}" />
+  </Style>
+  <Style Selector="Button.MainNavButton:pointerover fluent|SymbolIcon">
+    <Setter Property="Foreground" Value="{DynamicResource PressedButtonForeground}" />
+    <Setter Property="IconVariant" Value="Filled" />
+  </Style>
+  <Style Selector="Button.ActiveNavButton TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+  </Style>
+  <Style Selector="Button.ActiveNavButton fluent|SymbolIcon">
+    <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+    <Setter Property="IconVariant" Value="Filled" />
   </Style>
 
   <!-- Chrome-style bare icon buttons (title bar) -->
@@ -130,6 +238,19 @@
     <Setter Property="Background" Value="{DynamicResource MouseOverButtonBackground}" />
     <Setter Property="BorderBrush" Value="Transparent" />
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource ErrorBrush}" />
+  </Style>
+
+  <!-- The gallery's filter drop-downs are ToggleButton-driven, so Base.axaml's ToggleButton:checked
+       rule (Fluent's accent replaced with PrimaryBrush) turned the whole box lilac while its
+       drop-down was open. Keep the resting look in every state; the popup itself is the affordance. -->
+  <Style Selector="ToggleButton.MultiSelectToggle:checked /template/ ContentPresenter">
+    <Setter Property="Background" Value="{Binding $parent[ToggleButton].Background}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorder}" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource ForegroundBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.MultiSelectToggle:checked:pointerover /template/ ContentPresenter, ToggleButton.MultiSelectToggle:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource DarkHoverBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorder}" />
   </Style>
 
   <!-- Containers / panels -->

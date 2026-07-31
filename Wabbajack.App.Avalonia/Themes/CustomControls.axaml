@@ -114,14 +114,19 @@
   </ControlTheme>
 
   <ControlTheme x:Key="{x:Type local:MultiSelectComboBox}" TargetType="local:MultiSelectComboBox">
+    <Setter Property="Background" Value="{DynamicResource DarkBackgroundBrush}" />
     <Setter Property="Template">
       <ControlTemplate>
         <Grid>
+          <!-- Classes, so Controls.axaml can suppress Base.axaml's ToggleButton:checked rule - that
+               rule paints the checked state with PrimaryBrush, which turned the whole filter box
+               bright lilac for as long as its drop-down was open. -->
           <ToggleButton x:Name="PART_Toggle"
+                        Classes="MultiSelectToggle"
                         HorizontalAlignment="Stretch"
                         HorizontalContentAlignment="Stretch"
                         Padding="8,6"
-                        Background="{DynamicResource DarkBackgroundBrush}"
+                        Background="{TemplateBinding Background}"
                         BorderBrush="{DynamicResource ButtonBorder}"
                         BorderThickness="1"
                         CornerRadius="4">
@@ -132,12 +137,14 @@
                          TextTrimming="CharacterEllipsis"
                          VerticalAlignment="Center"
                          Foreground="{DynamicResource ForegroundBrush}" />
+              <!-- Sized and tinted to match the chevron on the real ComboBox directly above these in
+                   the gallery filter panel; at 8x5 in DimForeground it was all but invisible. -->
               <Path Grid.Column="1"
                     Margin="6,0,0,0"
                     VerticalAlignment="Center"
-                    Width="8" Height="5"
+                    Width="11" Height="7"
                     Stretch="Fill"
-                    Fill="{DynamicResource DimForegroundBrush}"
+                    Fill="{DynamicResource ForegroundBrush}"
                     Data="M 0,0 L 10,0 L 5,6 Z" />
             </Grid>
           </ToggleButton>

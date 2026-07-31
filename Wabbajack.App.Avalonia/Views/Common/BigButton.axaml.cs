@@ -87,20 +87,16 @@ public partial class BigButton : ReactiveUserControl<ViewModel>
                 .BindToStrict(this, x => x.Button.Command)
                 .DisposeWith(dispose);
 
+            // WPF swapped a keyed Style here. The Avalonia port expresses those as style classes in
+            // Themes/Controls.axaml, so set the class rather than looking up a ControlTheme - the
+            // ControlTheme lookup silently found nothing and left every BigButton on Fluent's default.
+            // (WPF never defined a BigDangerButtonStyle either; Danger falls back to the mono look.)
             this.WhenAnyValue(x => x.ButtonStyle)
                 .Subscribe(x =>
                 {
-                    var key = x switch
-                    {
-                        ButtonStyle.Mono => "BigButtonStyle",
-                        ButtonStyle.Color => "BigColorButtonStyle",
-                        ButtonStyle.Danger => "BigDangerButtonStyle",
-                        _ => "BigButtonStyle",
-                    };
-                    if (this.TryGetResource(key, ActualThemeVariant, out var resource) && resource is ControlTheme theme)
-                    {
-                        Button.Theme = theme;
-                    }
+                    var wanted = x == ButtonStyle.Color ? "BigColorButtonStyle" : "BigButtonStyle";
+                    Button.Classes.Remove(wanted == "BigButtonStyle" ? "BigColorButtonStyle" : "BigButtonStyle");
+                    if (!Button.Classes.Contains(wanted)) Button.Classes.Add(wanted);
                 })
                 .DisposeWith(dispose);
 

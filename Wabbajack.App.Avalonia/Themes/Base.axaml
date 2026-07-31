@@ -111,6 +111,10 @@
   </Style>
 
   <Style Selector="ComboBox">
+    <!-- Same Fluent-vs-WPF default as Button above: Avalonia pins the ComboBox to the left and sizes
+         it to its content, so the gallery's game filter and the compiler's profile picker sat
+         noticeably narrower than the fields stacked above and below them. -->
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
     <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
     <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
     <Setter Property="Background" Value="{DynamicResource DarkBackgroundBrush}" />

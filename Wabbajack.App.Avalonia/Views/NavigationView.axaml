@@ -28,6 +28,7 @@
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
+                    <Border Classes="NavIndicator" Grid.RowSpan="2" />
                     <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Home" FontSize="36" />
                     <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 8, 0, 0">
                     Home
@@ -40,6 +41,7 @@
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
+                    <Border Classes="NavIndicator" Grid.RowSpan="2" />
                     <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="CloudArrowDown" FontSize="36" />
                     <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 8, 0, 0">
                     Browse lists
@@ -52,6 +54,7 @@
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
+                    <Border Classes="NavIndicator" Grid.RowSpan="2" />
                     <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Toolbox" FontSize="36" />
                     <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 8, 0, 0">
                     Create a list
@@ -64,6 +67,7 @@
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
+                    <Border Classes="NavIndicator" Grid.RowSpan="2" />
                     <ic:SymbolIcon VerticalAlignment="Center" HorizontalAlignment="Center" Symbol="Settings" FontSize="36" />
                     <TextBlock Grid.Row="1" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0, 8, 0, 0">
                     Settings
