@@ -141,15 +141,19 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject, I
             // to a single control instance), so the resource lookups below are cast to
             // ControlTheme instead of Style. The resource keys themselves are unchanged.
             this.WhenAnyValue(x => x.ButtonStyle)
-                .Subscribe(x => Theme = x switch
+                .Subscribe(x =>
                 {
-                    ButtonStyle.Mono => (ControlTheme)Application.Current.Resources["WJButtonStyle"],
-                    ButtonStyle.Color => (ControlTheme)Application.Current.Resources["WJColorButtonStyle"],
-                    ButtonStyle.Danger => (ControlTheme)Application.Current.Resources["WJDangerButtonStyle"],
-                    ButtonStyle.Progress => (ControlTheme)Application.Current.Resources["WJColorButtonStyle"],
-                    ButtonStyle.Transparent => (ControlTheme)Application.Current.Resources["TransparentButtonStyle"],
-                    ButtonStyle.SemiTransparent => (ControlTheme)Application.Current.Resources["WJSemiTransparentButtonStyle"],
-                    _ => (ControlTheme)Application.Current.Resources["WJButtonStyle"],
+                    Theme = FindButtonTheme(x switch
+                    {
+                        ButtonStyle.Mono => "WJButtonStyle",
+                        ButtonStyle.Color => "WJColorButtonStyle",
+                        ButtonStyle.Danger => "WJDangerButtonStyle",
+                        ButtonStyle.Progress => "WJColorButtonStyle",
+                        ButtonStyle.Transparent => "TransparentButtonStyle",
+                        ButtonStyle.SemiTransparent => "WJSemiTransparentButtonStyle",
+                        _ => "WJButtonStyle",
+                    });
+                    ApplyIconBrush(x);
                 })
                 .DisposeWith(dispose);
 
@@ -167,7 +171,7 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject, I
                     // to TemplatedControl's, which TextBlock does not use).
                     ButtonTextBlock.ClearValue(TextBlock.ForegroundProperty);
                     ButtonSymbolIcon.ClearValue(ForegroundProperty);
-                    Theme = (ControlTheme)Application.Current.Resources["WJColorButtonStyle"];
+                    Theme = FindButtonTheme("WJColorButtonStyle");
                 }
                 else
                 {
@@ -249,6 +253,35 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject, I
     public void RaisePropertyChanged(PropertyChangedEventArgs args)
     {
         PropertyChanged?.Invoke(this, args);
+    }
+
+    // These themes live in Themes/CustomControls.axaml, which Application.Resources pulls in as a
+    // merged dictionary. Application.Current.Resources' indexer only inspects the top-level
+    // dictionary and throws on a miss, so the lookup has to go through TryFindResource. Returning
+    // null on a miss leaves the default Button theme in place instead of taking the app down.
+    private static ControlTheme? FindButtonTheme(string key) =>
+        Application.Current is { } app && app.TryFindResource(key, out var theme)
+            ? theme as ControlTheme
+            : null;
+
+    // WPF gave each button style a nested <Style TargetType="ic:SymbolIcon"> that recoloured the
+    // icon. The icon lives in WJButton's content rather than its template, and a ControlTheme may
+    // not contain descendant selectors, so the equivalent is applied here.
+    private void ApplyIconBrush(ButtonStyle style)
+    {
+        if (ButtonSymbolIcon is null) return;
+
+        if (style is ButtonStyle.Color or ButtonStyle.Progress)
+        {
+            // These variants set Foreground to BackgroundBrush, which inherits down to the icon.
+            ButtonSymbolIcon.ClearValue(ForegroundProperty);
+        }
+        else if (Application.Current is { } app
+                 && app.TryFindResource("PrimaryBrush", out var brush)
+                 && brush is IBrush primary)
+        {
+            ButtonSymbolIcon.Foreground = primary;
+        }
     }
 
     // Replaces the WPF WireNotifyPropertyChanged FrameworkPropertyMetadata callback: Avalonia's

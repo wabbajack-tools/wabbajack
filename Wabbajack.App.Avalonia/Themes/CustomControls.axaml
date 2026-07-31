@@ -1,11 +1,84 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fluent="using:FluentIcons.Avalonia"
                     xmlns:local="using:Wabbajack">
   <!--
     Templates for the controls that replaced WPF-only third-party widgets:
     MahApps RangeSlider and the SDL Toolkit MultiSelectComboBox. Without these the controls
     are template-less and render as blank space in the gallery filter panel.
   -->
+
+  <!--
+    WJButton variants. WJButton.axaml.cs resolves these five keys by name at runtime to fill its
+    Theme property (WPF set Style the same way), so they must be ControlThemes in the application's
+    resources rather than the class selectors used elsewhere in this port - none of them existed,
+    which is why every WJButton rendered as bare text and icon with no chrome.
+
+    Only the pseudo-class states touch the ContentPresenter; the normal-state background is left to
+    the default template's TemplateBinding so WJButton's progress-gradient Background (set as a local
+    value while a download runs) still shows through. That gradient is masked while the pointer is
+    over the button, which WPF's local-value-beats-trigger precedence avoided; the deviation lasts
+    only as long as the hover.
+
+    WPF tinted each variant's SymbolIcon through a nested Style.Resources entry. Avalonia rejects
+    descendant selectors inside a ControlTheme ("may not directly contain a child or descendent
+    selector"), and the icon is part of WJButton's content rather than its template, so the icon
+    brush is applied from WJButton's code-behind instead.
+  -->
+  <ControlTheme x:Key="WJButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+    <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary08Brush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Padding" Value="1" />
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <!-- Restated here, not just in Themes/Base.axaml: an explicitly-assigned ControlTheme resolves
+         its BasedOn chain ahead of the application-level styles, so the Fluent default's
+         HorizontalAlignment=Left would otherwise win and pin every WJButton to the left of its cell
+         instead of centring it (these buttons carry a fixed Width=200). -->
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Style Selector="^:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource MouseOverButtonBackground}" />
+    </Style>
+    <Style Selector="^:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource PressedButtonBackground}" />
+    </Style>
+    <Style Selector="^:disabled /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource DisabledButtonBackground}" />
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource DisabledButtonForeground}" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="WJColorButtonStyle" TargetType="Button" BasedOn="{StaticResource WJButtonStyle}">
+    <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource BackgroundBrush}" />
+  </ControlTheme>
+
+  <ControlTheme x:Key="WJDangerButtonStyle" TargetType="Button" BasedOn="{StaticResource WJButtonStyle}">
+    <Style Selector="^:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource MouseOverDangerButtonBackground}" />
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource MouseOverDangerButtonForeground}" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="WJSemiTransparentButtonStyle" TargetType="Button" BasedOn="{StaticResource WJButtonStyle}">
+    <Setter Property="Background" Value="{DynamicResource Transparent08PrimaryBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Style Selector="^:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource Transparent16PrimaryBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- WPF also switched this variant's icon to IconVariant=Filled on hover; that was a descendant
+       selector on the content, which a ControlTheme cannot express. Dropped as cosmetic. -->
+  <ControlTheme x:Key="TransparentButtonStyle" TargetType="Button" BasedOn="{StaticResource WJButtonStyle}">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </ControlTheme>
 
   <ControlTheme x:Key="{x:Type local:MultiSelectComboBox}" TargetType="local:MultiSelectComboBox">
     <Setter Property="Template">
