@@ -164,14 +164,15 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
             HasMods = new ObservableCollection<ModListMod>();
         });
 
-        LoadLocalFileCommand = ReactiveCommand.Create(() =>
+        // Awaited, not fired-and-checked: ICommand.Execute returns the moment the dialog opens, so
+        // TargetPath was still empty when the FileExists test ran and picking a modlist did nothing.
+        LoadLocalFileCommand = ReactiveCommand.CreateFromTask(async () =>
         {
-            LocalFilePicker.ConstructTypicalPickerCommand().Execute(null);
-            if (LocalFilePicker.TargetPath.FileExists())
-            {
-                LoadModlistForInstalling.Send(LocalFilePicker.TargetPath, null);
-                NavigateToGlobal.Send(ScreenType.Installer);
-            }
+            if (!await LocalFilePicker.PickTargetPathAsync()) return;
+            if (!LocalFilePicker.TargetPath.FileExists()) return;
+
+            LoadModlistForInstalling.Send(LocalFilePicker.TargetPath, null);
+            NavigateToGlobal.Send(ScreenType.Installer);
         });
 
         this.WhenActivated(disposables =>

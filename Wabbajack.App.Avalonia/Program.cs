@@ -115,6 +115,7 @@ internal static class Program
         services.AddSingleton<FileAssociationSelfHealService>();
 
         services.AddSingleton<DTOs.Interventions.IUserInterventionHandler, Interventions.UserInterventionHandler>();
+        services.AddSingleton<Abstractions.IFilePicker, AvaloniaFilePicker>();
         services.AddSingleton<ImageCacheManager>();
         services.AddSingleton<SystemParametersConstructor>();
         services.AddSingleton<LauncherUpdater>();

@@ -88,29 +88,26 @@
             </Border>
             <TextBlock Grid.Column="1" FontSize="13" Name="AppName" VerticalAlignment="Center"></TextBlock>
             <DockPanel x:Name="WizardSteps" Grid.Column="0" Grid.ColumnSpan="7" HorizontalAlignment="Center" Margin="0, 10, 0, 10">
-                <Border x:Name="ConfigurationBorderMask2" CornerRadius="8" BorderThickness="0" Background="White" Margin="12, 1, 0, 1">
-                    <Grid Margin="-1">
-                        <Border x:Name="ConfigurationBorderMask" CornerRadius="8" Background="White" Margin="1" />
-                        <Grid>
-                            <Grid.OpacityMask>
-                                <VisualBrush Visual="{Binding ElementName=ConfigurationBorderMask}"/>
-                            </Grid.OpacityMask>
-                            <ProgressBar x:Name="WizardConfiguration" Background="{StaticResource ComplementaryBackgroundBrush}" BorderThickness="0" Foreground="{StaticResource ComplementaryPrimary16Brush}" Maximum="1" Value="1" Width="{Binding ElementName=ConfigurationText, Path=Bounds.Width}" />
-                            <TextBlock x:Name="ConfigurationText" Padding="12, 0, 12, 0" VerticalAlignment="Center" />
-                        </Grid>
+                <!--
+                    WPF rounded these two step chips by giving a Grid an OpacityMask whose VisualBrush
+                    pointed at a sibling white, rounded Border. That produced two plain white slabs here:
+                    the white mask-source Border paints like any other child, and the mask did not clip
+                    the content over it. CornerRadius + ClipToBounds gets the same rounded chip directly,
+                    so the white scaffolding is gone entirely.
+                -->
+                <Border x:Name="ConfigurationChip" CornerRadius="8" ClipToBounds="True" BorderThickness="0"
+                        Background="{StaticResource ComplementaryBackgroundBrush}" Margin="12, 1, 0, 1">
+                    <Grid>
+                        <ProgressBar x:Name="WizardConfiguration" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ComplementaryPrimary16Brush}" Maximum="1" Value="1" Width="{Binding ElementName=ConfigurationText, Path=Bounds.Width}" />
+                        <TextBlock x:Name="ConfigurationText" Padding="12, 0, 12, 0" VerticalAlignment="Center" />
                     </Grid>
                 </Border>
-                <Border x:Name="BorderMask2" CornerRadius="8" BorderThickness="0" Background="White" Margin="12, 1, 0, 1">
-                    <Grid Margin="-1">
-                        <Border x:Name="BorderMask" CornerRadius="8" Background="White" Margin="1" />
-                        <Grid>
-                            <Grid.OpacityMask>
-                                <VisualBrush Visual="{Binding ElementName=BorderMask}"/>
-                            </Grid.OpacityMask>
-                            <ProgressBar x:Name="WizardProgress" Background="{StaticResource ComplementaryBackgroundBrush}" BorderThickness="0" Foreground="{StaticResource ComplementaryPrimary16Brush}" Width="{Binding ElementName=ProgressText, Path=Bounds.Width}" Maximum="1" />
-                            <TextBlock x:Name="ProgressText" Padding="12, 0, 12, 0" VerticalAlignment="Center" />
-                            <TextBlock x:Name="ProgressPercentage" Padding="0, 0, 12, 0" VerticalAlignment="Center" HorizontalAlignment="Right" />
-                        </Grid>
+                <Border x:Name="ProgressChip" CornerRadius="8" ClipToBounds="True" BorderThickness="0"
+                        Background="{StaticResource ComplementaryBackgroundBrush}" Margin="12, 1, 0, 1">
+                    <Grid>
+                        <ProgressBar x:Name="WizardProgress" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ComplementaryPrimary16Brush}" Width="{Binding ElementName=ProgressText, Path=Bounds.Width}" Maximum="1" />
+                        <TextBlock x:Name="ProgressText" Padding="12, 0, 12, 0" VerticalAlignment="Center" />
+                        <TextBlock x:Name="ProgressPercentage" Padding="0, 0, 12, 0" VerticalAlignment="Center" HorizontalAlignment="Right" />
                     </Grid>
                 </Border>
             </DockPanel>

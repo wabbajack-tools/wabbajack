@@ -259,17 +259,22 @@
                             </Rectangle>
 
                             <!--
-                                TODO: MathConverter has no Avalonia build. WPF bound FontSize to
-                                StoppedMessage.ActualHeight via math:Convert 'Round(x*1.5)'; reproduced
-                                below as a single-value binding against the same StaticResource
-                                MathConverter key (Bounds.Height is Avalonia's ActualHeight equivalent).
+                                WPF bound FontSize to StoppedMessage.ActualHeight via math:Convert
+                                'Round(x*1.5)'; Bounds.Height is Avalonia's ActualHeight equivalent.
+
+                                The IIF guard is not cosmetic: StoppedMessage measures 0 high until it is
+                                shown, and a FontSize of 0 makes Avalonia's text renderer throw
+                                ArgumentOutOfRangeException("Invalid FontRenderingEmSize") from inside the
+                                compositor - which tore down the whole window the moment the installer pane
+                                was navigated to. WPF never hit this because it does not lay out collapsed
+                                elements at all.
                             -->
                             <ic:SymbolIcon
                             x:Name="StoppedIcon"
                             IconVariant="Filled"
                             Symbol="ErrorCircle"
                             HorizontalAlignment="Center"
-                            FontSize="{Binding #StoppedMessage.Bounds.Height, Converter={StaticResource MathConverter}, ConverterParameter=Round(x*1.5)}"
+                            FontSize="{Binding #StoppedMessage.Bounds.Height, Converter={StaticResource MathConverter}, ConverterParameter='IIF(x&gt;0, x*1.5, 1)'}"
                             Foreground="{StaticResource Transparent04PrimaryBrush}"
                             />
                         </StackPanel>

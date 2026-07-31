@@ -1,9 +1,11 @@
 using DynamicData;
+using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using System;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Wabbajack.Abstractions;
 using Wabbajack.Extensions;
@@ -34,14 +36,19 @@ namespace Wabbajack
 
         public object Parent { get; }
 
-        // TODO(avalonia-filepicker): FilePickerVM is constructed from many call sites across the
-        // codebase (FileUploadVM, CompilerHomeVM, CompilerDetailsVM, ModListGalleryVM, InstallationVM,
-        // MO2InstallerVM, etc.). Fully wiring IFilePicker end-to-end would mean updating every one of
-        // those constructor calls to supply an instance (typically resolved via DI), which is outside
-        // the scope of converting this single file. FilePicker is exposed here as a settable field so
-        // callers can assign it (directly or via DI) once they're converted; until it is set, the
-        // picker command is a no-op rather than trying to invent a working dialog.
-        public IFilePicker FilePicker { get; set; }
+        private IFilePicker _filePicker;
+
+        // Service-located rather than injected: FilePickerVM is built with `new` from a dozen view
+        // models (FileUploadVM, CompilerHomeVM, CompilerDetailsVM, ModListGalleryVM, InstallationVM,
+        // MO2InstallerVM...), none of which take it as a dependency. Resolved on first use, not in the
+        // constructor - these view models are themselves constructed while the container is still
+        // being built, so Program.Services is still null at that point and eager resolution leaves
+        // every picker permanently dead. Settable so tests can substitute one.
+        public IFilePicker FilePicker
+        {
+            get => _filePicker ??= Program.Services?.GetService<IFilePicker>();
+            set => _filePicker = value;
+        }
 
         [Reactive]
         public partial ICommand SetTargetPathCommand { get; set; }
@@ -262,25 +269,28 @@ namespace Wabbajack
 
         public ICommand ConstructTypicalPickerCommand(IObservable<bool> canExecute = null)
         {
-            return ReactiveCommand.CreateFromTask(
-                execute: async () =>
-                {
-                    if (FilePicker == null)
-                    {
-                        // TODO(avalonia-filepicker): no IFilePicker has been wired up for this
-                        // instance yet (see the FilePicker property above), so there's nothing to do.
-                        return;
-                    }
+            return ReactiveCommand.CreateFromTask(execute: () => PickTargetPathAsync(), canExecute: canExecute);
+        }
 
-                    AbsolutePath? picked = PathType == PathTypeOptions.Folder
-                        ? await FilePicker.PickFolder(PromptTitle)
-                        : await FilePicker.PickFile(PromptTitle, Filters.Items.ToList());
+        /// <summary>
+        /// Shows the picker and stores the result in <see cref="TargetPath"/>, returning whether the
+        /// user chose something. Callers that need to act on the choice must await this rather than
+        /// firing <see cref="SetTargetPathCommand"/> and reading TargetPath straight afterwards -
+        /// ICommand.Execute returns as soon as the dialog opens, so the path is still empty at that
+        /// point (this is what made "Install from disk" silently do nothing).
+        /// </summary>
+        public async Task<bool> PickTargetPathAsync()
+        {
+            if (FilePicker == null) return false;
 
-                    if (picked == null) return;
+            AbsolutePath? picked = PathType == PathTypeOptions.Folder
+                ? await FilePicker.PickFolder(PromptTitle)
+                : await FilePicker.PickFile(PromptTitle, Filters.Items.ToList());
 
-                    TargetPath = PathTransformer == null ? picked.Value : PathTransformer(picked.Value);
+            if (picked == null) return false;
 
-                }, canExecute: canExecute);
+            TargetPath = PathTransformer == null ? picked.Value : PathTransformer(picked.Value);
+            return true;
         }
     }
 }
