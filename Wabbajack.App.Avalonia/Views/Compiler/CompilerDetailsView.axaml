@@ -14,25 +14,54 @@
     x:DataType="vm:CompilerDetailsVM"
     d:DataContext="{d:DesignInstance vm:CompilerDetailsVM}"
     mc:Ignorable="d">
+    <!--
+        WPF's keyed <Style TargetType="..." BasedOn="MainTextBoxStyle/MainFilePickerStyle/ListBoxItemStyle">
+        resources become class selectors here. ControlTheme is the closer structural match, but it
+        replaces the control's whole theme (template included) rather than layering on top of it, and
+        the WPF base styles it would need to derive from were themselves template rewrites that the
+        Fluent theme already covers - so the surviving property setters are carried as classes.
+    -->
+    <UserControl.Styles>
+        <!-- WPF MainTextBoxStyle + the local ValueStyle overrides on top of it. -->
+        <Style Selector="TextBox.Value">
+            <Setter Property="Background" Value="{DynamicResource TextBoxBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource TextBoxBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Padding" Value="3" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="MaxLength" Value="150" />
+            <Setter Property="AcceptsTab" Value="False" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <!-- WPF MainFilePickerStyle + the local PickerStyle margin. -->
+        <Style Selector="local|FilePicker.PickerStyle">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary08Brush}" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <!-- WPF ListBoxItemStyle, applied implicitly to every ListBoxItem in the additional-profiles list. -->
+        <Style Selector="ListBox.Profiles ListBoxItem">
+            <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary08Brush}" />
+        </Style>
+        <Style Selector="ListBox.Profiles ListBoxItem:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource MouseOverListItem}" />
+        </Style>
+        <Style Selector="ListBox.Profiles ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SelectedListItem}" />
+            <Setter Property="TextBlock.Foreground" Value="{DynamicResource SelectedListItemForeground}" />
+        </Style>
+        <Style Selector="ListBox.Profiles ListBoxItem:disabled /template/ ContentPresenter">
+            <Setter Property="TextBlock.Foreground" Value="{DynamicResource DisabledButtonForeground}" />
+        </Style>
+    </UserControl.Styles>
     <ScrollViewer x:Name="SettingsScrollViewer" Background="Transparent" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
         <Grid>
             <Grid.Resources>
                 <Thickness x:Key="TitleMargin">0,8,0,8</Thickness>
                 <Thickness x:Key="TextPanelMargin">0,0,16,0</Thickness>
-                <!--
-                    WPF used <Style x:Key="..." TargetType="..." BasedOn="...">, applied explicitly via
-                    Classes="..." on individual controls. Avalonia's per-instance,
-                    TargetType+BasedOn reusable style construct is ControlTheme (applied via the
-                    control's Theme property), so these are translated to ControlTheme rather than Style.
-                -->
-                <ControlTheme x:Key="ValueStyle" TargetType="TextBox" BasedOn="{StaticResource MainTextBoxStyle}">
-                    <Setter Property="MaxLength" Value="150" />
-                    <Setter Property="AcceptsTab" Value="False" />
-                    <Setter Property="Margin" Value="0,0,0,8" />
-                </ControlTheme>
-                <ControlTheme x:Key="PickerStyle" TargetType="local:FilePicker" BasedOn="{StaticResource MainFilePickerStyle}">
-                    <Setter Property="Margin" Value="0,0,0,8" />
-                </ControlTheme>
             </Grid.Resources>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -56,17 +85,17 @@
                 <DockPanel HorizontalAlignment="Stretch">
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
                 </DockPanel>
-                <TextBox x:Name="AuthorNameSetting" Theme="{StaticResource ValueStyle}" Watermark="Author name(s)..." />
+                <TextBox x:Name="AuthorNameSetting" Classes="Value" Watermark="Author name(s)..." />
             </StackPanel>
 
             <StackPanel Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Version" />
-                <TextBox x:Name="VersionSetting" MaxLength="9" Theme="{StaticResource ValueStyle}" Watermark="1.0.0..." />
+                <TextBox x:Name="VersionSetting" MaxLength="9" Classes="Value" Watermark="1.0.0..." />
             </StackPanel>
 
             <StackPanel Grid.Row="1" Margin="{StaticResource TextPanelMargin}">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Title" />
-                <TextBox x:Name="ModListNameSetting" Theme="{StaticResource ValueStyle}" Watermark="Modlist name..." />
+                <TextBox x:Name="ModListNameSetting" Classes="Value" Watermark="Modlist name..." />
             </StackPanel>
 
             <StackPanel Grid.Row="1" Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
@@ -83,21 +112,21 @@
 
             <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
-                <TextBox x:Name="DescriptionSetting" Height="135" VerticalContentAlignment="Top" Watermark="A comprehensive overhaul of..." AcceptsReturn="True" AcceptsTab="False" MaxLength="999" Theme="{StaticResource ValueStyle}" TextWrapping="Wrap" />
+                <TextBox x:Name="DescriptionSetting" Height="135" VerticalContentAlignment="Top" Watermark="A comprehensive overhaul of..." AcceptsReturn="True" AcceptsTab="False" MaxLength="999" Classes="Value" TextWrapping="Wrap" />
             </StackPanel>
 
             <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Image" />
-                <local:FilePicker x:Name="ImageFilePicker" Theme="{StaticResource PickerStyle}" Icon="DocumentImage" ToolTip.Tip="Path to an image to display for the modlist." Watermark="C:\...\Thumbnail-1600x900.webp" />
+                <local:FilePicker x:Name="ImageFilePicker" Classes="PickerStyle" Icon="DocumentImage" ToolTip.Tip="Path to an image to display for the modlist." Watermark="C:\...\Thumbnail-1600x900.webp" />
             </StackPanel>
 
             <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Downloads folder" />
-                <local:FilePicker x:Name="DownloadsPicker" Theme="{StaticResource PickerStyle}" Icon="Folder" ToolTip.Tip="Path to the folder where the downloaded archives of your modlist are stored" Watermark="C:\...\downloads" />
+                <local:FilePicker x:Name="DownloadsPicker" Classes="PickerStyle" Icon="Folder" ToolTip.Tip="Path to the folder where the downloaded archives of your modlist are stored" Watermark="C:\...\downloads" />
             </StackPanel>
             <StackPanel Grid.Row="5" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Export destination" />
-                <local:FilePicker x:Name="OutputFilePicker" Theme="{StaticResource PickerStyle}" Icon="Folder" ToolTip.Tip="Path to the file where the list installer will be saved to on completion" Watermark="C:\...\Modlist.wabbajack" />
+                <local:FilePicker x:Name="OutputFilePicker" Classes="PickerStyle" Icon="Folder" ToolTip.Tip="Path to the file where the list installer will be saved to on completion" Watermark="C:\...\Modlist.wabbajack" />
             </StackPanel>
 
             <StackPanel Grid.Row="6" Margin="{StaticResource TextPanelMargin}">
@@ -107,28 +136,28 @@
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Documentation (Readme)" ToolTip.Tip="Link to the documentation." />
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
                 </DockPanel>
-                <TextBox x:Name="ReadmeSetting" Theme="{StaticResource ValueStyle}" Watermark="https://www..." />
+                <TextBox x:Name="ReadmeSetting" Classes="Value" Watermark="https://www..." />
             </StackPanel>
             <StackPanel Grid.Row="6" Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
                 <DockPanel>
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
                 </DockPanel>
-                <TextBox x:Name="WebsiteSetting" Theme="{StaticResource ValueStyle}" Watermark="https://www..." />
+                <TextBox x:Name="WebsiteSetting" Classes="Value" Watermark="https://www..." />
             </StackPanel>
             <StackPanel Grid.Row="7" Margin="{StaticResource TextPanelMargin}">
                 <DockPanel>
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Community" />
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
                 </DockPanel>
-                <TextBox x:Name="CommunitySetting" Theme="{StaticResource ValueStyle}" Watermark="https://discord.gg/..." />
+                <TextBox x:Name="CommunitySetting" Classes="Value" Watermark="https://discord.gg/..." />
             </StackPanel>
             <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Vertical" Margin="{StaticResource TextPanelMargin}">
                 <DockPanel>
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Machine URL" ToolTip.Tip="Unique text string for this modlist prefixed with its GitHub repository name." />
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
                 </DockPanel>
-                <TextBox x:Name="MachineUrl" Theme="{StaticResource ValueStyle}" Watermark="modlistRepository/ModlistName" />
+                <TextBox x:Name="MachineUrl" Classes="Value" Watermark="modlistRepository/ModlistName" />
             </StackPanel>
             <StackPanel Grid.Row="8" Margin="{StaticResource TextPanelMargin}">
                 <CheckBox
@@ -159,18 +188,10 @@
 
             <StackPanel Grid.Row="10" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}" ToolTip.Tip="Wabbajack will include selected profiles as part of the modlist alongside your main selected MO2 profile.">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Additional profile(s)" />
-                <ListBox SelectionMode="Multiple" x:Name="AdditionalProfilesSetting">
-                    <ListBox.Resources>
-                        <!--
-                            WPF's implicit-by-TargetType <Style TargetType="ListBoxItem" BasedOn="...">
-                            (applies automatically to every ListBoxItem in scope) maps to an Avalonia
-                            ControlTheme keyed by the target type itself, which Avalonia treats as the
-                            implicit theme for that control type within this resource scope.
-                        -->
-                        <ControlTheme x:Key="{x:Type ListBoxItem}" TargetType="ListBoxItem" BasedOn="{StaticResource ListBoxItemStyle}">
-                            <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
-                        </ControlTheme>
-                    </ListBox.Resources>
+                <!-- Classes="Profiles" scopes the ListBoxItem styles declared at the top of this
+                     file to this list, standing in for WPF's implicit-by-TargetType ListBoxItem
+                     style that only applied inside this ListBox's resource scope. -->
+                <ListBox SelectionMode="Multiple" x:Name="AdditionalProfilesSetting" Classes="Profiles">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="x:String">
                             <Grid>

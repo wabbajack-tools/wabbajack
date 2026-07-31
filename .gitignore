@@ -487,3 +487,6 @@ $RECYCLE.BIN/
 
 /VERSION.txt
 *.opencover.xml
+
+# Local UI-debug screenshots (see scratchpad dir); never part of the source tree
+/max-*.png

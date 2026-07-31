@@ -20,7 +20,10 @@
     <Setter Property="Foreground" Value="{DynamicResource ButtonForeground}" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
-    <Setter Property="Padding" Value="8,4" />
+    <!-- WPF MainButtonBaseStyle used Padding="1", not a roomy 8,4. The difference matters: the
+         gallery tile is one of these buttons, and 14px of extra width per tile was enough to drop
+         the WrapPanel from three columns to two at a maximised 1920px window. -->
+    <Setter Property="Padding" Value="1" />
     <Setter Property="Focusable" Value="False" />
   </Style>
 

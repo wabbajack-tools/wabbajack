@@ -16,53 +16,43 @@
     d:DataContext="{d:DesignInstance vm:InstallationVM}"
     mc:Ignorable="d">
     <!--
-        WPF's <Style x:Key="..." TargetType="..."> resources, applied via
-        Classes="..." on individual controls. Avalonia's per-instance,
-        TargetType(+BasedOn) reusable style construct is ControlTheme (applied via the control's
-        Theme property), so these locally-keyed styles are translated to ControlTheme below,
-        matching the convention already used elsewhere in this port (see CompilerDetailsView.axaml).
-        Usage sites throughout the rest of this file keep the existing Classes="..."
-        attribute form to match the rest of the already-ported codebase (MainButtonStyle,
-        WJButtonStyle, CircleButtonStyle, etc. are external/global resources, not defined here).
+        WPF's <Style x:Key="..." TargetType="..."> resources were applied here via Classes="..." on
+        individual controls, so they are expressed as class selectors rather than ControlThemes -
+        a ControlTheme only takes effect through the Theme property, which no usage site in this
+        file sets. The shared classes (TitleStyle, DescriptionStyle, Panel, WorkerIndicatorBorder,
+        PickerStyle) also have app-wide definitions in Themes/Controls.axaml; the setters below are
+        the view-local additions from the WPF source and merge on top of those.
+        WPF's SlideshowButton and InstallButtonStyle styles are gone: both were dead in the WPF
+        source too - no element here is styled with either.
     -->
     <UserControl.Resources>
         <Thickness x:Key="InstallMargin">0,0,0,8</Thickness>
-        <!-- WPF TargetType was ButtonBase (abstract); narrowed to the concrete Button type.
-             NOTE: this resource is unused in this view (dead resource in the WPF source too -
-             no SlideshowButton-styled element exists anywhere in the markup below). -->
-        <ControlTheme
-            x:Key="SlideshowButton"
-            TargetType="Button"
-            BasedOn="{StaticResource CircleButtonStyle}">
-            <Setter Property="Width" Value="40" />
-            <Setter Property="Height" Value="40" />
-            <Setter Property="Margin" Value="4" />
-        </ControlTheme>
-        <ControlTheme x:Key="TitleStyle" TargetType="TextBlock">
+    </UserControl.Resources>
+    <UserControl.Styles>
+        <Style Selector="TextBlock.TitleStyle">
             <Setter Property="Margin" Value="0, 0, 0, 8" />
-        </ControlTheme>
-        <ControlTheme x:Key="DescriptionStyle" TargetType="TextBlock">
+        </Style>
+        <Style Selector="TextBlock.DescriptionStyle">
             <Setter Property="Margin" Value="0, 0, 0, 8" />
             <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-            <Setter Property="Opacity" Value="0.66"/>
-        </ControlTheme>
-        <ControlTheme x:Key="PickerStyle" TargetType="local:FilePicker" BasedOn="{StaticResource MainFilePickerStyle}">
+            <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+            <Setter Property="Opacity" Value="0.66" />
+        </Style>
+        <Style Selector="local|FilePicker.PickerStyle">
             <Setter Property="Margin" Value="0, 0, 0, 8" />
-        </ControlTheme>
-        <ControlTheme x:Key="Panel" TargetType="StackPanel">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary08Brush}" />
+        </Style>
+        <Style Selector="StackPanel.Panel">
             <Setter Property="Margin" Value="0, 0, 0, 8" />
-        </ControlTheme>
-        <ControlTheme x:Key="InstallButtonStyle" TargetType="Button" BasedOn="{StaticResource WJButtonStyle}">
-            <Setter Property="Margin" Value="{StaticResource InstallMargin}" />
-        </ControlTheme>
-        <ControlTheme x:Key="WorkerIndicatorBorder" TargetType="Border">
+        </Style>
+        <Style Selector="Border.WorkerIndicatorBorder">
             <Setter Property="BorderThickness" Value="2" />
-            <Setter Property="BorderBrush" Value="{StaticResource ComplementaryPrimary08Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ComplementaryPrimary08Brush}" />
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="Padding" Value="0, 8, 0, 8" />
-        </ControlTheme>
-    </UserControl.Resources>
+        </Style>
+    </UserControl.Styles>
     <Grid>
         <Grid x:Name="SetupGrid">
             <Grid.ColumnDefinitions>

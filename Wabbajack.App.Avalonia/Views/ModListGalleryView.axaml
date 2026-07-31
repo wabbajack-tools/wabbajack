@@ -77,11 +77,14 @@
                     <Border CornerRadius="8" Background="{StaticResource ComplementaryPrimary08Brush}"
                             Padding="0, 12, 0, 12">
                         <StackPanel Orientation="Vertical">
+                            <!-- WPF's Background here tinted only the check glyph's square. Avalonia's
+                                 Fluent template template-binds Background on the checkbox root instead,
+                                 so keeping it painted an opaque slab behind the label as well. Dropped:
+                                 the glyph square already reads correctly against the card. -->
                             <CheckBox x:Name="IncludeUnofficial"
                                       Margin="12, 0, 0, 12"
                                       VerticalAlignment="Center"
                                       Foreground="{StaticResource ForegroundBrush}"
-                                      Background="{StaticResource BackgroundBrush}"
                                       ToolTip.Tip="Show modlists that have not been tested to provide a stable experience with official support channels. More info about featured modlists is available on the Wabbajack wiki.">
                                 <TextBlock FontSize="10" Text="Non-featured" />
                             </CheckBox>
@@ -89,7 +92,6 @@
                                       Margin="12, 0, 0, 0"
                                       VerticalAlignment="Center"
                                       Foreground="{StaticResource ForegroundBrush}"
-                                      Background="{StaticResource BackgroundBrush}"
                                       ToolTip.Tip="Show modlists that include NSFW frameworks.">
                                 <TextBlock FontSize="10" Text="NSFW" />
                             </CheckBox>

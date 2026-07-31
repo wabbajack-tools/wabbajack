@@ -31,8 +31,14 @@
     <Setter Property="Padding" Value="8,6" />
   </Style>
 
-  <!-- Buttons that carry no explicit Wabbajack class still need sane dark styling + padding. -->
+  <!-- Buttons that carry no explicit Wabbajack class still need sane dark styling + padding.
+       HorizontalAlignment/VerticalAlignment are restated because Avalonia's Fluent theme pins buttons
+       to Left/Center, whereas WPF's default was Stretch - without this every button in a layout cell
+       shrinks to its content instead of filling the cell the way the original views assumed. Views
+       that want a content-sized button set the alignment locally, which still wins over this. -->
   <Style Selector="Button">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
     <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
     <Setter Property="Foreground" Value="{DynamicResource ButtonForeground}" />
     <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary08Brush}" />
@@ -54,6 +60,8 @@
   </Style>
 
   <Style Selector="ToggleButton">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
     <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
     <Setter Property="Foreground" Value="{DynamicResource ButtonForeground}" />
     <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary08Brush}" />

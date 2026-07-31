@@ -69,19 +69,13 @@
                         element in Avalonia (no Hyperlink class, no implicit Command-bound inline). Translated
                         to borderless, underlined inline Buttons wrapped in InlineUIContainer, bound to the
                         same commands. Verify visual styling matches the original hyperlink look.
-                    -->
-                     <InlineUIContainer>
-                        <Button Command="{Binding VisitModlistWizardCommand}" Background="Transparent" BorderThickness="0" Padding="0" VerticalAlignment="Center">
-                            <TextBlock Text="Wabbakinator quiz" TextDecorations="Underline" />
-                        </Button>
-                     </InlineUIContainer>
-                     <Run Text=", or " />
-                     <InlineUIContainer>
-                        <Button Command="{Binding BrowseCommand}" Background="Transparent" BorderThickness="0" Padding="0" VerticalAlignment="Center">
-                            <TextBlock Text="navigate the gallery" TextDecorations="Underline" />
-                        </Button>
-                     </InlineUIContainer>
-                     <Run Text=" yourself and pick something fun." />
+
+                        The inlines below are deliberately unindented and run together on single lines:
+                        whitespace between inline elements collapses to a rendered space, which put a gap
+                        before the comma ("Wabbakinator quiz , or") that the WPF Hyperlink flow did not have.
+                        HorizontalAlignment=Left keeps the app-wide Stretch button default from making each
+                        button claim the rest of the line.
+                    --><InlineUIContainer><Button Command="{Binding VisitModlistWizardCommand}" Background="Transparent" BorderThickness="0" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Center"><TextBlock Text="Wabbakinator quiz" TextDecorations="Underline" /></Button></InlineUIContainer><Run Text=", or " /><InlineUIContainer><Button Command="{Binding BrowseCommand}" Background="Transparent" BorderThickness="0" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Center"><TextBlock Text="navigate the gallery" TextDecorations="Underline" /></Button></InlineUIContainer><Run Text=" yourself and pick something fun." />
                     </TextBlock>
                 </Grid>
             </Border>
