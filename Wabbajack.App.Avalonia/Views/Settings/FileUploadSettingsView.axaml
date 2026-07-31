@@ -31,13 +31,13 @@
                 Text="Wabbajack CDN" />
 
             <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                <local:WJButton
+                <local:WJButton Width="200"
                     x:Name="BrowseUploadedFilesButton"
                     Icon="DocumentMultiple"
                     Text="Browse uploads"
                     Margin="0, 0, 16, 0" />
 
-                <local:WJButton
+                <local:WJButton Width="200"
                     x:Name="OpenFileUploadButton"
                     Icon="DocumentArrowUp"
                     Text="Upload file" />

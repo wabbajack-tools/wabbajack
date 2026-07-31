@@ -150,7 +150,7 @@
                             </TextBlock>
                         </Grid>
                     </Border>
-                    <local:WJButton x:Name="InstallButton" Grid.Column="2" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown" HorizontalAlignment="Right" />
+                    <local:WJButton Width="200" x:Name="InstallButton" Grid.Column="2" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown" HorizontalAlignment="Right" />
                 </Grid>
             </Grid>
         </Grid>
@@ -304,14 +304,14 @@
                             </TextBlock>
 
                             <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0, 16, 0, 0">
-                                <local:WJButton x:Name="StoppedButton" HorizontalAlignment="Left" Text="Open Logs Folder" Icon="FolderOpen" ButtonStyle="SemiTransparent" />
-                                <local:WJButton x:Name="DiagnoseButton" Margin="8, 0, 0, 0" HorizontalAlignment="Left" Text="How do I fix this?" Icon="Wrench" ButtonStyle="Mono" />
+                                <local:WJButton Width="200" x:Name="StoppedButton" HorizontalAlignment="Left" Text="Open Logs Folder" Icon="FolderOpen" ButtonStyle="SemiTransparent" />
+                                <local:WJButton Width="200" x:Name="DiagnoseButton" Margin="8, 0, 0, 0" HorizontalAlignment="Left" Text="How do I fix this?" Icon="Wrench" ButtonStyle="Mono" />
                             </StackPanel>
 
                             <TextBlock Grid.Row="4" Margin="0, 24, 0, 8" Text="If this didn't help:" FontSize="14" Foreground="{StaticResource Transparent66ForegroundBrush}" />
                             <StackPanel Grid.Row="5" Orientation="Horizontal">
-                                <local:WJButton x:Name="JoinDiscordButton" Text="Join our Discord" Icon="PeopleChat" ButtonStyle="Mono" />
-                                <local:WJButton x:Name="VisitWikiButton" Margin="8, 0, 0, 0" Text="Visit our Wiki" Icon="Globe" ButtonStyle="Mono" />
+                                <local:WJButton Width="200" x:Name="JoinDiscordButton" Text="Join our Discord" Icon="PeopleChat" ButtonStyle="Mono" />
+                                <local:WJButton Width="200" x:Name="VisitWikiButton" Margin="8, 0, 0, 0" Text="Visit our Wiki" Icon="Globe" ButtonStyle="Mono" />
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -388,10 +388,10 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <local:WJButton x:Name="CancelButton" Grid.Column="2" ButtonStyle="Danger" Text="Cancel" Icon="Dismiss" HorizontalAlignment="Right" IsVisible="False" />
+                    <local:WJButton Width="200" x:Name="CancelButton" Grid.Column="2" ButtonStyle="Danger" Text="Cancel" Icon="Dismiss" HorizontalAlignment="Right" IsVisible="False" />
 
-                    <local:WJButton x:Name="EditInstallDetailsButton" Grid.Column="1" ButtonStyle="Mono" Text="Edit Installation Details" Icon="TextBulletListSquareSettings" HorizontalAlignment="Right" IsVisible="True" Margin="0, 0, 16, 0" />
-                    <local:WJButton x:Name="RetryButton" Grid.Column="2" ButtonStyle="Color" Text="Retry" Icon="ArrowCounterclockwise" HorizontalAlignment="Right" />
+                    <local:WJButton Width="200" x:Name="EditInstallDetailsButton" Grid.Column="1" ButtonStyle="Mono" Text="Edit Installation Details" Icon="TextBulletListSquareSettings" HorizontalAlignment="Right" IsVisible="True" Margin="0, 0, 16, 0" />
+                    <local:WJButton Width="200" x:Name="RetryButton" Grid.Column="2" ButtonStyle="Color" Text="Retry" Icon="ArrowCounterclockwise" HorizontalAlignment="Right" />
                 </Grid>
             </Grid>
 
@@ -413,10 +413,10 @@
                     <ColumnDefinition Width="16" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <local:WJButton x:Name="BackToGalleryButton" Grid.Row="1" Text="Back to Gallery" Icon="ChevronLeft" Direction="RightToLeft" HorizontalAlignment="Left" />
-                <local:WJButton x:Name="ReadmeButton" Grid.Column="2" Text="Open Readme" Icon="WindowNew" HorizontalAlignment="Right" ButtonStyle="Mono" />
-                <local:WJButton x:Name="CreateShortcutButton" Grid.Column="4" Text="Create Desktop Shortcut" Icon="DesktopArrowRight" HorizontalAlignment="Right" ButtonStyle="Mono" />
-                <local:WJButton x:Name="OpenFolderButton" Grid.Column="6" Text="Open in File Explorer" Icon="FolderOpen" HorizontalAlignment="Right" ButtonStyle="Color" />
+                <local:WJButton Width="200" x:Name="BackToGalleryButton" Grid.Row="1" Text="Back to Gallery" Icon="ChevronLeft" Direction="RightToLeft" HorizontalAlignment="Left" />
+                <local:WJButton Width="200" x:Name="ReadmeButton" Grid.Column="2" Text="Open Readme" Icon="WindowNew" HorizontalAlignment="Right" ButtonStyle="Mono" />
+                <local:WJButton Width="200" x:Name="CreateShortcutButton" Grid.Column="4" Text="Create Desktop Shortcut" Icon="DesktopArrowRight" HorizontalAlignment="Right" ButtonStyle="Mono" />
+                <local:WJButton Width="200" x:Name="OpenFolderButton" Grid.Column="6" Text="Open in File Explorer" Icon="FolderOpen" HorizontalAlignment="Right" ButtonStyle="Color" />
             </Grid>
         </Grid>
     </Grid>

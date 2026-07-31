@@ -157,6 +157,14 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject, I
                 })
                 .DisposeWith(dispose);
 
+            // Re-brush on hover and on enable/disable, since the local values set by ApplyIconBrush
+            // outrank the ControlTheme's own state setters.
+            this.GetObservable(IsPointerOverProperty)
+                .Merge(this.GetObservable(IsEffectivelyEnabledProperty))
+                .ObserveOnGuiThread()
+                .Subscribe(_ => ApplyIconBrush(ButtonStyle))
+                .DisposeWith(dispose);
+
             this.WhenAnyValue(x => x.ProgressPercentage)
             .ObserveOnGuiThread()
             .Subscribe(percent =>
@@ -264,33 +272,46 @@ public partial class WJButton : Button, IViewFor<WJButtonVM>, IReactiveObject, I
             : null;
 
     // WPF gave each button style a nested <Style TargetType="ic:SymbolIcon"> that recoloured the
-    // icon. The icon lives in WJButton's content rather than its template, and a ControlTheme may
-    // not contain descendant selectors, so the equivalent is applied here.
+    // icon, and its MainButtonStyle triggers recoloured the label on hover / press / disable. Both
+    // the icon and the label live in WJButton's content rather than its template, and a ControlTheme
+    // may not contain descendant selectors, so the equivalent is applied here.
+    //
+    // These are local values, which beat any style - including the theme's own :pointerover and
+    // :disabled setters. That is why the state has to be folded in here rather than left to the
+    // ControlTheme: a one-shot assignment pinned every WJButton's label to its resting colour, so
+    // hovering never tinted it and disabling never dimmed it.
     private void ApplyIconBrush(ButtonStyle style)
     {
+        // Mid-download the label and icon carry a gradient painted by the ProgressPercentage
+        // subscription; leave it alone until the download completes and resets the theme.
+        if (style == ButtonStyle.Progress && ProgressPercentage != Percent.One) return;
+
         var onLightFill = style is ButtonStyle.Color or ButtonStyle.Progress;
+        var hovered = IsPointerOver && IsEffectivelyEnabled;
 
-        if (ButtonSymbolIcon is not null)
+        string iconKey, textKey;
+        if (!IsEffectivelyEnabled)
         {
-            if (onLightFill)
-            {
-                // These variants set Foreground to BackgroundBrush, which inherits down to the icon.
-                ButtonSymbolIcon.ClearValue(ForegroundProperty);
-            }
-            else if (TryFindBrush("PrimaryBrush", out var primary))
-            {
-                ButtonSymbolIcon.Foreground = primary;
-            }
+            iconKey = textKey = "DisabledButtonForeground";
+        }
+        else if (hovered)
+        {
+            // Every one of these variants hovers to a dark fill, so both halves go lilac.
+            iconKey = textKey = style is ButtonStyle.Danger
+                ? "MouseOverDangerButtonForeground"
+                : "PressedButtonForeground";
+        }
+        else
+        {
+            iconKey = onLightFill ? "BackgroundBrush" : "PrimaryBrush";
+            textKey = onLightFill ? "BackgroundBrush" : "ForegroundBrush";
         }
 
-        // The label cannot rely on inheritance the way the icon does: Themes/Base.axaml gives every
-        // TextBlock an explicit light Foreground, which beats the value inherited from the button.
-        // On the light-filled variants that left "Install" as near-white text on lilac.
-        if (ButtonTextBlock is not null
-            && TryFindBrush(onLightFill ? "BackgroundBrush" : "ForegroundBrush", out var text))
-        {
+        if (ButtonSymbolIcon is not null && TryFindBrush(iconKey, out var icon))
+            ButtonSymbolIcon.Foreground = icon;
+
+        if (ButtonTextBlock is not null && TryFindBrush(textKey, out var text))
             ButtonTextBlock.Foreground = text;
-        }
     }
 
     private static bool TryFindBrush(string key, out IBrush brush)

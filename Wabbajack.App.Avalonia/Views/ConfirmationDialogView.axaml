@@ -33,8 +33,8 @@
 
         <!-- Buttons -->
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
-            <local:WJButton x:Name="CancelBtn" Text="Cancel" Icon="Dismiss" ButtonStyle="Mono" Margin="0, 0, 16, 0" />
-            <local:WJButton x:Name="ConfirmBtn" Text="Continue" Icon="Checkmark" ButtonStyle="Danger" />
+            <local:WJButton Width="200" x:Name="CancelBtn" Text="Cancel" Icon="Dismiss" ButtonStyle="Mono" Margin="0, 0, 16, 0" />
+            <local:WJButton Width="200" x:Name="ConfirmBtn" Text="Continue" Icon="Checkmark" ButtonStyle="Danger" />
         </StackPanel>
     </Grid>
 </rxui:ReactiveUserControl>

@@ -38,7 +38,7 @@
                 <!-- TODO: ToolTipService.ShowOnDisabled has no direct Avalonia equivalent; Avalonia
                      ToolTips are shown via the ToolTip.Tip attached property and are not suppressed
                      on disabled controls by default, so the attribute was dropped. -->
-                <local:WJButton x:Name="StartButton" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="Compile List" Icon="Box" ButtonStyle="Color"/>
+                <local:WJButton Width="200" x:Name="StartButton" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="Compile List" Icon="Box" ButtonStyle="Color"/>
             </DockPanel>
 
             <Grid x:Name="CompilationButtons" Grid.Row="2" Grid.Column="1" Margin="0, 16, 0, 0" IsVisible="True" HorizontalAlignment="Stretch">
@@ -48,9 +48,9 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <local:WJButton x:Name="CancelButton" Text="Cancel" Icon="DismissCircle" ButtonStyle="Danger" Grid.Column="1" Margin="16, 0, 0, 0" HorizontalAlignment="Right"/>
-                <local:WJButton Text="Open in File Explorer" Icon="Folder" IsEnabled="False" Grid.Column="2" Margin="16, 0, 0, 0" HorizontalAlignment="Right" />
-                <local:WJButton Text="Publish Modlist" Icon="CloudArrowUp" IsEnabled="False" Grid.Column="3" Margin="16, 0, 0, 0" HorizontalAlignment="Right" />
+                <local:WJButton Width="200" x:Name="CancelButton" Text="Cancel" Icon="DismissCircle" ButtonStyle="Danger" Grid.Column="1" Margin="16, 0, 0, 0" HorizontalAlignment="Right"/>
+                <local:WJButton Width="200" Text="Open in File Explorer" Icon="Folder" IsEnabled="False" Grid.Column="2" Margin="16, 0, 0, 0" HorizontalAlignment="Right" />
+                <local:WJButton Width="200" Text="Publish Modlist" Icon="CloudArrowUp" IsEnabled="False" Grid.Column="3" Margin="16, 0, 0, 0" HorizontalAlignment="Right" />
             </Grid>
 
             <local:CpuView x:Name="CpuView" Grid.Row="1" Grid.RowSpan="2" ViewModel="{Binding}" IsVisible="False" />
@@ -74,13 +74,13 @@
                     <ColumnDefinition Width="2.5*" />
                 </Grid.ColumnDefinitions>
 
-                <local:WJButton x:Name="OpenLogButton"
+                <local:WJButton Width="200" x:Name="OpenLogButton"
                     Text="Open Log"
                     Icon="DocumentText"
                     Grid.Column="0"
                     HorizontalAlignment="Left" />
 
-                <local:WJButton x:Name="RefreshPreflightButton"
+                <local:WJButton Width="200" x:Name="RefreshPreflightButton"
                     Text="Refresh Checks"
                     Icon="ArrowClockwise"
                     Grid.Column="2"

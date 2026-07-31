@@ -11,9 +11,16 @@
     ClipToBounds="True"
     d:DesignHeight="38"
     d:DesignWidth="200"
-    Width="200"
     Height="38"
     mc:Ignorable="d">
+    <!--
+        WPF hard-coded Width="200" here and let each call site override it - twelve of them with
+        Width="Auto" to stretch, six with an explicit number. Avalonia's Width takes no "Auto", so
+        the port dropped every one of those overrides, which left all 46 WJButtons stuck at exactly
+        200px: the modlist detail's Website/Discord/Install row, the installer's link buttons and the
+        compiler's Publish buttons all sat at an arbitrary width in cells sized for something else.
+        The default now lives at the call sites instead, so "stretch" is simply the absence of Width.
+    -->
     <!--
         WPF's RelativeSource FindAncestor/AncestorType=Button (from this Grid, the
         nearest Button ancestor in the visual tree is this control itself, since the
