@@ -78,8 +78,10 @@ public partial class CompilerHomeVM : ViewModel
             ("Compiler Settings File", "*" + Ext.CompilerSettings)
         ]);
 
+        // Awaited, not fired-and-checked: ICommand.Execute returns as soon as the dialog opens, so
+        // TargetPath was still empty when it was tested and both entry points did nothing at all.
         NewModlistCommand = ReactiveCommand.CreateFromTask(async () => {
-            NewModlistPicker.SetTargetPathCommand.Execute(null);
+            await NewModlistPicker.PickTargetPathAsync();
             if(NewModlistPicker.TargetPath != default)
             {
                 try
@@ -95,9 +97,9 @@ public partial class CompilerHomeVM : ViewModel
             }
         });
 
-        LoadSettingsCommand = ReactiveCommand.Create(() =>
+        LoadSettingsCommand = ReactiveCommand.CreateFromTask(async () =>
         {
-            CompilerSettingsPicker.SetTargetPathCommand.Execute(null);
+            await CompilerSettingsPicker.PickTargetPathAsync();
             if(CompilerSettingsPicker.TargetPath != default)
             {
                 try
