@@ -8,7 +8,9 @@ using ReactiveUI;
 using Wabbajack;
 using Xunit;
 
-namespace Wabbajack.App.Avalonia.Test;
+// Not Wabbajack.App.*: that namespace would shadow the Wabbajack.App type the headless test host
+// has to name (CS0118).
+namespace Wabbajack.AvaloniaTests;
 
 /// <summary>
 /// Regression test for the ReactiveUI.Fody -> ReactiveUI.SourceGenerators migration.

@@ -114,6 +114,23 @@
     <Setter Property="Background" Value="Transparent" />
   </Style>
 
+  <!-- Opaque, for the same reason as DataGrid below: the views hosting these paint a white Border
+       as the source for their rounded-corner OpacityMask, and a transparent list surface lets that
+       white through as a slab (LogView, CompilerFileManagerView). -->
+  <Style Selector="ListBox">
+    <Setter Property="Background" Value="{DynamicResource ComplementaryBackgroundBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+  </Style>
+
+  <Style Selector="TreeView">
+    <Setter Property="Background" Value="{DynamicResource ComplementaryBackgroundBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+  </Style>
+
+  <Style Selector="TreeViewItem">
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+  </Style>
+
   <!-- DataGrid (modlist details archive list). The packaged Fluent DataGrid theme still paints
        light headers/rows under our palette, so restate the surfaces explicitly. -->
   <Style Selector="DataGrid">
