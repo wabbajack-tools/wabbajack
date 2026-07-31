@@ -78,11 +78,14 @@
                     in without further XAML changes; until then these bindings will not evaluate.
                     ActualWidth/ActualHeight (WPF) -> Bounds.Width/Bounds.Height (Avalonia).
                 -->
-                <Border x:Name="MaskBorder" BorderThickness="0" BorderBrush="Transparent" Background="{StaticResource DarkSecondaryBrush}" Width="{Binding #MainGrid.Bounds.Width}" Height="{Binding #MainGrid.Bounds.Height}"/>
+                <!-- WPF rounded the tile by masking this grid with a sibling CornerRadius=8 Border.
+                     Avalonia does not render a live sibling visual correctly as a mask source, so the
+                     mask did nothing: the tile image kept square corners while the mask Border itself
+                     showed as a dark rectangle behind it. CornerRadius + ClipToBounds rounds the
+                     artwork directly. -->
+                <Border CornerRadius="8" ClipToBounds="True" BorderThickness="0"
+                        Background="{StaticResource DarkSecondaryBrush}">
                 <Grid x:Name="MainGrid" Width="476" Height="{Binding #MainGrid.Bounds.Width, Converter={StaticResource MathConverter}, ConverterParameter=x*9/16}" Background="Transparent" ClipToBounds="True">
-                    <Grid.OpacityMask>
-                        <VisualBrush Visual="{Binding #MaskBorder}"/>
-                    </Grid.OpacityMask>
                     <Grid ClipToBounds="True">
                         <!-- MahApps ProgressRing -> nearest Avalonia built-in: ProgressBar (IsIndeterminate). -->
                         <ProgressBar x:Name="LoadingProgress" IsIndeterminate="True" Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -378,6 +381,7 @@
                         </TextBlock>
                     </Grid>
                 </Grid>
+                </Border>
             </Grid>
         </Border>
     </Button>

@@ -9,6 +9,39 @@
   -->
 
   <!--
+    Progress bars used as a filled background behind content (the per-file rows during install and
+    compile, and the title bar's wizard step chips). WPF's default filled the whole element height;
+    Avalonia's Fluent template draws a fixed thin track centred vertically, which made every one of
+    these read as a stray line rather than a fill.
+
+    Scoped as an explicit theme rather than replacing the default, because the app also uses
+    ProgressBar as an indeterminate loading spinner in several places and that relies on the Fluent
+    theme's animation of the indicator.
+  -->
+  <ControlTheme x:Key="FillProgressBar" TargetType="ProgressBar">
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                ClipToBounds="True">
+          <!-- PART_LayoutRoot / PART_Indicator are the names ProgressBar's own code looks up to
+               size the fill; the indicator's Width is set from the value, so it only needs to be
+               left-aligned and full height here. -->
+          <Panel x:Name="PART_LayoutRoot">
+            <Border x:Name="PART_Indicator"
+                    Background="{TemplateBinding Foreground}"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Stretch" />
+          </Panel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!--
     WJButton variants. WJButton.axaml.cs resolves these five keys by name at runtime to fill its
     Theme property (WPF set Style the same way), so they must be ControlThemes in the application's
     resources rather than the class selectors used elsewhere in this port - none of them existed,

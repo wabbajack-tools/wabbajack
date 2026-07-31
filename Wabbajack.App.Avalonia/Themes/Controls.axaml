@@ -37,15 +37,25 @@
     <Setter Property="CornerRadius" Value="8" />
   </Style>
 
-  <Style Selector="Button.MainButtonStyle:pointerover, Button.MainButtonStyleLessRounded:pointerover, Button.WJButtonStyle:pointerover">
-    <Setter Property="Background" Value="{DynamicResource MouseOverButtonBackground}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource BorderInterestBrush}" />
+  <!--
+    State styles must target /template/ ContentPresenter, not the Button's own Background: Avalonia's
+    Fluent theme sets the presenter's Background directly for :pointerover and :pressed, and that
+    beats a control-level property. Setting Background on the Button did nothing, so every one of
+    these buttons fell back to Fluent's pale grey hover - which is what put a light ring around a
+    hovered gallery card. WPF's own triggers used DarkHoverBackgroundBrush with a transparent border.
+  -->
+  <Style Selector="Button.MainButtonStyle:pointerover /template/ ContentPresenter, Button.MainButtonStyleLessRounded:pointerover /template/ ContentPresenter, Button.WJButtonStyle:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource DarkHoverBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource PressedButtonForeground}" />
   </Style>
-  <Style Selector="Button.MainButtonStyle:pressed, Button.MainButtonStyleLessRounded:pressed, Button.WJButtonStyle:pressed">
+  <Style Selector="Button.MainButtonStyle:pressed /template/ ContentPresenter, Button.MainButtonStyleLessRounded:pressed /template/ ContentPresenter, Button.WJButtonStyle:pressed /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource PressedButtonBackground}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource PressedButtonForeground}" />
   </Style>
-  <Style Selector="Button.MainButtonStyle:disabled, Button.MainButtonStyleLessRounded:disabled, Button.WJButtonStyle:disabled">
-    <Setter Property="Foreground" Value="{DynamicResource DisabledButtonForeground}" />
+  <Style Selector="Button.MainButtonStyle:disabled /template/ ContentPresenter, Button.MainButtonStyleLessRounded:disabled /template/ ContentPresenter, Button.WJButtonStyle:disabled /template/ ContentPresenter">
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource DisabledButtonForeground}" />
     <Setter Property="Background" Value="{DynamicResource DisabledButtonBackground}" />
   </Style>
 
@@ -65,11 +75,12 @@
   <Style Selector="Button.AvatarButton">
     <Setter Property="Background" Value="Transparent" />
   </Style>
-  <Style Selector="Button.CircleButtonStyle:pointerover, Button.IconCircleButtonStyle:pointerover, Button.AvatarButton:pointerover">
+  <Style Selector="Button.CircleButtonStyle:pointerover /template/ ContentPresenter, Button.IconCircleButtonStyle:pointerover /template/ ContentPresenter, Button.AvatarButton:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource MouseOverButtonBackground}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
   </Style>
-  <Style Selector="Button.CircleButtonStyle:disabled, Button.IconCircleButtonStyle:disabled">
-    <Setter Property="Foreground" Value="{DynamicResource DisabledButtonForeground}" />
+  <Style Selector="Button.CircleButtonStyle:disabled /template/ ContentPresenter, Button.IconCircleButtonStyle:disabled /template/ ContentPresenter">
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource DisabledButtonForeground}" />
   </Style>
 
   <!-- Navigation rail buttons (WPF MainNavButtonStyle / ActiveNavButtonStyle) -->
@@ -81,9 +92,10 @@
     <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="Focusable" Value="False" />
   </Style>
-  <Style Selector="Button.MainNavButton:pointerover">
+  <Style Selector="Button.MainNavButton:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource MouseOverButtonBackground}" />
-    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource ForegroundBrush}" />
   </Style>
   <Style Selector="Button.ActiveNavButton">
     <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary08Brush}" />
@@ -102,8 +114,9 @@
     <Setter Property="Focusable" Value="False" />
     <Setter Property="CornerRadius" Value="0" />
   </Style>
-  <Style Selector="Button.IconBareButtonStyle:pointerover">
+  <Style Selector="Button.IconBareButtonStyle:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource WindowHoverBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
   </Style>
 
   <!-- Danger variant -->
@@ -113,8 +126,10 @@
     <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
     <Setter Property="Focusable" Value="False" />
   </Style>
-  <Style Selector="Button.TransparentButtonStyleDanger:pointerover">
+  <Style Selector="Button.TransparentButtonStyleDanger:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource MouseOverButtonBackground}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource ErrorBrush}" />
   </Style>
 
   <!-- Containers / panels -->
