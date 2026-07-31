@@ -48,7 +48,11 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
 
     public override async Task<bool> Prepare()
     {
-        if (!_api.AuthInfo.HaveToken()) return false;
+        // Not AuthInfo.HaveToken(): that only sees the encrypted token store, so a NEXUS_API_KEY
+        // supplied through the environment - which NexusApi itself authenticates with perfectly
+        // well - was reported as logged out, and the installer stopped to demand an interactive
+        // Nexus login it did not need.
+        if (!_api.HasAuthentication()) return false;
 
         await EnsureLoginStillValid();
         return true;
@@ -175,7 +179,12 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
 
     private async Task EnsureLoginStillValid()
     {
-        var oAuthToken = await _api.AuthInfo.Get();
+        // Only read the store when something is actually in it: ITokenProvider.Get() throws rather
+        // than returning null when there is no stored token, so calling it unconditionally turned an
+        // environment-supplied NEXUS_API_KEY into a thrown exception that stalled the install.
+        // With no stored token there is no OAuth token to expire, so fall through to Validate(),
+        // which authenticates with whatever credential NexusApi can find.
+        var oAuthToken = _api.AuthInfo.HaveToken() ? await _api.AuthInfo.Get() : null;
         if (oAuthToken?.OAuth?.IsExpired ?? true)
         {
             await _api.Validate();

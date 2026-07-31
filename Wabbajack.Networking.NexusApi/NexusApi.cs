@@ -233,6 +233,15 @@ public class NexusApi
 
     }
 
+    /// <summary>
+    /// Whether any credential is available at all - a stored OAuth token/API key, or the
+    /// NEXUS_API_KEY environment variable that <see cref="GetAuthInfo"/> falls back to.
+    /// Callers gating on authentication must use this rather than AuthInfo.HaveToken(), which sees
+    /// only the encrypted store and so reports "logged out" for an environment-supplied key.
+    /// </summary>
+    public bool HasAuthentication() =>
+        AuthInfo.HaveToken() || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("NEXUS_API_KEY"));
+
     private async ValueTask<(bool IsApiKey, string code)> GetAuthInfo()
     {
         using var _ = await _authLock.WaitAsync();

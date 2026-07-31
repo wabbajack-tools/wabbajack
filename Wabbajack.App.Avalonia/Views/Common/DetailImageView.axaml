@@ -28,22 +28,31 @@
                 </Grid.OpacityMask>
                 <Rectangle Grid.RowSpan="4" Fill="{StaticResource ComplementaryPrimary08Brush}" IsVisible="{Binding ElementName=ModlistImage, Path=Source, Converter={StaticResource IsNotNullVisibilityConverter}}"/>
                 <Rectangle Grid.RowSpan="4" Fill="Black"/>
-                <Viewbox
-                        Grid.RowSpan="4"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Stretch="UniformToFill">
-                    <Image x:Name="ModlistImage">
-                        <Image.OpacityMask>
-                            <LinearGradientBrush StartPoint="0.5, 0" EndPoint="0.5, 1">
-                                <LinearGradientBrush.GradientStops>
-                                    <GradientStop Offset="0.5" Color="Black"/>
-                                    <GradientStop Offset="1.0" Color="Transparent"/>
-                                </LinearGradientBrush.GradientStops>
-                            </LinearGradientBrush>
-                        </Image.OpacityMask>
-                    </Image>
-                </Viewbox>
+                <!--
+                    Two departures from the WPF source, both needed to make the banner visible at all
+                    - it rendered as a solid black box on the installer, with only the title and
+                    author drawn over it:
+
+                    - WPF wrapped this Image in a Viewbox for UniformToFill. Avalonia's Image applies
+                      Stretch itself, and its Viewbox measures children with an infinite constraint,
+                      so the wrapper is both unnecessary and harmful here.
+                    - WPF faded the bottom of the image with an Image.OpacityMask. Avalonia draws an
+                      element carrying that mask as fully transparent, so the same fade is done with
+                      an overlay gradient below instead: transparent over the top half, opaque black
+                      by the bottom, which is what the mask was compositing against anyway.
+                -->
+                <Image x:Name="ModlistImage"
+                       Grid.RowSpan="4"
+                       Stretch="UniformToFill" />
+                <Rectangle Grid.RowSpan="4" IsHitTestVisible="False">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                            <GradientStop Offset="0.0" Color="#00000000" />
+                            <GradientStop Offset="0.5" Color="#00000000" />
+                            <GradientStop Offset="1.0" Color="#FF000000" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
                 <!--
                     <Rectangle
                             Margin="-80, 0, -80, -75"
