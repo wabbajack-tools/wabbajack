@@ -32,7 +32,7 @@
             </Rectangle.Fill>
         </Rectangle>
         <Rectangle Grid.Row="1" Fill="{StaticResource BackgroundBrush}" />
-        <ProgressBar Grid.Row="1" Grid.RowSpan="2"
+        <ProgressBar Theme="{StaticResource FillProgressBar}" Grid.Row="1" Grid.RowSpan="2"
             x:Name="BottomProgressBarDarkGlow"
             Height="16"
             Margin="-4"
@@ -51,7 +51,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <ProgressBar Grid.Column="0" Grid.ColumnSpan="4"
+            <ProgressBar Theme="{StaticResource FillProgressBar}" Grid.Column="0" Grid.ColumnSpan="4"
                 x:Name="LargeProgressBar"
                 Background="#AA121212"
                 BorderThickness="0"
@@ -63,7 +63,7 @@
                     </LinearGradientBrush>
                 </ProgressBar.Foreground>
             </ProgressBar>
-            <ProgressBar Grid.Column="0" Grid.ColumnSpan="4"
+            <ProgressBar Theme="{StaticResource FillProgressBar}" Grid.Column="0" Grid.ColumnSpan="4"
                 x:Name="LargeProgressBarTopGlow"
                 Background="Transparent"
                 BorderThickness="0"
@@ -96,7 +96,7 @@
                 FontWeight="Black" />
             <ContentControl Grid.Column="2" />
         </Grid>
-        <ProgressBar Grid.Row="1" Grid.RowSpan="2"
+        <ProgressBar Theme="{StaticResource FillProgressBar}" Grid.Row="1" Grid.RowSpan="2"
             x:Name="BottomProgressBarBrightGlow1"
             Height="5"
             VerticalAlignment="Top"
@@ -108,7 +108,7 @@
                 <BlurEffect Radius="8" />
             </ProgressBar.Effect>
         </ProgressBar>
-        <ProgressBar Grid.Row="1" Grid.RowSpan="2"
+        <ProgressBar Theme="{StaticResource FillProgressBar}" Grid.Row="1" Grid.RowSpan="2"
             x:Name="BottomProgressBarBrightGlow2"
             Height="5"
             VerticalAlignment="Top"
@@ -120,7 +120,7 @@
                 <BlurEffect Radius="15" />
             </ProgressBar.Effect>
         </ProgressBar>
-        <ProgressBar Grid.Row="1" Grid.RowSpan="2"
+        <ProgressBar Theme="{StaticResource FillProgressBar}" Grid.Row="1" Grid.RowSpan="2"
             x:Name="BottomProgressBar"
             Height="5"
             VerticalAlignment="Top"
@@ -128,7 +128,7 @@
             BorderBrush="Transparent"
             Foreground="{StaticResource SecondaryBrush}"
             Maximum="1" />
-        <ProgressBar Grid.Row="1" Grid.RowSpan="2"
+        <ProgressBar Theme="{StaticResource FillProgressBar}" Grid.Row="1" Grid.RowSpan="2"
             x:Name="BottomProgressBarHighlight"
             Height="5"
             VerticalAlignment="Top"

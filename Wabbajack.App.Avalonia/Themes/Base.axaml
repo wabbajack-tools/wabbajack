@@ -110,6 +110,21 @@
     <Setter Property="Fill" Value="{DynamicResource PrimaryBrush}" />
   </Style>
 
+  <!--
+    Every ProgressBar in the app was drawing in Fluent's system accent (a bright blue that appears
+    nowhere else in Wabbajack) over a grey track. The seven indeterminate ones stand in for MahApps
+    ProgressRings and declare a small square size, but Fluent's theme sets MinWidth=200, so instead
+    of a 32px spinner they rendered as a 200px blue slab - most visibly straight across the middle of
+    the modlist banner on the install screen. Views that need other colours (the CPU rows, the top
+    progress bar's gradients) set them locally, which still wins over this.
+  -->
+  <Style Selector="ProgressBar">
+    <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+    <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary08Brush}" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+  </Style>
+
   <Style Selector="ComboBox">
     <!-- Same Fluent-vs-WPF default as Button above: Avalonia pins the ComboBox to the left and sizes
          it to its content, so the gallery's game filter and the compiler's profile picker sat
