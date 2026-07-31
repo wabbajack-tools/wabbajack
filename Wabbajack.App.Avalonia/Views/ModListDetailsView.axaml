@@ -322,7 +322,12 @@
 >
                                     <dg:DataGrid.Styles>
                                         <Style Selector="DataGridColumnHeader">
-                                            <Setter Property="Margin" Value="8, 0, 0, 0" />
+                                            <!-- WPF's 8px left margin here lined the headers up with
+                                                 cells whose own template supplied a matching inset.
+                                                 That template was not ported (Avalonia's DataGridCell
+                                                 takes its Padding from Themes/Base.axaml instead), so
+                                                 the margin no longer compensates for anything - it
+                                                 just pushed every header 8px right of its column. -->
                                             <Setter Property="VerticalAlignment" Value="Center" />
                                             <Setter Property="FontWeight" Value="Bold" />
                                             <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />

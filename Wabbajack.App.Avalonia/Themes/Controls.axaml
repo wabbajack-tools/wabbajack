@@ -135,6 +135,12 @@
   </Style>
 
   <!-- Navigation rail buttons (WPF MainNavButtonStyle / ActiveNavButtonStyle) -->
+  <!-- Padding 1, as WPF's MainButtonBaseStyle had. Base.axaml's generic Button padding of 12,8 inset
+       the content area by 12px, which pushed the active indicator pill (a child of the content, see
+       NavigationView.axaml) inwards until it sat on top of the widest label, "Create a list". -->
+  <Style Selector="Button.MainNavButton, Button.ActiveNavButton">
+    <Setter Property="Padding" Value="1" />
+  </Style>
   <Style Selector="Button.MainNavButton">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />

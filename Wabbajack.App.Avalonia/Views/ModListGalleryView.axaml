@@ -19,7 +19,12 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <!-- The right margin keeps the filter controls clear of the overlay scrollbar. Without
+                 it the content is exactly the 270px viewport width, so the scrollbar sat on top of
+                 the last few pixels and clipped "1264.4 GB", the "Exclude" label and the size
+                 slider's right thumb. -->
             <Grid
+                Margin="0,0,8,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Stretch">
                 <Grid.RowDefinitions>
@@ -136,7 +141,7 @@
                                Foreground="{StaticResource ComplementaryWhite25Brush}" Margin="0, 4, 0, 0" />
                 </Grid>
 
-                <StackPanel Grid.Row="4" Orientation="Vertical" Margin="0, 24, 0, 0">
+                <StackPanel Grid.Row="4" Orientation="Vertical" Margin="0, 16, 0, 0">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -167,7 +172,7 @@
                         Background="{StaticResource ComplementaryPrimary08Brush}" />
                 </StackPanel>
 
-                <StackPanel Grid.Row="5" Orientation="Vertical" Margin="0, 24, 0, 0">
+                <StackPanel Grid.Row="5" Orientation="Vertical" Margin="0, 16, 0, 0">
                     <TextBlock Text="Has tag(s)" />
                     <local:MultiSelectComboBox
                         x:Name="HasTagsFilter"
@@ -180,7 +185,7 @@
                 <CheckBox
                     Grid.Row="6"
                     x:Name="OnlyInstalledCheckbox"
-                    Margin="0, 24, 0, 0"
+                    Margin="0, 16, 0, 0"
                     VerticalAlignment="Center"
                     Foreground="{StaticResource ForegroundBrush}"
                     ToolTip.Tip="Show only modlists for games you have installed on your PC">
@@ -190,7 +195,7 @@
 
                 <local:WJButton
                     x:Name="ResetFiltersButton"
-                    Margin="0, 24, 0, 0"
+                    Margin="0, 16, 0, 0"
                     Grid.Row="7"
                     ToolTip.Tip="Reset filters to the default options"
                     VerticalAlignment="Bottom"

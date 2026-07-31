@@ -5,6 +5,8 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using DynamicData;
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -24,6 +26,17 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
     public CompilerDetailsView()
     {
         InitializeComponent();
+
+        // Selecting the additional profiles below raises a bring-into-view that bubbles out of the
+        // ListBox and scrolls this whole form, so the compiler opened part-way down its own settings
+        // - the first thing on screen was a half-clipped "Documentation (Readme)" field with its
+        // label hidden above the viewport. The list is short and always fully visible, so it never
+        // needs to move the form; stop the request at the ListBox. Its own inner ScrollViewer is a
+        // descendant and has already seen the event by the time this bubble handler runs.
+        AdditionalProfilesSetting.AddHandler(
+            RequestBringIntoViewEvent,
+            (object? _, RequestBringIntoViewEventArgs e) => e.Handled = true,
+            RoutingStrategies.Bubble);
 
         this.WhenActivated(disposables =>
         {
@@ -110,6 +123,7 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
 
             this.Bind(ViewModel, vm => vm.Settings.AutoGenerateReport, view => view.AutoGenerateReportSetting.IsChecked)
                 .DisposeWith(disposables);
+
         });
 
     }

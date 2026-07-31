@@ -61,7 +61,9 @@
                     </TextBlock>
                 </Grid>
             </Button>
-            <Button x:Name="SettingsButton" Grid.Row="6" Padding="12" Height="95" Margin="8, 0, 8, 0">
+            <!-- No local Padding: it would beat the rail's Padding="1" and inset this one button's
+                 content (and its active indicator) differently from the other three. -->
+            <Button x:Name="SettingsButton" Grid.Row="6" Height="95" Margin="8, 0, 8, 0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
