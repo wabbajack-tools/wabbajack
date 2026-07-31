@@ -63,7 +63,10 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="16" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
+                    <!-- 2*, not the WPF source's *: the preflight message is a sentence, and at one
+                         ninth of the row it wrapped to five lines and stretched this Auto row to
+                         several times the height of the buttons beside it. -->
+                    <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="16" />
                     <ColumnDefinition Width="3.5*" />
@@ -85,11 +88,16 @@
                     HorizontalAlignment="Left"
                     IsVisible="False"/>
 
+                <!-- Capped at two lines with the full text on hover so an unusually long preflight
+                     message cannot drive the row's height on its own. -->
                 <TextBlock x:Name="PreflightStatusText"
                    Grid.Column="3"
                    Margin="16,5,0,5"
                    VerticalAlignment="Center"
                    TextWrapping="Wrap"
+                   MaxLines="2"
+                   TextTrimming="CharacterEllipsis"
+                   ToolTip.Tip="{Binding #PreflightStatusText.Text}"
                    HorizontalAlignment="Left"/>
 
                 <local:WJButton x:Name="OpenFolderButton"
