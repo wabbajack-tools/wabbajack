@@ -122,6 +122,16 @@
     <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
   </Style>
 
+  <!-- Fluent paints selection with the system accent (blue); use the Wabbajack palette. Without
+       this the highlighted row in the compiler's log viewer came out bright blue. -->
+  <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SelectedListItem}" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource ForegroundBrush}" />
+  </Style>
+  <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MouseOverListItem}" />
+  </Style>
+
   <Style Selector="TreeView">
     <Setter Property="Background" Value="{DynamicResource ComplementaryBackgroundBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
