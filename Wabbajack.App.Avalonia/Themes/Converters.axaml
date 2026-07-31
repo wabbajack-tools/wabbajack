@@ -11,6 +11,7 @@
   <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
   <local:BoolToVisibilityConverter x:Key="bool2VisibilityConverter" />
   <local:BoolToVisibilityHiddenConverter x:Key="BoolToVisibilityHiddenConverter" />
+  <local:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
   <local:EqualsToBoolConverter x:Key="EqualsToBoolConverter" />
   <local:FileSizeConverter x:Key="FileSizeConverter" />
   <local:InverseBooleanConverter x:Key="InverseBooleanConverter" />

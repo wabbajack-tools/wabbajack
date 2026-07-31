@@ -36,11 +36,35 @@
         <TreeView x:Name="FileTreeView" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <TreeView.DataTemplates>
                 <DataTemplate DataType="vm:FileTreeItemVM">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <fluent:SymbolIcon Symbol="{Binding Symbol}" FontSize="16" VerticalAlignment="Center"
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <fluent:SymbolIcon Grid.Column="0" Symbol="{Binding Symbol}" FontSize="16"
+                                           VerticalAlignment="Center" Margin="0,0,6,0"
                                            Foreground="{DynamicResource PrimaryBrush}" />
-                        <TextBlock Text="{Binding Info.Name}" VerticalAlignment="Center" />
-                    </StackPanel>
+                        <TextBlock Grid.Column="1" Text="{Binding Info.Name}" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis" />
+                        <!-- The compiler flags an entry carries (No Match Include / Include / Ignore /
+                             Always Enabled). WPF surfaced these through a MultiSelectComboBox per row;
+                             shown here as read-only chips so the tagging is at least visible - editing
+                             them still needs a bindable SelectedItems on MultiSelectComboBox. -->
+                        <ItemsControl Grid.Column="2" ItemsSource="{Binding CompilerFileStates}"
+                                      VerticalAlignment="Center" Margin="8,0,0,0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="4" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource ComplementaryPrimary16Brush}"
+                                            CornerRadius="4" Padding="6,1">
+                                        <TextBlock FontSize="11"
+                                                   Foreground="{DynamicResource PrimaryBrush}"
+                                                   Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
                 </DataTemplate>
             </TreeView.DataTemplates>
         </TreeView>

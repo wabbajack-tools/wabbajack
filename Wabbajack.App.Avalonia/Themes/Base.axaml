@@ -140,6 +140,14 @@
   <Style Selector="TreeViewItem">
     <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
   </Style>
+  <!-- Same system-accent leak as ListBox/ToggleButton: without these, selecting a row in the
+       compiler's file tree painted it bright Fluent blue. -->
+  <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
+    <Setter Property="Background" Value="{DynamicResource SelectedListItem}" />
+  </Style>
+  <Style Selector="TreeViewItem:pointerover /template/ Border#PART_LayoutRoot">
+    <Setter Property="Background" Value="{DynamicResource MouseOverListItem}" />
+  </Style>
 
   <!-- DataGrid (modlist details archive list). The packaged Fluent DataGrid theme still paints
        light headers/rows under our palette, so restate the surfaces explicitly. -->
