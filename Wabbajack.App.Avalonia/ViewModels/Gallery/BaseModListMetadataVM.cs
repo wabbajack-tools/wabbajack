@@ -70,6 +70,13 @@ public partial class BaseModListMetadataVM : ViewModel
     protected ObservableAsPropertyHelper<bool> _LoadingImage { get; set; }
     public bool LoadingImage => _LoadingImage.Value;
 
+    // GameMetaData.IconSource is a remote URL string. WPF's ImageSourceConverter fetched those
+    // implicitly, so the XAML could bind ImageBrush.Source straight to it; Avalonia's Source takes an
+    // IImage and does no fetching, which left the game badge on every gallery tile empty. Downloaded
+    // through the same cache the modlist images use.
+    protected ObservableAsPropertyHelper<Bitmap> _GameIcon { get; set; }
+    public Bitmap GameIcon => _GameIcon?.Value;
+
     public ModListSummary? Summary { get; set; }
 
     protected Subject<bool> IsLoadingIdle;
@@ -123,6 +130,22 @@ public partial class BaseModListMetadataVM : ViewModel
                 .StartWith(true)
                 .ToGuiProperty(this, nameof(LoadingImage))
                 .DisposeWith(CompositeDisposable);
+
+        // Only absolute URLs: GameMetaData falls back to a relative path ("Resources/Icons/...")
+        // for games with no icon, which is not something the downloader can fetch.
+        var iconSource = GameMetaData?.IconSource;
+        if (!string.IsNullOrWhiteSpace(iconSource) &&
+            Uri.TryCreate(iconSource, UriKind.Absolute, out var iconUri) &&
+            (iconUri.Scheme == Uri.UriSchemeHttp || iconUri.Scheme == Uri.UriSchemeHttps))
+        {
+            _GameIcon = Observable.Return(iconSource)
+                .DownloadBitmapImage(
+                    ex => _logger.LogError("Error downloading game icon for {Game} from {IconUri}: {Exception}",
+                        GameMetaData.HumanFriendlyGameName, iconSource, ex.ToString()),
+                    LoadingImageLock, client, icm)
+                .ToGuiProperty(this, nameof(GameIcon))
+                .DisposeWith(CompositeDisposable);
+        }
 
         InstallCommand = ReactiveCommand.CreateFromTask(async () =>
         {

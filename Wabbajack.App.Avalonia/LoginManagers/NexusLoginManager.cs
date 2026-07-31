@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Media;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -49,11 +50,11 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
             await ClearLoginToken();
         }, this.WhenAnyValue(v => v.LoggedIn));
 
-        // TODO(avalonia): "NexusLogo" is not yet registered as an Avalonia resource (it was a WPF
-        // DrawingImage defined in Wabbajack.App.Wpf/Themes/Styles.xaml). Once an equivalent
-        // Avalonia.Media.DrawingImage (or Bitmap) resource is added under this key in the Avalonia
-        // app's resource dictionaries, this lookup will resolve correctly.
-        Icon = (IImage)Application.Current!.Resources["NexusLogo"];
+        // TryFindResource, not the Resources indexer: the indexer only inspects the top-level
+        // dictionary and throws on a miss, and NexusLogo lives in the merged Themes/Assets.axaml.
+        // A miss leaves Icon null, which just renders the row without a favicon.
+        if (Application.Current is { } app && app.TryFindResource("NexusLogo", out var logo))
+            Icon = logo as IImage;
         
         TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
         {

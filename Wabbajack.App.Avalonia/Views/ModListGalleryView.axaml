@@ -61,8 +61,9 @@
                                 <Border Width="24" Height="24" BorderThickness="0" CornerRadius="4"
                                         VerticalAlignment="Center">
                                     <Border.Background>
-                                        <!-- WPF's ImageBrush.ImageSource maps to Avalonia ImageBrush.Source. -->
-                                        <ImageBrush Stretch="Fill" Source="{Binding GameMetaData.IconSource}" />
+                                        <!-- GameIcon, not GameMetaData.IconSource: the latter is a remote
+                                             URL string, which Avalonia's Source cannot fetch. -->
+                                        <ImageBrush Stretch="Fill" Source="{Binding GameIcon}" />
                                     </Border.Background>
                                 </Border>
                                 <TextBlock Margin="10, 0, 0, 0" Text="{Binding FormattedName}"

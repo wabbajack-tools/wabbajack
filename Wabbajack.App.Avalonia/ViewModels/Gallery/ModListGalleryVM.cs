@@ -20,6 +20,7 @@ using Wabbajack.Common;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.Messages;
+using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
@@ -43,6 +44,24 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 
         public bool IsAllGamesEntry { get; set; }
         public GameMetaData GameMetaData { get; private set; }
+
+        // GameMetaData.IconSource is a remote URL string; Avalonia's ImageBrush.Source needs an
+        // IImage and does no fetching of its own, so binding the URL straight through left every
+        // icon in the game filter blank. Populated by LoadIcon below.
+        [Reactive] public partial Avalonia.Media.Imaging.Bitmap GameIcon { get; set; }
+
+        public void LoadIcon(HttpClient client, ImageCacheManager icm, LoadingLock loadingLock)
+        {
+            var source = GameMetaData?.IconSource;
+            if (string.IsNullOrWhiteSpace(source)) return;
+            // Games without a real icon fall back to a relative path, which is not fetchable.
+            if (!Uri.TryCreate(source, UriKind.Absolute, out var uri)) return;
+            if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return;
+
+            Observable.Return(source)
+                      .DownloadBitmapImage(_ => { }, loadingLock, client, icm)
+                      .Subscribe(bmp => GameIcon = bmp);
+        }
         [Reactive] public partial int Amount { get; set; }
         public string FormattedName => IsAllGamesEntry ? $"{ALL_GAME_IDENTIFIER} ({Amount})" : $"{GameMetaData.HumanFriendlyGameName} ({Amount})";
         public string GameIdentifier { get; private set; }
@@ -969,9 +988,17 @@ public partial class ModListGalleryVM : BackNavigatingVM, ICanLoadLocalFileVM
 
     private void LoadGameTypeEntries()
     {
+        var iconClient = _serviceProvider.GetRequiredService<HttpClient>();
+        var iconCache = _serviceProvider.GetRequiredService<ImageCacheManager>();
+
         var entries = _modLists.Items.Select(m => m.Metadata)
             .GroupBy(m => m.Game)
-            .Select(g => new GameTypeEntry(g.Key.MetaData(), g.Count()))
+            .Select(g =>
+            {
+                var entry = new GameTypeEntry(g.Key.MetaData(), g.Count());
+                entry.LoadIcon(iconClient, iconCache, LoadingLock);
+                return entry;
+            })
             .OrderBy(gte => gte.GameMetaData.HumanFriendlyGameName)
             .Prepend(GameTypeEntry.GetAllGamesEntry(_modLists.Count))
             .ToList();

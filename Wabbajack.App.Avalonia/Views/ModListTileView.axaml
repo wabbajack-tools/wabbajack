@@ -206,7 +206,7 @@
 
                             <Border x:Name="GameIcon" Grid.Column="0" Width="26" Height="26" CornerRadius="6">
                                 <Border.Background>
-                                    <ImageBrush Stretch="Fill" Source="{Binding GameMetaData.IconSource}"/>
+                                    <ImageBrush Stretch="Fill" Source="{Binding GameIcon}"/>
                                 </Border.Background>
                             </Border>
                             <!-- WPF: Visibility via bool2VisibilityConverter (no ConverterParameter) is a

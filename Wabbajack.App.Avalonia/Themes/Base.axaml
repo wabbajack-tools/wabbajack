@@ -132,6 +132,15 @@
     <Setter Property="Background" Value="{DynamicResource MouseOverListItem}" />
   </Style>
 
+  <!-- And again for the dropdown rows, e.g. the gallery's game filter. -->
+  <Style Selector="ComboBoxItem:selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SelectedListItem}" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource ForegroundBrush}" />
+  </Style>
+  <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MouseOverListItem}" />
+  </Style>
+
   <Style Selector="TreeView">
     <Setter Property="Background" Value="{DynamicResource ComplementaryBackgroundBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
