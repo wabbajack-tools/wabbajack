@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:fluent="using:FluentIcons.Avalonia"
+    xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     x:Name="Root"
     d:DesignHeight="35"
@@ -38,6 +39,7 @@
             Background="{StaticResource TextBoxBackground}"
             CornerRadius="4" />
         <TextBox Grid.Column="0"
+            x:Name="PathTextBox"
             Margin="4, 0, 0, 0"
             VerticalAlignment="Center"
             VerticalContentAlignment="Center"
@@ -45,6 +47,43 @@
             Text="{Binding #Root.PickerVM.TargetPath, Mode=TwoWay, Converter={StaticResource AbsolutePathToStringConverter}}"
             Watermark="{Binding #Root.Watermark}"
             />
+        <!--
+            A TextBox cannot ellipsize - Avalonia has no TextTrimming on it - so a long path was
+            simply cut off mid-word at the field's edge ("Z:\Modlists\TempusMaledictum\downloa").
+            This TextBlock sits over the TextBox and renders the same value trimmed whenever the
+            field is not being edited; clicking in hands over to the real TextBox with the full text.
+
+            PrefixCharacterEllipsis puts the ellipsis at the start, so the leaf folder - the part
+            that actually distinguishes one path from another - stays readable.
+
+            Hidden while the text is empty so the TextBox's own watermark shows through, and while
+            focused so it never covers the caret. Padding rather than a right margin: the background
+            still has to cover the full field or the TextBox's text shows past the ellipsis.
+        -->
+        <Border Grid.Column="0"
+            x:Name="PathDisplay"
+            Margin="4, 0, 0, 0"
+            IsHitTestVisible="False"
+            Background="{Binding #PathTextBox.Background}">
+            <Border.IsVisible>
+                <MultiBinding Converter="{x:Static conv:BoolConverters.And}">
+                    <Binding ElementName="PathTextBox" Path="IsFocused"
+                             Converter="{x:Static conv:BoolConverters.Not}" />
+                    <Binding ElementName="PathTextBox" Path="Text"
+                             Converter="{x:Static conv:StringConverters.IsNotNullOrEmpty}" />
+                </MultiBinding>
+            </Border.IsVisible>
+            <!-- IsHitTestVisible has to be repeated on the child: setting it on the Border alone
+                 excludes the Border but not its subtree, so this TextBlock swallowed the click and
+                 the path field could no longer be focused by clicking it (measured - the same click
+                 focuses it with this overlay removed). -->
+            <TextBlock
+                Margin="8, 0, 10, 0"
+                VerticalAlignment="Center"
+                IsHitTestVisible="False"
+                TextTrimming="PrefixCharacterEllipsis"
+                Text="{Binding #PathTextBox.Text}" />
+        </Border>
         <Grid Grid.Column="1"
             HorizontalAlignment="Right"
             ClipToBounds="True">

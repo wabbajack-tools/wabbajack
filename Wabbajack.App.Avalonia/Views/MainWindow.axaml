@@ -132,7 +132,16 @@
             <Button Grid.Column="4" Classes="IconBareButtonStyle" Name="MinimizeButton" Padding="12">
                 <fluent:SymbolIcon Symbol="Subtract" FontSize="18"/>
             </Button>
-            <Button Grid.Column="5" Classes="IconBareButtonStyle" Name="MaximizeButton" Padding="12">
+            <!--
+                Hidden, not deleted: WPF set ShowMaxRestoreButton="False", so the original never
+                offered a maximize affordance - the port added one. Every view is laid out for the
+                1441x695 default (and degrades gracefully down to the 1100x500 minimum), but nothing
+                is designed to fill a 4K screen, so maximising just stretches the layouts. The button
+                stays in the tree because MainWindow.axaml.cs binds MaximizeCommand to it; flip this
+                back to True to restore it.
+            -->
+            <Button Grid.Column="5" Classes="IconBareButtonStyle" Name="MaximizeButton" Padding="12"
+                    IsVisible="False">
                 <fluent:SymbolIcon Symbol="Maximize" FontSize="18"/>
             </Button>
             <Button Grid.Column="6" Classes="IconBareButtonStyle" Name="CloseButton" Padding="12">
