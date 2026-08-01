@@ -125,6 +125,57 @@
     <Setter Property="MinHeight" Value="0" />
   </Style>
 
+  <!--
+    Scrollbars. Themes/Colors.axaml carries the full set of WPF scrollbar brushes, but WPF applied
+    them through its own ScrollBar/ScrollBarThumb template rewrites - neither of which was ported, so
+    Fluent's theme kept using its own keys and every scrollbar in the app drew in stock grey while
+    these six palette entries sat unused. WPF's thumb: ComplementaryPrimary16 at rest, widening from
+    8px to 16px and shifting to ComplementaryPrimary50 on hover, then to the lilac Primary while
+    dragging.
+  -->
+  <Style Selector="ScrollBar /template/ Thumb">
+    <Setter Property="Background" Value="{DynamicResource VerticalScrollBarThumb}" />
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+  <Style Selector="ScrollBar:pointerover /template/ Thumb">
+    <Setter Property="Background" Value="{DynamicResource ScrollBarMouseOverThumb}" />
+  </Style>
+  <Style Selector="ScrollBar /template/ Thumb:pressed">
+    <Setter Property="Background" Value="{DynamicResource ScrollBarSelectedThumb}" />
+  </Style>
+
+  <!--
+    WPF styled ToolTip implicitly (Themes/Styles.xaml): a rounded card in the complementary surface
+    colour with a lilac border. That style was never ported, so all 38 ToolTip.Tip usages in the app
+    were rendering as Fluent's default neutral-grey box - the only chrome in the whole UI still using
+    stock colours. Avalonia's own theme already wraps the text, so only the surface needs restating.
+  -->
+  <Style Selector="ToolTip">
+    <Setter Property="Background" Value="{DynamicResource ComplementaryPrimary08Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="Padding" Value="6,3" />
+    <Setter Property="MaxWidth" Value="500" />
+  </Style>
+
+  <!-- Also implicit in WPF and not ported. Label's Padding of 5 matters: the gallery's "Include"
+       heading is a Label and sat flush against the panel edge without it. -->
+  <Style Selector="Label">
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="FontFamily" Value="{DynamicResource PrimaryFont}" />
+    <Setter Property="Padding" Value="5" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="VerticalContentAlignment" Value="Top" />
+  </Style>
+  <Style Selector="ItemsControl">
+    <Setter Property="Focusable" Value="False" />
+  </Style>
+
   <Style Selector="ComboBox">
     <!-- Same Fluent-vs-WPF default as Button above: Avalonia pins the ComboBox to the left and sizes
          it to its content, so the gallery's game filter and the compiler's profile picker sat
@@ -188,6 +239,13 @@
   <Style Selector="TreeViewItem:pointerover /template/ Border#PART_LayoutRoot">
     <Setter Property="Background" Value="{DynamicResource MouseOverListItem}" />
   </Style>
+  <!-- TODO: WPF drew the tree's expand/collapse arrow in Primary (TreeViewToggleButtonStyle, via
+       Expander.Static.Arrow.Stroke); ours is still Fluent's grey chevron, so the three
+       Expander.*.Arrow.Stroke brushes in Colors.axaml remain unused. Tried and measured as having no
+       effect: Foreground on TreeViewItem /template/ ToggleButton#PART_ExpandCollapseChevron, the same
+       selector unscoped, and /template/ Path and /template/ PathIcon beneath it. The glyph appears
+       not to take its colour from any of those, so tinting it likely needs a full ControlTheme for
+       the chevron ToggleButton rather than a setter. -->
 
   <!-- DataGrid (modlist details archive list). The packaged Fluent DataGrid theme still paints
        light headers/rows under our palette, so restate the surfaces explicitly. -->

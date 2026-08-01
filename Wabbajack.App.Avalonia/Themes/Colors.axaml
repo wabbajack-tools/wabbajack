@@ -162,7 +162,7 @@
   <!-- The WPF source pointed this at a LightDisabledBackgroundColor that it never defined; the brush
        was never requested, so WPF's lazy dictionary never surfaced it. Resolved to the disabled
        colour it was clearly meant to be rather than left as a key that throws on first use. -->
-  <SolidColorBrush x:Key="RadioButtonBackground" Color="{StaticResource DisabledBackgroundColor}" />
+  <SolidColorBrush x:Key="RadioButtonBackground" Color="{StaticResource LightDisabledBackgroundColor}" />
   <SolidColorBrush x:Key="ListBorder" Color="{StaticResource DarkBackgroundColor}" />
   <SolidColorBrush x:Key="ListBackground" Color="{StaticResource ComplementaryPrimary08}" />
   <SolidColorBrush x:Key="SelectedListItem" Color="{StaticResource ComplementaryPrimary16}" />
@@ -187,7 +187,7 @@
   <SolidColorBrush x:Key="DataGridRowBackgroundBrush" Color="{StaticResource ComplementaryPrimary08}" />
   <SolidColorBrush x:Key="DataGridRowSelectedBrush" Color="{StaticResource HighlightColor}" />
   <SolidColorBrush x:Key="GridLinesBrush" Color="Transparent" />
-  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.Background" Color="{StaticResource ComplementaryPrimary08}"/>
+  <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.Background" Color="{StaticResource ComplementaryPrimary16}"/>
   <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.Border" Color="Transparent"/>
   <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.Disabled.Background" Color="{StaticResource ComplementaryPrimary08}"/>
   <SolidColorBrush x:Key="MultiSelectComboBox.DropDown.Button.Disabled.Border" Color="Transparent"/>
