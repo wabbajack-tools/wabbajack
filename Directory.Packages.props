@@ -67,7 +67,7 @@
     <PackageVersion Include="ReactiveUI.WPF" Version="20.1.63" />
     <PackageVersion Include="ReactiveUI" Version="20.1.63" />
     <PackageVersion Include="Sdl.MultiSelectComboBox" Version="1.0.111" />
-    <PackageVersion Include="SharpCompress" Version="0.50.1" />
+    <PackageVersion Include="SharpCompress" Version="0.50.3" />
     <PackageVersion Include="SharpZipLib" Version="1.4.2" />
     <PackageVersion Include="Shipwreck.Phash" Version="0.5.0" />
     <PackageVersion Include="shortid" Version="5.1.1" />
