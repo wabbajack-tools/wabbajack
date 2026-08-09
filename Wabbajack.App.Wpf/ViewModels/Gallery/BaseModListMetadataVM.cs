@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.ModListValidation;
@@ -39,28 +39,28 @@ public readonly record struct ModListMod(string name)
     public override string ToString() => Name;
 }
 
-public class BaseModListMetadataVM : ViewModel
+public partial class BaseModListMetadataVM : ViewModel
 {
     public ModlistMetadata Metadata { get; }
     public AbsolutePath Location { get; }
     public LoadingLock LoadingImageLock { get; } = new();
-    [Reactive] public HashSet<ModListTag> ModListTagList { get; protected set; }
-    [Reactive] public Percent ProgressPercent { get; set; }
-    [Reactive] public bool IsBroken { get; protected set; }
-    [Reactive] public ModListStatus Status { get; set; }
-    [Reactive] public bool IsDownloading { get; protected set; }
-    [Reactive] public string DownloadSizeText { get; protected set; }
-    [Reactive] public string InstallSizeText { get; protected set; }
-    [Reactive] public string TotalSizeRequirementText { get; protected set; }
-    [Reactive] public string VersionText { get; set; }
-    [Reactive] public bool ImageContainsTitle { get; protected set; }
-    [Reactive] public GameMetaData GameMetaData { get; protected set; }
-    [Reactive] public bool DisplayVersionOnlyInInstallerView { get; protected set; }
+    [Reactive] public partial HashSet<ModListTag> ModListTagList { get; protected set; }
+    [Reactive] public partial Percent ProgressPercent { get; set; }
+    [Reactive] public partial bool IsBroken { get; protected set; }
+    [Reactive] public partial ModListStatus Status { get; set; }
+    [Reactive] public partial bool IsDownloading { get; protected set; }
+    [Reactive] public partial string DownloadSizeText { get; protected set; }
+    [Reactive] public partial string InstallSizeText { get; protected set; }
+    [Reactive] public partial string TotalSizeRequirementText { get; protected set; }
+    [Reactive] public partial string VersionText { get; set; }
+    [Reactive] public partial bool ImageContainsTitle { get; protected set; }
+    [Reactive] public partial GameMetaData GameMetaData { get; protected set; }
+    [Reactive] public partial bool DisplayVersionOnlyInInstallerView { get; protected set; }
 
-    [Reactive] public ICommand DetailsCommand { get; set; }
-    [Reactive] public ICommand InstallCommand { get; protected set; }
+    [Reactive] public partial ICommand DetailsCommand { get; set; }
+    [Reactive] public partial ICommand InstallCommand { get; protected set; }
 
-    [Reactive] public IValidationResult Error { get; protected set; }
+    [Reactive] public partial IValidationResult Error { get; protected set; }
 
     protected ObservableAsPropertyHelper<BitmapImage> _Image { get; set; }
     public BitmapImage Image => _Image.Value;

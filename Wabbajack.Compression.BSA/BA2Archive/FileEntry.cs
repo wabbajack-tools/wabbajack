@@ -68,7 +68,7 @@ public class FileEntry : IBA2FileEntry
         var len = Compressed ? _size : _realSize;
 
         var bytes = new byte[len];
-        await fs.ReadAsync(bytes.AsMemory(0, (int) len), token);
+        await fs.ReadExactlyAsync(bytes.AsMemory(0, (int) len), token);
 
         if (!Compressed)
         {

@@ -259,7 +259,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                 {
                     hash = await FileHashCache.FileHashCachedAsync(download, token);
                 }
-                catch(Exception ex)
+                catch(Exception)
                 {
                     _logger.LogError($"Failed to get hash for file {download}!");
                     throw;

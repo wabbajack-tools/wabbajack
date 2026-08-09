@@ -1,5 +1,5 @@
 ﻿using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using System;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -11,11 +11,11 @@ using System.Reflection;
 
 namespace Wabbajack;
 
-public class NavigationVM : ViewModel
+public partial class NavigationVM : ViewModel
 {
     private readonly ILogger<NavigationVM> _logger;
     [Reactive]
-    public ScreenType ActiveScreen { get; set; }
+    public partial ScreenType ActiveScreen { get; set; }
     public NavigationVM(ILogger<NavigationVM> logger)
     {
         _logger = logger;

@@ -4,7 +4,7 @@ namespace Wabbajack.Downloaders.VerificationCache;
 
 public class NullCache : IVerificationCache
 {
-    public async Task<(bool? IsValid, IDownloadState State)> Get(IDownloadState state)
+    public async Task<(bool? IsValid, IDownloadState? State)> Get(IDownloadState state)
     {
         return (null, state);
     }

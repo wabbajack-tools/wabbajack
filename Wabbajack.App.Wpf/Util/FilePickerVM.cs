@@ -1,7 +1,7 @@
 ﻿using DynamicData;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using System;
 using System.Linq;
 using System.Reactive.Linq;
@@ -12,7 +12,7 @@ using Wabbajack.Paths.IO;
 
 namespace Wabbajack
 {
-    public class FilePickerVM : ViewModel
+    public partial class FilePickerVM : ViewModel
     {
         public enum PathTypeOptions
         {
@@ -35,25 +35,25 @@ namespace Wabbajack
         public object Parent { get; }
 
         [Reactive]
-        public ICommand SetTargetPathCommand { get; set; }
+        public partial ICommand SetTargetPathCommand { get; set; }
 
         [Reactive]
-        public AbsolutePath TargetPath { get; set; }
+        public partial AbsolutePath TargetPath { get; set; }
 
         [Reactive]
-        public string PromptTitle { get; set; }
+        public partial string PromptTitle { get; set; }
 
         [Reactive]
-        public PathTypeOptions PathType { get; set; }
+        public partial PathTypeOptions PathType { get; set; }
 
         [Reactive]
-        public CheckOptions ExistCheckOption { get; set; }
+        public partial CheckOptions ExistCheckOption { get; set; }
 
         [Reactive]
-        public CheckOptions FilterCheckOption { get; set; } = CheckOptions.IfPathNotEmpty;
+        public partial CheckOptions FilterCheckOption { get; set; } = CheckOptions.IfPathNotEmpty;
 
         [Reactive]
-        public IObservable<IValidationResult> AdditionalError { get; set; }
+        public partial IObservable<IValidationResult> AdditionalError { get; set; }
 
         private readonly ObservableAsPropertyHelper<bool> _exists;
         public bool Exists => _exists.Value;
