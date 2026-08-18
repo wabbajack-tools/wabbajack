@@ -18,7 +18,7 @@
     <PackageVersion Include="Extended.Wpf.Toolkit" Version="5.1.2" />
     <PackageVersion Include="F23.StringSimilarity" Version="7.0.1" />
     <PackageVersion Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
-    <PackageVersion Include="FluentAssertions" Version="7.2.2" />
+    <PackageVersion Include="FluentAssertions" Version="8.10.0" />
     <PackageVersion Include="FluentFTP" Version="54.2.0" />
     <PackageVersion Include="FluentIcons.Wpf" Version="2.1.333" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.3.4" />
