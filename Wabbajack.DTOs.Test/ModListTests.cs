@@ -74,6 +74,7 @@ public class ModListTests
     }
 
     [Fact]
+    [Trait("Category", "RequiresNetwork")]
     public async Task CanGetListStatus()
     {
         var statuses = await _wjClient.GetListStatuses();
