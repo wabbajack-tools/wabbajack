@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 4.2.2.0 - TBD
+* Fixed WJ deleting "profile-specific saves" for games that have saves stored as folders and not files
+
 #### Version - 4.2.1.4 - 4/21/2026
 * HOTFIX: changed REST variable naming for the Nexus API
 
