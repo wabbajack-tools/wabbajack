@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -40,7 +40,7 @@ using FileMode = System.IO.FileMode;
 
 namespace Wabbajack;
 
-public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
+public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ResourceMonitor _resourceMonitor;
@@ -65,23 +65,23 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
     public ICommand RefreshPreflightChecksCommand { get; }
     public enum PublishResult { None, Success, Failed }
 
-    [Reactive] public PublishResult PublishLastResult { get; set; } = PublishResult.None;
-    [Reactive] public bool IsPublishing { get; set; }
-    [Reactive] public bool IsPublishingCollection { get; set; }
-    [Reactive] public Percent PublishingPercentage { get; set; } = Percent.One;
-    [Reactive] public CompilerState State { get; set; }
-    [Reactive] public string BusyStatusText { get; set; } = "";
+    [Reactive] public partial PublishResult PublishLastResult { get; set; } = PublishResult.None;
+    [Reactive] public partial bool IsPublishing { get; set; }
+    [Reactive] public partial bool IsPublishingCollection { get; set; }
+    [Reactive] public partial Percent PublishingPercentage { get; set; } = Percent.One;
+    [Reactive] public partial CompilerState State { get; set; }
+    [Reactive] public partial string BusyStatusText { get; set; } = "";
 
-    [Reactive] public bool? PreflightChecksPassed { get; set; } = null;
-    [Reactive] public string PreflightCheckMessage { get; set; } = "";
+    [Reactive] public partial bool? PreflightChecksPassed { get; set; } = null;
+    [Reactive] public partial string PreflightCheckMessage { get; set; } = "";
 
-    [Reactive] public int? ExistingCollectionRevisionNumber { get; set; }
-    [Reactive] public string? ExistingCollectionSlug { get; set; }
-    [Reactive] public bool ExistingCollectionIsDraft { get; set; }
-    [Reactive] public bool IsCheckingCollectionStatus { get; set; }
+    [Reactive] public partial int? ExistingCollectionRevisionNumber { get; set; }
+    [Reactive] public partial string? ExistingCollectionSlug { get; set; }
+    [Reactive] public partial bool ExistingCollectionIsDraft { get; set; }
+    [Reactive] public partial bool IsCheckingCollectionStatus { get; set; }
 
-    [Reactive] public Percent CollectionPublishingPercentage { get; set; } = Percent.One;
-    [Reactive] public string CollectionPublishingStage { get; set; } = "";
+    [Reactive] public partial Percent CollectionPublishingPercentage { get; set; } = Percent.One;
+    [Reactive] public partial string CollectionPublishingStage { get; set; } = "";
 
     public bool IsBusy => IsPublishing || IsPublishingCollection;
 
@@ -96,7 +96,7 @@ public class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
         Failed = 2
     }
 
-    [Reactive] public PublishCollectionResult PublishCollectionLastResult { get; set; } = PublishCollectionResult.None;
+    [Reactive] public partial PublishCollectionResult PublishCollectionLastResult { get; set; } = PublishCollectionResult.None;
 
     public CompilerMainVM(
         ILogger<CompilerMainVM> logger,

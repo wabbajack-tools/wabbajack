@@ -1,5 +1,5 @@
 ﻿using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using System;
 using System.Reactive;
 using System.Windows.Input;
@@ -13,7 +13,7 @@ using System.Diagnostics;
 
 namespace Wabbajack;
 
-public class HomeVM : ViewModel, ICanGetHelpVM
+public partial class HomeVM : ViewModel, ICanGetHelpVM
 {
     private readonly ILogger<HomeVM> _logger;
     private readonly Client _wjClient;
@@ -47,7 +47,7 @@ public class HomeVM : ViewModel, ICanGetHelpVM
     public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
 
     [Reactive]
-    public ModlistMetadata[] Modlists { get; private set; }
+    public partial ModlistMetadata[] Modlists { get; private set; }
 
     public ICommand GetHelpCommand { get; set; }
 }
