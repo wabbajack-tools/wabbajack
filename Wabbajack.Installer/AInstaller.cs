@@ -576,9 +576,8 @@ public abstract class AInstaller<T>
 
                 if (f.InFolder(profileFolder))
                 {
-                    foreach (AbsolutePath path in f.ThisAndAllParents)
+                    foreach (AbsolutePath path in f.ThisAndAllParents.Where(path => path.Depth <= profileFolder.Depth).ToArray())
                     {
-                        if (path.Depth <= profileFolder.Depth) continue; //skips the save folder check on paths aspects outside the profile folders
                         if (path.Parent.FileName == savePath) return null;
                     }
                 };
