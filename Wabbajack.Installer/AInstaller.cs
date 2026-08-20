@@ -574,7 +574,13 @@ public abstract class AInstaller<T>
                 if (f == _configuration.ModlistArchive)
                     return null;
 
-                if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return null;
+                if (f.InFolder(profileFolder) 
+                    && f.ThisAndAllParents()
+                        .Where(path => path.Depth > profileFolder.Depth+1)
+                        .ToArray()
+                        .Any(path => path.Parent.FileName == savePath))
+                    return null;
+                
                 var fNoSpaces = new string(f.ToString().Where(c => !Char.IsWhiteSpace(c)).ToArray());
                 if (NoDeleteRegex.IsMatch(fNoSpaces))
                     return null;
