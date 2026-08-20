@@ -47,7 +47,7 @@ jobs:
 
       - name: Test
         if: ${{ github.ref != 'refs/heads/main' }}
-        run: dotnet test /p:EnableWindowsTargeting=true --filter "Category!=RequiresOAuth"
+        run: dotnet test /p:EnableWindowsTargeting=true --filter "Category!=RequiresOAuth&Category!=RequiresNetwork"
         
       #- name: Upload Test Folder on Failure
       #  if: ${{ failure() }}
