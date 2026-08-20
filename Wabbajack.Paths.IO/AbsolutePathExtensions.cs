@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -340,4 +342,18 @@ public static class AbsolutePathExtensions
     }
 
     #endregion
+
+    private static readonly Regex VersionPattern = new(@"\d+\.\d+\.\d+\.\d+", RegexOptions.Compiled);
+
+    public static string? GetFileVersion(this AbsolutePath file)
+    {
+        var info = FileVersionInfo.GetVersionInfo(file.ToString());
+        if (!string.IsNullOrWhiteSpace(info.FileVersion))
+            return info.FileVersion;
+
+        // FileVersionInfo cannot read PE version resources on Linux; scan raw bytes as fallback
+        var text = Encoding.Latin1.GetString(File.ReadAllBytes(file.ToNativePath()));
+        var match = VersionPattern.Match(text);
+        return match.Success ? match.Value : null;
+    }
 }

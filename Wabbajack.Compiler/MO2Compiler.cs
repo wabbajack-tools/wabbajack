@@ -88,6 +88,11 @@ public class MO2Compiler : ACompiler
 
         var roots = new List<AbsolutePath> {Settings.Source, Settings.Downloads};
         roots.AddRange(Settings.OtherGames.Append(Settings.Game).Select(g => _locator.GameLocation(g)));
+        // When a custom GamePath is configured (e.g. a Stock Game Folder), add it as an
+        // explicit VFS root so the VFS indexes its BSA contents for file matching.
+        // The store-detected path above handles IndexGameFileHashes(); this handles the managed copy.
+        if (Settings.GamePath != default)
+            roots.Add(Settings.GamePath);
         roots.Add(Settings.Downloads);
 
         NextStep("Initializing", "Add Roots");

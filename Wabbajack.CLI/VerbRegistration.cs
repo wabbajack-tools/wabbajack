@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.Extensions.DependencyInjection;
 namespace Wabbajack.CLI;
+using Wabbajack.CLI.OAuth;
 using Wabbajack.CLI.Verbs;
 using Wabbajack.CLI.Builder;
 
@@ -47,6 +48,8 @@ public static class CommandLineBuilderExtensions
         services.AddSingleton<ListModlists>();
         CommandLineBuilder.RegisterCommand<MegaLogin>(MegaLogin.Definition, c => ((MegaLogin)c).Run);
         services.AddSingleton<MegaLogin>();
+        CommandLineBuilder.RegisterCommand<NexusLogin>(NexusLogin.Definition, c => ((NexusLogin)c).Run);
+        services.AddSingleton<NexusLogin>();
         CommandLineBuilder.RegisterCommand<MirrorFile>(MirrorFile.Definition, c => ((MirrorFile)c).Run);
         services.AddSingleton<MirrorFile>();
         CommandLineBuilder.RegisterCommand<ModlistReport>(ModlistReport.Definition, c => ((ModlistReport)c).Run);
@@ -63,5 +66,6 @@ public static class CommandLineBuilderExtensions
         services.AddSingleton<VerifyModlistInstall>();
         CommandLineBuilder.RegisterCommand<VFSIndex>(VFSIndex.Definition, c => ((VFSIndex)c).Run);
         services.AddSingleton<VFSIndex>();
+        services.AddSingleton<INexusOAuthFlow, BrowserAuthFlow>();
     }
 }

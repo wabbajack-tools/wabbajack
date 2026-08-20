@@ -102,7 +102,7 @@ public class IntegrationTests : IDisposable
         var nonExistent = _tempDir.Combine("does-not-exist");
 
         await Assert.ThrowsAnyAsync<Exception>(
-            () => verb.Run(nonExistent, _tempDir, CancellationToken.None));
+            () => verb.Run(nonExistent, _tempDir, false, CancellationToken.None));
     }
 
     [Fact]

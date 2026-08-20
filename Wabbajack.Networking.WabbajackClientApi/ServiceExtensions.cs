@@ -8,6 +8,7 @@ public static class ServiceExtensions
     {
         services.AddSingleton<Configuration>();
         services.AddSingleton<Client>();
+        services.AddSingleton<IModlistPublisher>(sp => sp.GetRequiredService<Client>());
         return services;
     }
 }

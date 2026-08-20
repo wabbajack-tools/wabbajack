@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -21,6 +22,32 @@ public class CompilerSettingsInferencer
     {
         _logger = logger;
 
+    }
+
+    public async Task<CompilerSettings?> LoadOrInferFromRootPath(AbsolutePath rootPath, DTOSerializer dtos)
+    {
+        var settingsPath = rootPath.Combine(Consts.CompilerSettings);
+        if (settingsPath.FileExists())
+        {
+            _logger.LogInformation("Loading compiler settings from {path}", settingsPath);
+            try
+            {
+                return dtos.Deserialize<CompilerSettings>(await settingsPath.ReadAllTextAsync());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to parse {path}; delete or fix the file and try again", settingsPath);
+                return null;
+            }
+        }
+
+        var settings = await InferFromRootPath(rootPath);
+        if (settings != null)
+        {
+            _logger.LogInformation("Writing compiler settings to {path}", settingsPath);
+            await settingsPath.WriteAllTextAsync(dtos.Serialize(settings, writeIndented: true));
+        }
+        return settings;
     }
 
     public async Task<CompilerSettings?> InferFromRootPath(AbsolutePath rootPath)
@@ -50,7 +77,9 @@ public class CompilerSettingsInferencer
                 cs.Source = mo2Folder;
 
                 var selectedProfile = general["selected_profile"].FromMO2Ini();
-                //cs.GamePath = general["gamePath"].FromMO2Ini().ToAbsolutePath();
+                var rawGamePath = general["gamePath"].FromMO2Ini();
+                if (!string.IsNullOrEmpty(rawGamePath))
+                    cs.GamePath = ParseMO2GamePath(rawGamePath);
                 cs.ModListName = selectedProfile;
                 cs.Profile = selectedProfile;
 
@@ -155,5 +184,16 @@ public class CompilerSettingsInferencer
             return fileNameString == baseVariant;
         }
         return fileNameString == baseVariant + "_FILES.txt" || fileNameString == baseVariant + "_FILES.TXT";
+    }
+
+    // MO2 stores gamePath as a directory, but some configurations store the game executable path.
+    // On Linux, a Z: drive prefix maps to the Linux root filesystem (Wine/Proton convention).
+    // Strips the Z: prefix if present, then strips a trailing .exe if present.
+    private static AbsolutePath ParseMO2GamePath(string path)
+    {
+        if (path.Length >= 2 && char.ToUpperInvariant(path[0]) == 'Z' && path[1] == ':')
+            path = path[2..].Replace('\\', '/');
+        var result = path.ToAbsolutePath();
+        return result.Extension == new Extension(".exe") ? result.Parent : result;
     }
 }

@@ -1,13 +1,14 @@
 using System;
-using System.CommandLine;
-using System.CommandLine.NamingConventionBinder;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Builder;
+using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
+using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
@@ -19,7 +20,7 @@ namespace Wabbajack.CLI.Verbs;
 public class Compile
 {
     private readonly ILogger<Compile> _logger;
-    private readonly Client _wjClient;
+    private readonly IModlistPublisher _publisher;
     private readonly DownloadDispatcher _dispatcher;
     private readonly DTOSerializer _dtos;
     private readonly IServiceProvider _serviceProvider;
@@ -27,11 +28,12 @@ public class Compile
     private readonly IGameLocator _gameLocator;
     private readonly CompilerSettingsInferencer _inferencer;
 
-    public Compile(ILogger<Compile> logger, Client wjClient, DownloadDispatcher dispatcher, DTOSerializer dtos, 
-        FileHashCache cache, IGameLocator gameLocator, IServiceProvider serviceProvider, CompilerSettingsInferencer inferencer)
+    public Compile(ILogger<Compile> logger, IModlistPublisher publisher, DownloadDispatcher dispatcher,
+        DTOSerializer dtos, FileHashCache cache, IGameLocator gameLocator, IServiceProvider serviceProvider,
+        CompilerSettingsInferencer inferencer)
     {
         _logger = logger;
-        _wjClient = wjClient;
+        _publisher = publisher;
         _dispatcher = dispatcher;
         _dtos = dtos;
         _serviceProvider = serviceProvider;
@@ -44,13 +46,14 @@ public class Compile
     new[]
     {
         new OptionDefinition(typeof(AbsolutePath), "i", "installPath", "Install Path"),
-        new OptionDefinition(typeof(AbsolutePath), "o", "outputPath", "OutputPath")
+        new OptionDefinition(typeof(AbsolutePath), "o", "outputPath", "OutputPath"),
+        new OptionDefinition(typeof(bool), "p", "publish", "Publish the compiled modlist to the Wabbajack CDN")
     });
+
     public async Task<int> Run(AbsolutePath installPath, AbsolutePath outputPath,
-        CancellationToken token)
+        bool publish, CancellationToken token)
     {
-        _logger.LogInformation("Inferring settings");
-        var inferredSettings = await _inferencer.InferFromRootPath(installPath);
+        var inferredSettings = await _inferencer.LoadOrInferFromRootPath(installPath, _dtos);
         if (inferredSettings == null)
         {
             _logger.LogInformation("Error inferencing settings");
@@ -58,7 +61,7 @@ public class Compile
         }
 
         inferredSettings.UseGamePaths = true;
-        
+
         if(outputPath.DirectoryExists())
         {
             inferredSettings.OutputFile = outputPath.Combine(inferredSettings.OutputFile.FileName);
@@ -68,8 +71,29 @@ public class Compile
         var compiler = MO2Compiler.Create(_serviceProvider, inferredSettings);
         var result = await compiler.Begin(token);
         if (!result)
-            return result ? 0 : 3;
+            return 3;
 
+        if (publish)
+            return await RunPublish(inferredSettings, token);
+
+        return 0;
+    }
+
+    internal async Task<int> RunPublish(CompilerSettings settings, CancellationToken token)
+    {
+        var metaPath = settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json);
+        if (!metaPath.FileExists())
+        {
+            _logger.LogError("Metadata file not found at {MetaPath}; run compile without --publish first or check the output path", metaPath);
+            return 4;
+        }
+        var metadata = _dtos.Deserialize<DownloadMetadata>(await metaPath.ReadAllTextAsync())!;
+        _logger.LogInformation("Publishing {MachineUrl} v{Version}", settings.MachineUrl, settings.Version);
+        var (progress, publishTask) = await _publisher.PublishModlist(
+            settings.MachineUrl, settings.Version, settings.OutputFile, metadata);
+        using var _ = progress.Subscribe(p =>
+            _logger.LogInformation("Upload {Percent:P0} - {Message}", p.PercentDone.Value, p.Message));
+        await publishTask;
         return 0;
     }
 }

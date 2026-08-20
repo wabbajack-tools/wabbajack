@@ -264,9 +264,7 @@ public abstract class ACompiler
                     if (!mainFile.FileExists())
                         _logger.LogWarning("Main file {file} for {game} does not exist", mainFile, ag);
 
-                    var versionInfo = FileVersionInfo.GetVersionInfo(mainFile.ToString());
-
-                    var files = await _wjClient.GetGameArchives(ag, versionInfo.FileVersion ?? "0.0.0.0");
+                    var files = await _wjClient.GetGameArchives(ag, mainFile.GetFileVersion() ?? "0.0.0.0");
                     gameFiles.AddRange(files);
 
                     _logger.LogInformation($"Including {files.Length} stock game files from {ag} as download sources");
