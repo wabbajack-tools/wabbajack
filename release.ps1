@@ -62,7 +62,7 @@ Invoke-Step "Building projects" {
     Assert-ExitCode "dotnet clean"
 
     $commonArgs = @(
-        "--framework", "net9.0-windows",
+        "--framework", "net10.0-windows",
         "--runtime", "win-x64",
         "--configuration", "Release",
         "/p:IncludeNativeLibrariesForSelfExtract=true",

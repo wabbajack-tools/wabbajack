@@ -145,6 +145,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Reporting", "Wabb
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.CLI.Test", "Wabbajack.CLI.Test\Wabbajack.CLI.Test.csproj", "{352A7EC7-7A1E-4AD3-BF65-E8FB2050F417}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.App.Wpf.Test", "Wabbajack.App.Wpf.Test\Wabbajack.App.Wpf.Test.csproj", "{DEC60E83-9C48-4211-9AE8-2B2A460D6D68}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -399,6 +401,10 @@ Global
 		{352A7EC7-7A1E-4AD3-BF65-E8FB2050F417}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{352A7EC7-7A1E-4AD3-BF65-E8FB2050F417}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{352A7EC7-7A1E-4AD3-BF65-E8FB2050F417}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEC60E83-9C48-4211-9AE8-2B2A460D6D68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEC60E83-9C48-4211-9AE8-2B2A460D6D68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEC60E83-9C48-4211-9AE8-2B2A460D6D68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEC60E83-9C48-4211-9AE8-2B2A460D6D68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

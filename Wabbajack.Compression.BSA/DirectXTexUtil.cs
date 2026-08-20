@@ -510,7 +510,7 @@ namespace DirectXTex
         /// <summary>
         /// Converts a Struct to a Byte array
         /// </summary>
-        private static byte[] StructToBytes<T>(T value)
+        private static byte[] StructToBytes<T>(T value) where T : struct
         {
             // Size of Struct
             int length = Marshal.SizeOf<T>();

@@ -6,7 +6,7 @@ using System.Windows.Input;
 using CG.Web.MegaApiClient;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.Messages;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
@@ -14,7 +14,7 @@ using static CG.Web.MegaApiClient.MegaApiClient;
 
 namespace Wabbajack;
 
-public class MegaLoginVM : ViewModel
+public partial class MegaLoginVM : ViewModel
 {
     private enum LoginType { 
         Normal,
@@ -31,17 +31,17 @@ public class MegaLoginVM : ViewModel
     public ICommand LoginAnonymouslyCommand { get; }
     public ICommand TwoFactorLoginCommand { get; }
 
-    [Reactive] public string Email { get; set; }
-    [Reactive] public string Password { get; set; }
-    [Reactive] public AuthInfos Login { get; private set; }
+    [Reactive] public partial string Email { get; set; }
+    [Reactive] public partial string Password { get; set; }
+    [Reactive] public partial AuthInfos Login { get; private set; }
 
-    [Reactive] public bool LoggingIn { get; set; }
-    [Reactive] public bool LoginSuccessful { get; set; }
-    [Reactive] public bool TriedLoggingIn { get; set; }
+    [Reactive] public partial bool LoggingIn { get; set; }
+    [Reactive] public partial bool LoginSuccessful { get; set; }
+    [Reactive] public partial bool TriedLoggingIn { get; set; }
 
-    [Reactive] public bool TriedLoggingInWithTwoFactor { get; set; }
-    [Reactive] public bool TwoFactorLoginRequested { get; set; }
-    [Reactive] public string TwoFactorKey { get; set; }
+    [Reactive] public partial bool TriedLoggingInWithTwoFactor { get; set; }
+    [Reactive] public partial bool TwoFactorLoginRequested { get; set; }
+    [Reactive] public partial string TwoFactorKey { get; set; }
 
     public MegaLoginVM(ILogger<MegaLoginVM> logger, MegaTokenProvider tokenProvider, Client wjClient, SettingsVM vm, MegaApiClient apiClient)
     {

@@ -308,7 +308,7 @@ public partial class App
                 CreateNoWindow = true
             });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
         }
     }

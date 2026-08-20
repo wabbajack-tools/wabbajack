@@ -373,51 +373,14 @@ public class NexusApi
 
     }
 
-    private async Task CheckAccess()
+    private Task CheckAccess()
     {
-        var msg = new HttpRequestMessage(HttpMethod.Get, "https://www.nexusmods.com/users/myaccount");
         throw new NotSupportedException("Uploading to NexusMods is currently disabled");
-        using var response = await _client.SendAsync(msg);
-        var body = await response.Content.ReadAsStringAsync();
-
-        if (body.Contains("You are not allowed to access this area!"))
-            throw new HttpException(403, "Nexus Cookies are incorrect");
     }
 
-    private async Task AddFile(UploadDefinition d, ChunkStatusResult status)
+    private Task AddFile(UploadDefinition d, ChunkStatusResult status)
     {
-        _logger.LogInformation("Saving file update {Name} to {Game}:{ModId}", d.Path.FileName, d.Game, d.ModId);
-        
-        var msg = new HttpRequestMessage(HttpMethod.Post,
-            "https://www.nexusmods.com/Core/Libs/Common/Managers/Mods?AddFile");
-        msg.Headers.Referrer =
-            new Uri(
-                $"https://www.nexusmods.com/{d.Game.MetaData().NexusName}/mods/edit/?id={d.ModId}&game_id={d.GameId}&step=files");
-        
         throw new NotSupportedException("Uploading to NexusMods is currently disabled");
-        var form = new MultipartFormDataContent();
-        form.Add(new StringContent(d.GameId.ToString()), "game_id");
-        form.Add(new StringContent(d.Name), "name");
-        form.Add(new StringContent(d.Version), "file-version");
-        form.Add(new StringContent((d.RemoveOldVersion ? 1 : 0).ToString()), "update-version");
-        form.Add(new StringContent(((int)Enum.Parse<Category>(d.Category, true)).ToString()), "category");
-        form.Add(new StringContent((d.NewExisting ? 1 : 0).ToString()), "new-existing");
-        form.Add(new StringContent(d.OldFileId.ToString()), "old_file_id");
-        form.Add(new StringContent((d.RemoveOldVersion ? 1 : 0).ToString()), "remove-old-version");
-        form.Add(new StringContent(d.BriefOverview), "brief-overview");
-        form.Add(new StringContent((d.SetAsMain ? 1 : 0).ToString()), "set_as_main_nmm");
-        form.Add(new StringContent(status.UUID), "file_uuid");
-        form.Add(new StringContent(d.FileSize.ToString()), "file_size");
-        form.Add(new StringContent(d.ModId.ToString()), "mod_id");
-        form.Add(new StringContent(d.ModId.ToString()), "id");
-        form.Add(new StringContent("save"), "action");
-        form.Add(new StringContent(status.Filename), "uploaded_file");
-        form.Add(new StringContent(d.Path.FileName.ToString()), "original_file");
-        msg.Content = form;
-        
-        using var result = await _client.SendAsync(msg);
-        if (!result.IsSuccessStatusCode)
-            throw new HttpException(result);
     }
 
     private async Task<FileStatusResult> WaitForFileStatus(ChunkStatusResult chunkStatus)
