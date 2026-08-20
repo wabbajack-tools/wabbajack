@@ -3,8 +3,7 @@ using System.IO;
 using System;
 using System.Linq;
 using System.Net.Http;
-using Wabbajack.Reporting;
-
+using System.Text.RegularExpressions;
 namespace Wabbajack.Reporting;
 
 public sealed record DiagnosticResult(string Title, string Body, string? ImagePathOrUrl)
@@ -24,6 +23,8 @@ public sealed class LogDiagnosticService : ILogDiagnosticService
     private readonly IReadOnlyDictionary<string, TagConfig> _tags;
     private readonly string _baseDir;
     private static readonly HttpClient _http = new HttpClient();
+    private static readonly Regex _positiveRemainingLimit =
+        new(@"Remaining Limit:\s*[1-9]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     public LogDiagnosticService(RemoteTagRepository repo, string? baseDir = null)
         : this(repo.Tags, baseDir) { }
@@ -59,6 +60,16 @@ public sealed class LogDiagnosticService : ILogDiagnosticService
         if (names.Contains("notenoughspace") && names.Contains("path_not_found"))
             return Build(matches.First(m => m.Tag.Name.Equals("notenoughspace", StringComparison.OrdinalIgnoreCase)).Tag);
 
+        // If the "api" tag fired on "Remaining Limit: 0" but a later log line shows >0 then itz not real
+        var apiEntry = matches.FirstOrDefault(m => m.Tag.Name.Equals("api", StringComparison.OrdinalIgnoreCase));
+        if (apiEntry.Tag is not null)
+        {
+            var tail = logText[(apiEntry.Index + 1)..];
+            if (_positiveRemainingLimit.IsMatch(tail))
+                matches.Remove(apiEntry);
+        }
+
+        if (matches.Count == 0) return DiagnosticResult.None;
         return Build(matches.MaxBy(m => m.Index).Tag);
     }
 

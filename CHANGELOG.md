@@ -1,7 +1,10 @@
 ### Changelog
 
-#### Version - 4.2.2.0 - TBD
-* Fixed WJ deleting "profile-specific saves" for games that have saves stored as folders and not files
+#### Version - 4.2.2.0 -TBD
+* Added support for passing .compiler_settings file as CLI for compiling lists ([@nadako](https://github.com/nadako)) PR #2922
+* Fixed a false idendtification of an API limit error in the "self-help" logic ([@januarysnow](https://github.com/januarysnow)) PR #2927
+* Fixed nexusmods collections v3 api changes & keeping description/summary ([@januarysnow](https://github.com/januarysnow)) PR #2950
+* Fixed WJ deleting "profile-specific saves" for games that have saves stored as folders and not files ([@EzioTheDeadPoet](https://github.com/EzioTheDeadPoet)) PR #2952
 
 #### Version - 4.2.1.4 - 4/21/2026
 * HOTFIX: changed REST variable naming for the Nexus API

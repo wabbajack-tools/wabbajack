@@ -169,30 +169,47 @@ namespace Wabbajack.Compiler
 
                 if (!string.IsNullOrWhiteSpace(existingCollectionId))
                 {
-                    result = await CreateCollectionRevision(
+                    var (revisionResult, failureStatus) = await CreateCollectionRevision(
                         collectionPayload, uploadUuid, existingCollectionId,
                         modList.IsNSFW, authState.OAuth.AccessToken, collectionJsonPath, existingSlug, token);
 
+                    result = revisionResult;
+
                     if (result == null)
+                    {
+                        // Only fall back to creating a brand-new collection when Nexus says the
+                        // stored collection no longer exists. A validation failure (422) or a
+                        // transient error must never spawn a duplicate collection.
+                        if (failureStatus != System.Net.HttpStatusCode.NotFound)
+                        {
+                            _logger.LogError(
+                                "createCollectionRevision failed for collectionId={id} (status={status}). " +
+                                "Not falling back to creating a new collection.",
+                                existingCollectionId, failureStatus?.ToString() ?? "unknown");
+                            return null;
+                        }
+
                         _logger.LogWarning(
-                            "createCollectionRevision failed for collectionId={id}.", existingCollectionId);
+                            "Collection {id} was not found on Nexus Mods (it may have been deleted). " +
+                            "Falling back to creating a new collection.", existingCollectionId);
+
+                        if (confirmFallbackToCreate != null)
+                        {
+                            var confirmed = await confirmFallbackToCreate();
+                            if (!confirmed)
+                            {
+                                _logger.LogInformation("Fallback to createCollection declined by caller. Aborting.");
+                                return null;
+                            }
+                        }
+                    }
                 }
 
                 if (result == null)
                 {
-                    if (!string.IsNullOrWhiteSpace(existingCollectionId) && confirmFallbackToCreate != null)
-                    {
-                        var confirmed = await confirmFallbackToCreate();
-                        if (!confirmed)
-                        {
-                            _logger.LogInformation("Fallback to createCollection declined by caller. Aborting.");
-                            return null;
-                        }
-                    }
-
-                    result = await CreateCollection(
+                    (result, _) = await CreateCollection(
                         collectionPayload, uploadUuid, modList.IsNSFW,
-                        authState.OAuth.AccessToken, collectionJsonPath, null,token);
+                        authState.OAuth.AccessToken, collectionJsonPath, null, token);
                 }
 
                 if (result != null && result.Success)
@@ -484,7 +501,7 @@ namespace Wabbajack.Compiler
         }
 
 
-        private Task<CollectionUploadResult?> CreateCollection(
+        private Task<(CollectionUploadResult? Result, System.Net.HttpStatusCode? FailureStatus)> CreateCollection(
             VortexCollection collectionPayload, string uploadUuid, bool adultContent,
             string accessToken, AbsolutePath collectionJsonPath, string? knownSlug, CancellationToken token)
             => ExecuteCollectionRestCall(
@@ -494,7 +511,7 @@ namespace Wabbajack.Compiler
                 knownSlug: knownSlug,
                 isRevision: false, collectionId: null, token: token);
 
-        private Task<CollectionUploadResult?> CreateCollectionRevision(
+        private Task<(CollectionUploadResult? Result, System.Net.HttpStatusCode? FailureStatus)> CreateCollectionRevision(
             VortexCollection collectionPayload, string uploadUuid, string collectionId,
             bool adultContent, string accessToken, AbsolutePath collectionJsonPath,
             string? knownSlug, CancellationToken token)
@@ -565,7 +582,8 @@ namespace Wabbajack.Compiler
 
 
         private bool TryRemoveInvalidModsFromRestError(
-            string responseBody, ref List<ManifestMod> manifestMods)
+            string responseBody, ref List<ManifestMod> manifestMods,
+            bool suppressNoMatchWarning = false)
         {
             var badModIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var badFileIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -615,9 +633,10 @@ namespace Wabbajack.Compiler
 
             if (badModIds.Count == 0 && badFileIds.Count == 0)
             {
-                _logger.LogWarning(
-                    "Received 422 but could not extract any mod/file ids from response body: {body}",
-                    responseBody);
+                if (!suppressNoMatchWarning)
+                    _logger.LogWarning(
+                        "Received 422 but could not extract any mod/file ids from response body: {body}",
+                        responseBody);
                 return false;
             }
 
@@ -645,7 +664,7 @@ namespace Wabbajack.Compiler
             return removed > 0;
         }
 
-        private async Task<CollectionUploadResult?> ExecuteCollectionRestCall(
+        private async Task<(CollectionUploadResult? Result, System.Net.HttpStatusCode? FailureStatus)> ExecuteCollectionRestCall(
             string url,
             VortexCollection collectionPayload,
             string uploadUuid,
@@ -676,16 +695,50 @@ namespace Wabbajack.Compiler
                 throw new InvalidOperationException($"Collection name too short: '{name}'");
 
             var manifestMods = BuildManifestMods(collectionPayload, info.DomainName);
-            if (manifestMods == null) return null;
+            if (manifestMods == null) return (null, null);
             if (manifestMods.Count == 0)
                 throw new InvalidOperationException("Cannot create a Nexus collection with 0 mods.");
+
+            // summary/description are optional in the V3 API, and summary is validated at
+            // max 255 chars
+            string? summaryToSend;
+            string? descriptionToSend;
+
+            if (isRevision)
+            {
+                summaryToSend = null;
+                descriptionToSend = null;
+
+                if (!string.IsNullOrWhiteSpace(knownSlug))
+                {
+                    var existingText = await FetchExistingCollectionText(knownSlug, accessToken, token);
+                    if (existingText.HasValue)
+                    {
+                        summaryToSend = TruncateSummary(existingText.Value.Summary);
+                        descriptionToSend = existingText.Value.Description;
+                    }
+                    else
+                    {
+                        _logger.LogInformation(
+                            "Could not fetch current summary/description for slug={slug}; " +
+                            "omitting both fields so the existing collection page text is kept.",
+                            knownSlug);
+                    }
+                }
+            }
+            else
+            {
+                summaryToSend = TruncateSummary(info.Summary?.Trim());
+                descriptionToSend = info.Description ?? "";
+            }
 
             // strips those mods and re-sends. Should only require 1-2 attempts
             const int MaxRestAttempts = 5;
 
             for (int attempt = 1; attempt <= MaxRestAttempts; attempt++)
             {
-                var jsonBody = BuildJsonBody(uploadUuid, name, info, adultContent, manifestMods);
+                var jsonBody = BuildJsonBody(uploadUuid, name, info, adultContent, manifestMods,
+                    summaryToSend, descriptionToSend);
 
                 var debugPath = collectionJsonPath.Parent.Combine(
                     $"{collectionJsonPath.FileName}_rest_payload.json");
@@ -725,24 +778,54 @@ namespace Wabbajack.Compiler
 
                         if (statusCode == System.Net.HttpStatusCode.UnprocessableEntity)
                         {
-                            if (attempt < MaxRestAttempts &&
-                                TryRemoveInvalidModsFromRestError(responseBody, ref manifestMods))
+                            if (attempt < MaxRestAttempts)
                             {
-                                if (manifestMods.Count == 0)
+                                var willRetry = false;
+
+                                if (TryGetInfoFieldValidationErrors(
+                                        responseBody, out var badSummary, out var badDescription))
                                 {
-                                    _logger.LogError(
-                                        "After removing invalid mods, 0 mods remain. Aborting.");
-                                    return null;
+                                    if (badSummary && summaryToSend != null)
+                                    {
+                                        _logger.LogWarning(
+                                            "Nexus rejected the collection summary; omitting it and retrying.");
+                                        summaryToSend = null;
+                                        willRetry = true;
+                                    }
+
+                                    if (badDescription && descriptionToSend != null)
+                                    {
+                                        _logger.LogWarning(
+                                            "Nexus rejected the collection description; omitting it and retrying.");
+                                        descriptionToSend = null;
+                                        willRetry = true;
+                                    }
                                 }
 
-                                _logger.LogWarning(
-                                    "Retrying with {count} mods after stripping invalid refs " +
-                                    "(attempt {next}/{max})",
-                                    manifestMods.Count, attempt + 1, MaxRestAttempts);
-                                continue;
+                                if (TryRemoveInvalidModsFromRestError(
+                                        responseBody, ref manifestMods, suppressNoMatchWarning: willRetry))
+                                {
+                                    if (manifestMods.Count == 0)
+                                    {
+                                        _logger.LogError(
+                                            "After removing invalid mods, 0 mods remain. Aborting.");
+                                        return (null, statusCode);
+                                    }
+
+                                    willRetry = true;
+                                }
+
+                                if (willRetry)
+                                {
+                                    _logger.LogWarning(
+                                        "Retrying collection REST call with {count} mods " +
+                                        "(attempt {next}/{max})",
+                                        manifestMods.Count, attempt + 1, MaxRestAttempts);
+                                    continue;
+                                }
                             }
 
-                            return null;
+                            return (null, statusCode);
                         }
 
                         if (statusCode == System.Net.HttpStatusCode.GatewayTimeout && attempt < MaxRestAttempts)
@@ -753,7 +836,7 @@ namespace Wabbajack.Compiler
                             continue;
                         }
 
-                        return null;
+                        return (null, statusCode);
                     }
                 }
                 catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
@@ -775,7 +858,7 @@ namespace Wabbajack.Compiler
                 {
                     _logger.LogError(ex,
                         "Error during collection REST call attempt {attempt}, no more retries", attempt);
-                    return null;
+                    return (null, null);
                 }
 
                 _logger.LogInformation(
@@ -842,25 +925,25 @@ namespace Wabbajack.Compiler
 
                     var revisionNumber = returnedRevisionNumber ?? found?.RevisionNumber ?? 1;
 
-                    return new CollectionUploadResult
+                    return (new CollectionUploadResult
                     {
                         CollectionId = returnedCollectionId,
                         RevisionId = returnedRevisionId,
                         Slug = finalSlug ?? "",
                         RevisionNumber = revisionNumber,
                         Success = true
-                    };
+                    }, null);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex,
                         "Failed to parse collection REST response: {body}", responseBody);
-                    return null;
+                    return (null, null);
                 }
             }
 
             _logger.LogError("Exceeded retry attempts for collection REST call to {url}", url);
-            return null;
+            return (null, null);
         }
 
 
@@ -869,15 +952,18 @@ namespace Wabbajack.Compiler
             string name,
             VortexInfo info,
             bool adultContent,
-            List<ManifestMod> manifestMods)
+            List<ManifestMod> manifestMods,
+            string? summary,
+            string? description)
         {
+            // summary/description are optional in the V3 schema
             var manifestInfo = new
             {
                 author = string.IsNullOrWhiteSpace(info.Author) ? "Anonymous" : info.Author,
                 author_url = info.AuthorUrl ?? "",
                 name,
-                summary = info.Summary?.Trim() ?? "",
-                description = info.Description ?? "",
+                summary,
+                description,
                 domain_name = info.DomainName,
                 game_versions = (info.GameVersions?.Count ?? 0) == 0 ? null : info.GameVersions,
             };
@@ -900,6 +986,129 @@ namespace Wabbajack.Compiler
                     collection_manifest = manifest,
                 },
             }, serOpts);
+        }
+
+        private const int MaxSummaryLength = 255;
+
+        private string? TruncateSummary(string? summary)
+        {
+            if (summary == null || summary.Length <= MaxSummaryLength)
+                return summary;
+
+            _logger.LogWarning(
+                "Collection summary too long ({len} chars, max {max}); truncating.",
+                summary.Length, MaxSummaryLength);
+
+            var cut = MaxSummaryLength;
+            if (char.IsHighSurrogate(summary[cut - 1]))
+                cut--;
+            return summary[..cut];
+        }
+
+        private bool TryGetInfoFieldValidationErrors(
+            string responseBody, out bool summaryInvalid, out bool descriptionInvalid)
+        {
+            summaryInvalid = false;
+            descriptionInvalid = false;
+
+            try
+            {
+                var root = JsonNode.Parse(responseBody) as JsonObject;
+                if (root?["errors"] is not JsonArray errors)
+                    return false;
+
+                foreach (var errNode in errors)
+                {
+                    if (errNode is not JsonObject err) continue;
+                    var pointer = err["pointer"]?.GetValue<string>() ?? "";
+                    var detail = err["detail"]?.GetValue<string>() ?? "";
+
+                    if (pointer.EndsWith("/info/summary", StringComparison.OrdinalIgnoreCase) ||
+                        (pointer.Length == 0 && detail.Contains("summary", StringComparison.OrdinalIgnoreCase)))
+                        summaryInvalid = true;
+                    else if (pointer.EndsWith("/info/description", StringComparison.OrdinalIgnoreCase) ||
+                             (pointer.Length == 0 && detail.Contains("description", StringComparison.OrdinalIgnoreCase)))
+                        descriptionInvalid = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Could not parse 422 body for info-field validation errors");
+                return false;
+            }
+
+            return summaryInvalid || descriptionInvalid;
+        }
+
+        private async Task<(string? Summary, string? Description)?> FetchExistingCollectionText(
+            string slug, string accessToken, CancellationToken token)
+        {
+            try
+            {
+                var query = @"
+                    query collectionText($slug: String!) {
+                      collection(slug: $slug, viewAdultContent: true) {
+                        summary
+                        description
+                      }
+                    }";
+
+                var graphqlRequest = new { query, variables = new { slug } };
+
+                using var content = new StringContent(
+                    JsonSerializer.Serialize(graphqlRequest, new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                    }),
+                    Encoding.UTF8, "application/json");
+
+                using var request = new HttpRequestMessage(HttpMethod.Post, GraphQLUrl) { Content = content };
+                AddNexusHeaders(request, accessToken);
+
+                using var fetchCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, fetchCts.Token);
+
+                var response = await _httpClient.SendAsync(request, linked.Token);
+                var body = await response.Content.ReadAsStringAsync(linked.Token);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("collection query for slug={slug} failed: {status}",
+                        slug, response.StatusCode);
+                    return null;
+                }
+
+                var root = JsonNode.Parse(body) as JsonObject;
+                var errors = root?["errors"] as JsonArray;
+                if (errors is { Count: > 0 })
+                {
+                    _logger.LogWarning("GraphQL errors fetching collection text for slug={slug}: {errors}",
+                        slug, errors.ToJsonString());
+                    return null;
+                }
+
+                if (root?["data"]?["collection"] is not JsonObject collection)
+                {
+                    _logger.LogWarning("collection query for slug={slug} returned no collection", slug);
+                    return null;
+                }
+
+                var summary = collection["summary"]?.GetValue<string>();
+                var description = collection["description"]?.GetValue<string>();
+
+                _logger.LogInformation(
+                    "Fetched current collection text for slug={slug}: summary={sumLen} chars, description={descLen} chars",
+                    slug, summary?.Length ?? 0, description?.Length ?? 0);
+
+                return (summary, description);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to fetch existing collection summary/description for slug={slug}", slug);
+                return null;
+            }
         }
 
 
