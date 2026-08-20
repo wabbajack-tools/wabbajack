@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 4.2.2.0 -TBD
+* Added support for passing .compiler_settings file as CLI for compiling lists ([@nadako](https://github.com/nadako)) PR #2922
+* Fixed a false idendtification of an API limit error in the "self-help" logic ([@januarysnow](https://github.com/januarysnow)) PR #2927
+
 #### Version - 4.2.1.4 - 4/21/2026
 * HOTFIX: changed REST variable naming for the Nexus API
 
