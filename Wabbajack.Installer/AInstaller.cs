@@ -576,9 +576,9 @@ public abstract class AInstaller<T>
 
                 if (f.InFolder(profileFolder))
                 {
-                    foreach (AbsolutePath path in f.ThisAndAllParents().Where(path => path.Depth <= profileFolder.Depth).ToArray())
+                    if (f.ThisAndAllParents().Where(path => path.Depth > profileFolder.Depth+1).ToArray().Any(path => path.Parent.FileName == savePath))
                     {
-                        if (path.Parent.FileName == savePath) return null;
+                        return null;
                     }
                 };
                 
