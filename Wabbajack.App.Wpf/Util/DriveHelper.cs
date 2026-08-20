@@ -329,7 +329,7 @@ public static class DriveHelper
             }
             return disks;
         }
-        catch(Exception ex)
+        catch(Exception)
         {
             return new Dictionary<string, PhysicalDisk>();
         }

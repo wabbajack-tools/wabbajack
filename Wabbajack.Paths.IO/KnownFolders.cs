@@ -13,22 +13,6 @@ public static class KnownFolders
         get
         {
             return AppDomain.CurrentDomain.BaseDirectory.ToAbsolutePath();
-            var result = Process.GetCurrentProcess().MainModule?.FileName?.ToAbsolutePath() ?? default;
-
-            if (result != default &&
-                result.PathParts.Any(p => p.Equals("TestRunner", StringComparison.CurrentCultureIgnoreCase)))
-            {
-                return Assembly.GetExecutingAssembly().Location.ToAbsolutePath().Parent;
-            }
-            
-            
-            if ((result != default && result.Depth > 1 && result.FileName == "dotnet".ToRelativePath())
-                || Assembly.GetEntryAssembly() != null)
-            {
-                result = Assembly.GetEntryAssembly()!.Location.ToAbsolutePath();
-            }
-
-            return result == default ? Environment.CurrentDirectory.ToAbsolutePath() : result.Parent;
         }
     }
 

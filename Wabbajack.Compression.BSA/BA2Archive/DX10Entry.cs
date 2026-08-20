@@ -31,7 +31,6 @@ public class DX10Entry : IBA2FileEntry
     private uint _nameHash;
     private byte _numChunks;
     private byte _numMips;
-    private ushort _unk16;
     private byte _unk8;
     private ushort _width;
     private readonly byte _isCubemap;
@@ -138,12 +137,12 @@ public class DX10Entry : IBA2FileEntry
 
             if (!isCompressed)
             {
-                await br.BaseStream.ReadAsync(full, token);
+                await br.BaseStream.ReadExactlyAsync(full, token);
             }
             else
             {
                 var compressed = new byte[chunk._packSz];
-                await br.BaseStream.ReadAsync(compressed, token);
+                await br.BaseStream.ReadExactlyAsync(compressed, token);
                 if (_bsa._compression == 3)
                 {
                     LZ4Codec.PartialDecode(compressed, full);

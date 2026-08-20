@@ -44,7 +44,7 @@ public class VerificationCache : IVerificationCache, IDisposable
         cmd.ExecuteNonQuery();
     }
 
-    public async Task<(bool?, IDownloadState?)> Get(IDownloadState archive)
+    public async Task<(bool? IsValid, IDownloadState? State)> Get(IDownloadState archive)
     {
         var key = archive.PrimaryKeyString;
 

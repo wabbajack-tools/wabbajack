@@ -510,7 +510,7 @@ public class ValidateLists
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError("While uploading to load order library", ex);
+                        _logger.LogError(ex, "While uploading to load order library");
                     }
                     
                     await _discord.SendAsync(Channel.Ham,

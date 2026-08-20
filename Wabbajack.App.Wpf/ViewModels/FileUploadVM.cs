@@ -7,7 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Messages;
 using Wabbajack.Networking.WabbajackClientApi;
@@ -16,7 +16,7 @@ using Wabbajack.Services.OSIntegrated.TokenProviders;
 
 namespace Wabbajack;
 
-public class FileUploadVM : ViewModel
+public partial class FileUploadVM : ViewModel
 {
 
     private readonly ILogger<FileUploadVM> _logger;
@@ -31,8 +31,8 @@ public class FileUploadVM : ViewModel
     public ICommand BrowseUploadsCommand { get; private set; }
     public ICommand UploadMoreFilesCommand { get; private set; }
 
-    [Reactive] public double UploadProgress { get; set; }
-    [Reactive] public string FileUrl { get; set; }
+    [Reactive] public partial double UploadProgress { get; set; }
+    [Reactive] public partial string FileUrl { get; set; }
     public FilePickerVM Picker { get;}
     
     private Subject<bool> _isUploading = new();

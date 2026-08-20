@@ -36,11 +36,10 @@ jobs:
         if: runner.os != 'Windows'
         run: chmod -R +x Wabbajack.FileExtractor/Extractors
         
-      - name: Setup .NET Core SDK 9.0.x
-        uses: actions/setup-dotnet@v1
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
-          include-prerelease: true
+          global-json-file: global.json
 
       - name: Test
         if: ${{ github.ref == 'refs/heads/main' }}
@@ -48,7 +47,7 @@ jobs:
 
       - name: Test
         if: ${{ github.ref != 'refs/heads/main' }}
-        run: dotnet test /p:EnableWindowsTargeting=true --filter "Category!=RequiresOAuth"
+        run: dotnet test /p:EnableWindowsTargeting=true --filter "Category!=RequiresOAuth&Category!=RequiresNetwork"
         
       #- name: Upload Test Folder on Failure
       #  if: ${{ failure() }}
@@ -107,11 +106,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Setup .NET Core SDK 9.0.x
-        uses: actions/setup-dotnet@v1
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
-          include-prerelease: true
+          global-json-file: global.json
           
       - name: Get App Version from CHANGELOG.md
         shell: bash

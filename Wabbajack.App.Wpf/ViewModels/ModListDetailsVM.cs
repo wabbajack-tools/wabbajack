@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Web.WebView2.Wpf;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
@@ -26,20 +26,20 @@ using Wabbajack.RateLimiter;
 
 namespace Wabbajack;
 
-public class ModListDetailsVM : BackNavigatingVM
+public partial class ModListDetailsVM : BackNavigatingVM
 {
     private readonly Client _wjClient;
     [Reactive]
-    public BaseModListMetadataVM MetadataVM { get; set; }
+    public partial BaseModListMetadataVM MetadataVM { get; set; }
 
     [Reactive]
-    public ValidatedModList ValidatedModlist { get; set; }
+    public partial ValidatedModList ValidatedModlist { get; set; }
 
     [Reactive]
-    public ObservableCollection<DetailedStatusItem> Status { get; set; }
+    public partial ObservableCollection<DetailedStatusItem> Status { get; set; }
     
     [Reactive]
-    public string Search { get; set; }
+    public partial string Search { get; set; }
 
     private readonly SourceCache<Archive, Hash> _archives = new(a => a.Hash);
     private ReadOnlyObservableCollection<Archive> _filteredArchives;

@@ -8,7 +8,7 @@ using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs.Logins;
@@ -21,7 +21,7 @@ using Wabbajack.Util;
 
 namespace Wabbajack;
 
-public class SettingsVM : ViewModel
+public partial class SettingsVM : ViewModel
 {
     private readonly ILogger<SettingsVM> _logger;
     private readonly Configuration.MainSettings _settings;
@@ -35,7 +35,7 @@ public class SettingsVM : ViewModel
     public ICommand ResetCommand { get; }
     public ICommand OpenFileUploadCommand { get; }
     public ICommand BrowseUploadsCommand { get; private set; }
-    [Reactive] public WabbajackApiState ApiToken { get; private set; }
+    [Reactive] public partial WabbajackApiState ApiToken { get; private set; }
 
     public SettingsVM(ILogger<SettingsVM> logger, IServiceProvider provider)
     {

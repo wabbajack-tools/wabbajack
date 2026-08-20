@@ -377,8 +377,11 @@ public class Changelog
         return ms;
     }
 
-    private async Task<string> ReadStreamToStringAsync(Stream stream, CancellationToken? token = null)
+    private async Task<string> ReadStreamToStringAsync(Stream? stream, CancellationToken? token = null)
     {
+        if (stream == null)
+            return string.Empty;
+
         stream.Seek(0, SeekOrigin.Begin);
         string text = string.Empty;
         using (var reader = new StreamReader(stream))

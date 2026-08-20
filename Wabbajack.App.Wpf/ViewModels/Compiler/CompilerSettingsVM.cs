@@ -1,4 +1,4 @@
-﻿using ReactiveUI.Fody.Helpers;
+﻿using ReactiveUI.SourceGenerators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,7 @@ using Wabbajack.Paths;
 
 namespace Wabbajack;
 
-public class CompilerSettingsVM : ViewModel
+public partial class CompilerSettingsVM : ViewModel
 {
     public CompilerSettingsVM() { }
     public CompilerSettingsVM(CompilerSettings cs)
@@ -43,39 +43,39 @@ public class CompilerSettingsVM : ViewModel
         AutoGenerateReport = cs.AutoGenerateReport;
     }
 
-    [Reactive] public bool ModlistIsNSFW { get; set; }
-    [Reactive] public AbsolutePath Source { get; set; }
-    [Reactive] public AbsolutePath Downloads { get; set; }
-    [Reactive] public Game Game { get; set; }
-    [Reactive] public AbsolutePath OutputFile { get; set; }
+    [Reactive] public partial bool ModlistIsNSFW { get; set; }
+    [Reactive] public partial AbsolutePath Source { get; set; }
+    [Reactive] public partial AbsolutePath Downloads { get; set; }
+    [Reactive] public partial Game Game { get; set; }
+    [Reactive] public partial AbsolutePath OutputFile { get; set; }
 
-    [Reactive] public bool AutoGenerateReport { get; set; } = false;
+    [Reactive] public partial bool AutoGenerateReport { get; set; } = false;
 
-    [Reactive] public AbsolutePath ModListImage { get; set; }
-    [Reactive] public bool UseGamePaths { get; set; }
+    [Reactive] public partial AbsolutePath ModListImage { get; set; }
+    [Reactive] public partial bool UseGamePaths { get; set; }
 
-    [Reactive] public bool UseTextureRecompression { get; set; } = false;
-    [Reactive] public Game[] OtherGames { get; set; } = Array.Empty<Game>();
+    [Reactive] public partial bool UseTextureRecompression { get; set; } = false;
+    [Reactive] public partial Game[] OtherGames { get; set; } = Array.Empty<Game>();
 
-    [Reactive] public TimeSpan MaxVerificationTime { get; set; } = TimeSpan.FromMinutes(1);
-    [Reactive] public string ModListName { get; set; } = "";
-    [Reactive] public string ModListAuthor { get; set; } = "";
-    [Reactive] public string ModListDescription { get; set; } = "";
-    [Reactive] public string ModListReadme { get; set; } = "";
-    [Reactive] public string ModListWebsite { get; set; } = "";
-    [Reactive] public string ModListCommunity { get; set; } = "";
-    [Reactive] public string ModlistVersion { get; set; } = "";
-    [Reactive] public string MachineUrl { get; set; } = "";
+    [Reactive] public partial TimeSpan MaxVerificationTime { get; set; } = TimeSpan.FromMinutes(1);
+    [Reactive] public partial string ModListName { get; set; } = "";
+    [Reactive] public partial string ModListAuthor { get; set; } = "";
+    [Reactive] public partial string ModListDescription { get; set; } = "";
+    [Reactive] public partial string ModListReadme { get; set; } = "";
+    [Reactive] public partial string ModListWebsite { get; set; } = "";
+    [Reactive] public partial string ModListCommunity { get; set; } = "";
+    [Reactive] public partial string ModlistVersion { get; set; } = "";
+    [Reactive] public partial string MachineUrl { get; set; } = "";
 
     /// <summary>
     /// The main (default) profile
     /// </summary>
-    [Reactive] public string Profile { get; set; } = "";
+    [Reactive] public partial string Profile { get; set; } = "";
 
     /// <summary>
     /// Secondary profiles to include in the modlist
     /// </summary>
-    [Reactive] public string[] AdditionalProfiles { get; set; } = Array.Empty<string>();
+    [Reactive] public partial string[] AdditionalProfiles { get; set; } = Array.Empty<string>();
 
 
     /// <summary>
@@ -91,21 +91,21 @@ public class CompilerSettingsVM : ViewModel
     ///     This file, or files in these folders, are automatically included if they don't match
     ///     any other step
     /// </summary>
-    [Reactive] public HashSet<RelativePath> NoMatchInclude { get; set; } = new();
+    [Reactive] public partial HashSet<RelativePath> NoMatchInclude { get; set; } = new();
 
     /// <summary>
     ///     These files are inlined into the modlist
     /// </summary>
-    [Reactive] public HashSet<RelativePath> Include { get; set; } = new();
+    [Reactive] public partial HashSet<RelativePath> Include { get; set; } = new();
 
     /// <summary>
     ///     These files are ignored when compiling the modlist
     /// </summary>
-    [Reactive] public HashSet<RelativePath> Ignore { get; set; } = new();
+    [Reactive] public partial HashSet<RelativePath> Ignore { get; set; } = new();
 
-    [Reactive] public HashSet<RelativePath> AlwaysEnabled { get; set; } = new();
-    [Reactive] public string Version { get; set; }
-    [Reactive] public string Description { get; set; }
+    [Reactive] public partial HashSet<RelativePath> AlwaysEnabled { get; set; } = new();
+    [Reactive] public partial string Version { get; set; }
+    [Reactive] public partial string Description { get; set; }
 
     public CompilerSettings ToCompilerSettings()
     {
