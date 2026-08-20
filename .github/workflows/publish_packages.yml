@@ -1,0 +1,130 @@
+name: Publish Packages to NuGet
+
+on:
+  workflow_dispatch: 
+  push:
+    branches: [ main ]
+
+jobs:
+  
+  build:
+    
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    env:
+      NEXUS_API_KEY: ${{ secrets.NEXUS_API_KEY }}
+      NEXUS_LOGIN: ${{ secrets.NEXUS_LOGIN }}
+      VECTOR_PLEXUS: ${{ secrets.VECTOR_PLEXUS }}
+      LOVERS_LAB: ${{ secrets.LOVERS_LAB }}
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get App Version from CHANGELOG.md
+        shell: bash
+        run: |
+          VERSION=$(LC_ALL=en_US.UTF-8 grep -m1 -oP '^#### Version - \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Current Version: $VERSION"
+      
+      - name: Set Permissions
+        if: runner.os != 'Windows'
+        run: chmod -R +x Wabbajack.FileExtractor/Extractors
+        
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Test
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: dotnet test /p:EnableWindowsTargeting=true
+
+      - name: Test
+        if: ${{ github.ref != 'refs/heads/main' }}
+        run: dotnet test /p:EnableWindowsTargeting=true --filter "Category!=RequiresOAuth&Category!=RequiresNetwork"
+        
+      #- name: Upload Test Folder on Failure
+      #  if: ${{ failure() }}
+      #  uses: actions/upload-artifact@v2
+      #  with:
+      #    name: Failed Files
+      #    path: ./
+  
+  publish:
+    name: Publish Projects
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' }}
+    strategy:
+      matrix:
+        project:
+          - Wabbajack.Common
+          - Wabbajack.Compiler
+          - Wabbajack.Compression.BSA
+          - Wabbajack.Compression.Zip
+          - Wabbajack.Configuration
+          - Wabbajack.Downloaders.Bethesda
+          - Wabbajack.Downloaders.Dispatcher
+          - Wabbajack.Downloaders.GameFile
+          - Wabbajack.Downloaders.GoogleDrive
+          - Wabbajack.Downloaders.Http
+          - Wabbajack.Downloaders.Interfaces
+          - Wabbajack.Downloaders.IPS4OAuth2Downloader
+          - Wabbajack.Downloaders.Manual
+          - Wabbajack.Downloaders.MediaFire
+          - Wabbajack.Downloaders.Mega
+          - Wabbajack.Downloaders.ModDB
+          - Wabbajack.Downloaders.Nexus
+          - Wabbajack.Downloaders.VerificationCache
+          - Wabbajack.Downloaders.WabbajackCDN
+          - Wabbajack.DTOs
+          - Wabbajack.FileExtractor
+          - Wabbajack.Hashing.PHash
+          - Wabbajack.Hashing.xxHash64
+          - Wabbajack.Installer
+          - Wabbajack.IO.Async
+          - Wabbajack.Networking.BethesdaNet
+          - Wabbajack.Networking.Discord
+          - Wabbajack.Networking.GitHub
+          - Wabbajack.Networking.Http
+          - Wabbajack.Networking.Http.Interfaces
+          - Wabbajack.Networking.NexusApi
+          - Wabbajack.Networking.WabbajackClientApi
+          - Wabbajack.Paths
+          - Wabbajack.Paths.IO
+          - Wabbajack.RateLimiter
+          - Wabbajack.Services.OSIntegrated
+          - Wabbajack.VFS
+          - Wabbajack.VFS.Interfaces
+          
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          
+      - name: Get App Version from CHANGELOG.md
+        shell: bash
+        run: |
+          VERSION=$(LC_ALL=en_US.UTF-8 grep -m1 -oP '^#### Version - \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Current Version: $VERSION"
+ 
+          
+      - name: Restore
+        run: dotnet restore ${{ matrix.project }}/${{ matrix.project }}.csproj
+      - name: Build
+        run: dotnet build ${{ matrix.project }}/${{ matrix.project }}.csproj --no-restore --configuration Release
+      - name: Pack
+        run: dotnet pack ${{ matrix.project }}/${{ matrix.project }}.csproj --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg -o .
+      - name: Publish
+        run: dotnet nuget push *.nupkg --api-key ${{secrets.NUGET_KEY}} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+    
