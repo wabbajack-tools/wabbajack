@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version -4.2.2.0 -TBD
+* Added support for passing .compiler_settings file as CLI for compiling lists
+
 #### Version - 4.2.1.4 - 4/21/2026
 * HOTFIX: changed REST variable naming for the Nexus API
 
