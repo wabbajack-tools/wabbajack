@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using FsCheck.Xunit;
@@ -11,6 +12,30 @@ public class AbsolutePathTests
     private AbsolutePath GetTempFile()
     {
         return KnownFolders.EntryPoint.Combine(Guid.NewGuid().ToString());
+    }
+
+    [Fact]
+    public async Task DeleteShouldSucceedWhenFileIsLockedAndThenFreed()
+    {
+        var file = GetTempFile();
+        file.WriteAllText("Test");
+
+        // Lock the file
+        using var fs = File.Open(file.ToString(), FileMode.Open, FileAccess.Read, FileShare.None);
+
+        // Try to delete in background, which should block and then retry
+        var deleteTask = Task.Run(() => file.Delete());
+
+        // Wait a bit to ensure it enters the retry loop
+        await Task.Delay(2000);
+
+        // Unlock the file
+        fs.Dispose();
+
+        // Ensure deletion completes
+        await deleteTask;
+
+        Assert.False(file.FileExists());
     }
 
     [Property(StartSize = 1024)]

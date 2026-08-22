@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 4.2.2.1 - 08/22/2026
+* Added mitigation and retry logic on failing delete attempts ([@EzioTheDeadPoet](https://github.com/EzioTheDeadPoet))
+* Added mitigation logic to BSA building temp file collisions ([@EzioTheDeadPoet](https://github.com/EzioTheDeadPoet))
+
 #### Version - 4.2.2.0 - 08/20/2026
 * Updated to .NET 10 ([@halgari](https://github.com/halgari))
 * Added support for passing .compiler_settings file as CLI for compiling lists ([@nadako](https://github.com/nadako)) PR #2922

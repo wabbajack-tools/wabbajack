@@ -14,6 +14,11 @@ public class DiskSlabAllocator
     private readonly ConcurrentBag<Stream> _streams = new();
     private long _memorySize;
 
+    // ReSharper disable once InconsistentNaming
+    private const int SHARING_VIOLATION = unchecked((int) 0x80070020);
+    // ReSharper disable once InconsistentNaming
+    private const int FILE_EXISTS = unchecked((int) 0x80070050);
+
     public DiskSlabAllocator(TemporaryFileManager manager, long maxMemorySize = 1024 * 1024 * 256)
     {
         _manager = manager;
@@ -39,13 +44,27 @@ public class DiskSlabAllocator
             _streams.Add(stream);
             return stream;
         }
-        else
+
+        const int maxRetries = 5;
+        for (var attempt = 1; attempt <= maxRetries; attempt++)
         {
-            var tempFile = _manager.CreateFile();
-            var stream = tempFile.Path.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-            _streams.Add(stream);
-            _files.Add(tempFile);
-            return stream;
+            TemporaryPath tempFile = default;
+            try
+            {
+                tempFile = _manager.CreateFile();
+                var stream = tempFile.Path.Open(FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
+                _streams.Add(stream);
+                _files.Add(tempFile);
+                return stream;
+            }
+            catch (IOException ex) when (attempt < maxRetries && (ex.HResult == SHARING_VIOLATION
+                                         || ex.HResult == FILE_EXISTS
+                                         || ex.Message.Contains("being used by another process")))
+            {
+                Thread.Sleep(1000 * attempt);
+            }
         }
+
+        throw new IOException($"Failed to allocate temporary disk slab after {maxRetries} attempts.");
     }
 }
