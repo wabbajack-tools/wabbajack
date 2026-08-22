@@ -25,7 +25,7 @@ public class VerificationCacheTests
     {
         using var cacheBase = new VerificationCache.VerificationCache(_logger,  
             KnownFolders.EntryPoint.Combine(Guid.NewGuid().ToString()), 
-            TimeSpan.FromSeconds(1),
+            TimeSpan.FromSeconds(5),
             _dtos);
 
         var cache = (IVerificationCache)cacheBase;
@@ -39,7 +39,7 @@ public class VerificationCacheTests
         Assert.True(result.IsValid);
         Assert.IsType<DTOs.DownloadStates.Http>(result.State);
 
-        await Task.Delay(TimeSpan.FromSeconds(2));
+        await Task.Delay(TimeSpan.FromSeconds(6));
         
         Assert.False((await cache.Get(goodState)).IsValid);
 
