@@ -24,36 +24,34 @@ public static class AbsolutePathExtensions
         var path = file.ToNativePath();
         if (File.Exists(path))
         {
-            try
+            var retries = 5;
+            while (true)
             {
-                File.Delete(path);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                var fi = new FileInfo(path);
-                if (fi.IsReadOnly)
+                try
                 {
-                    fi.IsReadOnly = false;
                     File.Delete(path);
+                    break;
                 }
-                else
+                catch (UnauthorizedAccessException)
                 {
+                    var fi = new FileInfo(path);
+                    if (fi.IsReadOnly)
+                    {
+                        fi.IsReadOnly = false;
+                        continue;
+                    }
+
                     throw;
                 }
-            }
-            catch (IOException ex)
-            {
-                if (ex.Message.Contains("because it is being used by another process"))
+                catch (IOException ex) when (ex.Message.Contains("because it is being used by another process"))
                 {
-                    Thread.Sleep(1000);
-                    File.Delete(path);
-                }
-                else
-                {
-                    throw;
+                    if (--retries <= 0)
+                        throw;
+                    Thread.Sleep(5000);
                 }
             }
         }
+
         if (Directory.Exists(path))
             file.DeleteDirectory();
     }

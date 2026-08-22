@@ -355,7 +355,9 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             _logger.LogInformation("Building {bsaTo}", bsa.To.FileName);
             var sourceDir = _configuration.Install.Combine(Consts.BSACreationDir, bsa.TempID);
 
-            await using var a = BSADispatch.CreateBuilder(bsa.State, _manager);
+            using var bsaTempFolder = _manager.CreateFolder();
+            await using var tempManager = new TemporaryFileManager(bsaTempFolder.Path);
+            await using var a = BSADispatch.CreateBuilder(bsa.State, tempManager);
             var streams = await bsa.FileStates.PMapAllBatchedAsync(_limiter, async state =>
             {
                 var fs = sourceDir.Combine(state.Path).Open(FileMode.Open, FileAccess.Read, FileShare.Read);
