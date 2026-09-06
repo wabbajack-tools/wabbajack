@@ -115,6 +115,7 @@
     <PackageReference Include="Silk.NET.DXGI" />
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="System.Reactive" />
+    <PackageReference Include="VirtualizingWrapPanel" />
     <PackageReference Include="WPFThemes.DarkBlend" />
   </ItemGroup>
 

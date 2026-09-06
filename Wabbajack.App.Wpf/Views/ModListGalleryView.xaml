@@ -11,6 +11,7 @@
     xmlns:system="clr-namespace:System;assembly=mscorlib"
     xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     xmlns:sdl="http://schemas.sdl.com/xaml"
+    xmlns:vwp="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
     d:DesignHeight="450"
     d:DesignWidth="900"
     x:TypeArguments="local:ModListGalleryVM"
@@ -59,7 +60,7 @@
                                 <Border Width="24" Height="24" BorderThickness="0" CornerRadius="4"
                                         VerticalAlignment="Center">
                                     <Border.Background>
-                                        <ImageBrush Stretch="Fill" ImageSource="{Binding GameMetaData.IconSource}" />
+                                        <ImageBrush Stretch="Fill" ImageSource="{Binding GameIcon}" />
                                     </Border.Background>
                                 </Border>
                                 <TextBlock Margin="10, 0, 0, 0" Text="{Binding FormattedName}"
@@ -182,23 +183,35 @@
                 BorderBrush="Transparent"
                 BorderThickness="0"
                 Margin="0, 0, 0, -16">
-            <ScrollViewer Background="Transparent" VerticalScrollBarVisibility="Auto">
-                <ItemsControl
-                    x:Name="ModListGalleryControl"
-                    HorizontalAlignment="Center"
-                    ScrollViewer.VerticalScrollBarVisibility="Visible">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <local:ModListTileView ViewModel="{Binding}"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+            <ItemsControl
+                x:Name="ModListGalleryControl"
+                Background="Transparent"
+                ScrollViewer.CanContentScroll="True"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                VirtualizingPanel.IsVirtualizing="True"
+                VirtualizingPanel.ScrollUnit="Pixel">
+                <ItemsControl.Template>
+                    <ControlTemplate TargetType="ItemsControl">
+                        <ScrollViewer Focusable="False"
+                                      CanContentScroll="{TemplateBinding ScrollViewer.CanContentScroll}"
+                                      HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                      VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </ControlTemplate>
+                </ItemsControl.Template>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <vwp:VirtualizingWrapPanel SpacingMode="StartAndEndOnly" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <local:ModListTileView ViewModel="{Binding}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </Border>
         <mahapps:ProgressRing Grid.Column="1"
                               x:Name="LoadingRing"

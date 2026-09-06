@@ -435,6 +435,7 @@ public partial class App
         services.AddSingleton<CefService>();
         services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
         services.AddSingleton<ImageCacheManager>();
+        services.AddSingleton<GameIconCache>();
         services.AddSingleton<SystemParametersConstructor>();
         services.AddSingleton<LauncherUpdater>();
         services.AddSingleton<ResourceMonitor>();
