@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Networking.Http;
@@ -55,12 +56,12 @@ public static class HttpExtensions
         HttpRequestMessage msg,
         JsonSerializerOptions? options, CancellationToken cancellationToken = default)
     {
-        using var job = await limiter.Begin($"HTTP Get JSON {msg.RequestUri}", 0, cancellationToken);
-        using var response = await client.SendAsync(msg, cancellationToken);
+        using var job = await limiter.Begin($"HTTP Get JSON {msg.RequestUri}", 0, cancellationToken).ConfigureAwait(false);
+        using var response = await client.SendAsync(msg, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
             throw new HttpException(response);
 
-        await job.Report((int) response.Content.Headers.ContentLength!, cancellationToken);
-        return await response.Content.ReadFromJsonAsync<TValue>(options, cancellationToken);
+        await job.Report((int)(response.Content.Headers.ContentLength ?? 0), cancellationToken).ConfigureAwait(false);
+        return await response.Content.ReadFromJsonAsync<TValue>(options, cancellationToken).ConfigureAwait(false);
     }
 }

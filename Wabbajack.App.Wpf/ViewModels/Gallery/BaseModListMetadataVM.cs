@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Disposables;
@@ -10,13 +9,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
+
 using Wabbajack.Common;
 using Wabbajack.DTOs;
-using Wabbajack.DTOs.ModListValidation;
 using Wabbajack.Messages;
 using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
@@ -68,6 +69,9 @@ public partial class BaseModListMetadataVM : ViewModel
     protected ObservableAsPropertyHelper<bool> _LoadingImage { get; set; }
     public bool LoadingImage => _LoadingImage.Value;
 
+    protected ObservableAsPropertyHelper<BitmapImage> _GameIcon { get; set; }
+    public BitmapImage GameIcon => _GameIcon.Value;
+
     public ModListSummary? Summary { get; set; }
 
     protected Subject<bool> IsLoadingIdle;
@@ -79,7 +83,7 @@ public partial class BaseModListMetadataVM : ViewModel
     protected readonly ImageCacheManager _icm;
 
     public BaseModListMetadataVM(ILogger logger, ModlistMetadata metadata,
-        ModListDownloadMaintainer maintainer, ModListSummary? summary, Client wjClient, CancellationToken cancellationToken, HttpClient client, ImageCacheManager icm)
+        ModListDownloadMaintainer maintainer, ModListSummary? summary, Client wjClient, CancellationToken cancellationToken, HttpClient client, ImageCacheManager icm, GameIconCache gameIcons)
     {
         _logger = logger;
         _maintainer = maintainer;
@@ -90,7 +94,7 @@ public partial class BaseModListMetadataVM : ViewModel
 
         GameMetaData = Metadata.Game.MetaData();
         Location = LauncherUpdater.CommonFolder.Value.Combine("downloaded_mod_lists", Metadata.NamespacedName).WithExtension(Ext.Wabbajack);
-        
+
         UpdateStatus().FireAndForget();
 
         ModListTagList = Metadata.Tags?.Select(tag => new ModListTag(tag)).ToHashSet();
@@ -98,7 +102,7 @@ public partial class BaseModListMetadataVM : ViewModel
 
         DownloadSizeText = "Download size: " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
         InstallSizeText = "Installation size: " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
-        TotalSizeRequirementText =  "Total size requirement: " + UIUtils.FormatBytes( Metadata.DownloadMetadata.TotalSize );
+        TotalSizeRequirementText = "Total size requirement: " + UIUtils.FormatBytes(Metadata.DownloadMetadata.TotalSize);
         VersionText = "v" + Metadata.Version;
         ImageContainsTitle = Metadata.ImageContainsTitle;
         DisplayVersionOnlyInInstallerView = Metadata.DisplayVersionOnlyInInstallerView;
@@ -112,15 +116,17 @@ public partial class BaseModListMetadataVM : ViewModel
                 (ex) => _logger.LogError("Error downloading modlist image {Title} from {ImageUri}: {Exception}",
                     Metadata.Title, smallImageUri, ex.ToString()), LoadingImageLock, client, icm);
 
-            _Image = imageObs
-                .ToGuiProperty(this, nameof(Image))
-                .DisposeWith(CompositeDisposable);
+        _Image = imageObs
+            .ToGuiProperty(this, nameof(Image), deferSubscription: true)
+            .DisposeWith(CompositeDisposable);
 
-            _LoadingImage = imageObs
-                .Select(x => false)
-                .StartWith(true)
-                .ToGuiProperty(this, nameof(LoadingImage))
-                .DisposeWith(CompositeDisposable);
+        _LoadingImage = LoadingImageLock.WhenAnyValue(x => x.IsLoading)
+            .ToGuiProperty(this, nameof(LoadingImage))
+            .DisposeWith(CompositeDisposable);
+
+        _GameIcon = gameIcons.Get(GameMetaData.IconSource)
+            .ToGuiProperty(this, nameof(GameIcon))
+            .DisposeWith(CompositeDisposable);
 
         InstallCommand = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -137,7 +143,8 @@ public partial class BaseModListMetadataVM : ViewModel
             .CombineLatest(this.WhenAnyValue(vm => vm.IsBroken))
             .Select(v => !v.First && !v.Second));
 
-        DetailsCommand = ReactiveCommand.Create(() => {
+        DetailsCommand = ReactiveCommand.Create(() =>
+        {
             LoadModlistForDetails.Send(this);
             ShowFloatingWindow.Send(FloatingScreenType.ModListDetails);
         });
