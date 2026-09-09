@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - TBD - TBD
+* Fixed modlist images remaining stale due to not being picked up by the list validation actions
+
 #### Version - 4.2.3.0 - 09/09/2026
 * Added initial suppoprt for STALKER 2 ([@Fluffernuttersandwich](https://github.com/Fluffernuttersandwich)) PR #2963
   * This doesn't support Gallery Releases yet, due to some external issues.
