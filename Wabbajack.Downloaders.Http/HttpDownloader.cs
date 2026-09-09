@@ -108,6 +108,10 @@ public class HttpDownloader : ADownloader<DTOs.DownloadStates.Http>, IUrlDownloa
         var response = await GetResponse(archiveState, token);
         if (!response.IsSuccessStatusCode) return false;
 
+        var mediaType = response.Content.Headers.ContentType?.MediaType;
+        if (mediaType != null && (mediaType.StartsWith("text/") || mediaType == "application/xhtml+xml"))
+            return false;
+
         var headerVar = archive.Size == 0 ? "1" : archive.Size.ToString();
         ulong headerContentSize = 0;
         if (response.Content.Headers.Contains("Content-Length"))
@@ -117,6 +121,11 @@ public class HttpDownloader : ADownloader<DTOs.DownloadStates.Http>, IUrlDownloa
                 if (!ulong.TryParse(headerVar, out headerContentSize))
                     return true;
         }
+        else if (response.RequestMessage?.RequestUri != null &&
+                 !SameRegistrableDomain(archiveState.Url.Host, response.RequestMessage.RequestUri.Host))
+        {
+            return false;
+        }
 
         job.Size = 1024;
         await job.Report(1024, token);
@@ -125,6 +134,17 @@ public class HttpDownloader : ADownloader<DTOs.DownloadStates.Http>, IUrlDownloa
         if (archive.Size != 0 && headerContentSize != 0)
             return archive.Size == (long) headerContentSize;
         return true;
+    }
+
+    private static bool SameRegistrableDomain(string a, string b)
+    {
+        return RegistrableDomain(a).Equals(RegistrableDomain(b), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string RegistrableDomain(string host)
+    {
+        var parts = host.Split('.');
+        return parts.Length <= 2 ? host : string.Join('.', parts[^2..]);
     }
 
     public override IEnumerable<string> MetaIni(Archive a, DTOs.DownloadStates.Http state)
