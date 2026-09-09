@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 4.2.3.0 - 09/09/2026
+* Added initial suppoprt for STALKER 2 ([@Fluffernuttersandwich](https://github.com/Fluffernuttersandwich)) PR #2963
+  * This doesn't support Gallery Releases yet, due to some external issues.
+* Added Steam Build ID fallback for game version detection ([@Fluffernuttersandwich](https://github.com/Fluffernuttersandwich)) PR #2963
+* Fixed UI Freeze when opening the gallery ([@erdtreefaithful](https://github.com/erdtreefaithful)) #2964
+
 #### Version - 4.2.2.1 - 08/22/2026
 * Added mitigation and retry logic on failing delete attempts ([@EzioTheDeadPoet](https://github.com/EzioTheDeadPoet))
 * Added mitigation logic to BSA building temp file collisions ([@EzioTheDeadPoet](https://github.com/EzioTheDeadPoet))
