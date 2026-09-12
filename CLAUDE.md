@@ -87,8 +87,11 @@ callers the same temporary path.
 **Parallelism scales off `Environment.ProcessorCount`** with no memory awareness, so a high core count
 machine can start far more work than it has RAM or pagefile for.
 
-**`FileHashCache` keys on last-modified time**, so a file damaged without its timestamp changing still
-returns its old hash.
+**`FileHashCache` decides a stored hash is still valid from the file's timestamp and size**, without
+reading it. Damage that changes neither is still missed, which is the limit rather than an oversight:
+catching it would mean rereading every file on every run. Rows written before the size column existed hold
+NULL, are trusted as they always were, and gain a size the first time they are read, so no existing user is
+made to rehash a downloads folder.
 
 ## Testing
 
