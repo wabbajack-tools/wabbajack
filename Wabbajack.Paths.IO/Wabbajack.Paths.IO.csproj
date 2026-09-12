@@ -14,7 +14,6 @@
 
     <ItemGroup>
       <PackageReference Include="SharpCompress" />
-      <PackageReference Include="shortid" />
       <PackageReference Include="SixLabors.ImageSharp" />
       <PackageReference Include="System.Drawing.Common" />
     </ItemGroup>

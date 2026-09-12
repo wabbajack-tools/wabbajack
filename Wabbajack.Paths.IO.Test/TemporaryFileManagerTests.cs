@@ -56,20 +56,27 @@ public class TemporaryFileManagerTests
         newFile.Dispose();
     }
 
+    /// <summary>
+    ///     Handing the same path to two concurrent callers lets them overwrite each other's data. The count is
+    ///     high enough that a generator which repeats occasionally fails here every run rather than one run in
+    ///     three; see <see cref="RandomNameTests.Next_ProducesUniqueNamesUnderConcurrency" />.
+    /// </summary>
     [Fact]
     public void CreateFile_ConcurrentAccess_ProducesUniquePaths()
     {
+        const int count = 2000;
+
         var tempFolder = KnownFolders.EntryPoint.Combine(Guid.NewGuid().ToString());
         using var manager = new TemporaryFileManager(tempFolder);
 
         var bag = new ConcurrentBag<TemporaryPath>();
-        Parallel.For(0, 200, _ =>
+        Parallel.For(0, count, _ =>
         {
             bag.Add(manager.CreateFile());
         });
 
         var distinctCount = bag.Select(p => p.Path).Distinct().Count();
-        Assert.Equal(200, distinctCount);
+        Assert.Equal(count, distinctCount);
 
         foreach (var p in bag)
         {

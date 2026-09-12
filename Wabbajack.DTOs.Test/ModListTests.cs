@@ -50,6 +50,7 @@ public class ModListTests
     }
 
     [Theory]
+    [Trait("Category", "RequiresNetwork")]
     [InlineData("https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json")]
     public async Task CanLoadModListMetadata(string uri)
     {
@@ -60,6 +61,7 @@ public class ModListTests
     }
 
     [Theory]
+    [Trait("Category", "RequiresNetwork")]
     [InlineData("https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml")]
     public async Task CanLoadAllowList(string uri)
     {
