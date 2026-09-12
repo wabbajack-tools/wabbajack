@@ -2,17 +2,12 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using shortid;
 namespace Wabbajack.Paths.IO;
 
 public class TemporaryFileManager : IDisposable, IAsyncDisposable
 {
     private readonly AbsolutePath _basePath;
     private readonly bool _deleteOnDispose;
-    private ShortIdOptions _options = new(
-        useNumbers: true,
-        useSpecialCharacters: false,
-        length: 16);
 
     public TemporaryFileManager() : this(KnownFolders.EntryPoint.Combine("temp"))
     {
@@ -72,7 +67,7 @@ public class TemporaryFileManager : IDisposable, IAsyncDisposable
         do
         {
             var basePathCopy = _basePath;
-            path = basePathCopy.Combine(ShortId.Generate(_options));
+            path = basePathCopy.Combine(RandomName.Next());
             if (ext != default)
                 path = path.WithExtension(ext);
         } while (path.FileExists() || path.DirectoryExists());
@@ -88,7 +83,7 @@ public class TemporaryFileManager : IDisposable, IAsyncDisposable
         do
         {
             var basePathCopy = _basePath;
-            path = basePathCopy.Combine(ShortId.Generate(_options));
+            path = basePathCopy.Combine(RandomName.Next());
         } while (path.FileExists() || path.DirectoryExists());
 
         path.CreateDirectory();

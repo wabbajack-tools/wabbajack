@@ -34,7 +34,6 @@ using Wabbajack.Services.OSIntegrated.TokenProviders;
 using Wabbajack.VFS;
 using Wabbajack.VFS.Interfaces;
 using Client = Wabbajack.Networking.WabbajackClientApi.Client;
-using shortid;
 
 namespace Wabbajack.Services.OSIntegrated;
 
@@ -55,14 +54,9 @@ public static class ServiceExtensions
         var options = new OSIntegratedOptions();
         cfn?.Invoke(options);
         
-        ShortIdOptions shortIdOptions = new(
-            useNumbers: true, 
-            useSpecialCharacters:false, 
-            length: 8);
-
         var tempBase = KnownFolders.EntryPoint.Combine("temp");
         service.AddTransient(s =>
-            new TemporaryFileManager(tempBase.Combine(Environment.ProcessId + "_" + ShortId.Generate(shortIdOptions))));
+            new TemporaryFileManager(tempBase.Combine(Environment.ProcessId + "_" + RandomName.Next(8))));
 
         Task.Run(() => CleanAllTempData(tempBase));
 
