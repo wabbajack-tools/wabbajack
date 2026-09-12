@@ -31,7 +31,7 @@
     <PackageVersion Include="GameFinder.StoreHandlers.Steam" Version="4.9.0" />
     <PackageVersion Include="Genbox.AlphaFS" Version="2.2.2.1" />
     <PackageVersion Include="GitInfo" Version="3.6.1" />
-    <PackageVersion Include="HtmlAgilityPack" Version="1.12.4" />
+    <PackageVersion Include="HtmlAgilityPack" Version="1.13.0" />
     <PackageVersion Include="Humanizer" Version="3.0.10" />
     <PackageVersion Include="ini-parser-netstandard" Version="2.5.3" />
     <PackageVersion Include="JetBrains.Annotations" Version="2026.2.0" />
