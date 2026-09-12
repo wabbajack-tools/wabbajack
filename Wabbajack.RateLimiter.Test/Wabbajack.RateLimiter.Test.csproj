@@ -29,6 +29,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
         <ProjectReference Include="..\Wabbajack.RateLimiter\Wabbajack.RateLimiter.csproj" />
     </ItemGroup>
 

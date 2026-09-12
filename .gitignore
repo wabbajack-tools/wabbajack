@@ -487,3 +487,6 @@ $RECYCLE.BIN/
 
 /VERSION.txt
 *.opencover.xml
+
+# Claude Code agent worktrees
+.claude/worktrees/
