@@ -6,6 +6,9 @@ updates:
     interval: daily
   open-pull-requests-limit: 10
   ignore:
+  # Never update. 8.0 moved from Apache 2.0 to a paid Xceed licence, and we are staying on the last
+  # Apache-licensed release. No version key, so every update is ignored rather than a listed few.
+  - dependency-name: FluentAssertions
   - dependency-name: ReactiveUI.Fody
     versions:
     - "> 10.5.30, < 10.6"
