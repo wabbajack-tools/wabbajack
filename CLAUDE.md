@@ -51,6 +51,9 @@ Projects are small and single-purpose. The name says what is inside.
 
 Packages are pinned centrally in `Directory.Packages.props`. A `<PackageReference>` carries no version.
 
+**FluentAssertions stays on 7.2.2 permanently.** 8.0 left Apache 2.0 for a paid Xceed licence. Do not
+upgrade it, and do not add it to a project that does not already use it.
+
 Logs are written to a `logs` folder next to the executable, configured in `App.xaml.cs`.
 
 ## Conventions
