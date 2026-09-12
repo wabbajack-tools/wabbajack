@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -42,7 +41,6 @@ public abstract class AInstaller<T>
 {
     private const int _limitMS = 100;
 
-    private static readonly Regex NoDeleteRegex = new(@"(?i)[\\\/]\[NoDelete\]", RegexOptions.Compiled);
 
     protected readonly InstallerConfiguration _configuration;
     protected readonly DownloadDispatcher _downloadDispatcher;
@@ -558,38 +556,15 @@ public abstract class AInstaller<T>
             }).ToDictionary(d => d.To);
 
 
-        var profileFolder = _configuration.Install.Combine("profiles");
-        var savePath = (RelativePath) "saves";
-
         // Phase 1: Enumerate files that would be deleted (non-destructive)
         NextStep(Consts.StepPreparing, "Looking for files to delete", 0);
         var filesToDelete = new List<AbsolutePath>();
         await _configuration.Install.EnumerateFiles()
             .PMapAllBatched(_limiter, f =>
-            {
-                var relativeTo = f.RelativeTo(_configuration.Install);
-                if (indexed.ContainsKey(relativeTo) || f.InFolder(_configuration.Downloads))
-                    return (AbsolutePath?)null;
-
-                if (f == _configuration.ModlistArchive)
-                    return null;
-
-                if (f.InFolder(profileFolder) 
-                    && f.ThisAndAllParents()
-                        .Where(path => path.Depth > profileFolder.Depth+1)
-                        .ToArray()
-                        .Any(path => path.Parent.FileName == savePath))
-                    return null;
-                
-                var fNoSpaces = new string(f.ToString().Where(c => !Char.IsWhiteSpace(c)).ToArray());
-                if (NoDeleteRegex.IsMatch(fNoSpaces))
-                    return null;
-
-                if (bsaPathsToNotBuild.Contains(f))
-                    return null;
-
-                return (AbsolutePath?)f;
-            })
+                FileDeletionRules.ShouldDeleteExistingFile(f, _configuration.Install, _configuration.Downloads,
+                    _configuration.ModlistArchive, indexed.ContainsKey, bsaPathsToNotBuild)
+                    ? (AbsolutePath?) f
+                    : null)
             .Do(f =>
             {
                 if (f.HasValue)
