@@ -17,6 +17,8 @@ using Xunit;
 
 namespace Wabbajack.Compiler.Test;
 
+// Test fixtures are downloaded from authored-files.wabbajack.org, so the whole class needs network.
+[Trait("Category", "RequiresNetwork")]
 public class CompilerSanityTests : IAsyncLifetime
 {
     private readonly FileExtractor.FileExtractor _fileExtractor;
