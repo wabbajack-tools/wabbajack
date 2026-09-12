@@ -21,16 +21,19 @@ public class CorruptArchiveReportingTests : IDisposable
     private readonly TemporaryFileManager _manager;
     private readonly AbsolutePath _testDir;
 
-    public CorruptArchiveReportingTests(Context context, TemporaryFileManager manager)
+    public CorruptArchiveReportingTests(Context context)
     {
-        _context = context;
-        _manager = manager;
+        // Context and TemporaryFileManager are singletons, AddRoot replaces Context.Index, and disposing the
+        // shared manager deletes the folder every other class is working in. Test classes run in parallel,
+        // so this owns both: its own temporary root, and its own Context over that root.
+        _manager = new TemporaryFileManager(KnownFolders.EntryPoint.Combine(Guid.NewGuid().ToString()));
+        _context = context.WithTemporaryFileManager(_manager);
         _testDir = _manager.CreateFolder();
     }
 
     public void Dispose()
     {
-        _manager?.Dispose();
+        _manager.Dispose();
     }
 
     private async Task<AbsolutePath> MakeZip(string name, string content)

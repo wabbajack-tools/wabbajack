@@ -18,13 +18,20 @@ namespace Wabbajack.VFS.Test;
 ///     untouched, because invalidating them would make every existing user rehash a downloads folder that is
 ///     often hundreds of gigabytes on a slow disk.
 /// </summary>
-public class FileHashCacheSizeTests
+public class FileHashCacheSizeTests : IDisposable
 {
     private readonly TemporaryFileManager _manager;
 
-    public FileHashCacheSizeTests(TemporaryFileManager manager)
+    public FileHashCacheSizeTests()
     {
-        _manager = manager;
+        // Its own temporary root: the registered TemporaryFileManager is a singleton that another test class
+        // disposes, which would delete these files partway through.
+        _manager = new TemporaryFileManager(KnownFolders.EntryPoint.Combine(Guid.NewGuid().ToString()));
+    }
+
+    public void Dispose()
+    {
+        _manager.Dispose();
     }
 
     private FileHashCache NewCache(AbsolutePath location)
