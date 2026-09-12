@@ -220,9 +220,15 @@ public class FileExtractor
 
         var results = new Dictionary<RelativePath, T>();
 
-        omod.ExtractFilesParallel(dest.Path.ToString(), 4, cancellationToken: token);
-        if (omod.HasEntryFile(OMODEntryFileType.PluginsCRC))
-            omod.ExtractFiles(false, dest.Path.ToString());
+        // ExtractFilesParallel runs its own threads, so it is held under the limiter rather than left to run
+        // once per concurrent OMOD. Released before the mapfn loop below, which can recurse into
+        // GatheringExtract for a nested archive.
+        using (var job = await _limiter.Begin($"Extracting {tmpFile.Path.FileName}", 0, token))
+        {
+            omod.ExtractFilesParallel(dest.Path.ToString(), 4, cancellationToken: token);
+            if (omod.HasEntryFile(OMODEntryFileType.PluginsCRC))
+                omod.ExtractFiles(false, dest.Path.ToString());
+        }
 
         var files = omod.GetDataFiles();
         if (omod.HasEntryFile(OMODEntryFileType.PluginsCRC))
@@ -256,7 +262,16 @@ public class FileExtractor
             if (!shouldExtract(entry.Path))
                 continue;
 
-            var result = await mapFn(entry.Path, new ExtractedMemoryFile(await entry.GetStreamFactory(token)));
+            // GetStreamFactory reads the whole entry into memory, so it is held under the limiter to bound
+            // how many entries are materialized at once. The job is released before mapFn, which can recurse
+            // into GatheringExtract for a nested archive and would otherwise deadlock on this same resource.
+            IStreamFactory entryStream;
+            using (var job = await _limiter.Begin($"Extracting {entry.Path}", 0, token))
+            {
+                entryStream = await entry.GetStreamFactory(token);
+            }
+
+            var result = await mapFn(entry.Path, new ExtractedMemoryFile(entryStream));
             results.Add(entry.Path, result);
         }
         
