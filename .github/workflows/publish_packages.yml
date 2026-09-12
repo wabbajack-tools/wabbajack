@@ -23,7 +23,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Get App Version from CHANGELOG.md
         shell: bash
@@ -60,7 +60,16 @@ jobs:
     name: Publish Projects
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' }}
+
+    # Trusted publishing exchanges a GitHub OIDC token for a short lived nuget.org key. Without this the
+    # token request fails quietly and the login step has nothing to hand to the push.
+    permissions:
+      id-token: write
+      contents: read
+
     strategy:
+      # One package failing should not cancel the other thirty seven.
+      fail-fast: false
       matrix:
         project:
           - Wabbajack.Common
@@ -104,7 +113,7 @@ jobs:
           
     needs: build
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
@@ -125,6 +134,15 @@ jobs:
         run: dotnet build ${{ matrix.project }}/${{ matrix.project }}.csproj --no-restore --configuration Release
       - name: Pack
         run: dotnet pack ${{ matrix.project }}/${{ matrix.project }}.csproj --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg -o .
+
+      # Requested here rather than earlier in the job because the key nuget.org hands back is only
+      # valid for an hour.
+      - name: Get a short lived NuGet API key
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          user: halgari
+
       - name: Publish
-        run: dotnet nuget push *.nupkg --api-key ${{secrets.NUGET_KEY}} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+        run: dotnet nuget push *.nupkg --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
     
