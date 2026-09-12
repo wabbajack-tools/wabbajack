@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -144,25 +145,51 @@ public class Context
                     await using var stream = await sfn.GetStream();
                     var hash = await stream.HashingCopy(Stream.Null, token);
                     if (hash != file.Hash)
-                        throw new Exception(
-                            $"File {file.FullPath} is corrupt, please delete it and retry the installation, {ex.Message}", ex);
+                    {
+                        // The failure may be several archives deep, but what the user has to act on is the
+                        // downloaded archive at the root of the nesting.
+                        var rootArchive = file.FilesInFullPath.First().AbsoluteName;
+                        throw new CorruptArchiveException(rootArchive, file.FullPath.ToString(), ex);
+                    }
+
                     throw;
                 }
             }
         }
 
+        // Every archive is visited either way, so failures are collected rather than letting the first one
+        // decide what the caller hears about. A user with several damaged archives would otherwise be sent
+        // round the download-and-retry loop once per file.
+        var failures = new ConcurrentBag<Exception>();
+
+        async Task HandleTopLevelFile(VirtualFile file)
+        {
+            try
+            {
+                await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName) {CanMove = false});
+            }
+            catch (Exception ex)
+            {
+                failures.Add(ex);
+            }
+        }
+
         if (runInParallel)
         {
-            await filesByParent[top].PDoAll(
-                async file => await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName) {CanMove = false}));
+            await filesByParent[top].PDoAll(HandleTopLevelFile);
         }
         else
         {
             foreach (var file in filesByParent[top])
             {
-                await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName) {CanMove = false});
+                await HandleTopLevelFile(file);
             }
         }
+
+        if (token.IsCancellationRequested) return;
+
+        if (!failures.IsEmpty)
+            throw new ExtractionFailedException(failures.ToArray());
     }
 
     #region KnownFiles
