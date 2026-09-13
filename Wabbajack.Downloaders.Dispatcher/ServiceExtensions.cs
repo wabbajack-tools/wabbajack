@@ -6,6 +6,7 @@ using Wabbajack.Downloaders.Http;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.Downloaders.IPS4OAuth2Downloader;
 using Wabbajack.Downloaders.Manual;
+using Wabbajack.Downloaders.ManualSources;
 using Wabbajack.Downloaders.MediaFire;
 using Wabbajack.Downloaders.ModDB;
 using Wabbajack.Downloaders.VerificationCache;
@@ -35,7 +36,8 @@ public static class ServiceExtensions
                 .AddGameFileDownloader()
                 .AddBethesdaDownloader()
                 .AddWabbajackClient()
-                .AddManualDownloader();
+                .AddManualDownloader()
+                .AddManualSourceDownloaders();
         }
         else
         {
@@ -48,7 +50,8 @@ public static class ServiceExtensions
                 .AddMediaFireDownloader()
                 .AddModDBDownloader()
                 .AddWabbajackCDNDownloader()
-                .AddWabbajackClient();
+                .AddWabbajackClient()
+                .AddManualSourceDownloaders();
         }
 
         services.AddSingleton(s =>
