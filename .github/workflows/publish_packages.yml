@@ -68,7 +68,7 @@ jobs:
       contents: read
 
     strategy:
-      # One package failing should not cancel the other thirty seven.
+      # One package failing should not cancel the other thirty.
       fail-fast: false
       matrix:
         project:
@@ -77,17 +77,11 @@ jobs:
           - Wabbajack.Compression.BSA
           - Wabbajack.Compression.Zip
           - Wabbajack.Configuration
-          - Wabbajack.Downloaders.Bethesda
           - Wabbajack.Downloaders.Dispatcher
           - Wabbajack.Downloaders.GameFile
-          - Wabbajack.Downloaders.GoogleDrive
           - Wabbajack.Downloaders.Http
           - Wabbajack.Downloaders.Interfaces
-          - Wabbajack.Downloaders.IPS4OAuth2Downloader
-          - Wabbajack.Downloaders.Manual
-          - Wabbajack.Downloaders.MediaFire
-          - Wabbajack.Downloaders.Mega
-          - Wabbajack.Downloaders.ModDB
+          - Wabbajack.Downloaders.ManualSources
           - Wabbajack.Downloaders.Nexus
           - Wabbajack.Downloaders.VerificationCache
           - Wabbajack.Downloaders.WabbajackCDN
@@ -97,7 +91,6 @@ jobs:
           - Wabbajack.Hashing.xxHash64
           - Wabbajack.Installer
           - Wabbajack.IO.Async
-          - Wabbajack.Networking.BethesdaNet
           - Wabbajack.Networking.Discord
           - Wabbajack.Networking.GitHub
           - Wabbajack.Networking.Http

@@ -78,9 +78,6 @@ updates:
     versions:
     - 0.23.0
     - 0.24.0
-  - dependency-name: MegaApiClient
-    versions:
-    - 1.9.0
   - dependency-name: ReactiveUI
     versions:
     - 13.1.1
