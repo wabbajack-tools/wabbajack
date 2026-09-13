@@ -174,7 +174,9 @@ public class ManualDownloadsCheckTests : IDisposable
 
         var runner = new PreflightRunner(new IPreflightCheck[]
         {
-            new FakeCheck(PreflightCheckIds.AutomatedDownloads, 600), _check
+            new FakeCheck(PreflightCheckIds.NexusLogin, 100),
+            new FakeCheck(PreflightCheckIds.ArchiveInventory, 400),
+            new FakeCheck(PreflightCheckIds.UnsupportedArchives, 500), _check
         }, ctx);
         var events = new List<PreflightEvent>();
         runner.Changed += e =>
