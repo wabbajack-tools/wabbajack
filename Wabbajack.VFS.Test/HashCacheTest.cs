@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Hashing.xxHash64;
@@ -6,15 +7,22 @@ using Xunit;
 
 namespace Wabbajack.VFS.Test;
 
-public class HashCacheTest
+public class HashCacheTest : IDisposable
 {
     private readonly FileHashCache _cache;
     private readonly TemporaryFileManager _manager;
 
-    public HashCacheTest(FileHashCache cache, TemporaryFileManager manager)
+    public HashCacheTest(FileHashCache cache)
     {
         _cache = cache;
-        _manager = manager;
+        // Its own temporary root: the registered TemporaryFileManager is a singleton, and another class
+        // disposing it would delete the file this test is hashing.
+        _manager = new TemporaryFileManager(KnownFolders.EntryPoint.Combine(Guid.NewGuid().ToString()));
+    }
+
+    public void Dispose()
+    {
+        _manager.Dispose();
     }
 
 

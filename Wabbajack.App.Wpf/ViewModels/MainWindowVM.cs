@@ -467,12 +467,15 @@ public partial class MainWindowVM : ViewModel
         var endTime = DateTime.Now.Add(timeout);
         var cancellationTokenSource = _serviceProvider.GetRequiredService<CancellationTokenSource>();
         cancellationTokenSource.Cancel();
+        InstallerVM.CancelPreflightForShutdown();
 
-        bool IsInstalling() => InstallerVM.InstallState is InstallState.Installing;
+        bool IsInstalling() => InstallerVM.InstallState is InstallState.Installing or InstallState.Preflight;
 
+        // Polled often enough that a preflight, which usually has nothing left to unwind, does not hold the
+        // process open for a whole tick after the window has gone.
         while (DateTime.Now < endTime && IsInstalling())
         {
-            Thread.Sleep(TimeSpan.FromSeconds(1));
+            Thread.Sleep(TimeSpan.FromMilliseconds(100));
         }
     }
 
