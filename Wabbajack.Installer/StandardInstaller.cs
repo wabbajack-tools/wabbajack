@@ -47,7 +47,12 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         base(logger, config, gameLocator, extractor, jsonSerializer, vfs, fileHashCache, downloadDispatcher,
             parallelOptions, limiter, wjClient, imageLoader)
     {
-        MaxSteps = 14;
+        // One per NextStep call a full Begin makes: Configuring Installer, then OptimizeModlist's
+        // Looking for files to delete / Deleting outdated files (only when there are any) / Cleaning
+        // empty folders / Looking for unmodified files / Updating ModList, then Hashing Archives,
+        // Extracting Modlist, Priming VFS, Building Folder Structure, Installing files, Installing
+        // Included Files, Building BSAs, Generating ZEdit Merges and Finished.
+        MaxSteps = 15;
     }
 
     public static StandardInstaller Create(IServiceProvider provider, InstallerConfiguration configuration)
@@ -119,15 +124,10 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         await HashArchives(token);
         if (token.IsCancellationRequested) return InstallResult.Cancelled;
 
-        await DownloadArchives(token);
-        if (token.IsCancellationRequested) return InstallResult.Cancelled;
-
-        await HashArchives(token);
-        if (token.IsCancellationRequested) return InstallResult.Cancelled;
-
         var missing = ModList.Archives.Where(a => !HashedArchives.ContainsKey(a.Hash)).ToList();
         if (missing.Count > 0)
         {
+            _logger.LogCritical("The installer no longer downloads; preflight should have provided every archive before the install started");
             foreach (var a in missing)
                 _logger.LogCritical("Unable to download {name} ({primaryKeyString})", a.Name,
                     a.State.PrimaryKeyString);

@@ -60,6 +60,15 @@ public sealed class PreflightActionDispatcher
                     await _runner.RunAll(token);
                 break;
 
+            case "download-by-hand":
+                // An automated download can still turn out to need a browser, which puts an archive back in
+                // the manual queue after that check has already passed. The action belongs to whichever check
+                // discovered it, so this one names the check it sends the user back to.
+                var manual = await _runner.RunCheck(PreflightCheckIds.ManualDownloads, token);
+                if (manual.State is PreflightState.Passed or PreflightState.Warning)
+                    await _runner.RunAll(token);
+                break;
+
             case "continue-anyway":
                 _runner.Acknowledge(checkId);
                 if (_runner.Checks.Any(c => c.State == PreflightState.Pending))

@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Builder;
 using Wabbajack.Downloaders;
-using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;
@@ -27,10 +26,9 @@ public class Install
     private readonly IServiceProvider _serviceProvider;
     private readonly DTOSerializer _dtos;
     private readonly FileHashCache _cache;
-    private readonly IGameLocator _gameLocator;
 
     public Install(ILogger<Install> logger, Client wjClient, DownloadDispatcher dispatcher, DTOSerializer dtos, 
-        FileHashCache cache, IGameLocator gameLocator, IServiceProvider serviceProvider)
+        FileHashCache cache, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _wjClient = wjClient;
@@ -38,7 +36,6 @@ public class Install
         _dtos = dtos;
         _serviceProvider = serviceProvider;
         _cache = cache;
-        _gameLocator = gameLocator;
     }
 
     public static VerbDefinition Definition = new VerbDefinition("install", "Installs a wabbajack file", new[]
@@ -59,19 +56,17 @@ public class Install
 
         var modlist = await StandardInstaller.LoadFromFile(_dtos, wabbajack);
 
-        var installer = StandardInstaller.Create(_serviceProvider, new InstallerConfiguration
+        // GameFolder is left unset: the game-installed preflight check locates it and reports clearly
+        // when it cannot, rather than the locator throwing here.
+        return await PreflightInstall.Run(_serviceProvider, new InstallerConfiguration
         {
             Downloads = downloads,
             Install = output,
             ModList = modlist,
             Game = modlist.GameType,
             ModlistArchive = wabbajack,
-            GameFolder = _gameLocator.GameLocation(modlist.GameType)
-        });
-
-        var result = await installer.Begin(token);
-
-        return result == InstallResult.Succeeded ? 0 : 2;
+            GameFolder = default
+        }, _logger, token);
     }
 
     private async Task<bool> DownloadMachineUrl(string machineUrl, AbsolutePath wabbajack, CancellationToken token)

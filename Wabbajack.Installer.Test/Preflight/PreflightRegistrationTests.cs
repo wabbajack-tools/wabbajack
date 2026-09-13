@@ -35,7 +35,7 @@ public class PreflightRegistrationTests : IDisposable
         {
             PreflightCheckIds.NexusLogin, PreflightCheckIds.GameInstalled, PreflightCheckIds.GameFiles,
             PreflightCheckIds.ArchiveInventory, PreflightCheckIds.UnsupportedArchives,
-            PreflightCheckIds.AutomatedDownloads, PreflightCheckIds.ManualDownloads, PreflightCheckIds.DiskSpace
+            PreflightCheckIds.ManualDownloads, PreflightCheckIds.AutomatedDownloads, PreflightCheckIds.DiskSpace
         }, ids);
     }
 
