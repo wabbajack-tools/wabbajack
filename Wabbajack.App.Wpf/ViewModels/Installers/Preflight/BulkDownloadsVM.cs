@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
@@ -14,9 +16,12 @@ using Wabbajack.Installer.Preflight;
 namespace Wabbajack;
 
 /// <summary>
-///     Every archive the runner has reported on, as a sorted, virtualizable list. Archive events arrive from
-///     download threads by the thousand; they are batched and applied as one cache edit per batch on the UI
-///     thread, and each row keeps its instance for its whole life so the list only re-sorts on a state change.
+///     Every archive the runner has reported on, as a sorted, virtualizable list collapsed into three bands:
+///     what is done, what is being fetched now, and what is still to come. Only the current band is listed
+///     item by item; the other two stand as a count and a total until the user opens them, which is what keeps
+///     a thousand finished rows out of the way. Archive events arrive from download threads by the thousand;
+///     they are batched and applied as one cache edit per batch on the UI thread, and each row keeps its
+///     instance for its whole life so the list only re-sorts on a state change.
 /// </summary>
 public partial class BulkDownloadsVM : ViewModel
 {
@@ -30,25 +35,70 @@ public partial class BulkDownloadsVM : ViewModel
     });
 
     private readonly SourceCache<ArchiveStatus, string> _archives = new(s => s.Archive.Name);
-    private readonly ReadOnlyObservableCollection<ArchiveRowVM> _rows;
+
+    /// <summary>The bands, in the order they are shown; the index into this is the index into everything else.</summary>
+    private readonly ArchiveGroupVM[] _groups =
+    {
+        new(ArchiveGroup.Done, "Done", false),
+        new(ArchiveGroup.Current, "Current", true),
+        new(ArchiveGroup.Remaining, "Remaining", false)
+    };
+
+    private readonly ReadOnlyObservableCollection<ArchiveRowVM>[] _groupRows;
+
+    /// <summary>
+    ///     What the list binds to: the three headers with the rows of each opened band spliced in after it.
+    ///     Kept in step with the band collections one change at a time, so opening a band is the only thing
+    ///     that resets the list, and virtualization sees a plain flat list either way.
+    /// </summary>
+    private readonly ObservableCollectionExtended<object> _items = new();
 
     public BulkDownloadsVM(PreflightRunner runner, IObservable<ArchiveStatus> changes, IObservable<string> downloadSpeed)
     {
         FooterText = string.Empty;
+        Items = new ReadOnlyObservableCollection<object>(_items);
 
-        _archives.Connect()
+        var rows = _archives.Connect()
             .TransformWithInlineUpdate(status =>
             {
                 var row = new ArchiveRowVM(status.Archive, status.Target);
                 row.Apply(status);
                 return row;
             }, (row, status) => row.Apply(status))
-            .SortAndBind(out _rows, BucketThenName)
-            .Subscribe()
-            .DisposeWith(CompositeDisposable);
+            .Publish();
+
+        _groupRows = new ReadOnlyObservableCollection<ArchiveRowVM>[_groups.Length];
+        for (var i = 0; i < _groups.Length; i++)
+        {
+            var group = _groups[i].Group;
+            rows.Filter(row => row.Group == group)
+                .SortAndBind(out var bound, BucketThenName)
+                .Subscribe()
+                .DisposeWith(CompositeDisposable);
+            _groupRows[i] = bound;
+        }
+
+        rows.Connect().DisposeWith(CompositeDisposable);
 
         // Whatever the runner already knows goes in as a single changeset.
         _archives.Edit(cache => cache.AddOrUpdate(runner.Archives.Values));
+
+        Rebuild();
+
+        for (var i = 0; i < _groups.Length; i++)
+        {
+            var index = i;
+            NotifyCollectionChangedEventHandler handler = (_, e) => OnGroupChanged(index, e);
+            ((INotifyCollectionChanged) _groupRows[index]).CollectionChanged += handler;
+            Disposable.Create(() => ((INotifyCollectionChanged) _groupRows[index]).CollectionChanged -= handler)
+                .DisposeWith(CompositeDisposable);
+
+            _groups[index].WhenAnyValue(x => x.IsExpanded)
+                .Skip(1)
+                .ObserveOnGuiThread()
+                .Subscribe(_ => Rebuild())
+                .DisposeWith(CompositeDisposable);
+        }
 
         changes
             .Buffer(BatchWindow)
@@ -74,18 +124,22 @@ public partial class BulkDownloadsVM : ViewModel
         speed.Connect().DisposeWith(CompositeDisposable);
 
         // The footer walks every row, so it is sampled rather than driven by events, and only while shown.
+        // The band summaries ride the same tick for the same reason.
         this.WhenActivated(disposables =>
         {
             Observable.Interval(FooterTick)
                 .StartWith(0L)
                 .ObserveOnGuiThread()
                 .WithLatestFrom(speed, (_, s) => s)
-                .Subscribe(s => FooterText = Footer(s))
+                .Subscribe(s => FooterText = Summarize(s))
                 .DisposeWith(disposables);
         });
+
+        FooterText = Summarize(string.Empty);
     }
 
-    public ReadOnlyObservableCollection<ArchiveRowVM> Rows => _rows;
+    /// <summary>Band headers and the rows of whichever bands are open, in one list for one virtualized view.</summary>
+    public ReadOnlyObservableCollection<object> Items { get; }
 
     [Reactive] public partial string FooterText { get; set; }
 
@@ -94,27 +148,89 @@ public partial class BulkDownloadsVM : ViewModel
 
     public ReactiveCommand<Unit, Unit> StopDownloadsCommand { get; }
 
-    private string Footer(string speed)
+    /// <summary>The index in <see cref="_items" /> the rows of band <paramref name="group" /> start at.</summary>
+    private int RowStart(int group)
+    {
+        var start = group + 1;
+        for (var i = 0; i < group; i++)
+            if (_groups[i].IsExpanded)
+                start += _groupRows[i].Count;
+        return start;
+    }
+
+    private void Rebuild()
+    {
+        var flat = new List<object>();
+        for (var i = 0; i < _groups.Length; i++)
+        {
+            flat.Add(_groups[i]);
+            if (_groups[i].IsExpanded) flat.AddRange(_groupRows[i]);
+        }
+
+        _items.Load(flat);
+    }
+
+    /// <summary>
+    ///     Mirrors one band's change into the flat list. Bands ahead of this one are untouched by it, so their
+    ///     counts are already settled and the offset is exact; a closed band contributes nothing but its header.
+    /// </summary>
+    private void OnGroupChanged(int group, NotifyCollectionChangedEventArgs e)
+    {
+        if (!_groups[group].IsExpanded) return;
+
+        var start = RowStart(group);
+        switch (e.Action)
+        {
+            case NotifyCollectionChangedAction.Add when e.NewItems != null:
+                for (var i = 0; i < e.NewItems.Count; i++)
+                    _items.Insert(start + e.NewStartingIndex + i, e.NewItems[i]!);
+                break;
+            case NotifyCollectionChangedAction.Remove when e.OldItems != null:
+                for (var i = 0; i < e.OldItems.Count; i++)
+                    _items.RemoveAt(start + e.OldStartingIndex);
+                break;
+            case NotifyCollectionChangedAction.Move:
+                _items.Move(start + e.OldStartingIndex, start + e.NewStartingIndex);
+                break;
+            case NotifyCollectionChangedAction.Replace when e.NewItems != null:
+                for (var i = 0; i < e.NewItems.Count; i++)
+                    _items[start + e.NewStartingIndex + i] = e.NewItems[i]!;
+                break;
+            default:
+                Rebuild();
+                break;
+        }
+    }
+
+    /// <summary>Walks every row once, updating the three band summaries and returning the footer line.</summary>
+    private string Summarize(string speed)
     {
         var total = 0;
         var done = 0;
         long totalBytes = 0;
         long doneBytes = 0;
         var downloading = false;
-        foreach (var row in _rows)
+
+        for (var i = 0; i < _groups.Length; i++)
         {
-            total++;
-            totalBytes += row.Size;
-            if (row.IsDone)
+            var count = 0;
+            long bytes = 0;
+            foreach (var row in _groupRows[i])
             {
-                done++;
-                doneBytes += row.Size;
+                count++;
+                bytes += row.Size;
+                if (row.IsDone) doneBytes += row.Size;
+                else if (row.State == ArchiveState.Downloading)
+                {
+                    downloading = true;
+                    doneBytes += (long) (row.Progress * row.Size);
+                }
             }
-            else if (row.State == ArchiveState.Downloading)
-            {
-                downloading = true;
-                doneBytes += (long) (row.Progress * row.Size);
-            }
+
+            _groups[i].Summarize(count, bytes);
+            total += count;
+            totalBytes += bytes;
+            if (_groups[i].Group == ArchiveGroup.Done) done = count;
         }
 
         IsDownloading = downloading;

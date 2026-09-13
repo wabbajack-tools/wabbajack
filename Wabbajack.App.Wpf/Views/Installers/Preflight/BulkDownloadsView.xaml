@@ -36,12 +36,16 @@
                         BorderBrush="Transparent"
                         BorderThickness="0"
                         AlternationCount="2"
-                        ItemTemplate="{StaticResource ArchiveRowTemplate}"
                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                         ScrollViewer.CanContentScroll="True"
                         VirtualizingPanel.IsVirtualizing="True"
                         VirtualizingPanel.VirtualizationMode="Recycling"
                         VirtualizingPanel.ScrollUnit="Pixel">
+                        <ListBox.ItemTemplateSelector>
+                            <local:ArchiveListTemplateSelector
+                                RowTemplate="{StaticResource ArchiveRowTemplate}"
+                                GroupTemplate="{StaticResource ArchiveGroupHeaderTemplate}" />
+                        </ListBox.ItemTemplateSelector>
                         <ListBox.Resources>
                             <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource ListBoxItemStyle}">
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
