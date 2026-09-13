@@ -15,10 +15,10 @@ namespace Wabbajack.CLI.Verbs;
 
 public class ListModlists
 {
-    private readonly ILogger<ListCreationClubContent> _logger;
+    private readonly ILogger<ListModlists> _logger;
     private readonly Client _client;
 
-    public ListModlists(ILogger<ListCreationClubContent> logger, Client wjClient)
+    public ListModlists(ILogger<ListModlists> logger, Client wjClient)
     {
         _logger = logger;
         _client = wjClient;
