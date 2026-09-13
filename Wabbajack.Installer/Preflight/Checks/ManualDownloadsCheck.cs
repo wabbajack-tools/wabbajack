@@ -18,8 +18,11 @@ namespace Wabbajack.Installer.Preflight.Checks;
 ///     still outstanding. A host that cannot wait (the CLI) gets the list straight away.
 ///     <para>
 ///         Running first makes this the check that usually computes the run's <see cref="DownloadPlan" />,
-///         and the one that decides what the queue holds. automated-downloads reuses the plan and can push
-///         archives back into the queue afterwards; re-running this check works those too.
+///         and the one that decides what the queue holds. The queue this check works is therefore read
+///         after the plan and never before it: computing the plan is what puts things on it, and an archive
+///         the plan sends to the browser has to be worked by the check the user is looking at, not reported
+///         by the next one. automated-downloads reuses the plan and can push archives back into the queue
+///         afterwards; re-running this check works those too.
 ///     </para>
 /// </summary>
 public sealed class ManualDownloadsCheck : IPreflightCheck
@@ -35,6 +38,8 @@ public sealed class ManualDownloadsCheck : IPreflightCheck
 
     public async Task<PreflightResult> Run(PreflightContext ctx, IPreflightProgress progress, CancellationToken token)
     {
+        // The only shortcut past the plan: with nothing missing there is nothing to partition, so no split
+        // can add to the queue. Every other "nothing to do" answer has to wait until the plan exists.
         if (ctx.State.Missing.Count == 0 && ctx.State.ManualQueue.Count == 0)
             return PreflightResult.Passed("Nothing to download by hand");
 

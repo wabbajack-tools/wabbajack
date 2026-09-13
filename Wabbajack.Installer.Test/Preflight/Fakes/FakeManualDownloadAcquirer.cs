@@ -15,7 +15,8 @@ namespace Wabbajack.Installer.Test.Preflight.Fakes;
 
 /// <summary>
 ///     An acquirer whose outcome the test scripts: <see cref="Start" /> records what it was given and
-///     <see cref="Results" /> says what each item ended as. Completion is immediate.
+///     <see cref="Results" /> says what each item ended as. Completion is immediate unless
+///     <see cref="WhileWaiting" /> is set.
 /// </summary>
 public sealed class FakeManualDownloadAcquirer : IManualDownloadAcquirer
 {
@@ -29,6 +30,12 @@ public sealed class FakeManualDownloadAcquirer : IManualDownloadAcquirer
 
     public IReadOnlyList<Archive> Started => _started;
     public int StopCalls { get; private set; }
+
+    /// <summary>
+    ///     Stands in for the user taking their time: it runs inside <see cref="WaitForCompletion" />, so a
+    ///     test can look at what the rest of the run is doing while a check is waiting on the queue.
+    /// </summary>
+    public Func<CancellationToken, Task>? WhileWaiting { get; set; }
 
     public IObservable<ManualDownloadEvent> Events => _events.AsObservable();
     public IObservable<ManualDownloadNotice> Notices => _notices.AsObservable();
@@ -90,7 +97,7 @@ public sealed class FakeManualDownloadAcquirer : IManualDownloadAcquirer
 
     public Task WaitForCompletion(CancellationToken token)
     {
-        return Task.CompletedTask;
+        return WhileWaiting?.Invoke(token) ?? Task.CompletedTask;
     }
 
     public Task Stop()

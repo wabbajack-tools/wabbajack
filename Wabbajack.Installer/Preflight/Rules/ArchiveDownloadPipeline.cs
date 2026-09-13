@@ -66,6 +66,14 @@ public sealed class ArchiveDownloadPipeline
     public sealed record Outcome(IReadOnlyList<Archive> Downloaded, IReadOnlyList<ManualQueueItem> Manual,
         IReadOnlyList<(Archive Archive, string Reason)> Failed);
 
+    /// <summary>
+    ///     What survives <see cref="Screen" />. <see cref="Ready" /> is what <see cref="Download" /> is given;
+    ///     <see cref="Manual" /> is what the user has to fetch instead, and <see cref="Blocked" /> what
+    ///     neither can reach.
+    /// </summary>
+    public sealed record Screening(List<Archive> Ready, IReadOnlyList<ManualQueueItem> Manual,
+        IReadOnlyList<(Archive Archive, string Reason)> Blocked);
+
     /// <summary>Sources an automated downloader exists for, regardless of the account behind it.</summary>
     public static bool IsAutomatedType(IDownloadState state)
     {
@@ -183,14 +191,28 @@ public sealed class ArchiveDownloadPipeline
     }
 
     /// <summary>
-    ///     Downloads everything in <paramref name="automated" /> that the policy allows. Only cancellation
-    ///     propagates; every other problem lands in the outcome.
+    ///     Which of <paramref name="automated" /> an automated download could actually start with: the
+    ///     dispatcher has to have a downloader for it, that downloader has to prepare (an account with no
+    ///     usable login fails here), and the allow-list has to permit the URL. None of those depends on
+    ///     running a download, so they are answered while the split is being made rather than during the
+    ///     download pass, and what they rule out reaches the manual queue in time for the check that walks
+    ///     the user through it.
     /// </summary>
-    public async Task<Outcome> Download(IReadOnlyList<Archive> automated, DownloadPolicy policy, CancellationToken token)
+    public async Task<Screening> Screen(IReadOnlyList<Archive> automated, DownloadPolicy policy)
     {
-        var ready = await PrepareDownloaders(automated);
-        ready = ApplyAllowList(ready, policy.AllowList);
+        var ready = ApplyAllowList(await PrepareDownloaders(automated), policy.AllowList);
+        lock (_sync)
+        {
+            return new Screening(ready, _manual.ToList(), _failed.ToList());
+        }
+    }
 
+    /// <summary>
+    ///     Downloads everything <see cref="Screen" /> passed. Only cancellation propagates; every other
+    ///     problem lands in the outcome.
+    /// </summary>
+    public async Task<Outcome> Download(IReadOnlyList<Archive> ready, CancellationToken token)
+    {
         if (_ctx.Options.SendMetrics)
         {
             foreach (var group in ready.GroupBy(a => a.State.GetType()))

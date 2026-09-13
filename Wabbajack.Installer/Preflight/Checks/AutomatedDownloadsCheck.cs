@@ -19,7 +19,10 @@ namespace Wabbajack.Installer.Preflight.Checks;
 ///         does mean the queue manual-downloads already emptied has filled up again, though, so the check
 ///         ends needing the user, offering to send them back to manual-downloads. Nothing else would notice:
 ///         every other check has either run or does not care, and the run would otherwise be called ready
-///         with archives nobody has fetched.
+///         with archives nobody has fetched. That is for a download that only turns out to need a browser
+///         once it is running - a stall, a refusal, a page the downloader lands on. What was knowable before
+///         a byte moved, such as a source with no usable login, the plan's screening has already sent to
+///         manual-downloads.
 ///     </para>
 /// </summary>
 public sealed class AutomatedDownloadsCheck : IPreflightCheck
@@ -59,7 +62,7 @@ public sealed class AutomatedDownloadsCheck : IPreflightCheck
             .Where(a => !ctx.State.HashedArchives.ContainsKey(a.Name) && !queued.Contains(a.Name))
             .ToList();
 
-        var outcome = await new ArchiveDownloadPipeline(ctx, progress).Download(pending, plan.Policy, token);
+        var outcome = await new ArchiveDownloadPipeline(ctx, progress).Download(pending, token);
 
         if (outcome.Manual.Count > 0)
         {
@@ -77,6 +80,7 @@ public sealed class AutomatedDownloadsCheck : IPreflightCheck
               $"({manual.Sum(m => m.Archive.Size).ToFileSizeString()})";
 
         var failed = outcome.Failed
+            .Concat(plan.Blocked)
             .Concat(plan.Unsupported.Select(a => (Archive: a, Reason: "no downloader and no page to send you to")))
             .ToList();
         if (failed.Count > 0)

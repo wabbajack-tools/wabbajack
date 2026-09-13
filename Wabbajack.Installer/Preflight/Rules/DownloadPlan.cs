@@ -15,8 +15,15 @@ namespace Wabbajack.Installer.Preflight.Rules;
 ///     archive states it touches, the Nexus probe is a network call, and a second split under a different
 ///     answer would move archives between the two checks halfway through a run.
 ///     <para>
-///         Computing the plan also fills the manual queue with what the split sends to the browser, so the
-///         queue is right whichever check asked for the plan.
+///         The split by download state is only half the answer: an archive whose state is automated still
+///         needs a downloader that can be prepared and a URL the allow-list permits, and neither takes a
+///         download to establish. <see cref="ArchiveDownloadPipeline.Screen" /> settles both here, so an
+///         account the user has no usable login for sends its archives to the browser at plan time instead
+///         of part-way through the automated pass.
+///     </para>
+///     <para>
+///         Computing the plan also fills the manual queue with everything it means to send to the browser,
+///         so the queue is right whichever check asked for the plan.
 ///     </para>
 /// </summary>
 public sealed record DownloadPlan(
@@ -24,7 +31,8 @@ public sealed record DownloadPlan(
     IReadOnlyList<Archive> Missing,
     IReadOnlyList<Archive> Automated,
     IReadOnlyList<ManualQueueItem> Manual,
-    IReadOnlyList<Archive> Unsupported)
+    IReadOnlyList<Archive> Unsupported,
+    IReadOnlyList<(Archive Archive, string Reason)> Blocked)
 {
     /// <summary>
     ///     Modlist position of every archive the plan partitioned, keyed by <c>Archive.Name</c>, so the
@@ -95,8 +103,13 @@ public sealed record DownloadPlan(
             progress.Archive(archive, ArchiveState.Unsupported,
                 $"{archive.State.GetType().Name} source, nothing can download it");
 
-        var plan = new DownloadPlan(policy, missing, split.Automated, split.Manual, split.Unsupported);
-        plan.Enqueue(ctx, split.Manual);
+        // Screening reports what it turns away itself, in the same terms the download pass would have.
+        var screening = await pipeline.Screen(split.Automated, policy);
+        var manual = split.Manual.Concat(screening.Manual).ToList();
+
+        var plan = new DownloadPlan(policy, missing, screening.Ready, manual, split.Unsupported,
+            screening.Blocked);
+        plan.Enqueue(ctx, manual);
         return plan;
     }
 }

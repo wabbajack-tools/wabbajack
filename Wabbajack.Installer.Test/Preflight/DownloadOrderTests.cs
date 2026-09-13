@@ -185,6 +185,138 @@ public class DownloadOrderTests : IDisposable
     }
 
     /// <summary>
+    ///     The whole point of the order: with work on both sides of the split, the automated pass has not
+    ///     touched a thing while the user is still being walked through theirs.
+    /// </summary>
+    [Fact]
+    public async Task AutomatedDownloadsDoNotStartWhileTheUserIsStillFetchingByHand()
+    {
+        var automated = await Http("auto.7z", "downloaded for you");
+        var byHand = await ByHand("byhand.7z", "fetched by hand");
+        var acquirer = new FakeManualDownloadAcquirer();
+        var ctx = Context(acquirer, automated, byHand);
+        var runner = Runner(ctx);
+
+        var attemptsWhileWaiting = -1;
+        IReadOnlyList<string> checksWhileWaiting = Array.Empty<string>();
+        acquirer.WhileWaiting = async token =>
+        {
+            // A pass running behind the user's back has this long to show itself.
+            await Task.Delay(50, token);
+            attemptsWhileWaiting = _host.Server.Attempts(automated.State);
+            checksWhileWaiting = DownloadChecksInRunOrder();
+            var landed = await PreflightTestHost.WriteFile(_host.Config.Downloads.Combine("byhand.7z"),
+                "fetched by hand");
+            acquirer.Results["byhand.7z"] = (ManualDownloadState.Moved, landed);
+        };
+
+        var outcome = await runner.RunAll(CancellationToken.None);
+
+        Assert.True(outcome.Ready);
+        Assert.Equal(0, attemptsWhileWaiting);
+        Assert.Equal(new[] {PreflightCheckIds.ManualDownloads}, checksWhileWaiting);
+        Assert.Equal(new[] {"byhand.7z"}, acquirer.Started.Select(a => a.Name));
+        Assert.Equal("1 file downloaded by hand and verified",
+            StatusOf(runner, PreflightCheckIds.ManualDownloads).Message);
+        Assert.Equal("1 downloaded", StatusOf(runner, PreflightCheckIds.AutomatedDownloads).Message);
+        Assert.Equal(1, _host.Server.Attempts(automated.State));
+    }
+
+    /// <summary>
+    ///     An archive the modlist does not send to the browser, and the plan does. A mirror reroutes it to
+    ///     Nexus Mods, the probe calls the account premium, and preparing the downloader is what shows there
+    ///     is no login behind it - so the manual queue is empty when manual-downloads starts and has an entry
+    ///     by the time the plan it asked for comes back. The check has to work that entry: reporting nothing
+    ///     to do by hand and leaving automated-downloads to raise it puts the file behind the wrong step and
+    ///     contradicts the row above it.
+    /// </summary>
+    [Fact]
+    public async Task AnArchiveTheSplitSendsToTheBrowserIsWorkedByManualDownloads()
+    {
+        var automated = await Http("auto.7z", "downloaded for you");
+        var rerouted = await Http("rerouted.7z", "rerouted bytes", "dead.invalid");
+        var mirror = new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 4321, FileID = 8765};
+        // Served so a regression fetches these bytes instead of reaching the real Nexus API.
+        _host.Server.Serve(mirror, Encoding.UTF8.GetBytes("rerouted bytes"));
+        _host.Policy.MirrorArchives.Add(new Archive
+        {
+            Name = rerouted.Name, Hash = rerouted.Hash, Size = rerouted.Size, State = mirror
+        });
+        _host.Nexus.Status = new NexusLoginStatus(true, true, true, "someone", null);
+        _host.NexusDownloader.CanPrepare = false;
+        var acquirer = new FakeManualDownloadAcquirer();
+        var ctx = Context(acquirer, automated, rerouted);
+        var runner = Runner(ctx);
+
+        Assert.Empty(ctx.State.ManualQueue);
+
+        var first = await runner.RunAll(CancellationToken.None);
+
+        Assert.False(first.Ready);
+        var manual = StatusOf(runner, PreflightCheckIds.ManualDownloads);
+        Assert.Equal(PreflightState.NeedsUser, manual.State);
+        Assert.StartsWith("1 file must be downloaded by hand", manual.Message);
+        Assert.Contains("nexusmods.com", manual.Detail);
+        Assert.Equal(new[] {"rerouted.7z"}, acquirer.Started.Select(a => a.Name));
+        Assert.Equal("Nexus Mods", runner.Archives["rerouted.7z"].Target!.SiteName);
+
+        // Nothing downstream owns it: automated-downloads is behind the step that does, and never ran.
+        var automatedStatus = StatusOf(runner, PreflightCheckIds.AutomatedDownloads);
+        Assert.Equal(PreflightState.Skipped, automatedStatus.State);
+        Assert.Empty(automatedStatus.Actions);
+        Assert.Equal(0, _host.Server.Attempts(mirror));
+
+        // Once the user has fetched it, the automated half runs on its own.
+        var landed = await PreflightTestHost.WriteFile(_host.Config.Downloads.Combine("rerouted.7z"),
+            "rerouted bytes");
+        acquirer.Results["rerouted.7z"] = (ManualDownloadState.Moved, landed);
+
+        var outcome = await runner.RunAll(CancellationToken.None);
+
+        Assert.True(outcome.Ready);
+        Assert.Equal("1 file downloaded by hand and verified",
+            StatusOf(runner, PreflightCheckIds.ManualDownloads).Message);
+        Assert.Equal("1 downloaded", StatusOf(runner, PreflightCheckIds.AutomatedDownloads).Message);
+        Assert.Equal(0, _host.Server.Attempts(mirror));
+        Assert.Equal(1, _host.Server.Attempts(automated.State));
+        Assert.Empty(ctx.State.ManualQueue);
+        Assert.Empty(ctx.State.Missing);
+    }
+
+    /// <summary>
+    ///     The other half of the same split: a free account is decided by the probe rather than by preparing
+    ///     the downloader, and lands on the same queue for the same check to work.
+    /// </summary>
+    [Fact]
+    public async Task AMirrorToNexusWithoutAPremiumAccountIsWorkedByManualDownloads()
+    {
+        var rerouted = await Http("rerouted.7z", "rerouted bytes", "dead.invalid");
+        var mirror = new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 1111, FileID = 2222};
+        _host.Server.Serve(mirror, Encoding.UTF8.GetBytes("rerouted bytes"));
+        _host.Policy.MirrorArchives.Add(new Archive
+        {
+            Name = rerouted.Name, Hash = rerouted.Hash, Size = rerouted.Size, State = mirror
+        });
+        _host.Nexus.Status = new NexusLoginStatus(true, true, false, "someone", null);
+        var acquirer = new FakeManualDownloadAcquirer();
+        var ctx = Context(acquirer, rerouted);
+        var runner = Runner(ctx);
+
+        var landed = await PreflightTestHost.WriteFile(_host.Config.Downloads.Combine("rerouted.7z"),
+            "rerouted bytes");
+        acquirer.Results["rerouted.7z"] = (ManualDownloadState.Moved, landed);
+
+        var outcome = await runner.RunAll(CancellationToken.None);
+
+        Assert.True(outcome.Ready);
+        Assert.Equal(new[] {"rerouted.7z"}, acquirer.Started.Select(a => a.Name));
+        Assert.Equal("1 file downloaded by hand and verified",
+            StatusOf(runner, PreflightCheckIds.ManualDownloads).Message);
+        Assert.Equal("Nothing to download", StatusOf(runner, PreflightCheckIds.AutomatedDownloads).Message);
+        Assert.Equal(0, _host.Server.Attempts(mirror));
+    }
+
+    /// <summary>
     ///     The case the order creates: an automated download that turns out to need a browser lands in the
     ///     queue after manual-downloads has already passed. The run must not be called ready until someone
     ///     has worked those, which is what the check's action is for.
