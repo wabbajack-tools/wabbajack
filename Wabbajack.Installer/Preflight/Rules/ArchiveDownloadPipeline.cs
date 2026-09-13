@@ -134,6 +134,35 @@ public sealed class ArchiveDownloadPipeline
     }
 
     /// <summary>
+    ///     Whether Nexus archives in <paramref name="missing" /> download on their own. nexus-login skips the
+    ///     probe when the list has no Nexus archives, but a mirror reroute can introduce one afterwards; the
+    ///     account is then probed here, once, and recorded on the blackboard for whatever asks next. Not
+    ///     being logged in or premium is not a failure at this point: the archive goes to the manual queue
+    ///     with its Nexus page, as it would have had the list carried it from the start.
+    /// </summary>
+    public async Task<bool> NexusPremium(IEnumerable<Archive> missing, CancellationToken token)
+    {
+        if (_ctx.State.Nexus == null && missing.Any(a => a.State is Nexus))
+        {
+            _ctx.Logger.LogInformation("A mirror points at Nexus Mods, checking the account");
+            try
+            {
+                _ctx.State.Nexus = await _ctx.NexusLogin.Probe(token);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _ctx.Logger.LogWarning(ex, "Could not check the Nexus Mods account, rerouted archives go to the manual queue");
+            }
+        }
+
+        return _ctx.State.Nexus?.IsPremium == true;
+    }
+
+    /// <summary>
     ///     Fire-and-forget, as the installer's metrics always were; a failure to report is logged and
     ///     otherwise ignored.
     /// </summary>

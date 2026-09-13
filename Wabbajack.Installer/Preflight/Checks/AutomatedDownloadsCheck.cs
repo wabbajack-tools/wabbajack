@@ -57,7 +57,7 @@ public sealed class AutomatedDownloadsCheck : IPreflightCheck
         foreach (var archive in ArchiveDownloadPipeline.Reroute(missing, policy.Mirrors, ctx.Logger))
             pipeline.SendMetric("rerouted", archive.Hash.ToString());
 
-        var premium = ctx.State.Nexus?.IsPremium == true;
+        var premium = await pipeline.NexusPremium(missing, token);
         var split = ArchiveDownloadPipeline.Split(missing, premium);
         foreach (var item in split.Manual)
             progress.Archive(item.Archive, ArchiveState.ManualRequired, item.Reason);

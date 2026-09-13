@@ -18,7 +18,10 @@ public sealed record ManualQueueItem(Archive Archive, ManualDownloadTarget Targe
 /// </summary>
 public sealed class PreflightBlackboard
 {
-    /// <summary>Set by nexus-login. Null when the list has no Nexus archives.</summary>
+    /// <summary>
+    ///     Set by nexus-login. Null when the list has no Nexus archives, in which case automated-downloads
+    ///     fills it in if a mirror reroute introduces one.
+    /// </summary>
     public NexusLoginStatus? Nexus { get; set; }
 
     /// <summary>Set by game-installed: the folder the primary game lives in.</summary>

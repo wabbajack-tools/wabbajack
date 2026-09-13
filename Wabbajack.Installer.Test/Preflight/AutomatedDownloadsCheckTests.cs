@@ -300,6 +300,93 @@ public class AutomatedDownloadsCheckTests : IDisposable
         Assert.Contains(meta, l => l.Contains("mirror.invalid"));
     }
 
+    /// <summary>Points the mirror list at a Nexus copy of <paramref name="archive" /> and serves those bytes.</summary>
+    private Nexus MirrorOnNexus(Archive archive, string content)
+    {
+        var mirror = new Nexus {Game = Game.SkyrimSpecialEdition, ModID = Random.Shared.Next(), FileID = Random.Shared.Next()};
+        _host.Server.Serve(mirror, Encoding.UTF8.GetBytes(content));
+        _host.Policy.MirrorArchives.Add(new Archive
+        {
+            Name = archive.Name, Hash = archive.Hash, Size = archive.Size, State = mirror
+        });
+        return mirror;
+    }
+
+    [Fact]
+    public async Task MirrorRerouteToNexusProbesTheAccountOnceAndDownloadsForPremium()
+    {
+        // The list has no Nexus archives, so nexus-login recorded nothing; the reroute happens after it ran.
+        var archive = await Http("rerouted.7z", "rerouted bytes", "dead.invalid");
+        var mirror = MirrorOnNexus(archive, "rerouted bytes");
+        _host.Nexus.Status = new NexusLoginStatus(true, true, true, "someone", null);
+        var ctx = ContextWithMissing(archive);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal("1 downloaded", result.Message);
+        Assert.Equal(1, _host.Nexus.Calls);
+        Assert.Equal(1, _host.Server.Attempts(mirror));
+        Assert.Empty(ctx.State.ManualQueue);
+        Assert.True(ctx.State.Nexus!.IsPremium);
+        Assert.Equal(ArchiveState.Downloaded, _progress.LastStates()["rerouted.7z"]);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    public async Task MirrorRerouteToNexusWithoutPremiumGoesManualWithTheNexusPage(bool hasToken, bool loggedIn)
+    {
+        var archive = await Http("rerouted.7z", "rerouted bytes", "dead.invalid");
+        var mirror = MirrorOnNexus(archive, "rerouted bytes");
+        _host.Nexus.Status = new NexusLoginStatus(hasToken, loggedIn, false, loggedIn ? "someone" : null, null);
+        var ctx = ContextWithMissing(archive);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Passed, result.State);
+        Assert.StartsWith("0 downloaded, 1 moved to manual", result.Message);
+        Assert.Equal(1, _host.Nexus.Calls);
+        Assert.Equal(0, _host.Server.Attempts(mirror));
+        var item = QueueItem(ctx, "rerouted.7z");
+        Assert.Contains("nexusmods.com", item.Target.Url.ToString());
+        Assert.Contains("premium", item.Reason);
+        Assert.Equal(ArchiveState.ManualRequired, _progress.LastStates()["rerouted.7z"]);
+    }
+
+    [Fact]
+    public async Task MirrorRerouteToNexusReusesWhatNexusLoginRecorded()
+    {
+        var archive = await Http("rerouted.7z", "rerouted bytes", "dead.invalid");
+        var mirror = MirrorOnNexus(archive, "rerouted bytes");
+        _host.Nexus.Status = new NexusLoginStatus(true, true, true, "someone", null);
+        var ctx = ContextWithMissing(archive);
+        SetPremium(ctx, true);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal("1 downloaded", result.Message);
+        Assert.Equal(0, _host.Nexus.Calls);
+        Assert.Equal(1, _host.Server.Attempts(mirror));
+    }
+
+    [Fact]
+    public async Task MirrorRerouteWithoutNexusDoesNotProbe()
+    {
+        var archive = await Http("mirrored.7z", "mirrored bytes", "dead.invalid");
+        var mirror = new Http {Url = Url("mirrored.7z", "mirror.invalid")};
+        _host.Server.Serve(mirror, Encoding.UTF8.GetBytes("mirrored bytes"));
+        _host.Policy.MirrorArchives.Add(new Archive
+        {
+            Name = archive.Name, Hash = archive.Hash, Size = archive.Size, State = mirror
+        });
+        var ctx = ContextWithMissing(archive);
+
+        await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(0, _host.Nexus.Calls);
+        Assert.Null(ctx.State.Nexus);
+    }
+
     [Fact]
     public async Task PolicyLoadFailureFailsCheckWithRetry()
     {
