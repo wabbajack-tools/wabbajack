@@ -60,7 +60,6 @@ public partial class MainWindowVM : ViewModel
     public readonly SettingsVM SettingsPaneVM;
     public readonly ModListGalleryVM GalleryVM;
     public readonly HomeVM HomeVM;
-    public readonly WebBrowserVM WebBrowserVM;
     public readonly ModListDetailsVM ModListDetailsVM;
     public readonly InfoVM InfoVM;
     public readonly FileUploadVM FileUploadVM;
@@ -100,7 +99,7 @@ public partial class MainWindowVM : ViewModel
 
     public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
         IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-        InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM, FileUploadVM fileUploadVM, SystemParametersConstructor systemParams, HttpClient httpClient)
+        InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM, FileUploadVM fileUploadVM, SystemParametersConstructor systemParams, HttpClient httpClient)
     {
         _logger = logger;
         _wjClient = wjClient;
@@ -116,7 +115,6 @@ public partial class MainWindowVM : ViewModel
         SettingsPaneVM = settingsVM;
         GalleryVM = modListGalleryVM;
         HomeVM = homeVM;
-        WebBrowserVM = webBrowserVM;
         NavigationVM = navigationVM;
         InfoVM = infoVM;
         ModListDetailsVM = modlistDetailsVM;

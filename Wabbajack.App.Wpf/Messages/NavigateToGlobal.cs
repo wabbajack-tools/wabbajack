@@ -11,7 +11,6 @@ public enum ScreenType
     CompilerHome,
     CompilerMain,
     ModListDetails,
-    WebBrowser,
     Info
 }
 

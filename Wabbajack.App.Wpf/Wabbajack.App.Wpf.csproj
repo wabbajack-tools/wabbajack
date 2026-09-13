@@ -30,21 +30,6 @@
     </PropertyGroup>
 
 
-    <ItemGroup>
-        <!-- TODO: These updates are currently required because CefSharp.Wpf specifies
-             <Private>false</Private>, which means these libraries will not be specified in
-             the .deps.json file, and so the CoreCLR wouldn't load these. -->
-        <Reference Update="CefSharp">
-            <Private>true</Private>
-        </Reference>
-        <Reference Update="CefSharp.Core">
-            <Private>true</Private>
-        </Reference>
-        <Reference Update="CefSharp.Wpf">
-            <Private>true</Private>
-        </Reference>
-    </ItemGroup>
-
 	<ItemGroup>
     <None Remove="Readme.md" />
     <None Remove="Resources\Fonts\Atkinson-Hyperlegible-Italic-102.ttf" />

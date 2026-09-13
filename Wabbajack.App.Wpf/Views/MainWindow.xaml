@@ -162,9 +162,6 @@
                             <DataTemplate DataType="{x:Type local:InstallationVM}">
                                 <local:InstallationView ViewModel="{Binding}" />
                             </DataTemplate>
-                            <DataTemplate DataType="{x:Type local:WebBrowserVM}">
-                                <local:WebBrowserView />
-                            </DataTemplate>
                             <DataTemplate DataType="{x:Type local:SettingsVM}">
                                 <local:SettingsView ViewModel="{Binding}" />
                             </DataTemplate>

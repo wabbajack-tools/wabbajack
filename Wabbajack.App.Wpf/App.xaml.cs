@@ -432,7 +432,6 @@ public partial class App
         services.AddSingleton<FileAssociationSelfHealService>();
 
         // Singletons
-        services.AddSingleton<CefService>();
         services.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
         services.AddSingleton<ImageCacheManager>();
         services.AddSingleton<GameIconCache>();
@@ -459,7 +458,6 @@ public partial class App
         services.AddTransient<CompilerMainVM>();
         services.AddTransient<InstallationVM>();
         services.AddTransient<SettingsVM>();
-        services.AddTransient<WebBrowserVM>();
         services.AddTransient<InfoVM>();
         services.AddTransient<ModListDetailsVM>();
         services.AddTransient<FileUploadVM>();
