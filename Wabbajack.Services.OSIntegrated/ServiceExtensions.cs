@@ -15,7 +15,6 @@ using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.Downloaders.VerificationCache;
 using Wabbajack.DTOs;
-using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Hashing.PHash;
@@ -144,9 +143,6 @@ public static class ServiceExtensions
 
         service.AddAllSingleton<IResource, IResource<IInstaller>>(s =>
             new Resource<IInstaller>("Installer", GetResourceSettings(s, "Installer"), s.GetRequiredService<CancellationToken>()));
-
-        service.AddAllSingleton<IResource, IResource<IUserInterventionHandler>>(s =>
-            new Resource<IUserInterventionHandler>("User Intervention", 1, token: s.GetRequiredService<CancellationToken>()));
 
         service.AddSingleton<LoggingRateLimiterReporter>();
 

@@ -97,7 +97,7 @@ public class PreflightEndToEndTests : IAsyncLifetime
         Assert.False(outcome.Ready);
         var manual = Check(outcome, PreflightCheckIds.ManualDownloads);
         Assert.Equal(PreflightState.NeedsUser, manual.State);
-        Assert.StartsWith("1 files must be downloaded by hand", manual.Message);
+        Assert.StartsWith("1 file must be downloaded by hand", manual.Message);
         Assert.Contains("by-hand.zip", manual.Detail);
         Assert.Contains(url.ToString(), manual.Detail);
         Assert.Contains(PreflightAction.Rescan, manual.Actions);
