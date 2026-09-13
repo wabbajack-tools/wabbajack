@@ -1,10 +1,14 @@
 #nullable enable
 using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.Interfaces;
+using Wabbajack.Downloaders.VerificationCache;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Hashing.xxHash64;
@@ -56,9 +60,17 @@ public sealed class PreflightTestHost : IDisposable
         HashLimiter = new Resource<FileHashCache>("Test hashing", 2);
         Cache = new FileHashCache(CacheRoot.Combine(Guid.NewGuid() + ".sqlite"), HashLimiter);
         Limiter = new Resource<IInstaller>("Test installer", 4);
-        Dispatcher = provider.GetRequiredService<DownloadDispatcher>();
         DownloadLimiter = provider.GetRequiredService<IResource<DownloadDispatcher>>();
         Server = provider.GetRequiredService<FakeDownloadServer>();
+
+        // The registered downloaders are singletons every test in the process shares, so a test that needs
+        // one of them to behave differently gets its own. Only the Nexus fake has anything to say: whether
+        // it prepares stands in for whether a usable Nexus login is stored.
+        NexusDownloader = new FakeNexusDownloader(Server, provider.GetRequiredService<NexusDownloader>());
+        Dispatcher = new DownloadDispatcher(provider.GetRequiredService<ILogger<DownloadDispatcher>>(),
+            provider.GetServices<IDownloader>().Where(d => d is not FakeNexusDownloader).Append(NexusDownloader),
+            DownloadLimiter, provider.GetRequiredService<Client>(),
+            provider.GetRequiredService<IVerificationCache>());
         Acquirer = new ManualDownloadAcquirer(NullLogger<ManualDownloadAcquirer>.Instance, Cache, HashLimiter,
             Dispatcher, FastAcquirerOptions());
 
@@ -87,6 +99,9 @@ public sealed class PreflightTestHost : IDisposable
     public IResource<IInstaller> Limiter { get; }
     public DownloadDispatcher Dispatcher { get; }
     public IResource<DownloadDispatcher> DownloadLimiter { get; }
+
+    /// <summary>This host's own Nexus downloader, the one <see cref="Dispatcher" /> hands Nexus archives to.</summary>
+    public FakeNexusDownloader NexusDownloader { get; }
 
     /// <summary>The bytes the fake downloaders serve; shared across the process, so key by unique URLs.</summary>
     public FakeDownloadServer Server { get; }

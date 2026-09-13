@@ -97,7 +97,7 @@ made to rehash a downloads folder.
 ## Preflight
 
 `Wabbajack.Installer/Preflight` runs a checklist before an install starts: Nexus login and premium status,
-game installed, game files, archive inventory, unsupported archives, automated downloads, manual downloads,
+game installed, game files, archive inventory, unsupported archives, manual downloads, automated downloads,
 disk space. `PreflightRunner.Create(services, config)` mirrors `StandardInstaller.Create`; checks come from
 DI as `IPreflightCheck` and run in `Order` (100–900, gaps left on purpose), each declaring `DependsOn`. A
 check that fails or needs the user makes its dependents `Skipped`; `RunCheck(id)` re-runs one and resets
@@ -110,8 +110,38 @@ Preflight is the only thing that downloads. `AInstaller` has no download path of
 the downloads folder once and returns `DownloadFailed` if anything the list still needs is absent, so every
 install has to go through preflight first. Automated sources are WabbajackCDN, Http and premium Nexus; every other state
 becomes a manual download whose browser URL comes from `ManualDownloadUrls.TryGet`. Partition by **state
-type**, never by which downloader the dispatcher would choose. `ManualDownloadAcquirer` watches a folder
-(the user's Downloads by default, `KnownFolders.Downloads`) for files matching pending archives by size,
+type**, never by which downloader the dispatcher would choose.
+
+**Manual downloads run before automated ones** (600 then 700, disk space still last): the user does the part
+that needs their hands first, then walks away while the rest is fetched. manual-downloads depends on
+archive-inventory, nexus-login and unsupported-archives; automated-downloads depends on manual-downloads.
+The split both work from is `Rules/DownloadPlan` — the allow-list and mirror load, the mirror reroute, the
+Nexus premium probe, the automated/manual partition and the screening of what came out automated — computed
+on demand by whichever of them asks first and memoised on the blackboard, so the probe and the policy load
+happen once per run. Computing it also fills the manual queue with everything it means to send to the
+browser. Writing `RequiredArchives` throws the memo away, so re-running archive-inventory repartitions
+against the new answer.
+
+Splitting by state type is only half of it. An archive whose state is automated still needs a downloader the
+dispatcher has, one that will `Prepare()`, and a URL the allow-list permits, and none of those takes a
+download to establish, so `ArchiveDownloadPipeline.Screen` settles them while the plan is being computed.
+That matters because the two can disagree: `NexusApiLoginProbe` counts `NEXUS_API_KEY` as a login while
+`NexusDownloader.Prepare` only looks at the stored token, so an account the probe calls premium can still
+have nothing to download with. Screened out at plan time, those archives reach the manual queue before
+manual-downloads reads it; screened out later, they would arrive after it had already passed and reported
+nothing to do by hand. `ManualDownloadsCheck` reads the queue only after asking for the plan for the same
+reason — the only shortcut past it is nothing missing at all.
+
+An automated download can still turn out to need a browser once it is running — a
+`ManualDownloadRequiredException`, a stall, a server refusal, bytes that do not hash — which fills a queue
+manual-downloads has already emptied. automated-downloads therefore ends `NeedsUser` whenever the queue is
+not empty when it finishes, offering `PreflightAction.DownloadByHand`, which `PreflightActionDispatcher`
+maps to re-running manual-downloads; that picks up the new items, and the run reaches `Ready` only once
+nothing is left. A retry of automated-downloads leaves queued archives alone rather than downloading them
+into the queue again.
+
+`ManualDownloadAcquirer` watches a folder (the user's
+Downloads by default, `KnownFolders.Downloads`) for files matching pending archives by size,
 then hash. Its completion signal is an exclusive open (`FileShare.None`), not size — pre-allocating
 downloaders report the final size from the first byte. Cross-volume placement copies through a
 `.wj_incoming` temp name and renames, so cancellation never leaves a partial in the downloads folder.

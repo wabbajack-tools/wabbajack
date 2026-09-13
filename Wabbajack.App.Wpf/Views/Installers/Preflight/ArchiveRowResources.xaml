@@ -6,6 +6,86 @@
     xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf">
 
     <!--
+        Clicking anywhere on a band header folds it open or shut, so the header is a button with no chrome
+        of its own; everything it shows is drawn by the template below.
+    -->
+    <Style x:Key="ArchiveGroupHeaderButton" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <ContentPresenter />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--
+        The summary row for one band. Deeper than an archive row, the emphasis the page already uses for a
+        nested panel, so the list reads as three sections rather than one run of rows.
+    -->
+    <DataTemplate x:Key="ArchiveGroupHeaderTemplate" DataType="{x:Type local:ArchiveGroupVM}">
+        <Button
+            Style="{StaticResource ArchiveGroupHeaderButton}"
+            Command="{Binding ToggleCommand}"
+            AutomationProperties.AutomationId="{Binding Title, Mode=OneTime}">
+            <Grid Height="32" Background="{StaticResource ComplementaryPrimary16Brush}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <ic:SymbolIcon
+                    Grid.Column="0"
+                    FontSize="14"
+                    Width="14"
+                    Height="14"
+                    IconVariant="Regular"
+                    Foreground="{StaticResource Transparent66ForegroundBrush}"
+                    Margin="13, 0, 0, 0"
+                    VerticalAlignment="Center">
+                    <ic:SymbolIcon.Style>
+                        <Style TargetType="ic:SymbolIcon">
+                            <Setter Property="Symbol" Value="ChevronRight" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                                    <Setter Property="Symbol" Value="ChevronDown" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ic:SymbolIcon.Style>
+                </ic:SymbolIcon>
+
+                <TextBlock
+                    Grid.Column="1"
+                    Text="{Binding Title, Mode=OneTime}"
+                    FontSize="13"
+                    FontWeight="SemiBold"
+                    Margin="10, 0, 8, 0"
+                    VerticalAlignment="Center"
+                    TextWrapping="NoWrap" />
+
+                <TextBlock
+                    Grid.Column="2"
+                    Text="{Binding SummaryText}"
+                    FontSize="12"
+                    Foreground="{StaticResource Transparent66ForegroundBrush}"
+                    Margin="0, 0, 12, 0"
+                    TextAlignment="Right"
+                    VerticalAlignment="Center"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="NoWrap" />
+            </Grid>
+        </Button>
+    </DataTemplate>
+
+    <!--
         One template for every archive row. Rows are virtualized and recycled, so state is expressed with
         DataTriggers rather than a ReactiveUserControl per row; the identity columns bind OneTime.
     -->

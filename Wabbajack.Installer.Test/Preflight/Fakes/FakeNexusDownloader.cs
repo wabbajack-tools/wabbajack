@@ -15,7 +15,7 @@ namespace Wabbajack.Installer.Test.Preflight.Fakes;
 
 /// <summary>
 ///     Sits ahead of the real Nexus downloader so a premium-account test can see the archive reach the
-///     dispatcher without an API key or a network. Always prepared: the login check owns that question.
+///     dispatcher without an API key or a network.
 /// </summary>
 public sealed class FakeNexusDownloader : ADownloader<Nexus>
 {
@@ -30,6 +30,14 @@ public sealed class FakeNexusDownloader : ADownloader<Nexus>
 
     public override Priority Priority => Priority.Highest;
 
+    /// <summary>
+    ///     What <see cref="Prepare" /> answers. The real downloader returns false when no Nexus token is
+    ///     stored, which is how an account the login probe called premium still cannot download a thing.
+    ///     Each <see cref="PreflightTestHost" /> owns the instance its dispatcher uses, so clearing this
+    ///     reaches no other test.
+    /// </summary>
+    public bool CanPrepare { get; set; } = true;
+
     public override Task<Hash> Download(Archive archive, Nexus state, AbsolutePath destination, IJob job,
         CancellationToken token)
     {
@@ -40,7 +48,7 @@ public sealed class FakeNexusDownloader : ADownloader<Nexus>
 
     public override Task<bool> Prepare()
     {
-        return Task.FromResult(true);
+        return Task.FromResult(CanPrepare);
     }
 
     public override bool IsAllowed(ServerAllowList allowList, IDownloadState state)

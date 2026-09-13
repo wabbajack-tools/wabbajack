@@ -36,12 +36,16 @@
                         BorderBrush="Transparent"
                         BorderThickness="0"
                         AlternationCount="2"
-                        ItemTemplate="{StaticResource ArchiveRowTemplate}"
                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                         ScrollViewer.CanContentScroll="True"
                         VirtualizingPanel.IsVirtualizing="True"
                         VirtualizingPanel.VirtualizationMode="Recycling"
                         VirtualizingPanel.ScrollUnit="Pixel">
+                        <ListBox.ItemTemplateSelector>
+                            <local:ArchiveListTemplateSelector
+                                RowTemplate="{StaticResource ArchiveRowTemplate}"
+                                GroupTemplate="{StaticResource ArchiveGroupHeaderTemplate}" />
+                        </ListBox.ItemTemplateSelector>
                         <ListBox.Resources>
                             <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource ListBoxItemStyle}">
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -67,7 +71,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBlock x:Name="FooterText" FontSize="12" Foreground="{StaticResource Transparent66ForegroundBrush}" VerticalAlignment="Center" Margin="4, 0, 0, 0" TextTrimming="CharacterEllipsis" />
-            <local:WJButton x:Name="StopButton" Grid.Column="1" ButtonStyle="Mono" Text="Stop downloads" Icon="Stop" IconSize="14" Width="160" Height="28" HorizontalAlignment="Right" />
+            <local:WJButton x:Name="StopButton" Grid.Column="1" ButtonStyle="Mono" Text="Stop downloads" Icon="Stop" IconVariant="Filled" IconSize="14" Width="160" Height="28" HorizontalAlignment="Right" />
         </Grid>
     </Grid>
 </rxui:ReactiveUserControl>

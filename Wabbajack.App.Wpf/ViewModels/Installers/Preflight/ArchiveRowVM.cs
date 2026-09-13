@@ -10,6 +10,17 @@ using Wabbajack.Installer.Preflight;
 namespace Wabbajack;
 
 /// <summary>
+///     The three bands a download list is collapsed into. Anything that failed or was rejected belongs with
+///     <see cref="Current" />, so it is never hidden inside a group the user has folded away.
+/// </summary>
+public enum ArchiveGroup
+{
+    Done,
+    Current,
+    Remaining
+}
+
+/// <summary>
 ///     One row in an archive list. A plain <see cref="ReactiveObject" /> rather than a <see cref="ViewModel" />:
 ///     there can be thousands of these and each only needs change notification, not an activator or a
 ///     loading lock. The identity columns never change; <see cref="State" />, <see cref="Progress" /> and
@@ -58,6 +69,14 @@ public partial class ArchiveRowVM : ReactiveObject
     };
 
     public bool IsDone => State is ArchiveState.Present or ArchiveState.Downloaded;
+
+    /// <summary>Which band of a grouped list this row falls in; follows <see cref="SortBucket" />.</summary>
+    public ArchiveGroup Group => SortBucket switch
+    {
+        0 or 1 => ArchiveGroup.Current,
+        2 => ArchiveGroup.Remaining,
+        _ => ArchiveGroup.Done
+    };
 
     public void Apply(ArchiveStatus status)
     {

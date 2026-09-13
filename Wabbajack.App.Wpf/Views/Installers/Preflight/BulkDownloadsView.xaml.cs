@@ -15,7 +15,7 @@ public partial class BulkDownloadsView : ReactiveUserControl<BulkDownloadsVM>
         InitializeComponent();
         this.WhenActivated(dispose =>
         {
-            this.OneWayBind(ViewModel, vm => vm.Rows, v => v.RowsList.ItemsSource)
+            this.OneWayBind(ViewModel, vm => vm.Items, v => v.RowsList.ItemsSource)
                 .DisposeWith(dispose);
 
             this.WhenAnyValue(x => x.ViewModel.FooterText)

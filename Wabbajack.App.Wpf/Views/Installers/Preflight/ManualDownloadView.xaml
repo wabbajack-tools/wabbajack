@@ -25,16 +25,20 @@
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid>
+    <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition x:Name="CardRow" Height="*" />
             <RowDefinition x:Name="ListRow" Height="0" />
         </Grid.RowDefinitions>
 
-        <!-- The card scrolls when the window is short; the list below keeps its own virtualized scrolling. -->
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Top">
-        <local:AttentionBorder x:Name="Card" ClipToBounds="True">
+        <!--
+            The panel guarantees the card its height, so this only catches a window shorter than the
+            supported minimum, or one where the queue below has taken its rows back; the list keeps its
+            own virtualized scrolling. The card is what is top-aligned, not the scroller, or the scroller
+            would size to the card and clip it instead of scrolling it.
+        -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <local:AttentionBorder x:Name="Card" ClipToBounds="True" VerticalAlignment="Top">
             <Grid Margin="16, 10, 16, 10">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -76,11 +80,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource StepText}" Text="1. Open the download page in your browser" />
-                            <TextBlock Style="{StaticResource StepText}" Text="2. Start the download there" />
-                            <TextBlock Style="{StaticResource StepText}" Text="3. Wait here, the file is picked up automatically" />
-                        </StackPanel>
+                        <TextBlock Style="{StaticResource StepText}" Text="Start the download in your browser; the file is picked up here automatically." />
                         <local:WJButton x:Name="OpenPageButton" Grid.Column="1" ButtonStyle="Color" Text="Open page" Icon="Open" IconSize="16" Width="150" Height="32" VerticalAlignment="Top" Margin="16, 0, 0, 0" />
                     </Grid>
 
@@ -119,9 +119,7 @@
         </local:AttentionBorder>
         </ScrollViewer>
 
-        <local:WJButton x:Name="ShowAllButton" Grid.Row="1" ButtonStyle="Transparent" Text="Show all" Icon="ChevronDown" IconSize="14" Direction="RightToLeft" Width="130" Height="28" HorizontalAlignment="Left" Margin="0, 4, 0, 0" />
-
-        <Border x:Name="ListBorder" Grid.Row="2" CornerRadius="8" BorderThickness="0" Background="White" Margin="0, 8, 0, 0" Visibility="Collapsed">
+        <Border x:Name="ListBorder" Grid.Row="1" CornerRadius="8" BorderThickness="0" Background="White" Margin="0, 8, 0, 0" Visibility="Collapsed">
             <Grid Margin="-1">
                 <Border x:Name="ListMask" CornerRadius="8" Background="White" Margin="1" />
                 <Grid>
