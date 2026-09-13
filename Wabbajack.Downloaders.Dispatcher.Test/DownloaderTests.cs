@@ -252,6 +252,35 @@ public class DownloaderTests
     }
 
     /// <summary>
+    ///     A .meta directURL for each source that writes one, with the state it has to resolve to.
+    ///     HttpDownloader.Resolve accepts any absolute directURL, so it will happily claim all of these
+    ///     if it is asked first; only the stand-ins outranking it keeps a MediaFire link a MediaFire
+    ///     state. Downloader(archive) cannot catch that - it dispatches on the state that came out - and
+    ///     neither can the MetaIni round trip, since Http writes an identical directURL line. Resolving
+    ///     from ini and checking the concrete type is the assertion that does.
+    /// </summary>
+    public static IEnumerable<object[]> DirectUrlResolutions =>
+        new List<object[]>
+        {
+            new object[] {"http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt", typeof(DTOs.DownloadStates.MediaFire)},
+            new object[] {"https://mega.nz/file/CsMSFaaJ#-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k", typeof(Mega)},
+            new object[] {"https://drive.google.com/uc?id=1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_&export=download", typeof(DTOs.DownloadStates.GoogleDrive)},
+            new object[] {"https://www.moddb.com/downloads/start/199178", typeof(DTOs.DownloadStates.ModDB)},
+            new object[] {"https://github.com/ModOrganizer2/modorganizer/releases/download/v2.4.2/Mod.Organizer-2.4.2.7z", typeof(DTOs.DownloadStates.Http)}
+        };
+
+    [Theory]
+    [MemberData(nameof(DirectUrlResolutions))]
+    public async Task DirectUrlResolvesToTheSourcesOwnState(string url, Type expected)
+    {
+        var ini = $"[General]\ndirectURL={url}".LoadIniString()["General"];
+        var state = await _dispatcher.ResolveArchive(ini.ToDictionary(d => d.KeyName, d => d.Value));
+
+        Assert.NotNull(state);
+        Assert.IsType(expected, state);
+    }
+
+    /// <summary>
     ///     Each state type paired with the downloader the dispatcher must pick for it. Only Http, Nexus,
     ///     WabbajackCDN and game files download on their own; every other state is served by the
     ///     metadata-only stand-in from Wabbajack.Downloaders.ManualSources, which is now the sole
