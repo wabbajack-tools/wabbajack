@@ -389,20 +389,6 @@ public partial class MainWindowVM : ViewModel
         ActivePane = objViewModel;
     }
 
-    private void HandleManualDownload(ManualDownload manualDownload)
-    {
-        var handler = _serviceProvider.GetRequiredService<ManualDownloadHandler>();
-        handler.Intervention = manualDownload;
-        //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
-    }
-
-    private void HandleManualBlobDownload(ManualBrowserDownload manualDownload)
-    {
-        var handler = _serviceProvider.GetRequiredService<ManualBrowserDownloadHandler>();
-        handler.Intervention = manualDownload;
-        //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
-    }
-
     private async void HandleShowBrowserWindow(ShowBrowserWindow msg)
     {
         using var _ = await _browserLocker.WaitAsync();

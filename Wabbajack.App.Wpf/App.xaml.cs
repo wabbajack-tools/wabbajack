@@ -433,7 +433,7 @@ public partial class App
 
         // Singletons
         services.AddSingleton<CefService>();
-        services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
+        services.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
         services.AddSingleton<ImageCacheManager>();
         services.AddSingleton<GameIconCache>();
         services.AddSingleton<SystemParametersConstructor>();
@@ -479,8 +479,6 @@ public partial class App
         services.AddAllSingleton<INeedsLogin, MegaLoginManager>();
         //Disabled VP due to frequent login issues & because the only file that really got downloaded there has a mirror
         //services.AddAllSingleton<INeedsLogin, VectorPlexusLoginManager>();
-        services.AddSingleton<ManualDownloadHandler>();
-        services.AddSingleton<ManualBrowserDownloadHandler>();
         services.AddSingleton<NexusCollectionDownloader>();
         // Verbs
         services.AddSingleton<CommandLineBuilder>();
