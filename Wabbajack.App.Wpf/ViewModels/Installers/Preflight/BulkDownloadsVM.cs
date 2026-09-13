@@ -53,8 +53,18 @@ public partial class BulkDownloadsVM : ViewModel
     /// </summary>
     private readonly ObservableCollectionExtended<object> _items = new();
 
+    /// <summary>
+    ///     How many rows of each band are spliced into <see cref="_items" />, or null where the band is
+    ///     folded away. Offsets come from this rather than from <see cref="ArchiveGroupVM.IsExpanded" />:
+    ///     the flag is what the band should look like, this is what the flat list actually holds, and only
+    ///     the second one can be used to index it.
+    /// </summary>
+    private readonly int?[] _spliced;
+
     public BulkDownloadsVM(PreflightRunner runner, IObservable<ArchiveStatus> changes, IObservable<string> downloadSpeed)
     {
+        _spliced = new int?[_groups.Length];
+
         FooterText = string.Empty;
         Items = new ReadOnlyObservableCollection<object>(_items);
 
@@ -93,9 +103,12 @@ public partial class BulkDownloadsVM : ViewModel
             Disposable.Create(() => ((INotifyCollectionChanged) _groupRows[index]).CollectionChanged -= handler)
                 .DisposeWith(CompositeDisposable);
 
+            // Folding a band and rebuilding the flat list are one step. IsExpanded is only ever set by
+            // the band header's own command, so this is already on the UI thread; deferring the rebuild
+            // would leave a window where the flag says one layout and the list holds another, and a batch
+            // landing in that window splices rows at an offset the list does not have.
             _groups[index].WhenAnyValue(x => x.IsExpanded)
                 .Skip(1)
-                .ObserveOnGuiThread()
                 .Subscribe(_ => Rebuild())
                 .DisposeWith(CompositeDisposable);
         }
@@ -153,8 +166,7 @@ public partial class BulkDownloadsVM : ViewModel
     {
         var start = group + 1;
         for (var i = 0; i < group; i++)
-            if (_groups[i].IsExpanded)
-                start += _groupRows[i].Count;
+            start += _spliced[i] ?? 0;
         return start;
     }
 
@@ -164,7 +176,14 @@ public partial class BulkDownloadsVM : ViewModel
         for (var i = 0; i < _groups.Length; i++)
         {
             flat.Add(_groups[i]);
-            if (_groups[i].IsExpanded) flat.AddRange(_groupRows[i]);
+            if (!_groups[i].IsExpanded)
+            {
+                _spliced[i] = null;
+                continue;
+            }
+
+            flat.AddRange(_groupRows[i]);
+            _spliced[i] = _groupRows[i].Count;
         }
 
         _items.Load(flat);
@@ -176,7 +195,9 @@ public partial class BulkDownloadsVM : ViewModel
     /// </summary>
     private void OnGroupChanged(int group, NotifyCollectionChangedEventArgs e)
     {
-        if (!_groups[group].IsExpanded) return;
+        // What the flat list holds for this band, not what the band would like to show: nothing of a
+        // folded band is in the list to move.
+        if (_spliced[group] is not { } spliced) return;
 
         var start = RowStart(group);
         switch (e.Action)
@@ -184,10 +205,12 @@ public partial class BulkDownloadsVM : ViewModel
             case NotifyCollectionChangedAction.Add when e.NewItems != null:
                 for (var i = 0; i < e.NewItems.Count; i++)
                     _items.Insert(start + e.NewStartingIndex + i, e.NewItems[i]!);
+                _spliced[group] = spliced + e.NewItems.Count;
                 break;
             case NotifyCollectionChangedAction.Remove when e.OldItems != null:
                 for (var i = 0; i < e.OldItems.Count; i++)
                     _items.RemoveAt(start + e.OldStartingIndex);
+                _spliced[group] = spliced - e.OldItems.Count;
                 break;
             case NotifyCollectionChangedAction.Move:
                 _items.Move(start + e.OldStartingIndex, start + e.NewStartingIndex);
