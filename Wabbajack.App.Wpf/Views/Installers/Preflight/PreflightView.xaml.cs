@@ -151,10 +151,13 @@ public partial class PreflightView : ReactiveUserControl<PreflightVM>
     /// <summary>
     ///     Hands the checklist whatever height is left once the detail panel has its minimum. The header and
     ///     the page actions are measured rather than assumed, so only the panel's own floor is a constant.
+    ///     The panel's margins come out of its row, so they are reserved on top of that floor; without them
+    ///     the panel ends up short of what the constant promises.
     /// </summary>
     private void CapChecklistHeight()
     {
-        var wanted = DetailPanelMinHeight + (_queueOpen ? OpenQueueExtraHeight : 0);
+        var wanted = DetailPanelMinHeight + DetailPanel.Margin.Top + DetailPanel.Margin.Bottom
+                     + (_queueOpen ? OpenQueueExtraHeight : 0);
         var spare = RightColumn.ActualHeight - PageHeader.ActualHeight - PageActions.ActualHeight
                     - PageHeader.Margin.Bottom - wanted;
         ChecksScroller.MaxHeight = Math.Max(ChecklistMinHeight, spare);

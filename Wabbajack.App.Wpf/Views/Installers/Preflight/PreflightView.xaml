@@ -85,7 +85,7 @@
                 </ItemsControl>
             </ScrollViewer>
 
-            <Grid Grid.Row="2" Margin="0, 8, 0, 16">
+            <Grid x:Name="DetailPanel" Grid.Row="2" Margin="0, 8, 0, 16">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
