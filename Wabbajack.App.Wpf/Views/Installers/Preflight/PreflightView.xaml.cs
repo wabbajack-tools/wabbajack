@@ -21,10 +21,15 @@ public partial class PreflightView : ReactiveUserControl<PreflightVM>
             this.OneWayBind(ViewModel, vm => vm.Checks, v => v.ChecksList.ItemsSource)
                 .DisposeWith(dispose);
 
-            this.OneWayBind(ViewModel, vm => vm.BulkDownloads, v => v.BulkView.ViewModel)
-                .DisposeWith(dispose);
-
-            this.OneWayBind(ViewModel, vm => vm.ManualDownloads, v => v.ManualView.ViewModel)
+            // Set by hand rather than bound: OneWayBind drops a null view model, which would leave the two
+            // sub-views holding the page after Back and their view models never deactivated.
+            this.WhenAnyValue(x => x.ViewModel)
+                .ObserveOnGuiThread()
+                .Subscribe(vm =>
+                {
+                    BulkView.ViewModel = vm?.BulkDownloads;
+                    ManualView.ViewModel = vm?.ManualDownloads;
+                })
                 .DisposeWith(dispose);
 
             this.WhenAnyValue(x => x.ViewModel.SummaryText)
