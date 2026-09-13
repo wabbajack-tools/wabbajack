@@ -22,6 +22,15 @@ public class VFSDiskCache : IVfsCache
     private readonly string _connectionString;
     private readonly AbsolutePath _path;
 
+    /// <summary>
+    ///     One connection, one statement at a time. Archives are analyzed in parallel and each of them reads
+    ///     and writes through this connection while an AddRoots finishing elsewhere runs <see cref="Clean" />,
+    ///     a VACUUM that cannot start while another statement on the connection is still open; it fails with
+    ///     "SQL logic error". The lock has to cover every statement rather than only the vacuum, because what
+    ///     a vacuum needs is for nothing else to be in flight.
+    /// </summary>
+    private readonly SemaphoreSlim _lock = new(1, 1);
+
     public VFSDiskCache(AbsolutePath path)
     {
         _path = path;
@@ -46,18 +55,32 @@ public class VFSDiskCache : IVfsCache
         if (hash == default)
             throw new ArgumentException("Cannot cache default hashes");
 
-        await using var cmd = new SQLiteCommand(_conn);
-        cmd.CommandText = @"SELECT Contents FROM VFSCache WHERE Hash = @hash";
-        cmd.Parameters.AddWithValue("@hash", (long) hash);
+        byte[]? contents = null;
 
-        await using var rdr = await cmd.ExecuteReaderAsync(token);
-        while (await rdr.ReadAsync(token))
+        await _lock.WaitAsync(token);
+        try
         {
-            var data = IndexedVirtualFileExtensions.Read(rdr.GetStream(0));
-            return data;
+            await using var cmd = new SQLiteCommand(_conn);
+            cmd.CommandText = @"SELECT Contents FROM VFSCache WHERE Hash = @hash";
+            cmd.Parameters.AddWithValue("@hash", (long) hash);
+
+            await using var rdr = await cmd.ExecuteReaderAsync(token);
+            if (await rdr.ReadAsync(token))
+                contents = (byte[]) rdr.GetValue(0);
+        }
+        finally
+        {
+            _lock.Release();
         }
 
-        return null;
+        if (contents == null) return null;
+
+        // Unpacked after the lock is released. The row is a gzipped tree of every file in the archive, and
+        // indexing reads this cache from every thread at once; decompressing under the lock would serialize
+        // the one part of the read that does not need the connection. Put compresses outside it for the same
+        // reason.
+        await using var ms = new MemoryStream(contents);
+        return IndexedVirtualFileExtensions.Read(ms);
     }
     
     public async Task Put(IndexedVirtualFile ivf, CancellationToken token)
@@ -73,38 +96,62 @@ public class VFSDiskCache : IVfsCache
 
     public async Task Clean()
     {
-        await using var cmd = new SQLiteCommand(_conn);
-        cmd.CommandText = @"VACUUM";
-        await cmd.PrepareAsync();
+        await _lock.WaitAsync();
+        try
+        {
+            await using var cmd = new SQLiteCommand(_conn);
+            cmd.CommandText = @"VACUUM";
+            await cmd.PrepareAsync();
 
-        await cmd.ExecuteNonQueryAsync();
+            await cmd.ExecuteNonQueryAsync();
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     private async Task InsertIntoVFSCache(Hash hash, MemoryStream data)
     {
-        await using var cmd = new SQLiteCommand(_conn);
-        cmd.CommandText = @"INSERT INTO VFSCache (Hash, Contents) VALUES (@hash, @contents)";
-        cmd.Parameters.AddWithValue("@hash", (long) hash);
-        var val = new SQLiteParameter("@contents", DbType.Binary) {Value = data.ToArray()};
-        cmd.Parameters.Add(val);
+        await _lock.WaitAsync();
         try
         {
-            await cmd.ExecuteNonQueryAsync();
+            await using var cmd = new SQLiteCommand(_conn);
+            cmd.CommandText = @"INSERT INTO VFSCache (Hash, Contents) VALUES (@hash, @contents)";
+            cmd.Parameters.AddWithValue("@hash", (long) hash);
+            var val = new SQLiteParameter("@contents", DbType.Binary) {Value = data.ToArray()};
+            cmd.Parameters.Add(val);
+            try
+            {
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (SQLiteException ex)
+            {
+                if (ex.Message.StartsWith("constraint failed"))
+                    return;
+                throw;
+            }
         }
-        catch (SQLiteException ex)
+        finally
         {
-            if (ex.Message.StartsWith("constraint failed"))
-                return;
-            throw;
+            _lock.Release();
         }
     }
 
     public void VacuumDatabase()
     {
-        using var cmd = new SQLiteCommand(_conn);
-        cmd.CommandText = @"VACUUM";
-        cmd.PrepareAsync();
+        _lock.Wait();
+        try
+        {
+            using var cmd = new SQLiteCommand(_conn);
+            cmd.CommandText = @"VACUUM";
+            cmd.Prepare();
 
-        cmd.ExecuteNonQuery();
+            cmd.ExecuteNonQuery();
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 }

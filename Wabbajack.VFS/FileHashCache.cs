@@ -16,6 +16,15 @@ public class FileHashCache
     private readonly IResource<FileHashCache> _limiter;
     private readonly AbsolutePath _location;
 
+    /// <summary>
+    ///     One connection, one statement at a time. Hashing runs on every thread at once and every lookup,
+    ///     write and purge goes through this one connection. A VACUUM cannot start while another statement on
+    ///     that connection is still open, and the VACUUM is the one that fails, with "SQL logic error". The
+    ///     lock has to cover every statement rather than only the vacuum, because what a vacuum needs is for
+    ///     nothing else to be in flight.
+    /// </summary>
+    private readonly SemaphoreSlim _lock = new(1, 1);
+
     public FileHashCache(AbsolutePath location, IResource<FileHashCache> limiter)
     {
         _limiter = limiter;
@@ -60,42 +69,89 @@ public class FileHashCache
 
     private async Task<(AbsolutePath Path, long LastModified, Hash Hash, long? Size)> Get(AbsolutePath path)
     {
-        using var cmd = new SQLiteCommand(_conn);
-        cmd.CommandText = "SELECT LastModified, Hash, Size FROM HashCache WHERE Path = @path";
-        cmd.Parameters.AddWithValue("@path", path.ToString().ToLowerInvariant());
-        await cmd.PrepareAsync();
+        await _lock.WaitAsync();
+        try
+        {
+            using var cmd = new SQLiteCommand(_conn);
+            cmd.CommandText = "SELECT LastModified, Hash, Size FROM HashCache WHERE Path = @path";
+            cmd.Parameters.AddWithValue("@path", path.ToString().ToLowerInvariant());
+            await cmd.PrepareAsync();
 
-        await using var reader = await cmd.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
-            return (path, reader.GetInt64(0), Hash.FromLong(reader.GetInt64(1)),
-                reader.IsDBNull(2) ? null : reader.GetInt64(2));
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+                return (path, reader.GetInt64(0), Hash.FromLong(reader.GetInt64(1)),
+                    reader.IsDBNull(2) ? null : reader.GetInt64(2));
 
-        return default;
+            return default;
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
+    /// <summary>
+    ///     Blocks until the connection is free. Callers that may be on the UI thread want
+    ///     <see cref="PurgeAsync" /> instead: blocking there while a lock holder is waiting to resume on that
+    ///     same thread would hang the application.
+    /// </summary>
     public void Purge(AbsolutePath path)
+    {
+        _lock.Wait();
+        try
+        {
+            PurgeLocked(path);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    private async Task PurgeAsync(AbsolutePath path)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            PurgeLocked(path);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    private void PurgeLocked(AbsolutePath path)
     {
         using var cmd = new SQLiteCommand(_conn);
         cmd.CommandText = "DELETE FROM HashCache WHERE Path = @path";
         cmd.Parameters.AddWithValue("@path", path.ToString().ToLowerInvariant());
-        cmd.PrepareAsync();
+        cmd.Prepare();
 
         cmd.ExecuteNonQuery();
     }
 
     private async Task Upsert(AbsolutePath path, long lastModified, Hash hash, long size)
     {
-        await using var cmd = new SQLiteCommand(_conn);
-        cmd.CommandText =
-            @"INSERT INTO HashCache (Path, LastModified, Hash, Size) VALUES (@path, @lastModified, @hash, @size)
+        await _lock.WaitAsync();
+        try
+        {
+            await using var cmd = new SQLiteCommand(_conn);
+            cmd.CommandText =
+                @"INSERT INTO HashCache (Path, LastModified, Hash, Size) VALUES (@path, @lastModified, @hash, @size)
             ON CONFLICT(Path) DO UPDATE SET LastModified = @lastModified, Hash = @hash, Size = @size";
-        cmd.Parameters.AddWithValue("@path", path.ToString().ToLowerInvariant());
-        cmd.Parameters.AddWithValue("@lastModified", lastModified);
-        cmd.Parameters.AddWithValue("@hash", (long) hash);
-        cmd.Parameters.AddWithValue("@size", size);
-        await cmd.PrepareAsync();
+            cmd.Parameters.AddWithValue("@path", path.ToString().ToLowerInvariant());
+            cmd.Parameters.AddWithValue("@lastModified", lastModified);
+            cmd.Parameters.AddWithValue("@hash", (long) hash);
+            cmd.Parameters.AddWithValue("@size", size);
+            await cmd.PrepareAsync();
 
-        await cmd.ExecuteNonQueryAsync();
+            await cmd.ExecuteNonQueryAsync();
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     /// <summary>
@@ -104,22 +160,38 @@ public class FileHashCache
     /// </summary>
     private async Task BackfillSize(AbsolutePath path, long size)
     {
-        await using var cmd = new SQLiteCommand(_conn);
-        cmd.CommandText = "UPDATE HashCache SET Size = @size WHERE Path = @path AND Size IS NULL";
-        cmd.Parameters.AddWithValue("@size", size);
-        cmd.Parameters.AddWithValue("@path", path.ToString().ToLowerInvariant());
-        await cmd.PrepareAsync();
+        await _lock.WaitAsync();
+        try
+        {
+            await using var cmd = new SQLiteCommand(_conn);
+            cmd.CommandText = "UPDATE HashCache SET Size = @size WHERE Path = @path AND Size IS NULL";
+            cmd.Parameters.AddWithValue("@size", size);
+            cmd.Parameters.AddWithValue("@path", path.ToString().ToLowerInvariant());
+            await cmd.PrepareAsync();
 
-        await cmd.ExecuteNonQueryAsync();
+            await cmd.ExecuteNonQueryAsync();
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     public void VacuumDatabase()
     {
-        using var cmd = new SQLiteCommand(_conn);
-        cmd.CommandText = @"VACUUM";
-        cmd.PrepareAsync();
+        _lock.Wait();
+        try
+        {
+            using var cmd = new SQLiteCommand(_conn);
+            cmd.CommandText = @"VACUUM";
+            cmd.Prepare();
 
-        cmd.ExecuteNonQuery();
+            cmd.ExecuteNonQuery();
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     public async Task<Hash> TryGetHashCache(AbsolutePath file)
@@ -136,7 +208,7 @@ public class FileHashCache
 
         if (result.LastModified != file.LastModifiedUtc().ToFileTimeUtc())
         {
-            Purge(file);
+            await PurgeAsync(file);
             return default;
         }
 
@@ -154,7 +226,7 @@ public class FileHashCache
 
         if (result.Size != size)
         {
-            Purge(file);
+            await PurgeAsync(file);
             return default;
         }
 
