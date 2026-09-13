@@ -27,8 +27,8 @@ public sealed record DownloadPlan(
     IReadOnlyList<Archive> Unsupported)
 {
     /// <summary>
-    ///     Modlist position of every archive the plan partitioned, keyed by <c>Archive.Name</c>, so a queue
-    ///     rebuilt from the plan and from what the download pass pushed back into it keeps that order.
+    ///     Modlist position of every archive the plan partitioned, keyed by <c>Archive.Name</c>, so the
+    ///     manual queue keeps that order however late something is added to it.
     /// </summary>
     public IReadOnlyDictionary<string, int> Order { get; } = Missing
         .Select((a, i) => (a.Name, Index: i))
