@@ -31,7 +31,7 @@ Building from Linux or macOS needs `/p:EnableWindowsTargeting=true`, which is wh
 
 `NEXUS_API_KEY` is read straight from the environment by `NexusApi.cs`. With it set, the `RequiresOAuth`
 tests run. Any `EncryptedJsonTokenProvider<T>` falls back to an environment variable named after its key
-uppercased with dashes turned into underscores, so `lovers-lab` reads `LOVERS_LAB`. Stored tokens live in
+uppercased with dashes turned into underscores, so `discord-endpoints` reads `DISCORD_ENDPOINTS`. Stored tokens live in
 `%LOCALAPPDATA%\Wabbajack\encrypted\`.
 
 ## Layout

@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using CG.Web.MegaApiClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Octokit;
@@ -45,7 +44,6 @@ public class CLITestFixture : IDisposable
                 services.AddSingleton<Client>();
                 services.AddSingleton<Networking.WabbajackClientApi.Client>();
                 services.AddSingleton(s => new GitHubClient(new ProductHeaderValue("wabbajack")));
-                services.AddSingleton<MegaApiClient>();
                 services.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
                 services.AddOSIntegrated(o =>
                 {

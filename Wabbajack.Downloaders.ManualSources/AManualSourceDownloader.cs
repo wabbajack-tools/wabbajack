@@ -20,7 +20,15 @@ namespace Wabbajack.Downloaders.ManualSources;
 public abstract class AManualSourceDownloader<T> : ADownloader<T>
     where T : IDownloadState
 {
-    public override Priority Priority => Priority.Lowest;
+    /// <summary>
+    ///     The priority the downloader this stands in for had. It matters for <c>Resolve</c>: the
+    ///     dispatcher asks downloaders in priority order and takes the first state back, and
+    ///     <c>HttpDownloader</c> (<see cref="Priority.Low" />) claims any absolute <c>directURL</c>, so a
+    ///     stand-in that sorted below it would hand every MediaFire, Mega, GoogleDrive and ModDB link to
+    ///     Http instead - changing what a recompiled list records and which allow-list rule applies.
+    ///     Every source here was <see cref="Priority.Normal" /> except Manual, which overrides.
+    /// </summary>
+    public override Priority Priority => Priority.Normal;
 
     /// <summary>
     ///     Why this source has to be downloaded by hand, phrased for the user.

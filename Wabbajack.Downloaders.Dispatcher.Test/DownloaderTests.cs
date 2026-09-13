@@ -5,16 +5,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Wabbajack.Downloaders.Bethesda;
 using Wabbajack.Downloaders.GameFile;
-using Wabbajack.Downloaders.GoogleDrive;
 using Wabbajack.Downloaders.Http;
 using Wabbajack.Downloaders.Interfaces;
-using Wabbajack.Downloaders.IPS4OAuth2Downloader;
-using Wabbajack.Downloaders.Manual;
 using Wabbajack.Downloaders.ManualSources;
-using Wabbajack.Downloaders.MediaFire;
-using Wabbajack.Downloaders.ModDB;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Hashing.xxHash64;
@@ -258,8 +252,39 @@ public class DownloaderTests
     }
 
     /// <summary>
-    ///     Each state type paired with the downloader the dispatcher must still pick for it. The metadata-only
-    ///     sources are registered last and at the lowest priority, so the full downloaders keep winning.
+    ///     A .meta directURL for each source that writes one, with the state it has to resolve to.
+    ///     HttpDownloader.Resolve accepts any absolute directURL, so it will happily claim all of these
+    ///     if it is asked first; only the stand-ins outranking it keeps a MediaFire link a MediaFire
+    ///     state. Downloader(archive) cannot catch that - it dispatches on the state that came out - and
+    ///     neither can the MetaIni round trip, since Http writes an identical directURL line. Resolving
+    ///     from ini and checking the concrete type is the assertion that does.
+    /// </summary>
+    public static IEnumerable<object[]> DirectUrlResolutions =>
+        new List<object[]>
+        {
+            new object[] {"http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt", typeof(DTOs.DownloadStates.MediaFire)},
+            new object[] {"https://mega.nz/file/CsMSFaaJ#-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k", typeof(Mega)},
+            new object[] {"https://drive.google.com/uc?id=1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_&export=download", typeof(DTOs.DownloadStates.GoogleDrive)},
+            new object[] {"https://www.moddb.com/downloads/start/199178", typeof(DTOs.DownloadStates.ModDB)},
+            new object[] {"https://github.com/ModOrganizer2/modorganizer/releases/download/v2.4.2/Mod.Organizer-2.4.2.7z", typeof(DTOs.DownloadStates.Http)}
+        };
+
+    [Theory]
+    [MemberData(nameof(DirectUrlResolutions))]
+    public async Task DirectUrlResolvesToTheSourcesOwnState(string url, Type expected)
+    {
+        var ini = $"[General]\ndirectURL={url}".LoadIniString()["General"];
+        var state = await _dispatcher.ResolveArchive(ini.ToDictionary(d => d.KeyName, d => d.Value));
+
+        Assert.NotNull(state);
+        Assert.IsType(expected, state);
+    }
+
+    /// <summary>
+    ///     Each state type paired with the downloader the dispatcher must pick for it. Only Http, Nexus,
+    ///     WabbajackCDN and game files download on their own; every other state is served by the
+    ///     metadata-only stand-in from Wabbajack.Downloaders.ManualSources, which is now the sole
+    ///     provider for it.
     /// </summary>
     public static IEnumerable<object[]> ExpectedDownloaders =>
         new List<object[]>
@@ -268,23 +293,24 @@ public class DownloaderTests
             new object[] {new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 1, FileID = 1}, typeof(NexusDownloader)},
             new object[] {new WabbajackCDN {Url = new Uri("https://authored-files.wabbajack.org/a.zip")}, typeof(WabbajackCDNDownloader)},
             new object[] {new GameFileSource {Game = Game.SkyrimSpecialEdition, GameFile = "Skyrim.esm".ToRelativePath()}, typeof(GameFileDownloader)},
-            new object[] {new DTOs.DownloadStates.Manual {Url = new Uri("https://example.com/a.zip"), Prompt = ""}, typeof(ManualDownloader)},
-            new object[] {new DTOs.DownloadStates.MediaFire {Url = new Uri("http://www.mediafire.com/file/a/a.zip")}, typeof(MediaFireDownloader)},
-            new object[] {new Mega {Url = new Uri("https://mega.nz/file/a#b")}, typeof(MegaDownloader)},
-            new object[] {new DTOs.DownloadStates.GoogleDrive {Id = "1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_"}, typeof(GoogleDriveDownloader)},
-            new object[] {new DTOs.DownloadStates.ModDB {Url = new Uri("https://www.moddb.com/downloads/start/1")}, typeof(ModDBDownloader)},
-            new object[] {new LoversLab {IPS4Mod = 1, IPS4File = "a.zip"}, typeof(LoversLabDownloader)},
-            new object[] {new VectorPlexus {IPS4Mod = 1, IPS4File = "a.zip"}, typeof(VectorPlexusDownloader)},
+            new object[] {new DTOs.DownloadStates.Manual {Url = new Uri("https://example.com/a.zip"), Prompt = ""}, typeof(ManualSourceDownloader)},
+            new object[] {new DTOs.DownloadStates.MediaFire {Url = new Uri("http://www.mediafire.com/file/a/a.zip")}, typeof(MediaFireSource)},
+            new object[] {new Mega {Url = new Uri("https://mega.nz/file/a#b")}, typeof(MegaSource)},
+            new object[] {new DTOs.DownloadStates.GoogleDrive {Id = "1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_"}, typeof(GoogleDriveSource)},
+            new object[] {new DTOs.DownloadStates.ModDB {Url = new Uri("https://www.moddb.com/downloads/start/1")}, typeof(ModDBSource)},
+            new object[] {new LoversLab {IPS4Mod = 1, IPS4File = "a.zip"}, typeof(LoversLabSource)},
+            new object[] {new LoversLab {IPS4Mod = 2, IsAttachment = true}, typeof(LoversLabSource)},
+            new object[] {new VectorPlexus {IPS4Mod = 1, IPS4File = "a.zip"}, typeof(VectorPlexusSource)},
             new object[]
             {
                 new DTOs.DownloadStates.Bethesda {Game = Game.SkyrimSpecialEdition, IsCCMod = true, ProductId = 4, BranchId = 90898, ContentId = "4059054"},
-                typeof(BethesdaDownloader)
+                typeof(BethesdaSource)
             }
         };
 
     [Theory]
     [MemberData(nameof(ExpectedDownloaders))]
-    public void OldDownloadersStillWinInPr1(IDownloadState state, Type expected)
+    public void DispatcherPicksTheExpectedDownloader(IDownloadState state, Type expected)
     {
         var archive = new Archive {Name = "a.zip", State = state};
         Assert.Equal(expected, _dispatcher.Downloader(archive).GetType());

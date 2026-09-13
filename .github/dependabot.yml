@@ -66,11 +66,6 @@ updates:
     versions:
     - 2.2.0
     - 3.0.1
-  - dependency-name: HtmlAgilityPack
-    versions:
-    - 1.11.30
-    - 1.11.31
-    - 1.11.32
   - dependency-name: Newtonsoft.Json
     versions:
     - 13.0.1
@@ -78,9 +73,6 @@ updates:
     versions:
     - 0.23.0
     - 0.24.0
-  - dependency-name: MegaApiClient
-    versions:
-    - 1.9.0
   - dependency-name: ReactiveUI
     versions:
     - 13.1.1

@@ -11,6 +11,12 @@ namespace Wabbajack.Downloaders.ManualSources;
 
 public class ManualSourceDownloader : AManualSourceDownloader<Manual>, IProxyable
 {
+    /// <summary>
+    ///     ManualDownloader was the one source that sorted last, so a .meta carrying both a manualURL and
+    ///     something another downloader recognises still resolves the other way first.
+    /// </summary>
+    public override Priority Priority => Priority.Lowest;
+
     protected override string Reason => "This file has to be downloaded by hand";
 
     public override bool IsAllowed(ServerAllowList allowList, IDownloadState state)

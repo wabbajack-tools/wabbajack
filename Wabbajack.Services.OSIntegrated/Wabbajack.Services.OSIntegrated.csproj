@@ -18,8 +18,6 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="HtmlAgilityPack" />
-        <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
         <PackageReference Include="Newtonsoft.Json" />
@@ -32,7 +30,6 @@
         <ProjectReference Include="..\Wabbajack.Compiler\Wabbajack.Compiler.csproj" />
         <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj" />
         <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj" />
-        <ProjectReference Include="..\Wabbajack.Networking.BethesdaNet\Wabbajack.Networking.BethesdaNet.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.Discord\Wabbajack.Networking.Discord.csproj" />
         <ProjectReference Include="..\Wabbajack.VFS\Wabbajack.VFS.csproj" />
     </ItemGroup>
