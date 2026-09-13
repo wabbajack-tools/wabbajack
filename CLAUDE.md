@@ -43,7 +43,8 @@ Projects are small and single-purpose. The name says what is inside.
 | Paths and IO | `Wabbajack.Paths`, `Wabbajack.Paths.IO`, `Wabbajack.IO.Async` |
 | Core flows | `Wabbajack.Compiler`, `Wabbajack.Installer`, `Wabbajack.VFS` |
 | Archives | `Wabbajack.Compression.BSA`, `Wabbajack.Compression.Zip`, `Wabbajack.FileExtractor` |
-| Downloads | `Wabbajack.Downloaders.*`, dispatched by `Wabbajack.Downloaders.Dispatcher` |
+| Downloads | `Wabbajack.Downloaders.*`, dispatched by `Wabbajack.Downloaders.Dispatcher`; `Wabbajack.Downloaders.ManualSources` holds metadata-only downloaders (`Resolve`/`MetaIni`/`Parse`) for sources the user fetches in a browser |
+| Preflight | `Wabbajack.Installer/Preflight` — the checks that run before an install (see below) |
 | Network clients | `Wabbajack.Networking.*` |
 | Serialization | `Wabbajack.DTOs` plus the `Wabbajack.DTOs.ConverterGenerators` source generator |
 | Wiring | `Wabbajack.Services.OSIntegrated` registers nearly everything in DI |
@@ -92,6 +93,36 @@ reading it. Damage that changes neither is still missed, which is the limit rath
 catching it would mean rereading every file on every run. Rows written before the size column existed hold
 NULL, are trusted as they always were, and gain a size the first time they are read, so no existing user is
 made to rehash a downloads folder.
+
+## Preflight
+
+`Wabbajack.Installer/Preflight` runs a checklist before an install starts: Nexus login and premium status,
+game installed, game files, archive inventory, unsupported archives, automated downloads, manual downloads,
+disk space. `PreflightRunner.Create(services, config)` mirrors `StandardInstaller.Create`; checks come from
+DI as `IPreflightCheck` and run in `Order` (100–900, gaps left on purpose), each declaring `DependsOn`. A
+check that fails or needs the user makes its dependents `Skipped`; `RunCheck(id)` re-runs one and resets
+what depends on it. The engine has no UI and no DynamicData or System.Reactive: it raises plain events
+(`CheckChanged`, `ArchiveChanged`, `ManualQueueChanged`, `RunFinished`) and offers snapshots; hosts project
+those however they like.
+
+Preflight owns downloading. Automated sources are WabbajackCDN, Http and premium Nexus; every other state
+becomes a manual download whose browser URL comes from `ManualDownloadUrls.TryGet`. Partition by **state
+type**, never by which downloader the dispatcher would choose. `ManualDownloadAcquirer` watches a folder
+(the user's Downloads by default, `KnownFolders.Downloads`) for files matching pending archives by size,
+then hash. Its completion signal is an exclusive open (`FileShare.None`), not size — pre-allocating
+downloaders report the final size from the first byte. Cross-volume placement copies through a
+`.wj_incoming` temp name and renames, so cancellation never leaves a partial in the downloads folder.
+
+Per-archive identity everywhere is `Archive.Name`, compared ordinal-ignore-case. Two archives can share a
+hash under different names, so `Hash` is not a key.
+
+`OptimizeModlist` and preflight share `Rules/RequiredArchives` for "which archives does this install still
+need"; `RequiredArchivesTests.MatchesOptimizeModlistPruning` pins that they agree. The deletion phases in
+`OptimizeModlist` are unchanged and stay under `FileDeletionRules`.
+
+Timing-sensitive tests (the acquirer, the download checks) use fast `ManualDownloadAcquirerOptions` and
+run several times in a row before they are considered green. `FileHashCache` keeps its SQLite connection
+open and is not disposable, so test hosts keep its file outside the per-test temporary root.
 
 ## Testing
 
