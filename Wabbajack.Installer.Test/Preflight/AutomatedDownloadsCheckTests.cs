@@ -137,8 +137,9 @@ public class AutomatedDownloadsCheckTests : IDisposable
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
-        Assert.Equal(PreflightState.Passed, result.State);
-        Assert.StartsWith("0 downloaded, 1 moved to manual", result.Message);
+        Assert.Equal(PreflightState.NeedsUser, result.State);
+        Assert.StartsWith("0 downloaded, 1 file still to fetch by hand", result.Message);
+        Assert.Contains(PreflightAction.DownloadByHand, result.Actions!);
         Assert.Equal(0, _host.Server.Attempts(nexus.State));
         var item = QueueItem(ctx, "nexus.7z");
         Assert.Contains("nexusmods.com", item.Target.Url.ToString());
@@ -181,8 +182,8 @@ public class AutomatedDownloadsCheckTests : IDisposable
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
-        Assert.Equal(PreflightState.Passed, result.State);
-        Assert.StartsWith("0 downloaded, 7 moved to manual", result.Message);
+        Assert.Equal(PreflightState.NeedsUser, result.State);
+        Assert.StartsWith("0 downloaded, 7 files still to fetch by hand", result.Message);
         Assert.Equal(archives.Select(a => a.Name), ctx.State.ManualQueue.Select(q => q.Archive.Name));
         Assert.DoesNotContain(_host.Server.AllAttempts, k => k.Contains(_run));
         Assert.All(archives, a => Assert.Equal(ArchiveState.ManualRequired, _progress.LastStates()[a.Name]));
@@ -200,7 +201,7 @@ public class AutomatedDownloadsCheckTests : IDisposable
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
-        Assert.Equal(PreflightState.Passed, result.State);
+        Assert.Equal(PreflightState.NeedsUser, result.State);
         Assert.Equal(ArchiveDownloadPipeline.HashMismatchAttempts, _host.Server.Attempts(archive.State));
         Assert.False(_host.Config.Downloads.Combine("corrupt.7z").FileExists());
         Assert.Contains("did not match", QueueItem(ctx, "corrupt.7z").Reason);
@@ -218,7 +219,7 @@ public class AutomatedDownloadsCheckTests : IDisposable
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
-        Assert.Equal(PreflightState.Passed, result.State);
+        Assert.Equal(PreflightState.NeedsUser, result.State);
         Assert.Equal(ArchiveDownloadPipeline.TransientAttempts, _host.Server.Attempts(archive.State));
         Assert.Contains("stalled", QueueItem(ctx, "slow.7z").Reason);
         Assert.Equal(ArchiveState.ManualRequired, _progress.LastStates()["slow.7z"]);
@@ -269,8 +270,8 @@ public class AutomatedDownloadsCheckTests : IDisposable
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
-        Assert.Equal(PreflightState.Passed, result.State);
-        Assert.StartsWith("1 downloaded, 1 moved to manual", result.Message);
+        Assert.Equal(PreflightState.NeedsUser, result.State);
+        Assert.StartsWith("1 downloaded, 1 file still to fetch by hand", result.Message);
         Assert.Equal(1, _host.Server.Attempts(allowed.State));
         Assert.Equal(0, _host.Server.Attempts(blocked.State));
         Assert.Contains("allow-list", QueueItem(ctx, "blocked.7z").Reason);
@@ -343,8 +344,8 @@ public class AutomatedDownloadsCheckTests : IDisposable
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
-        Assert.Equal(PreflightState.Passed, result.State);
-        Assert.StartsWith("0 downloaded, 1 moved to manual", result.Message);
+        Assert.Equal(PreflightState.NeedsUser, result.State);
+        Assert.StartsWith("0 downloaded, 1 file still to fetch by hand", result.Message);
         Assert.Equal(1, _host.Nexus.Calls);
         Assert.Equal(0, _host.Server.Attempts(mirror));
         var item = QueueItem(ctx, "rerouted.7z");
@@ -416,7 +417,8 @@ public class AutomatedDownloadsCheckTests : IDisposable
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
-        Assert.Equal(PreflightState.Passed, result.State);
+        Assert.Equal(PreflightState.NeedsUser, result.State);
+        Assert.Contains(PreflightAction.DownloadByHand, result.Actions!);
         var item = QueueItem(ctx, "browser.7z");
         Assert.Same(target, item.Target);
         Assert.Equal("needs a browser", item.Reason);

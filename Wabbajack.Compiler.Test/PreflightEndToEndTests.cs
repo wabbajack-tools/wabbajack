@@ -101,7 +101,12 @@ public class PreflightEndToEndTests : IAsyncLifetime
         Assert.Contains("by-hand.zip", manual.Detail);
         Assert.Contains(url.ToString(), manual.Detail);
         Assert.Contains(PreflightAction.Rescan, manual.Actions);
-        Assert.StartsWith("0 downloaded, 1 moved to manual", Check(outcome, PreflightCheckIds.AutomatedDownloads).Message);
+
+        // manual-downloads runs first now, so the automated pass never starts while the user still owes the
+        // run a file.
+        var automated = Check(outcome, PreflightCheckIds.AutomatedDownloads);
+        Assert.Equal(PreflightState.Skipped, automated.State);
+        Assert.Contains(manual.Title, automated.Message);
     }
 
     [Fact]

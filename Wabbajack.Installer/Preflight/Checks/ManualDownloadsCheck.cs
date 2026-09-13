@@ -1,40 +1,74 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
+using Wabbajack.Installer.Preflight.Rules;
 using Wabbajack.Paths.IO;
 
 namespace Wabbajack.Installer.Preflight.Checks;
 
 /// <summary>
-///     Walks the user through the archives no automated source could supply. The acquirer watches the
-///     Downloads folder, verifies what lands and moves it into place; this check publishes the queue, waits
-///     for it when the host can (the GUI), re-verifies what was placed, and reports whatever is still
-///     outstanding. A host that cannot wait (the CLI) gets the list straight away.
+///     Walks the user through the archives no automated source could supply, and does so first: the part of
+///     an install that needs the user's hands comes before the part they can walk away from. The acquirer
+///     watches the Downloads folder, verifies what lands and moves it into place; this check publishes the
+///     queue, waits for it when the host can (the GUI), re-verifies what was placed, and reports whatever is
+///     still outstanding. A host that cannot wait (the CLI) gets the list straight away.
+///     <para>
+///         Running first makes this the check that usually computes the run's <see cref="DownloadPlan" />,
+///         and the one that decides what the queue holds. The queue this check works is therefore read
+///         after the plan and never before it: computing the plan is what puts things on it, and an archive
+///         the plan sends to the browser has to be worked by the check the user is looking at, not reported
+///         by the next one. automated-downloads reuses the plan and can push archives back into the queue
+///         afterwards; re-running this check works those too.
+///     </para>
 /// </summary>
 public sealed class ManualDownloadsCheck : IPreflightCheck
 {
     public string Id => PreflightCheckIds.ManualDownloads;
     public string Title => "Manual downloads";
-    public int Order => 700;
-    public IReadOnlyList<string> DependsOn => new[] {PreflightCheckIds.AutomatedDownloads};
+    public int Order => 600;
+
+    public IReadOnlyList<string> DependsOn => new[]
+    {
+        PreflightCheckIds.ArchiveInventory, PreflightCheckIds.NexusLogin, PreflightCheckIds.UnsupportedArchives
+    };
 
     public async Task<PreflightResult> Run(PreflightContext ctx, IPreflightProgress progress, CancellationToken token)
     {
-        var queue = ctx.State.ManualQueue;
-        if (queue.Count == 0)
+        // The only shortcut past the plan: with nothing missing there is nothing to partition, so no split
+        // can add to the queue. Every other "nothing to do" answer has to wait until the plan exists.
+        if (ctx.State.Missing.Count == 0 && ctx.State.ManualQueue.Count == 0)
+            return PreflightResult.Passed("Nothing to download by hand");
+
+        try
+        {
+            // The split is what fills the queue, so this check asks for the plan rather than reading it.
+            await DownloadPlan.For(ctx, progress, token);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return DownloadPlan.CouldNotLoad(ex);
+        }
+
+        // Computing the plan filled the queue with what the split sends to the browser; a later run finds
+        // what the last one could not place, plus whatever automated-downloads pushed back into it.
+        var pending = ctx.State.ManualQueue;
+        if (pending.Count == 0)
             return PreflightResult.Passed("Nothing to download by hand");
 
         // A download can only be verified against a hash and matched by size; an archive without either
         // is reported rather than handed to the acquirer, which would refuse the whole queue.
-        var unverifiable = queue.Where(q => q.Archive.Hash == default || q.Archive.Size <= 0).ToList();
+        var unverifiable = pending.Where(q => q.Archive.Hash == default || q.Archive.Size <= 0).ToList();
         foreach (var item in unverifiable)
             progress.Archive(item.Archive, ArchiveState.Unsupported, UnverifiableReason(item.Archive));
-        queue = queue.Except(unverifiable).ToList();
+        var queue = pending.Except(unverifiable).ToList();
 
         var byName = queue.ToDictionary(q => q.Archive.Name, q => q, StringComparer.OrdinalIgnoreCase);
         progress.ManualQueue(queue.Select(q => (q.Archive, q.Target)).ToList());
@@ -86,13 +120,16 @@ public sealed class ManualDownloadsCheck : IPreflightCheck
                     "The file put in place does not match what the list expects");
         }
 
+        // What was placed leaves the queue for good; what is still outstanding, and what could never be
+        // verified, stays in it, so a later run of this check picks up exactly what is left.
+        ctx.State.ManualQueue = pending.Where(q => !ctx.State.HashedArchives.ContainsKey(q.Archive.Name)).ToList();
         ctx.State.Missing = ctx.State.Missing.Where(a => !ctx.State.HashedArchives.ContainsKey(a.Name)).ToList();
         ctx.State.RemainingDownloadBytes = ctx.State.Missing.Sum(a => a.Size);
 
         if (outstanding.Count == 0 && unverifiable.Count == 0)
             return PreflightResult.Passed($"{Plural.Of(placed, "file")} downloaded by hand and verified");
 
-        var detail = Describe(outstanding);
+        var detail = ManualQueueItem.Describe(outstanding);
         if (unverifiable.Count > 0)
         {
             var lines = unverifiable.Select(u => $"{u.Archive.Name} - {UnverifiableReason(u.Archive)}");
@@ -153,19 +190,5 @@ public sealed class ManualDownloadsCheck : IPreflightCheck
             ManualDownloadState.Verifying => "Verifying",
             _ => state.ToString()
         };
-    }
-
-    /// <summary>One block per file: what it is, where to get it, what to do there. Printable as-is by the CLI.</summary>
-    private static string Describe(IEnumerable<ManualQueueItem> items)
-    {
-        var sb = new StringBuilder();
-        foreach (var item in items)
-        {
-            sb.Append(item.Archive.Name).Append(" (").Append(item.Archive.Size.ToFileSizeString()).Append(") - ")
-                .Append(item.Target.SiteName).Append(": ").Append(item.Target.Url).AppendLine();
-            sb.Append("    ").AppendLine(item.Target.Instructions);
-        }
-
-        return sb.ToString().TrimEnd();
     }
 }
