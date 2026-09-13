@@ -25,7 +25,7 @@
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid>
+    <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
             <RowDefinition x:Name="CardRow" Height="*" />
             <RowDefinition x:Name="ListRow" Height="0" />
@@ -33,10 +33,12 @@
 
         <!--
             The panel guarantees the card its height, so this only catches a window shorter than the
-            supported minimum; the list below keeps its own virtualized scrolling.
+            supported minimum, or one where the queue below has taken its rows back; the list keeps its
+            own virtualized scrolling. The card is what is top-aligned, not the scroller, or the scroller
+            would size to the card and clip it instead of scrolling it.
         -->
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Top">
-        <local:AttentionBorder x:Name="Card" ClipToBounds="True">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <local:AttentionBorder x:Name="Card" ClipToBounds="True" VerticalAlignment="Top">
             <Grid Margin="16, 10, 16, 10">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />

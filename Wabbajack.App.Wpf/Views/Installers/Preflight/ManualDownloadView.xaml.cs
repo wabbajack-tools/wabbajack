@@ -14,6 +14,15 @@ namespace Wabbajack;
 /// </summary>
 public partial class ManualDownloadView : ReactiveUserControl<ManualDownloadsVM>
 {
+    /// <summary>
+    ///     One 32px row plus the border's own margin: the least the queue can show and still be a list.
+    ///     Deliberately the minimum, so the card gives nothing up on any window where the queue already
+    ///     had room.
+    /// </summary>
+    private const double QueueListMinHeight = 40;
+
+    private bool _queueOpen;
+
     public ManualDownloadView()
     {
         InitializeComponent();
@@ -82,10 +91,18 @@ public partial class ManualDownloadView : ReactiveUserControl<ManualDownloadsVM>
                 .ObserveOnGuiThread()
                 .Subscribe(showAll =>
                 {
+                    _queueOpen = showAll;
                     ListBorder.Visibility = showAll ? Visibility.Visible : Visibility.Collapsed;
                     ListRow.Height = showAll ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
                     CardRow.Height = showAll ? GridLength.Auto : new GridLength(1, GridUnitType.Star);
+                    CapCardHeight();
                 })
+                .DisposeWith(dispose);
+
+            Observable
+                .FromEventPattern<SizeChangedEventHandler, SizeChangedEventArgs>(
+                    h => RootGrid.SizeChanged += h, h => RootGrid.SizeChanged -= h)
+                .Subscribe(_ => CapCardHeight())
                 .DisposeWith(dispose);
 
             this.OneWayBind(ViewModel, vm => vm.Rows, v => v.RowsList.ItemsSource)
@@ -102,6 +119,23 @@ public partial class ManualDownloadView : ReactiveUserControl<ManualDownloadsVM>
             this.BindCommand(ViewModel, vm => vm.WatchFolderPicker.SetTargetPathCommand, v => v.ChangeFolderButton)
                 .DisposeWith(dispose);
         });
+    }
+
+    /// <summary>
+    ///     Keeps the queue a row while it is open. The card row is Auto, so on a window short enough for
+    ///     the card alone to fill the panel the star row below it would otherwise be squeezed to nothing and
+    ///     "Show all" would open onto an empty strip. Capping the card instead of putting a floor under the
+    ///     list is what keeps the two rows inside the panel: a floor alone pushes the list out of the bottom
+    ///     of it. The card has its own ScrollViewer for exactly this.
+    /// </summary>
+    private void CapCardHeight()
+    {
+        var height = RootGrid.ActualHeight;
+        var cap = _queueOpen && height > QueueListMinHeight
+            ? height - QueueListMinHeight
+            : double.PositiveInfinity;
+        if (Math.Abs(CardRow.MaxHeight - cap) > 0.5 || double.IsInfinity(cap) != double.IsInfinity(CardRow.MaxHeight))
+            CardRow.MaxHeight = cap;
     }
 
     private void SetWatchState(ManualDownloadState state)
