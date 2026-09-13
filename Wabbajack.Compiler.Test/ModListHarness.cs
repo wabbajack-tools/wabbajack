@@ -109,6 +109,8 @@ public class ModListHarness
 
     public async Task<bool> Install()
     {
+        // The installer no longer downloads: what compiling used has to be in place before Begin.
+        await PrePlaceDownloads();
         using var scope = _serviceProvider.CreateScope();
         var settings = await ConfigureInstall(scope.ServiceProvider);
         var installer = scope.ServiceProvider.GetService<StandardInstaller>()!;
