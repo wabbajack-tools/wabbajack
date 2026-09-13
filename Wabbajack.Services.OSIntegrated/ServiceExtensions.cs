@@ -20,6 +20,7 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Installer;
+using Wabbajack.Installer.Preflight;
 using Wabbajack.Networking.BethesdaNet;
 using Wabbajack.Networking.Discord;
 using Wabbajack.Networking.Http;
@@ -29,6 +30,7 @@ using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
+using Wabbajack.Services.OSIntegrated.Preflight;
 using Wabbajack.Services.OSIntegrated.Services;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 using Wabbajack.VFS;
@@ -199,6 +201,11 @@ public static class ServiceExtensions
         service.AddScoped<CompilerSettings>();
         service.AddScoped<MO2Compiler>();
         service.AddSingleton<CompilerSettingsInferencer>();
+
+        // Preflight
+        service.AddPreflight();
+        service.AddSingleton<INexusLoginProbe, NexusApiLoginProbe>();
+        service.AddSingleton<IDownloadPolicySource, ClientDownloadPolicySource>();
 
         // Application Info
         var version =
