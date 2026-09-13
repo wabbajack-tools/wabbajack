@@ -76,15 +76,15 @@ public partial class ManualDownloadView : ReactiveUserControl<ManualDownloadsVM>
                 })
                 .DisposeWith(dispose);
 
-            this.WhenAnyValue(x => x.ViewModel.TotalCount, x => x.ViewModel.ShowAll)
+            // The disclosure itself lives in the detail panel's header; this only opens and closes the list.
+            // The card keeps its natural height once the list is out, so the list gets the rest of the panel.
+            this.WhenAnyValue(x => x.ViewModel.ShowAll)
                 .ObserveOnGuiThread()
-                .Subscribe(t =>
+                .Subscribe(showAll =>
                 {
-                    var (total, showAll) = t;
-                    ShowAllButton.Text = showAll ? "Hide list" : $"Show all {total}";
-                    ShowAllButton.Icon = showAll ? Symbol.ChevronUp : Symbol.ChevronDown;
                     ListBorder.Visibility = showAll ? Visibility.Visible : Visibility.Collapsed;
                     ListRow.Height = showAll ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+                    CardRow.Height = showAll ? GridLength.Auto : new GridLength(1, GridUnitType.Star);
                 })
                 .DisposeWith(dispose);
 
@@ -98,8 +98,6 @@ public partial class ManualDownloadView : ReactiveUserControl<ManualDownloadsVM>
             this.BindCommand(ViewModel, vm => vm.PickFileCommand, v => v.PickFileButton)
                 .DisposeWith(dispose);
             this.BindCommand(ViewModel, vm => vm.RetryCommand, v => v.RetryButton)
-                .DisposeWith(dispose);
-            this.BindCommand(ViewModel, vm => vm.ToggleShowAllCommand, v => v.ShowAllButton)
                 .DisposeWith(dispose);
             this.BindCommand(ViewModel, vm => vm.WatchFolderPicker.SetTargetPathCommand, v => v.ChangeFolderButton)
                 .DisposeWith(dispose);

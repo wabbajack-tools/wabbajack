@@ -53,7 +53,7 @@
             </Grid>
         </Grid>
 
-        <Grid Grid.Column="2">
+        <Grid x:Name="RightColumn" Grid.Column="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -61,7 +61,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Margin="0, 0, 0, 12">
+            <Grid x:Name="PageHeader" Grid.Row="0" Margin="0, 0, 0, 12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -70,13 +70,20 @@
                 <TextBlock Grid.Column="1" Text="Checking everything the install needs before it starts" FontSize="13" Foreground="{StaticResource Transparent66ForegroundBrush}" VerticalAlignment="Center" Margin="12, 2, 0, 0" TextTrimming="CharacterEllipsis" />
             </Grid>
 
-            <ItemsControl x:Name="ChecksList" Grid.Row="1" HorizontalContentAlignment="Stretch" Background="Transparent" BorderThickness="0">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <local:PreflightCheckRowView Margin="0, 0, 0, 4" ViewModel="{Binding}" />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <!--
+                The checklist is status, the detail panel is where the user acts, so the checklist is the
+                one that scrolls. Its cap is set in code-behind from the column's height so the panel below
+                always keeps room for a whole card; the running check is scrolled back into view as it moves.
+            -->
+            <ScrollViewer x:Name="ChecksScroller" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Top">
+                <ItemsControl x:Name="ChecksList" HorizontalContentAlignment="Stretch" Background="Transparent" BorderThickness="0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <local:PreflightCheckRowView Margin="0, 0, 0, 4" ViewModel="{Binding}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
 
             <Grid Grid.Row="2" Margin="0, 8, 0, 16">
                 <Grid.RowDefinitions>
@@ -84,12 +91,19 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4, 0, 0, 8">
-                    <ic:SymbolIcon x:Name="DetailIcon" FontSize="16" IconVariant="Regular" Symbol="TaskListSquare" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" />
-                    <TextBlock Text="Current step" FontSize="13" Foreground="{StaticResource Transparent66ForegroundBrush}" VerticalAlignment="Center" Margin="8, 0, 0, 0" />
-                    <TextBlock x:Name="DetailSeparator" Text="·" FontSize="13" Foreground="{StaticResource Transparent66ForegroundBrush}" VerticalAlignment="Center" Margin="6, 0, 6, 0" />
-                    <TextBlock x:Name="DetailTitle" FontSize="13" VerticalAlignment="Center" />
-                </StackPanel>
+                <Grid Grid.Row="0" Margin="4, 0, 0, 8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal">
+                        <ic:SymbolIcon x:Name="DetailIcon" FontSize="16" IconVariant="Regular" Symbol="TaskListSquare" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="Current step" FontSize="13" Foreground="{StaticResource Transparent66ForegroundBrush}" VerticalAlignment="Center" Margin="8, 0, 0, 0" />
+                        <TextBlock x:Name="DetailSeparator" Text="·" FontSize="13" Foreground="{StaticResource Transparent66ForegroundBrush}" VerticalAlignment="Center" Margin="6, 0, 6, 0" />
+                        <TextBlock x:Name="DetailTitle" FontSize="13" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <local:WJButton x:Name="ShowAllButton" Grid.Column="1" ButtonStyle="Transparent" Text="Show all" Icon="ChevronDown" IconSize="14" Direction="RightToLeft" Width="130" Height="24" HorizontalAlignment="Right" Margin="8, 0, 0, 0" Visibility="Collapsed" />
+                </Grid>
 
                 <Grid Grid.Row="1">
                     <Border x:Name="TextDetail" Background="{StaticResource ComplementaryPrimary08Brush}" CornerRadius="8" Padding="16">
@@ -109,7 +123,7 @@
                 </Grid>
             </Grid>
 
-            <Grid Grid.Row="3">
+            <Grid x:Name="PageActions" Grid.Row="3">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
