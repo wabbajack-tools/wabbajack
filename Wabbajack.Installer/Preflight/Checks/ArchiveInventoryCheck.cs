@@ -49,10 +49,12 @@ public sealed class ArchiveInventoryCheck : IPreflightCheck
 
         ctx.State.HashedArchives.Clear();
         var missing = new List<Archive>();
+        var present = 0;
         foreach (var archive in required)
         {
             if (byHash.TryGetValue(archive.Hash, out var path))
             {
+                present++;
                 ctx.State.HashedArchives[archive.Name] = path;
                 progress.Archive(archive, ArchiveState.Present, path.ToString());
             }
@@ -67,8 +69,7 @@ public sealed class ArchiveInventoryCheck : IPreflightCheck
         ctx.State.Missing = missing;
         ctx.State.RemainingDownloadBytes = missing.Sum(a => a.Size);
 
-        var present = required.Length - missing.Count;
-        var message = missing.Count == 0
+        var message = present == required.Length
             ? $"All {required.Length} archives present"
             : $"{present} of {required.Length} archives present, {missing.Count} to download " +
               $"({ctx.State.RemainingDownloadBytes.ToFileSizeString()})";
