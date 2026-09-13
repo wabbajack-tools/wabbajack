@@ -42,6 +42,10 @@ public partial class ManualDownloadsVM : ViewModel
     private readonly SourceCache<ManualDownloadItem, string> _items = new(i => i.Key);
     private readonly Dictionary<string, ArchiveRowVM> _rowsByKey = new(StringComparer.OrdinalIgnoreCase);
     private readonly ReadOnlyObservableCollection<ArchiveRowVM> _rows;
+
+    /// <summary>The beat the current card is held on "Done" for; only ever one, so it is reused.</summary>
+    private readonly SerialDisposable _doneBeat = new();
+
     private Dictionary<string, ManualDownloadTarget> _targets = new(StringComparer.OrdinalIgnoreCase);
     private string? _shownKey;
     private bool _holdingDone;
@@ -60,6 +64,8 @@ public partial class ManualDownloadsVM : ViewModel
         NoticeText = string.Empty;
         WatchFolderText = string.Empty;
         HeaderText = "Manual downloads";
+
+        _doneBeat.DisposeWith(CompositeDisposable);
 
         WatchFolderPicker = new FilePickerVM
         {
@@ -196,14 +202,13 @@ public partial class ManualDownloadsVM : ViewModel
             WatchState = ManualDownloadState.Moved;
             IsWrongFile = false;
             WatchStatusText = $"Done, {_shownKey} is in place";
-            Observable.Timer(DoneBeat)
+            _doneBeat.Disposable = Observable.Timer(DoneBeat)
                 .ObserveOnGuiThread()
                 .Subscribe(_ =>
                 {
                     _holdingDone = false;
                     RefreshCurrent();
-                })
-                .DisposeWith(CompositeDisposable);
+                });
             return;
         }
 

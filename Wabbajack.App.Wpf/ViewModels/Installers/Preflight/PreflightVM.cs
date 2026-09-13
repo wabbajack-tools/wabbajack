@@ -99,8 +99,6 @@ public partial class PreflightVM : ViewModel
         InstallCommand = ReactiveCommand.Create(() => { },
             this.WhenAnyValue(x => x.AllPassed, x => x.IsRunning, (passed, running) => passed && !running));
         BackCommand = ReactiveCommand.Create(() => { });
-        RerunChecksCommand = ReactiveCommand.CreateFromTask(() => Run(t => runner.RunAll(t)),
-            this.WhenAnyValue(x => x.IsRunning).Select(running => !running));
 
         Recompute();
     }
@@ -123,8 +121,6 @@ public partial class PreflightVM : ViewModel
 
     /// <summary>Empty on purpose: the owner subscribes and returns to the folder page.</summary>
     public ReactiveCommand<Unit, Unit> BackCommand { get; }
-
-    public ReactiveCommand<Unit, Unit> RerunChecksCommand { get; }
 
     public ICommand OpenReadmeCommand { get; }
     public ICommand OpenWebsiteCommand { get; }
