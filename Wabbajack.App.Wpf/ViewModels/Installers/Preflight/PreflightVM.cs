@@ -256,6 +256,11 @@ public partial class PreflightVM : ViewModel
         ManualDownloads.Dispose();
         foreach (var check in _checks) check.Dispose();
 
+        // The title bar carries the checklist's own progress, so it goes when the page does. Recompute is
+        // already shut out by _disposed, and every caller gets here before it writes a title of its own.
+        _progressHost.ProgressText = string.Empty;
+        _progressHost.ProgressPercent = Percent.Zero;
+
         // Off this thread on purpose: the watcher unwinds on its own threads, so it still finishes for a
         // caller that blocks waiting on the shutdown, and the runs it no longer waits on cannot hold it up.
         _watcherStopped = Task.Run(StopWatcher);
