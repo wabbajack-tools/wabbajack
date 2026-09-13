@@ -17,7 +17,6 @@
     <PackageVersion Include="DynamicData" Version="9.4.33" />
     <PackageVersion Include="Extended.Wpf.Toolkit" Version="5.1.2" />
     <PackageVersion Include="F23.StringSimilarity" Version="7.0.1" />
-    <PackageVersion Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
     <!-- Do not upgrade. 8.0 left Apache 2.0 for a paid Xceed licence; 7.2.2 is the last Apache release.
          Dependabot is told to ignore this package entirely in .github/dependabot.yml. -->
     <PackageVersion Include="FluentAssertions" Version="7.2.2" />
@@ -31,18 +30,15 @@
     <PackageVersion Include="GameFinder.StoreHandlers.Steam" Version="4.9.0" />
     <PackageVersion Include="Genbox.AlphaFS" Version="2.2.2.1" />
     <PackageVersion Include="GitInfo" Version="3.6.1" />
-    <PackageVersion Include="HtmlAgilityPack" Version="1.13.0" />
     <PackageVersion Include="Humanizer" Version="3.0.10" />
     <PackageVersion Include="ini-parser-netstandard" Version="2.5.3" />
     <PackageVersion Include="JetBrains.Annotations" Version="2026.2.0" />
     <PackageVersion Include="K4os.Compression.LZ4.Streams" Version="1.3.8" />
-    <PackageVersion Include="LibAES-CTR" Version="1.1.2" />
     <PackageVersion Include="MahApps.Metro" Version="3.0.0-alpha0476" />
     <PackageVersion Include="Markdig" Version="1.3.2" />
     <PackageVersion Include="MathConverter" Version="3.0.0" />
     <PackageVersion Include="MessageBox.Avalonia" Version="3.3.1" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
-    <PackageVersion Include="Microsoft.AspNetCore.Http.Extensions" Version="2.3.13" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.10" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.12" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.10" />

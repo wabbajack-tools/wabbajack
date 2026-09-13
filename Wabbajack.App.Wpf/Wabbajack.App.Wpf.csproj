@@ -66,7 +66,6 @@
     <PackageReference Include="Extended.Wpf.Toolkit">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
-    <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" />
     <PackageReference Include="FluentIcons.Wpf" />
     <PackageReference Include="Genbox.AlphaFS" />
     <PackageReference Include="GitInfo">

@@ -1,4 +1,3 @@
-using HtmlAgilityPack;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Web.WebView2.Core;
@@ -177,15 +176,6 @@ public abstract partial class BrowserWindowViewModel : ViewModel, IClosableVM
     public async Task<string> EvaluateJavaScript(string js)
     {
         return await Browser.ExecuteScriptAsync(js);
-    }
-
-    public async Task<HtmlDocument> GetDom(CancellationToken token)
-    {
-        var source = await EvaluateJavaScript("document.body.outerHTML");
-        var decoded = JsonSerializer.Deserialize<string>(source);
-        var doc = new HtmlDocument();
-        doc.LoadHtml(decoded);
-        return doc;
     }
 
     public async Task<T> WaitWhileRemovingIframes<T>(Task<T> mainTask, CancellationToken token)
