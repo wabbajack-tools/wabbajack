@@ -302,7 +302,11 @@ public class ManualDownloadAcquirerTests : IAsyncDisposable
         await WaitForState(acquirer, archive.Name, ManualDownloadState.WrongFile);
         var item = Item(acquirer, archive.Name);
         Assert.Equal(wrong, item.CandidatePath);
-        Assert.Contains(archive.Hash.ToHex(), item.Message);
+        // The message goes on a card in front of the user, so it names the file and says what is wrong
+        // with it. The hashes belong in the log.
+        Assert.Contains(wrong.FileName.ToString(), item.Message);
+        Assert.Contains("not the right file", item.Message);
+        Assert.DoesNotContain(archive.Hash.ToHex(), item.Message);
         Assert.Equal(1, acquirer.Counts.WrongFile);
 
         // Still there, untouched, and still watched: a later correct file completes the item.

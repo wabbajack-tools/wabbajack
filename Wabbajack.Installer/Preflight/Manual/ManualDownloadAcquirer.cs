@@ -856,8 +856,13 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
                     entry.State = ManualDownloadState.WrongFile;
                     entry.CandidatePath = path;
                     entry.Progress = Percent.Zero;
+                    // The hashes go to the log. On screen they tell the user nothing they can act on, and
+                    // the sentence has to fit a card.
+                    _logger.LogInformation(
+                        "{File} is the size {Archive} expects but hashes to {Actual} rather than {Expected}",
+                        path.FileName, entry.Archive.Name, hash.ToHex(), entry.Archive.Hash.ToHex());
                     entry.Message =
-                        $"{path.FileName} is the right size but not the right file: expected hash {entry.Archive.Hash.ToHex()}, got {hash.ToHex()}. Wrong version?";
+                        $"{path.FileName} is the right size but not the right file, probably a different version";
                     events.Add(EventLocked(entry, previous));
                 }
             }
