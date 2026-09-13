@@ -28,4 +28,9 @@ public static class Ext
     public static Extension Webp = new(".webp");
     public static Extension Png = new(".png");
     public static Extension Jpg = new (".jpg");
+
+    /// <summary>
+    ///     A file being copied into a downloads folder by the manual download acquirer, not yet verified.
+    /// </summary>
+    public static readonly Extension WjIncoming = new(".wj_incoming");
 }

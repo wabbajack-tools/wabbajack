@@ -13,6 +13,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="Wabbajack.Installer.Test" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\Wabbajack.Downloaders.Dispatcher\Wabbajack.Downloaders.Dispatcher.csproj" />
         <ProjectReference Include="..\Wabbajack.Downloaders.GameFile\Wabbajack.Downloaders.GameFile.csproj" />
         <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />

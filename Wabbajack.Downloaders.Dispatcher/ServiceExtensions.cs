@@ -6,6 +6,7 @@ using Wabbajack.Downloaders.Http;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.Downloaders.IPS4OAuth2Downloader;
 using Wabbajack.Downloaders.Manual;
+using Wabbajack.Downloaders.ManualSources;
 using Wabbajack.Downloaders.MediaFire;
 using Wabbajack.Downloaders.ModDB;
 using Wabbajack.Downloaders.VerificationCache;
@@ -35,7 +36,11 @@ public static class ServiceExtensions
                 .AddGameFileDownloader()
                 .AddBethesdaDownloader()
                 .AddWabbajackClient()
-                .AddManualDownloader();
+                .AddManualDownloader()
+                // ManualDownloader and ManualSourceDownloader share Priority.Lowest; the dispatcher's stable
+                // OrderBy keeps registration order for ties, so the old downloader must stay registered first.
+                // OldDownloadersStillWinInPr1 pins this.
+                .AddManualSourceDownloaders();
         }
         else
         {
@@ -48,7 +53,9 @@ public static class ServiceExtensions
                 .AddMediaFireDownloader()
                 .AddModDBDownloader()
                 .AddWabbajackCDNDownloader()
-                .AddWabbajackClient();
+                .AddWabbajackClient()
+                // No ManualDownloader in this lane, so ManualSourceDownloader is the only Priority.Lowest entry.
+                .AddManualSourceDownloaders();
         }
 
         services.AddSingleton(s =>
