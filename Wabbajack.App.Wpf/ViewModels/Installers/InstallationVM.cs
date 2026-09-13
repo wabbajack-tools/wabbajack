@@ -122,6 +122,12 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     /// <summary>How long a shutdown gives the preflight download watcher to stop before it gives up on it.</summary>
     private static readonly TimeSpan PreflightShutdownTimeout = TimeSpan.FromSeconds(5);
 
+    /// <summary>
+    ///     The shutdown started by the handoff into the installer, kept so a window closing in that moment
+    ///     still has something to wait on after <see cref="Preflight" /> has been cleared.
+    /// </summary>
+    private Task? _preflightShutdown;
+
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
 
     [Reactive] public partial bool Installing { get; set; }
@@ -318,6 +324,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 .DisposeWith(disposables);
 
             this.WhenAny(vm => vm.InstallState)
+                .ObserveOnGuiThread()
                 .Subscribe(state =>
                     {
                         CurrentStep = state switch
@@ -798,13 +805,17 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
 
         var preflight = Preflight;
         Preflight = null;
-        if (preflight == null)
+
+        // Preflight is cleared before the handoff into the installer awaits its shutdown, so a window
+        // closing in that moment finds nothing here and has to wait on that shutdown instead.
+        var stopping = preflight?.StopWatcherAsync() ?? _preflightShutdown;
+        if (stopping == null || stopping.IsCompleted)
         {
             InstallState = InstallState.Configuration;
             return;
         }
 
-        preflight.StopWatcherAsync()
+        stopping
             .WaitAsync(PreflightShutdownTimeout)
             .ContinueWith(_ => InstallState = InstallState.Configuration, TaskScheduler.Default);
     }
@@ -816,7 +827,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         if (preflight != null)
         {
             Preflight = null;
-            await preflight.ShutdownAsync();
+            _preflightShutdown = preflight.ShutdownAsync();
+            await _preflightShutdown;
         }
 
         await Task.Run(async () =>

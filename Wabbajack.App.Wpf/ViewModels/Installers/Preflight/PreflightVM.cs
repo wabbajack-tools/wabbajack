@@ -250,6 +250,13 @@ public partial class PreflightVM : ViewModel
     private async Task ShutdownCore()
     {
         _disposed = true;
+
+        // First, and off this thread on purpose: the watcher unwinds on its own threads, so it still
+        // finishes for a caller that blocks waiting on the shutdown, and the runs it no longer waits on
+        // cannot hold it up. Starting it before the disposals below means a throw in one of them still
+        // leaves a closing window something to wait on.
+        _watcherStopped = Task.Run(StopWatcher);
+
         Cancel();
         base.Dispose();
         BulkDownloads.Dispose();
@@ -260,10 +267,6 @@ public partial class PreflightVM : ViewModel
         // already shut out by _disposed, and every caller gets here before it writes a title of its own.
         _progressHost.ProgressText = string.Empty;
         _progressHost.ProgressPercent = Percent.Zero;
-
-        // Off this thread on purpose: the watcher unwinds on its own threads, so it still finishes for a
-        // caller that blocks waiting on the shutdown, and the runs it no longer waits on cannot hold it up.
-        _watcherStopped = Task.Run(StopWatcher);
 
         await WaitForIdle();
         await _watcherStopped;
