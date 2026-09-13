@@ -432,8 +432,7 @@ public partial class App
         services.AddSingleton<FileAssociationSelfHealService>();
 
         // Singletons
-        services.AddSingleton<CefService>();
-        services.AddSingleton<IUserInterventionHandler, UserInterventionHandler>();
+        services.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
         services.AddSingleton<ImageCacheManager>();
         services.AddSingleton<GameIconCache>();
         services.AddSingleton<SystemParametersConstructor>();
@@ -459,28 +458,16 @@ public partial class App
         services.AddTransient<CompilerMainVM>();
         services.AddTransient<InstallationVM>();
         services.AddTransient<SettingsVM>();
-        services.AddTransient<WebBrowserVM>();
         services.AddTransient<InfoVM>();
         services.AddTransient<ModListDetailsVM>();
         services.AddTransient<FileUploadVM>();
-        services.AddTransient<MegaLoginVM>();
         services.AddTransient<AboutVM>();
 
         // Login Handlers
-        services.AddTransient<VectorPlexusLoginHandler>();
         services.AddTransient<NexusLoginHandler>();
-        services.AddTransient<LoversLabLoginHandler>();
 
         // Login Managers
-
-        //Disabled LL because it is currently not used and broken due to the way LL butchers their API
-        //services.AddAllSingleton<INeedsLogin, LoversLabLoginManager>();
         services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
-        services.AddAllSingleton<INeedsLogin, MegaLoginManager>();
-        //Disabled VP due to frequent login issues & because the only file that really got downloaded there has a mirror
-        //services.AddAllSingleton<INeedsLogin, VectorPlexusLoginManager>();
-        services.AddSingleton<ManualDownloadHandler>();
-        services.AddSingleton<ManualBrowserDownloadHandler>();
         services.AddSingleton<NexusCollectionDownloader>();
         // Verbs
         services.AddSingleton<CommandLineBuilder>();

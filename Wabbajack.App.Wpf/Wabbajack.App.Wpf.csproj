@@ -30,24 +30,7 @@
     </PropertyGroup>
 
 
-    <ItemGroup>
-        <!-- TODO: These updates are currently required because CefSharp.Wpf specifies
-             <Private>false</Private>, which means these libraries will not be specified in
-             the .deps.json file, and so the CoreCLR wouldn't load these. -->
-        <Reference Update="CefSharp">
-            <Private>true</Private>
-        </Reference>
-        <Reference Update="CefSharp.Core">
-            <Private>true</Private>
-        </Reference>
-        <Reference Update="CefSharp.Wpf">
-            <Private>true</Private>
-        </Reference>
-    </ItemGroup>
-
 	<ItemGroup>
-    <None Remove="LoginManagers\Icons\mega-text.png" />
-    <None Remove="LoginManagers\Icons\mega.png" />
     <None Remove="Readme.md" />
     <None Remove="Resources\Fonts\Atkinson-Hyperlegible-Italic-102.ttf" />
     <None Remove="Resources\Fonts\Atkinson-Hyperlegible-Regular-102.ttf" />
@@ -131,19 +114,6 @@
     <Resource Include="Resources\Fonts\Gabarito-VariableFont_wght-BF651cdf1f55e6c.ttf">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <None Remove="LoginManagers\Icons\lovers_lab.png" />
-    <EmbeddedResource Include="LoginManagers\Icons\lovers_lab.png" />
-    <None Remove="LoginManagers\Icons\vector_plexus.png" />
-    <EmbeddedResource Include="LoginManagers\Icons\mega-text.png" />
-    <EmbeddedResource Include="LoginManagers\Icons\mega.png" />
-    <EmbeddedResource Include="LoginManagers\Icons\vector_plexus.png" />
-
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="MegaApiClient">
-      <HintPath>..\Wabbajack.Downloaders.Mega\lib\MegaApiClient\MegaApiClient.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>
