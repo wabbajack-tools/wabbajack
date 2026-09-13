@@ -455,8 +455,10 @@ public abstract class AInstaller<T>
         NextStep(Consts.StepHashing, "Hashing Archives", 0);
         _logger.LogInformation("Looking for files to hash");
 
-        // Collect all game folders - primary plus other games
-        var gameFolders = ArchiveInventory.GameFolders(_configuration, _gameLocator, _logger);
+        // Collect all game folders - primary plus other games. An OtherGames entry that is not installed
+        // fails the install here, as it always has, rather than after the download phase.
+        var gameFolders = ArchiveInventory.GameFolders(_configuration, _gameLocator, _logger,
+            throwOnMissingOtherGame: true);
 
         HashedArchives = await ArchiveInventory.Scan(ModList.Archives, _configuration.Downloads, gameFolders,
             FileHashCache, _limiter, _logger, token,

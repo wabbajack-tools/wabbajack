@@ -101,9 +101,10 @@ game installed, game files, archive inventory, unsupported archives, automated d
 disk space. `PreflightRunner.Create(services, config)` mirrors `StandardInstaller.Create`; checks come from
 DI as `IPreflightCheck` and run in `Order` (100–900, gaps left on purpose), each declaring `DependsOn`. A
 check that fails or needs the user makes its dependents `Skipped`; `RunCheck(id)` re-runs one and resets
-what depends on it. The engine has no UI and no DynamicData or System.Reactive: it raises plain events
-(`CheckChanged`, `ArchiveChanged`, `ManualQueueChanged`, `RunFinished`) and offers snapshots; hosts project
-those however they like.
+what depends on it. The engine has no UI and no DynamicData anywhere. The runner is event-based: it raises
+plain events (`CheckChanged`, `ArchiveChanged`, `ManualQueueChanged`, `RunFinished`) and offers snapshots;
+hosts project those however they like. The acquirer exposes `IObservable`s via `System.Reactive` (already
+a transitive dependency).
 
 Preflight owns downloading. Automated sources are WabbajackCDN, Http and premium Nexus; every other state
 becomes a manual download whose browser URL comes from `ManualDownloadUrls.TryGet`. Partition by **state

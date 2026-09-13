@@ -165,10 +165,11 @@ public class DownloadDispatcher
         {
             downloadedHash = await Download(archive, destination, token);
         }
-        catch (ManualDownloadRequiredException)
+        catch (Exception ex) when (ex is ManualDownloadRequiredException or DownloadTimeoutException)
         {
-            // The source needs a browser, but the mirror may still have the file.
-            _logger.LogInformation("{archive} needs a manual download, trying mirror first", archive.Name);
+            // The source needs a browser or the transfer stalled, but the mirror may still have the file.
+            _logger.LogInformation("{archive} could not be downloaded from its source ({reason}), trying mirror first",
+                archive.Name, ex.Message);
             Hash mirrorHash = default;
             try
             {

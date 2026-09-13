@@ -25,10 +25,12 @@ public static class ArchiveInventory
     /// <summary>
     ///     The game folders to search alongside the downloads folder: the configured (or located) primary
     ///     game plus every <c>OtherGames</c> entry that can be located. A game that cannot be found is
-    ///     logged and left out rather than thrown on.
+    ///     logged and left out rather than thrown on, unless <paramref name="throwOnMissingOtherGame" /> is
+    ///     set: the installer keeps its historical behaviour of failing on an <c>OtherGames</c> entry that
+    ///     is not installed, while preflight reports the missing game and continues.
     /// </summary>
     public static IReadOnlyCollection<AbsolutePath> GameFolders(InstallerConfiguration config, IGameLocator locator,
-        ILogger logger)
+        ILogger logger, bool throwOnMissingOtherGame = false)
     {
         var folders = new HashSet<AbsolutePath>();
 
@@ -47,7 +49,9 @@ public static class ArchiveInventory
         foreach (var g in config.OtherGames ?? Array.Empty<Game>())
         {
             logger.LogInformation("Also searching othergame folder for {Game}", g);
-            if (locator.TryFindLocation(g, out var other))
+            if (throwOnMissingOtherGame)
+                AddIfValid(locator.GameLocation(g));
+            else if (locator.TryFindLocation(g, out var other))
                 AddIfValid(other);
             else
                 logger.LogWarning("Other game {Game} is not installed, its folder will not be searched", g);

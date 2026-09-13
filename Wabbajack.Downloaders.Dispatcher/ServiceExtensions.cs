@@ -37,6 +37,9 @@ public static class ServiceExtensions
                 .AddBethesdaDownloader()
                 .AddWabbajackClient()
                 .AddManualDownloader()
+                // ManualDownloader and ManualSourceDownloader share Priority.Lowest; the dispatcher's stable
+                // OrderBy keeps registration order for ties, so the old downloader must stay registered first.
+                // OldDownloadersStillWinInPr1 pins this.
                 .AddManualSourceDownloaders();
         }
         else
@@ -51,6 +54,7 @@ public static class ServiceExtensions
                 .AddModDBDownloader()
                 .AddWabbajackCDNDownloader()
                 .AddWabbajackClient()
+                // No ManualDownloader in this lane, so ManualSourceDownloader is the only Priority.Lowest entry.
                 .AddManualSourceDownloaders();
         }
 

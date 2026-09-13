@@ -16,10 +16,6 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-        <PackageReference Include="Newtonsoft.Json" />
-        <PackageReference Include="SharpCompress" />
-        <PackageReference Include="SixLabors.ImageSharp" />
-        <PackageReference Include="System.Drawing.Common" />
     </ItemGroup>
 
 </Project>

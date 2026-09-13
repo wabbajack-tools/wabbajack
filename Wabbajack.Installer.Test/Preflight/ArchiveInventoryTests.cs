@@ -138,6 +138,30 @@ public class ArchiveInventoryTests : IDisposable
     }
 
     [Fact]
+    public void InstallerPathThrowsWhenAnOtherGameIsNotInstalled()
+    {
+        _host.Config.OtherGames = new[] {Game.Fallout4, Game.Oblivion};
+        _host.Locator.Games[Game.Fallout4] = _host.Manager.CreateFolder().Path;
+
+        var ex = Assert.Throws<Exception>(() =>
+            ArchiveInventory.GameFolders(_host.Config, _host.Locator, NullLogger.Instance, throwOnMissingOtherGame: true));
+
+        Assert.Equal("Can't find game Oblivion", ex.Message);
+    }
+
+    [Fact]
+    public void PreflightPathSkipsAnOtherGameThatIsNotInstalled()
+    {
+        _host.Config.OtherGames = new[] {Game.Fallout4, Game.Oblivion};
+        var fallout = _host.Manager.CreateFolder().Path;
+        _host.Locator.Games[Game.Fallout4] = fallout;
+
+        var folders = ArchiveInventory.GameFolders(_host.Config, _host.Locator, NullLogger.Instance);
+
+        Assert.Equal(new[] {_host.GameFolder, fallout}.OrderBy(p => p.ToString()), folders.OrderBy(p => p.ToString()));
+    }
+
+    [Fact]
     public async Task TheCheckMarksPresentAndMissingAndLeavesGameFilesToGameFiles()
     {
         // Lives in the game folder so the downloads folder can be absent, to prove the check creates it.
