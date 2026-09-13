@@ -6,7 +6,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Networking.Http;
 using Wabbajack.RateLimiter;
@@ -40,15 +39,6 @@ public static class HttpExtensions
         {
             msg.Headers.Add(header.Key, header.Value);
         }
-        return msg;
-    }
-
-    public static HttpRequestMessage ToHttpRequestMessage(this ManualDownload.BrowserDownloadState browserState)
-    {
-        var msg = new HttpRequestMessage(HttpMethod.Get, browserState.Uri);
-        msg.AddChromeAgent(browserState.UserAgent);
-        msg.AddCookies(browserState.Cookies);
-        msg.AddHeaders(browserState.Headers);
         return msg;
     }
 
