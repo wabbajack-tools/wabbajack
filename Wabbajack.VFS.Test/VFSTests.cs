@@ -21,10 +21,13 @@ public class VFSTests : IDisposable
     private readonly AbsolutePath _testZip;
     private readonly AbsolutePath _vfsTestDir;
 
-    public VFSTests(Context context, TemporaryFileManager manager)
+    public VFSTests(Context context)
     {
-        _context = context;
-        _manager = manager;
+        // The registered TemporaryFileManager is a singleton shared with every other test class, and
+        // Dispose deletes its whole folder. Test classes run in parallel, so this owns its own root and a
+        // Context whose extractor stages into that root rather than the shared one.
+        _manager = new TemporaryFileManager(KnownFolders.EntryPoint.Combine(Guid.NewGuid().ToString()));
+        _context = context.WithTemporaryFileManager(_manager);
 
         _vfsTestDir = _manager.CreateFolder();
         _testZip = "test.zip".ToRelativePath().RelativeTo(_vfsTestDir);
@@ -34,7 +37,7 @@ public class VFSTests : IDisposable
 
     public void Dispose()
     {
-        _manager?.Dispose();
+        _manager.Dispose();
     }
 
     [Fact]

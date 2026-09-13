@@ -25,6 +25,7 @@ using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer;
+using Wabbajack.Installer.Preflight;
 using Wabbajack.LoginManagers;
 using Wabbajack.Messages;
 using Wabbajack.Models;
@@ -52,6 +53,7 @@ namespace Wabbajack;
 public enum InstallState
 {
     Configuration,
+    Preflight,
     Installing,
     Success,
     Failure
@@ -71,6 +73,9 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     [Reactive] public partial StandardInstaller StandardInstaller { get; set; }
     [Reactive] public partial BitmapImage ModListImage { get; set; }
     [Reactive] public partial InstallState InstallState { get; set; }
+
+    /// <summary>The page between the folder picker and the install; null outside <see cref="InstallState.Preflight" />.</summary>
+    [Reactive] public partial PreflightVM? Preflight { get; set; }
 
     [Reactive] public partial string FailureDetailsTitle { get; set; } = string.Empty;
     [Reactive] public partial string FailureDetailsDescription { get; set; } = string.Empty;
@@ -111,9 +116,18 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     private readonly ResourceMonitor _resourceMonitor;
     private readonly Services.OSIntegrated.Configuration _configuration;
     private readonly HttpClient _client;
-    private readonly DownloadDispatcher _downloadDispatcher;
-    private readonly IEnumerable<INeedsLogin> _logins;
+    private readonly NexusLoginManager _nexusLoginManager;
     private CancellationTokenSource _cancellationTokenSource;
+
+    /// <summary>How long a shutdown gives the preflight download watcher to stop before it gives up on it.</summary>
+    private static readonly TimeSpan PreflightShutdownTimeout = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    ///     The shutdown started by the handoff into the installer, kept so a window closing in that moment
+    ///     still has something to wait on after <see cref="Preflight" /> has been cleared.
+    /// </summary>
+    private Task? _preflightShutdown;
+
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
 
     [Reactive] public partial bool Installing { get; set; }
@@ -137,7 +151,6 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     public ICommand OpenWikiCommand { get; }
     public ICommand OpenCommunityCommand { get; }
     public ICommand OpenWebsiteCommand { get; }
-    public ICommand OpenMissingArchivesCommand { get; }
     public ICommand BackToGalleryCommand { get; }
     public ICommand DiagnoseFailureCommand { get; }
     public ICommand OpenLogFolderCommand { get; }
@@ -150,7 +163,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     
     public InstallationVM(ILogger<InstallationVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
-        Services.OSIntegrated.Configuration configuration, HttpClient client, DownloadDispatcher dispatcher, IEnumerable<INeedsLogin> logins)
+        Services.OSIntegrated.Configuration configuration, HttpClient client, NexusLoginManager nexusLoginManager)
     {
         _logger = logger;
         _configuration = configuration;
@@ -162,8 +175,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         _gameLocator = gameLocator;
         _resourceMonitor = resourceMonitor;
         _client = client;
-        _downloadDispatcher = dispatcher;
-        _logins = logins;
+        _nexusLoginManager = nexusLoginManager;
 
         ConfigurationText = $"Loading... Please wait";
         ProgressText = $"Installation";
@@ -182,7 +194,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
             ProgressState = ProgressState.Normal;
             this.Activator.Activate();
         });
-        InstallCommand = ReactiveCommand.Create(() => BeginInstall().FireAndForget(), this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading,
+        InstallCommand = ReactiveCommand.Create(() => BeginPreflight().FireAndForget(), this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading,
                                                                                                         vm => vm.ValidationResult,
                                                                                                        (notLoading, validationResult) => notLoading && (validationResult?.Succeeded ?? false)));
 
@@ -224,12 +236,6 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         OpenInstallFolderCommand = ReactiveCommand.Create(() =>
         {
             UIUtils.OpenFolderAndSelectFile(Installer.Location.TargetPath.Combine("ModOrganizer.exe"));
-        });
-
-        OpenMissingArchivesCommand = ReactiveCommand.Create(() =>
-        {
-            var missing = ModList.Archives.Where(a => !StandardInstaller.HashedArchives.ContainsKey(a.Hash)).ToArray();
-            ShowMissingManualReport(missing);
         });
 
         BackToGalleryCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.ModListGallery));
@@ -318,11 +324,13 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 .DisposeWith(disposables);
 
             this.WhenAny(vm => vm.InstallState)
+                .ObserveOnGuiThread()
                 .Subscribe(state =>
                     {
                         CurrentStep = state switch
                         {
                             InstallState.Configuration => Step.Configuration,
+                            InstallState.Preflight => Step.Busy,
                             InstallState.Installing => Step.Busy,
                             InstallState.Failure => Step.Configuration,
                             InstallState.Success => Step.Done,
@@ -445,6 +453,10 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         {
             case InstallState.Configuration:
                 NavigateToGlobal.Send(ScreenType.ModListGallery);
+                break;
+
+            case InstallState.Preflight:
+                CancelPreflight();
                 break;
 
             case InstallState.Installing:
@@ -590,6 +602,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     private async Task LoadModlist(AbsolutePath path, ModlistMetadata? metadata)
     {
         using var ll = LoadingLock.WithLoading();
+        // A load from the gallery or the protocol handler can arrive while a preflight is running.
+        DisposePreflight();
         InstallState = InstallState.Configuration;
         WabbajackFileLocation.TargetPath = path;
         try
@@ -683,8 +697,140 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         });
     }
 
-    private async Task BeginInstall()
+    /// <summary>
+    ///     Install from the folder page opens the preflight page. The runner gets everything the installer
+    ///     will, and the installer only starts once every check is satisfied.
+    /// </summary>
+    private async Task BeginPreflight()
     {
+        DisposePreflight();
+
+        ConfigurationText = "Preparation";
+        ProgressText = "Preflight";
+        ProgressPercent = Percent.Zero;
+        CurrentStep = Step.Busy;
+        InstallState = InstallState.Preflight;
+        ProgressState = ProgressState.Normal;
+
+        try
+        {
+            var postfix = (await WabbajackFileLocation.TargetPath.FileName.ToString().Hash()).ToHex();
+            await _settingsManager.Save(InstallSettingsPrefix + postfix, new SavedInstallSettings
+            {
+                ModListLocation = WabbajackFileLocation.TargetPath,
+                InstallLocation = Installer.Location.TargetPath,
+                DownloadLocation = Installer.DownloadLocation.TargetPath,
+                Metadata = ModlistMetadata
+            });
+            await _settingsManager.Save(LastLoadedModlist, WabbajackFileLocation.TargetPath);
+
+            // Always reload the modlist, incase of retrying , so it gets fresh directives and archives
+            var freshModList = await StandardInstaller.LoadFromFile(
+                _dtos, WabbajackFileLocation.TargetPath);
+
+            var canSource = GameRegistry.Games[freshModList.GameType].CanSourceFrom ?? Array.Empty<Game>();
+            var namedgames = freshModList.OtherGames;
+            var validgames = new List<Game>();
+            foreach (var g in namedgames)
+            {
+                if (canSource.Contains(g) && GameRegistry.Games.ContainsKey(g))
+                    validgames.Add(g);
+            }
+
+            var cfg = new InstallerConfiguration
+            {
+                Game = ModList.GameType,
+                OtherGames = validgames.ToArray(),
+                Downloads = Installer.DownloadLocation.TargetPath,
+                Install = Installer.Location.TargetPath,
+                ModList = freshModList,
+                ModlistArchive = WabbajackFileLocation.TargetPath,
+                SystemParameters = _parametersConstructor.Create(),
+                // A game that cannot be found is the game-installed check's finding, not an exception here.
+                GameFolder = _gameLocator.TryFindLocation(freshModList.GameType, out var gameFolder) ? gameFolder : default,
+                Metadata = ModlistMetadata
+            };
+
+            var runner = PreflightRunner.Create(_serviceProvider, cfg);
+            var preflight = new PreflightVM(runner, _nexusLoginManager, this, _logger,
+                this.WhenAnyValue(x => x.DownloadingSpeed), OpenReadmeCommand, OpenWebsiteCommand,
+                OpenCommunityCommand, OpenManifestCommand);
+            preflight.InstallCommand
+                .Subscribe(_ => RunInstaller(cfg).FireAndForget())
+                .DisposeWith(preflight.CompositeDisposable);
+            preflight.BackCommand
+                .Subscribe(_ => CancelPreflight())
+                .DisposeWith(preflight.CompositeDisposable);
+
+            Preflight = preflight;
+            preflight.Start();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "While preparing to install {Modlist}", ModList.Name);
+            InstallState = InstallState.Failure;
+            ProgressText = $"Error during installation of {ModList.Name}";
+            ProgressPercent = Percent.Zero;
+            ProgressState = ProgressState.Error;
+            InstallResult = Wabbajack.Installer.InstallResult.Errored;
+            LaunchDiagnostics();
+        }
+    }
+
+    /// <summary>Back from the preflight page. The pickers were never touched, so it is the edit-details path.</summary>
+    private void CancelPreflight()
+    {
+        DisposePreflight();
+        EditInstallDetailsCommand.Execute(null);
+    }
+
+    private void DisposePreflight()
+    {
+        var preflight = Preflight;
+        if (preflight == null) return;
+        Preflight = null;
+        preflight.Dispose();
+    }
+
+    /// <summary>
+    ///     Stops a preflight in progress so the application can shut down. The state stays at Preflight until
+    ///     the watcher has stopped or the wait runs out, so a caller watching for the install to end gives a
+    ///     copy in progress time to unwind instead of leaving a partial file behind. The state is cleared from
+    ///     whatever thread finishes the wait: the caller is blocking this one, so nothing posted to it would
+    ///     ever run.
+    /// </summary>
+    public void CancelPreflightForShutdown()
+    {
+        if (InstallState != InstallState.Preflight) return;
+
+        var preflight = Preflight;
+        Preflight = null;
+
+        // Preflight is cleared before the handoff into the installer awaits its shutdown, so a window
+        // closing in that moment finds nothing here and has to wait on that shutdown instead.
+        var stopping = preflight?.StopWatcherAsync() ?? _preflightShutdown;
+        if (stopping == null || stopping.IsCompleted)
+        {
+            InstallState = InstallState.Configuration;
+            return;
+        }
+
+        stopping
+            .WaitAsync(PreflightShutdownTimeout)
+            .ContinueWith(_ => InstallState = InstallState.Configuration, TaskScheduler.Default);
+    }
+
+    private async Task RunInstaller(InstallerConfiguration cfg)
+    {
+        // The watcher must be done moving files before the installer hashes the downloads folder.
+        var preflight = Preflight;
+        if (preflight != null)
+        {
+            Preflight = null;
+            _preflightShutdown = preflight.ShutdownAsync();
+            await _preflightShutdown;
+        }
+
         await Task.Run(async () =>
         {
             RxApp.MainThreadScheduler.Schedule(() =>
@@ -696,45 +842,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 ProgressState = ProgressState.Normal;
             });
 
-            await PrepareDownloaders();
-
-            var postfix = (await WabbajackFileLocation.TargetPath.FileName.ToString().Hash()).ToHex();
-            await _settingsManager.Save(InstallSettingsPrefix + postfix, new SavedInstallSettings
-            {
-                ModListLocation = WabbajackFileLocation.TargetPath,
-                InstallLocation = Installer.Location.TargetPath,
-                DownloadLocation = Installer.DownloadLocation.TargetPath,
-                Metadata = ModlistMetadata
-            });
-            await _settingsManager.Save(LastLoadedModlist, WabbajackFileLocation.TargetPath);
-
             try
             {
-                // Always reload the modlist, incase of retrying , so it gets fresh directives and archives
-                var freshModList = await StandardInstaller.LoadFromFile(
-                    _dtos, WabbajackFileLocation.TargetPath);
-
-                var canSource = GameRegistry.Games[freshModList.GameType].CanSourceFrom ?? Array.Empty<Game>();
-                var namedgames = freshModList.OtherGames;
-                var validgames = new List<Game>();
-                foreach (var g in namedgames)
-                {
-                    if (canSource.Contains(g) && GameRegistry.Games.ContainsKey(g))
-                        validgames.Add(g);
-                }
-
-                var cfg = new InstallerConfiguration
-                {
-                    Game = ModList.GameType,
-                    OtherGames = validgames.ToArray(),
-                    Downloads = Installer.DownloadLocation.TargetPath,
-                    Install = Installer.Location.TargetPath,
-                    ModList = freshModList,
-                    ModlistArchive = WabbajackFileLocation.TargetPath,
-                    SystemParameters = _parametersConstructor.Create(),
-                    GameFolder = _gameLocator.GameLocation(freshModList.GameType)
-                };
-
                 StandardInstaller = StandardInstaller.Create(_serviceProvider, cfg);
 
 
@@ -809,138 +918,6 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
             }
         });
 
-    }
-
-    private async Task PrepareDownloaders()
-    {
-        foreach (var downloader in await _downloadDispatcher.AllDownloaders(ModList.Archives.Select(a => a.State)))
-        {
-            _logger.LogInformation("Preparing {Name}", downloader.GetType().Name);
-            if (await downloader.Prepare())
-                continue;
-
-            var manager = _logins
-                .FirstOrDefault(l => l.LoginFor() == downloader.GetType());
-            if (manager == null)
-            {
-                _logger.LogError("Cannot install, could not prepare {Name} for downloading",
-                    downloader.GetType().Name);
-                throw new Exception($"No way to prepare {downloader}");
-            }
-
-            RxApp.MainThreadScheduler.Schedule(manager, (_, _) =>
-            {
-                manager.TriggerLogin.Execute(null);
-                return Disposable.Empty;
-            });
-
-            while (true)
-            {
-                if (await downloader.Prepare())
-                    break;
-                await Task.Delay(1000);
-            }
-        }
-    }
-
-    private void ShowMissingManualReport(Archive[] archives)
-    {
-        _logger.LogInformation("Writing Manual helper report");
-        var report = Installer.DownloadLocation.TargetPath.Combine("MissingManuals.html");
-        var downloadsPath = Installer.DownloadLocation.TargetPath;
-        {
-            using var writer = new StreamWriter(report.Open(FileMode.Create, FileAccess.Write, FileShare.None));
-            writer.Write(@"<html>");
-            writer.Write("<head>");
-            writer.Write("<title>Missing Files</title>");
-            writer.Write("<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.fluid.classless.min.css' >");
-            writer.Write("</head>");
-            writer.Write("<body>");
-            writer.Write("<main>");
-            writer.Write("<h1>Missing Files</h1>");
-            writer.Write($"<p>Wabbajack was unable to source all files automatically.<br>");
-            writer.Write($"Files will need to be put inside the downloads folder{(archives.Any(a => a.State is GameFileSource) ? ", <b>except for game files!</b>" : ".")}<br>");
-            writer.Write($"You might find more information on these files in the <a data-tooltip='{ModList.Readme}' href='{ModList.Readme}'>modlist documentation</a> and/or <a data-tooltip='{ModList.Community}' href='{ModList.Community}'>support channels.</a></p>");
-
-            foreach (var group in archives.GroupBy(a => a.State.TypeName, a => (a, a.State)))
-            {
-                var stateName = group.First().State.GetType().Name.Humanize();
-                writer.Write($"<h3>{stateName}</h3>");
-                writer.Write("<table>");
-                writer.Write("<tr>");
-                writer.Write("<th><b>#</b></th>");
-                writer.Write("<th><b>Filename</b></th>");
-                writer.Write("<th><b>Download link</th>");
-                writer.Write("</tr>");
-
-                int index = 1;
-                foreach (var (archive, state) in group)
-                {
-                    writer.Write("<tr>");
-                    writer.Write($"<td>{index}</td>");
-                    writer.Write($"<td>{archive.Name}</td>");
-                    string url = string.Empty;
-                    url = state switch
-                    {
-                        Manual manual => manual.Url.ToString(),
-                        MediaFire mediaFire => mediaFire.Url.ToString(),
-                        Mega mega => mega.Url.ToString(),
-                        IPS4OAuth2 ips4 => ips4.LinkUrl.ToString(),
-                        GoogleDrive gd => gd.GetUri().ToString(),
-                        Http http => http.Url.ToString(),
-                        Nexus nexus => $"{nexus.LinkUrl}?tab=files&file_id={nexus.FileID}",
-                        _ => string.Empty
-                    };
-                    writer.Write($"<td><a data-tooltip='{url}' href='{url}' target='_blank'>{stateName}</a></td>");
-                    writer.Write("</tr>");
-                    index++;
-                }
-                writer.Write("</table>");
-            }
-
-            var gameFiles = archives.Where(a => a.State is GameFileSource);
-            if (gameFiles.Any()) writer.Write("<h3>Game Files</h3>");
-            foreach (var gameFile in gameFiles)
-            {
-                writer.Write($"<h4>{gameFile.Name}</h4><br>");
-                if (gameFile.Name.Contains("CreationKit"))
-                {
-                    writer.Write($"<p>This modlist requires the Creation Kit to function.</p>");
-                    if (ModList.GameType == Game.SkyrimSpecialEdition || ModList.GameType == Game.SkyrimVR)
-                    {
-                        writer.Write(@$"<p><a href=""steam://run/1946180"">Click here to install it via Steam.</a></p>");
-                    }
-                    else if (ModList.GameType == Game.Fallout4 || ModList.GameType == Game.Fallout4VR)
-                    {
-                        writer.Write(@$"<p><a href=""steam://run/1946160"">Click here to install it via Steam.</a></p>");
-                    }
-                    else if (ModList.GameType == Game.Starfield)
-                    {
-                        writer.Write(@$"<p><a href=""steam://run/2722710"">Click here to install it via Steam.</a></p>");
-                    }
-                }
-                else if (ModList.GameType == Game.SkyrimSpecialEdition && gameFile.Name.Contains("curios", StringComparison.OrdinalIgnoreCase))
-                {
-                    writer.Write("<p>This is a game file that commonly causes issues.</p>");
-                    writer.Write(@"<p><a target='_blank' href='https://wiki.wabbajack.org/user_documentation/Troubleshooting%20FAQ.html#unable-to-download-curios-files'>Click here for more information on how to resolve the issue.</a></p>");
-                }
-                else if (ModList.GameType == Game.SkyrimSpecialEdition && gameFile.Name.StartsWith("Data_cc", StringComparison.OrdinalIgnoreCase))
-                {
-                    writer.Write("<p>This is a Creation Club file that could not be found. Check if the Anniversary Edition DLC is installed before installing this modlist, and validate you have the same version as the one the modlist author has.</p>");
-                }
-                else
-                {
-                    writer.Write("<p>This is a game file that could not be found. Validate the game is installed properly in the same language as that of the modlist author.</p>");
-                }
-            }
-
-            writer.Write("</main></body></html>");
-        }
-
-        Process.Start(new ProcessStartInfo("cmd.exe", $"start /c \"{report}\"")
-        {
-            CreateNoWindow = true,
-        });
     }
 
     partial class SavedInstallSettings

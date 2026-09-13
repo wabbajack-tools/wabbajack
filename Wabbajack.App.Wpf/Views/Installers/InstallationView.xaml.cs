@@ -117,28 +117,21 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                      {
                          StoppedTitle.Text = result?.GetTitle() ?? string.Empty;
                          StoppedDescription.Text = result?.GetDescription() ?? string.Empty;
-                         switch (result)
-                         {
-                             case InstallResult.DownloadFailed:
-                                 StoppedButton.Command = ViewModel.OpenMissingArchivesCommand;
-                                 StoppedButton.Icon = Symbol.DocumentGlobe;
-                                 StoppedButton.Text = "Show Missing Archives";
-                                 break;
-
-                             default:
-                                 StoppedButton.Command = ViewModel.OpenLogFolderCommand;
-                                 StoppedButton.Icon = Symbol.FolderOpen;
-                                 StoppedButton.Text = "Open Logs Folder";
-                                 break;
-                         }
                      })
                      .DisposeWith(disposables);
+
+            this.BindCommand(ViewModel, vm => vm.OpenLogFolderCommand, v => v.StoppedButton)
+                .DisposeWith(disposables);
+
+            this.OneWayBind(ViewModel, vm => vm.Preflight, v => v.PreflightView.ViewModel)
+                .DisposeWith(disposables);
 
             ViewModel.WhenAnyValue(vm => vm.InstallState)
                      .ObserveOnGuiThread()
                      .Subscribe(x =>
                      {
                          SetupGrid.Visibility = x == InstallState.Configuration ? Visibility.Visible : Visibility.Collapsed;
+                         PreflightView.Visibility = x == InstallState.Preflight ? Visibility.Visible : Visibility.Collapsed;
                          InstallationGrid.Visibility = x == InstallState.Installing || x == InstallState.Failure ? Visibility.Visible : Visibility.Collapsed;
                          CompletedInstallationGrid.Visibility = x == InstallState.Success ? Visibility.Visible : Visibility.Collapsed;
 
@@ -157,7 +150,7 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
                          if (x == InstallState.Failure || x == InstallState.Success)
                              LogToggleButton.IsChecked = true;
 
-                         if (x == InstallState.Installing)
+                         if (x == InstallState.Installing || x == InstallState.Preflight)
                              HideNavigation.Send();
                          else
                              ShowNavigation.Send();
@@ -194,6 +187,22 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
 
             ViewModel.WhenAnyValue(vm => vm.ModListImage)
                      .BindToStrict(this, v => v.CompletedImage.Image)
+                     .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.ModListImage)
+                     .BindToStrict(this, v => v.PreflightView.DetailImage.Image)
+                     .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.ModList.Author)
+                     .BindToStrict(this, v => v.PreflightView.DetailImage.Author)
+                     .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.ModList.Name)
+                     .BindToStrict(this, v => v.PreflightView.DetailImage.Title)
+                     .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.ModList.Version)
+                     .BindToStrict(this, v => v.PreflightView.DetailImage.Version)
                      .DisposeWith(disposables);
 
             ViewModel.WhenAnyValue(vm => vm.ModList.Author)
