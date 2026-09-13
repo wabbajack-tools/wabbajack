@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
@@ -73,9 +74,11 @@ public sealed class PreflightRunner
             sp.GetRequiredService<IGameLocator>(),
             sp.GetRequiredService<FileHashCache>(),
             sp.GetRequiredService<DownloadDispatcher>(),
+            sp.GetRequiredService<IResource<DownloadDispatcher>>(),
             sp.GetRequiredService<Client>(),
             sp.GetRequiredService<INexusLoginProbe>(),
             sp.GetRequiredService<IDownloadPolicySource>(),
+            sp.GetRequiredService<IManualDownloadAcquirer>(),
             sp.GetRequiredService<IResource<IInstaller>>(),
             sp.GetRequiredService<ILogger<PreflightRunner>>());
         return new PreflightRunner(sp.GetServices<IPreflightCheck>(), context);
@@ -478,6 +481,28 @@ public sealed class PreflightRunner
         Raise(new ArchiveChanged(status));
     }
 
+    /// <summary>
+    ///     Records the page to open against each queued archive, so a host that only sees
+    ///     <see cref="Archives" /> still knows where to send the user, then announces the queue itself.
+    /// </summary>
+    private void ReportManualQueue(IReadOnlyList<(Archive Archive, ManualDownloadTarget Target)> queue)
+    {
+        foreach (var (archive, target) in queue)
+        {
+            var key = archive.Name;
+            _archives.TryGetValue(key, out var previous);
+            if (previous?.Target == target) continue;
+            var status = previous == null
+                ? new ArchiveStatus(archive, ArchiveState.ManualRequired, null, null, target)
+                : previous with {Target = target};
+            _archives[key] = status;
+            _archiveLastEmit[key] = Environment.TickCount64;
+            Raise(new ArchiveChanged(status));
+        }
+
+        Raise(new ManualQueueChanged(queue));
+    }
+
     private void Raise(PreflightEvent evt)
     {
         var handlers = Changed;
@@ -532,6 +557,11 @@ public sealed class PreflightRunner
         public void Archive(Archive archive, ArchiveState state, string? message = null, long? bytes = null)
         {
             _runner.ReportArchive(archive, state, message, bytes);
+        }
+
+        public void ManualQueue(IReadOnlyList<(Archive Archive, ManualDownloadTarget Target)> queue)
+        {
+            _runner.ReportManualQueue(queue);
         }
     }
 }

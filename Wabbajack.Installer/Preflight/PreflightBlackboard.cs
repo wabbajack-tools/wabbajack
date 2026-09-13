@@ -2,9 +2,15 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Paths;
 
 namespace Wabbajack.Installer.Preflight;
+
+/// <summary>
+///     One archive the user has to fetch by hand, where to send them, and why it ended up here.
+/// </summary>
+public sealed record ManualQueueItem(Archive Archive, ManualDownloadTarget Target, string Reason);
 
 /// <summary>
 ///     Facts that earlier checks establish and later checks read. Owned by one <see cref="PreflightContext" />,
@@ -40,6 +46,12 @@ public sealed class PreflightBlackboard
     ///     checks remove what they resolve or rule out.
     /// </summary>
     public List<Archive> Missing { get; set; } = new();
+
+    /// <summary>
+    ///     Set by automated-downloads: what is left for the user to fetch by hand, in modlist order.
+    ///     manual-downloads hands it to the acquirer.
+    /// </summary>
+    public List<ManualQueueItem> ManualQueue { get; set; } = new();
 
     /// <summary>Bytes of archives still to be fetched; disk-space blocks on this.</summary>
     public long RemainingDownloadBytes { get; set; }

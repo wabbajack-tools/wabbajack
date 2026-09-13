@@ -32,7 +32,7 @@ namespace Wabbajack.Installer.Preflight;
 ///         volumes and verified.
 ///     </para>
 /// </summary>
-public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer
+public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposable
 {
     private const int ErrorSharingViolation = unchecked((int) 0x80070020);
     private const int ErrorLockViolation = unchecked((int) 0x80070021);
@@ -240,6 +240,15 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer
         _notices.OnCompleted();
         _events.Dispose();
         _notices.Dispose();
+    }
+
+    /// <summary>
+    ///     For containers and scopes disposed synchronously. Stopping waits for in-flight placements, none of
+    ///     which need the calling thread.
+    /// </summary>
+    public void Dispose()
+    {
+        DisposeAsync().AsTask().GetAwaiter().GetResult();
     }
 
     public void SetWatchFolder(AbsolutePath folder)

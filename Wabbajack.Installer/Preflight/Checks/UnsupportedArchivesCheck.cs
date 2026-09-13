@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.Installer.Preflight.Rules;
 
 namespace Wabbajack.Installer.Preflight.Checks;
 
@@ -52,17 +53,23 @@ public class UnsupportedArchivesCheck : IPreflightCheck
     }
 
     /// <summary>
-    ///     Why nothing can fetch this archive, or null when something can. Extend here when a new class of
-    ///     source is ruled out; for example an archive with no page a user could be sent to.
+    ///     Why nothing can fetch this archive, or null when something can: either an automated downloader
+    ///     handles its source, or there is a page a user can be sent to.
     /// </summary>
     protected virtual string? UnsupportedReason(Archive archive)
     {
-        return archive.State switch
+        switch (archive.State)
         {
-            Bethesda => "Creation Club content, install it through the game",
-            DeprecatedLoversLab => "Legacy LoversLab source, no longer available",
-            TESAlliance => "TES Alliance source, no longer available",
-            _ => null
-        };
+            case Bethesda:
+                return "Creation Club content, install it through the game";
+            case DeprecatedLoversLab:
+                return "Legacy LoversLab source, no longer available";
+            case TESAlliance:
+                return "TES Alliance source, no longer available";
+        }
+
+        if (ArchiveDownloadPipeline.IsAutomatedType(archive.State)) return null;
+        if (ManualDownloadUrls.TryGet(archive.State, out _)) return null;
+        return $"{archive.State.GetType().Name} source, nothing can download it and there is no page to send you to";
     }
 }

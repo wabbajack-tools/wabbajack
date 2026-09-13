@@ -53,9 +53,13 @@ public sealed class PreflightTestHost : IDisposable
     {
         _provider = provider;
         Manager = new TemporaryFileManager(KnownFolders.EntryPoint.Combine(Guid.NewGuid().ToString()));
-        Cache = new FileHashCache(CacheRoot.Combine(Guid.NewGuid() + ".sqlite"),
-            new Resource<FileHashCache>("Test hashing", 2));
+        HashLimiter = new Resource<FileHashCache>("Test hashing", 2);
+        Cache = new FileHashCache(CacheRoot.Combine(Guid.NewGuid() + ".sqlite"), HashLimiter);
         Limiter = new Resource<IInstaller>("Test installer", 4);
+        Dispatcher = provider.GetRequiredService<DownloadDispatcher>();
+        DownloadLimiter = provider.GetRequiredService<IResource<DownloadDispatcher>>();
+        Acquirer = new ManualDownloadAcquirer(NullLogger<ManualDownloadAcquirer>.Instance, Cache, HashLimiter,
+            Dispatcher, FastAcquirerOptions());
 
         GameFolder = Manager.CreateFolder().Path;
         Locator.Games[Game.SkyrimSpecialEdition] = GameFolder;
@@ -78,19 +82,42 @@ public sealed class PreflightTestHost : IDisposable
 
     public TemporaryFileManager Manager { get; }
     public FileHashCache Cache { get; }
+    public IResource<FileHashCache> HashLimiter { get; }
     public IResource<IInstaller> Limiter { get; }
+    public DownloadDispatcher Dispatcher { get; }
+    public IResource<DownloadDispatcher> DownloadLimiter { get; }
+
+    /// <summary>A real acquirer on fast timings, disposed with the host.</summary>
+    public ManualDownloadAcquirer Acquirer { get; }
+
     public FakeGameLocator Locator { get; } = new();
     public FakeNexusLoginProbe Nexus { get; } = new();
     public FakeDownloadPolicySource Policy { get; } = new();
     public InstallerConfiguration Config { get; }
     public AbsolutePath GameFolder { get; }
 
-    public PreflightContext Context(PreflightOptions? options = null)
+    /// <summary>No metrics and short retry pauses; everything else as production.</summary>
+    public static PreflightOptions DefaultOptions()
     {
-        return new PreflightContext(Config, options ?? new PreflightOptions(), Locator, Cache,
-            _provider.GetRequiredService<DownloadDispatcher>(),
-            _provider.GetRequiredService<Client>(),
-            Nexus, Policy, Limiter, NullLogger.Instance);
+        return new PreflightOptions {SendMetrics = false, DownloadRetryDelay = TimeSpan.FromMilliseconds(20)};
+    }
+
+    public static ManualDownloadAcquirerOptions FastAcquirerOptions()
+    {
+        return new ManualDownloadAcquirerOptions
+        {
+            PollInterval = TimeSpan.FromMilliseconds(100),
+            StableInterval = TimeSpan.FromMilliseconds(50),
+            StableSamples = 2,
+            LockRetryDelay = TimeSpan.FromMilliseconds(50),
+            LockRetryCap = TimeSpan.FromMilliseconds(200)
+        };
+    }
+
+    public PreflightContext Context(PreflightOptions? options = null, IManualDownloadAcquirer? acquirer = null)
+    {
+        return new PreflightContext(Config, options ?? DefaultOptions(), Locator, Cache, Dispatcher, DownloadLimiter,
+            _provider.GetRequiredService<Client>(), Nexus, Policy, acquirer ?? Acquirer, Limiter, NullLogger.Instance);
     }
 
     /// <summary>An archive for these bytes, without writing them anywhere.</summary>
@@ -128,6 +155,7 @@ public sealed class PreflightTestHost : IDisposable
 
     public void Dispose()
     {
+        Acquirer.DisposeAsync().AsTask().GetAwaiter().GetResult();
         Manager.Dispose();
     }
 }

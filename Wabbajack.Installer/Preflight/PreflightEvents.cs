@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.RateLimiter;
 
 namespace Wabbajack.Installer.Preflight;
@@ -21,5 +23,12 @@ public abstract record PreflightEvent;
 public sealed record CheckChanged(CheckStatus Status) : PreflightEvent;
 
 public sealed record ArchiveChanged(ArchiveStatus Status) : PreflightEvent;
+
+/// <summary>
+///     The archives the user has to fetch by hand, in the order they will be asked for, each with the page
+///     to open. Raised when manual-downloads starts and whenever the queue is republished.
+/// </summary>
+public sealed record ManualQueueChanged(IReadOnlyList<(Archive Archive, ManualDownloadTarget Target)> Queue)
+    : PreflightEvent;
 
 public sealed record RunFinished(PreflightOutcome Outcome) : PreflightEvent;
