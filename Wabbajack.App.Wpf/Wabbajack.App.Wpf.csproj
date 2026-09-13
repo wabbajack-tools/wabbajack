@@ -46,8 +46,6 @@
     </ItemGroup>
 
 	<ItemGroup>
-    <None Remove="LoginManagers\Icons\mega-text.png" />
-    <None Remove="LoginManagers\Icons\mega.png" />
     <None Remove="Readme.md" />
     <None Remove="Resources\Fonts\Atkinson-Hyperlegible-Italic-102.ttf" />
     <None Remove="Resources\Fonts\Atkinson-Hyperlegible-Regular-102.ttf" />
@@ -131,19 +129,6 @@
     <Resource Include="Resources\Fonts\Gabarito-VariableFont_wght-BF651cdf1f55e6c.ttf">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <None Remove="LoginManagers\Icons\lovers_lab.png" />
-    <EmbeddedResource Include="LoginManagers\Icons\lovers_lab.png" />
-    <None Remove="LoginManagers\Icons\vector_plexus.png" />
-    <EmbeddedResource Include="LoginManagers\Icons\mega-text.png" />
-    <EmbeddedResource Include="LoginManagers\Icons\mega.png" />
-    <EmbeddedResource Include="LoginManagers\Icons\vector_plexus.png" />
-
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="MegaApiClient">
-      <HintPath>..\Wabbajack.Downloaders.Mega\lib\MegaApiClient\MegaApiClient.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>
