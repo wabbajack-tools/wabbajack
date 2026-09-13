@@ -60,7 +60,15 @@ public partial class BulkDownloadsVM : ViewModel
             }))
             .DisposeWith(CompositeDisposable);
 
-        StopDownloadsCommand = ReactiveCommand.Create(runner.Cancel, this.WhenAnyValue(x => x.IsDownloading));
+        // Cancelling stops whatever the runner is on, and IsDownloading is only sampled, so it can still be
+        // set for half a second after the downloads are done. What to stop is decided from the runner here,
+        // or the button would cancel the check that happens to have started since.
+        StopDownloadsCommand = ReactiveCommand.Create(() =>
+        {
+            if (runner.Checks.Any(c => c.Id == PreflightCheckIds.AutomatedDownloads
+                                       && c.State == PreflightState.Running))
+                runner.Cancel();
+        }, this.WhenAnyValue(x => x.IsDownloading));
 
         var speed = downloadSpeed.StartWith(string.Empty).Replay(1);
         speed.Connect().DisposeWith(CompositeDisposable);
