@@ -47,7 +47,12 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         base(logger, config, gameLocator, extractor, jsonSerializer, vfs, fileHashCache, downloadDispatcher,
             parallelOptions, limiter, wjClient, imageLoader)
     {
-        MaxSteps = 12;
+        // One per NextStep call a full Begin makes: Configuring Installer, then OptimizeModlist's
+        // Looking for files to delete / Deleting outdated files (only when there are any) / Cleaning
+        // empty folders / Looking for unmodified files / Updating ModList, then Hashing Archives,
+        // Extracting Modlist, Priming VFS, Building Folder Structure, Installing files, Installing
+        // Included Files, Building BSAs, Generating ZEdit Merges and Finished.
+        MaxSteps = 15;
     }
 
     public static StandardInstaller Create(IServiceProvider provider, InstallerConfiguration configuration)

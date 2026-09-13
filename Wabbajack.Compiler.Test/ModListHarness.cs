@@ -107,15 +107,27 @@ public class ModListHarness
         return modlist;
     }
 
-    public async Task<bool> Install()
+    public async Task<bool> Install(bool prePlaceDownloads = true)
+    {
+        return await InstallWithResult(prePlaceDownloads) == InstallResult.Succeeded;
+    }
+
+    /// <summary>
+    ///     Installs and hands back the raw <see cref="InstallResult" />, for tests that care which failure
+    ///     they got. Pass <paramref name="prePlaceDownloads" /> as false to install against whatever is in
+    ///     the install's downloads folder right now, which is how an update over an existing install with
+    ///     archives it no longer needs is exercised.
+    /// </summary>
+    public async Task<InstallResult> InstallWithResult(bool prePlaceDownloads = true)
     {
         // The installer no longer downloads: what compiling used has to be in place before Begin.
-        await PrePlaceDownloads();
+        if (prePlaceDownloads)
+            await PrePlaceDownloads();
         using var scope = _serviceProvider.CreateScope();
-        var settings = await ConfigureInstall(scope.ServiceProvider);
+        await ConfigureInstall(scope.ServiceProvider);
         var installer = scope.ServiceProvider.GetService<StandardInstaller>()!;
 
-        return await installer.Begin(CancellationToken.None) == InstallResult.Succeeded;
+        return await installer.Begin(CancellationToken.None);
     }
 
     /// <summary>
@@ -215,9 +227,15 @@ public class ModListHarness
         return mod;
     }
 
+    /// <summary>Where a file of the compiled source lands in the install folder.</summary>
+    public AbsolutePath InstalledPath(AbsolutePath source)
+    {
+        return source.RelativeTo(_source).RelativeTo(_installLocation);
+    }
+
     public void VerifyInstalledFile(AbsolutePath source)
     {
-        var dest = source.RelativeTo(_source).RelativeTo(_installLocation);
+        var dest = InstalledPath(source);
         _logger.LogInformation("Verifying {file}", source.RelativeTo(_source));
         Assert.Equal(source.Size(), dest.Size());
     }
