@@ -60,11 +60,9 @@ public partial class MainWindowVM : ViewModel
     public readonly SettingsVM SettingsPaneVM;
     public readonly ModListGalleryVM GalleryVM;
     public readonly HomeVM HomeVM;
-    public readonly WebBrowserVM WebBrowserVM;
     public readonly ModListDetailsVM ModListDetailsVM;
     public readonly InfoVM InfoVM;
     public readonly FileUploadVM FileUploadVM;
-    public readonly MegaLoginVM MegaLoginVM;
     public readonly UserInterventionHandlers UserInterventionHandlers;
 
     private readonly Client _wjClient;
@@ -101,7 +99,7 @@ public partial class MainWindowVM : ViewModel
 
     public MainWindowVM(ILogger<MainWindowVM> logger, Client wjClient,
         IServiceProvider serviceProvider, HomeVM homeVM, ModListGalleryVM modListGalleryVM, ResourceMonitor resourceMonitor,
-        InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, WebBrowserVM webBrowserVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM, FileUploadVM fileUploadVM, MegaLoginVM megaLoginVM, SystemParametersConstructor systemParams, HttpClient httpClient)
+        InstallationVM installerVM, CompilerHomeVM compilerHomeVM, CompilerDetailsVM compilerDetailsVM, CompilerFileManagerVM compilerFileManagerVM, CompilerMainVM compilerMainVM, SettingsVM settingsVM, NavigationVM navigationVM, InfoVM infoVM, ModListDetailsVM modlistDetailsVM, FileUploadVM fileUploadVM, SystemParametersConstructor systemParams, HttpClient httpClient)
     {
         _logger = logger;
         _wjClient = wjClient;
@@ -117,12 +115,10 @@ public partial class MainWindowVM : ViewModel
         SettingsPaneVM = settingsVM;
         GalleryVM = modListGalleryVM;
         HomeVM = homeVM;
-        WebBrowserVM = webBrowserVM;
         NavigationVM = navigationVM;
         InfoVM = infoVM;
         ModListDetailsVM = modlistDetailsVM;
         FileUploadVM = fileUploadVM;
-        MegaLoginVM = megaLoginVM;
         UserInterventionHandlers = new UserInterventionHandlers(serviceProvider.GetRequiredService<ILogger<UserInterventionHandlers>>(), this);
 
         StartProtocolPipeServer();
@@ -389,20 +385,6 @@ public partial class MainWindowVM : ViewModel
         ActivePane = objViewModel;
     }
 
-    private void HandleManualDownload(ManualDownload manualDownload)
-    {
-        var handler = _serviceProvider.GetRequiredService<ManualDownloadHandler>();
-        handler.Intervention = manualDownload;
-        //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
-    }
-
-    private void HandleManualBlobDownload(ManualBrowserDownload manualDownload)
-    {
-        var handler = _serviceProvider.GetRequiredService<ManualBrowserDownloadHandler>();
-        handler.Intervention = manualDownload;
-        //MessageBus.Current.SendMessage(new OpenBrowserTab(handler));
-    }
-
     private async void HandleShowBrowserWindow(ShowBrowserWindow msg)
     {
         using var _ = await _browserLocker.WaitAsync();
@@ -435,7 +417,6 @@ public partial class MainWindowVM : ViewModel
             FloatingScreenType.None => null,
             FloatingScreenType.ModListDetails => ModListDetailsVM,
             FloatingScreenType.FileUpload => FileUploadVM,
-            FloatingScreenType.MegaLogin => MegaLoginVM,
             _ => ActiveFloatingPane
         };
     }
