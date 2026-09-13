@@ -15,8 +15,6 @@ jobs:
     env:
       NEXUS_API_KEY: ${{ secrets.NEXUS_API_KEY }}
       NEXUS_LOGIN: ${{ secrets.NEXUS_LOGIN }}
-      VECTOR_PLEXUS: ${{ secrets.VECTOR_PLEXUS }}
-      LOVERS_LAB: ${{ secrets.LOVERS_LAB }}
     
     strategy:
       matrix:
