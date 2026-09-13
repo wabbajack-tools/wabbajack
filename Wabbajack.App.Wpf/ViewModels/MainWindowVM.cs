@@ -467,8 +467,9 @@ public partial class MainWindowVM : ViewModel
         var endTime = DateTime.Now.Add(timeout);
         var cancellationTokenSource = _serviceProvider.GetRequiredService<CancellationTokenSource>();
         cancellationTokenSource.Cancel();
+        InstallerVM.CancelPreflightForShutdown();
 
-        bool IsInstalling() => InstallerVM.InstallState is InstallState.Installing;
+        bool IsInstalling() => InstallerVM.InstallState is InstallState.Installing or InstallState.Preflight;
 
         while (DateTime.Now < endTime && IsInstalling())
         {

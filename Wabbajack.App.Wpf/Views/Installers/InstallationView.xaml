@@ -154,6 +154,7 @@
                 </Grid>
             </Grid>
         </Grid>
+        <local:PreflightView x:Name="PreflightView" Visibility="Collapsed" />
         <Grid x:Name="InstallationGrid" Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="InstallationLeftColumn" Width="2.35*" />
