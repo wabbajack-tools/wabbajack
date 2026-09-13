@@ -12,7 +12,6 @@ using Wabbajack.CLI.Builder;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
 using Wabbajack.Downloaders;
-using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Installer;
@@ -32,11 +31,10 @@ public class InstallCompileInstallVerify
     private readonly DTOSerializer _dtos;
     private readonly IServiceProvider _serviceProvider;
     private readonly FileHashCache _cache;
-    private readonly IGameLocator _gameLocator;
     private readonly CompilerSettingsInferencer _inferencer;
 
     public InstallCompileInstallVerify(ILogger<InstallCompileInstallVerify> logger, Client wjClient, DownloadDispatcher dispatcher, DTOSerializer dtos, 
-        FileHashCache cache, IGameLocator gameLocator, IServiceProvider serviceProvider, CompilerSettingsInferencer inferencer)
+        FileHashCache cache, IServiceProvider serviceProvider, CompilerSettingsInferencer inferencer)
     {
         _logger = logger;
         _wjClient = wjClient;
@@ -44,7 +42,6 @@ public class InstallCompileInstallVerify
         _dtos = dtos;
         _serviceProvider = serviceProvider;
         _cache = cache;
-        _gameLocator = gameLocator;
         _inferencer = inferencer;
     }
 
@@ -69,18 +66,18 @@ public class InstallCompileInstallVerify
             
             var modlist = await StandardInstaller.LoadFromFile(_dtos, wabbajackPath);
 
-            var installer = StandardInstaller.Create(_serviceProvider, new InstallerConfiguration
+            // GameFolder is left unset: the game-installed preflight check locates it.
+            var installExit = await PreflightInstall.Run(_serviceProvider, new InstallerConfiguration
             {
                 Downloads = downloads,
                 Install = installPath,
                 ModList = modlist,
                 Game = modlist.GameType,
                 ModlistArchive = wabbajackPath,
-                GameFolder = _gameLocator.GameLocation(modlist.GameType)
-            });
+                GameFolder = default
+            }, _logger, token);
 
-            var result = await installer.Begin(token) == InstallResult.Succeeded;
-            if (!result)
+            if (installExit != PreflightInstall.Succeeded)
             {
                 _logger.LogInformation("Error installing {MachineUrl}", machineUrl);
                 return 1;
@@ -99,8 +96,7 @@ public class InstallCompileInstallVerify
             
 
             var compiler = MO2Compiler.Create(_serviceProvider, inferredSettings);
-            result = await compiler.Begin(token);
-            if (!result)
+            if (!await compiler.Begin(token))
                 return 3;
             
             
@@ -112,18 +108,17 @@ public class InstallCompileInstallVerify
             if (CompareModlists(comparison, modlist2))
                 return 3;
 
-            var installer2 = StandardInstaller.Create(_serviceProvider, new InstallerConfiguration
+            installExit = await PreflightInstall.Run(_serviceProvider, new InstallerConfiguration
             {
                 Downloads = downloads,
                 Install = installPath2,
                 ModList = modlist2,
                 Game = modlist2.GameType,
                 ModlistArchive = inferredSettings.OutputFile,
-                GameFolder = _gameLocator.GameLocation(modlist2.GameType)
-            });
+                GameFolder = default
+            }, _logger, token);
 
-            result = await installer2.Begin(token) == InstallResult.Succeeded;
-            if (!result)
+            if (installExit != PreflightInstall.Succeeded)
             {
                 _logger.LogInformation("Error installing recompiled {MachineUrl}", machineUrl);
                 return 1;

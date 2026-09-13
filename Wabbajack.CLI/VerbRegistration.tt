@@ -17,7 +17,7 @@ public static void AddCLIVerbs(this IServiceCollection services) {
 foreach (var verb in Directory.EnumerateFiles("Verbs"))
 {
     var klass = verb.Split('\\').Last().Split('.').First();
-    if (klass == "IVerb") continue;
+    if (klass == "IVerb" || klass == "PreflightInstall") continue;
     #>
 CommandLineBuilder.RegisterCommand<<#=klass#>>(<#=klass#>.Definition, c => ((<#=klass#>)c).Run);
 services.AddSingleton<<#=klass#>>();
