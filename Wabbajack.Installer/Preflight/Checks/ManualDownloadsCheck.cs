@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.DTOs;
 using Wabbajack.Paths.IO;
 
 namespace Wabbajack.Installer.Preflight.Checks;
@@ -27,6 +28,13 @@ public sealed class ManualDownloadsCheck : IPreflightCheck
         var queue = ctx.State.ManualQueue;
         if (queue.Count == 0)
             return PreflightResult.Passed("Nothing to download by hand");
+
+        // A download can only be verified against a hash and matched by size; an archive without either
+        // is reported rather than handed to the acquirer, which would refuse the whole queue.
+        var unverifiable = queue.Where(q => q.Archive.Hash == default || q.Archive.Size <= 0).ToList();
+        foreach (var item in unverifiable)
+            progress.Archive(item.Archive, ArchiveState.Unsupported, UnverifiableReason(item.Archive));
+        queue = queue.Except(unverifiable).ToList();
 
         var byName = queue.ToDictionary(q => q.Archive.Name, q => q, StringComparer.OrdinalIgnoreCase);
         progress.ManualQueue(queue.Select(q => (q.Archive, q.Target)).ToList());
@@ -81,12 +89,32 @@ public sealed class ManualDownloadsCheck : IPreflightCheck
         ctx.State.Missing = ctx.State.Missing.Where(a => !ctx.State.HashedArchives.ContainsKey(a.Name)).ToList();
         ctx.State.RemainingDownloadBytes = ctx.State.Missing.Sum(a => a.Size);
 
-        if (outstanding.Count == 0)
+        if (outstanding.Count == 0 && unverifiable.Count == 0)
             return PreflightResult.Passed($"{placed} files downloaded by hand and verified");
 
+        var detail = Describe(outstanding);
+        if (unverifiable.Count > 0)
+        {
+            var lines = unverifiable.Select(u => $"{u.Archive.Name} - {UnverifiableReason(u.Archive)}");
+            detail = string.Join(Environment.NewLine, new[] {detail}.Concat(lines).Where(s => s.Length > 0));
+        }
+
+        if (outstanding.Count == 0)
+            return PreflightResult.Failed(
+                $"{unverifiable.Count} files cannot be verified after downloading and are unsupported", detail);
+
         var size = outstanding.Sum(o => o.Archive.Size).ToFileSizeString();
-        return PreflightResult.NeedsUser($"{outstanding.Count} files must be downloaded by hand ({size})",
-            Describe(outstanding), new[] {PreflightAction.Rescan});
+        var message = $"{outstanding.Count} files must be downloaded by hand ({size})";
+        if (unverifiable.Count > 0)
+            message += $"; {unverifiable.Count} cannot be verified and are unsupported";
+        return PreflightResult.NeedsUser(message, detail, new[] {PreflightAction.Rescan});
+    }
+
+    private static string UnverifiableReason(Archive archive)
+    {
+        return archive.Hash == default
+            ? "The list gives no hash for this file, so a download of it could never be verified"
+            : "The list gives no size for this file, so a download of it could never be matched";
     }
 
     private static async Task<bool> Verified(PreflightContext ctx, ManualDownloadItem item, ManualQueueItem queued,

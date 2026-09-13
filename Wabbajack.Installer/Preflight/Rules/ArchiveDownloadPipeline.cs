@@ -271,6 +271,10 @@ public sealed class ArchiveDownloadPipeline
 
         try
         {
+            // As the installer's DownloadMissingArchives did: when the dispatcher is set to proxy, the
+            // archive is fetched (and its .meta written) through the proxy URL instead.
+            archive = await _ctx.Dispatcher.MaybeProxy(archive, token);
+
             for (var attempt = 1; attempt <= HashMismatchAttempts; attempt++)
             {
                 var (_, hash) = await WithRetries(() =>

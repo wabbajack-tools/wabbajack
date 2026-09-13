@@ -195,4 +195,35 @@ public class ManualDownloadsCheckTests : IDisposable
         Assert.Equal(ArchiveState.ManualRequired, runner.Archives["one.7z"].State);
         Assert.Equal(PreflightState.NeedsUser, runner.Checks.Single(c => c.Id == PreflightCheckIds.ManualDownloads).State);
     }
+
+    [Fact]
+    public async Task UnhashableArchivesAreReportedNotThrown()
+    {
+        var good = await Queued("good.7z", "has a hash and a size");
+        var noHash = await Queued("nohash.7z", "no hash");
+        noHash.Archive.Hash = default;
+        var noSize = await Queued("nosize.7z", "no size");
+        noSize.Archive.Size = 0;
+        var ctx = ContextWithQueue(false, null, good, noHash, noSize);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.NeedsUser, result.State);
+        Assert.StartsWith("1 files must be downloaded by hand", result.Message);
+        Assert.Contains("2 cannot be verified", result.Message);
+        Assert.Contains("good.7z", result.Detail);
+        Assert.Contains("nohash.7z", result.Detail);
+        Assert.Contains("nosize.7z", result.Detail);
+
+        var states = _progress.LastStates();
+        Assert.Equal(ArchiveState.ManualRequired, states["good.7z"]);
+        Assert.Equal(ArchiveState.Unsupported, states["nohash.7z"]);
+        Assert.Equal(ArchiveState.Unsupported, states["nosize.7z"]);
+        Assert.Contains("no hash", _progress.LastMessage("nohash.7z"));
+        Assert.Contains("no size", _progress.LastMessage("nosize.7z"));
+
+        // Only what can be verified reached the acquirer and the published queue.
+        Assert.Equal(new[] {"good.7z"}, _host.Acquirer.Snapshot().Select(i => i.Key));
+        Assert.Equal(new[] {"good.7z"}, Assert.Single(_progress.ManualQueues).Select(q => q.Archive.Name));
+    }
 }

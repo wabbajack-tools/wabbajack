@@ -761,4 +761,203 @@ public class ManualDownloadAcquirerTests : IAsyncDisposable
             Assert.All(events, e => Assert.Equal(archive.Name, e.Item.Key));
         }
     }
+
+    [Fact]
+    public async Task StopJoinsAnInFlightAddFileManually()
+    {
+        var (archive, bytes) = await Make("Slow.7z", 80, 16 * 1024 * 1024);
+        // Throttled so the hash is still running when Stop is called.
+        var slow = new Resource<FileHashCache>("Slow hashing", 2, 4 * 1024 * 1024);
+        var acquirer = NewAcquirer(FastOptions(watcher: false, poll: Timeout.InfiniteTimeSpan), slow);
+        await acquirer.Start(new[] {archive}, _folder.Watch, _folder.Destination, CancellationToken.None);
+
+        var picked = await PreflightTestFolder.WriteFile(_folder.NewFolder("elsewhere"), "Slow.7z", bytes);
+        var add = acquirer.AddFileManually(archive.Name, picked, CancellationToken.None);
+
+        await PreflightTestFolder.WaitUntil(() =>
+        {
+            var item = Item(acquirer, archive.Name);
+            return item.State == ManualDownloadState.Verifying && item.Progress.Value > 0;
+        }, "the hash to be under way", TimeSpan.FromSeconds(30));
+
+        await acquirer.Stop();
+        Assert.True(add.IsCompleted, "Stop returned while AddFileManually was still working");
+        await acquirer.DisposeAsync();
+
+        // Cancelled by Stop, or finished just before it; never an ObjectDisposedException.
+        try
+        {
+            await add;
+        }
+        catch (OperationCanceledException)
+        {
+        }
+
+        var final = Item(acquirer, archive.Name);
+        Assert.True(final.State is ManualDownloadState.Pending or ManualDownloadState.Moved, final.State.ToString());
+        Assert.Empty(_folder.Destination.EnumerateFiles(Ext.WjIncoming, false));
+    }
+
+    [Fact]
+    public async Task PublishAfterDisposeIsIgnored()
+    {
+        var (a, _) = await Make("Late1.7z", 81, 1024);
+        var (b, _) = await Make("Late2.7z", 82, 2048);
+        var acquirer = await Started(new[] {a, b});
+        var completed = false;
+        using var sub = acquirer.Events.Subscribe(_ => { }, () => completed = true);
+
+        await acquirer.DisposeAsync();
+        Assert.True(completed);
+
+        // Both publish when live; after disposal the state still changes and nothing is said.
+        acquirer.Skip(a.Name);
+        Assert.Equal(b.Name, acquirer.Current?.Key);
+
+        var wrong = await PreflightTestFolder.WriteFile(_folder.NewFolder("elsewhere"), "wrong.7z", new byte[10]);
+        await acquirer.AddFileManually(a.Name, wrong, CancellationToken.None);
+        Assert.Equal(ManualDownloadState.WrongFile, Item(acquirer, a.Name).State);
+
+        await acquirer.DisposeAsync();
+    }
+
+    [Fact]
+    public async Task AddFileManuallyWithAFileOfAnotherItemsSizeExplainsWhy()
+    {
+        var (asked, _) = await Make("Asked.7z", 83, 4096);
+        var (other, _) = await Make("Other.7z", 84, 8192);
+        var acquirer = await Started(new[] {asked, other});
+
+        // Other's size, nobody's hash.
+        var picked = await PreflightTestFolder.WriteFile(_folder.NewFolder("elsewhere"), "mystery.7z",
+            PreflightTestFolder.Bytes(985, 8192));
+        await acquirer.AddFileManually(asked.Name, picked, CancellationToken.None);
+
+        var item = Item(acquirer, asked.Name);
+        Assert.Equal(ManualDownloadState.WrongFile, item.State);
+        Assert.Equal(picked, item.CandidatePath);
+        Assert.Contains("matches nothing", item.Message);
+        Assert.Contains($"{asked.Size:N0}", item.Message);
+        Assert.Contains(asked.Hash.ToHex(), item.Message);
+
+        // The size sibling saw a file of its size that was not it, as before.
+        Assert.Equal(ManualDownloadState.WrongFile, Item(acquirer, other.Name).State);
+        Assert.True(picked.FileExists());
+        Assert.Empty(_folder.Destination.EnumerateFiles("*", false));
+    }
+
+    [Fact]
+    public async Task CompletedWorkItemsAreNotRetained()
+    {
+        var (archive, _) = await Make("Churn.7z", 85, 4096);
+        var acquirer = await Started(new[] {archive}, FastOptions(watcher: false, poll: Timeout.InfiniteTimeSpan));
+
+        // Right size, wrong hash: hashed once, then every later look is a cache hit that finishes at once.
+        await PreflightTestFolder.WriteFile(_folder.Watch, "Churn.7z", PreflightTestFolder.Bytes(986, 4096));
+        await acquirer.Rescan(CancellationToken.None);
+        await WaitForState(acquirer, archive.Name, ManualDownloadState.WrongFile);
+
+        for (var i = 0; i < 300; i++)
+            await acquirer.Rescan(CancellationToken.None);
+
+        await PreflightTestFolder.WaitUntil(() => acquirer.WorkInFlight == 0, "the work list to drain");
+        await PreflightTestFolder.SettleTime();
+        Assert.Equal(0, acquirer.WorkInFlight);
+        Assert.Equal(ManualDownloadState.WrongFile, Item(acquirer, archive.Name).State);
+    }
+
+    [Fact]
+    public async Task WaitingIsPublishedOnce()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+
+        var (archive, bytes) = await Make("Held.7z", 86);
+        var acquirer = await Started(new[] {archive});
+        var waiting = 0;
+        using var sub = acquirer.Events.Subscribe(e =>
+        {
+            if (e.Item.State == ManualDownloadState.Waiting) Interlocked.Increment(ref waiting);
+        });
+
+        var path = await PreflightTestFolder.WriteFile(_folder.Watch, "Held.7z", bytes);
+        using (path.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            await WaitForState(acquirer, archive.Name, ManualDownloadState.Waiting);
+            // Long enough for a dozen lock retries at the fast timings.
+            await PreflightTestFolder.SettleTime();
+            await PreflightTestFolder.SettleTime();
+        }
+
+        await WaitForState(acquirer, archive.Name, ManualDownloadState.Moved);
+        Assert.Equal(1, waiting);
+    }
+
+    [Fact]
+    public async Task AFailedPlacementIsRetriedFromTheSameCandidate()
+    {
+        var (archive, bytes) = await Make("Blocked.7z", 87);
+        var acquirer = await Started(new[] {archive}, FastOptions(watcher: false, poll: Timeout.InfiniteTimeSpan));
+
+        // A folder squatting on the destination name makes the placement fail where a full disk would:
+        // after verification, in the move. A full disk itself cannot be arranged on a developer machine.
+        var squatter = _folder.Destination.Combine("Blocked.7z");
+        squatter.CreateDirectory();
+        var source = await PreflightTestFolder.WriteFile(_folder.Watch, "Blocked.7z", bytes);
+        await acquirer.Rescan(CancellationToken.None);
+
+        await WaitForState(acquirer, archive.Name, ManualDownloadState.Failed);
+        var failed = Item(acquirer, archive.Name);
+        Assert.Contains("Could not move", failed.Message);
+        Assert.Equal(source, failed.CandidatePath);
+        Assert.Equal(1, acquirer.Counts.Failed);
+        Assert.True(source.FileExists());
+        Assert.Equal(archive.Name, acquirer.Current?.Key);
+
+        Directory.Delete(squatter.ToString());
+        acquirer.Retry(archive.Name);
+        Assert.Equal(ManualDownloadState.Pending, Item(acquirer, archive.Name).State);
+
+        // Nothing polls here, so only the requeued candidate can complete it.
+        await WaitForState(acquirer, archive.Name, ManualDownloadState.Moved);
+        await AssertPlaced(acquirer, archive, bytes);
+        Assert.False(source.FileExists());
+    }
+
+    [Fact]
+    public async Task CloudPlaceholderProducesANotice()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+
+        var (archive, bytes) = await Make("Cloud.7z", 88);
+        var acquirer = await Started(new[] {archive});
+        var notices = new List<ManualDownloadNotice>();
+        var events = 0;
+        using var noticeSub = acquirer.Notices.Subscribe(n => { lock (notices) notices.Add(n); });
+        using var eventSub = acquirer.Events.Subscribe(_ => Interlocked.Increment(ref events));
+
+        // Marked offline before it is in the watched folder, so the acquirer only ever sees a placeholder.
+        var staged = await PreflightTestFolder.WriteFile(_folder.NewFolder("staging"), "Cloud.7z", bytes);
+        File.SetAttributes(staged.ToString(), File.GetAttributes(staged.ToString()) | FileAttributes.Offline);
+        var path = _folder.Watch.Combine("Cloud.7z");
+        File.Move(staged.ToString(), path.ToString());
+
+        await PreflightTestFolder.WaitUntil(() =>
+        {
+            lock (notices) return notices.Any(n => n.Kind == ManualDownloadNoticeKind.CloudPlaceholder);
+        }, "a CloudPlaceholder notice");
+        await PreflightTestFolder.SettleTime();
+
+        lock (notices)
+        {
+            var cloud = Assert.Single(notices, n => n.Kind == ManualDownloadNoticeKind.CloudPlaceholder);
+            Assert.Equal(path, cloud.Path);
+            Assert.Contains("Always keep on this device", cloud.Message);
+        }
+
+        // Never opened: an open is always preceded by a Detected event, and the item was never told anything.
+        Assert.Equal(0, events);
+        Assert.Equal(ManualDownloadState.Pending, Item(acquirer, archive.Name).State);
+        Assert.True(path.FileExists());
+        Assert.False(_folder.Destination.Combine("Cloud.7z").FileExists());
+    }
 }

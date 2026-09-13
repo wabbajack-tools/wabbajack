@@ -39,6 +39,9 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
     private const int ErrorDiskFull = unchecked((int) 0x80070070);
     private const int ErrorHandleDiskFull = unchecked((int) 0x80070027);
 
+    /// <summary>Floor for the polling delays; a zero interval would turn the wait loops into busy spins.</summary>
+    private static readonly TimeSpan MinimumDelay = TimeSpan.FromMilliseconds(10);
+
     private sealed class Entry
     {
         public required string Key { get; init; }
@@ -64,14 +67,20 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
     private readonly IResource<FileHashCache> _hashLimiter;
     private readonly DownloadDispatcher _dispatcher;
     private readonly ManualDownloadAcquirerOptions _options;
+    private readonly TimeSpan _stableInterval;
+    private readonly TimeSpan _lockRetryDelay;
+    private readonly TimeSpan _lockRetryCap;
 
     private readonly object _gate = new();
     private readonly object _publishGate = new();
     private readonly Subject<ManualDownloadEvent> _events = new();
     private readonly Subject<ManualDownloadNotice> _notices = new();
+    private bool _disposed;
 
     private readonly Dictionary<string, Entry> _entries = new(StringComparer.OrdinalIgnoreCase);
     private Dictionary<long, Entry[]> _bySize = new();
+    /// <summary>Sizes with at least one item not yet in place; what the poll filter looks up.</summary>
+    private HashSet<long> _openSizes = new();
     private readonly Dictionary<AbsolutePath, (long Size, DateTime LastWrite, Hash Hash)> _seen = new();
     private readonly HashSet<AbsolutePath> _noticed = new();
     /// <summary>Paths being evaluated; the value records that the path was reported again meanwhile.</summary>
@@ -96,6 +105,14 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
         _hashLimiter = hashLimiter;
         _dispatcher = dispatcher;
         _options = options;
+        _stableInterval = AtLeast(options.StableInterval, MinimumDelay);
+        _lockRetryDelay = AtLeast(options.LockRetryDelay, MinimumDelay);
+        _lockRetryCap = AtLeast(options.LockRetryCap, _lockRetryDelay);
+    }
+
+    private static TimeSpan AtLeast(TimeSpan value, TimeSpan floor)
+    {
+        return value < floor ? floor : value;
     }
 
     public IObservable<ManualDownloadEvent> Events => _events.AsObservable();
@@ -170,6 +187,7 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
 
             _bySize = _entries.Values.GroupBy(e => e.Archive.Size)
                 .ToDictionary(g => g.Key, g => g.OrderBy(e => e.Order).ToArray());
+            RefreshOpenSizesLocked();
             _completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             _watchFolder = watchFolder;
             _destinationFolder = destinationFolder;
@@ -236,10 +254,15 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
     public async ValueTask DisposeAsync()
     {
         await Stop();
-        _events.OnCompleted();
-        _notices.OnCompleted();
-        _events.Dispose();
-        _notices.Dispose();
+        lock (_publishGate)
+        {
+            if (_disposed) return;
+            _disposed = true;
+            _events.OnCompleted();
+            _notices.OnCompleted();
+            _events.Dispose();
+            _notices.Dispose();
+        }
     }
 
     /// <summary>
@@ -348,33 +371,46 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
         _source?.Kick();
     }
 
-    public async Task AddFileManually(string key, AbsolutePath file, CancellationToken token)
+    public Task AddFileManually(string key, AbsolutePath file, CancellationToken token)
     {
         Entry? requested;
+        ManualDownloadEvent? busy = null;
         lock (_gate)
         {
             if (!_entries.TryGetValue(key, out requested))
-                throw new ArgumentException($"No manual download is pending under the name {key}.", nameof(key));
-        }
-
-        var cts = _cts;
-        using var linked = cts == null
-            ? CancellationTokenSource.CreateLinkedTokenSource(token)
-            : CancellationTokenSource.CreateLinkedTokenSource(cts.Token, token);
-
-        lock (_gate)
-        {
+                return Task.FromException(
+                    new ArgumentException($"No manual download is pending under the name {key}.", nameof(key)));
             if (_inFlight.ContainsKey(file))
-            {
-                SetMessageLocked(requested, $"{file.FileName} is already being checked.");
-                return;
-            }
-
-            _inFlight[file] = false;
+                busy = SetMessageLocked(requested, $"{file.FileName} is already being checked.");
+            else
+                _inFlight[file] = false;
         }
 
+        if (busy != null)
+        {
+            Publish(busy);
+            return Task.CompletedTask;
+        }
+
+        // Registered before the token is read, so a Stop that has already begun either cancels this
+        // evaluation or waits for it; it never returns while the file is still being hashed or copied.
+        // The registration is released from a continuation, so that Stop only resumes once the task the
+        // caller holds has completed.
+        var done = TrackWork();
+        var work = EvaluatePicked(file, requested, token);
+        work.ContinueWith(_ => done(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
+        return work;
+    }
+
+    private async Task EvaluatePicked(AbsolutePath file, Entry requested, CancellationToken token)
+    {
         try
         {
+            var cts = _cts;
+            using var linked = cts == null
+                ? CancellationTokenSource.CreateLinkedTokenSource(token)
+                : CancellationTokenSource.CreateLinkedTokenSource(cts.Token, token);
             await Evaluate(file, requested, linked.Token);
         }
         finally
@@ -386,6 +422,25 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
         }
     }
 
+    /// <summary>
+    ///     Registers a unit of work that <see cref="Stop" /> waits for, before the work starts, so a unit that
+    ///     finishes at once cannot outrun its own registration. The returned action marks it finished.
+    /// </summary>
+    private Action TrackWork()
+    {
+        var id = Interlocked.Increment(ref _workId);
+        var finished = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _work[id] = finished.Task;
+        return () =>
+        {
+            _work.TryRemove(id, out _);
+            finished.TrySetResult();
+        };
+    }
+
+    /// <summary>Units of work registered and not yet finished; zero whenever nothing is being evaluated.</summary>
+    internal int WorkInFlight => _work.Count;
+
     #endregion
 
     #region Detection
@@ -394,8 +449,15 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
     {
         if (CandidateFile.IsIgnoredAttributes(file.Attributes)) return false;
         if (file.Length == 0) return false;
-        if (CandidateFile.IsPartialDownload(file.FullName.ToAbsolutePath(), _options.PartialExtensions)) return false;
-        return Volatile.Read(ref _bySize).ContainsKey(file.Length);
+        var path = file.FullName.ToAbsolutePath();
+        if (CandidateFile.IsPartialDownload(path, _options.PartialExtensions)) return false;
+        lock (_gate)
+        {
+            if (_openSizes.Contains(file.Length)) return true;
+            // Every item of this size is in place. A file not looked at yet still gets its one pass, for the
+            // duplicate notice; one already hashed is not re-evaluated on every poll.
+            return _bySize.ContainsKey(file.Length) && !_seen.ContainsKey(path);
+        }
     }
 
     private async Task Consume(ChannelReader<AbsolutePath> reader, CancellationToken token)
@@ -418,8 +480,8 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
                     _inFlight[path] = false;
                 }
 
-                var id = Interlocked.Increment(ref _workId);
-                var work = Task.Run(async () =>
+                var done = TrackWork();
+                _ = Task.Run(async () =>
                 {
                     try
                     {
@@ -441,13 +503,12 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
                             _inFlight.Remove(path);
                         }
 
-                        _work.TryRemove(id, out _);
+                        done();
 
                         if (again && !token.IsCancellationRequested)
                             _channel?.Writer.TryWrite(path);
                     }
                 }, CancellationToken.None);
-                _work[id] = work;
             }
         }
         catch (OperationCanceledException)
@@ -563,7 +624,23 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
         }
 
         var targets = Match(path, hash, sized, requested);
-        if (targets.Count == 0) return;
+        if (targets.Count == 0)
+        {
+            // The file is another item's size, so Match spoke to that item; the one the user picked it
+            // for still has to hear why nothing happened.
+            if (requested != null && !sized.Contains(requested))
+            {
+                var owner = sized.FirstOrDefault(e => e.Archive.Hash == hash);
+                if (owner == null)
+                    MarkWrong(requested, path,
+                        $"{path.FileName} is {size:N0} bytes with hash {hash.ToHex()}, which matches nothing in the queue; {requested.Archive.Name} should be {requested.Archive.Size:N0} bytes with hash {requested.Archive.Hash.ToHex()}. Wrong file or version?");
+                else
+                    Publish(SetMessage(requested,
+                        $"{path.FileName} is another copy of {owner.Archive.Name}, which is already in place. {requested.Archive.Name} is still needed."));
+            }
+
+            return;
+        }
 
         try
         {
@@ -720,7 +797,7 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
             }
 
             if (stable < required)
-                await Task.Delay(_options.StableInterval, token);
+                await Task.Delay(_stableInterval, token);
         }
 
         return true;
@@ -728,10 +805,10 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
 
     private TimeSpan LockRetryDelay(int attempt)
     {
-        var delay = _options.LockRetryDelay;
-        for (var i = 0; i < attempt && delay < _options.LockRetryCap; i++)
+        var delay = _lockRetryDelay;
+        for (var i = 0; i < attempt && delay < _lockRetryCap; i++)
             delay += delay;
-        return delay > _options.LockRetryCap ? _options.LockRetryCap : delay;
+        return delay > _lockRetryCap ? _lockRetryCap : delay;
     }
 
     private static bool IsSharingViolation(IOException ex)
@@ -1155,6 +1232,7 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
             {
                 entry.PlacedPath = placed;
                 entry.Progress = Percent.One;
+                RefreshOpenSizesLocked();
             }
             else
             {
@@ -1166,6 +1244,15 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
         }
     }
 
+    /// <summary>Must be called under <see cref="_gate" /> whenever an item is marked Moved.</summary>
+    private void RefreshOpenSizesLocked()
+    {
+        _openSizes = _entries.Values
+            .Where(e => e.State != ManualDownloadState.Moved)
+            .Select(e => e.Archive.Size)
+            .ToHashSet();
+    }
+
     private void SetState(List<Entry> detected, AbsolutePath path, ManualDownloadState state, string message)
     {
         var events = new List<ManualDownloadEvent>();
@@ -1174,6 +1261,8 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
             foreach (var entry in detected)
             {
                 if (entry.Busy || entry.CandidatePath != path || entry.State == ManualDownloadState.Moved) continue;
+                // Every lock retry lands here; the item is only told once.
+                if (entry.State == state && entry.Message == message) continue;
                 var previous = entry.State;
                 entry.State = state;
                 entry.Message = message;
@@ -1278,10 +1367,14 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
         Notify(new ManualDownloadNotice(kind, path, message));
     }
 
+    // Nothing is published once disposed: state changes still happen, but the subjects are gone and a
+    // late event must not turn a cancellation into an ObjectDisposedException.
+
     private void Notify(ManualDownloadNotice notice)
     {
         lock (_publishGate)
         {
+            if (_disposed) return;
             _notices.OnNext(notice);
         }
     }
@@ -1291,6 +1384,7 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
         if (evt == null) return;
         lock (_publishGate)
         {
+            if (_disposed) return;
             _events.OnNext(evt);
         }
     }
@@ -1300,6 +1394,7 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
         if (events.Count == 0) return;
         lock (_publishGate)
         {
+            if (_disposed) return;
             foreach (var evt in events)
                 _events.OnNext(evt);
         }

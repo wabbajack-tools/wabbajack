@@ -455,4 +455,114 @@ public class PreflightRunnerTests : IDisposable
         await Assert.ThrowsAsync<ArgumentException>(() => runner.RunCheck("nope", CancellationToken.None));
         Assert.Throws<ArgumentException>(() => runner.Acknowledge("nope"));
     }
+
+    [Fact]
+    public async Task CancellationKeepsFailedAndNeedsUserResults()
+    {
+        var started = new TaskCompletionSource();
+        var a = new FakeCheck("a", 10)
+        {
+            Body = (_, _, _) => Task.FromResult(PreflightResult.Failed("version mismatch"))
+        };
+        var b = new FakeCheck("b", 20)
+        {
+            Body = (_, _, _) => Task.FromResult(PreflightResult.NeedsUser("log in"))
+        };
+        var c = new FakeCheck("c", 30, "a");
+        var d = new FakeCheck("d", 40)
+        {
+            Body = async (_, _, token) =>
+            {
+                started.SetResult();
+                await Task.Delay(Timeout.Infinite, token);
+                return PreflightResult.Passed("never");
+            }
+        };
+        var e = new FakeCheck("e", 50);
+
+        var runner = Runner(a, b, c, d, e);
+        using var cts = new CancellationTokenSource();
+        var run = runner.RunAll(cts.Token);
+        await started.Task;
+        cts.Cancel();
+        await run;
+
+        // What the user has to act on survives the cancellation; only what did not get to run is reset.
+        Assert.Equal(PreflightState.Failed, StateOf(runner, "a"));
+        Assert.Equal("version mismatch", runner.Checks.Single(x => x.Id == "a").Message);
+        Assert.Equal(PreflightState.NeedsUser, StateOf(runner, "b"));
+        Assert.Equal(PreflightState.Pending, StateOf(runner, "c"));
+        Assert.Equal(PreflightState.Cancelled, StateOf(runner, "d"));
+        Assert.Equal(PreflightState.Pending, StateOf(runner, "e"));
+        Assert.Equal(0, e.Runs);
+    }
+
+    [Fact]
+    public async Task DependentsAreSkippedWhenADependencyIsCancelled()
+    {
+        var started = new TaskCompletionSource();
+        var a = new FakeCheck("a", 10)
+        {
+            Body = async (_, _, token) =>
+            {
+                started.SetResult();
+                await Task.Delay(Timeout.Infinite, token);
+                return PreflightResult.Passed("never");
+            }
+        };
+        var b = new FakeCheck("b", 20, "a");
+
+        var runner = Runner(a, b);
+        using var cts = new CancellationTokenSource();
+        var run = runner.RunAll(cts.Token);
+        await started.Task;
+        cts.Cancel();
+        await run;
+
+        Assert.Equal(PreflightState.Cancelled, StateOf(runner, "a"));
+        Assert.Equal(PreflightState.Pending, StateOf(runner, "b"));
+
+        // Asked for on its own, b is skipped rather than run: its dependency did not pass.
+        var result = await runner.RunCheck("b", CancellationToken.None);
+        Assert.Equal(PreflightState.Skipped, result.State);
+        Assert.Equal(PreflightState.Skipped, StateOf(runner, "b"));
+        Assert.Contains("\"a\"", result.Message);
+        Assert.Equal(0, b.Runs);
+    }
+
+    [Fact]
+    public async Task RunCheckOnABlockedCheckReportsSkipped()
+    {
+        var a = new FakeCheck("a", 10)
+        {
+            Body = (_, _, _) => Task.FromResult(PreflightResult.Failed("no"))
+        };
+        var b = new FakeCheck("b", 20, "a");
+
+        var runner = Runner(a, b);
+        var events = new List<PreflightEvent>();
+        runner.Changed += e =>
+        {
+            lock (events)
+            {
+                events.Add(e);
+            }
+        };
+
+        // a has not even run yet, so b cannot.
+        var blocked = await runner.RunCheck("b", CancellationToken.None);
+        Assert.Equal(PreflightState.Skipped, blocked.State);
+        Assert.Contains("\"a\"", blocked.Message);
+        Assert.Equal(PreflightState.Skipped, StateOf(runner, "b"));
+        Assert.Equal(PreflightState.Pending, StateOf(runner, "a"));
+        Assert.Equal(0, b.Runs);
+        Assert.Contains(events, e => e is CheckChanged {Status.State: PreflightState.Skipped});
+        Assert.Contains(events, e => e is RunFinished);
+
+        // The same once a has run and failed.
+        await runner.RunAll(CancellationToken.None);
+        Assert.Equal(PreflightState.Failed, StateOf(runner, "a"));
+        Assert.Equal(PreflightState.Skipped, (await runner.RunCheck("b", CancellationToken.None)).State);
+        Assert.Equal(0, b.Runs);
+    }
 }

@@ -384,7 +384,9 @@ public sealed class PreflightRunner
     }
 
     /// <summary>
-    ///     After a cancelled run, anything that had not produced a result yet goes back to Pending.
+    ///     After a cancelled run, only what did not get to run goes back to Pending: what was still
+    ///     waiting, and what was Skipped because of something upstream. A Failed or NeedsUser result from
+    ///     the same run is kept, so the user still sees what to fix.
     /// </summary>
     private void ResetUnfinished()
     {
@@ -393,7 +395,7 @@ public sealed class PreflightRunner
         {
             foreach (var entry in _entries)
             {
-                if (entry.Status.State is PreflightState.Passed or PreflightState.Warning or PreflightState.Cancelled)
+                if (entry.Status.State is not (PreflightState.Pending or PreflightState.Running or PreflightState.Skipped))
                     continue;
                 if (ResetToPending(entry)) changed.Add(entry.Status);
             }

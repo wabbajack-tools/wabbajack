@@ -219,14 +219,25 @@ internal sealed class WatchFolderSource : IAsyncDisposable
 
     private void OnChanged(object sender, FileSystemEventArgs e)
     {
-        _writer.TryWrite(e.FullPath.ToAbsolutePath());
+        Enqueue(e.FullPath);
     }
 
     private void OnRenamed(object sender, RenamedEventArgs e)
     {
-        _writer.TryWrite(e.FullPath.ToAbsolutePath());
+        Enqueue(e.FullPath);
         if (!string.IsNullOrEmpty(e.OldFullPath))
-            _writer.TryWrite(e.OldFullPath.ToAbsolutePath());
+            Enqueue(e.OldFullPath);
+    }
+
+    /// <summary>
+    ///     A browser writing a <c>.crdownload</c> raises a change per chunk; the extension check is a pure
+    ///     string test, so it runs here rather than making each of those a channel item.
+    /// </summary>
+    private void Enqueue(string fullPath)
+    {
+        var path = fullPath.ToAbsolutePath();
+        if (CandidateFile.IsPartialDownload(path, _options.PartialExtensions)) return;
+        _writer.TryWrite(path);
     }
 
     private void OnError(object sender, ErrorEventArgs e)

@@ -106,7 +106,8 @@ plain events (`CheckChanged`, `ArchiveChanged`, `ManualQueueChanged`, `RunFinish
 hosts project those however they like. The acquirer exposes `IObservable`s via `System.Reactive` (already
 a transitive dependency).
 
-Preflight owns downloading. Automated sources are WabbajackCDN, Http and premium Nexus; every other state
+Preflight downloads before the install starts; the installer's own download path in `AInstaller` remains
+until it is removed in a follow-up. Automated sources are WabbajackCDN, Http and premium Nexus; every other state
 becomes a manual download whose browser URL comes from `ManualDownloadUrls.TryGet`. Partition by **state
 type**, never by which downloader the dispatcher would choose. `ManualDownloadAcquirer` watches a folder
 (the user's Downloads by default, `KnownFolders.Downloads`) for files matching pending archives by size,
