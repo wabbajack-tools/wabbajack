@@ -58,6 +58,7 @@ public sealed class PreflightTestHost : IDisposable
         Limiter = new Resource<IInstaller>("Test installer", 4);
         Dispatcher = provider.GetRequiredService<DownloadDispatcher>();
         DownloadLimiter = provider.GetRequiredService<IResource<DownloadDispatcher>>();
+        Server = provider.GetRequiredService<FakeDownloadServer>();
         Acquirer = new ManualDownloadAcquirer(NullLogger<ManualDownloadAcquirer>.Instance, Cache, HashLimiter,
             Dispatcher, FastAcquirerOptions());
 
@@ -86,6 +87,9 @@ public sealed class PreflightTestHost : IDisposable
     public IResource<IInstaller> Limiter { get; }
     public DownloadDispatcher Dispatcher { get; }
     public IResource<DownloadDispatcher> DownloadLimiter { get; }
+
+    /// <summary>The bytes the fake downloaders serve; shared across the process, so key by unique URLs.</summary>
+    public FakeDownloadServer Server { get; }
 
     /// <summary>A real acquirer on fast timings, disposed with the host.</summary>
     public ManualDownloadAcquirer Acquirer { get; }

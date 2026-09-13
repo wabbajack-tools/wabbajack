@@ -1,3 +1,5 @@
+#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -19,13 +21,18 @@ public sealed class FakeDownloadPolicySource : IDownloadPolicySource
 
     public List<Archive> MirrorArchives { get; } = new();
 
+    /// <summary>When set, both loads throw it, as they would with no network.</summary>
+    public Exception? Throw { get; set; }
+
     public Task<ServerAllowList> AllowList(CancellationToken token)
     {
+        if (Throw != null) throw Throw;
         return Task.FromResult(AllowListValue);
     }
 
     public Task<ILookup<Hash, Archive>> Mirrors(CancellationToken token)
     {
+        if (Throw != null) throw Throw;
         return Task.FromResult(MirrorArchives.ToLookup(m => m.Hash));
     }
 }

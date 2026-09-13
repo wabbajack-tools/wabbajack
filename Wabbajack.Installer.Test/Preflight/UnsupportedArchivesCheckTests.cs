@@ -9,6 +9,7 @@ using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Installer.Preflight;
 using Wabbajack.Installer.Preflight.Checks;
 using Wabbajack.Installer.Test.Preflight.Fakes;
+using Wabbajack.Paths;
 using Xunit;
 
 namespace Wabbajack.Installer.Test.Preflight;
@@ -102,6 +103,24 @@ public class UnsupportedArchivesCheckTests : IDisposable
         Assert.Equal(PreflightState.Failed, result.State);
         Assert.Contains("1 Creation Club items", result.Message);
         Assert.Contains("1 archives come from an unsupported source", result.Message);
+    }
+
+    [Fact]
+    public async Task SourceWithNoDownloaderAndNoPageIsUnsupported()
+    {
+        var gameFile = await Missing("skyrim.esm",
+            new GameFileSource {Game = Game.SkyrimSpecialEdition, GameFile = "Data/Skyrim.esm".ToRelativePath()});
+        var manual = await Missing("manual.7z",
+            new Manual {Url = new Uri("https://example.invalid/manual.7z"), Prompt = ""});
+        var ctx = await ContextWithMissing(gameFile, manual);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Failed, result.State);
+        Assert.Contains("1 archives come from an unsupported source", result.Message);
+        Assert.Contains("GameFileSource", result.Detail);
+        Assert.Equal(new[] {"manual.7z"}, ctx.State.Missing.Select(a => a.Name));
+        Assert.Equal(ArchiveState.Unsupported, _progress.LastStates()["skyrim.esm"]);
     }
 
     [Fact]
