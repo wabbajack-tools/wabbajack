@@ -36,6 +36,7 @@ public partial class PreflightVM : ViewModel
     private readonly Dictionary<string, PreflightCheckVM> _byId = new(StringComparer.Ordinal);
     private readonly List<Task> _runs = new();
     private Task? _shutdown;
+    private Task? _watcherStopped;
     private int _runsInFlight;
     private bool _disposed;
 
@@ -235,6 +236,21 @@ public partial class PreflightVM : ViewModel
         }
     }
 
+    /// <summary>
+    ///     Starts the shutdown if it has not started yet, and completes once the manual download watcher has
+    ///     stopped, so nothing is left half-copied in the downloads folder. The watcher places files on its
+    ///     own threads, which is why this finishes even when the thread that called it is then blocked; the
+    ///     rest of the shutdown may still be unwinding. Idempotent.
+    /// </summary>
+    public Task StopWatcherAsync()
+    {
+        ShutdownAsync().FireAndForget();
+        lock (_runs)
+        {
+            return _watcherStopped ?? Task.CompletedTask;
+        }
+    }
+
     private async Task ShutdownCore()
     {
         _disposed = true;
@@ -244,7 +260,16 @@ public partial class PreflightVM : ViewModel
         ManualDownloads.Dispose();
         foreach (var check in _checks) check.Dispose();
 
+        // Off this thread on purpose: the watcher unwinds on its own threads, so it still finishes for a
+        // caller that blocks waiting on the shutdown, and the runs it no longer waits on cannot hold it up.
+        _watcherStopped = Task.Run(StopWatcher);
+
         await WaitForIdle();
+        await _watcherStopped;
+    }
+
+    private async Task StopWatcher()
+    {
         try
         {
             await _runner.Context.Acquirer.DisposeAsync();

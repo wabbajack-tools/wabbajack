@@ -118,6 +118,10 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     private readonly HttpClient _client;
     private readonly NexusLoginManager _nexusLoginManager;
     private CancellationTokenSource _cancellationTokenSource;
+
+    /// <summary>How long a shutdown gives the preflight download watcher to stop before it gives up on it.</summary>
+    private static readonly TimeSpan PreflightShutdownTimeout = TimeSpan.FromSeconds(5);
+
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
 
     [Reactive] public partial bool Installing { get; set; }
@@ -781,12 +785,28 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         preflight.Dispose();
     }
 
-    /// <summary>Stops a preflight in progress so the application can shut down without waiting on it.</summary>
+    /// <summary>
+    ///     Stops a preflight in progress so the application can shut down. The state stays at Preflight until
+    ///     the watcher has stopped or the wait runs out, so a caller watching for the install to end gives a
+    ///     copy in progress time to unwind instead of leaving a partial file behind. The state is cleared from
+    ///     whatever thread finishes the wait: the caller is blocking this one, so nothing posted to it would
+    ///     ever run.
+    /// </summary>
     public void CancelPreflightForShutdown()
     {
         if (InstallState != InstallState.Preflight) return;
-        DisposePreflight();
-        InstallState = InstallState.Configuration;
+
+        var preflight = Preflight;
+        Preflight = null;
+        if (preflight == null)
+        {
+            InstallState = InstallState.Configuration;
+            return;
+        }
+
+        preflight.StopWatcherAsync()
+            .WaitAsync(PreflightShutdownTimeout)
+            .ContinueWith(_ => InstallState = InstallState.Configuration, TaskScheduler.Default);
     }
 
     private async Task RunInstaller(InstallerConfiguration cfg)

@@ -471,9 +471,11 @@ public partial class MainWindowVM : ViewModel
 
         bool IsInstalling() => InstallerVM.InstallState is InstallState.Installing or InstallState.Preflight;
 
+        // Polled often enough that a preflight, which usually has nothing left to unwind, does not hold the
+        // process open for a whole tick after the window has gone.
         while (DateTime.Now < endTime && IsInstalling())
         {
-            Thread.Sleep(TimeSpan.FromSeconds(1));
+            Thread.Sleep(TimeSpan.FromMilliseconds(100));
         }
     }
 
