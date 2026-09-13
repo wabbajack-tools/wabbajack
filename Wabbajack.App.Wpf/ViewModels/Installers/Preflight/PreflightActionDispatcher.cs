@@ -34,7 +34,7 @@ public sealed class PreflightActionDispatcher
         switch (actionId)
         {
             case "login":
-                // The nexus-login check is re-run when NexusLoginManager.LoggedIn changes, so nothing waits
+                // The nexus-login check is re-run when NexusLoginManager refreshes its token, so nothing waits
                 // on the browser window here.
                 _nexusLogin.TriggerLogin.Execute(null);
                 break;

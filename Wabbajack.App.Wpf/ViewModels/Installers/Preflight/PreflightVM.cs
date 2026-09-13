@@ -88,8 +88,9 @@ public partial class PreflightVM : ViewModel
         events.Connect().DisposeWith(CompositeDisposable);
 
         // Both a completed login and a window closed without one land here; the check decides which it was.
-        nexusLogin.WhenAnyValue(x => x.LoggedIn)
-            .Skip(1)
+        // It follows the refresh rather than LoggedIn because LoggedIn is a local test of the stored token,
+        // and a token Nexus has revoked stays locally valid: logging in again would change nothing to watch.
+        nexusLogin.Refreshed
             .ObserveOnGuiThread()
             .Subscribe(_ => Run(t => _actions.Execute(PreflightCheckIds.NexusLogin, "retry", t)).FireAndForget())
             .DisposeWith(CompositeDisposable);

@@ -1,5 +1,7 @@
 using System;
+using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -22,6 +24,7 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
     private readonly ILogger<NexusLoginManager> _logger;
     private readonly ITokenProvider<NexusOAuthState> _token;
     private readonly IServiceProvider _serviceProvider;
+    private readonly Subject<Unit> _refreshed = new();
 
     public string SiteName { get; } = "Nexus Mods";
     public ICommand TriggerLogin { get; set; }
@@ -36,7 +39,15 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
 
     [Reactive]
     public partial bool LoggedIn { get; set; }
-    
+
+    /// <summary>
+    ///     Fires every time the stored token has been re-read, whether or not that changed
+    ///     <see cref="LoggedIn" />. A token this app still considers valid can have been revoked at the other
+    ///     end, so a login that leaves <see cref="LoggedIn" /> true is still news to anyone asking the API.
+    ///     Nothing is replayed, so a subscriber never sees the state it started with.
+    /// </summary>
+    public IObservable<Unit> Refreshed => _refreshed;
+
     public NexusLoginManager(ILogger<NexusLoginManager> logger, ITokenProvider<NexusOAuthState> token, IServiceProvider serviceProvider)
     {
         _logger = logger;
@@ -91,5 +102,6 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
         }
             
         LoggedIn = _token.HaveToken() && !(token?.OAuth?.IsExpired ?? true);
+        _refreshed.OnNext(Unit.Default);
     }
 }
