@@ -294,7 +294,7 @@ public partial class ManualDownloadsVM : ViewModel
             ManualDownloadState.Waiting => $"Found {candidate}, your browser is still writing it",
             ManualDownloadState.Verifying => $"Verifying {candidate} ({(int) (item.Progress.Value * 100)}%)",
             ManualDownloadState.Moved => $"Done, {item.Key} is in place",
-            ManualDownloadState.WrongFile => "That file doesn't match, wrong version? " + (item.Message ?? string.Empty),
+            ManualDownloadState.WrongFile => item.Message ?? "That file doesn't match the one this list needs",
             ManualDownloadState.Failed => item.Message ?? "Could not put the file in place",
             _ => item.Message ?? string.Empty
         };
