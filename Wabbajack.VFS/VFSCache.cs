@@ -24,9 +24,10 @@ public class VFSDiskCache : IVfsCache
 
     /// <summary>
     ///     One connection, one statement at a time. Archives are analyzed in parallel and each of them reads
-    ///     and writes through this connection while AddRoots finishing elsewhere runs Clean, a VACUUM that
-    ///     cannot start while another statement on the connection is open. System.Data.SQLite does not make a
-    ///     connection safe for concurrent commands; the loser of the race sees "SQL logic error".
+    ///     and writes through this connection while an AddRoots finishing elsewhere runs <see cref="Clean" />,
+    ///     a VACUUM that cannot start while another statement on the connection is still open; it fails with
+    ///     "SQL logic error". The lock has to cover every statement rather than only the vacuum, because what
+    ///     a vacuum needs is for nothing else to be in flight.
     /// </summary>
     private readonly SemaphoreSlim _lock = new(1, 1);
 

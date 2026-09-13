@@ -13,7 +13,8 @@ namespace Wabbajack.VFS.Test;
 /// <summary>
 ///     Indexing analyzes archives in parallel, and every one of them reads and writes this cache while an
 ///     AddRoots finishing on another thread runs Clean, which is a VACUUM. All of it goes through one SQLite
-///     connection, which can only run one statement at a time.
+///     connection, and a VACUUM cannot start while another statement on it is still open: without the lock in
+///     the cache this fails every run, in Clean, with "SQL logic error".
 /// </summary>
 public class VFSDiskCacheConcurrencyTests : IDisposable
 {

@@ -12,9 +12,9 @@ namespace Wabbajack.VFS.Test;
 
 /// <summary>
 ///     The cache holds one SQLite connection and is called from every hashing thread at once, while a purge
-///     or vacuum can arrive from another thread in the middle of a lookup. A connection cannot run two
-///     statements at the same time, and a VACUUM cannot start while a reader is open, which surfaced as
-///     "SQL logic error" from whichever caller lost the race.
+///     or vacuum can arrive from another thread in the middle of a lookup. A VACUUM cannot start while a
+///     reader on the same connection is still open: without the lock in the cache this fails every run, in
+///     VacuumDatabase, with "SQL logic error".
 /// </summary>
 public class FileHashCacheConcurrencyTests : IDisposable
 {

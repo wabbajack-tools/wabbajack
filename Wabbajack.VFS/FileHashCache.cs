@@ -17,10 +17,11 @@ public class FileHashCache
     private readonly AbsolutePath _location;
 
     /// <summary>
-    ///     One connection, one statement at a time. Hashing runs on every thread at once and each lookup,
-    ///     write and purge goes through the same connection, which System.Data.SQLite does not make safe for
-    ///     concurrent commands; VACUUM in particular refuses to run while another statement on the connection
-    ///     is still open, and the failure surfaces as "SQL logic error" in whichever caller lost the race.
+    ///     One connection, one statement at a time. Hashing runs on every thread at once and every lookup,
+    ///     write and purge goes through this one connection. A VACUUM cannot start while another statement on
+    ///     that connection is still open, and the VACUUM is the one that fails, with "SQL logic error". The
+    ///     lock has to cover every statement rather than only the vacuum, because what a vacuum needs is for
+    ///     nothing else to be in flight.
     /// </summary>
     private readonly SemaphoreSlim _lock = new(1, 1);
 
@@ -89,22 +90,45 @@ public class FileHashCache
         }
     }
 
+    /// <summary>
+    ///     Blocks until the connection is free. Callers that may be on the UI thread want
+    ///     <see cref="PurgeAsync" /> instead: blocking there while a lock holder is waiting to resume on that
+    ///     same thread would hang the application.
+    /// </summary>
     public void Purge(AbsolutePath path)
     {
         _lock.Wait();
         try
         {
-            using var cmd = new SQLiteCommand(_conn);
-            cmd.CommandText = "DELETE FROM HashCache WHERE Path = @path";
-            cmd.Parameters.AddWithValue("@path", path.ToString().ToLowerInvariant());
-            cmd.Prepare();
-
-            cmd.ExecuteNonQuery();
+            PurgeLocked(path);
         }
         finally
         {
             _lock.Release();
         }
+    }
+
+    private async Task PurgeAsync(AbsolutePath path)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            PurgeLocked(path);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    private void PurgeLocked(AbsolutePath path)
+    {
+        using var cmd = new SQLiteCommand(_conn);
+        cmd.CommandText = "DELETE FROM HashCache WHERE Path = @path";
+        cmd.Parameters.AddWithValue("@path", path.ToString().ToLowerInvariant());
+        cmd.Prepare();
+
+        cmd.ExecuteNonQuery();
     }
 
     private async Task Upsert(AbsolutePath path, long lastModified, Hash hash, long size)
@@ -184,7 +208,7 @@ public class FileHashCache
 
         if (result.LastModified != file.LastModifiedUtc().ToFileTimeUtc())
         {
-            Purge(file);
+            await PurgeAsync(file);
             return default;
         }
 
@@ -202,7 +226,7 @@ public class FileHashCache
 
         if (result.Size != size)
         {
-            Purge(file);
+            await PurgeAsync(file);
             return default;
         }
 
