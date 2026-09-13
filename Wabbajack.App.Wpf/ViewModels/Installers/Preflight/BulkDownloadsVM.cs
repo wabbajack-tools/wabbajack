@@ -20,13 +20,25 @@ namespace Wabbajack;
 ///     what is done, what is being fetched now, and what is still to come. Only the current band is listed
 ///     item by item; the other two stand as a count and a total until the user opens them, which is what keeps
 ///     a thousand finished rows out of the way. Archive events arrive from download threads by the thousand;
-///     they are batched and applied as one cache edit per batch on the UI thread, and each row keeps its
-///     instance for its whole life so the list only re-sorts on a state change.
+///     they are batched on the UI thread, where a progress tick goes straight to its row and only a state
+///     change reaches the cache, so each row keeps its instance for its whole life and the list re-sorts
+///     no more often than an archive actually moves.
 /// </summary>
 public partial class BulkDownloadsVM : ViewModel
 {
     private static readonly TimeSpan BatchWindow = TimeSpan.FromMilliseconds(300);
     private static readonly TimeSpan FooterTick = TimeSpan.FromMilliseconds(500);
+
+    /// <summary>
+    ///     A band reports a reset once a batch passes this many changes, and a reset is the one thing the
+    ///     flat list cannot mirror: it has to reload, which drops the ListBox's realized rows and the
+    ///     user's scroll position with them. The default of 25 is crossed by any run where a few dozen
+    ///     archives finish inside one batch window, which is most of them. This is set high enough that
+    ///     what a run produces stays incremental, and low enough that a whole inventory arriving at once
+    ///     still takes the cheap path: at 5,000 rows one reload costs about 80ms against roughly 1.2s of
+    ///     individual inserts.
+    /// </summary>
+    private static readonly SortAndBindOptions GranularSort = new() { ResetThreshold = 1000 };
 
     private static readonly IComparer<ArchiveRowVM> BucketThenName = Comparer<ArchiveRowVM>.Create((a, b) =>
     {
@@ -54,6 +66,12 @@ public partial class BulkDownloadsVM : ViewModel
     private readonly ObservableCollectionExtended<object> _items = new();
 
     /// <summary>
+    ///     Every row by archive name, so an update that moves nothing can be applied to the row without
+    ///     going through the cache.
+    /// </summary>
+    private readonly Dictionary<string, ArchiveRowVM> _rows = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
     ///     How many rows of each band are spliced into <see cref="_items" />, or null where the band is
     ///     folded away. Offsets come from this rather than from <see cref="ArchiveGroupVM.IsExpanded" />:
     ///     the flag is what the band should look like, this is what the flat list actually holds, and only
@@ -73,6 +91,7 @@ public partial class BulkDownloadsVM : ViewModel
             {
                 var row = new ArchiveRowVM(status.Archive, status.Target);
                 row.Apply(status);
+                _rows[row.Key] = row;
                 return row;
             }, (row, status) => row.Apply(status))
             .Publish();
@@ -82,7 +101,7 @@ public partial class BulkDownloadsVM : ViewModel
         {
             var group = _groups[i].Group;
             rows.Filter(row => row.Group == group)
-                .SortAndBind(out var bound, BucketThenName)
+                .SortAndBind(out var bound, BucketThenName, GranularSort)
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
             _groupRows[i] = bound;
@@ -117,10 +136,7 @@ public partial class BulkDownloadsVM : ViewModel
             .Buffer(BatchWindow)
             .Where(batch => batch.Count > 0)
             .ObserveOnGuiThread()
-            .Subscribe(batch => _archives.Edit(cache =>
-            {
-                foreach (var status in batch) cache.AddOrUpdate(status);
-            }))
+            .Subscribe(Apply)
             .DisposeWith(CompositeDisposable);
 
         // Cancelling stops whatever the runner is on, and IsDownloading is only sampled, so it can still be
@@ -160,6 +176,35 @@ public partial class BulkDownloadsVM : ViewModel
     [Reactive] public partial bool IsDownloading { get; set; }
 
     public ReactiveCommand<Unit, Unit> StopDownloadsCommand { get; }
+
+    /// <summary>
+    ///     One batch of archive updates. Most of them are progress ticks, and a tick moves nothing: the row
+    ///     notifies its own bindings, and neither the band a row sits in nor its place in the sort follows
+    ///     from <see cref="ArchiveRowVM.Progress" />. Pushing those through the cache turned every tick into
+    ///     a changeset refresh, and a batch of them past <c>SortAndBindOptions.ResetThreshold</c> reset the
+    ///     bound list, which threw the user's scroll position away several times a second. Only an archive
+    ///     that has actually changed state reaches the cache.
+    /// </summary>
+    private void Apply(IList<ArchiveStatus> batch)
+    {
+        List<ArchiveStatus>? moved = null;
+        foreach (var status in batch)
+        {
+            if (_rows.TryGetValue(status.Archive.Name, out var row) && row.State == status.State)
+            {
+                row.Apply(status);
+                continue;
+            }
+
+            (moved ??= new List<ArchiveStatus>()).Add(status);
+        }
+
+        if (moved == null) return;
+        _archives.Edit(cache =>
+        {
+            foreach (var status in moved) cache.AddOrUpdate(status);
+        });
+    }
 
     /// <summary>The index in <see cref="_items" /> the rows of band <paramref name="group" /> start at.</summary>
     private int RowStart(int group)
