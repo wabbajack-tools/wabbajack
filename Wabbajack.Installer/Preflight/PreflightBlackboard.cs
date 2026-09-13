@@ -40,7 +40,8 @@ public sealed class PreflightBlackboard
 {
     private readonly SemaphoreSlim _planLock = new(1, 1);
     private Archive[] _requiredArchives = Array.Empty<Archive>();
-    private DownloadPlan? _plan;
+    /// <summary>Volatile because the fast path below reads it without taking <see cref="_planLock" />.</summary>
+    private volatile DownloadPlan? _plan;
 
     /// <summary>
     ///     Set by nexus-login. Null when the list has no Nexus archives, in which case the download plan
@@ -57,7 +58,9 @@ public sealed class PreflightBlackboard
     /// <summary>
     ///     Set by archive-inventory: the archives this install will actually read, after pruning what an
     ///     existing install already has (see <c>RequiredArchives.Compute</c>). Writing it throws away the
-    ///     download plan, which was partitioned from the previous answer.
+    ///     download plan, which was partitioned from the previous answer, and the manual queue with it: the
+    ///     queue is what that plan sent to the browser, so keeping it would ask the user for files the new
+    ///     answer may no longer need.
     /// </summary>
     public Archive[] RequiredArchives
     {
@@ -66,6 +69,7 @@ public sealed class PreflightBlackboard
         {
             _requiredArchives = value;
             _plan = null;
+            ManualQueue = new List<ManualQueueItem>();
         }
     }
 

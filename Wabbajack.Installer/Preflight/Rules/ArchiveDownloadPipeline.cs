@@ -198,9 +198,10 @@ public sealed class ArchiveDownloadPipeline
     ///     download pass, and what they rule out reaches the manual queue in time for the check that walks
     ///     the user through it.
     /// </summary>
-    public async Task<Screening> Screen(IReadOnlyList<Archive> automated, DownloadPolicy policy)
+    public async Task<Screening> Screen(IReadOnlyList<Archive> automated, DownloadPolicy policy,
+        CancellationToken token)
     {
-        var ready = ApplyAllowList(await PrepareDownloaders(automated), policy.AllowList);
+        var ready = ApplyAllowList(await PrepareDownloaders(automated, token), policy.AllowList);
         lock (_sync)
         {
             return new Screening(ready, _manual.ToList(), _failed.ToList());
@@ -250,7 +251,11 @@ public sealed class ArchiveDownloadPipeline
         }
     }
 
-    private async Task<List<Archive>> PrepareDownloaders(IReadOnlyList<Archive> automated)
+    /// <summary>
+    ///     <c>IDownloader.Prepare</c> takes no token of its own, so a login round-trip already in flight runs
+    ///     to its end; cancelling stops the run before the next downloader is asked.
+    /// </summary>
+    private async Task<List<Archive>> PrepareDownloaders(IReadOnlyList<Archive> automated, CancellationToken token)
     {
         var byDownloader = new Dictionary<IDownloader, List<Archive>>();
         var ready = new List<Archive>();
@@ -269,6 +274,7 @@ public sealed class ArchiveDownloadPipeline
 
         foreach (var (downloader, archives) in byDownloader)
         {
+            token.ThrowIfCancellationRequested();
             bool prepared;
             try
             {

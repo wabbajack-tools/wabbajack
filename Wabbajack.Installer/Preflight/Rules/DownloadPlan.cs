@@ -11,9 +11,10 @@ namespace Wabbajack.Installer.Preflight.Rules;
 ///     How the missing archives divide between the automated downloaders and the user's browser, together
 ///     with the policy they were divided under. Both download checks read it and neither owns it: it is
 ///     computed by whichever of them asks first (manual-downloads, in the order they run) and memoised on
-///     the blackboard, because nothing in it can safely be done twice. The mirror reroute rewrites the
-///     archive states it touches, the Nexus probe is a network call, and a second split under a different
-///     answer would move archives between the two checks halfway through a run.
+///     the blackboard, because the split must not be taken twice under different answers: that would move
+///     archives between the two checks halfway through a run. The steps behind it are idempotent — the
+///     mirror reroute rewrites the archive states it touches, and the Nexus probe is a network call whose
+///     answer is recorded — so recomputing after a failure is safe.
 ///     <para>
 ///         The split by download state is only half the answer: an archive whose state is automated still
 ///         needs a downloader that can be prepared and a URL the allow-list permits, and neither takes a
@@ -104,7 +105,7 @@ public sealed record DownloadPlan(
                 $"{archive.State.GetType().Name} source, nothing can download it");
 
         // Screening reports what it turns away itself, in the same terms the download pass would have.
-        var screening = await pipeline.Screen(split.Automated, policy);
+        var screening = await pipeline.Screen(split.Automated, policy, token);
         var manual = split.Manual.Concat(screening.Manual).ToList();
 
         var plan = new DownloadPlan(policy, missing, screening.Ready, manual, split.Unsupported,
