@@ -138,7 +138,7 @@ public class AutomatedDownloadsCheckTests : IDisposable
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.NeedsUser, result.State);
-        Assert.StartsWith("0 downloaded, 1 still to fetch by hand", result.Message);
+        Assert.StartsWith("0 downloaded, 1 file still to fetch by hand", result.Message);
         Assert.Contains(PreflightAction.DownloadByHand, result.Actions!);
         Assert.Equal(0, _host.Server.Attempts(nexus.State));
         var item = QueueItem(ctx, "nexus.7z");
@@ -183,7 +183,7 @@ public class AutomatedDownloadsCheckTests : IDisposable
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.NeedsUser, result.State);
-        Assert.StartsWith("0 downloaded, 7 still to fetch by hand", result.Message);
+        Assert.StartsWith("0 downloaded, 7 files still to fetch by hand", result.Message);
         Assert.Equal(archives.Select(a => a.Name), ctx.State.ManualQueue.Select(q => q.Archive.Name));
         Assert.DoesNotContain(_host.Server.AllAttempts, k => k.Contains(_run));
         Assert.All(archives, a => Assert.Equal(ArchiveState.ManualRequired, _progress.LastStates()[a.Name]));
@@ -271,7 +271,7 @@ public class AutomatedDownloadsCheckTests : IDisposable
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.NeedsUser, result.State);
-        Assert.StartsWith("1 downloaded, 1 still to fetch by hand", result.Message);
+        Assert.StartsWith("1 downloaded, 1 file still to fetch by hand", result.Message);
         Assert.Equal(1, _host.Server.Attempts(allowed.State));
         Assert.Equal(0, _host.Server.Attempts(blocked.State));
         Assert.Contains("allow-list", QueueItem(ctx, "blocked.7z").Reason);
@@ -345,7 +345,7 @@ public class AutomatedDownloadsCheckTests : IDisposable
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.NeedsUser, result.State);
-        Assert.StartsWith("0 downloaded, 1 still to fetch by hand", result.Message);
+        Assert.StartsWith("0 downloaded, 1 file still to fetch by hand", result.Message);
         Assert.Equal(1, _host.Nexus.Calls);
         Assert.Equal(0, _host.Server.Attempts(mirror));
         var item = QueueItem(ctx, "rerouted.7z");

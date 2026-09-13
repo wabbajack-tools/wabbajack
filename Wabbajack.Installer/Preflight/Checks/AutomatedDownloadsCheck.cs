@@ -73,7 +73,7 @@ public sealed class AutomatedDownloadsCheck : IPreflightCheck
         var manual = ctx.State.ManualQueue;
         var message = manual.Count == 0
             ? $"{outcome.Downloaded.Count} downloaded"
-            : $"{outcome.Downloaded.Count} downloaded, {manual.Count} still to fetch by hand " +
+            : $"{outcome.Downloaded.Count} downloaded, {Plural.Of(manual.Count, "file")} still to fetch by hand " +
               $"({manual.Sum(m => m.Archive.Size).ToFileSizeString()})";
 
         var failed = outcome.Failed

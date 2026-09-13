@@ -248,7 +248,7 @@ public class DownloadOrderTests : IDisposable
 
         // Downloading it a second time would only send it to the queue a second time, so it is left there.
         Assert.Equal(PreflightState.NeedsUser, again.State);
-        Assert.StartsWith("0 downloaded, 1 still to fetch by hand", again.Message);
+        Assert.StartsWith("0 downloaded, 1 file still to fetch by hand", again.Message);
         Assert.Equal(1, _host.Server.Attempts(archive.State));
         Assert.Equal(new[] {"browser.7z"}, ctx.State.ManualQueue.Select(q => q.Archive.Name));
     }
