@@ -73,7 +73,7 @@ public sealed class GameFilesCheck : IPreflightCheck
         var mismatched = results.Where(r => r.outcome == Outcome.Mismatch).ToList();
 
         if (missing.Count == 0 && mismatched.Count == 0)
-            return PreflightResult.Passed($"{gameFiles.Length} game files verified");
+            return PreflightResult.Passed($"{Plural.Of(gameFiles.Length, "game file")} verified");
 
         var parts = new List<string>();
         var detail = new List<string>();
@@ -86,7 +86,7 @@ public sealed class GameFilesCheck : IPreflightCheck
             var versions = expected.Length > 0
                 ? $"built against {expected}; you have {actual ?? "an unknown version"}"
                 : $"you have {actual ?? "an unknown version"}";
-            parts.Add($"{mismatched.Count} game files don't match ({versions}): " +
+            parts.Add($"{Plural.Of(mismatched.Count, "game file doesn't match", "game files don't match")} ({versions}): " +
                       Summarise(mismatched.Select(m => m.archive.Name)));
             detail.Add("Mismatched:");
             detail.AddRange(mismatched.Select(m => "  " + m.archive.Name));
@@ -94,7 +94,7 @@ public sealed class GameFilesCheck : IPreflightCheck
 
         if (missing.Count > 0)
         {
-            parts.Add($"{missing.Count} game files are missing (missing DLC or a modified install?): " +
+            parts.Add($"{Plural.Of(missing.Count, "game file is missing", "game files are missing")} (missing DLC or a modified install?): " +
                       Summarise(missing.Select(m => m.Name)));
             detail.Add("Missing:");
             detail.AddRange(missing.Select(m => "  " + m.Name));

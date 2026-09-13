@@ -110,7 +110,7 @@ public class ManualDownloadsCheckTests : IDisposable
         var result = await run;
 
         Assert.Equal(PreflightState.Passed, result.State);
-        Assert.Equal("1 files downloaded by hand and verified", result.Message);
+        Assert.Equal("1 file downloaded by hand and verified", result.Message);
         var dest = _host.Config.Downloads.Combine("done.7z");
         Assert.True(dest.FileExists());
         Assert.Equal(dest, ctx.State.HashedArchives["done.7z"]);
@@ -209,8 +209,8 @@ public class ManualDownloadsCheckTests : IDisposable
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.NeedsUser, result.State);
-        Assert.StartsWith("1 files must be downloaded by hand", result.Message);
-        Assert.Contains("2 cannot be verified", result.Message);
+        Assert.StartsWith("1 file must be downloaded by hand", result.Message);
+        Assert.Contains("2 cannot be verified and are unsupported", result.Message);
         Assert.Contains("good.7z", result.Detail);
         Assert.Contains("nohash.7z", result.Detail);
         Assert.Contains("nosize.7z", result.Detail);

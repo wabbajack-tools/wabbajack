@@ -95,7 +95,7 @@ public class GameFilesCheckTests : IDisposable
         var result = await _check.Run(Context(), _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.Failed, result.State);
-        Assert.Contains("1 game files are missing", result.Message);
+        Assert.Contains("1 game file is missing", result.Message);
         Assert.Contains("Data_Dawnguard.esm", result.Message);
         Assert.Equal(ArchiveState.Missing, _progress.LastStates()["Data_Dawnguard.esm"]);
         Assert.Equal(ArchiveState.Present, _progress.LastStates()["Data_Skyrim.esm"]);
@@ -112,7 +112,7 @@ public class GameFilesCheckTests : IDisposable
         var result = await _check.Run(Context(), _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.Failed, result.State);
-        Assert.Contains("1 game files don't match", result.Message);
+        Assert.Contains("1 game file doesn't match", result.Message);
         Assert.Contains("built against 1.6.640; you have an unknown version", result.Message);
         Assert.Equal(ArchiveState.Failed, _progress.LastStates()["Data_Skyrim.esm"]);
         Assert.Contains("Mismatched:", result.Detail);

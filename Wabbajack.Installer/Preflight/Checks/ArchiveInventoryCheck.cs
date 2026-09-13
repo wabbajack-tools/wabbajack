@@ -70,8 +70,8 @@ public sealed class ArchiveInventoryCheck : IPreflightCheck
         ctx.State.RemainingDownloadBytes = missing.Sum(a => a.Size);
 
         var message = present == required.Length
-            ? $"All {required.Length} archives present"
-            : $"{present} of {required.Length} archives present, {missing.Count} to download " +
+            ? $"All {Plural.Of(required.Length, "archive")} present"
+            : $"{present} of {Plural.Of(required.Length, "archive")} present, {missing.Count} to download " +
               $"({ctx.State.RemainingDownloadBytes.ToFileSizeString()})";
         return PreflightResult.Passed(message);
     }

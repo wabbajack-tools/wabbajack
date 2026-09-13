@@ -67,7 +67,7 @@ public class UnsupportedArchivesCheckTests : IDisposable
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.Failed, result.State);
-        Assert.Contains("1 Creation Club items must be installed through the game before installing this list",
+        Assert.Contains("1 Creation Club item must be installed through the game before installing this list",
             result.Message);
         Assert.Equal(new[] {"http.7z"}, ctx.State.Missing.Select(a => a.Name));
         Assert.Equal(http.Size, ctx.State.RemainingDownloadBytes);
@@ -101,8 +101,8 @@ public class UnsupportedArchivesCheckTests : IDisposable
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.Failed, result.State);
-        Assert.Contains("1 Creation Club items", result.Message);
-        Assert.Contains("1 archives come from an unsupported source", result.Message);
+        Assert.Contains("1 Creation Club item must", result.Message);
+        Assert.Contains("1 archive comes from an unsupported source", result.Message);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public class UnsupportedArchivesCheckTests : IDisposable
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.Failed, result.State);
-        Assert.Contains("1 archives come from an unsupported source", result.Message);
+        Assert.Contains("1 archive comes from an unsupported source", result.Message);
         Assert.Contains("GameFileSource", result.Detail);
         Assert.Equal(new[] {"manual.7z"}, ctx.State.Missing.Select(a => a.Name));
         Assert.Equal(ArchiveState.Unsupported, _progress.LastStates()["skyrim.esm"]);

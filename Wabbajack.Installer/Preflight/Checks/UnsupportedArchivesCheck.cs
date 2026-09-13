@@ -44,9 +44,9 @@ public class UnsupportedArchivesCheck : IPreflightCheck
 
         var parts = new List<string>();
         if (creationClub > 0)
-            parts.Add($"{creationClub} Creation Club items must be installed through the game before installing this list");
+            parts.Add($"{Plural.Of(creationClub, "Creation Club item")} must be installed through the game before installing this list");
         if (other > 0)
-            parts.Add($"{other} archives come from an unsupported source and cannot be downloaded");
+            parts.Add($"{Plural.Of(other, "archive comes", "archives come")} from an unsupported source and cannot be downloaded");
 
         var detail = string.Join(Environment.NewLine, unsupported.Select(u => $"{u.Archive.Name}: {u.Reason}"));
         return Task.FromResult(PreflightResult.Failed(string.Join(". ", parts), detail));

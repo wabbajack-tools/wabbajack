@@ -35,7 +35,7 @@ public sealed class NexusLoginCheck : IPreflightCheck
         var size = nexus.Sum(a => a.Size).ToFileSizeString();
 
         if (!status.HasToken)
-            return PreflightResult.NeedsUser($"Log in to Nexus Mods to download {count} files ({size})",
+            return PreflightResult.NeedsUser($"Log in to Nexus Mods to download {Plural.Of(count, "file")} ({size})",
                 actions: new[] {PreflightAction.Login});
 
         if (!status.LoggedIn)
@@ -47,6 +47,6 @@ public sealed class NexusLoginCheck : IPreflightCheck
             return PreflightResult.Passed($"Logged in as {name} (Premium)");
 
         return PreflightResult.Passed(
-            $"Logged in as {name} - {count} Nexus files will be downloaded manually ({size})");
+            $"Logged in as {name} - {Plural.Of(count, "Nexus file")} will be downloaded manually ({size})");
     }
 }

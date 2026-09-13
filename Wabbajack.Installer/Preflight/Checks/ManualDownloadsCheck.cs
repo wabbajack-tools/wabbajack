@@ -90,7 +90,7 @@ public sealed class ManualDownloadsCheck : IPreflightCheck
         ctx.State.RemainingDownloadBytes = ctx.State.Missing.Sum(a => a.Size);
 
         if (outstanding.Count == 0 && unverifiable.Count == 0)
-            return PreflightResult.Passed($"{placed} files downloaded by hand and verified");
+            return PreflightResult.Passed($"{Plural.Of(placed, "file")} downloaded by hand and verified");
 
         var detail = Describe(outstanding);
         if (unverifiable.Count > 0)
@@ -101,12 +101,14 @@ public sealed class ManualDownloadsCheck : IPreflightCheck
 
         if (outstanding.Count == 0)
             return PreflightResult.Failed(
-                $"{unverifiable.Count} files cannot be verified after downloading and are unsupported", detail);
+                Plural.Of(unverifiable.Count, "file cannot be verified after downloading and is unsupported",
+                    "files cannot be verified after downloading and are unsupported"), detail);
 
         var size = outstanding.Sum(o => o.Archive.Size).ToFileSizeString();
-        var message = $"{outstanding.Count} files must be downloaded by hand ({size})";
+        var message = $"{Plural.Of(outstanding.Count, "file")} must be downloaded by hand ({size})";
         if (unverifiable.Count > 0)
-            message += $"; {unverifiable.Count} cannot be verified and are unsupported";
+            message += "; " + Plural.Of(unverifiable.Count, "cannot be verified and is unsupported",
+                "cannot be verified and are unsupported");
         return PreflightResult.NeedsUser(message, detail, new[] {PreflightAction.Rescan});
     }
 
