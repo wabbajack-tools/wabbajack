@@ -55,6 +55,8 @@ public class VFSDiskCache : IVfsCache
         if (hash == default)
             throw new ArgumentException("Cannot cache default hashes");
 
+        byte[]? contents = null;
+
         await _lock.WaitAsync(token);
         try
         {
@@ -63,18 +65,22 @@ public class VFSDiskCache : IVfsCache
             cmd.Parameters.AddWithValue("@hash", (long) hash);
 
             await using var rdr = await cmd.ExecuteReaderAsync(token);
-            while (await rdr.ReadAsync(token))
-            {
-                var data = IndexedVirtualFileExtensions.Read(rdr.GetStream(0));
-                return data;
-            }
-
-            return null;
+            if (await rdr.ReadAsync(token))
+                contents = (byte[]) rdr.GetValue(0);
         }
         finally
         {
             _lock.Release();
         }
+
+        if (contents == null) return null;
+
+        // Unpacked after the lock is released. The row is a gzipped tree of every file in the archive, and
+        // indexing reads this cache from every thread at once; decompressing under the lock would serialize
+        // the one part of the read that does not need the connection. Put compresses outside it for the same
+        // reason.
+        await using var ms = new MemoryStream(contents);
+        return IndexedVirtualFileExtensions.Read(ms);
     }
     
     public async Task Put(IndexedVirtualFile ivf, CancellationToken token)
